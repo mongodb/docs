@@ -1,0 +1,179 @@
+.. _system-users:
+
+===========================
+``system.users`` Collection
+===========================
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``system.users`` collection in the ``admin`` database stores user
+:ref:`authentication <authentication>` and :ref:`authorization
+<authorization>` information. To manage data in this collection,
+MongoDB provides :ref:`user management commands
+<user-management-commands>`.
+
+.. _admin-system-users-collection:
+.. _delegated-credentials:
+
+``system.users`` Schema
+-----------------------
+
+The documents in the ``system.users`` collection have the following
+schema:
+
+.. code-block:: javascript
+
+   {
+     _id: <system defined id>,
+     userId : <system assigned UUID>,  // Starting in MongoDB 4.0.9
+     user: "<name>",
+     db: "<database>",
+     credentials: { <authentication credentials> },
+     roles: [
+              { role: "<role name>", db: "<database>" },
+              ...
+            ],
+     customData: <custom information>,
+     authenticationRestrictions : [ <documents> ] // Starting in MongoDB 4.0
+    }
+
+Each ``system.users`` document has the following fields:
+
+.. data:: admin.system.users.userId
+
+   A unique identifier for the user assigned to the user upon creation.
+   
+   :data:`~admin.system.users.userId` is available for users
+   :method:`created <db.createUser()>` in MongoDB 4.0.9 and later.
+
+   .. versionadded:: 4.0.9
+
+.. data:: admin.system.users.user
+
+   The user name. A user exists in the context of a single logical
+   database (see :data:`admin.system.users.db`) but can have access on
+   other databases through roles specified in the
+   :data:`~admin.system.users.roles` array.
+
+.. data:: admin.system.users.db
+
+   The :ref:`authentication database <authentication-database>`
+   associated with the user. The user's privileges are not necessarily
+   limited to this database. The user can have privileges in additional
+   databases through the :data:`~admin.system.users.roles` array.
+
+.. data:: admin.system.users.credentials
+
+   User's authentication information. For users with externally stored
+   authentication credentials, such as users that use :doc:`Kerberos
+   </tutorial/control-access-to-mongodb-with-kerberos-authentication>`
+   or x.509 certificates for authentication, the ``system.users``
+   document for that user does not contain the
+   :data:`~admin.system.users.credentials` field. For
+   :ref:`authentication-scram` user credentials, the information
+   includes the mechanism,  iteration count, and authentication parameters.
+
+   .. seealso::
+
+      - :parameter:`scramSHA256IterationCount`
+      - :parameter:`scramIterationCount`
+
+.. data:: admin.system.users.roles
+
+   An array of roles granted to the user. The array contains both
+   :ref:`built-in roles <built-in-roles>` and :ref:`user-defined role
+   <user-defined-roles>`.
+
+   A role document has the following syntax:
+
+   .. code-block:: javascript
+
+      { role: "<role name>", db: "<database>" }
+
+   A role document has the following fields:
+
+   .. data:: admin.system.users.roles[n].role
+
+      The name of a role. A role can be a :ref:`built-in role
+      <built-in-roles>` provided by MongoDB or a :ref:`custom
+      user-defined role <user-defined-roles>`.
+
+   .. data:: admin.system.users.roles[n].db
+
+      The name of the database where role is defined.
+
+   When specifying a role using the :ref:`role management
+   <role-management-commands>` or :ref:`user management
+   <user-management-commands>` commands, you can specify the role name alone
+   (e.g. ``"readWrite"``) if the role that exists on the database on which
+   the command is run.
+
+.. data:: admin.system.users.customData
+
+   Optional custom information about the user.
+
+.. data:: admin.system.users.authenticationRestrictions
+
+   An array of authentication restrictions the server enforces for the
+   user. The array containsa list of IP addresses and CIDR ranges from
+   which the user is allowed to connect to the server or from which the
+   server can accept users.
+
+   .. versionadded:: 4.0
+
+Example
+-------
+
+
+Consider the following document in the ``system.users`` collection:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "home.Kari",
+      "userId" : UUID("ec1eced7-055a-4ca8-8737-60dd02c52793"),  // Available starting in MongoDB 4.0.9
+      "user" : "Kari",
+      "db" : "home",
+      "credentials" : {
+         "SCRAM-SHA-1" : {
+            "iterationCount" : 10000,
+            "salt" : "S/xM2yXFosynbCu4GzFDgQ==",
+            "storedKey" : "Ist4cgpEd1vTbnRnQLdobgmOsBA=",
+            "serverKey" : "e/0DyzS6GPboAA2YNBkGYm87+cg="
+         },
+         "SCRAM-SHA-256" : {
+            "iterationCount" : 15000,
+            "salt" : "p1G+fZadAeYAbECN8F/6TMzXGYWBaZ3DtWM0ig==",
+            "storedKey" : "LEgLOqZQmkGhd0owm/+6V7VdJUYJcXBhPUvi9z+GBfk=",
+            "serverKey" : "JKfnkVv9iXwxyc8JaapKVwLPy6SfnmB8gMb1Pr15T+s="
+         }
+      },
+      "authenticationRestrictions" : [                           // Available starting in MongoDB 4.0
+         { "clientSource" : [ "69.89.31.226" ], "serverAddress" : [ "172.16.254.1" ] }
+      ], 
+      "customData" : {
+         "zipCode" : "64157"
+      },
+      "roles" : [
+         {
+            "role" : "read",
+            "db" : "home"
+         },
+         {
+            "role" : "readWrite",
+            "db" : "test"
+         }
+      ]
+   }
+
+The document shows that a user ``Kari``'s authentication database is
+the ``home`` database. ``Kari`` has the :authrole:`read` role in the
+``home`` database, the :authrole:`readWrite` role in the ``test``
+database.

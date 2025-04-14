@@ -1,0 +1,268 @@
+stepnum: 1
+level: 4
+title: Deploy with x.509 Authentication
+stepnum: 2
+level: 4
+ref: deploy-x509
+content: |
+
+    .. _x509-deploy-tls:
+
+    .. tabs::
+
+       tabs:
+
+         - id: cmdline
+           name: Command Options
+           content: |
+
+              You can configure a :binary:`~bin.mongod` instance for x.509
+              authentication from the command-line.
+
+              To configure a standalone :binary:`~bin.mongod` instance, run
+              the following command:
+
+              .. code-block:: bash
+
+                 mongod --tlsMode requireTLS \
+                     --tlsCertificateKeyFile <path to TLS/SSL certificate and key PEM file> \
+                     --tlsCAFile <path to root CA PEM file> --bind_ip <hostnames>
+
+              Include additional options as required for your configuration.
+
+              The x.509 configuration requires:
+
+              .. list-table::
+                 :header-rows: 1
+                 :widths: 25 75
+
+                 * - Option
+                   - Notes
+
+                 * - :option:`--tlsMode <mongod --tlsMode>`
+
+                   - Specify ``requireTLS``.
+
+                 * - :option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>`
+
+                   - Specify the instance's x.509 certificate to present to
+                     clients.
+
+                 * - :option:`--tlsCAFile <mongod --tlsCAFile>`
+
+                   - Specify the Certificate Authority file to verify the
+                     certificates presented to the instance.
+
+         - id: cfg
+           name: Configuration File
+           content: |
+
+              You can configure a :binary:`~bin.mongod` for x.509
+              authentication in the :doc:`configuration file
+              </reference/configuration-options>`.
+
+              To configure a standalone :binary:`~bin.mongod` instance, add
+              the following configuration options to your configuration
+              file:
+
+              .. code-block:: yaml
+
+                 net:
+                    tls:
+                       mode: requireTLS
+                       certificateKeyFile: <path to TLS/SSL certificate and key PEM file>
+                       CAFile: <path to root CA PEM file>
+
+              Include additional options as required for your configuration.
+
+              The x.509 configuration requires:
+
+              .. list-table::
+                 :header-rows: 1
+                 :widths: 25 75
+
+                 * - Option
+                   - Notes
+
+                 * - :setting:`net.tls.mode`
+
+                   - Specify ``requireTLS``.
+
+                 * - :setting:`net.tls.certificateKeyFile`
+                   - Specify the instance's x.509 certificate to present to
+                     clients.
+
+                 * - :setting:`net.tls.CAFile`
+
+                   - Specify the Certificate Authority file to verify the
+                     certificates presented to the instance.
+
+    To set up x.509 authentication for replica sets or sharded clusters,
+    see :ref:`x509-internal-authentication`.
+
+---
+title: Add x.509 Certificate ``subject`` as a User
+stepnum: 2
+level: 4
+ref: x509-add-user
+content: |
+
+    .. _addX509SubjectUser:
+
+    To authenticate with a client certificate, you must first add the value
+    of the ``subject`` from the client certificate as a MongoDB user to the
+    ``$external`` database. Each unique x.509 client certificate
+    corresponds to a single MongoDB user. You cannot use a single client
+    certificate to authenticate more than one MongoDB user.
+
+    .. note:: Username Requirements
+
+       - .. include:: /includes/extracts/sessions-external-username-limit.rst
+
+       - The RDNs in the ``subject`` string must be compatible with the
+         `RFC2253 <https://www.ietf.org/rfc/rfc2253.txt>`_ standard.
+
+    #. You can retrieve the ``RFC2253`` formatted ``subject`` from the
+       client certificate with the following command:
+
+       .. code-block:: bash
+
+          openssl x509 -in <pathToClientPEM> -inform PEM -subject -nameopt RFC2253
+
+       The command returns the ``subject`` string and the certificate:
+
+       .. code-block:: bash
+
+          subject= CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry
+          -----BEGIN CERTIFICATE-----
+          # ...
+          -----END CERTIFICATE-----
+
+
+    #. Add the ``RFC2253`` compliant value of the ``subject`` as a user.
+       Omit spaces as needed.
+
+       The following example adds a user and grants the user
+       :authrole:`readWrite` role in the ``test`` database and the
+       :authrole:`userAdminAnyDatabase` role:
+
+       .. code-block:: javascript
+
+          db.getSiblingDB("$external").runCommand(
+            {
+              createUser: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry",
+              roles: [
+                   { role: "readWrite", db: "test" },
+                   { role: "userAdminAnyDatabase", db: "admin" }
+              ],
+              writeConcern: { w: "majority" , wtimeout: 5000 }
+            }
+          )
+
+       See :doc:`/tutorial/manage-users-and-roles` for details on adding a user
+       with roles.
+---
+title: Authenticate with a x.509 Certificate
+stepnum: 3
+level: 4
+ref: x509-authenticate
+content: |
+
+    .. _authenticate-with-x509-cert:
+
+    After you have :ref:`added the x.509 client certificate subject as a
+    corresponding MongoDB user <addX509SubjectUser>`, you can
+    authenticate with the client certificate:
+
+    .. tabs::
+
+       tabs:
+
+          - id: connect
+            name: Connect with Authentication
+            content: |
+
+               To authenticate during connection, run the following command:
+
+               .. code-block:: bash
+
+                  mongosh --tls --tlsCertificateKeyFile <path to client PEM file> \
+                      --tlsCAFile <path to root CA PEM file> \
+                      --authenticationDatabase '$external' \
+                      --authenticationMechanism MONGODB-X509
+
+               .. list-table::
+                  :header-rows: 1
+                  :widths: 30 70
+
+                  * - Option
+                    - Notes
+
+                  * - :option:`--tls <mongosh --tls>`
+                    -
+
+                  * - :option:`--tlsCertificateKeyFile <mongosh --tlsCertificateKeyFile>`
+                    - Specify the client's x.509 file.
+
+                  * - :option:`--tlsCAFile <mongosh --tlsCAFile>`
+
+                    - Specify the Certificate Authority file to verify the
+                      certificate presented by the :binary:`~bin.mongod`
+                      instance.
+
+                  * - :option:`--authenticationDatabase <mongosh --authenticationDatabase>`
+                    - Specify ``'$external'``.
+
+                  * - :option:`--authenticationMechanism <mongosh --authenticationMechanism>`
+                    - Specify ``MONGODB-X509``.
+
+          - id: authafter
+            name: Authenticate after Connection
+            content: |
+
+                You can connect without authentication and use the
+                :method:`db.auth()` method to authenticate after
+                connection.
+
+                For example, if using :binary:`~bin.mongosh`,
+
+                1. Connect :binary:`~bin.mongosh` to the
+                   :binary:`~bin.mongod`:
+
+                   .. code-block:: bash
+
+                      mongosh --tls --tlsCertificateKeyFile <path to client PEM file> \
+                          --tlsCAFile <path to root CA PEM file>
+
+                   .. list-table::
+                      :header-rows: 1
+                      :widths: 25 75
+
+                      * - Option
+                        - Notes
+
+                      * - :option:`--tls <mongosh --tls>`
+                        -
+
+                      * - :option:`--tlsCertificateKeyFile <mongosh --tlsCertificateKeyFile>`
+                        - Specify the client's x.509 file.
+
+                      * - :option:`--tlsCAFile <mongosh --tlsCAFile>`
+
+                        - Specify the Certificate Authority file to verify
+                          the certificate presented by the
+                          :binary:`~bin.mongod` or :binary:`~bin.mongos`
+                          instance.
+
+                #. To authenticate, use the :method:`db.auth()` method in
+                   the ``$external`` database. For the ``mechanism`` field,
+                   specify ``"MONGODB-X509"``.
+
+                   .. code-block:: javascript
+
+                      db.getSiblingDB("$external").auth(
+                        {
+                          mechanism: "MONGODB-X509"
+                        }
+                      )
+...

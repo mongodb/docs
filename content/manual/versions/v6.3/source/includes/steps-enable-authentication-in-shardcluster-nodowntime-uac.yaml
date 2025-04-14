@@ -1,0 +1,106 @@
+stepnum: 1
+title: Create the adminstrator user.
+level: 4
+ref: add-user-useradmin
+pre: |
+
+   Use the :method:`db.createUser()` method to create an administrator
+   user and assign it the following roles:
+
+   - :authrole:`clusterAdmin` on the ``admin`` database
+   - :authrole:`userAdmin` roles on the ``admin`` database
+
+   Clients performing maintenance operations or user administrative
+   operations on the {{CLUSTER}} must authenticate as this user
+   at the completion of this tutorial. Create this user now to ensure
+   that you have access to the cluster after enforcing authentication.
+
+action:
+  language: javascript
+  code: |
+    admin = db.getSiblingDB("admin");
+    admin.createUser(
+      {
+        user: "admin",
+        pwd: "<password>",
+        roles: [
+          { role: "clusterAdmin", db: "admin" },
+          { role: "userAdmin", db: "admin" }
+        ]
+      }
+    );
+
+post: |
+
+  .. important::
+
+     Passwords should be random, long, and complex to prevent or hinder
+     malicious access.
+
+replacement:
+  CLUSTER: "sharded cluster"
+---
+stepnum: 2
+title: "Create additional users for client applications."
+level: 4
+ref: shardcluster-add-clientuser
+optional: true
+pre: |
+
+  In addition to the administrator user, you can create additional
+  users before enforcing authentication.. This ensures access to the
+  sharded cluster once you fully enforce authentication.
+
+  .. example::
+
+     The following operation creates the user ``joe`` on the
+     ``marketing`` database, assigning to this user the
+     :authrole:`readWrite` role on the ``marketing`` database`.
+
+     .. code-block:: javascript
+
+        db.getSiblingDB("marketing").createUser(
+          {
+            "user": "joe",
+            "pwd": "<password>",
+            "roles": [ { "role" : "readWrite", "db" : "marketing" } ]
+          }
+        )
+
+     Clients authenticating as ``"joe"`` can perform read and write
+     operations on the ``marketing`` database.
+
+post: |
+  See :ref:`database-user-roles` for roles provided by MongoDB.
+
+  See the :ref:`Add Users <add-new-user>` tutorial for more information on
+  adding users. Consider :ref:`security best practices
+  <security-checklist-role-based-access-control>` when adding new users.
+---
+stepnum: 3
+level: 4
+title: "Update client applications to specify authentication credentials."
+optional: true
+ref: update-client-apps
+pre: |
+
+  While the sharded cluster does not currently enforce authentication, you can
+  still update client applications to specify authentication credentials when
+  connecting to the sharded cluster. This may prevent loss of connectivity at
+  the completion of this tutorial.
+
+  .. example::
+
+     The following operation connects to the sharded cluster using
+     :binary:`~bin.mongosh`, authenticating as the user ``joe`` on the
+     ``marketing`` database.
+
+     .. code-block:: javascript
+
+        mongosh  --username "joe" --password "<password>" \
+          --authenticationDatabase "marketing" --host mongos1.example.net:27017
+
+     If your application uses a MongoDB driver, see the associated
+     :driver:`driver </>` documentation for instructions on creating
+     an authenticated connection.
+...

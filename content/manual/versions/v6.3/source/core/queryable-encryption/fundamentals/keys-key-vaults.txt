@@ -1,0 +1,136 @@
+.. _qe-reference-keys-key-vaults:
+
+===================
+Keys and Key Vaults
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn details about the following components of
+{+qe+}:
+
+- {+key-vault-long+}s
+- {+dek-long+}s (DEK)
+- {+cmk-long+}s (CMK)
+
+To view step by step guides demonstrating how to use the preceding
+components to set up a {+qe+} enabled client, see the following resources:
+
+- :ref:`<qe-quick-start>`
+- :ref:`<qe-tutorial-automatic-encryption>`
+
+.. _qe-key-architecture:
+
+Keys
+----
+
+A **{+cmk-long+}** (CMK) is the key you use to encrypt your
+**{+dek-long+}s** (DEK). The CMK is the most sensitive key in {+qe+}.
+If your CMK is compromised, all of your encrypted data can be decrypted.
+
+.. include:: /includes/queryable-encryption/qe-warning-remote-kms.rst
+
+A {+dek-long+} (DEK) is the key you use to encrypt the fields in your MongoDB
+documents. You store your {+dek-long+} in your {+key-vault-long+} encrypted
+with your CMK. Without access to your CMK, your client application
+cannot decrypt your {+dek-long+} which in turn cannot decrypt your data.
+To learn more about {+key-vault-long+}s, see
+:ref:`<qe-reference-key-vault>`.
+
+.. important:: Deleting Keys
+
+   If you delete a {+dek-long+} (DEK), all fields encrypted with that DEK become
+   permanently unreadable.
+
+   If you delete a CMK, all fields encrypted with DEKs encrypted
+   with that CMK become permanently unreadable.
+
+To view diagrams detailing how your DEK, CMK, and {+key-vault-long+} interact
+in all supported Key Management Service (KMS) provider architectures, see
+:ref:`qe-fundamentals-kms-providers`.
+
+.. _qe-reference-key-vault:
+.. _qe-field-level-encryption-keyvault:
+
+{+key-vault-long-title+}s
+---------------------
+
+Your {+key-vault-long+} is the MongoDB collection you use to store
+**{+dek-long+} (DEK) documents**. DEK documents are BSON documents that
+contain {+dek-long+}s and have the following structure:
+
+.. dek structure from: https://github.com/mongodb/specifications/blob/master/source/client-side-encryption/client-side-encryption.rst#example-data-key-document
+
+.. literalinclude:: /includes/queryable-encryption/dek_document.json
+   :language: json
+
+You create your {+key-vault-long+} as you would a standard MongoDB collection.
+Your {+key-vault-long+} must have a
+:ref:`unique index <index-type-unique>` on the
+``keyAltNames`` field. To check if the unique index exists, you can run the
+:dbcommand:`listIndexes` command against the {+key-vault-long+}. If the
+unique index does not exist, applications must create it before
+performing DEK management.
+
+To learn how to create a MongoDB collection,
+see :ref:`Databases and Collections <collections>`.
+
+.. tip:: mongosh Feature
+
+   The :binary:`~bin.mongosh` method
+   :method:`KeyVault.createKey()` automatically creates a
+   unique index on the ``keyAltNames`` field if one does not exist.
+
+{+key-vault-long+} Name
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-csfle-qe-keyvault-name.rst
+
+Permissions
+~~~~~~~~~~~
+
+Applications with :authrole:`read` access to the {+key-vault-long+}
+can retrieve DEKs by querying the collection. However,
+only applications with access to the CMK used to encrypt a DEK
+can use that DEK for encryption or decryption.
+You must grant your application access to both the {+key-vault-long+} and
+your CMK to encrypt and decrypt documents with a DEK.
+
+To learn how to grant access to a MongoDB collection, see
+:manual:`Manage Users and Roles </tutorial/manage-users-and-roles/>`
+in the MongoDB manual.
+
+To learn how to grant your application access to your CMK, see the
+:ref:`<qe-tutorial-automatic-encryption>` tutorial.
+
+Key Vault Cluster
+~~~~~~~~~~~~~~~~~
+
+By default, MongoDB stores the {+key-vault-long+} on the connected
+cluster. MongoDB also supports hosting the {+key-vault-long+}
+on a different MongoDB deployment than the connected cluster.
+Applications must have access to both the cluster that hosts your
+{+key-vault-long+} and the connection cluster to perform {+qe+} operations.
+
+To specify the cluster that hosts your {+key-vault-long+}, use the
+``keyVaultClient`` field of your client's ``MongoClient`` object.
+To learn more about the {+qe+}-specific configuration options in your
+client's ``MongoClient`` object, see the
+:ref:`<qe-reference-mongo-client>` guide.
+
+Update a {+key-vault-long-title+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/in-use-encryption/update-a-key.rst
+
+To view a tutorial that shows how to create a {+dek-abbr+}, see
+the :ref:`Quick Start <qe-local-create-dek>`.

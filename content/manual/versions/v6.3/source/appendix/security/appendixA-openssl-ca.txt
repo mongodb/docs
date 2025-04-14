@@ -1,0 +1,173 @@
+.. _appendix-ca-certificate:
+
+===============================================
+Appendix A - OpenSSL CA Certificate for Testing
+===============================================
+
+.. default-domain:: mongodb
+
+.. warning:: Disclaimer
+
+
+   This page is provided for :red:`testing purposes` only and the
+   certificates are for :red:`testing purposes only`.
+   
+   The following tutorial provides some guidelines for creating 
+   :red:`test` x.509 certificates:
+
+   - Do not use these certificates for production. Instead, follow your
+     security policies.
+
+   - For information on OpenSSL, refer to the official OpenSSL docs.
+     Although this tutorial uses OpenSSL, the material should not be
+     taken as an authoritative reference on OpenSSL.
+
+Procedures
+----------
+
+The following procedures outlines the steps to create a :red:`test` CA PEM
+file. The procedure creates both the CA PEM file and an intermediate
+authority certificate and key files to sign server/client :red:`test`
+certificates.
+
+A. Create the OpenSSL Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Create a configuration file ``openssl-test-ca.cnf`` with the
+   following content:
+
+   .. code-block:: cfg
+      :emphasize-lines: 29,34,38,42,46
+
+      # NOT FOR PRODUCTION USE. OpenSSL configuration file for testing. 
+      
+      # For the CA policy
+      [ policy_match ]
+      countryName = match
+      stateOrProvinceName = match
+      organizationName = match
+      organizationalUnitName = optional
+      commonName = supplied
+      emailAddress = optional
+
+      [ req ]
+      default_bits = 4096
+      default_keyfile = myTestCertificateKey.pem    ## The default private key file name. 
+      default_md = sha256                           ## Use SHA-256 for Signatures
+      distinguished_name = req_dn
+      req_extensions = v3_req
+      x509_extensions = v3_ca # The extentions to add to the self signed cert
+
+      [ v3_req ]
+      subjectKeyIdentifier  = hash
+      basicConstraints = CA:FALSE
+      keyUsage = critical, digitalSignature, keyEncipherment
+      nsComment = "OpenSSL Generated Certificate for TESTING only.  NOT FOR PRODUCTION USE."
+      extendedKeyUsage  = serverAuth, clientAuth
+
+      [ req_dn ]
+      countryName = Country Name (2 letter code)
+      countryName_default = 
+      countryName_min = 2
+      countryName_max = 2
+
+      stateOrProvinceName = State or Province Name (full name)
+      stateOrProvinceName_default = TestCertificateStateName 
+      stateOrProvinceName_max = 64
+
+      localityName = Locality Name (eg, city)
+      localityName_default = TestCertificateLocalityName
+      localityName_max = 64
+
+      organizationName = Organization Name (eg, company)
+      organizationName_default = TestCertificateOrgName
+      organizationName_max = 64
+
+      organizationalUnitName = Organizational Unit Name (eg, section)
+      organizationalUnitName_default = TestCertificateOrgUnitName 
+      organizationalUnitName_max = 64
+
+      commonName = Common Name (eg, YOUR name)
+      commonName_max = 64
+
+      [ v3_ca ]
+      # Extensions for a typical CA
+
+      subjectKeyIdentifier=hash
+      basicConstraints = critical,CA:true
+      authorityKeyIdentifier=keyid:always,issuer:always
+
+#. *Optional*. You can update the default Distinguished Name (DN)
+   values.
+
+B. Generate the Test CA PEM File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Create the :red:`test` CA key file :file:`mongodb-test-ca.key`. 
+
+   .. code-block:: bash
+
+      openssl genrsa -out mongodb-test-ca.key 4096
+
+   .. tip::
+
+      This private key is used to generate valid certificates for the
+      CA. Although this private key, like all files in this appendix,
+      is intended for :red:`testing` purposes only, you should engage in good
+      security practices and secure this key file.
+
+#. Create the CA certificate :file:`mongod-test-ca.crt` using the
+   generated key file. When asked for Distinguished Name values, enter
+   the appropriate values for your :red:`test` CA certificate.
+
+   .. code-block:: bash
+
+      openssl req -new -x509 -days 1826 -key mongodb-test-ca.key -out mongodb-test-ca.crt -config openssl-test-ca.cnf
+
+#. Create the private key for the intermediate certificate.
+
+   .. code-block:: bash
+
+      openssl genrsa -out mongodb-test-ia.key 4096
+
+   .. tip::
+
+      This private key is used to generate valid certificates for the
+      intermediate authority. Although this private key, like all files
+      in this appendix, is intended for :red:`testing` purposes only, you
+      should engage in good security practices and secure this key file.
+
+#. Create the certificate signing request for the intermediate
+   certificate. When asked for Distinguished Name values, enter the
+   appropriate values for your :red:`test` Intermediate Authority certificate.
+
+   .. code-block:: bash
+
+      openssl req -new -key mongodb-test-ia.key -out mongodb-test-ia.csr -config openssl-test-ca.cnf
+
+#. Create the intermediate certificate :file:`mongodb-test-ia.crt`.
+
+   .. code-block:: bash
+
+      openssl x509 -sha256 -req -days 730 -in mongodb-test-ia.csr -CA mongodb-test-ca.crt -CAkey mongodb-test-ca.key -set_serial 01 -out mongodb-test-ia.crt -extfile openssl-test-ca.cnf -extensions v3_ca
+
+#. Create the :red:`test` CA PEM file from the :red:`test` CA certificate  :file:`mongod-test-ca.crt` and
+   :red:`test` intermediate certificate :file:`mongodb-test-ia.crt`.
+
+   .. code-block:: bash
+
+      cat mongodb-test-ia.crt mongodb-test-ca.crt > test-ca.pem
+
+You can use the :red:`test` PEM file when configuring :binary:`~bin.mongod`,
+:binary:`~bin.mongos`, or :binary:`~bin.mongosh` for TLS/SSL :red:`testing`.
+
+You can use the :red:`test` intermediate authority to sign the :red:`test`
+certificates for both the server(s) and client(s). A single authority
+must issue the certificates for both the client and the server.
+
+      
+
+.. seealso::
+
+   - :ref:`appendix-server-certificate`
+   - :ref:`appendix-client-certificate`

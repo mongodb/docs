@@ -1,0 +1,210 @@
+.. _ttl-collections:
+
+===========================================
+Expire Data from Collections by Setting TTL
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document provides an introduction to MongoDB's "*time to live*"
+or :term:`TTL` collection feature. TTL collections make it possible to
+store data in MongoDB and have the :binary:`~bin.mongod` automatically
+remove data after a specified number of seconds or at a specific clock
+time.
+
+Data expiration is useful for some classes of information, including
+machine generated event data, logs, and session information that only
+need to persist for a limited period of time.
+
+A special :ref:`TTL index property <index-feature-ttl>` supports the
+implementation of TTL collections. The TTL feature relies on a
+background thread in :binary:`~bin.mongod` that reads the date-typed values
+in the index and removes expired :term:`documents <document>` from the
+collection.
+
+.. include:: /includes/indexes/create-ttl-indexes.rst
+
+.. note::
+
+   The TTL index is a single field index. Compound indexes do not
+   support the TTL property. For more information on TTL indexes, see
+   :ref:`index-feature-ttl`.
+
+You can modify the ``expireAfterSeconds`` of an existing TTL index
+using the :dbcommand:`collMod` command.
+
+Expire Documents after a Specified Number of Seconds
+----------------------------------------------------
+
+To expire data after a specified number of seconds has passed since the
+indexed field, create a TTL index on a field that holds values of BSON
+date type or an array of BSON date-typed objects *and* specify a
+positive non-zero value in the ``expireAfterSeconds`` field. A document
+will expire when the number of seconds in the ``expireAfterSeconds``
+field has passed since the time specified in its indexed field.
+[#field-is-array-of-dates]_
+
+.. include:: includes/expireAfterSeconds-range.rst
+
+For example, the following operation creates an index on the
+``log_events`` collection's ``createdAt`` field and specifies the
+``expireAfterSeconds`` value of ``10`` to set the expiration time to
+be ten seconds after the time specified by ``createdAt``.
+
+.. code-block:: javascript
+
+   db.log_events.createIndex( { "createdAt": 1 }, { expireAfterSeconds: 10 } )
+
+When adding documents to the ``log_events`` collection, set the
+``createdAt`` field to the current time:
+
+.. code-block:: javascript
+
+   db.log_events.insertOne( {
+      "createdAt": new Date(),
+      "logEvent": 2,
+      "logMessage": "Success!"
+   } )
+
+MongoDB will automatically delete documents from the ``log_events``
+collection when the document's ``createdAt`` value
+[#field-is-array-of-dates]_ is older than the number of seconds
+specified in ``expireAfterSeconds``.
+
+.. [#field-is-array-of-dates] If the field contains an array of BSON
+   date-typed objects, data expires if at least one of BSON date-typed
+   object is older than the number of seconds specified in
+   ``expireAfterSeconds``.
+
+Expire Documents at a Specific Clock Time
+-----------------------------------------
+
+To expire documents at a specific clock time, begin by creating a TTL
+index on a field that holds values of BSON date type or an array of
+BSON date-typed objects *and* specify an ``expireAfterSeconds`` value
+of ``0``. For each document in the collection, set the indexed date
+field to a value corresponding to the time the document should expire.
+If the indexed date field contains a date in the past, MongoDB
+considers the document expired.
+
+For example, the following operation creates an index on the
+``log_events`` collection's ``expireAt`` field and specifies the
+``expireAfterSeconds`` value of ``0``:
+
+.. code-block:: javascript
+
+   db.log_events.createIndex( { "expireAt": 1 }, { expireAfterSeconds: 0 } )
+
+For each document, set the value of ``expireAt`` to correspond to the
+time the document should expire. For example, the following
+:method:`~db.collection.insertOne()` operation adds a document that
+expires at ``July 22, 2013 14:00:00``.
+
+.. code-block:: javascript
+
+   db.log_events.insertOne( {
+      "expireAt": new Date('July 22, 2013 14:00:00'),
+      "logEvent": 2,
+      "logMessage": "Success!"
+   } )
+
+MongoDB will automatically delete documents from the ``log_events``
+collection when the documents' ``expireAt`` value is older than the
+number of seconds specified in ``expireAfterSeconds``, i.e. ``0``
+seconds older in this case. As such, the data expires at the specified
+``expireAt`` value.
+
+.. _expireData-warning:
+
+Indexes Configured Using NaN
+----------------------------
+
+.. warning::
+ 
+   Possible Data Loss
+
+   When a TTL index has ``expireAfterSeconds`` set to ``NaN``, upgrade,
+   downgrade, and certain syncing operations can lead to unexpected
+   behavior and possible data loss.
+
+Do not set ``expireAfterSeconds`` to ``NaN`` in your TTL index
+configuration.
+
+Prior to MongoDB 5.0, when a TTL index has ``expireAfterSeconds`` set to
+``NaN``, MongoDB logs an error and does not remove any records.
+
+From MongoDB 5.0.0 - 5.0.13 (and 6.0.0 - 6.0.1), ``NaN`` is treated as
+``0``. If a TTL index is configured with ``expireAfterSeconds`` set to
+``NaN``, all TTL-indexed documents expire immediately.
+
+.. include:: /includes/indexes/expireAfterSeconds-versions.rst
+
+However, there are still some situations which may result in unexpected
+behavior. Documents may expire:
+
+- During an initial sync to an earlier version from MongoDB 5.0.0 -
+  5.0.13 (or 6.0.0 - 6.0.1).
+- When upgrading from an earlier version to MongoDB 5.0.0 - 5.0.13.
+- When restoring a collection from a pre-5.0 :binary:`~bin.mongodump`
+  into a MongoDB 5.0.0 - 5.0.13 (or 6.0.0 - 6.0.1) instance.
+
+To avoid problems, either drop or correct any misconfigured TTL indexes.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify misconfigured indexes.
+    
+      Run the following script in the :binary:`mongosh` shell. The
+      script does not work in the legacy ``mongo`` shell.
+
+      .. code-block:: javascript
+
+         function getNaNIndexes() {
+           const nan_index = [];
+          
+           const dbs = db.adminCommand({ listDatabases: 1 }).databases;
+          
+           dbs.forEach((d) => {
+             const listCollCursor = db
+               .getSiblingDB(d.name)
+               .runCommand({ listCollections: 1 }).cursor;
+          
+             const collDetails = {
+               db: listCollCursor.ns.split(".$cmd")[0],
+               colls: listCollCursor.firstBatch.map((c) => c.name),
+             };
+          
+             collDetails.colls.forEach((c) =>
+               db
+                 .getSiblingDB(collDetails.db)
+                 .getCollection(c)
+                 .getIndexes()
+                 .forEach((entry) => {
+                   if (Object.is(entry.expireAfterSeconds, NaN)) {
+                     nan_index.push({ ns: `${collDetails.db}.${c}`, index: entry });
+                   }
+                 })
+             );
+           });
+          
+           return nan_index;
+         };
+
+         getNaNIndexes();
+
+   .. step:: Correct misconfigured indexes.
+ 
+      Use the :dbcommand:`collMod` command to update any misconfigured
+      ``expireAfterSeconds`` values that the script found. 
+      
+      As an alternative, you can :dbcommand:`drop <dropIndexes>` any
+      misconfigured TTL indexes and recreate them later using the
+      :dbcommand:`createIndexes` command. 
+

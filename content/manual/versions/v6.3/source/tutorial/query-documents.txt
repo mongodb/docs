@@ -1,0 +1,630 @@
+.. include:: /includes/java-sync-links.rst
+.. include:: /includes/java-async-links.rst
+
+.. _read-operations-query-document:
+.. _read-operations-queries:
+
+===============
+Query Documents
+===============
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: MongoDB  Manual. How do I query documents, query top level fields, perform equality match, query with query operators, specify compound query conditions.
+   :keywords: query, select from collection, select all, select conditions, filters, select where, criteria, greater than, less than, MongoDB Manual
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu in the
+upper-right to set the language of the following examples.
+
+----------
+
+.. tabs-selector:: drivers
+
+.. |query_operations| replace:: query operations
+
+.. include:: /includes/driver-examples/driver-example-query-intro.rst
+
+.. include:: /includes/driver-examples/driver-example-query-6.rst
+
+Select All Documents in a Collection
+------------------------------------
+
+.. include:: /includes/driver-examples/driver-example-query-find-method.rst
+
+.. include:: /includes/driver-examples/driver-example-query-7.rst
+
+This operation uses a filter predicate of ``{}``, which corresponds to
+the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+         For more information on the syntax of the method, see
+         :method:`~db.collection.find()`.
+
+     - id: compass
+       content: |
+         For more information on the MongoDB Compass query bar, see
+         :ref:`Query Bar <compass-query-bar>`.
+
+     - id: python
+       content: |
+         For more information on the syntax of the method, see
+         :py:meth:`~pymongo.collection.Collection.find`.
+
+     - id: java-sync
+       content: |
+         For more information on the syntax of the method, see
+         com.mongodb.client.MongoCollection.find_.
+
+     - id: java-async
+       content: |
+         For more information on the syntax of the method, see
+         `com.mongodb.reactivestreams.client.MongoCollection.find
+         <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/MongoCollection.html#find()>`_.
+
+     - id: nodejs
+       content: |
+
+         To see supported options for the ``find()`` method, see
+         :node-api:`find() <Collection.html#find>`.
+
+     - id: php
+       content: |
+         For more information on the syntax of the method, see
+         :phpmethod:`find() <phpmethod.MongoDB\\Collection::find()>`.
+
+     - id: perl
+       content: |
+         For more information on the syntax of the method, see
+         :perl-api:`find()<Collection#find>`.
+
+     - id: ruby
+       content: |
+         For more information on the syntax of the method, see
+         :ruby-api:`find()<Collection.html#find-instance_method>`.
+
+     - id: scala
+       content: |
+         For more information on the syntax of the method, see
+         :scala-api:`collection.find()<find[C](filter:org.mongodb.scala.bson.conversions.Bson)(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.FindObservable[C]>`.
+
+     - id: csharp
+       content: |
+         For more information on the syntax of the method, see
+         :csharp-api:`Find() <M_MongoDB_Driver_MongoCollection_1_Find>`.
+
+.. _read-operations-query-argument:
+
+Specify Equality Condition
+--------------------------
+
+.. include:: /includes/extracts/filter-equality.rst
+
+The following example selects from the ``inventory`` collection all
+documents where the ``status`` equals ``"D"``:
+
+.. include:: /includes/driver-examples/driver-example-query-9.rst
+
+This operation uses a filter predicate of ``{ status: "D" }``, which
+corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "D"
+
+.. tabs-drivers::
+
+   tabs:
+     - id: compass
+       content: |
+         .. note::
+
+            The |compass| query bar autocompletes the current query
+            based on the keys in your collection's documents, including
+            keys in embedded sub-documents.
+
+Specify Conditions Using Query Operators
+----------------------------------------
+
+.. include:: /includes/extracts/filter-query-operators.rst
+
+The following example retrieves all documents from the ``inventory``
+collection where ``status`` equals either ``"A"`` or ``"D"``:
+
+.. include:: /includes/driver-examples/driver-example-query-10.rst
+
+.. note::
+
+   Although you can express this query using the :query:`$or` operator,
+   use the :query:`$in` operator rather than the :query:`$or`
+   operator when performing equality checks on the same field.
+
+The operation uses a filter predicate of
+``{ status: { $in: [ "A", "D" ] } }``, which corresponds to the
+following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status in ("A", "D")
+
+Refer to the :doc:`/reference/operator/query` document for the complete
+list of MongoDB query operators.
+
+Specify ``AND`` Conditions
+--------------------------
+
+A compound query can specify conditions for more than one field in the
+collection's documents. Implicitly, a logical ``AND`` conjunction
+connects the clauses of a compound query so that the query selects the
+documents in the collection that match all the conditions.
+
+The following example retrieves all documents in the ``inventory``
+collection where the ``status`` equals ``"A"`` **and** ``qty`` is less
+than (:query:`$lt`) ``30``:
+
+.. include:: /includes/driver-examples/driver-example-query-11.rst
+
+The operation uses a filter predicate of
+``{ status: "A", qty: { $lt: 30 } }``, which corresponds to the
+following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "A" AND qty < 30
+
+See :ref:`comparison operators <query-selectors-comparison>` for other
+MongoDB comparison operators.
+
+Specify ``OR`` Conditions
+--------------------------
+
+Using the :query:`$or` operator, you can specify a compound query
+that joins each clause with a logical ``OR`` conjunction so that the
+query selects the documents in the collection that match at least one
+condition.
+
+The following example retrieves all documents in the collection where
+the ``status`` equals ``"A"`` **or** ``qty`` is less than
+(:query:`$lt`) ``30``:
+
+.. include:: /includes/driver-examples/driver-example-query-12.rst
+
+The operation uses a filter predicate of
+``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``, which
+corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "A" OR qty < 30
+
+.. note::
+
+   Queries that use :ref:`comparison operators
+   <query-selectors-comparison>` are subject to :ref:`type-bracketing`.
+
+Specify ``AND`` as well as ``OR`` Conditions
+--------------------------------------------
+
+In the following example, the compound query document selects all
+documents in the collection where the ``status`` equals ``"A"``
+**and** *either* ``qty`` is less than (:query:`$lt`) ``30`` *or*
+``item`` starts with the character ``p``:
+
+.. include:: /includes/driver-examples/driver-example-query-13.rst
+
+The operation uses a filter predicate of:
+
+.. code-block:: javascript
+   
+   {
+      status: 'A',
+      $or: [
+        { qty: { $lt: 30 } }, { item: { $regex: '^p' } }
+      ]
+   }
+   
+which corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "A" AND ( qty < 30 OR item LIKE "p%")
+
+.. note::
+
+   MongoDB supports regular expressions :query:`$regex` queries to
+   perform string pattern matches.
+
+Additional Query Tutorials
+--------------------------
+
+For additional query examples, see:
+
+- :doc:`/tutorial/query-embedded-documents`
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents`
+
+- :doc:`/tutorial/project-fields-from-query-results`
+
+- :doc:`/tutorial/query-for-null-fields`
+
+Behavior
+--------
+
+Cursor
+~~~~~~
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+         The :method:`db.collection.find()` method
+         returns a :doc:`cursor </tutorial/iterate-a-cursor>` to the matching
+         documents.
+
+     - id: compass
+       content: |
+         The MongoDB Compass :guilabel:`Find` operation opens a
+         :doc:`cursor </tutorial/iterate-a-cursor>` to the matching
+         documents of the collection based on the find query.
+
+         For more information on sampling in MongoDB Compass, see the
+         :ref:`Compass FAQ <compass-faq>`.
+
+     - id: python
+       content: |
+         The :py:meth:`pymongo.collection.Collection.find` method
+         returns a :doc:`cursor </tutorial/iterate-a-cursor>` to the
+         matching documents. See the PyMongo documentation for
+         `iterating over a cursor <https://pymongo.readthedocs.io/en/stable/tutorial.html#querying-for-more-than-one-document>`__.
+
+     - id: java-sync
+       content: |
+         The com.mongodb.client.MongoCollection.find_ method returns an
+         instance of the com.mongodb.client.FindIterable_ interface.
+
+     - id: java-async
+       content: |
+         `com.mongodb.reactivestreams.client.MongoCollection.find
+         <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/MongoCollection.html#find()>`_
+         returns an instance of the `com.mongodb.reactivestreams.client.FindPublisher <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/FindPublisher.html>`_
+         interface.
+
+     - id: nodejs
+       content: |
+         The :node-api:`Collection.find() <Collection.html#find>` method
+         returns a :node-api:`cursor <Cursor.html>`.
+
+     - id: php
+       content: |
+         The :phpmethod:`MongoDB\\Collection::find() <phpmethod.MongoDB\\Collection::find()>`
+         method returns a :doc:`cursor </tutorial/iterate-a-cursor>` to
+         the matching documents. See the MongoDB PHP Library
+         documentation for
+         :ref:`iterating over a cursor <php-find-many-documents>`.
+
+     - id: perl
+       content: |
+         The :perl-api:`MongoDB::Collection::find()<Collection#find>`
+         method returns a :doc:`cursor </tutorial/iterate-a-cursor>` to
+         the matching documents. See the MongoDB Perl driver
+         documentation for
+         `iterating over a cursor <https://metacpan.org/pod/distribution/MongoDB/lib/MongoDB/Tutorial.pod#Cursors>`__.
+
+     - id: ruby
+       content: |
+         The :ruby-api:`Mongo::Collection#find()<Collection.html#find-instance_method>`
+         method returns a :ruby-api:`CollectionView<Collection/View.html>`,
+         which is an ``Enumerable``. A :ruby-api:`Cursor<Cursor.html>` is
+         created when the ``View`` is enumerated; for example, by calling
+         ``#to_a()`` or ``#each()``. You can also get an ``Enumerator`` by calling
+         ``#to_enum()`` on the ``View``. See the Ruby driver API documentation
+         for `iterating over a cursor
+         <http://api.mongodb.com/ruby/current/Mongo/Cursor.html#each-instance_method>`__.
+
+     - id: scala
+       content: |
+         The :scala-api:`collection.find()<find[C](filter:org.mongodb.scala.bson.conversions.Bson)(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.FindObservable[C]>`
+         method returns the find `Observable <http://mongodb.github.io/mongo-scala-driver/2.1/reference/observables/>`_.
+
+     - id: csharp
+       content: |
+         The :csharp-api:`MongoCollection.Find() <M_MongoDB_Driver_MongoCollection_1_Find>`
+         method returns a :doc:`cursor </tutorial/iterate-a-cursor>` to
+         the matching documents. See the MongoDB C# driver
+         documentation for
+         :csharp-docs:`iterating over a cursor <driver/crud/reading/#finding-documents>`.
+
+     - id: go
+       content: |
+
+          The :go-api:`Collection.Find <mongo#Collection.Find>`
+          function returns a :go-api:`Cursor <mongo#Cursor>` to the
+          matching documents. See the :go-api:`Cursor <mongo#Cursor>`
+          documentation for more information.
+           
+Read Isolation
+~~~~~~~~~~~~~~
+
+For reads to :ref:`Replica sets <replication>` and replica set
+:ref:`shards <sharding-background>`, read concern allows clients to choose a
+level of isolation for their reads. For more information, see
+:doc:`/reference/read-concern`.
+
+Query Result Format
+~~~~~~~~~~~~~~~~~~~
+
+When you run a find operation with a MongoDB driver or ``mongosh``, the
+command returns a :term:`cursor` that manages query results. The query
+results are not returned as an array of documents.
+
+To learn how to iterate through documents in a cursor, refer to your
+:driver:`driver's documentation </>`. If you are using ``mongosh``, see
+:ref:`read-operations-cursors`.
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - :method:`db.collection.findOne`
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries.
+
+         .. note::
+            The :method:`db.collection.findOne()` method also performs a read
+            operation to return a single document. Internally, the
+            :method:`db.collection.findOne()` method is the
+            :method:`db.collection.find()` method with a limit of 1.
+
+     - id: compass
+       content: |
+
+         Additional Options
+         ------------------
+
+         In addition to ``filter``, MongoDB Compass also allows the
+         following options to be passed to the query bar:
+
+         .. list-table::
+           :widths: 25 75
+
+           * - :compass:`Project </query-bar/#query-bar-project>`
+
+             - Specify which fields to return in the resulting data.
+
+           * - :compass:`Sort </query-bar/#query-bar-sort>`
+
+             - Specify the sort order of the returned documents.
+
+           * - :compass:`Skip </query-bar/#query-bar-skip>`
+
+             - Specify the first n-number of document to skip before returning the result set.
+
+           * - :compass:`Limit </query-bar/#query-bar-limit>`
+
+             - Specify the maximum number of documents to return.
+
+     - id: python
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - :py:meth:`pymongo.collection.Collection.find_one`
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries. See the `PyMongo Aggregation Examples <https://pymongo.readthedocs.io/en/stable/examples/aggregation.html>`_.
+
+         .. note::
+            The :py:meth:`pymongo.collection.Collection.find_one`
+            method also performs a read operation to return a single
+            document. Internally, the
+            :py:meth:`pymongo.collection.Collection.find_one` method is
+            the :py:meth:`pymongo.collection.Collection.find` method
+            with a limit of 1.
+
+     - id: java-sync
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - In the :ref:`aggregation pipeline <aggregation-pipeline>`,
+           the :pipeline:`$match` pipeline stage provides access to
+           MongoDB queries. See the `Java Synchronous Driver Aggregation
+           Examples`_.
+
+     - id: java-async
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`,
+           the :pipeline:`$match` pipeline stage provides access to
+           MongoDB queries. See `com.mongodb.reactivestreams.client.MongoCollection.aggregate
+           <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/MongoCollection.html#aggregate(java.util.List)>`_
+           for more information.
+
+     - id: nodejs
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - :node-api:`Collection.findOne() <Collection.html#findOne>`
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries. See the MongoDB Node.js Driver's
+           :node-docs:`aggregation tutorial<tutorials/aggregation/>`.
+
+         .. note::
+            The :node-api:`Collection.findOne() <Collection.html#findOne>`
+            method also performs a read operation to return a single
+            document. Internally, the
+            :node-api:`Collection.findOne() <Collection.html#findOne>`
+            method is the
+            :node-api:`Collection.find() <Collection.html#find>` method
+            with a limit of 1.
+
+     - id: php
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - :phpmethod:`MongoDB\\Collection::findOne() <phpmethod.MongoDB\\Collection::findOne()>`
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries. See the MongoDB PHP Library's
+           :ref:`aggregation example <php-aggregation>`.
+
+         .. note::
+            The :phpmethod:`MongoDB\\Collection::findOne() <phpmethod.MongoDB\\Collection::findOne>`
+            method also performs a read operation to return a single
+            document. Internally, the
+            :phpmethod:`MongoDB\\Collection::findOne() <phpmethod.MongoDB\\Collection::findOne>`
+            method is the
+            :phpmethod:`MongoDB\\Collection::find() <phpmethod.MongoDB\\Collection::find>`
+            method with a limit of 1.
+
+     - id: perl
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - :perl-api:`MongoDB::Collection::find_one()<Collection#find_one>`
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries. See the MongoDB Perl driver's
+           `aggregation examples <https://metacpan.org/pod/distribution/MongoDB/lib/MongoDB/Examples.pod#AGGREGATION>`__.
+
+         .. note::
+            The :perl-api:`MongoDB::Collection::find_one()<Collection#find_one>`
+            method also performs a read operation to return a single
+            document. Internally, the
+            :perl-api:`MongoDB::Collection::find_one()<Collection#find_one>`
+            method is the
+            :perl-api:`MongoDB::Collection::find()<Collection#find>`
+            method with a limit of 1.
+
+     - id: ruby
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries. See the MongoDB Ruby driver's
+           :ruby:`aggregation examples </tutorials/ruby-driver-aggregation/>`.
+
+     - id: scala
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries. See the MongoDB Scala driver's :scala-api:`aggregate method <aggregate[C](pipeline:Seq[org.mongodb.scala.bson.conversions.Bson])(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.AggregateObservable[C]>`.
+
+     - id: csharp
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - :csharp-api:`MongoCollection.FindOne() <M_MongoDB_Driver_MongoCollection_1_FindOne_1>`
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`, the
+           :pipeline:`$match` pipeline stage provides access to MongoDB
+           queries. See the MongoDB C# driver's
+           :csharp-docs:`LINQ documentation <driver/crud/linq/>`.
+
+         .. note::
+            The :csharp-api:`MongoCollection.FindOne() <M_MongoDB_Driver_MongoCollection_1_FindOne_1>`
+            method also performs a read operation to return a single
+            document. Internally, the
+            :csharp-api:`MongoCollection.FindOne() <M_MongoDB_Driver_MongoCollection_1_FindOne_1>`
+            method is the
+            :csharp-api:`MongoCollection.Find() <M_MongoDB_Driver_MongoCollection_1_Find>`
+            method with a limit of 1.
+
+     - id: go
+       content: |
+
+         Additional Methods
+         ------------------
+
+         The following methods can also read documents from a collection:
+
+         - :go-api:`Collection.FindOne <mongo#Collection.FindOne>`
+
+         - In :ref:`aggregation pipeline <aggregation-pipeline>`,
+           the :pipeline:`$match` pipeline stage provides access to
+           MongoDB queries. See
+           :go-api:`Collection.Aggregate<mongo#Collection.Aggregate>`.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/query-embedded-documents
+   /tutorial/query-arrays
+   /tutorial/query-array-of-documents
+   /tutorial/project-fields-from-query-results
+   /tutorial/query-for-null-fields
+   /tutorial/long-running-queries
+   /tutorial/iterate-a-cursor/

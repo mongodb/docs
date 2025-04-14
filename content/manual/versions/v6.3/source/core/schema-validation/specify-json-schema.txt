@@ -1,0 +1,204 @@
+.. _schema-validation-json:
+.. _doc-insert-schema-validation:
+
+==============================
+Specify JSON Schema Validation
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+JSON Schema is a vocabulary that allows you to annotate and validate
+JSON documents. You can use JSON schema to specify validation rules for
+your fields in a human-readable format.
+
+Context
+-------
+
+.. include:: /includes/schema-validation/json-schema-intro.rst
+
+Restrictions
+------------
+
+You can't specify schema validation for:
+
+- Collections in the ``admin``, ``local``, and ``config`` databases
+
+- :ref:`System collections <metadata-system-collections>`
+
+Steps
+-----
+
+In this example, you create a ``students`` collection with validation
+rules and observe the results after you attempt to insert an invalid
+document.
+
+.. procedure::
+
+   .. step:: Create a collection with validation.
+
+      Create a ``students`` collection and use the :query:`$jsonSchema`
+      operator to set schema validation rules. For example:
+
+      .. code-block:: javascript
+
+         db.createCollection("students", {
+            validator: {
+               $jsonSchema: {
+                  bsonType: "object",
+                  title: "Student Object Validation",
+                  required: [ "address", "major", "name", "year" ],
+                  properties: {
+                     name: {
+                        bsonType: "string",
+                        description: "'name' must be a string and is required"
+                     },
+                     year: {
+                        bsonType: "int",
+                        minimum: 2017,
+                        maximum: 3017,
+                        description: "'year' must be an integer in [ 2017, 3017 ] and is required"
+                     },
+                     gpa: {
+                        bsonType: [ "double" ],
+                        description: "'gpa' must be a double if the field exists"
+                     }
+                  }
+               }
+            }
+         } )
+
+      .. tip:: Clarify Rules with Title and Description Fields
+
+         You can use ``title`` and ``description`` fields to provide an
+         explanation of validation rules when the rules are not
+         immediately clear. When a document fails validation, MongoDB
+         includes these fields in the error output.
+
+   .. step:: Confirm that the validation prevents invalid documents.
+
+      The following insert operation fails because ``gpa`` is an integer
+      when the ``validator`` requires a ``double``.
+
+      .. code-block:: javascript
+         :emphasize-lines: 5
+
+         db.students.insertOne( {
+            name: "Alice",
+            year: Int32( 2019 ),
+            major: "History",
+            gpa: Int32(3),
+            address: {
+               city: "NYC",
+               street: "33rd Street"
+            }
+         } )
+
+      The operation returns this error:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         MongoServerError: Document failed validation
+
+         Additional information: {
+           failingDocumentId: ObjectId("630d093a931191850b40d0a9"),
+           details: {
+             operatorName: '$jsonSchema',
+             title: 'Student Object Validation',
+             schemaRulesNotSatisfied: [
+               {
+                 operatorName: 'properties',
+                 propertiesNotSatisfied: [
+                   {
+                     propertyName: 'gpa',
+                     description: "'gpa' must be a double if the field exists",
+                     details: [
+                       {
+                         operatorName: 'bsonType',
+                         specifiedAs: { bsonType: [ 'double' ] },
+                         reason: 'type did not match',
+                         consideredValue: 3,
+                         consideredType: 'int'
+                       }
+                     ]
+                   }
+                 ]
+               }
+             ]
+           }
+         }
+
+   .. step:: Insert a valid document.
+    
+      The insert succeeds after you change the ``gpa`` field to a double:
+
+      .. code-block:: javascript
+         :emphasize-lines: 5
+
+         db.students.insertOne( {
+            name: "Alice",
+            year: NumberInt(2019),
+            major: "History",
+            gpa: Double(3.0),
+            address: {
+               city: "NYC",
+               street: "33rd Street"
+            }
+         } )
+
+   .. step:: Query for the valid document.
+
+      To confirm that the document was successfully inserted, query the
+      ``students`` collection:
+
+      .. code-block:: javascript
+
+         db.students.find()
+
+      MongoDB returns the inserted document:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+           {
+             _id: ObjectId("62bb413014b92d148400f7a5"),
+             name: 'Alice',
+             year: 2019,
+             major: 'History',
+             gpa: 3,
+             address: { city: 'NYC', street: '33rd Street' }
+           }
+         ]
+
+Additional Information
+----------------------
+
+You can combine JSON Schema validation with :ref:`query operator
+validation <schema-validation-query-expression>`.
+
+.. include:: /includes/schema-validation-combine-validation-types.rst
+
+Learn More 
+----------
+
+- To see the complete list of allowed keywords in a JSON schema, see
+  :ref:`jsonSchema-keywords`.
+
+- To restrict what values a certain field can contain, see
+  :ref:`schema-allowed-field-values`.
+
+- To avoid issues with JSON schema validation, see
+  :ref:`json-schema-tips`.
+
+.. toctree::
+   :titlesonly:
+
+   /core/schema-validation/specify-json-schema/specify-allowed-field-values
+   /core/schema-validation/specify-json-schema/json-schema-tips

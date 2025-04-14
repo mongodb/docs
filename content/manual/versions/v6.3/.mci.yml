@@ -1,0 +1,51 @@
+pre:
+  - command: git.get_project
+    params:
+      directory: "docs-mongodb"
+  - command: git.apply_patch
+    params:
+      directory: "docs-mongodb"
+  - command: shell.exec
+    params:
+      working_dir: "docs-mongodb"
+      script: |
+        rm -rf ~/venv
+
+        virtualenv ~/venv
+        ${venv}/pip install -r requirements.txt
+
+        # make the current branch always be master.
+        git branch -D master || true
+        git checkout -b master origin/master
+
+tasks:
+  - name: "build_manual"
+    commands:
+    - command: shell.exec
+      params:
+        working_dir: "docs-mongodb"
+        script: |
+          . ${venv}/activate
+
+          giza generate source
+          giza sphinx --builder publish --serial_sphinx
+    - command: shell.exec
+      params:
+        working_dir: "docs-mongodb"
+        script: |
+          . ${venv}/activate
+
+          giza env package --builder publish
+          giza packaging create --target push
+
+  # TODO: deploy build/archive/* to s3
+
+buildvariants:
+  - name: ubuntu1404-release
+    display_name: "Ubuntu 14.04"
+    run_on:
+      - ubuntu1404-test
+    expansions:
+      venv: "~/venv/bin"
+    tasks:
+      - name: "build_manual"

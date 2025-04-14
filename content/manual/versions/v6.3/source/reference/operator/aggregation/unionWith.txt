@@ -1,0 +1,483 @@
+========================
+$unionWith (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $unionWith
+
+   .. versionadded:: 4.4
+
+   Performs a union of two collections. :pipeline:`$unionWith` combines 
+   pipeline results from two collections into a single result set. The stage 
+   outputs the combined result set (including duplicates) to the next stage.
+
+   The order in which the combined result set documents are output is 
+   unspecified.
+
+
+
+Syntax
+------
+
+The :pipeline:`$unionWith` stage has the following syntax:
+
+.. code-block:: javascript
+
+   { $unionWith: { coll: "<collection>", pipeline: [ <stage1>, ... ] } }
+
+To include all documents from the specified collection without any
+processing, you can use the simplified form:
+
+.. code-block:: javascript
+
+   { $unionWith: "<collection>" }  // Include all documents from the specified collection
+
+The :pipeline:`$unionWith` stage takes a document with the following
+fields:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 15 85
+
+  * - Field
+    - Description
+
+  * - :ref:`coll <unionWith-coll>`
+
+    - ..  _unionWith-coll:
+
+      The collection or view whose :ref:`pipeline <unionWith-pipeline>`
+      results you wish to include in the result set.
+
+  * - :ref:`pipeline <unionWith-pipeline>`
+
+    - ..  _unionWith-pipeline:
+
+      Optional. An aggregation pipeline to apply to the specified
+      :ref:`coll <unionWith-coll>`.
+
+      ``[ <stage1>, <stage2>, ...]``
+
+      The pipeline cannot include the :pipeline:`$out` and
+      :pipeline:`$merge` stages. Starting in v6.0, the ``pipeline`` 
+      can contain the :atlas:`Atlas Search </atlas-search>` 
+      :pipeline:`$search` stage as the first stage inside the pipeline. 
+      To learn more, see :ref:`fts-unionwith-behavior`.
+
+The :pipeline:`$unionWith` operation would correspond to the following
+SQL statement:
+
+.. code-block:: sql
+
+   SELECT * 
+   FROM Collection1
+   WHERE ...
+   UNION ALL
+   SELECT * 
+   FROM Collection2
+   WHERE ...
+
+Considerations
+--------------
+
+Duplicate Results
+~~~~~~~~~~~~~~~~~~
+
+The combined results from the previous stage and the
+:pipeline:`$unionWith` stage can include duplicates.
+
+For example, create a ``suppliers`` collection and a ``warehouses`` collection:
+
+.. code-block:: javascript
+
+   db.suppliers.insertMany([
+     { _id: 1, supplier: "Aardvark and Sons", state: "Texas" },
+     { _id: 2, supplier: "Bears Run Amok.", state: "Colorado"},
+     { _id: 3, supplier: "Squid Mark Inc. ", state: "Rhode Island" },
+   ])
+
+.. code-block:: javascript
+
+   db.warehouses.insertMany([
+     { _id: 1, warehouse: "A", region: "West", state: "California" },
+     { _id: 2, warehouse: "B", region: "Central", state: "Colorado"},
+     { _id: 3, warehouse: "C", region: "East", state: "Florida" },
+   ])
+
+The following aggregation combines the ``state`` field projection results from 
+the ``suppliers`` and ``warehouse`` collections.
+
+.. code-block:: javascript
+
+   db.suppliers.aggregate([ 
+      { $project: { state: 1, _id: 0 } },
+      { $unionWith: { coll: "warehouses", pipeline: [ { $project: { state: 1, _id: 0 } } ]} }
+   ])
+
+The result set contains duplicates:
+
+.. code-block:: javascript
+   :emphasize-lines: 2,5
+   :copyable: false
+
+   { "state" : "Texas" }
+   { "state" : "Colorado" }
+   { "state" : "Rhode Island" }
+   { "state" : "California" }
+   { "state" : "Colorado" }
+   { "state" : "Florida" }
+   
+To remove the duplicates, you can include a :pipeline:`$group` stage to
+group by the ``state`` field:
+
+.. code-block:: javascript
+
+   db.suppliers.aggregate([ 
+      { $project: { state: 1, _id: 0 } },
+      { $unionWith: { coll: "warehouses", pipeline: [ { $project: { state: 1, _id: 0 } } ]} },
+      { $group: { _id: "$state" } }
+   ])
+
+The result set no longer contains duplicates:
+
+.. code-block:: javascript
+  :copyable: false
+
+   { "_id" : "California" }
+   { "_id" : "Texas" }
+   { "_id" : "Florida" }
+   { "_id" : "Colorado" }
+   { "_id" : "Rhode Island" }
+
+``$unionWith`` a Sharded Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :pipeline:`$unionWith` stage is part of the :ref:`$lookup
+pipeline <lookup-join-pipeline>`, the ``$unionWith`` :ref:`coll
+<unionWith-coll>` cannot be sharded. For example, in the following
+aggregation operation, the ``inventory_q1`` collection cannot be
+sharded:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8
+
+   db.suppliers.aggregate([
+      {
+         $lookup: {
+            from: "warehouses",
+            let: { order_item: "$item", order_qty: "$ordered" },
+            pipeline: [
+               ...
+               { $unionWith: { coll: "inventory_q1", pipeline: [ ... ] } },
+               ...
+            ],
+            as: "stockdata"
+         }
+      }
+   ])
+
+Collation
+~~~~~~~~~
+
+If the :method:`db.collection.aggregate()` includes a :ref:`collation
+<method-collection-aggregate-collation>`, that collation is used for
+the operation, ignoring any other collations.
+
+If the :method:`db.collection.aggregate()` does not include a
+:ref:`collation <method-collection-aggregate-collation>`, the
+:method:`db.collection.aggregate()` method uses the collation for the
+top-level collection/view on which the
+:method:`db.collection.aggregate()` is run:
+
+- If the :ref:`$unionWith coll <unionWith-coll>` is a collection, its
+  collation is ignored.
+
+- If the :ref:`$unionWith coll <unionWith-coll>` is a :doc:`view
+  </core/views>`, then its collation must match that of the top-level
+  collection/view.  Otherwise, the operation errors.
+
+.. _fts-unionwith-behavior:
+
+Atlas Search Support
+~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0, you can specify the :atlas:`Atlas Search 
+</atlas-search>` :pipeline:`$search` or :pipeline:`$searchMeta` stage 
+in the ``$unionWith`` pipeline to search collections on the Atlas 
+cluster. The :pipeline:`$search` or the :pipeline:`$searchMeta` stage 
+must be the first stage inside the ``$unionWith`` pipeline. 
+
+.. tabs:: 
+
+   .. tab:: $search
+      :tabid: search
+
+      .. code-block:: 
+         :copyable: false 
+         :emphasize-lines: 5-9
+
+         [{
+           "$unionWith": {
+             "coll": <collection-name>,
+             "pipeline": [{
+               "$search": {
+                 "<operator>": {
+                   <operator-specification>
+                 }
+               },
+               ... 
+             }]
+           }
+         }] 
+
+   .. tab:: $searchMeta
+      :tabid: searchmeta
+
+      .. code-block:: 
+         :copyable: false 
+         :emphasize-lines: 5-9
+
+         [{
+           "$unionWith": {
+             "coll": <collection-name>,
+             "pipeline": [{
+               "$searchMeta": {
+                 "<collector>": {
+                   <collector-specification>
+                 }
+               },
+               ...
+             }]
+           }
+         }] 
+
+To see an example of :pipeline:`$unionWith` with :pipeline:`$search`, 
+see the Atlas Search tutorial :atlas:`Run an Atlas Search $search Query 
+Using $unionWith </atlas-search/tutorial/search-with-unionwith/>`.
+
+Restrictions
+~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Restrictions
+     - Description
+
+   * - :ref:`transactions <transactions>`
+
+     - An aggregation pipeline cannot use :pipeline:`$unionWith` inside
+       :ref:`transactions <transactions>`.
+
+   * - Sharded Collection
+   
+     - If the :pipeline:`$unionWith` stage is part of the :ref:`$lookup
+       pipeline <lookup-join-pipeline>`, the  :ref:`$unionWith coll
+       <unionWith-coll>` cannot be sharded.
+
+   * - :pipeline:`$out`
+   
+     - The :ref:`$unionWith pipeline <unionWith-pipeline>` cannot
+       include the :pipeline:`$out` stage.
+
+   * - :pipeline:`$merge`
+
+     - The :ref:`$unionWith pipeline <unionWith-pipeline>` cannot
+       include the :pipeline:`$merge` stage.
+
+Examples
+--------
+
+Create Sales Reports from the Union of Yearly Data Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples use the :pipeline:`$unionWith` stage to combine data and
+return results from multiple collections. In these examples, each collection 
+contains a year of sales data. 
+
+Populate Sample Data
+````````````````````
+
+#. Create a ``sales_2017`` collection with the following documents:
+
+   .. code-block:: javascript
+   
+      db.sales_2017.insertMany( [
+        { store: "General Store", item: "Chocolates", quantity: 150 },
+        { store: "ShopMart", item: "Chocolates", quantity: 50 },
+        { store: "General Store", item: "Cookies", quantity: 100 },
+        { store: "ShopMart", item: "Cookies", quantity: 120 },
+        { store: "General Store", item: "Pie", quantity: 10 },
+        { store: "ShopMart", item: "Pie", quantity: 5 }
+      ] )
+
+#. Create a ``sales_2018`` collection with the following documents:
+
+   .. code-block:: javascript
+   
+      db.sales_2018.insertMany( [
+        { store: "General Store", item: "Cheese", quantity: 30 },
+        { store: "ShopMart", item: "Cheese", quantity: 50 },
+        { store: "General Store", item: "Chocolates", quantity: 125 },
+        { store: "ShopMart", item: "Chocolates", quantity: 150 },
+        { store: "General Store", item: "Cookies", quantity: 200 },
+        { store: "ShopMart", item: "Cookies", quantity: 100 },
+        { store: "ShopMart", item: "Nuts", quantity: 100 },
+        { store: "General Store", item: "Pie", quantity: 30 },
+        { store: "ShopMart", item: "Pie", quantity: 25 }
+      ] )
+
+
+#. Create a ``sales_2019`` collection with the following documents:
+
+   .. code-block:: javascript
+   
+      db.sales_2019.insertMany( [
+        { store: "General Store", item: "Cheese", quantity: 50 },
+        { store: "ShopMart", item: "Cheese", quantity: 20 },
+        { store: "General Store", item: "Chocolates", quantity: 125 },
+        { store: "ShopMart", item: "Chocolates", quantity: 150 },
+        { store: "General Store", item: "Cookies", quantity: 200 },
+        { store: "ShopMart", item: "Cookies", quantity: 100 },
+        { store: "General Store", item: "Nuts", quantity: 80 },
+        { store: "ShopMart", item: "Nuts", quantity: 30 },
+        { store: "General Store", item: "Pie", quantity: 50 },
+        { store: "ShopMart", item: "Pie", quantity: 75 }
+      ] )
+
+#. Create a ``sales_2020`` collection with the following documents:
+
+   .. code-block:: javascript
+   
+      db.sales_2020.insertMany( [
+        { store: "General Store", item: "Cheese", quantity: 100, },
+        { store: "ShopMart", item: "Cheese", quantity: 100},
+        { store: "General Store", item: "Chocolates", quantity: 200 },
+        { store: "ShopMart", item: "Chocolates", quantity: 300 },
+        { store: "General Store", item: "Cookies", quantity: 500 },
+        { store: "ShopMart", item: "Cookies", quantity: 400 },
+        { store: "General Store", item: "Nuts", quantity: 100 },
+        { store: "ShopMart", item: "Nuts", quantity: 200 },
+        { store: "General Store", item: "Pie", quantity: 100 },
+        { store: "ShopMart", item: "Pie", quantity: 100 }
+      ] )
+
+
+Report 1: All Sales by Year and Stores and Items
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation creates a yearly sales report that lists all sales by 
+quarter and stores. The pipeline uses :pipeline:`$unionWith` to combine documents 
+from all four collections:
+
+.. code-block:: javascript
+
+   db.sales_2017.aggregate( [ 
+      { $set: { _id: "2017" } },
+      { $unionWith: { coll: "sales_2018", pipeline: [ { $set: { _id: "2018" } } ] } },
+      { $unionWith: { coll: "sales_2019", pipeline: [ { $set: { _id: "2019" } } ] } },
+      { $unionWith: { coll: "sales_2020", pipeline: [ { $set: { _id: "2020" } } ] } },
+      { $sort: { _id: 1, store: 1, item: 1 } }
+   ] )
+
+Specifically, the aggregation pipeline uses:
+
+- A :pipeline:`$set` stage to update the ``_id`` field to contain the
+  year. 
+    
+- A sequence of :pipeline:`$unionWith` stages to combine all documents
+  from the four collections, each also using the :pipeline:`$set` stage
+  on its documents.
+
+- A :pipeline:`$sort` stage to sort by the ``_id`` (the year),
+  the ``store``, and ``item``.
+
+Pipeline output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "2017", "store" : "General Store", "item" : "Chocolates", "quantity" : 150 }
+   { "_id" : "2017", "store" : "General Store", "item" : "Cookies", "quantity" : 100 }
+   { "_id" : "2017", "store" : "General Store", "item" : "Pie", "quantity" : 10 }
+   { "_id" : "2017", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 50 }
+   { "_id" : "2017", "store" : "ShopMart", "item" : "Cookies", "quantity" : 120 }
+   { "_id" : "2017", "store" : "ShopMart", "item" : "Pie", "quantity" : 5 }
+   { "_id" : "2018", "store" : "General Store", "item" : "Cheese", "quantity" : 30 }
+   { "_id" : "2018", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
+   { "_id" : "2018", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
+   { "_id" : "2018", "store" : "General Store", "item" : "Pie", "quantity" : 30 }
+   { "_id" : "2018", "store" : "ShopMart", "item" : "Cheese", "quantity" : 50 }
+   { "_id" : "2018", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
+   { "_id" : "2018", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
+   { "_id" : "2018", "store" : "ShopMart", "item" : "Nuts", "quantity" : 100 }
+   { "_id" : "2018", "store" : "ShopMart", "item" : "Pie", "quantity" : 25 }
+   { "_id" : "2019", "store" : "General Store", "item" : "Cheese", "quantity" : 50 }
+   { "_id" : "2019", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
+   { "_id" : "2019", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
+   { "_id" : "2019", "store" : "General Store", "item" : "Nuts", "quantity" : 80 }
+   { "_id" : "2019", "store" : "General Store", "item" : "Pie", "quantity" : 50 }
+   { "_id" : "2019", "store" : "ShopMart", "item" : "Cheese", "quantity" : 20 }
+   { "_id" : "2019", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
+   { "_id" : "2019", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
+   { "_id" : "2019", "store" : "ShopMart", "item" : "Nuts", "quantity" : 30 }
+   { "_id" : "2019", "store" : "ShopMart", "item" : "Pie", "quantity" : 75 }
+   { "_id" : "2020", "store" : "General Store", "item" : "Cheese", "quantity" : 100 }
+   { "_id" : "2020", "store" : "General Store", "item" : "Chocolates", "quantity" : 200 }
+   { "_id" : "2020", "store" : "General Store", "item" : "Cookies", "quantity" : 500 }
+   { "_id" : "2020", "store" : "General Store", "item" : "Nuts", "quantity" : 100 }
+   { "_id" : "2020", "store" : "General Store", "item" : "Pie", "quantity" : 100 }
+   { "_id" : "2020", "store" : "ShopMart", "item" : "Cheese", "quantity" : 100 }
+   { "_id" : "2020", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 300 }
+   { "_id" : "2020", "store" : "ShopMart", "item" : "Cookies", "quantity" : 400 }
+   { "_id" : "2020", "store" : "ShopMart", "item" : "Nuts", "quantity" : 200 }
+   { "_id" : "2020", "store" : "ShopMart", "item" : "Pie", "quantity" : 100 }
+
+Report 2: Aggregated Sales by Items
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation creates a sales report that lists the sales quantity 
+per item. The pipeline uses :pipeline:`$unionWith` to combine documents from all
+four years:
+
+.. code-block:: javascript
+
+   db.sales_2017.aggregate( [ 
+      { $unionWith: "sales_2018" }, 
+      { $unionWith: "sales_2019" },
+      { $unionWith: "sales_2020" },
+      { $group: { _id: "$item", total: { $sum: "$quantity" } } },
+      { $sort: { total: -1 } }
+   ] )
+   
+- The sequence of :pipeline:`$unionWith` stages retrieve documents
+  from the specified collections into the pipeline:
+
+- The :pipeline:`$group` stage groups by the ``item`` field and uses
+  :group:`$sum` to calculate the total sales quantity per ``item``.
+
+- The :pipeline:`$sort` stage orders the documents by descending
+  ``total``.
+
+Pipeline output: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "Cookies", "total" : 1720 }
+   { "_id" : "Chocolates", "total" : 1250 }
+   { "_id" : "Nuts", "total" : 510 }
+   { "_id" : "Pie", "total" : 395 }
+   { "_id" : "Cheese", "total" : 350 }

@@ -1,0 +1,616 @@
+======================
+Upgrade MongoDB to 2.4
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In the general case, the upgrade from MongoDB 2.2 to 2.4 is a
+binary-compatible "drop-in" upgrade: shut down the :binary:`~bin.mongod`
+instances and replace them with :binary:`~bin.mongod` instances running
+2.4. **However**, before you attempt any upgrade please familiarize
+yourself with the content of this document, particularly the procedure
+for :ref:`upgrading sharded clusters <2.4-upgrade-cluster>` and the
+considerations for :ref:`reverting to 2.2 after running 2.4
+<2.4-downgrade>`.
+
+Upgrade Recommendations and Checklist
+-------------------------------------
+
+When upgrading, consider the following:
+
+- For all deployments using authentication, upgrade the
+  drivers (i.e. client libraries), before upgrading the
+  :binary:`~bin.mongod` instance or instances.
+
+- To upgrade to 2.4 sharded clusters *must* upgrade following the
+  :ref:`meta-data upgrade procedure <2.4-upgrade-cluster>`.
+
+- If you're using 2.2.0 and running with :setting:`~security.authorization` enabled, you
+  will need to upgrade first to 2.2.1 and then upgrade to 2.4. See
+  :ref:`2.4-upgrade-auth-limitation`.
+
+- If you have ``system.users`` documents
+  (i.e. for :setting:`~security.authorization`) that you created before 2.4 you *must*
+  ensure that there are no duplicate values for the ``user`` field in
+  the ``system.users`` collection in
+  *any* database.  If you *do* have documents with duplicate user
+  fields, you must remove them before upgrading.
+
+  See :ref:`2.4-unique-users` for more information.
+
+.. _2.4-upgrade-standalone:
+
+Upgrade Standalone ``mongod`` Instance to MongoDB 2.4
+-----------------------------------------------------
+
+#. Download binaries of the latest release in the 2.4 series from the
+   `MongoDB Download Page`_. See :doc:`/installation` for more
+   information.
+
+#. Shutdown your :binary:`~bin.mongod` instance. Replace the existing
+   binary with the 2.4 :binary:`~bin.mongod` binary and restart :binary:`~bin.mongod`.
+
+
+.. _`MongoDB Download Page`: http://www.mongodb.org/downloads
+
+.. _2.4-upgrade-replica-set:
+
+Upgrade a Replica Set from MongoDB 2.2 to MongoDB 2.4
+-----------------------------------------------------
+
+You can upgrade to 2.4 by performing a "rolling"
+upgrade of the set by upgrading the members individually while the
+other members are available to minimize downtime. Use the following
+procedure:
+
+#. Upgrade the :term:`secondary` members of the set one at a time by
+   shutting down the :binary:`~bin.mongod` and replacing the 2.2 binary
+   with the 2.4 binary.  After upgrading a :binary:`~bin.mongod` instance,
+   wait for the member to recover to ``SECONDARY`` state
+   before upgrading the next instance.
+   To check the member's state, issue :method:`rs.status()` in the
+   ``mongo`` shell.
+
+#. Use the ``mongo`` shell method :method:`rs.stepDown()` to
+   step down the :term:`primary` to allow the normal :ref:`failover
+   <replica-set-failover>` procedure.  :method:`rs.stepDown()`
+   expedites the failover procedure and is preferable to shutting down
+   the primary directly.
+
+   Once the primary has stepped down and another member has assumed
+   ``PRIMARY`` state, as observed in the output of
+   :method:`rs.status()`, shut down the previous primary and replace
+   :binary:`~bin.mongod` binary with the 2.4 binary and start the new
+   process.
+
+   .. note:: Replica set failover is not instant but will
+      render the set unavailable to read or accept writes
+      until the failover process completes. Typically this takes
+      10 seconds or more. You may wish to plan the upgrade during
+      a predefined maintenance window.
+
+.. _2.4-upgrade-cluster:
+
+Upgrade a Sharded Cluster from MongoDB 2.2 to MongoDB 2.4
+---------------------------------------------------------
+
+.. important:: Only upgrade sharded clusters to 2.4 if **all** members
+   of the cluster are currently running instances of 2.2. The only
+   supported upgrade path for sharded clusters running 2.0 is via 2.2.
+
+Overview
+~~~~~~~~
+
+Upgrading a :term:`sharded cluster` from MongoDB version 2.2 to 2.4
+(or 2.3) requires that you run a 2.4 :binary:`~bin.mongos`
+with the ``--upgrade`` option, described in
+this procedure. The upgrade process does not require downtime.
+
+The upgrade to MongoDB 2.4 adds epochs to the meta-data for all
+collections and chunks in the existing cluster. MongoDB 2.2 processes
+are capable of handling epochs, even though 2.2 did not require
+them. This procedure applies only to upgrades from version 2.2. Earlier
+versions of MongoDB do not correctly handle epochs. See
+:ref:`2.4-sharded-cluster-meta-data-upgrade` for more information.
+
+After completing the meta-data upgrade you can fully upgrade the
+components of the cluster. With the balancer disabled:
+
+- Upgrade all :binary:`~bin.mongos` instances in the cluster.
+
+- Upgrade all 3 :binary:`~bin.mongod` config server instances.
+
+- Upgrade the :binary:`~bin.mongod` instances for each shard, one at a
+  time.
+
+See :ref:`2.4-finalize-shard-cluster-upgrade` for more information.
+
+.. _2.4-sharded-cluster-meta-data-upgrade:
+
+Cluster Meta-data Upgrade
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Considerations
+``````````````
+
+Beware of the following properties of the cluster upgrade process:
+
+- .. include:: /includes/fact-upgrade-sharded-cluster-prereq.rst
+
+- While the upgrade is in progress, you cannot make changes to the
+  collection meta-data. For example, during the upgrade, do **not**
+  perform:
+
+  - :method:`sh.enableSharding()`,
+
+  - :method:`sh.shardCollection()`,
+
+  - :method:`sh.addShard()`,
+
+  - :method:`db.createCollection()`,
+
+  - :method:`db.collection.drop()`,
+
+  - :method:`db.dropDatabase()`,
+
+  - any operation that creates a database, or
+
+  - any other operation that modifies the cluster meta-data in any
+    way. See :doc:`/reference/sharding` for a complete list
+    of sharding commands. Note, however, that not all commands on
+    the :doc:`/reference/sharding` page modifies the
+    cluster meta-data.
+
+- Once you upgrade to 2.4 and complete the upgrade procedure **do
+  not** use 2.0 :binary:`~bin.mongod` and :binary:`~bin.mongos` processes in
+  your cluster. 2.0 process may re-introduce old meta-data formats
+  into cluster meta-data.
+
+The upgraded config database will require more storage space than
+before, to make backup and working copies of the
+:data:`config.chunks` and :data:`config.collections` collections.
+As always, if storage requirements increase, the :binary:`~bin.mongod`
+might need to pre-allocate additional data files. See
+:ref:`faq-tools-for-measuring-storage-use` for more information.
+
+.. _2.4-upgrade-meta-data:
+
+Meta-data Upgrade Procedure
+```````````````````````````
+
+Changes to the meta-data format for sharded clusters, stored in the
+:doc:`config database </reference/config-database>`, require a special
+meta-data upgrade procedure when moving to 2.4.
+
+Do not perform operations that modify meta-data while performing this
+procedure. See :ref:`2.4-upgrade-cluster` for examples of prohibited
+operations.
+
+#. .. include:: /includes/fact-upgrade-sharded-cluster-prereq.rst
+
+   To check the version of your indexes, use :method:`db.collection.getIndexes()`.
+
+   If any index **on the config database** is ``{v:0}``, you should
+   rebuild those indexes by connecting to the :binary:`~bin.mongos` and
+   either: rebuild all indexes using the
+   :method:`db.collection.reIndex()` method, or drop and rebuild
+   specific indexes using :method:`db.collection.dropIndex()` and then
+   :method:`db.collection.ensureIndex()`.  If you need to upgrade the
+   ``_id`` index to ``{v:1}`` use :method:`db.collection.reIndex()`.
+
+   You may have ``{v:0}`` indexes on other databases in the cluster.
+
+#. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+   :term:`sharded cluster`, as described in
+   :ref:`sharding-balancing-disable-temporarily`.
+
+   .. note:: Optional
+
+      For additional security during the upgrade, you can make a
+      backup of the config database using :binary:`~bin.mongodump` or
+      other backup tools.
+
+#. Ensure there are no version 2.0 :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` processes still active in the sharded
+   cluster. The automated upgrade process checks for 2.0 processes,
+   but network availability can prevent a definitive check. Wait 5
+   minutes after stopping or upgrading version 2.0 :binary:`~bin.mongos`
+   processes to confirm that none are still active.
+
+#. Start a single 2.4 :binary:`~bin.mongos` process with
+   :setting:`~sharding.configDB` pointing to the sharded cluster's :ref:`config
+   servers <sharding-config-server>` and with the ``--upgrade``
+   option.  The upgrade process happens before the
+   process becomes a daemon (i.e. before
+   :option:`--fork <mongos --fork>`.)
+
+   You can upgrade an existing
+   :binary:`~bin.mongos` instance to 2.4 or you can start a new ``mongos``
+   instance that can reach all config servers if you need to avoid
+   reconfiguring a production :binary:`~bin.mongos`.
+
+   Start the :binary:`~bin.mongos` with a command that resembles the
+   following:
+
+   .. code-block:: bash
+
+      mongos --configdb <config servers> --upgrade
+
+   Without the ``--upgrade`` option 2.4
+   :binary:`~bin.mongos` processes will fail to start until the upgrade
+   process is complete.
+
+   The upgrade will prevent any chunk moves or splits from occurring
+   during the upgrade process. If there are very many sharded
+   collections or there are stale locks held by other failed processes,
+   acquiring the locks for all collections can take
+   seconds or minutes. See the log for progress updates.
+
+#. When the :binary:`~bin.mongos` process starts successfully, the upgrade is
+   complete. If the :binary:`~bin.mongos` process fails to start, check the
+   log for more information.
+
+   If the :binary:`~bin.mongos` terminates or loses its connection to the
+   config servers during the upgrade, you may always safely retry the
+   upgrade.
+
+   However, if the upgrade failed during the short critical section,
+   the :binary:`~bin.mongos` will exit and report that the upgrade will
+   require manual intervention. To continue the upgrade process, you
+   must follow the :ref:`upgrade-cluster-resync` procedure.
+
+   .. note:: Optional
+
+      If the :binary:`~bin.mongos` logs show the upgrade waiting for the
+      upgrade lock, a previous upgrade process may still be active or
+      may have ended abnormally.  After 15 minutes of no remote
+      activity :binary:`~bin.mongos` will force the upgrade lock. If you
+      can verify that there are no running upgrade processes, you may
+      connect to a 2.2 :binary:`~bin.mongos` process and force the lock
+      manually:
+
+      .. code-block:: bash
+
+         mongo <mongos.example.net>
+
+      .. code-block:: javascript
+
+         db.getMongo().getCollection("config.locks").findOne({ _id : "configUpgrade" })
+
+      If the process specified in the ``process`` field of this document
+      is *verifiably* offline, run the following operation to force the
+      lock.
+
+      .. code-block:: javascript
+
+         db.getMongo().getCollection("config.locks").update({ _id : "configUpgrade" }, { $set : { state : 0 } })
+
+      It is always more safe to wait for the :binary:`~bin.mongos` to
+      verify that the lock is inactive, if you have any doubts about
+      the activity of another upgrade operation.  In addition to the
+      ``configUpgrade``, the :binary:`~bin.mongos` may need to wait for
+      specific collection locks. Do not force the specific collection
+      locks.
+
+#. Upgrade and restart other :binary:`~bin.mongos` processes in the
+   sharded cluster, *without* the ``--upgrade``
+   option.
+
+   See :ref:`2.4-finalize-shard-cluster-upgrade` for more information.
+
+#. :ref:`Re-enable the balancer
+   <sharding-balancing-disable-temporarily>`. You can now perform
+   operations that modify cluster meta-data.
+
+Once you have upgraded, *do not* introduce version 2.0 MongoDB
+processes into the sharded cluster. This can reintroduce old meta-data
+formats into the config servers. The meta-data change made by this
+upgrade process will help prevent errors caused by cross-version
+incompatibilities in future versions of MongoDB.
+
+.. _upgrade-cluster-resync:
+
+Resync after an Interruption of the Critical Section
+````````````````````````````````````````````````````
+
+During the short critical section of the upgrade that applies changes
+to the meta-data, it is unlikely but possible that a network
+interruption can prevent all three config servers from verifying or
+modifying data. If this occurs, the :ref:`config servers
+<sharding-config-server>` must be re-synced, and there may be problems
+starting new :binary:`~bin.mongos` processes. The :term:`sharded cluster`
+will remain accessible, but avoid all cluster meta-data changes until
+you resync the config servers. Operations that change meta-data include:
+adding shards, dropping databases, and dropping collections.
+
+.. note::
+
+   Only perform the following procedure *if* something (e.g. network,
+   power, etc.) interrupts the upgrade process during the short
+   critical section of the upgrade. Remember, you may always safely
+   attempt the :ref:`meta data upgrade procedure
+   <2.4-upgrade-meta-data>`.
+
+To resync the config servers:
+
+1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+   sharded cluster and stop all meta-data operations. If you are in the
+   middle of an upgrade process (:ref:`2.4-upgrade-cluster`), you
+   have already disabled the balancer.
+
+#. Shut down two of the three config servers, preferably the last two listed
+   in the :setting:`~sharding.configDB` string. For example, if your :setting:`~sharding.configDB`
+   string is ``configA:27019,configB:27019,configC:27019``, shut down
+   ``configB`` and ``configC``. Shutting down the last two config servers
+   ensures that most :binary:`~bin.mongos` instances will have
+   uninterrupted access to cluster meta-data.
+
+#. :binary:`~bin.mongodump` the data files of the active config server
+   (``configA``).
+
+#. Move the data files of the deactivated config servers (``configB``
+   and ``configC``) to a backup location.
+
+#. Create new, empty :term:`data directories <dbpath>`.
+
+#. Restart the disabled config servers with :option:`--dbpath <mongod --dbpath>`
+   pointing to the now-empty data directory and :option:`--port <mongod --port>`
+   pointing to an alternate port (e.g. ``27020``).
+
+#. Use :binary:`~bin.mongorestore` to repopulate the data files on the
+   disabled documents from the active
+   config server (``configA``) to the restarted config servers on the new
+   port (``configB:27020,configC:27020``). These config servers are now
+   re-synced.
+
+#. Restart the restored config servers on the old port, resetting the
+   port back to the old settings (``configB:27019`` and ``configC:27019``).
+
+#. In some cases connection pooling may cause spurious failures, as
+   the :binary:`~bin.mongos` disables old connections only after attempted
+   use. 2.4 fixes this problem, but to avoid this issue in version
+   2.2, you can restart all :binary:`~bin.mongos` instances (one-by-one,
+   to avoid downtime) and use the :method:`rs.stepDown()` method
+   before restarting each of the shard :term:`replica set`
+   :term:`primaries <primary>`.
+
+#. The sharded cluster is now fully resynced; however before you
+   attempt the upgrade process again, you must manually reset the
+   upgrade state using a version 2.2 :binary:`~bin.mongos`. Begin by
+   connecting to the 2.2 :binary:`~bin.mongos` with the ``mongo``
+   shell:
+
+   .. code-block:: bash
+
+      mongo <mongos.example.net>
+
+   Then, use the following operation to reset the upgrade process:
+
+   .. code-block:: javascript
+
+      db.getMongo().getCollection("config.version").update({ _id : 1 }, { $unset : { upgradeState : 1 } })
+
+#. Finally retry the upgrade process, as in
+   :ref:`2.4-upgrade-cluster`.
+
+.. _2.4-finalize-shard-cluster-upgrade:
+
+Upgrade Sharded Cluster Components
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you have successfully completed the meta-data upgrade process
+described in :ref:`2.4-upgrade-meta-data`, and the 2.4
+:binary:`~bin.mongos` instance starts, you can upgrade the other processes
+in your MongoDB deployment.
+
+While the balancer is still disabled, upgrade the components of your
+sharded cluster in the following order:
+
+- Upgrade all :binary:`~bin.mongos` instances in the cluster, in any
+  order.
+
+- Upgrade all 3 :binary:`~bin.mongod` config server instances, upgrading
+  the *first* system in the :option:`mongos --configdb` argument
+  *last*.
+
+- Upgrade each shard, one at a time, upgrading the :binary:`~bin.mongod`
+  secondaries before running :dbcommand:`replSetStepDown` and
+  upgrading the primary of each shard.
+
+When this process is complete, you can now :ref:`re-enable the
+balancer <sharding-balancing-disable-temporarily>`.
+
+.. _2.4-upgrade-auth-limitation:
+
+Rolling Upgrade Limitation for 2.2.0 Deployments Running with ``auth`` Enabled
+------------------------------------------------------------------------------
+
+MongoDB *cannot* support deployments that mix 2.2.0 and 2.4.0, or
+greater, components. MongoDB version 2.2.1 and later processes *can*
+exist in mixed deployments with 2.4-series processes. Therefore you
+cannot perform a rolling upgrade from MongoDB 2.2.0 to MongoDB
+2.4.0. To upgrade a cluster with 2.2.0 components, use one of the
+following procedures.
+
+1. Perform a rolling upgrade of all 2.2.0 processes to the latest
+   2.2-series release (e.g. 2.2.3) so that there are no processes in
+   the deployment that predate 2.2.1. When there are no 2.2.0
+   processes in the deployment, perform a rolling upgrade to 2.4.0.
+
+2. Stop all processes in the cluster. Upgrade all processes to a
+   2.4-series release of MongoDB, and start all processes at the same
+   time.
+
+Upgrade from 2.3 to 2.4
+-----------------------
+
+If you used a :binary:`~bin.mongod` from the 2.3 or 2.4-rc (release
+candidate) series, you can safely transition these databases to 2.4.0
+or later; *however*, if you created ``2dsphere`` or ``text`` indexes
+using a :binary:`~bin.mongod` before v2.4-rc2, you will need to rebuild
+these indexes. For example:
+
+.. code-block:: javascript
+
+   db.records.dropIndex( { loc: "2dsphere" } )
+   db.records.dropIndex( "records_text" )
+
+   db.records.ensureIndex( { loc: "2dsphere" } )
+   db.records.ensureIndex( { records: "text" } )
+
+.. _2.4-downgrade:
+
+Downgrade MongoDB from 2.4 to Previous Versions
+-----------------------------------------------
+
+For some cases the on-disk format of data files used by 2.4 and 2.2
+:binary:`~bin.mongod` is compatible, and you can upgrade and downgrade if
+needed. However, several new features in 2.4 are incompatible with
+previous versions:
+
+- ``2dsphere`` indexes are incompatible with 2.2 and earlier
+  :binary:`~bin.mongod` instances.
+
+- ``text`` indexes are incompatible with 2.2 and earlier
+  :binary:`~bin.mongod` instances.
+
+- using a ``hashed`` index as a shard key are incompatible with 2.2 and
+  earlier :binary:`~bin.mongos` instances.
+
+- ``hashed`` indexes are incompatible with 2.0 and earlier
+  :binary:`~bin.mongod` instances.
+
+.. important:: Collections sharded using hashed shard keys, should
+   **not** use 2.2 :binary:`~bin.mongod` instances, which cannot correctly
+   support cluster operations for these collections.
+
+   .. :issue:`SERVER_9776`
+
+If you completed the :ref:`meta-data upgrade for a sharded cluster
+<2.4-upgrade-cluster>`, you can safely downgrade to 2.2 MongoDB
+processes. **Do not** use 2.0 processes after completing the upgrade
+procedure.
+
+.. note::
+
+   In sharded clusters, once you have completed the :ref:`meta-data upgrade
+   procedure <2.4-upgrade-cluster>`, you cannot use 2.0
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` instances in the same
+   cluster.
+
+   If you complete the meta-data upgrade, you can safely downgrade
+   components in any order. When upgrade again, always
+   upgrade :binary:`~bin.mongos` instances before :binary:`~bin.mongod` instances.
+
+   **Do not** create ``2dsphere`` or ``text`` indexes in a cluster
+   that has 2.2 components.
+
+Considerations and Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you upgrade to MongoDB 2.4, and then need to run MongoDB 2.2 with
+the same data files, consider the following limitations.
+
+- If you use a ``hashed`` index as the shard key index, which is only
+  possible under 2.4 you will not be able to query data in this
+  sharded collection. Furthermore, a 2.2 :binary:`~bin.mongos` cannot
+  properly route an insert operation for a collections sharded using a
+  ``hashed`` index for the shard key index: any data that you insert
+  using a 2.2 :binary:`~bin.mongos`, will not arrive on the correct shard
+  and will not be reachable by future queries.
+
+- If you *never* create an ``2dsphere`` or ``text`` index, you can
+  move between a 2.4 and 2.2 :binary:`~bin.mongod` for a given data set;
+  however, after you create the first ``2dsphere`` or ``text`` index
+  with a 2.4 :binary:`~bin.mongod` you will need to run a 2.2
+  :binary:`~bin.mongod` with the :option:`--upgrade <mongod --upgrade>`
+  option and drop any ``2dsphere`` or ``text`` index.
+
+Upgrade and Downgrade Procedures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Basic Downgrade and Upgrade
+```````````````````````````
+
+**Except** as described below, moving between 2.2 and 2.4 is a drop-in
+replacement:
+
+- stop the existing :binary:`~bin.mongod`, using the :option:`--shutdown
+  <mongod --shutdown>` option as follows:
+
+  .. code-block:: bash
+
+     mongod --dbpath /var/mongod/data --shutdown
+
+  Replace ``/var/mongod/data`` with your MongoDB :setting:`~storage.dbPath`.
+
+- start the new :binary:`~bin.mongod` processes with the same
+  :setting:`~storage.dbPath` setting, for example:
+
+  .. code-block:: bash
+
+     mongod --dbpath /var/mongod/data
+
+  Replace ``/var/mongod/data`` with your MongoDB :setting:`~storage.dbPath`.
+
+.. _2.4-downgrade-pdfile:
+
+Downgrade to 2.2 After Creating a ``2dsphere`` or ``text`` Index
+````````````````````````````````````````````````````````````````
+
+If you have created ``2dsphere`` or ``text`` indexes while running a
+2.4 :binary:`~bin.mongod` instance, you can downgrade at any time, by
+starting the ``2.2`` :binary:`~bin.mongod` with the :option:`--upgrade
+<mongod --upgrade>` option as follows:
+
+.. code-block:: bash
+
+   mongod --dbpath /var/mongod/data/ --upgrade
+
+Then, you will need to drop any existing ``2dsphere`` or ``text``
+indexes using :method:`db.collection.dropIndex()`, for example:
+
+.. code-block:: javascript
+
+   db.records.dropIndex( { loc: "2dsphere" } )
+   db.records.dropIndex( "records_text" )
+
+.. warning::
+
+   :option:`--upgrade <mongod --upgrade>` will run
+   ``repairDatabase`` on any database where you have created
+   a ``2dsphere`` or ``text`` index, which will rebuild *all*
+   indexes.
+
+Troubleshooting Upgrade/Downgrade Operations
+````````````````````````````````````````````
+
+If you do not use :option:`--upgrade <mongod --upgrade>`, when you
+attempt to start a 2.2 :binary:`~bin.mongod` and you have created a
+``2dsphere`` or ``text`` index, :binary:`~bin.mongod` will return the
+following message:
+
+.. code-block:: none
+
+   'need to upgrade database index_plugin_upgrade with pdfile version 4.6, new version: 4.5 Not upgrading, exiting'
+
+While running 2.4, to check the data file version of a MongoDB
+database, use the following operation in the shell:
+
+.. code-block:: javascript
+
+   db.getSiblingDB('<databasename>').stats().dataFileVersion
+
+The major data file [#pdfile-version]_ version for both 2.2 and 2.4 is
+``4``, the minor data file version for 2.2 is ``5`` and the minor data
+file version for 2.4 is ``6`` **after** you create a ``2dsphere`` or
+``text`` index.
+
+.. [#pdfile-version] The data file version (i.e. ``pdfile version``)
+   is independent and unrelated to the release version of MongoDB.

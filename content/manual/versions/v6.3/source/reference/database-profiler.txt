@@ -1,0 +1,831 @@
+.. _profiler:
+
+========================
+Database Profiler Output
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The database profiler captures data information about read and write
+operations, cursor operations, and database commands. To configure the
+database profile and set the thresholds for capturing profile data,
+see the :doc:`/tutorial/manage-the-database-profiler` section.
+
+The database profiler writes data in the :data:`system.profile
+<<database>.system.profile>` collection,
+which is a :term:`capped collection`. To view the profiler's output,
+use normal MongoDB queries on the :data:`system.profile
+<<database>.system.profile>` collection.
+
+.. note::
+
+   Because the database profiler writes data to the
+   :data:`system.profile <<database>.system.profile>` collection in a
+   database, the profiler will profile some write activity, even for
+   databases that are otherwise read-only.
+
+:dbcommand:`currentOp` and the
+:doc:`database profiler</reference/database-profiler>` report the same
+basic diagnostic information for all CRUD operations, including the
+following:
+
+.. include:: /includes/fact-diagnostic-info.rst
+
+Starting in MongoDB 4.4, it is no longer possible to perform any
+operation, including reads, on the :data:`system.profile
+<<database>.system.profile>` collection from within a
+:ref:`transaction <transactions>`.
+
+.. include:: /includes/database-profiler-note.rst
+
+Output Fields
+-------------
+
+For any single operation, the documents created by the database
+profiler will include a subset of the following fields. The precise
+selection of fields in these documents depends on the type of
+operation.
+
+.. include:: /includes/extracts/4.2-changes-log-storage.rst
+
+.. note::
+
+   For the output specific to the version of your MongoDB, refer to
+   the appropriate version of the MongoDB Manual.
+
+.. data:: system.profile.op
+
+   The type of operation. The possible values are:
+
+   - ``command``
+   - ``count``
+   - ``distinct``
+   - ``geoNear``
+   - ``getMore``
+   - ``group``
+   - ``insert``
+   - ``mapReduce``
+   - ``query``
+   - ``remove``
+   - ``update``
+
+.. data:: system.profile.ns
+
+   The :term:`namespace` the operation targets. Namespaces in MongoDB
+   take the form of the :term:`database`, followed by a dot (``.``),
+   followed by the name of
+   the :term:`collection`.
+
+.. data:: system.profile.command
+
+   .. include:: /includes/extracts/command-field-profiler.rst
+
+.. data:: system.profile.originatingCommand
+
+   .. versionchanged:: 3.6
+
+   For ``"getmore"`` operations which retrieve the next batch of
+   results from a cursor, the ``originatingCommand`` field contains the
+   full command object (e.g. ``find`` or ``aggregate``) which originally
+   created that cursor.
+
+.. data:: system.profile.cursorid
+
+   The ID of the cursor accessed by a ``query`` and ``getmore``
+   operations.
+
+.. data:: system.profile.keysExamined
+
+   .. versionchanged:: 3.2.0
+
+   Renamed from ``system.profile.nscanned``.
+   The number of :ref:`index <indexes>` keys that MongoDB scanned in
+   order to carry out the operation.
+
+   In general, if :data:`~system.profile.keysExamined` is much higher
+   than :data:`~system.profile.nreturned`, the database is scanning many
+   index keys to find the result documents. Consider creating or
+   adjusting indexes to improve query performance..
+
+   .. versionchanged:: 3.4
+
+   ``keysExamined`` is available for the following commands and
+   operations:
+
+   .. include:: /includes/fact-command-diagnostics.rst
+
+.. data:: system.profile.docsExamined
+
+   .. versionchanged:: 3.2.0
+
+      Renamed from ``system.profile.nscannedObjects``.
+
+   The number of documents in the collection that MongoDB scanned in
+   order to carry out the operation.
+
+   .. versionchanged:: 3.4
+
+   ``docsExamined`` is available for the following commands and
+   operations:
+
+   .. include:: /includes/fact-command-diagnostics.rst
+
+.. data:: system.profile.hasSortStage
+
+   .. versionchanged:: 3.2.0
+
+      Renamed from ``system.profile.scanAndOrder``.
+
+   :data:`~system.profile.hasSortStage` is a boolean that is ``true``
+   when a query **cannot** use the ordering in the index to return the
+   requested sorted results; i.e. MongoDB must sort the documents after
+   it receives the documents from a cursor. The field only appears when
+   the value is ``true``.
+
+   .. versionchanged:: 3.4
+
+   ``hasSortStage`` is available for the following commands and
+   operations:
+
+   - ``find`` (:ref:`OP_QUERY<wire-op-query>` and
+     :dbcommand:`command<find>`)
+   - ``getMore`` (:ref:`OP_GET_MORE<wire-op-query>` and
+     :dbcommand:`command<getMore>`)
+   - :dbcommand:`findAndModify`
+   - :dbcommand:`mapReduce`
+   - :dbcommand:`aggregate`
+
+.. data:: system.profile.usedDisk
+
+   .. versionadded:: 4.2
+
+   A boolean that indicates whether any aggregation stage wrote data to
+   temporary files due to :ref:`memory restrictions
+   <agg-memory-restrictions>`.
+
+   Only appears if ``usedDisk`` is true.
+
+.. data:: system.profile.ndeleted
+
+   The number of documents deleted by the operation.
+
+.. data:: system.profile.ninserted
+
+   The number of documents inserted by the operation.
+
+.. data:: system.profile.nMatched
+
+   The number of documents that match the query
+   condition for the update operation.
+
+.. data:: system.profile.nModified
+
+   The number of documents modified by the update operation.
+
+.. data:: system.profile.upsert
+
+   A boolean that indicates the update operation's ``upsert`` option
+   value. Only appears if ``upsert`` is true.
+
+.. data:: system.profile.fromMultiPlanner
+
+   A boolean that indicates whether the query planner evaluated multiple
+   plans before choosing the winning execution plan for the query.
+
+   Only present when value is ``true``.
+
+.. data:: system.profile.replanned
+
+   A boolean that indicates whether the query system evicted a
+   :ref:`cached plan<query-plans-query-optimization>` and re-evaluated
+   all candidate plans.
+
+   Only present when value is ``true``.
+
+.. data:: system.profile.replanReason
+
+   .. versionadded:: 4.4
+
+   A string that indicates the specific reason a
+   :ref:`cached plan<query-plans-query-optimization>` was evicted.
+
+   Only present when value for ``replanned`` is ``true``.
+
+.. data:: system.profile.keysInserted
+
+   The number of index keys inserted for a given write operation.
+
+.. data:: system.profile.keysDeleted
+
+   *Removed in 3.4.*
+
+   The number of index keys the update changed in
+   the operation. Changing an index key carries a small performance
+   cost because the database must remove the old key and inserts a new
+   key into the B-tree index.
+
+.. data:: system.profile.writeConflicts
+
+   The number of conflicts encountered during the write operation; e.g.
+   an ``update`` operation attempts to modify the same document as
+   another ``update`` operation. See also :term:`write conflict`.
+
+.. data:: system.profile.numYield
+
+   The number of times the operation yielded to allow other operations
+   to complete. Typically, operations yield when they need access to
+   data that MongoDB has not yet fully read into memory. This allows
+   other operations that have data in memory to complete while MongoDB
+   reads in data for the yielding operation. For more information,
+   see :ref:`the FAQ on when operations yield
+   <faq-concurrency-yielding>`.
+
+.. data:: system.profile.queryHash
+
+   A hexadecimal string that represents a hash of the :term:`query
+   shape` and is dependent only on the query shape. ``queryHash`` can
+   help identify slow queries (including the query filter of write
+   operations) with the same query shape.
+
+   .. note::
+
+      As with any hash function, two different query shapes may result
+      in the same hash value. However, the occurrence of hash
+      collisions between different query shapes is unlikely.
+
+   For more information on ``queryHash`` and ``planCacheKey``, see
+   :ref:`query-hash-plan-cache-key`.
+
+   .. versionadded:: 4.2
+
+.. data:: system.profile.planCacheKey
+
+   A hash of the key for the plan cache entry associated with the query.
+
+   Unlike the :data:`~system.profile.queryHash`, the
+   :data:`~system.profile.planCacheKey` is a function of
+   both the query shape and the currently available indexes for
+   that shape. That is, if indexes that can support the query
+   shape are added/dropped, the ``planCacheKey`` value may change
+   whereas the ``queryHash`` value would not change.
+
+   For more information on ``queryHash`` and ``planCacheKey``, see
+   :ref:`query-hash-plan-cache-key`.
+
+   .. versionadded:: 4.2
+
+.. data:: system.profile.queryFramework
+
+   The :term:`query framework` used to process an operation.
+
+.. data:: system.profile.locks
+
+   The :data:`system.profile.locks` provides information for various
+   :ref:`lock types and lock modes <faq-concurrency-locking>` held
+   during the operation.
+
+   The possible lock types are:
+
+   .. include:: /includes/fact-lock-types.rst
+
+   The possible locking modes for the lock types are as follows:
+
+   .. include:: /includes/fact-lock-modes.rst
+
+   The returned lock information for the various lock types include:
+
+   .. data:: system.profile.locks.acquireCount
+
+      Number of times the operation acquired the lock in the specified
+      mode.
+
+   .. data:: system.profile.locks.acquireWaitCount
+
+      Number of times the operation had to wait for the
+      :data:`~system.profile.locks.acquireCount` lock acquisitions
+      because the locks were held in a conflicting mode.
+      :data:`~system.profile.locks.acquireWaitCount` is less than or
+      equal to :data:`~system.profile.locks.acquireCount`.
+
+   .. data:: system.profile.locks.timeAcquiringMicros
+
+      Cumulative time in microseconds that the operation had to wait to
+      acquire the locks.
+
+      :data:`~system.profile.locks.timeAcquiringMicros` divided by
+      :data:`~system.profile.locks.acquireWaitCount` gives an
+      approximate average wait time for the particular lock mode.
+
+   .. data:: system.profile.locks.deadlockCount
+
+      Number of times the operation encountered deadlocks while waiting
+      for lock acquisitions.
+
+   For more information on lock modes, see
+   :ref:`faq-concurrency-locking`.
+
+.. data:: system.profile.authorization
+
+   .. versionadded:: 5.0.0
+
+   The number of times the user cache is accessed for each operation.
+   These metrics are only displayed when an operation has accessed the
+   user cache at least once. 
+
+   These metrics are only available when :ref:`slow operation logging
+   <log-message-slow-ops>` or :ref:`database profiling <profiler>` is
+   enabled.
+   
+   :data:`system.profile.authorization` is not included in
+   :method:`db.currentOp()` output.
+
+   .. data:: system.profile.authorization.startedUserCacheAcquisitionAttempts
+
+      The number of times the operation tried to access the user cache.
+
+   .. data:: system.profile.authorization.completedUserCacheAcquisitionAttempts
+   
+      The number of times the operation retrieved user data from the
+      user cache.
+
+   .. data:: system.profile.authorization.userCacheWaitTimeMicros
+   
+      The total time the operation spent waiting for user cache
+      responses.
+
+.. data:: system.profile.storage
+
+   .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+
+   The :data:`system.profile.storage` information provides metrics on
+   the storage engine data and wait time for the operation.
+
+   Specific storage metrics are returned only if the values are greater
+   than zero.
+    
+   .. data:: system.profile.storage.data.bytesRead
+
+      .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+      Number of bytes read by the operation from the disk to the cache.
+
+      Data read from disk into the cache includes everything needed
+      to execute the query.  If the data is already in the cache,
+      then the number of bytes read from disk could be ``0``.
+
+      The number of bytes read from disk includes more than the
+      queried documents:
+
+      * WiredTiger reads in units of pages and a page may contain one or
+        several documents.  If a document is in a page, all documents in that
+        page are read into the cache and included in the ``bytesRead`` value.
+
+      * If the cache requires page management (such as eviction or rereads),
+        the ``bytesRead`` value includes data read from disk
+        in these operations.
+
+      * If the index is not in the cache or the index in the cache is stale,
+        WiredTiger reads several internal and leaf pages from disk to
+        reconstruct the index in cache.
+
+   .. data:: system.profile.storage.data.timeReadingMicros
+
+      .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+      Time in microseconds that the operation had to spend to read from
+      the disk.
+
+   .. data:: system.profile.storage.data.bytesWritten
+
+      .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+      Number of bytes written by the operation from the cache to the
+      disk.
+
+      WiredTiger typically doesn't require the query to write to disk.
+      Data modified by the query is written to an in-memory cache that
+      WiredTiger flushes to disk as part an eviction or checkpoint
+      operation. In such cases, ``bytesWritten`` shows as 0.
+
+      If the thread running the query requires forced page management
+      (such as eviction), WiredTiger writes the page contents to disk.
+      This flush likely includes data unrelated to changes made by the
+      query itself, which can cause ``bytesWritten`` to show
+      a higher value than expected.
+
+   .. data:: system.profile.storage.data.timeWritingMicros
+
+      .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+      Time in microseconds that the operation had to spend to write to
+      the disk.
+
+   .. data:: system.profile.storage.timeWaitingMicros.cache
+
+      .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+      Time in microseconds that the operation had to wait for space in
+      the cache.
+
+   .. data:: system.profile.storage.timeWaitingMicros.schemaLock
+
+      .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+      Time in microseconds that the operation (if modifying the schema)
+      had to wait to acquire a schema lock.
+
+   .. data:: system.profile.storage.timeWaitingMicros.handleLock
+
+      .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
+
+      Time in microseconds that the operation had to wait to acquire
+      the a lock on the needed data handles.
+
+.. data:: system.profile.nreturned
+
+   The number of documents returned by the operation.
+
+.. data:: system.profile.responseLength
+
+   The length in bytes of the operation's result document. A large
+   :data:`~system.profile.responseLength` can affect performance.
+   To limit the size of the
+   result document for a query operation, you can use any of the
+   following:
+
+   - :ref:`Projections <read-operations-projection>`
+   - :method:`The limit() method <cursor.limit()>`
+   - :method:`The batchSize() method <cursor.batchSize()>`
+
+   .. note:: When MongoDB writes query profile information to the log,
+      the :data:`~system.profile.responseLength` value is in a field
+      named ``reslen``.
+
+.. data:: system.profile.cpuNanos
+
+   .. versionadded:: 6.3
+
+   The total CPU time spent by a query operation in nanoseconds. This field is 
+   only available on Linux systems.
+
+.. data:: system.profile.protocol
+
+   The :doc:`/reference/mongodb-wire-protocol` request message format.
+
+.. data:: system.profile.millis
+
+   The time in milliseconds from the perspective of the
+   :binary:`~bin.mongod` from the beginning of the operation to the end of
+   the operation.
+
+.. data:: planningTimeMicros
+   
+   .. versionadded:: 6.2
+
+   The time, in milliseconds, that the ``find`` or ``aggregate`` command 
+   spent in :ref:`query planning <query-plans-query-optimization>`.
+
+.. data:: system.profile.planSummary
+
+   A summary of the execution plan.
+
+.. data:: system.profile.execStats
+
+   A document that contains the execution statistics of the query
+   operation. For other operations, the value is an empty document.
+
+   The :data:`system.profile.execStats` presents the statistics as a
+   tree; each node provides the statistics for the operation executed
+   during that stage of the query operation.
+
+   .. note::
+
+      The following fields list for :data:`~system.profile.execStats`
+      is not meant to be exhaustive as the returned fields vary per
+      stage.
+
+   .. data:: system.profile.execStats.stage
+
+      The descriptive name for the operation performed as part of the
+      query execution; e.g.
+
+      - ``COLLSCAN`` for a collection scan
+      - ``IXSCAN`` for scanning index keys
+      - ``FETCH`` for retrieving documents
+
+   .. data:: system.profile.execStats.inputStages
+
+      An array that contains statistics for the operations that are the
+      input stages of the current stage.
+
+.. data:: system.profile.ts
+
+   The timestamp of the operation.
+
+.. data:: system.profile.client
+
+   The IP address or hostname of the client connection where the
+   operation originates.
+
+.. data:: system.profile.appName
+
+   .. include:: /includes/fact-client-appname.rst
+
+.. data:: system.profile.allUsers
+
+   An array of authenticated user information (user name and database)
+   for the session. See also :doc:`/core/security-users`.
+
+.. data:: system.profile.user
+
+   The authenticated user who ran the operation. If the operation was
+   not run by an authenticated user, this field's value is an empty
+   string.
+
+Example ``system.profile`` Document
+-----------------------------------
+
+The following examples present sample documents found in the
+:data:`system.profile <<database>.system.profile>` collection for
+operations on a standalone:
+
+.. tabs::
+
+   tabs:
+
+      - id: query
+        name: Find Operation
+        content: |
+            The following document in the :data:`system.profile
+            <<database>.system.profile>` collection shows metrics for
+            a sample query operation on the ``test.report`` collection:
+
+            .. code-block:: javascript
+
+               {
+                  "op" : "query",
+                  "ns" : "test.report",
+                  "command" : {
+                     "find" : "report",
+                     "filter" : { "a" : { "$lte" : 500 } },
+                     "lsid" : {
+                        "id" : UUID("5ccd5b81-b023-41f3-8959-bf99ed696ce9")
+                     },
+                     "$db" : "test"
+                  },
+                  "cursorid" : 33629063128,
+                  "keysExamined" : 101,
+                  "docsExamined" : 101,
+                  "fromMultiPlanner" : true,
+                  "numYield" : 2,
+                  "nreturned" : 101,
+                  "queryHash" : "811451DD",
+                  "planCacheKey" : "759981BA",
+                  "queryFramework" : "classic",
+                  "locks" : {
+                     "Global" : {
+                        "acquireCount" : {
+                           "r" : NumberLong(3),
+                           "w" : NumberLong(3)
+                        }
+                     },
+                     "Database" : {
+                        "acquireCount" : { "r" : NumberLong(3) },
+                        "acquireWaitCount" : { "r" : NumberLong(1) },
+                        "timeAcquiringMicros" : { "r" : NumberLong(69130694) }
+                     },
+                     "Collection" : {
+                        "acquireCount" : { "r" : NumberLong(3) }
+                     }
+                  },
+                  "storage" : {
+                     "data" : {
+                        "bytesRead" : NumberLong(14736),
+                        "timeReadingMicros" : NumberLong(17)
+                     }
+                  },
+                  "responseLength" : 1305014,
+                  "protocol" : "op_msg",
+                  "millis" : 69132,
+                  "planningTimeMicros" : 129,
+                  "planSummary" : "IXSCAN { a: 1, _id: -1 }",
+                  "execStats" : {
+                     "stage" : "FETCH",
+                     "nReturned" : 101,
+                     "executionTimeMillisEstimate" : 0,
+                     "works" : 101,
+                     "advanced" : 101,
+                     "needTime" : 0,
+                     "needYield" : 0,
+                     "saveState" : 3,
+                     "restoreState" : 2,
+                     "isEOF" : 0,
+                     "docsExamined" : 101,
+                     "alreadyHasObj" : 0,
+                     "inputStage" : {
+                        ...
+                     }
+                  },
+                  "ts" : ISODate("2019-01-14T16:57:33.450Z"),
+                  "client" : "127.0.0.1",
+                  "appName" : "MongoDB Shell",
+                  "allUsers" : [
+                     {
+                        "user" : "someuser",
+                        "db" : "admin"
+                     }
+                  ],
+                  "user" : "someuser@admin"
+               }
+
+      - id: getmore
+        name: Get More Operation
+        content: |
+            The :data:`system.profile <<database>.system.profile>` collection 
+            includes metrics for the :dbcommand:`getMore` operation. In this 
+            example, ``getMore`` returns additional documents from the 
+            ``test.report`` collection.
+
+            .. code-block:: javascript
+
+               {
+                  "op" : "getmore",
+                  "ns" : "test.report",
+                  "command" : {
+                     "getMore" : Long("33629063128"),
+                     "collection" : "report",
+                     "batchSize": 3,
+                     "lsid" : {
+                        "id": new UUID("3148c569-425c-4498-9168-5b7ee260bf27")
+                     },
+                     "$db" : "test"
+                  },
+                  originatingCommand: {
+                     "find: "report",
+                     "filter" : { "a" : { "$lte" : 500 } },
+                     "lsid" : {
+                        "id" : UUID("5ccd5b81-b023-41f3-8959-bf99ed696ce9")
+                     },
+                     "$db" : "test"
+                  }, 
+                  "cursorid" : Long("33629063128"),
+                  "keysExamined" : 101,
+                  "docsExamined" : 101,
+                  "fromMultiPlanner" : true,
+                  "numYield" : 2,
+                  "nreturned" : 3,
+                  "queryHash" : "811451DD",
+                  "planCacheKey" : "759981BA",
+                  "queryFramework": "classic"
+                  "locks" : {
+                     "Global" : {
+                        "acquireCount" : {
+                           "r" : NumberLong(3),
+                           "w" : NumberLong(3)
+                        }
+                     },
+                     "Database" : {
+                        "acquireCount" : { "r" : NumberLong(3) },
+                        "acquireWaitCount" : { "r" : NumberLong(1) },
+                        "timeAcquiringMicros" : { "r" : NumberLong(69130694) }
+                     },
+                     "Collection" : {
+                        "acquireCount" : { "r" : NumberLong(3) }
+                     }
+                  },
+                  readConcern: {level: 'local', provenance: 'implicitDefault'},
+                  "responseLength" : 1305014,
+                  "protocol" : "op_msg",
+                  "millis" : 69132,
+                  "planSummary" : "IXSCAN { a: 1, _id: -1 }",
+                  "execStats" : {
+                     "stage" : "FETCH",
+                     "filter" : { "a" : { "$lte" : 500 } },
+                     "nReturned" : 101,
+                     "executionTimeMillisEstimate" : 0,
+                     "works" : 104,
+                     "advanced" : 104,
+                     "needTime" : 0,
+                     "needYield" : 0,
+                     "saveState" : 3,
+                     "restoreState" : 2,
+                     "isEOF" : 0,
+                     "direction": 'forward',
+                     "docsExamined" : 104
+                  },
+                  "ts" : ISODate("2019-01-14T16:57:33.450Z"),
+                  "client" : "127.0.0.1",
+                  "appName" : "MongoDB Shell",
+                  "allUsers" : [
+                     {
+                        "user" : "someuser",
+                        "db" : "admin"
+                     }
+                  ],
+                  "user" : "someuser@admin"
+               }
+
+      - id: update
+        name: Update Operation
+        content: |
+
+            The profile entry for :dbcommand:`update` (and
+            :dbcommand:`delete`) operation contains the entire update
+            command.
+
+            The following document in the :data:`system.profile
+            <<database>.system.profile>` collection shows metrics for
+            a sample update operation on the ``test.report`` collection:
+
+            .. code-block:: javascript
+
+               {
+                  "op" : "update",
+                  "ns" : "test.report",
+                  "command" : {
+                     "q" : { },
+                     "u" : { "$rename" : { "a" : "b" } },
+                     "multi" : true,
+                     "upsert" : false
+                  },
+                  "keysExamined" : 0,
+                  "docsExamined" : 25000,
+                  "nMatched" : 25000,
+                  "nModified" : 25000,
+                  "keysInserted" : 25000,
+                  "keysDeleted" : 25000000,
+                  "numYield" : 6985,
+                  "locks" : {
+                     "Global" : {
+                        "acquireCount" : { "r" : NumberLong(6986), "w" : NumberLong(13972) }
+                     },
+                     "Database" : {
+                        "acquireCount" : { "w" : NumberLong(6986) },
+                        "acquireWaitCount" : { "w" : NumberLong(1) },
+                        "timeAcquiringMicros" : { "w" : NumberLong(60899375) }
+                     },
+                     "Collection" : {
+                        "acquireCount" : { "w" : NumberLong(6986) }
+                     },
+                     "Mutex" : {
+                        "acquireCount" : { "r" : NumberLong(25000) }
+                     }
+                  },
+                  "storage" : {
+                     "data" : {
+                        "bytesRead" : NumberLong(126344060),
+                        "bytesWritten" : NumberLong(281834762),
+                        "timeReadingMicros" : NumberLong(94549),
+                        "timeWritingMicros" : NumberLong(139361)
+                     }
+                  },
+                  "millis" : 164687,
+                  "planningTimeMicros" : 129,
+                  "planSummary" : "COLLSCAN",
+                  "execStats" : {
+                     "stage" : "UPDATE",
+                     "nReturned" : 0,
+                     "executionTimeMillisEstimate" : 103771,
+                     "works" : 25003,
+                     "advanced" : 0,
+                     "needTime" : 25002,
+                     "needYield" : 0,
+                     "saveState" : 6985,
+                     "restoreState" : 6985,
+                     "isEOF" : 1,
+                     "nMatched" : 25000,
+                     "nWouldModify" : 25000,
+                     "wouldInsert" : false,
+                     "inputStage" : {
+                        "stage" : "COLLSCAN",
+                        "nReturned" : 25000,
+                        "executionTimeMillisEstimate" : 0,
+                        "works" : 25002,
+                        "advanced" : 25000,
+                        "needTime" : 1,
+                        "needYield" : 0,
+                        "saveState" : 31985,
+                        "restoreState" : 31985,
+                        "isEOF" : 1,
+                        "direction" : "forward",
+                        "docsExamined" : 25000
+                     }
+                  },
+                  "ts" : ISODate("2019-01-14T23:33:01.806Z"),
+                  "client" : "127.0.0.1",
+                  "appName" : "MongoDB Shell",
+                  "allUsers" : [
+                     {
+                        "user" : "someuser",
+                        "db" : "admin"
+                     }
+                  ],
+                  "user" : "someuser@admin"
+               }
