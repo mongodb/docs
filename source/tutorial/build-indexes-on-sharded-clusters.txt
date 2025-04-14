@@ -1,9 +1,9 @@
 
 .. _index-build-on-sharded-clusters:
 
-=================================================
-Create a Rolling Index Builds on Sharded Clusters
-=================================================
+===============================================
+Create Rolling Index Builds on Sharded Clusters
+===============================================
 
 .. meta::
    :description: Learn how to perform rolling index builds on sharded clusters, including stopping the balancer and building indexes on each shard.
@@ -26,6 +26,10 @@ Rolling index builds are an alternative to :ref:`default index builds
 
 Considerations
 --------------
+
+.. warning::
+
+   Make sure you are not performing :ref:`DDL operations <ddl-operations>` while conducting the rolling index build.
 
 Unique Indexes
 ~~~~~~~~~~~~~~
@@ -85,78 +89,65 @@ Procedure
    the procedure for replica sets, see
    :doc:`/tutorial/build-indexes-on-replica-sets` instead.
 
-A. Stop the Balancer
-~~~~~~~~~~~~~~~~~~~~
+A. Stop Migrations
+~~~~~~~~~~~~~~~~~~
 
-Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos`
-instance in the sharded cluster, and run :method:`sh.stopBalancer()` to
-disable the balancer: [#autosplit-stop]_
-
-.. code-block:: javascript
-
-   sh.stopBalancer()
-
-.. note::
-
-   If a migration is in progress, the system will complete the
-   in-progress migration before stopping the balancer.
-  
-To verify that the balancer is disabled, run
-:method:`sh.getBalancerState()`, which returns false if the balancer
-is disabled:
+Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos` instance 
+in the sharded cluster and disable migrations for the collection 
+where you want to perform the rolling build index:
 
 .. code-block:: javascript
 
-   sh.getBalancerState()
+  db.adminCommand(
+    {
+      setAllowMigrations: "<db>.<collection>",
+      allowMigrations: false
+    }
+  )
 
-.. [#autosplit-stop]
+The preceding command ensures the correct set of shards is targeted 
+for rolling index builds because no migration for the collection 
+will be allowed to commit.
 
-   .. include:: /includes/extracts/4.2-changes-stop-balancer-autosplit.rst
+If the command returns the following error, it means the collection is 
+unsharded. You can safely ignore the error and continue with the next 
+step.
+
+.. code-block:: javascript
+   :copyable: false
+   
+   MongoServerError[NamespaceNotSharded]: Collection must be sharded so migrations can be blocked
 
 .. _build-indexes-sharded-cluster-distribution:
 
 B. Determine the Distribution of the Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-From :binary:`~bin.mongosh` connected to the
-:binary:`~bin.mongos`, refresh the cached routing table for that
-:binary:`~bin.mongos` to avoid returning stale distribution information
-for the collection. Once refreshed, run
-:method:`db.collection.getShardDistribution()` for the collection you
-wish to build the index.
-
-For example, if you want to create an ascending index
-on the ``records`` collection in the ``test`` database:
+To determine which shards must be involved in the rolling index build, 
+run the following aggregation on the collection that you want to build 
+the index on:
 
 .. code-block:: javascript
 
-   db.adminCommand( { flushRouterConfig: "test.records" } );
-   db.records.getShardDistribution();
+   db.getSiblingDB(<db>).getCollection(<collection>).aggregate([{$collStats:{}},{$group: {_id: "$ns", shard_list: {$addToSet: "$shard"}}}])
 
-The method outputs the shard distribution. For example, consider a
-sharded cluster with 3 shards ``shardA``, ``shardB``, and ``shardC``
-and the :method:`db.collection.getShardDistribution()` returns the
-following:
+For example, if you want to create an index on the ``records`` 
+collection in the ``test`` database:
 
-.. code-block:: none
-   :copyable: false
+.. io-code-block::
+    :copyable: false
 
-   Shard shardA at shardA/s1-mongo1.example.net:27018,s1-mongo2.example.net:27018,s1-mongo3.example.net:27018
-    data : 1KiB docs : 50 chunks : 1
-    estimated data per chunk : 1KiB
-    estimated docs per chunk : 50
+    .. input::
+       :language: javascript
 
-   Shard shardC at shardC/s3-mongo1.example.net:27018,s3-mongo2.example.net:27018,s3-mongo3.example.net:27018
-    data : 1KiB docs : 50 chunks : 1
-    estimated data per chunk : 1KiB
-    estimated docs per chunk : 50
+       db.getSiblingDB("test").getCollection("records").aggregate([{$collStats:{}},{$group: {_id: "$ns", shard_list: {$addToSet: "$shard"}}}])
 
-   Totals
-    data : 3KiB docs : 100 chunks : 2
-    Shard shardA contains 50% data, 50% docs in cluster, avg obj size on shard : 40B
-    Shard shardC contains 50% data, 50% docs in cluster, avg obj size on shard : 40B
+    .. output::
+       :language: javascript
 
-From the output, you only build the indexes for ``test.records`` on
+       [ { _id: 'test.records', shard_list: [ 'shardA', 'shardC' ] } ]
+
+From the output, you only build the indexes for ``test.records`` on 
 ``shardA`` and ``shardC``.
 
 .. _tutorial-index-on-affected-shards:
@@ -408,22 +399,29 @@ Once you finish building the index for a shard, repeat
 :ref:`tutorial-index-on-affected-shards` for the other
 affected shards.
 
-E. Restart the Balancer
-~~~~~~~~~~~~~~~~~~~~~~~
+E. Enable Migrations
+~~~~~~~~~~~~~~~~~~~~
 
-Once you finish the rolling index build for the affected shards,
-restart the balancer.
-
-Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos`
-instance in the sharded cluster, and run :method:`sh.startBalancer()`: [#autosplit-start]_
+Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos` instance 
+in the sharded cluster and re-enable the migration with
+:dbcommand:`setAllowMigrations`:
 
 .. code-block:: javascript
 
-   sh.startBalancer()
+  db.adminCommand(
+    {
+      setAllowMigrations: "<db>.<collection>",
+      allowMigrations: true
+    }
+  )
 
-.. [#autosplit-start]
+If the command returns the following error, it means the collection is 
+unsharded. You can safely ignore the error.
 
-   .. include:: /includes/extracts/4.2-changes-start-balancer-autosplit.rst
+.. code-block:: javascript
+   :copyable: false
+   
+   MongoServerError[NamespaceNotSharded]: Collection must be sharded so migrations can be blocked
 
 Additional Information
 ----------------------
