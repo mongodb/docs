@@ -1,0 +1,287 @@
+=================================
+db.collection.findOneAndDelete()
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.findOneAndDelete( filter, options )
+
+   .. versionadded:: 3.2
+   
+   Deletes a single document based on the ``filter`` and 
+   ``sort`` criteria, returning the deleted document.
+   
+   The :method:`~db.collection.findOneAndDelete()` method has the following 
+   form:
+
+   .. code-block:: javascript
+
+      db.collection.findOneAndDelete(
+         <filter>,
+         {
+           projection: <document>,
+           sort: <document>,
+           maxTimeMS: <number>,
+           collation: <document>
+         }
+      )
+
+   The :method:`~db.collection.findOneAndDelete()` method takes the following
+   parameters:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``filter``
+   
+        - document
+   
+        - The selection criteria for the update. The same :ref:`query
+          selectors <query-selectors>` as in the :method:`find()
+          <db.collection.find()>` method are available.
+          
+          Specify an empty document ``{ }`` to delete the first document returned in 
+          the collection.
+          
+          If unspecified, defaults to an empty document.
+          
+          Starting in MongoDB 3.6.14+ (and 3.4.23+), the operation
+          errors if the query argument is not a document.
+          
+          
+   
+      * - ``projection``
+   
+        - document
+   
+        - Optional. A subset of fields to return.
+          
+          To return all fields in the returned document, omit this parameter.
+          
+           Starting in MongoDB 3.6.14+ (and 3.4.23+), the operation errors if
+           the projection argument is not a document.
+          
+          
+   
+      * - ``sort``
+   
+        - document
+   
+        - Optional. Specifies a sorting order for the documents matched by the ``filter``.
+          
+           Starting in MongoDB 3.6.14+ (and 3.4.23+), the operation errors if
+           the sort argument is not a document.
+          
+          See :method:`cursor.sort()`.
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - number
+   
+        - Optional. Specifies a time limit in milliseconds within which the operation must 
+          complete within. Throws an error if the limit is exceeded.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+
+
+   :returns:
+
+      Returns the deleted document.
+      
+Behavior
+--------
+
+:method:`~db.collection.findOneAndDelete()` deletes the first matching 
+document in the collection that matches the ``filter``. 
+The ``sort`` parameter can be used to influence which document is updated.
+
+The ``projection`` parameter takes a document in the following form:
+
+.. code-block:: javascript
+
+   { field1 : < boolean >, field2 : < boolean> ... }
+   
+The ``<boolean>`` value can be any of the following:
+
+- ``1`` or ``true`` to include the field. The method returns the
+  ``_id`` field even if it is not explicitly stated in the projection
+  parameter.
+
+- ``0`` or ``false`` to exclude the field. This can be used on any
+  field, including ``_id``.
+
+
+.. _findOneAndDelete-examples:
+
+Examples
+~~~~~~~~
+
+.. _findOneAndDelete-example-replace-document:
+
+Delete A Document
+~~~~~~~~~~~~~~~~~~
+
+The ``grades`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+   { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+   { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+   { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+   { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+   { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+
+The following operation finds the first document where ``name : M. Tagnum`` 
+and deletes it:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndDelete( 
+      { "name" : "M. Tagnum" }
+   )
+
+The operation returns the *original* document that has been deleted:
+
+.. code-block:: javascript
+
+   { _id: 6312, name: "M. Tagnum", "assignment" : 5, "points" : 30 }
+
+.. _findOneAndDelete-example-sort-and-replace-document:
+
+Sort And Delete A Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``grades`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+   { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+   { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+   { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+   { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+   { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+
+The following operation first finds all documents where 
+``name : "A. MacDyver"``. It then sorts by ``points`` ascending before 
+deleting the document with the lowest points value:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndDelete(
+      { "name" : "A. MacDyver" },
+      { sort : { "points" : 1 } }
+   )
+
+The operation returns the *original* document that has been deleted:
+
+.. code-block:: javascript
+
+   { _id: 6322, name: "A. MacDyver", "assignment" : 2, "points" : 14 }
+
+.. _findOneAndDelete-example-project-deleted-document:
+
+Projecting the Deleted Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses projection to only return the ``_id`` and 
+``assignment`` fields in the returned document:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndDelete(
+      { "name" : "A. MacDyver" },
+      { sort : { "points" : 1 }, projection: { "assignment" : 1 } }
+   )
+   
+The operation returns the *original* document with the 
+``assignment`` and ``_id`` fields: 
+
+.. code-block:: javascript
+
+   { _id: 6322, "assignment" : 2 }
+
+.. _findOneAndDelete-example-replace-with-time-limit:
+
+Update Document with Time Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation sets a 5ms time limit to complete the deletion:
+
+.. code-block:: javascript
+
+   try {
+      db.scores.findOneAndDelete(
+         { "name" : "A. MacDyver" },
+         { sort : { "points" : 1 }, maxTimeMS : 5 };
+      );
+   }
+   catch(e){
+      print(e);
+   }
+
+If the operation exceeds the time limit, it returns:
+
+.. code-block:: javascript
+
+   Error: findAndModifyFailed failed: { "ok" : 0, "errmsg" : "operation exceeded time limit", "code" : 50 }
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.findOneAndDelete(
+      { category: "cafe", status: "a" },
+      { collation: { locale: "fr", strength: 1 } }
+   );
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café", "status" : "A" }

@@ -1,0 +1,121 @@
+ref: access-control-create-cmd
+content: |
+
+  If the deployment enforces 
+  :ref:`authentication/authorization <authentication>`, 
+  {{operation}} requires the following privileges:
+
+  .. list-table::
+     :header-rows: 1
+
+     * - 
+
+       - Required Privileges
+     
+     * - Create a non-capped collection
+
+       - :authaction:`createCollection` on the database, **or**
+
+         :authaction:`insert` on the collection to create
+
+     * - Create a :ref:`capped collection <manual-capped-collection>`
+
+       - :authaction:`convertToCapped` for the collection
+
+
+         :authaction:`createCollection` on the database
+
+     * - Create a :ref:`view <3.4-reference-views>`
+
+       - - :authaction:`createCollection` on the database 
+
+           *or*
+
+         - :authaction:`createCollection` on the database
+           *and* :authaction:`find` on the source collection/view
+
+           *or*
+
+         - :authaction:`createCollection` on the database,
+           :authaction:`find` on the view to create, 
+           *and* :authaction:`find` on the source collection/view
+
+         A user with :authaction:`createCollection` on the database and
+         :authaction:`find` on the view to create does not have
+         sufficient privileges.
+
+  The :authrole:`readWrite` built in role includes the required 
+  privileges. Alternatively, you can
+  :ref:`create a custom role <create-user-defined-role>` to support
+  {{operation}}.
+
+post : |
+
+  The following example uses the :method:`db.createUser()` method to 
+  create a user in the ``admin`` database with the ``readWrite``
+  role on the ``inventory`` and ``employees`` database:
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("admin").createUser(
+       {
+         "user" : "createViewUser",
+         "pwd" : "replaceThisWithASecurePassword",
+         "roles" : [ 
+           { "db" : "inventory", "role" : "readWrite" },
+           { "db" : "employees", "role" : "readWrite" }
+         ]
+       }
+     )
+
+  The created user can execute {{operation}} on the specified databases.
+  For more examples of user creation, see :doc:`/tutorial/create-users`.
+
+  Alternatively, you can add the required roles to an existing user 
+  using :method:`db.grantRolesToUser()`. For a tutorial on adding 
+  privileges to an existing database user, see 
+  :ref:`modify-existing-user-access`.
+replacement:
+  operation : ":dbcommand:`create`"
+---
+ref: access-control-createCollection
+source:
+  file: extracts-create-cmd.yaml
+  ref: access-control-create-cmd
+replacement:
+  operation : ":method:`db.createCollection()`"
+---
+ref: access-control-createView
+content : |
+
+  If the deployment enforces 
+  :ref:`authentication/authorization <authentication>`,
+  {{operation}} requires the following privileges:
+
+  - :authaction:`createCollection` on the database
+
+    *or*
+
+  - :authaction:`createCollection` on the database
+    *and* :authaction:`find` on the source collection/view
+
+    *or*
+
+  - :authaction:`createCollection` on the database,
+    :authaction:`find` on the view to create, 
+    *and* :authaction:`find` on the source collection/view
+
+  A user with :authaction:`createCollection` on the database
+  and :authaction:`find` on the view to create does not have sufficient
+  privileges.
+
+  The :authrole:`readWrite` built in role includes the required 
+  privileges. Alternatively, you can
+  :ref:`create a custom role <create-user-defined-role>` to support
+  {{operation}}.
+
+source:
+  file: extracts-create-cmd.yaml
+  ref: access-control-create-cmd
+replacement:
+  operation : ":method:`db.createView()`"

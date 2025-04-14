@@ -1,0 +1,209 @@
+==========================
+$replaceRoot (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $replaceRoot
+
+   .. versionadded:: 3.4
+ 
+   Promotes a specified document to the top level and
+   replaces all other fields. The
+   operation replaces all existing fields in the input document,
+   including the ``_id`` field. You can promote an existing
+   embedded document to the top level, or create a new document
+   for promotion (see
+   :ref:`example<new-replacement-doc>`).
+ 
+   The :pipeline:`$replaceRoot` stage has the following form:
+ 
+   .. code-block:: javascript
+ 
+      { $replaceRoot: { newRoot: <replacementDocument> } }
+ 
+   The replacement document can be any valid
+   :ref:`expression <aggregation-expressions>` that resolves to a
+   document.
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+``$replaceRoot`` operations fail with an error if
+``<replacementDocument>`` is not a document.
+
+If the replacement document refers to a field in the input document
+that does not exist, the operation fails with an error.
+To ensure that the replacement document exists, use
+a :pipeline:`$match` stage first to check for existence
+before passing documents to the :pipeline:`$replaceRoot` stage (see
+:ref:`example<replace-with-match>`).
+
+Examples
+--------
+
+``$replaceRoot`` with an embedded document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``produce`` contains the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "fruit" : [ "apples", "oranges" ],
+      "in_stock" : { "oranges" : 20, "apples" : 60 },
+      "on_order" : { "oranges" : 35, "apples" : 75 }
+   }
+   {
+      "_id" : 2,
+      "vegetables" : [ "beets", "yams" ],
+      "in_stock" : { "beets" : 130, "yams" : 200 },
+      "on_order" : { "beets" : 90, "yams" : 145 }
+   }
+
+The following operation uses the :pipeline:`$replaceRoot` stage to
+promote the ``in_stock`` document to the top level, discarding the
+current top level fields.
+
+.. code-block:: javascript
+
+   db.produce.aggregate( [
+      {
+        $replaceRoot: { newRoot: "$in_stock" }
+      }
+   ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "oranges" : 20, "apples" : 60 }
+   { "beets" : 130, "yams" : 200 }
+
+.. _replace-with-match:
+
+``$replaceRoot`` with a ``$match`` stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``people`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Arlene", "age" : 34, "pets" : { "dogs" : 2, "cats" : 1 } }
+   { "_id" : 2, "name" : "Sam", "age" : 41, "pets" : { "cats" : 1, "hamsters" : 3 } }
+   { "_id" : 3, "name" : "Maria", "age" : 25 }
+
+In order to run an aggregation operation with a ``$replaceRoot``
+stage to promote the ``pets`` field to the top level, you need to also
+include a ``$match`` stage to filter out any documents which do not
+contain a ``pets`` field.
+
+.. code-block:: javascript
+
+   db.people.aggregate( [
+      {
+        $match: { pets : { $exists: true } }
+      },
+      {
+        $replaceRoot: { newRoot: "$pets" }
+      }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "dogs" : 2, "cats" : 1 }
+   { "cats" : 1, "hamsters" : 3 }
+
+.. _new-replacement-doc:
+
+``$replaceRoot`` with a newly created document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also create new documents as part of the
+``$replaceRoot`` stage and use them to replace all the other fields.
+
+A collection named ``contacts`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "first_name" : "Gary", "last_name" : "Sheffield", "city" : "New York" }
+   { "_id" : 2, "first_name" : "Nancy", "last_name" : "Walker", "city" : "Anaheim" }
+   { "_id" : 3, "first_name" : "Peter", "last_name" : "Sumner", "city" : "Toledo" }
+
+The following operation creates a new document out of the
+``first_name`` and ``last_name`` fields.
+
+.. code-block:: javascript
+
+   db.contacts.aggregate( [
+      {
+         $replaceRoot: {
+            newRoot: {
+               full_name: {
+                  $concat : [ "$first_name", " ", "$last_name" ]
+               }
+            }
+         }
+      }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "full_name" : "Gary Sheffield" }
+   { "full_name" : "Nancy Walker" }
+   { "full_name" : "Peter Sumner" }
+
+``$replaceRoot`` with an array element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``contacts`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Susan",
+     "phones" : [ { "cell" : "555-653-6527" },
+                  { "home" : "555-965-2454" } ] }
+   { "_id" : 2, "name" : "Mark",
+     "phones" : [ { "cell" : "555-445-8767" },
+                  { "home" : "555-322-2774" } ] }
+
+The following operation promotes the embedded document with key
+``cell`` to the top level:
+
+.. code-block:: javascript
+
+   db.contacts.aggregate( [
+      {
+         $unwind: "$phones"
+      },
+      {
+         $match: { "phones.cell" : { $exists: true } }
+      },
+      {
+         $replaceRoot: { newRoot: "$phones"}
+      }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "cell" : "555-653-6527" }
+   { "cell" : "555-445-8767" }

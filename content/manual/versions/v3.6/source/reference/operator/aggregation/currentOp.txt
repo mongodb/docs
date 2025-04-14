@@ -1,0 +1,102 @@
+========================
+$currentOp (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 3.6
+
+.. pipeline:: $currentOp
+
+   Returns a stream of documents containing information on active
+   and/or dormant operations for the MongoDB deployment. To run
+   :pipeline:`$currentOp`, use the :method:`db.aggregate()` helper
+   on the ``admin`` database.
+
+   :pipeline:`$currentOp` offers a better alternative to the
+   :dbcommand:`currentOp` command and the :method:`db.currentOp` method.
+   The latter two commands are limited to returning all operations in 
+   a single document, which must not exceed the maximum 16MB BSON size. 
+   Since :pipeline:`$currentOp` pipelines return a cursor, they are not 
+   subject to these limitations. 
+
+   :pipeline:`$currentOp` also enables you to perform arbitrary
+   transformations of the results as the documents pass through the 
+   pipeline.
+
+   :pipeline:`$currentOp` takes an options document as its operand. 
+
+   .. code-block:: javascript
+
+      { $currentOp: { allUsers: <boolean>, idleConnections: <boolean> } }
+
+   Specify an empty document to use the default values.
+
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+ 
+   * - Option
+     - Description
+
+   * - ``allUsers``
+
+     - Boolean. If set to ``false``, :pipeline:`$currentOp` will only
+       report operations belonging to the user who ran the command. If
+       set to ``true``, :pipeline:`$currentOp` will report operations
+       belonging to all users.
+
+       .. note::
+
+          The ``inprog`` privilege is necessary to run 
+          :pipeline:`$currentOp` with ``{ allUsers : true }``.
+
+       Defaults to ``false``.
+
+   * - ``idleConnections``
+     - Boolean. If set to ``false``, :pipeline:`$currentOp` will 
+       only report active operations. If set to ``true``, all 
+       operations including idle connections will be returned.
+
+       Defaults to ``false``.
+
+Constraints
+-----------
+
+- :pipeline:`$currentOp` must be the first stage in the pipeline.
+
+- Pipelines that start with :pipeline:`$currentOp` can only be run on 
+  the ``admin`` database.
+
+- On a standalone or replica set with authentication enabled, the 
+  ``inprog`` privilege is required to run :pipeline:`$currentOp` if 
+  the ``allUsers`` parameter is set to `true`. 
+
+- On a sharded cluster, the ``inprog`` privilege is required to run 
+  all :pipeline:`$currentOp` pipelines.
+
+Example
+-------
+
+The following example runs the :pipeline:`$currentOp` operation
+in the first stage and filters the results of that operation in the
+second stage.
+
+.. code-block:: javascript
+
+   use admin
+   db.aggregate( [ 
+      { $currentOp : { allUsers: true, idleConnections: true } },
+      { $match : { shard: "shard01" } }
+   ] )

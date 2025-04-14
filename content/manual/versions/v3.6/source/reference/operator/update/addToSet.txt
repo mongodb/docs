@@ -1,0 +1,162 @@
+=========
+$addToSet
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $addToSet
+
+   The :update:`$addToSet` operator adds a value to an array unless the value
+   is already present, in which case :update:`$addToSet` does nothing to that
+   array.
+
+   The :update:`$addToSet` operator has the form:
+
+   .. code-block:: javascript
+
+      { $addToSet: { <field1>: <value1>, ... } }
+
+   .. include:: /includes/use-dot-notation.rst
+
+Behavior
+--------
+
+:update:`$addToSet` only ensures that there are no duplicate items
+*added* to the set and does not affect existing duplicate elements.
+:update:`$addToSet` does not guarantee a particular ordering of
+elements in the modified set.
+
+Missing Field
+~~~~~~~~~~~~~
+
+If you use :update:`$addToSet` on a field is absent in the document to
+update, :update:`$addToSet` creates the array field with the specified
+value as its element.
+
+Field is Not an Array
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you use :update:`$addToSet` on a field that is **not** an array, the
+operation will fail. For example, consider a document in a collection
+``foo`` that contains a non-array field ``colors``.
+
+.. code-block:: javascript
+
+   { _id: 1, colors: "blue,green,red" }
+
+The following :update:`$addToSet` operation on the non-array field
+``colors`` fails:
+
+.. code-block:: javascript
+
+   db.foo.update(
+      { _id: 1 },
+      { $addToSet: { colors: [ "c", "d" ] } }
+   )
+
+Value to Add is An Array
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the value is an array, :update:`$addToSet` appends the whole array
+as a *single* element.
+
+Consider a document in a collection ``test`` containing an array
+field ``letters``:
+
+.. code-block:: javascript
+
+   { _id: 1, letters: ["a", "b"] }
+
+The following operation appends the array ``[ "c", "d" ]`` to the
+``letters`` field:
+
+.. code-block:: javascript
+
+   db.test.update(
+      { _id: 1 },
+      { $addToSet: {letters: [ "c", "d" ] } }
+   )
+
+The ``letters`` array now includes the ``[ "c", "d" ]`` array
+as an element:
+
+.. code-block:: javascript
+
+   { _id: 1, letters: [ "a", "b", [ "c", "d" ] ] }
+
+.. tip::
+
+   To add each element of the value **separately**, use the
+   :update:`$each` modifier with :update:`$addToSet`. See
+   :ref:`addToSet-modifiers` for details.
+
+Value to Add is a Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the value is a document, MongoDB determines that the document is a
+duplicate if an existing document in the array matches the to-be-added
+document exactly; i.e. the existing document has the exact same fields
+and values *and* the fields are in the same order. As such, field order
+matters and you cannot specify that MongoDB compare only a subset of
+the fields in the document to determine whether the document is a
+duplicate of an existing array element.
+
+Examples
+--------
+
+Consider a collection ``inventory`` with the following document:
+
+.. code-block:: javascript
+
+   { _id: 1, item: "polarizing_filter", tags: [ "electronics", "camera" ] }
+
+Add to Array
+~~~~~~~~~~~~
+
+The following operation adds the element ``"accessories"`` to the
+``tags`` array since ``"accessories"`` does not exist in the array:
+
+.. code-block:: javascript
+
+   db.inventory.update(
+      { _id: 1 },
+      { $addToSet: { tags: "accessories" } }
+   )
+
+Value Already Exists
+~~~~~~~~~~~~~~~~~~~~
+
+The following :update:`$addToSet` operation has no effect as
+``"camera"`` is already an element of the ``tags`` array:
+
+.. code-block:: javascript
+
+   db.inventory.update(
+      { _id: 1 },
+      { $addToSet: { tags: "camera"  } }
+   )
+
+.. _addToSet-modifiers:
+
+``$each`` Modifier
+~~~~~~~~~~~~~~~~~~
+
+You can use the :update:`$addToSet` operator with the
+:update:`$each` modifier. The :update:`$each` modifier allows the
+:update:`$addToSet` operator to add multiple values to the array
+field.
+
+.. include:: /includes/example-addToSet-each.rst
+
+.. seealso:: :method:`db.collection.update()`,
+   :method:`db.collection.findAndModify()`, :update:`$push`,
+   :update:`$pull`

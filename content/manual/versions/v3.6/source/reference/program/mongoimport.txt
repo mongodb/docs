@@ -1,0 +1,1030 @@
+.. _mongoimport:
+
+===============
+``mongoimport``
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+.. |tool-binary| replace:: mongoimport
+
+.. include:: /includes/admonition-mac-osx-sierra-restriction.rst
+
+Synopsis
+--------
+
+The :binary:`~bin.mongoimport` tool imports content from an
+:doc:`Extended JSON </reference/mongodb-extended-json>`, CSV, or TSV export
+created by :binary:`~bin.mongoexport`, or potentially, another third-party export
+tool.
+
+See the :doc:`mongoexport` document for more information regarding
+:binary:`~bin.mongoexport`, which provides the inverse "exporting"
+capability.
+
+.. include:: /includes/extracts/require-cmd-line-mongoimport.rst
+
+Considerations
+--------------
+
+.. include:: /includes/fact-type-fidelity-loss.rst
+
+:binary:`~bin.mongoexport` and :binary:`~bin.mongoimport` use the :doc:`strict
+mode representation </reference/mongodb-extended-json>` for certain
+types.
+
+:binary:`~bin.mongoimport` only supports data files that are UTF-8 encoded.
+Using other encodings will produce errors.
+
+Required Access
+---------------
+
+In order to connect to a :binary:`~bin.mongod` that enforces authorization
+with the :option:`--auth <mongod --auth>` option, you must use the
+:option:`--username <mongoexport --username>` and :option:`--password
+<mongoexport --password>` options. The connecting user must
+possess, at a minimum, the :authrole:`readWrite` role on the database
+into which they are importing data.
+
+Options
+-------
+
+.. include:: /includes/extracts/fact-3.0-tools-drop-dbpath-support-mongoimport.rst
+
+.. binary:: mongoimport
+
+.. program:: mongoimport
+
+.. option:: --help
+
+   Returns information on the options and use of :program:`mongoimport`.
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
+
+
+.. option:: --quiet
+
+   Runs :program:`mongoimport` in a quiet mode that attempts to limit the amount
+   of output.
+
+   This option suppresses:
+   
+   - output from :term:`database commands <database command>`
+   
+   - replication activity
+   
+   - connection accepted events
+   
+   - connection closed events
+
+
+.. option:: --version
+
+   Returns the :program:`mongoimport` release number.
+
+
+.. option:: --uri <connectionString>
+
+   .. versionadded:: 3.4.6
+   
+   Specify a resolvable :doc:`URI connection string
+   </reference/connection-string/>` to connect to the MongoDB deployment.
+   
+   .. code-block:: none
+   
+      --uri "mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]"
+   
+   For more information on the components of the connection string, see
+   the :doc:`Connection String URI Format
+   </reference/connection-string/>` documentation.
+   
+
+   .. important::
+   
+      The following command-line options cannot be used in conjunction
+      with :option:`--uri` option:
+   
+      - :option:`--host`
+      - :option:`--port`
+      - :option:`--db`
+      - :option:`--username`
+      - :option:`--password`  (if the
+        :doc:`URI </reference/connection-string/>` connection string also includes the password)
+      - :option:`--authenticationDatabase`
+      - :option:`--authenticationMechanism`
+   
+      Instead, specify these options as part of your :option:`--uri` 
+      connection string.
+
+
+.. option:: --host <hostname><:port>, -h <hostname><:port>
+
+   *Default*: localhost:27017
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` to which to
+   connect. By default, the :program:`mongoimport` attempts to connect to a MongoDB
+   instance running on the localhost on port number ``27017``.
+   
+   To connect to a replica set, specify the
+   :setting:`~replication.replSetName` and a seed list of set members, as in
+   the following:
+   
+   .. code-block:: none
+   
+      --host <replSetName>/<hostname1><:port>,<hostname2><:port>,<...>
+   
+   When specifying the replica set list format, :program:`mongoimport` always connects to
+   the :term:`primary <Primary>`. 
+   
+   You can also connect to any single member of the replica set by specifying
+   the host and port of only that member:
+   
+   .. code-block:: none
+   
+      --host <hostname1><:port>
+   
+   .. versionchanged:: 3.0.0
+      If you use IPv6 and use the ``<address>:<port>`` format, you must
+      enclose the portion of an address and port combination in
+      brackets (e.g. ``[<address>]``).
+   
+   .. note::
+   
+      You cannot specify both :option:`--host` and :option:`--uri`.
+
+
+.. option:: --port <port>
+
+   *Default*: 27017
+
+   Specifies the TCP port on which the MongoDB instance listens for
+   client connections.
+   
+   .. note::
+   
+      You cannot specify both :option:`--port` and :option:`--uri`.
+
+
+.. option:: --ipv6
+
+   *Removed in version 3.0.*
+   
+   Enables IPv6 support and allows :program:`mongoimport` to connect to the
+   MongoDB instance using an IPv6 network. Prior to MongoDB 3.0, you
+   had to specify :option:`--ipv6` to use IPv6. In MongoDB 3.0 and later, IPv6
+   is always enabled.
+
+
+.. option:: --ssl
+
+   .. versionadded:: 2.6
+   
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslCAFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. warning::
+   
+      **Version 3.2 and earlier:** For TLS/SSL connections (``--ssl``) to
+      :binary:`~bin.mongod` and :binary:`~bin.mongos`, if the :program:`mongoimport` runs without the
+      :option:`--sslCAFile`, :program:`mongoimport` will not attempt
+      to validate the server certificates. This creates a vulnerability
+      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
+      well as to foreign processes posing as valid :binary:`~bin.mongod` or
+      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
+      CA file to validate the server certificates in cases where
+      intrusion is a possibility.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the :option:`--ssl` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.ssl.CAFile` enabled *without*
+   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslPEMKeyPassword <value>
+
+   .. versionadded:: 2.6
+   
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongoimport` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not specify
+   the :option:`--sslPEMKeyPassword` option, the :program:`mongoimport` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCRLFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   .. versionadded:: 2.6
+   
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates. When using the
+   :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
+   warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   .. versionadded:: 3.0
+   
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   :program:`mongoimport` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslFIPSMode
+
+   .. versionadded:: 2.6
+   
+   Directs the :program:`mongoimport` to use the FIPS mode of the installed OpenSSL
+   library. Your system must have a FIPS compliant OpenSSL library to use
+   the :option:`--sslFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--password` and
+   :option:`--authenticationDatabase` options.
+   
+   .. note::
+   
+      You cannot specify both :option:`--username` and :option:`--uri`.
+
+
+.. option:: --password <password>, -p <password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--username` and
+   :option:`--authenticationDatabase` options.
+   
+   .. versionchanged:: 3.0.2
+   
+      To prompt the user
+      for the password, pass the :option:`--username` option without
+      :option:`--password` or specify an empty string as the :option:`--password` value,
+      as in ``--password ""`` .
+   
+   .. note::
+   
+      You cannot specify both :option:`--password` and :option:`--uri`.
+
+
+.. option:: --authenticationDatabase <dbname>
+
+   Specifies the authentication database where the specified :option:`--username` has been created.
+   See :ref:`user-authentication-database`.
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationDatabase` and :option:`--uri`.
+
+
+.. option:: --authenticationMechanism <name>
+
+   *Default*: SCRAM-SHA-1
+
+   .. versionchanged:: 2.6
+      Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
+      mechanisms.
+   
+   .. versionchanged:: 3.0
+      Added support for the ``SCRAM-SHA-1`` authentication mechanism. Changed
+      default mechanism to ``SCRAM-SHA-1``.
+   
+
+   Specifies the authentication mechanism the :program:`mongoimport` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+   
+        - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
+          Salted Challenge Response Authentication Mechanism using the SHA1
+          hash function.
+   
+      * - :ref:`MONGODB-CR <authentication-mongodb-cr>`
+   
+        - MongoDB challenge/response authentication. (*Deprecated in MongoDB 3.6*)
+   
+      * - :ref:`MONGODB-X509 <security-auth-x509>`
+   
+        - MongoDB TLS/SSL certificate authentication.
+   
+      * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+   
+        - External authentication using Kerberos. This mechanism is
+          available only in `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp-docs>`_.
+   
+      * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+   
+        - External authentication using LDAP. You can also use ``PLAIN``
+          for authenticating in-database users. ``PLAIN`` transmits
+          passwords in plain text. This mechanism is available only in
+          `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp-docs>`_.
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationMechanism` and :option:`--uri`.
+
+
+.. option:: --gssapiServiceName
+
+   .. versionadded:: 2.6
+   
+   Specify the name of the service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --gssapiHostName
+
+   .. versionadded:: 2.6
+   
+   Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --db <database>, -d <database>
+
+   Specifies the name of the database on which to run the :program:`mongoimport`.
+   
+   .. note::
+    
+       You cannot specify both :option:`--db` and :option:`--uri`.
+
+
+.. option:: --collection <collection>, -c <collection>
+
+   Specifies the collection to import.
+   
+   .. versionadded:: 2.6
+      If you do not specify :option:`--collection`,
+      :binary:`~bin.mongoimport` takes the collection name from the input
+      filename. MongoDB omits the extension of the file from the
+      collection name, if the input file has an extension.
+
+
+.. option:: --fields <field1[,field2]>, -f <field1[,field2]>
+
+   Specify a comma separated list of field names when importing :term:`csv`
+   or :term:`tsv` files that do not have field names in the first (i.e.
+   header) line of the file. 
+   
+   To also specify the field type as well as the field name, use
+   :option:`--fields` with :option:`--columnsHaveTypes`.
+
+   If you attempt to include :option:`--fields` when importing JSON data,
+   :program:`mongoimport` will return an error. :option:`--fields` is only for :term:`csv`
+   or :term:`tsv` imports.
+
+
+.. option:: --fieldFile <filename>
+
+   As an alternative to :option:`--fields`, the :option:`--fieldFile`
+   option allows you to specify a file that holds a list of field names if
+   your :term:`csv` or :term:`tsv` file does not include field names in the
+   first line of the file (i.e. header). Place one field per line.
+   
+   To also specify the field type as well as the field name, use
+   :option:`--fieldFile` with :option:`--columnsHaveTypes`.
+
+   If you attempt to include :option:`--fieldFile` when importing JSON data,
+   :program:`mongoimport` will return an error. :option:`--fieldFile` is only for :term:`csv`
+   or :term:`tsv` imports.
+
+
+.. option:: --ignoreBlanks
+
+   Ignores empty fields in :term:`csv` and :term:`tsv` exports. If not
+   specified, :binary:`~bin.mongoimport` creates fields without values in
+   imported documents.
+   
+
+   If you attempt to include :option:`--ignoreBlanks` when importing JSON data,
+   :program:`mongoimport` will return an error. :option:`--ignoreBlanks` is only for :term:`csv`
+   or :term:`tsv` imports.
+
+
+.. option:: --type <json|csv|tsv>
+
+   Specifies the file type to import. The default format is :term:`JSON`,
+   but it's possible to import :term:`csv` and :term:`tsv` files.
+   
+   The ``csv`` parser accepts that data that complies with RFC
+   :rfc:`4180`. As a result, backslashes are *not* a valid escape
+   character. If you use double-quotes to enclose fields in the CSV
+   data, you must escape internal double-quote marks by prepending
+   another double-quote.
+   
+
+
+.. option:: --file <filename>
+
+   Specifies the location and name of a file containing the data to import.
+   If you do not specify a file, :binary:`~bin.mongoimport` reads data from
+   standard input (e.g. "stdin").
+   
+
+
+.. option:: --drop
+
+   Modifies the import process so that the target instance drops
+   the collection before importing the data from the input.
+   
+
+
+.. option:: --headerline
+
+   If using :option:`--type csv <mongoimport --type>` or :option:`--type
+   tsv <mongoimport --type>`, uses the first line as field names.
+   Otherwise, :binary:`~bin.mongoimport` will import the first line as a
+   distinct document.
+   
+
+   If you attempt to include :option:`--headerline` when importing JSON data,
+   :program:`mongoimport` will return an error. :option:`--headerline` is only for :term:`csv`
+   or :term:`tsv` imports.
+
+
+.. option:: --mode insert|upsert|merge
+
+   *Default*: insert
+
+   .. versionadded:: 3.4
+   
+   Specifies how the import process should handle existing documents
+   in the database that match documents in the import file.
+   
+   By default, :program:`mongoimport` uses the ``_id`` field to match documents in
+   the collection with documents in the import file.
+   To specify the fields against which to match existing
+   documents for the ``upsert`` and ``merge`` modes,
+   use :option:`--upsertFields`.
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+        - Description
+   
+      * - ``insert``
+   
+        - Insert the documents in the import file. :program:`mongoimport` will log
+          an error if you attempt to import a document that contains a
+          duplicate value for a field with a :ref:`unique index
+          <index-type-unique>`, such as ``_id``.
+   
+      * - ``upsert``
+   
+        - Replace existing documents in the database with matching
+          documents from the
+          import file. :program:`mongoimport` will insert all other
+          documents. :ref:`ex-mongoimport-upsert` describes how to
+          use :option:`--mode` ``upsert``.
+   
+      * - ``merge``
+   
+        - Merge existing documents that match a document in the import file with
+          the new document. :program:`mongoimport` will insert all other documents.
+          :ref:`ex-mongoimport-merge` describes how to use :option:`--mode`
+          ``merge``.
+
+
+.. option:: --upsertFields <field1[,field2]>
+
+   Specifies a list of fields for the query portion of the
+   :term:`upsert`.
+   Use this option if the ``_id`` fields in the
+   existing documents don't match the field in the document, but
+   another field or field combination can uniquely identify
+   documents as a basis for performing upsert operations.
+   
+   .. versionchanged:: 3.4
+      Modifies the import process to update existing objects in the
+      database if they match based on the specified fields, while
+      inserting all other objects. You do not need to use :option:`--mode
+      upsert <--mode>` with :option:`--upsertFields`.
+   
+      If you do not specify a field, :option:`--upsertFields` will upsert on the basis of
+      the ``_id`` field.
+   
+   To ensure adequate performance, indexes should exist for this
+   field or fields.
+
+
+.. option:: --stopOnError
+
+   Forces :program:`mongoimport` to halt the insert operation at the
+   first error rather than continuing the operation despite errors.
+
+
+.. option:: --jsonArray
+
+   Accepts the import of data expressed with multiple MongoDB documents
+   within a single :term:`JSON` array. Limited to
+   imports of 16 MB or smaller.
+   
+   Use :option:`--jsonArray` in conjunction with :option:`mongoexport --jsonArray`.
+
+
+.. option:: --maintainInsertionOrder
+
+   *Default*: false
+
+   If specified, :program:`mongoimport` inserts the documents in the order of
+   their appearance in the input source, otherwise :program:`mongoimport` may
+   perform the insertions in an arbitrary order.
+
+
+.. option:: --numInsertionWorkers int
+
+   *Default*: 1
+
+   .. versionadded:: 3.0.0
+   
+   Specifies the number of insertion workers to run concurrently.
+   
+
+   For large imports, increasing the number of insertion workers
+   may increase the speed of the import.
+   
+
+
+.. option:: --writeConcern <document>
+
+   *Default*: majority
+
+   Specifies the :term:`write concern` for each write operation that :program:`mongoimport`
+   performs.
+   
+   Specify the write concern as a document with :ref:`w options <wc-w>`. For example:
+   
+   .. code-block:: sh
+   
+      --writeConcern "{w:'majority'}"
+
+
+.. option:: --bypassDocumentValidation
+
+   Enables :program:`mongoimport` to bypass :doc:`document validation </core/schema-validation>`
+   during the operation. This lets you insert documents that do not
+   meet the validation requirements.
+   
+   .. versionadded:: 3.2.1
+
+
+.. option:: --columnsHaveTypes
+
+   .. versionadded:: 3.4
+   
+
+   Instructs :program:`mongoimport` that the
+   field list specified in :option:`--fields`, :option:`--fieldFile`,
+   or :option:`--headerline` specifies the types of each field.
+   
+   Field names must be in the form of ``<colName>.<type>(<arg>)``. You
+   must backslash-escape the following characters if you wish to include
+   them in an argument: ``(``, ``)``, and ``\``.
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 33 47
+   
+      * - ``type``
+        - Supported Arguments
+        - Example Header Field
+   
+      * - ``auto()``
+        - None.
+        - ``misc.auto()``
+   
+      * - ``binary(<arg>)``
+        - - ``base32`` (`RFC4648`_ encoding schema)
+          - ``base64`` (`RFC4648`_ encoding schema)
+          - ``hex``
+        - ``user thumbnail.binary(base64)``
+   
+      * - ``boolean()``
+        - None.
+        - ``verified.boolean()``
+   
+      * - ``date(<arg>)``
+        - Alias for ``date_go(<arg>)``. `Go Language time.Parse format`_.
+        - ``created.date(2006-01-02 15:04:05)``
+   
+      * - ``date_go(<arg>)``
+        - `Go Language time.Parse format`_
+        - ``created.date_go(2006-01-02 15:04:05)``
+   
+      * - ``date_ms(<arg>)``
+        - `Microsoft SQL Server FORMAT format
+          <https://msdn.microsoft.com/en-us/library/hh213505.aspx>`_
+        - ``created.date_ms(yyyy-MM-dd H:mm:ss)``
+   
+      * - ``date_oracle(<arg>)``
+        - `Oracle Database TO_DATE format
+          <https://docs.oracle.com/cd/B19306_01/server.102/b14200/functions183.htm>`_.
+        - ``created.date_oracle(YYYY-MM-DD HH24:MI:SS)``
+   
+      * - ``decimal()``
+        - None
+        - ``price.decimal()``
+   
+      * - ``double()``
+        - None.
+        - ``revenue.double()``
+   
+      * - ``int32()``
+        - None.
+        - ``followerCount.int32()``
+   
+      * - ``int64()``
+        - None.
+        - ``bigNumber.int64()``
+   
+      * - ``string()``
+        - None.
+        - ``zipcode.string()``
+   
+   .. _Go Language time.Parse format: https://golang.org/src/time/format.go
+   .. _RFC4648: https://tools.ietf.org/html/rfc4648
+   
+   See :ref:`example-csv-import-types` for sample usage.
+
+   If you attempt to include :option:`--columnsHaveTypes` when importing JSON data,
+   :program:`mongoimport` will return an error. :option:`--columnsHaveTypes` is only for :term:`csv`
+   or :term:`tsv` imports.
+
+
+.. option:: --parseGrace <grace>
+
+   *Default*: stop
+
+   .. versionadded:: 3.4
+   
+
+   Specifies how :program:`mongoimport` handles type coercion failures when importing
+   CSV or TSV files with :option:`--columnsHaveTypes`.
+   
+   :option:`--parseGrace` has no effect when importing JSON documents.
+   
+   .. list-table::
+      :widths: 20 80
+      :header-rows: 1
+   
+      * - Value
+        - Description
+   
+      * - ``autoCast``
+        - Assigns a type based on the value of the field.
+          For example, if a field is defined as a ``double`` and the
+          value for that field was ``"foo"``, :program:`mongoimport` would make
+          that field value a string type.
+   
+      * - ``skipField``
+        - For the row being imported, :program:`mongoimport` does not include the
+          field whose type does not match the expected type.
+   
+      * - ``skipRow``
+        - :program:`mongoimport` does not import rows containing a value whose
+          type does not match the expected type.
+   
+      * - ``stop``
+        - :program:`mongoimport` returns an error that ends the import.
+
+
+Examples
+--------
+
+Simple Import
+~~~~~~~~~~~~~
+
+:binary:`~bin.mongoimport` restores a database from a backup taken with
+:binary:`~bin.mongoexport`. Most of the arguments to :binary:`~bin.mongoexport` also
+exist for :binary:`~bin.mongoimport`.
+
+In the following example, :binary:`~bin.mongoimport` imports
+the :term:`JSON` data from the ``contacts.json`` file into the collection
+``contacts`` in the ``users`` database.
+
+.. code-block:: sh
+
+   mongoimport --db users --collection contacts --file contacts.json
+
+.. _ex-mongoimport-upsert:
+
+Replace Matching Documents during Import
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.4
+   In MongoDB 3.4, :option:`--mode upsert <mongoimport --mode>` replaces the
+   deprecated ``--upsert`` option.
+
+With :option:`--mode <mongoimport --mode>` ``upsert``, :binary:`~bin.mongoimport` replaces
+existing documents in the database that match a document in the
+import file with the document from the import file.
+Documents that do not match an existing document in the database are
+inserted as usual. By default :binary:`~bin.mongoimport` matches documents
+based on the ``_id`` field. Use :option:`--upsertFields <mongoimport --upsertFields>` to specify
+the fields to match against.
+
+Consider the following document in the ``people`` collection in the
+``example`` database:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "name" : "Crystal Duncan",
+      "region" : "United States",
+      "email" : "crystal@example.com"
+   }
+
+The following document exists in a ``people-20160927.json`` JSON file.
+The ``_id`` field of the JSON object matches the ``_id`` field of the
+document in the ``people`` collection.
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "username" : "crystal",
+      "likes" : [ "running", "pandas", "software development" ]
+   }
+
+To import the ``people-20160927.json`` file and replace documents in
+the database that match the documents in the import file, specify :option:`--mode`
+``upsert``, as in the following:
+
+.. code-block:: sh
+
+   mongoimport -c people -d example --mode upsert --file people-20160927.json
+
+The document in the ``people`` collection would then contain only
+the fields from the imported document, as in the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "username" : "crystal",
+      "likes" : [ "running", "pandas", "software development" ]
+   }
+
+.. _ex-mongoimport-merge:
+
+Merge Matching Documents during Import
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+With :option:`--mode <mongoimport --mode>` ``merge``, :binary:`~bin.mongoimport` enables you to
+merge fields from a new record with an existing document in the
+database. Documents that do not match an existing document in the
+database are inserted as usual. By default :binary:`~bin.mongoimport`
+matches documents based on the ``_id`` field. Use
+:option:`--upsertFields <mongoimport --upsertFields>` to specify the fields to match against.
+
+The ``people`` collection in the ``example`` database contains the
+following document:
+
+.. code-block:: javascript
+
+ {
+    "_id" : ObjectId("580100f4da893943d393e909"),
+    "name" : "Crystal Duncan",
+    "region" : "United States",
+    "email" : "crystal@example.com"
+ }
+
+The following document exists in a ``people-20160927.json`` JSON file.
+The ``_id`` field of the JSON object matches the ``_id`` field of the
+document in the ``people`` collection.
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "username" : "crystal",
+      "email": "crystal.duncan@example.com",
+      "likes" : [ "running", "pandas", "software development" ]
+   }
+
+To import the ``people-20160927.json`` file and merge documents from
+the import file with matching documents in the database, specify
+:option:`--mode <mongoimport --mode>` ``merge``, as in the following:
+
+.. code-block:: sh
+
+   mongoimport -c people -d example --mode merge --file people-20160927.json
+
+The import operation combines the fields from the JSON file with the
+original document in the database,
+matching the documents based on the ``_id`` field.
+During the import process, :binary:`~bin.mongoimport` adds the new ``username`` and
+``likes`` fields to the document and updates the ``email`` field with
+the value from the imported document, as in the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "name" : "Crystal Duncan",
+      "region" : "United States",
+      "email" : "crystal.duncan@example.com",
+      "username" : "crystal",
+      "likes" : [
+         "running",
+         "pandas",
+         "software development"
+      ]
+   }
+
+Import ``JSON`` to Remote Host Running with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, :binary:`~bin.mongoimport` imports data from the
+file ``/opt/backups/mdb1-examplenet.json`` into the ``contacts`` collection
+within the database ``marketing`` on a remote MongoDB
+database with authentication enabled.
+
+:binary:`~bin.mongoimport` connects to the :binary:`~bin.mongod` instance running on
+the host ``mongodb1.example.net`` over port ``37017``. It authenticates with the
+username ``user`` and the password ``pass``.
+
+.. code-block:: sh
+
+   mongoimport --host mongodb1.example.net --port 37017 --username user --password "pass" --collection contacts --db marketing --file /opt/backups/mdb1-examplenet.json
+
+``CSV`` Import
+~~~~~~~~~~~~~~
+
+General CSV Import
+``````````````````
+
+In the following example, :binary:`~bin.mongoimport` imports the :term:`csv`
+formatted data in the ``/opt/backups/contacts.csv`` file into the
+collection ``contacts`` in the ``users`` database on the MongoDB
+instance running on the localhost port numbered
+``27017``.
+
+Specifying :option:`--headerline <mongoimport --headerline>` instructs
+:binary:`~bin.mongoimport` to determine the name of the fields using the first
+line in the CSV file.
+
+.. code-block:: sh
+
+   mongoimport --db users --collection contacts --type csv --headerline --file /opt/backups/contacts.csv
+
+:binary:`~bin.mongoimport` uses the input file name, without the
+extension, as the collection name if ``-c`` or ``--collection`` is
+unspecified. The following example is therefore equivalent:
+
+.. code-block:: none
+
+   mongoimport --db users --type csv --headerline --file /opt/backups/contacts.csv
+
+.. _example-csv-import-types:
+
+Import CSV with Specified Field Types
+`````````````````````````````````````
+
+.. versionadded:: 3.4
+
+Starting in MongoDB 3.4, when you specify the field name, you can also
+specify the data type. To specify field names and type, include
+:option:`--columnsHaveTypes <mongoimport --columnsHaveTypes>` with
+either: :option:`--fields <mongoimport --fields>`, :option:`--fieldFile
+<mongoimport --fieldFile>`, or :option:`--headerline <mongoimport
+--headerline>`.
+
+Specify field names and data types in the form
+``<colName>.<type>(<arg>)``. 
+
+For example, a ``/example/file.csv`` file contains the following data:
+
+.. code-block:: none
+
+   Katherine Gray, 1996-02-03, false, 1235, TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdCwgc2VkIGRvIGVpdXNtb2QgdGVtcG9yIGluY2lkaWR1bnQgdXQgbGFib3JlIGV0IGRvbG9yZSBtYWduYSBhbGlxdWEuIFV0IGVuaW0gYWQgbWluaW0gdmVuaWFtLCBxdWlzIG5vc3RydWQgZXhlcmNpdGF0aW9uIHVsbGFtY28gbGFib3JpcyBuaXNpIHV0IGFsaXF1aXAgZXggZWEgY29tbW9kbyBjb25zZXF1YXQuIER1aXMgYXV0ZSBpcnVyZSBkb2xvciBpbiByZXByZWhlbmRlcml0IGluIHZvbHVwdGF0ZSB2ZWxpdCBlc3NlIGNpbGx1bSBkb2xvcmUgZXUgZnVnaWF0IG51bGxhIHBhcmlhdHVyLiBFeGNlcHRldXIgc2ludCBvY2NhZWNhdCBjdXBpZGF0YXQgbm9uIHByb2lkZW50LCBzdW50IGluIGN1bHBhIHF1aSBvZmZpY2lhIGRlc2VydW50IG1vbGxpdCBhbmltIGlkIGVzdCBsYWJvcnVtLg==
+   Albert Gilbert, 1992-04-24, true, 13, Q3VwY2FrZSBpcHN1bSBkb2xvciBzaXQgYW1ldCB0b290c2llIHJvbGwgYm9uYm9uIHRvZmZlZS4gQ2FuZHkgY2FuZXMgcGllIGNyb2lzc2FudCBjaG9jb2xhdGUgYmFyIGxvbGxpcG9wIGJlYXIgY2xhdyBtYWNhcm9vbi4gU3dlZXQgcm9sbCBjdXBjYWtlIGNoZWVzZWNha2Ugc291ZmZsw6kgYnJvd25pZSBpY2UgY3JlYW0uIEp1anViZXMgY2FrZSBjdXBjYWtlIG1hY2Fyb29uIGRhbmlzaCBqZWxseS1vIHNvdWZmbMOpLiBDYWtlIGFwcGxlIHBpZSBnaW5nZXJicmVhZCBjaG9jb2xhdGUgc3VnYXIgcGx1bS4gU3dlZXQgY2hvY29sYXRlIGNha2UgY2hvY29sYXRlIGNha2UganVqdWJlcyB0aXJhbWlzdSBvYXQgY2FrZS4gU3dlZXQgc291ZmZsw6kgY2hvY29sYXRlLiBMaXF1b3JpY2UgY290dG9uIGNhbmR5IGNob2NvbGF0ZSBtYXJzaG1hbGxvdy4gSmVsbHkgY29va2llIGNha2UgamVsbHkgYm==
+
+The following operation uses :binary:`~bin.mongoimport` with the
+:option:`--fields <mongoimport --fields>` and
+:option:`--columnsHaveTypes <mongoimport --columnsHaveTypes>` option
+to specify both the field names and the BSON types of the imported CSV
+data.
+
+.. code-block:: sh
+   :emphasize-lines: 5-6
+   
+   mongoimport \
+      --db users \
+      --collection contacts \
+      --type csv \
+      --columnsHaveTypes \
+      --fields \
+   "name.string(),\
+   birthdate.date(2006-01-02),\
+   contacted.boolean(),\
+   followerCount.int32(),\
+   thumbnail.binary(base64)" \
+      --file /example/file.csv
+
+Ignore Blank Fields
+```````````````````
+
+Use the :option:`--ignoreBlanks <mongoimport --ignoreBlanks>` option
+to ignore blank fields. For :term:`CSV` and :term:`TSV` imports, this
+option provides the desired functionality in most cases because it avoids
+inserting fields with null values into your collection.
+
+The following example imports the data from ``data.csv``, skipping
+any blank fields:
+
+.. code-block:: sh
+
+   mongoimport --db users --collection contacts --type csv --file /example/data.csv --ignoreBlanks
+

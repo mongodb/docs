@@ -1,0 +1,629 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mongodb-manual 3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-19 11:30-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../source/tutorial/perform-two-phase-commits.txt:3
+msgid "Perform Two Phase Commits"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:14
+msgid "Synopsis"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:16
+msgid ""
+"This document provides a pattern for doing multi-document updates or "
+"\"multi-document transactions\" using a two-phase commit approach for "
+"writing data to multiple documents. Additionally, you can extend this "
+"process to provide a :ref:`rollback-like <2-phase-commits-rollback>` "
+"functionality."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:23
+msgid "Background"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:25
+msgid ""
+"Operations on a single :term:`document` are always atomic with MongoDB "
+"databases; however, operations that involve multiple documents, which are"
+" often referred to as \"multi-document transactions\", are not atomic. "
+"Since documents can be fairly complex and contain multiple \"nested\" "
+"documents, single-document atomicity provides the necessary support for "
+"many practical use cases."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:32
+msgid ""
+"Despite the power of single-document atomic operations, there are cases "
+"that require multi-document transactions. When executing a transaction "
+"composed of sequential operations, certain issues arise, such as:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:36
+msgid ""
+"Atomicity: if one operation fails, the previous operation within the "
+"transaction must \"rollback\" to the previous state (i.e. the "
+"\"nothing,\" in \"all or nothing\")."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:40
+msgid ""
+"Consistency: if a major failure (i.e. network, hardware) interrupts the "
+"transaction, the database must be able to recover a consistent state."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:44
+msgid ""
+"For situations that require multi-document transactions, you can "
+"implement two-phase commit in your application to provide support for "
+"these kinds of multi-document updates. Using two-phase commit ensures "
+"that data is consistent and, in case of an error, the state that preceded"
+" the transaction is :ref:`recoverable <2-phase-commits-rollback>`. During"
+" the procedure, however, documents can represent pending data and states."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:54
+msgid ""
+"Because only single-document operations are atomic with MongoDB, two-"
+"phase commits can only offer transaction-*like* semantics. It is possible"
+" for applications to return intermediate data at intermediate points "
+"during the two-phase commit or rollback."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:60
+msgid "Pattern"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:63
+msgid "Overview"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:65
+msgid ""
+"Consider a scenario where you want to transfer funds from account ``A`` "
+"to account ``B``. In a relational database system, you can subtract the "
+"funds from ``A`` and add the funds to ``B`` in a single multi-statement "
+"transaction. In MongoDB, you can emulate a two-phase commit to achieve a "
+"comparable result."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:71
+msgid "The examples in this tutorial use the following two collections:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:73
+msgid "A collection named ``accounts`` to store account information."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:75
+msgid ""
+"A collection named ``transactions`` to store information on the fund "
+"transfer transactions."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:79
+msgid "Initialize Source and Destination Accounts"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:81
+msgid ""
+"Insert into the ``accounts`` collection a document for account ``A`` and "
+"a document for account ``B``."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:93
+msgid ""
+"The operation returns a :method:`BulkWriteResult()` object with the "
+"status of the operation. Upon successful insert, the "
+":method:`BulkWriteResult()` has :data:`~BulkWriteResult.nInserted` set to"
+" ``2`` ."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:101
+msgid "Initialize Transfer Record"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:103
+msgid ""
+"For each fund transfer to perform, insert into the ``transactions`` "
+"collection a document with the transfer information. The document "
+"contains the following fields:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:107
+msgid ""
+"``source`` and ``destination`` fields, which refer to the ``_id`` fields "
+"from the ``accounts`` collection,"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:110
+msgid ""
+"``value`` field, which specifies the amount of transfer affecting the "
+"``balance`` of the ``source`` and ``destination`` accounts,"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:113
+msgid ""
+"``state`` field, which reflects the current state of the transfer. The "
+"``state`` field can have the value of ``initial``, ``pending``, "
+"``applied``, ``done``, ``canceling``, and ``canceled``."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:117
+msgid "``lastModified`` field, which reflects last modification date."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:119
+msgid ""
+"To initialize the transfer of ``100`` from account ``A`` to account "
+"``B``, insert into the ``transactions`` collection a document with the "
+"transfer information, the transaction ``state`` of ``\"initial\"``, and "
+"the ``lastModified`` field set to the current date:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:130
+msgid ""
+"The operation returns a :method:`WriteResult()` object with the status of"
+" the operation. Upon successful insert, the :method:`WriteResult()` "
+"object has :data:`~WriteResult.nInserted` set to ``1``."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:135
+msgid "Transfer Funds Between Accounts Using Two-Phase Commit"
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:8
+msgid "Retrieve the transaction to start."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:10
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:44
+msgid ""
+"From the ``transactions`` collection, find a transaction in the "
+"``initial`` state. Currently the ``transactions`` collection has only one"
+" document, namely the one added in the :ref:`initialize-transfer-record` "
+"step. If the collection contains additional documents, the query will "
+"return any transaction with an ``initial`` state unless you specify "
+"additional query conditions."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:24
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:58
+msgid ""
+"Type the variable ``t`` in the :binary:`~bin.mongo` shell to print the "
+"contents of the variable. The operation should print a document similar "
+"to the following except the ``lastModified`` field should reflect date of"
+" your insert operation:"
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:42
+msgid "Step 1: Retrieve the transaction to start."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:76
+msgid "Update transaction state to pending."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:78
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:115
+msgid ""
+"Set the transaction ``state`` from ``initial`` to ``pending`` and use the"
+" :update:`$currentDate` operator to set the ``lastModified`` field to the"
+" current date."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:94
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:131
+msgid ""
+"The operation returns a :method:`WriteResult()` object with the status of"
+" the operation. Upon successful update, the :data:`~WriteResult.nMatched`"
+" and :data:`~WriteResult.nModified` displays ``1``."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:99
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:136
+msgid ""
+"In the update statement, the ``state: \"initial\"`` condition ensures "
+"that no other process has already updated this record. If "
+":data:`~WriteResult.nMatched` and :data:`~WriteResult.nModified` is "
+"``0``, go back to the first step to get a different transaction and "
+"restart the procedure."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:113
+msgid "Step 2: Update transaction state to pending."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:150
+msgid "Apply the transaction to both accounts."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:152
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:207
+msgid ""
+"Apply the transaction ``t`` to both accounts using the "
+":method:`~db.collection.update()` method *if* the transaction has not "
+"been applied to the accounts. In the update condition, include the "
+"condition ``pendingTransactions: { $ne: t._id }`` in order to avoid re-"
+"applying the transaction if the step is run more than once."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:158
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:213
+msgid ""
+"To apply the transaction to the account, update both the ``balance`` "
+"field and the ``pendingTransactions`` field."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:162
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:217
+msgid ""
+"Update the source account, subtracting from its ``balance`` the "
+"transaction ``value`` and adding to its ``pendingTransactions`` array the"
+" transaction ``_id``."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:24
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:52
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:211
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:240
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:175
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:193
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:230
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:248
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:278
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:308
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:337
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:353
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:382
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:398
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:427
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:456
+msgid ""
+"Upon successful update, the method returns a :method:`WriteResult()` "
+"object with :data:`~WriteResult.nMatched` and "
+":data:`~WriteResult.nModified` set to ``1``."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:180
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:235
+msgid ""
+"Update the destination account, adding to its ``balance`` the transaction"
+" ``value`` and adding to its ``pendingTransactions`` array the "
+"transaction ``_id`` ."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:205
+msgid "Step 3: Apply the transaction to both accounts."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:260
+msgid "Update transaction state to applied."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:262
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:292
+msgid ""
+"Use the following :method:`~db.collection.update()` operation to set the "
+"transaction's ``state`` to ``applied`` and update the ``lastModified`` "
+"field:"
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:290
+msgid "Step 4: Update transaction state to applied."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:320
+msgid "Update both accounts' list of pending transactions."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:322
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:367
+msgid ""
+"Remove the applied transaction ``_id`` from the ``pendingTransactions`` "
+"array for both accounts."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:326
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:371
+msgid "Update the source account."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:342
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:387
+msgid "Update the destination account."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:365
+msgid "Step 5: Update both accounts' list of pending transactions."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:410
+msgid "Update transaction state to done."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:412
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:441
+msgid ""
+"Complete the transaction by setting the ``state`` of the transaction to "
+"``done`` and updating the ``lastModified`` field:"
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-transaction.rst:439
+msgid "Step 6: Update transaction state to done."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:142
+msgid "Recovering from Failure Scenarios"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:144
+msgid ""
+"The most important part of the transaction procedure is not the "
+"prototypical example above, but rather the possibility for recovering "
+"from the various failure scenarios when transactions do not complete "
+"successfully. This section presents an overview of possible failures and "
+"provides steps to recover from these kinds of events."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:151
+msgid "Recovery Operations"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:153
+msgid ""
+"The two-phase commit pattern allows applications running the sequence to "
+"resume the transaction and arrive at a consistent state. Run the recovery"
+" operations at application startup, and possibly at regular intervals, to"
+" catch any unfinished transactions."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:158
+msgid ""
+"The time required to reach a consistent state depends on how long the "
+"application needs to recover each transaction."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:161
+msgid ""
+"The following recovery procedures uses the ``lastModified`` date as an "
+"indicator of whether the pending transaction requires recovery; "
+"specifically, if the pending or applied transaction has not been updated "
+"in the last 30 minutes, the procedures determine that these transactions "
+"require recovery. You can use different conditions to make this "
+"determination."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:169
+#: ../source/tutorial/perform-two-phase-commits.txt:222
+msgid "Transactions in Pending State"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:171
+msgid ""
+"To recover from failures that occur after step \"`Update transaction "
+"state to pending.`_\" but before \"`Update transaction state to "
+"applied.`_\" step, retrieve from the ``transactions`` collection a "
+"pending transaction for recovery:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:183
+msgid "And resume from step \"`Apply the transaction to both accounts.`_\""
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:186
+#: ../source/tutorial/perform-two-phase-commits.txt:213
+msgid "Transactions in Applied State"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:188
+msgid ""
+"To recover from failures that occur after step \"`Update transaction "
+"state to applied.`_\" but before \"`Update transaction state to done.`_\""
+" step, retrieve from the ``transactions`` collection an applied "
+"transaction for recovery:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:200
+msgid "And resume from \"`Update both accounts' list of pending transactions.`_\""
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:206
+msgid "Rollback Operations"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:208
+msgid ""
+"In some cases, you may need to \"roll back\" or undo a transaction; e.g.,"
+" if the application needs to \"cancel\" the transaction or if one of the "
+"accounts does not exist or stops existing during the transaction."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:215
+msgid ""
+"After the \"`Update transaction state to applied.`_\" step, you should "
+"**not** roll back the transaction. Instead, complete that transaction and"
+" :ref:`create a new transaction <initialize-transfer-record>` to reverse "
+"the transaction by switching the values in the source and the destination"
+" fields."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:224
+msgid ""
+"After the \"`Update transaction state to pending.`_\" step, but before "
+"the \"`Update transaction state to applied.`_\" step, you can rollback "
+"the transaction using the following procedure:"
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:8
+msgid "Update transaction state to canceling."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:10
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:38
+msgid "Update the transaction ``state`` from ``pending`` to ``canceling``."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:36
+msgid "Step 1: Update transaction state to canceling."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:64
+msgid "Undo the transaction on both accounts."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:66
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:131
+msgid ""
+"To undo the transaction on both accounts, reverse the transaction ``t`` "
+"if the transaction has been applied. In the update condition, include the"
+" condition ``pendingTransactions: t._id`` in order to update the account "
+"only if the pending transaction has been applied."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:72
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:137
+msgid ""
+"Update the destination account, subtracting from its ``balance`` the "
+"transaction ``value`` and removing the transaction ``_id`` from the "
+"``pendingTransactions`` array."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:88
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:113
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:153
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:178
+msgid ""
+"Upon successful update, the method returns a :method:`WriteResult()` "
+"object with :data:`~WriteResult.nMatched` and "
+":data:`~WriteResult.nModified` set to ``1``. If the pending transaction "
+"has not been previously applied to this account, no document will match "
+"the update condition and :data:`~WriteResult.nMatched` and "
+":data:`~WriteResult.nModified` will be ``0``."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:97
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:162
+msgid ""
+"Update the source account, adding to its ``balance`` the transaction "
+"``value`` and removing the transaction ``_id`` from the "
+"``pendingTransactions`` array."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:129
+msgid "Step 2: Undo the transaction on both accounts."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:194
+msgid "Update transaction state to canceled."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:196
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:225
+msgid ""
+"To finish the rollback, update the transaction ``state`` from "
+"``canceling`` to ``cancelled``."
+msgstr ""
+
+#: ../source/includes/steps/perform-two-phase-commit-rollback.rst:223
+msgid "Step 3: Update transaction state to canceled."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:233
+msgid "Multiple Applications"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:235
+msgid ""
+"Transactions exist, in part, so that multiple applications can create and"
+" run operations concurrently without causing data inconsistency or "
+"conflicts. In our procedure, to update or retrieve the transaction "
+"document, the update conditions include a condition on the ``state`` "
+"field to prevent reapplication of the transaction by multiple "
+"applications."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:242
+msgid ""
+"For example, applications ``App1`` and ``App2`` both grab the same "
+"transaction, which is in the ``initial`` state. ``App1`` applies the "
+"whole transaction before ``App2`` starts. When ``App2`` attempts to "
+"perform the \"`Update transaction state to pending.`_\" step, the update "
+"condition, which includes the ``state: \"initial\"`` criterion, will not "
+"match any document, and the :data:`~WriteResult.nMatched` and "
+":data:`~WriteResult.nModified` will be ``0``. This should signal to "
+"``App2`` to go back to the first step to restart the procedure with a "
+"different transaction."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:252
+msgid ""
+"When multiple applications are running, it is crucial that only one "
+"application can handle a given transaction at any point in time. As such,"
+" in addition including the expected state of the transaction in the "
+"update condition, you can also create a marker in the transaction "
+"document itself to identify the application that is handling the "
+"transaction. Use :method:`~db.collection.findAndModify()` method to "
+"modify the transaction and get it back in one step:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:274
+msgid ""
+"Amend the transaction operations to ensure that only applications that "
+"match the identifier in the ``application`` field apply the transaction."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:277
+msgid ""
+"If the application ``App1`` fails during transaction execution, you can "
+"use the :ref:`recovery procedures <2-phase-commits-recovery>`, but "
+"applications should ensure that they \"own\" the transaction before "
+"applying the transaction. For example to find and resume the pending job,"
+" use a query that resembles the following:"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:299
+msgid "Using Two-Phase Commits in Production Applications"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:301
+msgid ""
+"The example transaction above is intentionally simple. For example, it "
+"assumes that it is always possible to roll back operations to an account "
+"and that account balances can hold negative values."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:305
+msgid ""
+"Production implementations would likely be more complex. Typically, "
+"accounts need information about current balance, pending credits, and "
+"pending debits."
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:309
+msgid ""
+"For all transactions, ensure that you use the appropriate level of "
+":doc:`write concern </reference/write-concern>` for your deployment."
+msgstr ""
+
+#~ msgid ""
+#~ "For all transactions, ensure that you"
+#~ " use the appropriate level of "
+#~ ":doc:`write concern </core/write-concern>` for"
+#~ " your deployment."
+#~ msgstr ""
+
+#~ msgid "On this page"
+#~ msgstr ""
+

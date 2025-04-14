@@ -1,0 +1,525 @@
+=============
+createIndexes
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: createIndexes
+
+   Builds one or more indexes on a collection.
+
+   The :dbcommand:`createIndexes` command takes the following form:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+        {
+          createIndexes: <collection>,
+          indexes: [
+              {
+                  key: {
+                      <key-value_pair>,
+                      <key-value_pair>,
+                      ...
+                  },
+                  name: <index_name>,
+                  <option1>,
+                  <option2>,
+                  ...
+              },
+              { ... },
+              { ... }
+          ],
+          writeConcern: { <write concern> }
+        }
+      )
+
+   The :dbcommand:`createIndexes` command takes the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``createIndexes``
+   
+        - string
+   
+        - The collection for which to create indexes.
+          
+          
+   
+      * - ``indexes``
+   
+        - array
+   
+        - Specifies the indexes to create. Each document in the array specifies a
+          separate index.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          
+          .. versionadded:: 3.4
+          
+          
+   
+
+
+   Each document in the ``indexes`` array can take the following fields:
+
+   .. include:: /includes/fact-remove-dropDups-option.rst
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``key``
+   
+        - document
+   
+        - Specifies the index's fields. For each field, specify a key-value pair
+          in which the key is the name of the field to index and the value is
+          either the index direction or :ref:`index type <index-types>`. If
+          specifying direction, specify ``1`` for ascending or ``-1`` for
+          descending.
+          
+          
+   
+      * - ``name``
+   
+        - string
+   
+        - A name that uniquely identifies the index.
+          
+          
+   
+      * - ``background``
+   
+        - boolean
+   
+        - Optional. Builds the index in the background so the operation does
+          *not* block other database activities. Specify ``true`` to build in
+          the background. The default value is ``false``.
+          
+          
+   
+      * - ``unique``
+   
+        - boolean
+   
+        - Optional. Creates a unique index so that the collection will not accept
+          insertion or update of documents where the index key value matches an existing
+          value in the index.
+          
+          
+          Specify ``true`` to create a unique index. The
+          default value is ``false``.
+          
+          The option is *unavailable* for :doc:`hashed </core/index-hashed>`
+          indexes.
+          
+          
+          
+   
+      * - ``partialFilterExpression``
+   
+        - document
+   
+        - Optional. If specified, the index only references documents that match the
+          filter expression. See :doc:`/core/index-partial` for more information.
+          
+          
+          A filter expression can include:
+          
+          .. include:: /includes/fact-partial-filter-expression-operators.rst
+          
+          You can specify a ``partialFilterExpression`` option for all MongoDB
+          :ref:`index types <index-types>`.
+          
+          .. versionadded:: 3.2
+          
+          
+          
+   
+      * - ``sparse``
+   
+        - boolean
+   
+        - Optional. If ``true``, the index only references documents with the specified
+          field. These indexes use less space but behave differently in some
+          situations (particularly sorts). The default value is ``false``.
+          See :doc:`/core/index-sparse` for more information.
+          
+          .. versionchanged:: 3.2 
+          
+             Starting in MongoDB 3.2, MongoDB provides the option to create
+             :ref:`partial indexes <index-type-partial>`. Partial indexes
+             offer a superset of the functionality of sparse indexes. If you
+             are using MongoDB 3.2 or later, :ref:`partial indexes
+             <index-type-partial>` should be preferred over sparse indexes.
+          
+          .. versionchanged:: 2.6
+          
+             :doc:`2dsphere </core/2dsphere>` indexes are sparse by default and
+             ignore this option. For a compound index that includes
+             ``2dsphere`` index key(s) along with keys of other types, only the
+             ``2dsphere`` index fields determine whether the index references a
+             document.
+          
+             :doc:`2d </core/2d>`, :doc:`geoHaystack </core/geohaystack>`, and
+             :doc:`text </core/index-text>` indexes behave similarly to the
+             :doc:`2dsphere </core/2dsphere>` indexes.
+          
+          
+   
+      * - ``expireAfterSeconds``
+   
+        - integer
+   
+        - Optional. Specifies a value, in seconds, as a :term:`TTL` to control how long
+          MongoDB retains documents in this collection. See
+          :doc:`/tutorial/expire-data` for more information on this
+          functionality. This applies only to :term:`TTL` indexes.
+          
+          
+   
+      * - ``storageEngine``
+   
+        - document
+   
+        - Optional. Allows users to configure the storage engine on a
+          per-index basis when creating an index.
+          
+          
+          The ``storageEngine`` option should take the following form:
+          
+          .. code-block:: javascript
+          
+             storageEngine: { <storage-engine-name>: <options> }
+          
+          Storage engine configuration options specified when creating indexes are
+          validated and logged to the :term:`oplog` during replication to
+          support replica sets with members that use different storage
+          engines.
+          
+          .. versionadded:: 3.0
+          
+          
+          
+   
+      * - ``weights``
+   
+        - document
+   
+        - Optional. For :doc:`text </core/index-text>` indexes, a document that contains
+          field and weight pairs. The weight is an integer ranging from 1 to
+          99,999 and denotes the significance of the field relative to the
+          other indexed fields in terms of the score. You can specify weights
+          for some or all the indexed fields. See
+          :doc:`/tutorial/control-results-of-text-search` to adjust the scores.
+          The default value is ``1``.
+          
+          
+   
+      * - ``default_language``
+   
+        - string
+   
+        - Optional. For :doc:`text </core/index-text>` indexes, the language that
+          determines the list of stop words and the rules for the stemmer and
+          tokenizer. See :ref:`text-search-languages` for the available
+          languages and :doc:`/tutorial/specify-language-for-text-index` for
+          more information and examples. The default value is ``english``.
+          
+          
+   
+      * - ``language_override``
+   
+        - string
+   
+        - Optional. For :doc:`text </core/index-text>` indexes, the name of the field, in
+          the collection's documents, that contains the override language for
+          the document. The default value is ``language``. See
+          :ref:`specify-language-field-text-index-example` for an example.
+          
+          
+   
+      * - ``textIndexVersion``
+   
+        - integer
+   
+        - Optional. The ``text`` index version number. Users can use this option to
+          override the default version number.
+          
+          For available versions, see :ref:`text-versions`.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+      * - ``2dsphereIndexVersion``
+   
+        - integer
+   
+        - Optional. The ``2dsphere`` index version number. Users can use this option to
+          override the default version number.
+          
+          For the available versions, see :ref:`2dsphere-v2`.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+      * - ``bits``
+   
+        - integer
+   
+        - Optional. For :doc:`2d </core/2d>` indexes, the number of precision of the
+          stored :term:`geohash` value of the location data.
+          
+          The ``bits`` value ranges from 1 to 32 inclusive. The default value
+          is ``26``.
+          
+          
+   
+      * - ``min``
+   
+        - number
+   
+        - Optional. For :doc:`2d </core/2d>` indexes, the lower inclusive boundary for
+          the longitude and latitude values. The default value is ``-180.0``.
+          
+          
+   
+      * - ``max``
+   
+        - number
+   
+        - Optional. For :doc:`2d </core/2d>` indexes, the upper inclusive boundary for
+          the longitude and latitude values. The default value is ``180.0``.
+          
+          
+   
+      * - ``bucketSize``
+   
+        - number
+   
+        - For :doc:`geoHaystack </core/geohaystack>` indexes, specify the
+          number of units within which to group the location values; i.e. group
+          in the same bucket those location values that are within the
+          specified number of units to each other.
+          
+          The value must be greater than 0.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. Specifies the :ref:`collation <collation>` for the index.
+          
+          .. include:: /includes/extracts/collation-description.rst
+          
+          .. include:: /includes/extracts/collation-index-collection.rst
+          
+          .. include:: /includes/extracts/collation-option-specification.rst
+          
+          .. versionadded:: 3.4
+          
+          
+   
+
+
+   The :binary:`~bin.mongo` shell provides the methods
+   :method:`db.collection.createIndex()` and
+   :method:`db.collection.createIndexes()` as wrappers for the
+   :dbcommand:`createIndexes` command.
+
+Considerations
+--------------
+
+.. versionchanged:: 3.2
+
+   MongoDB disallows the creation of :ref:`version 0
+   <3.2-version-0-indexes>` indexes. To upgrade existing version 0
+   indexes, see :ref:`3.2-version-0-indexes`.
+
+Index Names
+~~~~~~~~~~~
+
+An index name, including the :term:`namespace`, cannot be longer than
+the :ref:`Index Name Length <limit-index-name-length>` limit.
+
+Replica Sets and Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To minimize the impact of building an index on replica sets and sharded
+clusters, use a rolling index build procedure
+as described on :doc:`/tutorial/build-indexes-on-replica-sets`.
+
+Collation and Index Types
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-index-type-restrictions.rst
+
+.. include:: /includes/extracts/collation-index-type-restrictions-addendum.rst
+
+Behavior
+--------
+
+Concurrency
+~~~~~~~~~~~
+
+Foreground indexing operations on a populated collection block all
+other operations on a database.
+
+.. _createIndexes-multiple-indexes:
+
+Multiple Index Builds
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.0.0
+
+If you specify multiple indexes to the :dbcommand:`createIndexes`
+command, the operation only scans the collection once, and if at least
+one index is to be built in the foreground, the operation will build
+all the specified indexes in the foreground.
+
+Memory Usage Limit
+~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.4
+
+   .. include:: /includes/fact-index-build-default-memory-limit.rst
+
+
+Index Options
+~~~~~~~~~~~~~
+
+With the exception of the :ref:`collation option
+<createIndexes-collation-option>`, if you create an index with one set
+of options and then issue :dbcommand:`createIndexes` with the same
+index fields but different options, MongoDB will not change the options
+nor rebuild the index. To change these index options, drop the existing
+index with :method:`db.collection.dropIndex()` before running the new
+:dbcommand:`createIndexes` with the new options.
+
+.. _createIndexes-collation-option:
+
+Collation Option
+````````````````
+
+.. versionadded:: 3.4
+
+.. include:: /includes/extracts/collation-index-options.rst
+
+.. include:: /includes/extracts/collation-index-collection.rst
+
+.. include:: /includes/extracts/collation-index-tip.rst
+
+.. include:: /includes/extracts/collation-index-use.rst
+
+Example
+-------
+
+The following command builds two indexes on the ``inventory`` collection of
+the ``products`` database:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("products").runCommand(
+     {
+       createIndexes: "inventory",
+       indexes: [
+           {
+               key: {
+                   item: 1,
+                   manufacturer: 1,
+                   model: 1
+               },
+               name: "item_manufacturer_model",
+               unique: true
+           },
+           {
+               key: {
+                   item: 1,
+                   supplier: 1,
+                   model: 1
+               },
+               name: "item_supplier_model",
+               unique: true
+           }
+       ],
+       writeConcern: { w: "majority" }
+     }
+   )
+
+When the indexes successfully finish building, MongoDB returns a results
+document that includes a status of ``"ok" : 1``.
+
+Output
+------
+
+The :dbcommand:`createIndexes` command returns a document that indicates
+the success of the operation. The document contains some but not all of
+the following fields, depending on outcome:
+
+.. data:: createIndexes.createdCollectionAutomatically
+
+   If ``true``, then the collection didn't exist and was created in the
+   process of creating the index.
+
+.. data:: createIndexes.numIndexesBefore
+
+   The number of indexes at the start of the command.
+
+.. data:: createIndexes.numIndexesAfter
+
+   The number of indexes at the end of the command.
+
+.. data:: createIndexes.ok
+
+   A value of ``1`` indicates the indexes are in place. A value of
+   ``0`` indicates an error.
+
+.. data:: createIndexes.note
+
+   This ``note`` is returned if an existing index or indexes already
+   exist. This indicates that the index was not created or changed.
+
+.. data:: createIndexes.errmsg
+
+   Returns information about any errors.
+
+.. data:: createIndexes.code
+
+   The error code representing the type of error.

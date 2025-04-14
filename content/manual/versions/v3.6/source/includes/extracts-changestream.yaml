@@ -1,0 +1,118 @@
+ref: changestream-resume
+content: |
+
+   Unlike the MongoDB :ecosystem:`drivers </drivers>`, the
+   :binary:`~bin.mongo` shell does not automatically attempt to resume a
+   change stream cursor after an error. The MongoDB drivers make *one*
+   attempt to automatically resume a change stream cursor after certain
+   errors.
+
+
+   |watchmethod| uses information stored in the oplog to produce the
+   change event description and generate a resume token associated to
+   that operation. If the operation identified by the resume token
+   passed to the ``resumeAfter`` option has already dropped off the
+   :term:`oplog`, |watchmethod| cannot resume the change stream.
+
+   See :ref:`change-stream-resume` for more information on
+   resuming a change stream.
+
+   .. note::
+
+      - .. include:: /includes/extracts/changestream-invalid-events.rst
+
+      - .. include:: /includes/extracts/changestream-remove-shard.rst
+
+---
+ref: changestream-full-document-lookup
+content: |
+   By default, the :ref:`change stream cursor <changeStreams>` returns
+   specific field changes/deltas for update operations. You can also
+   configure the change stream to look up and return the current
+   majority-committed version of the changed document. Depending on other
+   write operations that may have occurred between the update and the
+   lookup, the returned document may differ significantly from the
+   document at the time of the update.
+
+   Depending on the number of changes applied during the update operation
+   and the size of the full document, there is a risk that the size of the
+   change event document for an update operation is greater than the 16MB
+   BSON document limit. If this occurs, the server closes the change stream
+   cursor and returns an error.
+---
+ref: changestream-remove-shard
+content: |
+
+   If the deployment is a sharded cluster, a shard removal may cause an
+   open change stream cursor to close, and the closed change stream cursor may
+   not be fully resumable.
+
+---
+ref: changestream-remove-shard-with-link
+content: |
+
+   A shard removal may cause an open :doc:`change stream cursor
+   </changeStreams>` to close, and the closed change stream cursor may
+   not be fully resumable.
+
+---
+ref: changestream-invalid-events
+content: |
+
+  You cannot resume a change stream after an :ref:`invalidate event
+  <change-event-invalidate>` (for example, a collection drop or rename)
+  closes the stream.
+
+---
+ref: changestream-cursor-open
+content: |
+
+   The :ref:`change stream cursor <changeStreams>` remains open until
+   one of the following occurs:
+
+   - The cursor is explicitly closed.
+
+   - An :ref:`invalidate event <change-event-invalidate>` occurs; for
+     example, a collection drop or rename.
+
+   - The connection to the MongoDB deployment is closed.
+
+   - .. include:: /includes/extracts/changestream-remove-shard.rst
+---
+ref: _changestream-access-control-core
+content: |
+
+  For deployments enforcing :ref:`authentication <authentication>` and 
+  :ref:`authorization <authorization>`, authenticate as a user
+  with the :authaction:`changeStream` and :authaction:`find`
+  privilege actions on the collection against which you want to 
+  open a change stream.
+
+  The :authrole:`read` :ref:`built-in role <built-in-roles>` includes
+  the required privileges to support opening a change stream
+  against a collection. Any built-in role or 
+  :ref:`user-defined role <user-defined-roles>` that
+  inherits the :authrole:`read` role can also support opening
+  change streams against a collection.
+
+  Alternatively, use :method:`db.createRole` to create a user-defined
+  role that grants the :authaction:`changeStream` and :authaction:`find` 
+  privilege actions on the
+  :ref:`target collection <resource-specific-db-collection>`.
+  See :ref:`user-defined-roles` for more complete documentation.
+
+  To associate a built-in role or user-defined role to an existing user, 
+  use the :method:`db.grantRolesToUser()` or
+  :method:`db.updateUser()` methods. You can also specify 
+  the role when creating a new user using :method:`db.createUser()`.
+
+---
+ref: changestream-access-control-collection
+source:
+  file: extracts-changestream.yaml
+  ref: _changestream-access-control-core
+...
+
+
+
+

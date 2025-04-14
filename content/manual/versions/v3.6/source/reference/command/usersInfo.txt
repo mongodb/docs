@@ -1,0 +1,207 @@
+=========
+usersInfo
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: usersInfo
+
+   Returns information about one or more users. To match a single user
+   on the database, use the following form:
+
+   .. code-block:: javascript
+
+      { usersInfo: { user: <name>, db: <db> },
+        showCredentials: <Boolean>,
+        showPrivileges: <Boolean>,
+        showAuthenticationRestrictions: <Boolean>
+      }
+
+   The command has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``usersInfo``
+   
+        - various
+   
+        - The user(s) about whom to return information.
+          See :ref:`usersInfo-field-specification` for type and syntax.
+          
+          
+   
+      * - ``showCredentials``
+   
+        - boolean
+   
+        - Optional. Set the field to true to display the user's password hash. By default, this
+          field is ``false``.
+          
+          
+   
+      * - ``showPrivileges``
+   
+        - boolean
+   
+        - Optional. Set the field to true to show the user's full set of privileges, including
+          expanded information for the inherited roles. By default, this field
+          is ``false``. If viewing all users, you cannot specify this field.
+          
+          
+   
+      * - ``showAuthenticationRestrictions``
+   
+        - boolean
+   
+        - Optional. Set the field to true to show the user's authentication restrictions. By
+          default, this field is ``false``. If viewing all users, you cannot specify
+          this field.
+          
+          
+   
+
+
+Required Access
+---------------
+
+Users can always view their own information.
+
+To view another user's information, the user running the command must
+have privileges that include the :authaction:`viewUser` action on the
+other user's database.
+
+.. _usersInfo-field-specification:
+
+Behavior
+--------
+
+The argument to the :dbcommand:`usersInfo` command has multiple forms
+depending on the requested information:
+
+Specify a Single User
+~~~~~~~~~~~~~~~~~~~~~
+
+In the ``usersInfo`` field, specify a document with the user's name and
+database:
+
+.. code-block:: javascript
+
+   { usersInfo: { user: <name>, db: <db> } }
+
+Alternatively, for a user that exists on the same database where the
+command runs, you can specify the user by its name only.
+
+.. code-block:: javascript
+
+   { usersInfo: <name> }
+
+Specify Multiple Users
+~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``usersInfo`` field, specify an array of documents:
+
+.. code-block:: javascript
+
+   { usersInfo: [ { user: <name>, db: <db> },  { user: <name>, db: <db> }, ... ] }
+
+Specify All Users for a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``usersInfo`` field, specify ``1``:
+
+.. code-block:: javascript
+
+   { usersInfo: 1 }
+
+.. code-block:: javascript
+
+   {
+      "users" : [
+         {
+            "_id" : "<db>.<username>",
+            "userId" : <UUID>,        // Starting in MongoDB 3.6.13
+            "user" : "<username>",
+            "db" : "<db>",
+            "customData" : <document>,
+            "roles" : [ ... ],
+            "credentials": { ... }, // only if showCredentials: true
+         },
+         ...
+      ],
+      "ok" : 1
+   }
+
+Examples
+--------
+
+View Specific Users
+~~~~~~~~~~~~~~~~~~~
+
+To see information and privileges, but not the credentials, for the
+user ``"Kari"`` defined in ``"home"`` database,
+run the following command:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      usersInfo:  { user: "Kari", db: "home" },
+      showPrivileges: true
+   } )
+
+To view a user that exists in the *current* database, you can specify
+the user by name only. For example, if you are in the ``home``
+database and a user named ``"Kari"`` exists in the ``home`` database,
+you can run the following command:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("home").runCommand(
+      {
+        usersInfo:  "Kari",
+        showPrivileges: true
+      }
+   )
+
+View Multiple Users
+~~~~~~~~~~~~~~~~~~~
+
+To view info for several users, use an array, with or without the
+optional fields ``showPrivileges`` and ``showCredentials``. For example:
+
+.. code-block:: javascript
+
+   db.runCommand( { 
+      usersInfo: [ { user: "Kari", db: "home" }, { user: "Li", db: "myApp" } ],
+      showPrivileges: true
+   } )
+
+View All Users for a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view all users on the database the command is run, use a command document
+that resembles the following:
+
+.. code-block:: javascript
+
+   db.runCommand( { usersInfo: 1 } )
+
+When viewing all users, you can specify the ``showCredentials``
+field but not the ``showPrivileges`` field.

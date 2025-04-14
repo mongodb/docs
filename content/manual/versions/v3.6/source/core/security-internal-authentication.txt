@@ -1,0 +1,101 @@
+.. _inter-process-auth:
+.. _replica-set-security:
+
+=======================
+Internal Authentication
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can authenticate members of :term:`replica sets <replica set>` and
+:term:`sharded clusters <sharded cluster>`. For the internal authentication of
+the members, MongoDB can use either keyfiles or :ref:`x.509 <security-auth-x509>`
+certificates.
+
+.. note::
+
+   Enabling internal authentication also enables :doc:`client
+   authorization </core/authorization>`.
+
+.. _internal-auth-keyfile:
+
+Keyfiles
+--------
+
+Keyfiles use :doc:`/core/security-scram` challenge and response
+authentication mechanism. The contents of the keyfiles serve as the
+shared password for the members. A key's length must be between 6 and
+1024 characters and may only contain characters in the base64 set.
+
+MongoDB strips whitespace characters (e.g. ``x0d``, ``x09``, and ``x20``)
+for cross-platform convenience. As a result, the following operations
+produce identical keys:
+
+.. code-block:: sh
+
+   echo -e "my secret key" > key1
+   echo -e "my secret key\n" > key2
+   echo -e "my    secret    key" > key3
+   echo -e "my\r\nsecret\r\nkey\r\n" > key4
+
+.. include:: /includes/extracts/keyfile-file-permission.rst
+
+The content of the keyfile must be the same on all :binary:`~bin.mongod` and
+:binary:`~bin.mongos` instances that connect to each other. You must store the
+keyfile on each member of the replica set or sharded clusters.
+
+To specify the keyfile, use the :setting:`security.keyFile` setting or
+``--keyFile`` command line option.
+
+For an example of keyfile internal authentication, see
+:doc:`/tutorial/enforce-keyfile-access-control-in-existing-replica-set`.
+
+.. _internal-auth-x509:
+
+x.509
+-----
+
+Members of a replica set or sharded cluster can use x.509 certificates for
+internal authentication instead of using keyfiles. MongoDB supports x.509
+certificate authentication for use with a secure TLS/SSL connection.
+
+Member Certificate Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/x509-certificate-member.rst
+
+MongoDB Configuration
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/x509-member-auth-configuration.rst
+
+Member Certificate and ``PEMKeyFile``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/x509-member-certificate-PEMKeyFile.rst
+
+For an example of x.509 internal authentication, see
+:doc:`/tutorial/configure-x509-member-authentication`.
+
+To upgrade from keyfile internal authentication to x.509 internal authentication,
+see :doc:`/tutorial/upgrade-keyfile-to-x509`.
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /tutorial/deploy-replica-set-with-keyfile-access-control
+      /tutorial/enforce-keyfile-access-control-in-existing-replica-set
+      /tutorial/enforce-keyfile-access-control-in-existing-replica-set-without-downtime
+      /tutorial/deploy-sharded-cluster-with-keyfile-access-control
+      /tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster
+      /tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime
+      /tutorial/configure-x509-member-authentication
+      /tutorial/upgrade-keyfile-to-x509

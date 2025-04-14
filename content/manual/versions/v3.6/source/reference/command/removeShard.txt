@@ -1,0 +1,165 @@
+===========
+removeShard
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: removeShard
+
+   Removes a shard from a :term:`sharded cluster`. When you run
+   :dbcommand:`removeShard`, MongoDB drains the shard by using the balancer to
+   move the shard's chunks to other shards in the cluster. Once the shard is
+   drained, MongoDB removes the shard from the cluster.
+   
+   .. |command| replace:: ``removeShard``
+
+   .. include:: /includes/fact-dbcommand.rst
+
+Behavior
+--------
+
+You can only remove one shard at a time.
+:dbcommand:`removeShard` returns an error if an existing
+:dbcommand:`removeShard` operation is in progress.
+
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
+
+You *must* run :dbcommand:`removeShard` while connected to a
+:binary:`~bin.mongos`. Issue the command against the ``admin`` database or
+use the :method:`sh._adminCommand()` helper.
+
+If you have :setting:`~security.authorization` enabled, you must have the
+:authrole:`clusterManager` role or any role that
+includes the :authaction:`removeShard` action.
+
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each database in a sharded cluster has a primary shard. If the shard you
+want to remove is also the primary of one of the cluster's databases, then
+you must manually move the databases to a new shard after migrating
+all data from the shard. See the :dbcommand:`movePrimary` command and
+the :doc:`/tutorial/remove-shards-from-cluster` for more information.
+
+Chunk Balancing
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-remove-shard-balance-order.rst
+
+Change Streams
+~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/changestream-remove-shard-with-link.rst
+
+Example
+-------
+
+From the :binary:`~bin.mongo` shell, the :dbcommand:`removeShard`
+operation resembles the following:
+
+.. code-block:: javascript
+
+   db.adminCommand( { removeShard : "bristol01" } )
+
+Replace ``bristol01`` with the name of the shard to remove. When you
+run :dbcommand:`removeShard`, the command returns immediately,
+with a message that resembles the following:
+
+.. code-block:: javascript
+
+   {
+      "msg" : "draining started successfully",
+      "state" : "started",
+      "shard" : "bristol01",
+      "note" : "you need to drop or movePrimary these databases", 
+      "dbsToMove" : [
+         "fizz",
+         "buzz"
+      ],
+      "ok" : 1,
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1510716515, 1),
+         "signature" : {
+            "hash" : BinData(0,"B2ViX7XLzFLS5Fl9XEuFXbwKIM4="),
+            "keyId" : NumberLong("6488045157173166092")
+         }
+      },
+      "operationTime" : Timestamp(1510716515, 1)
+   }
+
+The balancer begins migrating chunks from the shard named ``bristol01``
+to other shards in the cluster. These migrations happen slowly in order to
+avoid placing undue load on the cluster. Since ``bristol01`` is
+the primary shard for the ``fizz`` and ``buzz`` databases,
+:dbcommand:`removeShard` notes that you must use the 
+:dbcommand:`movePrimary` command to move those
+databases to another shard. Alternatively, you can use :dbcommand:`dropDatabase`
+to drop the database and delete its associated data files.
+
+.. note:: 
+   If the shard you are removing is not the primary shard for any
+   databases, the ``dbsToMove`` array will be empty and
+   :dbcommand:`removeShard` can complete the migration without
+   intervention.
+
+If you run the command again, :dbcommand:`removeShard` returns output
+that resembles the following:
+
+.. code-block:: javascript
+
+   {
+      "msg" : "draining ongoing",
+      "state" : "ongoing",
+      "remaining" : {
+         "chunks" : NumberLong(2),
+         "dbs" : NumberLong(2)
+      },
+      "note" : "you need to drop or movePrimary these databases",
+      "dbsToMove" : [
+         "fizz",
+         "buzz"
+      ],
+      "ok" : 1,
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1510716515, 1),
+         "signature" : {
+            "hash" : BinData(0,"B2ViX7XLzFLS5Fl9XEuFXbwKIM4="),
+            "keyId" : NumberLong("6488045157173166092")
+         }
+      },
+      "operationTime" : Timestamp(1510716515, 1)
+   }
+
+The ``remaining`` :term:`document` specifies how many chunks and databases
+remain on the shard. Use the :dbcommand:`movePrimary` command to move 
+each database listed in ``dbsToMove`` to another shard.
+Alternatively, use :dbcommand:`dropDatabase` to drop the database.
+
+When the balancer completes moving all chunks off of the shard and 
+you have either moved or dropped any database listed in ``dbsToMove``, 
+running :dbcommand:`removeShard` again returns output that
+resembles the following:
+
+.. code-block:: javascript
+
+   {
+      "msg" : "removeshard completed successfully",
+      "state" : "completed",
+      "shard" : "bristol01",
+      "ok" : 1,
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1510716515, 1),
+         "signature" : {
+            "hash" : BinData(0,"B2ViX7XLzFLS5Fl9XEuFXbwKIM4="),
+            "keyId" : NumberLong("6488045157173166092")
+         }
+      },
+      "operationTime" : Timestamp(1510716515, 1)
+   }

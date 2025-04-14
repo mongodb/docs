@@ -1,0 +1,254 @@
+title: "Start each member of the replica set with the appropriate options."
+level: 4
+ref: start-mongod
+content: |
+
+   For each member, start a :binary:`~bin.mongod` instance with the
+   following settings:
+
+   - Set :setting:`replication.replSetName` option to the replica set name,
+
+     .. include:: /includes/fact-unique-replica-set-names.rst
+
+   - Set :setting:`net.bindIp` option to the ip or a comma-delimited
+     list of ips, and
+
+   - Set any other settings as appropriate for your deployment.
+
+   In this tutorial, the five :binary:`~bin.mongod` instances are
+   associated with the following hosts:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Replica Set Member
+        - Hostname
+
+      * - Member 0
+        - ``mongodb0.example.net``
+
+      * - Member 1
+        - ``mongodb1.example.net``
+
+      * - Member 2
+        - ``mongodb2.example.net``
+
+      * - Member 3
+        - ``mongodb3.example.net``
+
+      * - Member 4
+        - ``mongodb4.example.net``
+
+   The following example specifies the replica set name and the ip
+   binding through the :option:`--replSet <mongod --replSet>` and :option:`--bind_ip <mongod --bind_ip>`
+   command-line options:
+
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   .. code-block:: sh
+
+      mongod --replSet "rs0" --bind_ip localhost,<ip address of the mongod host>
+
+   For ``<ip address>``, specify the ip address or hostname for your
+   :binary:`~bin.mongod` instance that remote clients (including the other
+   members of the replica set) can use to connect to the instance.
+
+   Alternatively, you can also specify the :setting:`replica set name
+   <replication.replSetName>` and the :setting:`ip addresses
+   <net.bindIp>` in a :doc:`configuration file
+   </reference/configuration-options>`:
+
+   .. code-block:: yaml
+
+      replication:
+         replSetName: "rs0"
+      net:
+         bindIp: localhost,<ip address>
+
+   To start :binary:`~bin.mongod` with a configuration file, specify the
+   configuration file's path with the :option:`--config <mongod
+   --config>` option:
+         
+   .. code-block:: sh
+
+      mongod --config <path-to-config>
+
+   In production deployments, you can configure a :term:`init script`
+   to manage this process. Init scripts are beyond the scope of this
+   document.
+
+---
+stepnum: 2
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: open-shell
+---
+stepnum: 3
+title: "Initiate the replica set."
+level: 4
+ref: initiate-rs
+pre: |
+
+  From the :binary:`~bin.mongo` shell, run :method:`rs.initiate()` on
+  replica set member 0.
+
+  .. important::
+
+     .. include:: /includes/fact-rs-initiate-once-only.rst
+
+action:
+  language: javascript
+  code: |
+    rs.initiate( {
+       _id : "rs0",
+       members: [
+          { _id: 0, host: "mongodb0.example.net:27017" },
+          { _id: 1, host: "mongodb1.example.net:27017" },
+          { _id: 2, host: "mongodb2.example.net:27017" },
+          { _id: 3, host: "mongodb3.example.net:27017" },
+          { _id: 4, host: "mongodb4.example.net:27017" }
+       ]
+    })
+
+---
+title: "View the replica set configuration."
+stepnum: 4
+level: 4
+ref: verify-rsconf
+content: |
+
+   Use :method:`rs.conf()` to display the :doc:`replica set configuration
+   object </reference/replica-configuration>`:
+      
+   .. code-block:: javascript
+   
+      rs.conf()
+      
+   The replica set configuration object resembles the following:
+      
+   .. code-block:: javascript
+   
+      {
+         "_id" : "rs0",
+         "version" : 1,
+         "protocolVersion" : NumberLong(1),
+         "members" : [
+            {
+               "_id" : 0,
+               "host" : "mongodb0.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 1,
+               "host" : "mongodb1.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 2,
+               "host" : "mongodb2.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 3,
+               "host" : "mongodb3.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 4,
+               "host" : "mongodb4.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            }
+         ],
+         "settings" : {
+            "chainingAllowed" : true,
+            "heartbeatIntervalMillis" : 2000,
+            "heartbeatTimeoutSecs" : 10,
+            "electionTimeoutMillis" : 10000,
+            "catchUpTimeoutMillis" : -1,
+            "catchUpTakeoverDelayMillis" : 30000,
+            "getLastErrorModes" : {
+         
+            },
+            "getLastErrorDefaults" : {
+               "w" : 1,
+               "wtimeout" : 0
+            },
+            "replicaSetId" : ObjectId("5df2c9ccc21c478b838b98d6")
+         }
+      }
+      
+---
+title: Optional. Configure the member eligibility for becoming primary.
+stepnum: 5
+level: 4
+ref: verify-priority
+pre: |
+  In some cases, you may prefer that the members in one data center be
+  elected primary before the members in the other data centers. You can
+  modify the :rsconf:`~members[n].priority` of the members such that the
+  members in the one data center has higher
+  :rsconf:`~members[n].priority` than the members in the other data
+  centers.
+
+  Some members of the replica set, such as members that have networking
+  restraint or limited resources, should not be able to become primary
+  in a :term:`failover`. Configure members that should not become
+  primary to have :ref:`priority 0
+  <replica-set-secondary-only-members>`.
+
+  For example, to lower the relative eligibility of the member
+  located in one of the sites (in this example,
+  ``mongodb2.example.net``), set the member's priority to ``0.5``.
+
+action:
+  - pre: |
+      .. include:: /includes/fact-distributed-rs-siteB-config.rst
+  - pre: |
+      After these commands return, you have a geographically redundant
+      five-member replica set.
+---
+stepnum: 6
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: check-status
+...

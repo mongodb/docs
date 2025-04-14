@@ -1,0 +1,153 @@
+=========
+Add Users
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+.. include:: /includes/intro-rbac.rst
+
+.. _add-user-prereq:
+
+Prerequisites
+-------------
+
+If you have enabled access control for your deployment, you can use
+the :ref:`localhost exception <localhost-exception>` to create the first
+user in the system. This first user must have privileges to create
+other users. As of MongoDB 3.0, with the localhost exception, you
+can only create users on the ``admin`` database. Once you create the
+first user, you must authenticate as that user to add subsequent users.
+:doc:`/tutorial/enable-authentication` provides more detail about
+adding users when enabling access control for a deployment.
+
+For routine user creation, you must possess the following permissions:
+
+.. include:: /includes/access-create-user.rst
+
+.. _add-new-user:
+
+Examples
+--------
+
+To create a user in a MongoDB deployment, you connect to the
+deployment, and then use the :method:`db.createUser()` method
+or :dbcommand:`createUser` command to add the user.
+
+Username/Password Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates a user in the ``reporting``
+database with the specified name, password, and roles.
+
+.. code-block:: javascript
+
+   use reporting
+   db.createUser(
+     {
+       user: "reportsUser",
+       pwd: "12345678",
+       roles: [
+          { role: "read", db: "reporting" },
+          { role: "read", db: "products" },
+          { role: "read", db: "sales" },
+          { role: "readWrite", db: "accounts" }
+       ]
+     }
+   )
+
+:doc:`/tutorial/enable-authentication` provides more details about
+enforcing authentication for your MongoDB deployment.
+
+Kerberos Authentication
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/create-user-intro-kerberos.rst
+
+For Kerberos authentication, you must add the Kerberos principal
+as the username. You do not need to specify a password.
+
+The following operation adds the Kerberos principal ``reportingapp@EXAMPLE.NET``
+with read-only access to the ``records`` database.
+
+.. code-block:: javascript
+
+   use $external
+   db.createUser(
+       {
+         user: "reportingapp@EXAMPLE.NET",
+         roles: [
+            { role: "read", db: "records" }
+         ]
+       }
+   )
+
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+and :doc:`/tutorial/control-access-to-mongodb-windows-with-kerberos-authentication`
+provide more details about setting up Kerberos authentication for your
+MongoDB deployment.
+
+LDAP Authentication
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/create-user-intro-ldap.rst
+
+For LDAP authentication, you must specify a username. You do not need
+to specify the password, as that is handled by the LDAP service.
+
+The following operation adds the ``reporting`` user
+with read-only access to the ``records`` database.
+
+.. code-block:: javascript
+
+   use $external
+   db.createUser(
+       {
+         user: "reporting",
+         roles: [
+            { role: "read", db: "records" }
+         ]
+       }
+   )
+
+:doc:`/tutorial/configure-ldap-sasl-activedirectory` and
+:doc:`/tutorial/configure-ldap-sasl-openldap` provide more detail about
+using authenticating using LDAP.
+
+x.509 Client Certificate Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/create-user-intro-x509.rst
+
+For x.509 Client Certificate authentication, you must add the value of
+the ``subject`` from the client certificate as a MongoDB user. Each
+unique x.509 client certificate corresponds to a single MongoDB user.
+You do not need to specify a password.
+
+The following operation adds the client certificate subject
+``CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry``
+user with read-only access to the ``records`` database.
+
+.. code-block:: javascript
+
+   use $external
+   db.createUser(
+       {
+         user: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry",
+         roles: [
+            { role: "read", db: "records" }
+         ]
+       }
+   )
+
+:doc:`/tutorial/configure-x509-client-authentication` provides details
+about setting up x.509 Client Certificate authentication for your
+MongoDB deployment.

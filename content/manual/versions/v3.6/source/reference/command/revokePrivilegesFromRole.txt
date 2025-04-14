@@ -1,0 +1,204 @@
+========================
+revokePrivilegesFromRole
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: revokePrivilegesFromRole
+
+   Removes the specified privileges from the :ref:`user-defined
+   <user-defined-roles>` role on the database where the
+   command is run. The :dbcommand:`revokePrivilegesFromRole` command
+   has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+        revokePrivilegesFromRole: "<role>",
+        privileges:
+            [
+              { resource: { <resource> }, actions: [ "<action>", ... ] },
+              ...
+            ],
+        writeConcern: <write concern document>
+      }
+
+   The :dbcommand:`revokePrivilegesFromRole` command has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``revokePrivilegesFromRole``
+   
+        - string
+   
+        - The :ref:`user-defined <user-defined-roles>` role to revoke
+          privileges from.
+          
+          
+   
+      * - ``privileges``
+   
+        - array
+   
+        - An array of privileges to remove from the role.  See
+          :data:`~admin.system.roles.privileges` for more information on the
+          format of the privileges.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. The level of :doc:`write concern </reference/write-concern>` for the
+          modification. The ``writeConcern`` document takes the same
+          fields as the :dbcommand:`getLastError` command.
+          
+          
+   
+
+
+Behavior
+--------
+
+To revoke a privilege, the :doc:`resource document
+</reference/resource-document>` pattern must match **exactly** the
+``resource`` field of that privilege. The ``actions`` field can be a
+subset or match exactly.
+
+For example, consider the role ``accountRole`` in the ``products``
+database with the following privilege that specifies the ``products``
+database as the resource:
+
+.. code-block:: javascript
+
+   {
+     "resource" : {
+         "db" : "products",
+         "collection" : ""
+     },
+     "actions" : [
+         "find",
+         "update"
+     ]
+   }
+
+You *cannot* revoke ``find`` and/or ``update`` from just *one*
+collection in the ``products`` database. The following operations
+result in no change to the role:
+
+.. code-block:: javascript
+
+   use products
+   db.runCommand(
+       {
+         revokePrivilegesFromRole: "accountRole",
+         privileges:
+           [
+             {
+               resource : {
+                   db : "products",
+                   collection : "gadgets"
+               },
+               actions : [
+                   "find",
+                   "update"
+               ]
+             }
+           ]
+       }
+   )
+
+   db.runCommand(
+       {
+         revokePrivilegesFromRole: "accountRole",
+         privileges:
+           [
+             {
+               resource : {
+                   db : "products",
+                   collection : "gadgets"
+               },
+               actions : [
+                   "find"
+               ]
+             }
+           ]
+       }
+   )
+
+To revoke the ``"find"`` and/or the ``"update"`` action from the role
+``accountRole``, you must match the resource document exactly. For
+example, the following operation revokes just the ``"find"`` action
+from the existing privilege.
+
+.. code-block:: javascript
+
+   use products
+   db.runCommand(
+       {
+         revokePrivilegesFromRole: "accountRole",
+         privileges:
+           [
+             {
+               resource : {
+                   db : "products",
+                   collection : ""
+               },
+               actions : [
+                   "find"
+               ]
+             }
+           ]
+       }
+   )
+
+Required Access
+---------------
+
+.. include:: /includes/access-revoke-privileges.rst
+
+Example
+-------
+
+The following operation removes multiple privileges from the
+``associates`` role in the ``products`` database:
+
+.. code-block:: javascript
+
+   use products
+   db.runCommand(
+      {
+        revokePrivilegesFromRole: "associate",
+        privileges:
+         [
+           {
+             resource: { db: "products", collection: "" },
+             actions: [ "createCollection", "createIndex", "find" ]
+           },
+           {
+             resource: { db: "products", collection: "orders" },
+             actions: [ "insert" ]
+           }
+         ],
+        writeConcern: { w: "majority" }
+      }
+   )

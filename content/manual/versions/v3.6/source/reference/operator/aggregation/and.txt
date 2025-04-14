@@ -1,0 +1,122 @@
+==================
+$and (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $and
+
+   Evaluates one or more expressions and returns ``true`` if *all* of
+   the expressions are ``true`` or if evoked with no argument
+   expressions. Otherwise, :expression:`$and` returns ``false``.
+
+   :expression:`$and` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $and: [ <expression1>, <expression2>, ... ] }
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+.. _and-boolean-behavior:
+
+Behavior
+--------
+
+:expression:`$and` uses short-circuit logic: the operation stops
+evaluation after encountering the first ``false`` expression.
+
+.. include:: /includes/extracts/fact-agg-boolean-and.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70, 15, 15
+
+   * - Example
+
+     -
+
+     - Result
+
+   * - ``{ $and: [ 1, "green" ] }``
+
+     -
+
+     - ``true``
+
+   * - ``{ $and: [ ] }``
+
+     -
+
+     - ``true``
+
+   * - ``{ $and: [ [ null ], [ false ], [ 0 ] ] }``
+
+     -
+
+     - ``true``
+
+   * - ``{ $and: [ null, true ] }``
+
+     -
+
+     - ``false``
+
+   * - ``{ $and: [ 0, true ] }``
+
+     -
+
+     - ``false``
+
+Example
+-------
+
+Create an example ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany([
+      { "_id" : 1, "item" : "abc1", description: "product 1", qty: 300 },
+      { "_id" : 2, "item" : "abc2", description: "product 2", qty: 200 },
+      { "_id" : 3, "item" : "xyz1", description: "product 3", qty: 250 },
+      { "_id" : 4, "item" : "VWZ1", description: "product 4", qty: 300 },
+      { "_id" : 5, "item" : "VWZ2", description: "product 5", qty: 180 }
+   ])
+
+The following operation uses the :expression:`$and` operator to
+determine if ``qty`` is greater than 100 *and* less than ``250``:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+        {
+          $project:
+             {
+               item: 1,
+               qty: 1,
+               result: { $and: [ { $gt: [ "$qty", 100 ] }, { $lt: [ "$qty", 250 ] } ] }
+             }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc1", "qty" : 300, "result" : false }
+   { "_id" : 2, "item" : "abc2", "qty" : 200, "result" : true }
+   { "_id" : 3, "item" : "xyz1", "qty" : 250, "result" : false }
+   { "_id" : 4, "item" : "VWZ1", "qty" : 300, "result" : false }
+   { "_id" : 5, "item" : "VWZ2", "qty" : 180, "result" : true }

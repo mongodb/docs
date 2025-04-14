@@ -1,0 +1,193 @@
+==================
+planCacheSetFilter
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: planCacheSetFilter
+
+   .. versionadded:: 2.6
+
+   Set an :ref:`index filter <index-filters>` for a collection. If
+   an index filter already exists for the :term:`query shape`, the
+   command overrides the previous index filter.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+         {
+            planCacheSetFilter: <collection>,
+            query: <query>,
+            sort: <sort>,
+            projection: <projection>,
+            indexes: [ <index1>, <index2>, ...]
+         }
+      )
+
+   The :dbcommand:`planCacheSetFilter` command has the following field:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``planCacheSetFilter``
+   
+        - string
+   
+        - The name of the collection.
+          
+          
+   
+      * - ``query``
+   
+        - document
+   
+        - The query predicate associated with the index filter. Together with
+          the ``sort`` and the ``projection``, the ``query`` predicate make up
+          the :term:`query shape` for the specified index filter.
+          
+          Only the structure of the predicate, including the field names, are
+          significant; the values in the query predicate are
+          insignificant. As such, query predicates cover similar queries that
+          differ only in the values.
+          
+          
+   
+      * - ``sort``
+   
+        - document
+   
+        - Optional. The sort associated with the filter. Together with
+          the ``query`` and the ``projection``, the ``sort``  make up
+          the :term:`query shape` for the specified index filter.
+          
+          
+   
+      * - ``projection``
+   
+        - document
+   
+        - Optional. The projection associated with the filter.  Together with
+          the ``query`` and the ``sort``, the ``projection``  make up
+          the :term:`query shape` for the specified index filter.
+          
+          
+   
+      * - ``indexes``
+   
+        - array
+   
+        - An array of index filters for the specified :term:`query shape`.
+          
+          Specify the index filters as either: 
+          - an array of index specification documents, e.g. ``[ { x : 1 }, ... ]``
+          - an array of index names, e.g. ``[ "x_1", ... ]``
+          
+          Because the :doc:`query optimizer </core/query-plans>` chooses among 
+          the collection scan and these indexes, if the indexes are non-existent,
+          the optimizer will choose the collection scan.
+          
+          In cases of multiple indexes with the same key pattern, you must 
+          specify the index by name.
+          
+          
+   
+
+
+   Index filters only exist for the duration of the server process and
+   do not persist after shutdown; however, you can also clear existing
+   index filters using the :dbcommand:`planCacheClearFilters` command.
+
+Required Access
+---------------
+
+A user must have access that includes the
+:authaction:`planCacheIndexFilter` action.
+
+.. _planCacheSetFilter-output:
+
+Examples
+--------
+
+Set Filter on Query Shape Consisting of Predicate Only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates an index filter on the ``orders``
+collection such that for queries that consist only of an equality
+match on the ``status`` field without any projection and sort, the
+query optimizer evaluates only the two specified indexes and the
+collection scan for the winning plan:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheSetFilter: "orders",
+         query: { status: "A" },
+         indexes: [
+            { cust_id: 1, status: 1 },
+            { status: 1, order_date: -1 }
+         ]
+      }
+   )
+
+In the query predicate, only the structure of the predicate, including
+the field names, are significant; the values are insignificant. As
+such, the created filter applies to the following operations:
+
+.. code-block:: javascript
+
+   db.orders.find( { status: "D" } )
+   db.orders.find( { status: "P" } )
+
+To see whether MongoDB will apply an index filter for a query shape,
+check the :data:`~explain.queryPlanner.indexFilterSet` field of either
+the :method:`db.collection.explain()` or the :method:`cursor.explain()`
+method.
+
+Set Filter on Query Shape Consisting of Predicate, Projection, and Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates an index filter for the ``orders``
+collection. The filter applies to queries whose predicate is an
+equality match on the ``item`` field, where only the ``quantity`` field
+is projected and an ascending sort by ``order_date`` is specified.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheSetFilter: "orders",
+         query: { item: "ABC" },
+         projection: { quantity: 1, _id: 0 },
+         sort: { order_date: 1 },
+         indexes: [
+            { item: 1, order_date: 1 , quantity: 1 }
+         ]
+      }
+   )
+
+For the query shape, the query optimizer will only consider indexed
+plans which use the index ``{ item: 1, order_date: 1, quantity: 1 }``.
+
+.. seealso::
+   :dbcommand:`planCacheClearFilters`,
+   :dbcommand:`planCacheListFilters`

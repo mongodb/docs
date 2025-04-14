@@ -1,0 +1,220 @@
+===========================
+$dateToString (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $dateToString
+
+   .. versionadded:: 3.0
+
+   Converts a date object to a string according to a user-specified
+   format.
+
+   The :expression:`$dateToString` expression has the following
+   :ref:`operator expression syntax <aggregation-expressions>`:
+
+   .. code-block:: javascript
+
+      { $dateToString: {
+          format: <formatString>,
+          date: <dateExpression>,
+          timezone: <tzExpression>
+      } }
+
+   The :pipeline:`$dateToString` takes a document with the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``format``
+
+        - The date format specification. ``<formatString>`` can be any
+          string literal, containing 0 or more format specifiers. For a
+          list of specifiers available, see :ref:`format-specifiers`.
+
+      * - ``date``
+
+        - .. versionchanged:: 3.6
+
+          The date to convert to string. ``<dateExpression>`` must be a
+          valid :ref:`expression <aggregation-expressions>` that
+          resolves to a :ref:`Date <document-bson-type-date>`, a
+          :ref:`Timestamp <document-bson-type-timestamp>`, or an
+          :ref:`ObjectID <document-bson-type-object-id>`.
+
+      * - ``timezone``
+
+        - .. include:: /includes/fact-timezone-description.rst
+        
+          .. versionadded:: 3.6
+
+.. _format-specifiers:
+
+Format Specifiers
+-----------------
+
+The following format specifiers are available for use in the
+``<formatString>``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 60 20
+
+   * - Specifiers
+     - Description
+     - Possible Values
+
+   * - ``%d``
+     - Day of Month (2 digits, zero padded)
+     - ``01``-``31``
+
+   * - ``%G``
+
+     - Year in ISO 8601 format
+
+       .. versionadded:: 3.4
+
+     - ``0000``-``9999``
+
+   * - ``%H``
+     - Hour (2 digits, zero padded, 24-hour clock)
+     - ``00``-``23``
+
+   * - ``%j``
+     - Day of year (3 digits, zero padded)
+     - ``001``-``366``
+
+   * - ``%L``
+     - Millisecond (3 digits, zero padded)
+     - ``000``-``999``
+
+
+   * - ``%m``
+     - Month (2 digits, zero padded)
+     - ``01``-``12``
+
+
+   * - ``%M``
+     - Minute (2 digits, zero padded)
+     - ``00``-``59``
+
+   * - ``%S``
+     - Second (2 digits, zero padded)
+     - ``00``-``60``
+
+   * - ``%u``
+
+     - Day of week number in ISO 8601 format (1-Monday, 7-Sunday)
+
+       .. versionadded:: 3.4
+
+     - ``1``-``7``
+
+   * - ``%U``
+
+     - Week of year (2 digits, zero padded)
+     - ``00``-``53``
+
+   * - ``%V``
+
+     - Week of Year in ISO 8601 format
+
+       .. versionadded:: 3.4
+
+     - ``01``-``53``
+
+
+   * - ``%w``
+     - Day of week (1-Sunday, 7-Saturday)
+     - ``1``-``7``
+
+
+   * - ``%Y``
+     - Year (4 digits, zero padded)
+     - ``0000``-``9999``
+
+   * - ``%z``
+
+     - The timezone offset from UTC.
+
+       .. versionadded:: 3.6
+
+     - ``+/-[hh][mm]``
+
+   * - ``%Z``
+
+     - The minutes offset from UTC as a number. For example, if the
+       timezone offset (``+/-[hhmm]``) was ``+0445``, the minutes
+       offset is ``+285``.
+
+       .. versionadded:: 3.6
+
+     - ``+/-mmm``
+
+   * - ``%%``
+     - Percent Character as a Literal
+     - ``%``
+
+Example
+-------
+
+Consider a ``sales`` collection with the following document:
+
+.. class:: copyable-code
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "item" : "abc",
+     "price" : 10,
+     "quantity" : 2,
+     "date" : ISODate("2014-01-01T08:15:39.736Z")
+   }
+
+The following aggregation uses :expression:`$dateToString` to
+return the ``date`` field as formatted strings:
+
+.. cssclass:: copyable-code
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        {
+          $project: {
+             yearMonthDayUTC: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+             timewithOffsetNY: { $dateToString: { format: "%H:%M:%S:%L%z", date: "$date", timezone: "America/New_York"} },
+             timewithOffset430: { $dateToString: { format: "%H:%M:%S:%L%z", date: "$date", timezone: "+04:30" } },
+             minutesOffsetNY: { $dateToString: { format: "%Z", date: "$date", timezone: "America/New_York" } },
+             minutesOffset430: { $dateToString: { format: "%Z", date: "$date", timezone: "+04:30" } }
+          }
+        }
+      ]
+   )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "yearMonthDayUTC" : "2014-01-01",
+      "timewithOffsetNY" : "03:15:39:736-0500",
+      "timewithOffset430" : "12:45:39:736+0430",
+      "minutesOffsetNY" : "-300",
+      "minutesOffset430" : "270"
+   }
+

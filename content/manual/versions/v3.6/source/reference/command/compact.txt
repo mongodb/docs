@@ -1,0 +1,361 @@
+.. _compact:
+
+=======
+compact
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: compact
+
+   Rewrites and defragments all data and indexes in a collection. On
+   :ref:`WiredTiger <storage-wiredtiger>` databases, this command will release
+   unneeded disk space to the operating system.
+
+   :dbcommand:`compact` has the following form:
+
+   .. code-block:: javascript
+
+      { compact: <collection name> }
+
+   :dbcommand:`compact` takes the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``compact``
+   
+        - string
+   
+        - The name of the collection.
+          
+          
+   
+      * - ``force``
+   
+        - boolean
+   
+        - Optional. If ``true``, :dbcommand:`compact` can run on the
+          :term:`primary` in a :term:`replica set`. If ``false``,
+          :dbcommand:`compact` returns an error when run on a
+          primary, because the command blocks all other operations.
+          
+          :dbcommand:`compact` blocks operations only for the database
+          it is compacting.
+          
+          
+   
+      * - ``paddingFactor``
+   
+        - number
+   
+        - Optional. *Applicable for the MMAPv1 storage engine only.* Specifies the
+          padding to use (as a factor of the document size) during the
+          :dbcommand:`compact` operation.
+          
+          The ``paddingFactor`` does not affect
+          the padding of subsequent record allocations after
+          :dbcommand:`compact` completes. For more information, see
+          :ref:`compact-paddingFactor`.
+          
+          
+   
+      * - ``paddingBytes``
+   
+        - integer
+   
+        - Optional. *Applicable for the MMAPv1 storage engine only.* Specifies the
+          padding to use (in absolute number of bytes) during the
+          :dbcommand:`compact` operation.
+          
+          ``paddingBytes`` does not affect
+          the padding of subsequent record allocations after
+          :dbcommand:`compact` completes. For more information, see
+          :ref:`compact-paddingBytes`.
+          
+          
+   
+      * - ``preservePadding``
+   
+        - boolean
+   
+        - Optional. *Applicable for the MMAPv1 storage engine only.* Specifies that the
+          :dbcommand:`compact` process should leave document :term:`padding` intact.
+          
+          This option cannot be used with ``paddingFactor`` or ``paddingBytes``.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+
+
+.. warning:: Always have an up-to-date backup before performing server
+   maintenance such as the :dbcommand:`compact` operation.
+
+.. _compact-paddingFactor:
+
+paddingFactor
+~~~~~~~~~~~~~
+
+.. note::
+
+   Applicable for the MMAPv1 storage engine only; specifying
+   ``paddingFactor`` has no effect when used with the WiredTiger
+   storage engine.
+
+The ``paddingFactor`` field takes the following range of values:
+
+- Default: ``1.0``
+
+- Minimum: ``1.0`` (no padding)
+
+- Maximum: ``4.0``
+
+If your updates increase the size of the documents, padding will
+increase the amount of space allocated to each document and avoid
+expensive document relocation operations within the data files.
+
+You can calculate the padding size by subtracting the document size from
+the record size or, in terms of the ``paddingFactor``, by subtracting
+``1`` from the ``paddingFactor``:
+
+.. code-block:: none
+
+   padding size = (paddingFactor - 1) * <document size>.
+
+For example, a ``paddingFactor`` of ``1.0`` specifies a padding size of
+``0`` whereas a ``paddingFactor`` of ``1.2`` specifies a padding size of
+``0.2`` or 20 percent (20%) of the document size.
+
+With the following command, you can use the ``paddingFactor`` option of
+the :dbcommand:`compact` command to set the record size to ``1.1`` of
+the document size, or a padding factor of 10 percent (10%):
+
+.. code-block:: javascript
+
+   db.runCommand ( { compact: '<collection>', paddingFactor: 1.1 } )
+
+:dbcommand:`compact` modifies existing documents, but does not set the padding
+factor for future documents.
+
+.. _compact-paddingBytes:
+
+paddingBytes
+~~~~~~~~~~~~
+
+.. note::
+
+   Applicable for the MMAPv1 storage engine only; specifying
+   ``paddingBytes`` has no effect when used with the WiredTiger storage
+   engine.
+
+Specifying ``paddingBytes`` can be useful if your documents start small
+but then increase in size significantly.
+
+For example, if your documents
+are initially 40 bytes long and you grow them by 1 kB, using
+``paddingBytes: 1024`` might be reasonable since using ``paddingFactor:
+4.0`` would specify a record size of 160 bytes (``4.0`` times the
+initial document size), which would only provide a padding of 120 bytes
+(i.e. record size of 160 bytes minus the document size).
+
+The following command uses the ``paddingBytes`` option to set the padding size
+to 100 bytes on the collection named by ``<collection>``:
+
+.. code-block:: javascript
+
+   db.runCommand ( { compact: '<collection>', paddingBytes: 100 } )
+
+.. _compact-authentication:
+
+``compact`` Required Privileges
+-------------------------------
+
+For clusters enforcing :ref:`authentication <authentication>`,
+you must authenticate as a user with the :authrole:`compact` privilege
+action on the target collection. The :authrole:`dbAdmin` role provides 
+the required privileges for running :dbcommand:`compact` against
+non-system collections. 
+
+For :ref:`system collections <metadata-system-collections>`, create a 
+custom role that grants the :authrole:`compact` action on the system 
+collection. You can then grant that role to a new or existing user and 
+authenticate as that user to perform the :dbcommand:`compact` command. 
+For example, the following operations create a custom role that grants 
+the :authrole:`compact` action against specified database and
+collection:
+
+.. code-block:: javascript
+
+   use admin
+   db.createRole(
+      {
+         role: "myCustomCompactRole",
+         privileges: [
+            {
+               resource: { "db" : "<database>" , "collection" : "<collection>" },
+               actions: [ "compact" ]
+            }
+         ],
+         roles: []
+      }
+   )
+
+For more information on configuring the ``resource`` document, see 
+:ref:`resource-document`.
+
+To add the :authrole:`dbAdmin` or the custom role to an existing
+user, use :method:`db.grantRoleToUser` or :method:`db.updateUser()`.
+The following operation grants the custom ``compact`` role to the 
+``myCompactUser`` on the ``admin`` database:
+
+.. code-block:: javascript
+
+   use admin
+   db.grantRoleToUser("myCompactUser", [ "dbAdmin" | "myCustomCompactRole" ] )
+
+To add the :authrole:`dbAdmin` or the custom role to a new user,
+specify the role to the ``roles`` array of the
+:method:`db.createUser()` method when creating the user.
+
+.. code-block:: javascript
+
+   use admin
+   db.createUser(
+     { 
+        user: "myCompactUser",
+        pwd: "myCompactUserPassword"
+        roles: [
+          { role: "dbAdmin", db: "<database>" } | "myCustomCompactRole"
+        ]
+      }
+   )
+
+Behavior
+--------
+
+Blocking
+~~~~~~~~
+
+:dbcommand:`compact` only blocks operations for the database it is currently
+operating on. Only use :dbcommand:`compact` during scheduled maintenance
+periods.
+
+You may view the intermediate progress either by viewing the
+:binary:`~bin.mongod` log file or by running the :method:`db.currentOp()`
+in another shell instance.
+
+Operation Termination
+~~~~~~~~~~~~~~~~~~~~~
+
+If you terminate the operation with the :method:`db.killOp()
+<db.killOp()>` method or restart the server before the
+:dbcommand:`compact` operation has finished, be aware of the following:
+
+- If you have journaling enabled, the data remains valid and
+  usable, regardless of the state of the :dbcommand:`compact` operation.
+  You may have to manually rebuild the indexes.
+
+- If you do not have journaling enabled and the :binary:`~bin.mongod` or
+  :dbcommand:`compact` terminates during the operation, it is impossible
+  to guarantee that the data is in a valid state.
+
+- In either case, much of the existing free space in the collection may
+  become un-reusable. In this scenario, you should rerun the compaction
+  to completion to restore the use of this free space.
+
+Disk Space
+~~~~~~~~~~
+
+:dbcommand:`compact` has different impacts on available disk space depending on
+which storage engine is in use.
+
+To see how the storage space changes for the collection, run the
+:dbcommand:`collStats` command before and after compaction.
+
+WiredTiger
+``````````
+
+On :ref:`WiredTiger <storage-wiredtiger>`, :dbcommand:`compact` attempts to
+reduce the required storage space for data and indexes in a collection, releasing
+unneeded disk space to the operating system. The effectiveness of this operation
+is workload dependent and no disk space may be recovered. This command is useful
+if you have removed a large amount of data from the collection, and do not plan
+to replace it.
+
+:dbcommand:`compact` may require additional disk space to run on WiredTiger databases.
+
+MMAPv1
+``````
+
+On :ref:`MMAPv1 <storage-mmapv1>`, :dbcommand:`compact` defragments the
+collection's data files and recreates its indexes. Unused disk space is *not*
+released to the system, but instead retained for future data. If you wish to
+reclaim disk space from a MMAPv1 database, you should perform an
+:term:`initial sync`.
+
+:dbcommand:`compact` requires up to 2 gigabytes of additional disk space to run
+on MMAPv1 databases.
+
+.. note::
+   :dbcommand:`compact` may increase the total size and number of your
+   data files, especially when run for the first time. However, this
+   will not increase the total collection storage space since storage size
+   is the amount of data allocated within the database files, and not the
+   size/number of the files on the file system.
+
+Replica Sets
+~~~~~~~~~~~~
+
+:dbcommand:`compact` commands do not replicate to secondaries in a
+:term:`replica set`.
+
+- Compact each member separately.
+
+- Ideally run :dbcommand:`compact` on a secondary. See option
+  ``force:true`` above for information regarding compacting the primary.
+
+.. include:: /includes/extracts/fact-command-puts-secondary-into-recovering-compact.rst
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+:dbcommand:`compact` only applies to :binary:`~bin.mongod` instances. In a
+sharded environment, run :dbcommand:`compact` on each shard separately
+as a maintenance operation.
+
+You cannot issue :dbcommand:`compact` against a :binary:`~bin.mongos` instance.
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+On :ref:`MMAPv1 <storage-mmapv1>`, it is not possible to compact :term:`capped collections <capped
+collection>`.
+
+On :ref:`WiredTiger <storage-wiredtiger>`, the :dbcommand:`compact` command will attempt to compact the collection.
+
+Index Building
+~~~~~~~~~~~~~~
+
+.. versionadded:: 2.6
+
+:binary:`~bin.mongod` rebuilds all indexes in parallel following the
+:dbcommand:`compact` operation.

@@ -1,0 +1,694 @@
+.. _mongotop:
+
+============
+``mongotop``
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |tool-binary| replace:: mongotop
+
+.. include:: /includes/admonition-mac-osx-sierra-restriction.rst
+
+Description
+-----------
+
+:binary:`~bin.mongotop` provides a method to track the amount of time a
+MongoDB instance :binary:`~bin.mongod` spends reading and writing data.
+:binary:`~bin.mongotop` provides statistics on a per-collection level.
+By default, :binary:`~bin.mongotop` returns values every second.
+
+.. include:: /includes/extracts/require-cmd-line-mongotop.rst
+
+Syntax
+-------
+
+Default
+~~~~~~~
+
+.. code-block:: sh
+
+   mongotop [frequency]
+
+You can run :binary:`~bin.mongotop` without any command-line options to
+connect to the :binary:`~bin.mongod` instance running on the localhost
+port ``27017``. By default, :binary:`~bin.mongotop` returns values
+every second.
+
+.. code-block:: sh
+
+   mongotop
+
+To have :binary:`~bin.mongotop` report every 30 seconds, specify the
+time:
+
+.. code-block:: sh
+
+   mongotop 30
+
+When connected to a :binary:`~bin.mongod` instance, the program reports
+first on the connection and then reports on the statistics at the
+configured frequency.
+
+.. code-block:: sh
+
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    81802ms     0ms    81802ms   
+   ...
+
+Command Line Options
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: sh
+
+   mongotop [options] [frequency]
+
+You can run :binary:`~bin.mongotop` with various :ref:`command-line
+options <mongotop-options>`.
+  
+For example, to connect :binary:`~bin.mongotop` to a
+:binary:`~bin.mongod` instance running on a remote host
+``mongodb0.example.com`` and report every 30 seconds:
+
+- You can include the desired frequency of reporting (in this
+  example, 30 seconds) and the :option:`--uri <mongotop --uri>`
+  option to specify the host and port:
+
+  .. code-block:: sh
+
+     mongotop 30 --uri mongodb://mongodb0.example.com:27017 [additional options]
+
+  If the :binary:`~bin.mongod` instance requires authentication, you
+  can specify the user, password, and authentication database as part
+  of the URI connection string:
+
+  .. code-block:: sh
+
+     mongotop 30 --uri mongodb://user:password@mongodb0.example.com:27017/?authSource=admin [additional options]
+
+  The user running :binary:`~bin.mongotop` must have the
+  :authaction:`serverStatus` and :authaction:`top` privileges.
+
+  For more information on the URI connection string, see
+  :option:`--uri <mongotop --uri>`.
+
+- Alternatively, you can use the :option:`--host <mongotop --host>`
+  and :option:`--port <mongotop --port>` options to specify the host
+  and port:
+
+  .. code-block:: sh
+
+     mongotop 30 --host mongodb0.example.com --port 27017 [additional options]
+
+  If the :binary:`~bin.mongod` instance requires authentication, you
+  can specify the user :option:`-u <mongotop -u>`, password
+  :option:`-p <mongotop -p>`, and the authentication database
+  :option:`--authenticationDatabase <mongotop
+  --authenticationDatabase>`.
+
+  .. code-block:: sh
+
+     mongotop 30 --host mongodb0.example.com --port 27017 -u user -p password --authenticationDatabase admin [additional options]
+
+  The user running :binary:`~bin.mongotop` must have the
+  :authaction:`serverStatus` and :authaction:`top` privileges.
+
+For more information on the options available, see
+:ref:`mongotop-options`.
+
+When connected to a :binary:`~bin.mongod` instance, the program reports
+first on the connection and then reports on the statistics at the
+configured frequency.
+
+.. code-block:: sh
+
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    81802ms     0ms    81802ms   
+   ...
+
+Required Access
+---------------
+
+In order to connect to a :binary:`~bin.mongod` that enforces
+authorization, the connecting user must have the
+:authaction:`serverStatus` and :authaction:`top` privileges.
+
+The built-in role :authrole:`clusterMonitor` provides these privileges.
+
+Behavior
+--------
+
+Polling
+~~~~~~~
+
+The :program:`mongotop` program uses the :manual:`top</reference/command/top>`
+command to collect data. However, while :program:`top` returns cumulative
+usage statistics, :program:`mongotop` resets the usage statistics for 
+each polling interval.
+
+.. _mongotop-options:
+
+Options
+-------
+
+.. binary:: mongotop
+
+.. program:: mongotop
+
+.. option:: --help
+
+   Returns information on the options and use of :program:`mongotop`.
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
+
+
+.. option:: --quiet
+
+   Runs :program:`mongotop` in a quiet mode that attempts to limit the amount
+   of output.
+
+   This option suppresses:
+   
+   - output from :term:`database commands <database command>`
+   
+   - replication activity
+   
+   - connection accepted events
+   
+   - connection closed events
+
+
+.. option:: --version
+
+   Returns the :program:`mongotop` release number.
+
+
+.. option:: --uri <connectionString>
+
+   .. versionadded:: 3.4.6
+   
+   Specify a resolvable :doc:`URI connection string
+   </reference/connection-string/>` to connect to the MongoDB deployment.
+   
+   .. code-block:: none
+   
+      --uri "mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]"
+   
+   For more information on the components of the connection string, see
+   the :doc:`Connection String URI Format
+   </reference/connection-string/>` documentation.
+   
+
+   .. important::
+   
+      The following command-line options cannot be used in conjunction
+      with :option:`--uri` option:
+   
+      - :option:`--host`
+      - :option:`--port`
+      - :option:`--username`
+      - :option:`--password` (if the
+        :doc:`URI </reference/connection-string/>` connection string also includes the password)
+      - :option:`--authenticationDatabase`
+      - :option:`--authenticationMechanism`
+   
+      Instead, specify these options as part of your :option:`--uri` 
+      connection string.
+
+
+.. option:: --host <hostname><:port>, -h <hostname><:port>
+
+   *Default*: localhost:27017
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` to which to
+   connect. By default, the :program:`mongotop` attempts to connect to a MongoDB
+   instance running on the localhost on port number ``27017``.
+   
+   To connect to a replica set, specify the
+   :setting:`~replication.replSetName` and a seed list of set members, as in
+   the following:
+   
+   .. code-block:: none
+   
+      --host <replSetName>/<hostname1><:port>,<hostname2><:port>,<...>
+   
+   When specifying the replica set list format, :program:`mongotop` always connects to
+   the :term:`primary <Primary>`. 
+   
+   You can also connect to any single member of the replica set by specifying
+   the host and port of only that member:
+   
+   .. code-block:: none
+   
+      --host <hostname1><:port>
+   
+   .. versionchanged:: 3.0.0
+      If you use IPv6 and use the ``<address>:<port>`` format, you must
+      enclose the portion of an address and port combination in
+      brackets (e.g. ``[<address>]``).
+   
+   .. note::
+   
+      You cannot specify both :option:`--host` and :option:`--uri`.
+
+   If connected to a replica set where the :term:`primary` is not
+   reachable, :program:`mongotop` returns an error message.
+
+
+.. option:: --port <port>
+
+   *Default*: 27017
+
+   Specifies the TCP port on which the MongoDB instance listens for
+   client connections.
+   
+   .. note::
+   
+      You cannot specify both :option:`--port` and :option:`--uri`.
+
+
+.. option:: --ipv6
+
+   *Removed in version 3.0.*
+   
+   Enables IPv6 support and allows :program:`mongotop` to connect to the
+   MongoDB instance using an IPv6 network. Prior to MongoDB 3.0, you
+   had to specify :option:`--ipv6` to use IPv6. In MongoDB 3.0 and later, IPv6
+   is always enabled.
+
+
+.. option:: --ssl
+
+   .. versionadded:: 2.6
+   
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslCAFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. warning::
+   
+      **Version 3.2 and earlier:** For TLS/SSL connections (``--ssl``) to
+      :binary:`~bin.mongod` and :binary:`~bin.mongos`, if the :program:`mongotop` runs without the
+      :option:`--sslCAFile`, :program:`mongotop` will not attempt
+      to validate the server certificates. This creates a vulnerability
+      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
+      well as to foreign processes posing as valid :binary:`~bin.mongod` or
+      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
+      CA file to validate the server certificates in cases where
+      intrusion is a possibility.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the :option:`--ssl` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.ssl.CAFile` enabled *without*
+   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslPEMKeyPassword <value>
+
+   .. versionadded:: 2.6
+   
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongotop` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not specify
+   the :option:`--sslPEMKeyPassword` option, the :program:`mongotop` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCRLFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   .. versionadded:: 2.6
+   
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates. When using the
+   :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
+   warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   .. versionadded:: 3.0
+   
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   :program:`mongotop` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslFIPSMode
+
+   .. versionadded:: 2.6
+   
+   Directs the :program:`mongotop` to use the FIPS mode of the installed OpenSSL
+   library. Your system must have a FIPS compliant OpenSSL library to use
+   the :option:`--sslFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--password` and
+   :option:`--authenticationDatabase` options.
+   
+   .. note::
+   
+      You cannot specify both :option:`--username` and :option:`--uri`.
+
+
+.. option:: --password <password>, -p <password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--username` and
+   :option:`--authenticationDatabase` options.
+   
+   .. versionchanged:: 3.0.2
+   
+      To prompt the user
+      for the password, pass the :option:`--username` option without
+      :option:`--password` or specify an empty string as the :option:`--password` value,
+      as in ``--password ""`` .
+   
+   .. note::
+   
+      You cannot specify both :option:`--password` and :option:`--uri`.
+
+
+.. option:: --authenticationDatabase <dbname>
+
+   Specifies the authentication database where the specified :option:`--username` has been created.
+   See :ref:`user-authentication-database`.
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationDatabase` and :option:`--uri`.
+
+   
+   
+   .. versionchanged:: 3.0.0
+      :option:`--authenticationDatabase` is required for :binary:`~bin.mongod`
+      and :binary:`~bin.mongos` instances that use :ref:`authentication`.
+
+
+.. option:: --authenticationMechanism <name>
+
+   *Default*: SCRAM-SHA-1
+
+   .. versionchanged:: 2.6
+      Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
+      mechanisms.
+   
+   .. versionchanged:: 3.0
+      Added support for the ``SCRAM-SHA-1`` authentication mechanism. Changed
+      default mechanism to ``SCRAM-SHA-1``.
+   
+
+   Specifies the authentication mechanism the :program:`mongotop` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+   
+        - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
+          Salted Challenge Response Authentication Mechanism using the SHA1
+          hash function.
+   
+      * - :ref:`MONGODB-CR <authentication-mongodb-cr>`
+   
+        - MongoDB challenge/response authentication. (*Deprecated in MongoDB 3.6*)
+   
+      * - :ref:`MONGODB-X509 <security-auth-x509>`
+   
+        - MongoDB TLS/SSL certificate authentication.
+   
+      * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+   
+        - External authentication using Kerberos. This mechanism is
+          available only in `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp-docs>`_.
+   
+      * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+   
+        - External authentication using LDAP. You can also use ``PLAIN``
+          for authenticating in-database users. ``PLAIN`` transmits
+          passwords in plain text. This mechanism is available only in
+          `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp-docs>`_.
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationMechanism` and :option:`--uri`.
+
+
+.. option:: --gssapiServiceName
+
+   .. versionadded:: 2.6
+   
+   Specify the name of the service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --gssapiHostName
+
+   .. versionadded:: 2.6
+   
+   Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --locks
+
+   Toggles the mode of :binary:`~bin.mongotop` to report on use of per-database
+   :ref:`locks <locks>`. This data is only available when connected to a
+   MongoDB 2.6 or older instance.
+   
+
+   :option:`--locks` returns an error when called against a :binary:`~bin.mongod` 3.0 or
+   newer instance that does not report per-database lock usage.
+
+
+.. option:: --rowcount int, -n int
+
+   Number of lines of data that :program:`mongotop` should print. "0 for indefinite"
+
+
+.. option:: --json
+
+   
+   .. versionadded:: 3.0.0
+   
+   Returns output for :program:`mongotop` in :term:`JSON` format. In
+   addition to timing data, the ``--json`` option also returns a count
+   of the number of operations which took place during the polling
+   interval. 
+
+
+.. option:: <sleeptime>
+
+   The final argument is the length of time, in seconds, that
+   :program:`mongotop` waits in between calls. By default :program:`mongotop` returns
+   data every second.
+
+
+.. _mongotop-fields:
+
+Fields
+------
+
+When connected to a :binary:`~bin.mongod` instance, the program reports
+first on the connection and then reports on the statistics at the
+configured frequency. :binary:`~bin.mongotop` returns time values
+specified in milliseconds (ms.)
+
+.. code-block:: sh
+
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    81802ms     0ms    81802ms   
+   ...
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    0ms         0ms        0ms
+   ...
+
+:binary:`~bin.mongotop` only reports active namespaces or databases,
+depending on the :option:`--locks <mongotop --locks>` option. If you don't see a database
+or collection, it has received no recent activity. You can issue a
+simple operation in the :binary:`~bin.mongo` shell to generate activity to
+affect the output of :binary:`~bin.mongotop`.
+
+.. data:: mongotop.ns
+
+   Contains the database namespace, which combines the database name
+   and collection.
+
+   If you use the :option:`mongotop --locks`, the :data:`~mongotop.ns`
+   field does not appear in the :binary:`~bin.mongotop` output.
+
+.. data:: mongotop.db
+
+   Contains the name of the database. The database named ``.`` refers
+   to the global lock, rather than a specific database.
+
+   This field does not appear unless you have invoked
+   :binary:`~bin.mongotop` with the :option:`--locks <mongotop --locks>` option.
+
+.. data:: mongotop.total
+
+   Provides the total amount of time that this :binary:`~bin.mongod` spent
+   operating on this namespace.
+
+.. data:: mongotop.read
+
+   Provides the amount of time that this :binary:`~bin.mongod` spent
+   performing read operations on this namespace.
+
+.. data:: mongotop.write
+
+   Provides the amount of time that this :binary:`~bin.mongod` spent
+   performing write operations on this namespace.
+
+.. data:: mongotop.<timestamp>
+
+   Provides a time stamp for the returned data.
+
+.. _mongotop-use:
+
+Examples
+--------
+
+By default :binary:`~bin.mongotop` connects to the MongoDB instance
+running on the localhost port ``27017``. However, :binary:`~bin.mongotop` can optionally
+connect to remote :binary:`~bin.mongod`
+instances. See the :ref:`mongotop options <mongotop-options>` for more
+information.
+
+To force :binary:`~bin.mongotop` to return less frequently specify a number, in
+seconds at the end of the command. In this example, :binary:`~bin.mongotop` will
+return every 15 seconds.
+
+.. code-block:: sh
+
+   mongotop 15
+
+This command produces the following output:
+
+.. code-block:: sh
+
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
+
+                       ns    total    read    write    2019-04-29T15:35:57-04:00
+       admin.system.roles      0ms     0ms      0ms                             
+       admin.system.users      0ms     0ms      0ms                             
+     admin.system.version      0ms     0ms      0ms                             
+   config.system.sessions      0ms     0ms      0ms                             
+        local.startup_log      0ms     0ms      0ms                             
+     local.system.replset      0ms     0ms      0ms
+
+To return a :binary:`~bin.mongotop` report every 5 minutes, use the
+following command:
+
+.. code-block:: sh
+
+   mongotop 300
+
+Additional Information
+----------------------
+
+For more information about monitoring MongoDB, see
+:doc:`/administration/monitoring`.
+
+For additional background on various other MongoDB status outputs see:
+
+- :doc:`/reference/command/serverStatus`
+- :doc:`/reference/command/replSetGetStatus`
+- :doc:`/reference/command/dbStats`
+- :doc:`/reference/command/collStats`
+
+For an additional utility that provides MongoDB metrics
+see :doc:`mongostat </reference/program/mongostat>`.
+

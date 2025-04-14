@@ -1,0 +1,212 @@
+===========================
+Segmenting Data by Location
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/intro-zone-sharding.rst
+
+This tutorial uses :ref:`zone-sharding` to segment data based on
+geographic area.
+
+The following are some example use cases for segmenting data by geographic
+area:
+
+* An application that requires segmenting user data based on geographic country
+* A database that requires resource allocation based on geographic country
+
+The following diagram illustrates a sharded cluster that uses geographic based
+zones to manage and satisfy data segmentation requirements.
+
+.. include:: /images/sharding-segmenting-data-by-location-overview.rst
+
+Scenario
+--------
+
+A financial chat application logs messages, tracking the country of the
+originating user. The application stores the logs in the ``chat`` database
+under the ``messages`` collection. The chats contain information that must be
+segmented by country to have servers local to the country serve read and write
+requests for the country's users. A group of countries can be assigned
+same zone in order to share resources.
+
+The application currently has users in the US, UK, and Germany. The
+``country`` field represents the user's country based on its
+`ISO 3166-1 Alpha-2 <https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2>`_
+two-character country codes.
+
+The following documents represent a partial view of three chat messages:
+
+.. code-block:: javascript
+
+   {
+     "_id" : ObjectId("56f08c447fe58b2e96f595fa"),
+     "country" : "US",
+     "userid" : 123,
+     "message" : "Hello there",
+     ...,
+   }
+   {
+     "_id" : ObjectId("56f08c447fe58b2e96f595fb"),
+     "country" : "UK",
+     "userid" : 456,
+     "message" : "Good Morning"
+     ...,
+   }
+   {
+     "_id" : ObjectId("56f08c447fe58b2e96f595fc"),
+     "country" : "DE",
+     "userid" : 789,
+     "message" : "Guten Tag"
+     ...,
+   }
+
+
+Shard Key
+~~~~~~~~~
+
+The ``messages`` collection uses the ``{ country : 1, userid : 1 }`` compound
+index as the shard key.
+
+The ``country`` field in each document allows for creating a zone for
+each distinct country value.
+
+The ``userid`` field provides a high :ref:`cardinality <shard-key-cardinality>`
+and low :ref:`frequency <shard-key-frequency>` component to the shard key
+relative to ``country``.
+
+See :ref:`Choosing a Shard Key <sharding-shard-key-requirements>` for more
+general instructions on selecting a shard key.
+
+Architecture
+~~~~~~~~~~~~
+
+The sharded cluster has shards in two data centers - one in Europe, and
+one in North America.
+
+.. include:: /images/sharding-segmenting-data-by-location-architecture.rst
+
+
+Zones
+~~~~~
+
+This application requires one zone per data center.
+
+``EU`` - European data center
+   Shards deployed on this data center are assigned to the ``EU`` zone.
+
+   For each country using the ``EU`` data center for local reads and writes,
+   create a zone range for the ``EU`` zone with:
+
+   * a lower bound of ``{ "country" : <country>, "userid" : MinKey }``
+   * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }``
+
+``NA`` - North American data center
+   Shards deployed on this data center are assigned to the ``NA`` zone.
+
+   For each country using the ``NA`` data center for local reads and writes,
+   create a zone range for the ``NA`` zone with:
+
+   * a lower bound of ``{ "country" : <country>, "userid" : MinKey }``
+   * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }``
+
+.. note::
+
+   The :bsontype:`MinKey` and :bsontype:`MaxKey` values are reserved special
+   values for comparisons
+
+Write Operations
+~~~~~~~~~~~~~~~~
+
+With zones, if an inserted or updated document matches a
+configured zone, it can only be written to a shard inside of that zone.
+
+MongoDB can write documents that do not match a configured zone to any
+shard in the cluster.
+
+.. note::
+
+   The behavior described above requires the cluster to be in a steady state
+   with no chunks violating a configured zone. See the following section on
+   the :ref:`balancer <sharding-segmenting-data-by-location-balancer>` for
+   more information.
+
+Read Operations
+~~~~~~~~~~~~~~~
+
+MongoDB can route queries to a specific shard if the query includes at least
+the ``country`` field.
+
+For example, MongoDB can attempt a :ref:`targeted read operation
+<sharding-mongos-targeted>` on the following query:
+
+.. code-block:: javascript
+
+   chatDB = db.getSiblingDB("chat")
+   chatDB.messages.find( { "country" : "UK" , "userid" : "123" } )
+
+Queries without the ``country`` field perform :ref:`broadcast operations
+<sharding-mongos-broadcast>`.
+
+.. _sharding-segmenting-data-by-location-balancer:
+
+Balancer
+~~~~~~~~
+
+The :ref:`balancer <sharding-balancing>` :ref:`migrates
+<sharding-chunk-migration>` chunks to the appropriate shard respecting any
+configured zones. Until the migration, shards may contain chunks that violate
+configured zones. Once balancing completes, shards should only
+contain chunks whose ranges do not violate its assigned zones.
+
+Adding or removing zones or zone ranges can result in chunk migrations.
+Depending on the size of your data set and the number of chunks a zone or zone
+range affects, these migrations may impact cluster performance. Consider
+running your :ref:`balancer <sharding-balancing>` during specific scheduled
+windows. See :ref:`sharding-schedule-balancing-window` for a tutorial on how
+to set a scheduling window.
+
+Security
+~~~~~~~~
+
+For sharded clusters running with :ref:`authorization`, authenticate as a user
+with at least the :authrole:`clusterManager` role on the ``admin`` database.
+
+Procedure
+---------
+
+You must be connected to a :binary:`~bin.mongos` to create zones and zone ranges.
+You cannot create zones or zone ranges by connecting directly to a
+:term:`shard`.
+
+.. include:: /includes/steps/sharding-segmenting-data-by-location.rst
+
+Updating Zones
+~~~~~~~~~~~~~~
+
+The application requires the following updates:
+
+* Documents with ``country : UK`` must now be associated to the new ``UK``
+  data center. Any data in the ``EU`` data center must be migrated
+
+* The chat application now supports users in Mexico. Documents with
+  ``country : MX`` must be routed to the ``NA`` data center.
+
+Perform the following procedures to update the zone ranges.
+
+.. include:: /includes/steps/sharding-segmenting-data-by-location-update.rst
+
+.. seealso::
+
+   :ref:`zone-sharding`
+
+   :ref:`sharding-balancing`
+
+   :doc:`/tutorial/deploy-shard-cluster`
+

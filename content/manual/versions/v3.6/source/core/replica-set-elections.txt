@@ -1,0 +1,229 @@
+.. index:: replica set; network partitions
+.. index:: replica set; elections
+.. index:: replica set; failover
+.. _replica-set-election-internals:
+.. _replica-set-elections:
+
+=====================
+Replica Set Elections
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:term:`Replica sets <replica set>` use elections to determine which
+set member will become :term:`primary`. Replica sets can trigger an 
+election in response to a variety of events, such as:
+
+- Adding a new node to the replica set,
+- :method:`initiating a replica set <rs.initiate()>`,
+- performing replica set maintenance using methods such as :method:`rs.stepDown()` or :method:`rs.reconfig()`, and
+- the :term:`secondary` members losing connectivity to the primary for more than the configured :rsconf:`timeout <settings.electionTimeoutMillis>` (10 seconds by default).
+
+In the following diagram, the primary node was unavailable for longer
+than the :rsconf:`configured timeout <settings.electionTimeoutMillis>`
+and triggers the :ref:`automatic failover <replication-auto-failover>`
+process. One of the remaining secondaries calls for an election to
+select a new primary and automatically resume normal operations.
+
+.. include:: /images/replica-set-trigger-election.rst
+
+The replica set cannot process write operations until the
+election completes successfully. The replica set can continue to serve 
+read queries if such queries are configured to 
+:ref:`run on secondaries <replica-set-read-preference>`.
+
+.. include:: /includes/fact-election-latency.rst
+
+.. include:: /includes/fact-retryable-writes-failover-election.rst
+
+
+Factors and Conditions that Affect Elections
+--------------------------------------------
+
+Replication Election Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-replica-set-protocolVersion1.rst
+
+Heartbeats
+~~~~~~~~~~
+
+Replica set members send heartbeats (pings) to each other every two
+seconds. If a heartbeat does not return within 10 seconds, the other
+members mark the delinquent member as inaccessible.
+
+Member Priority
+~~~~~~~~~~~~~~~
+
+After a replica set has a stable primary, the election algorithm will
+make a "best-effort" attempt to have the secondary with the highest
+:rsconf:`~members[n].priority` available call an election.
+Member priority affects both the timing and the
+outcome of elections; secondaries with higher priority call elections
+relatively sooner than secondaries with lower
+priority, and are also more likely to win. However, a lower priority
+instance can be elected as primary for brief periods, even if a higher
+priority secondary is available. Replica set members continue
+to call elections until the highest priority member available becomes
+primary.
+
+Members with a priority value of ``0`` cannot become primary and do
+not seek election. For details, see
+:doc:`/core/replica-set-priority-0-member`.
+
+Loss of a Data Center
+~~~~~~~~~~~~~~~~~~~~~
+
+With a distributed replica set, the loss of a data center may affect
+the ability of the remaining members in other data center or data
+centers to elect a primary.
+
+If possible, distribute the replica set members across data centers to
+maximize the likelihood that even with a loss of a data center, one of
+the remaining replica set members can become the new primary.
+
+.. seealso:: :doc:`/core/replica-set-architecture-geographically-distributed`
+
+Network Partition
+~~~~~~~~~~~~~~~~~
+
+A :term:`network partition` may segregate a primary into a partition
+with a minority of nodes. When the primary detects that it can only see
+a minority of nodes in the replica set, the primary steps down as
+primary and becomes a secondary. Independently, a member in the
+partition that can communicate with a majority of the nodes (including
+itself) holds an election to become the new primary.
+
+.. index:: replica set members; non-voting
+
+.. _replica-set-vetoes:
+
+Vetoes in Elections
+~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+   The :rsconf:`protocolVersion: 1 <protocolVersion>` obviates the need
+   for vetoes. The following veto discussion applies to replica sets
+   that use the older :rsconf:`protocolVersion: 0 <protocolVersion>`.
+
+For replica sets using :rsconf:`protocolVersion: 0 <protocolVersion>`,
+all members of a replica set can veto an election, including
+:ref:`non-voting members <replica-set-non-voting-members>`. A member
+will veto an election:
+
+- If the member seeking an election is not a member of the voter's set.
+
+- If the current primary has more recent operations
+  (i.e. a higher :data:`optime <replSetGetStatus.members.optime>`) than
+  the member seeking election, from the perspective of another voting
+  member.
+
+- If the current primary has the same or more recent operations
+  (i.e. a higher or equal :data:`optime
+  <replSetGetStatus.members.optime>`) than the member seeking
+  election.
+
+- If a :ref:`priority 0 member <replica-set-secondary-only-members>`
+  [#imply-secondary-only]_ is the most current member at the time of
+  the election. In this case, another eligible member of the set will
+  catch up to the state of the :ref:`priority 0 member
+  <replica-set-secondary-only-members>` member and then attempt to
+  become primary.
+
+- If the member seeking an election has a lower priority than another member
+  in the set that is also eligible for election.
+
+.. [#imply-secondary-only] 
+   :ref:`Hidden <replica-set-hidden-members>` and
+   :ref:`delayed<replica-set-delayed-members>` imply :ref:`priority 0
+   <replica-set-secondary-only-members>` configuration.
+
+Voting Members
+--------------
+
+The replica set member configuration setting :rsconf:`members[n].votes`
+and member :data:`~replSetGetStatus.members.state` determine whether a
+member votes in an election.
+
+
+- All replica set members that have their :rsconf:`members[n].votes`
+  setting equal to 1 vote in elections. To exclude a member from voting
+  in an :term:`election`, change the value of the member's
+  :rsconf:`members[n].votes` configuration to ``0``.
+
+  .. versionchanged:: 3.2
+
+     - .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+     - .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+     
+- Only voting members in the following states are eligible to vote:
+
+  - :replstate:`PRIMARY`
+
+  - :replstate:`SECONDARY`
+
+  - :replstate:`STARTUP2`
+
+  - :replstate:`RECOVERING`
+
+  - :replstate:`ARBITER`
+
+  - :replstate:`ROLLBACK`
+
+.. _replica-set-non-voting-configuration:
+.. _replica-set-non-voting-members:
+
+Non-Voting Members
+------------------
+
+Although non-voting members do not vote in elections, these members
+hold copies of the replica set's data and can accept read operations
+from client applications.
+
+Because a replica set can have up to :limit:`50 members 
+<Number of Members of a Replica Set>`, but only :limit:`7 voting
+members <Number of Voting Members of a Replica Set>`, non-voting
+members allow a replica set to have more than seven members.
+
+.. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+For instance, the following nine-member replica set has seven voting
+members and two non-voting members.
+
+.. include:: /images/replica-set-only-seven-voting-members.rst
+
+A non-voting member has both :rsconf:`~members[n].votes` and
+:rsconf:`~members[n].priority` equal to ``0``:
+
+.. code-block:: javascript
+
+   {
+      "_id" : <num>,
+      "host" : <hostname:port>,
+      "arbiterOnly" : false,
+      "buildIndexes" : true,
+      "hidden" : false,
+      "priority" : 0,
+      "tags" : {
+      
+      },
+      "slaveDelay" : NumberLong(0),
+      "votes" : 0
+   }
+
+.. important:: Do **not** alter the number of votes to control which
+   members will become primary. Instead, modify the
+   :rsconf:`members[n].priority` option. *Only*
+   alter the number of votes in exceptional cases. For example, to
+   permit more than seven members.
+
+To configure a non-voting member, see
+:doc:`/tutorial/configure-a-non-voting-replica-set-member`.

@@ -1,0 +1,76 @@
+.. _data-modeling-atomic-operation:
+
+================================
+Model Data for Atomic Operations
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Pattern
+-------
+
+In MongoDB, write operations, e.g. :method:`db.collection.update()`,
+:method:`db.collection.findAndModify()`,
+:method:`db.collection.remove()`, are atomic on the level of a single
+document. For fields that must be updated together, embedding the
+fields within the same document ensures that the fields can be updated
+atomically.
+
+For example, consider a situation where you need to maintain
+information on books, including the number of copies available for
+checkout as well as the current checkout information.
+
+The available copies of the book and the checkout information should be
+in sync. As such, embedding the ``available`` field and the
+``checkout`` field within the same document ensures that you can update
+the two fields atomically.
+
+.. code-block:: javascript
+   :emphasize-lines: 9-10
+
+   {
+       _id: 123456789,
+       title: "MongoDB: The Definitive Guide",
+       author: [ "Kristina Chodorow", "Mike Dirolf" ],
+       published_date: ISODate("2010-09-24"),
+       pages: 216,
+       language: "English",
+       publisher_id: "oreilly",
+       available: 3,
+       checkout: [ { by: "joe", date: ISODate("2012-10-15") } ]
+   }
+
+Then to update with new checkout information, you can use the
+:method:`db.collection.update()` method to atomically update both
+the ``available`` field and the ``checkout`` field:
+
+.. code-block:: javascript
+
+   db.books.update (
+      { _id: 123456789, available: { $gt: 0 } },
+      {
+        $inc: { available: -1 },
+        $push: { checkout: { by: "abc", date: new Date() } }
+      }
+   )
+
+The operation returns a :method:`WriteResult()` object that contains
+information on the status of the operation:
+
+.. code-block:: javascript
+
+   WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+The :data:`~WriteResult.nMatched` field shows that ``1`` document matched
+the update condition, and :data:`~WriteResult.nModified` shows that the
+operation updated ``1`` document.
+
+If no document matched the update condition, then
+:data:`~WriteResult.nMatched` and :data:`~WriteResult.nModified` would
+be ``0`` and would indicate that you could not check out the book.

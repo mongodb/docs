@@ -1,0 +1,100 @@
+==========================
+Configure MongoDB for FIPS
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 2.6
+
+Overview
+--------
+
+The Federal Information Processing Standard (FIPS) is a U.S. government
+computer security standard used to certify software modules and
+libraries that encrypt and decrypt data securely.  You can configure
+MongoDB to run with a FIPS 140-2 certified library
+for OpenSSL. Configure FIPS to run by default or as needed from the
+command line.
+
+Prerequisites
+-------------
+
+.. important::
+
+   .. include:: /includes/extracts/security-prereq-configure-fips.rst
+
+Only `MongoDB Enterprise`_ edition supports FIPS mode. See
+:doc:`/administration/install-enterprise` to download and install
+`MongoDB Enterprise`_.
+
+Your system must have an OpenSSL library configured with the FIPS 140-2
+module. At the command line, type ``openssl version`` to confirm your
+OpenSSL software includes FIPS support.
+
+For Red Hat Enterprise Linux 6.x (RHEL 6.x) or its derivatives such as
+CentOS 6.x, the OpenSSL toolkit must be at least
+``openssl-1.0.1e-16.el6_5`` to use FIPS mode. To upgrade the toolkit for
+these platforms, issue the following command:
+
+.. code-block:: sh
+
+   sudo yum update openssl
+
+Some versions of Linux periodically execute a process to `prelink` dynamic
+libraries with pre-assigned addresses. This process modifies the OpenSSL
+libraries, specifically ``libcrypto``. The OpenSSL FIPS mode will
+subsequently fail the signature check performed upon startup to ensure
+``libcrypto`` has not been modified since compilation.
+
+To configure the Linux prelink process to not prelink ``libcrypto``:
+
+.. code-block:: sh
+
+   sudo bash -c "echo '-b /usr/lib64/libcrypto.so.*' >>/etc/prelink.conf.d/openssl-prelink.conf"
+
+.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp=docs
+
+Considerations
+--------------
+
+FIPS is property of the encryption system and not the access control
+system. However, if your environment requires FIPS compliant encryption
+*and* access control, you must ensure that the access control system
+uses only FIPS-compliant encryption.
+
+MongoDB's FIPS support covers the way that MongoDB uses OpenSSL for
+network encryption, SCRAM authentication, and x.509
+authentication. If you use Kerberos or LDAP authentication, you must
+ensure that these external mechanisms are FIPS-compliant.
+The 3.6 deprecated ``MONGODB-CR`` authentication is **not** FIPS compliant.
+
+Procedure
+---------
+
+Configure MongoDB to use TLS/SSL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See :doc:`/tutorial/configure-ssl` for details about configuring
+OpenSSL. For FIPS mode, ensure that your certificate is FIPS compliant.
+
+Run ``mongod`` or ``mongos`` instance in FIPS mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Perform these steps after you :doc:`/tutorial/configure-ssl`.
+
+.. include:: /includes/steps/fips-config.rst
+
+Confirm that FIPS mode is running
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check the server log file for a message that FIPS is active:
+
+.. code-block:: sh
+
+   FIPS 140-2 mode activated

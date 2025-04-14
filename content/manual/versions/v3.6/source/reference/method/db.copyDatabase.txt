@@ -1,0 +1,242 @@
+=================
+db.copyDatabase()
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.copyDatabase(fromdb, todb, fromhost, username, password, mechanism)
+
+   .. versionchanged:: 3.0
+
+      .. include:: /includes/extracts/fact-copydb-method-authentication-mechanism-change.rst
+
+   Copies a database either from one :binary:`~bin.mongod` instance to the
+   current :binary:`~bin.mongod` instance or within the current
+   :binary:`~bin.mongod`. :method:`db.copyDatabase()` wraps the
+   :dbcommand:`copydb` command and takes the following arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``fromdb``
+   
+        - string
+   
+        - Name of the source database.
+          
+          
+   
+      * - ``todb``
+   
+        - string
+   
+        - Name of the target database.
+          
+          
+   
+      * - ``fromhost``
+   
+        - string
+   
+        - Optional. The hostname of the source :binary:`~bin.mongod` instance. Omit 
+          to copy databases within the same :binary:`~bin.mongod` instance.
+          
+          
+   
+      * - ``username``
+   
+        - string
+   
+        - Optional. The name of the user on the ``fromhost`` MongoDB instance. The user
+          authenticates to the ``fromdb``.
+          
+          For more information, see :ref:`copyDatabase-access-control`.
+          
+          
+   
+      * - ``password``
+   
+        - string
+   
+        - Optional. The password on the ``fromhost`` for authentication. The method does
+          **not** transmit the password in plaintext.
+          
+          For more information, see :ref:`copyDatabase-access-control`.
+          
+          
+   
+      * - ``mechanism``
+   
+        - string
+   
+        - Optional. The mechanism to authenticate the ``username`` and ``password`` on
+          the ``fromhost``. Specify either:
+             
+          - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`, or
+          
+          - :ref:`MONGODB-CR <authentication-mongodb-cr>` (Deprecated in MongoDB 3.6).
+          
+          :method:`db.copyDatabase` defaults to :ref:`SCRAM-SHA-1
+          <authentication-scram-sha-1>` if the wire protocol version
+          (:data:`~isMaster.maxWireVersion`) is greater than or equal to ``3``
+          (i.e. MongoDB versions 3.0 or greater). Otherwise, it defaults to
+          :ref:`MONGODB-CR <authentication-mongodb-cr>`.
+          
+          Specify ``MONGODB-CR`` to authenticate to the version 2.6.x
+          ``fromhost`` from a version 3.0 instance or
+          greater. For an example, see :ref:`example-copyDatabase-from-2.6`.
+          
+          .. versionadded:: 3.0
+          
+          
+   
+
+
+   .. |command| replace:: ``db.copyDatabase()``
+
+Behavior
+--------
+
+Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/3.6-featureCompatibility-copy-data.rst
+
+Destination
+~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-method-behavior-destination.rst
+
+.. _copyDatabase-access-control:
+
+Authentication to Source ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-method-behavior-fromhost-authentication.rst
+
+Concurrency
+~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-method-behavior-concurrency.rst
+
+Indexes
+~~~~~~~
+
+.. include:: /includes/fact-copydb-cmd-behavior-indexes.rst
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+- Do not use :method:`db.copyDatabase()` from a :binary:`~bin.mongos` instance.
+
+- Do not use :method:`db.copyDatabase()` to copy databases that contain sharded
+  collections.
+
+.. _copyDatabases-requiredAccess:
+
+Required Access
+---------------
+
+.. versionchanged:: 2.6
+
+.. _copyDatabase-fromdb-access:
+
+Source Database (``fromdb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :binary:`~bin.mongod` instance of the *source* database (``fromdb``)
+enforces :setting:`access control <security.authorization>`, you must
+have proper authorization for the *source* database.
+
+.. include:: /includes/extracts/fact-copydb-method-fromhost-authentication.rst
+.. include:: /includes/extracts/fact-copydb-method-authentication-mechanism.rst
+
+Source is non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-source-not-admin.rst
+
+Source is ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-source-admin.rst
+
+.. _copyDatabase-todb-access:
+
+Target Database (``todb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :binary:`~bin.mongod` instance of the *target* database (``todb``)
+enforces :setting:`access control <security.authorization>`, you must
+have proper authorization for the *target* database.
+
+Copy from non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-target-non-admin-source.rst
+
+Copy from ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-target-admin-source.rst
+
+Example
+-------
+
+Copy from the Same ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To copy within the same :binary:`~bin.mongod` instance, omit the
+``fromhost``.
+
+The following operation copies a database named ``records`` into a
+database named ``archive_records``:
+
+.. code-block:: javascript
+
+   db.copyDatabase('records', 'archive_records')
+
+.. _example-copyDatabase-from-2.6:
+
+Copy Database from a ``mongod`` Instances that Enforce Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-method-fromhost-authentication.rst
+
+.. versionchanged:: 3.0
+
+   MongoDB 3.0 supports passing the authentication mechanism to use for the ``fromhost``.
+
+The following operation copies a database named ``reporting`` from a
+version 3.4 :binary:`~bin.mongod` instance that runs on ``example.net`` and enforces
+access control.
+
+.. code-block:: javascript
+
+    db.copyDatabase(
+      "reporting",
+      "reporting_copy",
+      "example.net",
+      "reportUser",
+      "abc123",
+      "SCRAM-SHA-1"
+   )
+
+.. seealso:: :dbcommand:`clone`

@@ -1,0 +1,137 @@
+.. _replica-set-sync:
+
+================================
+Replica Set Data Synchronization
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In order to maintain up-to-date copies of the shared data set,
+secondary members of a replica set :term:`sync` or replicate data from
+other members. MongoDB uses two forms of data synchronization:
+initial sync to populate new members
+with the full data set, and replication to apply ongoing changes to the
+entire data set.
+
+.. _replica-set-initial-sync:
+
+Initial Sync
+------------
+
+Initial sync copies all the data from one member of the replica set to
+another member.
+
+Process
+~~~~~~~
+
+When you perform an initial sync, MongoDB:
+
+#. Clones all databases except the :ref:`local
+   <replica-set-local-database>` database. To clone, the
+   :binary:`~bin.mongod` scans every collection in each source database and
+   inserts all data into its own copies of these collections.
+
+   .. versionchanged:: 3.4 
+      Initial sync builds all collection indexes as the documents are
+      copied for each collection. In earlier versions of MongoDB, only
+      the ``_id`` indexes are built during this stage.
+
+   .. versionchanged:: 3.4
+      Initial sync pulls newly added oplog records during the data copy. Ensure
+      that the target member has enough disk space in the ``local``
+      database to temporarily store these oplog records for the
+      duration of this data copy stage.
+
+#. Applies all changes to the data set. Using the oplog from the
+   source, the :binary:`~bin.mongod` updates its data set to reflect the
+   current state of the replica set.
+
+   When the initial sync finishes, the member transitions from
+   :replstate:`STARTUP2` to :replstate:`SECONDARY`.
+
+To perform an initial sync, see
+:doc:`/tutorial/resync-replica-set-member`.
+
+.. _init-sync-retry:
+
+Fault Tolerance
+~~~~~~~~~~~~~~~
+
+To recover from transient network or operation failures, initial sync
+has built-in retry logic.
+
+.. versionchanged:: 3.4
+
+   MongoDB 3.4 improves the initial sync retry logic to be more resilient to
+   intermittent failures on the network.
+
+
+.. _replica-set-replication:
+
+Replication
+-----------
+
+Secondary members replicate data continuously after the initial sync.
+Secondary members copy the :doc:`oplog </core/replica-set-oplog>` from
+their *sync from* source and apply these operations in an asynchronous
+process. [#slow-oplogs]_
+
+Secondaries may automatically change their *sync from* source as needed
+based on changes in the ping time and state of other members'
+replication.
+
+.. versionchanged:: 3.2
+
+   .. include:: /includes/fact-voting-node-sync-incompatibility.rst
+
+Secondaries avoid syncing from
+:ref:`delayed members <replica-set-delayed-members>` and :ref:`hidden
+members <replica-set-hidden-members>`.
+
+If a secondary member has :rsconf:`members[n].buildIndexes` set to ``true``,
+it can only sync from other members where :rsconf:`~members[n].buildIndexes`
+is ``true``. Members where :rsconf:`~members[n].buildIndexes` is ``false`` can
+sync from any other member, barring other sync restrictions.
+:rsconf:`~members[n].buildIndexes` is ``true`` by default.
+
+.. [#slow-oplogs]
+
+   .. include:: /includes/fact-slow-oplog-log-message-footnote.rst
+
+.. _replica-set-internals-multi-threaded-replication:
+
+Multithreaded Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB applies write operations in batches using multiple threads to
+improve concurrency. MongoDB groups batches by namespace (:ref:`MMAPv1
+<storage-mmapv1>`) or by document id (:ref:`WiredTiger
+<storage-wiredtiger>`) and simultaneously applies each group of
+operations using a different thread. MongoDB always applies write
+operations to a given document in their original write order.
+
+While applying a batch, MongoDB blocks all read operations. As a
+result, secondary read queries can never return data that reflect a
+state that never existed on the primary.
+
+Pre-Fetching Indexes to Improve Replication Throughput
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+   Applies to MMAPv1 only.
+
+With the :ref:`MMAPv1 <storage-mmapv1>` storage engine, MongoDB fetches
+memory pages that hold affected data and indexes to help improve the
+performance of applying oplog entries. This *pre-fetch* stage minimizes
+the amount of time MongoDB holds write locks while applying oplog
+entries. By default, secondaries will pre-fetch all :ref:`indexes`.
+
+Optionally, you can disable all pre-fetching or only pre-fetch
+the index on the ``_id`` field. See the :setting:`~replication.secondaryIndexPrefetch`
+setting for more information.

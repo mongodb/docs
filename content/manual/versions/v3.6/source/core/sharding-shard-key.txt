@@ -1,0 +1,289 @@
+.. index:: shard key
+   single: sharding; shard key
+
+.. _sharding-shard-key:
+.. _shard-key:
+.. _sharding-internals-shard-keys:
+
+==========
+Shard Keys
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The shard key determines the distribution of the collection's :term:`documents
+<document>` among the cluster's :term:`shards <shard>`. The shard key is
+either an indexed :term:`field` or indexed :term:`compound <compound index>`
+fields that exists in every document in the collection.
+
+MongoDB :term:`partitions <data partition>` data in the collection using ranges
+of shard key values. Each range defines a non-overlapping range of shard key
+values and is associated with a :term:`chunk`.
+
+MongoDB attempts to distribute chunks evenly among the shards in the cluster.
+The shard key has a direct relationship to the effectiveness of chunk
+distribution. See :ref:`sharding-shard-key-selection`.
+
+.. include:: /images/sharding-range-based.rst
+
+.. important::
+
+   .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+.. TODO:: Split this include out into an actual tutorial
+   .. include:: /includes/limits-sharding-shardkey-immutable.rst
+
+.. _sharding-shard-key-creation:
+
+Shard Key Specification
+-----------------------
+
+To shard a collection, you must specify the target collection and the
+shard key to the :method:`sh.shardCollection()` method:
+
+.. code-block:: javascript
+
+   sh.shardCollection( namespace, key )
+
+- The ``namespace`` parameter consists of a string
+  ``<database>.<collection>`` specifying the full :term:`namespace` of
+  the target collection.
+
+- The ``key`` parameter consists of a document containing a field and
+  the index traversal direction for that field.
+
+For instructions sharding a collection using either the :ref:`hashed
+<sharding-hashed>` or :ref:`ranged sharding <sharding-ranged>` strategy,
+see :ref:`deploy-hashed-sharded-cluster-shard-collection`.
+
+.. _sharding-internals-shard-key-indexes:
+.. _sharding-shard-key-indexes:
+
+Shard Key Indexes
+-----------------
+
+All sharded collections **must** have an index that supports the
+:term:`shard key`; i.e. the index can be an index on the shard key or a
+:term:`compound index` where the shard key is a :ref:`prefix
+<compound-index-prefix>` of the index.
+
+- If the collection is empty, :method:`sh.shardCollection()` creates
+  the index on the shard key if such an index does not already exists.
+
+- If the collection is not empty, you must create the index first
+  before using :method:`sh.shardCollection()`.
+
+If you drop the last valid index for the shard key, recover by
+recreating an index on just the shard key.
+
+.. _sharding-shard-key-unique:
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+You cannot specify a unique constraint on a :ref:`hashed index
+<index-type-hashed>`.
+
+For a ranged sharded collection, only the following indexes can be
+:doc:`unique </core/index-unique>`:
+
+- the index on the shard key
+
+- a :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`
+
+- the default ``_id`` index; **however**, the ``_id`` index only
+  enforces the uniqueness constraint per shard **if** the ``_id`` field
+  is **not** the shard key or the prefix of the shard key.
+
+  .. admonition:: Uniqueness and the ``_id`` Index
+     :class: important
+
+     If the ``_id`` field is not the shard key or the prefix of the
+     shard key, ``_id`` index only enforces the uniqueness constraint
+     per shard and **not** across shards.
+
+     For example, consider a sharded collection (with shard key ``{x:
+     1}``) that spans two shards A and B. Because the ``_id`` key is
+     not part of the shard key, the collection could have a document
+     with ``_id`` value ``1`` in shard A and another document with
+     ``_id`` value ``1`` in shard B.
+
+     If the ``_id`` field is not the shard key nor the prefix of the
+     shard key, MongoDB expects applications to enforce the uniqueness
+     of the ``_id`` values across the shards.
+
+The unique index constraints mean that:
+
+- For a to-be-sharded collection, you cannot shard the collection if
+  the collection has other unique indexes.
+
+- For an already-sharded collection, you cannot create unique indexes
+  on other fields.
+
+Through the use of the unique index on the shard key, MongoDB *can*
+enforce uniqueness on the shard key values. MongoDB enforces uniqueness
+on the *entire* key combination, and not individual components of the
+shard key. To enforce uniqueness on the shard key values, pass the
+``unique`` parameter as ``true`` to the :method:`sh.shardCollection()`
+method:
+
+.. include:: /includes/extracts/shard-collection-unique-restriction-method.rst
+
+.. index:: shard key; cardinality
+
+.. _shard-key-selection-divisible:
+.. _sharding-internals-operations-and-reliability:
+.. _sharding-shard-key-selection:
+.. _sharding-internals-choose-shard-key:
+.. _sharding-shard-key-requirements:
+
+Choosing a Shard Key
+--------------------
+
+The choice of shard key affects how the :term:`sharded cluster`
+:term:`balancer` creates and distributes :term:`chunks<chunk>` across the
+available :term:`shards <shard>`. This affects the overall efficiency and
+performance of operations within the sharded cluster.
+
+The shard key affects the performance and efficiency of the
+:ref:`sharding strategy <sharding-strategy>` used by the sharded cluster.
+
+The ideal shard key allows MongoDB to distribute documents evenly throughout
+the cluster.
+
+.. include:: /images/sharded-cluster-ranged-distribution-good.rst
+
+At minimum, consider the consequences of the
+:ref:`cardinality<shard-key-range>`, :ref:`frequency<shard-key-frequency>`, and
+:ref:`monotonicity<shard-key-monotonic>` of a potential shard key.
+
+Restrictions
+~~~~~~~~~~~~
+
+For restrictions on shard key, see :ref:`limits-shard-keys`.
+
+Collection Size
+~~~~~~~~~~~~~~~
+
+When sharding a collection that is not empty, the shard key can
+constrain the maximum supported collection size for the initial
+sharding operation only. See :limit:`Sharding Existing Collection Data
+Size`.
+
+.. important::
+
+   A sharded collection can grow to any size after successful sharding.
+
+.. _shard-key-range:
+.. _sharding-shard-key-cardinality:
+.. _shard-key-cardinality:
+
+Shard Key Cardinality
+~~~~~~~~~~~~~~~~~~~~~
+
+The :term:`cardinality` of a shard key determines the maximum number of chunks
+the balancer can create. This can reduce or remove the effectiveness of
+horizontal scaling in the cluster.
+
+A unique shard key value can exist on no more than a single chunk at any
+given time. If a shard key has a cardinality of ``4``, then there can
+be no more than ``4`` chunks within the sharded cluster, each storing
+one unique shard key value. This constrains the number of effective
+shards in the cluster to ``4`` as well - adding additional shards would
+not provide any benefit.
+
+The following image illustrates a sharded cluster using the field
+``X`` as the shard key. If ``X`` has low cardinality, the distribution of
+inserts may look similar to the following:
+
+.. include:: /images/sharded-cluster-ranged-distribution-low-cardinal.rst
+
+The cluster in this example would *not* scale horizontally, as incoming writes
+would only route to a subset of shards.
+
+Choosing a shard key with high cardinality does not, on its own, 
+guarantee even distribution of data across the sharded cluster. The 
+:ref:`frequency <shard-key-frequency>` and 
+:ref:`monotonicity <shard-key-monotonic>` of the shard key also 
+contribute to data distribution. Take each factor into account when 
+choosing a shard key.
+
+If your data model requires sharding on a key that has low cardinality,
+consider using a :term:`compound index` using a field that
+has higher relative cardinality.
+
+.. _shard-key-frequency:
+
+Shard Key Frequency
+~~~~~~~~~~~~~~~~~~~
+
+Consider a set representing the range of shard key values - the ``frequency``
+of the shard key represents how often a given value occurs in the data. If the
+majority of documents contain only a subset of those values, then the chunks
+storing those documents become a bottleneck within the cluster. Furthermore,
+as those chunks grow, they may become :ref:`indivisible chunks <jumbo-chunks>`
+as they cannot be split any further. This reduces or removes the effectiveness
+of horizontal scaling within the cluster.
+
+The following image illustrates a sharded cluster using the field ``X`` as the
+shard key. If a subset of values for ``X`` occur with high frequency, the
+distribution of inserts may look similar to the following:
+
+.. include:: /images/sharded-cluster-ranged-distribution-frequency.rst
+
+Choosing a shard key with low frequency does not, on its own, guarantee 
+even distribution of data across the sharded cluster. 
+The :ref:`cardinality <shard-key-cardinality>` and 
+:ref:`monotonicity <shard-key-monotonic>` of the shard key also 
+contribute to data distribution. Take each factor into account when 
+choosing a shard key.
+
+If your data model requires sharding on a key that has high frequency
+values, consider using a :term:`compound index` using a unique or
+low frequency value.
+
+.. _shard-key-monotonic:
+
+Shard Key Monotonicity
+~~~~~~~~~~~~~~~~~~~~~~
+
+A shard key on a value that increases or decreases monotonically is more
+likely to distribute inserts to a single shard within the cluster.
+
+This occurs because every cluster has a chunk that captures a range with an
+upper bound of :bsontype:`maxKey<data_maxkey>`. ``maxKey`` always
+compares as higher than all other values. Similarly, there is a chunk that
+captures a range with a lower bound of :bsontype:`minKey<data_minkey>`.
+``minKey`` always compares as lower than all other values.
+
+If the shard key value is always increasing, all new inserts are routed to the
+chunk with ``maxKey`` as the upper bound. If the shard key value is always
+decreasing, all new inserts are routed to the chunk with ``minKey`` as the
+lower bound. The shard containing that chunk becomes the bottleneck for write
+operations.
+
+The following image illustrates a sharded cluster using the field ``X``
+as the shard key. If the values for ``X`` are monotonically increasing, the
+distribution of inserts may look similar to the following:
+
+.. include:: /images/sharded-cluster-monotonic-distribution.rst
+
+If the shard key value was monotonically decreasing, then all inserts would
+route to ``Chunk A`` instead.
+
+Choosing a shard key that does not change monotonically does not, on 
+its own, guarantee even distribution of data across the sharded cluster. 
+The :ref:`cardinality<shard-key-cardinality>` and
+:ref:`frequency<shard-key-frequency>` of the shard key also contribute
+to data distribution. Take each factor into account when choosing a 
+shard key.
+
+If your data model requires sharding on a key that changes
+monotonically, consider using :doc:`/core/hashed-sharding`.

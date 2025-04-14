@@ -1,0 +1,105 @@
+.. index:: rollbacks
+   single: replica set; rollbacks
+   single: consistency; rollbacks
+
+.. _replica-set-rollbacks:
+.. _replica-set-rollback:
+
+=====================================
+Rollbacks During Replica Set Failover
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A rollback reverts write operations on a former :term:`primary` when the
+member rejoins its :term:`replica set` after a :term:`failover`.
+A rollback is necessary only if the primary had accepted write
+operations that the :term:`secondaries <secondary>` had **not**
+successfully replicated before the primary stepped down. When the
+primary rejoins the set as a secondary, it reverts, or "rolls back," its
+write operations to maintain database consistency with the other
+members.
+
+MongoDB attempts to avoid rollbacks, which should be rare. When a
+rollback does occur, it is often the result of a network
+partition. Secondaries that can not keep up with the throughput of
+operations on the former primary, increase the size and impact of the
+rollback.
+
+A rollback does *not* occur if the write operations replicate to another
+member of the replica set before the primary steps down *and* if that
+member remains available and accessible to a majority of the replica
+set.
+
+Collect Rollback Data
+---------------------
+
+When a rollback does occur, MongoDB writes the rollback data to
+:term:`BSON` files in the ``rollback/`` folder under the database's
+:setting:`~storage.dbPath` directory. The names of rollback files have
+the following form:
+
+.. code-block:: none
+
+   <database>.<collection>.<timestamp>.bson
+
+For example:
+
+.. code-block:: none
+
+   records.accounts.2011-05-09T18-10-04.0.bson
+
+To read the contents of the rollback files, use :doc:`bsondump
+</reference/program/bsondump>`. Based on the content and the knowledge
+of their applications, administrators can decide the next course of
+action to take.
+
+.. _rollback-avoid:
+
+Avoid Replica Set Rollbacks
+---------------------------
+
+For replica sets, the default :doc:`write concern {w: 1}
+</reference/write-concern>` only provides acknowledgement of write
+operations on the primary. With the default write concern, data may be
+rolled back if the primary steps down before the write operations have
+replicated to any of the secondaries.
+
+To prevent rollbacks of data that have been acknowledged to the client,
+run all voting members with journaling enabled and use :ref:`w:
+majority write concern <wc-w>` to guarantee that the write operations
+propagate to a majority of the replica set nodes before returning with
+acknowledgement to the issuing client.
+
+.. include:: /includes/extracts/no-journaling-rollback.rst
+
+.. note::
+
+   .. include:: /includes/list-visibility-of-data.rst
+
+Rollback Limitations
+--------------------
+
+A :binary:`~bin.mongod` instance will not rollback more than 300
+megabytes of data. If your system must rollback more than 300
+megabytes, you must manually intervene to recover the data. If
+this is the case, the following line will appear in your
+:binary:`~bin.mongod` log:
+
+.. code-block:: none
+
+   [replica set sync] replSet syncThread: 13410 replSet too much data to roll back
+
+In this situation, save the data directly or force the member to perform
+an initial sync. To force initial sync, sync from a "current" member of
+the set by deleting the content of the :setting:`~storage.dbPath` directory for
+the member that requires a larger rollback.
+
+.. seealso:: :doc:`/core/replica-set-high-availability` and
+   :doc:`/core/replica-set-elections`.

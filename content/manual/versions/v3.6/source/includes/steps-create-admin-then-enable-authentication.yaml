@@ -1,0 +1,207 @@
+title: Start MongoDB without access control.
+stepnum: 1
+level: 4
+ref: start-without-auth
+pre: |
+  For example, the following starts a standalone :binary:`~bin.mongod` instance
+  without access control.
+action:
+  language: sh
+  code: |
+    mongod --port 27017 --dbpath /data/db1
+---
+stepnum: 2
+title: Connect to the instance.
+level: 4
+ref: connect
+pre: |
+   For example, connect a :binary:`~bin.mongo` shell to the instance.
+action:
+  language: sh
+  code: |
+    mongo --port 27017 
+post: |
+   Specify additional command line options as appropriate to connect the
+   :binary:`~bin.mongo` shell to your deployment, such as ``--host``.
+---
+stepnum: 3
+title: Create the user administrator.
+level: 4
+ref: create-user-admin
+pre: |
+
+  In the ``admin`` database, add a user with the
+  :authrole:`userAdminAnyDatabase` role. Include additional roles as
+  needed for this user. For example, the following
+  creates the user ``myUserAdmin`` in the ``admin`` database with the
+  :authrole:`userAdminAnyDatabase` role and the
+  :authrole:`readWriteAnyDatabase` role.
+
+action:
+  pre: |
+    .. note::
+       The database where you create the user (in this example,
+       ``admin``) is the user's :ref:`authentication database
+       <user-authentication-database>`. Although the user would
+       authenticate to this database, the user can
+       have roles in other databases; i.e. the user's authentication
+       database does not limit the user's privileges.
+  language: javascript
+  code: |
+    use admin
+    db.createUser(
+      {
+        user: "myUserAdmin",
+        pwd: "abc123",
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" }, "readWriteAnyDatabase" ]
+      }
+    )
+post: |
+  Disconnect the :binary:`~bin.mongo` shell.
+---
+title: Re-start the MongoDB instance with access control.
+level: 4
+stepnum: 4
+ref: restart-with-auth
+pre: |
+  Re-start the :binary:`~bin.mongod` instance with the ``--auth`` command
+  line option or, if using a configuration file, the
+  :setting:`security.authorization` setting.
+  
+action:
+  language: sh
+  code: |
+    mongod --auth --port 27017 --dbpath /data/db1
+post: |
+  Clients that connect to this instance must now authenticate
+  themselves as a MongoDB user. Clients can only perform actions as
+  determined by their assigned roles.
+---
+title: Connect and authenticate as the user administrator.
+level: 4
+stepnum: 5
+ref: auth-as-admin
+action:
+  - pre: |
+      Using the :binary:`~bin.mongo` shell, you can:
+
+      - Connect with authentication by passing in user credentials, or
+
+      - Connect first withouth authentication, and then issue the
+        :method:`db.auth()` method to authenticate.
+  - heading: To authenticate during connection
+    pre: |
+        Start a :binary:`~bin.mongo` shell with the ``-u <username>``, ``-p
+        <password>``, and the ``--authenticationDatabase <database>``
+        command line options:
+         
+    language: sh
+    code: |
+      mongo --port 27017 -u "myUserAdmin" -p "abc123" --authenticationDatabase "admin"
+
+  - heading:  To authenticate after connecting
+    pre: |
+      Connect the :binary:`~bin.mongo`
+      shell to the :binary:`~bin.mongod`:
+    language: sh
+    code: |
+      mongo --port 27017
+  - pre: |
+      Switch to the authentication database (in this case, ``admin``),
+      and use :method:`db.auth(\<username\>, \<pwd\>) <db.auth()>`
+      method to authenticate:
+    language: javascript
+    code: |
+         use admin
+         db.auth("myUserAdmin", "abc123" )
+---
+title: Create additional users as needed for your deployment.
+level: 4
+stepnum: 6
+ref: create-additionalusers
+pre: |
+  Once authenticated as the user administrator, use
+  :method:`db.createUser()` to create additional users. You can assign
+  any :doc:`built-in roles </core/security-built-in-roles>` or
+  :doc:`user-defined roles </core/security-user-defined-roles>` to the
+  users.
+
+action:
+  pre: |
+    The following operation adds a user ``myTester`` to the ``test``
+    database who has :authrole:`readWrite` role in the ``test``
+    database as well as :authrole:`read` role in the ``reporting``
+    database.
+
+    .. note::
+       The database where you create the user (in this example,
+       ``test``) is that user's :ref:`authentication database
+       <user-authentication-database>`. Although the user would
+       authenticate to this database, the user can have roles in other
+       databases; i.e. the user's authentication database does not limit
+       the user's privileges.
+  language: javascript
+  code: |
+    use test
+    db.createUser(
+      {
+        user: "myTester",
+        pwd: "xyz123",
+        roles: [ { role: "readWrite", db: "test" },
+                 { role: "read", db: "reporting" } ]
+      }
+    )
+post: |
+   After creating the additional users, disconnect the
+   :binary:`~bin.mongo` shell.
+---
+title: Connect to the instance and authenticate as ``myTester``.
+level: 4
+ref: auth-as-mytester
+pre: |
+
+   After disconnecting the :binary:`~bin.mongo` shell as
+   ``myUserAdmin``, reconnect as ``myTester``.  You can:
+
+   - Connect with authentication by passing in user credentials, or
+
+   - Connect first withouth authentication, and then issue the
+     :method:`db.auth()` method to authenticate.
+   
+action:
+   
+  - heading: To authenticate during connection
+    pre: |
+        Start a :binary:`~bin.mongo` shell with the ``-u <username>``, ``-p
+        <password>``, and the ``--authenticationDatabase <database>``
+        command line options:
+         
+    language: sh
+    code: |
+      mongo --port 27017 -u "myTester" -p "xyz123" --authenticationDatabase "test"
+
+  - heading:  To authenticate after connecting
+    pre: |
+      Connect the :binary:`~bin.mongo`
+      shell to the :binary:`~bin.mongod`:
+    language: sh
+    code: |
+      mongo --port 27017
+  - pre: |
+      Switch to the authentication database (in this case, ``test``),
+      and use :method:`db.auth(\<username\>, \<pwd\>) <db.auth()>`
+      method to authenticate:
+    language: javascript
+    code: |
+         use test
+         db.auth("myTester", "xyz123" )
+  - heading: Insert into a collection as ``myTester``.
+    pre: |
+       As ``myTester``, you have privileges to perform read and write
+       operations in the ``test`` database (as well as perform read
+       operations in the ``reporting`` database). For example, you can
+       peform the following insert operation in the ``test`` database:
+    language: sh
+    code: |
+       db.foo.insert( { x: 1, y: 1 } )
+...

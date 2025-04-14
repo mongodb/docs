@@ -1,0 +1,400 @@
+====================
+FAQ: MongoDB Storage
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document addresses common questions regarding MongoDB's storage
+system.
+
+Storage Engine Fundamentals
+---------------------------
+
+What is a storage engine?
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A storage engine is the part of a database that is responsible for
+managing how data is stored, both in memory and on disk. Many databases
+support multiple storage engines, where different engines perform better
+for specific workloads. For example, one storage engine might offer
+better performance for read-heavy workloads, and another might support a
+higher throughput for write operations.
+
+.. seealso:: :doc:`/core/storage-engines`
+
+Can you mix storage engines in a replica set?
+---------------------------------------------
+
+Yes. You can have replica set members that use different storage
+engines.
+
+When designing these multi-storage engine deployments, consider the
+following:
+
+- the oplog on each member may need to be sized differently to account
+  for differences in throughput between different storage engines.
+
+- recovery from backups may become more complex if your backup
+  captures data files from MongoDB: you may need to maintain backups
+  for each storage engine.
+
+WiredTiger Storage Engine
+-------------------------
+
+Can I upgrade an existing deployment to WiredTiger?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes. See:
+
+- :doc:`/tutorial/change-standalone-wiredtiger`
+
+- :doc:`/tutorial/change-replica-set-wiredtiger`
+
+- :doc:`/tutorial/change-sharded-cluster-wiredtiger`
+
+How much compression does WiredTiger provide?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ratio of compressed data to uncompressed data depends on your data
+and the compression library used. By default, collection data in
+WiredTiger use :term:`Snappy block compression <snappy>`; :term:`zlib`
+compression is also available. Index data use :term:`prefix
+compression` by default.
+
+.. _wt-cache-and-eviction:
+
+To what size should I set the WiredTiger internal cache?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/wt-configure-cache.rst
+
+How frequently does WiredTiger write to disk?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checkpoints
+   .. include:: /includes/extracts/wt-snapshot-frequency.rst
+
+Journal Data
+   .. include:: /includes/extracts/wt-journal-frequency.rst
+
+.. _faq-wt-reclaim-disk-space:
+
+How do I reclaim disk space in WiredTiger?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The WiredTiger storage engine maintains lists of empty records in data
+files as it deletes documents. This space can be reused by WiredTiger,
+but will not be returned to the operating system unless under very
+specific circumstances.
+
+The amount of empty space available for reuse by WiredTiger is reflected
+in the output of :method:`db.collection.stats()` under the heading
+``wiredTiger.block-manager.file bytes available for reuse``.
+
+To allow the WiredTiger storage engine to release this empty space to the
+operating system, you can de-fragment your data file. This can be achieved
+using the :dbcommand:`compact` command. For more information on its behavior
+and other considerations, see :dbcommand:`compact`.
+
+MMAPv1 Storage Engine
+---------------------
+
+.. _faq-storage-memory-mapped-files:
+
+What are memory mapped files?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A memory-mapped file is a file with data that the operating system
+places in memory by way of the ``mmap()`` system call. ``mmap()`` thus
+*maps* the file to a region of virtual memory. Memory-mapped files are
+the critical piece of the MMAPv1 storage engine in MongoDB. By using memory
+mapped files, MongoDB can treat the contents of its data files as if
+they were in memory. This provides MongoDB with an extremely fast and
+simple method for accessing and manipulating data.
+
+How do memory mapped files work?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB uses memory mapped files for managing and interacting with all
+data.
+
+Memory mapping assigns files to a block of virtual memory with a direct
+byte-for-byte correlation. MongoDB memory maps data files to memory as
+it accesses documents. Unaccessed data is *not* mapped to memory.
+
+Once mapped, the relationship between file and memory allows MongoDB to
+interact with the data in the file as if it were memory.
+
+How frequently does MMAPv1 write to disk?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mmapv1-write-to-disk.rst
+
+.. _faq-disk-size:
+
+Why are the files in my data directory larger than the data in my database?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The data files in your data directory, which is the :file:`/data/db`
+directory in default configurations, might be larger than the data set
+inserted into the database. Consider the following possible causes:
+
+Preallocated data files
+```````````````````````
+
+MongoDB preallocates its data files to avoid filesystem fragmentation, and
+because of this, the size of these files do not necessarily reflect the size of
+your data.
+
+The :setting:`storage.mmapv1.smallFiles` option will reduce the
+size of these files, which may be useful if you have many small databases on
+disk.
+
+The ``oplog``
+`````````````
+
+If this :binary:`~bin.mongod` is a member of a replica set, the data
+directory includes the :term:`oplog.rs <oplog>` file, which is a
+preallocated :term:`capped collection` in the ``local``
+database.
+
+The default allocation is approximately 5% of disk space
+on 64-bit installations. In most cases, you should not need to resize the oplog.
+See :ref:`Oplog Sizing <replica-set-oplog-sizing>` for more information.
+
+The ``journal``
+```````````````
+
+The data directory contains the journal files, which store write
+operations on disk before MongoDB applies them to databases. See
+:doc:`/core/journaling`.
+
+.. _faq-empty-records:
+
+Empty records
+`````````````
+
+The MMAPv1 storage engine maintains lists of empty records in data
+files as it deletes documents and collections. This space can be
+reused for new record allocations within the same database, but MMAPv1
+will not, by default, return this space to the operating system.
+
+To allow the MMAPv1 storage engine to more effectively reuse space
+from empty records, you can de-fragment your data. To de-fragment,
+use the :dbcommand:`compact` command. The :dbcommand:`compact`
+requires up to 2 gigabytes of extra disk space to run. Do not use
+:dbcommand:`compact` if you are critically low on disk space. For
+more information on its behavior and other considerations, see
+:dbcommand:`compact`.
+
+:dbcommand:`compact` only removes fragmentation from MongoDB data files
+within a collection and does not return any disk space to the operating
+system. To return disk space to the operating system, see
+:ref:`faq-reclaim-disk-space`.
+
+.. _faq-reclaim-disk-space:
+
+How do I reclaim disk space?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   You do not need to reclaim disk space for MongoDB to reuse freed
+   space. See :ref:`faq-empty-records` for information on reuse of
+   freed space.
+
+For a secondary member of a replica set, you can perform a :doc:`resync
+of the member </tutorial/resync-replica-set-member>` by stopping the
+secondary member to resync, deleting all data and subdirectories from
+the member's data directory, and restarting the secondary member. For
+details, see :doc:`/tutorial/resync-replica-set-member`.
+
+Dropping an unused database via :dbcommand:`dropDatabase` will also
+delete the associated data files and free up disk space.
+
+.. _faq-working-set:
+
+What is the working set?
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Working set represents the total body of data that the application
+uses in the course of normal operation. Often this is a subset of the
+total data size, but the specific size of the working set depends on
+actual moment-to-moment use of the database.
+
+If you run a query that requires MongoDB to scan every document in a
+collection, the working set will expand to include every
+document. Depending on physical memory size, this may cause documents
+in the working set to "page out," or to be removed from physical memory by
+the operating system. The next time MongoDB needs to access these
+documents, MongoDB may incur a hard page fault.
+
+For best performance, the majority of your *active* set should fit in
+RAM.
+
+.. _faq-storage-page-faults:
+
+What are page faults?
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-page-fault.rst
+
+If there is free memory, then the operating system can find the page
+on disk and load it to memory directly. However, if there is no free
+memory, the operating system must:
+
+- find a page in memory that is stale or no longer needed, and write
+  the page to disk.
+
+- read the requested page from disk and load it into memory.
+
+This process, on an active system, can take a long time,
+particularly in comparison to reading a page that is already in
+memory.
+
+See :ref:`administration-monitoring-page-faults` for more information.
+
+What is the difference between soft and hard page faults?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:term:`Page faults <page fault>` occur when MongoDB, with the MMAP
+storage engine, needs access to data that isn't currently in active
+memory. A "hard" page fault refers to situations when MongoDB must
+access a disk to access the data. A "soft" page fault, by contrast,
+merely moves memory pages from one list to another, such as from an
+operating system file cache.
+
+See :ref:`administration-monitoring-page-faults` for more information.
+
+.. TODO consider removing manual padding question in v3.4
+
+.. _faq-developers-manual-padding:
+
+Can I manually pad documents to prevent moves during updates?
+-------------------------------------------------------------
+
+.. versionchanged:: 3.0.0
+
+With the :doc:`MMAPv1 storage engine </core/mmapv1>`, an update can
+cause a document to move on disk if the document grows in size. To
+*minimize* document movements, MongoDB uses :term:`padding`.
+
+You should not have to pad manually because by default, MongoDB uses
+:ref:`power-of-2-allocation` to add :ref:`padding automatically
+<record-allocation-strategies>`. The :ref:`power-of-2-allocation`
+ensures that MongoDB allocates document space in sizes that are powers
+of 2, which helps ensure that MongoDB can efficiently reuse free space
+created by document deletion or relocation as well as reduce the
+occurrences of reallocations in many cases.
+
+However, *if you must* pad a document manually, you can add a
+temporary field to the document and then :update:`$unset` the field,
+as in the following example.
+
+.. warning:: Do not manually pad documents in a capped
+   collection. Applying manual padding to a document in a capped
+   collection can break replication. Also, the padding is not
+   preserved if you re-sync the MongoDB instance.
+
+.. code-block:: javascript
+
+   var myTempPadding = [ "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"];
+
+   db.myCollection.insert( { _id: 5, paddingField: myTempPadding } );
+
+   db.myCollection.update( { _id: 5 },
+                           { $unset: { paddingField: "" } }
+                         )
+
+   db.myCollection.update( { _id: 5 },
+                           { $set: { realField: "Some text that I might have needed padding for" } }
+                         )
+
+.. seealso::
+
+   :ref:`record-allocation-strategies`
+
+Data Storage Diagnostics
+------------------------
+
+How can I check the size of a collection?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the statistics for a collection, including the data size, use
+the :method:`db.collection.stats()` method from the :binary:`~bin.mongo`
+shell. The following example issues :method:`db.collection.stats()` for
+the ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.stats();
+
+MongoDB also provides the following methods to return specific sizes
+for the collection:
+
+- :method:`db.collection.dataSize()` to return the uncompressed data
+  size in bytes for the collection.
+
+- :method:`db.collection.storageSize()` to return the size in bytes of
+  the collection on disk storage. If collection data is compressed
+  (which is the :option:`default for WiredTiger <mongod
+  --wiredTigerCollectionBlockCompressor>`), the storage size reflects
+  the compressed size and may be smaller than the value returned by
+  :method:`db.collection.dataSize()`.
+
+- :method:`db.collection.totalIndexSize()` to return the index sizes in
+  bytes for the collection. If an index uses prefix compression
+  (which is the :option:`default for WiredTiger <mongod
+  --wiredTigerIndexPrefixCompression>`), the returned size reflects the
+  compressed size.
+
+The following script prints the statistics for each database:
+
+.. code-block:: javascript
+
+   db.adminCommand("listDatabases").databases.forEach(function (d) {
+      mdb = db.getSiblingDB(d.name);
+      printjson(mdb.stats());
+   })
+
+The following script prints the statistics for each collection in each
+database:
+
+.. code-block:: javascript
+
+   db.adminCommand("listDatabases").databases.forEach(function (d) {
+      mdb = db.getSiblingDB(d.name);
+      mdb.getCollectionNames().forEach(function(c) { 
+         s = mdb[c].stats();
+         printjson(s);
+      })
+   })
+
+How can I check the size of the individual indexes for a collection?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the size of the data allocated for each index, use the
+:method:`db.collection.stats()` method and check the
+:data:`~collStats.indexSizes` field in the returned document.
+
+If an index uses prefix compression (which is the :option:`default for
+WiredTiger <mongod --wiredTigerIndexPrefixCompression>`), the returned
+size for that index reflects the compressed size.
+
+.. _faq-tools-for-measuring-storage-use:
+
+How can I get information on the storage use of a database?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.stats()` method in the :binary:`~bin.mongo` shell returns
+the current state of the "active" database. For the description of the
+returned fields, see :ref:`dbStats Output <dbstats-output>`.

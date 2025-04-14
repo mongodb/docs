@@ -1,0 +1,84 @@
+stepnum: 1
+ref: import-deb-key
+source:
+  file: steps-install-mongodb-on-ubuntu.yaml
+  ref: import-key
+---
+title: Create a ``/etc/apt/sources.list.d/mongodb-enterprise.list`` file for MongoDB.
+stepnum: 2
+ref: sources-list
+action:
+  - pre: |
+      Create the list file using the command appropriate for your version of
+      Ubuntu:
+
+      Ubuntu 18.04
+        .. code-block:: sh
+
+           echo "deb [ arch=amd64 ] http://repo.mongodb.com/apt/ubuntu bionic/mongodb-enterprise/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
+      Ubuntu 16.04
+        .. code-block:: sh
+
+           echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.com/apt/ubuntu xenial/mongodb-enterprise/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
+      Ubuntu 14.04
+        .. code-block:: sh
+
+           echo "deb [ arch=amd64 ] http://repo.mongodb.com/apt/ubuntu trusty/mongodb-enterprise/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
+
+  - pre: |
+      If you'd like to install MongoDB Enterprise packages from a
+      particular :ref:`release series <release-version-numbers>` such as
+      3.4, you can specify the release series in the repository
+      configuration. For example, to restrict your system to the 3.4
+      release series, add the following repository:
+    copyable: true
+    language: sh
+    code: |
+      echo "deb http://repo.mongodb.com/apt/ubuntu "$(lsb_release -sc)"/mongodb-enterprise/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-3.4.list
+---
+stepnum: 3
+source:
+  file: steps-install-mongodb-on-ubuntu.yaml
+  ref: reload
+---
+title: Install the MongoDB Enterprise packages.
+stepnum: 4
+ref: install
+# pre: |
+#   You can install either the latest stable version of MongoDB or a
+#   specific version of MongoDB.
+action:
+  - heading:
+      text: Install MongoDB Enterprise version 3.6.
+      character: "'"
+    pre: "Issue the following command:"
+    language: sh
+    code: |
+      sudo apt-get install -y mongodb-enterprise
+  - heading:
+      text: Install a specific release of MongoDB Enterprise.
+      character: "'"
+    pre: |
+      .. include:: /includes/release/pin-version-intro.rst
+      .. include:: /includes/release/pin-repo-to-version-deb-enterprise.rst
+      .. include:: /includes/release/pin-version-outro-enterprise.rst
+  - heading:
+      text: Pin a specific version of MongoDB Enterprise.
+      character: "'"
+    pre: |
+      Although you can specify any available version of MongoDB,
+      ``apt-get`` will upgrade the packages when a newer version
+      becomes available. To prevent unintended upgrades, pin the
+      package. To pin the version of MongoDB at the currently
+      installed version, issue the following command sequence:
+    language: sh
+    code: |
+      echo "mongodb-enterprise hold" | sudo dpkg --set-selections
+      echo "mongodb-enterprise-server hold" | sudo dpkg --set-selections
+      echo "mongodb-enterprise-shell hold" | sudo dpkg --set-selections
+      echo "mongodb-enterprise-mongos hold" | sudo dpkg --set-selections
+      echo "mongodb-enterprise-tools hold" | sudo dpkg --set-selections
+...

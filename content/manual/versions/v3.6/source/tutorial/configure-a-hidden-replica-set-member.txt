@@ -1,0 +1,84 @@
+=====================================
+Configure a Hidden Replica Set Member
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Hidden members are part of a :term:`replica set` but cannot become
+:term:`primary` and are invisible to client applications. Hidden members
+may vote in :ref:`elections <replica-set-elections>`. For
+more information on hidden members and their uses, see
+:doc:`/core/replica-set-hidden-member`.
+
+Considerations
+--------------
+
+The most common use of hidden nodes is to support :doc:`delayed
+members </core/replica-set-delayed-member>`. If you only need to prevent a member from
+becoming primary, configure a :doc:`priority 0 member
+</core/replica-set-priority-0-member>`.
+
+.. include:: /includes/fact-replica-set-sync-prefers-non-hidden.rst
+
+Examples
+--------
+
+Member Configuration Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure a secondary member as hidden, set its
+:rsconf:`members[n].priority` value to ``0`` and
+set its :rsconf:`members[n].hidden` value to
+``true`` in its member configuration:
+
+.. code-block:: javascript
+   :emphasize-lines: 4-5
+
+   {
+     "_id" : <num>
+     "host" : <hostname:port>,
+     "priority" : 0,
+     "hidden" : true
+   }
+
+
+Configuration Procedure
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example hides the secondary member currently at the index
+``0`` in the :rsconf:`members` array. To configure
+a :term:`hidden member`, use the following sequence of operations in a
+:binary:`~bin.mongo` shell connected to the primary, specifying the member
+to configure by its array index in the
+:rsconf:`members` array:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].hidden = true
+   rs.reconfig(cfg)
+
+After re-configuring the set, this secondary member has a priority of
+``0`` so that it cannot become primary and is hidden. The other members
+in the set will not advertise the hidden member in the
+:dbcommand:`hello` command or :method:`db.hello()` method output.
+
+.. include:: /includes/fact-rs-conf-array-index.rst
+
+.. include:: /includes/warning-rs-reconfig.rst
+
+Related Documents
+-----------------
+
+- :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`
+
+- :doc:`/core/replica-set-elections`
+
+- :ref:`Read Preference <replica-set-read-preference>`

@@ -1,0 +1,201 @@
+==============
+repairDatabase
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: repairDatabase
+
+   Rebuilds the database and indexes by discarding invalid or corrupt
+   data, which may be present due to an unexpected system restart or
+   crash. :dbcommand:`repairDatabase` is analogous to a ``fsck``
+   command for file systems.
+
+   .. warning::
+
+      - Before using :dbcommand:`repairDatabase`, make a backup copy of
+        the files in the dbpath directory.
+
+      - .. include:: /includes/note-repair.rst
+
+      - Avoid running :dbcommand:`repairDatabase` against a replica set.
+        If you are trying to repair a :term:`replica set` member, and you
+        have access to an intact copy of your data (e.g. a recent backup
+        or an intact member of the :term:`replica set`), you should
+        restore from that intact copy (see
+        :doc:`/tutorial/resync-replica-set-member`), and **not** use
+        :dbcommand:`repairDatabase`.
+
+      - You should only use the :dbcommand:`repairDatabase` command and
+        :ref:`associated wrappers <repairdb-helpers>` if you have no
+        other options. These operations remove and do not save any
+        corrupt data during the repair process.
+
+   :dbcommand:`repairDatabase` takes the following form:
+
+   .. code-block:: javascript
+
+      { repairDatabase: 1 }
+
+   :dbcommand:`repairDatabase` has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``preserveClonedFilesOnFailure``
+   
+        - boolean
+   
+        - When ``true``, ``repairDatabase`` will not delete temporary files
+          in the backup directory on error, and all new files are created
+          with the "backup" instead of "_tmp" directory prefix. By default
+          ``repairDatabase`` does not delete temporary files, and uses the
+          "_tmp" naming prefix for new files.
+          
+          .. versionchanged:: 3.0
+             ``preserveClonedFilesOnFailure`` is only available with the
+             ``mmapv1`` storage engine.
+          
+          
+   
+      * - ``backupOriginalFiles``
+   
+        - boolean
+   
+        - When ``true``, ``repairDatabase`` moves old database files to the
+          backup directory instead of deleting them before moving new files
+          into place. New files are created with the "backup" instead of "_tmp"
+          directory prefix. By default, ``repairDatabase`` leaves temporary
+          files unchanged, and uses the "_tmp" naming prefix for new files.
+          
+          .. versionchanged:: 3.0
+             ``backupOriginalFiles`` is only available with the
+             ``mmapv1`` storage engine.
+          
+          
+   
+
+
+   You can explicitly set the options as follows:
+
+   .. code-block:: javascript
+
+      { repairDatabase: 1,
+        preserveClonedFilesOnFailure: <boolean>,
+        backupOriginalFiles: <boolean> }
+
+   See :option:`mongod --repair` and :option:`mongodump --repair` for
+   information on these related options.
+
+
+.. _repairdb-helpers:
+
+``repairDatabase`` Wrappers
+---------------------------
+
+You may invoke :dbcommand:`repairDatabase` from multiple contexts:
+
+- Use the :binary:`~bin.mongo` shell to run the command, as above.
+
+- Use the :method:`db.repairDatabase()` in the :binary:`~bin.mongo`
+  shell.
+
+- Run :binary:`~bin.mongod` directly from your system's shell. Make sure
+  that :binary:`~bin.mongod` isn't already running, and that you invoke
+  :binary:`~bin.mongod` as a user that has access to MongoDB's data files:
+
+  .. code-block:: sh
+
+     mongod --repair
+
+  For MMAPv1, you can specify a temporary working directory that the
+  command will use during the repair operation:
+
+  .. code-block:: sh
+
+     mongod --repair --repairpath /opt/vol2/data
+
+  See :setting:`~storage.repairPath` for more information.
+
+Behavior
+--------
+
+.. include:: /includes/warning-blocking-global.rst
+
+The time requirement for :dbcommand:`repairDatabase` depends on the
+size of the data set.
+
+:dbcommand:`repairDatabase` recreates all indexes in the database.
+
+MMAPv1
+~~~~~~
+
+:dbcommand:`repairDatabase` requires free disk space equal to the size of your
+current data set plus 2 gigabytes.
+If the volume that holds dbpath lacks sufficient space, you can mount a separate volume
+and use that for the repair. When mounting a separate volume for
+:dbcommand:`repairDatabase` you must run :dbcommand:`repairDatabase`
+from the command line and use the
+:option:`--repairpath <mongod --repairpath>`
+switch to specify the folder in which to store
+temporary repair files.
+
+WiredTiger
+~~~~~~~~~~
+
+:dbcommand:`repairDatabase` performs the operation in-place and does not require
+additional disk space.
+
+
+``repairDatabase`` and ``compact``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :dbcommand:`repairDatabase` command rebuilds the database, which
+for MMAPv1, has a secondary effect of compacting all the collections.
+
+For WiredTiger, the operation rebuilds the database but does **not**
+result in the compaction of the collections in the database.
+
+.. seealso::
+   :dbcommand:`compact`
+
+Example
+-------
+
+.. warning::
+
+   If you are trying to repair a :term:`replica set` member, and you
+   have access to an intact copy of your data (e.g. a recent backup or
+   an intact member of the :term:`replica set`), see
+   :doc:`/tutorial/resync-replica-set-member` instead.
+
+   .. include:: /includes/note-repair.rst
+
+   Use :dbcommand:`repairDatabase` if you have no other option.
+
+   Before using :dbcommand:`repairDatabase`, make a backup copy of the
+   data files in the dbpath.
+
+.. code-block:: javascript
+
+   db.runCommand( { repairDatabase: 1 } )
+
+
+

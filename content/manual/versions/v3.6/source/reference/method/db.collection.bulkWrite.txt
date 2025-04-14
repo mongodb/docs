@@ -1,0 +1,627 @@
+=========================
+db.collection.bulkWrite()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.bulkWrite()
+
+   .. versionadded:: 3.2
+   
+   Performs multiple write operations with controls for order of 
+   execution.
+   
+   :method:`~db.collection.bulkWrite()` has the following syntax:
+   
+   .. code-block:: javascript
+   
+      db.collection.bulkWrite(
+         [ <operation 1>, <operation 2>, ... ],
+         {
+            writeConcern : <document>,
+            ordered : <boolean>
+         }
+      )
+   
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``operations``
+   
+        - array
+   
+        - An array of :method:`~db.collection.bulkWrite()` write 
+          operations.
+          
+          Valid operations are:
+          
+          - :ref:`insertOne <bulkwrite-write-operations-insertOne>`
+          
+          - :ref:`updateOne <bulkwrite-write-operations-updateOneMany>`
+          
+          - :ref:`updateMany <bulkwrite-write-operations-updateOneMany>`
+          
+          - :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
+          
+          - :ref:`deleteMany <bulkwrite-write-operations-deleteOneMany>`
+          
+          - :ref:`replaceOne <bulkwrite-write-operations-replaceOne>`
+          
+          See :ref:`bulkwrite-write-operations` for usage of each operation.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          
+          
+   
+      * - ``ordered``
+   
+        - boolean
+   
+        - Optional. A boolean specifying whether the :binary:`~bin.mongod` instance should perform 
+          an ordered or unordered operation execution. Defaults to ``true``.
+          
+          See :ref:`bulkwrite-write-operations-executionofoperations`
+          
+          
+   
+
+
+   :returns:
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+        :term:`write concern` or ``false`` if write concern was disabled.
+        
+      - A count for each write operation.
+      
+      - An array containing an ``_id`` for each successfully inserted or 
+        upserted documents.
+
+Behavior
+--------
+
+:method:`~db.collection.bulkWrite()` takes an array of write operations and 
+executes each of them. By default operations are executed in order.
+See :ref:`bulkwrite-write-operations-executionofoperations` for controlling 
+the order of write operation execution.
+
+
+.. _bulkwrite-write-operations:
+
+Write Operations
+~~~~~~~~~~~~~~~~
+
+.. _bulkwrite-write-operations-insertOne:
+
+insertOne
++++++++++
+
+Inserts a single document into the collection.
+
+See :method:`db.collection.insertOne()`.
+
+.. code-block:: javascript
+
+   db.collection.bulkWrite( [
+      { insertOne : { "document" : <document> } }
+   ] )
+
+.. _bulkwrite-write-operations-updateOneMany:
+
+updateOne and updateMany
+++++++++++++++++++++++++
+
+.. versionchanged:: 3.6
+
+   The ``updateOne`` and ``updateMany`` operations add support for
+   ``arrayFilters`` parameter that determines which elements to modify
+   in an array field. Refer to :method:`db.collection.updateOne()` and
+   :method:`db.collection.updateMany()` for details.
+
+.. versionchanged:: 3.4
+
+   Add support for :ref:`collation <collation>`. Refer to
+   :method:`db.collection.updateOne()` and
+   :method:`db.collection.updateMany()` for details
+
+``updateOne`` updates a *single* document in the collection that matches the 
+filter. If multiple documents match, ``updateOne`` will update the *first* 
+matching document only. See :method:`db.collection.updateOne()`.
+ 
+.. code-block:: javascript
+
+   db.collection.bulkWrite( [
+      { updateOne : 
+         { 
+            "filter" : <document>, 
+            "update" : <document>, 
+            "upsert" : <boolean>,
+            "collation": <document>,
+            "arrayFilters": [ <filterdocument1>, ... ]
+         } 
+      } 
+   ] )
+
+``updateMany`` updates *all* documents in the collection that match the 
+filter. See :method:`db.collection.updateMany()`.
+
+.. code-block:: javascript
+
+   db.collection.bulkWrite( [
+      { updateMany : 
+         { 
+            "filter" : <document>, 
+            "update" : <document>, 
+            "upsert" : <boolean>,
+            "collation": <document>,
+            "arrayFilters": [ <filterdocument1>, ... ]
+         } 
+      } 
+   ] )
+
+Use :ref:`query selectors<query-selectors>` such as those used with
+:method:`~db.collection.find()` for the ``filter`` field.
+
+Use :doc:`/reference/operator/update/` 
+such as :update:`$set`, :update:`$unset`, or :update:`$rename` 
+for the ``update`` field.
+
+By default, ``upsert`` is ``false``.
+
+.. _bulkwrite-write-operations-replaceOne:
+
+replaceOne
+++++++++++
+
+.. versionchanged:: 3.4
+
+   Add support for :ref:`collation <collation>`. Refer to
+   :method:`db.collection.replaceOne()` for details
+
+``replaceOne`` replaces a *single* document in the collection that matches the 
+filter. If multiple documents match, ``replaceOne`` will replace the *first* 
+matching document only. See :method:`db.collection.replaceOne()`.
+
+.. code-block:: javascript
+
+   db.collection.bulkWrite([
+      { replaceOne : 
+         { 
+            "filter" : <document>, 
+            "replacement" : <document>, 
+            "upsert" : <boolean> 
+         } 
+      } 
+   ] )
+   
+Use :ref:`query selectors<query-selectors>` such as those used with
+:method:`~db.collection.find()` for the ``filter`` field.
+
+The ``replacement`` field cannot contain 
+:doc:`update operators </reference/operator/update>`.
+
+By default, ``upsert`` is ``false``.
+
+.. _bulkwrite-write-operations-deleteOneMany:
+
+deleteOne and deleteMany
+++++++++++++++++++++++++
+
+.. versionchanged:: 3.4
+
+   Add support for :ref:`collation <collation>`. Refer to
+   :method:`db.collection.deleteOne()` and
+   :method:`db.collection.deleteMany()` for details
+
+``deleteOne`` deletes a *single* document in the collection that match the 
+filter. If multiple documents match, ``deleteOne`` will delete the *first* 
+matching document only. See :method:`db.collection.deleteOne()`.
+ 
+.. code-block:: javascript
+
+   db.collection.bulkWrite([
+      { deleteOne :  { "filter" : <document> } } 
+   ] )
+
+``deleteMany`` deletes *all* documents in the collection that match the 
+filter. See :method:`db.collection.deleteMany()`.
+
+.. code-block:: javascript
+
+   db.collection.bulkWrite([
+      { deleteMany :  { "filter" : <document> } } 
+   ] )
+
+Use :ref:`query selectors<query-selectors>` such as those used with
+:method:`~db.collection.find()` for the ``filter`` field.
+
+.. _bulkwrite-write-operations-id:
+
+
+``_id`` Field
+~~~~~~~~~~~~~
+
+If the document does not specify an :term:`_id` field, then :binary:`~bin.mongod` 
+adds the ``_id`` field and assign a unique
+:method:`ObjectId` for the document before inserting or upserting it. 
+Most drivers create an ObjectId and insert the ``_id`` field, but the
+:binary:`~bin.mongod` will create and populate the ``_id`` if the driver or
+application does not.
+
+If the document contains an ``_id`` field, the ``_id`` value must be
+unique within the collection to avoid duplicate key error.
+
+Update or replace operations cannot specify an ``_id`` value that differs 
+from the original document.
+
+.. _bulkwrite-write-operations-executionofoperations:
+
+Execution of Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``ordered`` parameter specifies whether 
+:method:`~db.collection.bulkWrite()` will execute operations in order or not. 
+By default, operations are executed in order.
+
+The following code represents a :method:`~db.collection.bulkWrite()` with 
+five operations. 
+
+.. code-block:: javascript
+
+   db.collection.bulkWrite(
+      [
+         { insertOne : <document> },
+         { updateOne : <document> },
+         { updateMany : <document> },
+         { replaceOne : <document> },
+         { deleteOne : <document> },
+         { deleteMany : <document> }
+      ]
+   )
+
+In the default ``ordered : true`` state, each operation will 
+be executed in order, from the first operation ``insertOne`` 
+to the last operation ``deleteMany``.  
+
+If ``ordered`` is set to false, operations may be reordered by 
+:binary:`~bin.mongod` to increase performance. 
+Applications should not depend on order of operation execution.
+
+The following code represents an unordered 
+:method:`~db.collection.bulkWrite()` with six operations:
+
+.. code-block:: javascript
+
+   db.collection.bulkWrite(
+      [
+         { insertOne : <document> },
+         { updateOne : <document> },
+         { updateMany : <document> },
+         { replaceOne : <document> },
+         { deleteOne : <document> },
+         { deleteMany : <document> }
+      ],
+      { ordered : false }
+   )
+
+With ``ordered : false``, the results of the operation may vary. For example, 
+the ``deleteOne`` or ``deleteMany`` may remove more or fewer documents 
+depending on whether the run before or after the ``insertOne``, ``updateOne``, 
+``updateMany``, or ``replaceOne`` operations. 
+
+.. include:: /includes/fact-bulkwrite-operation-batches.rst
+
+.. include:: /includes/fact-bulk-operation-sharded-cluster.rst
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+:method:`~db.collection.bulkWrite()` write operations have restrictions when 
+used on a :term:`capped collection`.
+
+``updateOne`` and ``updateMany`` throw a ``WriteError`` if the 
+``update`` criteria increases the size of the document being modified. 
+
+``replaceOne`` throws a ``WriteError`` if the 
+``replacement`` document has a larger size than the original 
+document.
+
+``deleteOne`` and ``deleteMany`` throw a ``WriteError`` if used on a 
+capped collection.
+
+Error Handling
+~~~~~~~~~~~~~~
+
+:method:`~db.collection.bulkWrite()` throws a ``BulkWriteError`` exception on 
+errors.
+
+Excluding :doc:`/reference/write-concern` errors, ordered operations stop 
+after an error, while unordered operations continue to process any 
+remaining write operations in the queue.
+
+Write concern errors are displayed in the ``writeConcernErrors`` field, while 
+all other errors are displayed in the ``writeErrors`` field. If an error is 
+encountered, the number of successful write operations are displayed instead 
+of the inserted ``_id`` values. Ordered operations display the single error 
+encountered while unordered operations display each error in an array.
+
+
+Examples
+--------
+
+.. _bulkwrite-example-bulk-write-operation:
+
+Bulk Write Operations
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``characters`` collection in the ``guidebook`` database contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "char" : "Brisbane", "class" : "monk", "lvl" : 4 },
+   { "_id" : 2, "char" : "Eldon", "class" : "alchemist", "lvl" : 3 },
+   { "_id" : 3, "char" : "Meldane", "class" : "ranger", "lvl" : 3 }
+   
+The following :method:`~db.collection.bulkWrite()` performs multiple 
+operations on the collection:
+
+.. code-block:: javascript
+
+   try {
+      db.characters.bulkWrite([
+         { insertOne: { "document": { "_id": 4, "char": "Dithras", "class": "barbarian", "lvl": 4 } } },
+         { insertOne: { "document": { "_id": 5, "char": "Taeln", "class": "fighter", "lvl": 3 } } },
+         { updateOne : { 
+            "filter" : { "char" : "Eldon" }, 
+            "update" : { $set : { "status" : "Critical Injury" } } 
+         } },
+         { deleteOne : { "filter" : { "char" : "Brisbane"} } },
+         { replaceOne : { 
+            "filter" : { "char" : "Meldane" },
+            "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl": 4 } 
+         } }
+      ]);
+   } catch (e) {
+      print(e);
+   }
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "deletedCount" : 1,
+      "insertedCount" : 2,
+      "matchedCount" : 2,
+      "upsertedCount" : 0,
+      "insertedIds" : {
+         "0" : 4,
+         "1" : 5
+      },
+      "upsertedIds" : {
+      
+      }
+   }
+
+If the collection had contained a document with ``"_id" : 5"``
+before executing the bulk write, then when the bulk write is executed,
+the following duplicate key exception would be thrown for the second insertOne:
+
+.. code-block:: javascript
+
+   BulkWriteError({
+      "writeErrors" : [
+         {
+            "index" : 1,
+            "code" : 11000,
+            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { : 5.0 }",
+            "op" : {
+               "_id" : 5,
+               "char" : "Taeln",
+               "class" : "fighter",
+               "lvl" : 3
+            }
+         }
+      ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 1,
+      "nUpserted" : 0,
+      "nMatched" : 0,
+      "nModified" : 0,
+      "nRemoved" : 0,
+      "upserted" : [ ]
+   })
+
+Since ``ordered`` is true by default, only the first operation completes 
+successfully. The rest are not executed. Running the
+:method:`~db.collection.bulkWrite()` with ``ordered : false`` would allow the 
+remaining operations to complete despite the error.
+
+.. _bulkwrite-example-unordered-bulk-write:
+
+Unordered Bulk Write
+~~~~~~~~~~~~~~~~~~~~
+
+The ``characters`` collection in the ``guidebook`` database contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "char" : "Brisbane", "class" : "monk", "lvl" : 4 },
+   { "_id" : 2, "char" : "Eldon", "class" : "alchemist", "lvl" : 3 },
+   { "_id" : 3, "char" : "Meldane", "class" : "ranger", "lvl" : 3 }
+   
+The following :method:`~db.collection.bulkWrite()` performs multiple 
+``unordered`` operations on the ``characters`` collection. Note that one of 
+the ``insertOne`` stages has a duplicate ``_id`` value:
+
+.. code-block:: javascript
+
+   try {
+      db.characters.bulkWrite([
+         { insertOne: { "document": { "_id": 4, "char": "Dithras", "class": "barbarian", "lvl": 4 } } },
+         { insertOne: { "document": { "_id": 4, "char": "Taeln", "class": "fighter", "lvl": 3 } } },
+         { updateOne : { 
+            "filter" : { "char" : "Eldon" }, 
+            "update" : { $set : { "status" : "Critical Injury" } } 
+         } },
+         { deleteOne : { "filter" : { "char" : "Brisbane"} } },
+         { replaceOne : { 
+            "filter" : { "char" : "Meldane" },
+            "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl": 4 } 
+         } }
+      ], { ordered : false } );
+   } catch (e) {
+      print(e);
+   }
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   BulkWriteError({
+      "writeErrors" : [
+         {
+            "index" : 1,
+            "code" : 11000,
+            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { : 4.0 }",
+            "op" : {
+               "_id" : 4,
+               "char" : "Taeln",
+               "class" : "fighter",
+               "lvl" : 3
+            }
+         }
+      ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 1,
+      "nUpserted" : 0,
+      "nMatched" : 2,
+      "nModified" : 2,
+      "nRemoved" : 1,
+      "upserted" : [ ]
+   })
+
+Since this was an ``unordered`` operation, the writes remaining in the queue 
+were processed despite the exception.
+
+.. _bulkwrite-example-bulk-write-with-write-concern:
+
+Bulk Write with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``enemies`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "char" : "goblin", "rating" : 1, "encounter" : 0.24 },
+   { "_id" : 2, "char" : "hobgoblin", "rating" : 1.5, "encounter" : 0.30 },
+   { "_id" : 3, "char" : "ogre", "rating" : 3, "encounter" : 0.2 },
+   { "_id" : 4, "char" : "ogre berserker" , "rating" : 3.5, "encounter" : 0.12}
+   
+The following :method:`~db.collection.bulkWrite()` performs multiple 
+operations on the collection using a :ref:`write concern <wc-w>` value of 
+``"majority"`` and :ref:`timeout <wc-wtimeout>` value of 100 milliseconds:
+
+.. code-block:: javascript
+
+   try {
+      db.enemies.bulkWrite(
+         [
+            { updateMany : 
+               { 
+                  "filter" : { "rating" : { $gte : 3} },
+                  "update" : { $inc : { "encounter" : 0.1 } } 
+               },
+             
+            },
+            { updateMany : 
+               { 
+                  "filter" : { "rating" : { $lt : 2} },
+                  "update" : { $inc : { "encounter" : -0.25 } } 
+               },
+            },
+            { deleteMany : { "filter" : { "encounter": { $lt : 0 } } } },
+            { insertOne : 
+               { 
+                  "document" : 
+                     { 
+                        "_id" :5, "char" : "ogrekin" , "rating" : 2, "encounter" : 0.31 
+                     } 
+               }
+            }
+         ],
+         { writeConcern : { w : "majority", wtimeout : 100 } }
+      );
+   } catch (e) {
+      print(e);
+   }
+   
+If the total time required for all required nodes in the replica set to 
+acknowledge the write operation is greater than ``wtimeout``, 
+the following ``writeConcernError`` is displayed when the ``wtimeout`` period 
+has passed.
+
+.. code-block:: javascript
+
+   BulkWriteError({
+      "writeErrors" : [ ],
+      "writeConcernErrors" : [
+         {
+            "code" : 64,
+            "codeName" : "WriteConcernFailed",
+            "errInfo" : {
+               "wtimeout" : true
+            },
+            "errmsg" : "waiting for replication timed out"
+         },
+         {
+            "code" : 64,
+            "codeName" : "WriteConcernFailed",
+            "errInfo" : {
+               "wtimeout" : true
+            },
+            "errmsg" : "waiting for replication timed out"
+         },
+         {
+            "code" : 64,
+            "codeName" : "WriteConcernFailed",
+            "errInfo" : {
+               "wtimeout" : true
+            },
+            "errmsg" : "waiting for replication timed out"
+         }
+      ],
+      "nInserted" : 1,
+      "nUpserted" : 0,
+      "nMatched" : 4,
+      "nModified" : 4,
+      "nRemoved" : 1,
+      "upserted" : [ ]
+   })
+
+The result set shows the operations executed since 
+``writeConcernErrors`` errors are *not* an indicator that any write 
+operations failed. 

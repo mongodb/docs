@@ -1,0 +1,232 @@
+==========================
+$facet (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $facet
+   
+   .. versionadded:: 3.4
+
+   Processes multiple :ref:`aggregation pipelines
+   <aggregation-pipeline>` within a single stage on the same set of
+   input documents. Each sub-pipeline has its own field in the output
+   document where its results are stored as an array of documents.
+   
+   The ``$facet`` stage allows you to create multi-faceted aggregations
+   which characterize data across multiple dimensions, or facets,
+   within a single aggregation stage. Multi-faceted aggregations
+   provide multiple filters and categorizations to guide data browsing
+   and analysis. Retailers commonly use faceting to narrow search results
+   by creating filters on product price, manufacturer, size, etc.
+
+   Input documents are passed to the ``$facet`` stage only once. 
+   ``$facet`` enables various aggregations on the same set of input
+   documents, without needing to retrieve the input documents multiple
+   times.
+
+   The :pipeline:`$facet` stage has the following form:
+
+   .. code-block:: javascript
+
+      { $facet:
+         {
+            <outputField1>: [ <stage1>, <stage2>, ... ],
+            <outputField2>: [ <stage1>, <stage2>, ... ],
+            ...
+
+         }
+      }
+      
+   Specify the output field name for each specified pipeline.
+
+Behavior
+--------
+
+Facet-related aggregation stages categorize and group incoming
+documents. Specify any of the following facet-related stages within
+different :pipeline:`$facet` sub-pipeline's ``<stage>`` to perform a
+multi-faceted aggregation:
+
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$sortByCount`
+
+Other
+:ref:`aggregation stages <aggregation-pipeline-operator-reference>` can
+also be used with ``$facet`` except:
+
+- :pipeline:`$facet`
+- :pipeline:`$out`
+- :pipeline:`$geoNear`
+- :pipeline:`$indexStats`
+- :pipeline:`$collStats`
+
+Each sub-pipeline within ``$facet`` is passed the exact same set of
+input documents. These sub-pipelines are completely independent of one
+another and the document array output by each is stored in separate
+fields in the output document. The output of one sub-pipeline can not
+be used as the input for a different sub-pipeline within the same 
+``$facet`` stage. If further aggregations are required, add additional
+stages after ``$facet`` and specify the field name, ``<outputField>``,
+of the desired sub-pipeline output.
+
+Index Use
+~~~~~~~~~
+
+The ``$facet`` stage, and its sub-pipelines, cannot make use of indexes,
+even if its sub-pipelines use :pipeline:`$match` or if ``$facet`` is
+the first stage in the pipeline. The ``$facet`` stage will always
+perform a ``COLLSCAN`` during execution.
+
+Example
+-------
+
+Consider an online store whose inventory is stored in the following
+``artwork`` collection:
+
+.. code-block:: javascript
+   
+   { "_id" : 1, "title" : "The Pillars of Society", "artist" : "Grosz", "year" : 1926,
+     "price" : NumberDecimal("199.99"),
+     "tags" : [ "painting", "satire", "Expressionism", "caricature" ] }
+   { "_id" : 2, "title" : "Melancholy III", "artist" : "Munch", "year" : 1902,
+     "price" : NumberDecimal("280.00"),
+     "tags" : [ "woodcut", "Expressionism" ] }
+   { "_id" : 3, "title" : "Dancer", "artist" : "Miro", "year" : 1925,
+     "price" : NumberDecimal("76.04"),
+     "tags" : [ "oil", "Surrealism", "painting" ] }
+   { "_id" : 4, "title" : "The Great Wave off Kanagawa", "artist" : "Hokusai",
+     "price" : NumberDecimal("167.30"),
+     "tags" : [ "woodblock", "ukiyo-e" ] }
+   { "_id" : 5, "title" : "The Persistence of Memory", "artist" : "Dali", "year" : 1931,
+     "price" : NumberDecimal("483.00"),
+     "tags" : [ "Surrealism", "painting", "oil" ] }
+   { "_id" : 6, "title" : "Composition VII", "artist" : "Kandinsky", "year" : 1913,
+     "price" : NumberDecimal("385.00"),
+     "tags" : [ "oil", "painting", "abstract" ] }
+   { "_id" : 7, "title" : "The Scream", "artist" : "Munch", "year" : 1893,
+     "tags" : [ "Expressionism", "painting", "oil" ] }
+   { "_id" : 8, "title" : "Blue Flower", "artist" : "O'Keefe", "year" : 1918,
+     "price" : NumberDecimal("118.42"),
+     "tags" : [ "abstract", "painting" ] }
+
+The following operation uses MongoDB's faceting features to provide
+customers with the store's inventory categorized across multiple
+dimensions such as tags, price, and year created. This
+:pipeline:`$facet` stage has three sub-pipelines that use
+:pipeline:`$sortByCount`, :pipeline:`$bucket`, or
+:pipeline:`$bucketAuto` to perform this multi-faceted aggregation.
+The input documents from ``artwork`` are fetched from the database only
+once, at the beginning of the operation:
+
+.. code-block:: javascript
+
+   db.artwork.aggregate( [
+     {
+       $facet: {
+         "categorizedByTags": [ 
+           { $unwind: "$tags" },
+           { $sortByCount: "$tags" }
+         ], 
+         "categorizedByPrice": [ 
+           // Filter out documents without a price e.g., _id: 7
+           { $match: { price: { $exists: 1 } } },
+           {
+             $bucket: { 
+               groupBy: "$price",
+               boundaries: [  0, 150, 200, 300, 400 ],
+               default: "Other",
+               output: {
+                 "count": { $sum: 1 },
+                 "titles": { $push: "$title" }
+               }
+             }
+           }
+         ],
+         "categorizedByYears(Auto)": [
+           {
+             $bucketAuto: {
+               groupBy: "$year",
+               buckets: 4
+             }
+           }
+         ]
+       }
+     }
+   ])
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+     "categorizedByYears(Auto)" : [
+       // First bucket includes the document without a year, e.g., _id: 4 
+       { "_id" : { "min" : null, "max" : 1902 }, "count" : 2 },
+       { "_id" : { "min" : 1902, "max" : 1918 }, "count" : 2 },
+       { "_id" : { "min" : 1918, "max" : 1926 }, "count" : 2 },
+       { "_id" : { "min" : 1926, "max" : 1931 }, "count" : 2 }
+     ],
+     "categorizedByPrice" : [
+       {
+         "_id" : 0,
+         "count" : 2,
+         "titles" : [
+           "Dancer",
+           "Blue Flower"
+         ]
+       },
+       {
+         "_id" : 150,
+         "count" : 2,
+         "titles" : [
+           "The Pillars of Society",
+           "The Great Wave off Kanagawa"
+         ]
+       },
+       {
+         "_id" : 200,
+         "count" : 1,
+         "titles" : [
+           "Melancholy III"
+         ]
+       },
+       {
+         "_id" : 300,
+         "count" : 1,
+         "titles" : [
+           "Composition VII"
+         ]
+       },
+       {
+         // Includes document price outside of bucket boundaries, e.g., _id: 5
+         "_id" : "Other",
+         "count" : 1,
+         "titles" : [
+           "The Persistence of Memory"
+         ]
+       }
+     ],
+     "categorizedByTags" : [
+       { "_id" : "painting", "count" : 6 },
+       { "_id" : "oil", "count" : 4 },
+       { "_id" : "Expressionism", "count" : 3 },
+       { "_id" : "Surrealism", "count" : 2 },
+       { "_id" : "abstract", "count" : 2 },
+       { "_id" : "woodblock", "count" : 1 },
+       { "_id" : "woodcut", "count" : 1 },
+       { "_id" : "ukiyo-e", "count" : 1 },
+       { "_id" : "satire", "count" : 1 },
+       { "_id" : "caricature", "count" : 1 }
+     ]
+   }

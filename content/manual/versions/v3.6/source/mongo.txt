@@ -1,0 +1,260 @@
+===================
+The ``mongo`` Shell
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Introduction
+------------
+
+The :binary:`~bin.mongo` shell is an interactive JavaScript interface to
+MongoDB. You can use the :binary:`~bin.mongo` shell to query and update
+data as well as perform administrative operations.
+
+.. include:: /includes/fact-download-mongo-shell.rst
+
+Once you have :doc:`installed and have started MongoDB </installation>`, connect
+the :binary:`~bin.mongo` shell to your running MongoDB instance.
+
+.. note::
+
+   .. include:: /includes/extracts/fact-mongoshell-emulation.rst
+
+Most examples in the :doc:`MongoDB Manual </index>` use the
+:binary:`~bin.mongo` shell; however, many :ecosystem:`drivers
+</drivers>` provide similar interfaces to MongoDB.
+
+Start the ``mongo`` Shell
+-------------------------
+
+.. important::
+   Ensure that MongoDB is running before attempting to start the
+   :binary:`~bin.mongo` shell.
+
+To start the :binary:`~bin.mongo` shell and connect to your :doc:`MongoDB
+</reference/program/mongod>` instance running on **localhost** with
+**default port**:
+
+#. At a prompt in a terminal window (or a command prompt for Windows),
+   go to your ``<mongodb installation dir>``:
+
+   .. code-block:: sh
+
+      cd <mongodb installation dir>
+
+#. Type ``./bin/mongo`` to start :binary:`~bin.mongo`:
+
+   .. code-block:: sh
+
+      ./bin/mongo
+
+   If you have added the ``<mongodb installation dir>/bin`` to the
+   ``PATH`` environment variable, you can just type ``mongo`` instead
+   of ``./bin/mongo``.
+
+Options
+~~~~~~~
+
+When you run :binary:`~bin.mongo` without any arguments, the
+:binary:`~bin.mongo` shell will attempt to connect to the MongoDB instance
+running on the ``localhost`` interface on port ``27017``. To specify a
+different host or port number, as well as other options, see
+:ref:`examples of starting up mongo <mongo-usage-examples>` and
+:doc:`mongo reference </reference/program/mongo>` which provides
+details on the available options.
+
+``.mongorc.js`` File
+~~~~~~~~~~~~~~~~~~~~
+
+When starting, :binary:`~bin.mongo` checks the user's :envvar:`HOME`
+directory for a JavaScript file named :ref:`.mongorc.js
+<mongo-mongorc-file>`. If found, :binary:`~bin.mongo` interprets the
+content of :file:`.mongorc.js` before displaying the prompt for the
+first time. If you use the shell to evaluate a JavaScript file or
+expression, either by using the :option:`--eval <mongo --eval>`
+option on the command line or by specifying :ref:`a .js file to
+mongo <mongo-shell-file>`, :binary:`~bin.mongo` will read the
+``.mongorc.js`` file *after* the JavaScript has finished processing.
+You can prevent ``.mongorc.js`` from being loaded by using the
+:option:`--norc <mongo --norc>` option.
+
+.. _mongo-shell-executing-queries:
+
+Working with the ``mongo`` Shell
+--------------------------------
+
+To display the database you are using, type ``db``:
+
+.. code-block:: sh
+
+   db
+
+The operation should return ``test``, which is the default database.
+To switch databases, issue the ``use <db>`` helper, as in the
+following example:
+
+.. code-block:: javascript
+
+   use <database>
+
+To list the available databases, use the helper ``show dbs``. See also
+:method:`db.getSiblingDB()` method to access a different database from
+the current database without switching your current database context
+(i.e. ``db``).
+
+You can switch to non-existing databases. When you first store data in
+the database, such as by creating a collection, MongoDB creates the
+database. For example, the following creates both the database
+``myNewDatabase`` and the :term:`collection` ``myCollection`` during
+the :method:`~db.collection.insertOne()` operation:
+
+.. code-block:: javascript
+
+   use myNewDatabase
+   db.myCollection.insertOne( { x: 1 } );
+
+The :method:`db.myCollection.insertOne() <db.collection.insertOne()>` is one
+of the :doc:`methods available in the mongo shell </reference/method>`.
+
+- ``db`` refers to the current database.
+
+- ``myCollection`` is the name of the collection.
+
+If the :binary:`~bin.mongo` shell does not accept the name of a collection,
+you can use the alternative :method:`db.getCollection()` syntax.
+For instance, if a collection name contains a space or hyphen, starts
+with a number, or conflicts with a built-in function:
+
+.. code-block:: javascript
+
+   db.getCollection("3 test").find()
+   db.getCollection("3-test").find()
+   db.getCollection("stats").find()
+
+.. include:: /includes/fact-mongo-prompt-size.rst
+
+For more documentation of basic MongoDB operations in the
+:binary:`~bin.mongo` shell, see:
+
+- :doc:`Getting Started Guide for the mongo Shell
+  </tutorial/getting-started>`
+- :doc:`/tutorial/insert-documents`
+- :doc:`/tutorial/query-documents`
+- :doc:`/tutorial/update-documents`
+- :doc:`/tutorial/remove-documents`
+- :doc:`/reference/method`
+
+Format Printed Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.find()` method returns a :term:`cursor` to
+the results; however, in the :binary:`~bin.mongo` shell, if the returned
+cursor is not assigned to a variable using the ``var`` keyword, then
+the cursor is automatically iterated up to 20 times to print up to the
+first 20 documents that match the query. The :binary:`~bin.mongo` shell
+will prompt ``Type it`` to iterate another 20 times.
+
+To format the printed result, you can add the ``.pretty()`` to the
+operation, as in the following:
+
+.. code-block:: javascript
+
+   db.myCollection.find().pretty()
+
+In addition, you can use the following explicit print methods in the
+:binary:`~bin.mongo` shell:
+
+- ``print()`` to print without formatting
+
+- ``print(tojson(<obj>))`` to print with :term:`JSON` formatting and
+  equivalent to ``printjson()``
+
+- ``printjson()`` to print with :term:`JSON` formatting and equivalent
+  to ``print(tojson(<obj>))``
+
+For more information and examples on cursor handling in the
+:binary:`~bin.mongo` shell, see :doc:`/tutorial/iterate-a-cursor`. See also
+:ref:`mongo-shell-help-cursor` for list of cursor help in the
+:binary:`~bin.mongo` shell.
+
+Multi-line Operations in the ``mongo`` Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you end a line with an open parenthesis (``'('``), an open brace
+(``'{'``), or an open bracket (``'['``), then the subsequent lines start
+with ellipsis (``"..."``) until you enter the corresponding closing
+parenthesis (``')'``), the closing brace (``'}'``) or the closing
+bracket (``']'``). The :binary:`~bin.mongo` shell waits for the closing
+parenthesis, closing brace, or the closing bracket before evaluating
+the code, as in the following example:
+
+.. code-block:: javascript
+
+   > if ( x > 0 ) {
+   ... count++;
+   ... print (x);
+   ... }
+
+You can exit the line continuation mode if you enter two blank
+lines, as in the following example:
+
+.. code-block:: javascript
+
+   > if (x > 0
+   ...
+   ...
+   >
+
+Tab Completion and Other Keyboard Shortcuts
+-------------------------------------------
+
+The :binary:`~bin.mongo` shell supports keyboard shortcuts. For example,
+
+- Use the up/down arrow keys to scroll through command history. See
+  :ref:`.dbshell <mongo-dbshell-file>` documentation for more
+  information on the ``.dbshell`` file.
+
+- Use ``<Tab>`` to autocomplete or to list the completion
+  possibilities, as in the following example which uses ``<Tab>`` to
+  complete the method name starting with the letter ``'c'``:
+
+  .. code-block:: javascript
+
+     db.myCollection.c<Tab>
+
+  Because there are many collection methods starting with the letter
+  ``'c'``, the ``<Tab>`` will list the various methods that start with
+  ``'c'``.
+
+For a full list of the shortcuts, see :ref:`Shell Keyboard Shortcuts
+<mongo-keyboard-shortcuts>`
+
+.. _mongo-shell-exit:
+
+Exit the Shell
+--------------
+
+To exit the shell, type ``quit()`` or use the ``<Ctrl-C>`` shortcut.
+
+.. seealso::
+
+   - :doc:`Getting Started Guide for the mongo Shell
+     </tutorial/getting-started>`
+   - :binary:`~bin.mongo` Reference Page
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /tutorial/configure-mongo-shell
+      /tutorial/access-mongo-shell-help
+      /tutorial/write-scripts-for-the-mongo-shell
+      /core/shell-types
+      /reference/mongo-shell

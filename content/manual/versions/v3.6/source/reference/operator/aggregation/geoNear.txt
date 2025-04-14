@@ -1,0 +1,300 @@
+======================
+$geoNear (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $geoNear
+
+   Outputs documents in order of nearest to farthest from a specified
+   point.
+
+   The :pipeline:`$geoNear` stage has the following prototype form:
+
+   .. code-block:: javascript
+
+      { $geoNear: { <geoNear options> } }
+
+   The :pipeline:`$geoNear` operator accepts a :term:`document` that
+   contains the following :pipeline:`$geoNear` options. Specify all
+   distances in the same units as those of the processed documents'
+   coordinate system:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``spherical``
+   
+        - boolean
+   
+        - Required if using a ``2dsphere`` index. Determines how MongoDB
+          calculates the distance. The default value is ``false``.
+          
+          .. include:: /includes/extracts/geoNear-distance-calculation-spherical-field.rst
+          
+          If ``false``, then MongoDB uses 2d planar geometry to calculate
+          distance between points.
+          
+          If using a :doc:`2dsphere </core/2dsphere>` index, ``spherical`` must
+          be ``true``.
+          
+          
+   
+      * - ``limit``
+   
+        - number
+   
+        - Optional. The maximum number of documents to return. The default value is ``100``.
+          See also the ``num`` option.
+          
+          
+   
+      * - ``num``
+   
+        - number
+   
+        - Optional. The ``num`` option provides the same function as the ``limit`` option.
+          Both define the maximum number of documents to return. If both options
+          are included, the ``num`` value overrides the ``limit`` value.
+          
+          
+   
+      * - ``maxDistance``
+   
+        - number
+   
+        - Optional. The maximum distance from the center point that the documents *can*
+          be. MongoDB limits the results to those documents that fall within
+          the specified distance from the center point.
+          
+          Specify the distance in meters if the specified point is
+          :term:`GeoJSON` and in radians if the specified point is
+          :term:`legacy coordinate pairs <legacy coordinate pairs>`.
+          
+          
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. Limits the results to the documents that match the query. The query
+          syntax is the usual MongoDB :ref:`read operation query
+          <read-operations-query-argument>` syntax.
+          
+          .. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+          
+          
+   
+      * - ``distanceMultiplier``
+   
+        - number
+   
+        - Optional. The factor to multiply all distances returned by the query. For
+          example, use the ``distanceMultiplier`` to convert radians, as
+          returned by a spherical query, to kilometers by multiplying by the
+          radius of the Earth.
+          
+          
+   
+      * - ``uniqueDocs``
+   
+        - boolean
+   
+        - Optional. If this value is ``true``, the query returns a matching document once,
+          even if more than one of the document's location fields match the
+          query.
+          
+          .. include:: /includes/deprecation-uniqueDocs.rst
+          
+          
+   
+      * - ``near``
+   
+        - GeoJSON point or :term:`legacy coordinate pair <legacy coordinate pairs>`
+   
+        - The point for which to find the closest documents.
+          
+          If using a :doc:`2dsphere </core/2dsphere>` index, you can specify
+          the point as either a GeoJSON point or legacy coordinate pair.
+          
+          If using a :doc:`2d </core/2d>` index, specify the point as a legacy
+          coordinate pair.
+          
+          
+   
+      * - ``distanceField``
+   
+        - string
+   
+        - The output field that contains the
+          calculated distance. To specify a field within an embedded document,
+          use :term:`dot notation`.
+          
+          
+   
+      * - ``includeLocs``
+   
+        - string
+   
+        - Optional. This specifies the output field that identifies the location used to
+          calculate the distance. This option is useful when a location field
+          contains multiple locations. To specify a field within an
+          embedded document, use :term:`dot notation`.
+          
+          
+   
+      * - ``minDistance``
+   
+        - number
+   
+        - Optional. The minimum distance from the center point that the documents can
+          be. MongoDB limits the results to those documents that fall outside
+          the specified distance from the center point.
+          
+          Specify the distance in meters for GeoJSON data and in radians for
+          legacy coordinate pairs.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+
+
+Behavior
+--------
+
+When using :pipeline:`$geoNear`, consider that:
+
+- You can only use :pipeline:`$geoNear` as the first stage of a
+  pipeline.
+
+- You must include the ``distanceField`` option. The
+  ``distanceField`` option specifies the field that will contain
+  the calculated distance.
+
+- .. include:: /includes/extracts/geoNear-stage-index-requirement.rst
+
+- The :pipeline:`$geoNear` requires that a collection have *at most*
+  only one :doc:`2d index </core/2d>` and/or only one
+  :doc:`2dsphere index </core/2dsphere>`.
+
+- You do not need to specify which field in
+  the documents hold the coordinate pair or point. Because
+  :pipeline:`$geoNear` requires that the collection have a single
+  geospatial index, :pipeline:`$geoNear` implicitly uses the indexed
+  field.
+
+- If using a :doc:`2dsphere index </core/2dsphere>`, you must specify
+  ``spherical: true``.
+
+.. |geoNear| replace:: :pipeline:`$geoNear` stage
+
+- .. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+
+- .. include:: /includes/extracts/views-unsupported-geoNear.rst
+
+Generally, the options for :pipeline:`$geoNear` are similar to the
+:dbcommand:`geoNear` command with the following exceptions:
+
+- ``distanceField`` is a mandatory field for the
+  :pipeline:`$geoNear` pipeline operator; the option does not exist
+  in the :dbcommand:`geoNear` command.
+
+- ``includeLocs`` accepts a ``string`` in the :pipeline:`$geoNear`
+  pipeline operator and a ``boolean`` in the :dbcommand:`geoNear`
+  command.
+
+Example
+-------
+
+Consider a collection ``places`` that has a ``2dsphere`` index. The following
+aggregation finds at most ``5`` unique documents with a location at
+most 2 meters from the center ``[ -73.99279 , 40.719296 ]`` and have ``type`` equal
+to ``public``:
+
+.. code-block:: javascript
+
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "dist.calculated",
+           maxDistance: 2,
+           query: { type: "public" },
+           includeLocs: "dist.location",
+           num: 5,
+           spherical: true
+        }
+      }
+   ])
+
+The aggregation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 8,
+      "name" : "Sara D. Roosevelt Park",
+      "type" : "public",
+      "location" : {
+         "type" : "Point",
+         "coordinates" : [ -73.9928, 40.7193 ]
+      },
+      "dist" : {
+         "calculated" : 0.9539931676365992,
+         "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.9928, 40.7193 ]
+         }
+      }
+   }
+
+The matching document contains two new fields:
+
+- ``dist.calculated`` field that contains the calculated distance, and
+
+- ``dist.location`` field that contains the location used in the
+  calculation.
+
+Minimum Distance
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+The following example uses the option ``minDistance`` to specify
+the minimum distance from the center point that the documents can be.
+MongoDB limits the results to those documents that fall outside the
+specified distance from the center point.
+
+.. code-block:: javascript
+
+   db.places.aggregate([ 
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "dist.calculated",
+           minDistance: 2,
+           query: { type: "public" },
+           includeLocs: "dist.location",
+           num: 5,
+           spherical: true
+        }
+      }
+   ])

@@ -1,0 +1,112 @@
+==========================
+Data Modeling Introduction
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Data in MongoDB has a *flexible schema*. Unlike SQL databases, where
+you must determine and declare a table's schema before inserting data,
+MongoDB's :term:`collections <collection>` do not enforce
+:term:`document` structure. This flexibility facilitates the mapping of
+documents to an entity or an object. Each document can match the data
+fields of the represented entity, even if the data has substantial
+variation. In practice, however, the documents in a collection share a
+similar structure.
+
+The key challenge in data modeling is balancing the needs of the
+application, the performance characteristics of the database engine, and
+the data retrieval patterns. When designing data models, always
+consider the application usage of the data (i.e. queries, updates, and
+processing of the data) as well as the inherent structure of the data
+itself.
+
+Document Structure
+------------------
+
+.. start-primer-excerpt
+
+The key decision in designing data models for MongoDB applications
+revolves around the structure of documents and how the application
+represents relationships between data. There are two tools that allow
+applications to represent these relationships: *references* and
+*embedded documents*.
+
+References
+~~~~~~~~~~
+
+References store the relationships between data by including
+links or *references* from one document to another. Applications can
+resolve these :doc:`references </reference/database-references>` to
+access the related data. Broadly, these are *normalized* data models.
+
+.. include:: /images/data-model-normalized.rst
+
+See :ref:`data-modeling-referencing` for the strengths and weaknesses of
+using references.
+
+Embedded Data
+~~~~~~~~~~~~~
+
+Embedded documents capture relationships between data by storing
+related data in a single document structure. MongoDB documents make it
+possible to embed document structures in a field or
+array within a document. These *denormalized* data models allow
+applications to retrieve and manipulate related data in a single
+database operation.
+
+.. include:: /images/data-model-denormalized.rst
+
+See :ref:`data-modeling-embedding` for the strengths and weaknesses of
+embedding documents.
+
+.. end-primer-excerpt
+
+Atomicity of Write Operations
+-----------------------------
+
+In MongoDB, write operations are atomic at the :term:`document` level,
+and no single write operation can atomically affect more than one
+document or more than one collection. A denormalized data model with
+embedded data combines all related data for a represented entity in a
+single document. This facilitates atomic write operations since a
+single write operation can insert or update the data for an entity.
+Normalizing the data would split the data across multiple collections
+and would require multiple write operations that are not atomic
+collectively.
+
+However, schemas that facilitate atomic writes may limit ways that
+applications can use the data or may limit ways to modify applications.
+The :ref:`Atomicity Considerations <data-model-atomicity>`
+documentation describes the challenge of designing a schema that
+balances flexibility and atomicity.
+
+Document Growth
+---------------
+
+Some updates, such as pushing elements to an array or adding new
+fields, increase a :term:`document's <document>` size. 
+
+For the MMAPv1 storage engine, if the document size exceeds the
+allocated space for that document, MongoDB relocates the document on
+disk. When using the MMAPv1 storage engine, growth consideration can
+affect the decision to normalize or denormalize data. See
+:ref:`Document Growth Considerations <data-model-document-growth>` for
+more about planning for and managing document growth for MMAPv1.
+
+Data Use and Performance
+------------------------
+
+When designing a data model, consider how applications will use your
+database. For instance, if your application only uses recently
+inserted documents, consider using :doc:`/core/capped-collections`. Or
+if your application needs are mainly read operations to a collection,
+adding indexes to support common queries can improve performance.
+
+See :doc:`/core/data-model-operations` for more information on these
+and other operational considerations that affect data model designs.

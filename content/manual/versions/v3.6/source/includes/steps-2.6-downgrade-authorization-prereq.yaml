@@ -1,0 +1,69 @@
+title:
+  text: Connect as user with privileges to manage users and roles.
+  character: "`"
+stepnum: 1
+ref: connect-to-manage-roles
+content: |
+   Connect and authenticate as a user with
+   :authrole:`userAdminAnyDatabase`.
+---
+title:
+  text: Create a role with required privileges.
+  character: "`"
+stepnum: 2
+ref: create-role-with-required-privileges
+pre: |
+   Using the :method:`db.createRole` method, create a
+   :ref:`role <user-defined-roles>` with the required privileges.
+action:
+   language: javascript
+   code: |
+      use admin
+      db.createRole(
+        {
+          role: "downgradeAuthRole",
+          privileges: [
+            { resource: { db: "admin", collection: "system.new_users" }, actions: [ "find", "insert", "update" ] },
+            { resource: { db: "admin", collection: "system.backup_users" }, actions: [  "find" ] },
+            { resource: { db: "admin", collection: "system.users" }, actions: [ "find", "remove", "insert"] },
+            { resource: { db: "admin", collection: "system.version" }, actions: [ "find", "update" ] }
+          ],
+          roles: [ ]
+        }
+      )
+---
+title:
+  text: Create a user with the new role.
+  character: "`"
+stepnum: 3
+ref: create-use-with-new-role
+pre: |
+   Create a user and assign the user the ``downgradeRole``.
+action:
+   language: javascript
+   code: |
+      use admin
+      db.createUser(
+         {
+           user: "downgradeAuthUser",
+           pwd: "somePass123",
+           roles: [ { role: "downgradeAuthRole", db: "admin" } ]
+         }
+      )
+post: |
+   .. note:: Instead of creating a new user, you can also grant the role to an existing user. See :method:`db.grantRolesToUser()` method.
+---
+title:
+  text: Authenticate as the new user.
+  character: "`"
+stepnum: 4
+ref: authenticate-as-new-role
+pre: Authenticate as the newly created user.
+action:
+   language: javascript
+   code: |
+      use admin
+      db.auth( "downgradeAuthUser", "somePass123" )
+post: |
+   The method returns ``1`` upon successful authentication.
+...

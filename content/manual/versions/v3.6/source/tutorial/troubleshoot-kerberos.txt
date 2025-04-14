@@ -1,0 +1,118 @@
+====================================
+Troubleshoot Kerberos Authentication
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _kerberos-troubleshooting-checklist:
+
+Kerberos Configuration Debugging Strategies
+-------------------------------------------
+
+If you have difficulty starting or authenticating against
+:binary:`~bin.mongod` or :binary:`~bin.mongos` with :doc:`Kerberos
+</core/kerberos>`:
+
+- Ensure that you are running MongoDB Enterprise, not MongoDB Community
+  Edition. Kerberos authentication is a MongoDB Enterprise feature
+  and will not work with MongoDB Community Edition binaries.
+
+  .. include:: /includes/fact-confirm-enterprise-binaries.rst
+
+- Ensure that the canonical system hostname of the
+  :binary:`~bin.mongod` or :binary:`~bin.mongos` instance is a resolvable,
+  fully qualified domain name. 
+  
+  On Linux, you can verify the system hostname resolution with the ``hostname
+  -f`` command at the system prompt.
+
+- On Linux, ensure that the `primary component of the service principal name (SPN)
+  <http://web.mit.edu/KERBEROS/krb5-1.5/krb5-1.5.4/doc/krb5-user/What-is-a-Kerberos-Principal_003f.html>`_ 
+  of the SPN is ``mongodb``. If the primary component of the SPN
+  **is not** ``mongodb``,
+  you must specify the primary component using
+  :parameter:`--setParameter saslServiceName <saslServiceName>`. 
+
+.. _kerberos-spn-matches-fqdn:
+
+- On Linux, ensure that the `instance component of the service principal 
+  name (SPN) <http://web.mit.edu/KERBEROS/krb5-1.5/krb5-1.5.4/doc/krb5-user/What-is-a-Kerberos-Principal_003f.html>`_ 
+  in the
+  :ref:`keytab file <keytab-files>` matches the canonical system hostname
+  of the :binary:`~bin.mongod` or :binary:`~bin.mongos`
+  instance. If the :binary:`~bin.mongod` or :binary:`~bin.mongos`
+  instance's system hostname is not in the keytab file,
+  authentication will fail with a ``GSSAPI error acquiring 
+  credentials.`` error message.
+
+  If the hostname of your :binary:`~bin.mongod` or :binary:`~bin.mongos` instance
+  as returned by ``hostname -f``
+  is not fully qualified,
+  use :parameter:`--setParameter saslHostName
+  <saslHostName>` to set the instance's fully qualified domain name when
+  starting your :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+  
+- Ensure that each host that runs a :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` instance has ``A`` and ``PTR`` DNS records to
+  provide both forward and reverse DNS lookup. The ``A`` record should
+  map to the :binary:`~bin.mongod` or :binary:`~bin.mongos`'s FQDN.
+
+- Ensure that clocks on the servers hosting your MongoDB instances and
+  Kerberos infrastructure are within the maximum time skew: 5 minutes
+  by default. Time differences greater than the maximum time skew
+  prevent successful authentication.
+
+Kerberos Trace Logging on Linux
+-------------------------------
+
+MIT Kerberos provides the ``KRB5_TRACE`` environment variable for
+trace logging output. If you are having persistent problems with
+MIT Kerberos on Linux, you can set ``KRB5_TRACE`` when starting your
+:binary:`~bin.mongod`, :binary:`~bin.mongos`, or :binary:`~bin.mongo` instances to
+produce verbose logging.
+
+For example, the following command starts a standalone :binary:`~bin.mongod`
+whose keytab file is at the default ``/etc/krb5.keytab`` path
+and sets ``KRB5_TRACE`` to write to ``/logs/mongodb-kerberos.log``:
+
+.. code-block:: sh
+
+   env KRB5_KTNAME=/etc/krb5.keytab \
+       KRB5_TRACE=/logs/mongodb-kerberos.log \
+       mongod --dbpath /data/db --logpath /data/db/mongodb.log \
+       --auth --setParameter authenticationMechanisms=GSSAPI \
+       --bind_ip localhost,<ip address> --fork
+
+Common Error Messages
+---------------------
+
+In some situations, MongoDB will return error messages from the GSSAPI
+interface if there is a problem with the Kerberos service. Some common
+error messages are:
+
+``GSSAPI error in client while negotiating security context.``
+  This error occurs on the client and reflects insufficient credentials
+  or a malicious attempt to authenticate.
+
+  If you receive this error, ensure that you are using the correct
+  credentials and the correct fully qualified domain name when
+  connecting to the host.
+
+``GSSAPI error acquiring credentials.``
+  This error occurs during the start of the :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` and reflects improper configuration of the system
+  hostname or a missing or incorrectly configured keytab file.
+
+.. seealso::
+
+   - :doc:`/core/kerberos`
+
+   - :doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+
+   - :doc:`/tutorial/control-access-to-mongodb-windows-with-kerberos-authentication`

@@ -1,0 +1,699 @@
+=====================
+db.collection.stats()
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. db.coll.stats() only takes one argument. (3.0-series change) You
+   can either specify a number to use as the scale argument to
+   collStats, or a document specifying a set of options to the
+   helper. This change is contained in the implementation of the
+   helper and not in the underlying command.
+
+.. method:: db.collection.stats(scale | options)
+
+   Returns statistics about the collection. The method includes
+   the following parameters:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``scale``
+   
+        - number
+   
+        - Optional. The scale used in the output to display the sizes of items. By
+          default, output displays sizes in ``bytes``. To display kilobytes rather
+          than bytes, specify a ``scale`` value of ``1024``.
+          
+          .. versionchanged:: 3.0
+             Legacy parameter format. Mutually exclusive with ``options`` as a
+             document.
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. Alternative to ``scale`` parameter. Use the ``options`` document to 
+          specify options, including ``scale``.
+          
+          .. versionadded:: 3.0
+          
+          
+   
+
+
+   The ``options`` document can contain the following fields and values:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``scale``
+   
+        - number
+   
+        - Optional. The scale used in the output to display the sizes of items. By
+          default, output displays sizes in bytes. To display kilobytes rather
+          than bytes, specify a ``scale`` value of ``1024``.
+          
+          .. versionadded:: 3.0
+          
+          
+   
+      * - ``indexDetails``
+   
+        - boolean
+   
+        - Optional. If ``true``, :method:`db.collection.stats()` returns 
+          :data:`index details <collStats.indexDetails>`
+          in addition to the collection stats. 
+          
+          Only works for :ref:`WiredTiger<storage-wiredTiger>` storage engine.
+          
+          Defaults to ``false``.
+          
+          .. versionadded:: 3.0
+          
+          
+   
+      * - ``indexDetailsKey``
+   
+        - document
+   
+        - Optional. If ``indexDetails`` is ``true``, you can use ``indexDetailsKey`` to filter 
+          index details by specifying the index key specification. 
+          Only the index that exactly matches ``indexDetailsKey`` will be returned.
+          
+          If no match is found, :data:`~collStats.indexDetails` will display 
+          statistics for all indexes.
+          
+          Use :method:`~db.collection.getIndexes()` to discover index keys. You cannot 
+          use ``indexDetailsKey`` with ``indexDetailsName``.
+          
+          .. versionadded:: 3.0
+          
+          
+   
+      * - ``indexDetailsName``
+   
+        - string
+   
+        - Optional. If ``indexDetails`` is ``true``, you can use ``indexDetailsName`` to 
+          filter index details by specifying the index ``name``. 
+          Only the index name that exactly 
+          matches ``indexDetailsName`` will be returned.
+          
+          If no match is found, :data:`~collStats.indexDetails` will display 
+          statistics for all indexes.
+          
+          Use :method:`~db.collection.getIndexes()` to discover index names. You cannot 
+          use ``indexDetailsName`` with ``indexDetailsField``.
+          
+          .. versionadded:: 3.0
+          
+          
+   
+
+
+   :returns: A :term:`document` that contains statistics on the specified
+     collection. See :dbcommand:`collStats` for a breakdown of the returned
+     statistics.
+
+The :method:`db.collection.stats()` method provides a wrapper
+around the database command :dbcommand:`collStats`.
+
+
+Behavior
+--------
+
+This method returns a JSON document with statistics related to the current
+:binary:`~bin.mongod` instance. Unless otherwise specified by the key name,
+values related to size are displayed in bytes and can be overridden
+by ``scale``.
+
+.. note::
+
+   The scale factor rounds values to whole numbers.
+
+Depending on the storage engine, the data returned may differ. For details on
+the fields, see :ref:`output details <collStats-output>`.
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :method:`db.collection.stats()`
+.. |opt| replace:: count and size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+Index Filter Behavior
+~~~~~~~~~~~~~~~~~~~~~
+
+Filtering on ``indexDetails`` using either ``indexDetailsKey`` or
+``indexDetailsName`` will only return a single matching index.
+If no exact match is found, ``indexDetails`` will show information
+on all indexes for the collection.
+
+The ``indexDetailsKey`` field takes a document of the following form:
+
+.. code-block:: javascript
+
+    { '<string>' : <value>, '<string>' : <value>, ... }
+
+Where ``<string>>`` is the field that is indexed and ``<value>`` is either
+the direction of the index, or the special index type such as ``text`` or
+``2dsphere``. See :ref:`index types <index-types>` for the full list of
+index types.
+
+Unexpected Shutdown and Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For MongoDB instances using the :doc:`WiredTiger </core/wiredtiger>`
+storage engine, after an unclean shutdown, statistics on size and count
+may off by up to 1000 documents as reported by :dbcommand:`collStats`,
+:dbcommand:`dbStats`, :dbcommand:`count`. To restore the correct
+statistics for the collection, run :dbcommand:`validate` on the
+collection.
+
+Examples
+--------
+
+.. note::
+
+   You can find the collection data used for these examples in our
+   `Getting Started Guide
+   <https://docs.mongodb.com/getting-started/shell/import-data/>`_
+
+
+Basic Stats Lookup
+~~~~~~~~~~~~~~~~~~
+
+The following operation returns stats on the ``restaurants`` collection:
+
+.. code-block:: javascript
+
+   db.restaurants.stats()
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+       "ns" : "guidebook.restaurants",
+      "count" : 25359,
+      "size" : 10630398,
+      "avgObjSize" : 419,
+      "storageSize" : 4104192
+      "capped" : false,
+      "wiredTiger" : {
+            "metadata" : {
+               "formatVersion" : 1
+            },
+            "creationString" : "allocation_size=4KB,app_metadata=(formatVersion=1),block_allocation=best,block_compressor=snappy,cache_resident=0,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=0,extractor=,format=btree,huffman_key=,huffman_value=,immutable=0,internal_item_max=0,internal_key_max=0,internal_key_truncate=,internal_page_max=4KB,key_format=q,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=32KB,leaf_value_max=64MB,log=(enabled=),lsm=(auto_throttle=,bloom=,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=0,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_max=15,merge_min=0),memory_page_max=10m,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=0,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=90,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:collection-2-7253336746667145592",
+            "LSM" : {
+               "bloom filters in the LSM tree" : 0,
+               "bloom filter false positives" : 0,
+               "bloom filter hits" : 0,
+               "bloom filter misses" : 0,
+               "bloom filter pages evicted from cache" : 0,
+               "bloom filter pages read into cache" : 0,
+               "total size of bloom filters" : 0,
+               "sleep for LSM checkpoint throttle" : 0,
+               "chunks in the LSM tree" : 0,
+               "highest merge generation in the LSM tree" : 0,
+               "queries that could have benefited from a Bloom filter that did not exist" : 0,
+               "sleep for LSM merge throttle" : 0
+            },
+            "block-manager" : {
+               "file allocation unit size" : 4096,
+               "blocks allocated" : 338,
+               "checkpoint size" : 4096000,
+               "allocations requiring file extension" : 338,
+               "blocks freed" : 0,
+               "file magic number" : 120897,
+               "file major version number" : 1,
+               "minor version number" : 0,
+               "file bytes available for reuse" : 0,
+               "file size in bytes" : 4104192
+            },
+            "btree" : {
+               "btree checkpoint generation" : 15,
+               "column-store variable-size deleted values" : 0,
+               "column-store fixed-size leaf pages" : 0,
+               "column-store internal pages" : 0,
+               "column-store variable-size leaf pages" : 0,
+               "pages rewritten by compaction" : 0,
+               "number of key/value pairs" : 0,
+               "fixed-record size" : 0,
+               "maximum tree depth" : 3,
+               "maximum internal page key size" : 368,
+               "maximum internal page size" : 4096,
+               "maximum leaf page key size" : 3276,
+               "maximum leaf page size" : 32768,
+               "maximum leaf page value size" : 67108864,
+               "overflow pages" : 0,
+               "row-store internal pages" : 0,
+               "row-store leaf pages" : 0
+            },
+            "cache" : {
+               "bytes read into cache" : 9309503,
+               "bytes written from cache" : 10817368,
+               "checkpoint blocked page eviction" : 0,
+               "unmodified pages evicted" : 0,
+               "page split during eviction deepened the tree" : 0,
+               "modified pages evicted" : 1,
+               "data source pages selected for eviction unable to be evicted" : 0,
+               "hazard pointer blocked page eviction" : 0,
+               "internal pages evicted" : 0,
+               "pages split during eviction" : 1,
+               "in-memory page splits" : 1,
+               "overflow values cached in memory" : 0,
+               "pages read into cache" : 287,
+               "overflow pages read into cache" : 0,
+               "pages written from cache" : 337
+            },
+            "compression" : {
+               "raw compression call failed, no additional data available" : 0,
+               "raw compression call failed, additional data available" : 0,
+               "raw compression call succeeded" : 0,
+               "compressed pages read" : 287,
+               "compressed pages written" : 333,
+               "page written failed to compress" : 0,
+               "page written was too small to compress" : 4
+            },
+            "cursor" : {
+               "create calls" : 1,
+               "insert calls" : 25359,
+               "bulk-loaded cursor-insert calls" : 0,
+               "cursor-insert key and value bytes inserted" : 10697901,
+               "next calls" : 76085,
+               "prev calls" : 1,
+               "remove calls" : 0,
+               "cursor-remove key bytes removed" : 0,
+               "reset calls" : 25959,
+               "restarted searches" : 0,
+               "search calls" : 0,
+               "search near calls" : 594,
+               "update calls" : 0,
+               "cursor-update value bytes updated" : 0
+            },
+            "reconciliation" : {
+               "dictionary matches" : 0,
+               "internal page multi-block writes" : 1,
+               "leaf page multi-block writes" : 2,
+               "maximum blocks required for a page" : 47,
+               "internal-page overflow keys" : 0,
+               "leaf-page overflow keys" : 0,
+               "overflow values written" : 0,
+               "pages deleted" : 0,
+               "page checksum matches" : 0,
+               "page reconciliation calls" : 4,
+               "page reconciliation calls for eviction" : 1,
+               "leaf page key bytes discarded using prefix compression" : 0,
+               "internal page key bytes discarded using suffix compression" : 333
+            },
+            "session" : {
+               "object compaction" : 0,
+               "open cursor count" : 1
+            },
+            "transaction" : {
+               "update conflicts" : 0
+            }
+         },
+         "nindexes" : 4,
+         "totalIndexSize" : 626688,
+         "indexSizes" : {
+            "_id_" : 217088,
+            "borough_1_cuisine_1" : 139264,
+            "cuisine_1" : 131072,
+            "borough_1_address.zipcode_1" : 139264
+         },
+         "ok" : 1
+    }
+
+As stats was not give a scale parameter, all size values are in ``bytes``.
+
+
+Stats Lookup With Scale
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation changes the scale of data from ``bytes`` to ``kilobytes``
+by specifying a ``scale`` of ``1024``:
+
+.. code-block:: javascript
+
+   db.restaurants.stats( { scale : 1024 } )
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "guidebook.restaurants",
+      "count" : 25359,
+      "size" : 10381,
+      "avgObjSize" : 419,
+      "storageSize" : 4008,
+      "capped" : false,
+      "wiredTiger" : {
+         ...
+      },
+      "nindexes" : 4,
+      "totalIndexSize" : 612,
+      "indexSizes" : {
+         "_id_" : 212,
+         "borough_1_cuisine_1" : 136,
+         "cuisine_1" : 128,
+         "borough_1_address.zipcode_1" : 136
+      },
+      "ok" : 1
+   }
+
+Statistics Lookup With Index Details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates an ``indexDetails`` document that contains
+information related to each of the indexes within the collection:
+
+.. code-block:: javascript
+
+   db.restaurant.stats( { indexDetails : true } )
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "guidebook.restaurants",
+      "count" : 25359,
+      "size" : 10630398,
+      "avgObjSize" : 419,
+      "storageSize" : 4104192,
+      "capped" : false,
+      "wiredTiger" : {
+         ...
+      },
+      "nindexes" : 4,
+      "indexDetails" : {
+         "_id_" : {
+            "metadata" : {
+               "formatVersion" : 6,
+               "infoObj" : "{ \"v\" : 1, \"key\" : { \"_id\" : 1 }, \"name\" : \"_id_\", \"ns\" : \"blogs.posts\" }"
+            },
+            "creationString" : "allocation_size=4KB,app_metadata=(formatVersion=6,infoObj={ \"v\" : 1, \"key\" : { \"_id\" : 1 }, \"name\" : \"_id_\", \"ns\" : \"blogs.posts\" }),block_allocation=best,block_compressor=,cache_resident=0,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=0,extractor=,format=btree,huffman_key=,huffman_value=,immutable=0,internal_item_max=0,internal_key_max=0,internal_key_truncate=,internal_page_max=16k,key_format=u,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=16k,leaf_value_max=0,log=(enabled=),lsm=(auto_throttle=,bloom=,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=0,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_max=15,merge_min=0),memory_page_max=5MB,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=true,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=75,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:index-3-7253336746667145592",
+            "LSM" : {
+               ...
+            },
+            "block-manager" : {
+               ...
+            },
+            "btree" : {
+               ...
+            },
+            "cache" : {
+               ...
+            },
+            "compression" : {
+               ...
+            },
+            "cursor" : {
+               ...
+            },
+            "reconciliation" : {
+               ...
+            },
+            "session" : {
+               ...
+            },
+            "transaction" : {
+               ...
+            }
+         },
+         "borough_1_cuisine_1" : {
+            "metadata" : {
+               "formatVersion" : 6,
+               "infoObj" : "{ \"v\" : 1, \"key\" : { \"borough\" : 1, \"cuisine\" : 1 }, \"name\" : \"borough_1_cuisine_1\", \"ns\" : \"blogs.posts\" }"
+            },
+            "creationString" : "allocation_size=4KB,app_metadata=(formatVersion=6,infoObj={ \"v\" : 1, \"key\" : { \"borough\" : 1, \"cuisine\" : 1 }, \"name\" : \"borough_1_cuisine_1\", \"ns\" : \"blogs.posts\" }),block_allocation=best,block_compressor=,cache_resident=0,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=0,extractor=,format=btree,huffman_key=,huffman_value=,immutable=0,internal_item_max=0,internal_key_max=0,internal_key_truncate=,internal_page_max=16k,key_format=u,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=16k,leaf_value_max=0,log=(enabled=),lsm=(auto_throttle=,bloom=,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=0,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_max=15,merge_min=0),memory_page_max=5MB,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=true,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=75,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:index-4-7253336746667145592",
+            "LSM" : {
+               ...
+            },
+            "block-manager" : {
+               ...
+            },
+            "btree" : {
+               ...
+            },
+            "cache" : {
+               ...
+            },
+            "compression" : {
+               ...
+            },
+            "cursor" : {
+               ...
+            },
+            "reconciliation" : {
+               ...
+            },
+            "session" : {
+               "object compaction" : 0,
+               "open cursor count" : 0
+            },
+            "transaction" : {
+               "update conflicts" : 0
+            }
+         },
+         "cuisine_1" : {
+            "metadata" : {
+               "formatVersion" : 6,
+               "infoObj" : "{ \"v\" : 1, \"key\" : { \"cuisine\" : 1 }, \"name\" : \"cuisine_1\", \"ns\" : \"blogs.posts\" }"
+            },
+            "creationString" : "allocation_size=4KB,app_metadata=(formatVersion=6,infoObj={ \"v\" : 1, \"key\" : { \"cuisine\" : 1 }, \"name\" : \"cuisine_1\", \"ns\" : \"blogs.posts\" }),block_allocation=best,block_compressor=,cache_resident=0,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=0,extractor=,format=btree,huffman_key=,huffman_value=,immutable=0,internal_item_max=0,internal_key_max=0,internal_key_truncate=,internal_page_max=16k,key_format=u,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=16k,leaf_value_max=0,log=(enabled=),lsm=(auto_throttle=,bloom=,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=0,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_max=15,merge_min=0),memory_page_max=5MB,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=true,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=75,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:index-5-7253336746667145592",
+            "LSM" : {
+               ...
+            },
+            "block-manager" : {
+               ...
+            },
+            "btree" : {
+               ...
+            },
+            "cache" : {
+               ...
+            },
+            "compression" : {
+               ...
+            },
+            "cursor" : {
+               ...
+            },
+            "reconciliation" : {
+               ...
+            },
+            "session" : {
+               ...
+            },
+            "transaction" : {
+               ...
+            }
+         },
+         "borough_1_address.zipcode_1" : {
+            "metadata" : {
+               "formatVersion" : 6,
+               "infoObj" : "{ \"v\" : 1, \"key\" : { \"borough\" : 1, \"address.zipcode\" : 1 }, \"name\" : \"borough_1_address.zipcode_1\", \"ns\" : \"blogs.posts\" }"
+            },
+            "creationString" : "allocation_size=4KB,app_metadata=(formatVersion=6,infoObj={ \"v\" : 1, \"key\" : { \"borough\" : 1, \"address.zipcode\" : 1 }, \"name\" : \"borough_1_address.zipcode_1\", \"ns\" : \"blogs.posts\" }),block_allocation=best,block_compressor=,cache_resident=0,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=0,extractor=,format=btree,huffman_key=,huffman_value=,immutable=0,internal_item_max=0,internal_key_max=0,internal_key_truncate=,internal_page_max=16k,key_format=u,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=16k,leaf_value_max=0,log=(enabled=),lsm=(auto_throttle=,bloom=,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=0,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_max=15,merge_min=0),memory_page_max=5MB,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=true,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=75,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:index-6-7253336746667145592",
+            "LSM" : {
+               ...
+            },
+            "block-manager" : {
+               ...
+            },
+            "btree" : {
+               ...
+            },
+            "cache" : {
+               ...
+            },
+            "compression" : {
+               ...
+            },
+            "cursor" : {
+               ...
+            },
+            "reconciliation" : {
+               ...
+            },
+            "session" : {
+               ...
+            },
+            "transaction" : {
+               ...
+            }
+         }
+      },
+      "totalIndexSize" : 626688,
+      "indexSizes" : {
+         "_id_" : 217088,
+         "borough_1_cuisine_1" : 139264,
+         "cuisine_1" : 131072,
+         "borough_1_address.zipcode_1" : 139264
+      },
+      "ok" : 1
+   }
+
+
+Statistics Lookup With Filtered Index Details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To filter the indexes in the  :data:`~collStats.indexDetails` field, you can
+either specify the index keys using the ``indexDetailsKey`` option or specify
+the index name using the ``indexDetailsName``.  To discover index keys and
+names for the collection, use :method:`db.collection.getIndexes()`.
+
+Given the following index:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "guidebook.restaurants",
+      "v" : 1,
+      "key" : {
+         "borough" : 1,
+         "cuisine" : 1
+      },
+      "name" : "borough_1_cuisine_1"
+   }
+
+The following operation filters the ``indexDetails`` document to a single
+index as defined by the ``indexDetailsKey`` document.
+
+.. code-block:: javascript
+
+   db.restaurants.stats(
+      {
+         'indexDetails' : true,
+         'indexDetailsKey' :
+         {
+            'borough' : 1,
+            'cuisine' : 1
+         }
+      }
+   )
+
+The following operation filters the ``indexDetails`` document to a single
+index as defined by the ``indexDetailsName`` document.
+
+.. code-block:: javascript
+
+   db.restaurants.stats(
+      {
+         'indexDetails' : true,
+         'indexDetailsName' : 'borough_1_cuisine_1'
+      }
+   )
+
+Both operations will return the same output:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "blogs.restaurants",
+      "count" : 25359,
+      "size" : 10630398,
+      "avgObjSize" : 419,
+      "storageSize" : 4104192,
+      "capped" : false,
+      "wiredTiger" : {
+         ...
+      },
+      "nindexes" : 4,
+      "indexDetails" : {
+         "borough_1_cuisine_1" : {
+            "metadata" : {
+               "formatVersion" : 6,
+               "infoObj" : "{ \"v\" : 1, \"key\" : { \"borough\" : 1, \"cuisine\" : 1 }, \"name\" : \"borough_1_cuisine_1\", \"ns\" : \"blogs.posts\" }"
+            },
+            "creationString" : "allocation_size=4KB,app_metadata=(formatVersion=6,infoObj={ \"v\" : 1, \"key\" : { \"borough\" : 1, \"cuisine\" : 1 }, \"name\" : \"borough_1_cuisine_1\", \"ns\" : \"blogs.posts\" }),block_allocation=best,block_compressor=,cache_resident=0,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=0,extractor=,format=btree,huffman_key=,huffman_value=,immutable=0,internal_item_max=0,internal_key_max=0,internal_key_truncate=,internal_page_max=16k,key_format=u,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=16k,leaf_value_max=0,log=(enabled=),lsm=(auto_throttle=,bloom=,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=0,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_max=15,merge_min=0),memory_page_max=5MB,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=true,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=75,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:index-4-7253336746667145592",
+            "LSM" : {
+               ...
+            },
+            "block-manager" : {
+               ...
+            },
+            "btree" : {
+               ...
+            },
+            "cache" : {
+               ...
+            },
+            "compression" : {
+               ...
+            },
+            "cursor" : {
+               ...
+            },
+            "reconciliation" : {
+               ...
+            },
+            "session" : {
+               ...
+            },
+            "transaction" : {
+               ...
+            }
+         }
+      },
+      "totalIndexSize" : 626688,
+      "indexSizes" : {
+         "_id_" : 217088,
+         "borough_1_cuisine_1" : 139264,
+         "cuisine_1" : 131072,
+         "borough_1_address.zipcode_1" : 139264
+      },
+      "ok" : 1
+   }
+
+For explanation of the output, see :ref:`output details<collStats-output>`.
+
+.. seealso:: :pipeline:`$collStats`

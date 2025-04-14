@@ -1,0 +1,217 @@
+====================
+sh.shardCollection()
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: sh.shardCollection(namespace, key, unique, options)
+
+   .. |command| replace:: :method:`sh.shardCollection`
+
+   Shards a collection using the ``key`` as a the :term:`shard
+   key`. :method:`sh.shardCollection()` takes the following arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``namespace``
+   
+        - string
+   
+        - The :term:`namespace` of the collection to shard in the form
+          ``<database>.<collection>``.
+          
+          
+   
+      * - ``key``
+   
+        - document
+   
+        - The index specification document to use as the
+          :doc:`shard key </core/sharding-shard-key/>`. The shard key
+          determines how MongoDB distributes the documents among the shards.
+          
+          The *key* of the index specification document is the field to use as
+          the shard key. The *value* of the document must be one of the
+          following:
+          
+          - ``1`` for :doc:`ranged based sharding </core/ranged-sharding>`
+          
+          - ``"hashed"`` to specify a
+            :ref:`hashed shard key <hashed-shard-keys>`.
+          
+          Unless the collection is empty, the index must exist prior to the
+          :dbcommand:`shardCollection` command. If the collection is empty,
+          MongoDB creates the index prior to sharding the collection if the
+          index that can support the shard key does not already exist.
+          
+          See also :ref:`sharding-shard-key-indexes`
+          
+          
+   
+      * - ``unique``
+   
+        - boolean
+   
+        - Optional. When ``true``, the ``unique`` option ensures that the underlying index
+          enforces a unique constraint. Hashed shard keys do not support unique
+          constraints. Defaults to ``false``. If specifying the
+          ``options`` document, ``unique`` is **required**.
+          Omitting a value for ``unique`` while specifying a value for
+          the ``options`` document may result in an incorrectly sharded
+          collection.
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. A document containing optional fields, including
+          ``numInitialChunks`` and ``collation``.
+          
+          
+   
+
+
+   The ``options`` argument supports the following options:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``numInitialChunks``
+   
+        - integer
+   
+        - Optional. Specifies the number of chunks to create
+          initially when sharding an *empty* collection with a :ref:`hashed
+          shard key <sharding-hashed-sharding>`. MongoDB will then create and
+          balance chunks across the cluster. The ``numInitialChunks`` must be
+          less than ``8192`` per shard.
+          
+          .. versionchanged:: 3.4
+          
+             If the collection is not empty or the shard key is not a hashed
+             key, the operation returns an error.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. If the collection specified to ``shardCollection``
+          has a default :doc:`collation </reference/collation>`,
+          you *must* include a collation document with
+          ``{ locale : "simple" }``, or
+          the ``shardCollection`` command fails. At least one of the indexes
+          whose fields support the shard key pattern must have the simple
+          collation.
+          
+          
+   
+
+
+Considerations
+--------------
+
+.. include:: /includes/fact-cannot-unshard-collection.rst
+
+Shard Keys
+~~~~~~~~~~
+
+Choosing the best shard key to effectively distribute load among your
+shards requires some planning. Review :ref:`sharding-shard-key`
+regarding choosing a shard key and restrictions.
+
+Hashed Shard Keys
+~~~~~~~~~~~~~~~~~
+
+:ref:`Hashed shard keys <sharding-hashed-sharding>` use a
+hashed index of a single field as the shard key.
+
+Use the form ``{field: "hashed"}`` to specify a hashed shard key.
+Hashed shard keys may not be compound indexes.
+
+.. include:: /includes/note-hashed-shard-key-during-chunk-migration.rst
+
+.. seealso:: :doc:`/core/hashed-sharding`
+
+Uniqueness
+~~~~~~~~~~
+
+If specifying ``unique: true``:
+
+.. include:: /includes/extracts/shard-collection-unique-restriction-method.rst
+
+See also :ref:`Sharded Collection and Unique Indexes
+<sharding-shard-key-unique>`
+
+.. include:: /includes/fact-shardCollection-collation.rst
+  
+Examples
+--------
+
+Simple Usage
+~~~~~~~~~~~~
+
+Given a collection named ``people`` in a database named ``records``,
+the following command shards the collection by the
+``zipcode`` field:
+
+.. code-block:: javascript
+
+   sh.shardCollection("records.people", { zipcode: 1 } )
+
+Usage with Options
+~~~~~~~~~~~~~~~~~~
+
+The ``phonebook`` database has a collection ``contacts`` with no
+default :ref:`collation <createCollection-collation-example>`. The 
+following example uses
+:method:`sh.shardCollection()` to shard the ``phonebook.contacts`` with:
+
+- a :ref:`hashed shard key <sharding-hashed-sharding>` on the
+  ``last_name`` field,
+- ``5`` initial chunks, and
+- a :doc:`collation </reference/collation>` of ``simple``. 
+
+.. code-block:: javascript
+
+   sh.shardCollection(
+     "phonebook.contacts",
+     { last_name: "hashed" },
+     false,
+     {
+       numInitialChunks: 5,
+       collation: { locale: "simple" }
+     }
+   )
+
+
+.. seealso:: :dbcommand:`shardCollection`, :doc:`/sharding`

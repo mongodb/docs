@@ -1,0 +1,93 @@
+stepnum: 1
+level: 4
+ref: sharded-cluster-deploy-config-server
+pre: |
+   Start *each* :binary:`~bin.mongod` in the config server replica set.
+   Include the ``keyFile`` setting. The ``keyFile`` setting
+   enforces both :doc:`/core/security-internal-authentication` and
+   :doc:`/core/authorization`.
+
+   You can specify the :binary:`~bin.mongod` settings either via a
+   configuration file or the command line.
+
+action:
+  - pre: |
+      **Configuration File**
+      
+      If using a configuration file, set :setting:`security.keyFile` to the
+      keyfile's path, :setting:`sharding.clusterRole` to ``configsvr``, 
+      and :setting:`replication.replSetName` to the desired name of the 
+      config server replica set.
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      sharding:
+        clusterRole: configsvr
+      replication:
+        replSetName: <setname>
+    post: |
+       .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+  - pre: |
+      Start the :binary:`~bin.mongod` specifying the ``--config`` option and the 
+      path to the configuration file.
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+     
+  - pre: |
+      **Command Line**
+      
+      If using the command line parameters, start the :binary:`~bin.mongod` with 
+      the ``--keyFile``, ``--configsvr``, and ``--replSet`` parameters.
+    language: sh
+    code: |
+       mongod --keyFile <path-to-keyfile> --configsvr --replSet <setname> --dbpath <path>
+    post: |
+       .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+---
+stepnum: 2
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-connect-to-member
+---
+stepnum: 3
+level: 4
+ref: csrs-initiate
+pre: |
+
+  The :method:`rs.initiate()` method initiates the replica set and can
+  take an optional :doc:`replica set configuration document
+  </reference/replica-configuration>`. In the :doc:`replica set
+  configuration document </reference/replica-configuration>`, include:
+
+  - The :rsconf:`_id`. The :rsconf:`_id` *must* match the ``--replSet``
+    parameter passed to the :binary:`~bin.mongod`.
+    
+  - The :rsconf:`members` field. The :rsconf:`members` field is an
+    array and requires a document per each member of the replica set.
+    
+  - The :rsconf:`configsvr` field. The :rsconf:`configsvr` field must
+    be set to ``true`` for the config server replica set.
+
+  See :doc:`/reference/replica-configuration` for more information on 
+  replica set configuration documents.
+action:
+  - pre: |
+      Initiate the replica set using the :method:`rs.initiate()` method
+      and a configuration document:
+    language: javascript
+    code: |
+      rs.initiate(
+        {
+          _id: "<replSetName>",
+          configsvr: true,
+          members: [
+            { _id : 0, host : "cfg1.example.net:27017" },
+            { _id : 1, host : "cfg2.example.net:27017" },
+            { _id : 2, host : "cfg3.example.net:27017" }
+          ]
+        }
+      )
+...

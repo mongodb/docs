@@ -1,0 +1,179 @@
+============
+cursor.min()
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: cursor.min()
+
+   Specifies the *inclusive* lower bound for a specific index in order
+   to constrain the results of
+   :method:`~db.collection.find()`. :method:`~cursor.min()` provides a
+   way to specify lower bounds on compound key indexes.
+
+   The :method:`~cursor.min()` method has the following parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``indexBounds``
+   
+        - document
+   
+        - The inclusive lower bound for the index keys.
+          
+          
+   
+
+
+   The ``indexBounds`` parameter has the following prototype form:
+
+   .. code-block:: javascript
+
+      { field1: <min value>, field2: <min value2>, fieldN:<min valueN> }
+
+   The fields correspond to *all* the keys of a particular index
+   *in order*. You can explicitly specify the particular index
+   with the :method:`~cursor.hint()` method. Otherwise,
+   MongoDB selects the index using the fields in the
+   ``indexBounds``; however, if multiple indexes exist on same
+   fields with different sort orders, the selection of the index
+   may be ambiguous.
+
+   .. seealso:: :method:`~cursor.max()`.
+
+   :method:`~cursor.min()` exists primarily to support the
+   :binary:`~bin.mongos` process, and is a shell wrapper around the
+   query modifier :operator:`$min`.
+
+   .. include:: /includes/extracts/mongo-shell-deprecated-meta-operator-min.rst
+
+Behaviors
+---------
+
+Interaction with Index Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because :method:`~cursor.min()` requires an index on a
+field, and forces the query to use this index, you may prefer
+the :query:`$gte` operator for the query if
+possible. Consider the following example:
+
+.. code-block:: javascript
+
+   db.products.find( { _id: 7 } ).min( { price: 1.39 } )
+
+The query will use the index on the ``price`` field, even if
+the index on ``_id`` may be better.
+
+Index Bounds
+~~~~~~~~~~~~
+
+If you use :method:`~cursor.min()` with :method:`~cursor.max()` to
+specify a range:
+
+- the index bounds specified in :method:`~cursor.min()` and
+  :method:`~cursor.max()` must both refer to the keys of the same index.
+
+- the bound specified by :method:`~cursor.max()` must be greater than
+  the bound specified by :method:`~cursor.min()`.
+
+  .. versionchanged:: 3.6.6
+
+``min()`` without ``max()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-query-min-max.rst
+
+Example
+-------
+
+This example assumes a collection named ``products`` that holds the
+following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 6, "item" : "apple", "type" : "cortland", "price" : 1.29 }
+   { "_id" : 2, "item" : "apple", "type" : "fuji", "price" : 1.99 }
+   { "_id" : 1, "item" : "apple", "type" : "honey crisp", "price" : 1.99 }
+   { "_id" : 3, "item" : "apple", "type" : "jonagold", "price" : 1.29 }
+   { "_id" : 4, "item" : "apple", "type" : "jonathan", "price" : 1.29 }
+   { "_id" : 5, "item" : "apple", "type" : "mcintosh", "price" : 1.29 }
+   { "_id" : 7, "item" : "orange", "type" : "cara cara", "price" : 2.99 }
+   { "_id" : 10, "item" : "orange", "type" : "navel", "price" : 1.39 }
+   { "_id" : 9, "item" : "orange", "type" : "satsuma", "price" : 1.99 }
+   { "_id" : 8, "item" : "orange", "type" : "valencia", "price" : 0.99 }
+
+The collection has the following indexes:
+
+.. code-block:: javascript
+
+   { "_id" : 1 }
+   { "item" : 1, "type" : 1 }
+   { "item" : 1, "type" : -1 }
+   { "price" : 1 }
+
+- Using the ordering of the ``{ item: 1, type: 1 }`` index,
+  :method:`~cursor.min()` limits the query to the documents
+  that are at or above the index key bound of ``item`` equal to
+  ``apple`` and ``type`` equal to ``jonagold``, as in the following:
+
+  .. code-block:: javascript
+
+     db.products.find().min( { item: 'apple', type: 'jonagold' } ).hint( { item: 1, type: 1 } )
+
+  The query returns the following documents:
+
+  .. code-block:: javascript
+
+     { "_id" : 3, "item" : "apple", "type" : "jonagold", "price" : 1.29 }
+     { "_id" : 4, "item" : "apple", "type" : "jonathan", "price" : 1.29 }
+     { "_id" : 5, "item" : "apple", "type" : "mcintosh", "price" : 1.29 }
+     { "_id" : 7, "item" : "orange", "type" : "cara cara", "price" : 2.99 }
+     { "_id" : 10, "item" : "orange", "type" : "navel", "price" : 1.39 }
+     { "_id" : 9, "item" : "orange", "type" : "satsuma", "price" : 1.99 }
+     { "_id" : 8, "item" : "orange", "type" : "valencia", "price" : 0.99 }
+
+  If the query did not explicitly specify the index with the
+  :method:`~cursor.hint()` method, it is ambiguous as to
+  whether :binary:`~bin.mongod` would select the ``{ item: 1, type: 1 }``
+  index ordering or the ``{ item: 1, type: -1 }`` index ordering.
+
+- Using the ordering of the index ``{ price: 1 }``, :method:`~cursor.min()` limits the query to the documents that are at or
+  above the index key bound of ``price`` equal to ``1.39`` and
+  :method:`~cursor.max()` limits the query to the documents
+  that are below the index key bound of ``price`` equal to ``1.99``:
+
+  .. note::
+  
+     .. versionchanged:: 3.6.6
+
+        The bound specified by :method:`~cursor.max()` must be greater
+        than the bound specified by :method:`~cursor.min()`.
+
+  .. code-block:: javascript
+
+      db.products.find().min( { price: 1.39 } ).max( { price: 1.99 } ).hint( { price: 1 } )
+
+  The query returns the following documents:
+
+  .. code-block:: javascript
+
+     { "_id" : 10, "item" : "orange", "type" : "navel", "price" : 1.39 }

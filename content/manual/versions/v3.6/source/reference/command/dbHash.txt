@@ -1,0 +1,135 @@
+======
+dbHash
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: dbHash
+
+   Returns the hash values of the collections in a database and an
+   MD5 value for the list of collections. :dbcommand:`dbHash` is useful
+   to compare databases across :binary:`~bin.mongod` instances, such as
+   mirrored :doc:`config servers
+   </core/sharded-cluster-config-servers>` for sharded clusters or
+   members of replica sets.
+
+   :dbcommand:`dbHash` has the following syntax:
+
+   .. code-block:: javascript
+
+      db.runCommand ( { dbHash: 1, collections: [ <collection1>, ... ] } )
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``dbHash``
+   
+        - Any type
+   
+        - The command to run. Specify any value.
+          
+          
+   
+      * - ``collections``
+   
+        - array
+   
+        - Optional. An array of collection names.
+          
+          Either specify the collections for which to return the hash values,
+          or omit or specify an empty array to return the hash values for all
+          collections in the database.
+          
+          
+   
+
+
+Behavior
+--------
+
+If a collection in the ``collections`` array is non-existent,
+:dbcommand:`dbHash` does not return a hash value for that collection.
+
+Examples
+--------
+
+Return Hash Values for All Collections in a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the hash value for all collections in the
+database ``test``:
+
+.. code-block:: javascript
+
+   use test
+   db.runCommand( { dbHash: 1 } )
+
+The operation returns the following document:
+
+.. code-block:: json
+
+   {
+      "host" : "myHostName.local",
+      "collections" : {
+         "bar" : "0a8089b7134801ab74d5f1310c27f161",
+         "foo" : "f49ff19aa6959d96b43961a595ae550e",
+         "foo2" : "a4f0e61c26af65d7efa0d0ad173db801",
+         "inventory" : "4f6d23309dcc059232d0e4383fcedfa1",
+         "orders" : "083def5adf48686a732ee07b8ffaf228",
+         "restaurants" : "407a4f24cfafa40641e20098929c5632",
+         "zipcodes" : "679530b9b79d529d79bd143435135f25"
+      },
+      "md5" : "2e3b201903d60cdc1eedfd58f4c014d4",
+      "timeMillis" : 71,
+      "ok" : 1
+   }
+
+Return Hash Values for Specified Collections in a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the hash value for the collections ``foo``
+and ``bar`` in the database ``test``:
+
+.. code-block:: javascript
+
+   use test
+   db.runCommand( { dbHash: 1, collections: [ "foo", "bar" ] } )
+
+The operation returns the following document:
+
+.. code-block:: json
+
+   {
+      "host" : "myHostName.local",
+      "collections" : {
+         "bar" : "0a8089b7134801ab74d5f1310c27f161",
+         "foo" : "f49ff19aa6959d96b43961a595ae550e"
+      },
+      "md5" : "94f296621d5ed4ed35088257ce0c9d99",
+      "timeMillis" : 0,
+      "ok" : 1
+   }
+
+.. note:: 
+
+   The ``md5`` is the aggregate hash value of the specified
+   collections.
+
+.. slave-ok, read-lock

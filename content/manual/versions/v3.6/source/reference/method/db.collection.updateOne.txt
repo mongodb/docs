@@ -1,0 +1,480 @@
+=========================
+db.collection.updateOne()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.updateOne(filter, update, options)
+
+   .. versionadded:: 3.2
+
+   Updates a single document within the collection based on the filter.
+
+   The :method:`~db.collection.updateOne()` method has the following form:
+
+   .. versionchanged:: 3.6
+
+   .. code-block:: javascript
+
+      db.collection.updateOne(
+         <filter>,
+         <update>,
+         {
+           upsert: <boolean>,
+           writeConcern: <document>,
+           collation: <document>,
+           arrayFilters: [ <filterdocument1>, ... ]
+         }
+      )
+
+   The :method:`~db.collection.updateOne()` method takes the following
+   parameters:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``filter``
+   
+        - document
+   
+        - The selection criteria for the update. The same :ref:`query
+          selectors <query-selectors>` as in the :method:`find()
+          <db.collection.find()>` method are available.
+          
+          Specify an empty document ``{ }`` to update the first document returned in 
+          the collection.
+          
+          
+   
+      * - ``update``
+   
+        - document
+   
+        - The modifications to apply.
+          
+          Use :doc:`/reference/operator/update/` such as :update:`$set`, 
+          :update:`$unset`, or :update:`$rename`.
+          
+          Using the :ref:`update() <update-parameter>` pattern of 
+          ``field: value`` for the ``update`` parameter throws an error.
+          
+          
+   
+      * - ``upsert``
+   
+        - boolean
+   
+        - .. include:: /includes/extracts/updateOne-behavior-method.rst
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``arrayFilters``
+   
+        - array
+   
+        - Optional. An array of filter documents that determines which array elements to
+          modify for an update operation on an array field.
+          
+          .. include::  /includes/extracts/arrayFilters-details.rst
+          
+          
+          For examples, see :ref:`updateOne-arrayFilters`.
+          
+          .. versionadded:: 3.6
+          
+          
+          
+   
+
+
+   :returns:
+
+      A document containing:
+
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+        :term:`write concern` or ``false`` if write concern was disabled
+
+      - ``matchedCount`` containing the number of matched documents
+
+      - ``modifiedCount`` containing the number of modified documents
+
+      - ``upsertedId`` containing the ``_id`` for the upserted document
+
+Behavior
+--------
+
+:method:`~db.collection.updateOne()` updates the first matching document in 
+the collection that matches the ``filter``, using the ``update`` instructions 
+to apply modifications.
+
+If ``upsert: true`` and no documents match the ``filter``, 
+:method:`~db.collection.updateOne()` creates a new 
+document based on the ``filter`` criteria and ``update`` modifications. See 
+:ref:`updateOne-example-update-with-upsert`.
+
+.. _updateOne-capped-collection:
+
+Capped Collection
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/capped-collection-immutable-document-size-update.rst
+
+.. TBD - need to test more thoroughly to pin down func.
+.. Sharded Collections
+.. ~~~~~~~~~~~~~~~~~~~
+
+
+Explainability
+~~~~~~~~~~~~~~
+
+.. |write-method| replace:: :method:`~db.collection.updateOne()`
+.. |old-write-method| replace:: :method:`~db.collection.update()`
+
+.. include:: /includes/fact-bulkwrite-explainable.rst
+
+.. _updateOne-method-examples:
+
+Examples
+--------
+
+.. _updateOne-example-update:
+
+Update
+~~~~~~
+
+The ``restaurant`` collection contains the  following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "Borough" : "Manhattan" },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
+   { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 0 }
+
+The following operation updates a single document where 
+``name: "Central Perk Cafe"`` with the ``violations`` field:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateOne( 
+         { "name" : "Central Perk Cafe" }, 
+         { $set: { "violations" : 3 } } 
+      );
+   } catch (e) {
+      print(e);
+   }
+  
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+If no matches were found, the operation instead returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
+
+Setting ``upsert: true`` would insert the document if no match was found. See 
+:ref:`updateOne-example-update-with-upsert`
+
+.. _updateOne-example-update-with-upsert:
+
+Update with Upsert
+~~~~~~~~~~~~~~~~~~
+
+The ``restaurant`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "Borough" : "Manhattan", "violations" : 3 },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
+   { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : "0" }
+
+The following operation attempts to update the document with 
+``name : "Pizza Rat's Pizzaria"``, while ``upsert: true`` :
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateOne( 
+         { "name" : "Pizza Rat's Pizzaria" },
+         { $set: {"_id" : 4, "violations" : 7, "borough" : "Manhattan" } }, 
+         { upsert: true }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+Since ``upsert:true`` the document is ``inserted`` based on the ``filter`` and 
+``update`` criteria. The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "matchedCount" : 0,
+      "modifiedCount" : 0,
+      "upsertedId" : 4
+   }
+
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "Borough" : "Manhattan", "violations" : 3 },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
+   { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 4 },
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "Borough" : "Manhattan", "violations" : 7 }
+
+The ``name`` field was filled in using the ``filter`` criteria, while the 
+``update`` operators were used to create the rest of the document.
+
+The following operation updates the first document with ``violations`` that 
+are greater than ``10``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateOne( 
+         { "violations" : { $gt: 10} }, 
+         { $set: { "Closed" : true } }, 
+         { upsert: true }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "matchedCount" : 0,
+      "modifiedCount" : 0,
+      "upsertedId" : ObjectId("56310c3c0c5cbb6031cafaea")
+   }
+
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "Borough" : "Manhattan", "violations" : 3 },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
+   { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 4 },
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "Borough" : "Manhattan", "grade" : 7 }
+   { "_id" : ObjectId("56310c3c0c5cbb6031cafaea"), "Closed" : true }
+
+Since no documents matched the filter, and ``upsert`` was ``true``, 
+:method:`~db.collection.updateOne` inserted the document with a generated 
+``_id`` and the ``update`` criteria only.
+
+.. _updateOne-example-update-with-write-concern:
+
+Update with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a 
+``w`` of ``majority``, ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateOne(
+          { "name" : "Pizza Rat's Pizzaria" },
+          { $inc: { "violations" : 3}, $set: { "Closed" : true } },
+          { w: "majority", wtimeout: 100 }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+If the primary and at least one secondary acknowledge each write operation 
+within 100 milliseconds, it returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+exception is thrown:
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errInfo" : {
+         "wtimeout" : true
+      },
+      "errmsg" : "waiting for replication timed out"
+   }) :
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.updateOne(
+      { category: "cafe" },
+      { $set: { status: "Updated" } },
+      { collation: { locale: "fr", strength: 1 } }
+   );
+
+.. _updateOne-arrayFilters:
+
+Specify ``arrayFilters`` for an Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+Create a collection ``students`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students.insert([
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ])
+
+To modify all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option in the
+:method:`db.collection.updateOne` method:
+
+.. code-block:: javascript
+
+   db.students.updateOne(
+      { grades: { $gte: 100 } },
+      { $set: { "grades.$[element]" : 100 } },
+      { arrayFilters: [ { "element": { $gte: 100 } } ] }
+   )
+
+The operation updates the ``grades`` field of a single document, and
+after the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+Create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insert([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters`` in the :method:`db.collection.updateOne` method:
+
+.. code-block:: javascript
+
+   db.students2.updateOne(
+      { },
+      { $set: { "grades.$[elem].mean" : 100 } },
+      { arrayFilters: [ { "elem.grade": { $gte: 85 } } ] }
+   )
+
+The operation updates the array of a single document, and after the
+operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 5-6
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 } 
+       ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 6 },
+         { "grade" : 87, "mean" : 90, "std" : 3 },
+         { "grade" : 85, "mean" : 85, "std" : 4 }
+      ]
+   }
+
+.. seealso:: To update multiple documents, see
+   :method:`db.collection.updateMany()`.

@@ -1,0 +1,141 @@
+====
+eval
+====
+
+.. Edits to this page should be carried over to the method db.eval.txt
+   file. HOWEVER, the parameters are different between the command and method.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: eval
+
+   .. deprecated:: 3.0
+
+   The :dbcommand:`eval` command evaluates JavaScript functions on the
+   database server.
+
+   The :dbcommand:`eval` command has the following form:
+
+   .. code-block:: none
+
+      {
+        eval: <function>,
+        args: [ <arg1>, <arg2> ... ],
+        nolock: <boolean>
+      }
+
+   The command contains the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``eval``
+   
+        - function
+   
+        - A JavaScript function.
+          
+          
+   
+      * - ``args``
+   
+        - array
+   
+        - Optional. An array of arguments to pass to the JavaScript function. Omit if the function does not take arguments.
+          
+          
+   
+      * - ``nolock``
+   
+        - boolean
+   
+        - Optional. By default, :dbcommand:`eval` takes a global write lock before
+          evaluating the JavaScript function. As a result, :dbcommand:`eval`
+          blocks all other read and write operations to the database while the
+          :dbcommand:`eval` operation runs. Set ``nolock`` to ``true`` on the
+          :dbcommand:`eval` command to prevent the :dbcommand:`eval` command
+          from taking the global write lock before evaluating the
+          JavaScript. ``nolock`` does not impact whether operations within the
+          JavaScript code itself takes a write lock.
+          
+          
+   
+
+
+   .. include:: /includes/extracts/admonition-js-prevalence-eval.rst
+
+Behavior
+--------
+
+.. |object| replace:: :dbcommand:`eval`
+.. |nolockobject| replace:: :dbcommand:`eval` command
+.. include:: /includes/admonitions-eval.rst
+
+Example
+-------
+
+The following example uses :dbcommand:`eval` to
+perform an increment and calculate the average on the server:
+
+.. include:: /includes/examples-eval.rst
+   :start-after: eval-command-example
+   :end-before: .. eval-method-example
+
+The ``db`` in the function refers to the current database.
+
+The :binary:`~bin.mongo` shell provides a helper method
+:method:`db.eval()` [#eval-shell-helper]_, so you can express the
+above as follows:
+
+.. include:: /includes/examples-eval.rst
+   :start-after: .. eval-method-example
+
+If you want to use the server's interpreter, you must run
+:dbcommand:`eval`. Otherwise, the :binary:`~bin.mongo` shell's
+JavaScript interpreter evaluates functions entered directly into the
+shell.
+
+If an error occurs, :dbcommand:`eval` throws an exception.
+The following invalid function uses the variable ``x`` without
+declaring it as an argument:
+
+.. code-block:: javascript
+
+   db.runCommand(
+                  {
+                    eval: function() { return x + x; },
+                    args: [ 3 ]
+                  }
+                )
+
+The statement will result in the following exception:
+
+.. code-block:: javascript
+
+   {
+      "errmsg" : "exception: JavaScript execution failed: ReferenceError: x is not defined near '{ return x + x; }' ",
+      "code" : 16722,
+      "ok" : 0
+   }
+
+.. seealso:: :doc:`/core/server-side-javascript`
+
+.. [#eval-shell-helper]
+   .. include:: /includes/fact-eval-helper-method.rst

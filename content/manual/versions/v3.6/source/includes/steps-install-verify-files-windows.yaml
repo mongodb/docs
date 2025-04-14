@@ -1,0 +1,129 @@
+title: Download the Sigcheck utility from Microsoft.
+stepnum: 1
+level: 4
+ref: download-sigcheck
+content: |
+  a. Visit the `Sigcheck utility page <https://docs.microsoft.com/en-us/sysinternals/downloads/sigcheck>`__.
+
+  b. Click the :guilabel:`Download Sigcheck` link.
+
+  c. Unzip ``Sigcheck.zip``.
+
+  d. Move the Sigcheck directory to an appropriate location on your 
+     Windows host.
+
+     For this tutorial, this location is 
+     ``$Env:ProgramFiles\Sigcheck``.
+---
+title: Download the MongoDB installation file.
+stepnum: 2
+level: 4
+ref: download-install-file
+content: |
+  Download the binaries from ``https://www.mongodb.org/downloads``.
+
+  .. example::
+
+     To download the ``v3.4-latest`` release for Windows using 
+     Powershell, invoke this command:
+
+     .. code-block:: powershell
+
+        Invoke-WebRequest -Uri "https://downloads.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi" `
+          -OutFile "$Env:HomePath\Downloads\mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi"
+
+---
+title: Download the public signature file.
+stepnum: 3
+level: 4
+ref: download-sig-file
+content: |
+  Download the ``md5`` from ``https://www.mongodb.org/downloads``.
+
+  .. example::
+
+     To download the SHA256 signature for the ``v3.4-latest`` release 
+     for Windows using Powershell, invoke this command:
+
+     .. code-block:: powershell
+
+        Invoke-WebRequest -Uri "https://downloads.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi.sha256" `
+          -OutFile "$Env:HomePath\Downloads\mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi.sha256"
+---
+title: Verify the signature of the MongoDB installer.
+stepnum: 4
+level: 4
+ref: verify-sig
+content: |
+
+  Invoke ``Sigcheck``:
+
+  .. code-block:: powershell
+
+     $Env:ProgramFiles\Sigcheck\sigcheck64.exe `
+       -h $Env:HomePath\Downloads\mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi
+
+  .. note::
+     Click :guilabel:`Agree` to accept the 
+     :abbr:`EULA (End User License Agreement)` when it displays. 
+
+  ``Sigcheck`` returns this verification information for the latest 
+  release of MongoDB 3.4:
+
+  .. code-block:: bat
+     :emphasize-lines: 19
+
+     Sigcheck v2.60 - File version and signature viewer
+     Copyright (C) 2004-2017 Mark Russinovich
+     Sysinternals - www.sysinternals.com
+
+     $Env:HomePath\downloads\mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi:
+             Verified:       Signed
+             Signing date:   12:34 AM 6/20/2018
+             Publisher:      MongoDB, Inc.
+             Company:        n/a
+             Description:    n/a
+             Product:        n/a
+             Prod version:   n/a
+             File version:   n/a
+             MachineType:    n/a
+             MD5:    D7866C013989AEE2FA87774EFFF884F0
+             SHA1:   E5D7D78E8FFFF9CFF3BD605C3407A55F87F4C8DD
+             PESHA1: E5D7D78E8FFFF9CFF3BD605C3407A55F87F4C8DD
+             PE256:  8FE0670DF2AB74CCD33910C0AF2F000225BA2ED21330767D95E3F6DED96E6893
+             SHA256: 8FE0670DF2AB74CCD33910C0AF2F000225BA2ED21330767D95E3F6DED96E6893
+             IMP:    n/a
+
+---
+title: Compare the signature file to the MongoDB installer hash.
+stepnum: 5
+level: 4
+ref: download-key-file
+content: |
+
+  To compare the signature file to the hash of the MongoDB binary, 
+  invoke this Powershell script:
+
+  .. code-block:: powershell
+
+     $sigHash = (Get-Content $Env:HomePath\Downloads\mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi.sha256 | Out-String).SubString(0,64).ToUpper(); `
+     $fileHash = (Get-FileHash $Env:HomePath\Downloads\mongodb-win32-x86_64-2008plus-ssl-v3.4-latest-signed.msi).Hash.Trim(); `
+     echo $sigHash; echo $fileHash; `
+     $sigHash -eq $fileHash
+
+  .. code-block:: bat
+     :emphasize-lines: 1-2
+
+     8FE0670DF2AB74CCD33910C0AF2F000225BA2ED21330767D95E3F6DED96E6893
+     8FE0670DF2AB74CCD33910C0AF2F000225BA2ED21330767D95E3F6DED96E6893
+     True
+
+  The command outputs three lines:
+  
+  - A ``SHA256`` hash that you downloaded directly from MongoDB.
+  - A ``SHA256`` hash computed from the MongoDB binary you
+    downloaded from MongoDB.
+  - A ``True`` or ``False`` result depending if the hashes match.
+ 
+  If the hashes match, the MongoDB binary is verified.
+...

@@ -1,0 +1,178 @@
+======================
+Upgrade MongoDB to 3.2
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any upgrade, please familiarize yourself with the
+content of this document.
+
+If you need guidance on upgrading to 3.2, `MongoDB offers 3.2 upgrade services
+<https://www.mongodb.com/contact/mongodb-3-2-upgrade-services?jmp=docs>`_ to help ensure a smooth transition without interruption to your
+MongoDB application.
+
+.. _3.2-upgrade-considerations:
+
+Upgrade Recommendations and Checklists
+--------------------------------------
+
+When upgrading, consider the following:
+
+Upgrade Requirements
+~~~~~~~~~~~~~~~~~~~~
+
+To upgrade an existing MongoDB deployment to 3.2, you must be running a
+3.0-series release.
+
+To upgrade from a 2.6-series release, you *must* upgrade to the latest
+3.0-series release before upgrading to 3.2. For the procedure to
+upgrade from the 2.6-series to a 3.0-series release, see :v3.0:`Upgrade
+to 3.0 </release-notes/3.0-upgrade>`.
+
+Preparedness
+~~~~~~~~~~~~
+
+Before beginning your upgrade, see the :v3.2:`Compatibility Changes in
+MongoDB 3.2 </release-notes/3.2-compatibility>` document to ensure that
+your applications and deployments are compatible with MongoDB 3.2.
+Resolve the incompatibilities in your deployment before starting the
+upgrade.
+
+Before upgrading MongoDB, always test your application in a staging
+environment before deploying the upgrade to your production
+environment.
+
+
+.. _3.2-upgrade-standalone:
+
+Upgrade Standalone ``mongod`` Instance to MongoDB 3.2
+-----------------------------------------------------
+
+The following steps outline the procedure to upgrade a standalone
+:binary:`~bin.mongod` from version 3.0 to 3.2. To upgrade from version
+2.6 to 3.2, :v3.0:`upgrade to the latest
+3.0-series release </release-notes/3.0-upgrade>`
+*first*, and then use the following procedure to upgrade from 3.0 to 3.2.
+
+Upgrade with Package Manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you installed MongoDB from the MongoDB ``apt``, ``yum``, ``dnf``, or
+``zypper`` repositories, you should upgrade to 3.2 using your package
+manager. Follow the appropriate :v3.2:`installation instructions
+</administration/install-on-linux>` for your Linux system. This will
+involve adding a repository for the new release, then performing the
+actual upgrade.
+
+Manual Upgrade
+~~~~~~~~~~~~~~
+
+Otherwise, you can manually upgrade MongoDB:
+
+.. include:: /includes/steps/3.2-upgrade-mongod.rst
+
+.. note::
+   MongoDB 3.2 generates core dumps on some :binary:`~bin.mongod`
+   failures. For production environments, you may prefer to turn off core
+   dumps for the operating system, if not already.
+
+.. _3.2-upgrade-replica-set:
+
+Upgrade a Replica Set to 3.2
+----------------------------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+All replica set members must be running version 3.0 before you can
+upgrade them to version 3.2. To upgrade a replica set from an earlier
+MongoDB version, :v3.0:`upgrade all members of the replica set to the latest
+3.0-series release </release-notes/3.0-upgrade>` *first*, and then follow the procedure
+to upgrade from MongoDB 3.0 to 3.2.
+
+Upgrade Binaries
+~~~~~~~~~~~~~~~~
+
+You can upgrade from MongoDB 3.0 to 3.2 using a "rolling" upgrade to
+minimize downtime by upgrading the members individually while the other
+members are available:
+
+.. include:: /includes/warning-mixed-version-rs-config.rst
+
+.. include:: /includes/steps/3.2-upgrade-replica-set.rst
+
+.. note::
+   MongoDB 3.2 generates core dumps on some :binary:`~bin.mongod`
+   failures. For production environments, you may prefer to turn off core
+   dumps for the operating system, if not already.
+
+.. _3.2-upgrade-cluster:
+
+Upgrade a Sharded Cluster to 3.2
+----------------------------------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- Version 3.0 or Greater
+    To upgrade a sharded cluster to 3.2, **all** members of the
+    cluster must be at least version 3.0. The upgrade process checks
+    all components of the cluster and will produce warnings if any
+    component is running version earlier than 3.0.
+
+- Stop Metadata Changes during the Upgrade
+    During the upgrade, ensure that clients do not make changes to the
+    collection metadata. For example, during the upgrade, do **not**
+    perform any of the following operations:
+
+    - :method:`sh.enableSharding()`
+
+    - :method:`sh.shardCollection()`
+
+    - :method:`sh.addShard()`
+
+    - :method:`db.createCollection()`
+
+    - :method:`db.collection.drop()`
+
+    - :method:`db.dropDatabase()`
+
+    - any operation that creates a database
+
+    - any other operation that modifies the cluster metadata in any way.
+
+    See the :doc:`/reference/sharding` for a complete list of sharding
+    commands. Not all commands on the :doc:`/reference/sharding` page
+    modify the cluster metadata.
+
+- :ref:`Disable the balancer <sharding-balancing-disable-temporarily>`
+
+- Back up the ``config`` Database
+    *Optional but Recommended.* As a precaution, take a backup of the
+    ``config`` database *before* upgrading the sharded cluster.
+
+Upgrade Binaries
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/3.2-upgrade-sharded-cluster.rst
+
+.. note::
+
+   MongoDB 3.2 generates core dumps on some :binary:`~bin.mongod` failures.
+   For production environments, you may prefer to turn off core dumps
+   for the operating system, if not already.
+
+Once the sharded cluster binaries have been upgraded to 3.2, existing
+config servers will continue to run as mirrored :binary:`~bin.mongod`
+instances. For instructions on upgrading existing config servers to a
+replica set, see :v3.2:`Upgrade Config Servers to Replica Set
+</tutorial/upgrade-config-servers-to-replica-set>` (requires MongoDB
+version 3.2.4 or later versions).
+
+.. _`MongoDB Download Page`: http://www.mongodb.org/downloads?jmp=docs

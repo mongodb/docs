@@ -1,0 +1,215 @@
+==========================
+db.collection.deleteMany()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.deleteMany()
+
+   Removes all documents that match the ``filter`` from a collection.
+
+   .. code-block:: javascript
+
+      db.collection.deleteMany(
+         <filter>,
+         {
+            writeConcern: <document>,
+            collation: <document>
+         }
+      )
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``filter``
+   
+        - document
+   
+        - Specifies deletion criteria using :doc:`query operators
+          </reference/operator>`. 
+          
+          To delete all documents in a collection, pass in an empty document (``{ }``).
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+
+
+   :returns:
+      
+     A document containing:
+      
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+        :term:`write concern` or ``false`` if write concern was disabled
+		
+     - ``deletedCount`` containing the number of deleted documents
+
+Behavior
+--------
+
+.. _deleteMany-capped-collection:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+:method:`~db.collection.deleteMany()` throws a ``WriteError`` exception 
+if used on a :term:`capped collection`. To remove all documents from a capped 
+collection, use :method:`db.collection.drop()` instead.
+
+.. _deleteMany-delete-multiple-documents:
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete a single document, use :method:`db.collection.deleteOne()` instead. 
+
+Alternatively, use a field that is a part of a :term:`unique index` such as 
+``_id``. 
+
+Examples
+--------
+
+.. _deleteMany-example-delete-multiple-document:
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``orders`` collection has documents with the following structure:
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId("563237a41a4d68582c2509da"),
+      stock: "Brent Crude Futures",
+      qty: 250,
+      type: "buy-limit",
+      limit: 48.90,
+      creationts: ISODate("2015-11-01T12:30:15Z"),
+      expiryts: ISODate("2015-11-01T12:35:15Z"),
+      client: "Crude Traders Inc."
+   }
+   
+The following operation deletes all documents where ``client : "Crude Traders 
+Inc."``:
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteMany( { "client" : "Crude Traders Inc." } );
+   } catch (e) {
+      print (e);
+   }
+   
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "deletedCount" : 10 }
+   
+The following operation deletes all documents where ``stock : "Brent Crude 
+Futures"`` and ``limit`` is greater than ``48.88``:
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteMany( { "stock" : "Brent Crude Futures", "limit" : { $gt : 48.88 } } );
+   } catch (e) {
+      print (e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "deletedCount" : 8 }
+
+.. _deleteMany-example-update-with-write-concern:
+
+deleteMany() with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a 
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteMany(
+          { "client" : "Crude Traders Inc." },
+          { w : "majority", wtimeout : 100 }
+      );
+   } catch (e) {
+      print (e);
+   }
+
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+exception is thrown:
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errInfo" : {
+         "wtimeout" : true
+      },
+      "errmsg" : "waiting for replication timed out"
+   })
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.deleteMany( 
+      { category: "cafe", status: "A" }, 
+      { collation: { locale: "fr", strength: 1 } }
+   )
+

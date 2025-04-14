@@ -1,0 +1,77 @@
+============================================
+Model Tree Structures with Parent References
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Data in MongoDB has a *flexible schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. Decisions
+that affect how you model data can affect application performance and
+database capacity. See :doc:`/core/data-models` for a full high
+level overview of data modeling in MongoDB.
+
+This document describes a data model that describes a tree-like
+structure in MongoDB documents by storing
+:ref:`references <data-modeling-referencing>` to "parent" nodes in
+children nodes.
+
+Pattern
+-------
+
+.. start-model-tree-structures-include-here
+
+The *Parent References* pattern stores each tree node in a document; in
+addition to the tree node, the document stores the id of the node's
+parent.
+
+Consider the following hierarchy of categories:
+
+.. include:: /images/data-model-tree.rst
+
+
+The following example models the tree using *Parent References*,
+storing the reference to the parent category in the field ``parent``:
+
+.. code-block:: javascript
+
+   db.categories.insertMany( [
+      { _id: "MongoDB", parent: "Databases" },
+      { _id: "dbm", parent: "Databases" },
+      { _id: "Databases", parent: "Programming" },
+      { _id: "Languages", parent: "Programming" },
+      { _id: "Programming", parent: "Books" },
+      { _id: "Books", parent: null }
+   ] )
+
+- The query to retrieve the parent of a node is fast and
+  straightforward:
+
+  .. code-block:: javascript
+
+     db.categories.findOne( { _id: "MongoDB" } ).parent
+
+- You can create an index on the field ``parent`` to enable fast search
+  by the parent node:
+
+  .. code-block:: javascript
+
+     db.categories.createIndex( { parent: 1 } )
+
+- You can query by the ``parent`` field to find its immediate children
+  nodes:
+
+  .. code-block:: javascript
+
+     db.categories.find( { parent: "Databases" } )
+
+- To retrieve subtrees, see :pipeline:`$graphLookup`.
+

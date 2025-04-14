@@ -1,0 +1,120 @@
+.. index:: sharding; shards
+.. index:: shards
+.. _sharding-shards:
+.. _sharding-production-architecture:
+
+
+==========================
+Sharded Cluster Components
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A MongoDB :term:`sharded cluster` consists of the following components:
+
+* :doc:`shard </core/sharded-cluster-shards>`: Each shard contains a
+  subset of the sharded data. As of MongoDB 3.6, shards must be deployed
+  as a :term:`replica set`.
+
+* :doc:`/core/sharded-cluster-query-router`: The ``mongos`` acts as a
+  query router, providing an interface between client applications and the
+  sharded cluster.
+
+* :doc:`config servers </core/sharded-cluster-config-servers>`: Config
+  servers store metadata and configuration settings for the cluster. As
+  of MongoDB 3.4, config servers must be deployed as a replica set (CSRS).
+
+.. _sc-production-configuration:
+
+Production Configuration
+------------------------
+
+In a production cluster, ensure that data is redundant and
+that your systems are highly available. Consider the following
+for a production sharded cluster deployment:
+
+- Deploy Config Servers as a 3 member :term:`replica set`
+- Deploy each Shard as a 3 member :term:`replica set`
+- Deploy one or more :binary:`~bin.mongos` routers
+
+Replica Set Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Where possible, consider deploying one member of each replica set 
+in a site suitable for being a disaster recovery location.
+
+.. include:: /includes/note-csrs-distribution.rst
+
+Number of Shards
+~~~~~~~~~~~~~~~~
+
+Sharding requires at least two shards to distribute sharded data. Single
+shard sharded clusters may be useful if you plan on enabling sharding in
+the  near future, but do not need to at the time of deployment.
+
+Number of ``mongos`` and Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Deploying multiple :binary:`~bin.mongos` routers supports high
+availability and scalability. A common pattern is to place a
+:binary:`~bin.mongos` on each application server. Deploying one
+:binary:`~bin.mongos` router on each application server reduces network
+latency between the application and the router.
+
+Alternatively, you can place a :binary:`~bin.mongos` router on dedicated
+hosts. Large deployments benefit from this approach because it decouples
+the number of client application servers from the number of
+:binary:`~bin.mongos` instances. This gives greater control over the number
+of connections the :binary:`~bin.mongod` instances serve.
+
+Installing :binary:`~bin.mongos` instances on their own hosts allows these
+instances to use greater amounts of memory. Memory would not be shared
+with a :binary:`~bin.mongod` instance. It is possible to use primary shards
+to host :binary:`~bin.mongos` routers but be aware that memory contention may
+become an issue on large deployments.
+
+There is no limit to the number of :binary:`~bin.mongos` routers you can
+have in a deployment. However, as :binary:`~bin.mongos` routers
+communicate frequently with your config servers, monitor config server
+performance closely as you increase the number of routers. If you see
+performance degradation, it may be beneficial to cap the number of
+:binary:`~bin.mongos` routers in your deployment.
+
+.. include:: /images/sharded-cluster-production-architecture.rst
+
+Development Configuration
+-------------------------
+
+For testing and development, you can deploy a sharded cluster with a
+minimum number of components. These **non-production** clusters have the
+following components:
+
+- A replica set :ref:`config server <sharding-config-server>` with one
+  member.
+
+- At least one shard as a single-member :term:`replica set`.
+
+- One :binary:`~bin.mongos` instance.
+
+.. include:: /images/sharded-cluster-test-architecture.rst
+
+.. warning:: Use the test cluster architecture for testing and
+   development only.
+
+.. seealso:: :doc:`/tutorial/deploy-shard-cluster/`
+
+.. class:: hidden
+
+.. toctree::
+   :titlesonly: 
+   :hidden: 
+
+   /core/sharded-cluster-shards
+   Config Servers (metadata) </core/sharded-cluster-config-servers>
+   Router (mongos) </core/sharded-cluster-query-router>

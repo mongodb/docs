@@ -1,0 +1,82 @@
+=================================
+Split Chunks in a Sharded Cluster
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Normally, MongoDB splits a :term:`chunk` after an insert if the chunk
+exceeds the maximum :ref:`chunk size <sharding-chunk-size>`. However,
+you may want to split chunks manually if:
+
+- you have a large amount of data in your cluster and very few
+  :term:`chunks <chunk>`, as is the case after deploying a cluster using
+  existing data.
+
+- you expect to add a large amount of data that would initially reside
+  in a single chunk or shard. For example, you plan to insert a large
+  amount of data with :term:`shard key` values between ``300`` and
+  ``400``, *but* all values of your shard keys are between ``250`` and
+  ``500`` are in a single chunk.
+
+.. note::
+
+   .. versionadded:: 2.6
+      MongoDB provides the :dbcommand:`mergeChunks` command
+      to combine contiguous chunk ranges into a single chunk. See
+      :doc:`/tutorial/merge-chunks-in-sharded-cluster` for more
+      information.
+
+The :term:`balancer` may migrate recently split chunks to a new shard
+immediately if the move benefits future insertions. The balancer does
+not distinguish between chunks split manually and those split
+automatically by the system.
+
+.. include:: /includes/warning-splitting-chunks.rst
+
+Use :method:`sh.status()` to determine the current chunk ranges across
+the cluster.
+
+To split chunks manually, use the :dbcommand:`split` command with either
+fields ``middle`` or ``find``. The :binary:`~bin.mongo` shell provides the
+helper methods :method:`sh.splitFind()` and :method:`sh.splitAt()`.
+
+:method:`~sh.splitFind()` splits the chunk that contains the *first*
+document returned that matches this query into two equally sized chunks.
+You must specify the full namespace (i.e. "``<database>.<collection>``")
+of the sharded collection to :method:`~sh.splitFind()`. The query in
+:method:`~sh.splitFind()` does not need to use the shard key, though it
+nearly always makes sense to do so.
+
+.. example::
+
+   The following command splits the chunk that contains the value of
+   ``63109`` for the ``zipcode`` field in the ``people`` collection of
+   the ``records`` database:
+
+   .. code-block:: javascript
+
+      sh.splitFind( "records.people", { "zipcode": "63109" } )
+
+Use :method:`~sh.splitAt()` to split a chunk in two, using the queried
+document as the lower bound in the new chunk:
+
+.. example::
+
+   The following command splits the chunk that contains the value of
+   ``63109`` for the ``zipcode`` field in the ``people`` collection of
+   the ``records`` database.
+
+   .. code-block:: javascript
+
+      sh.splitAt( "records.people", { "zipcode": "63109" } )
+
+.. note:: :method:`~sh.splitAt()` does not necessarily split the chunk
+   into two equally sized chunks. The split occurs at the location of
+   the document matching the query, regardless of where that document is
+   in the chunk.

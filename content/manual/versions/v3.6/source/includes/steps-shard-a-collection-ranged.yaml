@@ -1,0 +1,87 @@
+title: "Connect to the mongos"
+level: 4
+stepnum: 1
+ref: connect-mongos
+pre: |
+  Connect to a :binary:`~bin.mongos` instance.
+action:
+  - pre: |
+      Using the :binary:`~bin.mongo` shell, use the ``--hostname`` parameter 
+      passing the hostname of the target machine, and the ``--port`` 
+      parameter passing the port the :binary:`~bin.mongos` listens on.
+    language: javascript
+    code: |
+      mongo --host <hostname> --port <port>
+  - pre: |
+      If your cluster enforces :term:`authentication`, add the 
+      ``--username``, ``-password``, and ``--authenticationDatabase`` 
+      parameters when connecting to the :binary:`~bin.mongos`.
+      
+      The username and password *must* be associated to a user created
+      on the ``admin`` database with sufficient privileges to perform
+      sharding operations. See the :ref:`sharding-collection-ranged-security`
+      considerations for this tutorial.
+      
+      The following connects to a secured :binary:`~bin.mongos` instance, 
+      authenticating to the ``admin`` database.
+    language: javascript
+    code: |
+      mongo --host <hostname> --port <port> --username <user> --password <pass> --authenticationDatabase 'admin'
+---
+title: "Enable Sharding on the Database"
+level: 4
+ref: shard-database
+pre: |
+  Issue the :method:`sh.enableSharding()` method, specifying the name of the 
+  target database:
+action:
+  - pre: |
+    language: javascript
+    code: |
+      sh.enableSharding("<database>")
+  - pre: |
+      Optionally, enable sharding using the :dbcommand:`enableSharding` 
+      database command
+    language: javascript
+    code: |
+      db.runCommand( { enableSharding : <database> } )
+post: |
+  Enabling sharding on a database does *not* begin the sharding process. 
+  It only allows for collections within that database to be sharded.
+---
+title: "Determine the Shard Key"
+level: 4
+ref: select-shard-key
+pre: |
+  Determine your :term:`shard key`. Your selection of shard key affects the 
+  efficiency of sharding. See the selection considerations listed under
+  :doc:`/tutorial/choose-a-shard-key`
+  
+  .. warning:: 
+    You cannot change a shard key once you have enabled sharding
+    for a collection. 
+---
+title: "Create the Shard Key Index"
+level: 4
+ref: create-shard-key
+pre: |
+  If the collection already contains data, you must create an index on the 
+  :term:`shard key` using the :method:`db.collection.createIndex()` method.
+  
+  If the collection is empty, then MongoDB creates the index as part of
+  the :method:`sh.shardCollection()` method. 
+---
+title: "Shard the Collection"
+level: 4
+ref: shard-collection
+pre: |
+  Shard a collection by issuing the :method:`sh.shardCollection()` method.
+action:
+  - pre: |
+      The :method:`sh.shardCollection()` method takes the full namespace of 
+      the collection in ``<database>.<collection>`` format, and a document
+      containing the shard key pattern. 
+    language: javascript
+    code: |
+      sh.shardCollection( "<database>.<collection>", { <shard key> : <direction> } )
+...

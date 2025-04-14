@@ -1,0 +1,521 @@
+========================
+Master Slave Replication
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/extracts/master-slave-deprecated-for-sharded-cluster-warning-directive.rst
+
+.. important:: :doc:`Replica sets </replication>` replace
+   :term:`master`\-:term:`slave` replication for most use cases. If
+   possible, use replica sets rather than master-slave replication for
+   all new production deployments. This documentation remains to
+   support legacy deployments and for archival purposes only.
+
+In addition to providing all the functionality of master-slave
+deployments, replica sets are also more robust for production use.
+Master-slave replication preceded replica sets
+and made it possible to have a large number of non-master (i.e. slave) nodes, as well as
+to restrict replicated operations to only a single database; however,
+master-slave replication provides less redundancy and does not
+automate failover. See :ref:`replica-set-equivalent` for a replica set
+configuration that is equivalent to master-slave replication.  If you
+wish to convert an existing master-slave deployment to a replica set,
+see :ref:`convert-master-slave-to-replica-set`.
+
+Fundamental Operations
+----------------------
+
+Initial Deployment
+~~~~~~~~~~~~~~~~~~
+
+To configure a :term:`master`\-:term:`slave` deployment, start two
+:binary:`~bin.mongod` instances: one in master mode, and the
+other in slave mode.
+
+To start a :binary:`~bin.mongod` instance in master mode,
+invoke :binary:`~bin.mongod` as follows:
+
+.. code-block:: javascript
+
+   mongod --master --dbpath /data/masterdb/
+
+With the :option:`--master <mongod --master>` option, the
+:binary:`~bin.mongod` will create a :data:`local.oplog.$main` collection,
+which the "operation log" that queues operations that the slaves will
+apply to replicate operations from the master. The
+:option:`--dbpath <mongod --dbpath>` is optional.
+
+To start a :binary:`~bin.mongod` instance in slave mode,
+invoke :binary:`~bin.mongod` as follows:
+
+.. code-block:: javascript
+
+   mongod --slave --source <masterhostname><:<port>> --dbpath /data/slavedb/
+
+Specify the hostname and port of the master instance to the
+:option:`--source <mongod --source>` argument. The
+:option:`--dbpath <mongod --dbpath>` is optional.
+
+For slave instances, MongoDB stores data about the source
+server in the :data:`local.sources` collection.
+
+Configuration Options for Master-Slave Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As an alternative to specifying the :option:`--source <mongod --source>`
+run-time option, can add a document to :data:`local.sources`
+specifying the master instance, as in the following
+operation in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   use local
+   db.sources.find()
+   db.sources.insert( { host: <masterhostname> <,only: <databasename>> } );
+
+In line 1, you switch context to the ``local`` database. In line 2,
+the :method:`~db.collection.find()` operation should return no
+documents, to ensure that there are no documents in the ``sources``
+collection. Finally, line 3 uses :method:`db.collection.insert()` to
+insert the source document into the :data:`local.sources`
+collection. The model of the :data:`local.sources` document is as
+follows:
+
+.. describe:: host
+
+   The host field specifies the master :binary:`~bin.mongod`
+   instance, and holds a resolvable hostname, i.e. IP address, or
+   a name from a ``host`` file, or preferably a fully qualified domain
+   name.
+
+   You can append ``<:port>`` to the host name if the
+   :binary:`~bin.mongod` is not running on the default ``27017`` port.
+
+.. describe:: only
+
+   Optional. Specify a name of a database. When specified, MongoDB
+   will only replicate the indicated database.
+
+Operational Considerations for Replication with Master Slave Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Master instances store operations in an :term:`oplog` which is a
+:doc:`capped collection </core/capped-collections>`. As a result, if a
+slave falls too far behind the state of the master, it cannot
+"catchup" and must re-sync from scratch. Slave may become out of sync
+with a master if:
+
+- The slave falls far behind the data updates available from that
+  master.
+
+- The slave stops (i.e. shuts down) and restarts later after the
+  master has overwritten the relevant operations from the master.
+
+When slaves are out of sync, replication stops. Administrators must
+intervene manually to restart replication. Use the :dbcommand:`resync`
+command. Alternatively, the :option:`--autoresync <mongod --autoresync>`
+allows a slave to restart replication automatically,
+after ten second pause, when the slave falls out of sync with the
+master. With :option:`--autoresync <mongod --autoresync>` specified,
+the slave will only attempt to re-sync once in a ten minute period.
+
+To prevent these situations you should specify a larger oplog when
+you start the ``master`` instance, by adding the
+:option:`--oplogSize <mongod --oplogSize>` option when starting
+:binary:`~bin.mongod`. If you do not specify
+:option:`--oplogSize <mongod --oplogSize>`, :binary:`~bin.mongod` will
+allocate 5% of available disk space on start up to the oplog, with a
+minimum of 1 GB for 64-bit machines and 50 MB for 32-bit machines.
+
+Run time Master-Slave Configuration
+-----------------------------------
+
+MongoDB provides a number of command line options for :binary:`~bin.mongod`
+instances in :term:`master`\-:term:`slave` deployments. See the
+:ref:`Master-Slave Replication Command Line Options
+<cli-mongod-master-slave>` for options.
+
+Diagnostics
+~~~~~~~~~~~
+
+On a :term:`master` instance, issue the following operation in the
+:binary:`~bin.mongo` shell to return replication status from the
+perspective of the master:
+
+.. code-block:: javascript
+
+   rs.printReplicationInfo()
+
+.. versionadded:: 2.6
+
+   :method:`rs.printReplicationInfo()`. For previous versions, use
+   :method:`db.printReplicationInfo()`.
+
+On a :term:`slave` instance, use the following operation in the
+:binary:`~bin.mongo` shell to return the replication status from the
+perspective of the slave:
+
+.. code-block:: javascript
+
+   rs.printSlaveReplicationInfo()
+
+.. versionadded:: 2.6
+
+   :method:`rs.printSlaveReplicationInfo()`. For previous versions, use
+   :method:`db.printSlaveReplicationInfo()`.
+
+Use the :dbcommand:`serverStatus` as in the following operation, to
+return status of the replication:
+
+.. code-block:: javascript
+
+   db.serverStatus( { repl: 1 } )
+
+See :ref:`server status repl fields <server-status-repl>` for
+documentation of the relevant section of output.
+
+Security
+--------
+
+When running with :setting:`~security.authorization` enabled, in
+:term:`master`\-:term:`slave` deployments configure a
+:setting:`~security.keyFile` so that slave :binary:`~bin.mongod` instances can
+authenticate and communicate with the master :binary:`~bin.mongod`
+instance.
+
+To enable authentication and configure the :setting:`~security.keyFile` add the
+following option to your configuration file:
+
+.. code-block:: cfg
+
+   keyFile = /srv/mongodb/keyfile
+
+.. note::
+
+   You may chose to set these run-time configuration options using the
+   :option:`--keyFile <mongod --keyFile>` option on the command line.
+
+Setting :setting:`~security.keyFile` enables authentication and specifies a key
+file for the :binary:`~bin.mongod` instances to use when authenticating to
+each other. The content of the key file is arbitrary but must be the
+same on all members of the deployment can connect to each other.
+
+The key file must be less one kilobyte in size and may only contain
+characters in the base64 set. The key file must not have group or "world"
+permissions on UNIX systems. Use the following command to use the
+OpenSSL package to generate "random" content for use in a key file:
+
+.. code-block:: bash
+
+   openssl rand -base64 741
+
+.. seealso:: :doc:`/security` for more information about security in MongoDB
+
+Ongoing Administration and Operation of Master-Slave Deployments
+----------------------------------------------------------------
+
+.. _replica-set-equivalent:
+
+Deploy Master-Slave Equivalent using Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want a replication configuration that resembles
+:term:`master`\-:term:`slave` replication, using :term:`replica sets
+<replica set>` replica sets, consider the following replica
+configuration document. In this deployment hosts ``<master>`` and
+``<slave>`` [#host-are-hostnames]_ provide replication that is roughly
+equivalent to a two-instance master-slave deployment:
+
+.. code-block:: javascript
+
+   {
+     _id : 'setName',
+     members : [
+       { _id : 0, host : "<master>", priority : 1 },
+       { _id : 1, host : "<slave>", priority : 0, votes : 0 }
+     ]
+   }
+
+See :doc:`/reference/replica-configuration` for more information about
+replica set configurations.
+
+.. [#host-are-hostnames] In replica set configurations, the
+   :rsconf:`members[n].host` field must hold a resolvable
+   hostname.
+
+.. _convert-master-slave-to-replica-set:
+
+Convert a Master-Slave Deployment to a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To convert a master-slave deployment to a replica set, restart the
+current master as a one-member replica set.
+
+1. To confirm that the current instance is master, run:
+
+   .. code-block:: sh
+
+      db.isMaster()
+
+   This should return a document that resembles the following:
+
+   .. code-block:: sh
+
+      {
+         "ismaster" : true,
+         "msg" : "isdbgrid",
+         "maxBsonObjectSize" : 16777216,
+         "maxMessageSizeBytes" : 48000000,
+         "maxWriteBatchSize" : 100000,
+         "localTime" : ISODate("2017-11-15T17:50:05.775Z"),
+         "logicalSessionTimeoutMinutes" : 30,
+         "maxWireVersion" : 6,
+         "minWireVersion" : 0,
+         "ok" : 1,
+         "$clusterTime" : {
+            "clusterTime" : Timestamp(1510768200, 1),
+            "signature" : {
+               "hash" : BinData(0,"VKMQp+F/p+nDZldmWTUzBz7A8Kc="),
+               "keyId" : NumberLong("6488693018630029321")
+            }
+         },
+         "operationTime" : Timestamp(1510768200, 1)
+      }
+
+#. Shut down the :binary:`~bin.mongod` processes on the master and all
+   slave(s), using the following command while connected to each
+   instance:
+
+   .. code-block:: sh
+
+      db.adminCommand({shutdown : 1, force : true})
+
+#. Back up your ``/data/db`` directories, in case you need to revert
+   to the master-slave deployment.
+
+#. Start the former master with the :option:`--replSet <mongod --replSet>`
+   option, as in the following:
+
+   .. code-block:: sh
+
+      mongod --replSet <setname>
+
+#. Connect to the :binary:`~bin.mongod` with the :binary:`~bin.mongo` shell,
+   and initiate the replica set with the following command:
+
+   .. code-block:: sh
+
+      rs.initiate( { _id: "<setname>", members: [ { _id: 0, host: "<host:port>" } ] } )
+
+   When the command returns, you will have successfully deployed a
+   one-member replica set. You can check the status of your replica set
+   at any time by running the following command:
+
+   .. code-block:: sh
+
+      rs.status()
+
+To add the former slaves as secondaries to the replica set, remove the
+their data directories and add to the replica set. See
+:doc:`/tutorial/expand-replica-set` to add new members to a replica set.
+
+Failing over to a Slave (Promotion)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To permanently failover from a unavailable or damaged :term:`master`
+(``A`` in the following example) to a :term:`slave` (``B``):
+
+1. Shut down ``A``.
+
+2. Stop :binary:`~bin.mongod` on ``B``.
+
+3. Back up and move all data files that begin with ``local`` on ``B``
+   from the :setting:`~storage.dbPath`.
+
+   .. warning::
+
+      Removing ``local.*`` is irrevocable and cannot be
+      undone. Perform this step with extreme caution.
+
+4. Restart :binary:`~bin.mongod` on ``B`` with the :option:`--master
+   <mongod --master>` option.
+
+.. note:: This is a one time operation, and is not reversible. ``A``
+   cannot become a slave of ``B`` until it completes a full resync.
+
+Inverting Master and Slave
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a :term:`master` (``A``) and a :term:`slave` (``B``) and
+you would like to reverse their roles, follow this procedure. The
+procedure assumes ``A`` is healthy, up-to-date and available.
+
+If ``A`` is not healthy but the hardware is okay (power outage, server
+crash, etc.), skip steps 1 and 2 and in step 8 replace all of ``A``'s
+files with ``B``'s files in step 8.
+
+If ``A`` is not healthy and the hardware is not okay, replace ``A`` with
+a new machine. Also follow the instructions in the previous paragraph.
+
+To invert the master and slave in a deployment:
+
+1. Halt writes on ``A`` using the :term:`fsync` command.
+
+2. Make sure ``B`` is up to date with the state of ``A``.
+
+3. Shut down ``B``.
+
+4. Back up and move all data files that begin with ``local`` on ``B``
+   from the :setting:`~storage.dbPath` to remove the existing
+   ``local.sources`` data.
+
+   .. warning::
+
+      Removing ``local.*`` is irrevocable and cannot be
+      undone. Perform this step with extreme caution.
+
+5. Start ``B`` with the :option:`--master <mongod --master>` option.
+
+6. Do a write on ``B``, which primes the :term:`oplog` to provide a new
+   sync start point.
+
+7. Shut down ``B``. ``B`` will now have a new set of data files that
+   start with ``local``.
+
+8. Shut down ``A`` and replace all files in the :setting:`~storage.dbPath` of
+   ``A`` that start with ``local`` with a copy of the files in the
+   :setting:`~storage.dbPath` of ``B`` that begin with ``local``.
+
+   Considering compressing the ``local`` files from ``B`` while you
+   copy them, as they may be quite large.
+
+9. Start ``B`` with the :option:`--master <mongod --master>` option.
+
+10. Start ``A`` with all the usual slave options, but include
+    :option:`fastsync <mongod --fastsync>`.
+
+Creating a Slave from an Existing Master's Disk Image
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you can stop write operations to the :term:`master` for an
+indefinite period, you can copy the data files from the master to the
+new :term:`slave` and then start the slave with :option:`--fastsync
+<mongod --fastsync>`.
+
+.. warning::
+
+   Be careful with :option:`--fastsync <mongod --fastsync>`.  If the
+   data on both instances is **not** identical, a discrepancy will exist
+   forever.
+
+:option:`fastsync <mongod --fastsync>` is a way to start a slave by starting with an
+existing master disk image/backup. This option declares that the
+administrator guarantees the image is correct and completely up-to-date
+with that of the master. If you have a full and complete copy of data
+from a master you can use this option to avoid a full synchronization
+upon starting the slave.
+
+Creating a Slave from an Existing Slave's Disk Image
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can just copy the other :term:`slave's <slave>` data file snapshot
+without any special options. Only take data snapshots when:
+
+- a :binary:`~bin.mongod` process is down, or
+
+- when the :binary:`~bin.mongod` is locked using :method:`db.fsyncLock()` for
+  MMAPv1 or WiredTiger storage engine.
+
+.. include:: /includes/extracts/wt-fsync-lock-compatibility.rst
+
+Resyncing a Slave that is too Stale to Recover
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:term:`Slaves <slave>` asynchronously apply write operations from the
+:term:`master` that the slaves poll from the master's
+:term:`oplog`. The oplog is finite in length, and if a slave is too
+far behind, a full resync will be necessary. To resync the slave,
+connect to a slave using the :binary:`~bin.mongo` and issue the
+:dbcommand:`resync` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { resync: 1 } )
+
+This forces a full resync of all data (which will be very slow on a
+large database). You can achieve the same effect by stopping
+:binary:`~bin.mongod` on the slave, deleting the entire content of the
+:setting:`~storage.dbPath` on the slave, and restarting the :binary:`~bin.mongod`.
+
+Slave Chaining
+~~~~~~~~~~~~~~
+
+:term:`Slaves <slave>` cannot be "chained." They must all connect to the
+:term:`master` directly.
+
+If a slave attempts "slave from" another slave you will see the
+following line in the :binary:`~bin.mongod` long of the shell:
+
+.. code-block:: none
+
+   assertion 13051 tailable cursor requested on non capped collection ns:local.oplog.$main
+
+Correcting a Slave's Source
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To change a :term:`slave's <slave>` source, manually modify the
+slave's :data:`local.sources` collection.
+
+.. example::
+
+   Consider the following: If you accidentally set an incorrect hostname
+   for the slave's :option:`source <mongod --slave>`, as in the following example:
+
+   .. code-block:: javascript
+
+      mongod --slave --source prod.mississippi
+
+   You can correct this, by restarting the slave without the
+   :option:`--slave <mongod --slave>` and
+   :option:`--source <mongod --source>` arguments:
+
+   .. code-block:: javascript
+
+      mongod
+
+   Connect to this :binary:`~bin.mongod` instance using the
+   :binary:`~bin.mongo` shell and update the :data:`local.sources`
+   collection, with the following operation sequence:
+
+   .. code-block:: javascript
+
+      use local
+
+      db.sources.update( { host : "prod.mississippi" },
+                         { $set : { host : "prod.mississippi.example.net" } } )
+
+   Restart the slave with the correct command line arguments or with no
+   :option:`--source <mongod --source>` option.
+   After configuring :data:`local.sources` the
+   first time, the :option:`--source <mongod --source>` will have no
+   subsequent effect. Therefore, both of the following invocations are
+   correct:
+
+   .. code-block:: javascript
+
+      mongod --slave --source prod.mississippi.example.net
+
+   or
+
+   .. code-block:: javascript
+
+      mongod --slave
+
+   The slave now polls data from the correct :term:`master`.

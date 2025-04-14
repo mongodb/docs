@@ -1,0 +1,708 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2008-2019
+# This file is distributed under the same license as the mongodb-manual package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: mongodb-manual 3.6\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-19 11:30-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:3
+msgid "Enforce Authentication in an Existing Sharded Cluster Without Downtime"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:14
+msgid "Overview"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:18
+msgid "The following procedure applies to sharded clusters using MongoDB 3.4 or later."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:21
+msgid "Earlier versions of MongoDB do not support no-downtime upgrade. For sharded clusters using earlier versions of MongoDB, see :doc:`/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:25
+msgid "A MongoDB sharded cluster can enforce :ref:`user authentication <authentication>` as well as :ref:`internal authentication <inter-process-auth>` of its components to secure against unauthorized access."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:30
+msgid "The following tutorial describes a procedure using :setting:`security.transitionToAuth` to transition an existing sharded cluster to enforce authentication without incurring downtime."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:34
+msgid "Before you attempt this tutorial, please familiarize yourself with the contents of this document."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:38
+msgid "Considerations"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:41
+msgid "Cloud Manager and Ops Manager"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:43
+msgid "If you are using Cloud Manager or Ops Manager to manage your deployment, refer to *Configure Access Control for MongoDB Deployments* in the :mms-docs:`Cloud Manager manual </tutorial/edit-host-authentication-credentials>` or :opsmgr:`Ops Manager manual </tutorial/edit-host-authentication-credentials>` to enforce authentication."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:51
+msgid "IP Binding"
+msgstr ""
+
+#: ../source/includes/fact-default-bind-ip-change.rst:1
+msgid "Starting with MongoDB 3.6, MongoDB binaries, :binary:`~bin.mongod` and :binary:`~bin.mongos`, bind to ``localhost`` by default. From MongoDB versions 2.6 to 3.4, only the binaries from the official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives) packages would bind to ``localhost`` by default. To learn more about this change, see :ref:`3.6-bind_ip-compatibility`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:58
+msgid "Internal and Client Authentication Mechanisms"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:60
+msgid "This tutorial configures authentication using :ref:`authentication-scram` for client authentication and a :ref:`keyfile <internal-auth-keyfile>` for internal authentication."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:64
+msgid "Refer to the :ref:`authentication` documentation for a complete list of available client and internal authentication mechanisms."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:68
+msgid "Architecture"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:70
+msgid "This tutorial assumes that each shard replica set, as well as the config server replica set, can elect a new :term:`primary` after stepping down its existing primary."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:74
+msgid "A replica set can elect a primary only if both of the following conditions are true:"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:77
+msgid "A majority of voting replica set members are available after stepping down the :term:`primary`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:80
+msgid "There is at least one available :term:`secondary` member that is not :ref:`delayed <replica-set-delayed-members>`, :ref:`hidden <replica-set-hidden-members>`, or :ref:`Priority 0 <replica-set-secondary-only-members>`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:86
+msgid "Minimum number of ``mongos`` instances"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:88
+msgid "Ensure your sharded cluster has at least two mongos instances available. This tutorial requires restarting each :binary:`~bin.mongos` in the cluster. If your sharded cluster has only one :binary:`~bin.mongos` instance, this results in downtime during the period that the :binary:`~bin.mongos` is offline."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:97
+msgid "Enforce Keyfile Access Control on an Existing Sharded Cluster"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:100
+msgid "Create and Distribute the Keyfile"
+msgstr ""
+
+#: ../source/includes/extracts/keyfile-intro-sharded-cluster.rst:2
+msgid "With :ref:`keyfile <internal-auth-keyfile>` authentication, each :binary:`~bin.mongod` or :binary:`~bin.mongos` instances in the sharded cluster uses the contents of the keyfile as the shared password for authenticating other members in the deployment. Only :binary:`~bin.mongod` or :binary:`~bin.mongos` instances with the correct keyfile can join the sharded cluster."
+msgstr ""
+
+#: ../source/includes/extracts/keyfile-intro-sharded-cluster.rst:7
+msgid "The content of the keyfile must be between 6 and 1024 characters long and must be the same for all members of the sharded cluster."
+msgstr ""
+
+#: ../source/includes/extracts/keyfile-file-permission.rst:1
+msgid "On UNIX systems, the keyfile must not have group or world permissions. On Windows systems, keyfile permissions are not checked."
+msgstr ""
+
+#: ../source/includes/extracts/keyfile-intro-sharded-cluster.rst:14
+msgid "You can generate a keyfile using any method you choose. For example, the following operation uses ``openssl`` to generate a complex pseudo-random 1024 character string to use for a keyfile. It then uses ``chmod`` to change file permissions to provide read permissions for the file owner only:"
+msgstr ""
+
+#: ../source/includes/extracts/keyfile-distribution-sharded-cluster.rst:2
+msgid "Copy the keyfile to each server hosting the sharded cluster members. Ensure that the user running the :binary:`~bin.mongod` or :binary:`~bin.mongos` instances is the owner of the file and can access the keyfile."
+msgstr ""
+
+#: ../source/includes/extracts/keyfile-distribution-sharded-cluster.rst:6
+msgid "Avoid storing the keyfile on storage mediums that can be easily disconnected from the hardware hosting the :binary:`~bin.mongod` or :binary:`~bin.mongos` instances, such as a USB drive or a network attached storage device."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:111
+msgid "For more information on using keyfiles for internal authentication, refer to :ref:`internal-auth-keyfile`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:117
+msgid "Configure Sharded Cluster Admin User and Client Users"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:119
+msgid "You must connect to a :binary:`~bin.mongos` to complete the steps in this section. The users created in these steps are cluster-level users and cannot be used for accessing individual shard replica sets."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:8
+msgid "Create the adminstrator user."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:11
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:54
+msgid "Use the :method:`db.createUser()` method to create an administrator user and assign it the following roles:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:14
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:57
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:158
+msgid ":authrole:`clusterAdmin` on the ``admin`` database"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:15
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:58
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:159
+msgid ":authrole:`userAdmin` roles on the ``admin`` database"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:17
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:60
+msgid "Clients performing maintenance operations or user administrative operations on the sharded cluster must authenticate as this user at the completion of this tutorial. Create this user now to ensure that you have access to the cluster after enforcing authentication."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:40
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:83
+msgid "Passwords should be random, long, and complex to prevent or hinder malicious access."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:51
+msgid "Step 1: Create the adminstrator user."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:94
+msgid "Optional: Create additional users for client applications."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:97
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:138
+msgid "In addition to the administrator user, you can create additional users before enforcing authentication.. This ensures access to the sharded cluster once you fully enforce authentication."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:103
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:144
+msgid "The following operation creates the user ``joe`` on the ``marketing`` database, assigning to this user the :authrole:`readWrite` role on the ``marketing`` database`."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:117
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:158
+msgid "Clients authenticating as ``\"joe\"`` can perform read and write operations on the ``marketing`` database."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:121
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:162
+msgid "See :ref:`database-user-roles` for roles provided by MongoDB."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:123
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:164
+msgid "See the :ref:`Add Users <add-new-user>` tutorial for more information on adding users. Consider :ref:`security best practices <security-checklist-role-based-access-control>` when adding new users."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:135
+msgid "Step 2: Optional: Create additional users for client applications."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:176
+msgid "Optional: Update client applications to specify authentication credentials."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:179
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:210
+msgid "While the sharded cluster does not currently enforce authentication, you can still update client applications to specify authentication credentials when connecting to the sharded cluster. This may prevent loss of connectivity at the completion of this tutorial."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:186
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:217
+msgid "The following operation connects to the sharded cluster using the :binary:`~bin.mongo` shell, authenticating as the user ``joe`` on the ``marketing`` database."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:195
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:226
+msgid "If your application uses a MongoDB driver, see the associated :ecosystem:`driver </drivers>` documentation for instructions on creating an authenticated connection."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-uac.rst:207
+msgid "Step 3: Optional: Update client applications to specify authentication credentials."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:126
+msgid "Transition Each ``mongos`` Instance to Enforce Authentication"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:8
+msgid "Create a new ``mongos`` configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:11
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:49
+msgid "For each :binary:`~bin.mongos`:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:13
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:51
+msgid "Copy the existing :binary:`~bin.mongos` configuration file, giving it a distinct name such as ``<filename>-secure.conf`` (or ``.cfg`` if using Windows). You will use this new configuration file to transition the :binary:`~bin.mongos` to enforce authentication in the sharded cluster. Retain the original configuration file for backup purposes."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:20
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:58
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:20
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:54
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:20
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:54
+msgid "To the new configuration file, add the following settings:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:22
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:60
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:22
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:56
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:22
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:56
+msgid ":setting:`security.transitionToAuth` set to ``true``"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:24
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:62
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:24
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:58
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:24
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:58
+msgid ":setting:`security.keyFile` set to the keyfile path."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:26
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:64
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:26
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:60
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:26
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:60
+msgid "If using a different internal authentication mechanism, specify settings appropriate for the mechanism."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:35
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:73
+msgid "The new configuration file should contain all of the configuration settings previously used by the :binary:`~bin.mongos` as well as the new security settings."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:46
+msgid "Step 1: Create a new ``mongos`` configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:84
+msgid "One at a time, restart the ``mongos`` with the new configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:89
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:133
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:55
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:93
+msgid "If your cluster has only one :binary:`~bin.mongos`, this step results in downtime while the :binary:`~bin.mongos` is offline."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:92
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:136
+msgid "Follow the procedure to restart the :binary:`~bin.mongos` instance, one :binary:`~bin.mongos` at a time:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:95
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:139
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:61
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:99
+msgid "Connect to the :binary:`~bin.mongos` to shutdown."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:97
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:141
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:63
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:101
+msgid "Use the :method:`db.shutdownServer()` method against the ``admin`` database to safely shut down the :binary:`~bin.mongos`."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:105
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:149
+msgid "Restart :binary:`~bin.mongos` with the new configuration file, specifying the path to the config file using :option:`--config <mongos --config>`. For example, if the new configuration file were named ``mongos-secure.conf``:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:114
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:158
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:101
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:138
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:173
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:210
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:101
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:138
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:173
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:210
+msgid "where ``<path>`` represents the system path to the folder containing the new configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:117
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:161
+msgid "Repeat the restart process for the next :binary:`~bin.mongos` instance until all :binary:`~bin.mongos` instances in the sharded cluster have been restarted."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-mongos.rst:128
+msgid "Step 2: One at a time, restart the ``mongos`` with the new configuration file."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:130
+msgid "At the end of this section, all :binary:`~bin.mongos` instances in the sharded cluster are running with :setting:`security.transitionToAuth` and :setting:`security.keyFile` internal authentication."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:135
+msgid "Transition Config Server Replica Set Members to Enforce Authentication"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:8
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:8
+msgid "Create a new ``mongod`` configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:11
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:45
+msgid "For each :binary:`~bin.mongod` in the config server replica set,"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:13
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:47
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:13
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:47
+msgid "Copy the existing :binary:`~bin.mongod` configuration file, giving it a distinct name such as ``<filename>-secure.conf`` (or ``.cfg`` if using Windows). You will use this new configuration file to transition the :binary:`~bin.mongod` to enforce authentication in the sharded cluster. Retain the original configuration file for backup purposes."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:42
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:42
+msgid "Step 1: Create a new ``mongod`` configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:76
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:76
+msgid "One at a time, restart the ``mongod`` with the new configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:79
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:151
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:79
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:151
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:53
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:125
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:53
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:125
+msgid "Restart the replica set, one member at a time, starting with the :term:`secondary` members."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:82
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:154
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:82
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:154
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:56
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:128
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:56
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:128
+msgid "To restart the :term:`secondary` members one at a time,"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:84
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:156
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:84
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:156
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:58
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:130
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:58
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:130
+msgid "Connect to the :binary:`~bin.mongod` and use the :method:`db.shutdownServer()` method against the ``admin`` database to safely shut down the :binary:`~bin.mongod`."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:92
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:129
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:164
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:201
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:92
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:129
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:164
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:201
+msgid "Restart the :binary:`~bin.mongod` with the new configuration file, specifying the path to the config file using :option:`--config <mongod --config>`. For example, if the new configuration file were named ``mongod-secure.conf``:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:104
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:176
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:78
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:150
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:78
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:150
+msgid "Once this member is up, repeat for the next :term:`secondary` member."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:106
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:178
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:106
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:178
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:80
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:152
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:80
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:152
+msgid "Once **all** the secondary members have restarted and are up, restart the primary:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:109
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:181
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:109
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:181
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:83
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:155
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:83
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:155
+msgid "Connect to the :binary:`~bin.mongod`."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:111
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:183
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:111
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:183
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:85
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:157
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:85
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:157
+msgid "Use the :method:`rs.stepDown()` method to step down the primary and trigger an election."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:117
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:189
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:117
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:189
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:91
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:163
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:91
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:163
+msgid "You can use the :method:`rs.status()` method to ensure the replica set has elected a new primary."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:120
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:192
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:120
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:192
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:94
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:166
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:94
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:166
+msgid "Once you step down the primary and a new primary has been elected, shut down the old primary using the :method:`db.shutdownServer()` method against the ``admin`` database."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-config.rst:148
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:148
+msgid "Step 2: One at a time, restart the ``mongod`` with the new configuration file."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:139
+msgid "At the end of this section, all :binary:`~bin.mongod` instances in the config server replica set is running with :setting:`security.transitionToAuth` and :setting:`security.keyFile` internal authentication."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:144
+msgid "Transition Each Shard Replica Set Members to Enforce Authentication"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:147
+msgid "Create the shard-local administrator"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:149
+msgid "In a sharded cluster that enforces authentication, each shard replica set should have its own :ref:`shard-local administrator <shard-local-users>`. You cannot use a shard-local administrator for one shard to access another shard or the sharded cluster."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:154
+msgid "Connect to the :term:`primary` member of each shard replica set and create a user with the :method:`db.createUser()` method, assigning it the following roles:"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:175
+msgid "At the completion of this tutorial, if you want to connect to the shard to perform maintenance operation that require direct connection to a shard, you must authenticate as the shard-local administrator."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:181
+msgid "Direct connections to a shard should only be for shard-specific maintenance and configuration. In general, clients should connect to the sharded cluster through the :binary:`~bin.mongos`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:186
+msgid "Procedure"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:188
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:254
+msgid "Transitioning one shard replica set at a time, repeat these steps for each shard replica set in the sharded cluster."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:11
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:45
+msgid "For each :binary:`~bin.mongod` in the shard replica set,"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:104
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-transition-shards.rst:176
+msgid "Once this member is up, repeat for the next :term:`secondary` member of the replica set until all secondaries have been updated."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:193
+msgid "At this point in the tutorial, every component of the sharded cluster is running with ``--transitionToAuth`` and :setting:`security.keyFile` internal authentication. The sharded cluster has at least one administrative user, and each shard replica set has a shard-local administrative user."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:198
+msgid "The remaining sections involve taking the sharded cluster out of the transition state to fully enforce authentication."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:202
+msgid "Restart Each ``mongos`` Instance without ``transitionToAuth``"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:206
+msgid "At the end of this section, clients must specify authentication credentials to connect to the sharded cluster. Update clients to specify authentication credentials *before* completing this section to avoid loss of connectivity."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:211
+msgid "To complete the transition to fully enforcing authentication in the sharded cluster, you must restart each :binary:`~bin.mongos` instance without the :setting:`security.transitionToAuth` setting."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:8
+msgid "Remove ``transitionToAuth`` from the ``mongos`` configuration files."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:11
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:32
+msgid "Remove the :setting:`security.transitionToAuth` key and its value from the :binary:`~bin.mongos` configuration files created during this tutorial. Leave the :setting:`security.keyFile` setting added in the tutorial."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:29
+msgid "Step 1: Remove ``transitionToAuth`` from the ``mongos`` configuration files."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:50
+msgid "Restart the ``mongos`` with the updated configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:58
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:96
+msgid "Follow the procedure to restart :binary:`~bin.mongos` instance, one :binary:`~bin.mongos` at a time:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:71
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:109
+msgid "Restart :binary:`~bin.mongos` with the updated configuration file, specifying the path to the config file using :option:`--config <mongos --config>`. For example, if the updated configuration file were named ``mongos-secure.conf``:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-mongos.rst:88
+msgid "Step 2: Restart the ``mongos`` with the updated configuration file."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:218
+msgid "At the end of this section, all :binary:`~bin.mongos` instances enforce client authentication and :setting:`security.keyFile` internal authentication."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:222
+msgid "Restart Each Config Server Replica Set Member without ``transitionToAuth``"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:226
+msgid "At the end of this step, clients must specify authentication credentials to connect to the config server replica set. Update clients to specify authentication credentials *before* completing this section to avoid loss of connectivity."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:231
+msgid "To complete the transition to fully enforcing authentication in the sharded cluster, you must restart each :binary:`~bin.mongod` instance without the :setting:`security.transitionToAuth` setting."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:8
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:8
+msgid "Remove ``transitionToAuth`` from the ``mongod`` configuration files."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:11
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:32
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:11
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:32
+msgid "Remove the :setting:`security.transitionToAuth` key and its value from the config server configuration files created during this tutorial. Leave the :setting:`security.keyFile` setting added in the tutorial."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:29
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:29
+msgid "Step 1: Remove ``transitionToAuth`` from the ``mongod`` configuration files."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:50
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:50
+msgid "One at a time, restart the ``mongod`` with the updated configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:66
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:103
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:138
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:175
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:66
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:103
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:138
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:175
+msgid "Restart the :binary:`~bin.mongod` with the updated configuration file, specifying the path to the config file using :option:`--config <mongod --config>`. For example, if the new configuration file were named ``mongod-secure.conf``:"
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:75
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:112
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:147
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:184
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:75
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:112
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:147
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:184
+msgid "where ``<path>`` represents the system path to the folder containing the updated configuration file."
+msgstr ""
+
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-config.rst:122
+#: ../source/includes/steps/enable-authentication-in-shardcluster-nodowntime-auth-shard.rst:122
+msgid "Step 2: One at a time, restart the ``mongod`` with the updated configuration file."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:237
+msgid "At the end of this section, all :binary:`~bin.mongod` instances in the config server replica set enforce client authentication and :setting:`security.keyFile` internal authentication."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:242
+msgid "Restart Each Member in Each Shard Replica Set without ``transitionToAuth``"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:246
+msgid "At the end of this step, clients must specify authentication credentials to connect to the shard replica set. Update clients to specify authentication credentials *before* completing this section to avoid loss of connectivity."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:250
+msgid "To complete the transition to fully enforcing authentication in the sharded cluster, you must restart every member of every shard replica set in the sharded cluster without the :setting:`security.transitionToAuth` setting."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:259
+msgid "At the end of this section, all :binary:`~bin.mongos` and :binary:`~bin.mongod` instances in the sharded cluster enforce client authentication and :setting:`security.keyFile` internal authentication. Clients can only connect to the sharded cluster by using the configured client authentication mechanism. Additional components can only join the cluster by specifying the correct keyfile."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:267
+msgid "x.509 Certificate Internal Authentication"
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:269
+msgid "MongoDB supports x.509 certificate authentication for use with a secure TLS/SSL connection. Sharded cluster members and replica set members can use x.509 certificates to verify their membership to the cluster or the replica set instead of using :ref:`internal-auth-keyfile`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:274
+msgid "For details on using x.509 certificates for internal authentication, see :doc:`/tutorial/configure-x509-member-authentication`."
+msgstr ""
+
+#: ../source/tutorial/enforce-keyfile-access-control-in-existing-sharded-cluster-no-downtime.txt:277
+msgid ":doc:`/tutorial/upgrade-keyfile-to-x509` describes how to upgrade a deployment's internal auth mechanism from keyfile-based authentication to x.509 certificate-based auth."
+msgstr ""
+

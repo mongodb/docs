@@ -1,0 +1,157 @@
+===========================================
+Calculate Distance Using Spherical Geometry
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note:: While basic queries using spherical distance are supported by
+   the ``2d`` index, consider moving to a ``2dsphere`` index if your
+   data is primarily longitude and latitude.
+
+The ``2d`` index supports queries that calculate distances on a
+Euclidean plane (flat surface). The index also supports the following
+query operators and command that calculate distances using spherical
+geometry:
+
+- :query:`$nearSphere`
+
+- :query:`$centerSphere`
+
+- :query:`$near`
+
+- :dbcommand:`geoNear` command with the ``{ spherical: true }`` option.
+
+.. important:: These three queries use radians for distance. Other query
+   types do not.
+
+   For spherical query operators to function properly, you must convert
+   distances to radians, and convert from radians to the distances units
+   used by your application.
+
+   To convert:
+
+   - *distance to radians*: divide the distance by the radius of the
+     sphere (e.g. the Earth) in the same units as the distance
+     measurement.
+
+   - *radians to distance*: multiply the radian measure by the radius
+     of the sphere (e.g. the Earth) in the units system that you want to
+     convert the distance to.
+
+   The equatorial radius of the Earth is approximately ``3,963.2``
+   miles or ``6,378.1`` kilometers.
+
+The following query would return documents from the ``places``
+collection within the circle described by the center ``[ -74, 40.74 ]``
+with a radius of ``100`` miles:
+
+.. code-block:: javascript
+
+   db.places.find( { loc: { $geoWithin: { $centerSphere: [ [ -74, 40.74 ] ,
+                                                        100 / 3963.2 ] } } } )
+
+You may also use the ``distanceMultiplier`` option to the
+:dbcommand:`geoNear` to convert radians in the :binary:`~bin.mongod`
+process, rather than in your application code. See :ref:`distance
+multiplier <geospatial-indexes-distance-multiplier>`.
+
+The following spherical query, returns all documents in the
+collection ``places`` within ``100`` miles from the point ``[ -74,
+40.74 ]``.
+
+.. code-block:: javascript
+
+   db.runCommand( { geoNear: "places",
+                    near: [ -74, 40.74 ],
+                    spherical: true
+                  }  )
+
+The output of the above command would be:
+
+.. code-block:: javascript
+
+   {
+      // [ ... ]
+      "results" : [
+         {
+            "dis" : 0.01853688938212826,
+            "obj" : {
+               "_id" : ObjectId( ... )
+               "loc" : [
+                  -73,
+                  40
+               ]
+            }
+         }
+      ],
+      "stats" : {
+         // [ ... ]
+         "avgDistance" : 0.01853688938212826,
+         "maxDistance" : 0.01853714811400047
+      },
+      "ok" : 1
+   }
+
+.. warning::
+
+   .. include::  /includes/extracts/geospatial-queries-longitude-values.rst
+
+.. note::
+
+   .. include::  /includes/extracts/geospatial-long-lat-values.rst
+
+.. _geospatial-indexes-distance-multiplier:
+
+Distance Multiplier
+-------------------
+
+The ``distanceMultiplier`` option of the :dbcommand:`geoNear` command returns
+distances only after multiplying the results by an assigned value. This allows
+MongoDB to return converted values, and removes the requirement to
+convert units in application logic.
+
+Using ``distanceMultiplier`` in spherical queries provides results from
+the :dbcommand:`geoNear` command that do not need radian-to-distance
+conversion. The following example uses ``distanceMultiplier`` in the
+:dbcommand:`geoNear` command with a :doc:`spherical
+</tutorial/calculate-distances-using-spherical-geometry-with-2d-geospatial-indexes>` example:
+
+.. code-block:: javascript
+
+   db.runCommand( { geoNear: "places",
+                    near: [ -74, 40.74 ],
+                    spherical: true,
+                    distanceMultiplier: 3963.2
+                  }  )
+
+The output of the above operation would resemble the following:
+
+.. code-block:: javascript
+
+   {
+      // [ ... ]
+      "results" : [
+         {
+            "dis" : 73.46525170413567,
+            "obj" : {
+               "_id" : ObjectId( ... )
+               "loc" : [
+                  -73,
+                  40
+               ]
+            }
+         }
+      ],
+      "stats" : {
+         // [ ... ]
+         "avgDistance" : 0.01853688938212826,
+         "maxDistance" : 0.01853714811400047
+      },
+      "ok" : 1
+   }

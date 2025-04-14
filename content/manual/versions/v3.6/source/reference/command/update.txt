@@ -1,0 +1,618 @@
+======
+update
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: update
+
+   .. versionadded:: 2.6
+
+   The :dbcommand:`update` command modifies documents in a collection.
+   A single :dbcommand:`update` command can contain multiple update
+   statements. The update methods provided by the MongoDB drivers use
+   this command internally.
+
+   The :dbcommand:`update` command has the following syntax:
+
+
+   .. code-block:: javascript
+
+      {
+         update: <collection>,
+         updates: [
+            { q: <query>, u: <update>, upsert: <boolean>, multi: <boolean>,
+              collation: <document>, arrayFilters: <array> },
+            { q: <query>, u: <update>, upsert: <boolean>, multi: <boolean>,
+              collation: <document>, arrayFilters: <array> },
+            { q: <query>, u: <update>, upsert: <boolean>, multi: <boolean>,
+              collation: <document>, arrayFilters: <array> },
+            ...
+         ],
+         ordered: <boolean>,
+         writeConcern: { <write concern> },
+         bypassDocumentValidation: <boolean>
+      }
+
+   The command takes the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``update``
+   
+        - string
+   
+        - The name of the target collection.
+          
+          
+   
+      * - ``updates``
+   
+        - array
+   
+        - An array of one or more update statements to perform in the named
+          collection.
+          
+          
+   
+      * - ``ordered``
+   
+        - boolean
+   
+        - Optional. If ``true``, then when an update statement fails, return without
+          performing the remaining update statements. If ``false``, then when
+          an update fails, continue with the remaining update statements, if
+          any. Defaults to ``true``.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern </reference/write-concern>`
+          of the :dbcommand:`update` command. Omit to use the default write
+          concern.
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Enables :dbcommand:`update` to bypass document validation
+          during the operation. This lets you update documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+
+
+
+   Each element of the ``updates`` array contains the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``q``
+   
+        - document
+   
+        - The query that matches documents to update. Use the same :ref:`query
+          selectors <query-selectors>` as used in the :method:`find()
+          <db.collection.find()>` method.
+          
+          
+   
+      * - ``u``
+   
+        - document
+   
+        - The modifications to apply. For details, see
+          :ref:`update-command-behaviors`.
+          
+          
+   
+      * - ``upsert``
+   
+        - boolean
+   
+        - Optional. If ``true``, perform an insert if no documents match the query. If
+          both ``upsert`` and ``multi`` are true and no documents match the
+          query, the update operation inserts only a single document.
+          
+          
+   
+      * - ``multi``
+   
+        - boolean
+   
+        - Optional. If ``true``, updates all documents that meet the query criteria. If
+          ``false``, limit the update to one document that meet the query
+          criteria. Defaults to ``false``.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``arrayFilters``
+   
+        - array
+   
+        - Optional. An array of filter documents that determines which array elements to
+          modify for an update operation on an array field.
+          
+          .. include::  /includes/extracts/arrayFilters-details.rst
+          
+          
+          For examples, see :ref:`update-command-arrayFilters`.
+          
+          .. versionadded:: 3.6
+          
+          
+          
+   
+
+
+   :return:
+
+      A document that contains the status of the operation.
+      See :ref:`update-command-output` for details.
+
+.. _update-command-behaviors:
+
+Behavior
+--------
+
+The ``<update>`` document can contain either all :ref:`update operator
+<update-operators>` expressions or all ``field:value`` expressions.
+
+Update Operator Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``<update>`` document contains all :ref:`update operator
+<update-operators>` expressions, as in:
+
+.. code-block:: javascript
+
+   {
+     $set: { status: "D" },
+     $inc: { quantity: 2 }
+   }
+
+Then, the :dbcommand:`update` command updates only the corresponding
+fields in the document.
+
+``Field: Value`` Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``<update>`` document contains *only* ``field:value``
+expressions, as in:
+
+.. code-block:: javascript
+
+   {
+     status: "D",
+     quantity: 4
+   }
+
+Then the :dbcommand:`update` command *replaces* the matching document
+with the update document. The :dbcommand:`update` command can only
+replace a *single* matching document; i.e. the ``multi`` field cannot
+be ``true``. The :dbcommand:`update` command *does not* replace the
+``_id`` value.
+
+Limits
+~~~~~~
+
+For each update element in the ``updates`` array, the sum of the query
+and the update sizes (i.e. ``q`` and ``u`` ) must be less than or equal
+to the :limit:`maximum BSON document size <BSON Document Size>`.
+
+The total number of update statements in the ``updates`` array must be
+less than or equal to the :limit:`maximum bulk size
+<Bulk Operation Size>`.
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/bypassDocumentValidation-update.rst
+
+Examples
+--------
+
+Update Specific Fields of One Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :ref:`update operators <update-operators>` to update only the
+specified fields of a document.
+
+For example, given a ``users`` collection, the following command uses
+the :update:`$set` and :update:`$inc` operators to modify the ``status``
+and the ``points`` fields respectively of a document where the ``user``
+equals ``"abc123"``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         update: "users",
+         updates: [
+            {
+              q: { user: "abc123" }, u: { $set: { status: "A" }, $inc: { points: 1 } }
+            }
+         ],
+         ordered: false,
+         writeConcern: { w: "majority", wtimeout: 5000 }
+      }
+   )
+
+Because ``<update>`` document does not specify the optional ``multi``
+field, the update only modifies one document, even if more than one
+document matches the ``q`` match condition.
+
+The returned document shows that the command found and updated a single
+document. See :ref:`update-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "nModified" : 1, "n" : 1 }
+
+Update Specific Fields of Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :ref:`update operators <update-operators>` to update only the
+specified fields of a document, and include the ``multi`` field set to
+``true`` in the update statement.
+
+For example, given a ``users`` collection, the following command uses
+the :update:`$set` and :update:`$inc` operators to modify the
+``status`` and the ``points`` fields respectively of all documents in
+the collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         update: "users",
+         updates: [
+            { q: { }, u: { $set: { status: "A" }, $inc: { points: 1 } }, multi: true }
+         ],
+         ordered: false,
+         writeConcern: { w: "majority", wtimeout: 5000 }
+      }
+   )
+
+The update modifies all documents that match the query specified in the
+``q`` field, namely the empty query which matches all documents in the
+collection.
+
+The returned document shows that the command found and updated multiple
+documents. See :ref:`update-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "nModified" : 100, "n" : 100 }
+
+Bulk Update
+~~~~~~~~~~~
+
+The following example performs multiple update operations on the
+``users`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         update: "users",
+         updates: [
+            { q: { status: "P" }, u: { $set: { status: "D" } }, multi: true },
+            { q: { _id: 5 }, u: { _id: 5, name: "abc123", status: "A" }, upsert: true }
+         ],
+         ordered: false,
+         writeConcern: { w: "majority", wtimeout: 5000 }
+      }
+   )
+
+The returned document shows that the command modified ``10`` documents
+and inserted a document with the ``_id`` value ``5``. See
+:ref:`update-command-output` for details.
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "nModified" : 10,
+      "n" : 11,
+      "upserted" : [
+         {
+            "index" : 1,
+            "_id" : 5
+         }
+      ]
+   }
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      update: "myColl",
+      updates: [
+        { q: { category: "cafe", status: "a" }, u: { $set: { status: "Updated" } }, collation: { locale: "fr", strength: 1 } }
+      ]
+   })
+
+.. _update-command-arrayFilters:
+
+Specify ``arrayFilters`` for Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+Create a collection ``students``  with the following
+documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.insert([
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ]);
+
+To modify all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      update: "students",
+      updates: [
+        { q: { grades: { $gte: 100 } }, u: { $set: { "grades.$[element]" : 100 } }, arrayFilters: [ { "element": { $gte: 100 } } ], multi: true}
+      ]
+   })
+
+After the operation, the collection contains the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 100, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+Create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insert([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ]);
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters``:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      update: "students2",
+      updates: [
+        { q: { }, u: { $set: { "grades.$[elem].mean" : 100 } }, arrayFilters: [ { "elem.grade": { $gte: 85 } } ], multi: true }
+      ]
+   })
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 5-6,12-14
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+      ]
+   }
+   { 
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 100, "std" : 6 },
+         { "grade" : 87, "mean" : 100, "std" : 3 },
+         { "grade" : 85, "mean" : 100, "std" : 4 }
+      ]
+   }
+
+.. _update-command-output:
+
+Output
+------
+
+The returned document contains a subset of the following fields:
+
+.. data:: update.ok
+
+   The status of the command.
+
+.. data:: update.n
+
+   The number of documents selected for update. If the update operation
+   results in no change to the document, e.g. :update:`$set` expression
+   updates the value to the current value, :data:`~update.n` can be
+   greater than :data:`~update.nModified`.
+
+.. data:: update.nModified
+
+   The number of documents updated. If the update operation results in
+   no change to the document, such as setting the value of the field to
+   its current value, :data:`~update.nModified` can be less than
+   :data:`~update.n`.
+
+.. data:: update.upserted
+
+   An array of documents that contains information for each document
+   inserted through the update with ``upsert: true``.
+
+   Each document contains the following information:
+
+   .. data:: update.upserted.index
+
+      An integer that identifies the update with ``upsert:true``
+      statement in the ``updates`` array, which uses a zero-based index.
+
+   .. data:: update.upserted._id
+
+      The ``_id`` value of the added document.
+
+.. data:: update.writeErrors
+
+   An array of documents that contains information regarding any error
+   encountered during the update operation. The
+   :data:`~update.writeErrors` array contains an error document for
+   each update statement that errors.
+
+   Each error document contains the following fields:
+
+   .. data:: update.writeErrors.index
+
+      An integer that identifies the update statement in the
+      ``updates`` array, which uses a zero-based index.
+
+   .. data:: update.writeErrors.code
+
+      An integer value identifying the error.
+
+   .. data:: update.writeErrors.errmsg
+
+      A description of the error.
+
+.. data:: update.writeConcernError
+
+   Document that describe error related to write concern and contains
+   the field:
+
+   .. data:: update.writeConcernError.code
+
+      An integer value identifying the cause of the write concern error.
+
+   .. data:: update.writeConcernError.errmsg
+
+      A description of the cause of the write concern error.
+
+The following is an example document returned for a successful
+:dbcommand:`update` command that performed an upsert:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "nModified" : 0,
+      "n" : 1,
+      "upserted" : [
+         {
+            "index" : 0,
+            "_id" : ObjectId("52ccb2118908ccd753d65882")
+         }
+      ]
+   }
+
+The following is an example document returned for a bulk update
+involving three update statements, where one update statement was
+successful and two other update statements encountered errors:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "nModified" : 1,
+      "n" : 1,
+      "writeErrors" : [
+         {
+            "index" : 1,
+            "code" : 16837,
+            "errmsg" : "The _id field cannot be changed from {_id: 1.0} to {_id: 5.0}."
+         },
+         {
+            "index" : 2,
+            "code" : 16837,
+            "errmsg" : "The _id field cannot be changed from {_id: 2.0} to {_id: 6.0}."
+         },
+      ]
+   }

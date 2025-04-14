@@ -1,0 +1,93 @@
+===============
+replSetReconfig
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: replSetReconfig
+
+   The :dbcommand:`replSetReconfig` command modifies the configuration
+   of an existing replica set. You can use this command to add and
+   remove members, and to alter the options set on existing
+   members. Use the following syntax:
+
+   .. code-block:: javascript
+
+      { replSetReconfig: <new_config_document>, force: false }
+
+   You may also run :dbcommand:`replSetReconfig` with the shell's
+   :method:`rs.reconfig()` method.
+
+.. slave-ok, admin-only
+
+Considerations
+--------------
+
+Be aware of the following :dbcommand:`replSetReconfig` behaviors and
+considerations:
+
+.. warning:: 
+   .. include:: /includes/warning-mixed-version-rs-config.rst
+
+- You must issue this command against the :term:`admin database` of the current
+  primary member of the replica set.
+
+- You can optionally force the replica set to accept the new
+  configuration by specifying ``force: true``. Use this option if there
+  is no current primary in the replica set.
+
+  .. warning::
+
+     Forcing the :dbcommand:`replSetReconfig` command can lead to a
+     :term:`rollback` situation. Use with caution.
+
+  Use the force option to restore a replica set to new servers with
+  different hostnames.
+
+- A majority of the set's members must be operational for the
+  changes to propagate properly.
+
+- :dbcommand:`replSetReconfig` can trigger the current 
+  primary to step down in some situations. When the primary steps down, 
+  it forcibly closes all client connections. Primary step-down triggers 
+  an :ref:`election <replica-set-elections>` to select a new 
+  :term:`primary`. 
+  
+  .. include:: /includes/fact-election-latency.rst
+  
+  During the election process, the cluster cannot
+  accept write operations until it elects the new primary.
+
+  .. include:: /includes/fact-retryable-writes-failover-election.rst
+
+  To further reduce potential impact to a production cluster,
+  reconfigure only during scheduled maintenance periods.
+
+.. versionchanged:: 3.2
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+   
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+- Before changing the :rsconf:`protocolVersion`, ensure that at least
+  one oplog entry (generated from the current protocol version) has
+  replicated from the primary to all secondaries. For details, see
+  :ref:`rs-pv-modify`.
+
+:dbcommand:`replSetReconfig` obtains a special mutually
+exclusive lock to prevent more than one
+:dbcommand:`replSetReconfig` operation from occurring at the same
+time.
+
+Additional Information
+----------------------
+
+:ref:`replSetGetConfig-output`,
+:doc:`/reference/replica-configuration`, :method:`rs.reconfig()`, and
+:method:`rs.conf()`.

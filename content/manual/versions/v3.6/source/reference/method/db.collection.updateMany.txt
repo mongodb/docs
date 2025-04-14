@@ -1,0 +1,455 @@
+==========================
+db.collection.updateMany()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.updateMany(filter, update, options)
+
+   .. versionadded:: 3.2
+   
+   Updates multiple documents within the collection based on the filter.
+   
+   The :method:`~db.collection.updateMany()` method has the following form:
+
+   .. versionchanged:: 3.6
+
+   .. code-block:: javascript
+
+      db.collection.updateMany(
+         <filter>,
+         <update>,
+         {
+           upsert: <boolean>,
+           writeConcern: <document>,
+           collation: <document>,
+           arrayFilters: [ <filterdocument1>, ... ]
+         }
+      )
+
+   The :method:`~db.collection.updateMany()` method takes the following
+   parameters:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``filter``
+   
+        - document
+   
+        - The selection criteria for the update. The same :ref:`query
+          selectors <query-selectors>` as in the :method:`find()
+          <db.collection.find()>` method are available.
+          
+          Specify an empty document ``{ }`` to update all documents in 
+          the collection.
+          
+          
+   
+      * - ``update``
+   
+        - document
+   
+        - The modifications to apply.
+          
+          Use :doc:`/reference/operator/update/` such as :update:`$set`, 
+          :update:`$unset`, or :update:`$rename`.
+          
+          Using the :ref:`update() <update-parameter>` pattern of 
+          ``field: value`` for the ``update`` parameter throws an error.
+          
+          
+   
+      * - ``upsert``
+   
+        - boolean
+   
+        - .. include:: /includes/extracts/updateMany-behavior-method.rst
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``arrayFilters``
+   
+        - array
+   
+        - Optional. An array of filter documents that determines which array elements to
+          modify for an update operation on an array field.
+          
+          .. include::  /includes/extracts/arrayFilters-details.rst
+          
+          
+          For examples, see :ref:`updateMany-arrayFilters`.
+          
+          .. versionadded:: 3.6
+          
+          
+          
+   
+
+
+
+   :returns:
+      
+      A document containing:
+      
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+        :term:`write concern` or ``false`` if write concern was disabled
+       
+      - ``matchedCount`` containing the number of matched documents
+      
+      - ``modifiedCount`` containing the number of modified documents
+      
+      - ``upsertedId`` containing the ``_id`` for the upserted document
+
+Behavior
+--------
+
+:method:`~db.collection.updateMany()` updates all matching documents in 
+the collection that match the ``filter``, using the ``update`` criteria 
+to apply modifications.
+
+If ``upsert: true`` and no documents match the ``filter``, 
+:method:`~db.collection.updateMany()` creates a new 
+document based on the ``filter`` and ``update`` parameters. See 
+:ref:`updateMany-example-update-multiple-documents-with-upsert`.
+
+.. _updateMany-capped-collections:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/capped-collection-immutable-document-size-update.rst
+
+.. TBD - need to test more thoroughly to pin down func.
+.. Sharded Collections
+.. ~~~~~~~~~~~~~~~~~~~
+
+
+Explainability
+~~~~~~~~~~~~~~
+
+.. |write-method| replace:: :method:`~db.collection.updateMany()`
+.. |old-write-method| replace:: :method:`~db.collection.update()`
+
+.. include:: /includes/fact-bulkwrite-explainable.rst
+
+.. _updateMany-method-examples:
+
+Examples
+--------
+
+.. _updateMany-example-update-multiple-documents:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``restaurant`` collection contains the  following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : 2 }
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : 5 }
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : 8 }
+
+The following operation updates all documents where ``violations`` are 
+greater than ``4`` and :update:`$set` a flag for review:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateMany( 
+         { violations: { $gt: 4 } }, 
+         { $set: { "Review" : true } } 
+      );
+   } catch (e) {
+      print(e);
+   }
+  
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
+   
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : 2 }
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : 5, "Review" : true }
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : 8, "Review" : true }
+
+If no matches were found, the operation instead returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
+
+Setting ``upsert: true`` would insert a document if no match was found.
+
+.. _updateMany-example-update-multiple-documents-with-upsert:
+
+Update Multiple Documents with Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``inspectors`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
+   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
+   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
+   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false }
+
+The following operation updates all documents with ``Sector`` greater
+than 4 and ``inspector`` equal to ``"R. Coltrane"``:
+
+.. code-block:: javascript
+
+   try {
+      db.inspectors.updateMany(
+         { "Sector" : { $gt : 4 }, "inspector" : "R. Coltrane" },
+         { $set: { "Patrolling" : false } },
+         { upsert: true }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "matchedCount" : 0,
+      "modifiedCount" : 0,
+      "upsertedId" : ObjectId("56fc5dcb39ee682bdc609b02")
+   }
+
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
+   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
+   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
+   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false },
+   { "_id" : ObjectId("56fc5dcb39ee682bdc609b02"), "inspector" : "R. Coltrane", "Patrolling" : false }
+
+Since no documents matched the filter, and ``upsert`` was ``true``,
+:method:`~db.collection.updateMany` inserted the document with a
+generated ``_id``, the equality conditions from the ``filter``, and the
+``update`` modifiers.
+
+.. _updateMany-example-update-with-write-concern:
+
+Update with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a 
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateMany(
+          { "name" : "Pizza Rat's Pizzaria" },
+          { $inc: { "violations" : 3}, $set: { "Closed" : true } },
+          { w: "majority", wtimeout: 100 }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+exception is thrown:
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errInfo" : {
+         "wtimeout" : true
+      },
+      "errmsg" : "waiting for replication timed out"
+   }) :
+   undefined
+
+The ``wtimeout`` error only indicates that the operation did not complete on 
+time. The write operation itself can still succeed outside of the set time 
+limit.
+
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.updateMany(
+      { category: "cafe" },
+      { $set: { status: "Updated" } },
+      { collation: { locale: "fr", strength: 1 } }
+   );
+
+.. _updateMany-arrayFilters:
+
+Specify ``arrayFilters`` for an Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+Create a collection ``students`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.insert([
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ])
+
+To update all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.updateMany(
+      { grades: { $gte: 100 } },
+      { $set: { "grades.$[element]" : 100 } },
+      { arrayFilters: [ { "element": { $gte: 100 } } ] }
+   )
+
+After the operation, the collection contains the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 100, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+Create a collection ``students2`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students2.insert([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters``:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students2.updateMany(
+      { },
+      { $set: { "grades.$[elem].mean" : 100 } },
+      { arrayFilters: [ { "elem.grade": { $gte: 85 } } ] }
+   )
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 5-6,12-14
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+      ]
+   }
+   { 
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 100, "std" : 6 },
+         { "grade" : 87, "mean" : 100, "std" : 3 },
+         { "grade" : 85, "mean" : 100, "std" : 4 }
+      ]
+   }

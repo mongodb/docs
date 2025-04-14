@@ -1,0 +1,129 @@
+=============================
+Add an Arbiter to Replica Set
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In some circumstances (such as you have a primary and a secondary but
+cost constraints prohibit adding another secondary), you may choose to
+add a :binary:`~bin.mongod` instance to a replica set as an
+:doc:`arbiter </core/replica-set-arbiter>` to vote in elections.
+
+Arbiters are :binary:`~bin.mongod` instances that are part of a
+:term:`replica set` but do not hold data (i.e. do not provide data
+redundancy). They can, however, participate in :ref:`elections
+<replica-set-elections>`.
+
+Arbiters have minimal resource requirements and do not require
+dedicated hardware. You can deploy an arbiter on an application
+server or a monitoring host.
+
+.. important:: Do not run an arbiter on systems that also host the
+   primary or the secondary members of the replica set.
+
+.. include:: /includes/admonition-multiple-arbiters.rst
+
+Considerations
+--------------
+
+Read Concern ``majority`` and Three-Member PSA
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. admonition:: For 3-Member Primary-Secondary-Arbiter Architecture
+   :class: warning
+
+   If you have a three-member replica set with a
+   primary-secondary-arbiter (PSA) architecture or a sharded cluster
+   with a three-member PSA shards, the cache pressure will increase if
+   any data bearing node is down and support for
+   :readconcern:`"majority"` read concern is enabled. 
+
+   To prevent the storage cache pressure from immobilizing a deployment
+   with a three-member primary-secondary-arbiter (PSA) architecture,
+   you can disable read concern "majority" for MongoDB 3.6.1+. For more
+   information, see :ref:`3.6-disable-read-concern-majority`.
+
+Replica Set Protocol Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
+
+Start Up Configuration
+~~~~~~~~~~~~~~~~~~~~~~
+
+An arbiter does not store data, but until the arbiter's :binary:`~bin.mongod`
+process is added to the replica set, the arbiter will act like any other
+:binary:`~bin.mongod` process and start up with a set of data files and with a
+full-sized :term:`journal`.
+
+To minimize the default creation of data, set the following in the
+arbiter's :doc:`configuration file </reference/configuration-options>`:
+
+.. important::
+
+   The following setting is specific to arbiters.
+
+..   These settings are specific to arbiters.
+
+.. - :setting:`storage.journal.enabled` to ``false``
+
+..   .. warning::
+
+..     Never set :setting:`storage.journal.enabled` to
+     ``false`` on a data-bearing node.
+
+- For MMAPv1 storage engine, :setting:`storage.mmapv1.smallFiles` to
+  ``true``.
+
+  Do not set :setting:`storage.mmapv1.smallFiles` on a data-bearing
+  node unless specifically indicated.
+
+IP Binding
+~~~~~~~~~~
+
+.. include:: /includes/fact-default-bind-ip.rst
+
+
+Add an Arbiter
+--------------
+
+.. include:: /includes/admonition-multiple-arbiters.rst
+
+#. Create a data directory (e.g. :setting:`storage.dbPath`) for the
+   arbiter. The :binary:`~bin.mongod` instance uses the directory for
+   configuration data. The directory *will not* hold the data set. For
+   example, create the ``/var/lib/mongodb/arb`` directory:
+
+   .. code-block:: sh
+
+      mkdir /var/lib/mongodb/arb
+
+#. Start the arbiter, specifying the data directory and the name of the replica set
+   to join. The following starts an arbiter using the ``/var/lib/mongodb/arb``
+   as the :setting:`~storage.dbPath` and  ``rs`` for the replica set name:
+
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   .. code-block:: sh
+
+      mongod --port 27017 --dbpath /var/lib/mongodb/arb --replSet rs --bind_ip localhost,<hostname(s)|ip address(es)>
+
+#. Connect to the primary and add the arbiter to the replica set. Use
+   the :method:`rs.addArb()` method, as in the following example which
+   assumes that ``m1.example.net`` is the hostname associated with the
+   specified ip address for the arbiter:
+
+   .. code-block:: javascript
+
+      rs.addArb("m1.example.net:27017")
+
+   This operation adds the arbiter running on port ``27017`` on the
+   ``m1.example.net`` host.

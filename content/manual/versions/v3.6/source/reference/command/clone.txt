@@ -1,0 +1,114 @@
+=====
+clone
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: clone
+
+   The :dbcommand:`clone` command clones a database from a
+   :binary:`~bin.mongod` instance to the current :binary:`~bin.mongod` instance.
+
+   The command takes the following form:
+
+   .. code-block:: javascript
+
+      { clone: <copyfromhost:port>, writeConcern: <document>, bypassDocumentValidation: <boolean> }
+
+   :dbcommand:`cloneCollection` has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``hostname``
+   
+        - string
+   
+        - The hostname of the database to copy.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern </reference/write-concern>`
+          for the operation. Omit to use the default write
+          concern.
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Enables :dbcommand:`clone` to bypass document validation
+          during the operation. This lets you insert documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+
+
+   To use the :dbcommand:`clone` command, run the command on the
+   **destination server**, specifying the source to copy from. The
+   database where you run the command determines which database to copy
+   from the source.
+
+   The :binary:`~bin.mongo` shell provides the method
+   :method:`db.cloneDatabase()` as a wrapper for the
+   :dbcommand:`clone` command.
+
+Behavior
+--------
+
+Data
+~~~~
+
+The :dbcommand:`clone` command does not snapshot the database. If any
+clients update the database you're copying at any point during the
+clone operation, the resulting database may be inconsistent.
+
+Locks
+~~~~~
+
+The destination database will be locked periodically during the
+:dbcommand:`clone` operation. In other words, :dbcommand:`clone` will
+occasionally yield to allow other operations on the database to
+complete.
+
+FeatureCompatibilityVersion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/3.6-featureCompatibility-copy-data.rst
+
+Replica Sets
+~~~~~~~~~~~~
+
+The :dbcommand:`clone` command can copy from a secondary member of a
+:term:`replica set`.
+
+Example
+-------
+
+The following operation copies the ``marketing`` database from
+``"db1.example.net:27017"`` to the :program:`mongod` instance where you
+issue the :method:`db.runCommand()`.
+
+.. code-block:: javascript
+
+   use marketing
+   db.runCommand( { clone: "db1.example.net:27017" })

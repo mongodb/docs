@@ -1,0 +1,199 @@
+=======
+explain
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: explain
+
+   .. versionadded:: 3.0
+
+   The :dbcommand:`explain` command provides information on the
+   execution of the following commands: :dbcommand:`count`, :dbcommand:`distinct`,
+   :dbcommand:`group`, :dbcommand:`find`, :dbcommand:`findAndModify`,
+   :dbcommand:`delete`, and :dbcommand:`update`.
+
+   Although MongoDB provides the :dbcommand:`explain` command, the
+   preferred method for running :dbcommand:`explain` is to use the
+   :method:`db.collection.explain()` and :method:`cursor.explain()` helpers.
+
+   The :dbcommand:`explain` command has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         explain: <command>,
+         verbosity: <string>
+      }
+
+   The command takes the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``explain``
+   
+        - document
+   
+        - A document specifying the command for which to return the execution
+          information. For details on the specific command document, see :dbcommand:`count`,
+          :dbcommand:`distinct`, :dbcommand:`group`, :dbcommand:`find`,
+          :dbcommand:`findAndModify`, :dbcommand:`delete`, and :dbcommand:`update`.
+          
+          
+   
+      * - ``verbosity``
+   
+        - string
+   
+        - Optional. A string specifying the mode in which to run :dbcommand:`explain`.
+          The mode affects the behavior of :dbcommand:`explain` and determines
+          the amount of information to return.
+          
+          Possible modes are: :ref:`"queryPlanner" <explain-queryPlanner>`,
+          :ref:`"executionStats" <explain-executionStats>`, and
+          :ref:`"allPlansExecution" <explain-allPlansExecution>`. For more
+          information on the modes, see :ref:`explain behavior
+          <explain-command-behavior>`.
+          
+          By default, :dbcommand:`explain` runs in :ref:`"allPlansExecution"
+          <explain-allPlansExecution>` mode.
+          
+          
+   
+
+
+.. _explain-command-behavior:
+
+Behavior
+--------
+
+The behavior of :dbcommand:`explain` and the amount of information
+returned depend on the ``verbosity`` mode.
+
+.. |explain| replace:: :dbcommand:`explain`
+.. |operation| replace:: ``<command>``
+
+.. _explain-queryPlanner:
+
+``queryPlanner`` Mode
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-explain-verbosity-queryPlanner.rst
+
+.. _explain-executionStats:
+
+``executionStats`` Mode
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-explain-verbosity-executionStats.rst
+
+.. _explain-allPlansExecution:
+
+``allPlansExecution`` Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, :dbcommand:`explain` runs in ``"allPlansExecution"``
+verbosity mode.
+
+.. include:: /includes/fact-explain-verbosity-allPlansExecution.rst
+
+Examples
+--------
+
+.. _ex-queryPlanner:
+
+``queryPlanner`` Mode
+~~~~~~~~~~~~~~~~~~~~~
+
+The following :dbcommand:`explain` command runs in :ref:`"queryPlanner"
+<explain-queryPlanner>` verbosity mode to return the query planning
+information for a :dbcommand:`count` command:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        explain: { count: "products", query: { quantity: { $gt: 50 } } },
+        verbosity: "queryPlanner"
+      }
+   )
+
+.. _ex-executionStats:
+
+``executionStats``  Mode
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following :dbcommand:`explain` operation runs in
+:ref:`"executionStats" <explain-executionStats>` verbosity mode to
+return the query planning and execution information for a
+:dbcommand:`count` command:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         explain: { count: "products", query: { quantity: { $gt: 50 } } },
+         verbosity: "executionStats"
+      }
+   )
+
+.. _ex-allPlansExecution:
+
+``allPlansExecution`` Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, :dbcommand:`explain` runs in :ref:`"allPlansExecution"
+<explain-allPlansExecution>` verbosity mode. The following
+:dbcommand:`explain` command returns the :data:`~explain.queryPlanner`
+and :data:`~explain.executionStats` for all considered plans for an
+:dbcommand:`update` command:
+
+.. note::
+
+   The execution of this explain will *not* modify data but runs the
+   query predicate of the update operation. For candidate plans,
+   MongoDB returns the execution information captured during the
+   :ref:`plan selection phase <query-plans-query-optimization>`.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        explain: {
+           update: "products",
+           updates: [
+              {
+                  q: { quantity: 1057, category: "apparel" },
+                  u: { $set: { reorder: true } }
+              }
+           ]
+        }
+      }
+   )
+
+.. _explain-command-output:
+
+Output
+------
+
+.. include:: /includes/fact-explain-results-categories.rst
+
+For details on the output, see :doc:`/reference/explain-results`.

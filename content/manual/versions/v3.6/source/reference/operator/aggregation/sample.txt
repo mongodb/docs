@@ -1,0 +1,76 @@
+=====================
+$sample (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $sample
+
+   .. versionadded:: 3.2
+
+   Randomly selects the specified number of documents from its input.
+
+   The :pipeline:`$sample` stage has the following syntax: 
+
+   .. code-block:: javascript
+
+      { $sample: { size: <positive integer> } }
+
+Behavior
+--------
+
+:pipeline:`$sample` uses one of two methods to obtain N random
+documents, depending on the size of the collection, the size of N,
+and ``$sample``'s position in the pipeline.
+
+If all the following conditions are met, ``$sample`` uses a
+pseudo-random cursor to select documents:
+
+- ``$sample`` is the first stage of the pipeline
+- N is less than 5% of the total documents in the collection
+- The collection contains more than 100 documents
+
+If any of the above conditions are NOT met, ``$sample`` performs a
+collection scan followed by a random sort to select N documents. In
+this case, the :pipeline:`$sample` stage is subject to the
+:ref:`sort memory restrictions <sort-memory-limit>`.
+
+.. warning::
+
+   :pipeline:`$sample` may output the same document more than once in
+   its result set. For more information, see :ref:`cursor-isolation`.
+
+Example
+--------
+
+Given a collection named ``users`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "dave123", "q1" : true, "q2" : true }
+   { "_id" : 2, "name" : "dave2", "q1" : false, "q2" : false  }
+   { "_id" : 3, "name" : "ahn", "q1" : true, "q2" : true  }
+   { "_id" : 4, "name" : "li", "q1" : true, "q2" : false  }
+   { "_id" : 5, "name" : "annT", "q1" : false, "q2" : true  }
+   { "_id" : 6, "name" : "li", "q1" : true, "q2" : true  }
+   { "_id" : 7, "name" : "ty", "q1" : false, "q2" : true  }
+
+The following aggregation operation randomly selects ``3`` documents from the
+collection:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [ { $sample: { size: 3 } } ]
+   )
+
+The operation returns three random documents.

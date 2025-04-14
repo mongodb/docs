@@ -1,0 +1,99 @@
+===========
+fsyncUnlock
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: fsync, fsyncUnlock, fsync unlock, unlock
+   :keywords: fsync, fsyncUnlock, fsync unlock, unlock
+
+Definition
+----------
+
+.. dbcommand:: fsyncUnlock
+
+   Reduces the lock taken by :dbcommand:`fsync` (with the lock option)
+   on a :binary:`~bin.mongod` instance by 1.
+
+   .. important::
+
+      The :dbcommand:`fsync` ``lock`` and :dbcommand:`fsyncUnlock`
+      operations maintain a lock count. Each :dbcommand:`fsync` ``lock``
+      operation increments the lock count, and :dbcommand:`fsyncUnlock`
+      decrements the lock count.
+
+      To unlock a :binary:`~bin.mongod` instance for writes, the lock count
+      must be zero. That is, for a given number of :dbcommand:`fsync`
+      ``lock`` operations, you must issue a corresponding number of
+      :dbcommand:`fsyncUnlock` operations to unlock the instance for
+      writes.
+
+   :dbcommand:`fsyncUnlock` is an administrative operation. Typically
+   you will use :dbcommand:`fsyncUnlock` following a database
+   :doc:`backup operation </core/backups>`.
+
+   To run the :dbcommand:`fsyncUnlock` command, use the
+   :method:`db.adminCommand()` method:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { fsyncUnlock: 1 } )
+
+   The operation returns a document with the following fields:
+
+   .. list-table::
+      :widths: 30 70
+
+      * - ``info``
+        - Information on the status of the operation
+
+      * - ``lockCount`` (*New in version 3.4*)
+        - The number of locks remaining on the instance after the operation.
+
+      * - ``ok``
+        - The status code.
+
+   .. tip::
+
+      The :binary:`~bin.mongo` shell provides the helper method
+      :method:`db.fsyncUnlock()`.
+
+Examples
+--------
+
+Consider a situation where :method:`db.fsyncLock()` has been issued two
+times. The following :dbcommand:`fsyncUnlock` operation reduces the
+locks taken by :method:`db.fsyncLock()` by 1:
+
+.. code-block:: javascript
+
+   db.adminCommand( { fsyncUnlock: 1 } )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "info" : "fsyncUnlock completed", "lockCount" : NumberLong(1), "ok" : 1 }
+
+As the ``lockCount`` is greater than 0, the :binary:`~bin.mongod` instance
+is locked against writes. To unlock the instance for writes, run the
+unlock operation again:
+
+.. code-block:: javascript
+
+   db.adminCommand( { fsyncUnlock: 1 } )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "info" : "fsyncUnlock completed", "lockCount" : NumberLong(0), "ok" : 1 }
+
+The :binary:`~bin.mongod` instance is unlocked for writes.

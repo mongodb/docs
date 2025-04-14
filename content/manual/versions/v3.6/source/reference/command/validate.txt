@@ -1,0 +1,414 @@
+========
+validate
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: validate
+
+   The :dbcommand:`validate` command checks a collection's data and
+   indexes for correctness and returns the results.
+
+   .. note::
+
+      :dbcommand:`validate` command does not support :doc:`views
+      </core/views>` and raises an error when run against a view.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+         validate: <string>,          // Collection name
+         full: <boolean>              // Optional
+      } )
+
+   The command takes the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 10 50
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``validate``
+        - string
+        - The name of the collection to validate.
+        
+      * - ``full``
+        - boolean
+        - *Optional*. A flag that determines whether the command performs
+          a slower but more thorough check or a faster but less thorough
+          check.
+
+          - If ``true``, performs a more thorough check.
+
+          - If ``false``, omits some checks for a faster but less
+            thorough check.
+
+          Defaults to ``false``
+
+          .. versionchanged:: 3.6
+
+          .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+
+   The :binary:`~bin.mongo` shell also provides a wrapper
+   :method:`db.collection.validate()`:
+
+   .. code-block:: javascript
+
+      db.collection.validate();
+
+Behavior
+--------
+
+The :dbcommand:`validate` command can be slow, particularly on
+larger data sets.
+
+The :dbcommand:`validate` command obtains an exclusive lock ``W`` on
+the collection. This will block all reads and writes on the collection
+until the operation finishes. When run on a secondary, the
+:dbcommand:`validate` operation can block all other operations on that
+secondary until it finishes.
+
+.. note::
+
+   Due to the manner in which :dbcommand:`validate` scans data
+   structures, even a full collection validation cannot detect all
+   forms of corruption on MMAPv1 storage engine data files.
+
+Examples
+--------
+
+- To validate a collection ``myCollection`` using the default settings
+  (i.e. ``full: false``)
+
+  .. code-block:: javascript
+
+     db.runCommand( { validate: "myCollection" } )
+
+- To perform a full validation of collection ``myCollection``
+
+  .. code-block:: javascript
+
+     db.runCommand( { validate: "myCollection", full: true } )
+
+.. _validate-output:
+
+Validate Output
+---------------
+
+:dbcommand:`validate` produces different output depending on which
+:doc:`storage engine</core/storage-engines>` you are using. Specify
+``{validate: "<collName>",  full: true }`` for more detailed output.
+
+The following fields are common to the
+:doc:`MMAPv1</core/mmapv1>` and :doc:`WiredTiger</core/wiredtiger>`
+storage engines:
+
+.. data:: validate.ns
+
+   The full namespace name of the collection. Namespaces include the
+   database name and the collection name in the form
+   ``database.collection``.
+
+.. data:: validate.nrecords
+
+   The number of :term:`documents <document>` in the collection.
+
+.. data:: validate.nIndexes
+
+   The number of indexes on the collection.
+
+.. data:: validate.keysPerIndex
+
+   A document that contains the name and index entry count for each
+   index on the collection.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "keysPerIndex" : {
+         "_id_" : <num>,
+         "<index2_name>" : <num>,
+         ...
+      }
+
+   Starting in 3.6.13+,
+   :data:`~validate.keysPerIndex` identifies the index by its name
+   only. Earlier versions of MongoDB displayed the full namespace of
+   the index; i.e. ``<db>.<collection>.$<index_name>``
+
+.. data:: validate.indexDetails
+
+   A document that contains the status of the index validation for each
+   index.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "indexDetails" : {
+         "_id_" : {
+            "valid" : <boolean>
+         },
+         "<index2_name>" : {
+            "valid" : <boolean>
+         },
+         ...
+      }
+
+   Starting in 3.6.13+,
+
+   - :data:`~validate.indexDetails` identifies the specific index (or
+     indexes) that is invalid. Earlier versions of MongoDB would mark
+     all indexes as invalid, if any of the indexes were invalid.
+
+   - :data:`~validate.indexDetails` identifies the index by its name
+     only. Earlier versions of MongoDB displayed the full namespace of
+     the index; i.e. ``<db>.<collection>.$<index_name>``.
+
+.. data:: validate.valid
+
+   A boolean that is ``true`` if :dbcommand:`validate` determines that
+   all aspects of the collection are valid. When ``false``, see the
+   :data:`~validate.errors` field for more information.
+
+.. data:: validate.errors
+
+   If the collection is not valid (i.e
+   :data:`~validate.valid` is false), this field will contain a message
+   describing the validation error.
+
+.. data:: validate.extraIndexEntries
+
+   An array that contains information for each index entry that points
+   to a document that does not exist in the collection.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "extraIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,  // for the non-existent document
+            "indexKey" : {
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+      ]
+
+   .. note::
+
+      For the :data:`~validate.extraIndexEntries` array, the sum of all
+      the ``indexKey`` field sizes has a limit of 1MB where the sizes
+      include both the keys and values for the ``indexKey``. If
+      the sum exceeds this size, the warning field displays a message.
+
+   *Available starting in MongoDB 3.6.13+*
+
+.. data:: validate.missingIndexEntries
+
+   An array that contains information for each document that is missing
+   the corresponding index entry.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "missingIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,
+            "idKey" : <_id key value>,     // The _id value of the document. Only present if an ``_id`` index exists.
+            "indexKey" : {                 // The missing index entry
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+       ]
+
+   .. note::
+
+      For the :data:`~validate.missingIndexEntries` array, the sum of
+      the ``idKey`` field size and all its ``indexKey`` field sizes has
+      a limit of 1MB where the field sizes include both the keys and
+      values for the ``idKey`` and ``indexKey``. If the sum
+      exceeds this size, the warning field displays a message.
+
+   *Available starting in MongoDB 3.6.13+*
+
+.. data:: validate.ok
+
+   An integer with the value ``1`` when the command succeeds. If the
+   command fails the :data:`~validate.ok` field has a value of ``0``.
+
+The following fields are specific to :doc:`MMAPv1</core/mmapv1>`:
+
+.. data:: validate.firstExtent
+
+   The disk location of the first extent in the collection. The value
+   of this field also includes the namespace.
+
+.. data:: validate.lastExtent
+
+   The disk location of the last extent in the collection. The value
+   of this field also includes the namespace.
+
+.. data:: validate.extentCount
+
+   The number of extents in the collection.
+
+.. data:: validate.extents
+
+   :dbcommand:`validate` returns one instance of this document for
+   every extent in the collection. This embedded document is only returned
+   when you specify the ``full`` option to the command.
+
+   .. data:: validate.extents.loc
+
+      The disk location for the beginning of this extent.
+
+   .. data:: validate.extents.xnext
+
+      The disk location for the extent following this one. "null" if
+      this is the end of the linked list of extents.
+
+   .. data:: validate.extents.xprev
+
+      The disk location for the extent preceding this one. "null" if
+      this is the head of the linked list of extents.
+
+   .. data:: validate.extents.nsdiag
+
+      The namespace this extent belongs to (should be the same as the
+      namespace shown at the beginning of the validate listing).
+
+   .. data:: validate.extents.size
+
+      The number of bytes in this extent.
+
+   .. data:: validate.extents.firstRecord
+
+      The disk location of the first record in this extent.
+
+   .. data:: validate.extents.lastRecord
+
+      The disk location of the last record in this extent.
+
+.. data:: validate.datasize
+
+   The number of bytes in all data records.  This value does not
+   include deleted records, nor does it include extent headers, nor
+   record headers, nor space in a file unallocated to any
+   extent. :data:`~validate.datasize` includes record :term:`padding`.
+
+.. data:: validate.lastExtentSize
+
+   The size of the last new extent created in this collection. This
+   value determines the size of the *next* extent created.
+
+.. data:: validate.padding
+
+   A floating point value between 1 and 2.
+
+   When MongoDB creates a new record it uses the :term:`padding
+   factor` to determine how much additional space to add to the
+   record. The padding factor is automatically adjusted by mongo when
+   it notices that update operations are triggering record moves.
+
+.. data:: validate.firstExtentDetails
+
+   The size of the first extent created in this collection. This data
+   is similar to the data provided by the :data:`~validate.extents`
+   embedded document; however, the data reflects only the first extent in
+   the collection and is always returned.
+
+   .. data:: validate.firstExtentDetails.loc
+
+      The disk location for the beginning of this extent.
+
+   .. data:: validate.firstExtentDetails.xnext
+
+      The disk location for the extent following this one. "null" if
+      this is the end of the linked list of extents, which should only
+      be the case if there is only one extent.
+
+   .. data:: validate.firstExtentDetails.xprev
+
+      The disk location for the extent preceding this one. This should
+      always be "null."
+
+   .. data:: validate.firstExtentDetails.nsdiag
+
+      The namespace this extent belongs to (should be the same as the
+      namespace shown at the beginning of the validate listing).
+
+   .. data:: validate.firstExtentDetails.size
+
+      The number of bytes in this extent.
+
+   .. data:: validate.firstExtentDetails.firstRecord
+
+      The disk location of the first record in this extent.
+
+   .. data:: validate.firstExtentDetails.lastRecord
+
+      The disk location of the last record in this extent.
+
+.. data:: validate.objectsFound
+
+   The number of records actually encountered in a scan of the
+   collection. This field should have the same value as the
+   :data:`~validate.nrecords` field.
+
+.. data:: validate.invalidObjects
+
+   The number of records containing BSON documents that do not pass a
+   validation check.
+
+   .. note::
+
+      This field is only included in the validation output when you
+      specify the ``full`` option.
+
+.. data:: validate.bytesWithHeaders
+
+   This is similar to datasize, except that :data:`~validate.bytesWithHeaders`
+   includes the record headers. In version 2.0, record headers are 16
+   bytes per document.
+
+   .. note::
+
+      This field is only included in the validation output when you
+      specify the ``full`` option.
+
+.. data:: validate.bytesWithoutHeaders
+
+   :data:`~validate.bytesWithoutHeaders` returns data collected from a scan of
+   all records. The value should be the same as :data:`~validate.datasize`.
+
+   .. note::
+
+      This field is only included in the validation output when you
+      specify the ``full`` option.
+
+.. data:: validate.deletedCount
+
+   The number of deleted or "free" records in the collection.
+
+.. data:: validate.deletedSize
+
+   The size of all deleted or "free" records in the collection.

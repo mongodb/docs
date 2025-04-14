@@ -1,0 +1,152 @@
+=============================
+$dateFromString (aggregation)
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $dateFromString
+
+   .. versionadded:: 3.6
+
+   Converts a date/time string to a date object.
+
+   The :expression:`$dateFromString` expression has the following syntax:
+
+   .. code-block:: javascript
+
+      { $dateFromString: { 
+            'dateString': <dateStringExpression>, 
+            'timezone': <tzExpression> 
+        } 
+      }
+
+   The :pipeline:`$dateFromString` takes a document with the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``dateString``
+
+        - The date/time string to convert to a date object. See 
+          :doc:`Date </reference/method/Date>` for 
+          more information on date/time formats. 
+
+          .. note:: 
+          
+            If specifying the ``timezone`` option to the operator, do not include 
+            time zone information in the ``dateString``.
+
+      * - ``timezone``
+
+        - Optional. The time zone to use to format the date. 
+
+          .. note::
+
+            If the ``dateString`` argument is formatted like 
+            '2017-02-08T12:10:40.787Z', in which the 'Z' at the end indicates Zulu
+            time (UTC time zone), you cannot specify the ``timezone`` argument.
+
+          ``<timezone>`` allows for the following options and expressions 
+          that evaluate to them:
+
+          - an `Olson Timezone Identifier
+            <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>`_, 
+            such as ``"Europe/London"`` or ``"America/New_York"``, or
+
+          - a UTC offset in the form:
+
+            - ``+/-[hh]:[mm]``, e.g. ``"+04:45"``, or
+
+            - ``+/-[hh][mm]``, e.g. ``"-0530"``, or
+
+            - ``+/-[hh]``, e.g. ``"+03"``, or
+
+          - The strings `"Z"`, `"UTC"`, or `"GMT"`
+
+          For more information on expressions, see
+          :ref:`aggregation-expressions`.
+
+
+If the ``dateStringExpression`` or ``tzExpression`` evaluate to null, missing or 
+undefined, the result of the $dateFromString expression is null.
+
+Example
+-------
+
+Consider a collection ``logmessages`` that contains the following documents: 
+
+.. code-block:: javascript
+
+   { _id: 1, date: "2017-02-08T12:10:40.787", timezone: "America/New_York", message:  "Step 1: Started" },
+   { _id: 2, date: "2017-02-08", timezone: "-05:00", message:  "Step 1: Ended" },
+   { _id: 3, message:  " Step 1: Ended " },
+   { _id: 4, date: "2017-02-09", timezone: "Europe/London", message: "Step 2: Started"},
+   { _id: 5, date: "2017-02-09T03:35:02.055", timezone: "+0530", message: "Step 2: In Progress"}
+
+The following aggregation uses $dateFromString to convert the ``date`` value
+to a date object:
+
+.. code-block:: javascript
+
+   db.logmessages.aggregate( [ {
+      $project: {
+         date: {
+            $dateFromString: {
+               dateString: '$date',
+               timezone: 'America/New_York'
+            }
+         }
+      }
+   } ] )
+
+The above aggregation returns the following documents and converts each ``date`` field
+to the Eastern Time Zone:
+
+.. code-block:: javascript
+   
+    { "_id" : 1, "date" : ISODate("2017-02-08T17:10:40.787Z") }
+    { "_id" : 2, "date" : ISODate("2017-02-08T05:00:00Z") }
+    { "_id" : 3, "date" : null }
+    { "_id" : 4, "date" : ISODate("2017-02-09T05:00:00Z") }
+    { "_id" : 5, "date" : ISODate("2017-02-09T08:35:02.055Z") }
+
+The ``timezone`` argument can also be provided through a document field instead of a 
+hard coded argument. For example:
+
+.. code-block:: javascript
+
+   db.logmessages.aggregate( [ {
+      $project: {
+         date: {
+            $dateFromString: {
+               dateString: '$date',
+               timezone: '$timezone'
+            }
+         }
+      }
+   } ] )
+
+The above aggregation returns the following documents and converts each ``date`` field
+to their respective UTC representations. 
+
+.. code-block:: javascript
+
+    { "_id" : 1, "date" : ISODate("2017-02-08T17:10:40.787Z") }
+    { "_id" : 2, "date" : ISODate("2017-02-08T05:00:00Z") }
+    { "_id" : 3, "date" : null }
+    { "_id" : 4, "date" : ISODate("2017-02-09T00:00:00Z") }
+    { "_id" : 5, "date" : ISODate("2017-02-08T22:05:02.055Z") }
+

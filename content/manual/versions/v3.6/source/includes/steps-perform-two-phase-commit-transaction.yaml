@@ -1,0 +1,186 @@
+# COMMENT Because we are linking to the steps directly
+#         via the title in the perform-two-phase-commits.txt,
+#         when updating the titles,
+#         update the references as needed.
+title:
+  text: Retrieve the transaction to start.
+  character: "`"
+stepnum: 1
+ref: "2-phase-commits-start"
+action:
+  - pre: |
+      From the ``transactions`` collection, find a transaction in the
+      ``initial`` state. Currently the ``transactions`` collection has
+      only one document, namely the one added in the
+      :ref:`initialize-transfer-record` step. If the collection
+      contains additional documents, the query will return any
+      transaction with an ``initial`` state unless you specify additional
+      query conditions.
+    language: javascript
+    code: |
+      var t = db.transactions.findOne( { state: "initial" } )
+  - pre: |
+      Type the variable ``t`` in the :binary:`~bin.mongo` shell to print the
+      contents of the variable. The operation should print a document
+      similar to the following except the ``lastModified`` field should reflect
+      date of your insert operation:
+    language: javascript
+    code: |
+      { "_id" : 1, "source" : "A", "destination" : "B", "value" : 100, "state" : "initial", "lastModified" : ISODate("2014-07-11T20:39:26.345Z") }
+---
+title:
+  text: Update transaction state to pending.
+  character: "`"
+stepnum: 2
+ref: "2-phase-commits-state-pending"
+pre: |
+  Set the transaction ``state`` from ``initial`` to ``pending`` and
+  use the :update:`$currentDate` operator to set the ``lastModified``
+  field to the current date.
+action:
+  language: javascript
+  code: |
+    db.transactions.update( 
+        { _id: t._id, state: "initial" },
+        {
+          $set: { state: "pending" },
+          $currentDate: { lastModified: true }
+        }
+    )
+post: |
+  The operation returns a :method:`WriteResult()` object with the status
+  of the operation. Upon successful update, the
+  :data:`~WriteResult.nMatched` and :data:`~WriteResult.nModified`
+  displays ``1``.
+
+  In the update statement, the ``state: "initial"`` condition ensures
+  that no other process has already updated this record. If
+  :data:`~WriteResult.nMatched` and :data:`~WriteResult.nModified` is
+  ``0``, go back to the first step to get a different transaction
+  and restart the procedure.
+---
+title:
+  text: Apply the transaction to both accounts.
+  character: "`"
+stepnum: 3
+ref: "2-phase-commits-apply-transaction"
+pre: |
+  Apply the transaction ``t`` to both accounts using the
+  :method:`~db.collection.update()` method *if* the transaction has not
+  been applied to the accounts. In the update condition, include the
+  condition ``pendingTransactions: { $ne: t._id }`` in order to avoid
+  re-applying the transaction if the step is run more than once.
+
+  To apply the transaction to the account, update both the ``balance``
+  field and the ``pendingTransactions`` field.
+action:
+  - pre: |
+      Update the source account, subtracting from its ``balance`` the
+      transaction ``value`` and adding to its ``pendingTransactions``
+      array the transaction ``_id``.
+    language: javascript
+    code: |
+       db.accounts.update(
+          { _id: t.source, pendingTransactions: { $ne: t._id } },
+          { $inc: { balance: -t.value }, $push: { pendingTransactions: t._id } }
+       )
+    post: |
+      Upon successful update, the method returns a
+      :method:`WriteResult()` object with :data:`~WriteResult.nMatched`
+      and :data:`~WriteResult.nModified` set to ``1``.
+  - pre: |
+      Update the destination account, adding to its ``balance`` the
+      transaction ``value`` and adding to its ``pendingTransactions``
+      array the transaction ``_id`` .
+    language: javascript
+    code: |
+       db.accounts.update(
+          { _id: t.destination, pendingTransactions: { $ne: t._id } },
+          { $inc: { balance: t.value }, $push: { pendingTransactions: t._id } }
+       )
+    post: |
+      Upon successful update, the method returns a
+      :method:`WriteResult()` object with :data:`~WriteResult.nMatched`
+      and :data:`~WriteResult.nModified` set to ``1``.
+---
+title:
+  text: Update transaction state to applied.
+  character: "`"
+stepnum: 4
+ref: "2-phase-commits-state-applied"
+action:
+  - pre: |
+      Use the following :method:`~db.collection.update()` operation to
+      set the transaction's ``state`` to ``applied`` and update the
+      ``lastModified`` field:
+    language: javascript
+    code: |
+      db.transactions.update(
+         { _id: t._id, state: "pending" },
+         {
+           $set: { state: "applied" },
+           $currentDate: { lastModified: true }
+         }
+      )
+    post: |
+      Upon successful update, the method returns a
+      :method:`WriteResult()` object with :data:`~WriteResult.nMatched`
+      and :data:`~WriteResult.nModified` set to ``1``.
+---
+title:
+  text: Update both accounts' list of pending transactions.
+  character: "`"
+stepnum: 5
+ref: "2-phase-commits-remove-pending"
+pre: | 
+  Remove the applied transaction ``_id`` from the
+  ``pendingTransactions`` array for both accounts.
+action:
+  - pre: |
+      Update the source account.
+    language: javascript
+    code: |
+      db.accounts.update(
+         { _id: t.source, pendingTransactions: t._id },
+         { $pull: { pendingTransactions: t._id } }
+      )
+    post: |
+      Upon successful update, the method returns a
+      :method:`WriteResult()` object with :data:`~WriteResult.nMatched`
+      and :data:`~WriteResult.nModified` set to ``1``.
+  - pre: |
+      Update the destination account.
+    language: javascript
+    code: |
+       db.accounts.update(
+          { _id: t.destination, pendingTransactions: t._id },
+          { $pull: { pendingTransactions: t._id } }
+       )
+    post: |
+      Upon successful update, the method returns a
+      :method:`WriteResult()` object with :data:`~WriteResult.nMatched`
+      and :data:`~WriteResult.nModified` set to ``1``.
+---
+title:
+  text: Update transaction state to done.
+  character: "`"
+stepnum: 6
+ref: "_2-phase-commits-state-done"
+pre: | 
+  Complete the transaction by setting the ``state`` of the transaction
+  to ``done`` and updating the ``lastModified`` field:
+action:
+  language: javascript
+  code: |
+    db.transactions.update(
+       { _id: t._id, state: "applied" },
+       {
+         $set: { state: "done" },
+         $currentDate: { lastModified: true }
+       }
+    )
+post: |
+  Upon successful update, the method returns a :method:`WriteResult()`
+  object with :data:`~WriteResult.nMatched` and
+  :data:`~WriteResult.nModified` set to ``1``.
+...

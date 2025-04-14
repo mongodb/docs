@@ -1,0 +1,208 @@
+.. _3.0-scram:
+
+================
+Upgrade to SCRAM
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Starting in version 3.0, MongoDB includes support for the :ref:`Salted
+Challenge Response Authentication Mechanism (SCRAM)
+<authentication-scram>`, which changes how MongoDB uses and stores user
+credentials.
+
+If you are starting with a new 3.0+ deployment without any users or
+upgrading from a 2.6 database that has no users, **no authentication
+schema upgrade to SCRAM is required**. All newly created users will
+have the correct format for SCRAM.
+
+For 3.0+ deployments with existing MongoDB Challenge and Response
+(MONGODB-CR) user data model, the following procedure upgrades the
+authentication schema to SCRAM.
+
+.. admonition:: Recommendation
+   :class: important
+
+   SCRAM represents a significant improvement in security over MongoDB
+   Challenge and Response (MONGODB-CR), the previous default
+   authentication mechanism. For advantages of using SCRAM over
+   MONGODB-CR, see :ref:`scram-advantages`.
+
+   As of MongoDB 3.6, MONGODB-CR authentication mechanism is
+   deprecated.
+
+   You are strongly urged to upgrade from the MONGODB-CR
+   authentication schema to SCRAM. 
+
+.. _upgrade-scram-scenarios:
+
+Existing 2.6 User Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following information details the authentication mechanism used for
+MongoDB 3.0+ deployments that contains MONGODB-CR user credentials;
+that is, before upgrading the authentication schema.
+
+If you upgraded from version 2.6 with existing user authentication data
+to MongoDB 3.0 (or run MongoDB 3.0 binary against the 2.6 data files):
+
+.. list-table::
+   :header-rows: 1
+
+   * - MongoDB Users
+
+     - Credentials Stored in 3.0
+
+     - Behavior
+
+   * - Existing challenge-response users
+     - MONGODB-CR credentials
+
+     - .. include:: /includes/fact-mongodb-cr-users-drivers.rst
+
+   * - New challenge-response users
+     - MONGODB-CR credentials
+
+     - .. include:: /includes/fact-mongodb-cr-users-drivers.rst
+
+If you populated MongoDB 3.0 user data by importing the 2.6 user
+authentication data:
+
+.. list-table::
+   :header-rows: 1
+
+   * - MongoDB Users
+
+     - Credentials Stored in 3.0
+
+     - Behavior
+
+   * - Existing challenge-response users
+     - MONGODB-CR credentials
+
+     - .. include:: /includes/fact-mongodb-cr-users-drivers.rst
+
+   * - New challenge-response users
+
+     - SCRAM credentials
+
+     - Requires drivers that support MongoDB 3.0+ features (see
+       :ref:`compatibility-driver-versions`). Can only use SCRAM.
+
+.. _3.0-scram-considerations:
+
+Considerations
+--------------
+
+Backwards Incompatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-upgrade-scram-irreversible.rst
+
+.. _considerations-scram-sha-1-drivers:
+
+Requirements
+~~~~~~~~~~~~
+
+To upgrade the authentication model, you must have a user in the
+``admin`` database with the role :authrole:`userAdminAnyDatabase`.
+
+Timing
+~~~~~~
+
+Because downgrades are more difficult after you upgrade the user
+authentication model, once you upgrade the MongoDB binaries to
+version 3.0, allow your MongoDB deployment to run for a day or two
+before following this procedure.
+
+This allows 3.0 some time to "burn in" and decreases the likelihood
+of downgrades occurring after the user privilege model upgrade. The
+user authentication and access control will continue to work as
+it did in 2.6.
+
+If you decide to upgrade the user authentication
+model immediately instead of waiting the recommended "burn in"
+period, then for sharded clusters, you must wait at least 10 seconds
+after upgrading the sharded clusters to run the authentication
+upgrade command.
+
+Replica Sets
+~~~~~~~~~~~~
+
+For a replica set, it is only necessary to run the upgrade process on
+the :term:`primary` as the changes will automatically replicate to
+the secondaries.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+For a sharded cluster, connect to one :binary:`~bin.mongos` instance and run the
+upgrade procedure to upgrade the cluster's authentication data. By
+default, the procedure will upgrade the authentication data of the
+shards as well.
+
+To override this behavior, run :dbcommand:`authSchemaUpgrade` with the
+``upgradeShards: false`` option. If you choose to
+override, you must run the upgrade procedure on the :binary:`~bin.mongos`
+first, and then run the procedure on the :term:`primary` members of
+each shard.
+
+For a sharded cluster, do **not** run the upgrade process directly
+against the :doc:`config servers
+</core/sharded-cluster-config-servers>`. Instead, perform the upgrade
+process using one :binary:`~bin.mongos` instance to interact with the
+config database.
+
+Upgrade Drivers
+~~~~~~~~~~~~~~~
+
+You must upgrade all drivers used by applications that will connect to
+upgraded database instances to version that support SCRAM. The minimum
+driver versions that support SCRAM are:
+
+.. |driver-compatibility-heading| replace:: Version
+
+.. include:: /includes/list-table-3.0-driver-compatibility.rst
+
+See the :ecosystem:`MongoDB Drivers Page </drivers>` for links to
+download upgraded drivers.
+
+Prerequisites
+-------------
+
+Before upgrading the authentication model, you should first
+:doc:`upgrade MongoDB binaries to 3.0 </release-notes/3.0-upgrade>`.
+For sharded clusters, ensure that **all** cluster components are 3.0.
+
+.. _3.0-upgrade-mongodb-cr-to-scram:
+
+Upgrade 2.6 ``MONGODB-CR`` User Credentials to SCRAM User Credentials
+---------------------------------------------------------------------
+
+.. warning::
+
+   .. include:: /includes/fact-upgrade-scram-irreversible.rst
+
+.. important::
+
+   To use SCRAM, a driver upgrade is **necessary** if your current
+   driver version does not support SCRAM. See :ref:`required driver
+   versions <considerations-scram-sha-1-drivers>` for details.
+
+.. include:: /includes/steps/3.0-upgrade-mongodb-cr-to-scram.rst
+
+Result
+------
+
+After this procedure is complete, all users in the database will have
+SCRAM credentials, and any subsequently-created users will also have
+this type of credentials.

@@ -1,0 +1,80 @@
+==================================
+Create Chunks in a Sharded Cluster
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Pre-splitting the chunk ranges in an empty sharded collection allows
+clients to insert data into an already partitioned collection. In most
+situations a :term:`sharded cluster` will create and distribute chunks
+automatically without user intervention. However, in a limited number
+of cases, MongoDB cannot create enough chunks or distribute
+data fast enough to support required throughput. For example:
+
+- If you want to partition an existing data collection that resides on a
+  single shard.
+
+- If you want to ingest a large volume of data into a cluster that isn't
+  balanced, or where the ingestion of data will lead to data imbalance.
+  For example, monotonically increasing or decreasing shard keys insert
+  all data into a single chunk.
+
+These operations are resource intensive for several reasons:
+
+- Chunk migration requires copying all the data in the chunk from one shard to
+  another.
+
+- No shard can participate in more than one migration at any given
+  time. To migrate multiple chunks from a shard, the balancer migrates
+  the chunks one at a time.
+
+  .. versionchanged:: 3.4 
+
+     Observing the restriction that a shard can participate in at most
+     one migration at a time, for a sharded cluster with *n* shards,
+     MongoDB can perform at most *n/2* (rounded down) simultaneous
+     chunk migrations.
+
+- MongoDB creates splits only after an insert operation.
+
+.. warning::
+
+   Only pre-split an empty collection. If a collection already has data,
+   MongoDB automatically splits the collection's data when you enable
+   sharding for the collection. Subsequent attempts to manually create
+   splits can lead to unpredictable chunk ranges and sizes as well as
+   inefficient or ineffective balancing behavior.
+
+To create chunks manually, use the following procedure:
+
+#. Split empty chunks in your collection by manually performing
+   the :dbcommand:`split` command on chunks.
+
+   .. example::
+
+      To create chunks for documents in the ``myapp.users``
+      collection using the ``email`` field as the :term:`shard key`,
+      use the following operation in the :binary:`~bin.mongo` shell:
+
+        .. code-block:: javascript
+
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.adminCommand( { split : "myapp.users" , middle : { email : prefix } } );
+             }
+           }
+
+      This assumes a collection size of 100 million documents.
+
+   For information on the balancer and automatic distribution of
+   chunks across shards, see :ref:`sharding-balancing-internals`
+   and :ref:`sharding-chunk-migration`. For
+   information on manually migrating chunks, see
+   :doc:`/tutorial/migrate-chunks-in-sharded-cluster`.

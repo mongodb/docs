@@ -1,0 +1,300 @@
+.. index:: changeStreams notification
+
+=============
+Change Events
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _change-stream-output:
+
+Change Events
+-------------
+
+The following document represents all possible fields that a change
+stream response document can have.
+
+.. code-block:: json
+
+   {
+      _id : { <BSON Object> },
+      "operationType" : "<operation>",
+      "fullDocument" : { <document> },
+      "ns" : {
+         "db" : "<database>",
+         "coll" : "<collection>"
+      },
+      "documentKey" : { "_id" : <value> },
+      "updateDescription" : {
+         "updatedFields" : { <document> },
+         "removedFields" : [ "<field>", ... ]
+      }
+   }
+
+Some fields are only available for certain operations, such as updates. The
+following table describes each field in the change stream response document:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``_id``
+     - document
+     - Metadata related to the operation.
+
+       Use this document as a ``resumeToken`` for the ``resumeAfter``
+       parameter when resuming a change stream.
+
+   * - ``operationType``
+     - string
+     - The type of operation that occurred. Can be any of the following
+       values:
+
+       - ``insert``
+       - ``delete``
+       - ``replace``
+       - ``update``
+       - ``invalidate``
+
+   * - ``fullDocument``
+     - document
+     - The document created or modified by the operation.
+
+       For ``insert`` and ``replace`` operations, this represents the new
+       document created by the operation.
+
+       For ``delete`` operations, this field is omitted as the document no
+       longer exists.
+
+       For ``update`` operations, this field only appears if you configured
+       the change stream with ``fullDocument`` set to ``updateLookup``. This
+       field then represents the most current majority-committed version of
+       the document modified by the update operation. This
+       document may differ from the changes described in ``updateDescription``
+       if other majority-committed operations modified the document between
+       the original update operation and the full document lookup.
+
+   * - ``ns``
+     - document
+     - The namespace of the database and collection the change stream is open
+       against.
+
+   * - ``ns.db``
+     - string
+     - The name of the database.
+
+   * - ``ns.coll``
+     - string
+     - The name of the collection.
+
+   * - ``documentKey``
+     - document
+     - The document that contains the ``_id`` of the document created or modified by the operation.
+       For sharded collections, also displays the full shard key for the
+       document. The ``_id`` field is not repeated if it is already a
+       part of the shard key.
+
+   * - ``updateDescription``
+     - document
+     - A document describing the fields that were updated or removed
+       by the update operation.
+
+       This document and its fields only appears if the ``operationType`` is
+       ``update``.
+
+   * - ``updateDescription.updatedFields``
+     - document
+     - A document whose keys correspond to the fields that were modified by the
+       update operation. The value of each field corresponds to the new
+       value of those fields, rather than the operation that resulted in the
+       new value.
+
+   * - ``updateDescription.removedFields``
+     - array
+     - An array of fields that were removed by the update operation.
+
+``insert`` Event
+----------------
+
+The following example illustrates an ``insert`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'insert',
+      ns: {
+         db: 'engineering', 
+         coll: 'users'
+      },
+      documentKey: {
+         userName: 'alice123', 
+         _id: ObjectId("599af247bb69cd89961c986d")
+      },
+      fullDocument: {
+         _id: ObjectId("599af247bb69cd89961c986d"), 
+         userName: 'alice123',
+         name: 'Alice'
+      }
+   }
+
+The ``documentKey`` field includes both the ``_id`` and the ``userName``
+field. This indicates that the ``engineering.users`` collection is sharded,
+with a shard key on ``userName`` and ``_id``.
+
+The ``fullDocument`` document represents the version of the document at the
+time of the insert.
+
+.. _change-streams-update-event:
+
+``update`` Event
+----------------
+
+The following example illustrates an ``update`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'update',
+      ns: { 
+         db: 'engineering', 
+         coll: 'users'
+      },
+      documentKey: {
+         _id: ObjectId("58a4eb4a30c75625e00d2820")
+      },
+      updateDescription: {
+         updatedFields: {
+            email: 'alice@10gen.com'
+         },
+         removedFields: ['phoneNumber']
+      }
+   }
+   
+The following example illustrates an ``update`` event for change streams
+opened with the ``fullDocument : updateLookup`` option:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'update',
+      ns: { 
+         db: 'engineering', 
+         coll: 'users'
+      },
+      documentKey: {
+         _id: ObjectId("58a4eb4a30c75625e00d2820")
+      },
+      updateDescription: {
+         updatedFields: {
+            email: 'alice@10gen.com'
+         },
+         removedFields: ['phoneNumber']
+      },
+      fullDocument: { 
+         _id: ObjectId("58a4eb4a30c75625e00d2820"),
+         name: 'Alice',
+         userName: 'alice123',
+         email: 'alice@10gen.com',
+         team: 'replication'
+      }
+   }
+
+The ``fullDocument`` document represents the most current majority-committed
+version of the updated document. The ``fullDocument`` document may vary from
+the document at the time of the update operation depending on the number of
+interleaving majority-committed operations that occur between the update
+operation and the document lookup.
+
+``replace`` Event
+-----------------
+
+The following example illustrates a ``replace`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'replace',
+      ns: {
+         db: 'engineering', 
+         coll: 'users'
+      },
+      documentKey: { 
+         _id: ObjectId("599af247bb69cd89961c986d")
+      },
+      fullDocument: {
+         _id: ObjectId("599af247bb69cd89961c986d"), 
+         userName: 'alice123',
+         name: 'Alice'
+      }
+   }
+   
+A ``replace`` operation uses the update command, and consists of two stages:
+
+- Delete the original document with the ``documentKey`` and
+- Insert the new document using the same ``documentkey``
+
+The ``fullDocument`` of a ``replace`` event represents the document after the
+insert of the replacement document.
+
+``delete`` Event
+----------------
+
+The following example illustrates a ``delete`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'delete',
+      ns: {
+         db: 'engineering',
+         coll: 'users'
+      },
+      documentKey: {
+         _id: ObjectId("599af247bb69cd89961c986d")
+      }
+   }
+
+The ``fullDocument`` document is omitted as the document no longer exists at the
+time the change stream cursor sends the ``delete`` event to the client.
+
+
+.. _change-event-invalidate:
+
+``invalidate`` Event
+--------------------
+
+The following example illustrates an ``invalidate`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'invalidate'
+   }
+
+For change stream opened against a collection, 
+``invalidate`` events occur after a :dbcommand:`dropDatabase`,
+:dbcommand:`drop`, or :dbcommand:`renameCollection` command that
+affects the watched collection. ``invalidate`` events close the change
+stream cursor and signal that any locally cached data is out
+of sync with the server.
+
+``invalidate`` events close the change stream cursor.
+
+.. include:: /includes/extracts/changestream-invalid-events.rst
+

@@ -1,0 +1,127 @@
+ref: x509-certificate-client
+content: |
+   The client certificate must have the following
+   properties:
+
+   - A single Certificate Authority (CA) must issue the certificates
+     for both the client and the server.
+
+   - Client certificates must contain the following fields:
+
+     .. code-block:: none
+
+        keyUsage = digitalSignature
+        extendedKeyUsage = clientAuth
+
+   - Each unique MongoDB user must have a unique certificate.
+
+   - A client x.509 certificate's subject, which contains the
+     Distinguished Name (``DN``), must **differ** from that of a
+     :ref:`x509-member-certificate`. Specifically, the subjects must
+     differ with regards to at least one of the following attributes:
+     Organization (``O``), the Organizational Unit (``OU``) or the Domain
+     Component (``DC``).
+
+     .. warning::
+
+        If a client x.509 certificate's subject has the same ``O``,
+        ``OU``, and ``DC`` combination as the
+        :ref:`x509-member-certificate`, the client will be identified as a
+        cluster member and granted full permission on the system.
+---
+ref: x509-certificate-member
+content: |
+   The member certificate, used for internal authentication to verify
+   membership to the sharded cluster or a replica set, must have the
+   following properties:
+
+   - A single Certificate Authority (CA) must issue all the x.509
+     certificates for the members of a sharded cluster or a replica set.
+
+   - The Distinguished Name (``DN``), found in the member certificate's
+     ``subject``, must specify a non-empty value for *at least one* of the
+     following attributes: Organization (``O``), the Organizational Unit
+     (``OU``) or the Domain Component (``DC``).
+
+   - The Organization attributes (``O``\'s), the Organizational Unit
+     attributes (``OU``\'s), and the Domain Components (``DC``\'s) must match
+     those from the certificates for the other cluster members. To match,
+     the certificate must match all specifications of these attributes, or
+     even the non-specification of these attributes. The order of the
+     attributes does not matter.
+
+     In the following example, the two ``DN``\'s contain matching
+     specifications for ``O``, ``OU`` as well as the non-specification of
+     the ``DC`` attribute.
+
+     .. code-block:: none
+
+        CN=host1,OU=Dept1,O=MongoDB,ST=NY,C=US
+        C=US, ST=CA, O=MongoDB, OU=Dept1, CN=host2
+
+     However, the following two ``DN``\'s contain a mismatch for the
+     ``OU`` attribute since one contains two ``OU`` specifications and
+     the other, only one specification.
+
+     .. code-block:: none
+
+        CN=host1,OU=Dept1,OU=Sales,O=MongoDB
+        CN=host2,OU=Dept1,O=MongoDB
+
+   - Either the Common Name (``CN``) or one of the Subject Alternative
+     Name (``SAN``) entries must match the hostname of the server, used by
+     the other members of the cluster.
+
+     For example, the certificates for a cluster could have the following
+     subjects:
+
+     .. code-block:: sh
+
+        subject= CN=<myhostname1>,OU=Dept1,O=MongoDB,ST=NY,C=US
+        subject= CN=<myhostname2>,OU=Dept1,O=MongoDB,ST=NY,C=US
+        subject= CN=<myhostname3>,OU=Dept1,O=MongoDB,ST=NY,C=US
+
+   - *If* the certificate includes the Extended Key Usage (``extendedKeyUsage``)
+     setting, the value must include ``clientAuth`` ("TLS Web Client
+     Authentication").
+
+     .. code-block:: none
+
+        extendedKeyUsage = clientAuth
+   
+     You can also use a certificate that does not include the Extended
+     Key Usage (EKU).
+---
+ref: x509-member-auth-configuration
+content: |
+   To specify x.509 for internal authentication, in addition to the other
+   TLS/SSL configurations appropriate for your deployment, for each member of
+   the replica set or sharded cluster, include either:
+
+   - :setting:`security.clusterAuthMode` and :setting:`net.ssl.clusterFile`
+     if using a :doc:`configuration file
+     </reference/configuration-options>`, or
+
+   - ``--clusterAuthMode`` and ``--sslClusterFile`` command line
+     options.
+---
+ref: x509-member-certificate-PEMKeyFile
+content: |
+   To configure MongoDB for client certificate authentication, the
+   :binary:`~bin.mongod` and :binary:`~bin.mongos` specify a ``PEMKeyFile`` to
+   prove its identity to clients, either through
+   :setting:`net.ssl.PEMKeyFile` setting in the configuration file or
+   ``--sslPEMKeyFile`` command line option.
+   
+   If no :setting:`~net.ssl.clusterFile` certificate is specified for
+   internal member authentication, MongoDB will attempt to use the
+   ``PEMKeyFile`` certificate for member authentication. In order to use
+   ``PEMKeyFile`` certificate for internal authentication as well as for
+   client authentication, then the ``PEMKeyFile``
+   certificate must either:
+
+   - Omit ``extendedKeyUsage`` or
+
+   - Specify ``extendedKeyUsage`` values
+     that include ``clientAuth`` in addition to ``serverAuth``.
+...

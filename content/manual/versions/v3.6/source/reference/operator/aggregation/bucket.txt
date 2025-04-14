@@ -1,0 +1,441 @@
+==========================
+$bucket (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $bucket
+   
+   .. versionadded:: 3.4
+   
+   Categorizes incoming documents into groups, called buckets, based on
+   a specified expression and bucket boundaries.
+   
+   Each bucket is represented as a document in the output. The document
+   for each bucket contains an ``_id`` field, whose value specifies the
+   inclusive lower bound of the bucket and a ``count`` field that
+   contains the number of documents in the bucket.  The ``count`` field
+   is included by default when the ``output`` is not specified.
+   
+   :pipeline:`$bucket` only produces output documents for buckets that
+   contain at least one input document.
+
+   .. code-block:: javascript
+
+      { 
+        $bucket: {
+            groupBy: <expression>,
+            boundaries: [ <lowerbound1>, <lowerbound2>, ... ],
+            default: <literal>,
+            output: {
+               <output1>: { <$accumulator expression> },
+               ...
+               <outputN>: { <$accumulator expression> }
+            }
+         }
+      }
+   
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``groupBy``
+   
+        - expression
+   
+        - An :ref:`expression <aggregation-expressions>` to group documents 
+          by. To specify a :ref:`field path<agg-quick-ref-field-paths>`,
+          prefix the field name with a dollar sign ``$`` and enclose it in 
+          quotes.
+          
+          Unless :pipeline:`$bucket` includes a ``default``
+          specification, each input document must resolve the
+          ``groupBy`` field path or expression to a value that falls
+          within one of the ranges specified by the ``boundaries``.
+          
+          
+   
+      * - ``boundaries``
+   
+        - array
+   
+        - An array of values based on the ``groupBy`` expression that specify
+          the boundaries for each bucket. Each adjacent pair of values acts
+          as the inclusive lower boundary and the exclusive upper boundary 
+          for the bucket. You must specify at least two boundaries.
+          
+          The specified values must be in ascending order and all of the same
+          :doc:`type </reference/bson-types>`. The exception is if the values
+          are of mixed numeric types, such as:
+          
+          ``[ 10, NumberLong(20), NumberInt(30) ]``
+          
+          If the values are documents, they must be wrapped in the 
+          :expression:`$literal` operator.
+          
+          .. example:: 
+             
+             An array of ``[ 0, 5, 10 ]`` creates two buckets:
+          
+             - [0, 5) with inclusive lower bound ``0`` and exclusive upper
+               bound ``5``.
+          
+             - [5, 10) with inclusive lower bound ``5`` and exclusive upper 
+               bound ``10``.
+          
+          
+   
+      * - ``default``
+   
+        - literal
+   
+        - Optional. A literal that specifies the ``_id`` of an additional bucket that
+          contains all documents whose ``groupBy`` expression result does not 
+          fall into a bucket specified by ``boundaries``.
+          
+          If unspecified, each input document must resolve the
+          ``groupBy`` expression to a value within one of the bucket ranges 
+          specified by ``boundaries`` or the operation throws an error.
+          
+          The ``default`` value must be less than the lowest ``boundaries``
+          value, or greater than or equal to the highest ``boundaries`` value.
+          
+          The ``default`` value can be of a different
+          :doc:`type </reference/bson-types>` than the entries in 
+          ``boundaries``.
+          
+          
+   
+      * - ``output``
+   
+        - document
+   
+        - Optional. A document that specifies the fields to include in the output
+          documents in addition to the ``_id`` field. To specify the field to
+          include, you must use
+          :ref:`accumulator expressions<agg-quick-reference-accumulators>`.
+          
+          .. code-block:: javascript
+          
+             <outputfield1>: { <accumulator>: <expression1> },
+             ...
+             <outputfieldN>: { <accumulator>: <expressionN> }
+             
+          The default ``count`` field is not included in the output document
+          when ``output`` is specified. Explicitly specify the ``count`` 
+          expression as part of the output document to include it:
+            
+          .. code-block:: javascript
+             
+             output: { 
+               <outputField1>: { <accumulator>: <expression1> },
+               ...
+               "count": { $sum: 1 }
+             }
+          
+          
+   
+
+   
+Behavior
+--------
+
+``$bucket`` requires at least one of the following conditions to be met
+or the operation throws an error:
+
+- Each input document resolves the ``groupBy`` expression to a
+  value within one of the bucket ranges specified by ``boundaries``, or
+   
+- A ``default`` value is specified to bucket documents whose ``groupBy``
+  values are outside of the ``boundaries`` or of a different
+  :doc:`BSON type </reference/bson-types>` than the values in
+  ``boundaries``.
+
+If the ``groupBy`` expression resolves to an array or a document,
+``$bucket`` arranges the input documents into buckets using the
+comparison logic from :pipeline:`$sort`.
+
+Example
+-------
+
+Consider a collection ``artwork`` with the following documents:
+
+.. code-block:: javascript
+
+  { "_id" : 1, "title" : "The Pillars of Society", "artist" : "Grosz", "year" : 1926,
+      "price" : NumberDecimal("199.99") }
+  { "_id" : 2, "title" : "Melancholy III", "artist" : "Munch", "year" : 1902,
+      "price" : NumberDecimal("280.00") }
+  { "_id" : 3, "title" : "Dancer", "artist" : "Miro", "year" : 1925,
+      "price" : NumberDecimal("76.04") }
+  { "_id" : 4, "title" : "The Great Wave off Kanagawa", "artist" : "Hokusai",
+      "price" : NumberDecimal("167.30") }
+  { "_id" : 5, "title" : "The Persistence of Memory", "artist" : "Dali", "year" : 1931,
+      "price" : NumberDecimal("483.00") }
+  { "_id" : 6, "title" : "Composition VII", "artist" : "Kandinsky", "year" : 1913,
+      "price" : NumberDecimal("385.00") }
+  { "_id" : 7, "title" : "The Scream", "artist" : "Munch", "year" : 1893
+      /* No price*/ }
+  { "_id" : 8, "title" : "Blue Flower", "artist" : "O'Keefe", "year" : 1918,
+      "price" : NumberDecimal("118.42") }
+
+The following operation uses the ``$bucket`` aggregation stage to
+arrange the ``artwork`` collection into buckets according to ``price``:
+
+.. code-block:: javascript
+
+   db.artwork.aggregate( [
+     {
+       $bucket: { 
+         groupBy: "$price",
+         boundaries: [ 0, 200, 400 ],
+         default: "Other",
+         output: {
+           "count": { $sum: 1 },
+           "titles" : { $push: "$title" }
+         }
+       }
+     }
+   ] )
+
+The buckets have the following boundaries:
+
+- [0, 200) with inclusive lowerbound ``0`` and exclusive upper bound 
+  ``200``.  
+- [200, 400) with inclusive lowerbound ``200`` and exclusive upper
+  bound ``400``. 
+- "Other" is the ``default`` bucket for documents without prices or
+  prices outside the ranges above.
+
+The operation returns the following documents:
+  
+.. code-block:: javascript
+
+   {
+     "_id" : 0,
+     "count" : 4,
+     "titles" : [
+       "The Pillars of Society",
+       "Dancer",
+       "The Great Wave off Kanagawa",
+       "Blue Flower"
+     ]
+   }
+   {
+     "_id" : 200,
+     "count" : 2,
+     "titles" : [
+       "Melancholy III",
+       "Composition VII"
+     ]
+   }
+   {
+     "_id" : "Other",
+     "count" : 2,
+     "titles" : [
+       "The Persistence of Memory",
+       "The Scream"
+     ]
+   }
+
+Using $bucket with $facet
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$bucket` stage can be used within the :pipeline:`$facet`
+stage to process multiple aggregation pipelines on ``artwork`` in a
+single aggregation stage. 
+
+The following operation groups the documents from ``artwork`` into
+buckets based on ``price`` and ``year``:
+
+.. code-block:: javascript
+
+   db.artwork.aggregate( [
+     {
+       $facet: {
+         "price": [
+           {
+             $bucket: { 
+                 groupBy: "$price",
+                 boundaries: [ 0, 200, 400 ],
+                 default: "Other",
+                 output: {
+                   "count": { $sum: 1 },
+                   "artwork" : { $push: { "title": "$title", "price": "$price" } }
+                 }
+             }
+           }
+         ],
+         "year": [
+           { 
+             $bucket: {
+               groupBy: "$year",
+               boundaries: [ 1890, 1910, 1920, 1940 ],
+               default: "Unknown",
+               output: {
+                 "count": { $sum: 1 },
+                 "artwork": { $push: { "title": "$title", "year": "$year" } }
+               }
+             }
+           }
+         ]
+       }
+     }
+   ] )
+
+The first facet groups the input documents by ``price``. The
+buckets have the following boundaries:
+
+- [0, 200) with inclusive lowerbound ``0`` and exclusive upper bound 
+  ``200``.  
+- [200, 400) with inclusive lowerbound ``200`` and exclusive upper
+  bound ``400``. 
+- "Other", the``default`` bucket containing documents without prices or
+  prices outside the ranges above.
+
+The second facet groups the input documents by ``year``. The buckets
+have the following boundaries:
+
+- [1890, 1910) with inclusive lowerbound ``1890`` and exclusive upper
+  bound ``1910``.
+- [1910, 1920) with inclusive lowerbound ``1910`` and exclusive upper
+  bound ``1920``.
+- [1920, 1940) with inclusive lowerbound ``1910`` and exclusive upper
+  bound ``1940``.
+- "Unknown", the``default`` bucket containing documents without years or
+  years outside the ranges above.
+
+The operation returns the following document:
+
+.. code-block:: javascript
+   
+   {
+     "year" : [
+       {
+         "_id" : 1890,
+         "count" : 2,
+         "artwork" : [
+           {
+             "title" : "Melancholy III",
+             "year" : 1902
+           },
+           {
+             "title" : "The Scream",
+             "year" : 1893
+           }
+         ]
+       },
+       {
+         "_id" : 1910,
+         "count" : 2,
+         "artwork" : [
+           {
+             "title" : "Composition VII",
+             "year" : 1913
+           },
+           {
+             "title" : "Blue Flower",
+             "year" : 1918
+           }
+         ]
+       },
+       {
+         "_id" : 1920,
+         "count" : 3,
+         "artwork" : [
+           {
+             "title" : "The Pillars of Society",
+             "year" : 1926
+           },
+           {
+             "title" : "Dancer",
+             "year" : 1925
+           },
+           {
+             "title" : "The Persistence of Memory",
+             "year" : 1931
+           }
+         ]
+       },
+       {
+         // Includes the document without a year, e.g., _id: 4
+         "_id" : "Unknown",
+         "count" : 1,
+         "artwork" : [
+           {
+             "title" : "The Great Wave off Kanagawa"
+           }
+         ]
+       }
+     ],
+   	 "price" : [
+       {
+         "_id" : 0,
+         "count" : 4,
+         "artwork" : [
+           {
+             "title" : "The Pillars of Society",
+             "price" : NumberDecimal("199.99")
+           },
+           {
+             "title" : "Dancer",
+             "price" : NumberDecimal("76.04")
+           },
+           {
+             "title" : "The Great Wave off Kanagawa",
+             "price" : NumberDecimal("167.30")
+           },
+           {
+             "title" : "Blue Flower",
+             "price" : NumberDecimal("118.42")
+           }
+         ]
+       },
+       {
+         "_id" : 200,
+         "count" : 2,
+         "artwork" : [
+           {
+             "title" : "Melancholy III",
+             "price" : NumberDecimal("280.00")
+           },
+           {
+             "title" : "Composition VII",
+             "price" : NumberDecimal("385.00")
+           }
+         ]
+       },
+       {
+         // Includes the document without a price, e.g., _id: 7
+         "_id" : "Other",
+         "count" : 2,
+         "artwork" : [
+           {
+             "title" : "The Persistence of Memory",
+             "price" : NumberDecimal("483.00")
+           },
+           {
+             "title" : "The Scream"
+           }
+         ]
+       }
+     ]
+   }
+   
+See also :pipeline:`$bucketAuto`

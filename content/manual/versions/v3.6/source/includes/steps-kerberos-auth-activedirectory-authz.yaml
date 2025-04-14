@@ -1,0 +1,629 @@
+title: Configure TLS/SSL for the server running MongoDB.
+stepnum: 1
+ref: security-kerberos-activedirectory-authauthz-configTLS
+level: 4
+content: |
+
+  To connect to the :abbr:`AD (Active Directory)` (AD) server via TLS/SSL, the
+  :binary:`~bin.mongod` or :binary:`~bin.mongos` require access to the :abbr:`AD
+  (Active Directory)` server's Certificate Authority (CA) certificate.
+
+  On Linux, specify the :abbr:`AD (Active Directory)` server's CA certificates
+  via the ``TLS_CACERT`` or ``TLS_CACERTDIR`` option in the ``ldap.conf`` file.
+
+  Your platform's package manager creates the ``ldap.conf`` file while
+  installing MongoDB Enterprise's ``libldap`` dependency. For complete
+  documentation on the configuration file or the referenced options, see
+  `ldap.conf <http://www.openldap.org/software/man.cgi?query=ldap.conf>`_.
+
+  On Microsoft :abbr:`Windows (Microsoft Windows)`, load the :abbr:`AD (Active
+  Directory)` server's Certificate Authority (CA) certificates with the
+  platform's credential management tool. The exact credential management tool
+  is :abbr:`Windows (Microsoft Windows)` version dependent. To use the tool,
+  refer to its documentation for your version of :abbr:`Windows (Microsoft
+  Windows)`.
+
+  If :binary:`~bin.mongod` or :binary:`~bin.mongos` cannot access to the :abbr:`AD
+  (Active Directory)` CA files, they cannot create TLS/SSL connections to the
+  Active Directory server.
+
+  Optionally, set :setting:`security.ldap.transportSecurity` to ``none``
+  to disable TLS/SSL.
+
+  .. warning::
+
+     Setting :setting:`~security.ldap.transportSecurity` to ``none`` transmits
+     plaintext information, including user credentials, between MongoDB and
+     the :abbr:`AD (Active Directory)` server.
+
+---
+title: (Windows only) Assign Service Principal Name to MongoDB Windows Service.
+stepnum: 2
+ref: security-kerberos-activedirectory-authauthz-Windowsspn
+level: 4
+pre: |
+
+  For MongoDB servers running on the :abbr:`Windows (Microsoft Windows)`
+  operating system, you must use `setspn.exe
+  <https://technet.microsoft.com/en-us/library/cc731241(v=ws.11).aspx>`_ to
+  assign the service principal name (SPN) to the account running the MongoDB
+  service.
+
+  .. code-block:: powershell
+
+     setspn.exe -S <service>/<fully qualified domain name> <service account name>
+
+  .. example::
+
+     For example, if a :binary:`~bin.mongod` runs as a service named ``mongodb`` on
+     ``mongodbserver.example.com`` with the service account name
+     ``mongodb_dev@example.com``, the command to assign the SPN would look as
+     follows:
+
+     .. code-block:: powershell
+
+        setspn.exe -S mongodb/mongodbserver.example.com mongodb_dev@example.com
+
+  .. note::
+
+     :abbr:`Windows (Microsoft Windows)` Server 2003 does not support
+     ``setspn.exe -S``. For complete documentation on ``setspn.exe``, see
+     `setspn.exe
+     <https://technet.microsoft.com/en-us/library/cc731241(v=ws.11).aspx>`_.
+
+---
+title: (Linux only) Create keytab file for the MongoDB server.
+stepnum: 2
+ref: security-kerberos-activedirectory-authauthz-keytab
+level: 4
+content: |
+
+  For MongoDB servers running on the Linux platform, you must ensure the
+  server has a copy of the :ref:`keytab file <keytab-files>` specific to the
+  MongoDB instance running on that server.
+
+  You must grant the Linux user running the MongoDB service read permissions
+  on the keytab file. Take note of the full path of the keytab file location.
+
+---
+title: Connect to the MongoDB server.
+stepnum: 3
+ref: security-nativeldap-activedirectory-preconnect
+level: 4
+pre: |
+
+  Connect to the MongoDB server using the :binary:`~bin.mongo` shell using the
+  :option:`--host <mongo --host>` and :option:`--port <mongo --port>` options.
+
+  .. code-block:: shell
+
+     mongo --host <hostname> --port <port>
+
+  If your MongoDB server currently enforces authentication, you must
+  authenticate to the ``admin`` database as a user with role management
+  privileges, such as those provided by :authrole:`userAdmin` or
+  :authrole:`userAdminAnyDatabase`. Include the appropriate
+  :option:`--authenticationMechanism <mongo --authenticationMechanism>` for the
+  MongoDB server's configured authentication mechanism.
+
+  .. code-block:: shell
+
+     mongo --host <hostname> --port <port> --username <user> --password <pass> --authenticationDatabase="admin" --authenticationMechanism="<mechanism>"
+
+  .. note::
+
+     For :abbr:`Windows (Microsoft Windows)` MongoDB deployments, you should replace :binary:`~bin.mongo` with
+     :binary:`~bin.mongo.exe`
+
+---
+title: Create user administrative role.
+ref: security-nativeldap-activedirectory-authz-userAdmin
+level: 4
+stepnum: 4
+pre: |
+
+  To manage MongoDB users using :abbr:`AD (Active Directory)`, you need to
+  create at least one role on the ``admin`` database that can create and
+  manage roles, such as those provided by :authrole:`userAdmin` or
+  :authrole:`userAdminAnyDatabase`.
+
+  The role's name must exactly match the Distinguished Name of an :abbr:`AD
+  (Active Directory)` group. The group must have at least one :abbr:`AD
+  (Active Directory)` user as a member.
+
+  Given the available :ref:`Active Directory groups
+  <kerb-auth-ldap-authz-groupObj>`,the following operation:
+
+  - Creates a role named for the :abbr:`AD (Active Directory)` group
+    ``CN=dba,CN=Users,DC=example,DC=com``, and
+
+  - Assigns it the :authrole:`userAdminAnyDatabase` role on the ``admin``
+    database.
+
+  .. code-block:: javascript
+
+     var admin = db.getSiblingDB("admin")
+     admin.createRole(
+        {
+          role: "CN=dba,CN=Users,DC=example,DC=com",
+          privileges: [],
+          roles: [ "userAdminAnyDatabase" ]
+        }
+     )
+
+  You could alternatively grant the :authrole:`userAdmin` role for each
+  database the user should have user administrative privileges on. These roles
+  provide the necessary privileges for role creation and management.
+
+  .. important::
+
+     Consider applying the `principle of least privilege
+     <https://www.us-cert.gov/bsi/articles/knowledge/principles/least-privilege>`_
+     when configuring MongoDB roles, :abbr:`AD (Active Directory)` groups, or
+     group membership.
+
+---
+title: Create a MongoDB configuration file.
+stepnum: 5
+ref: security-kerberos-activedirectory-authauthz-configfile
+level: 4
+pre: |
+
+  A MongoDB :doc:`configuration file </administration/configuration>` is a
+  plain-text YAML file with the ``.conf`` file extension.
+
+  * If you are upgrading an existing MongoDB deployment, copy the
+    current configuration file and work from that copy.
+
+  * (Linux Only) If this is a new deployment *and* you used your platform's
+    package manager to install MongoDB Enterprise, the installation includes
+    the ``/etc/mongod.conf`` default configuration file. Use that default
+    configuration file, or make a copy of that file to work from.
+
+  * If no such file exists, create an empty file with the ``.conf`` extension
+    and work from that new configuration file.
+
+---
+title: Configure MongoDB to connect to Active Directory`.
+stepnum: 6
+ref: security-kerberos-activedirectory-authauthz-configuremongodb
+level: 4
+pre: |
+
+  In the MongoDB configuration file, set :setting:`security.ldap.servers` to
+  the host and port of the :abbr:`AD (Active Directory)` server. If your
+  :abbr:`AD (Active Directory)` infrastructure includes multiple :abbr:`AD
+  (Active Directory)` servers for the purpose of replication, specify the host
+  and port of the servers as a comma-delimited list to
+  :setting:`security.ldap.servers`.
+
+  .. example::
+
+     To connect to an :abbr:`AD (Active Directory)` server located at
+     ``activedirectory.example.net``, include the following in the
+     configuration file:
+
+     .. code-block:: yaml
+
+        security:
+          ldap:
+            servers: "activedirectory.example.net"
+
+  MongoDB must bind to the :abbr:`AD (Active Directory)` server to perform
+  queries. By default, MongoDB uses the simple authentication mechanism to
+  bind itself to the :abbr:`AD (Active Directory)` server.
+
+  Alternatively, you can configure the following settings in the configuration
+  file to bind to the :abbr:`AD (Active Directory)` server using ``SASL``:
+
+  - Set :setting:`security.ldap.bind.method` to ``sasl``
+
+  - :setting:`security.ldap.bind.saslMechanisms`, specifying a string of
+    comma-separated SASL mechanisms the :abbr:`AD (Active Directory)` server
+    supports.
+
+  This tutorial uses the default ``simple`` LDAP authentication mechanism.
+
+---
+title: Configure MongoDB for Kerberos authentication.
+stepnum: 7
+ref: security-kerberos-activedirectory-authauthz-configurebinding
+level: 4
+pre: |
+
+  In the MongoDB configuration file, set :setting:`security.authorization` to
+  `enabled` and :setting:`setParameter` :parameter:`authenticationMechanisms`
+  to ``GSSAPI``
+
+
+  To enable authentication via Kerberos, include the following in
+  the configuration file:
+
+  .. code-block:: yaml
+
+     security:
+       authorization: "enabled"
+     setParameter:
+       authenticationMechanisms: "GSSAPI"
+
+---
+title: Configure LDAP Query Template for authorization.
+ref: security-kerberos-activedirectory-authauthz-querytemplate
+level: 4
+stepnum: 8
+pre: |
+
+  In the MongoDB configuration file, set
+  :setting:`security.ldap.authz.queryTemplate` to an `RFC4516
+  <https://tools.ietf.org/html/rfc4516>`_ formatted LDAP query URL template.
+  In the template, use the ``{USER}`` placeholder to substitute the
+  authenticated username into the LDAP query URL. Design the query template to
+  retrieve the authenticated user's groups.
+
+  .. note::
+
+     A full description of `RFC4515 <https://tools.ietf.org/html/rfc4515>`_,
+     RFC4516, or :abbr:`AD (Active Directory)` queries is out of scope for
+     this tutorial. The :setting:`~security.ldap.authz.queryTemplate` provided
+     in this tutorial is an example only, and may not be applicable for your
+     specific :abbr:`AD (Active Directory)` deployment.
+
+  .. example::
+
+     The following query template returns any groups that list ``{USER}`` as a
+     member, following recursive group memberships. This LDAP query assumes
+     that group objects track user membership by storing full user
+     Distinguished Name (DN) using the ``member`` attribute. The query
+     includes the :abbr:`AD (Active Directory)` specific matching rule OID
+     ``1.2.840.113556.1.4.1941`` for `LDAP_MATCHING_RULE_IN_CHAIN
+     <https://msdn.microsoft.com/en-us/library/aa746475(v=vs.85).aspx>`_. This
+     matching rule is an :abbr:`AD (Active Directory)` specific extension to
+     LDAP search filters.
+
+     .. code-block:: yaml
+
+        security:
+          ldap:
+            authz:
+              queryTemplate:
+                "DC=example,DC=com??sub?(&(objectClass=group)(member:1.2.840.113556.1.4.1941:={USER}))"
+
+     Using the query template, MongoDB substitutes ``{USER}`` with the
+     authenticated username to query the LDAP server.
+
+     For example, a user authenticates as
+     ``CN=sam,CN=Users,DC=dba,DC=example,DC=com``. MongoDB creates an LDAP
+     query based on the :setting:`~security.ldap.authz.queryTemplate`,
+     substituting the ``{USER}`` token with the provided username. The Active
+     Directory server performs a recursive group lookup for any group that
+     either directly or transitively lists the user as a member. Based on the
+     :ref:`Active Directory groups <kerb-auth-ldap-authz-groupObj>`, the
+     :abbr:`AD (Active Directory)` server returns
+     ``CN=dba,CN=Users,DC=example,DC=com`` and
+     ``CN=engineering,CN=Users,DC=example,DC=com``.
+
+  MongoDB maps each returned group :abbr:`DN (Distinguished Name)` to a role
+  on the ``admin`` database. For each mapped group :abbr:`DN (Distinguished
+  Name)`, if there is an existing role on the ``admin`` database whose name
+  exactly matches the :abbr:`DN (Distinguished Name)`, MongoDB grants the user
+  the roles and privileges assigned to that role.
+
+  The matching rule ``LDAP_MATCHING_RULE_IN_CHAIN`` requires providing the
+  full :abbr:`DN (Distinguished Name)` of the authenticating user. Since
+  Kerberos requires authenticating with a user's ``userPrincipalName``, you
+  must transform the incoming usernames into :abbr:`DNs (Distinguished Name)`
+  using :setting:`security.ldap.userToDNMapping`. The next step provides
+  guidance on transforming incoming usernames to support the
+  :setting:`~security.ldap.authz.queryTemplate`.
+
+---
+title: Transform incoming usernames for authentication via Active Directory.
+stepnum: 9
+ref: security-kerberos-activedirectory-authauthz-transform
+level: 4
+pre: |
+
+  In the MongoDB configuration file, set
+  :setting:`~security.ldap.userToDNMapping` to transform the authenticating
+  user's provided username into an :abbr:`AD (Active Directory)` DN to support
+  the :setting:`~security.ldap.authz.queryTemplate`.
+
+  .. example::
+
+     The following :setting:`~security.ldap.userToDNMapping` configuration
+     uses the ``match`` regular expression filter to capture the provided
+     username. MongoDB inserts the captured username into the ``ldapQuery``
+     query template before executing the query.
+
+     .. code-block:: yaml
+
+        security:
+          ldap:
+            userToDNMapping:
+              '[
+                 {
+                    match : "(.+)",
+                    ldapQuery: "DC=example,DC=com??sub?(userPrincipalName={0})"
+                 }
+            ]'
+
+  You must modify the given sample configuration to match your deployment. For
+  example, the ``ldapQuery`` base :abbr:`DN (Distinguished Name)` must match
+  the base :abbr:`DN (Distinguished Name)` which contains your user entities.
+  Other modifications may be necessary to support your :abbr:`AD (Active
+  Directory)` deployment.
+
+  .. example::
+
+     A user authenticates as ``alice@ENGINEERING.EXAMPLE.COM``. MongoDB first
+     applies any transformations specified in
+     :setting:`~security.ldap.userToDNMapping`. Based on the provided
+     configuration, MongoDB captures the username in the ``match`` stage and
+     executes an LDAP query:
+
+     .. code-block:: yaml
+
+        DC=example,DC=com??sub?(userPrincipalName=alice@ENGINEERING.EXAMPLE.COM)
+
+     Based on the configured :ref:`Active Directory
+     users<kerb-auth-ldap-authz-userObj>`, the :abbr:`AD (Active Directory)`
+     server should return
+     ``CN=alice,CN=Users,DC=engineering,DC=example,DC=com``.
+
+     MongoDB then executes the LDAP query configured in
+     :setting:`~security.ldap.authz.queryTemplate`, replacing the ``{USER}``
+     token with the *transformed* username
+     ``CN=alice,CN=Users,DC=engineering,DC=example,DC=com``.
+
+  .. include:: /includes/admonition-important-userToDNMapping-escape.rst
+
+---
+title: Configure query credentials.
+stepnum: 10
+ref: security-kerberos-activedirectory-authauthz-credentials
+level: 4
+pre: |
+
+  MongoDB requires credentials for performing queries on the :abbr:`AD (Active
+  Directory)` server.
+
+  Configure the following settings in the configuration file:
+
+  - :setting:`security.ldap.bind.queryUser`, specifying the {{AUTH}} user the
+    :binary:`~bin.mongod` or :binary:`~bin.mongos` binds as for performing queries on
+    the :abbr:`AD (Active Directory)` server.
+
+  - :setting:`security.ldap.bind.queryPassword`, specifying the password for
+    the specified :setting:`~security.ldap.bind.queryUser`.
+
+  .. code-block:: yaml
+
+     security:
+       ldap:
+         bind:
+           queryUser: "mongodbadmin@dba.example.com"
+           queryPassword: "secret123"
+
+  On :abbr:`Windows (Microsoft Windows)` MongoDB servers, you can set
+  :setting:`security.ldap.bind.useOSDefaults` to ``true`` to use the
+  credentials of the OS user instead of ``queryUser`` and ``queryPassword``.
+
+  The :setting:`~security.ldap.bind.queryUser` must
+  have permission to perform all LDAP queries on behalf of MongoDB.
+replacement:
+  AUTH: "Kerberos"
+---
+title: Add additional configuration settings.
+stepnum: 11
+optional: true
+ref: security-kerberos-activedirectory-authauthz-configFile
+level: 4
+pre: |
+
+  .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+
+---
+title: Start the MongoDB server with Kerberos authentication and Active Directory authorization.
+ref: security-kerberos-activedirectory-authauthz-startserver
+level: 4
+stepnum: 12
+pre: |
+
+  Start the MongoDB server with the :option:`--config <mongod --config>` option, specifying the
+  path to the configuration file created during this procedure. If the
+  MongoDB server is currently running, make the appropriate preparations to
+  stop the server.
+
+  ``Linux MongoDB Servers``
+
+  On Linux, you must specify the ``KRB5_KTNAME`` environmental variable,
+  specifying the path to the keytab file for the MongoDB server.
+
+  .. code-block:: shell
+
+     env KRB5_KTNAME <path-to-keytab> mongod --config <path-to-config-file>
+
+
+  ``Microsoft Windows MongoDB Servers``
+
+  On :abbr:`Windows (Microsoft Windows)`, you must start the MongoDB server as
+  the service principal account as configured earlier in the procedure:
+
+  .. code-block:: shell
+
+     mongod.exe --config <path-to-config-file>
+
+---
+title: Connect to the MongoDB server.
+ref: security-kerberos-activedirectory-authauthz-localhost
+level: 4
+stepnum: 13
+pre: |
+
+  Connect to the MongoDB server, authenticating as a user whose direct or
+  transitive group membership corresponds to a MongoDB role on the ``admin``
+  database with :authrole:`userAdmin`, :authrole:`userAdminAnyDatabase`,
+  or a custom role with equivalent privileges.
+
+  Use the :binary:`~bin.mongo` shell to authenticate to the MongoDB
+  server, set the following options:
+
+  - :option:`--host <mongo --host>` with the hostname of the MongoDB server
+  - :option:`--port <mongo --port>` with the port of the MongoDB server
+  - :option:`--username <mongo --username>` to the user's ``userPrincipalName``
+  - :option:`--password <mongo --password>` to the user's password
+  - :option:`--authenticationMechanism <mongo --authenticationMechanism>` to ``"GSSAPI"``
+  - :option:`--authenticationDatabase <mongo --authenticationDatabase>` to ``"$external"``
+
+  .. example::
+
+     Previously in this procedure, you configured the
+     ``dn:CN=dba,CN=Users,DC=example,DC=com`` role on the ``admin`` database with
+     the required permissions. This role corresponds to an :abbr:`AD (Active
+     Directory)` group. Based on the configured :ref:`AD users
+     <kerb-auth-ldap-authz-userObj>`, you can authenticate as the user
+     ``sam@dba.example.com`` and receive the required permissions.
+
+     .. code-block:: shell
+
+        mongo --username sam@DBA.EXAMPLE.COM --password 'secret123' --authenticationMechanisms="GSSAPI" --authenticationDatabase "$external" --host <hostname> --port <port>
+
+  :abbr:`Windows (Microsoft Windows)` MongoDB deployments must use
+  :binary:`~bin.mongo.exe` instead of :binary:`~bin.mongo`.
+
+  Given the configured :ref:`Active Directory users
+  <kerb-auth-ldap-authz-userObj>`, the user authenticates successfully and
+  receives the appropriate permissions.
+
+  .. note::
+
+     If you want to authenticate as an existing non-``$external`` user, set
+     :option:`--authenticationMechanism <mongo --authenticationMechanism>` to ``SCRAM-SHA-1``. This requires
+     that the MongoDB server's :setting:`setParameter`
+     :parameter:`authenticationMechanisms` includes ``SCRAM-SHA-1``.
+---
+title: Create roles for mapping returned :abbr:`AD (Active Directory)` groups.
+ref: security-kerberos-activedirectory-authauthz-rolecreation
+level: 4
+stepnum: 14
+pre: |
+
+  For each group on the :abbr:`AD (Active Directory)` server you wish to use
+  for MongoDB authorization, you must create a matching role on the MongoDB
+  server's ``admin`` database.
+
+  .. example::
+
+     The following operation creates a role named after the :abbr:`AD (Active
+     Directory)` group DN ``CN=PrimaryApplication,CN=Users,DC=example,DC=com``,
+     assigning roles and privileges appropriate to that group:
+
+     .. code-block:: javascript
+
+        db.getSiblingDB("admin").createRole(
+           {
+             role: "CN=PrimaryApplication,CN=Users,DC=example,DC=com",
+             privileges: [],
+             roles: [
+               { role: "readWrite", db: "PrimaryApplication" }
+             ]
+           }
+        )
+
+     Given the configured {{GROUP}}, MongoDB grants a user authenticating
+     as either ``sam@DBA.EXAMPLE.COM`` or ``alice@ENGINEERING.EXAMPLE.COM`` the
+     :authrole:`readWrite` role on the ``PrimaryApplication`` database.
+
+  .. note::
+
+     To manage roles on the ``admin`` database, you must be authenticated as a
+     user with :authrole:`userAdmin` on ``admin``,
+     :authrole:`userAdminAnyDatabase`, or a custom role on with equivalent
+     privileges.
+replacement:
+  GROUP: ":ref:`Active Directory groups <kerb-auth-ldap-authz-groupObj>`"
+---
+title: Transition existing users from ``$external`` to the Active Directory server.
+ref: security-kerberos-activedirectory-authauthz-transitionusers
+level: 4
+stepnum: 15
+optional: true
+pre: |
+
+  If upgrading an existing installation with :ref:`users <users>` configured
+  on the ``$external`` database, you must meet the following requirements
+  for each user to ensure access after configuring MongoDB for
+  Kerberos authentication and :abbr:`AD (Active Directory)` authorization:
+
+  - User has a corresponding user object on the :abbr:`AD (Active Directory)`
+    server.
+
+  - User has membership in the appropriate groups on the :abbr:`AD (Active
+    Directory)` server.
+
+  - MongoDB contains the roles on the ``admin`` database named for the user's
+    :abbr:`AD (Active Directory)` groups, such that the authorized user
+    retains its privileges.
+
+  .. example::
+
+     The following user exists on the ``$external`` database:
+
+     .. code-block:: javascript
+
+        {
+          user : "joe@ANALYTICS.EXAMPLE.COM",
+          roles: [
+            { role : "read", db : "web_analytics" },
+            { role : "read", db : "PrimaryApplication" }
+          ]
+        }
+
+     Assuming the user belongs to the :abbr:`AD (Active Directory)` group
+     ``CN=marketing,CN=Users,DC=example,DC=com``, the following operation
+     creates a matching role with the appropriate privileges:
+
+     .. code-block:: javascript
+
+       db.getSiblingDB("admin").createRole(
+          {
+            role: "CN=marketing,CN=Users,DC=example,DC=com",
+            privileges: [],
+            roles: [
+              { role: "read", db: "web_analytics" }
+              { role: "read", db: "PrimaryApplication" }
+            ]
+          }
+       )
+
+     Based on the configured :setting:`~security.ldap.authz.queryTemplate`,
+     MongoDB authorizes any user who has direct or transitive membership in the
+     ``CN=marketing,CN=Users,DC=example,DC=com`` group to perform
+     :authrole:`read` operations on the ``web_analytics`` and
+     ``PrimaryApplication`` databases.
+
+  .. important::
+
+     When configuring a role for a corresponding :abbr:`AD (Active Directory)`
+     group, remember that *all* users with membership in that group can
+     receive the assigned roles and privileges. Consider applying the
+     `principle of least privilege
+     <https://www.us-cert.gov/bsi/articles/knowledge/principles/least-privilege>`_
+     when configuring MongoDB roles, :abbr:`AD (Active Directory)` groups,
+     or group membership.
+
+  If you want to continue allowing users on non-``$external`` databases to
+  access MongoDB, you must include ``SCRAM-SHA-1`` in the
+  :setting:`setParameter` :parameter:`authenticationMechanisms` configuration
+  option.
+
+  .. code-block:: yaml
+
+     setParameter:
+       authenticationMechanisms: "GSSAPI,SCRAM-SHA-1"
+
+  Alternatively, transition non-``$external`` users to :abbr:`AD (Active
+  Directory)` by following the above procedure.
+
+...

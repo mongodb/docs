@@ -1,0 +1,88 @@
+=====================
+$substr (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $substr
+   
+   .. deprecated:: 3.4
+      :expression:`$substr` is now an alias for
+      :expression:`$substrBytes`.
+   
+   Returns a substring of a string, starting at a specified index
+   position and including the specified number of characters. The index
+   is zero-based.
+
+   :expression:`$substr` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $substr: [ <string>, <start>, <length> ] }
+
+   The arguments can be any valid :ref:`expression
+   <aggregation-expressions>` as long as the first argument
+   resolves to a string, and the second and third arguments resolve to
+   integers. For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If ``<start>`` is a negative number, :expression:`$substr` returns an
+empty string ``""``.
+
+If ``<length>`` is a negative number, :expression:`$substr` returns a
+substring that starts at the specified index and includes the rest of
+the string.
+
+.. |exp-has| replace:: :expression:`$substr` only has
+
+.. include:: /includes/intro-aggregation-string.rst
+
+Example
+-------
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", quarter: "13Q1", "description" : "product 1" }
+   { "_id" : 2, "item" : "ABC2", quarter: "13Q4", "description" : "product 2" }
+   { "_id" : 3, "item" : "XYZ1", quarter: "14Q2", "description" : null }
+
+The following operation uses the :expression:`$substr` operator
+to separate the ``quarter`` value into a ``yearSubstring`` and a
+``quarterSubstring``:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+        {
+          $project:
+             {
+               item: 1,
+               yearSubstring: { $substr: [ "$quarter", 0, 2 ] },
+               quarterSubtring: { $substr: [ "$quarter", 2, -1 ] }
+             }
+         }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", "yearSubstring" : "13", "quarterSubtring" : "Q1" }
+   { "_id" : 2, "item" : "ABC2", "yearSubstring" : "13", "quarterSubtring" : "Q4" }
+   { "_id" : 3, "item" : "XYZ1", "yearSubstring" : "14", "quarterSubtring" : "Q2" }

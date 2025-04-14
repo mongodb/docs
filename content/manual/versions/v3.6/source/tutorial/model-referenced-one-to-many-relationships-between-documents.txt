@@ -1,0 +1,142 @@
+.. _data-modeling-publisher-and-books:
+
+========================================================
+Model One-to-Many Relationships with Document References
+========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Data in MongoDB has a *flexible schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. Decisions
+that affect how you model data can affect application performance and
+database capacity. See :doc:`/core/data-models` for a full high
+level overview of data modeling in MongoDB.
+
+This document describes a data model that uses :ref:`references
+<data-modeling-referencing>` between documents to describe
+relationships between connected data.
+
+Pattern
+-------
+
+Consider the following example that maps publisher and book
+relationships. The example illustrates the advantage of referencing
+over embedding to avoid repetition of the publisher information.
+
+Embedding the publisher document inside the book document would lead to
+**repetition** of the publisher data, as the following documents show:
+
+.. code-block:: javascript
+   :emphasize-lines: 7-11,20-24
+
+   {
+      title: "MongoDB: The Definitive Guide",
+      author: [ "Kristina Chodorow", "Mike Dirolf" ],
+      published_date: ISODate("2010-09-24"),
+      pages: 216,
+      language: "English",
+      publisher: {
+                 name: "O'Reilly Media",
+                 founded: 1980,
+                 location: "CA"
+               }
+   }
+
+   {
+      title: "50 Tips and Tricks for MongoDB Developer",
+      author: "Kristina Chodorow",
+      published_date: ISODate("2011-05-06"),
+      pages: 68,
+      language: "English",
+      publisher: {
+                 name: "O'Reilly Media",
+                 founded: 1980,
+                 location: "CA"
+               }
+   }
+
+To avoid repetition of the publisher data, use *references* and keep
+the publisher information in a separate collection from the book
+collection.
+
+When using references, the growth of the relationships determine where
+to store the reference. If the number of books per publisher is small
+with limited growth, storing the book reference inside the publisher
+document may sometimes be useful. Otherwise, if the number of books per
+publisher is unbounded, this data model would lead to mutable, growing
+arrays, as in the following example:
+
+.. code-block:: javascript
+   :emphasize-lines: 5
+
+   {
+      name: "O'Reilly Media",
+      founded: 1980,
+      location: "CA",
+      books: [123456789, 234567890, ...]
+   }
+
+   {
+       _id: 123456789,
+       title: "MongoDB: The Definitive Guide",
+       author: [ "Kristina Chodorow", "Mike Dirolf" ],
+       published_date: ISODate("2010-09-24"),
+       pages: 216,
+       language: "English"
+   }
+
+   {
+      _id: 234567890,
+      title: "50 Tips and Tricks for MongoDB Developer",
+      author: "Kristina Chodorow",
+      published_date: ISODate("2011-05-06"),
+      pages: 68,
+      language: "English"
+   }
+
+To avoid mutable, growing arrays, store the publisher reference inside
+the book document:
+
+.. code-block:: javascript
+   :emphasize-lines: 15, 25
+
+   {
+      _id: "oreilly",
+      name: "O'Reilly Media",
+      founded: 1980,
+      location: "CA"
+   }
+
+   {
+      _id: 123456789,
+      title: "MongoDB: The Definitive Guide",
+      author: [ "Kristina Chodorow", "Mike Dirolf" ],
+      published_date: ISODate("2010-09-24"),
+      pages: 216,
+      language: "English",
+      publisher_id: "oreilly"
+   }
+
+   {
+      _id: 234567890,
+      title: "50 Tips and Tricks for MongoDB Developer",
+      author: "Kristina Chodorow",
+      published_date: ISODate("2011-05-06"),
+      pages: 68,
+      language: "English",
+      publisher_id: "oreilly"
+   }
+
+.. Reworked the Queue slide from the presentation to Atomic Operation
+.. TODO later, include a separate queue example for maybe checkout requests,
+   and possibly bucket example that is separate from the pre-allocation
+   example link above in the Document Growth section

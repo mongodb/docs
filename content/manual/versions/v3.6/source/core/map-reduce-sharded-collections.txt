@@ -1,0 +1,58 @@
+==================================
+Map-Reduce and Sharded Collections
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Map-reduce supports operations on sharded collections, both as an input
+and as an output. This section describes the behaviors of
+:dbcommand:`mapReduce` specific to sharded collections.
+
+.. _map-reduce-sharded-cluster:
+
+Sharded Collection as Input
+---------------------------
+
+When using sharded collection as the input for a map-reduce operation,
+:binary:`~bin.mongos` will automatically dispatch the map-reduce job to
+each shard in parallel. There is no special option
+required. :binary:`~bin.mongos` will wait for jobs on all shards to
+finish.
+
+Sharded Collection as Output
+----------------------------
+
+If the ``out`` field for :dbcommand:`mapReduce` has the ``sharded``
+value, MongoDB shards the output collection using the ``_id`` field as
+the shard key.
+
+To output to a sharded collection:
+
+- If the output collection does not exist, MongoDB creates and shards
+  the collection on the ``_id`` field.
+
+- Starting in version 3.6.6, if the output collection already exists and 
+  is not sharded, map-reduce fails.
+
+- For a new or an empty sharded collection, MongoDB uses the results of
+  the first stage of the map-reduce operation to create the initial
+  :term:`chunks <chunk>` distributed among the shards.
+
+- :binary:`~bin.mongos` dispatches, in parallel, a map-reduce
+  post-processing job to every shard that owns a chunk. During the
+  post-processing, each shard will pull the results
+  for its own chunks from the other shards, run the final
+  reduce/finalize, and write locally to the output collection.
+
+.. note::
+
+   - During later map-reduce jobs, MongoDB splits chunks as needed.
+
+   - Balancing of chunks for the output collection is automatically
+     prevented during post-processing to avoid concurrency issues.

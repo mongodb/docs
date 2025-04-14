@@ -1,0 +1,2592 @@
+.. _mongod:
+
+==========
+``mongod``
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Synopsis
+--------
+
+:binary:`~bin.mongod` is the primary daemon process for the MongoDB
+system. It handles data requests, manages data access, and performs
+background management operations.
+
+This document provides a complete overview of all command line options
+for :binary:`~bin.mongod`. These command line options are primarily useful
+for testing: In common operation, use the :doc:`configuration file
+options </reference/configuration-options>` to control the behavior of
+your database.
+
+.. _mongod-options:
+
+Options
+-------
+
+.. only:: (not man)
+
+   .. class:: hidden
+
+      .. binary:: mongod
+
+Core Options
+~~~~~~~~~~~~
+
+.. program:: mongod
+
+.. option:: --help, -h
+
+   Returns information on the options and use of :program:`mongod`.
+
+
+.. option:: --version
+
+   Returns the :program:`mongod` release number.
+
+
+.. option:: --config <filename>, -f <filename>
+
+   Specifies a configuration file for runtime configuration options. The
+   configuration file is the preferred method for runtime configuration of
+   :program:`mongod`. The options are equivalent to the command-line
+   configuration options. See :doc:`/reference/configuration-options` for
+   more information.
+   
+   Ensure the configuration file uses ASCII encoding. The :program:`mongod`
+   instance does not support configuration files with non-ASCII encoding,
+   including UTF-8.
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
+
+
+.. option:: --quiet
+
+   Runs :program:`mongod` in a quiet mode that attempts to limit the amount
+   of output.
+
+   This option suppresses:
+   
+   - output from :term:`database commands <database command>`
+   
+   - replication activity
+   
+   - connection accepted events
+   
+   - connection closed events
+
+
+.. option:: --port <port>
+
+   
+   *Default*:
+   
+   - 27017 if :binary:`~bin.mongod` is not a shard member or a config server member
+   - 27018 if :binary:`~bin.mongod` is a :option:`shard member <mongod --shardsvr>`
+   - 27019 if :binary:`~bin.mongod` is a :option:`config server member <mongod --configsvr>`
+   
+   The TCP port on which the MongoDB instance listens for
+   client connections.
+   
+
+
+.. option:: --bind_ip <ip address>
+
+   *Default*: localhost
+
+   
+   .. note::
+   
+      Starting in MongoDB 3.6, :program:`mongod` bind to localhost
+      (``127.0.0.1``) by default. See :ref:`3.6-bind-to-localhost`.
+   
+   The IP addresses and/or full Unix domain socket paths on which
+   :program:`mongod` should listen for client connections. You may attach
+   :program:`mongod` to any interface. To bind to multiple addresses, enter a
+   list of comma-separated values.
+   
+   .. example:: ``localhost,/tmp/mongod.sock``
+   
+   You can specify both IPv4 and IPv6 addresses, or hostnames that
+   resolve to an IPv4 or IPv6 address.
+   
+   .. example:: ``localhost, 2001:0DB8:e132:ba26:0d5c:2774:e7f9:d513``
+   
+   .. note::
+   
+      If specifying an IPv6 address *or* a hostname that resolves to an
+      IPv6 address to :option:`--bind_ip`, you must start :program:`mongod` with 
+      :option:`--ipv6` to enable IPv6 support. Specifying an IPv6 address
+      to :option:`--bind_ip` does not enable IPv6 support.
+   
+   If specifying a 
+   `link-local IPv6 address <https://en.wikipedia.org/w/index.php?title=Link-local_address&oldid=880793020#IPv6>`_ 
+   (``fe80::/10``), you must append the 
+   `zone index <https://en.wikipedia.org/w/index.php?title=IPv6_address&oldid=877601778#Scoped_literal_IPv6_addresses>`_
+   to that address (i.e. ``fe80::<address>%<adapter-name>``). 
+   
+   .. example:: ``localhost,fe80::a00:27ff:fee0:1fcf%enp0s3``
+   
+   .. include:: /includes/tip-hostnames.rst
+   
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   To bind to all IPv4 addresses, enter ``0.0.0.0``.
+   
+   To bind to all IPv4 and IPv6 addresses, enter ``0.0.0.0,::``
+   or alternatively, use the :setting:`net.bindIpAll` setting.
+   
+   .. note::
+   
+      ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
+      Specifying both options causes :program:`mongod` to throw an error and
+      terminate.
+
+
+.. option:: --bind_ip_all
+
+   
+   .. versionadded:: 3.6
+   
+   If specified, the :program:`mongod` instance binds to all IPv4
+   addresses (i.e. ``0.0.0.0``). If :program:`mongod` starts with
+   :option:`--ipv6`, :option:`--bind_ip_all` also binds to all IPv6 addresses
+   (i.e. ``::``). 
+   
+   :program:`mongod` only supports IPv6 if started with :option:`--ipv6`. Specifying
+   :option:`--bind_ip_all` alone does not enable IPv6 support.
+   
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   
+   Alternatively, you can set the ``--bind_ip`` option to
+   ``0.0.0.0,::`` to bind to all IP addresses.
+   
+   .. note::
+   
+      ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive. That
+      is, you can specify one or the other, but not both.
+   
+
+
+.. option:: --clusterIpSourceWhitelist <string>
+
+   
+   .. versionadded:: 3.6
+   
+   A list of IP addresses/CIDR (`Classless Inter-Domain Routing
+   <https://tools.ietf.org/html/rfc4632>`__) ranges against which the
+   :binary:`~bin.mongod` validates authentication requests from other members of
+   the replica set and, if part of a sharded cluster, the :binary:`~bin.mongos`
+   instances. The :binary:`~bin.mongod` verifies that the originating IP is
+   either explicitly in the list or belongs to a CIDR range in the list. If the
+   IP address is not present, the server does not authenticate the
+   :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   :option:`--clusterIpSourceWhitelist` has no effect on a :binary:`~bin.mongod` started without
+   :ref:`authentication <authentication>`.
+
+   
+   :option:`--clusterIpSourceWhitelist` accepts multiple comma-separated IPv4/6 addresses or Classless
+   Inter-Domain Routing (`CIDR <https://tools.ietf.org/html/rfc4632>`_) ranges:
+   
+   .. code-block:: shell
+   
+      mongod --clusterIpSourceWhitelist 192.0.2.0/24,127.0.0.1,::1
+
+   
+   .. important::
+   
+      Ensure :option:`--clusterIpSourceWhitelist` includes the IP address *or* CIDR ranges that include the
+      IP address of each replica set member or :binary:`~bin.mongos` in the
+      deployment to ensure healthy communication between cluster components.
+
+
+.. option:: --ipv6
+
+   
+   Enables IPv6 support. :program:`mongod` disables IPv6 support by default.
+   
+   Setting :option:`--ipv6` does *not* direct the :program:`mongod` to listen on any
+   local IPv6 addresses or interfaces. To configure the :program:`mongod` to
+   listen on an IPv6 interface, you must either:
+   
+   - Configure :option:`--bind_ip` with one or more IPv6 addresses or
+     hostnames that resolve to IPv6 addresses, **or**
+   - Set :option:`--bind_ip_all` to ``true``.
+
+
+.. option:: --listenBacklog <number>
+
+   *Default*: Target system ``SOMAXCONN`` constant
+
+   .. versionadded:: 3.6
+   
+   The maximum number of connections that can exist in the listen
+   queue.
+   
+   .. warning ::
+   
+      Consult your local system's documentation to understand the
+      limitations and configuration requirements before using this
+      parameter.
+   
+   .. important::
+   
+      To prevent undefined behavior, specify a value for this
+      parameter between ``1`` and the local system ``SOMAXCONN``
+      constant.
+   
+   The default value for the ``listenBacklog`` parameter is set at
+   compile time to the target system ``SOMAXCONN`` constant.
+   ``SOMAXCONN`` is the maximum valid value that is documented for
+   the *backlog* parameter to the *listen* system call.
+   
+   Some systems may interpret ``SOMAXCONN`` symbolically, and others
+   numerically. The actual *listen backlog* applied in practice may
+   differ from any numeric interpretation of the ``SOMAXCONN`` constant
+   or argument to ``--listenBacklog``, and may also be constrained by
+   system settings like ``net.core.somaxconn`` on Linux.
+   
+   Passing a value for the ``listenBacklog`` parameter that exceeds the
+   ``SOMAXCONN`` constant for the local system is, by the letter of the
+   standards, undefined behavior. Higher values may be silently integer
+   truncated, may be ignored, may cause unexpected resource
+   consumption, or have other adverse consequences.
+   
+   On systems with workloads that exhibit connection spikes, for which
+   it is empirically known that the local system can honor higher
+   values for the *backlog* parameter than the ``SOMAXCONN`` constant,
+   setting the ``listenBacklog`` parameter to a higher value may reduce
+   operation latency as observed by the client by reducing the number
+   of connections which are forced into a backoff state.
+   
+
+
+.. option:: --maxConns <number>
+
+   The maximum number of simultaneous connections that :program:`mongod` will
+   accept. This setting has no effect if it is higher than your operating
+   system's configured maximum connection tracking threshold.
+   
+   Do not assign too low of a value to this option, or you will
+   encounter errors during normal application operation.
+
+   .. include:: /includes/note-max-conns-max.rst
+   
+
+
+.. option:: --logpath <path>
+
+   Sends all diagnostic logging information to a log file instead of to
+   standard output or to the host's :term:`syslog` system. MongoDB creates
+   the log file at the path you specify.
+   
+   By default, MongoDB will move any existing log file rather than overwrite
+   it. To instead append to the log file, set the :option:`--logappend` option.
+   
+
+
+.. option:: --syslog
+
+   Sends all logging output to the host's :term:`syslog` system rather
+   than to standard output or to a log file. , as with :option:`--logpath`.
+   
+   The :option:`--syslog` option is not supported on Windows.
+   
+   .. warning::
+   
+      The ``syslog`` daemon generates timestamps when it logs a message, not
+      when MongoDB issues the message. This can lead to misleading timestamps
+      for log entries, especially when the system is under heavy load. We
+      recommend using the :option:`--logpath` option for production systems to
+      ensure accurate timestamps.
+
+
+.. option:: --syslogFacility <string>
+
+   *Default*: user
+
+   Specifies the facility level used when logging messages to syslog.
+   The value you specify must be supported by your
+   operating system's implementation of syslog. To use this option, you
+   must  enable the :option:`--syslog` option.
+
+
+.. option:: --logappend
+
+   Appends new entries to the end of the existing log file when the :program:`mongod`
+   instance restarts. Without this option, :binary:`~bin.mongod` will back up the
+   existing log and create a new file.
+
+
+.. option:: --logRotate <string>
+
+   *Default*: rename
+
+   
+   .. versionadded:: 3.0.0
+   
+   Determines the behavior for the :dbcommand:`logRotate` command.
+   Specify either ``rename`` or ``reopen``:
+   
+   - ``rename`` renames the log file.
+   
+   - ``reopen`` closes and reopens the log file following the typical
+     Linux/Unix log rotate behavior. Use ``reopen`` when using the
+     Linux/Unix logrotate utility to avoid log loss.
+   
+     If you specify ``reopen``, you must also use :option:`--logappend`.
+
+   If :doc:`auditing </core/auditing>` is enabled, the
+   :dbcommand:`logRotate` command also rotates the audit log according
+   to the above parameters. For example, if :option:`--logRotate` is set
+   to ``rename``, the audit log will also be renamed.
+
+
+.. option:: --timeStampFormat <string>
+
+   *Default*: iso8601-local
+
+   The time format for timestamps in log messages. Specify one of the
+   following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``ctime``
+   
+        - Displays timestamps as ``Wed Dec 31
+          18:17:54.811``.
+   
+      * - ``iso8601-utc``
+   
+        - Displays timestamps in Coordinated Universal Time (UTC) in the
+          ISO-8601 format. For example, for New York at the start of the
+          Epoch: ``1970-01-01T00:00:00.000Z``
+   
+      * - ``iso8601-local``
+   
+        - Displays timestamps in local time in the ISO-8601
+          format. For example, for New York at the start of the Epoch:
+          ``1969-12-31T19:00:00.000-0500``
+   
+
+
+.. COMMENT traceExceptions is internal use only and not in mongod help output
+
+.. option:: --traceExceptions
+
+   For internal diagnostic use only.
+   
+   .. see SERVER-6667a
+   
+
+
+.. option:: --pidfilepath <path>
+
+   Specifies a file location to store the process ID (PID) of the :program:`mongod`
+   process. The user running the ``mongod`` or ``mongos``
+   process must be able to write to this path. If the :option:`--pidfilepath` option is not
+   specified, the process does not create a PID file. This option is generally
+   only useful in combination with the :option:`--fork` option.
+   
+   .. admonition:: Linux
+      :class: note
+   
+      On Linux, PID file management is generally the responsibility of
+      your distro's init system: usually a service file in the ``/etc/init.d``
+      directory, or a systemd unit file registered with ``systemctl``. Only
+      use the :option:`--pidfilepath` option if you are not using one of these init
+      systems. For more information, please see the respective
+      :doc:`Installation Guide </installation>` for your operating system.
+   
+   .. admonition:: macOS
+      :class: note
+   
+      On macOS, PID file management is generally handled by ``brew``. Only use
+      the :option:`--pidfilepath` option if you are not using ``brew`` on your macOS system. 
+      For more information, please see the respective
+      :doc:`Installation Guide </installation>` for your operating system.
+
+
+.. option:: --keyFile <file>
+
+   Specifies the path to a key file that stores the shared secret
+   that MongoDB instances use to authenticate to each other in a
+   :term:`sharded cluster` or :term:`replica set`. :option:`--keyFile` implies
+   :option:`--auth`. See :ref:`inter-process-auth` for more
+   information.
+
+
+.. option:: --setParameter <options>
+
+   Specifies one of the MongoDB parameters described in
+   :doc:`/reference/parameters`. You can specify multiple ``setParameter``
+   fields.
+   
+
+
+
+.. COMMENT clusterAuthMode moved to SSL section
+
+.. option:: --nounixsocket
+
+   Disables listening on the UNIX domain socket. :option:`--nounixsocket` applies only
+   to Unix-based systems.
+
+   The :program:`mongod` process
+   always listens on the UNIX socket unless one of the following is true:
+   
+   - :option:`--nounixsocket` is set
+   
+   - :setting:`net.bindIp` is not set
+   
+   - :setting:`net.bindIp` does not specify ``127.0.0.1``
+   
+   .. |mongodb-package| replace:: :program:`mongod`
+   
+   .. include:: /includes/note-deb-and-rpm-default-to-localhost.rst
+
+
+.. option:: --unixSocketPrefix <path>
+
+   *Default*: /tmp
+
+   The path for the UNIX socket. :option:`--unixSocketPrefix` applies only
+   to Unix-based systems.
+   
+   If this option has no value, the
+   :program:`mongod` process creates a socket with ``/tmp`` as a prefix. MongoDB
+   creates and listens on a UNIX socket unless one of the following is true:
+   
+   - :setting:`net.unixDomainSocket.enabled` is ``false``
+   
+   - :option:`--nounixsocket` is set
+   
+   - :setting:`net.bindIp` is not set
+   
+   - :setting:`net.bindIp` does not specify ``127.0.0.1``
+
+
+.. option:: --filePermissions <path>
+
+   *Default*: ``0700``
+
+   Sets the permission for the UNIX domain socket file.
+   
+   :option:`--filePermissions` applies only to Unix-based systems.
+
+
+.. option:: --fork
+
+   Enables a :term:`daemon` mode that runs the :program:`mongod` process in the
+   background. By default :program:`mongod` does not run as a daemon:
+   typically you will run :program:`mongod` as a daemon, either by using
+   :option:`--fork` or by using a controlling process that handles the
+   daemonization process (e.g. as with ``upstart`` and ``systemd``).
+   
+   Using the :option:`--fork` option requires that you configure log
+   output for the :program:`mongod` with one of the following:
+
+   - :option:`--logpath`
+   - :option:`--syslog`
+
+   The :option:`--fork` option is not supported on Windows.
+
+
+.. option:: --auth
+
+   Enables authorization to control user's access to database resources
+   and operations. When authorization is enabled, MongoDB requires all
+   clients to authenticate themselves first in order to determine the
+   access for the client.
+   
+   Configure users via the :doc:`mongo shell
+   </reference/program/mongo>`. If no users exist, the localhost interface
+   will continue to have access to the database until you create
+   the first user.
+   
+   See :doc:`Security </security>`
+   for more information.
+   
+
+
+.. option:: --noauth
+
+   Disables authentication. Currently the default. Exists for future
+   compatibility and clarity.
+   
+
+
+.. option:: --transitionToAuth
+
+   .. versionadded:: 3.4
+   
+      Allows the :program:`mongod` to accept and create authenticated and
+      non-authenticated connections to and from other :binary:`~bin.mongod`
+      and :binary:`~bin.mongos` instances in the deployment. Used for
+      performing rolling transition of replica sets or sharded clusters
+      from a no-auth configuration to :ref:`internal authentication
+      <inter-process-auth>`. Requires specifying a :ref:`internal
+      authentication <inter-process-auth>` mechanism such as
+      :option:`--keyFile`.
+   
+   For example, if using :ref:`keyfiles <internal-auth-keyfile>` for
+   :ref:`internal authentication <inter-process-auth>`, the :program:`mongod` creates
+   an authenticated connection with any :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   in the deployment using a matching keyfile. If the security mechanisms do
+   not match, the :program:`mongod` utilizes a non-authenticated connection instead.
+   
+   A :program:`mongod` running with :option:`--transitionToAuth` does not enforce :ref:`user access
+   controls <authorization>`. Users may connect to your deployment without any
+   access control checks and perform read, write, and administrative operations.
+   
+   .. note::
+   
+      A :program:`mongod` running with :ref:`internal authentication
+      <inter-process-auth>` and *without* :option:`--transitionToAuth` requires clients to connect
+      using :ref:`user access controls <authorization>`. Update clients to
+      connect to the :program:`mongod` using the appropriate :ref:`user <users>`
+      prior to restarting :program:`mongod` without :option:`--transitionToAuth`.
+
+
+.. option:: --cpu
+
+   Forces the :program:`mongod` process to report the percentage of CPU time in
+   write lock, every four seconds.
+
+
+.. option:: --sysinfo
+
+   Returns diagnostic system information and then exits. The
+   information provides the page size, the number of physical pages,
+   and the number of available physical pages.
+
+
+.. option:: --noscripting
+
+   Disables the scripting engine.
+   
+
+
+.. option:: --notablescan
+
+   Forbids operations that require a collection scan. See :parameter:`notablescan` for additional information.
+   
+
+
+.. option:: --shutdown
+
+   The :option:`--shutdown` option cleanly and safely terminates the :program:`mongod`
+   process. When invoking :program:`mongod` with this option you must set the
+   :option:`--dbpath` option either directly or by way of the
+   :doc:`configuration file </reference/configuration-options>` and the
+   :option:`--config` option.
+   
+   The :option:`--shutdown` option is available only on Linux systems.
+
+   For additional ways to shut down, see also :ref:`terminate-mongod-processes`.
+   
+
+
+.. option:: --redactClientLogData
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   A :program:`mongod` running with :option:`--redactClientLogData` redacts any message accompanying a given
+   log event before logging. This prevents the :program:`mongod` from writing
+   potentially sensitive data stored on the database to the diagnostic log.
+   Metadata such as error or operation codes, line numbers, and source file
+   names are still visible in the logs.
+   
+   Use :option:`--redactClientLogData` in conjunction with
+   :doc:`/core/security-encryption-at-rest` and
+   :doc:`/core/security-transport-encryption` to assist compliance with
+   regulatory requirements.
+   
+   For example, a MongoDB deployment might store Personally Identifiable
+   Information (PII) in one or more collections. The :program:`mongod` logs events
+   such as those related to CRUD operations, sharding metadata, etc. It is
+   possible that the :program:`mongod` may expose PII as a part of these logging
+   operations. A :program:`mongod` running with :option:`--redactClientLogData` removes any message
+   accompanying these events before being output to the log, effectively
+   removing the PII.
+   
+   Diagnostics on a :program:`mongod` running with :option:`--redactClientLogData` may be more difficult
+   due to the lack of data related to a log event. See the
+   :ref:`process logging <monitoring-log-redaction>` manual page for an
+   example of the effect of :option:`--redactClientLogData` on log output.
+   
+   On a running :program:`mongod`, use :dbcommand:`setParameter` with the
+   :parameter:`redactClientLogData` parameter to configure this setting.
+
+
+.. option:: --networkMessageCompressors <string>
+
+   *Default*: snappy
+
+   
+   .. versionadded:: 3.4
+   
+   Specifies the default compressor(s) to use for
+   communication between this :program:`mongod` instance and:
+   
+   - other members of the deployment if the instance is part of a replica set or a sharded cluster
+   
+   - a :binary:`~bin.mongo` shell
+   
+   - drivers that support the ``OP_COMPRESSED`` message format.
+   
+   MongoDB supports the following compressors:
+   
+   - :term:`snappy`
+   
+   - :term:`zlib` (Available in MongoDB 3.6 or greater)
+   
+   **Starting in versions 3.6**, :binary:`~bin.mongod` and
+   :binary:`~bin.mongos` enable network compression by default with
+   ``snappy`` as the compressor.
+   
+   To disable network compression, set the value to ``disabled``.
+   
+   .. include:: /includes/fact-networkMessageCompressors.rst
+
+
+.. option:: --timeZoneInfo <path>
+
+   .. include:: /includes/fact-timeZoneInfo.rst
+   
+   .. code-block:: sh
+   
+      wget https://downloads.mongodb.org/olson_tz_db/timezonedb-latest.zip
+      unzip timezonedb-latest.zip
+      mongod --timeZoneInfo timezonedb-2017b/
+   
+   .. seealso:: :setting:`processManagement.timeZoneInfo`.
+   
+
+
+.. option:: --transportLayer <string>
+
+   *Default*: asio
+
+   .. versionadded:: 3.6
+   
+   The networking implementation the :program:`mongod` uses. To revert to the
+   pre-version 3.6 implementation, change this option to ``legacy``.
+   
+   .. warning::
+   
+      Do not change this setting unless the MongoDB support team asks you
+      to change it.
+
+
+.. option:: --serviceExecutor <string>
+
+   *Default*: synchronous
+
+   .. versionadded:: 3.6
+   
+   Determines the threading and execution model :program:`mongod` uses to
+   execute client requests. The ``--serviceExecutor`` option accepts one
+   of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``synchronous``
+   
+        - The :program:`mongod` uses synchronous networking and manages its
+          networking thread pool on a per connection basis. Previous
+          versions of MongoDB managed threads in this way.
+   
+      * - ``adaptive``
+   
+        - The :program:`mongod` uses the new experimental asynchronous
+          networking mode with an adaptive thread pool which manages
+          threads on a per request basis. This mode should have more
+          consistent performance and use less resources when there are
+          more inactive connections than database requests.
+   
+          .. important::
+   
+             Using ``adaptive`` requires :option:`--transportLayer` set to
+             ``asio``.
+
+
+LDAP Authentication or Authorization Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: --ldapServers <host1>:<port>,<host2>:<port>,...,<hostN>:<port>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The LDAP server against which the :program:`mongod` authenticates users or
+   determines what actions a user is authorized to perform on a given
+   database. If the LDAP server specified has any replicated instances,
+   you may specify the host and port of each replicated server in a
+   comma-delimited list.
+   
+   If your LDAP infrastructure partitions the LDAP directory over multiple LDAP
+   servers, specify *one* LDAP server or any of its replicated instances to
+   :option:`--ldapServers`. MongoDB supports following LDAP referrals as defined in `RFC 4511
+   4.1.10 <https://www.rfc-editor.org/rfc/rfc4511.txt>`_. Do not use :option:`--ldapServers`
+   for listing every LDAP server in your infrastructure.
+   
+   This setting can be configured on a running :program:`mongod` using
+   :dbcommand:`setParameter`.
+   
+   If unset, :program:`mongod` cannot use :doc:`LDAP authentication or authorization
+   </core/security-ldap>`.
+
+.. option:: --ldapValidateLDAPServerConfig <boolean>
+
+   *Available in MongoDB Enterprise*
+
+   A flag that determines if the :binary:`~bin.mongod` instance checks
+   the availability of the :option:`LDAP server(s)
+   <mongod --ldapServers>` as part of its startup:
+
+   - If ``true``, the :binary:`~bin.mongod` instance performs the
+     availability check and only continues to start up if the LDAP
+     server is available.
+
+   - If ``false``, the :binary:`~bin.mongod` instance skips the
+     availability check; i.e. the instance starts up even if the LDAP
+     server is unavailable.
+
+   .. versionadded:: 3.6.3
+
+.. option:: --ldapQueryUser <string>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The identity with which :program:`mongod` binds as, when connecting to or
+   performing queries on an LDAP server.
+   
+   Only required if any of the following are true:
+   
+   - Using :ref:`LDAP authorization <security-ldap-external>`.
+   - Using an LDAP query for :option:`username transformation <--ldapUserToDNMapping>`.
+   - The LDAP server disallows anonymous binds
+   
+   You must use :option:`--ldapQueryUser` with :option:`--ldapQueryPassword`.
+   
+   If unset, :program:`mongod` will not attempt to bind to the LDAP server.
+   
+   This setting can be configured on a running :program:`mongod` using
+   :dbcommand:`setParameter`.
+   
+   .. note::
+   
+      Windows MongoDB deployments can use :option:`--ldapBindWithOSDefaults`
+      instead of :option:`--ldapQueryUser` and :option:`--ldapQueryPassword`. You cannot specify
+      both :option:`--ldapQueryUser` and :option:`--ldapBindWithOSDefaults` at the same time.
+
+
+.. option:: --ldapQueryPassword <string>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The password used to bind to an LDAP server when using
+   :option:`--ldapQueryUser`. You must use :option:`--ldapQueryPassword` with
+   :option:`--ldapQueryUser`.
+   
+   If unset, :program:`mongod` will not attempt to bind to the LDAP server.
+   
+   This setting can be configured on a running :program:`mongod` using
+   :dbcommand:`setParameter`.
+   
+   .. note::
+   
+      Windows MongoDB deployments can use :option:`--ldapBindWithOSDefaults` 
+      instead of :option:`--ldapQueryPassword` and :option:`--ldapQueryPassword`. You cannot specify
+      both :option:`--ldapQueryPassword` and :option:`--ldapBindWithOSDefaults` at the same time.
+
+
+.. option:: --ldapBindWithOSDefaults <bool>
+
+   *Default*: false
+
+   .. versionadded:: 3.4
+   
+      Available in MongoDB Enterprise for the Windows platform only.
+   
+   Allows :program:`mongod` to authenticate, or bind, using your Windows login
+   credentials when connecting to the LDAP server.
+   
+   Only required if:
+   
+   - Using :ref:`LDAP authorization <security-ldap-external>`.
+   - Using an LDAP query for :option:`username transformation <--ldapUserToDNMapping>`.
+   - The LDAP server disallows anonymous binds
+   
+   Use :option:`--ldapBindWithOSDefaults` to replace :option:`--ldapQueryUser` and
+   :option:`--ldapQueryPassword`.
+
+
+.. option:: --ldapBindMethod <string>
+
+   *Default*: simple
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The method :program:`mongod` uses to authenticate to an LDAP server.
+   Use with :option:`--ldapQueryUser` and :option:`--ldapQueryPassword` to
+   connect to the LDAP server.
+   
+   :option:`--ldapBindMethod` supports the following values:
+   
+   * ``simple`` - :program:`mongod` uses simple authentication.
+   
+   * ``sasl`` - :program:`mongod` uses SASL protocol for authentication
+   
+   If you specify ``sasl``, you can configure the available SASL mechanisms
+   using :option:`--ldapBindSaslMechanisms`. :program:`mongod` defaults to
+   using ``DIGEST-MD5`` mechanism.
+
+
+.. option:: --ldapBindSaslMechanisms <string>
+
+   *Default*: DIGEST-MD5
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   A comma-separated list of SASL mechanisms :program:`mongod` can
+   use when authenticating to the LDAP server. The :program:`mongod` and the
+   LDAP server must agree on at least one mechanism. The :program:`mongod` 
+   dynamically loads any SASL mechanism libraries installed on the host 
+   machine at runtime.
+   
+   Install and configure the appropriate libraries for the selected
+   SASL mechanism(s) on both the :program:`mongod` host and the remote
+   LDAP server host. Your operating system may include certain SASL
+   libraries by default. Defer to the documentation associated with each 
+   SASL mechanism for guidance on installation and configuration.
+   
+   If using the ``GSSAPI`` SASL mechanism for use with
+   :ref:`security-kerberos`, verify the following for the
+   :program:`mongod` host machine:
+   
+   ``Linux``
+     - The ``KRB5_CLIENT_KTNAME`` environment
+       variable resolves to the name of the client :ref:`keytab-files` 
+       for the host machine. For more on Kerberos environment
+       variables, please defer to the
+       `Kerberos documentation <https://web.mit.edu/kerberos/krb5-1.13/doc/admin/env_variables.html>`__. 
+     - The client keytab includes a
+       :ref:`kerberos-user-principal` for the :program:`mongod` to use when
+       connecting to the LDAP server and execute LDAP queries.
+   
+   ``Windows``
+     If connecting to an Active Directory server, the Windows
+     Kerberos configuration automatically generates a
+     `Ticket-Granting-Ticket <https://msdn.microsoft.com/en-us/library/windows/desktop/aa380510(v=vs.85).aspx>`__
+     when the user logs onto the system. Set :option:`--ldapBindWithOSDefaults` to 
+     ``true`` to allow :program:`mongod` to use the generated credentials when 
+     connecting to the Active Directory server and execute queries.
+   
+   Set :option:`--ldapBindMethod` to ``sasl`` to use this option.
+   
+   .. note::
+   
+      For a complete list of SASL mechanisms see the  
+      `IANA listing
+      <http://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml>`_.
+      Defer to the documentation for your LDAP or Active Directory
+      service for identifying the SASL mechanisms compatible with the
+      service. 
+   
+      MongoDB is not a source of SASL mechanism libraries, nor 
+      is the MongoDB documentation a definitive source for
+      installing or configuring any given SASL mechanism. For 
+      documentation and support, defer to the SASL mechanism 
+      library vendor or owner.
+   
+      For more information on SASL, defer to the following resources:
+   
+      - For Linux, please see the `Cyrus SASL documentation <https://www.cyrusimap.org/sasl/>`__.
+      - For Windows, please see the `Windows SASL documentation <https://msdn.microsoft.com/en-us/library/cc223500.aspx>`__.
+
+
+.. option:: --ldapTransportSecurity <string>
+
+   *Default*: tls
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   By default, :program:`mongod` creates a TLS/SSL secured connection to the LDAP
+   server.
+   
+   For Linux deployments, you must configure the appropriate TLS Options in
+   ``/etc/openldap/ldap.conf`` file. Your operating system's package manager
+   creates this file as part of the MongoDB Enterprise installation, via the
+   ``libldap`` dependency. See the documentation for ``TLS Options`` in the
+   `ldap.conf OpenLDAP documentation
+   <http://www.openldap.org/software/man.cgi?query=ldap.conf&manpath=OpenLDAP+2.4-Release>`_
+   for more complete instructions.
+   
+   For Windows deployment, you must add the LDAP server CA certificates to the
+   Windows certificate management tool. The exact name and functionality of the
+   tool may vary depending on operating system version. Please see the
+   documentation for your version of Windows for more information on
+   certificate management.
+   
+   Set :option:`--ldapTransportSecurity` to ``none`` to disable TLS/SSL between :program:`mongod` and the LDAP
+   server.
+   
+   .. warning::
+   
+      Setting :option:`--ldapTransportSecurity` to ``none`` transmits plaintext information and possibly
+      credentials between :program:`mongod` and the LDAP server.
+
+
+.. option:: --ldapTimeoutMS <long>
+
+   *Default*: 10000
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The amount of time in milliseconds :program:`mongod` should wait for an LDAP server
+   to respond to a request.
+   
+   Increasing the value of :option:`--ldapTimeoutMS` may prevent connection failure between the
+   MongoDB server and the LDAP server, if the source of the failure is a
+   connection timeout. Decreasing the value of :option:`--ldapTimeoutMS` reduces the time
+   MongoDB waits for a response from the LDAP server.
+   
+   This setting can be configured on a running :program:`mongod` using
+   :dbcommand:`setParameter`.
+
+
+.. option:: --ldapUserToDNMapping <string>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   Maps the username provided to :program:`mongod` for authentication to a LDAP
+   Distinguished Name (DN). You may need to use :option:`--ldapUserToDNMapping` to transform a
+   username into an LDAP DN in the following scenarios:
+   
+   - Performing LDAP authentication with simple LDAP binding, where users
+     authenticate to MongoDB with usernames that are not full LDAP DNs.
+   
+   - Using an :option:`LDAP authorization query template
+     <mongod --ldapAuthzQueryTemplate>` that requires a DN.
+   
+   - Transforming the usernames of clients authenticating to Mongo DB using
+     different authentication mechanisms (e.g. x.509, kerberos) to a full LDAP
+     DN for authorization.
+   
+   :option:`--ldapUserToDNMapping` expects a quote-enclosed JSON-string representing an ordered array
+   of documents. Each document contains a regular expression ``match`` and
+   either a ``substitution`` or ``ldapQuery`` template used for transforming the
+   incoming username.
+   
+   Each document in the array has the following form:
+   
+   .. code-block:: javascript
+   
+      {
+        match: "<regex>"
+        substitution: "<LDAP DN>" | ldapQuery: "<LDAP Query>"
+      }
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 70 20
+   
+      * - Field
+        - Description
+        - Example
+   
+      * - ``match``
+        - An ECMAScript-formatted regular expression (regex) to match against a
+          provided username. Each parenthesis-enclosed section represents a
+          regex capture group used by ``substitution`` or ``ldapQuery``.
+        - ``"(.+)ENGINEERING"``
+          ``"(.+)DBA"``
+   
+      * - ``substitution``
+   
+        - An LDAP distinguished name (DN) formatting template that converts the
+          authentication name matched by the ``match`` regex into a LDAP DN.
+          Each curly bracket-enclosed numeric value is replaced by the
+          corresponding `regex capture group
+          <http://www.regular-expressions.info/refcapture.html>`_ extracted
+          from the authentication username via the ``match`` regex.
+          
+          The result of the substitution must be an `RFC4514
+          <https://www.ietf.org/rfc/rfc4514.txt>`_ escaped string.
+   
+        - ``"cn={0},ou=engineering,
+          dc=example,dc=com"``
+   
+      * - ``ldapQuery``
+   
+        - A LDAP query formatting template that inserts the authentication
+          name matched by the ``match`` regex into an LDAP query URI encoded
+          respecting RFC4515 and RFC4516. Each curly bracket-enclosed numeric
+          value is replaced by the corresponding `regex capture group
+          <http://www.regular-expressions.info/refcapture.html>`_ extracted
+          from the authentication username via the ``match`` expression.
+          :program:`mongod` executes the query against the LDAP server to retrieve
+          the LDAP DN for the authenticated user. :program:`mongod` requires
+          exactly one returned result for the transformation to be
+          successful, or :program:`mongod` skips this transformation.
+   
+        - ``"ou=engineering,dc=example,
+          dc=com??one?(user={0})"``
+   
+   .. note::
+   
+      An explanation of  `RFC4514 <https://www.ietf.org/rfc/rfc4514.txt>`_,
+      `RFC4515 <https://tools.ietf.org/search/rfc4515>`_,
+      `RFC4516 <https://tools.ietf.org/html/rfc4516>`_, or LDAP queries is out
+      of scope for the MongoDB Documentation. Please review the RFC directly or
+      use your preferred LDAP resource.
+   
+   For each document in the array, you must use either ``substitution`` or
+   ``ldapQuery``. You *cannot* specify both in the same document.
+   
+   When performing authentication or authorization, :program:`mongod` steps through
+   each document in the array in the given order, checking the authentication
+   username against the ``match`` filter.  If a match is found,
+   :program:`mongod` applies the transformation and uses the output for
+   authenticating the user. :program:`mongod` does not check the remaining documents
+   in the array.
+   
+   If the given document does not match the provided authentication name, or
+   the transformation described by the document fails, :program:`mongod` continues
+   through the list of documents to find additional matches. If no matches are
+   found in any document, :program:`mongod` returns an error.
+   
+   .. example::
+   
+     The following shows two transformation documents. The first
+     document matches against any string ending in ``@ENGINEERING``, placing
+     anything preceeding the suffix into a regex capture group. The
+     second document matches against any string ending in ``@DBA``, placing
+     anything preceeding the suffix into a regex capture group.
+   
+     .. important::  You must pass the array to :option:`--ldapUserToDNMapping` as a string.
+   
+     .. code-block:: text
+   
+        "[
+           {
+              match: "(.+)@ENGINEERING.EXAMPLE.COM",
+              substitution: "cn={0},ou=engineering,dc=example,dc=com"
+           },
+           {
+              match: "(.+)@DBA.EXAMPLE.COM",
+              ldapQuery: "ou=dba,dc=example,dc=com??one?(user={0})"
+   
+           }
+   
+        ]"
+   
+     A user with username ``alice@ENGINEERING.EXAMPLE.COM`` matches the first
+     document. The regex capture group ``{0}`` corresponds to the string
+     ``alice``. The resulting output is the DN
+     ``"cn=alice,ou=engineering,dc=example,dc=com"``.
+   
+     A user with username ``bob@DBA.EXAMPLE.COM`` matches the second document.
+     The regex capture group ``{0}`` corresponds to the string ``bob``.  The
+     resulting output is the LDAP query
+     ``"ou=dba,dc=example,dc=com??one?(user=bob)"``. :program:`mongod` executes this
+     query against the LDAP server, returning the result
+     ``"cn=bob,ou=dba,dc=example,dc=com"``.
+   
+   If :option:`--ldapUserToDNMapping` is unset, :program:`mongod` applies no transformations to the username
+   when attempting to authenticate or authorize a user against the LDAP server.
+   
+   This setting can be configured on a running :program:`mongod` using the
+   :dbcommand:`setParameter` database command.
+
+
+.. option:: --ldapAuthzQueryTemplate <string>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   A relative LDAP query URL formatted conforming to `RFC4515
+   <https://tools.ietf.org/search/rfc4515>`_ and `RFC4516
+   <https://tools.ietf.org/html/rfc4516>`_ that :program:`mongod` executes to obtain
+   the LDAP groups to which the authenticated user belongs to. The query is
+   relative to the host or hosts specified in :option:`--ldapServers`.
+   
+   Use the ``{USER}`` placeholder in the URL to substitute the authenticated
+   username, or the transformed username if a :option:`username mapping <--ldapUserToDNMapping>` is specified.
+   
+   When constructing the query URL, ensure that the order of LDAP parameters
+   respects RFC4516:
+   
+   .. code-block:: shell
+   
+     [ dn  [ ? [attributes] [ ? [scope] [ ? [filter] [ ? [Extensions] ] ] ] ] ]
+   
+   If your query includes an attribute, :program:`mongod` assumes that the query
+   retrieves a the DNs which this entity is member of.
+   
+   If your query does not include an attribute, :program:`mongod` assumes
+   the query retrieves all entities which the user is member of.
+   
+   For each LDAP DN returned by the query, :program:`mongod` assigns the authorized
+   user a corresponding role on the ``admin`` database. If a role on the on the
+   ``admin`` database exactly matches the DN, :program:`mongod` grants the user the
+   roles and privileges assigned to that role. See the
+   :method:`db.createRole()` method for more information on creating roles.
+   
+   .. example::
+   
+     This LDAP query returns any groups listed in the LDAP user object's
+     ``memberOf`` attribute.
+   
+     .. code-block:: shell
+   
+        "{USER}?memberOf?base"
+   
+     Your LDAP configuration may not include the ``memberOf`` attribute as part
+     of the user schema, may possess a different attribute for reporting group
+     membership, or may not track group membership through attributes.
+     Configure your query with respect to your own unique LDAP configuration.
+   
+   If unset, :program:`mongod` cannot authorize users using LDAP.
+   
+   This setting can be configured on a running :program:`mongod` using the
+   :dbcommand:`setParameter` database command.
+   
+   .. note::
+   
+      An explanation of `RFC4515 <https://tools.ietf.org/search/rfc4515>`_,
+      `RFC4516 <https://tools.ietf.org/html/rfc4516>`_ or LDAP queries is out
+      of scope for the MongoDB Documentation. Please review the RFC directly or
+      use your preferred LDAP resource.
+
+
+Storage Options
+~~~~~~~~~~~~~~~
+
+.. option:: --storageEngine string
+
+   *Default*: ``wiredTiger``
+
+   .. versionadded:: 3.0
+   
+   .. versionchanged:: 3.2
+   
+      Starting in MongoDB 3.2, ``wiredTiger`` is the default.
+   
+   Specifies the storage engine for the :program:`mongod` database. Available
+   values include:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+   
+      * - Value
+        - Description
+   
+      * - ``mmapv1``
+        - To specify the :doc:`/core/mmapv1`.
+   
+      * - ``wiredTiger``
+        - To specify the :doc:`/core/wiredtiger`.
+   
+      * - ``inMemory``
+   
+        - To specify the :doc:`/core/inmemory`.
+   
+          .. versionadded:: 3.2
+             Available in MongoDB Enterprise only.
+
+   If you attempt to start a :program:`mongod` with a
+   :option:`--dbpath` that contains data files produced by a
+   storage engine other than the one specified by :option:`--storageEngine`, :program:`mongod`
+   will refuse to start.
+
+
+.. option:: --dbpath <path>
+
+   *Default*: ``/data/db`` on Linux and macOS, ``\data\db`` on Windows
+
+   The directory where the :program:`mongod` instance stores its data.
+
+   If using the default
+   :doc:`configuration file </reference/configuration-options>`
+   included with a package manager installation of MongoDB, the
+   corresponding :setting:`storage.dbPath` setting uses a different
+   default.
+
+   .. versionchanged:: 3.0
+      The files in :option:`--dbpath` must correspond to the storage engine
+      specified in :option:`--storageEngine`. If the data files do not
+      correspond to :option:`--storageEngine`, :program:`mongod` will refuse to
+      start.
+
+
+.. option:: --directoryperdb
+
+   Uses a separate directory to store data for each database. The
+   directories are under the :option:`--dbpath` directory, and each subdirectory
+   name corresponds to the database name.
+   
+   .. versionchanged:: 3.0
+   
+      To change the :option:`--directoryperdb` option for existing deployments, you must
+      restart the :binary:`~bin.mongod` instances with the new :option:`--directoryperdb`
+      value **and** a new data directory (:option:`--dbpath \<new path\> <--dbpath>`), and then
+      repopulate the data.
+   
+      - For standalone instances, you can use :binary:`~bin.mongodump` on
+        the existing instance, stop the instance, restart with the new
+        :option:`--directoryperdb` value **and** a new data directory, and use
+        :binary:`~bin.mongorestore` to populate the new data directory.
+   
+      - For replica sets, you can update in a rolling manner by stopping
+        a secondary member, restart with the new :option:`--directoryperdb` value **and**
+        a new data directory, and use :ref:`initial sync
+        <replica-set-initial-sync>` to populate the new data directory.
+        To update all members, start with the secondary members first.
+        Then step down the primary, and update the stepped-down member.
+
+   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+   
+
+
+.. option:: --noIndexBuildRetry
+
+   Stops the standalone :program:`mongod` from rebuilding incomplete indexes on the next
+   start up. This applies in cases where the :program:`mongod` restarts after it
+   has shut down or stopped in the middle of an index build. In such cases,
+   the :program:`mongod` always removes any incomplete indexes, and then also, by
+   default, attempts to rebuild them. To stop the :program:`mongod` from
+   rebuilding incomplete indexes on start up, include this option on the
+   command-line.
+   
+   The :option:`--noIndexBuildRetry` does not prevent replicated index builds.
+
+   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+   
+
+
+.. option:: --noprealloc
+
+   
+   *Only available for the MMAPv1 storage engine.*
+   
+   .. deprecated:: 2.6
+   
+      By default, MongoDB does not preallocate data files. The option
+      exists for compatibility.
+   
+   Disables the preallocation of data files.
+   
+
+
+.. option:: --nssize <value>
+
+   *Default*: 16
+
+   
+   *Only available for the MMAPv1 storage engine.*
+   
+   Specifies the default size for namespace files, which are files that end
+   in ``.ns``. Each collection and index counts as a namespace.
+   
+   Use this setting to control size for newly created namespace files. This
+   option has no impact on existing files. The maximum size for a namespace
+   file is 2047 megabytes. The default value of 16 megabytes provides for
+   approximately 24,000 namespaces.
+
+
+.. option:: --quota
+
+   *Only available for the MMAPv1 storage engine.*
+   
+   Enables a maximum limit for the number data files each database can
+   have. When running with the :option:`--quota` option, MongoDB has a maximum of 8
+   data files per database. Adjust the quota with
+   :option:`--quotaFiles`.
+
+
+.. option:: --quotaFiles <number>
+
+   *Default*: 8
+
+   *Only available for the MMAPv1 storage engine.*
+   
+   Modifies the limit on the number of data files per database. :option:`--quotaFiles`
+   option requires that you set :option:`--quota`.
+
+
+.. option:: --smallfiles
+
+   
+   *Only available for the MMAPv1 storage engine.*
+   
+   Sets MongoDB to use a smaller default file size. The :option:`--smallfiles` option
+   reduces the initial size for data files and limits the maximum size to
+   512 megabytes. :option:`--smallfiles` also reduces the size of each :term:`journal`
+   file from 1 gigabyte to 128 megabytes. Use :option:`--smallfiles` if you have a large
+   number of databases that each holds a small quantity of data.
+   
+   The :option:`--smallfiles` option can lead the :program:`mongod` instance to create a large
+   number of files, which can affect performance for larger databases.
+
+
+.. option:: --syncdelay <value>
+
+   *Default*: 60
+
+   Controls how much time can pass before MongoDB flushes data to the data
+   files via an :term:`fsync` operation.
+   
+   **Do not set this value on
+   production systems.** In almost every situation, you should use the
+   default setting.
+   
+   .. warning::
+   
+      If you set :option:`--syncdelay` to ``0``, MongoDB will not sync the
+      memory mapped files to disk.
+   
+   The :program:`mongod` process writes data very quickly to the journal and
+   lazily to the data files. :option:`--syncdelay` has no effect on the
+   :setting:`journal <storage.journal.enabled>` files or :doc:`journaling </core/journaling>`,
+   but if :option:`--syncdelay` is set to ``0`` the journal will eventually consume
+   all available disk space. If you set :option:`--syncdelay` to ``0`` for testing
+   purposes, you should also set :option:`--nojournal <mongod --nojournal>`
+   to ``true``.
+   
+   The :dbcommand:`serverStatus` command reports the background flush
+   thread's status via the :serverstatus:`backgroundFlushing` field.
+
+   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+   
+
+
+.. option:: --upgrade
+
+   Upgrades the on-disk data format of the files specified by the
+   :option:`--dbpath` to the latest version, if needed.
+   
+   This option only affects the operation of the :program:`mongod` if the data
+   files are in an old format.
+   
+   In most cases you should not set this value, so you can exercise the
+   most control over your upgrade process. See the MongoDB `release notes
+   <http://www.mongodb.org/downloads>`_ (on the download page) for more
+   information about the upgrade process.
+
+
+.. option:: --repair
+
+   Runs a repair routine on all databases. This is equivalent
+   to shutting down and running the :dbcommand:`repairDatabase` database
+   command on all databases.
+   
+   .. include:: /includes/warning-repair.rst
+   
+   .. include:: /includes/note-repair.rst
+   
+   .. versionchanged:: 2.1.2
+   
+   If you run the repair option *and* have data in a journal file, the
+   :program:`mongod` instance refuses to start. In these cases you should start
+   the :program:`mongod` without the :option:`--repair` option, which allows the
+   :program:`mongod` to recover data from the journal. This completes more
+   quickly and is more likely to produce valid data files. To continue the
+   repair operation despite the journal files, shut down the :program:`mongod`
+   cleanly and restart with the :option:`--repair` option.
+   
+   The :option:`--repair` option copies data from the source data files into new data
+   files in the :setting:`~storage.repairPath` and then replaces the original data
+   files with the repaired data files.
+
+
+.. option:: --repairpath <path>
+
+   *Default*: A ``_tmp_repairDatabase_<num>`` directory under the
+   :setting:`~storage.dbPath`.
+
+   Specifies a working directory that MongoDB will use during the
+   :option:`--repair <mongod --repair>` operation. When ``--repair`` completes, the
+   :option:`--repairpath` directory is empty, and
+   :setting:`~storage.dbPath` contains the repaired files.
+
+   The :option:`--repairpath` must be within the :setting:`~storage.dbPath`. You can
+   specify a symlink to :option:`--repairpath` to use a path on a different file
+   system.
+   
+   Only available for :binary:`~bin.mongod` instance using the MMAPv1 storage engine.
+   
+   .. SEE: SERVER-4266
+
+
+.. option:: --journal
+
+   Enables the durability :term:`journal` to ensure data files remain valid
+   and recoverable. This option applies only when you specify the
+   :option:`--dbpath` option. :program:`mongod` enables journaling by default.
+
+   
+   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+   
+   .. include:: /includes/extracts/no-journaling-writeConcernMajorityJournalDefault-false.rst
+   
+   .. include:: /includes/changes-inmem-startup-warning.rst
+   
+
+
+.. option:: --nojournal
+
+   Disables :doc:`journaling </core/journaling>`. :program:`mongod`
+   enables journaling by default.
+
+   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+   
+   .. include:: /includes/wiredtiger-node-nojournal.rst
+   
+
+
+.. option:: --journalOptions <arguments>
+
+   
+   *Only available for the MMAPv1 storage engine.*
+   
+   Provides functionality for testing. Not for general use, and will affect data
+   file integrity in the case of abnormal system shutdown.
+   
+
+   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+   
+
+
+.. option:: --journalCommitInterval <value>
+
+   *Default*: 100 or 30
+
+   
+   .. versionchanged:: 3.2
+   
+   The maximum amount of time in milliseconds that
+   the :program:`mongod` process allows between
+   journal operations. Values can range from 1 to 500 milliseconds. Lower
+   values increase the durability of the journal, at the expense of disk
+   performance. The default journal commit interval is 100 milliseconds.
+   
+   On MMAPv1, if the journal is on a different block device (e.g. physical
+   volume, RAID device, or LVM volume) than the data files, the default journal
+   commit interval is 30 milliseconds. Additionally, on MMAPv1, when a write
+   operation with ``j:true`` is pending, :program:`mongod` will reduce
+   :setting:`~storage.journal.commitIntervalMs` to a third of the set value.
+   
+   On WiredTiger, the default journal commit interval is 100
+   milliseconds. Additionally, a write that includes or implies
+   ``j:true`` will cause an immediate sync of the journal. For details
+   or additional conditions that affect the frequency of the sync for
+   WiredTiger, see :ref:`journal-process`.
+
+   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+   
+
+
+.. _cli-wiredtiger-options:
+
+WiredTiger Options
+~~~~~~~~~~~~~~~~~~
+
+.. option:: --wiredTigerCacheSizeGB <float>
+
+   
+   Defines the maximum size of the internal cache that WiredTiger will
+   use for all data. The memory consumed by an index build (see
+   :parameter:`maxIndexBuildMemoryUsageMegabytes`) is separate from the
+   WiredTiger cache memory. Starting in MongoDB 3.4, the values can range
+   from 0.25 GB  to 10000 GB and can be a float.
+   
+   .. include:: /includes/extracts/wt-cache-default-setting.rst
+   
+   Avoid increasing the WiredTiger internal cache size above its
+   default value.
+   
+   With WiredTiger, MongoDB utilizes both the WiredTiger internal cache
+   and the filesystem cache.
+   
+   .. include:: /includes/extracts/wt-filesystem-cache.rst
+   
+
+   .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-cmdline-option.rst
+   
+
+
+.. option:: --wiredTigerMaxCacheOverflowFileSizeGB <float>
+
+   
+   Specifies the maximum size (in GB) for the "lookaside (or cache
+   overflow) table" file :file:`WiredTigerLAS.wt`.
+   
+   The setting can accept the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+   
+      * - Value
+        - Description
+   
+      * - ``0``
+   
+        - The default value. If set to ``0``, the file size is
+          unbounded.
+   
+      * - number >= 0.1
+   
+        - The maximum size (in GB). If the :file:`WiredTigerLAS.wt`
+          file exceeds this size, :binary:`~bin.mongod` exits with a
+          fatal assertion. You can clear the :file:`WiredTigerLAS.wt`
+          file and restart :binary:`~bin.mongod`.
+   
+   To change the maximum size during runtime, use the
+   :parameter:`wiredTigerMaxCacheOverflowSizeGB` parameter.
+   
+   *Available in 3.6-series starting in 3.6.15*
+   
+
+
+.. option:: --wiredTigerJournalCompressor <compressor>
+
+   *Default*: snappy
+
+   
+   .. versionadded:: 3.0.0
+   
+   Specifies the type of compression to use to compress WiredTiger
+   journal data.
+   
+   Available compressors are:
+   
+   - ``none``
+   
+   - :term:`snappy`
+   
+   - :term:`zlib`
+   
+   For details on changing the journal compressor, see
+   :ref:`manage-journaling-change-wt-journal-compressor`.
+
+
+.. option:: --wiredTigerDirectoryForIndexes
+
+   .. versionadded:: 3.0.0
+   
+   When you start :program:`mongod` with :option:`--wiredTigerDirectoryForIndexes`, :program:`mongod` stores indexes and collections in separate
+   subdirectories under the data (i.e. :option:`--dbpath`) directory.
+   Specifically, :program:`mongod` stores the indexes in a subdirectory named
+   ``index`` and the collection data in a subdirectory named
+   ``collection``.
+   
+   By using a symbolic link, you can specify a different location for
+   the indexes. Specifically, when :binary:`~bin.mongod` instance is **not**
+   running, move the ``index`` subdirectory to the destination and
+   create a symbolic link named ``index`` under the data directory to
+   the new destination.
+
+
+.. option:: --wiredTigerCollectionBlockCompressor <compressor>
+
+   *Default*: snappy
+
+   
+   .. versionadded:: 3.0.0
+   
+   Specifies the default type of compression to use to compress collection
+   data. You can override this on a per-collection basis when creating
+   collections.
+   
+   Available compressors are:
+   
+   - ``none``
+   
+   - :term:`snappy`
+   
+   - :term:`zlib`
+   
+   :option:`--wiredTigerCollectionBlockCompressor` affects all collections created. If you change
+   the value of :option:`--wiredTigerCollectionBlockCompressor` on an existing MongoDB deployment, all new
+   collections will use the specified compressor. Existing collections
+   will continue to use the compressor specified when they were
+   created, or the default compressor at that time.
+
+
+.. option:: --wiredTigerIndexPrefixCompression <boolean>
+
+   *Default*: true
+
+   
+   .. versionadded:: 3.0.0
+   
+   Enables or disables :term:`prefix compression` for index data.
+   
+   Specify ``true`` for :option:`--wiredTigerIndexPrefixCompression` to enable :term:`prefix compression` for
+   index data, or ``false`` to disable prefix compression for index data.
+   
+   The :option:`--wiredTigerIndexPrefixCompression` setting affects all indexes created. If you change
+   the value of :option:`--wiredTigerIndexPrefixCompression` on an existing MongoDB deployment, all new
+   indexes will use prefix compression. Existing indexes
+   are not affected.
+
+
+.. _cli-mongod-replica-set:
+
+Replication Options
+~~~~~~~~~~~~~~~~~~~
+
+.. option:: --replSet <setname>
+
+   Configures replication. Specify a replica set name as an argument to
+   this set. All hosts in the replica set must have the same set name.
+   
+   .. include:: /includes/fact-unique-replica-set-names.rst
+   
+
+
+.. option:: --oplogSize <value>
+
+   Specifies a maximum size in megabytes for the replication operation log
+   (i.e., the :term:`oplog`). The :program:`mongod` process creates an
+   :term:`oplog` based on the maximum amount of space available. For 64-bit
+   systems, the oplog is typically 5% of available disk space. 
+   
+   Once the :program:`mongod` has created the oplog for the first time,
+   changing the :option:`--oplogSize` option will not affect the size of the oplog.
+   Use the :dbcommand:`replSetResizeOplog` administrative command to
+   change the oplog size of a running :program:`mongod` replica set member.
+   :dbcommand:`replSetResizeOplog` enables you to resize the oplog
+   dynamically without restarting the :binary:`~bin.mongod` process.
+   
+   See :ref:`replica-set-oplog-sizing` for more information.
+
+
+.. option:: --replIndexPrefetch
+
+   *Default*: all
+
+   .. |feature| replace:: :option:`--replIndexPrefetch`
+   .. include:: /includes/fact-feature-is-mmapv1-only.rst
+   
+   Determines which indexes :term:`secondary` members of a :term:`replica
+   set` load into memory before applying operations from the oplog. By
+   default secondaries load all indexes related to an operation into memory
+   before applying operations from the oplog.
+   
+   Set this option to one of the following:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``none``
+   
+        - Secondaries do not load indexes into memory.
+   
+      * - ``all``
+   
+        - Secondaries load all indexes related to an operation.
+   
+      * - ``_id_only``
+   
+        - Secondaries load no additional indexes into memory beyond the
+          already existing ``_id`` index.
+
+
+.. option:: --enableMajorityReadConcern
+
+   *Default*: true
+
+   
+   *Available for MongoDB 3.6.1 - 3.6.x*
+   
+   Starting in MongoDB 3.6, MongoDB enables support for
+   :readconcern:`"majority"` read concern by default.
+   
+   For MongoDB 3.6.1 - 3.6.x, you can disable read concern
+   :readconcern:`"majority"` to prevent the storage cache pressure from
+   immobilizing a deployment with a three-member
+   primary-secondary-arbiter (PSA) architecture. For more information
+   about disabling read concern :readconcern:`"majority"`, see
+   :ref:`3.6-disable-read-concern-majority`.
+   
+   To disable, set :option:`--enableMajorityReadConcern` to false.
+   
+   .. important::
+   
+      In general, avoid disabling :readconcern:`"majority"` read concern
+      unless necessary. However, if you have a three-member replica set
+      with a primary-secondary-arbiter (PSA) architecture or a sharded
+      cluster with three-member PSA shards, disable to prevent the
+      storage cache pressure from immobilizing the deployment.
+   
+      Disabling :readconcern:`"majority"` read concern disables support
+      for :doc:`/changeStreams`.
+   
+   :option:`--enableMajorityReadConcern` has no effect for MongoDB 3.6.0.
+
+
+.. _cli-mongod-master-slave:
+
+Master-Slave Replication
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+These options provide access to conventional master-slave database
+replication. While this functionality remains accessible in MongoDB,
+replica sets are the preferred configuration for database replication.
+
+.. include:: /includes/extracts/master-slave-deprecated-for-sharded-cluster-deprecated-directive.rst
+
+.. option:: --master
+
+   Configures the :program:`mongod` to run as a replication :term:`master`.
+
+
+.. option:: --slave
+
+   Configures the :program:`mongod` to run as a replication :term:`slave`.
+
+
+.. option:: --source <host><:port>
+
+   For use with the :option:`--slave` option, the ``--source`` option
+   designates the server that this instance will replicate.
+   
+
+
+.. option:: --only <arg>
+
+   For use with the :option:`--slave` option, the ``--only`` option
+   specifies only a single :term:`database` to replicate.
+   
+
+
+.. option:: --slavedelay <value>
+
+   For use with the :option:`--slave` option, the :option:`--slavedelay`
+   option configures a "delay" in seconds, for this slave to wait to
+   apply operations from the :term:`master` node.
+
+
+.. option:: --autoresync
+
+   For use with the :option:`--slave` option. When set,
+   the :option:`--autoresync` option allows this slave to automatically
+   resync if it is more than 10 seconds behind the master. This
+   setting may be problematic if the :option:`--oplogSize` specifies
+   a too small oplog.
+   
+   If the :term:`oplog` is not large enough to store the difference in
+   changes between the master's current state and the state of the slave,
+   this instance will forcibly resync itself unnecessarily. If you don't
+   specify :option:`--autoresync`, the slave will not attempt an automatic resync more
+   than once in a ten minute period.
+
+
+.. option:: --fastsync
+
+   In the context of :term:`replica set` replication, set this option
+   if you have seeded this member with an up-to-date copy of the entire
+   :setting:`~storage.dbPath` of another member of the set. Otherwise the
+   :program:`mongod` will attempt to perform an initial sync,
+   as though the member were a new member.
+   
+   .. warning::
+      If the data is not perfectly synchronized *and*
+      the :program:`mongod` starts with :option:`fastsync <mongod --fastsync>`, then the
+      secondary or slave will be permanently out of sync with the
+      primary, which may cause significant consistency problems.
+
+
+Sharded Cluster Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: --configsvr
+
+   
+   *Required if starting a config server.*
+   
+   Declares that this :program:`mongod` instance serves as the :ref:`config
+   server <sharded-cluster-config-server>` of a sharded cluster. When
+   running with this option, clients (i.e. other cluster components)
+   cannot write data to any database other than ``config``
+   and ``admin``. The default port for a :program:`mongod` with this option is
+   ``27019`` and the default :option:`--dbpath` directory is
+   ``/data/configdb``, unless specified.
+   
+   .. important::
+   
+      Starting in 3.4, you must deploy config servers as a replica set.
+      The use of the deprecated mirrored :binary:`~bin.mongod` instances as
+      config servers (SCCC) is no longer supported. 
+   
+      The replica set config servers (CSRS) must run the
+      :doc:`WiredTiger storage engine </core/wiredtiger>`.
+   
+   The :option:`--configsvr` option creates a local :term:`oplog`.
+   
+   Do not use the :option:`--configsvr` option with :option:`--shardsvr`. Config
+   servers cannot be a shard server.
+   
+   .. versionchanged:: 3.6.3
+   
+      Do not use the :option:`--configsvr` with the
+      :parameter:`skipShardingConfigurationChecks` parameter. That is,
+      if you are temporarily starting the :binary:`~bin.mongod` as a
+      standalone for maintenance operations, include the parameter
+      :parameter:`skipShardingConfigurationChecks` and exclude :option:`--configsvr`.
+      Once maintenance has completed, remove the
+      :parameter:`skipShardingConfigurationChecks` parameter and restart
+      with :option:`--configsvr`.
+
+
+.. option:: --configsvrMode <string>
+
+   **Available in MongoDB 3.2 version only**
+   
+   If set to ``sccc``, indicates that the config servers are deployed
+   as three mirrored :binary:`~bin.mongod` instances, even if one or more
+   config servers is also a member of a replica set. ``configsvrMode``
+   only accepts the value ``sccc``.
+   
+   If unset, config servers running as replica sets expect to use the
+   "config server replica set" protocol for writing to config servers,
+   rather than the "mirrored mongod" write protocol.
+   
+
+
+.. option:: --shardsvr
+
+   *Required if starting a shard server.*
+   
+   Configures this :program:`mongod` instance as a shard in a
+   sharded cluster. The default port for these instances is
+   ``27018``.
+   
+   .. important::
+   
+      Starting in MongoDB 3.6, you must deploy shards as replica sets. See the :option:`--replSet`
+      option to deploy :program:`mongod` as part of a replica set.
+   
+   .. versionchanged:: 3.6.3
+   
+      Do not use the :option:`--shardsvr` with the
+      :parameter:`skipShardingConfigurationChecks` parameter. That is,
+      if you are temporarily starting the :binary:`~bin.mongod` as a
+      standalone for maintenance operations, include the parameter
+      :parameter:`skipShardingConfigurationChecks` and exclude :option:`--shardsvr`.
+      Once maintenance has completed, remove the
+      :parameter:`skipShardingConfigurationChecks` parameter and restart
+      with :option:`--shardsvr`.
+
+
+.. option:: --moveParanoia
+
+   If specified, during chunk migration, a shard saves,
+   to the ``moveChunk`` directory of the ``--dbpath``, all documents
+   migrated from that shard.
+   
+   MongoDB does not automatically delete the data saved in the
+   ``moveChunk`` directory.
+
+
+.. option:: --noMoveParanoia
+
+   .. versionchanged:: 3.2
+      Starting in 3.2, MongoDB uses ``--noMoveParanoia`` as the default.
+   
+   During chunk migration, a shard does not save documents migrated from
+   the shard.
+
+
+
+TLS/SSL Options
+~~~~~~~~~~~~~~~
+
+.. see:: :doc:`/tutorial/configure-ssl` for full
+   documentation of MongoDB's support.
+
+.. option:: --sslOnNormalPorts
+
+   .. deprecated:: 2.6 Use :option:`--sslMode requireSSL <--sslMode>` instead.
+   
+   Enables TLS/SSL for :program:`mongod`.
+   
+   With :option:`--sslOnNormalPorts`, a :program:`mongod` requires TLS/SSL encryption for all
+   connections on the default MongoDB port, or the port specified by
+   :option:`--port`. By default, :option:`--sslOnNormalPorts` is
+   disabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslMode <mode>
+
+   .. versionadded:: 2.6
+   
+   Enables TLS/SSL or mixed TLS/SSL used for all network connections. The
+   argument to the :option:`--sslMode` option can be one of the following:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``disabled``
+   
+        - The server does not use TLS/SSL.
+   
+      * - ``allowSSL``
+   
+        - Connections between servers do not use TLS/SSL. For incoming
+          connections, the server accepts both TLS/SSL and non-TLS/non-SSL.
+   
+      * - ``preferSSL``
+   
+        - Connections between servers use TLS/SSL. For incoming
+          connections, the server accepts both TLS/SSL and non-TLS/non-SSL.
+   
+      * - ``requireSSL``
+   
+        - The server uses and accepts only TLS/SSL encrypted connections.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyFile <filename>
+
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   You must specify :option:`--sslPEMKeyFile` when TLS/SSL is enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyPassword <value>
+
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongod` will
+   redact the password from all logging and reporting output.
+   
+   .. versionchanged:: 2.6
+      If the private key in the PEM file is encrypted and you do not
+      specify the :option:`--sslPEMKeyPassword` option, the :program:`mongod` will prompt for a
+      passphrase. See :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. COMMENT moved clusterAuthMode to here from above
+
+.. option:: --clusterAuthMode <option>
+
+   *Default*: keyFile
+
+   .. versionadded:: 2.6
+   
+   The authentication mode used for cluster authentication. If you use
+   :ref:`internal x.509 authentication <x509-internal-authentication>`,
+   specify so here. This option can have one of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``keyFile``
+   
+        - Use a keyfile for authentication.
+          Accept only keyfiles.
+   
+      * - ``sendKeyFile``
+   
+        - For rolling upgrade purposes. Send a keyfile for
+          authentication but can accept both keyfiles and x.509
+          certificates.
+   
+      * - ``sendX509``
+   
+        - For rolling upgrade purposes. Send the x.509 certificate for
+          authentication but can accept both keyfiles and x.509
+          certificates.
+   
+      * - ``x509``
+   
+        - Recommended. Send the x.509 certificate for authentication and
+          accept only x.509 certificates.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslClusterFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the x.509 certificate-key
+   file for :ref:`membership authentication <x509-internal-authentication>`
+   for the cluster or replica set.
+   
+   If :option:`--sslClusterFile` does not specify the ``.pem`` file for internal cluster
+   authentication, the cluster uses the ``.pem`` file specified in the
+   :option:`--sslPEMKeyFile` option.
+   
+   .. include:: /includes/extracts/ssl-facts-x509-ca-file.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslClusterPassword <value>
+
+   .. versionadded:: 2.6
+   
+   Specifies the password to de-crypt the x.509 certificate-key file
+   specified with ``--sslClusterFile``. Use the :option:`--sslClusterPassword` option only
+   if the certificate-key file is encrypted. In all cases, the :program:`mongod`
+   will redact the password from all logging and reporting output.
+   
+   If the x.509 key file is encrypted and you do not specify the
+   :option:`--sslClusterPassword` option, the :program:`mongod` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCAFile <filename>
+
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslClusterCAFile <filename>
+
+   
+   .. versionadded:: 3.6.9
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority used to validate the certificate
+   presented by a client establishing a connection. Specify the file
+   name of the :file:`.pem` file using relative or absolute paths.
+   
+   If :option:`--sslClusterCAFile` does not specify the :file:`.pem` file for validating the
+   certificate from a client establishing a connection, the cluster uses
+   the :file:`.pem` file specified in the :option:`--sslCAFile` option.
+   
+   :option:`--sslClusterCAFile` lets you use separate Certificate Authorities to verify the
+   client to server and server to client portions of the TLS handshake.
+   
+   Requires that :option:`--sslCAFile` is set.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCRLFile <filename>
+
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   
+   Bypasses the validation checks for TLS/SSL certificates on other
+   servers in the cluster and allows the use of invalid certificates to
+   connect.
+   
+   .. note::
+   
+      .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   When using
+   the :option:`--sslAllowInvalidCertificates` setting, MongoDB
+   logs a warning regarding the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   .. versionadded:: 3.0
+   
+   Disables the validation of the hostnames in TLS/SSL certificates,
+   when connecting to other members of the replica set or sharded cluster
+   for inter-process authentication. This allows :program:`mongod` to connect
+   to other members if the hostnames in their certificates do not match
+   their configured hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslAllowConnectionsWithoutCertificates
+
+   For clients that do not present certificates, :program:`mongod` bypasses
+   TLS/SSL certificate validation when establishing the connection.
+   
+   For clients that present a certificate, however, :program:`mongod` performs
+   certificate validation using the root certificate chain specified by
+   ``--sslCAFile`` and reject clients with invalid certificates.
+   
+   Use the :option:`--sslAllowConnectionsWithoutCertificates` option if you have a mixed deployment that includes
+   clients that do not or cannot present certificates to the :program:`mongod`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslDisabledProtocols <protocol(s)>
+
+   .. versionadded:: 3.0.7
+   
+   Prevents a MongoDB server running with TLS/SSL from accepting incoming
+   connections that use a specific protocol or protocols. :option:`--sslDisabledProtocols`
+   recognizes the following protocols: ``TLS1_0``, ``TLS1_1``,
+   ``TLS1_2``, and starting in version 3.6.9, ``TLS1_3``.
+   
+   Specifying an unrecognized protocol will prevent the
+   server from starting.
+   
+   To specify multiple protocols, use a comma separated list of
+   protocols.
+   
+   Members of replica sets and sharded clusters must speak at least one
+   protocol in common.
+   
+   .. seealso:: :ref:`ssl-disallow-protocols`
+
+
+.. option:: --sslFIPSMode
+
+   Directs the :program:`mongod` to use the FIPS mode of the installed OpenSSL
+   library. Your system must have a FIPS
+   compliant OpenSSL library to use the :option:`--sslFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+
+Profiler Options
+~~~~~~~~~~~~~~~~
+
+.. option:: --profile <level>
+
+   *Default*: 0
+
+   Configures the :doc:`database profiler
+   </tutorial/manage-the-database-profiler>` level.
+   The following profiler levels are available:
+   
+   .. include:: /includes/database-profiler-levels.rst
+   
+   .. include:: /includes/warning-profiler-performance.rst
+   
+
+
+.. option:: --slowms <integer>
+
+   *Default*: 100
+
+   .. include:: /includes/dbcommand-slowms-definition.rst
+   
+   .. seealso:: :doc:`/tutorial/manage-the-database-profiler`
+   
+
+
+.. _cli-mongod-profiler-slowOpSampleRate:
+.. option:: --slowOpSampleRate <double>
+
+   *Default*: 1.0
+
+   
+   The fraction of *slow* operations that should be profiled or logged.
+   :option:`--slowOpSampleRate` accepts values between 0 and 1, inclusive.
+   
+   :option:`--slowOpSampleRate` does not affect the :ref:`slow oplog entry logging
+   <slow-oplog>` by the secondary members of a replica set. Secondary
+   members log all oplog entries that take longer than the slow
+   operation threshold regardless of the :option:`--slowOpSampleRate`.
+
+   For :binary:`~bin.mongod` instances, :option:`--slowOpSampleRate` affects the
+   diagnostic log and, if enabled, the profiler.
+
+
+Audit Options
+~~~~~~~~~~~~~
+
+.. option:: --auditDestination
+
+   
+   Enables :doc:`auditing </core/auditing>` and specifies where
+   :program:`mongod` sends all audit events.
+
+   :option:`--auditDestination` can have one of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 50
+   
+      * - Value
+   
+        - Description
+   
+      * - ``syslog``
+   
+        - Output the audit events to syslog in JSON format. Not available on
+          Windows. Audit messages have a syslog severity level of ``info``
+          and a facility level of ``user``.
+   
+          The syslog message limit can result in the truncation of
+          audit messages. The auditing system will neither detect the
+          truncation nor error upon its occurrence.
+   
+      * - ``console``
+   
+        - Output the audit events to ``stdout`` in JSON format.
+   
+      * - ``file``
+   
+        - Output the audit events to the file specified in
+          :option:`--auditPath` in the format specified in
+          :option:`--auditFormat`.
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+.. option:: --auditFormat
+
+   .. versionadded:: 2.6
+   
+   Specifies the format of the output file for :doc:`auditing
+   </core/auditing>` if :option:`--auditDestination` is ``file``. The
+   :option:`--auditFormat` option can have one of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 50
+   
+      * - Value
+   
+        - Description
+   
+      * - ``JSON``
+   
+        - Output the audit events in JSON format to the file specified
+          in :option:`--auditPath`.
+   
+      * - ``BSON``
+   
+        - Output the audit events in BSON binary format to the file
+          specified in :option:`--auditPath`.
+   
+   Printing audit events to a file in JSON format degrades server
+   performance more than printing to a file in BSON format.
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+.. option:: --auditPath
+
+   .. versionadded:: 2.6
+   
+   Specifies the output file for :doc:`auditing </core/auditing>` if
+   :option:`--auditDestination` has value of ``file``. The :option:`--auditPath`
+   option can take either a full path name or a relative path name.
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+.. option:: --auditFilter
+
+   .. versionadded:: 2.6
+   
+   Specifies the filter to limit the :ref:`types of operations
+   <audit-action-details-results>` the :doc:`audit system
+   </core/auditing>` records. The option takes a string representation
+   of a query document of the form:
+   
+   .. code-block:: javascript
+   
+      { <field1>: <expression1>, ... }
+   
+   The ``<field>`` can be :doc:`any field in the audit message
+   </reference/audit-message>`, including fields returned in the
+   :ref:`param <audit-action-details-results>` document. The
+   ``<expression>`` is a :ref:`query condition expression
+   <query-selectors>`.
+   
+   .. include:: /includes/fact-audit-filter-single-quotes.rst
+   
+   .. include:: /includes/fact-audit-filter-yaml-configuration.rst
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+SNMP Options
+~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/fact-macos-snmp.rst
+
+.. option:: --snmp-subagent
+
+   Runs SNMP as a subagent. For more information, see
+   :doc:`/tutorial/monitor-with-snmp`.
+
+
+.. option:: --snmp-master
+
+   Runs SNMP as a master. For more information, see
+   :doc:`/tutorial/monitor-with-snmp`.
+
+
+.. _cli-mongod-inmemory:
+
+inMemory Options
+~~~~~~~~~~~~~~~~
+
+.. option:: --inMemorySizeGB <float>
+
+   *Default*: 50% of physical RAM less 1 GB
+
+   .. versionchanged:: 3.4
+   
+      Values can range from 256MB to 10TB and can be a float.
+   
+   Maximum amount of memory to allocate for :doc:`in-memory storage
+   engine </core/inmemory>` data, including indexes, oplog if the
+   :binary:`~bin.mongod` is part of replica set, replica set or sharded
+   cluster metadata, etc.
+   
+   .. include:: /includes/fact-inmemory-storage-engine-default-ram.rst
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. _encryption-key-management-options:
+
+Encryption Key Management Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: --enableEncryption
+
+   *Default*: false
+
+   
+   .. versionadded:: 3.2
+   
+   Enables encryption for the WiredTiger storage engine. This option
+   must be enabled in order to pass in encryption keys and
+   configurations.
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. option:: --encryptionCipherMode <string>
+
+   *Default*: AES256-CBC
+
+   
+   .. versionadded:: 3.2
+   
+   The cipher mode to use for encryption at rest:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 35 65
+   
+      * - Mode
+        - Description
+   
+      * - ``AES256-CBC``
+        - 256-bit Advanced Encryption Standard in Cipher Block Chaining
+          Mode
+   
+      * - ``AES256-GCM``
+   
+        - 256-bit Advanced Encryption Standard in Galois/Counter Mode
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. option:: --encryptionKeyFile <string>
+
+   
+   .. versionadded:: 3.2
+   
+   The path to the local keyfile when managing keys via process *other
+   than* KMIP. Only set when managing keys via process other than KMIP.
+   If data is already encrypted using KMIP, MongoDB will throw an error.
+   
+   Requires :option:`--enableEncryption`.
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. option:: --kmipKeyIdentifier <string>
+
+   
+   .. versionadded:: 3.2
+   
+   Unique KMIP identifier for an existing key within the KMIP server.
+   Include to use the key associated with the identifier as the system
+   key. You can only use the setting the first time you enable
+   encryption for the :binary:`~bin.mongod` instance. Requires
+   :option:`--enableEncryption`.
+   
+   If unspecified, MongoDB will request that the KMIP server create a
+   new key to utilize as the system key.
+   
+   If the KMIP server cannot locate a key with the specified identifier
+   or the data is already encrypted with a key, MongoDB will throw an
+   error
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. option:: --kmipRotateMasterKey <boolean>
+
+   *Default*: false
+
+   
+   .. versionadded:: 3.2
+   
+   If true, rotate the master key and re-encrypt the internal
+   keystore.
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+   .. seealso:: :ref:`kmip-master-key-rotation`
+   
+
+
+.. option:: --kmipServerName <string>
+
+   
+   .. versionadded:: 3.2
+   
+   Hostname or IP address of key management solution running a KMIP
+   server. Requires :option:`--enableEncryption`.
+   
+   When connecting to the KMIP server, the :binary:`~bin.mongod`
+   verifies that the specified :option:`--kmipServerName` matches the Subject Alternative
+   Name ``SAN`` (or, if ``SAN`` is not present, the Common Name ``CN``)
+   in the certificate presented by the KMIP server. If ``SAN`` is
+   present, :binary:`~bin.mongod` does not match against the ``CN``. If
+   the hostname does not match the ``SAN`` (or ``CN``), the
+   :binary:`~bin.mongod` will fail to connect.
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+
+.. option:: --kmipPort <number>
+
+   *Default*: 5696
+
+   
+   .. versionadded:: 3.2
+   
+   Port number the KMIP server is listening on. Requires that a
+   :setting:`kmipServerName` be provided. Requires
+   :option:`--enableEncryption`.
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. option:: --kmipClientCertificateFile <string>
+
+   
+   .. versionadded:: 3.2
+   
+   String containing the path to the client certificate used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`kmipServerName` be provided.
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. option:: --kmipClientCertificatePassword <string>
+
+   
+   .. versionadded:: 3.2
+   
+   The password (if one exists) for the client certificate passed into
+   :setting:`kmipClientCertificateFile`. Is used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`kmipClientCertificateFile` be provided.
+   
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+   
+
+
+.. option:: --kmipServerCAFile <string>
+
+   
+   .. versionadded:: 3.2
+   
+   Path to CA File. Used for validating secure client connection to
+   KMIP server.
+   
+
+

@@ -1,0 +1,1103 @@
+.. include:: /includes/unicode-checkmark.rst
+
+=====================
+MongoDB Wire Protocol
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Introduction
+------------
+
+The MongoDB Wire Protocol is a simple socket-based, request-response
+style protocol. Clients communicate with the database server through a
+regular TCP/IP socket.
+
+TCP/IP Socket
+-------------
+
+Clients should connect to the database with a regular TCP/IP socket.
+There is no connection handshake.
+
+Port
+~~~~
+
+The default port number for :binary:`~bin.mongod` and :binary:`~bin.mongos`
+instances is 27017. The port number for :binary:`~bin.mongod` and
+:binary:`~bin.mongos` is configurable and may vary.
+
+Byte Ordering
+~~~~~~~~~~~~~
+
+All integers in the MongoDB wire protocol use little-endian byte order:
+that is, least-significant byte first.
+
+Messages Types and Formats
+--------------------------
+
+There are two types of messages: client requests and database responses.
+
+.. note::
+
+   - This page uses a C-like ``struct`` to describe the message
+     structure.
+
+   - The types used in this document (``cstring``, ``int32``, etc.) are
+     the same as those defined in the `BSON specification
+     <http://bsonspec.org/#/specification>`_.
+
+   - To denote repetition, the document uses the asterisk notation from
+     the `BSON specification <http://bsonspec.org/#/specification>`_.
+     For example, ``int64*`` indicates that one or more of the
+     specified type can be written to the socket, one after another.
+
+   - The standard message header is typed as ``MsgHeader``. Integer
+     constants are in capitals (e.g. ``ZERO`` for the integer value of
+     0).
+
+.. _wp-message-header:
+
+Standard Message Header
+-----------------------
+
+In general, each message consists of a standard message header followed
+by request-specific data. The standard message header is structured as
+follows:
+
+.. code-block:: c
+
+   struct MsgHeader {
+       int32   messageLength; // total message size, including this
+       int32   requestID;     // identifier for this message
+       int32   responseTo;    // requestID from the original request
+                              //   (used in responses from db)
+       int32   opCode;        // request type - see table below for details
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``messageLength``
+
+     - The total size of the message in bytes. This total includes the
+       4 bytes that holds the message length.
+
+   * - ``requestID``
+
+     - A client or database-generated identifier that uniquely
+       identifies this message. For the case of client-generated
+       messages (e.g. :ref:`OP_QUERY <wire-op-query>` and
+       :ref:`OP_GET_MORE <wire-op-get-more>`), it will be returned in
+       the ``responseTo`` field of the :ref:`OP_REPLY <wire-op-reply>`
+       message. Clients can use the ``requestID`` and the
+       ``responseTo`` fields to associate query responses with the
+       originating query.
+
+   * - ``responseTo``
+
+     - In the case of a message from the database, this will be the
+       ``requestID`` taken from the :ref:`OP_QUERY <wire-op-query>` or
+       :ref:`OP_GET_MORE <wire-op-get-more>` messages from the client.
+       Clients can use the ``requestID`` and the ``responseTo`` fields
+       to associate query responses with the originating query.
+
+   * - ``opCode``
+
+     - Type of message. See :ref:`wp-request-opcodes` for details.
+
+.. _wp-request-opcodes:
+
+Request Opcodes
+~~~~~~~~~~~~~~~
+
+.. note::
+
+   Starting with MongoDB 2.6 and :data:`~hello.maxWireVersion` ``3``,
+   MongoDB drivers use the :ref:`database commands<collection-commands>`
+   :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`
+   instead of ``OP_INSERT``, ``OP_UPDATE``, and ``OP_DELETE`` for
+   acknowledged writes. Most drivers continue to use opcodes for
+   unacknowledged writes.
+
+.. warning::
+
+   ``OP_COMMAND`` and ``OP_COMMANDREPLY`` are cluster internal and should not
+   be implemented by clients or drivers.
+
+   .. versionchanged:: 3.6
+
+      The ``OP_COMMAND`` and ``OP_COMMANDREPLY`` format and protocol are
+      deprecated and may be removed in a future release of MongoDB.
+
+The following are the supported ``opCode``:
+
+.. list-table::
+   :widths: 25 10 65
+   :header-rows: 1
+
+   * - Opcode Name
+     - Value
+     - Comment
+   * - ``OP_REPLY``
+     - 1
+     - Reply to a client request. ``responseTo`` is set.
+   * - ``OP_UPDATE``
+     - 2001
+     - Update document.
+   * - ``OP_INSERT``
+     - 2002
+     - Insert new document.
+   * - ``RESERVED``
+     - 2003
+     - Formerly used for OP_GET_BY_OID.
+   * - ``OP_QUERY``
+     - 2004
+     - Query a collection.
+   * - ``OP_GET_MORE``
+     - 2005
+     - Get more data from a query. See Cursors.
+   * - ``OP_DELETE``
+     - 2006
+     - Delete documents.
+   * - ``OP_KILL_CURSORS``
+     - 2007
+     - Notify database that the client has finished with the cursor.
+   * - ``OP_COMMAND``
+     - 2010
+     - Cluster internal protocol representing a command request.
+   * - ``OP_COMMANDREPLY``
+     - 2011
+     - Cluster internal protocol representing a reply to an ``OP_COMMAND``.
+   * - ``OP_COMPRESSED``
+     - 2012
+     - Wraps other opcodes using compression
+   * - ``OP_MSG``
+     - 2013
+     - Send a message using the format introduced in MongoDB 3.6.
+
+Client Request Messages
+-----------------------
+
+Clients can send request messages that specify all but the
+:ref:`OP_REPLY <wire-op-reply>` opCode. :ref:`OP_REPLY <wire-op-reply>`
+is reserved for use by the database.
+
+Only the :ref:`OP_QUERY <wire-op-query>` and
+:ref:`OP_GET_MORE <wire-op-get-more>` messages result in a
+response from the database. There will be no response sent for any other
+message.
+
+You can determine if a message was successful with a getLastError command.
+
+.. _wire-op-update:
+
+OP_UPDATE
+~~~~~~~~~
+
+The OP_UPDATE message is used to update a document in a collection. The
+format of a OP_UPDATE message is the following:
+
+.. code-block:: c
+
+   struct OP_UPDATE {
+       MsgHeader header;             // standard message header
+       int32     ZERO;               // 0 - reserved for future use
+       cstring   fullCollectionName; // "dbname.collectionname"
+       int32     flags;              // bit vector. see below
+       document  selector;           // the query to select the document
+       document  update;             // specification of the update to perform
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``ZERO``
+
+     - Integer value of 0.  Reserved for future use.
+
+   * - ``fullCollectionName``
+
+     - The full collection name; i.e. namespace. The full collection
+       name is the concatenation of the database name with the
+       collection name, using a ``.`` for the concatenation. For
+       example, for the database ``foo`` and the collection ``bar``,
+       the full collection name is ``foo.bar``.
+
+   * - ``flags``
+
+     - Bit vector to specify flags for the operation. The bit values
+       correspond to the following:
+
+       - ``0`` corresponds to Upsert. If set, the database will insert
+         the supplied object into the collection if no matching
+         document is found.
+
+       - ``1`` corresponds to MultiUpdate.If set, the database will
+         update all matching objects in the collection. Otherwise only
+         updates first matching document.
+
+       - ``2``-``31`` are reserved. Must be set to 0.
+
+   * - ``selector``
+
+     - BSON document that specifies the query for selection of the
+       document to update.
+
+   * - ``update``
+
+     - BSON document that specifies the update to be performed. For
+       information on specifying updates see the :doc:`Update
+       Operations </tutorial/update-documents/>` documentation.
+
+There is no response to an OP_UPDATE message.
+
+.. _wire-op-insert:
+
+OP_INSERT
+~~~~~~~~~
+
+The OP_INSERT message is used to insert one or more documents into a
+collection. The format of the OP_INSERT message is
+
+.. code-block:: c
+
+   struct {
+       MsgHeader header;             // standard message header
+       int32     flags;              // bit vector - see below
+       cstring   fullCollectionName; // "dbname.collectionname"
+       document* documents;          // one or more documents to insert into the collection
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``flags``
+
+     - Bit vector to specify flags for the operation. The bit values
+       correspond to the following:
+
+       - ``0`` corresponds to ContinueOnError. If set, the database
+         will not stop processing a bulk insert if one fails (eg due to
+         duplicate IDs). This makes bulk insert behave similarly to a
+         series of single inserts, except lastError will be set if any
+         insert fails, not just the last one. If multiple errors occur,
+         only the most recent will be reported by getLastError. (new in
+         1.9.1)
+
+       - ``1``-``31`` are reserved. Must be set to 0.
+
+   * - ``fullCollectionName``
+
+     - The full collection name; i.e. namespace. The full collection
+       name is the concatenation of the database name with the
+       collection name, using a ``.`` for the concatenation. For
+       example, for the database ``foo`` and the collection ``bar``,
+       the full collection name is ``foo.bar``.
+
+   * - ``documents``
+
+     - One or more documents to insert into the collection. If there
+       are more than one, they are written to the socket in sequence,
+       one after another.
+
+There is no response to an OP_INSERT message.
+
+.. _wire-op-query:
+
+OP_QUERY
+~~~~~~~~
+
+The OP_QUERY message is used to query the database for documents in a
+collection. The format of the OP_QUERY message is:
+
+.. code-block:: c
+
+   struct OP_QUERY {
+       MsgHeader header;                 // standard message header
+       int32     flags;                  // bit vector of query options.  See below for details.
+       cstring   fullCollectionName ;    // "dbname.collectionname"
+       int32     numberToSkip;           // number of documents to skip
+       int32     numberToReturn;         // number of documents to return
+                                         //  in the first OP_REPLY batch
+       document  query;                  // query object.  See below for details.
+     [ document  returnFieldsSelector; ] // Optional. Selector indicating the fields
+                                         //  to return.  See below for details.
+   }
+
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``flags``
+
+     - Bit vector to specify flags for the operation. The bit values
+       correspond to the following:
+
+       - ``0`` is reserved. Must be set to 0.
+
+       - ``1`` corresponds to TailableCursor. Tailable means cursor is
+         not closed when the last data is retrieved. Rather, the cursor
+         marks the final object's position. You can resume using the
+         cursor later, from where it was located, if more data were
+         received. Like any "latent cursor", the cursor may become
+         invalid at some point (CursorNotFound) – for example if the
+         final object it references were deleted.
+
+       - ``2`` corresponds to SlaveOk.Allow query of replica slave.
+         Normally these return an error except for namespace "local".
+
+       - ``3`` corresponds to OplogReplay. Internal replication use
+         only - driver should not set.
+
+       - ``4`` corresponds to NoCursorTimeout. The server normally
+         times out idle cursors after an inactivity period (10 minutes)
+         to prevent excess memory use. Set this option to prevent that.
+
+       - ``5`` corresponds to AwaitData. Use with TailableCursor. If we
+         are at the end of the data, block for a while rather than
+         returning no data. After a timeout period, we do return as
+         normal.
+
+       - ``6`` corresponds to Exhaust. Stream the data down full blast
+         in multiple "more" packages, on the assumption that the client
+         will fully read all data queried. Faster when you are pulling
+         a lot of data and know you want to pull it all down. Note: the
+         client is not allowed to not read all the data unless it
+         closes the connection.
+
+       - ``7`` corresponds to Partial. Get partial results from a
+         mongos if some shards are down (instead of throwing an error)
+
+       - ``8``-``31`` are reserved. Must be set to 0.
+
+   * - ``fullCollectionName``
+
+     - The full collection name; i.e. namespace. The full collection
+       name is the concatenation of the database name with the
+       collection name, using a ``.`` for the concatenation. For
+       example, for the database ``foo`` and the collection ``bar``,
+       the full collection name is ``foo.bar``.
+
+   * - ``numberToSkip``
+
+     - Sets the number of documents to omit - starting from the first
+       document in the resulting dataset - when returning the result of
+       the query.
+
+   * - ``numberToReturn``
+
+     - Limits the number of documents in the first :ref:`OP_REPLY
+       <wire-op-reply>` message to the query. However, the database
+       will still establish a cursor and return the ``cursorID`` to the
+       client if there are more results than ``numberToReturn``. If the
+       client driver offers 'limit' functionality (like the SQL LIMIT
+       keyword), then it is up to the client driver to ensure that no
+       more than the specified number of document are returned to the
+       calling application. If ``numberToReturn`` is ``0``, the db will
+       use the default return size. If the number is negative, then the
+       database will return that number and close the cursor. No further
+       results for that query can be fetched. If ``numberToReturn`` is
+       ``1`` the server will treat it as ``-1`` (closing the cursor
+       automatically).
+
+   * - ``query``
+     - BSON document that represents the query. The query will contain
+       one or more elements, all of which must match for a document to
+       be included in the result set. Possible elements include
+       ``$query``, ``$orderby``, ``$hint``, and ``$explain``.
+
+   * - ``returnFieldsSelector``
+
+     - Optional. BSON document that limits the fields in the returned
+       documents. The ``returnFieldsSelector`` contains one or more
+       elements, each of which is the name of a field that should be
+       returned, and and the integer value ``1``. In JSON notation, a
+       ``returnFieldsSelector`` to limit to the fields ``a``, ``b`` and
+       ``c`` would be:
+
+       .. code-block:: javascript
+
+          { a : 1, b : 1, c : 1}
+
+The database will respond to an OP_QUERY message with an
+:ref:`OP_REPLY <wire-op-reply>` message.
+
+.. _wire-op-get-more:
+
+OP_GET_MORE
+~~~~~~~~~~~
+
+The OP_GET_MORE message is used to query the database for documents in a
+collection. The format of the OP_GET_MORE message is:
+
+.. code-block:: c
+
+   struct {
+       MsgHeader header;             // standard message header
+       int32     ZERO;               // 0 - reserved for future use
+       cstring   fullCollectionName; // "dbname.collectionname"
+       int32     numberToReturn;     // number of documents to return
+       int64     cursorID;           // cursorID from the OP_REPLY
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``ZERO``
+
+     - Integer value of 0.  Reserved for future use.
+
+   * - ``fullCollectionName``
+
+     - The full collection name; i.e. namespace. The full collection
+       name is the concatenation of the database name with the
+       collection name, using a ``.`` for the concatenation. For
+       example, for the database ``foo`` and the collection ``bar``,
+       the full collection name is ``foo.bar``.
+
+   * - ``numberToReturn``
+
+     - Limits the number of documents in the first :ref:`OP_REPLY
+       <wire-op-reply>` message to the query. However, the database
+       will still establish a cursor and return the ``cursorID`` to the
+       client if there are more results than ``numberToReturn``. If the
+       client driver offers 'limit' functionality (like the SQL LIMIT
+       keyword), then it is up to the client driver to ensure that no
+       more than the specified number of document are returned to the
+       calling application. If ``numberToReturn`` is ``0``, the db will
+       used the default return size.
+
+   * - ``cursorID``
+     - Cursor identifier that came in the :ref:`OP_REPLY
+       <wire-op-reply>`. This must be the value that came from the
+       database.
+
+The database will respond to an OP_GET_MORE message with an
+:ref:`OP_REPLY <wire-op-reply>` message.
+
+.. _wire-op-delete:
+
+OP_DELETE
+~~~~~~~~~
+
+The OP_DELETE message is used to remove one or more documents from a
+collection. The format of the OP_DELETE message is:
+
+.. code-block:: c
+
+   struct {
+       MsgHeader header;             // standard message header
+       int32     ZERO;               // 0 - reserved for future use
+       cstring   fullCollectionName; // "dbname.collectionname"
+       int32     flags;              // bit vector - see below for details.
+       document  selector;           // query object.  See below for details.
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``ZERO``
+
+     - Integer value of 0.  Reserved for future use.
+
+   * - ``fullCollectionName``
+
+     - The full collection name; i.e. namespace. The full collection
+       name is the concatenation of the database name with the
+       collection name, using a ``.`` for the concatenation. For
+       example, for the database ``foo`` and the collection ``bar``,
+       the full collection name is ``foo.bar``.
+
+   * - ``flags``
+
+     - Bit vector to specify flags for the operation. The bit values
+       correspond to the following:
+
+       - ``0`` corresponds to SingleRemove. If set, the database will
+         remove only the first matching document in the collection.
+         Otherwise all matching documents will be removed.
+
+       - ``1``-``31`` are reserved. Must be set to 0.
+
+   * - ``selector``
+
+     - BSON document that represent the query used to select the
+       documents to be removed. The selector will contain one or more
+       elements, all of which must match for a document to be removed
+       from the collection.
+
+There is no response to an OP_DELETE message.
+
+.. _wire-op-kill-cursors:
+
+OP_KILL_CURSORS
+~~~~~~~~~~~~~~~
+
+The OP_KILL_CURSORS message is used to close an active cursor in the
+database. This is necessary to ensure that database resources are
+reclaimed at the end of the query. The format of the OP_KILL_CURSORS
+message is:
+
+.. code-block:: sh
+
+   struct {
+       MsgHeader header;            // standard message header
+       int32     ZERO;              // 0 - reserved for future use
+       int32     numberOfCursorIDs; // number of cursorIDs in message
+       int64*    cursorIDs;         // sequence of cursorIDs to close
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``ZERO``
+
+     - Integer value of 0.  Reserved for future use.
+
+   * - ``numberOfCursorIDs``
+
+     - The number of cursor IDs that are in the message.
+
+   * - ``cursorIDs``
+
+     - "Array" of cursor IDs to be closed. If there are more than one,
+       they are written to the socket in sequence, one after another.
+
+If a cursor is read until exhausted (read until :ref:`OP_QUERY <wire-op-query>`
+or :ref:`OP_GET_MORE <wire-op-get-more>` returns zero
+for the cursor id), there is no need to kill the cursor.
+
+.. _wire-op-command:
+
+OP_COMMAND
+~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+   The ``OP_COMMAND`` format and protocol is deprecated and may be removed
+   in a future release of MongoDB.
+
+.. warning::
+
+   ``OP_COMMAND`` is cluster internal and should not be implemented
+   by clients or drivers.
+
+``OP_COMMAND`` is a wire protocol message used internally for intra-cluster
+database command requests issued by one MongoDB server to another. The
+receiving database sends back an :ref:`OP_COMMANDREPLY <wire-op-commandreply>`
+as a response to a ``OP_COMMAND``.
+
+.. code-block:: sh
+
+   struct {
+      MsgHeader header;     // standard message header
+      cstring database;     // the name of the database to run the command on
+      cstring commandName;  // the name of the command
+      document metadata;    // a BSON document containing any metadata
+      document commandArgs; // a BSON document containing the command arguments
+      inputDocs;            // a set of zero or more documents
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Standard message header, as described in :ref:`wp-message-header`.
+
+   * - ``database``
+
+     - The name of the database to run the command on.
+
+   * - ``commandName``
+
+     - The name of the command. See :ref:`database-commands` for a list of
+       database commands.
+
+   * - ``metadata``
+
+     - Available for the system to attach any metadata to internal commands
+       that is not part of the command parameters proper, as supplied by the
+       client driver
+
+   * - ``commandArgs``
+
+     - A BSON document containing the command arguments.
+
+       See the documentation for the specified ``commandName`` for information
+       its arguments
+
+   * - ``inputDocs``
+
+     - Zero or more documents acting as input to the command. Useful for
+       commands that can require a large amount of data sent from the client,
+       such as a batch insert.
+
+.. _wire-op-compressed:
+
+OP_COMPRESSED
+~~~~~~~~~~~~~
+
+.. versionadded:: MongoDB 3.4
+
+Any opcode can be compressed and wrapped in an OP_COMPRESSED header.
+The OP_COMPRESSED message contains the original compressed opcode
+message alongside the metadata necessary to process and decompress it.
+
+The format of the OP_COMPRESSED message is:
+
+.. code-block:: bash
+
+   struct {
+       MsgHeader header;            // standard message header
+       int32  originalOpcode;     // value of wrapped opcode
+       int32  uncompressedSize;   // size of deflated compressedMessage, excluding MsgHeader
+       uint8  compressorId;       // ID of compressor that compressed message
+       char    *compressedMessage;  // opcode itself, excluding MsgHeader
+   }
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``MsgHeader``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``originalOpcode``
+
+     - Contains the value of the wrapped opcode.
+
+   * - ``uncompressedSize``
+
+     - The size of the deflated ``compressedMessage``, which excludes
+       the ``MsgHeader``.
+
+   * - ``compressorId``
+
+     - The ID of the compressor that compressed the message. A list of
+       ``compressorId`` values is provided below.
+
+   * - ``compressedMessage``
+
+     - The opcode itself, excluding the ``MsgHeader``.
+
+Each compressor is assigned a predefined compressor ID as follows:
+
+.. list-table::
+   :widths: 15 25 60
+   :header-rows: 1
+
+   * - compressorId
+     - Handshake Value
+     - Description
+
+   * - ``0``
+
+     - noop
+
+     - The content of the message is uncompressed. This is used for
+       testing.
+
+   * - ``1``
+
+     - snappy
+
+     - The content of the message is compressed using snappy.
+
+   * - ``2``
+
+     - zlib
+
+     - The content of the message is compressed using zlib.
+
+   * - ``3``
+
+     - zstd
+
+     - The content of the message is compressed using zstd.
+
+   * - ``4-255``
+
+     - reserved
+
+     - Reserved for future use.
+
+.. _wire-op-msg:
+
+OP_MSG
+~~~~~~
+
+.. versionadded:: MongoDB 3.6
+
+``OP_MSG`` is an extensible message format designed to subsume the
+functionality of other opcodes. This opcode has the following format:
+
+.. code-block:: none
+
+   OP_MSG {
+       MsgHeader header;          // standard message header
+       uint32 flagBits;           // message flags
+       Sections[] sections;       // data sections
+       optional<uint32> checksum; // optional CRC-32C checksum
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Standard message header, as described in :ref:`wp-message-header`.
+
+   * - ``flagBits``
+
+     - An integer bitmask containing message flags, as described in
+       :ref:`wire-msg-flags`.
+
+   * - ``sections``
+
+     - Message body sections, as described in :ref:`wire-msg-sections`.
+
+   * - ``checksum``
+
+     - An optional CRC-32C checksum, as described in
+       :ref:`wire-msg-checksum`.
+
+.. _wire-msg-flags:
+
+Flag Bits
+`````````
+
+The ``flagBits`` integer is a bitmask encoding flags that modify the
+format and behavior of ``OP_MSG``.
+
+The first 16 bits (0-15) are *required* and parsers **MUST**
+error if an unknown bit is set.
+
+The last 16 bits (16-31) are *optional*, and parsers **MUST**
+ignore any unknown set bits. Proxies and other message forwarders
+**MUST** clear any unknown optional bits before forwarding messages.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 10 10 60
+
+   * - Bit
+     - Name
+     - Request
+     - Response
+     - Description
+
+   * - 0
+     - ``checksumPresent``
+     - |checkmark|
+     - |checkmark|
+     - The message ends with 4 bytes containing a CRC-32C [#f1]_
+       checksum. See :ref:`wire-msg-checksum` for details.
+
+   * - 1
+     - ``moreToCome``
+     - |checkmark|
+     - |checkmark|
+     - Another message will follow this one without further action from
+       the receiver. The receiver **MUST NOT** send another message until
+       receiving one with ``moreToCome`` set to 0 as sends may block,
+       causing deadlock. Requests with the ``moreToCome``
+       bit set will not receive a reply. Replies will only have this
+       set in response to requests with the ``exhaustAllowed`` bit set.
+
+   * - 16
+     - ``exhaustAllowed``
+     - |checkmark|
+     -
+     - The client is prepared for multiple replies to this request using
+       the ``moreToCome`` bit. The server will never produce replies with
+       the ``moreToCome`` bit set unless the request has this bit set.
+
+       This ensures that multiple replies are only sent when the network
+       layer of the requester is prepared for them.
+
+       .. important::
+
+          MongoDB 3.6 ignores this flag, and will respond with a single
+          message.
+
+.. _wire-msg-sections:
+
+Sections
+````````
+
+An ``OP_MSG`` message contains one or more sections. Each section starts
+with a ``kind`` byte indicating its type. Everything after the ``kind``
+byte constitutes the section's payload.
+
+The available kinds of sections follow.
+
+Kind 0: Body
+''''''''''''
+
+A body section is encoded as a **single** :ref:`BSON object <bson-types>`.
+The size in the BSON object also serves as the size of the section. This
+section kind is the standard command request and reply body.
+
+All top-level fields **MUST** have a unique name.
+
+Kind 1: Document Sequence
+'''''''''''''''''''''''''
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Type
+     - Description
+
+   * - int32
+     - Size of the section in bytes.
+
+   * - C String
+     - Document sequence identifier. In all current commands this field
+       is the (possibly nested) field that it is replacing from the body
+       section.
+
+       This field **MUST NOT** also exist in the body section.
+
+   * - Zero or more BSON objects
+     - - Objects are sequenced back to back with no separators.
+
+       - Each object is limited to the ``maxBSONObjectSize`` of the
+         server. The combination of all objects is not limited to
+         ``maxBSONObjSize``.
+
+       - The document sequence ends once ``size`` bytes have been consumed.
+
+       - Parsers **MAY** choose to merge these objects into the body as
+         an array at the path specified by the sequence identifier when
+         converting to language-level objects.
+
+.. _wire-msg-checksum:
+
+Checksum
+````````
+
+.. note::
+
+   MongoDB 3.6 does not support validating the message checksum, but
+   will correctly skip it if present.
+
+Each message **MAY** end with a CRC-32C [#f1]_ checksum that covers all
+bytes in the message except for the checksum itself. The presence of a
+checksum is indicated by the ``checksumPresent`` flag bit.
+
+Database Response Messages
+--------------------------
+
+.. _wire-op-reply:
+
+OP_REPLY
+~~~~~~~~
+
+The ``OP_REPLY`` message is sent by the database in response to an
+:ref:`OP_QUERY <wire-op-query>` or :ref:`OP_GET_MORE
+<wire-op-get-more>` message. The format of an OP_REPLY message is:
+
+.. code-block:: sh
+
+   struct {
+       MsgHeader header;         // standard message header
+       int32     responseFlags;  // bit vector - see details below
+       int64     cursorID;       // cursor id if client needs to do get more's
+       int32     startingFrom;   // where in the cursor this reply is starting
+       int32     numberReturned; // number of documents in the reply
+       document* documents;      // documents
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``responseFlags``
+
+     - Bit vector to specify flags. The bit values
+       correspond to the following:
+
+       - ``0`` corresponds to CursorNotFound. Is set when ``getMore`` is
+         called but the cursor id is not valid at the server. Returned
+         with zero results.
+
+       - ``1`` corresponds to QueryFailure. Is set when query failed.
+         Results consist of one document containing an "$err" field
+         describing the failure.
+
+       - ``2`` corresponds to ShardConfigStale. Drivers should ignore
+         this. Only :binary:`~bin.mongos` will ever see this set, in which
+         case, it needs to update config from the server.
+
+       - ``3`` corresponds to AwaitCapable. Is set when the server
+         supports the AwaitData Query option. If it doesn't, a client
+         should sleep a little between getMore's of a Tailable cursor.
+         Mongod version 1.6 supports AwaitData and thus always sets
+         AwaitCapable.
+
+       - ``4``-``31`` are reserved. Ignore.
+
+   * - ``cursorID``
+
+     - The ``cursorID`` that this OP_REPLY is a part of. In the event
+       that the result set of the query fits into one OP_REPLY message,
+       ``cursorID`` will be 0. This ``cursorID`` must be used in any
+       :ref:`OP_GET_MORE <wire-op-get-more>` messages used to get more
+       data, and also must be closed by the client when no longer
+       needed via a :ref:`OP_KILL_CURSORS <wire-op-kill-cursors>`
+       message.
+
+   * - ``startingFrom``
+
+     - Starting position in the cursor.
+
+   * - ``numberReturned``
+
+     - Number of documents in the reply.
+
+   * - ``documents``
+
+     - Returned documents.
+
+.. _wire-op-commandreply:
+
+OP_COMMANDREPLY
+~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+   The ``OP_COMMANDREPLY``  format and protocol is deprecated and may be
+   removed in a future release of MongoDB.
+
+.. warning::
+
+   ``OP_COMMANDREPLY`` is cluster internal and should not be implemented
+   by clients or drivers.
+
+The ``OP_COMMANDREPLY`` is a wire protocol message used internally for
+replying to intra-cluster :ref:`OP_COMMAND <wire-op-command>` requests issued
+by one MongoDB server to another.
+
+The format of an ``OP_COMMANDREPLY`` is:
+
+.. code-block:: sh
+
+   struct {
+      MsgHeader header;       // A standard wire protocol header
+      document metadata;      // A BSON document containing any required metadata
+      document commandReply;  // A BSON document containing the command reply
+      document outputDocs;    // A variable number of BSON documents
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Standard message header, as described in :ref:`wp-message-header`.
+
+   * - ``metadata``
+
+     - Available for the system to attach any metadata to internal commands
+       that is not part of the command parameters proper, as supplied by the
+       client driver.
+
+   * - ``commandReply``
+
+     - A BSON document containing the command reply.
+
+   * - ``outputDocs``
+
+     - Useful for commands that can return a large amount of data, such as
+       find or aggregate.
+
+       This field is not currently in use.
+
+.. rubric:: Footnotes
+
+.. [#f1] 32-bit :abbr:`CRC (cyclic redundancy check)` computed with the Castagnoli polynomial as
+   described by https://tools.ietf.org/html/rfc4960#page-140.

@@ -1,0 +1,639 @@
+.. index:: changeStreams notification
+
+.. _changeStreams:
+
+.. _collection_watch:
+
+==============
+Change Streams
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. versionadded:: 3.6
+
+Change streams allow applications to access real-time data changes
+without the complexity and risk of tailing the :term:`oplog`.
+Applications can use change streams to subscribe to all data changes on
+a collection and immediately react to them.
+
+.. important::
+
+   Change stream is only available if :readconcern:`"majority"` read
+   concern support is enabled (default).
+
+Open A Change Stream
+--------------------
+
+You can only open a change stream against :doc:`replica sets
+<replication>` or :doc:`sharded clusters </sharding>`. For a sharded
+cluster, you must issue the open change stream operation against the
+:binary:`~bin.mongos`.
+
+The replica set or the sharded cluster must use replica set protocol
+version 1 (:rsconf:`pv1 <protocolVersion>`) and :ref:`WiredTiger
+<storage-wiredtiger>` storage engine (can be :ref:`encrypted
+<encrypted-storage-engine>`).
+
+The following example opens a change stream for a collection and
+iterates over the cursor to retrieve the change stream documents.
+While the connection to the MongoDB deployment remains
+open, the cursor remains open until one of the following occurs:
+
+- The cursor is explicitly closed.
+
+- An :ref:`invalidate event <change-event-invalidate>` occurs.
+
+- .. include:: /includes/extracts/changestream-remove-shard.rst
+
+.. tabs-drivers::
+
+   tabs:
+     - id: python
+       content: |
+         The Python examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+         <http://api.mongodb.com/python/current/tutorial.html#making-a-connection-with-mongoclient/>`__
+         that contains an ``inventory`` collection.
+
+         .. literalinclude:: /driver-examples/test_examples.py
+            :language: python
+            :dedent: 12
+            :start-after: Start Changestream Example 1
+            :end-before: End Changestream Example 1
+
+
+     - id: motor
+       content: |
+         The examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+         <https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#creating-a-client>`__
+         that contains an ``inventory`` collection.
+
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 12
+            :start-after: Start Changestream Example 1
+            :end-before: End Changestream Example 1
+
+     - id: java-sync
+       content: |
+         The Java examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+         <http://mongodb.github.io/mongo-java-driver/3.6/driver/tutorials/databases-collections/>`__
+         that contains an ``inventory`` collection.
+
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Changestream Example 1
+            :end-before: End Changestream Example 1
+
+     - id: csharp
+       content: |
+         The C# examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+         <http://mongodb.github.io/mongo-csharp-driver/2.4/getting_started/quick_tour/#make-a-connection/>`__
+         that contains an ``inventory`` collection.
+
+         .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
+            :language: c#
+            :dedent: 12
+            :start-after: Start Changestream Example 1
+            :end-before: End Changestream Example 1
+
+     - id: c
+       content: |
+         The C examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+         <http://mongoc.org/libmongoc/current/tutorial.html#making-a-connection/>`__
+         that contains an ``inventory`` collection.
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Changestream Example 1
+            :end-before: End Changestream Example 1
+
+     - id: nodejs
+       content: |
+         The Node.js examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+         <https://mongodb.github.io/node-mongodb-native/api-generated/mongoclient.html#connect>`__
+         that contains an ``inventory`` collection.
+
+         The following example uses stream to process the change events.
+
+         .. literalinclude:: /driver-examples/node_changestreams.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Changestream Example 1
+            :end-before: End Changestream Example 1
+
+         Alternatively, you can also use iterator to process the change events:
+
+         .. literalinclude:: /driver-examples/node_changestreams.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Changestream Example 1 Alternative
+            :end-before: End Changestream Example 1 Alternative
+
+     - id: php
+       content: |
+          The examples below assume that you have `connected to a MongoDB replica  set and have accessed a database
+          <https://docs.mongodb.com/php-library/current/reference/method/MongoDBClient__construct/>`__
+          that contains an ``inventory`` collection.
+
+          .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+             :language: php
+             :dedent: 8
+             :start-after: Start Changestream Example 1
+             :end-before: End Changestream Example 1
+
+     - id: ruby
+       content: |
+          The examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+          <https://docs.mongodb.com/ruby-driver/master/tutorials/ruby-driver-create-client/>`__
+          that contains an ``inventory`` collection.
+
+
+          .. literalinclude:: /driver-examples/change_stream_examples_spec.rb
+             :language: ruby
+             :dedent: 8
+             :start-after: Start Changestream Example 1
+             :end-before: End Changestream Example 1
+
+
+To retrieve the data change event notifications, iterate the change
+stream ``cursor``.
+
+.. note::
+   The lifecycle of an unclosed cursor is language-dependent.
+
+See :ref:`change-stream-output` for more information on the change stream
+response document format.
+
+Modify Change Stream Output
+---------------------------
+
+.. tabs-drivers::
+
+   tabs:
+     - id: python
+       content: |
+
+          .. include:: /includes/fact-change-streams-modify-output.rst
+          
+     - id: motor
+       content: |
+
+          .. include:: /includes/fact-change-streams-modify-output.rst
+
+     - id: java-sync
+       content: |
+
+          .. include:: /includes/fact-change-streams-modify-output.rst
+
+          .. code-block:: java
+
+             MongoClient mongoClient = new MongoClient( new MongoClientURI("mongodb://host1:port1,host2:port2..."));
+
+             // Select the MongoDB database and collection to open the change stream against
+
+             MongoDatabase db = mongoClient.getDatabase("myTargetDatabase");
+
+             MongoCollection<Document> collection = db.getCollection("myTargetCollection");
+
+             // Create $match pipeline stage.
+             List<Bson> pipeline = singletonList(Aggregates.match(Filters.or(
+                 Document.parse("{'fullDocument.username': 'alice'}"),
+                 Filters.in("operationType", asList("delete")))));
+
+             // Create the change stream cursor, passing the pipeline to the
+             // collection.watch() method
+
+             MongoCursor<Document> cursor = collection.watch(pipeline).iterator();
+
+          The ``pipeline`` list includes a single :pipeline:`$match` stage that
+          filters any operations where the ``username`` is ``alice``, or
+          operations where the ``operationType`` is ``delete``.
+
+          Passing the ``pipeline`` to the :method:`~db.collection.watch()` method directs the
+          change stream to return notifications after passing them through the
+          specified ``pipeline``.
+         
+     - id: csharp
+       content: |
+          .. include:: /includes/fact-change-streams-modify-output.rst
+
+     - id: c
+       content: |
+          .. include:: /includes/fact-change-streams-modify-output.rst
+
+     - id: nodejs
+       content: |
+
+         .. include:: /includes/fact-change-streams-modify-output.rst
+
+         The following example uses stream to process the change events.
+
+         .. literalinclude:: /driver-examples/node_changestreams.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Changestream Example 4
+            :end-before: End Changestream Example 4
+
+         Alternatively, you can also use iterator to process the change events:
+
+         .. literalinclude:: /driver-examples/node_changestreams.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Changestream Example 4 Alternative
+            :end-before: End Changestream Example 4 Alternative
+
+     - id: php
+       content: |
+          .. include:: /includes/fact-change-streams-modify-output.rst
+
+     - id: ruby
+       content: |
+          .. include:: /includes/fact-change-streams-modify-output.rst
+
+
+See :ref:`change-stream-output` for more information on the change stream
+response document format.
+
+
+Lookup Full Document for Update Operations
+------------------------------------------
+
+By default, change streams only return the delta of fields during the
+update operation. However, you can configure the change stream to
+return the most current majority-committed version of the updated
+document.
+
+.. tabs-drivers::
+
+   tabs:
+     - id: python
+       content: |
+         
+         To return the most current majority-committed version of the updated
+         document, pass ``full_document='updateLookup'`` to the
+         :method:`db.collection.watch()` method.
+
+         In the example below, all update operations notifications
+         include a ``full_document`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         .. literalinclude:: /driver-examples/test_examples.py
+            :language: python
+            :dedent: 12
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+         
+
+     - id: motor
+       content: |
+
+         To return the most current majority-committed version of the updated
+         document, pass ``full_document='updateLookup'`` to the
+         :method:`db.collection.watch()` method.
+
+         In the example below, all update operations notifications
+         include a ```full_document`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 12
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+
+     - id: java-sync
+       content: |
+
+         To return the most current majority-committed version of the updated
+         document, pass ``FullDocument.UPDATE_LOOKUP``  to the
+         :method:`db.collection.watch.fullDocument()` method.
+
+         In the example below, all update operations notifications
+         include a ``FullDocument`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+
+     - id: c
+       content: |
+
+         To return the most current majority-committed version of the updated
+         document, pass the ``"fullDocument"`` option with the ``"updateLookup"`` value to the
+         :method:`mongoc_collection_watch` method.
+
+         In the example below, all update operations notifications
+         include a ``fullDocument`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+
+     - id: csharp
+       content: |
+
+         To return the most current majority-committed version of the updated
+         document, pass ``"FullDocument = ChangeStreamFullDocumentOption.UpdateLookup"`` to the
+         :method:`collection.Watch()` method.
+
+         In the example below, all update operations notifications
+         include a ``FullDocument`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
+            :language: C#
+            :dedent: 12
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+
+
+     - id: nodejs
+       content: |
+
+         To return the most current majority-committed version of the updated
+         document, pass ``{ fullDocument: 'updateLookup' }`` to the
+         :method:`collection.watch()` method.
+
+         In the example below, all update operations notifications
+         include a ``fullDocument`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         The following example uses stream to process the change events.
+
+         .. literalinclude:: /driver-examples/node_changestreams.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+
+         Alternatively, you can also use iterator to process the change events:
+
+         .. literalinclude:: /driver-examples/node_changestreams.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Changestream Example 2 Alternative
+            :end-before: End Changestream Example 2 Alternative
+
+     - id: php
+       content: |
+
+         To return the most current
+         majority-committed version of the updated document, pass
+         ``"fullDocument' => \MongoDB\Operation\ChangeStreamCommand::FULL_DOCUMENT_UPDATE_LOOKUP"``
+         to the :method:`watch()` method.
+
+         In the example below, all update operations notifications
+         include a ``fullDocument`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+            :language: php
+            :dedent: 8
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+
+     - id: ruby
+       content: |
+         To return the most current majority-committed version of the updated
+         document, pass ``full_document: 'updateLookup'`` to the
+         :method:`watch()` method.
+
+         In the example below, all update operations notifications
+         include a ``full_document`` field that represents the *current*
+         version of the document affected by the update operation.
+
+         .. literalinclude:: /driver-examples/change_stream_examples_spec.rb
+            :language: ruby
+            :dedent: 8
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
+
+
+.. note::
+
+   If there are one or more majority-committed operations that modified
+   the updated document *after* the update operation but *before* the
+   lookup, the full document returned may differ significantly from the
+   document at the time of the update operation.
+
+   However, the deltas included in the change stream document always
+   correctly describe the watched collection changes that applied to
+   that change stream event.
+
+   See :ref:`change-stream-output` for more information on the change
+   stream response document format.
+
+.. _change-stream-resume:
+
+Resume a Change Stream
+----------------------
+
+
+Change streams are resumable by specifying a ``resumeAfter`` token when
+opening the cursor. For the ``resumeAfter`` token, use the ``_id``
+value of the :ref:`change stream event document
+<change-stream-output>`. Passing the ``_id`` value to the change stream
+attempts to resume notifications starting after the  specified operation.
+
+.. important::
+
+   - The oplog must have enough history to locate the operation
+     associated with the token or the timestamp, if the timestamp is in
+     the past.
+
+   - .. include:: /includes/extracts/changestream-invalid-events.rst
+
+.. tabs-drivers::
+
+   tabs:
+     - id: python
+       content: |
+
+         In the example below, ``resume_token`` contains the change
+         stream notification id. The ``resume_after`` modifier takes a
+         parameter that must resolve to a resume token. Passing the
+         ``resume_token`` to the ``resume_after`` modifier directs the
+         change stream to attempt to resume notifications starting after
+         the operation specified in the resume token.
+
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/test_examples.py
+            :language: python
+            :dedent: 12
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+     - id: motor
+       content: |
+
+         In the example below, ``resume_token`` contains the change
+         stream notification id. The ``resume_after`` modifier takes a parameter that must resolve to a resume
+         token. Passing the ``resume_token`` to the ``resume_after`` modifier directs
+         the change stream to attempt to resume notifications starting after the
+         operation specified in the resume token.
+
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 12
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+     - id: java-sync
+       content: |
+         In the example below, the ``resumeToken`` contains the change
+         stream notification id. The ``resumeAfter()`` method takes a parameter that must resolve to a resume
+         token. Passing the ``resumeToken`` to the ``resumeAfter()`` method directs
+         the change stream to attempt to resume notifications starting after the
+         operation specified in the resume token.
+
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+     - id: csharp
+       content: |
+
+         In the example below, the ``resumeToken`` is retrieved from the last change stream document
+         and passed to the ``Watch()`` method as an option. Passing the ``resumeToken``
+         to the ``Watch()`` method directs
+         the change stream to attempt to resume notifications starting after the
+         operation specified in the resume token.
+
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
+            :language: C#
+            :dedent: 14
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+     - id: c
+       content: |
+
+         In the example below, the ``resumeAfter`` option is appended to the stream options
+         to recreate the stream after it has been destroyed. Passing the ``_id`` to
+         the change stream attempts to resume notifications starting after the
+         operation specified.
+
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: C
+            :dedent: 3
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+
+     - id: nodejs
+       content: |
+       
+         In the example below, ``resumeToken`` contains the change
+         stream notification id. The ``resumeAfter`` takes a parameter
+         that must resolve to a resume token. Passing the
+         ``resumeToken`` to the ``resumeAfter`` modifier directs the
+         change stream to attempt to resume notifications starting after
+         the operation specified.
+
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/node_changestreams.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+     - id: php
+       content: |
+
+         In the example below, ``$resumeToken`` contains the change
+         stream notification id. The ``resumeAfter`` option takes a
+         value that must resolve to a resume token. Passing the
+         ``$resumeToken`` to the ``resumeAfter`` option directs the
+         change stream to attempt to resume notifications starting after
+         the operation specified in the resume token.
+         
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+            :language: php
+            :dedent: 8
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+     - id: ruby
+       content: |
+
+         In the example below, ``resume_token`` contains the change
+         stream notification id. The ``resume_after`` modifier takes a
+         parameter that must resolve to a resume token. Passing the
+         ``resume_token`` to the ``resume_after`` modifier directs the
+         change stream to attempt to resume notifications starting after
+         the operation specified in the resume token.
+
+         .. class:: copyable-code
+
+         .. literalinclude:: /driver-examples/change_stream_examples_spec.rb
+            :language: ruby
+            :dedent: 6
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+
+Use Cases
+---------
+
+Change streams can benefit architectures with reliant business systems,
+informing downstream systems once data changes are durable. For example,
+change streams can save time for developers when implementing Extract,
+Transform, and Load (ETL) services, cross-platform synchronization,
+collaboration functionality, and notification services.
+
+Access Control
+--------------
+
+.. include:: /includes/extracts/changestream-access-control-collection.rst
+
+Event Notification
+------------------
+
+Change streams only notify on data changes that have persisted to a majority
+of data-bearing members in the replica set. This ensures that notifications are
+triggered only by majority-committed changes that are durable in failure
+scenarios.
+
+For example, consider a 3-member :term:`replica set` with a change stream
+cursor opened against the :term:`primary`. If a client issues an insert
+operation, the change stream only notifies the application of the data change
+once that insert has persisted to a majority of data-bearing members.
+
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /administration/change-streams-production-recommendations
+      /reference/change-events
+

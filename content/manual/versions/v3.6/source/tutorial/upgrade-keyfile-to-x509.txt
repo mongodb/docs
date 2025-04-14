@@ -1,0 +1,154 @@
+.. _upgrade-to-x509-internal-authentication:
+
+===========================================================
+Upgrade from Keyfile Authentication to x.509 Authentication
+===========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To upgrade clusters that are currently using :ref:`keyfile authentication
+<internal-auth-keyfile>` to x.509 authentication, use the following
+rolling upgrade processes.
+
+Clusters Currently Using TLS/SSL
+--------------------------------
+
+For clusters using TLS/SSL and keyfile authentication, to upgrade to x.509
+cluster authentication, use the following rolling upgrade process:
+
+#. For each node of a cluster, start the node with the option
+   :option:`--clusterAuthMode <mongod --clusterAuthMode>` set to ``sendKeyFile`` and the option
+   :option:`--sslClusterFile <mongod --sslClusterFile>` set to the appropriate path of the node's
+   certificate. Include other :doc:`TLS/SSL options
+   </tutorial/configure-ssl>` as well as any other options that are
+   required for your specific configuration. For example:
+
+   .. code-block:: sh
+
+      mongod --replSet <name> --sslMode requireSSL --clusterAuthMode sendKeyFile --sslClusterFile <path to membership certificate and key PEM file> --sslPEMKeyFile <path to TLS/SSL Certificate and key PEM file>  --sslCAFile <path to root CA PEM file> --bind_ip localhost,<ip address>
+
+   With this setting, each node continues to use its keyfile to
+   authenticate itself as a member. However, each node can now accept
+   either a keyfile or an x.509 certificate from other members to
+   authenticate those members. Upgrade all nodes of the cluster to
+   this setting.
+
+#. Then, for each node of a cluster, connect to the node and use the
+   :dbcommand:`setParameter` command to update the :parameter:`clusterAuthMode`
+   to ``sendX509``. [#update-mode-alternative]_ For example,
+
+   .. code-block:: sh
+
+      db.adminCommand( { setParameter: 1, clusterAuthMode: "sendX509" } )
+
+   With this setting, each node uses its x.509 certificate, specified
+   with the :option:`--sslClusterFile <mongod --sslClusterFile>` option in the previous step, to
+   authenticate itself as a member. However, each node continues to
+   accept either a keyfile or an x.509 certificate from other members
+   to authenticate those members. Upgrade all nodes of the cluster to
+   this setting.
+
+#. Optional but recommended. Finally, for each node of the cluster,
+   connect to the node and use the :dbcommand:`setParameter` command to
+   update the :parameter:`clusterAuthMode` to ``x509`` to only use the
+   x.509 certificate for authentication. [#update-mode-alternative]_
+   For example:
+
+   .. code-block:: sh
+
+      db.adminCommand( { setParameter: 1, clusterAuthMode: "x509" } )
+
+#. After the upgrade of all nodes, edit the :doc:`configuration file
+   </reference/configuration-options>` with the appropriate x.509
+   settings to ensure that upon subsequent restarts, the cluster uses
+   x.509 authentication.
+
+See :option:`--clusterAuthMode <mongod --clusterAuthMode>` for the various modes and their
+descriptions.
+
+Clusters Currently Not Using TLS/SSL
+------------------------------------
+
+For clusters using keyfile authentication but not TLS/SSL, to upgrade to
+x.509 authentication, use the following rolling upgrade process:
+
+#. For each node of a cluster, start the node with the option
+   :option:`--sslMode <mongod --sslMode>` set to ``allowSSL``, the option
+   :option:`--clusterAuthMode <mongod --clusterAuthMode>` set to ``sendKeyFile`` and the option
+   :option:`--sslClusterFile <mongod --sslClusterFile>` set to the appropriate path of the node's
+   certificate. Include other :doc:`TLS/SSL options
+   </tutorial/configure-ssl>` as well as any other options that are
+   required for your specific configuration. For example:
+
+   .. code-block:: sh
+
+      mongod --replSet <name> --sslMode allowSSL --clusterAuthMode sendKeyFile --sslClusterFile <path to membership certificate and key PEM file> --sslPEMKeyFile <path to TLS/SSL certificate and key PEM file> --sslCAFile <path to root CA PEM file> --bind_ip localhost,<ip address>
+
+   The :option:`--sslMode allowSSL <mongod --sslMode>` setting allows the
+   node to accept both TLS/SSL and non-TLS/non-SSL incoming connections. Its
+   outgoing connections do not use TLS/SSL.
+
+   The :option:`--clusterAuthMode sendKeyFile <mongod --clusterAuthMode>`
+   setting allows each node continues to use its keyfile to
+   authenticate itself as a member. However, each node can now accept
+   either a keyfile or an x.509 certificate from other members to
+   authenticate those members.
+
+   Upgrade all nodes of the cluster to these settings.
+
+#. Then, for each node of a cluster, connect to the node and use the
+   :dbcommand:`setParameter` command to update the :parameter:`sslMode`
+   to ``preferSSL`` and the :parameter:`clusterAuthMode` to
+   ``sendX509``. [#update-mode-alternative]_ For example:
+
+   .. code-block:: sh
+
+      db.adminCommand( { setParameter: 1, sslMode: "preferSSL", clusterAuthMode: "sendX509" } )
+
+   With the :parameter:`sslMode` set to ``preferSSL``, the node accepts
+   both TLS/SSL and non-TLS/non-SSL incoming connections, and its outgoing
+   connections use TLS/SSL.
+
+   With the :parameter:`clusterAuthMode` set to ``sendX509``, each node
+   uses its x.509 certificate, specified with the
+   :option:`--sslClusterFile <mongod --sslClusterFile>` option in the previous step, to
+   authenticate itself as a member. However, each node continues to
+   accept either a keyfile or an x.509 certificate from other members
+   to authenticate those members.
+
+   Upgrade all nodes of the cluster to these settings.
+
+#. Optional but recommended. Finally, for each node of the cluster,
+   connect to the node and use the :dbcommand:`setParameter` command to
+   update the :parameter:`sslMode` to ``requireSSL`` and the
+   :parameter:`clusterAuthMode` to ``x509``. [#update-mode-alternative]_
+   For example:
+
+   .. code-block:: sh
+
+      db.adminCommand( { setParameter: 1, sslMode: "requireSSL", clusterAuthMode: "x509" } )
+
+   With the :parameter:`sslMode` set to ``requireSSL``, the node only uses
+   TLS/SSLs connections.
+
+   With the :parameter:`clusterAuthMode` set to ``x509``, the node only
+   uses the x.509 certificate for authentication.
+
+#. After the upgrade of all nodes, edit the :doc:`configuration file
+   </reference/configuration-options>` with the appropriate TLS/SSL and
+   x.509 settings to ensure that upon subsequent restarts, the cluster
+   uses x.509 authentication.
+
+See :option:`--clusterAuthMode <mongod --clusterAuthMode>` for the various modes and their
+descriptions.
+
+.. [#update-mode-alternative] As an alternative to using the
+   :dbcommand:`setParameter` command, you can also
+   restart the nodes with the appropriate TLS/SSL and x509 options and
+   values.

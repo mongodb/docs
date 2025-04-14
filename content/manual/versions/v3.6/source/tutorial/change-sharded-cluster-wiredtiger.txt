@@ -1,0 +1,140 @@
+====================================
+Change Sharded Cluster to WiredTiger
+====================================
+
+.. default-domain:: mongodb
+
+Starting in version 3.2, WiredTiger is the default storage engine
+for MongoDB.
+
+Use this tutorial to update MongoDB 3.6 sharded clusters to use
+:ref:`WiredTiger <storage-wiredtiger>`.
+
+For earlier versions of MongoDB:
+
+- To convert a 3.4 sharded cluster that uses MMAPv1, see the
+  :v3.4:`MongoDB 3.4 manual
+  </tutorial/change-sharded-cluster-wiredtiger>`.
+
+- To convert a 3.2 sharded cluster that uses MMAPv1, see the
+  :v3.2:`MongoDB 3.2 manual
+  </tutorial/change-sharded-cluster-wiredtiger>`.
+
+Considerations
+--------------
+
+Downtime
+~~~~~~~~
+
+If you change the host or port of any
+:term:`shard`, you must update the shard configuration as well.
+
+.. _sharded-cluster-mmapv1-wt-3.6-psa:
+
+MongoDB 3.6 and PSA 3-member Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, :readconcern:`"majority"` read concern,
+available for WiredTiger, is enabled by default. However, for **MongoDB
+3.6.1-3.6.x**, if you have a three-member shard replica set with a
+primary-secondary-arbiter (PSA) architecture, you can disable
+:readconcern:`"majority"` read concern for that shard replica set.
+Disabling :readconcern:`"majority"` for a three member PSA architecture
+avoids possible cache-pressure build up.
+
+
+The procedure below disables :readconcern:`"majority"` read concern for
+MongoDB 3.6.1-3.6.x PSA architecture by including
+:option:`--enableMajorityReadConcern false <mongod
+--enableMajorityReadConcern>`. If you are running a MongoDB 3.6.0 PSA
+architecture, first upgrade to the latest 3.6 version in order to
+disable this read concern.
+
+.. note::
+
+   Disabling :readconcern:`"majority"` read concern disables support
+   for :doc:`/changeStreams`.
+
+For more information on PSA architecture and read concern
+:readconcern:`"majority"`, see :ref:`3.6-disable-read-concern-majority`.
+
+MongoDB 3.0 or Greater
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. container:: admonition
+
+   .. include:: /includes/fact-wiredtiger-minimum-version.rst
+
+Default Bind to Localhost
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container:: admonition
+
+   .. include:: /includes/fact-default-bind-ip-change.rst
+
+Config Servers
+~~~~~~~~~~~~~~
+
+Starting in version 3.4, config servers must be :ref:`deployed as
+replica sets (CSRS) <3.4-remove-sccc>`. As such, version 3.4+ config
+servers already use the WiredTiger storage engine.
+
+XFS and WiredTiger
+~~~~~~~~~~~~~~~~~~
+
+With the WiredTiger storage engine, using XFS for data bearing nodes is
+recommended on Linux. For more information, see
+:ref:`prod-notes-linux-file-system`.
+
+Procedure
+---------
+
+.. note::
+
+   A sharded cluster **can** have mixed storage engines for its
+   individual :term:`shards <shard>`.
+   
+   If you are running a MongoDB 3.6.0 three-member PSA architecture and
+   wish to disable :readconcern:`"majority"` read concern, upgrade
+   first to the latest 3.6 version.
+
+To change the storage engine for a replica set :term:`shard <shard>` to
+WiredTiger:
+
+A. Update the secondary members to WiredTiger.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update the secondary members one at a time:
+
+.. container:: admonition
+
+   .. include:: /includes/steps/change-replica-set-wiredtiger.rst
+
+Repeat the steps for the remaining secondary members, updating them one
+at a time.
+
+B. Step down the primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once all the secondary members have been upgraded to WiredTiger,
+connect a :binary:`~bin.mongo` shell to the primary and use
+:method:`rs.stepDown()` to step down the primary and force an election
+of a new primary.
+
+.. container:: admonition
+
+   .. code-block:: javascript
+
+      rs.stepDown()
+
+C. Update the old primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the primary has stepped down and become a secondary, update the
+secondary to use WiredTiger as before:
+
+.. container:: admonition
+
+   .. include:: /includes/steps/change-replica-set-wiredtiger.rst
+
+.. |seemore| replace:: See :ref:`sharded-cluster-mmapv1-wt-3.6-psa`.

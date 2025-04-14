@@ -1,0 +1,362 @@
+.. _index-feature-text:
+
+============
+Text Indexes
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+Overview
+--------
+
+.. include:: /includes/fact-text-index.rst
+
+.. _text-versions:
+
+Versions
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+   
+   * - ``text`` Index Version
+     - Description
+
+   * - Version 3
+
+     - MongoDB introduces a version 3 of the ``text`` index. Version 3
+       is the default version of ``text`` indexes created in
+       MongoDB 3.2 and later.
+
+   * - Version 2
+
+     - MongoDB 2.6 introduces a version 2 of the ``text`` index.
+       Version 2 is the default version of ``text`` indexes created
+       in MongoDB 2.6 and 3.0 series.
+
+   * - Version 1
+   
+     - MongoDB 2.4 introduces a version 1 of the ``text`` index.
+       MongoDB 2.4 can only support version ``1``.
+
+To override the default version and specify a different version,
+include the option ``{ "textIndexVersion": <version> }`` when
+creating the index.
+
+.. _create-text-index:
+
+Create Text Index
+-----------------
+
+.. important::
+
+   .. include:: /includes/fact-text-index-limit-one.rst
+
+To create a ``text`` index, use the
+:method:`db.collection.createIndex()` method. To index a field that
+contains a string or an array of string elements, include the field and
+specify the string literal ``"text"`` in the index document, as in the
+following example:
+
+.. code-block:: javascript
+
+   db.reviews.createIndex( { comments: "text" } )
+
+You can index multiple fields for the ``text`` index. The following
+example creates a ``text`` index on the fields ``subject`` and
+``comments``:
+
+.. code-block:: javascript
+
+   db.reviews.createIndex(
+      {
+        subject: "text",
+        comments: "text"
+      }
+    )
+
+A :doc:`compound index </core/index-compound>` can include ``text``
+index keys in combination with ascending/descending index keys. For
+more information, see :ref:`text-index-compound`.
+
+In order to drop a ``text`` index, use the index name. See
+:ref:`drop-text-index` for more information.
+
+Specify Weights
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-text-index-weight.rst
+
+For more information using weights to control the results of a text
+search, see :doc:`/tutorial/control-results-of-text-search`.
+
+.. _text-index-wildcard:
+
+Wildcard Text Indexes
+~~~~~~~~~~~~~~~~~~~~~
+
+When creating a ``text`` index on multiple fields, you can also use the
+wildcard specifier (``$**``). With a wildcard text index, MongoDB
+indexes every field that contains string data for each document in the
+collection. The following example creates a text index using the
+wildcard specifier:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "$**": "text" } )
+
+This index allows for text search on all fields with string content.
+Such an index can be useful with highly unstructured data if it is
+unclear which fields to include in the text index or for ad-hoc
+querying.
+
+Wildcard text indexes are ``text`` indexes on multiple fields. As such,
+you can assign weights to specific fields during index creation to
+control the ranking of the results. For more information using weights
+to control the results of a text search, see
+:doc:`/tutorial/control-results-of-text-search`.
+
+Wildcard text indexes, as with all text indexes, can be part of a
+compound indexes. For example, the following creates a compound index
+on the field ``a`` as well as the wildcard specifier:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { a: 1, "$**": "text" } )
+
+As with all :ref:`compound text indexes <text-index-compound>`, since
+the ``a`` precedes the text index key, in order to perform a
+:query:`$text` search with this index, the query predicate must include
+an equality match conditions ``a``. For information on compound text
+indexes, see :ref:`Compound Text Indexes <text-index-compound>`.
+
+.. _text-index-case-insensitivity:
+
+Case Insensitivity
+------------------
+
+.. versionchanged:: 3.2
+
+The version 3 ``text`` index supports the common ``C``, simple ``S``,
+and for Turkish languages, the special ``T`` case foldings as specified
+in `Unicode 8.0 Character Database Case Folding
+<http://www.unicode.org/Public/8.0.0/ucd/CaseFolding.txt>`_.
+
+.. only:: (not latex)
+
+   The case foldings expands the case insensitivity of the ``text``
+   index to include characters with diacritics, such as ``é`` and
+   ``É``, and characters from non-Latin alphabets, such as "И" and "и"
+   in the Cyrillic alphabet.
+
+.. only:: latex
+
+   The case foldings expands the case insensitivity of the ``text``
+   index to include characters with diacritics, such as ``é`` and
+   ``É``, and characters from non-Latin alphabets, such as characters
+   from Cyrillic alphabet.
+
+Version 3 of the ``text`` index is also :ref:`diacritic insensitive
+<text-index-diacritic-insensitivity>`. As such, the index also does not
+distinguish between ``é``, ``É``, ``e``, and ``E``.
+
+Previous versions of the ``text`` index are case insensitive for
+``[A-z]`` only; i.e. case insensitive for non-diacritics Latin
+characters only . For all other characters, earlier versions of the
+text index treat them as distinct.
+
+.. _text-index-diacritic-insensitivity:
+
+Diacritic Insensitivity
+-----------------------
+
+.. versionchanged:: 3.2
+
+With version 3, ``text`` index is diacritic insensitive. That is, the
+index does not distinguish between characters that contain diacritical
+marks and their non-marked counterpart, such as ``é``, ``ê``, and
+``e``. More specifically, the ``text`` index strips the characters
+categorized as diacritics in `Unicode 8.0 Character Database Prop List
+<http://www.unicode.org/Public/8.0.0/ucd/PropList.txt>`_.
+
+Version 3 of the ``text`` index is also :ref:`case insensitive
+<text-index-case-insensitivity>` to characters with diacritics. As
+such, the index also does not distinguish between ``é``, ``É``, ``e``,
+and ``E``.
+
+Previous versions of the ``text`` index treat characters with
+diacritics as distinct.
+
+.. _text-index-tokenization-delimiters:
+
+Tokenization Delimiters
+-----------------------
+
+.. versionchanged:: 3.2
+
+For tokenization, version 3 ``text`` index uses the delimiters
+categorized under ``Dash``, ``Hyphen``, ``Pattern_Syntax``,
+``Quotation_Mark``, ``Terminal_Punctuation``, and ``White_Space`` in
+`Unicode 8.0 Character Database Prop List
+<http://www.unicode.org/Public/8.0.0/ucd/PropList.txt>`_.
+
+For example, if given a string ``"Il a dit qu'il «était le meilleur
+joueur du monde»"``, the ``text`` index treats ``«``, ``»``, and spaces
+as delimiters.
+
+Previous versions of the index treat ``«`` as part of the term
+``"«était"`` and ``»`` as part of the term ``"monde»"``.
+
+Index Entries
+-------------
+
+``text`` index tokenizes and stems the terms in the indexed fields for
+the index entries. ``text`` index stores one index entry for each
+unique stemmed term in each indexed field for each document in the
+collection. The index uses simple :ref:`language-specific
+<text-index-supported-languages>` suffix stemming.
+
+.. _text-index-supported-languages:
+
+Supported Languages and Stop Words
+----------------------------------
+
+MongoDB supports text search for various languages. ``text`` indexes
+drop language-specific stop words (e.g. in English, ``the``, ``an``,
+``a``, ``and``, etc.) and use simple language-specific suffix stemming.
+For a list of the supported languages, see :ref:`text-search-languages`.
+
+.. |text-obj| replace:: ``text`` index
+
+.. include:: /includes/fact-text-search-language-none.rst
+
+To specify a language for the ``text`` index, see
+:doc:`/tutorial/specify-language-for-text-index`.
+
+``sparse`` Property
+-------------------
+
+``text`` indexes are always :doc:`sparse </core/index-sparse>` and ignore the
+:doc:`sparse  </core/index-sparse>` option. If a document lacks a ``text`` index field (or
+the field is ``null`` or an empty array), MongoDB does not add an entry
+for the document to the ``text`` index. For inserts, MongoDB inserts
+the document but does not add to the ``text`` index.
+
+For a compound index that includes a ``text`` index key along with keys
+of other types, only the ``text`` index field determines whether the
+index references a document. The other keys do not determine whether
+the index references the documents or not.
+
+Restrictions
+------------
+
+One Text Index Per Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-text-index-limit-one.rst
+
+Text Search and Hints
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-hint-text-query-restriction.rst
+
+.. _text-index-and-sort:
+
+Text Index and Sort
+~~~~~~~~~~~~~~~~~~~
+
+Sort operations cannot obtain sort order from a ``text`` index, even
+from a :ref:`compound text index <text-index-compound>`; i.e. sort
+operations cannot use the ordering in the text index.
+
+.. _text-index-compound:
+
+Compound Index
+~~~~~~~~~~~~~~
+
+A :doc:`compound index </core/index-compound>` can include a ``text``
+index key in combination with ascending/descending index keys. However,
+these compound indexes have the following restrictions:
+
+.. include:: /includes/fact-compound-index-with-text-restrictions.rst
+
+See also :ref:`text-index-and-sort` for additional limitations.
+
+For an example of a compound text index, see
+:doc:`/tutorial/limit-number-of-items-scanned-for-text-search`.
+
+.. _text-index-storage-requirements:
+
+Drop a Text Index
+~~~~~~~~~~~~~~~~~~
+
+To drop a ``text`` index, pass the *name* of the index to the
+:method:`db.collection.dropIndex()` method. To get the name of the
+index, run the :method:`db.collection.getIndexes()` method.
+
+For information on the default naming scheme for ``text`` indexes as
+well as overriding the default name, see
+:doc:`/tutorial/avoid-text-index-name-limit`.
+
+Collation Option
+~~~~~~~~~~~~~~~~
+
+``text`` indexes only support simple binary comparison and do not
+support :ref:`collation <collation>`.
+
+To create a ``text`` index on a a collection that has a non-simple
+collation, you must explicitly specify ``{collation: {locale: "simple"}
+}`` when creating the index.
+
+Storage Requirements and Performance Costs
+------------------------------------------
+
+``text`` indexes have the following storage requirements and
+performance costs:
+
+- ``text`` indexes can be large. They contain one index entry for each
+  unique post-stemmed word in each indexed field for each document
+  inserted.
+
+- Building a ``text`` index is very similar to building a large
+  multi-key index and will take longer than building a simple ordered
+  (scalar) index on the same data.
+
+- When building a large ``text`` index on an existing collection,
+  ensure that you have a sufficiently high limit on open file
+  descriptors. See the :doc:`recommended settings </reference/ulimit>`.
+
+- ``text`` indexes will impact insertion throughput because MongoDB
+  must add an index entry for each unique post-stemmed word in each
+  indexed field of each new source document.
+
+- Additionally, ``text`` indexes do not store phrases or information
+  about the proximity of words in the documents. As a result, phrase
+  queries will run much more effectively when the entire collection
+  fits in RAM.
+
+Text Search Support
+-------------------
+
+The ``text`` index supports :query:`$text` query operations. For
+examples of text search, see the :query:`$text reference page <$text>`.
+For examples of :query:`$text` operations in aggregation pipelines, see
+:doc:`/tutorial/text-search-in-aggregation`.
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /tutorial/specify-language-for-text-index
+      /tutorial/avoid-text-index-name-limit
+      /tutorial/control-results-of-text-search
+      /tutorial/limit-number-of-items-scanned-for-text-search

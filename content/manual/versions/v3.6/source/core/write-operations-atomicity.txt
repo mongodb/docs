@@ -1,0 +1,58 @@
+==========================
+Atomicity and Transactions
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In MongoDB, a write operation is atomic on the level of a single
+document, even if the operation modifies multiple embedded documents
+*within* a single document.
+
+.. include:: /includes/extracts/concurrent-operations-multi-document-writes.rst
+
+Transaction-Like Semantics
+--------------------------
+
+Since a single document can contain multiple embedded documents,
+single-document atomicity is sufficient for many practical use cases.
+For cases where a sequence of write operations must operate as if in a
+single transaction, you can implement a :doc:`two-phase commit
+</tutorial/perform-two-phase-commits>` in your application.
+
+However, two-phase commits can only offer transaction-*like* semantics.
+Using two-phase commit ensures data consistency, but it is possible for
+applications to return intermediate data during the two-phase commit or
+rollback.
+
+For more information on two-phase commit and rollback, see
+:doc:`/tutorial/perform-two-phase-commits`.
+
+.. _concurrency-control:
+
+Concurrency Control
+-------------------
+
+Concurrency control allows multiple applications to run concurrently
+without causing data inconsistency or conflicts.
+
+One approach is to create a :ref:`unique index <index-type-unique>` on a
+field that can only have unique values. This prevents insertions or
+updates from creating duplicate data. Create a unique index on multiple
+fields to force uniqueness on that combination of field values. For
+examples of use cases, see :ref:`update() and Unique Index
+<update-with-unique-indexes>` and :ref:`findAndModify() and Unique Index
+<upsert-and-unique-index>`.
+
+Another approach is to specify the expected current value of a field in
+the query predicate for the write operations. The two-phase commit
+pattern provides a variation where the query predicate includes the
+:ref:`application identifier <2-phase-commits-concurrency>` as well as
+the expected state of the data in the write operation.
+
+.. seealso:: :doc:`/core/read-isolation-consistency-recency`

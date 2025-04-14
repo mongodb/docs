@@ -1,0 +1,204 @@
+stepnum: 1
+source:
+  file: steps-convert-replica-set-add-shards.yaml
+  ref: connect-mongos
+---
+title:
+  text: Enable sharding for a database.
+  character: "`"
+stepnum: 2
+ref: enable-sharding-db-level
+pre: |
+  Before you can shard a collection, you must first enable sharding
+  for the collection's database. Enabling sharding for a database does not
+  redistribute data but makes it possible to shard the collections in
+  that database.
+action:
+  - pre: |
+      The following operation enables
+      sharding on the ``test`` database:
+    language: sh
+    code: |
+      sh.enableSharding( "test" )
+  - pre: |
+      The operation returns the status of the operation:
+    language: sh
+    code: |
+      { "ok" : 1 }
+---
+title: 
+  text: Determine the shard key.
+  character: "`"
+stepnum: 3
+ref: determine-shard-key
+content: |
+  For the collection to shard, determine the shard key. The :ref:`shard
+  key <sharding-shard-key>` determines how MongoDB distributes the
+  documents between shards. Good shard keys:
+
+  - have values that are evenly distributed among all documents,
+
+  - group documents that are often accessed at the same time into contiguous chunks, and
+
+  - allow for effective distribution of activity among shards.
+
+  Once you shard a collection with the specified shard key, you
+  **cannot** change the shard key. For more information on shard keys,
+  see :doc:`/core/sharding-shard-key`.
+  
+  This procedure will use the ``number`` field as the shard key for
+  ``test_collection``.
+---
+title: 
+  text: Create an index on the shard key.
+  character: "`"
+stepnum: 4
+ref: enable-sharding-create-index
+pre: |
+    Before sharding a non-empty collection, create an :doc:`index on
+    the shard key </core/sharding-shard-key>`.
+action:
+  language: sh
+  code: |
+    use test
+    db.test_collection.createIndex( { number : 1 } )
+---
+title: 
+  text: Shard the collection.
+  character: "`"
+stepnum: 5
+ref: enable-sharding-collection
+action:
+  - pre: |
+       In the ``test`` database, shard the ``test_collection``,
+       specifying ``number`` as the shard key.
+    language: sh
+    code: |
+      use test
+      sh.shardCollection( "test.test_collection", { "number" : 1 } )
+  - pre: |
+      The method returns the status of the operation:
+    language: sh
+    code: |
+      { "collectionsharded" : "test.test_collection", "ok" : 1 }
+post: |
+   The :doc:`balancer </core/sharding-balancer-administration>` redistributes
+   chunks of documents when it next runs. As clients insert additional
+   documents into this collection, the :binary:`~bin.mongos` routes the
+   documents to the appropriate shard.
+---
+title: 
+  text: Confirm the shard is balancing.
+  character: "`"
+stepnum: 6
+ref: enable-sharding-confirm
+action:
+  - pre: |
+       To confirm balancing activity, run :method:`db.stats()` or
+       :method:`db.printShardingStatus()` in the ``test`` database.
+    language: sh
+    code: |
+      use test
+      db.stats()
+      db.printShardingStatus()
+  - pre: |
+      Example output of the :method:`db.stats()`:
+    language: sh
+    code: |
+      {
+        "raw" : {
+            "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" : {
+               "db" : "test",
+               "collections" : 1,
+               "views" : 0,
+               "objects" : 640545,
+               "avgObjSize" : 70.83200339949052,
+               "dataSize" : 45370913,
+               "storageSize" : 50438144,
+               "numExtents" : 0,
+               "indexes" : 2,
+               "indexSize" : 24502272,
+               "ok" : 1,
+               "$gleStats" : {
+                           "lastOpTime" : Timestamp(0, 0),
+                           "electionId" : ObjectId("7fffffff0000000000000003")
+                        }
+            },
+            "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" : {
+               "db" : "test",
+               "collections" : 1,
+               "views" : 0,
+               "objects" : 359455,
+               "avgObjSize" : 70.83259935179647,
+               "dataSize" : 25461132,
+               "storageSize" : 8630272,
+               "numExtents" : 0,
+               "indexes" : 2,
+               "indexSize" : 8151040,
+               "ok" : 1,
+               "$gleStats" : {
+                  "lastOpTime" : Timestamp(0, 0),
+                  "electionId" : ObjectId("7fffffff0000000000000001")
+               }
+               
+            }
+        },
+        "objects" : 1000000,
+        "avgObjSize" : 70,
+        "dataSize" : 70832045,
+        "storageSize" : 59068416,
+        "numExtents" : 0,
+        "indexes" : 4,
+        "indexSize" : 32653312,
+        "fileSize" : 0,
+        "extentFreeList" : {
+            "num" : 0,
+            "totalSize" : 0
+        },
+        "ok" : 1
+      }
+  - pre: |
+      Example output of the :method:`db.printShardingStatus()`:
+    language: sh
+    code: |
+      --- Sharding Status ---
+      sharding version: {
+         "_id" : 1,
+         "minCompatibleVersion" : 5,
+         "currentVersion" : 6,
+         "clusterId" : ObjectId("5be0a488039b1964a7208c60")
+      }
+      shards:
+         {  "_id" : "rs0",  "host" : "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017",  "state" : 1 }
+         {  "_id" : "rs1",  "host" : "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017",  "state" : 1 }
+      active mongoses:
+         "3.6.8" : 1
+      autosplit:
+         Currently enabled: yes
+      balancer:
+         Currently enabled:  yes
+         Currently running:  yes
+         Collections with active migrations: 
+            test.test_collection started at Mon Nov 05 2018 15:16:45 GMT-0500
+      Failed balancer rounds in last 5 attempts:  0
+      Migration Results for the last 24 hours: 
+         1 : Success
+      databases:
+         {  "_id" : "test", "primary" : "rs0", "partitioned" : true }
+            test.test_collection
+                  shard key: { "number" : 1 }
+                  unique: false
+                  balancing: true
+                  chunks:
+                     rs0   5
+                     rs1   1
+                  { "number" : { "$minKey" : 1 } } -->> { "number" : 1195 } on : rs1 Timestamp(2, 0) 
+                  { "number" : 1195 } -->> { "number" : 2394 } on : rs0 Timestamp(2, 1) 
+                  { "number" : 2394 } -->> { "number" : 3596 } on : rs0 Timestamp(1, 5) 
+                  { "number" : 3596 } -->> { "number" : 4797 } on : rs0 Timestamp(1, 6) 
+                  { "number" : 4797 } -->> { "number" : 9588 } on : rs0 Timestamp(1, 1) 
+                  { "number" : 9588 } -->> { "number" : { "$maxKey" : 1 } } on : rs0 Timestamp(1, 2)
+post: |
+   Run these commands for a second time to demonstrate that :term:`chunks
+   <chunk>` are migrating from ``rs0`` to ``rs1``.
+...

@@ -1,0 +1,554 @@
+=========================
+db.collection.aggregate()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.aggregate(pipeline, options)
+
+   Calculates aggregate values for the data in a collection or a :doc:`view </core/views>`.
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``pipeline``
+   
+        - array
+   
+        - A sequence of data aggregation operations or stages. See the
+          :doc:`aggregation pipeline operators
+          </reference/operator/aggregation-pipeline>` for details.
+          
+          .. versionchanged:: 2.6
+             The method can still accept the pipeline stages as separate
+             arguments instead of as elements in an array; however, if you do
+             not specify the ``pipeline`` as an array, you cannot specify the
+             ``options`` parameter.
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. Additional options that :method:`~db.collection.aggregate()` passes
+          to the :dbcommand:`aggregate` command.
+          
+          .. versionadded:: 2.6
+             Available only if you specify the ``pipeline`` as an array.
+          
+          
+   
+
+
+   The ``options`` document can contain the following fields and values:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``explain``
+   
+        - boolean
+   
+        - Optional. Specifies to return the information on the processing of the pipeline. See
+          :ref:`example-aggregate-method-explain-option` for an example.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+      * - :ref:`allowDiskUse <method-aggregate-allowDiskUse>`
+   
+        - boolean
+   
+        - .. _method-aggregate-allowDiskUse:
+        
+          Optional. Enables writing to temporary files. When set to
+          ``true``, most aggregation operations can
+          write data to the :file:`_tmp` subdirectory in the
+          :setting:`~storage.dbPath` directory with the following exceptions:
+          
+          - :pipeline:`$graphLookup` stage
+
+          - :group:`$addToSet` accumulator expression used in the
+            :pipeline:`$group` stage (Starting in version 3.6.17)
+  
+          - :group:`$push` accumulator expression used in the
+            :pipeline:`$group` stage (Starting in version 3.6.17)
+          
+          For an example of :ref:`allowDiskUse
+          <method-aggregate-allowDiskUse>`, see
+          :ref:`example-aggregate-method-external-sort`.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+      * - ``cursor``
+   
+        - document
+   
+        - Optional. Specifies the *initial* batch size for the cursor. The value of the ``cursor``
+          field is a document with the field ``batchSize``. See
+          :ref:`example-aggregate-method-initial-batch-size` for syntax and example.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - non-negative integer
+   
+        - Optional. Specifies a time limit in milliseconds for processing
+          operations on a cursor. If you do not specify a value for maxTimeMS,
+          operations will not time out. A value of ``0`` explicitly
+          specifies the default unbounded behavior.
+          
+          MongoDB terminates operations that exceed their allotted time limit
+          using the same mechanism as :method:`db.killOp()`. MongoDB only
+          terminates an operation at one of its designated :term:`interrupt 
+          points <interrupt point>`.
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Available only if you specify the :pipeline:`$out` aggregation
+          operator.
+          
+          
+          
+          Enables :method:`db.collection.aggregate` to bypass document validation
+          during the operation. This lets you insert documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``hint``
+   
+        - string or document
+   
+        - Optional. The index to use for the aggregation. The index is on the initial
+          collection/view against which the aggregation is run.
+          
+          Specify the index either by the index name or by the index
+          specification document.
+          
+          .. note::
+          
+             The ``hint`` does not apply to :pipeline:`$lookup` and
+             :pipeline:`$graphLookup` stages.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+      * - ``comment``
+   
+        - string
+   
+        - Optional. Users can specify an arbitrary string to help trace the operation 
+          through the database profiler, currentOp, and logs.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+
+
+   :returns:
+      A :term:`cursor` to the documents produced by the final stage of
+      the aggregation pipeline operation, or if you include the
+      ``explain`` option, the document that provides
+      details on the processing of the aggregation operation.
+
+      If the pipeline includes the :pipeline:`$out` operator,
+      :method:`~db.collection.aggregate()` returns an empty cursor. See
+      :pipeline:`$out` for more information.
+
+      .. include:: /includes/fact-agg-helper-returns-cursor.rst
+
+Behavior
+--------
+
+Error Handling
+~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-agg-helper-exception.rst
+
+Cursor Behavior
+~~~~~~~~~~~~~~~
+
+In the :binary:`~bin.mongo` shell, if the cursor returned from the
+:method:`db.collection.aggregate()` is not assigned to a variable using
+the ``var`` keyword, then the :binary:`~bin.mongo` shell automatically
+iterates the cursor up to 20 times. See
+:doc:`/tutorial/iterate-a-cursor` for handling cursors in the
+:binary:`~bin.mongo` shell.
+
+Cursors returned from aggregation only supports cursor methods that
+operate on evaluated cursors (i.e. cursors whose first batch has been
+retrieved), such as the following methods:
+
+.. hlist::
+   :columns: 2
+
+   * :method:`cursor.hasNext()`
+   * :method:`cursor.next()`
+   * :method:`cursor.toArray()`
+   * :method:`cursor.forEach()`
+   * :method:`cursor.map()`
+   * :method:`cursor.objsLeftInBatch()`
+   * :method:`cursor.itcount()`
+   * :method:`cursor.pretty()`
+
+.. seealso:: For more information, see
+   :doc:`/core/aggregation-pipeline`, :doc:`/reference/aggregation`,
+   :doc:`/core/aggregation-pipeline-limits`, and :dbcommand:`aggregate`.
+
+Session Idle Timeout
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/sessions-cursor-timeout.rst
+
+For operations that return a cursor, if the cursor may be idle for
+longer than 30 minutes, issue the operation within an explicit session
+using :method:`Session.startSession()` and periodically refresh the
+session using the :dbcommand:`refreshSessions` command. See
+:limit:`Session Idle Timeout` for more information.
+
+Examples
+--------
+
+The following examples use the collection ``orders`` that contains the
+following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, cust_id: "abc1", ord_date: ISODate("2012-11-02T17:04:11.102Z"), status: "A", amount: 50 }
+   { _id: 2, cust_id: "xyz1", ord_date: ISODate("2013-10-01T17:04:11.102Z"), status: "A", amount: 100 }
+   { _id: 3, cust_id: "xyz1", ord_date: ISODate("2013-10-12T17:04:11.102Z"), status: "D", amount: 25 }
+   { _id: 4, cust_id: "xyz1", ord_date: ISODate("2013-10-11T17:04:11.102Z"), status: "D", amount: 125 }
+   { _id: 5, cust_id: "abc1", ord_date: ISODate("2013-11-12T17:04:11.102Z"), status: "A", amount: 25 }
+
+Group by and Calculate a Sum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation selects documents with status equal
+to ``"A"``, groups the matching documents by the ``cust_id`` field and
+calculates the ``total`` for each ``cust_id`` field from the sum of the
+``amount`` field, and sorts the results by the ``total`` field in
+descending order:
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+                        { $match: { status: "A" } },
+                        { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                        { $sort: { total: -1 } }
+                      ])
+
+The operation returns a cursor with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "xyz1", "total" : 100 }
+   { "_id" : "abc1", "total" : 75 }
+
+.. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst
+
+.. _example-aggregate-method-explain-option:
+
+Return Information on Aggregation Pipeline Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation sets the option ``explain`` to
+``true`` to return information about the aggregation operation.
+
+.. code-block:: javascript
+
+   db.orders.aggregate(
+                        [
+                          { $match: { status: "A" } },
+                          { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                          { $sort: { total: -1 } }
+                        ],
+                        {
+                          explain: true
+                        }
+                      )
+
+The operation returns a cursor with the document that contains detailed
+information regarding the processing of the aggregation pipeline. For
+example, the document may show, among other details, which index, if
+any, the operation used. [#agg-index-filters]_ If the ``orders`` collection
+is a sharded collection, the document would also show the division of
+labor between the shards and the merge operation, and for targeted
+queries, the targeted shards.
+
+.. note:: The intended readers of the ``explain`` output document are humans, and
+   not machines, and the output format is subject to change between
+   releases.
+
+.. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst
+
+.. _example-aggregate-method-external-sort:
+
+Perform Large Sort Operation with External Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aggregation pipeline stages have :ref:`maximum memory use limit
+<agg-memory-restrictions>`. To handle large datasets, set
+``allowDiskUse`` option to ``true`` to enable writing data to
+temporary files, as in the following example:
+
+.. code-block:: javascript
+
+   var results = db.stocks.aggregate(
+                                      [
+                                        { $project : { cusip: 1, date: 1, price: 1, _id: 0 } },
+                                        { $sort : { cusip : 1, date: 1 } }
+                                      ],
+                                      {
+                                        allowDiskUse: true
+                                      }
+                                    )
+
+.. _example-aggregate-method-initial-batch-size:
+
+Specify an Initial Batch Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify an initial batch size for the cursor, use the following
+syntax for the ``cursor`` option:
+
+.. code-block:: javascript
+
+   cursor: { batchSize: <int> }
+
+For example, the following aggregation operation specifies the
+*initial* batch size of ``0`` for the cursor:
+
+.. code-block:: javascript
+
+   db.orders.aggregate(
+                        [
+                          { $match: { status: "A" } },
+                          { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                          { $sort: { total: -1 } },
+                          { $limit: 2 }
+                        ],
+                        {
+                          cursor: { batchSize: 0 }
+                        }
+                      )
+
+A ``batchSize`` of ``0`` means an empty
+first batch and is useful for quickly returning a cursor or failure
+message without doing significant server-side work. Specify subsequent
+batch sizes to :ref:`OP_GET_MORE <wire-op-get-more>` operations as with
+other MongoDB cursors.
+
+.. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst
+
+Specify a Collation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following aggregation operation includes the :ref:`collation
+<collation>` option:
+
+.. code-block:: javascript
+
+   db.myColl.aggregate(
+      [ { $match: { status: "A" } }, { $group: { _id: "$category", count: { $sum: 1 } } } ],
+      { collation: { locale: "fr", strength: 1 } }
+   );
+
+.. note::
+
+   .. include:: /includes/extracts/views-collation-agg.rst
+
+For descriptions on the collation fields, see
+:ref:`collation-document-fields`.
+
+Hint an Index
+~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+Create a collection ``foodColl`` with the following documents:
+
+.. code-block:: javascript
+
+   db.foodColl.insert([
+      { _id: 1, category: "cake", type: "chocolate", qty: 10 },
+      { _id: 2, category: "cake", type: "ice cream", qty: 25 },
+      { _id: 3, category: "pie", type: "boston cream", qty: 20 },
+      { _id: 4, category: "pie", type: "blueberry", qty: 15 }
+   ])
+
+Create the following indexes:
+
+.. code-block:: javascript
+
+   db.foodColl.createIndex( { qty: 1, type: 1 } );
+   db.foodColl.createIndex( { qty: 1, category: 1 } );
+
+The following aggregation operation includes the ``hint`` option to
+force the usage of the specified index:
+
+.. code-block:: javascript
+
+   db.foodColl.aggregate(
+      [ { $sort: { qty: 1 }}, { $match: { category: "cake", qty: 10  } }, { $sort: { type: -1 } } ],
+      { hint: { qty: 1, category: 1 } }
+   )
+
+Override ``readConcern``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation on a replica set specifies a
+:doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - .. include:: /includes/usage-read-concern-majority.rst
+
+   - .. include:: /includes/fact-aggregate-readConcern.rst
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.restaurants.aggregate(
+      [ { $match: { rating: { $lt: 5 } } } ],
+      { readConcern: { level: "majority" } }
+   )
+
+.. [#agg-index-filters] :ref:`index-filters` can affect the choice of index
+   used. See :ref:`index-filters` for details.
+
+Specify a Comment
+~~~~~~~~~~~~~~~~~
+
+A collection named ``movies`` contains documents formatted as such:
+
+.. code-block:: javascript
+
+   {
+     "_id" : ObjectId("599b3b54b8ffff5d1cd323d8"),
+     "title" : "Jaws",
+     "year" : 1975,
+     "imdb" : "tt0073195"
+   }
+
+The following aggregation operation finds movies created in 1995 and includes
+the ``comment`` option to provide tracking information in the ``logs``,
+the ``db.system.profile`` collection, and ``db.currentOp``.
+
+.. code-block:: javascript
+
+   db.movies.aggregate( [ { $match: { year : 1995 } } ], { comment : "match_all_movies_from_1995" } ).pretty()
+
+On a system with profiling enabled, you can then query the ``system.profile``
+collection to see all recent similar aggregations, as shown below:
+
+.. code-block:: javascript
+
+   db.system.profile.find( { "command.aggregate": "movies", "command.comment" : "match_all_movies_from_1995" } ).sort( { ts : -1 } ).pretty()
+
+This will return a set of profiler results in the following format:
+
+.. code-block:: javascript
+
+   {
+     "op" : "command",
+     "ns" : "video.movies",
+     "command" : {
+       "aggregate" : "movies",
+       "pipeline" : [
+         {
+           "$match" : {
+             "year" : 1995
+           }
+         }
+       ],
+       "comment" : "match_all_movies_from_1995",
+       "cursor" : {
+
+       },
+       "$db" : "video"
+     },
+     ...
+   }
+
+An application can encode any arbitrary information in the comment in order
+to more easily trace or identify specific operations through the system.
+For instance, an application might attach a string comment incorporating its
+process ID, thread ID, client hostname, and the user who issued the command.
