@@ -1,0 +1,97 @@
+================
+db.fsyncUnlock()
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: fsync, fsyncUnlock, fsync unlock, unlock
+   :keywords: fsync, fsyncUnlock, fsync unlock, unlock
+
+Definition
+----------
+
+.. method:: db.fsyncUnlock()
+
+   Reduces the lock count on the server to renable write operations.
+
+   .. versionadded:: 7.1
+
+      When the ``db.fsyncUnlock()`` method runs on :program:`mongos`, it
+      reduces the lock count for each shard in the cluster.
+
+   .. |dbcommand| replace:: :dbcommand:`fsyncUnlock` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+   .. include:: /includes/fsync-lock-method
+
+   :method:`db.fsyncUnlock()` is an administrative operation. Use this method
+   to unlock a server or cluster after a :ref:`backup operation
+   <backup-methods>`
+
+   :method:`db.fsyncUnlock()`  has the syntax:
+
+   .. code-block:: javascript
+
+      db.fsyncUnlock()
+
+   The operation returns a document with the following fields:
+
+   .. list-table::
+      :widths: 30 70
+
+      * - ``info``
+        - Information on the status of the operation.
+
+      * - ``lockCount`` (*New in version 3.4*)
+        - The number of locks remaining on the instance after the operation.
+
+      * - ``ok``
+        - The status code.
+
+   The :method:`db.fsyncUnlock()` method wraps the
+   :dbcommand:`fsyncUnlock` command.
+
+Compatibility with WiredTiger
+-----------------------------
+
+.. include:: /includes/extracts/wt-fsync-lock-compatibility.rst
+
+Example
+-------
+
+Consider a situation where :method:`db.fsyncLock()` has been issued two
+times. The following :method:`db.fsyncUnlock()` operation reduces the
+locks taken by :method:`db.fsyncLock()` by 1:
+
+.. code-block:: javascript
+
+   db.fsyncUnlock()
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "info" : "fsyncUnlock completed", "lockCount" : NumberLong(1), "ok" : 1 }
+
+As the ``lockCount`` is greater than 0, the :binary:`~bin.mongod` instance
+is locked against writes. To unlock the instance for writes, run
+:method:`db.fsyncLock()` again:
+
+.. code-block:: javascript
+
+   db.fsyncUnlock()
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "info" : "fsyncUnlock completed", "lockCount" : NumberLong(0), "ok" : 1 }
+
+The :program:`mongod` instance is unlocked for writes.

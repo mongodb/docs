@@ -1,0 +1,142 @@
+===================
+db.shutdownServer()
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionchanged:: 5.0
+
+.. method:: db.shutdownServer()
+
+   Shuts down the current :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   process cleanly and safely. You must issue the
+   :method:`db.shutdownServer()` operation against the 
+   :term:`admin database`.
+
+   :method:`db.shutdownServer()` has this syntax:
+
+   .. code-block:: javascript
+
+      db.shutdownServer({ 
+        force: <boolean>,
+        timeoutSecs: <int> 
+      })
+
+   The method takes these fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - :ref:`force <shutdownServer-method-force>`
+
+        - .. _shutdownServer-method-force:
+        
+          Optional. Specify ``true`` to force the :binary:`~bin.mongod`
+          or :binary:`~bin.mongos` to shut down. Force shutdown
+          interrupts any ongoing operations on the :binary:`~bin.mongod`
+          or :binary:`~bin.mongos` and may result in unexpected
+          behavior.
+
+      * - :ref:`timeoutSecs <shutdownServer-method-timeoutSecs>`
+
+        - .. _shutdownServer-method-timeoutSecs:
+        
+          Optional.
+
+          .. _shutdownServer-method-quiesce-period:
+
+          .. |force| replace:: :ref:`force <shutdownServer-method-force>`
+          .. |timeout| replace:: :ref:`timeoutSecs <shutdownServer-method-timeoutSecs>`
+
+          .. include:: /includes/quiesce-period.rst
+
+This operation provides a wrapper around the :dbcommand:`shutdown`
+command.
+
+Behavior
+--------
+
+For a :binary:`~bin.mongod` started *with* :ref:`authentication`, you
+must run :method:`db.shutdownServer()` over an authenticated connection.
+See :ref:`method-shutdown-access-control` for more information.
+
+For a :binary:`~bin.mongod` started *without* :ref:`authentication`, you
+must run :method:`db.shutdownServer()` from a client connected to the
+localhost interface. For example, run :binary:`~bin.mongosh` with the
+:option:`--host "127.0.0.1" <mongosh --host>` option on the same host
+machine as the :binary:`~bin.mongod`.
+
+.. _method-shutdown-replica-set:
+
+``db.shutdownServer()`` on Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:method:`db.shutdownServer()` fails if the :binary:`~bin.mongod` replica
+set member is running certain operations such as :ref:`index builds
+<index-operations-replicated-build>`. You can specify :ref:`force: true
+<shutdownServer-method-force>` to force the member to interrupt those
+operations and shut down.
+
+Shutting Down the Replica Set Primary, Secondary, or ``mongos``
+```````````````````````````````````````````````````````````````
+
+.. include:: /includes/quiesce-period.rst
+
+In MongoDB 4.4 and earlier, if running :method:`db.shutdownServer()`
+against the replica set :term:`primary`, the operation implicitly uses
+:dbcommand:`replSetStepDown` to step down the primary before shutting
+down the :binary:`~bin.mongod`. If no secondary in the replica set can
+catch up to the primary within ``10`` seconds, the shutdown operation
+fails. You can issue :method:`db.shutdownServer()` with :ref:`force:
+true <shutdownServer-method-force>` to shut down the primary *even if*
+the step down fails.
+
+.. warning::
+
+   Force shutdown of the primary can result in the 
+   :ref:`rollback <replica-set-rollback>` of any writes not 
+   yet replicated to a secondary.
+
+.. _method-shutdown-access-control:
+
+Access Control
+--------------
+
+To run :method:`db.shutdownServer()` on a :binary:`~bin.mongod`
+enforcing :ref:`authentication`, the authenticated user *must* have the
+:method:`db.shutdownServer()` privilege. For example, a user with the
+built-in role :authrole:`hostManager` has the appropriate permissions.
+
+Examples
+--------
+
+Shut down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").shutdownServer()
+
+Force Shut Down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").shutdownServer({ "force" : true })
+
+Shut Down a Primary ``mongod`` With Longer Timeout
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").shutdownServer({ "timeoutSecs": 60 })

@@ -1,0 +1,224 @@
+.. _upgrade-to-latest-revision:
+
+==============================================
+Upgrade to the Latest Patch Release of MongoDB
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB version numbers have the form ``X.Y.Z`` where ``Z`` refers to
+the patch release number. Patch releases provide security patches, bug
+fixes, and new or changed features that generally do not contain any
+backward breaking changes. Always upgrade to the latest patch release in
+your release series.
+
+For more information on versioning, see :ref:`release-version-numbers`.
+
+About this Task
+---------------
+
+This page describes upgrade procedures for the MongoDB
+{+latest-lts-version+} release series. To upgrade a different release
+series, refer to the corresponding version of the manual.
+
+.. _upgrade-options:
+
+Before You Begin
+----------------
+
+Review the following sections to ensure that your deployment is ready to
+be upgraded.
+
+Backup
+~~~~~~
+
+Ensure you have an up-to-date backup of your data set. See
+:ref:`backup-methods`.
+
+Compatibility Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consult the following documents for any special considerations or
+compatibility issues specific to your MongoDB release:
+
+- :ref:`Release notes <server-release-notes-landing>`
+
+- :driver:`Driver documentation </>`
+
+Maintenance Window
+~~~~~~~~~~~~~~~~~~
+
+If your installation includes :term:`replica sets <replica set>`, set
+the upgrade to occur during a predefined maintenance window.
+
+Staging Environment Check
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before you upgrade a production environment, use the procedures in this
+document to upgrade a *staging* environment that reproduces your
+production environment. Ensure that your production configuration is
+compatible with all changes before upgrading.
+
+.. _upgrade-procedure:
+
+Steps
+-----
+
+Upgrade each :binary:`~bin.mongod` and :binary:`~bin.mongos` binary
+separately. Follow this upgrade procedure:
+
+#. For deployments that use authentication, first upgrade all of your
+   MongoDB Drivers. To upgrade, see the
+   :driver:`documentation for your driver </>`.
+
+#. Upgrade any standalone instances. See
+   :ref:`upgrade-mongodb-instance`.
+
+#. Upgrade any replica sets that are not part of a sharded cluster, as
+   described in :ref:`upgrade-replica-set`.
+
+#. Upgrade sharded clusters, as described in
+   :ref:`upgrade-sharded-cluster`.
+
+.. _upgrade-mongodb-instance:
+
+Upgrade a MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To upgrade a {+latest-lts-version+} :binary:`~bin.mongod` or
+:binary:`~bin.mongos` instance, use one of these approaches:
+
+- Upgrade the instance using the operating system's package management
+  tool and the official MongoDB packages. This is the preferred
+  approach. See :doc:`/installation`.
+
+- Upgrade the instance by replacing the existing binaries with new
+  binaries. See :ref:`upgrade-replace-binaries`.
+
+.. _upgrade-replace-binaries:
+
+Replace the Existing Binaries
+`````````````````````````````
+
+This section describes how to upgrade MongoDB by replacing the existing
+binaries. The preferred approach to an upgrade is to use the operating
+system's package management tool and the official MongoDB packages, as
+described in :doc:`/installation`.
+
+To upgrade a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance by
+replacing the existing binaries:
+
+1. Download the binaries for the latest MongoDB patch release from the
+   `MongoDB Download Page`_ and store the binaries in a temporary
+   location. The binaries download as compressed files that uncompress
+   to the directory structure used by the MongoDB installation.
+
+#. Shutdown the instance.
+
+#. Replace the existing MongoDB binaries with the downloaded binaries.
+
+#. Make any required configuration file changes.
+
+#. Restart the instance.
+
+.. _`MongoDB Download Page`: https://www.mongodb.com/try/download/community?tck=docs_server
+
+.. _upgrade-replica-set:
+
+Upgrade Replica Sets
+~~~~~~~~~~~~~~~~~~~~
+
+To upgrade a {+latest-lts-version+} replica set, upgrade each member
+individually, starting with the :term:`secondaries <secondary>` and
+finishing with the :term:`primary`. Plan the upgrade during a predefined
+maintenance window.
+
+.. include:: /includes/upgrade-downgrade-replica-set.rst
+
+Upgrade Secondaries
+```````````````````
+
+Upgrade each secondary separately as follows:
+
+1. Upgrade the secondary's :binary:`~bin.mongod` binary by following the
+   instructions in :ref:`upgrade-mongodb-instance`.
+
+#. After upgrading a secondary, wait for the secondary to recover to
+   the ``SECONDARY`` state before upgrading the next instance. To
+   check the member's state, issue :method:`rs.status()` in
+   :binary:`~bin.mongosh`.
+
+   The secondary may briefly go into ``STARTUP2`` or ``RECOVERING``.
+   This is normal. Make sure to wait for the secondary to fully recover
+   to ``SECONDARY`` before you continue the upgrade.
+
+Upgrade the Primary
+```````````````````
+
+1. Step down the primary to initiate the normal :ref:`failover
+   <replica-set-failover>` procedure. Using one of the following:
+
+   - The :method:`rs.stepDown()` helper in :binary:`~bin.mongosh`.
+
+   - The :dbcommand:`replSetStepDown` database command.
+
+   During failover, the set cannot accept writes. Typically this takes
+   10-20 seconds. Plan the upgrade during a predefined maintenance
+   window.
+
+   .. note:: Stepping down the primary is preferable to directly
+      *shutting down* the primary. Stepping down expedites the
+      failover procedure.
+
+#. Once the primary has stepped down, call the :method:`rs.status()`
+   method from :binary:`~bin.mongosh` until you see that another
+   member has assumed the ``PRIMARY`` state.
+
+#. Shut down the original primary and upgrade its instance by
+   following the instructions in :ref:`upgrade-mongodb-instance`.
+
+.. _upgrade-sharded-cluster:
+
+Upgrade Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To upgrade a {+latest-lts-version+} sharded cluster:
+
+1. Disable the cluster's balancer as described in
+   :ref:`sharding-balancing-disable-temporarily`.
+
+#. Upgrade the :ref:`config servers <sharding-config-server>`.
+
+   To upgrade the config server replica set, use the procedures in
+   :ref:`upgrade-replica-set`.
+
+#. Upgrade each shard.
+
+   - If a shard is a replica set, upgrade the shard using the
+     procedure titled :ref:`upgrade-replica-set`.
+
+   - If a shard is a standalone instance, upgrade the shard using the
+     procedure titled
+     :ref:`upgrade-mongodb-instance`.
+
+#. Once the config servers and the shards have been upgraded, upgrade
+   each :binary:`~bin.mongos` instance by following the instructions in
+   :ref:`upgrade-mongodb-instance`. You can upgrade the
+   :binary:`~bin.mongos` instances in any order.
+
+#. Re-enable the balancer, as described in :ref:`sharding-balancing-re-enable`.
+
+Learn More
+----------
+
+- :ref:`production-notes`
+
+- :ref:`sharding-manage-shards`
+
+- :ref:`replica-set-sync`

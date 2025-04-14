@@ -1,0 +1,502 @@
+==========================
+db.collection.replaceOne()
+==========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.replaceOne(filter, replacement, options)
+
+   .. |dbcommand| replace:: :dbcommand:`update` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   Replaces a single document within the collection based on the filter.
+
+   :returns:
+
+     A document containing:
+
+     - A boolean ``acknowledged`` as ``true`` if the operation ran with
+       :term:`write concern` or ``false`` if write concern was disabled
+     - ``matchedCount`` containing the number of matched documents
+     - ``modifiedCount`` containing the number of modified documents
+     - ``upsertedId`` containing the ``_id`` for the upserted document
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.replaceOne()``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :method:`~db.collection.replaceOne()` method has the following form:
+
+.. code-block:: javascript
+
+   db.collection.replaceOne(
+      <filter>,
+      <replacement>,
+      {
+         upsert: <boolean>,
+         writeConcern: <document>,
+         collation: <document>,
+         hint: <document|string>                   // Available starting in 4.2.1
+      }
+   )
+
+The :method:`~db.collection.replaceOne()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type   
+     - Description
+
+   * - :ref:`filter <replace-one-filter>`
+     - document
+     - .. _replace-one-filter:
+       
+       The selection criteria for the update. The same :ref:`query
+       selectors <query-selectors>` as in the :method:`find()
+       <db.collection.find()>` method are available.
+       
+       Specify an empty document ``{ }`` to replace the first document returned in 
+       the collection.
+  
+   * - ``replacement``
+     - document   
+     - The replacement document.
+
+       Cannot contain :ref:`update operators <update-operators-top-level>`.
+
+   * - ``upsert``
+     - boolean
+     - .. include:: /includes/extracts/replaceOne-behavior-method.rst
+
+   * - ``writeConcern``
+     - document
+     - Optional. A document expressing the :doc:`write concern
+       </reference/write-concern>`. Omit to use the default write concern.
+       
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+   * - ``collation``
+     - document
+     - Optional. 
+        
+       .. include:: /includes/extracts/collation-option.rst
+
+   * - :ref:`hint <replace-one-hint>`
+     - document
+     - .. _replace-one-hint:
+        
+       Optional. A document or string that specifies the :ref:`index
+       <indexes>` to use to support the :ref:`filter
+       <replace-one-filter>`.
+    
+       The option can take an index specification document or the index
+       name string.
+    
+       If you specify an index that does not exist, the operation
+       errors.
+
+       For an example, see :ref:`ex-replace-one-hint`.
+       .. versionadded:: 4.2.1
+          
+Behavior
+--------
+
+:method:`~db.collection.replaceOne()` replaces the first matching document in
+the collection that matches the ``filter``, using the ``replacement``
+document.
+
+``upsert``
+~~~~~~~~~~
+
+If ``upsert: true`` and no documents match the ``filter``,
+:method:`db.collection.replaceOne()` creates a new document based on
+the ``replacement`` document.
+
+If you specify ``upsert: true`` on a sharded collection, you must
+include the full shard key in the ``filter``. For additional
+:method:`db.collection.replaceOne()` behavior on a sharded collection,
+see :ref:`replaceOne-sharded-collection`.
+
+See :ref:`replaceOne-example-replace-with-upsert`.
+
+.. _replaceOne-capped-collection:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/capped-collection-immutable-document-size-replace.rst
+
+.. _replaceOne-timeseries-collection:
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use the :method:`~db.collection.replaceOne()` method on a
+:term:`time series collection`.
+
+.. _replaceOne-sharded-collection:
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, :method:`db.collection.replaceOne()` attempts
+to target a single shard, first by using the query filter. If the
+operation cannot target a single shard by the query filter, it then
+attempts to target by the replacement document. 
+
+In earlier versions, the operation attempts to target using the
+replacement document.
+
+Shard Key Requirements In Replacement Document
+``````````````````````````````````````````````
+
+Starting in MongoDB 4.4, the replacement document does not need to
+include the shard key. In MongoDB 4.2 and earlier, the replacement
+document must include the shard key.
+
+.. include:: /includes/shard-key-modification-warning.rst
+      
+.. _replaceOne-sharded-upsert:
+
+``upsert`` on a Sharded Collection
+``````````````````````````````````
+
+Starting in MongoDB 4.2, a :method:`db.collection.replaceOne()`
+operation that includes ``upsert: true`` on a sharded collection must
+include the full shard key in the ``filter``.
+
+.. include:: /includes/extracts/missing-shard-key-equality-condition-update.rst
+
+.. _replaceOne-shard-key-modification:
+
+Shard Key Modification
+``````````````````````
+
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+.. include:: /includes/shard-key-modification-warning.rst
+
+To modify the **existing** shard key value with
+:method:`db.collection.replaceOne()`:
+
+- You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+  issue the operation directly on the shard.
+
+- You :red:`must` run either in a :doc:`transaction
+  </core/transactions>` or as a :doc:`retryable write
+  </core/retryable-writes>`. 
+
+- You :red:`must` include an equality :ref:`filter
+  <replace-one-filter>` on the full shard key.
+
+.. _replaceOne-missing-shard-key:
+
+Missing Shard Key
+`````````````````
+
+Starting in version 4.4, documents in a sharded collection can be
+:ref:`missing the shard key fields <shard-key-missing>`. To use
+:method:`db.collection.replaceOne()` to set the document's
+**missing** shard key, you :red:`must` run on a
+:binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
+the shard.
+
+In addition, the following requirements also apply:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Task
+
+     - Requirements
+
+   * - To set to ``null``
+
+     - - Requires equality filter on the full shard key if ``upsert:
+         true`` is specified.
+
+   * - To set to a non-``null`` value
+
+     - - :red:`Must` be performed either inside a :doc:`transaction
+         </core/transactions>` or as a :doc:`retryable write
+         </core/retryable-writes>`.
+
+       - Requires equality filter on the full shard key if either:
+
+         - ``upsert: true``, or
+
+         - the new shard key value belongs to a different shard.
+
+.. tip::
+
+   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+See also:
+
+- :ref:`replaceOne-sharded-upsert`
+
+- :ref:`shard-key-missing`
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+
+Upsert within Transactions
+``````````````````````````
+
+.. include:: /includes/extracts/transactions-upsert-availability.rst
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. |operation| replace:: :method:`db.collection.replaceOne()`
+
+Examples
+--------
+
+.. _replaceOne-example-update:
+
+Replace
+~~~~~~~
+
+The ``restaurant`` collection contains the  following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "Borough" : "Manhattan" },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
+   { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 0 }
+
+The following operation replaces a single document where
+``name: "Central Perk Cafe"``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.replaceOne(
+         { "name" : "Central Perk Cafe" },
+         { "name" : "Central Pork Cafe", "Borough" : "Manhattan" }
+      );
+   } catch (e){
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+If no matches were found, the operation instead returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
+
+Setting ``upsert: true`` would insert the document if no match was found. See
+:ref:`replaceOne-example-replace-with-upsert`
+
+.. _replaceOne-example-replace-with-upsert:
+
+Replace with Upsert
+~~~~~~~~~~~~~~~~~~~
+
+The ``restaurant`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "Borough" : "Manhattan",  "violations" : 3 },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
+   { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 0 }
+
+
+The following operation attempts to replace the document with
+``name : "Pizza Rat's Pizzaria"``, with ``upsert : true``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.replaceOne(
+         { "name" : "Pizza Rat's Pizzaria" },
+         { "_id": 4, "name" : "Pizza Rat's Pizzaria", "Borough" : "Manhattan", "violations" : 8 },
+         { upsert: true }
+      );
+   } catch (e){
+      print(e);
+   }
+
+Since ``upsert : true`` the document is inserted based on the
+``replacement`` document. The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "matchedCount" : 0,
+      "modifiedCount" : 0,
+      "upsertedId" : 4
+   }
+
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "Borough" : "Manhattan", "violations" : 3 },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
+   { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 0 },
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "Borough" : "Manhattan", "violations" : 8 }
+
+.. _replaceOne-example-replace-with-write-concern:
+
+Replace with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.replaceOne(
+          { "name" : "Pizza Rat's Pizzaria" },
+          { "name" : "Pizza Rat's Pub", "Borough" : "Manhattan", "violations" : 3 },
+          { w: "majority", wtimeout: 100 }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following
+exception is thrown:
+
+.. versionchanged:: 4.4
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errmsg" : "waiting for replication timed out",
+      "errInfo" : {
+        "wtimeout" : true,
+        "writeConcern" : {
+          "w" : "majority",
+          "wtimeout" : 100,
+          "provenance" : "getLastErrorDefaults"
+        }
+      }
+   })
+
+The following table explains the possible values of
+``errInfo.writeConcern.provenance``:
+
+.. include:: /includes/fact-wc-provenance-table.rst
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.replaceOne(
+      { category: "cafe", status: "a" },
+      { category: "cafÉ", status: "Replaced" },
+      { collation: { locale: "fr", strength: 1 } }
+
+   );
+
+.. _ex-replace-one-hint:
+
+Specify ``hint`` for ``replaceOne``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2.1
+
+Create a sample ``members`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany([
+      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
+      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
+      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   ])
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { status: 1 } )
+   db.members.createIndex( { points: 1 } )
+
+The following update operation explicitly hints to use the index ``{
+status: 1 }``:
+
+.. note::
+
+   If you specify an index that does not exist, the operation errors.
+
+.. code-block:: javascript
+
+   db.members.replaceOne(
+      { "points": { $lte: 20 }, "status": "P" }, 
+      { "misc1": "using index on status", status: "P", member: "replacement", points: "20"},
+      { hint: { status: 1 } }
+   )
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+
+To view the indexes used, you can use the :pipeline:`$indexStats` pipeline:
+
+.. code-block:: javascript
+
+   db.members.aggregate( [ { $indexStats: { } }, { $sort: { name: 1 } } ] )

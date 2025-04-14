@@ -1,0 +1,258 @@
+.. _index-type-multi-key:
+.. _index-type-multikey:
+
+================
+Multikey Indexes
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Multikey indexes collect and sort data from fields containing array
+values. Multikey indexes improve performance for queries on array
+fields.
+
+You do not need to explicitly specify the multikey type. When you create
+an index on a field that contains an array value, MongoDB automatically
+sets that index to be a multikey index.
+
+MongoDB can create multikey indexes over arrays that hold both scalar
+values (for example, strings and numbers) and embedded documents.
+
+To create a multikey index, use the following prototype:
+
+.. include:: /includes/indexes/code-examples/create-multikey-index.rst
+
+This image shows a multikey index on the ``addr.zip`` field:
+
+.. include:: /images/index-multikey.rst
+
+.. |page-topic| replace:: :atlas:`create and manage multikey indexes in the UI </atlas-ui/indexes>`
+
+.. cta-banner::
+   :url: https://www.mongodb.com/docs/atlas/atlas-ui/indexes/
+   :icon: Cloud
+
+   .. include:: /includes/fact-atlas-compatible.rst
+
+Use Cases
+---------
+
+If your application frequently queries a field that contains an array
+value, a multikey index improves performance for those queries.
+
+Indexing commonly queried fields increases the chances of :ref:`covering <indexes-covered-queries>` those queries. Covered queries
+are queries that can be satisfied entirely using an index, without
+examining any documents. This optimizes query performance.
+
+For example, documents in a ``students`` collection contain a
+``test_scores`` field: an array of test scores a student received
+throughout the semester. You regularly update a list of top students:
+students who have at least five ``test_scores`` greater than ``90``.
+
+You can create an index on the ``test_scores`` field to improve
+performance for this query. Because ``test_scores`` contains an array
+value, MongoDB stores the index as a multikey index.
+
+Get Started
+-----------
+
+To create a multikey index, see:
+
+- :ref:`index-create-multikey-scalar`
+- :ref:`index-create-multikey-embedded`
+
+Details
+-------
+
+This section describes technical details and limitations for multikey
+indexes.
+
+Index Bounds
+~~~~~~~~~~~~
+
+The bounds of an index scan define the parts of an index to search
+during a query. The computation of multikey index bounds follows special
+rules. For details, see :ref:`indexes-multikey-bounds`.
+
+Unique Multikey Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In a :ref:`unique <index-type-unique>` multikey index, a document may
+have array elements that result in repeating index key values as long as
+the index key values for that document do not duplicate those of another
+document.
+
+To learn more and see an example of this behavior, see
+:ref:`unique-separate-documents`.
+
+.. _compound_multikey_indexes:
+
+Compound Multikey Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In a :ref:`compound <index-type-compound>` multikey index, each indexed
+document can have *at most* one indexed field whose value is an array.
+Specifically:
+
+- You cannot create a compound multikey index if more than one field in
+  the index specification is an array. For example, consider a
+  collection that contains this document:
+
+  .. code-block:: javascript
+
+     { _id: 1, scores_spring: [ 8, 6 ], scores_fall: [ 5, 9 ] }
+
+  You can't create the compound multikey index ``{ scores_spring: 1,
+  scores_fall: 1 }`` because both fields in the index are arrays.
+
+- If a compound multikey index already exists, you cannot insert a
+  document that would violate this restriction.
+
+  Consider a collection that contains these documents:
+
+  .. code-block:: javascript
+
+     { _id: 1, scores_spring: [8, 6], scores_fall: 9 }
+     { _id: 2, scores_spring: 6, scores_fall: [5, 7] }
+
+  You can create a compound multikey index ``{ scores_spring: 1,
+  scores_fall: 1 }`` because for each document, only one field indexed
+  by the compound multikey index is an array. No document contains array
+  values for both ``scores_spring`` and ``scores_fall`` fields.
+
+  However, after you create the compound multikey index, if you attempt
+  to insert a document where both ``scores_spring`` and ``scores_fall``
+  fields are arrays, the insert fails.
+
+Sorting
+~~~~~~~
+
+.. include:: /includes/fact-multikey-index-sort-limitation.rst
+
+Shard Keys
+~~~~~~~~~~
+
+You cannot specify a multikey index as a shard key index.
+
+However, if the shard key index is a :ref:`prefix
+<compound-index-prefix>` of a compound index, the compound index may
+become a compound *multikey* index if one of the trailing keys (that are
+not part of the shard key) indexes an array.
+
+Hashed Indexes
+~~~~~~~~~~~~~~
+
+:ref:`Hashed indexes <index-type-hashed>` cannot be multikey.
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+Multikey indexes cannot :ref:`cover <covered-queries>` queries over
+array fields. However, multikey indexes can cover queries over non-array
+fields if the index tracks which field or fields cause the index to be
+multikey.
+
+For example, consider a ``matches`` collection with these documents:
+
+.. code-block:: javascript
+
+   db.matches.insertMany( [
+      { name: "joe", event: ["open", "tournament"] },
+      { name: "bill", event: ["match", "championship"] }
+   ] )
+
+The ``matches`` collection has a compound multikey index on the ``name``
+and ``event`` fields:
+
+.. code-block:: javascript
+
+   db.matches.createIndex( { name: 1, event: 1 } )
+
+This index is a multikey index because the ``event`` field contains
+array values.
+
+The multikey index covers the following query, even though the matched
+field (``name``) is not an array:
+
+.. code-block:: javascript
+
+   db.matches.find( { name: "bill" } )
+
+Because ``name`` field is part of the index :ref:`prefix
+<compound-index-prefix>`, the index covers queries on the ``name``
+field. The index cannot cover queries on both ``name`` and ``event``,
+because multikey indexes cannot cover queries on array fields.
+
+Query on an Array Field as a Whole
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a query filter specifies an :ref:`exact match for an array as a
+whole <array-match-exact>`, MongoDB can use the multikey index to look
+up the *first* element of the query array, but cannot use the multikey
+index scan to find the whole array.
+
+Instead, after using the multikey index to look up the first element of
+the query array, MongoDB retrieves the associated documents and filters
+for documents whose array matches the array in the query.
+
+For example, consider an ``inventory`` collection that contains these
+documents:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { _id: 5, type: "food", item: "apple", ratings: [ 5, 8, 9 ] }
+      { _id: 6, type: "food", item: "banana", ratings: [ 5, 9 ] }
+      { _id: 7, type: "food", item: "chocolate", ratings: [ 9, 5, 8 ] }
+      { _id: 8, type: "food", item: "fish", ratings: [ 9, 5 ] }
+      { _id: 9, type: "food", item: "grapes", ratings: [ 5, 9, 5 ] }
+   ] )
+
+The ``inventory`` collection has a multikey index on the ``ratings``
+field:
+
+.. code-block:: javascript
+
+   db.inventory.createIndex( { ratings: 1 } )
+
+The following query looks for documents where the ``ratings`` field is
+the array ``[ 5, 9 ]``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { ratings: [ 5, 9 ] } )
+
+MongoDB can use the multikey index to find documents that have ``5`` at
+any position in the ``ratings`` array. Then, MongoDB retrieves these
+documents and filters for documents whose ``ratings`` array equals the
+query array ``[ 5, 9 ]``.
+
+$expr
+~~~~~
+
+The :query:`$expr` operator does not support multikey indexes.
+
+Learn More
+----------
+
+- To learn how MongoDB combines multikey index bounds to improve
+  performance, see :ref:`indexes-multikey-bounds`.
+
+- To learn how to query array fields, see:
+
+  - :ref:`read-operations-arrays`
+  - :ref:`array-match-embedded-documents`
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /core/indexes/index-types/index-multikey/create-multikey-index-basic
+   /core/indexes/index-types/index-multikey/create-multikey-index-embedded
+   /core/indexes/index-types/index-multikey/multikey-index-bounds

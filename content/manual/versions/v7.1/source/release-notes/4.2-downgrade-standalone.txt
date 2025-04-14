@@ -1,0 +1,257 @@
+=================================================
+Downgrade |newversion| Standalone to |oldversion|
+=================================================
+
+.. include:: /includes/4.2-upgrade-replacements.rst
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade-path.rst
+
+.. include:: /includes/extracts/4.2-changes-downgrade-floor.rst
+
+.. |downgrading| replace:: downgrading
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+If your deployment has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required privileges.
+      
+Prerequisites
+-------------
+
+To downgrade from 4.2 to 4.0, you must remove incompatible features
+that are persisted and/or update incompatible configuration settings.
+These include:
+
+.. |target| replace:: :binary:`~bin.mongod` instance
+
+.. _4.2-downgrade-feature-compatibility-standalone:
+
+1. Downgrade Feature Compatibility Version (fCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To downgrade the ``featureCompatibilityVersion`` of your standalone:
+
+#. Connect a ``mongo`` shell to the |target|.
+
+#. .. include:: /includes/4.2-downgrade-fcv.rst
+
+2. Remove fCV 4.2 Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+``"4.2"``.
+
+Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
+<4.2-compatibility-enabled>`. These include:
+
+.. _4.2-downgrade-index-key-standalone:
+
+2a. Index Key Size
+``````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-key.rst
+
+.. _4.2-downgrade-index-name-standalone:
+
+2b. Index Name Length
+`````````````````````
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
+
+2c. Unique Index Version
+````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
+
+.. tip::
+
+   Perform this operation after you have resolved any :ref:`index
+   key size <4.2-downgrade-index-key-standalone>` and :ref:`index
+   name length <4.2-downgrade-index-name-standalone>` issues first.
+
+Script
+   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
+
+2d. Remove ``user_1_db_1`` System Unique Index
+``````````````````````````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-system-unique-index.rst
+
+2e. Remove Wildcard Indexes
+```````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-wildcard-index.rst
+
+2f. View Definitions/Collection Validation Definitions that Include 4.2 Operators
+`````````````````````````````````````````````````````````````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-view-definitions.rst
+
+3. Update ``tls``-Prefixed Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
+
+4. Prepare Downgrade from ``zstd`` Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _downgrade-standalone-prereq-zstd:
+
+``zstd`` Data Compression
+`````````````````````````
+
+The :term:`zstd` compression library is available starting in
+version 4.2.
+
+If your standalone has any data using :term:`zstd` compression:
+
+.. tip::
+
+   Perform this step after all the other prerequisite steps have
+   been performed.
+
+#. Stop all writes to your instance.
+
+#. Create a :binary:`~bin.mongodump` of your database before
+   starting the downgrade; :binary:`~bin.mongodump` outputs
+   uncompressed data.
+
+   .. code-block:: bash
+
+      mongodump --host=<myhost> --port=<port> --out=mystandalone.uncompressed.fcv4.0
+
+   Include any other options, such as ``--username``, ``--password``,
+   and ``--authenticationDatabase`` if your standalone enforces
+   access control.
+
+#. Create a new empty :option:`data directory <mongod --dbpath>` for
+   the :binary:`~bin.mongod` instance. This directory will be used
+   in the downgrade procedure below.
+
+   .. important::
+
+      Ensure that the user account running :binary:`~bin.mongod` has
+      read and write permissions for the new directory.
+
+#. If you use a :doc:`configuration file
+   </reference/configuration-options>`, update the file to prepare for
+   the downgrade procedure:
+
+   a. Delete
+      :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
+      to use the default compressor (``snappy``) or
+      set to another 4.0 supported compressor.
+
+   #. Update :setting:`storage.dbPath` to the new
+      data directory.
+
+   | If you use command-line options instead, you will have to update
+     the options in the procedure below.
+
+.. _downgrade-standalone-prereq-zstd-journal:
+
+``zstd`` Journal Compression
+````````````````````````````
+
+The :term:`zstd` compression library is available for journal data
+compression starting in version 4.2.
+
+If the :binary:`~bin.mongod` instance uses :term:`zstd` library for
+its journal compressor:
+
+.. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
+
+.. note::
+
+   If you encounter an unclean shutdown for a :binary:`~bin.mongod`
+   during the downgrade procedure such that you need to use the
+   journal files to recover, recover the
+   instance using the 4.2 :binary:`~bin.mongod` and then retry the
+   downgrade of the instance.
+
+.. _downgrade-standalone-prereq-zstd-network:
+
+``zstd`` Network Compression
+````````````````````````````
+
+.. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
+
+5. Remove Client-Side Field Level Encryption Document Validation Keywords
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   Remove client-side field level encryption code in applications
+   *prior* to downgrading the server.
+
+MongoDB 4.2 adds support for 
+:ref:`enforcing client-side field level encryption 
+<field-level-encryption-enforce-schema>` as part of a collection's
+:ref:`schema-validation-json` document validation. Specifically, 
+the :query:`$jsonSchema` object supports the
+:autoencryptkeyword:`encrypt` and :autoencryptkeyword:`encryptMetadata`
+keywords. MongoDB 4.0 does **not** support these keywords and fails to 
+start if any collection specifies those keywords as part of its 
+validation :query:`$jsonSchema`.
+
+Use :method:`db.getCollectionInfos()` on each database to identify
+collections specifying automatic field level encryption rules as part of
+the :query:`$jsonSchema` validator. To prepare for downgrade, do either
+of the following operations for each
+collection using the 4.0-incompatible keywords:
+
+- Use :dbcommand:`collMod` to modify the collection's 
+  :collflag:`validator` and replace the :query:`$jsonSchema` with
+  a schema that contains only 
+  :v4.0:`4.0-compatible document validation syntax 
+  </reference/operator/query/jsonSchema#available-keywords>`:
+
+  .. code-block:: javascript
+
+     db.runCommand({ 
+       "collMod" : "<collection>",
+       "validator" : {
+         "$jsonSchema" : { <4.0-compatible schema object> }
+       }
+     })
+
+  -*or*-
+
+- Use :dbcommand:`collMod` to remove the :collflag:`validator` object
+  entirely:
+
+  .. code-block:: javascript
+
+     db.runComand({ "collMod" : "<collection>", "validator" : {} })
+
+.. |binary| replace:: the :binary:`~bin.mongod` instance
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that the
+   prerequisites have been completed.
+
+.. include:: /includes/steps/4.2-downgrade-mongod.rst

@@ -1,0 +1,120 @@
+========
+$comment
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $comment
+
+   The :query:`$comment` query operator associates a comment to any
+   expression taking a query predicate.
+
+   .. include:: /includes/fact-comment-reason.rst
+
+   The :query:`$comment` operator has the form:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query>, $comment: <comment> } )
+
+Behavior
+--------
+
+You can use the :query:`$comment` with any expression taking a query
+predicate, such as the query predicate in
+:method:`db.collection.updateOne()` or in the :pipeline:`$match` stage
+of the :ref:`aggregation pipeline <aggregation-pipeline>`. For an
+example, see :ref:`ex-comment-agg-expression`.
+
+Examples
+--------
+
+Attach a Comment to ``find``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example adds a :query:`$comment` to a
+:method:`~db.collection.find()` operation:
+
+.. code-block:: javascript
+
+   db.records.find(
+      {
+        x: { $mod: [ 2, 0 ] },
+        $comment: "Find even values."
+      }
+   )
+
+If the :doc:`/tutorial/manage-the-database-profiler` is enabled,
+the following output shows the comment in the
+:data:`system.profile <<database>.system.profile>` collection:
+
+.. code-block:: javascript
+   :copyable: false
+ 
+   {
+     "op" : "query",
+     "ns" : "test.records",
+     "command" : {
+         "find" : "records",
+         "filter" : {
+            "x" : {
+            "$mod" : [
+               2,
+               0
+            ]
+         },
+         "$comment" : "Find even values."
+      },
+      "comment" : "Find even values.",
+      ...
+
+Comments also appear in the :doc:`MongoDB log </reference/log-messages>`
+if the :ref:`database profiler level <set-profiling-level-level>` is set
+to 2 and :ref:`slowms <set-profiling-level-options-slowms>` is set to
+0ms. This :method:`db.setProfilingLevel()` command sets these two
+parameters:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(2, 0)
+
+The comment for the previous ``db.records.find()`` example
+then appears as follows in the
+:ref:`MongoDB log <log-messages-ref>`:
+
+.. code-block:: javascript
+   :copyable: false
+ 
+   {"t":{"$date":"2020-09-17T11:32:20.415-07:00"},"s":"I", 
+   "c":"COMMAND",  "id":51803,   "ctx":"conn7","msg":"Slow query",
+   "attr":{"type":"command","ns":"test.records","appName":"MongoDB
+   Shell","command":{"find":"records","filter":{"x":{"$mod":[2.0,0.0]},
+   "$comment":"Find even values."},"comment":"Find even values."
+   ...
+
+.. _ex-comment-agg-expression:
+
+Attach a Comment to an Aggregation Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :query:`$comment` with any expression taking a query
+predicate.
+
+The following example uses the :query:`$comment` operator in the
+:pipeline:`$match` stage to clarify the operation:
+
+.. code-block:: javascript
+
+   db.records.aggregate( [
+      { $match: { x: { $gt: 0 }, $comment: "Don't allow negative inputs." } },
+      { $group : { _id: { $mod: [ "$x", 2 ] }, total: { $sum: "$x" } } }
+   ] )

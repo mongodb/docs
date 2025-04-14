@@ -1,0 +1,199 @@
+==========
+$geoWithin
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $geoWithin
+
+   Selects documents with geospatial data that exists entirely
+   within a specified shape.
+
+   The specified shape can be either a GeoJSON :ref:`geojson-polygon`
+   (either single-ringed or multi-ringed), a GeoJSON
+   :ref:`geojson-multipolygon`, or a shape defined by legacy coordinate
+   pairs. The :query:`$geoWithin` operator uses the :query:`$geometry`
+   operator to specify the :ref:`GeoJSON
+   <geospatial-indexes-store-geojson>` object.
+
+   To specify a GeoJSON polygons or multipolygons using the default
+   coordinate reference system (CRS), use the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         <location field>: {
+            $geoWithin: {
+               $geometry: {
+                  type: <"Polygon" or "MultiPolygon"> ,
+                  coordinates: [ <coordinates> ]
+               }
+            }
+         }
+      }
+
+   For :query:`$geoWithin` queries that specify GeoJSON geometries with
+   areas greater than a single hemisphere, the use of the default CRS
+   results in queries for the complementary geometries.
+
+   To specify a single-ringed GeoJSON :ref:`polygon
+   <geojson-polygon>` with a custom MongoDB CRS, use the following
+   prototype that specifies the custom MongoDB CRS in the
+   :query:`$geometry` expression:
+
+   .. code-block:: javascript
+
+      {
+         <location field>: {
+            $geoWithin: {
+               $geometry: {
+                 type: "Polygon" ,
+                 coordinates: [ <coordinates> ],
+                 crs: {
+                    type: "name",
+                    properties: { name: "urn:x-mongodb:crs:strictwinding:EPSG:4326" }
+                 }
+               }
+            }
+         }
+      }
+
+   The custom MongoDB CRS uses a counter-clockwise winding order and
+   allows :query:`$geoWithin` to support queries with a single-ringed
+   GeoJSON :ref:`polygon <geojson-polygon>` whose area is greater than
+   or equal to a single hemisphere. If the specified polygon is smaller
+   than a single hemisphere, the behavior of :query:`$geoWithin` with
+   the MongoDB CRS is the same as with the default CRS. See also
+   :ref:`geowithin-big-poly`.
+
+   If querying for inclusion in a shape defined by legacy coordinate
+   pairs on a plane, use the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         <location field>: {
+            $geoWithin: { <shape operator>: <coordinates> }
+         }
+      }
+
+   The available shape operators are:
+
+   - :query:`$box`,
+   - :query:`$polygon`,
+   - :query:`$center` (defines a circle), and
+   - :query:`$centerSphere` (defines a circle on a sphere).
+
+   .. important::
+      If you use longitude and latitude, specify coordinates in order
+      of ``longitude, latitude``.
+
+Behavior
+--------
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+:query:`$geoWithin` does not require a geospatial index. However, a
+geospatial index will improve query performance. Both :ref:`2dsphere
+<2dsphere-index>` and :ref:`2d <2d-index>` geospatial indexes support
+:query:`$geoWithin`.
+
+Unsorted Results
+~~~~~~~~~~~~~~~~
+
+The :query:`$geoWithin` operator does not return sorted results. As
+such, MongoDB can return :query:`$geoWithin` queries more quickly than
+geospatial :query:`$near` or :query:`$nearSphere` queries, which sort
+results.
+
+Degenerate Geometry
+~~~~~~~~~~~~~~~~~~~
+
+:query:`$geoWithin` does not guarantee that it will consider a piece of
+geometry to contain its component geometry, or another polygon sharing
+its component geometry.
+
+.. _geowithin-big-poly:
+
+"Big" Polygons
+~~~~~~~~~~~~~~
+
+.. |geo-operator-method| replace:: :query:`$geoWithin`
+.. include:: /includes/fact-geometry-hemisphere-limitation.rst
+
+Examples
+--------
+
+Within a Polygon
+~~~~~~~~~~~~~~~~
+
+The following example selects all ``loc`` data that exist entirely
+within a GeoJSON :ref:`geojson-polygon`. The area of the polygon is
+less than the area of a single hemisphere:
+
+.. code-block:: javascript
+
+   db.places.find(
+      {
+        loc: {
+          $geoWithin: {
+             $geometry: {
+                type : "Polygon" ,
+                coordinates: [ [ [ 0, 0 ], [ 3, 6 ], [ 6, 1 ], [ 0, 0 ] ] ]
+             }
+          }
+        }
+      }
+   )
+
+For single-ringed polygons with areas greater than a single hemisphere,
+see :ref:`geowithin-big-polygon`.
+
+.. _geowithin-big-polygon:
+
+Within a "Big" Polygon
+~~~~~~~~~~~~~~~~~~~~~~
+
+To query with a single-ringed GeoJSON polygon whose area is greater
+than a single hemisphere, the :query:`$geometry` expression must
+specify the custom MongoDB coordinate reference system. For example:
+
+.. code-block:: javascript
+
+   db.places.find(
+      {
+        loc: {
+          $geoWithin: {
+             $geometry: {
+                type : "Polygon" ,
+                coordinates: [
+                  [
+                    [ -100, 60 ], [ -100, 0 ], [ -100, -60 ], [ 100, -60 ], [ 100, 60 ], [ -100, 60 ]
+                  ]
+                ],
+                crs: {
+                   type: "name",
+                   properties: { name: "urn:x-mongodb:crs:strictwinding:EPSG:4326" }
+                }
+             }
+          }
+        }
+      }
+   )
+
+.. query:: $within
+
+   .. deprecated:: 2.4
+
+      :query:`$geoWithin` replaces :query:`$within` in MongoDB
+      2.4.

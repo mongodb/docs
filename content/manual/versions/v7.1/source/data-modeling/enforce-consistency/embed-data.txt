@@ -1,0 +1,190 @@
+.. _enforce-consistency-embedding:
+
+=======================================
+Enforce Data Consistency with Embedding
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+If your schema stores the same data in multiple collections, you can
+embed related data to remove the duplication. The updated, denormalized
+schema keeps data consistent by maintaining data values in a single
+location.
+
+Embedding related data simplifies your schema and ensures that the user
+always reads the most current data. However, embedding may not be the
+best choice to represent complex relationships like many-to-many.
+
+About this Task
+---------------
+
+How to optimally embed related data depends on the queries run by your
+application. When you embed data in a single collection, consider the
+indexes that enable performant queries and structure your schema to
+allow for efficient, logical indexes.
+
+To compare the benefits of embedding documents and references, see
+:ref:`data-modeling-decisions`.
+
+Before you Begin
+----------------
+
+.. |method| replace:: embedding is
+
+.. include:: /includes/data-modeling/data-consistency/before-you-begin.rst
+
+Updating how data is stored in your database can impact existing indexes
+and queries. When you update your schema, also update your application's
+indexes and queries to account for the schema changes.
+
+The following example enforces data consistency in an e-commerce
+application. In the initial schema, product information is duplicated in
+the ``products`` and ``sellers`` collections. The ``sellerId`` field in
+the ``products`` collection is a :ref:`reference
+<data-modeling-referencing>` to to the ``sellers`` collection, and links
+the data together.
+
+.. code-block:: javascript
+   :copyable: false
+
+   // products collection
+
+      [
+         {
+            _id: 111,
+            sellerId: 456,
+            name: "sweater",
+            price: 30,         
+            rating: 4.9,
+            color: "green"
+         },
+         {
+            _id: 222,
+            sellerId: 456,
+            name: "t-shirt",
+            price: 10,         
+            rating: 4.2,
+            color: "blue"
+         },
+         {
+            _id: 333,
+            sellerId: 456,
+            name: "vest",
+            price: 20,         
+            rating: 4.7,
+            color: "red"
+         }
+      ]
+
+.. code-block:: javascript
+   :copyable: false
+
+   // sellers collection
+
+      [
+         {
+            _id: 456,
+            name: "Cool Clothes Co",
+            location: {
+               address: "21643 Andreane Shores",
+               state: "Ohio",
+               country: "United States"
+            },
+            phone: "567-555-0105",
+            products: [
+               {
+                  id: 111,
+                  name: "sweater",
+                  price: 30
+               },
+               {
+                  id: 222,
+                  name: "t-shirt",
+                  price: 10
+               },
+               {
+                  id: 333
+                  name: "vest",
+                  price: 20
+               }
+            ]
+         }
+      ]
+
+Steps
+-----
+
+To denormalize the schema and enforce consistency, embed the product
+information inside of the ``sellers`` collection:
+
+.. code-block:: javascript
+
+   db.sellers.insertOne(
+      {
+         _id: 456,
+         name: "Cool Clothes Co",
+         location: {
+            address: "21643 Andreane Shores",
+            state: "Ohio",
+            country: "United States"
+         },
+         phone: "567-555-0105",
+         products: [
+            {
+               id: 111,
+               name: "sweater",
+               price: 30,         
+               rating: 4.9,
+               color: "green"
+            },
+            {
+               id: 222,
+               name: "t-shirt",
+               price: 10,         
+               rating: 4.2,
+               color: "blue"
+            },
+            {
+               id: 333,
+               name: "vest",
+               price: 20,         
+               rating: 4.7,
+               color: "red"
+            }
+         ]
+      }
+   )
+
+Results
+-------
+
+The updated schema returns all product information when a user queries
+for a particular seller. The updated schema does not require additional
+logic or maintenance to keep data consistent because data is
+denormalized in a single collection.
+
+Next Steps
+----------
+
+After you restructure your schema, you can create indexes to support
+common queries. For example, if users often query for products by color,
+you can create an index on the ``products.color`` field:
+
+.. code-block:: javascript
+
+   db.sellers.createIndex( { "products.color": 1 } )
+
+Learn More
+----------
+
+- :ref:`data-modeling-decisions`
+
+- :ref:`create-indexes-to-support-queries`
+
+- :ref:`data-modeling-duplicate-data`

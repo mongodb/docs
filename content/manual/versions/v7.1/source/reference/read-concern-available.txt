@@ -1,0 +1,97 @@
+.. default-domain:: mongodb
+
+.. class:: hidden
+
+   .. readconcern:: "available"
+
+============================
+Read Concern ``"available"``
+============================
+
+.. meta::
+   :description: Using read concern available returns data with no guarantee that the data has been written to a majority of the replica set members (i.e. may be rolled back).  Read concern available can return orphan documents. 
+   :keywords: read concern, available read concern, read isolation
+
+A query with read concern ``"available"`` returns data from the instance
+with no guarantee that the data has been written to a majority of the
+replica set members (i.e. may be rolled back).
+
+- **For a sharded cluster**, :readconcern:`"available"` read concern
+  provides greater tolerance for partitions.
+
+  Queries with the :readconcern:`"available"` read concern don't require a
+  check to ensure that the correct shard received the query.
+
+  In the event of network partitions, these queries route to the shard 
+  considered appropriate before the network partition occurred.  They do not
+  wait for consistency guarantees from servers that may be unavailable.  If
+  the shard was undergoing chunk migration, queries with 
+  :readconcern:`"available"` can return :term:`orphaned documents
+  <orphaned document>`.
+
+  .. warning::
+
+     :program:`mongos` does not guarantee that queries with read concern
+     :readconcern:`"available"` route to the correct shards.  The shard that
+     receives the query returns data, but this shard may not be the
+     authoritative owner of the requested data.
+
+     This can cause queries to return incorrect or unexpected results.
+
+- **For unsharded collections** (including collections in a standalone
+  deployment or a replica set deployment), :readconcern:`"local"` and
+  :readconcern:`"available"` read concerns behave identically.
+
+.. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. seealso::
+
+   :parameter:`orphanCleanupDelaySecs`
+
+Availability
+------------
+
+Read concern :readconcern:`"available"` is :red:`unavailable for use`
+with causally consistent sessions and transactions.
+
+       
+Example
+-------
+
+.. include:: /includes/fact-read-concern-write-timeline.rst
+
+Then, the following tables summarizes the state of the data that a read
+operation with :readconcern:`"available"` read concern would see at
+time ``T``.
+
+.. figure:: /images/read-concern-write-timeline.svg
+   :alt: Timeline of a write operation to a three member replica set.
+   :figwidth: 330px
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
+
+   * - Read Target
+     - Time ``T``
+     - State of Data
+
+   * - Primary
+     - After t\ :sub:`0`
+     - Data reflects Write\ :sub:`0`.
+
+   * - Secondary\ :sub:`1`
+     - Before t\ :sub:`1`
+     - Data reflects Write\ :sub:`prev`
+
+   * - Secondary\ :sub:`1`
+     - After t\ :sub:`1`
+     - Data reflects Write\ :sub:`0`
+
+   * - Secondary\ :sub:`2`
+     - Before t\ :sub:`2`
+     - Data reflects Write\ :sub:`prev`
+
+   * - Secondary\ :sub:`2`
+     - After t\ :sub:`2`
+     - Data reflects Write\ :sub:`0`

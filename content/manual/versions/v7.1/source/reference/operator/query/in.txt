@@ -1,0 +1,166 @@
+===
+$in
+===
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. query:: $in
+
+   The :query:`$in` operator selects the documents where the value
+   of a field equals any value in the specified array.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$in``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+To specify an :query:`$in` expression, use the following prototype:
+
+.. code-block:: javascript
+
+   { field: { $in: [<value1>, <value2>, ... <valueN> ] } }
+
+.. include:: /includes/fact-comparison-order.rst
+
+If the ``field`` holds an array, then the :query:`$in` operator
+selects the documents whose ``field`` holds an array that contains
+at least one element that matches a value in the specified array
+(for example, ``<value1>``, ``<value2>``, and so on).
+
+The :query:`$in` operator compares each parameter to each document
+in the collection, which can lead to performance issues.
+To improve performance:
+
+* It is recommended that you limit the number of parameters passed to the
+   :query:`$in` operator to tens of values.  Using hundreds of parameters
+   or more can negatively impact query performance.
+
+* Create an index on the ``field`` you want to query.
+
+.. note::
+
+   This document describes the :query:`$in` query operator.
+   For the ``$in`` aggregation operator, see
+   :doc:`/reference/operator/aggregation/in`.
+
+Query Data on Atlas by Using Atlas Search 
+-----------------------------------------
+
+.. |search-operator| replace:: :ref:`in-ref` 
+.. |manual-operator| replace:: :query:`$in`
+
+.. include:: /includes/fact-atlas-search-operator.rst
+
+Examples
+--------
+
+Create the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { "item": "Pens", "quantity": 350, "tags": [ "school", "office" ] },
+      { "item": "Erasers", "quantity": 15, "tags": [ "school", "home" ] },
+      { "item": "Maps", "tags": [ "office", "storage" ] },
+      { "item": "Books", "quantity": 5, "tags": [ "school", "storage", "home" ] }
+   ] )
+
+Use the ``$in`` Operator to Match Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { quantity: { $in: [ 5, 15 ] } }, { _id: 0 } )
+
+This query selects all documents in the ``inventory`` collection where
+the value of the ``quantity`` field is either 5 or 15. 
+
+.. code-block:: javascript
+
+   { item: 'Erasers', quantity: 15, tags: [ 'school', 'home' ] },
+   { item: 'Books', quantity: 5, tags: [ 'school', 'storage', 'home' ] }
+
+Although you can write this query using the :query:`$or` operator,
+use the :query:`$in` operator rather than the :query:`$or` operator
+when performing equality checks on the same field.
+
+Use the ``$in`` Operator to Match Values in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following :method:`~db.collection.updateMany()` operation sets the
+``exclude`` field to ``false`` when the ``tags`` array has at least one
+element that matches either ``"home"`` or ``"school"``.
+
+.. code-block:: javascript
+
+   db.inventory.updateMany(
+      { tags: { $in: [ "home", "school" ] } },
+      { $set: { exclude: false } }
+   )
+
+Example output:
+
+.. code-block:: javascript
+
+   {
+      item: 'Pens',
+      quantity: 350,
+      tags: [ 'school', 'office' ],
+      exclude: false
+    },
+    {
+      item: 'Erasers',
+      quantity: 15,
+      tags: [ 'school', 'home' ],
+      exclude: false
+    },
+    {
+      item: 'Books',
+      quantity: 5,
+      tags: [ 'school', 'storage', 'home' ],
+      exclude: false
+    }
+
+.. include:: /includes/extracts/additional-examples-arrays.rst
+
+.. _query-in-regex:
+
+Use the ``$in`` Operator with a Regular Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :query:`$in` operator can specify matching values using regular
+expressions of the form ``/pattern/``. You *cannot* use :query:`$regex`
+operator expressions inside an :query:`$in`.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: { $in: [ /^be/, /^st/ ] } } )
+
+This query selects all documents in the ``inventory`` collection where
+the ``tags`` field holds either a string that starts with ``be`` or
+``st`` or an array with at least one element that starts with ``be`` or
+``st``.
+
+.. seealso::
+
+   - :method:`~db.collection.find()`
+   - :method:`~db.collection.updateMany()`
+   - :query:`$or`
+   - :update:`$set`
+   - :query:`$elemMatch`
+

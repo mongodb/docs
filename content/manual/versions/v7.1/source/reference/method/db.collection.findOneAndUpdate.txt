@@ -1,0 +1,690 @@
+=================================
+db.collection.findOneAndUpdate()
+=================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.findOneAndUpdate( filter, update, options )
+
+   .. |dbcommand| replace:: :dbcommand:`update` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   Updates a single document based on the ``filter`` and
+   ``sort`` criteria.
+
+   :returns:
+      Returns the original document by default. Returns the updated document
+      if :ref:`returnNewDocument <findOneUpdate-returnNewDocument>` is set to
+      ``true`` or :ref:`returnDocument <findOneUpdate-returnDocument>` is
+      set to ``after``.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.findOneAndUpdate()``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :method:`~db.collection.findOneAndUpdate()` method has the following
+form:
+
+.. code-block:: javascript
+
+   db.collection.findOneAndUpdate(
+       <filter>,
+       <update document or aggregation pipeline>, // Changed in MongoDB 4.2
+       {
+         writeConcern: <document>,
+         projection: <document>,
+         sort: <document>,
+         maxTimeMS: <number>,
+         upsert: <boolean>,
+         returnDocument: <string>,
+         returnNewDocument: <boolean>,
+         collation: <document>,
+         arrayFilters: [ <filterdocument1>, ... ]
+       }
+   )
+
+The :method:`~db.collection.findOneAndUpdate()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``filter``
+     - document
+     - The selection criteria for the update. The same :ref:`query
+       selectors <query-selectors>` as in the :method:`find()
+       <db.collection.find()>` method are available.
+
+       To update the first document returned in the collection,
+       specify an empty document ``{ }``.
+
+       If unspecified, defaults to an empty document.
+
+       Starting in MongoDB 4.2, the operation returns an error if
+       the query field is not a document.
+
+       If no document matches the ``filter``, no document is updated.
+
+   * - ``update``
+     - document or array
+     - The update document or, starting in MongoDB 4.2, an
+       :ref:`aggregation pipeline <aggregation-pipeline>`.
+
+       - If passed a document with :ref:`update operator expressions
+         <update-operators>`, |operation| performs the specified
+         modification.
+
+         .. note:: 
+
+            The document must contain only :ref:`update operators
+            <update-operators-top-level>`. You cannot specify a
+            replacement document ``{ <field1>: <value1>, ...}``. To
+            use a replacement document, see
+            :method:`db.collection.findOneAndReplace()` instead.
+
+       - Starting in MongoDB 4.2, if passed an :ref:`aggregation
+         pipeline <aggregation-pipeline>`
+         ``[ <stage1>, <stage2>, ... ]``, |operation| modifies the
+         document per the pipeline. The pipeline can consist of the
+         following stages:
+
+         .. include:: /includes/list-update-agg-stages.rst
+
+   * - ``writeConcern``
+     - document
+     - Optional. A document expressing the :ref:`write concern <write-concern>`.
+       Omit to use the default write concern.
+
+       .. code-block:: javascript
+
+         { w: <value>, j: <boolean>, wtimeout: <number> }
+
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+   * - ``projection``
+     - document
+     - Optional. A subset of fields to return.
+
+       To return all fields in the returned document, omit this parameter.
+
+       Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+       errors if the projection argument is not a document.
+
+   * - ``sort``
+     - document
+     - Optional. Specifies a sorting order for the documents matched by the ``filter``.
+
+       Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+       errors if the sort argument is not a document.
+
+       See :method:`cursor.sort()`.
+
+   * - ``maxTimeMS``
+     - number
+     - Optional. Specifies a time limit in milliseconds within which the operation must 
+       complete within. Throws an error if the limit is exceeded.
+
+   * - ``upsert``
+     - boolean
+     - .. include:: /includes/extracts/findOneAndUpdate-behavior-method.rst
+
+   * - ``returnDocument``
+     - string
+     - .. _findOneUpdate-returnDocument:
+
+       Optional. Starting in :binary:`mongosh` 0.13.2,
+       ``returnDocument`` is an alternative for
+       ``returnNewDocument``. If both options are set,
+       ``returnDocument`` takes precedence.
+
+       ``returnDocument: "before"`` returns the original document.
+       ``returnDocument: "after"`` returns the updated document.
+
+   * - ``returnNewDocument``
+     - boolean
+     - .. _findOneUpdate-returnNewDocument:
+
+       Optional. When ``true``, returns the updated document instead
+       of the original document.
+
+       Defaults to ``false``.
+
+   * - ``collation``
+     - document
+     - Optional. 
+
+       .. include:: /includes/extracts/collation-option.rst
+
+   * - ``arrayFilters``
+     - array
+     - Optional. An array of filter documents that determine which array elements to
+       modify for an update operation on an array field.
+
+       .. include::  /includes/extracts/arrayFilters-details.rst
+
+       For examples, see :ref:`findOneAndUpdate-arrayFilters`.
+
+       .. note::
+
+          .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
+Behavior
+--------
+
+Document Match
+~~~~~~~~~~~~~~
+
+:method:`db.collection.findOneAndUpdate()` updates the first matching
+document in the collection that matches the ``filter``. If no document
+matches the ``filter``, no document is updated.
+
+The ``sort`` parameter can be used to influence which document is updated.
+
+Projection
+~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-language-consistency-admonition.rst
+
+The ``projection`` parameter takes a document in the following form:
+
+.. code-block:: javascript
+
+   { field1 : <value>, field2 : <value> ... }
+
+.. include:: /includes/extracts/projection-values-table-without-meta.rst
+
+Embedded Field Specification
+````````````````````````````
+
+.. include:: /includes/extracts/projection-embedded-field-format.rst
+
+``_id`` Field Projection
+````````````````````````
+
+.. include:: /includes/extracts/projection-id-field.rst
+
+Inclusion or Exclusion
+``````````````````````
+
+.. include:: /includes/extracts/projection-inclusion-exclusion.rst
+
+For more information on projection, see also:
+
+- :ref:`read-operations-projection`
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+To use |operation| on a sharded collection, the query filter must
+include an equality condition on the shard key.
+
+.. include:: /includes/extracts/missing-shard-key-equality-condition-findAndModify.rst
+
+.. _findOneAndUpdate-shard-key-modification:
+
+Shard Key Modification
+``````````````````````
+
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+.. include:: /includes/shard-key-modification-warning.rst
+
+To modify the **existing** shard key value with
+:method:`db.collection.findOneAndUpdate()`:
+
+- You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+  issue the operation directly on the shard.
+
+- You :red:`must` run either in a :doc:`transaction
+  </core/transactions>` or as a :doc:`retryable write
+  </core/retryable-writes>`.
+  
+- You :red:`must` include an equality filter on the full shard key.
+
+
+.. _findOneAndUpdate-missing-shard-key:
+
+Missing Shard Key
+`````````````````
+
+Starting in version 4.4, documents in a sharded collection can be
+:ref:`missing the shard key fields <shard-key-missing>`. To use
+:method:`db.collection.findOneAndUpdate()` to set the document's
+**missing** shard key, 
+
+- You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+  issue the operation directly on the shard.
+
+- You :red:`must` run either in a :doc:`transaction
+  </core/transactions>` or as a :doc:`retryable write
+  </core/retryable-writes>` if the new shard key value is not
+  ``null``.
+
+- You :red:`must` include an equality filter on the full shard key.
+
+.. tip::
+
+   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+See also:
+
+- :ref:`shard-key-missing`
+   
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Upsert within Transactions
+``````````````````````````
+
+.. include:: /includes/extracts/transactions-upsert-availability.rst
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. |operation| replace:: :method:`db.collection.findOneAndUpdate()`
+
+.. _findOneAndUpdate-examples:
+
+Examples
+----------
+
+.. _findOneAndUpdate-example-replace-document:
+
+Update A Document
+~~~~~~~~~~~~~~~~~~
+
+The ``grades`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+   { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+   { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+   { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+   { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+   { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+
+The following operation finds the first document where ``name : R. Stiles``
+and increments the score by ``5``:
+
+.. code-block:: javascript
+
+   db.grades.findOneAndUpdate(
+      { "name" : "R. Stiles" },
+      { $inc: { "points" : 5 } }
+   )
+
+The operation returns the *original* document before the update:
+
+.. code-block:: javascript
+
+   { _id: 6319, name: "R. Stiles", "assignment" : 2, "points" : 12 }
+
+If ``returnNewDocument`` was true, the operation would return the
+updated document instead.
+
+.. _findOneAndUpdate-example-sort-and-replace-document:
+
+Sort And Update A Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``grades`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+   { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+   { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+   { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+   { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+   { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+
+The following operation updates a document where ``name : "A. MacDyver"``.  The
+operation sorts the matching documents by ``points`` ascending to update the
+matching document with the least points.
+
+.. code-block:: javascript
+
+   db.grades.findOneAndUpdate(
+      { "name" : "A. MacDyver" },
+      { $inc : { "points" : 5 } },
+      { sort : { "points" : 1 } }
+   )
+
+The operation returns the *original* document before the update:
+
+.. code-block:: javascript
+
+   { _id: 6322, name: "A. MacDyver", "assignment" : 2, "points" : 14 }
+
+.. _findOneAndUpdate-example-project-returned-document:
+
+Project the Returned Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses projection to only display the ``_id``,
+``points``, and ``assignment`` fields in the returned document:
+
+.. code-block:: javascript
+
+   db.grades.findOneAndUpdate(
+      { "name" : "A. MacDyver" },
+      { $inc : { "points" : 5 } },
+      { sort : { "points" : 1 }, projection: { "assignment" : 1, "points" : 1 } }
+   )
+
+The operation returns the *original* document with only the
+fields specified in the ``projection`` document and the ``_id`` field as it was not
+explicitly suppressed (``_id: 0``) in the :ref:`projection document <projections>`.
+
+.. code-block:: javascript
+
+   { "_id" : 6322, "assignment" : 2, "points" : 14 }
+
+.. _findOneAndUpdate-example-replace-with-time-limit:
+
+Update Document with Time Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation sets a 5ms time limit to complete the update:
+
+.. code-block:: javascript
+
+   try {
+      db.grades.findOneAndUpdate(
+         { "name" : "A. MacDyver" },
+         { $inc : { "points" : 5 } },
+         { sort: { "points" : 1 }, maxTimeMS : 5 };
+      );
+   }
+   catch(e){
+      print(e);
+   }
+
+If the operation exceeds the time limit, it returns:
+
+.. code-block:: javascript
+
+   Error: findAndModifyFailed failed: { "ok" : 0, "errmsg" : "operation exceeded time limit", "code" : 50 }
+
+
+.. _findOneAndUpdate-example-replace-with-upsert:
+
+Update Document with Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the ``upsert`` field to insert the update
+document if nothing matches the ``filter``:
+
+.. code-block:: javascript
+
+   try {
+   db.grades.findOneAndUpdate(
+      { "name" : "A.B. Abracus" },
+      { $set: { "name" : "A.B. Abracus", "assignment" : 5}, $inc : { "points" : 5 } },
+      { sort: { "points" : 1 }, upsert:true, returnNewDocument : true }
+   );
+   }
+   catch (e){
+      print(e);
+   }
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("5789249f1c49e39a8adc479a"),
+      "name" : "A.B. Abracus",
+      "assignment" : 5,
+      "points" : 5
+   }
+
+If ``returnNewDocument`` was false, the operation would return ``null`` as
+there is no original document to return.
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.findOneAndUpdate(
+      { category: "cafe" },
+      { $set: { status: "Updated" } },
+      { collation: { locale: "fr", strength: 1 } }
+   );
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café", "status" : "A" }
+
+.. _findOneAndUpdate-arrayFilters:
+
+Array Update Operations with ``arrayFilters``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
+Create a collection ``students`` with the following documents:
+
+
+.. code-block:: javascript
+
+   db.students.insertMany( [
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ] )
+
+To modify all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option in the
+:method:`db.collection.findOneAndUpdate` method:
+
+
+.. code-block:: javascript
+
+   db.students.findOneAndUpdate(
+      { grades: { $gte: 100 } },
+      { $set: { "grades.$[element]" : 100 } },
+      { arrayFilters: [ { "element": { $gte: 100 } } ] }
+   )
+
+The operation updates the ``grades`` field for a single document, and
+after the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
+Create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insertMany( [
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ] )
+
+The following operation finds a document where the ``_id`` field equals
+``1`` and uses the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters`` to modify the ``mean`` for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``.
+
+
+.. code-block:: javascript
+
+   db.students2.findOneAndUpdate(
+      { _id : 1 },
+      { $set: { "grades.$[elem].mean" : 100 } },
+      { arrayFilters: [ { "elem.grade": { $gte: 85 } } ] }
+   )
+
+The operation updates the ``grades`` field for a single document, and after the
+operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 5-6
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+       ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 6 },
+         { "grade" : 87, "mean" : 90, "std" : 3 },
+         { "grade" : 85, "mean" : 85, "std" : 4 }
+      ]
+   }
+
+.. _findOneAndUpdate-agg-pipeline:
+
+Use an Aggregation Pipeline for Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, :method:`db.collection.findOneAndUpdate()` can
+accept an aggregation pipeline for the update. The pipeline can consist
+of the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+For example, create a collection ``students2`` with the following
+documents:
+
+.. code-block:: javascript
+
+   db.students2.insertMany( [
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ] )
+
+The following operation finds a document where the ``_id`` field equals
+``1`` and uses an aggregation pipeline to calculate a new field
+``total`` from the ``grades`` field:
+
+.. code-block:: javascript
+
+   db.students2.findOneAndUpdate(
+      { _id : 1 },
+      [ { $set: { "total" : { $sum: "$grades.grade" } } } ],  // The $set stage is an alias for ``$addFields`` stage
+      { returnNewDocument: true }
+   )
+
+.. note::
+
+   The ``$set`` used in the pipeline refers to the aggregation stage
+   :pipeline:`$set` and not the update operator :update:`$set`.
+
+The operation returns the *updated* document :
+
+.. code-block:: javascript
+
+   { 
+     "_id" : 1, 
+     "grades" : [ { "grade" : 80, "mean" : 75, "std" : 6 }, { "grade" : 85, "mean" : 90, "std" : 4 }, { "grade" : 85, "mean" :85, "std" : 6 } ], 
+     "total" : 250
+   }

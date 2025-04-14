@@ -1,0 +1,645 @@
+.. _mongoldap:
+
+.. default-domain:: mongodb
+
+.. cond:: (not man)
+
+   .. binary:: mongoldap
+
+.. program:: mongoldap
+
+=============
+``mongoldap``
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |tool-binary| replace:: :binary:`~bin.mongoldap`
+
+*MongoDB Enterprise*
+
+Synopsis
+--------
+
+MongoDB Enterprise provides
+:binary:`~bin.mongoldap` for testing MongoDB's LDAP :ref:`configuration
+options <security.ldap.options>` against a running LDAP server or set
+of servers.
+
+To validate the LDAP options in the configuration file, set the
+:binary:`~bin.mongoldap` :option:`--config <mongoldap --config>` option to the configuration file's
+path.
+
+To test the LDAP configuration options, you must specify a :option:`--user <mongoldap --user>`
+and ``--password``. :binary:`~bin.mongoldap` simulates authentication to a
+MongoDB server running with the provided configuration options and credentials.
+
+:binary:`~bin.mongoldap` returns a report that includes the success or failure of
+any step in the LDAP authentication or authorization procedure. Error messages
+include information on specific errors encountered and potential advice for
+resolving the error.
+
+When configuring options related to :ref:`LDAP authorization
+<security-ldap-external>`, :binary:`~bin.mongoldap` executes an LDAP query
+constructed using the provided configuration options and username, and returns
+a list of roles on the ``admin`` database which the user is authorized for.
+
+You can use this information when configuring :ref:`LDAP authorization roles
+<security-ldap-external-roles>` for user access control. For example, use
+:binary:`~bin.mongoldap` to ensure your configuration allows privileged users to
+gain the necessary roles to perform their expected tasks. Similarly, use
+:binary:`~bin.mongoldap` to ensure your configuration disallows non-privileged
+users from gaining roles for accessing the MongoDB server, or performing
+unauthorized actions. 
+
+When configuring options related to :ref:`LDAP authentication
+<security-ldap>`, use :binary:`~bin.mongoldap` to ensure that the authentication
+operation works as expected.
+
+.. include:: /includes/extracts/require-cmd-line-mongoldap.rst
+
+This document provides a complete overview of all command line options for
+:binary:`~bin.mongoldap`.
+
+Installation
+------------
+
+The |tool-binary| tool is part of the *MongoDB Database Tools Extra*
+package, and can be :ref:`installed with the MongoDB Server
+<mongoldap-installed-with-server>` or as a
+:ref:`standalone installation <mongoldap-standalone-installation>`.
+
+.. _mongoldap-installed-with-server:
+
+Install with Server
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-download-dbtools-extra-server.rst
+
+.. _mongoldap-standalone-installation:
+
+Install as Standalone
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-download-dbtools-extra-standalone.rst
+
+Usage
+-----
+
+.. note::
+
+   A full description of LDAP or Active Directory is beyond the scope of
+   this documentation.
+
+Consider the following sample configuration file, designed to support
+LDAP authentication and authorization via Active Directory:
+
+.. code-block:: yaml
+
+   security:
+      authorization: "enabled"
+      ldap:
+         servers: "activedirectory.example.net"
+         bind:
+            queryUser: "mongodbadmin@dba.example.com"
+            queryPassword: "secret123"
+         userToDNMapping:
+            '[
+               {
+                  match : "(.+)",
+                  ldapQuery: "DC=example,DC=com??sub?(userPrincipalName={0})"
+               }
+            ]'
+         authz:
+            queryTemplate: "DC=example,DC=com??sub?(&(objectClass=group)(member:1.2.840.113556.1.4.1941:={USER}))"
+   setParameter:
+      authenticationMechanisms: "PLAIN"
+      
+You can use :binary:`~bin.mongoldap` to validate the configuration file, which
+returns a report of the procedure. You must specify a username and password
+for :binary:`~bin.mongoldap`.
+
+.. code-block:: bash
+
+   mongoldap --config=<path-to-config> --user="bob@dba.example.com" --password="secret123" 
+   
+If the provided credentials are valid, and the LDAP options in the
+configuration files are valid, the output might be as follows:
+
+.. code-block:: bash
+
+   Checking that an LDAP server has been specified...
+   [OK] LDAP server found
+   
+   Connecting to LDAP server...
+   [OK] Connected to LDAP server
+   
+   Parsing MongoDB to LDAP DN mappings..
+   [OK] MongoDB to LDAP DN mappings appear to be valid
+   
+   Attempting to authenticate against the LDAP server...
+   [OK] Successful authentication performed
+   
+   Checking if LDAP authorization has been enabled by configuration...
+   [OK] LDAP authorization enabled
+   
+   Parsing LDAP query template..
+   [OK] LDAP query configuration template appears valid
+   
+   Executing query against LDAP server...
+   [OK] Successfully acquired the following roles:
+   ...
+
+Behavior
+--------
+
+Starting in MonogoDB 5.1, ``mongoldap`` supports prefixing LDAP
+server with ``srv:`` and ``srv_raw:``.
+
+If your connection string specifies ``"srv:<DNS_NAME>"``, ``mongoldap`` 
+verifies that ``"_ldap._tcp.gc._msdcs.<DNS_NAME>"`` exists for SRV to 
+support Active Directory. If not found, it verifies 
+``"_ldap._tcp.<DNS_NAME>"`` exists for SRV. If an SRV record cannot be 
+found, ``mongoldap`` warns you to use ``"srv_raw:<DNS_NAME>"`` instead. 
+``mongoldap`` does the reverse check for ``"srv_raw:<DNS_NAME>"`` by 
+checking for ``"_ldap._tcp.<DNS NAME>"``. 
+
+Options
+-------
+
+.. option:: --config=<filename>, -f=<filename>
+
+   Specifies a configuration file for runtime configuration options. 
+   The options are equivalent to the command-line
+   configuration options. See :doc:`/reference/configuration-options` for
+   more information.
+   
+   :program:`mongoldap` uses any configuration options related to :ref:`security-ldap`
+   or :ref:`security-ldap-external` for testing LDAP authentication or
+   authorization.
+   
+   Requires specifying :option:`--user`. May accept :option:`--password` for
+   testing LDAP authentication.
+   
+   Ensure the configuration file uses ASCII encoding. The :program:`mongoldap`
+   instance does not support configuration files with non-ASCII encoding,
+   including UTF-8.
+
+
+.. option:: --user=<string>
+
+   
+   Username for :program:`mongoldap` to use when attempting LDAP authentication or
+   authorization. 
+
+
+.. option:: --password=<string>
+
+   
+   Password of the :option:`--user <mongoldap --user>` for
+   :program:`mongoldap` to use when attempting LDAP authentication. Not
+   required for LDAP authorization.
+
+
+.. option:: --ldapServers=<host1>:<port>,<host2>:<port>,...,<hostN>:<port>
+   
+   The LDAP server against which the :program:`mongoldap` authenticates users or
+   determines what actions a user is authorized to perform on a given
+   database. If the LDAP server specified has any replicated instances,
+   you may specify the host and port of each replicated server in a
+   comma-delimited list.
+   
+   If your LDAP infrastructure partitions the LDAP directory over multiple LDAP
+   servers, specify *one* LDAP server or any of its replicated instances to
+   :option:`--ldapServers`. MongoDB supports following LDAP referrals as defined in `RFC 4511
+   4.1.10 <https://www.rfc-editor.org/rfc/rfc4511.txt>`_. Do not use :option:`--ldapServers`
+   for listing every LDAP server in your infrastructure.
+   
+   If unset, :program:`mongoldap` cannot use :doc:`LDAP authentication or authorization
+   </core/security-ldap>`.
+
+                                           
+.. option:: --ldapQueryUser=<string>
+
+   *Available in MongoDB Enterprise only.*
+   
+   The identity with which :program:`mongoldap` binds as, when connecting to or
+   performing queries on an LDAP server.
+   
+   Only required if any of the following are true:
+   
+   - Using :ref:`LDAP authorization <security-ldap-external>`.
+   - Using an LDAP query for :option:`username transformation <--ldapUserToDNMapping>`.
+   - The LDAP server disallows anonymous binds
+   
+   You must use :option:`--ldapQueryUser` with :option:`--ldapQueryPassword`.
+   
+   If unset, :program:`mongoldap` will not attempt to bind to the LDAP server.
+   
+   .. note::
+   
+      Windows MongoDB deployments can use :option:`--ldapBindWithOSDefaults`
+      instead of :option:`--ldapQueryUser` and :option:`--ldapQueryPassword`. You cannot specify
+      both :option:`--ldapQueryUser` and :option:`--ldapBindWithOSDefaults` at the same time.
+
+                                           
+.. option:: --ldapQueryPassword=<string | array>
+
+.. include:: /includes/query-password.rst
+   :start-after: START-MONGOLDAP-QUERYPASSWORD
+   :end-before: END-MONGOLDAP-QUERYPASSWORD
+
+                                           
+.. option:: --ldapBindWithOSDefaults=<bool>
+
+   *Default*: false
+   
+   Available in MongoDB Enterprise for the Windows platform only.
+   
+   Allows :program:`mongoldap` to authenticate, or bind, using your Windows login
+   credentials when connecting to the LDAP server.
+   
+   Only required if:
+   
+   - Using :ref:`LDAP authorization <security-ldap-external>`.
+   - Using an LDAP query for :option:`username transformation <mongoldap --ldapUserToDNMapping>`.
+   - The LDAP server disallows anonymous binds
+   
+   Use :option:`--ldapBindWithOSDefaults <mongoldap --ldapBindWithOSDefaults>` to replace :option:`--ldapQueryUser <mongoldap --ldapQueryUser>` and
+   :option:`--ldapQueryPassword <mongoldap --ldapQueryPassword>`.
+
+                                           
+.. option:: --ldapBindMethod=<string>
+
+   *Default*: simple
+
+   *Available in MongoDB Enterprise only.*
+   
+   The method :program:`mongoldap` uses to authenticate to an LDAP
+   server. Use with :option:`--ldapQueryUser <mongoldap
+   --ldapQueryUser>` and :option:`--ldapQueryPassword <mongoldap
+   --ldapQueryPassword>` to connect to the LDAP server.
+
+   :option:`--ldapBindMethod <mongoldap --ldapBindMethod>` supports
+   the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 85
+   
+      * - Value
+        - Description
+   
+      * - ``simple``
+        - :program:`mongoldap` uses simple authentication.
+   
+      * - ``sasl``
+        - :program:`mongoldap` uses SASL protocol for authentication.
+   
+   If you specify ``sasl``, you can configure the available SASL mechanisms
+   using :option:`--ldapBindSaslMechanisms`. :program:`mongoldap` defaults to
+   using ``DIGEST-MD5`` mechanism.
+
+                                           
+.. option:: --ldapBindSaslMechanisms=<string>
+
+   *Default*: DIGEST-MD5
+
+   *Available in MongoDB Enterprise only.*
+   
+   A comma-separated list of SASL mechanisms :program:`mongoldap` can
+   use when authenticating to the LDAP server. The :program:`mongoldap` and the
+   LDAP server must agree on at least one mechanism. The :program:`mongoldap`
+   dynamically loads any SASL mechanism libraries installed on the host
+   machine at runtime.
+   
+   Install and configure the appropriate libraries for the selected
+   SASL mechanism(s) on both the :program:`mongoldap` host and the remote
+   LDAP server host. Your operating system may include certain SASL
+   libraries by default. Defer to the documentation associated with each
+   SASL mechanism for guidance on installation and configuration.
+   
+   If using the ``GSSAPI`` SASL mechanism for use with
+   :ref:`security-kerberos`, verify the following for the
+   :program:`mongoldap` host machine:
+   
+   ``Linux``
+     - The ``KRB5_CLIENT_KTNAME`` environment
+       variable resolves to the name of the client :ref:`keytab-files`
+       for the host machine. For more on Kerberos environment
+       variables, please defer to the
+       `Kerberos documentation <https://web.mit.edu/kerberos/krb5-1.13/doc/admin/env_variables.html>`__.
+     - The client keytab includes a
+       :ref:`kerberos-user-principal` for the :program:`mongoldap` to use when
+       connecting to the LDAP server and execute LDAP queries.
+   
+   ``Windows``
+     If connecting to an Active Directory server, the Windows
+     Kerberos configuration automatically generates a
+     `Ticket-Granting-Ticket <https://msdn.microsoft.com/en-us/library/windows/desktop/aa380510(v=vs.85).aspx>`__
+     when the user logs onto the system. Set :option:`--ldapBindWithOSDefaults` to
+     ``true`` to allow :program:`mongoldap` to use the generated credentials when
+     connecting to the Active Directory server and execute queries.
+   
+   Set :option:`--ldapBindMethod` to ``sasl`` to use this option.
+   
+   .. note::
+   
+      For a complete list of SASL mechanisms see the
+      `IANA listing
+      <http://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml>`_.
+      Defer to the documentation for your LDAP or Active Directory
+      service for identifying the SASL mechanisms compatible with the
+      service.
+   
+      MongoDB is not a source of SASL mechanism libraries, nor
+      is the MongoDB documentation a definitive source for
+      installing or configuring any given SASL mechanism. For
+      documentation and support, defer to the SASL mechanism
+      library vendor or owner.
+   
+      For more information on SASL, defer to the following resources:
+   
+      - For Linux, please see the `Cyrus SASL documentation <https://www.cyrusimap.org/sasl/>`__.
+      - For Windows, please see the `Windows SASL documentation <https://msdn.microsoft.com/en-us/library/cc223500.aspx>`__.
+
+                                           
+.. option:: --ldapTransportSecurity=<string>
+
+   *Default*: tls
+
+   *Available in MongoDB Enterprise only.*
+   
+   By default, :program:`mongoldap` creates a TLS/SSL secured connection to the LDAP
+   server.
+   
+   For Linux deployments, you must configure the appropriate TLS Options in
+   ``/etc/openldap/ldap.conf`` file. Your operating system's package manager
+   creates this file as part of the MongoDB Enterprise installation, via the
+   ``libldap`` dependency. See the documentation for ``TLS Options`` in the
+   `ldap.conf OpenLDAP documentation
+   <http://www.openldap.org/software/man.cgi?query=ldap.conf&manpath=OpenLDAP+2.4-Release>`_
+   for more complete instructions.
+   
+   For Windows deployment, you must add the LDAP server CA certificates to the
+   Windows certificate management tool. The exact name and functionality of the
+   tool may vary depending on operating system version. Please see the
+   documentation for your version of Windows for more information on
+   certificate management.
+   
+   Set :option:`--ldapTransportSecurity` to ``none`` to disable TLS/SSL between :program:`mongoldap` and the LDAP
+   server.
+   
+   .. warning::
+   
+      Setting :option:`--ldapTransportSecurity` to ``none`` transmits plaintext information and possibly
+      credentials between :program:`mongoldap` and the LDAP server.
+
+                                           
+.. option:: --ldapTimeoutMS=<int>
+
+   *Default*: 10000
+
+   *Available in MongoDB Enterprise only.*
+   
+   The amount of time in milliseconds :program:`mongoldap` should wait for an LDAP server
+   to respond to a request.
+   
+   Increasing the value of :option:`--ldapTimeoutMS` may prevent connection failure between the
+   MongoDB server and the LDAP server, if the source of the failure is a
+   connection timeout. Decreasing the value of :option:`--ldapTimeoutMS` reduces the time
+   MongoDB waits for a response from the LDAP server.
+                                           
+.. option:: --ldapUserToDNMapping=<string>
+
+   *Available in MongoDB Enterprise only.*
+   
+   Maps the username provided to :program:`mongoldap` for authentication to a LDAP
+   Distinguished Name (DN). You may need to use :option:`--ldapUserToDNMapping` to transform a
+   username into an LDAP DN in the following scenarios:
+   
+   - Performing LDAP authentication with simple LDAP binding, where users
+     authenticate to MongoDB with usernames that are not full LDAP DNs.
+   
+   - Using an :option:`LDAP authorization query template
+     <mongod --ldapAuthzQueryTemplate>` that requires a DN.
+   
+   - Transforming the usernames of clients authenticating to Mongo DB using
+     different authentication mechanisms (e.g. x.509, kerberos) to a full LDAP
+     DN for authorization.
+   
+   :option:`--ldapUserToDNMapping` expects a quote-enclosed JSON-string representing an ordered array
+   of documents. Each document contains a regular expression ``match`` and
+   either a ``substitution`` or ``ldapQuery`` template used for transforming the
+   incoming username.
+   
+   Each document in the array has the following form:
+   
+   .. code-block:: javascript
+   
+      {
+        match: "<regex>"
+        substitution: "<LDAP DN>" | ldapQuery: "<LDAP Query>"
+      }
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 70 20
+   
+      * - Field
+        - Description
+        - Example
+   
+      * - ``match``
+        - An ECMAScript-formatted regular expression (regex) to match against a
+          provided username. Each parenthesis-enclosed section represents a
+          regex capture group used by ``substitution`` or ``ldapQuery``.
+        - ``"(.+)ENGINEERING"``
+          ``"(.+)DBA"``
+   
+      * - ``substitution``
+   
+        - An LDAP distinguished name (DN) formatting template that converts the
+          authentication name matched by the ``match`` regex into a LDAP DN.
+          Each curly bracket-enclosed numeric value is replaced by the
+          corresponding `regex capture group
+          <http://www.regular-expressions.info/refcapture.html>`_ extracted
+          from the authentication username via the ``match`` regex.
+          
+          The result of the substitution must be an `RFC4514
+          <https://www.ietf.org/rfc/rfc4514.txt>`_ escaped string.
+   
+        - ``"cn={0},ou=engineering,
+          dc=example,dc=com"``
+   
+      * - ``ldapQuery``
+   
+        - A LDAP query formatting template that inserts the authentication
+          name matched by the ``match`` regex into an LDAP query URI encoded
+          respecting RFC4515 and RFC4516. Each curly bracket-enclosed numeric
+          value is replaced by the corresponding `regex capture group
+          <http://www.regular-expressions.info/refcapture.html>`_ extracted
+          from the authentication username via the ``match`` expression.
+          :program:`mongoldap` executes the query against the LDAP server to retrieve
+          the LDAP DN for the authenticated user. :program:`mongoldap` requires
+          exactly one returned result for the transformation to be
+          successful, or :program:`mongoldap` skips this transformation.
+   
+        - ``"ou=engineering,dc=example,
+          dc=com??one?(user={0})"``
+   
+   .. note::
+   
+      An explanation of  `RFC4514 <https://www.ietf.org/rfc/rfc4514.txt>`_,
+      `RFC4515 <https://tools.ietf.org/html/rfc4515>`_,
+      `RFC4516 <https://tools.ietf.org/html/rfc4516>`_, or LDAP queries is out
+      of scope for the MongoDB Documentation. Please review the RFC directly or
+      use your preferred LDAP resource.
+   
+   For each document in the array, you must use either ``substitution`` or
+   ``ldapQuery``. You *cannot* specify both in the same document.
+   
+   When performing authentication or authorization, :program:`mongoldap` steps through
+   each document in the array in the given order, checking the authentication
+   username against the ``match`` filter.  If a match is found,
+   :program:`mongoldap` applies the transformation and uses the output for
+   authenticating the user. :program:`mongoldap` does not check the remaining documents
+   in the array.
+   
+   If the given document does not match the provided authentication
+   name, :program:`mongoldap` continues through the list of documents
+   to find additional matches. If no matches are found in any document,
+   or the transformation the document describes fails,
+   :program:`mongoldap` returns an error. 
+
+   Starting in MongoDB 4.4, :program:`mongoldap` also returns an error
+   if one of the transformations cannot be evaluated due to networking
+   or authentication failures to the LDAP server. :program:`mongoldap`
+   rejects the connection request and does not check the remaining
+   documents in the array.
+
+   Starting in MongoDB 5.0, :option:`--ldapUserToDNMapping`
+   accepts an empty string ``""`` or empty array ``[ ]`` in place of a
+   mapping documnent. If providing an empty string or empty array to
+   :option:`--ldapUserToDNMapping`, MongoDB will map the
+   authenticated username as the LDAP DN. Previously, providing an
+   empty mapping document would cause mapping to fail.
+
+   .. example::
+   
+     The following shows two transformation documents. The first
+     document matches against any string ending in ``@ENGINEERING``, placing
+     anything preceeding the suffix into a regex capture group. The
+     second document matches against any string ending in ``@DBA``, placing
+     anything preceeding the suffix into a regex capture group.
+   
+     .. important::  You must pass the array to :option:`--ldapUserToDNMapping` as a string.
+   
+     .. code-block:: text
+   
+        "[
+           {
+              match: "(.+)@ENGINEERING.EXAMPLE.COM",
+              substitution: "cn={0},ou=engineering,dc=example,dc=com"
+           },
+           {
+              match: "(.+)@DBA.EXAMPLE.COM",
+              ldapQuery: "ou=dba,dc=example,dc=com??one?(user={0})"
+   
+           }
+   
+        ]"
+   
+     A user with username ``alice@ENGINEERING.EXAMPLE.COM`` matches the first
+     document. The regex capture group ``{0}`` corresponds to the string
+     ``alice``. The resulting output is the DN
+     ``"cn=alice,ou=engineering,dc=example,dc=com"``.
+   
+     A user with username ``bob@DBA.EXAMPLE.COM`` matches the second document.
+     The regex capture group ``{0}`` corresponds to the string ``bob``.  The
+     resulting output is the LDAP query
+     ``"ou=dba,dc=example,dc=com??one?(user=bob)"``. :program:`mongoldap` executes this
+     query against the LDAP server, returning the result
+     ``"cn=bob,ou=dba,dc=example,dc=com"``.
+   
+   If :option:`--ldapUserToDNMapping` is unset, :program:`mongoldap` applies no transformations to the username
+   when attempting to authenticate or authorize a user against the LDAP server.
+
+.. option:: --ldapAuthzQueryTemplate=<string>
+
+   *Available in MongoDB Enterprise only.*
+   
+   A relative LDAP query URL formatted conforming to `RFC4515
+   <https://tools.ietf.org/html/rfc4515>`_ and `RFC4516
+   <https://tools.ietf.org/html/rfc4516>`_ that :program:`mongoldap` executes to obtain
+   the LDAP groups to which the authenticated user belongs to. The query is
+   relative to the host or hosts specified in :option:`--ldapServers`.
+   
+   In the URL, you can use the following substituion tokens:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+      
+      * - Substitution Token
+        - Description
+   
+      * - ``{USER}`` 
+      
+        - Substitutes the authenticated username, or the
+          :setting:`transformed <security.ldap.userToDNMapping>`
+          username if a :option:`username mapping <--ldapUserToDNMapping>` is specified.
+   
+      * - ``{PROVIDED_USER}``
+   
+        - Substitutes the supplied username, i.e. before either
+          authentication or :setting:`LDAP transformation
+          <security.ldap.userToDNMapping>`.
+          
+          .. versionadded:: 4.2
+   
+   When constructing the query URL, ensure that the order of LDAP parameters
+   respects RFC4516:
+   
+   .. code-block:: bash
+   
+     [ dn  [ ? [attributes] [ ? [scope] [ ? [filter] [ ? [Extensions] ] ] ] ] ]
+   
+   If your query includes an attribute, :program:`mongoldap` assumes that the query
+   retrieves a the DNs which this entity is member of.
+   
+   If your query does not include an attribute, :program:`mongoldap` assumes
+   the query retrieves all entities which the user is member of.
+   
+   For each LDAP DN returned by the query, :program:`mongoldap` assigns the authorized
+   user a corresponding role on the ``admin`` database. If a role on the on the
+   ``admin`` database exactly matches the DN, :program:`mongoldap` grants the user the
+   roles and privileges assigned to that role. See the
+   :method:`db.createRole()` method for more information on creating roles.
+   
+   .. example::
+   
+     This LDAP query returns any groups listed in the LDAP user object's
+     ``memberOf`` attribute.
+   
+     .. code-block:: bash
+   
+        "{USER}?memberOf?base"
+   
+     Your LDAP configuration may not include the ``memberOf`` attribute as part
+     of the user schema, may possess a different attribute for reporting group
+     membership, or may not track group membership through attributes.
+     Configure your query with respect to your own unique LDAP configuration.
+   
+   If unset, :program:`mongoldap` cannot authorize users using LDAP.
+   
+   .. note::
+   
+      An explanation of `RFC4515 <https://tools.ietf.org/html/rfc4515>`_,
+      `RFC4516 <https://tools.ietf.org/html/rfc4516>`_ or LDAP queries is out
+      of scope for the MongoDB Documentation. Please review the RFC directly or
+      use your preferred LDAP resource.

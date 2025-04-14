@@ -1,0 +1,1585 @@
+================
+replSetGetStatus
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |fcbis-only| replace:: This field only appears when using file copy based initial sync.
+.. |logical-or-fcbis| replace:: This field appears when using either logical or file copy based initial sync. 
+
+Definition
+----------
+
+.. dbcommand:: replSetGetStatus
+
+   The ``replSetGetStatus`` command returns the status of the replica
+   set from the point of view of the server that processed the command.
+   ``replSetGetStatus`` must be run on the :term:`admin database`.
+
+   The :binary:`~bin.mongod` instance must be a replica set member for
+   :dbcommand:`replSetGetStatus` to return successfully.
+
+   Data provided by this command derives from data included in
+   heartbeats sent to the server by other members of the replica set.
+   Because of the frequency of heartbeats, these data can be several
+   seconds out of date.
+
+   .. |method| replace:: :method:`rs.status` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+      { 
+        replSetGetStatus: 1 
+      } 
+   )
+
+- Starting in MongoDB 4.2.1
+      If you run :dbcommand:`replSetGetStatus` or the
+      :binary:`~bin.mongosh` helper :method:`rs.status()` on a
+      member during its :ref:`initial sync <replica-set-initial-sync>`
+      (i.e. :replstate:`STARTUP2` state), the command returns
+      :data:`replSetGetStatus.initialSyncStatus` metrics.
+      
+      After the member completes the initial synchronization and
+      transitions to another state, the
+      :data:`replSetGetStatus.initialSyncStatus` metrics are no longer
+      available.
+
+- In earlier versions (3.6.x-4.2.0)
+      To return :ref:`initial sync <replica-set-initial-sync>` status
+      information, include ``initialSync: 1`` in the command on a
+      secondary member or a member in :replstate:`STARTUP2` state:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
+
+      The :data:`replSetGetStatus.initialSyncStatus` metrics remain
+      available after the member completes its initial sync. That is,
+      you can run the :dbcommand:`replSetGetStatus` command with the
+      ``initialSync: 1`` on the secondary member to return its initial
+      sync information.
+
+      You cannot specify ``initialSync: 1`` in the
+      :binary:`~bin.mongosh` helper :method:`rs.status()`.
+
+.. _rs-status-output:
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+      - id: primary
+        name: Primary
+        content: |
+
+          The following example runs the :dbcommand:`replSetGetStatus`
+          command on the :term:`admin database` of the replica set
+          primary:
+
+          .. code-block:: javascript
+
+             db.adminCommand( { replSetGetStatus: 1 } )
+
+          The command returns the following output for an example
+          replica set primary:
+
+          .. code-block:: javascript
+
+             {
+                "set" : "replset",
+                "date" : ISODate("2020-03-05T05:24:45.567Z"),
+                "myState" : 1,
+                "term" : NumberLong(3),
+                "syncSourceHost" : "",
+                "syncSourceId" : -1,
+                "heartbeatIntervalMillis" : NumberLong(2000),
+                "majorityVoteCount" : 2,
+                "writeMajorityCount" : 2,
+                "votingMembersCount" : 3,            // Available starting in v4.4
+                "writableVotingMembersCount" : 3,    // Available starting in v4.4
+                "optimes" : {
+                   "lastCommittedOpTime" : {
+                      "ts" : Timestamp(1583385878, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "lastCommittedWallTime" : ISODate("2020-03-05T05:24:38.122Z"),
+                   "readConcernMajorityOpTime" : {
+                      "ts" : Timestamp(1583385878, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "readConcernMajorityWallTime" : ISODate("2020-03-05T05:24:38.122Z"),
+                   "appliedOpTime" : {
+                      "ts" : Timestamp(1583385878, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "durableOpTime" : {
+                      "ts" : Timestamp(1583385878, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "lastAppliedWallTime" : ISODate("2020-03-05T05:24:38.122Z"),
+                   "lastDurableWallTime" : ISODate("2020-03-05T05:24:38.122Z")
+                },
+                "lastStableRecoveryTimestamp" : Timestamp(1583385868, 2),
+                "electionCandidateMetrics" : {
+                   "lastElectionReason" : "stepUpRequestSkipDryRun",
+                   "lastElectionDate" : ISODate("2020-03-05T05:24:28.061Z"),
+                   "electionTerm" : NumberLong(3),
+                   "lastCommittedOpTimeAtElection" : {
+                      "ts" : Timestamp(1583385864, 1),
+                      "t" : NumberLong(2)
+                   },
+                   "lastSeenOpTimeAtElection" : {
+                      "ts" : Timestamp(1583385864, 1),
+                      "t" : NumberLong(2)
+                   },
+                   "numVotesNeeded" : 2,
+                   "priorityAtElection" : 1,
+                   "electionTimeoutMillis" : NumberLong(10000),
+                   "priorPrimaryMemberId" : 1,
+                   "numCatchUpOps" : NumberLong(0),
+                   "newTermStartDate" : ISODate("2020-03-05T05:24:28.118Z"),
+                   "wMajorityWriteAvailabilityDate" : ISODate("2020-03-05T05:24:28.228Z")
+                },
+                "electionParticipantMetrics" : {
+                   "votedForCandidate" : true,
+                   "electionTerm" : NumberLong(2),
+                   "lastVoteDate" : ISODate("2020-03-05T05:22:33.306Z"),
+                   "electionCandidateMemberId" : 1,
+                   "voteReason" : "",
+                   "lastAppliedOpTimeAtElection" : {
+                      "ts" : Timestamp(1583385748, 1),
+                      "t" : NumberLong(1)
+                   },
+                   "maxAppliedOpTimeInSet" : {
+                      "ts" : Timestamp(1583385748, 1),
+                      "t" : NumberLong(1)
+                   },
+                   "priorityAtElection" : 1
+                },
+                "members" : [
+                   {
+                      "_id" : 0,
+                      "name" : "m1.example.net:27017",
+                      "health" : 1,
+                      "state" : 1,
+                      "stateStr" : "PRIMARY",
+                      "uptime" : 269,
+                      "optime" : {
+                         "ts" : Timestamp(1583385878, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDate" : ISODate("2020-03-05T05:24:38Z"),
+                      "lastAppliedWallTime": ISODate("2020-03-05T05:24:38Z"),
+                      "lastDurableWallTime": ISODate("2020-03-05T05:24:38Z"),
+                      "syncSourceHost" : "",
+                      "syncSourceId" : -1,
+                      "infoMessage" : "",
+                      "electionTime" : Timestamp(1583385868, 1),
+                      "electionDate" : ISODate("2020-03-05T05:24:28Z"),
+                      "configVersion" : 1,
+                      "configTerm" : 0,
+                      "self" : true,
+                      "lastHeartbeatMessage" : ""
+                   },
+                   {
+                      "_id" : 1,
+                      "name" : "m2.example.net:27017",
+                      "health" : 1,
+                      "state" : 2,
+                      "stateStr" : "SECONDARY",
+                      "uptime" : 266,
+                      "optime" : {
+                         "ts" : Timestamp(1583385878, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDurable" : {
+                         "ts" : Timestamp(1583385878, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDate" : ISODate("2020-03-05T05:24:38Z"),
+                      "optimeDurableDate" : ISODate("2020-03-05T05:24:38Z"),
+                      "lastAppliedWallTime": ISODate("2020-03-05T05:24:38Z"),
+                      "lastDurableWallTime": ISODate("2020-03-05T05:24:38Z"),
+                      "lastHeartbeat" : ISODate("2020-03-05T05:24:44.114Z"),
+                      "lastHeartbeatRecv" : ISODate("2020-03-05T05:24:43.999Z"),
+                      "pingMs" : NumberLong(0),
+                      "lastHeartbeatMessage" : "",
+                      "syncSourceHost" : "m3.example.net:27017",
+                      "syncSourceId" : 2,
+                      "infoMessage" : "",
+                      "configVersion" : 1
+                   },
+                   {
+                      "_id" : 2,
+                      "name" : "m3.example.net:27017",
+                      "health" : 1,
+                      "state" : 2,
+                      "stateStr" : "SECONDARY",
+                      "uptime" : 266,
+                      "optime" : {
+                         "ts" : Timestamp(1583385878, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDurable" : {
+                         "ts" : Timestamp(1583385878, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDate" : ISODate("2020-03-05T05:24:38Z"),
+                      "optimeDurableDate" : ISODate("2020-03-05T05:24:38Z"),
+                      "lastAppliedWallTime": ISODate("2020-03-05T05:24:38Z"),
+                      "lastDurableWallTime": ISODate("2020-03-05T05:24:38Z"),
+                      "lastHeartbeat" : ISODate("2020-03-05T05:24:44.114Z"),
+                      "lastHeartbeatRecv" : ISODate("2020-03-05T05:24:43.998Z"),
+                      "pingMs" : NumberLong(0),
+                      "lastHeartbeatMessage" : "",
+                      "syncSourceHost" : "m1.example.net:27017",
+                      "syncSourceId" : 0,
+                      "infoMessage" : "",
+                      "configVersion" : 1
+                   }
+                ],
+                "ok" : 1,
+                "$clusterTime" : {
+                   "clusterTime" : Timestamp(1583385878, 1),
+                   "signature" : {
+                      "hash" : BinData(0,"9C2qcGVkipEGJW3iF90qxb/gIwc="),
+                      "keyId" : NumberLong("6800589497806356482")
+                   }
+                },
+                "operationTime" : Timestamp(1583385878, 1)
+             }
+
+      - id: secondary
+        name: Secondary
+        content: |
+
+          The following example runs the :dbcommand:`replSetGetStatus`
+          command on the :term:`admin database` of the replica set
+          secondary:
+
+          .. code-block:: javascript
+
+             db.adminCommand( { replSetGetStatus: 1 } )
+
+          The command returns the following output for an example replica set secondary:
+
+          .. code-block:: javascript
+
+             {
+                "set" : "replset",
+                "date" : ISODate("2020-03-05T05:27:06.939Z"),
+                "myState" : 2,
+                "term" : NumberLong(3),
+                "syncSourceHost" : "m3.example.net:27017",
+                "syncSourceId" : 2,
+                "heartbeatIntervalMillis" : NumberLong(2000),
+                "majorityVoteCount" : 2,
+                "writeMajorityCount" : 2,
+                "votingMembersCount" : 3,             // Available starting in v4.4
+                "writableVotingMembersCount" : 3,     // Available starting in v4.4
+                "optimes" : {
+                   "lastCommittedOpTime" : {
+                      "ts" : Timestamp(1583386018, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "lastCommittedWallTime" : ISODate("2020-03-05T05:26:58.175Z"),
+                   "readConcernMajorityOpTime" : {
+                      "ts" : Timestamp(1583386018, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "readConcernMajorityWallTime" : ISODate("2020-03-05T05:26:58.175Z"),
+                   "appliedOpTime" : {
+                      "ts" : Timestamp(1583386018, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "durableOpTime" : {
+                      "ts" : Timestamp(1583386018, 1),
+                      "t" : NumberLong(3)
+                   },
+                   "lastAppliedWallTime" : ISODate("2020-03-05T05:26:58.175Z"),
+                   "lastDurableWallTime" : ISODate("2020-03-05T05:26:58.175Z")
+                },
+                "lastStableRecoveryTimestamp" : Timestamp(1583385988, 1),
+                "electionParticipantMetrics" : {
+                   "votedForCandidate" : true,
+                   "electionTerm" : NumberLong(3),
+                   "lastVoteDate" : ISODate("2020-03-05T05:24:28.076Z"),
+                   "electionCandidateMemberId" : 0,
+                   "voteReason" : "",
+                   "lastAppliedOpTimeAtElection" : {
+                      "ts" : Timestamp(1583385864, 1),
+                      "t" : NumberLong(2)
+                   },
+                   "maxAppliedOpTimeInSet" : {
+                      "ts" : Timestamp(1583385864, 1),
+                      "t" : NumberLong(2)
+                   },
+                   "priorityAtElection" : 1,
+                   "newTermStartDate" : ISODate("2020-03-05T05:24:28.118Z"),
+                   "newTermAppliedDate" : ISODate("2020-03-05T05:24:29.739Z")
+                },
+                "members" : [
+                   {
+                      "_id" : 0,
+                      "name" : "m1.example.net:27017",
+                      "health" : 1,
+                      "state" : 1,
+                      "stateStr" : "PRIMARY",
+                      "uptime" : 407,
+                      "optime" : {
+                         "ts" : Timestamp(1583386018, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDurable" : {
+                         "ts" : Timestamp(1583386018, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDate" : ISODate("2020-03-05T05:26:58Z"),
+                      "optimeDurableDate" : ISODate("2020-03-05T05:26:58Z"),
+                      "lastAppliedWallTime": ISODate("2020-03-05T05:26:58Z"),
+                      "lastDurableWallTime": ISODate("2020-03-05T05:26:58Z"),
+                      "lastHeartbeat" : ISODate("2020-03-05T05:27:06.165Z"),
+                      "lastHeartbeatRecv" : ISODate("2020-03-05T05:27:06.329Z"),
+                      "pingMs" : NumberLong(0),
+                      "lastHeartbeatMessage" : "",
+                      "syncSourceHost" : "",
+                      "syncSourceId" : -1,
+                      "infoMessage" : "",
+                      "electionTime" : Timestamp(1583385868, 1),
+                      "electionDate" : ISODate("2020-03-05T05:24:28Z"),
+                      "configVersion" : 1
+                   },
+                   {
+                      "_id" : 1,
+                      "name" : "m2.example.net:27017",
+                      "health" : 1,
+                      "state" : 2,
+                      "stateStr" : "SECONDARY",
+                      "uptime" : 409,
+                      "optime" : {
+                         "ts" : Timestamp(1583386018, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDate" : ISODate("2020-03-05T05:26:58Z"),
+                      "lastAppliedWallTime": ISODate("2020-03-05T05:26:58Z"),
+                      "lastDurableWallTime": ISODate("2020-03-05T05:26:58Z"),
+                      "syncSourceHost" : "m3.example.net:27017",
+                      "syncSourceId" : 2,
+                      "infoMessage" : "",
+                      "configVersion" : 1,
+                      "configTerm" : 0,
+                      "self" : true,
+                      "lastHeartbeatMessage" : ""
+                   },
+                   {
+                      "_id" : 2,
+                      "name" : "m3.example.net:27017",
+                      "health" : 1,
+                      "state" : 2,
+                      "stateStr" : "SECONDARY",
+                      "uptime" : 407,
+                      "optime" : {
+                         "ts" : Timestamp(1583386018, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDurable" : {
+                         "ts" : Timestamp(1583386018, 1),
+                         "t" : NumberLong(3)
+                      },
+                      "optimeDate" : ISODate("2020-03-05T05:26:58Z"),
+                      "optimeDurableDate" : ISODate("2020-03-05T05:26:58Z"),
+                      "lastAppliedWallTime": ISODate("2020-03-05T05:26:58Z"),
+                      "lastDurableWallTime": ISODate("2020-03-05T05:26:58Z"),
+                      "lastHeartbeat" : ISODate("2020-03-05T05:27:06.165Z"),
+                      "lastHeartbeatRecv" : ISODate("2020-03-05T05:27:06.165Z"),
+                      "pingMs" : NumberLong(0),
+                      "lastHeartbeatMessage" : "",
+                      "syncSourceHost" : "m1.example.net:27017",
+                      "syncSourceId" : 0,
+                      "infoMessage" : "",
+                      "configVersion" : 1
+                   }
+                ],
+                "ok" : 1,
+                "$clusterTime" : {
+                   "clusterTime" : Timestamp(1583386018, 1),
+                   "signature" : {
+                      "hash" : BinData(0,"kmhE5YARZlzn/DX4B/D0E5P6okY="),
+                      "keyId" : NumberLong("6800589497806356482")
+                   }
+                },
+                "operationTime" : Timestamp(1583386018, 1)
+             }
+
+          In earlier versions (3.6.x-4.2.0)
+             You can include the optional ``initialSync: 1`` to include
+             the :data:`replSetGetStatus.initialSyncStatus` in the
+             output (you can omit if you do not want to return the
+             initial sync status):
+      
+             .. code-block:: javascript
+
+                db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
+          
+      - id: startup2
+        name: Include Initial Sync Metrics
+        content: |
+
+          Starting in MongoDB 5.2, 
+             the :data:`replSetGetStatus.initialSyncStatus` document
+             contains :ref:`additional fields 
+             <fcbis-initial-sync-fields>` when using a
+             :ref:`file copy based initial sync 
+             <replica-set-initial-sync-file-copy-based>`.
+
+
+          Starting in MongoDB 4.2.1, 
+             If you run :dbcommand:`replSetGetStatus` on a member
+             during its initial sync, the command returns
+             :data:`replSetGetStatus.initialSyncStatus` metrics.
+          
+             .. code-block:: javascript
+
+                db.adminCommand( { replSetGetStatus: 1 } )
+             
+             After the member completes the initial synchronization and
+             transitions to another state, the
+             :data:`replSetGetStatus.initialSyncStatus` metrics are no
+             longer available.
+
+          In earlier versions (3.6.x-4.2.0)
+             You can include the optional ``initialSync: 1`` to include
+             the :data:`replSetGetStatus.initialSyncStatus` in the
+             output (you can omit if you do not want to return the
+             initial sync status):
+      
+             .. code-block:: javascript
+
+                db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
+             
+             For 3.6.x-4.2.0 replica sets,
+             :data:`replSetGetStatus.initialSyncStatus` metrics remains
+             available after the member completes its initial sync.
+             That is, you can run the :dbcommand:`replSetGetStatus`
+             command with the ``initialSync: 1`` on the secondary
+             member to return its initial sync information.
+
+          The following example runs the :dbcommand:`replSetGetStatus`
+          command on the :term:`admin database` of the 4.4 replica
+          set member during its initial sync:
+
+          .. code-block:: javascript
+
+             {
+                "set" : "replset",
+                "date" : ISODate("2020-03-05T18:04:24.274Z"),
+                "myState" : 5,
+                "term" : NumberLong(1),
+                "syncSourceHost" : "m1.example.net:27017",
+                "syncSourceId" : 0,
+                "heartbeatIntervalMillis" : NumberLong(2000),
+                "majorityVoteCount" : 2,
+                "writeMajorityCount" : 2,
+                "votingMembersCount" : 2,                 // Available starting in v4.4
+                "writableVotingMembersCount" : 2,         // Available starting in v4.4
+                "optimes" : {
+                   "lastCommittedOpTime" : {
+                      "ts" : Timestamp(0, 0),
+                      "t" : NumberLong(-1)
+                   },
+                   "lastCommittedWallTime" : ISODate("1970-01-01T00:00:00Z"),
+                   "appliedOpTime" : {
+                      "ts" : Timestamp(0, 0),
+                      "t" : NumberLong(-1)
+                   },
+                   "durableOpTime" : {
+                      "ts" : Timestamp(0, 0),
+                      "t" : NumberLong(-1)
+                   },
+                   "lastAppliedWallTime" : ISODate("1970-01-01T00:00:00Z"),
+                   "lastDurableWallTime" : ISODate("1970-01-01T00:00:00Z")
+                },
+                "lastStableRecoveryTimestamp" : Timestamp(0, 0),
+                "initialSyncStatus" : {
+                   "failedInitialSyncAttempts" : 0,
+                   "maxFailedInitialSyncAttempts" : 10,
+                   "initialSyncStart" : ISODate("2020-03-05T18:03:33.248Z"),
+                   "initialSyncAttempts" : [ ],
+                   "appliedOps" : 0,
+                   "initialSyncOplogStart" : Timestamp(1583431411, 1),
+                   "syncSourceUnreachableSince" : ISODate("2020-03-05T18:04:15.587Z"),  // Available starting in v4.4
+                   "currentOutageDurationMillis" : NumberLong(8687),                    // Available starting in v4.4
+                   "totalTimeUnreachableMillis" : NumberLong(8687),                     // Available starting in v4.4
+                   "databases" : {
+                      "databasesCloned" : 3,
+                      "admin" : {
+                         "collections" : 4,
+                         "clonedCollections" : 4,
+                         "start" : ISODate("2020-03-05T18:03:33.490Z"),
+                         "end" : ISODate("2020-03-05T18:03:33.919Z"),
+                         "elapsedMillis" : 429,
+                         "admin.system.roles" : {
+                            "documentsToCopy" : 22,
+                            "documentsCopied" : 22,
+                            "indexes" : 2,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2020-03-05T18:03:33.490Z"),
+                            "end" : ISODate("2020-03-05T18:03:33.628Z"),
+                            "elapsedMillis" : 138,
+                            "receivedBatches" : 1
+                         },
+                         "admin.system.users" : {
+                            "documentsToCopy" : 32,
+                            "documentsCopied" : 32,
+                            "indexes" : 2,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2020-03-05T18:03:33.628Z"),
+                            "end" : ISODate("2020-03-05T18:03:33.777Z"),
+                            "elapsedMillis" : 149,
+                            "receivedBatches" : 1
+                         },
+                         "admin.system.keys" : {
+                            "documentsToCopy" : 2,
+                            "documentsCopied" : 2,
+                            "indexes" : 1,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2020-03-05T18:03:33.777Z"),
+                            "end" : ISODate("2020-03-05T18:03:33.853Z"),
+                            "elapsedMillis" : 76,
+                            "receivedBatches" : 1
+                         },
+                         "admin.system.version" : {
+                            "documentsToCopy" : 2,
+                            "documentsCopied" : 2,
+                            "indexes" : 1,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2020-03-05T18:03:33.853Z"),
+                            "end" : ISODate("2020-03-05T18:03:33.919Z"),
+                            "elapsedMillis" : 66,
+                            "receivedBatches" : 1
+                         }
+                      },
+                      "config" : {
+                         "collections" : 2,
+                         "clonedCollections" : 2,
+                         "start" : ISODate("2020-03-05T18:03:33.929Z"),
+                         "end" : ISODate("2020-03-05T18:03:34.127Z"),
+                         "elapsedMillis" : 198,
+                         "config.transactions" : {
+                            "documentsToCopy" : 0,
+                            "documentsCopied" : 0,
+                            "indexes" : 1,
+                            "fetchedBatches" : 0,
+                            "start" : ISODate("2020-03-05T18:03:33.929Z"),
+                            "end" : ISODate("2020-03-05T18:03:34.003Z"),
+                            "elapsedMillis" : 74,
+                            "receivedBatches" : 0
+                         },
+                         "config.system.sessions" : {
+                            "documentsToCopy" : 0,
+                            "documentsCopied" : 0,
+                            "indexes" : 2,
+                            "fetchedBatches" : 0,
+                            "start" : ISODate("2020-03-05T18:03:34.003Z"),
+                            "end" : ISODate("2020-03-05T18:03:34.127Z"),
+                            "elapsedMillis" : 124,
+                            "receivedBatches" : 0
+                         }
+                      },
+                      "test" : {
+                         "collections" : 1,
+                         "clonedCollections" : 1,
+                         "start" : ISODate("2020-03-05T18:03:34.127Z"),
+                         "end" : ISODate("2020-03-05T18:04:22.094Z"),
+                         "elapsedMillis" : 47967,
+                         "test.hugeindex" : {
+                            "documentsToCopy" : 25000,
+                            "documentsCopied" : 25000,
+                            "indexes" : 2,
+                            "fetchedBatches" : 21,
+                            "start" : ISODate("2020-03-05T18:03:34.127Z"),
+                            "end" : ISODate("2020-03-05T18:04:22.094Z"),
+                            "elapsedMillis" : 47967,
+                            "receivedBatches" : 21
+                         }
+                      }
+                   }
+                },
+                "members" : [
+                   {
+                      "_id" : 0,
+                      "name" : "m1.example.net:27017",
+                      "health" : 0,
+                      "state" : 8,
+                      "stateStr" : "(not reachable/healthy)",
+                      "uptime" : 0,
+                      "optime" : {
+                         "ts" : Timestamp(0, 0),
+                         "t" : NumberLong(-1)
+                      },
+                      "optimeDurable" : {
+                         "ts" : Timestamp(0, 0),
+                         "t" : NumberLong(-1)
+                      },
+                      "optimeDate" : ISODate("1970-01-01T00:00:00Z"),
+                      "optimeDurableDate" : ISODate("1970-01-01T00:00:00Z"),
+                      "lastAppliedWallTime": ISODate("1970-01-01T00:00:00Z"),
+                      "lastDurableWallTime": ISODate("1970-01-01T00:00:00Z""),
+                      "lastHeartbeat" : ISODate("2020-03-05T18:04:23.827Z"),
+                      "lastHeartbeatRecv" : ISODate("2020-03-05T18:04:15.062Z"),
+                      "pingMs" : NumberLong(0),
+                      "lastHeartbeatMessage" : "Error connecting to m1.example.net:27017 (127.0.0.1:27018) :: caused by :: Connection refused",
+                      "syncSourceHost" : "",
+                      "syncSourceId" : -1,
+                      "infoMessage" : "",
+                      "configVersion" : 2
+                   },
+                   {
+                      "_id" : 1,
+                      "name" : "m2.example.net:27017",
+                      "health" : 1,
+                      "state" : 5,
+                      "stateStr" : "STARTUP2",
+                      "uptime" : 5297,
+                      "optime" : {
+                         "ts" : Timestamp(0, 0),
+                         "t" : NumberLong(-1)
+                      },
+                      "optimeDate" : ISODate("1970-01-01T00:00:00Z"),
+                      "lastAppliedWallTime": ISODate("1970-01-01T00:00:00Z"),
+                      "lastDurableWallTime": ISODate("1970-01-01T00:00:00Z""),
+                      "syncSourceHost" : "m1.example.net:27017",
+                      "syncSourceId" : 0,
+                      "infoMessage" : "",
+                      "configVersion" : 2,
+                      "configTerm" : 1,
+                      "self" : true,
+                      "lastHeartbeatMessage" : ""
+                   }
+                ],
+                "ok" : 1
+             }
+
+Output
+------
+
+The :command:`replSetGetStatus` command returns a document with the
+following fields:
+
+.. data:: replSetGetStatus.set
+
+   The ``set`` value is the name of the replica set, configured in the
+   :setting:`~replication.replSetName` setting. This is the same value as
+   :rsconf:`_id` in :method:`rs.conf()`.
+
+.. data:: replSetGetStatus.date
+
+   An :term:`ISODate` formatted date and time that contains the current
+   time according to the server that processed the
+   :command:`replSetGetStatus` command. Compare this to the values of
+   :data:`replSetGetStatus.members[n].lastHeartbeat` to find the
+   operational latency between this server and the other members of the
+   replica set.
+
+.. data:: replSetGetStatus.myState
+
+   An integer between ``0`` and ``10`` that represents the :doc:`replica
+   state </reference/replica-states>` of the current member.
+
+.. data:: replSetGetStatus.term
+
+   The election count for the replica set, as known to this replica set
+   member. The :data:`~replSetGetStatus.term` is used by the
+   distributed consensus algorithm to ensure correctness.
+
+.. data:: replSetGetStatus.syncingTo
+
+   *Removed in MongoDB 4.4*
+   
+   See :data:`replSetGetStatus.syncSourceHost` instead.
+
+.. data:: replSetGetStatus.syncSourceHost
+
+   The :data:`~replSetGetStatus.syncSourceHost` field holds the
+   hostname of the member from which this instance syncs.
+
+   If this instance is a primary,
+   :data:`~replSetGetStatus.syncSourceHost` is an empty string and
+   the :data:`~replSetGetStatus.syncSourceId` ``-1``.
+
+.. data:: replSetGetStatus.syncSourceId
+
+   The :data:`~replSetGetStatus.syncSourceId` field holds the
+   :data:`replSetGetStatus.members[n]._id` of the member from which
+   this instance synchronizes.
+
+   If this instance is a primary,
+   :data:`~replSetGetStatus.syncSourceHost` is an empty string and
+   the :data:`~replSetGetStatus.syncSourceId` ``-1``.
+
+.. data:: replSetGetStatus.heartbeatIntervalMillis
+
+   The frequency in milliseconds of the heartbeats.
+
+.. data:: replSetGetStatus.majorityVoteCount
+
+   .. versionadded:: 4.2.1
+
+   The number of majority votes needed to elect a
+   new primary in an election.
+
+.. data:: replSetGetStatus.writeMajorityCount
+
+   .. versionadded:: 4.2.1
+
+   The number of data-bearing voting members (i.e. not arbiters) needed
+   to fulfill write concern :writeconcern:`"majority"`. Writes can only
+   be applied to data-bearing members.
+   
+   For the calculation of :data:`replSetGetStatus.writeMajorityCount`,
+   see :ref:`calculating-majority-count`.
+
+.. data:: replSetGetStatus.votingMembersCount
+
+   .. versionadded:: 4.4
+
+   The number of members configured with :rsconf:`votes: 1
+   <members[n].votes>`, including arbiters.
+
+.. data:: replSetGetStatus.writableVotingMembersCount
+
+   .. versionadded:: 4.4
+
+   The number of *data-bearing* members configured with :rsconf:`votes:
+   1 <members[n].votes>` (this does not include arbiters).
+
+.. data:: replSetGetStatus.optimes
+
+   The ``optimes`` field holds a document that contains :term:`optimes
+   <optime>` used to inspect replication progress. Starting in MongoDB
+   4.2, the ``optimes`` include the corresponding ISODate-formatted
+   date strings for the various optimes.
+
+   Each optime value is a document that contains:
+
+   .. include:: /includes/fact-optime.rst
+
+   .. data:: replSetGetStatus.optimes.lastCommittedOpTime
+
+      Information, from the viewpoint of this member, regarding the
+      most recent operation that has been written to a majority of
+      replica set members.
+
+   .. data:: replSetGetStatus.optimes.lastCommittedWallTime
+
+      The ISODate-formatted date string corresponding to
+      :data:`~replSetGetStatus.optimes.lastCommittedOpTime`.
+
+      The :data:`~replSetGetStatus.optimes.lastCommittedWallTime` may
+      not accurately represent the
+      :data:`~replSetGetStatus.optimes.lastCommittedOpTime` if all
+      members are not on MongoDB 4.2 or greater because the
+      :data:`~replSetGetStatus.optimes.lastCommittedWallTime`
+      requires communication with other members of the deployment.
+
+      .. versionadded:: 4.2
+      
+   .. data:: replSetGetStatus.optimes.readConcernMajorityOpTime
+
+      Information, from the viewpoint of this member, regarding the
+      most recent operation that can fulfill read concern
+      :readconcern:`"majority"` queries; i.e. the most recent
+      :data:`~replSetGetStatus.optimes.lastCommittedOpTime` that can
+      fulfill :readconcern:`"majority"` queries.
+      :data:`~replSetGetStatus.optimes.readConcernMajorityOpTime` is
+      either less than or equal to
+      :data:`~replSetGetStatus.optimes.lastCommittedOpTime`.
+
+   .. data:: replSetGetStatus.optimes.readConcernMajorityWallTime
+
+      The ISODate-formatted date string corresponding to
+      :data:`~replSetGetStatus.optimes.readConcernMajorityOpTime`.
+      
+      The :data:`~replSetGetStatus.optimes.readConcernMajorityWallTime`
+      may not accurately represent the
+      :data:`~replSetGetStatus.optimes.readConcernMajorityOpTime` if
+      all members are not on MongoDB 4.2 or greater because the
+      :data:`~replSetGetStatus.optimes.readConcernMajorityWallTime`
+      requires communication with other members of the deployment.
+
+      .. versionadded:: 4.2
+
+   .. data:: replSetGetStatus.optimes.appliedOpTime
+
+      Information, from the viewpoint of this member, regarding the
+      most recent operation that has been applied to this member of the
+      replica set.
+
+   .. data:: replSetGetStatus.optimes.lastAppliedWallTime
+
+      The ISODate-formatted date string corresponding to
+      :data:`~replSetGetStatus.optimes.appliedOpTime`.
+
+      .. versionadded:: 4.2
+
+   .. data:: replSetGetStatus.optimes.durableOpTime
+
+      Information, from the viewpoint of this member, regarding the
+      most recent operation that has been written to the journal of
+      this member of the replica set.
+
+   .. data:: replSetGetStatus.optimes.lastDurableWallTime
+
+      The ISODate-formatted date string corresponding to
+      :data:`~replSetGetStatus.optimes.durableOpTime`.
+
+      .. versionadded:: 4.2
+
+.. data:: replSetGetStatus.lastStableCheckpointTimestamp
+
+   .. deprecated:: 4.2
+
+   Available for the :ref:`storage-wiredtiger`.
+
+   Timestamp at which the current, or a previous, persisted checkpoint
+   was taken. Although
+   :data:`~replSetGetStatus.lastStableCheckpointTimestamp` may lag the
+   most recent persisted checkpoint, the returned timestamp is
+   guaranteed to be persisted in a stable checkpoint to disk.
+
+   A ``null`` value indicates that no stable checkpoint exists.
+
+.. data:: replSetGetStatus.lastStableRecoveryTimestamp
+
+   .. versionadded:: 4.2
+
+   *For internal use only*
+
+.. data:: replSetGetStatus.electionCandidateMetrics
+
+   .. versionadded:: 4.2.1
+
+   Metrics related to the election of the current primary.
+   :data:`~replSetGetStatus.electionCandidateMetrics` is only available
+   on the primary or a candidate for election. For a candidate, the
+   metrics are unavailable after the candidate loses the election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.lastElectionReason
+
+      .. versionadded:: 4.2.1
+
+      Reason the member called the election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.lastElectionDate
+
+      .. versionadded:: 4.2.1
+
+      The date and time the member called the election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.electionTerm
+
+      .. versionchanged:: 4.2.2
+         
+         In v4.2.1, ``electionTerm`` was named ``electionTerm``.
+
+      The member's election count (i.e. :data:`~replSetGetStatus.term`)
+      at the time it called the new election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.lastCommittedOpTimeAtElection
+
+      .. versionadded:: 4.2.1
+
+      The most recent :data:`majority-committed optime
+      <replSetGetStatus.optimes.lastCommittedOpTime>`, as seen by this
+      member, at the time it called the new election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.lastSeenOpTimeAtElection
+
+      .. versionadded:: 4.2.1
+
+      The member's most recent :data:`applied optime
+      <replSetGetStatus.optimes.appliedOpTime>` at the time it called
+      the new election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.numVotesNeeded
+
+      .. versionadded:: 4.2.1
+
+      The number of votes needed to win the election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.priorityAtElection
+
+      .. versionadded:: 4.2.1
+
+      The member's :rsconf:`priority <members[n].priority>` at the time
+      it called the election.
+      
+   .. data:: replSetGetStatus.electionCandidateMetrics.electionTimeoutMillis
+
+      .. versionadded:: 4.2.1
+
+      The replica set's configured
+      :rsconf:`~settings.electionTimeoutMillis` setting at the time of
+      the election.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.priorPrimaryMemberId
+
+      .. versionadded:: 4.2.1
+
+      The :rsconf:`members[n]._id` of the previous primary. If
+      there is no previous primary, then the field is not present.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.targetCatchupOpTime
+
+      .. versionadded:: 4.2.1
+
+      The newly-elected primary's target opTime for its catchup
+      process. Only when the newly-elected primary reaches the target
+      catchup opTime can it start accepting writes.
+      
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.numCatchUpOps
+
+      .. versionadded:: 4.2.1
+
+      The number of operations applied by the newly-elected primary as
+      it successfully concludes its catchup process.
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.newTermStartDate
+
+      .. versionadded:: 4.2.1
+
+      The date and time at which the member's term as the primary
+      started (i.e. the date and time at which a ``new term`` entry was
+      written to the oplog).
+
+   .. data:: replSetGetStatus.electionCandidateMetrics.wMajorityWriteAvailabilityDate
+
+      .. versionadded:: 4.2.1
+
+      The date and time at which the write concern
+      :writeconcern:`"majority"` became available after the election
+      for the replica set (the date and time when the ``new
+      term`` oplog entry was majority committed).
+
+.. data:: replSetGetStatus.electionParticipantMetrics
+
+   Metrics related to the latest election in which the member
+   participated.
+
+   .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.votedForCandidate
+
+      A boolean which indicates whether the member voted for the
+      candidate calling the election.
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.electionTerm
+
+      The term of the election in which the member participated. The
+      term identifies the election associated with the participant
+      metrics.
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.lastVoteDate
+
+      An :term:`ISODate` formatted date string that records when the
+      participant voted.
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.electionCandidateMemberId
+
+      The :rsconf:`members[n]._id` of the candidate calling the
+      election.
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.voteReason
+
+      The reason for the vote if the member did not vote for the candidate.
+      If the member voted for the candidate, the value is an empty string.
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.lastAppliedOpTimeAtElection
+
+      This member's latest applied optime at the time of the election.
+
+      The optime value is a document that contains the :ref:`Timestamp
+      <document-bson-type-timestamp>` (``ts``) and the term (``t``).
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.maxAppliedOpTimeInSet
+
+      The most recent applied optime for any member of this replica
+      set, as known by this member.
+
+      The optime value is a document that contains the :ref:`Timestamp
+      <document-bson-type-timestamp>` (``ts``) and the term (``t``).
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.priorityAtElection
+
+      The member's :rsconf:`~members[n].priority` at the time of the election.
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.newTermStartDate
+
+      The date and time at which the elected primary's term started;
+      this corresponds to when the primary wrote the ``new term`` entry
+      to its oplog and not when the entry was added (i.e. replicated)
+      to the secondary's oplog.
+
+      The field is available for secondary members only. For the
+      primary, see
+      :data:`replSetGetStatus.electionCandidateMetrics.newTermStartDate`
+      instead.
+
+      .. versionadded:: 4.2.2
+
+   .. data:: replSetGetStatus.electionParticipantMetrics.newTermAppliedDate
+
+      The date and time at which this secondary applied the ``new
+      term`` entry.
+
+      The field is available for secondary members only.
+
+      .. versionadded:: 4.2.2
+
+.. data:: replSetGetStatus.initialSyncStatus
+
+   A document that provides information on the progress and status of
+   :ref:`initial sync <replica-set-initial-sync>` on this member.
+
+   .. include:: /includes/fact-rs-status-init-sync-availability.rst
+
+   .. data:: replSetGetStatus.initialSyncStatus.failedInitialSyncAttempts
+
+      The number of times the :ref:`initial sync
+      <replica-set-initial-sync>` failed and had to restart on this
+      member.
+
+   .. data:: replSetGetStatus.initialSyncStatus.maxFailedInitialSyncAttempts
+
+      The maximum number of times the :ref:`initial sync
+      <replica-set-initial-sync>` can restart on this member before
+      the member shuts down.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncStart
+
+      The start timestamp of the :ref:`initial sync
+      <replica-set-initial-sync>` for this member.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncEnd
+
+      The end timestamp of the :ref:`initial sync
+      <replica-set-initial-sync>` for this member.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncElapsedMillis
+
+      The number of milliseconds between
+      :data:`~replSetGetStatus.initialSyncStatus.initialSyncStart` and
+      :data:`~replSetGetStatus.initialSyncStatus.initialSyncEnd`.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncAttempts
+
+      Array of documents where each document corresponds to a single
+      :ref:`initial sync <replica-set-initial-sync>` attempt. For example:
+
+      .. code-block:: javascript
+
+         "initialSyncAttempts" : [
+            {
+               "durationMillis" : 59539,
+               "status" : "InvalidOptions: error fetching oplog during initial sync :: caused by :: Error while getting the next batch in the oplog fetcher :: caused by :: readConcern afterClusterTime value must not be greater than the current clusterTime. Requested clusterTime: { ts: Timestamp(0, 1) }; current clusterTime: { ts: Timestamp(0, 0) }",
+               "syncSource" : "m1.example.net:27017",
+               "rollBackId" : 1,                     // Available starting in v4.4
+               "operationsRetried" : 120,            // Available starting in v4.4
+               "totalTimeUnreachableMillis" : 52601  // Available starting in v4.4
+            }
+         ],
+
+      Each document contains the following information for the initial sync attempt:
+
+      .. list-table::
+         :class: border-table
+         :header-rows: 1
+         :widths: 30 70
+
+         * - Field
+           - Description
+
+         * - durationMillis
+           - Duration in milliseconds of the initial sync attempt.
+      
+         * - status
+           - Exit status of the initial sync attempt.
+
+         * - syncSource
+           - Sync source for the initial sync attempt.
+
+         * - rollBackId
+
+           - The sync source's rollback identifier at the start of the
+             initial sync attempt. 
+             
+             ``rollBackId`` does not appear when using 
+             :ref:`file copy based initial sync 
+             <replica-set-initial-sync-file-copy-based>`.
+
+             .. versionadded:: 4.4
+
+         * - operationsRetried
+
+           - Total number of all operation retry attempts.
+
+             .. versionadded:: 4.4
+
+         * - totalTimeUnreachableMillis
+
+           - Total time spent for retry operation attempts.
+
+             .. versionadded:: 4.4
+
+      See also
+      :data:`~replSetGetStatus.initialSyncStatus.failedInitialSyncAttempts`.
+            
+   .. data:: replSetGetStatus.initialSyncStatus.appliedOps
+
+      The number of ops that occurred after the :ref:`initial sync
+      <replica-set-initial-sync>` started and were applied after cloning
+      the databases.
+
+      As part of the initial sync process, the member uses the oplog
+      to update its data set to reflect the current state of the
+      replica set.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncOplogStart
+
+      The start timestamp of the oplog application stage of the
+      :ref:`initial sync <replica-set-initial-sync>` where the
+      member applies changes that occurred after the initial sync
+      start.
+
+      As part of the initial sync process, the member uses the oplog
+      to update its data set to reflect the current state of the
+      replica set.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncOplogEnd 
+
+      The end timestamp of the oplog application stage of the
+      :ref:`initial sync <replica-set-initial-sync>` where the
+      member applies changes that occurred after the initial sync
+      start.
+
+      As part of the initial sync process, the member uses the oplog
+      to update its data set to reflect the current state of the
+      replica set.
+
+   .. data:: replSetGetStatus.initialSyncStatus.syncSourceUnreachableSince
+
+      The date and time at which the sync source became unreachable. 
+
+      Only present if the if sync source is unavailable during the
+      current initial sync.
+
+      .. versionadded:: 4.4
+
+   .. data:: replSetGetStatus.initialSyncStatus.currentOutageDurationMillis
+
+      The time in milliseconds that the sync source has been unavailable.
+
+      Only present if the if sync source is unavailable during the
+      current initial sync.
+
+      .. versionadded:: 4.4
+
+   .. data:: replSetGetStatus.initialSyncStatus.totalTimeUnreachableMillis
+
+      The total time in milliseconds that the member has been
+      unavailable during the current initial sync.
+
+      .. versionadded:: 4.4
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases
+
+      Detail on the databases cloned during :ref:`initial sync
+      <replica-set-initial-sync>`.
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases.databasesCloned
+
+      Number of databases cloned during :ref:`initial sync
+      <replica-set-initial-sync>`.
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases.<dbname>
+
+      For each database, a document that returns information regarding
+      the progress of the cloning of that database.
+
+      .. code-block:: javascript
+   
+         {
+            "collections" : <number of collections to clone in the database>,
+            "clonedCollections" : <number of collections cloned to date>,
+            "start" : <start date and time for the database clone>,
+            "end" : <end date and time for the database clone>,
+            "elapsedMillis" : <duration of the database clone>,
+            "<db>.<collection>" : {
+               "documentsToCopy" : <number of documents to copy>,
+               "documentsCopied" : <number of documents copied to date>,
+               "indexes" :  <number of indexes>,
+               "fetchedBatches" :  <number of batches of documents fetched to date>,
+               "start" :  <start date and time for the collection clone>,
+               "end" : <end date and time for the collection clone>,
+               "elapsedMillis" : <duration of the collection clone>,
+               "receivedBatches" : <number of batches of documents received to date>  // Added in 4.2
+            }
+         }
+
+.. _fcbis-initial-sync-fields:
+
+.. data:: replSetGetStatus.initialSyncStatus.method
+
+   .. versionadded:: 5.2
+
+   The method used for the :ref:`initial sync 
+   <replica-set-initial-sync>`.
+   
+   If set to ``logical``, the sync is a :ref:`logical initial sync 
+   <replica-set-initial-sync-logical>`. If set to ``fileCopyBased``, the
+   sync is a :ref:`file copy based initial sync                                   
+   <replica-set-initial-sync-file-copy-based>`.  
+
+.. data:: replSetGetStatus.initialSyncStatus.approxTotalDataSize
+
+   The approximate size (in bytes) of all files to be synced. 
+ 
+   |logical-or-fcbis|
+   
+.. data:: replSetGetStatus.initialSyncStatus.approxTotalBytesCopied
+
+   The total bytes already copied.
+   
+   |logical-or-fcbis|
+
+.. data:: replSetGetStatus.initialSyncStatus.totalInitialSyncElapsedMillis
+   
+   The total time elapsed for the sync attempt in progress.
+
+   |logical-or-fcbis|
+
+.. data:: replSetGetStatus.initialSyncStatus.remainingInitialSyncEstimatedMillis
+
+   The expected time remaining for the sync attempt in progress.
+
+   |logical-or-fcbis|
+   
+.. data:: replSetGetStatus.initialSyncStatus.initialBackupDataSize
+   
+   The total size (in bytes) of the initial set of files to be synced.
+
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.previousOplogEnd
+
+   The :term:`optime` available in the previous :term:`backup cursor`. 
+
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.currentOplogEnd
+
+   The last :term:`optime` guaranteed to be available in the current 
+   :term:`backup cursor`. 
+   
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.syncSourceLastApplied
+
+   The :term:`optime` of the last update applied at the sync source 
+   prior to the start of this :term:`backup cursor`. 
+   
+   |fcbis-only|
+
+.. _fcbis-extension:
+
+.. data:: replSetGetStatus.initialSyncStatus.numExtensions
+
+   The number of times the sync has started a new :term:`backup cursor`.
+
+   This field does not appear if a backup cursor has not started.
+   
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.extensionDataSize
+
+   The total bytes in the current :ref:`extension <fcbis-extension>`. 
+
+   This field does not appear if there is no extension in progress.
+
+   |fcbis-only|
+   
+.. data:: replSetGetStatus.initialSyncStatus.files
+
+   An array of files to be synced during :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+   
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].filePath
+
+   The path of the file relative to the root of the 
+   :term:`backup cursor`.
+
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].fileSize
+
+   The size of the file as reported by the :term:`backup cursor`.
+   
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].bytesCopied
+
+   The number of bytes copied so far.
+   
+   |fcbis-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].extensionNumber
+
+   The number of the :ref:`extension <fcbis-extension>` the file belongs 
+   to if this file is part of an extension.
+   
+   |fcbis-only|
+
+.. data:: replSetGetStatus.members
+
+   The ``members`` field holds an array that contains a document for
+   every member in the replica set.
+
+   .. data:: replSetGetStatus.members[n]._id
+
+      The identifier for the member.
+
+   .. data:: replSetGetStatus.members[n].name
+
+      The name of the member.
+
+   .. data:: replSetGetStatus.members[n].ip
+
+      The resolved IP address of the member. If the
+      :binary:`~bin.mongod` is unable to resolve the
+      :data:`replSetGetStatus.members[n].name` to an IP address, the
+      return value is a BSON null. Otherwise, the returned value is a
+      string representation of the resolved IP address.
+
+      .. versionadded:: 4.2
+
+   .. data:: replSetGetStatus.members[n].self
+
+      A boolean that indicates if the member is the current
+      :binary:`~bin.mongod` instance.
+      
+      The ``self`` field is only included in the document for the
+      current ``mongod`` instance, and as such, its value is always
+      ``true``.
+
+   .. data:: replSetGetStatus.members[n].health
+
+      A number that indicates if the member is up (``1``) or down
+      (``0``).
+
+   .. data:: replSetGetStatus.members[n].state
+
+      An integer between ``0`` and ``10`` that represents the
+      :doc:`replica state </reference/replica-states>` of the member.
+
+   .. data:: replSetGetStatus.members[n].stateStr
+
+      A string that describes :data:`~replSetGetStatus.members[n].state`.
+
+   .. data:: replSetGetStatus.members[n].uptime
+
+      For the member on which the :dbcommand:`replSetGetStatus` command
+      is run, :data:`~replSetGetStatus.members[n].uptime` is the 
+      the number of seconds the member has been online.
+      
+      For the other members, :data:`~replSetGetStatus.members[n].uptime`
+      is the number of seconds the member has been in continuous
+      communication with the member on which the
+      :dbcommand:`replSetGetStatus` command was run.
+
+   .. data:: replSetGetStatus.members[n].optime
+
+      Information regarding the last operation from the operation log that
+      this member has applied.
+
+      ``optime`` returns a document that contains:
+
+      - ``ts``, the :ref:`Timestamp <document-bson-type-timestamp>` of
+        the last operation applied to this member of the replica set
+        from the :term:`oplog`.
+
+      - ``t``, the :data:`~replSetGetStatus.term` in which the last
+        applied operation was originally generated on the primary.
+
+   .. data:: replSetGetStatus.members[n].optimeDurable
+
+      Information regarding the last operation from the operation log
+      that this member has applied to its journal.
+
+      ``optimeDurable`` returns a document that contains:
+
+      - ``ts``, the :ref:`Timestamp <document-bson-type-timestamp>` of
+        the operation.
+
+      - ``t``, the :data:`~replSetGetStatus.term` in which this
+        operation was originally generated on the primary.
+
+   .. data:: replSetGetStatus.members[n].optimeDate
+
+      An :term:`ISODate` formatted date string that contains the last
+      entry from the :term:`oplog` that this member applied. If this
+      differs significantly from
+      :data:`~replSetGetStatus.members[n].lastHeartbeat` this member is
+      either experiencing "replication lag" *or* there have not been any
+      new operations after the last update. Compare
+      ``members.optimeDate`` between all of the members of the set.
+
+   .. data:: replSetGetStatus.members[n].optimeDurableDate
+
+      An :term:`ISODate` formatted date string that contains the last
+      entry from the :term:`oplog` that this member applied to its
+      journal.
+
+   .. data:: replSetGetStatus.members[n].lastAppliedWallTime
+
+      An :term:`ISODate` formatted date string reflecting the wall clock
+      time at which the last operation applied by this member of the 
+      replica set was applied on the primary node.
+
+   .. data:: replSetGetStatus.members[n].lastDurableWallTime
+
+      An :term:`ISODate` formatted date string reflecting the wall clock
+      time at which the last operation written to this member's journal 
+      was first applied on the primary node.
+
+   .. data:: replSetGetStatus.members[n].electionTime
+
+      For the current primary, information regarding the election
+      :ref:`Timestamp <document-bson-type-timestamp>` from the
+      operation log. See :doc:`/core/replica-set-high-availability` for more
+      information about elections.
+
+   .. data:: replSetGetStatus.members[n].electionDate
+
+      For the current primary, an :term:`ISODate` formatted date string
+      that contains the election date. See
+      :doc:`/core/replica-set-high-availability` for more information about
+      elections.
+
+   .. data:: replSetGetStatus.members[n].lastHeartbeat
+
+      An :term:`ISODate` formatted date and time that contains the last
+      time the server that processed the :command:`replSetGetStatus`
+      command received a response from a heartbeat that it sent to this
+      member (``members[n]``).
+      Compare this value to the values of the :data:`~replSetGetStatus.date` and
+      :data:`~replSetGetStatus.members[n].lastHeartbeatRecv` fields to
+      track latency between these replica set members.
+
+      This value is only available for replica set members other than the server specified by :data:`replSetGetStatus.members[n].self`.
+
+   .. data:: replSetGetStatus.members[n].lastHeartbeatRecv
+
+      An :term:`ISODate` formatted date and time that contains the last
+      time the server that processed the :command:`replSetGetStatus`
+      command received a heartbeat request from this member
+      (``members[n]``).
+      Compare this value to the values of the
+      :data:`~replSetGetStatus.date` and
+      :data:`~replSetGetStatus.members[n].lastHeartbeat` fields to track
+      latency between these replica set members.
+
+      This value is only available for replica set members other than the server specified by :data:`replSetGetStatus.members[n].self`.
+
+   .. data:: replSetGetStatus.members[n].lastHeartbeatMessage
+
+      When the last heartbeat included an extra message, the
+      :data:`~replSetGetStatus.members[n].lastHeartbeatMessage` contains
+      a string representation of that message.
+
+   .. data:: replSetGetStatus.members[n].pingMs
+
+      The ``pingMs`` represents the number of milliseconds (ms) that a
+      round-trip packet takes to travel between the remote member and
+      the local instance.
+
+      This value does not appear for the member that returns the
+      :method:`rs.status()` data.
+
+   .. data:: replSetGetStatus.members[n].syncingTo
+
+      *Removed in MongoDB 4.4*
+
+      See :data:`replSetGetStatus.members[n].syncSourceHost` instead.
+
+   .. data:: replSetGetStatus.members[n].syncSourceHost
+
+      The :data:`~replSetGetStatus.members[n].syncSourceHost` field
+      holds the hostname of the member from which this instance syncs.
+
+      If the ``replSetGetStatus.members[n]`` is a primary,
+      :data:`~replSetGetStatus.members[n].syncSourceHost` is an empty
+      string and the :data:`~replSetGetStatus.members[n].syncSourceId`
+      ``-1``.
+
+   .. data:: replSetGetStatus.members[n].syncSourceId
+
+      The :data:`~replSetGetStatus.members[n].syncSourceId` field holds
+      the :data:`replSetGetStatus.members[n]._id` value of the
+      :data:`~replSetGetStatus.members[n].syncSourceHost`.
+
+      If the ``replSetGetStatus.members[n]`` is a primary,
+      :data:`~replSetGetStatus.members[n].syncSourceHost` is an empty
+      string and the :data:`~replSetGetStatus.members[n].syncSourceId`
+      ``-1``.
+
+   .. data:: replSetGetStatus.members[n].configVersion
+
+      The ``configVersion`` value is the :rsconf:`replica
+      set configuration version <version>`.
+
+.. data:: replSetGetStatus.tooStale
+
+   A boolean which indicates that a replica set member has fallen
+   too far behind the :term:`primary's <primary>` oplog and is stuck in
+   the ``RECOVERING`` state. This field is only included in the
+   :dbcommand:`replSetGetStatus` output if its value is ``true``.
+
+   .. versionadded:: 4.4
+
+See also :ref:`command-response` for details on the ``ok`` status
+field, the ``operationTime`` field and the ``$clusterTime`` field.
