@@ -1,0 +1,583 @@
+==========================
+$graphLookup (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $graphLookup
+
+   .. versionchanged:: 5.1
+
+   Performs a recursive search on a collection, with options for
+   restricting the search by recursion depth and query filter.
+
+   The ``$graphLookup`` search process is summarized below:
+
+   1. Input documents flow into the ``$graphLookup`` stage of an
+      aggregation operation.
+
+
+   2. ``$graphLookup`` targets the search to the collection
+      designated by the ``from`` parameter (see below for full
+      list of search parameters).
+
+   3. For each input document, the search begins with the value
+      designated by ``startWith``.
+
+   4. ``$graphLookup`` matches the ``startWith`` value
+      against the field designated by ``connectToField`` in other
+      documents in the ``from`` collection.
+
+   5. For each matching document, ``$graphLookup`` takes the value of
+      the ``connectFromField`` and checks every document in the
+      ``from`` collection for a matching ``connectToField`` value. For
+      each match, ``$graphLookup`` adds the matching document in the
+      ``from`` collection to an array field named by the ``as``
+      parameter.
+
+      This step continues recursively until no more matching documents
+      are found, or until the operation reaches a recursion depth
+      specified by the ``maxDepth`` parameter. ``$graphLookup`` then
+      appends the array field to the input document. ``$graphLookup``
+      returns results after completing its search on all input
+      documents.
+
+   :pipeline:`$graphLookup` has the following prototype form:
+
+   .. code-block:: javascript
+
+      {
+         $graphLookup: {
+            from: <collection>,
+            startWith: <expression>,
+            connectFromField: <string>,
+            connectToField: <string>,
+            as: <string>,
+            maxDepth: <number>,
+            depthField: <string>,
+            restrictSearchWithMatch: <document>
+         }
+      }
+
+   :pipeline:`$graphLookup` takes a document with the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 60
+
+      * - Field
+        - Description
+
+      * - ``from``
+
+        - Target collection for the :pipeline:`$graphLookup`
+          operation to search, recursively matching the
+          ``connectFromField`` to the ``connectToField``.
+          The ``from`` collection must be in the same
+          database as any other collections used in the operation.
+
+          Starting in MongoDB 5.1, the collection specified in the 
+          ``from`` parameter can be sharded.
+
+      * - ``startWith``
+
+        - :ref:`Expression <aggregation-expressions>` that specifies
+          the value of the ``connectFromField`` with which to start the
+          recursive search. Optionally, ``startWith`` may be array of
+          values, each of which is individually followed through the
+          traversal process.
+
+      * - ``connectFromField``
+
+        - Field name whose value :pipeline:`$graphLookup` uses to
+          recursively match against the ``connectToField`` of other
+          documents in the collection. If the value is an array, each
+          element is individually followed through the
+          traversal process.
+
+      * - ``connectToField``
+
+        - Field name in other documents against which to match the
+          value of the field specified by the ``connectFromField``
+          parameter.
+
+      * - ``as``
+
+        - Name of the array field added to each output document.
+          Contains the documents traversed in the
+          :pipeline:`$graphLookup` stage to reach the document.
+
+          .. note::
+
+             Documents returned in the ``as`` field are not guaranteed
+             to be in any order.
+
+      * - ``maxDepth``
+        - *Optional.* Non-negative integral number specifying the
+          maximum recursion depth.
+
+      * - ``depthField`` 
+
+        - *Optional.* Name of the field to add to each traversed
+          document in the search path. The value of this field
+          is the recursion depth for the document, represented as a
+          :bsontype:`NumberLong<data_numberlong>`. Recursion depth
+          value starts at zero, so the first lookup corresponds to
+          zero depth.
+
+      * - ``restrictSearchWithMatch``
+
+        - *Optional.* A document specifying additional conditions
+          for the recursive search. The syntax is identical to
+          :ref:`query filter <read-operations-query-argument>` syntax.
+
+          .. note::
+
+             You cannot use any :ref:`aggregation expression
+             <aggregation-expressions>` in this filter. For example, a
+             query document such as
+
+             .. code-block:: javascript
+
+                { lastName: { $ne: "$lastName" } }
+
+             will not work in this context to find documents in which
+             the ``lastName`` value is different from the ``lastName``
+             value of the input document, because ``"$lastName"`` will
+             act as a string literal, not a field path.
+
+Considerations
+--------------
+
+.. _graphLookup-sharded-collections:
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.1, you can specify :doc:`sharded collections </sharding>`
+in the ``from`` parameter of :pipeline:`$graphLookup` stages.
+
+Max Depth
+~~~~~~~~~
+
+Setting the ``maxDepth`` field to ``0`` is equivalent to a
+non-recursive :pipeline:`$graphLookup` search stage.
+
+Memory
+~~~~~~
+
+.. include:: /includes/fact-graphlookup-memory-restrictions.rst
+
+See :doc:`aggregration pipeline limitations
+</core/aggregation-pipeline-limits>` for more information.
+
+Views and Collation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/views-collation-agg.rst
+
+Examples
+--------
+
+Within a Single Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``employees`` has the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Dev" }
+   { "_id" : 2, "name" : "Eliot", "reportsTo" : "Dev" }
+   { "_id" : 3, "name" : "Ron", "reportsTo" : "Eliot" }
+   { "_id" : 4, "name" : "Andrew", "reportsTo" : "Eliot" }
+   { "_id" : 5, "name" : "Asya", "reportsTo" : "Ron" }
+   { "_id" : 6, "name" : "Dan", "reportsTo" : "Andrew" }
+
+The following :pipeline:`$graphLookup` operation recursively matches
+on the ``reportsTo`` and ``name`` fields in the ``employees``
+collection, returning the reporting hierarchy for each person:
+
+.. code-block:: javascript
+
+   db.employees.aggregate( [
+      {
+         $graphLookup: {
+            from: "employees",
+            startWith: "$reportsTo",
+            connectFromField: "reportsTo",
+            connectToField: "name",
+            as: "reportingHierarchy"
+         }
+      }
+   ] )
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "name" : "Dev",
+      "reportingHierarchy" : [ ]
+   }
+   {
+      "_id" : 2,
+      "name" : "Eliot",
+      "reportsTo" : "Dev",
+      "reportingHierarchy" : [
+         { "_id" : 1, "name" : "Dev" }
+      ]
+   }
+   {
+      "_id" : 3,
+      "name" : "Ron",
+      "reportsTo" : "Eliot",
+      "reportingHierarchy" : [
+         { "_id" : 1, "name" : "Dev" },
+         { "_id" : 2, "name" : "Eliot", "reportsTo" : "Dev" }
+      ]
+   }
+   {
+      "_id" : 4,
+      "name" : "Andrew",
+      "reportsTo" : "Eliot",
+      "reportingHierarchy" : [
+         { "_id" : 1, "name" : "Dev" },
+         { "_id" : 2, "name" : "Eliot", "reportsTo" : "Dev" }
+      ]
+   }
+   {
+      "_id" : 5,
+      "name" : "Asya",
+      "reportsTo" : "Ron",
+      "reportingHierarchy" : [
+         { "_id" : 1, "name" : "Dev" },
+         { "_id" : 2, "name" : "Eliot", "reportsTo" : "Dev" },
+         { "_id" : 3, "name" : "Ron", "reportsTo" : "Eliot" }
+      ]
+   }
+   {
+      "_id" : 6,
+      "name" : "Dan",
+      "reportsTo" : "Andrew",
+      "reportingHierarchy" : [
+         { "_id" : 1, "name" : "Dev" },
+         { "_id" : 2, "name" : "Eliot", "reportsTo" : "Dev" },
+         { "_id" : 4, "name" : "Andrew", "reportsTo" : "Eliot" }
+      ]
+   }
+
+The following table provides a traversal path for the
+document ``{ "_id" : 5, "name" : "Asya", "reportsTo" : "Ron" }``:
+
+.. list-table::
+   :stub-columns: 1
+
+   * - Start value
+
+     - The ``reportsTo`` value of the document:
+
+       .. code-block:: javascript
+
+          { ... "reportsTo" : "Ron" }
+
+   * - Depth 0
+
+     - .. code-block:: javascript
+
+          { "_id" : 3, "name" : "Ron", "reportsTo" : "Eliot" }
+
+   * - Depth 1
+
+     - .. code-block:: javascript
+
+          { "_id" : 2, "name" : "Eliot", "reportsTo" : "Dev" }
+
+   * - Depth 2
+
+     - .. code-block:: javascript
+
+          { "_id" : 1, "name" : "Dev" }
+
+The output generates the hierarchy
+``Asya -> Ron -> Eliot -> Dev``.
+
+Across Multiple Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Like :pipeline:`$lookup`, :pipeline:`$graphLookup` can access
+another collection in the same database.
+
+In the following example, a database contains two collections:
+
+- A collection ``airports`` with the following documents:
+
+  .. code-block:: javascript
+
+     { "_id" : 0, "airport" : "JFK", "connects" : [ "BOS", "ORD" ] }
+     { "_id" : 1, "airport" : "BOS", "connects" : [ "JFK", "PWM" ] }
+     { "_id" : 2, "airport" : "ORD", "connects" : [ "JFK" ] }
+     { "_id" : 3, "airport" : "PWM", "connects" : [ "BOS", "LHR" ] }
+     { "_id" : 4, "airport" : "LHR", "connects" : [ "PWM" ] }
+
+- A collection ``travelers`` with the following documents:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "name" : "Dev", "nearestAirport" : "JFK" }
+     { "_id" : 2, "name" : "Eliot", "nearestAirport" : "JFK" }
+     { "_id" : 3, "name" : "Jeff", "nearestAirport" : "BOS" }
+
+For each document in the ``travelers`` collection, the following
+aggregation operation looks up the ``nearestAirport`` value in the
+``airports`` collection and recursively matches the ``connects``
+field to the ``airport`` field. The operation specifies a maximum
+recursion depth of ``2``.
+
+.. code-block:: javascript
+
+   db.travelers.aggregate( [
+      {
+         $graphLookup: {
+            from: "airports",
+            startWith: "$nearestAirport",
+            connectFromField: "connects",
+            connectToField: "airport",
+            maxDepth: 2,
+            depthField: "numConnections",
+            as: "destinations"
+         }
+      }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "name" : "Dev",
+      "nearestAirport" : "JFK",
+      "destinations" : [
+         { "_id" : 3,
+           "airport" : "PWM",
+           "connects" : [ "BOS", "LHR" ],
+           "numConnections" : NumberLong(2) },
+         { "_id" : 2,
+           "airport" : "ORD",
+           "connects" : [ "JFK" ],
+           "numConnections" : NumberLong(1) },
+         { "_id" : 1,
+           "airport" : "BOS",
+           "connects" : [ "JFK", "PWM" ],
+           "numConnections" : NumberLong(1) },
+         { "_id" : 0,
+           "airport" : "JFK",
+           "connects" : [ "BOS", "ORD" ],
+           "numConnections" : NumberLong(0) }
+      ]
+   }
+   {
+      "_id" : 2,
+      "name" : "Eliot",
+      "nearestAirport" : "JFK",
+      "destinations" : [
+         { "_id" : 3,
+           "airport" : "PWM",
+           "connects" : [ "BOS", "LHR" ],
+           "numConnections" : NumberLong(2) },
+         { "_id" : 2,
+           "airport" : "ORD",
+           "connects" : [ "JFK" ],
+           "numConnections" : NumberLong(1) },
+         { "_id" : 1,
+           "airport" : "BOS",
+           "connects" : [ "JFK", "PWM" ],
+           "numConnections" : NumberLong(1) },
+         { "_id" : 0,
+           "airport" : "JFK",
+           "connects" : [ "BOS", "ORD" ],
+           "numConnections" : NumberLong(0) } ]
+   }
+   {
+      "_id" : 3,
+      "name" : "Jeff",
+      "nearestAirport" : "BOS",
+      "destinations" : [
+         { "_id" : 2,
+           "airport" : "ORD",
+           "connects" : [ "JFK" ],
+           "numConnections" : NumberLong(2) },
+         { "_id" : 3,
+           "airport" : "PWM",
+           "connects" : [ "BOS", "LHR" ],
+           "numConnections" : NumberLong(1) },
+         { "_id" : 4,
+           "airport" : "LHR",
+           "connects" : [ "PWM" ],
+           "numConnections" : NumberLong(2) },
+         { "_id" : 0,
+           "airport" : "JFK",
+           "connects" : [ "BOS", "ORD" ],
+           "numConnections" : NumberLong(1) },
+         { "_id" : 1,
+           "airport" : "BOS",
+           "connects" : [ "JFK", "PWM" ],
+           "numConnections" : NumberLong(0) }
+      ]
+   }
+
+The following table provides a traversal path for the recursive
+search, up to depth ``2``, where the starting ``airport`` is ``JFK``:
+
+.. list-table::
+   :stub-columns: 1
+
+   * - Start value
+
+     - The ``nearestAirport`` value from the ``travelers`` collection:
+
+       .. code-block:: javascript
+
+          { ... "nearestAirport" : "JFK" }
+
+   * - Depth 0
+
+     - .. code-block:: javascript
+
+          { "_id" : 0, "airport" : "JFK", "connects" : [ "BOS", "ORD" ] }
+
+   * - Depth 1
+
+     - .. code-block:: javascript
+
+          { "_id" : 1, "airport" : "BOS", "connects" : [ "JFK", "PWM" ] }
+          { "_id" : 2, "airport" : "ORD", "connects" : [ "JFK" ] }
+
+   * - Depth 2
+
+     - .. code-block:: javascript
+
+          { "_id" : 3, "airport" : "PWM", "connects" : [ "BOS", "LHR" ] }
+
+With a Query Filter
+~~~~~~~~~~~~~~~~~~~
+
+The following example uses a collection with a set
+of documents containing names of people along with arrays of their
+friends and their hobbies. An aggregation operation finds one
+particular person and traverses her network of connections to find
+people who list ``golf`` among their hobbies.
+
+A collection named ``people`` contains the following documents:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "name" : "Tanya Jordan",
+     "friends" : [ "Shirley Soto", "Terry Hawkins", "Carole Hale" ],
+     "hobbies" : [ "tennis", "unicycling", "golf" ]
+   }
+   {
+     "_id" : 2,
+     "name" : "Carole Hale",
+     "friends" : [ "Joseph Dennis", "Tanya Jordan", "Terry Hawkins" ],
+     "hobbies" : [ "archery", "golf", "woodworking" ]
+   }
+   {
+     "_id" : 3,
+     "name" : "Terry Hawkins",
+     "friends" : [ "Tanya Jordan", "Carole Hale", "Angelo Ward" ],
+     "hobbies" : [ "knitting", "frisbee" ]
+   }
+   {
+     "_id" : 4,
+     "name" : "Joseph Dennis",
+     "friends" : [ "Angelo Ward", "Carole Hale" ],
+     "hobbies" : [ "tennis", "golf", "topiary" ]
+   }
+   {
+     "_id" : 5,
+     "name" : "Angelo Ward",
+     "friends" : [ "Terry Hawkins", "Shirley Soto", "Joseph Dennis" ],
+     "hobbies" : [ "travel", "ceramics", "golf" ]
+   }
+   {
+      "_id" : 6,
+      "name" : "Shirley Soto",
+      "friends" : [ "Angelo Ward", "Tanya Jordan", "Carole Hale" ],
+      "hobbies" : [ "frisbee", "set theory" ]
+    }
+
+The following aggregation operation uses three stages:
+
+- :pipeline:`$match` matches on documents with a ``name`` field
+  containing the string ``"Tanya Jordan"``. Returns one output
+  document.
+
+- :pipeline:`$graphLookup` connects the output document's ``friends``
+  field with the ``name`` field of other documents in the
+  collection to traverse ``Tanya Jordan's`` network of connections.
+  This stage uses the ``restrictSearchWithMatch`` parameter to find
+  only documents in which the ``hobbies`` array contains ``golf``.
+  Returns one output document.
+
+- :pipeline:`$project` shapes the output document. The names listed in
+  ``connections who play golf`` are taken from the ``name`` field of the
+  documents listed in the input document's ``golfers`` array.
+
+.. code-block:: javascript
+
+   db.people.aggregate( [
+     { $match: { "name": "Tanya Jordan" } },
+     { $graphLookup: {
+         from: "people",
+         startWith: "$friends",
+         connectFromField: "friends",
+         connectToField: "name",
+         as: "golfers",
+         restrictSearchWithMatch: { "hobbies" : "golf" }
+       }
+     },
+     { $project: {
+         "name": 1,
+         "friends": 1,
+         "connections who play golf": "$golfers.name"
+       }
+     }
+   ] )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "name" : "Tanya Jordan",
+      "friends" : [
+         "Shirley Soto",
+         "Terry Hawkins",
+         "Carole Hale"
+      ],
+      "connections who play golf" : [
+         "Joseph Dennis",
+         "Tanya Jordan",
+         "Angelo Ward",
+         "Carole Hale"
+      ]
+   }
+
+Additional Resource
+-------------------
+
+`Webinar: Working with Graph Data in MongoDB <https://www.mongodb.com/presentations/webinar-working-with-graph-data-in-mongodb?tck=docs_server>`_

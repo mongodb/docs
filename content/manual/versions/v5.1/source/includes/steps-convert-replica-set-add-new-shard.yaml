@@ -1,0 +1,87 @@
+title: 
+  text: Start each member of the replica set with the appropriate options.
+  character: "`"
+ref: start-mongod
+pre: |
+  For each member, start a :binary:`~bin.mongod`, specifying the replica
+  set name through the :option:`--replSet <mongod --shardsvr>` option
+  and its role as a shard with the
+  :option:`--shardsvr <mongod --shardsvr>` option. Specify additional
+  options, such as :option:`--bind_ip <mongod --bind_ip>`, as
+  appropriate.
+
+  .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+  For replication-specific parameters, see
+  :ref:`cli-mongod-replica-set`.
+
+action:
+  copyable: true
+  language: javascript
+  code: |
+      mongod --replSet "rs1" --shardsvr --port 27017 --bind_ip localhost,<hostname(s)|ip address(es)>
+post: |
+  Repeat this step for the other two members of the ``rs1`` replica set.
+---
+title: 
+  text: Connect :binary:`~bin.mongosh` to a replica set member.
+  character: "`"
+ref: open-shell
+pre: |
+  Connect :binary:`~bin.mongosh` to *one* member of the replica set
+  (e.g. ``mongodb3.example.net``)
+action:
+  copyable: true
+  language: javascript
+  code: |
+    mongosh mongodb3.example.net
+---
+title: "Initiate the replica set."
+level: 4
+ref: initiate-rs
+pre: |
+  From :binary:`~bin.mongosh`, run :method:`rs.initiate()` to
+  initiate a replica set that consists of the current member.
+
+  .. important::
+
+     .. include:: /includes/fact-rs-initiate-once-only.rst
+
+  .. include:: /includes/tip-hostnames.rst
+action:
+  copyable: true
+  language: javascript
+  code: |
+    rs.initiate( {
+       _id : "rs1",
+       members: [
+           { _id: 0, host: "mongodb3.example.net:27017" },
+           { _id: 1, host: "mongodb4.example.net:27017" },
+           { _id: 2, host: "mongodb5.example.net:27017" }
+       ]
+    })
+---
+title:
+  text: "Connect ``mongosh`` to the ``mongos``."
+  character: "`"
+ref: connect-mongos
+action:
+     copyable: true
+     language: javascript
+     code: |
+        mongosh mongodb6.example.net:27017/admin
+---
+title:
+  text: Add the shard.
+  character: "`"
+ref: add-mongos-shard
+pre: |
+  In :binary:`~bin.mongosh`, when connected to the
+  :binary:`~bin.mongos`, add the shard to the cluster with the
+  :method:`sh.addShard()` method:
+action:
+  copyable: true
+  language: javascript
+  code: |
+    sh.addShard( "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" )
+...

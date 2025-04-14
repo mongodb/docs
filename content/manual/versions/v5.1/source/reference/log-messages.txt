@@ -1,0 +1,1416 @@
+.. _log-messages-ref:
+
+============
+Log Messages
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+As part of normal operation, MongoDB maintains a running log of events,
+including entries such as incoming connections, commands run, and issues
+encountered. Generally, log messages are useful for diagnosing issues,
+monitoring your deployment, and tuning performance. 
+
+Structured Logging
+------------------
+
+Starting in MongoDB 4.4, :binary:`~bin.mongod` / :binary:`~bin.mongos`
+instances output all log messages in :ref:`structured JSON format
+<log-message-json-output-format>`. Log entries are written as a series
+of key-value pairs, where each key indicates a log message field type,
+such as "severity", and each corresponding value records the associated
+logging information for that field type, such as "informational".
+Previously, log entries were output as plaintext.
+
+.. example::
+
+   The following is an example log message in JSON format as it would
+   appear in the MongoDB log file:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      {"t":{"$date":"2020-05-01T15:16:17.180+00:00"},"s":"I", "c":"NETWORK", "id":12345, "ctx":"listener", "msg":"Listening on","attr":{"address":"127.0.0.1"}}
+
+   JSON log entries can be :ref:`pretty-printed
+   <log-message-pretty-printing>` for readability. Here is the same log
+   entry pretty-printed:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      {
+        "t": {
+          "$date": "2020-05-01T15:16:17.180+00:00"
+        },
+        "s": "I",
+        "c": "NETWORK",
+        "id": 12345,
+        "ctx": "listener",
+        "msg": "Listening on",
+        "attr": {
+          "address": "127.0.0.1"
+        }
+      }
+
+   In this log entry, for example, the key ``s``, representing
+   :ref:`severity <log-severity-levels>`, has a corresponding value of
+   ``I``, representing "Informational", and the key ``c``, representing
+   :ref:`component <log-message-components>`, has a corresponding value
+   of ``NETWORK``, indicating that the "network" component was
+   responsible for this particular message. The various field types are
+   presented in detail in the :ref:`log-message-field-types` section.
+
+Structured logging with key-value pairs allows for efficient parsing
+by automated tools or log ingestion services, and makes programmatic
+search and analysis of log messages easier to perform. Examples of
+analyzing structured log messages can be found in the
+:ref:`log-message-parsing` section.
+
+.. _log-message-json-output-format:
+
+JSON Log Output Format
+~~~~~~~~~~~~~~~~~~~~~~
+
+With MongoDB 4.4, all log output is now in JSON format. This includes
+log output sent to the *file*, *syslog*, and *stdout* (standard out)
+:ref:`log destinations <log-message-destinations>`, as well as the
+output of the :dbcommand:`getLog` command.
+
+Each log entry is output as a self-contained JSON object which follows
+the :doc:`Relaxed Extended JSON v2.0 </reference/mongodb-extended-json>`
+specification, and has the following layout and field order:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "t": <Datetime>, // timestamp
+     "s": <String>, // severity
+     "c": <String>, // component
+     "ctx": <String>, // context
+     "id": <Integer>, // unique identifier
+     "msg": <String>, // message body
+     "attr": <Object> // additional attributes (optional)
+     "tags": <Array of strings> // tags (optional)
+     "truncated": <Object> // truncation info (if truncated)
+     "size": <Integer> // original size of entry (if truncated)
+   }
+
+- **Timestamp** - Timestamp of the log message, in ``ISO-8601``
+  format. See :ref:`log-message-timestamp`.
+
+- **Severity** - String representing the short severity code of the log
+  message. See :ref:`log-severity-levels`.
+
+- **Component** - String representing the full component string of the
+  log message. See :ref:`log-message-components`.
+
+- **Context** - String representing the name of the thread issuing the
+  log statement.
+
+- **id** - Integer representing the unique identifier of the log
+  statement. See :ref:`log-message-parsing-example-filter-id` for an
+  example.
+
+- **Message** - String representing the raw log output message as passed
+  from the server or driver. This message is :ref:`escaped as needed
+  <log-message-json-escaping>` according to the JSON specification.
+
+- **Attributes** - *(optional)* Object containing one or more
+  key-value pairs for any additional attributes provided. If a log
+  message does not include any additional attributes, this object is
+  omitted. Attribute values may be referenced by their key name in the
+  *message* body, depending on the message. Like **message**, attributes
+  are :ref:`escaped as needed <log-message-json-escaping>` according to
+  the JSON specification.
+
+- **Tags** - *(optional)* Array of strings representing any tags
+  applicable to the log statement, for example: ``["startupWarnings"]``.
+
+- **Truncated** - *(if truncated)* Object containing information
+  regarding :ref:`log message truncation <log-message-truncation>`, if
+  applicable. This object will only be present if the log entry contains
+  at least one **attribute** that was truncated.
+
+- **Size** - *(if truncated)* Integer representing the original size of
+  a log entry if it has been :ref:`truncated <log-message-truncation>`.
+  This field will only be present if the log entry contains
+  at least one **attribute** that was truncated.
+
+.. _log-message-json-escaping:
+
+Escaping
+````````
+
+The **message** and **attributes** fields will escape control
+characters as necessary according to the
+:doc:`Relaxed Extended JSON v2.0 </reference/mongodb-extended-json>`
+specification:
+
+.. include:: /includes/fact-json-escape-sequences.rst
+
+An example of message escaping is provided in the
+:ref:`examples section <log-message-json-examples>`.
+
+.. _log-message-truncation:
+
+Truncation
+``````````
+Any **attributes** that exceed the maximum size defined with
+:parameter:`maxLogSizeKB` (default: 10 KB) are truncated. Truncated
+attributes omit log data beyond the configured limit, but retain the
+JSON formatting of the entry to ensure that the entry remains parsable.
+
+Here is an example of a log entry with a truncated attribute:
+
+.. code-block:: javascript
+   :emphasize-lines: 10-12
+   :copyable: false
+
+   {"t":{"$date":"2020-05-19T18:12:05.702+00:00"},"s":"I",  "c":"SHARDING", "id":22104,   "ctx":"conn33",
+   "msg":"Received splitChunk request","attr":{"request":{"splitChunk":"config.system.sessions",
+   "from":"production-shard1","keyPattern":{"_id":1},"epoch":{"$oid":"5ec42172996456771753a59e"},
+   "shardVersion":[{"$timestamp":{"t":1,"i":0}},{"$oid":"5ec42172996456771753a59e"}],"min":{"_id":{"$minKey":1}},
+   "max":{"_id":{"$maxKey":1}},"splitKeys":[{"_id":{"id":{"$uuid":"00400000-0000-0000-0000-000000000000"}}},
+   {"_id":{"id":{"$uuid":"00800000-0000-0000-0000-000000000000"}}},
+
+   ...
+   
+   {"_id":{"id":{"$uuid":"26c00000-0000-0000-0000-000000000000"}}},{"_id":{}}]}},
+   "truncated":{"request":{"splitKeys":{"155":{"_id":{"id":{"type":"binData","size":21}}}}}},
+   "size":{"request":46328}}
+
+In this case, the ``request`` attribute has been truncated and the
+specific instance of its subfield ``_id`` that triggered truncation
+(i.e. caused the attribute to overrun :parameter:`maxLogSizeKB`) is
+printed without data as ``{"_id":{}}``. The remainder of the ``request``
+attribute is then omitted.
+
+Log entries containing one or more truncated attributes include a
+``truncated`` object which provides the following information for each
+truncated attribute in the log entry:
+
+- the attribute that was truncated
+- the specific subobject of that attribute that triggered truncation, if
+  applicable.
+- the data ``type`` of the truncated field
+- the ``size`` of the truncated field
+
+Log entries with truncated attributes may also include an additional
+``size`` field at the end of the entry which indicates the original
+size of the attribute before truncation, in this case ``46328`` or about
+46KB. This final ``size`` field is only shown if it is different from
+the ``size`` field in the ``truncated`` object, i.e. if the total object
+size of the attribute is different from the size of the truncated
+subobject, as is the case in the example above.
+
+Padding
+```````
+
+When output to the *file* or the *syslog* log destinations, padding is
+added after the **severity**, **context**, and **id** fields to increase
+readability when viewed with a fixed-width font.
+
+The following MongoDB log file excerpt demonstrates this padding:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {"t":{"$date":"2020-05-18T20:18:12.724+00:00"},"s":"I",  "c":"CONTROL",  "id":23285,   "ctx":"main","msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
+   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"W",  "c":"ASIO",     "id":22601,   "ctx":"main","msg":"No TransportLayer configured during NetworkInterface startup"}
+   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"I",  "c":"NETWORK",  "id":4648601, "ctx":"main","msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set tcpFastOpenServer, tcpFastOpenClient, and tcpFastOpenQueueSize."}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"STORAGE",  "id":4615611, "ctx":"initandlisten","msg":"MongoDB starting","attr":{"pid":10111,"port":27001,"dbPath":"/var/lib/mongo","architecture":"64-bit","host":"centos8"}}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"CONTROL",  "id":23403,   "ctx":"initandlisten","msg":"Build Info","attr":{"buildInfo":{"version":"4.4.0","gitVersion":"328c35e4b883540675fb4b626c53a08f74e43cf0","openSSLVersion":"OpenSSL 1.1.1c FIPS  28 May 2019","modules":[],"allocator":"tcmalloc","environment":{"distmod":"rhel80","distarch":"x86_64","target_arch":"x86_64"}}}}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"CONTROL",  "id":51765,   "ctx":"initandlisten","msg":"Operating System","attr":{"os":{"name":"CentOS Linux release 8.0.1905 (Core) ","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}
+
+.. _log-message-pretty-printing:
+
+Pretty Printing
+```````````````
+
+.. include:: /includes/fact-use-jq-with-structured-logging.rst
+
+You can use ``jq`` to pretty-print log entries as follows:
+
+- Pretty-print the entire log file:
+
+  .. code-block:: javascript
+
+     cat mongod.log | jq
+
+- Pretty-print the most recent log entry:
+
+  .. code-block:: javascript
+
+     cat mongod.log | tail -1 | jq
+
+More examples of working with MongoDB structured logs are available in
+the :ref:`log-message-parsing` section.
+
+.. _log-message-destinations:
+
+Configuring Log Message Destinations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB log messages can be output to *file*, *syslog*, or *stdout*
+(standard output).
+
+To configure the log output destination, use one of the following
+settings, either in the :doc:`configuration file
+</reference/configuration-options>` or on the command-line:
+
+**Configuration file:**
+  - The :setting:`systemLog.destination` option for *file* or *syslog*
+
+**Command-line:**
+  - the :option:`--logpath <mongod --logpath>` option for
+    :binary:`~bin.mongod` for *file*
+  - the :option:`--syslog <mongod --syslog>` option for
+    :binary:`~bin.mongod` for *syslog*
+  - the :option:`--logpath <mongos --logpath>` option for
+    :binary:`~bin.mongos` for *file*
+  - the :option:`--syslog <mongos --syslog>` option for
+    :binary:`~bin.mongos` for *syslog*
+
+Not specifying either *file* or *syslog* sends all logging output to
+*stdout*.
+
+For the full list of logging settings and options see:
+
+**Configuration file:**
+  - :ref:`systemLog options list <systemlog-options>`
+
+**Command-line:**
+  - :ref:`Log options list <mongod-log-options-section>` for
+    :binary:`~bin.mongod`
+  - :ref:`Log options list <mongos-log-options-section>` for
+    :binary:`~bin.mongos`
+
+.. note::
+
+   Error messages sent to ``stderr`` (standard error), such as fatal
+   errors during startup when not using the *file* or *syslog* log
+   destinations, or messages having to do with misconfigured logging
+   settings, are not affected by the log output destination setting, and
+   are printed to ``stderr`` in plaintext format.
+
+.. _log-message-field-types:
+
+Log Message Field Types
+-----------------------
+
+.. _log-message-timestamp:
+
+Timestamp
+~~~~~~~~~
+
+The timestamp field type indicates the precise date and time at which
+the logged event occurred.
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 2-4
+
+   {
+     "t": {
+       "$date": "2020-05-01T15:16:17.180+00:00"
+     },
+     "s": "I",
+     "c": "NETWORK",
+     "id": 12345,
+     "ctx": "listener",
+     "msg": "Listening on",
+     "attr": {
+       "address": "127.0.0.1"
+     }
+   }
+
+When logging to *file* or to *syslog* [#syslog-ts]_, the default
+format for the timestamp is ``iso8601-local``. To modify the
+timestamp format, use the :option:`--timeStampFormat <mongod
+--timeStampFormat>` runtime option or the
+:setting:`systemLog.timeStampFormat` setting.
+
+See :ref:`log-message-parsing-example-filter-timestamp` for log parsing
+examples that filter on the timestamp field.
+
+.. note::
+
+   Starting in MongoDB 4.4, the ``ctime`` timestamp format is no longer
+   supported.
+
+.. [#syslog-ts]
+
+   If logging to *syslog*, the ``syslog`` daemon generates timestamps
+   when it logs a message, not when MongoDB issues the message. This
+   can lead to misleading timestamps for log entries, especially when
+   the system is under heavy load.
+
+.. _log-severity-levels:
+
+Severity
+~~~~~~~~
+
+The severity field type indicates the severity level associated with the
+logged event.
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 5
+
+   {
+     "t": {
+       "$date": "2020-05-01T15:16:17.180+00:00"
+     },
+     "s": "I",
+     "c": "NETWORK",
+     "id": 12345,
+     "ctx": "listener",
+     "msg": "Listening on",
+     "attr": {
+       "address": "127.0.0.1"
+     }
+   }
+
+Severity levels range from "Fatal" (most severe) to "Debug" (least
+severe):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Level
+     - Description
+
+   * - ``F``
+     - Fatal
+
+   * - ``E``
+     - Error
+
+   * - ``W``
+     - Warning
+
+   * - ``I``
+     - Informational, for :ref:`verbosity level
+       <log-messages-configure-verbosity>` ``0``
+
+   * - ``D1`` - ``D5``
+     - Debug, for :ref:`verbosity levels
+       <log-messages-configure-verbosity>` > ``0``
+
+       Starting in version 4.2, MongoDB indicates the specific
+       :ref:`debug verbosity level <log-messages-configure-verbosity>`.
+       For example, if verbosity level is 2, MongoDB indicates ``D2``.
+
+       In previous versions, MongoDB log messages specified ``D``
+       for all debug verbosity levels.
+
+You can specify the verbosity level of various components to determine
+the amount of **Informational** and **Debug** messages MongoDB outputs.
+Severity categories above these levels are always shown. [#slow-oplogs]_
+To set verbosity levels, see :ref:`log-messages-configure-verbosity`.
+
+.. _log-message-components:
+
+Components
+~~~~~~~~~~
+
+The component field type indicates the category a logged event is a
+member of, such as **NETWORK** or **COMMAND**.
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 6
+
+   {
+     "t": {
+       "$date": "2020-05-01T15:16:17.180+00:00"
+     },
+     "s": "I",
+     "c": "NETWORK",
+     "id": 12345,
+     "ctx": "listener",
+     "msg": "Listening on",
+     "attr": {
+       "address": "127.0.0.1"
+     }
+   }
+
+Each component is individually configurable via its own
+:ref:`verbosity filter <log-messages-configure-verbosity>`. The
+available components are as follows:
+
+.. data:: ACCESS
+
+   Messages related to access control, such as authentication. To
+   specify the log level for :data:`ACCESS` components, use the
+   :setting:`systemLog.component.accessControl.verbosity` setting.
+
+.. data:: COMMAND
+
+   Messages related to :doc:`database commands </reference/command>`,
+   such as :dbcommand:`count`. To specify the log level for
+   :data:`COMMAND` components, use the
+   :setting:`systemLog.component.command.verbosity` setting.
+
+.. data:: CONTROL
+
+   Messages related to control activities, such as initialization. To
+   specify the log level for :data:`CONTROL` components, use the
+   :setting:`systemLog.component.control.verbosity` setting.
+
+.. data:: ELECTION
+
+   Messages related specifically to replica set elections. To specify
+   the log level for :data:`ELECTION` components, set the
+   :setting:`systemLog.component.replication.election.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`ELECTION`. If
+   :setting:`systemLog.component.replication.election.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`ELECTION` components.
+
+.. data:: FTDC
+
+   .. versionadded:: 3.2
+   
+   Messages related to the diagnostic data collection mechanism, such 
+   as server statistics and status messages. To specify the log level
+   for :data:`FTDC` components, use the 
+   :setting:`systemLog.component.ftdc.verbosity` setting.
+
+.. data:: GEO
+
+   Messages related to the parsing of geospatial shapes, such as
+   verifying the GeoJSON shapes. To specify the log level for
+   :data:`GEO` components, set the
+   :setting:`systemLog.component.geo.verbosity` parameter.
+
+.. data:: INDEX
+
+   Messages related to indexing operations, such as
+   creating indexes. To specify the log level for
+   :data:`INDEX` components, set the
+   :setting:`systemLog.component.index.verbosity` parameter.
+
+.. data:: INITSYNC
+
+   Messages related to initial sync operation. To specify the log level
+   for :data:`INITSYNC` components, set the
+   :setting:`systemLog.component.replication.initialSync.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`INITSYNC`. If
+   :setting:`systemLog.component.replication.initialSync.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`INITSYNC` components.
+
+.. data:: JOURNAL
+
+   Messages related specifically to storage journaling activities. To
+   specify the log level for :data:`JOURNAL` components, use the
+   :setting:`systemLog.component.storage.journal.verbosity` setting.
+
+   :data:`STORAGE` is the parent component of :data:`JOURNAL`. If
+   :setting:`systemLog.component.storage.journal.verbosity` is
+   unset, MongoDB uses the :data:`STORAGE` verbosity level for
+   :data:`JOURNAL` components.
+
+.. data:: NETWORK
+
+   Messages related to network activities, such as accepting
+   connections. To specify the log level for :data:`NETWORK`
+   components, set the
+   :setting:`systemLog.component.network.verbosity` parameter.
+
+.. data:: QUERY
+
+   Messages related to queries, including query planner activities.
+   To specify the log level for :data:`QUERY` components, set the
+   :setting:`systemLog.component.query.verbosity` parameter.
+
+.. data:: RECOVERY
+
+   Messages related to storage recovery activities. To specify the log
+   level for :data:`RECOVERY` components, use the
+   :setting:`systemLog.component.storage.recovery.verbosity` setting.
+
+   :data:`STORAGE` is the parent component of :data:`RECOVERY`. If
+   :setting:`systemLog.component.storage.recovery.verbosity` is
+   unset, MongoDB uses the :data:`STORAGE` verbosity level for
+   :data:`RECOVERY` components.
+
+.. data:: REPL
+
+   Messages related to replica sets, such as initial sync, heartbeats,
+   steady state replication, and rollback. [#slow-oplogs]_ To specify
+   the log level for :data:`REPL` components, set the
+   :setting:`systemLog.component.replication.verbosity` parameter.
+
+   :data:`REPL` is the parent component of the :data:`ELECTION`,
+   :data:`INITSYNC`, :data:`REPL_HB`, and :data:`ROLLBACK` components.
+
+.. data:: REPL_HB
+
+   Messages related specifically to replica set heartbeats. To specify
+   the log level for :data:`REPL_HB` components, set the
+   :setting:`systemLog.component.replication.heartbeats.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`REPL_HB`. If
+   :setting:`systemLog.component.replication.heartbeats.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`REPL_HB` components.
+
+.. data:: ROLLBACK
+
+   Messages related to :ref:`rollback<replica-set-rollbacks>`
+   operations. To specify the log level for :data:`ROLLBACK` components,
+   set the :setting:`systemLog.component.replication.rollback.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`ROLLBACK`. If
+   :setting:`systemLog.component.replication.rollback.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`ROLLBACK` components.
+
+.. data:: SHARDING
+
+   Messages related to sharding activities, such as the startup of
+   the :binary:`~bin.mongos`. To specify the log level for
+   :data:`SHARDING` components, use the
+   :setting:`systemLog.component.sharding.verbosity` setting.
+
+.. data:: STORAGE
+
+   Messages related to storage activities, such as processes involved
+   in the :dbcommand:`fsync` command. To specify the log level for
+   :data:`STORAGE` components, use the
+   :setting:`systemLog.component.storage.verbosity` setting.
+
+   :data:`STORAGE` is the parent component of :data:`JOURNAL` and
+   :data:`RECOVERY`.
+
+.. data:: TXN
+
+   .. versionadded:: 4.0.2
+
+   Messages related to :doc:`multi-document transactions
+   </core/transactions>`. To specify the log level for :data:`TXN`
+   components, use the
+   :setting:`systemLog.component.transaction.verbosity` setting.
+
+.. data:: WRITE
+
+   Messages related to write operations, such as :dbcommand:`update`
+   commands. To specify the log level for :data:`WRITE` components,
+   use the :setting:`systemLog.component.write.verbosity` setting.
+
+.. data:: -
+
+   Messages not associated with a named component. Unnamed components
+   have the default log level specified in the
+   :setting:`systemLog.verbosity` setting. The
+   :setting:`systemLog.verbosity` setting is the default setting for
+   both named and unnamed components.
+
+See :ref:`log-message-parsing-example-filter-component` for log parsing
+examples that filter on the component field.
+
+.. _log-messages-client-data:
+
+Client Data
+~~~~~~~~~~~
+
+`MongoDB drivers <https://docs.mongodb.com/ecosystem/drivers/>`_ and
+client applications (including :binary:`~bin.mongosh`) have the
+ability to send identifying information at the time of connection to the
+server. After the connection is established, the client does not send
+the identifying information again unless the connection is dropped
+and reestablished.
+
+This identifying information is contained in the **attributes**
+field of the log entry. The exact information included varies by client. 
+
+Below is a sample log message containing the client data document as
+transmitted from a :binary:`~bin.mongosh` connection. The client
+data is contained in the ``doc`` object in the **attributes** field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {"t":{"$date":"2020-05-20T16:21:31.561+00:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn202","msg":"client metadata","attr":{"remote":"127.0.0.1:37106","client":"conn202","doc":{"application":{"name":"MongoDB Shell"},"driver":{"name":"MongoDB Internal Client","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
+
+When secondary members of a
+:doc:`replica set </core/replica-set-members/>` initiate
+a connection to a primary, they send similar data. A sample log message
+containing this initiation connection might appear as follows. The
+client data is contained in the ``doc`` object in the **attributes**
+field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {"t":{"$date":"2020-05-20T16:33:40.595+00:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn214","msg":"client metadata","attr":{"remote":"127.0.0.1:37176","client":"conn214","doc":{"driver":{"name":"NetworkInterfaceTL","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
+
+See the :ref:`examples section <log-message-json-examples>` for a
+:ref:`pretty-printed <log-message-pretty-printing>` example showing
+client data.
+
+For a complete description of client information and required fields,
+see the `MongoDB Handshake specification
+<https://github.com/mongodb/specifications/blob/master/source/mongodb-handshake/handshake.rst>`_.
+
+.. _log-message-verbosity-levels:
+
+Verbosity Levels
+----------------
+
+You can specify the logging verbosity level to increase or decrease
+the the amount of log messages MongoDB outputs. Verbosity levels can be
+adjusted for all components together, or for specific
+:ref:`named components <log-message-components>` individually.
+
+Verbosity affects log entries in the :ref:`severity
+<log-severity-levels>` categories **Informational** and **Debug** only.
+Severity categories above these levels are always shown.
+
+You might set verbosity levels to a high value to show detailed logging
+for debugging or development, or to a low value to minimize writes to
+the log on a vetted production deployment. [#slow-oplogs]_
+
+View Current Log Verbosity Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the current verbosity levels, use the
+:method:`db.getLogComponents()` method:
+
+.. code-block:: javascript
+
+   db.getLogComponents()
+
+Your output might resemble the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+    "verbosity" : 0,
+    "accessControl" : {
+       "verbosity" : -1
+    },
+    "command" : {
+       "verbosity" : -1
+    },
+    ...
+    "storage" : {
+       "verbosity" : -1,
+       "recovery" : {
+          "verbosity" : -1
+       },
+       "journal" : {
+           "verbosity" : -1
+       }
+    },
+    ...
+
+The initial ``verbosity`` entry is the parent verbosity level for all
+components, while the individual :ref:`named components
+<log-message-components>` that follow, such as ``accessControl``,
+indicate the specific verbosity level for that component, overriding the
+global verbosity level for that particular component if set.
+
+A value of ``-1``, indicates that the component inherits the verbosity
+level of their parent, if they have one (as with ``recovery`` above,
+inheriting from ``storage``), or the global verbosity level if they do
+not (as with ``command``). Inheritance relationships for verbosity
+levels are indicated in the :ref:`components section
+<log-message-components>`.
+
+.. _log-messages-configure-verbosity:
+
+Configure Log Verbosity Levels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure the verbosity level using: the
+:setting:`systemLog.verbosity` and
+``systemLog.component.<name>.verbosity`` settings, the
+:parameter:`logComponentVerbosity` parameter, or the
+:method:`db.setLogLevel()` method. [#slow-oplogs]_
+
+``systemLog`` Verbosity Settings
+````````````````````````````````
+
+To configure the default log level for all :ref:`components
+<log-message-components>`, use the :setting:`systemLog.verbosity`
+setting. To configure the level of specific components, use the
+``systemLog.component.<name>.verbosity`` settings.
+
+For example, the following configuration sets the
+:setting:`systemLog.verbosity` to ``1``, the
+:setting:`systemLog.component.query.verbosity` to ``2``, the
+:setting:`systemLog.component.storage.verbosity` to ``2``, and the
+:setting:`systemLog.component.storage.journal.verbosity` to ``1``:
+
+.. code-block:: javascript
+
+   systemLog:
+      verbosity: 1
+      component:
+         query:
+            verbosity: 2
+         storage:
+            verbosity: 2
+            journal:
+               verbosity: 1
+
+You would set these values in the :doc:`configuration file
+</reference/configuration-options>` or on the command line for your
+:binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
+
+All components not specified explicitly in the configuration have a
+verbosity level of ``-1``, indicating that they inherit the verbosity
+level of their parent, if they have one, or the global verbosity level
+(:setting:`systemLog.verbosity`) if they do not.
+
+``logComponentVerbosity`` Parameter
+```````````````````````````````````
+
+To set the :parameter:`logComponentVerbosity` parameter, pass a
+document with the verbosity settings to change.
+
+For example, the following sets the :setting:`default verbosity level
+<systemLog.verbosity>` to ``1``, the :setting:`query
+<systemLog.component.query.verbosity>` to ``2``, the :setting:`storage
+<systemLog.component.storage.verbosity>` to ``2``, and the
+:setting:`storage.journal
+<systemLog.component.storage.journal.verbosity>` to ``1``.
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      setParameter: 1,
+      logComponentVerbosity: {
+         verbosity: 1,
+         query: {
+            verbosity: 2
+         },
+         storage: {
+            verbosity: 2,
+            journal: {
+               verbosity: 1
+            }
+         }
+      }
+   } )
+
+You would set these values from :binary:`~bin.mongosh`.
+
+``db.setLogLevel()``
+````````````````````
+
+Use the :method:`db.setLogLevel()` method to update a single component
+log level. For a component, you can specify verbosity level of ``0`` to
+``5``, or you can specify ``-1`` to inherit the verbosity of the
+parent. For example, the following sets the
+:setting:`systemLog.component.query.verbosity` to its parent verbosity
+(i.e. default verbosity):
+
+.. code-block:: javascript
+
+   db.setLogLevel(-1, "query")
+
+You would set this value from :binary:`~bin.mongosh`.
+
+.. [#slow-oplogs]
+
+   .. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst
+
+.. _log-message-slow-ops:
+
+Logging Slow Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Client operations (such as queries) appear in the log if their duration
+exceeds the :ref:`slow operation threshold <slowms-threshold-option>` or
+when the :ref:`log verbosity level <log-message-verbosity-levels>` is 1
+or higher. [#slow-oplogs]_ These log entries include the full command
+object associated with the operation.
+
+.. include:: /includes/extracts/4.2-changes-log-query-shapes-plan-cache-key.rst
+
+Starting in MongoDB 5.0, :ref:`slow operation
+<database-profiling-specify-slowms-threshold>` log messages include a 
+``remote`` field specifying client IP address.
+
+The following example output includes information about
+a slow :doc:`aggregation </aggregation>` operation:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {"t":{"$date":"2020-05-20T20:10:08.731+00:00"},"s":"I",  "c":"COMMAND",  "id":51803,   "ctx":"conn281","msg":"Slow query","attr":{"type":"command","ns":"stocks.trades","appName":"MongoDB Shell","command":{"aggregate":"trades","pipeline":[{"$project":{"ticker":1.0,"price":1.0,"priceGTE110":{"$gte":["$price",110.0]},"_id":0.0}},{"$sort":{"price":-1.0}}],"allowDiskUse":true,"cursor":{},"lsid":{"id":{"$uuid":"fa658f9e-9cd6-42d4-b1c8-c9160fabf2a2"}},"$clusterTime":{"clusterTime":{"$timestamp":{"t":1590005405,"i":1}},"signature":{"hash":{"$binary":{"base64":"AAAAAAAAAAAAAAAAAAAAAAAAAAA=","subType":"0"}},"keyId":0}},"$db":"test"},"planSummary":"COLLSCAN","cursorid":1912190691485054730,"keysExamined":0,"docsExamined":1000001,"hasSortStage":true,"usedDisk":true,"numYields":1002,"nreturned":101,"reslen":17738,"locks":{"ReplicationStateTransition":{"acquireCount":{"w":1119}},"Global":{"acquireCount":{"r":1119}},"Database":{"acquireCount":{"r":1119}},"Collection":{"acquireCount":{"r":1119}},"Mutex":{"acquireCount":{"r":117}}},"storage":{"data":{"bytesRead":232899899,"timeReadingMicros":186017},"timeWaitingMicros":{"cache":849}},"remote": "192.168.14.15:37666","protocol":"op_msg","durationMillis":22427}}
+
+See the :ref:`examples section <log-message-json-examples>` for a
+:ref:`pretty-printed <log-message-pretty-printing>` version of this log
+entry.
+
+.. _log-messages-remoteOpWaitMillis:
+
+Time Waiting for Shards Logged in ``remoteOpWaitMillis`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+Starting in MongoDB 5.0, you can use the ``remoteOpWaitMillis`` log
+field to obtain the wait time (in milliseconds) for results from
+:term:`shards <shard>`.
+
+``remoteOpWaitMillis`` is only logged:
+
+- If you configure :ref:`slow operations logging
+  <log-message-slow-ops>`.
+
+- On the :term:`shard` or :binary:`~bin.mongos` that merges the results.
+
+To determine if a merge operation or a shard issue is causing a slow
+query, compare the ``durationMillis`` and ``remoteOpWaitMillis`` time
+fields in the log. ``durationMillis`` is the total time the query took
+to complete. Specifically:
+
+- If ``durationMillis`` is slightly longer than ``remoteOpWaitMillis``,
+  then most of the time was spent waiting for a shard response. For
+  example, ``durationMillis`` of 17 and ``remoteOpWaitMillis`` of 15.
+
+- If ``durationMillis`` is significantly longer than
+  ``remoteOpWaitMillis``, then most of the time was spent performing the
+  merge. For example, ``durationMillis`` of 100 and
+  ``remoteOpWaitMillis`` of 15.
+
+.. _log-message-parsing:
+
+Parsing Structured Log Messages
+-------------------------------
+
+Log parsing is the act of programmatically searching through and
+analyzing log files, often in an automated manner. With the introduction
+of structured logging in MongoDB 4.4, log parsing is made simpler and
+more powerful. For example:
+
+- Log message fields are presented as key-value pairs. Log parsers can
+  query by specific keys of interest to efficiently filter results.
+
+- Log messages always contain the same message structure. Log parsers
+  can reliably extract information from any log message, without needing
+  to code for cases where information is missing or formatted
+  differently.
+
+The following examples demonstrate common log parsing workflows when
+working with MongoDB JSON log output.
+
+Log Parsing Examples
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-use-jq-with-structured-logging.rst
+
+These examples use ``jq`` to simplify log parsing.
+
+Counting Unique Messages
+````````````````````````
+
+The following example shows the top 10 unique message values in a given
+log file, sorted by frequency:
+
+.. code-block:: bash
+
+   jq -r ".msg" /var/log/mongodb/mongod.log | sort | uniq -c | sort -rn | head -10
+
+Monitoring Connections
+``````````````````````
+Remote client connections are shown in the log under the "remote" key
+in the attribute object. The following counts all unique connections
+over the course of the log file and presents them in descending order by
+number of occurrences:
+
+.. code-block:: bash
+
+   jq -r '.attr.remote' /var/log/mongodb/mongod.log | grep -v 'null' | sort | uniq -c | sort -r
+
+Note that connections from the same IP address, but connecting over
+different ports, are treated as different connections by this command.
+You could limit output to consider IP addresses only, with the following
+change:
+
+.. code-block:: bash
+
+   jq -r '.attr.remote' /var/log/mongodb/mongod.log | grep -v 'null' | awk -F':' '{print $1}' | sort | uniq -c | sort -r
+
+Analyzing Driver Connections
+````````````````````````````
+
+The following example counts all remote `MongoDB driver
+<https://docs.mongodb.com/ecosystem/drivers/>`__ connections, and
+presents each driver type and version in descending order by number
+of occurrences:
+
+.. code-block:: bash
+
+   jq -cr '.attr.doc.driver' /var/log/mongodb/mongod.log | grep -v null | sort | uniq -c | sort -rn    
+
+Analyzing Client Types
+``````````````````````
+
+The following example analyzes the reported :ref:`client data
+<log-messages-client-data>` of remote `MongoDB driver
+<https://docs.mongodb.com/ecosystem/drivers/>`__
+connections and client applications, including :binary:`~bin.mongosh`,
+and prints a total for each unique operating system type that
+connected, sorted by frequency:
+
+.. code-block:: bash
+
+   jq -r '.attr.doc.os.type' /var/log/mongodb/mongod.log | grep -v null | sort | uniq -c | sort -rn
+
+The string "Darwin", as reported in this log field, represents a macOS
+client.
+
+Analyzing Slow Queries
+``````````````````````
+
+With :ref:`slow operation logging <log-message-slow-ops>` enabled, the
+following returns only the slow operations that took above
+2000 milliseconds:, for further analysis:
+
+.. code-block:: bash
+
+   jq '. | select(.attr.durationMillis>=2000)' /var/log/mongodb/mongod.log
+
+Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
+for more information on the ``jq`` filters shown in this example.
+
+.. _log-message-parsing-example-filter-component:
+
+Filtering by Component
+``````````````````````
+
+Log components (the third field in the :ref:`JSON log output format
+<log-message-json-output-format>`) indicate the :ref:`general category
+<log-message-components>` a given log message falls under. Filtering by
+component is often a great starting place when parsing log messages for
+relevant events.
+
+The following example prints only the log messages of
+:ref:`component <log-message-components>` type **REPL**:
+
+.. code-block:: bash
+
+   jq '. | select(.c=="REPL")' /var/log/mongodb/mongod.log
+
+The following example prints all log messages *except* those of
+:ref:`component <log-message-components>` type **REPL**:
+
+.. code-block:: bash
+
+   jq '. | select(.c!="REPL")' /var/log/mongodb/mongod.log
+
+The following example print log messages of
+:ref:`component <log-message-components>` type **REPL** *or*
+**STORAGE**:
+
+.. code-block:: bash
+
+   jq '. | select( .c as $c | ["REPL", "STORAGE"] | index($c) )' /var/log/mongodb/mongod.log
+
+Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
+for more information on the ``jq`` filters shown in this example.
+
+.. _log-message-parsing-example-filter-id:
+
+Filtering by Known Log ID
+`````````````````````````
+
+Log IDs (the fifth field in the :ref:`JSON log output format
+<log-message-json-output-format>`) map to specific log events, and can
+be relied upon to remain stable over successive MongoDB releases.
+
+As an example, you might be interested in the following two log events,
+showing a client connection followed by a disconnection:
+
+.. code-block:: javascript
+
+   {"t":{"$date":"2020-06-01T13:06:59.027-0500"},"s":"I", "c":"NETWORK", "id":22943,"ctx":"listener","msg":"connection accepted from {session_remote} #{session_id} ({connectionCount}{word} now open)","attr":{"session_remote":"127.0.0.1:61298","session_id":164,"connectionCount":11,"word":" connections"}}
+   {"t":{"$date":"2020-06-01T13:07:03.490-0500"},"s":"I", "c":"NETWORK", "id":22944,"ctx":"conn157","msg":"end connection {remote} ({connectionCount}{word} now open)","attr":{"remote":"127.0.0.1:61298","connectionCount":10,"word":" connections"}}
+
+The log IDs for these two entries are ``22943`` and ``22944``
+respectively. You could then filter your log output to show only these
+log IDs, effectively showing only client connection activity, using the
+following ``jq`` syntax:
+
+.. code-block:: bash
+
+   jq '. | select( .id as $id | [22943, 22944] | index($id) )' /var/log/mongodb/mongod.log
+
+Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
+for more information on the ``jq`` filters shown in this example.
+
+.. _log-message-parsing-example-filter-timestamp:
+
+Filtering by Date Range
+```````````````````````
+
+Log output can be further refined by filtering on the timestamp field,
+limiting log entries returned to a specific date range. For example, 
+the following returns all log entries that occurred on April 15th, 2020:
+
+.. code-block:: bash
+
+   jq '. | select(.t["$date"] >= "2020-04-15T00:00:00.000" and .t["$date"] <= "2020-04-15T23:59:59.999")' /var/log/mongodb/mongod.log
+
+Note that this syntax includes the full timestamp, including
+milliseconds but excluding the timezone offset. 
+
+Filtering by date range can be combined with any of the examples above,
+creating weekly reports or yearly summaries for example. The following
+syntax expands the "Monitoring Connections" example from earlier to
+limit results to the month of May, 2020:
+
+.. code-block:: bash
+
+   jq '. | select(.t["$date"] >= "2020-05-01T00:00:00.000" and .t["$date"] <= "2020-05-31T23:59:59.999" and .attr.remote)' /var/log/mongodb/mongod.log
+
+Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
+for more information on the ``jq`` filters shown in this example.
+
+Log Ingestion Services
+~~~~~~~~~~~~~~~~~~~~~~
+
+Log ingestion services are third-party products that intake and
+aggregate log files, usually from a distributed cluster of systems, and
+provide ongoing analysis of that data in a central location.
+
+The :ref:`JSON log format <log-message-json-output-format>`, introduced
+with MongoDB 4.4, allows for more flexibility when working with log
+ingestion and analysis services. Whereas plaintext logs generally
+require some manner of transformation before being eligible for use
+with these products, JSON files can often be consumed out of the box,
+depending on the service. Further, JSON-formatted logs offer more
+control when performing filtering for these services, as the
+key-value structure offers the ability to specifically import only the
+fields of interest, while omitting the rest.
+
+Consult the documentation for your chosen third-party log ingestion
+service for more information.
+
+.. _log-message-json-examples:
+
+Log Message Examples
+--------------------
+
+The following examples show log messages in JSON output
+format. 
+
+These log messages are presented in :ref:`pretty-printed format
+<log-message-pretty-printing>` for convenience.
+
+Startup Warning
+~~~~~~~~~~~~~~~
+
+This example shows a startup warning:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "t": {
+       "$date": "2020-05-20T19:17:06.188+00:00"
+     },
+     "s": "W",
+     "c": "CONTROL",
+     "id": 22120,
+     "ctx": "initandlisten",
+     "msg": "Access control is not enabled for the database. Read and write access to data and configuration is unrestricted",
+     "tags": [
+       "startupWarnings"
+     ]
+   }
+
+Client Connection
+~~~~~~~~~~~~~~~~~
+
+This example shows a client connection that includes
+:ref:`client data <log-messages-client-data>`:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "t": {
+       "$date": "2020-05-20T19:18:40.604+00:00"
+     },
+     "s": "I",
+     "c": "NETWORK",
+     "id": 51800,
+     "ctx": "conn281",
+     "msg": "client metadata",
+     "attr": {
+       "remote": "192.168.14.15:37666",
+       "client": "conn281",
+       "doc": {
+         "application": {
+           "name": "MongoDB Shell"
+         },
+         "driver": {
+           "name": "MongoDB Internal Client",
+           "version": "4.4.0"
+         },
+         "os": {
+           "type": "Linux",
+           "name": "CentOS Linux release 8.0.1905 (Core) ",
+           "architecture": "x86_64",
+           "version": "Kernel 4.18.0-80.11.2.el8_0.x86_64"
+         }
+       }
+     }
+   }
+
+Slow Operation
+~~~~~~~~~~~~~~
+
+This example shows a :ref:`slow operation message
+<log-message-slow-ops>`:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "t": {
+       "$date": "2020-05-20T20:10:08.731+00:00"
+     },
+     "s": "I",
+     "c": "COMMAND",
+     "id": 51803,
+     "ctx": "conn281",
+     "msg": "Slow query",
+     "attr": {
+       "type": "command",
+       "ns": "stocks.trades",
+       "appName": "MongoDB Shell",
+       "command": {
+         "aggregate": "trades",
+         "pipeline": [
+           {
+             "$project": {
+               "ticker": 1,
+               "price": 1,
+               "priceGTE110": {
+                 "$gte": [
+                   "$price",
+                   110
+                 ]
+               },
+               "_id": 0
+             }
+           },
+           {
+             "$sort": {
+               "price": -1
+             }
+           }
+         ],
+         "allowDiskUse": true,
+         "cursor": {},
+         "lsid": {
+           "id": {
+             "$uuid": "fa658f9e-9cd6-42d4-b1c8-c9160fabf2a2"
+           }
+         },
+         "$clusterTime": {
+           "clusterTime": {
+             "$timestamp": {
+               "t": 1590005405,
+               "i": 1
+             }
+           },
+           "signature": {
+             "hash": {
+               "$binary": {
+                 "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                 "subType": "0"
+               }
+             },
+             "keyId": 0
+           }
+         },
+         "$db": "test"
+       },
+       "planSummary": "COLLSCAN",
+       "cursorid": 1912190691485054700,
+       "keysExamined": 0,
+       "docsExamined": 1000001,
+       "hasSortStage": true,
+       "usedDisk": true,
+       "numYields": 1002,
+       "nreturned": 101,
+       "reslen": 17738,
+       "locks": {
+         "ReplicationStateTransition": {
+           "acquireCount": {
+             "w": 1119
+           }
+         },
+         "Global": {
+           "acquireCount": {
+             "r": 1119
+           }
+         },
+         "Database": {
+           "acquireCount": {
+             "r": 1119
+           }
+         },
+         "Collection": {
+           "acquireCount": {
+             "r": 1119
+           }
+         },
+         "Mutex": {
+           "acquireCount": {
+             "r": 117
+           }
+         }
+       },
+       "storage": {
+         "data": {
+           "bytesRead": 232899899,
+           "timeReadingMicros": 186017
+         },
+         "timeWaitingMicros": {
+           "cache": 849
+         }
+       },
+       "remote": "192.168.14.15:37666",
+       "protocol": "op_msg",
+       "durationMillis": 22427
+     }
+   }
+
+Escaping
+~~~~~~~~
+
+This example demonstrates :ref:`character escaping
+<log-message-json-escaping>`, as shown in the ``setName`` field of the 
+attribute object:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "t": {
+       "$date": "2020-05-20T19:11:09.268+00:00"
+     },
+     "s": "I",
+     "c": "REPL",
+     "id": 21752,
+     "ctx": "ReplCoord-0",
+     "msg": "Scheduling remote command request",
+     "attr": {
+       "context": "vote request",
+       "request": "RemoteCommand 229 -- target:localhost:27003 db:admin cmd:{ replSetRequestVotes: 1, setName: \"my-replica-name\", dryRun: true, term: 3, candidateIndex: 0, configVersion: 2, configTerm: 3, lastAppliedOpTime: { ts: Timestamp(1589915409, 1), t: 3 } }"
+     }
+   }
+
+.. _log-message-view-example:
+
+View
+~~~~
+
+Starting in MongoDB 5.0, :ref:`log messages for slow queries
+<log-message-slow-ops>` on :doc:`views </core/views>` include a
+``resolvedViews`` field that contains the view details:
+
+.. code-block:: javascript
+   :copyable: false
+
+   "resolvedViews": [ {
+      "viewNamespace": <String>,  // namespace and view name
+      "dependencyChain": <Array of strings>,  // view name and collection
+      "resolvedPipeline": <Array of documents>  // aggregation pipeline for view
+   } ]
+
+The following example uses the ``test`` database and creates a view
+named ``myView`` that sorts the documents in ``myCollection`` by the
+``firstName`` field:
+
+.. code-block:: javascript
+
+   use test
+   db.createView( "myView", "myCollection", [ { $sort: { "firstName" : 1 } } ] )
+
+Assume a :ref:`slow query <log-message-slow-ops>` is run on ``myView``.
+The following example log message contains a ``resolvedViews`` field for
+``myView``:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "t": {
+         "$date": "2021-09-30T17:53:54.646+00:00"
+      },
+      "s": "I",
+      "c": "COMMAND",
+      "id": 51803,
+      "ctx": "conn249",
+      "msg": "Slow query",
+      "attr": {
+         "type": "command",
+         "ns": "test.myView",
+         "appName": "MongoDB Shell",
+         "command": {
+            "find": "myView",
+            "filter": {},
+            "lsid": {
+               "id": { "$uuid": "ad176471-60e5-4e82-b977-156a9970d30f" }
+            },
+            "$db": "test"
+         },
+         "planSummary":"COLLSCAN",
+            "resolvedViews": [ {
+               "viewNamespace": "test.myView",
+               "dependencyChain": [ "myView", "myCollection" ],
+               "resolvedPipeline": [ { "$sort": { "firstName": 1 } } ]
+            } ],
+            "keysExamined": 0,
+            "docsExamined": 1,
+            "hasSortStage": true,
+            "cursorExhausted": true,
+            "numYields": 0,
+            "nreturned": 1,
+            "queryHash": "3344645B",
+            "planCacheKey": "1D3DE690",
+            "reslen": 134,
+            "locks": { "ParallelBatchWriterMode": { "acquireCount": { "r": 1 } },
+            "ReplicationStateTransition": { "acquireCount": { "w": 1 } },
+            "Global": { "acquireCount": { "r": 4 } },
+            "Database": { "acquireCount": {"r": 1 } },
+            "Collection": { "acquireCount": { "r": 1 } },
+            "Mutex": { "acquireCount": { "r": 4 } } },
+            "storage": {},
+            "remote": "127.0.0.1:34868",
+            "protocol": "op_msg",
+            "durationMillis": 0
+         }
+      }
+   }

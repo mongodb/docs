@@ -1,0 +1,443 @@
+.. _ssl-clients:
+
+=================================
+TLS/SSL Configuration for Clients
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Clients must have support for TLS/SSL to connect to a
+:binary:`~bin.mongod` or a :binary:`~bin.mongos` instance that require
+:doc:`TLS/SSL connections</tutorial/configure-ssl>`.
+
+.. note::
+
+   - The *Linux 64-bit legacy x64* binaries of MongoDB do **not** include
+     support for TLS/SSL.
+
+   - .. include:: /includes/fact-tls-1.0.rst
+
+.. important::
+
+   .. include:: /includes/extracts/security-prereq-configure-ssl-clients.rst
+
+.. |binary| replace:: MongoDB
+
+.. _mongo-shell-tls-connect:
+
+``mongosh`` Configuration (Using ``tls`` Options)
+-------------------------------------------------
+
+.. note::
+
+   Starting in version 4.2, MongoDB provides ``tls`` options that
+   corresponds to the ``ssl`` options. The ``tls`` options provide
+   **identical** functionality as the ``ssl`` options since MongoDB has
+   always supported TLS 1.0 and later.
+
+   The procedures in this section use the ``tls`` options. For
+   procedures using their ``ssl`` aliases, see
+   :ref:`mongo-shell-ssl-connect`.
+
+:binary:`~bin.mongosh` provides various TLS/SSL settings,
+including:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70 
+
+   * - TLS Option (New in 4.2)
+     - Notes
+
+   * - :option:`--tls <mongosh --tls>`
+     - Enables TLS/SSL connection.
+
+   * - :option:`--tlsCertificateKeyFile <mongosh --tlsCertificateKeyFile>`
+
+     - Specifies the :file:`.pem` file that contains
+       :binary:`~bin.mongosh`'s certificate and key to present to
+       the :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
+       This option is mutually exclusive with
+       :option:`--tlsCertificateSelector <mongosh --tlsCertificateSelector>`
+
+       .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
+
+   * - :option:`--tlsCertificateKeyFilePassword <mongosh --tlsCertificateKeyFilePassword>`
+
+     - If :binary:`~bin.mongosh`'s certificate key file is encrypted.
+
+   * - :option:`--tlsCAFile <mongosh --tlsCAFile>`
+
+     - Specifies the Certificate Authority (CA) :file:`.pem` file for
+       verification of the certificate presented by the
+       :binary:`~bin.mongod` or the :binary:`~bin.mongos` instance.
+
+   * - :option:`--tlsCertificateSelector <mongosh --tlsCertificateSelector>`
+
+     - If running on Windows or macOS, use a certificate from the
+       system certificate store. (*New in version 4.0*) 
+
+       This option is mutually exclusive with
+       :option:`--tlsCertificateKeyFile <mongosh --tlsCertificateKeyFile>`.
+
+       .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
+
+For a complete list of :binary:`~bin.mongosh`'s ``tls``
+options, see :ref:`mongo-shell-tls`.
+
+For TLS/SSL connections, :binary:`~bin.mongosh` validates the
+certificate presented by the :binary:`~bin.mongod` or
+:binary:`~bin.mongos` instance:
+
+- :binary:`~bin.mongosh` verifies that the certificate is from
+  the specified Certificate Authority (:option:`--tlsCAFile <mongo
+  --tlsCAFile>`. If the certificate is not from the specified CA,
+  :binary:`~bin.mongosh` will fail to connect.
+
+- .. include:: /includes/extracts/ssl-facts-mongo-ssl-hostname-verification.rst
+
+  To connect :binary:`~bin.mongosh` to a :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` that requires TLS/SSL, specify the
+  :option:`--host <mongosh --host>` option or use a :doc:`connection
+  string </reference/connection-string>` to specify the hostname. All
+  other ``TLS/SSL`` options must be specified using the command-line
+  options.
+
+.. _tls-client-connection-only:
+
+Connect to MongoDB Instance Using Encryption (``tls`` Options)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The procedure uses the ``tls`` options (available starting in
+   MongoDB 4.2). For procedures using their ``ssl`` aliases, see
+   :ref:`mongo-shell-ssl-connect`.
+
+To connect to a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance
+that requires :ref:`encrypted communication <ssl-mongod-ssl-cert-key>`,
+start :binary:`~bin.mongosh` with:
+
+- :option:`--tls <mongosh --tls>`
+
+- :option:`--host <mongosh --host>` and :option:`--tlsCAFile <mongo
+  --tlsCAFile>` to validate the server certificate.
+
+For example, consider a :binary:`~bin.mongod` instance running on
+``hostname.example.com`` with the following options:
+
+.. code-block:: bash
+
+   mongod --tlsMode requireTLS --tlsCertificateKeyFile <pem> 
+
+To connect to the instance, start :binary:`~bin.mongosh` with
+the following options:
+
+.. code-block:: bash
+
+   mongosh --tls --host hostname.example.com --tlsCAFile /etc/ssl/caToValidateServerCertificates.pem
+
+:binary:`~bin.mongosh` verifies the certificate presented by
+the :binary:`~bin.mongod` instance against the specified hostname and
+the CA file.
+
+.. _mongo-connect-require-client-certificates-tls:
+
+Connect to MongoDB Instance that Requires Client Certificates (``tls`` Options)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The procedure uses the ``tls`` options (available starting in
+   MongoDB 4.2). For procedures using their ``ssl`` aliases, see
+   :ref:`mongo-shell-ssl-connect`.
+
+To connect to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that
+requires :ref:`CA-signed client certificates
+<ssl-mongod-ca-signed-ssl-cert-key>`, start :binary:`~bin.mongosh` with:
+
+- :option:`--tls <mongosh --tls>`
+
+- :option:`--host <mongosh --host>` and the :option:`--tlsCAFile <mongo
+  --tlsCAFile>` to validate the server certificate,
+
+- :option:`--tlsCertificateKeyFile <mongosh --tlsCertificateKeyFile>` option to specify
+  the client certificate to present to the server.
+
+For example, consider a :binary:`~bin.mongod` instance running on
+``hostname.example.com`` with the following options:
+
+.. code-block:: bash
+
+   mongod --tlsMode requireTLS --tlsCertificateKeyFile /etc/ssl/mongodb.pem --tlsCAFile /etc/ssl/caToValidateClientCertificates.pem
+
+To connect to the instance, start :binary:`~bin.mongosh` with the
+following options:
+
+.. code-block:: bash
+
+   mongosh --tls --host hostname.example.com --tlsCertificateKeyFile /etc/ssl/client.pem --tlsCAFile /etc/ssl/caToValidateServerCertificates.pem
+
+On Windows and macOS,
+   You can also use the :option:`--tlsCertificateSelector <mongo
+   --tlsCertificateSelector>` option to specify the client certificate
+   from the system certificate store instead of using
+   :option:`--tlsCertificateKeyFile <mongo
+   --tlsCertificateKeyFile>`. If the CA file is also in the system
+   certificate store, you can omit the :option:`--tlsCAFile <mongo
+   --tlsCAFile>` option as well. For example, to use a certificate
+   with the ``CN`` (Common Name) of ``myclient.example.net`` and the CA
+   file from the system certificate store on macOS, start
+   :binary:`~bin.mongosh` with the following options:
+
+   .. code-block:: bash
+
+      mongosh --tls  --host hostname.example.com --tlsCertificateSelector subject="myclient.example.net"
+
+   Although still available, :binary:`~bin.mongosh`
+   ``--ssl``, ``--sslCAFile``, ``--sslPEMKeyFile``, and
+   ``--sslCertificateSelector`` options
+   are :ref:`deprecated as of MongoDB 4.2 <4.2-tls>`.
+
+Avoid Use of ``--tlsAllowInvalidCertificates`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Although available, avoid using the
+   :option:`--tlsAllowInvalidCertificates <mongo
+   --tlsAllowInvalidCertificates>` option if possible. If the use of
+   :option:`--tlsAllowInvalidCertificates <mongo
+   --tlsAllowInvalidCertificates>` is necessary, only use the option on
+   systems where intrusion is not possible.
+
+   If :binary:`~bin.mongosh` runs with the
+   :option:`--tlsAllowInvalidCertificates <mongo
+   --tlsAllowInvalidCertificates>` option, :binary:`~bin.mongosh`
+   will not attempt to validate the server certificates. This
+   creates a vulnerability to expired :binary:`~bin.mongod` and
+   :binary:`~bin.mongos` certificates as well as to foreign processes
+   posing as valid :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   instances. If you only need to disable the validation of the
+   hostname in the TLS/SSL certificates, see
+   :option:`--tlsAllowInvalidHostnames <mongosh --tlsAllowInvalidHostnames>`.
+
+.. _mongo-shell-ssl-connect:
+
+``mongosh`` Configuration (Using ``ssl`` Options)
+-------------------------------------------------
+
+:binary:`~bin.mongosh` provides various TLS/SSL settings, including:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - SSL Option (Deprecated in 4.2)
+     - Notes
+
+   * - ``--ssl``
+     - Enables TLS/SSL connection.
+
+   * - ``--sslPEMKeyFile``
+
+     - Specifies the :file:`.pem` file that contains
+       :binary:`~bin.mongosh`'s certificate and key to present to
+       the :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
+
+   * - ``--sslPEMKeyPassword``
+
+     - If :binary:`~bin.mongosh`'s certificate key file is encrypted.
+
+   * - ``--sslCAFile``
+
+     - Specifies the Certificate Authority (CA) :file:`.pem` file for
+       verification of the certificate presented by the
+       :binary:`~bin.mongod` or the :binary:`~bin.mongos` instance.
+
+   * - ``--sslCertificateSelector``
+   
+     - If running on Windows or macOS, use a certificate from the
+       system certificate store. (*New in version 4.0*)
+
+For a complete list of ``ssl``
+options, see :ref:`SSL Options <mongo-shell-ssl>`.
+
+For TLS/SSL connections, :binary:`~bin.mongosh` validates the
+certificate presented by the :binary:`~bin.mongod` or
+:binary:`~bin.mongos` instance:
+
+- :binary:`~bin.mongosh` verifies that the certificate is from
+  the specified Certificate Authority :option:`--sslCAFile <mongo
+  --sslCAFile>`. If the certificate is not from the specified CA,
+  :binary:`~bin.mongosh` will fail to connect.
+
+- .. include:: /includes/extracts/ssl-facts-mongo-ssl-hostname-verification.rst
+
+  To connect :binary:`~bin.mongosh` to a :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` that requires TLS/SSL, specify the
+  :option:`--host <mongosh --host>` option or use a :doc:`connection
+  string </reference/connection-string>` to specify the hostname. All
+  other ``TLS/SSL`` options must be specified using the command-line
+  options.
+
+.. _ssl-client-connection-only:
+
+Connect to MongoDB Instance Using Encryption (``--ssl`` Options)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The procedure uses the ``ssl`` options. For procedures using the
+   ``tls`` aliases (available starting in MongoDB 4.2), see
+   :ref:`mongo-shell-tls-connect`.
+   
+To connect to a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance
+that requires :ref:`encrypted communication <ssl-mongod-ssl-cert-key>`,
+start :binary:`~bin.mongosh` with:
+
+- ``--ssl``
+
+- :option:`--host <mongosh --host>` and :option:`--sslCAFile <mongo
+  --sslCAFile>` to validate the server certificate.
+
+For example, consider a :binary:`~bin.mongod` instance running on
+``hostname.example.com`` with the following options:
+
+.. code-block:: bash
+
+   mongod --sslMode requireSSL --sslPEMKeyFile <pem> 
+
+To connect to the instance, start :binary:`~bin.mongosh` with the
+following options:
+
+.. code-block:: bash
+
+   mongosh --ssl --host hostname.example.com --sslCAFile /etc/ssl/caToValidateServerCertificates.pem
+
+:binary:`~bin.mongosh` verifies the certificate presented by
+the :binary:`~bin.mongod` instance against the specified hostname
+and the CA file.
+
+.. _mongo-connect-require-client-certificates-ssl:
+
+Connect to MongoDB Instance that Requires Client Certificates (``ssl`` Options)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The procedure uses the ``ssl`` options. For procedures using the
+   ``tls`` aliases (available starting in MongoDB 4.2), see
+   :ref:`mongo-shell-tls-connect`.
+
+To connect to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that
+requires :ref:`CA-signed client certificates
+<ssl-mongod-ca-signed-ssl-cert-key>`, start :binary:`~bin.mongosh` with:
+
+- ``--ssl``
+
+- :option:`--host <mongosh --host>` and the :option:`--sslCAFile <mongo
+  --sslCAFile>` to validate the server certificate,
+
+- ``--sslPEMKeyFile`` option to specify
+  the client certificate to present to the server.
+
+For example, consider a :binary:`~bin.mongod` instance running on
+``hostname.example.com`` with the following options:
+
+.. code-block:: bash
+
+   mongod --sslMode requireSSL --sslPEMKeyFile /etc/ssl/mongodb.pem --sslCAFile /etc/ssl/ca.pem
+
+To connect to the instance, start :binary:`~bin.mongosh` with the
+following options:
+
+.. code-block:: bash
+
+   mongosh --ssl --host hostname.example.com --sslPEMKeyFile /etc/ssl/client.pem --sslCAFile /etc/ssl/ca.pem
+
+On Windows and macOS,
+   You can also use the :option:`--sslCertificateSelector <mongo
+   --sslCertificateSelector>` option to specify the client certificate
+   from the system certificate store instead of using
+   ``--sslPEMKeyFile``. If the CA file
+   is also in the system certificate store, you can omit the
+   ``--sslCAFile`` option as well. For
+   example, to use a certificate with the ``CN`` (Common Name) of
+   ``myclient.example.net`` and the CA file from the system certificate
+   store on macOS, start :binary:`~bin.mongosh` with the following
+   options:
+
+   .. code-block:: bash
+
+      mongosh --ssl  --host hostname.example.com --sslCertificateSelector subject=myclient.example.net 
+
+Avoid Use of ``--sslAllowInvalidCertificates`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+
+|atlas|, |MMS| and MongoDB Ops Manager
+--------------------------------------
+
+|atlas| uses TLS/SSL to encrypt the connections to your databases.
+
+The |MMS| and Ops Manager Monitoring agents use encrypted communication
+to gather its statistics. Because the agents already encrypt
+communications to the |MMS|/Ops Manager servers, this is just a matter
+of enabling TLS/SSL support in |MMS|/Ops Manager on a per host basis.
+
+For more information, see:
+
+- `MongoDB Atlas documentation <https://docs.atlas.mongodb.com/setup-cluster-security/>`_
+
+- |mms-docs| 
+
+- :opsmgr:`MongoDB Ops Manager documentation </>`.
+
+.. include:: /includes/replacement-mms.rst
+
+MongoDB Drivers
+---------------
+
+The MongoDB Drivers support encrypted communication. See:
+
+- `C Driver <http://api.mongodb.org/c/current/advanced-connections.html>`_
+- `C++ Driver <https://mongodb.github.io/mongo-cxx-driver/>`_
+- `C# Driver <http://mongodb.github.io/mongo-csharp-driver/2.0/reference/driver/ssl/>`_
+- `Java Driver <http://mongodb.github.io/mongo-java-driver/3.0/driver/reference/connecting/ssl/>`_
+- `Node.js Driver <http://mongodb.github.io/node-mongodb-native/3.1/tutorials/connect/ssl/>`_
+- `Perl Driver <https://metacpan.org/pod/MongoDB::MongoClient#ssl>`_
+- `PHP Driver <https://php.net/manual/en/mongodb-driver-manager.construct.php>`_
+- `Python Driver <https://pymongo.readthedocs.io/en/stable/examples/tls.html>`_
+- `Ruby Driver <https://docs.mongodb.com/ecosystem/tutorial/ruby-driver-tutorial/#mongodb-x509-mechanism>`_
+- `Scala Driver <http://mongodb.github.io/mongo-scala-driver/1.1/reference/connecting/ssl/>`_
+
+.. _mongodb-tools-support-ssl:
+
+MongoDB Tools
+-------------
+
+Various MongoDB utility programs support encrypted communication. These
+tools include:
+
+- :binary:`~bin.mongodump`
+- :binary:`~bin.mongoexport`
+- :binary:`~bin.mongofiles`
+- :binary:`~bin.mongoimport`
+- :binary:`~bin.mongorestore`
+- :binary:`~bin.mongostat`
+- :binary:`~bin.mongotop`
+
+To use encrypted communication with these tools, use the same ``ssl`` options as
+:binary:`~bin.mongosh`. See :ref:`mongo-shell-ssl-connect`.
+
+.. seealso::
+
+   :doc:`/tutorial/configure-ssl`
