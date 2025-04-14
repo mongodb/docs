@@ -1,0 +1,178 @@
+===========================
+db.collection.unhideIndex()
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.unhideIndex()
+
+   .. |dbcommand| replace:: ``index.hidden`` collection option set using the
+      :dbcommand:`collMod` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   Unhides an existing index from the query planner. Once unhidden, the
+   indexes are immediately available for use.
+
+Syntax
+------
+
+.. code-block:: javascript
+
+   db.collection.unhideIndex(<index>)
+
+Parameters
+~~~~~~~~~~
+
+The :method:`db.collection.unhideIndex()` method takes the following
+parameter:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - ``index``
+
+     - string or document
+
+     - Specifies the index to unhide from the query planner. You can
+       specify the index either by the index name or by the index
+       specification document.
+
+       .. tip::
+
+          You can use the :method:`db.collection.getIndexes()` method
+          to find the index name or the index specification document.
+       
+       To unhide a :doc:`text </core/index-text>` index, specify the
+       index name.
+
+The :method:`db.collection.unhideIndex()` is a :binary:`mongo` shell
+wrapper for the :dbcommand:`collMod` command.
+
+Behavior
+--------
+
+Index Modifications Reset Statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unhiding a hidden index resets its :pipeline:`$indexStats`.
+
+No-op
+~~~~~
+
+Unhiding an already unhidden index has no effect on the index. However,
+the operation will still generate an empty oplog entry.
+
+Required Access
+---------------
+
+If the deployment enforces authentication/authorization, you must have
+the :authaction:`collMod` privilege in the collection's database.
+
+The built-in role :authrole:`dbAdmin` provides the required privileges.
+
+Example
+-------
+
+The following example unhides an existing index.
+
+First, use :method:`db.collection.createIndex()` to create a hidden
+index:
+
+.. code-block:: javascript
+
+   db.restaurants.createIndex( { borough: 1, ratings: 1 }, { hidden: true } );
+
+To verify, run :method:`db.collection.getIndexes()` on the
+``restaurants`` collection:
+
+.. code-block:: javascript
+
+   db.restaurants.getIndexes();
+
+The operation returns the following information:
+
+.. code-block:: javascript
+   :emphasize-lines: 6
+
+   [
+      {
+         "v" : 2,
+         "key" : {
+            "_id" : 1
+         },
+         "name" : "_id_"
+      },
+      {
+         "v" : 2,
+         "key" : {
+            "borough" : 1,
+            "ratings" : 1
+         },
+         "name" : "borough_1_ratings_1",
+         "hidden" : true
+      }
+   ]
+
+The index option ``hidden`` is only returned if the value is ``true``.
+
+To unhide the index, you can specify either the index key specification
+document or the index name to the :method:`db.collection.unhideIndex()`
+method. The following specifies the index name:
+
+.. code-block:: javascript
+
+   db.restaurants.unhideIndex( "borough_1_ratings_1" );  
+
+To verify, run :method:`db.collection.getIndexes()` on the
+``restaurants`` collection:
+
+.. code-block:: javascript
+
+   db.restaurants.getIndexes()
+
+The operation returns the following information:
+
+.. code-block:: javascript
+
+   [
+      {
+         "v" : 2,
+         "key" : {
+            "_id" : 1
+         },
+         "name" : "_id_"
+      },
+      {
+         "v" : 2,
+         "key" : {
+            "borough" : 1,
+            "ratings" : 1
+         },
+         "name" : "borough_1_ratings_1"
+      }
+   ]
+
+The index option ``hidden`` no longer appears as part of the
+``borough_1_ratings_1`` index since the field is only returned if the
+value is ``true``.
+
+.. seealso::
+
+   - :method:`db.collection.hideIndex()`
+   - :ref:`db.collection.createIndex() <method-createIndex-hidden>`

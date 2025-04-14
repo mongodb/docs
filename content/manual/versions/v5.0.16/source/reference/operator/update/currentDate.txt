@@ -1,0 +1,171 @@
+============
+$currentDate
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $currentDate
+      
+   The :update:`$currentDate` operator sets the value of a field to
+   the current date, either as a :ref:`Date <document-bson-type-date>`
+   or a :ref:`timestamp <document-bson-type-timestamp>`. The default
+   type is :ref:`Date <document-bson-type-date>`.
+
+   The :update:`$currentDate` operator has the form:
+
+   .. code-block:: javascript
+
+      { $currentDate: { <field1>: <typeSpecification1>, ... } }
+
+   ``<typeSpecification>`` can be either:
+
+   - a boolean ``true`` to set the field value to the current date as a
+     Date, or
+
+   - a document ``{ $type: "timestamp" }`` or ``{ $type: "date" }``
+     which explicitly specifies the type. The operator is
+     *case-sensitive* and accepts only the lowercase ``"timestamp"`` or
+     the lowercase ``"date"``.
+
+   .. include:: /includes/use-dot-notation.rst
+
+Behavior
+--------
+
+.. include:: /includes/fact-update-operator-processing-order.rst
+
+.. include:: /includes/update-current-date.rst
+
+If the field does not exist, :update:`$currentDate` adds the field to a
+document.
+
+.. include:: /includes/extracts/update-operation-empty-operand-expressions-current-date.rst
+
+Example
+-------
+
+.. TODO may want to break this into two separate examples
+
+Create a sample collection ``customers`` with the following document:
+
+.. code-block:: javascript
+
+   db.customers.insertOne( 
+      { _id: 1, status: "a", lastModified: ISODate("2013-10-02T01:11:18.965Z") }
+   )
+
+The following operation updates the ``lastModified`` field to the
+current date, the ``"cancellation.date"`` field to the current timestamp
+as well as updating the ``status`` field to ``"D"`` and the
+``"cancellation.reason"`` to ``"user request"``.
+
+.. code-block:: javascript
+
+   db.customers.updateOne(
+      { _id: 1 },
+      {
+        $currentDate: {
+           lastModified: true,
+           "cancellation.date": { $type: "timestamp" }
+        },
+        $set: {
+           "cancellation.reason": "user request",
+           status: "D"
+        }
+      }
+   )
+
+.. include:: /includes/update-current-date.rst
+
+To verify the update:
+
+.. code-block:: javascript
+
+   db.customers.find()
+
+The updated document resembles:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : 1,
+      "status" : "D",
+      "lastModified" : ISODate("2020-01-22T21:21:41.052Z"),
+      "cancellation" : {
+         "date" : Timestamp(1579728101, 1),
+         "reason" : "user request"
+      }
+   }
+
+The ``lastModified`` field is set to the date when
+:update:`$currentDate` was run in the update example shown earlier.
+
+.. _currentDate-example-agg:
+
+Aggregation Alternative to ``$currentDate``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Starting in version 4.2**, :ref:`update methods
+<4.2-update-using-aggregation>` can accept an aggregation pipeline. As
+such, the previous example can be rewritten as the following using the
+aggregation stage :pipeline:`$set` and the aggregation variables
+:variable:`NOW` (for the current datetime) and :variable:`CLUSTER_TIME`
+(for the current timestamp):
+
+.. tip::
+
+   - To access aggregation variables, prefix the variable with double
+     dollar signs ``$$`` and enclose in quotes.
+     
+   - :variable:`CLUSTER_TIME` is available only on replica sets and
+     sharded clusters.
+     
+   - The :variable:`NOW` and :variable:`CLUSTER_TIME` values remain the
+     same throughout the pipeline.
+
+.. code-block:: javascript
+
+   db.customers.updateOne(
+     { _id: 1 },
+     [
+      { $set: { lastModified: "$$NOW", cancellation: {date: "$$CLUSTER_TIME", reason: "user request"}, status: "D" } }
+     ]
+   )
+
+After the operation, you can query the collection to verify the update:
+
+.. code-block:: javascript
+
+   db.customers.find().pretty()
+
+The query should return the following document:
+
+.. code-block:: javascript
+   :copyable: false
+   
+   {
+      "_id" : 1,
+      "status" : "D",
+      "lastModified" : ISODate("2020-01-22T21:02:18.994Z"),
+      "cancellation" : {
+         "date" : Timestamp(1579726934, 2),
+         "reason" : "user request"
+      }
+   }
+
+.. seealso::
+
+   - :method:`db.collection.updateOne()`
+   - :method:`db.collection.updateMany()`
+   - :method:`db.collection.findAndModify()`
+   - :method:`db.collection.findOneAndUpdate()`

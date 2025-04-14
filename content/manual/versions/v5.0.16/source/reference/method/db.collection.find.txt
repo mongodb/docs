@@ -1,0 +1,889 @@
+====================
+db.collection.find()
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.find(query, projection, options)
+
+
+   .. |dbcommand| replace:: :dbcommand:`find` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+   Selects documents in a collection or view and returns a
+   :term:`cursor` to the selected documents.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - :ref:`query <method-find-query>`
+   
+        - document
+   
+        - .. _method-find-query:
+        
+          Optional. Specifies selection filter using :doc:`query operators
+          </reference/operator>`. To return all documents in a collection, omit
+          this parameter or pass an empty document (``{}``).
+          
+          
+   
+      * - :ref:`projection <method-find-projection>`
+   
+        - document
+   
+        - .. _method-find-projection:
+
+          Optional. Specifies the fields to return in the documents that match the
+          query filter. To return all fields in the matching documents, omit this
+          parameter.  For details, see :ref:`find-projection`.
+
+      * - :ref:`options <method-find-options>`
+
+        - document
+
+        - .. _method-find-options:
+
+          .. include:: /includes/find-options-description.rst
+
+   :returns:
+
+      A :term:`cursor` to the documents that match the ``query``
+      criteria. When the :method:`find() <db.collection.find()>` method
+      "returns documents," the method is actually returning a cursor to
+      the documents.
+
+Behavior
+--------
+
+.. _find-projection:
+
+Projection
+~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-language-consistency-admonition.rst
+
+The ``projection`` parameter determines which fields are returned in
+the matching documents. The ``projection`` parameter takes a document
+of the following form:
+
+.. code-block:: javascript
+
+   { <field1>: <value>, <field2>: <value> ... }
+
+.. include:: /includes/extracts/projection-values-table.rst
+
+Embedded Field Specification
+````````````````````````````
+
+.. include:: /includes/extracts/projection-embedded-field-format.rst
+
+``_id`` Field Projection
+````````````````````````
+
+.. include:: /includes/extracts/projection-id-field.rst
+
+Inclusion or Exclusion
+``````````````````````
+
+.. include:: /includes/extracts/projection-inclusion-exclusion.rst
+
+See :ref:`Projection Examples <find-projection-examples>`.
+
+Cursor Handling
+~~~~~~~~~~~~~~~
+
+Executing :method:`db.collection.find()` in :binary:`~bin.mongosh`
+automatically iterates the cursor to display up to the first 20
+documents. Type ``it`` to continue iteration.
+
+To access the returned documents with a driver, use the appropriate
+cursor handling mechanism for the :driver:`driver language
+</>`.
+
+.. seealso::
+
+   - :ref:`crud-read-cursor`
+   - :ref:`find-modify-cursor`
+   - :ref:`find-cursor-methods`
+
+Read Concern
+~~~~~~~~~~~~
+
+To specify the :doc:`read concern </reference/read-concern>` for
+:method:`db.collection.find()`, use the :method:`cursor.readConcern()`
+method.
+
+.. _type-bracketing:
+
+Type Bracketing
+~~~~~~~~~~~~~~~
+
+MongoDB treats some data types as equivalent for comparison purposes.
+For instance, numeric types undergo conversion before comparison. For 
+most data types, however,
+:doc:`comparison operators</reference/operator/query-comparison>` only 
+perform comparisons on documents where the 
+:ref:`BSON type <bson-types-comparison-order>` of the 
+target field matches the type of the query operand. Consider the 
+following collection:
+
+.. code-block:: javascript
+
+   { "_id": "apples", "qty": 5 }
+   { "_id": "bananas", "qty": 7 }
+   { "_id": "oranges", "qty": { "in stock": 8, "ordered": 12 } }
+   { "_id": "avocados", "qty": "fourteen" }
+	
+The following query uses :query:`$gt` to return documents where the
+value of ``qty`` is greater than ``4``.
+
+.. code-block:: javascript
+
+   db.collection.find( { qty: { $gt: 4 } } )
+
+The query returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id": "apples", "qty": 5 }
+   { "_id": "bananas", "qty": 7 }
+	
+The document with ``_id`` equal to ``"avocados"`` is not 
+returned because its ``qty`` value is of type ``string`` while the 
+:query:`$gt` operand is of type ``integer``.
+
+The document with ``_id`` equal to ``"oranges"`` is not returned 
+because its ``qty`` value is of type ``object``. 
+
+.. note::
+   To enforce data types in a collection, use 
+   :doc:`/core/schema-validation`.
+
+Sessions
+~~~~~~~~
+
+For cursors created inside a session, you cannot call
+:dbcommand:`getMore` outside the session.
+
+Similarly, for cursors created outside of a session, you cannot call
+:dbcommand:`getMore` inside a session.
+
+Session Idle Timeout
+````````````````````
+
+.. include:: /includes/extracts/sessions-cursor-timeout.rst
+
+For operations that may be idle for longer than 30 minutes, associate
+the operation with an explicit session using
+:method:`Mongo.startSession()` and periodically refresh the session
+using the :dbcommand:`refreshSessions` command. See :limit:`Session Idle
+Timeout` for more information.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-operations-getMore.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`db.collection.find()`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+Examples
+--------
+
+The examples in this section use documents from the :doc:`bios
+collection </reference/bios-example-collection>` where the documents
+generally have the form:
+
+.. code-block:: javascript
+
+   {
+       "_id" : <value>,
+       "name" : { "first" : <string>, "last" : <string> },       // embedded document
+       "birth" : <ISODate>,
+       "death" : <ISODate>,
+       "contribs" : [ <string>, ... ],                           // Array of Strings
+       "awards" : [
+           { "award" : <string>, year: <number>, by: <string> }  // Array of embedded documents
+           ...
+       ]
+   }
+
+To create and populate the ``bios`` collection, see
+:doc:`/reference/bios-example-collection`.
+
+Find All Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`find() <db.collection.find()>` method with no parameters
+returns all documents from a collection and returns all fields for the
+documents. For example, the following operation returns all documents in
+the :doc:`bios collection </reference/bios-example-collection>`:
+
+.. code-block:: javascript
+
+   db.bios.find()
+
+Find Documents that Match Query Criteria
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Query for Equality
+``````````````````
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where ``_id`` equals
+  ``5``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { _id: 5 } )
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the field
+  ``last`` in the ``name`` embedded document equals ``"Hopper"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { "name.last": "Hopper" } )
+
+  .. note::
+
+     To access fields in an embedded document, use :ref:`dot notation
+     <document-dot-notation-embedded-fields>` (``"<embedded
+     document>.<field>"``).
+
+Query Using Operators
+`````````````````````
+
+To find documents that match a set of selection criteria, call
+:method:`~db.collection.find()` with the ``<criteria>`` parameter.
+
+MongoDB provides various :ref:`query operators <query-selectors>` to
+specify the criteria.
+
+- The following operation uses the :query:`$in` operator to return
+  documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where ``_id`` equals either
+  ``5`` or ``ObjectId("507c35dd8fada716c89d0013")``:
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { _id: { $in: [ 5, ObjectId("507c35dd8fada716c89d0013") ] } }
+     )
+
+- The following operation uses the :query:`$gt` operator returns all
+  the documents from the ``bios`` collection where ``birth`` is
+  greater than ``new Date('1950-01-01')``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { birth: { $gt: new Date('1950-01-01') } } )
+
+- The following operation uses the :query:`$regex` operator to return
+  documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where ``name.last`` field
+  starts with the letter ``N`` (or is ``"LIKE N%"``)
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { "name.last": { $regex: /^N/ } }
+     )
+
+For a list of the query operators, see :ref:`query-selectors`.
+
+Query for Ranges
+````````````````
+
+Combine comparison operators to specify ranges for a field. The
+following operation returns from the :doc:`bios collection
+</reference/bios-example-collection>` documents where ``birth`` is
+between ``new Date('1940-01-01')`` and ``new Date('1960-01-01')``
+(exclusive):
+
+.. code-block:: javascript
+
+   db.bios.find( { birth: { $gt: new Date('1940-01-01'), $lt: new Date('1960-01-01') } } )
+
+For a list of the query operators, see :ref:`query-selectors`.
+
+
+Query for Multiple Conditions
+`````````````````````````````
+
+The following operation returns all the documents from the :doc:`bios
+collection </reference/bios-example-collection>` where ``birth`` field
+is :query:`greater than <$gt>` ``new Date('1950-01-01')`` and ``death``
+field does not exists:
+
+.. code-block:: javascript
+
+   db.bios.find( {
+      birth: { $gt: new Date('1920-01-01') }, 
+      death: { $exists: false } 
+   } )
+
+For a list of the query operators, see :ref:`query-selectors`.
+
+.. _query-subdocuments:
+.. _query-embedded-documents:
+
+Query Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples query the ``name`` embedded field in the
+:doc:`bios collection </reference/bios-example-collection>`.
+
+Query Exact Matches on Embedded Documents
+`````````````````````````````````````````
+
+The following operation returns documents in the :doc:`bios collection
+</reference/bios-example-collection>` where the embedded document ``name`` is
+*exactly* ``{ first: "Yukihiro", last: "Matsumoto" }``, including the
+order:
+
+.. code-block:: javascript
+
+   db.bios.find(
+       { name: { first: "Yukihiro", last: "Matsumoto" } }
+   )
+
+The ``name`` field must match the embedded document exactly. The query does
+**not** match documents with the following ``name`` fields:
+
+.. code-block:: javascript
+
+   {
+      first: "Yukihiro",
+      aka: "Matz",
+      last: "Matsumoto"
+   }
+
+   {
+      last: "Matsumoto",
+      first: "Yukihiro"
+   }
+
+Query Fields of an Embedded Document
+````````````````````````````````````
+
+The following operation returns documents in the :doc:`bios collection
+</reference/bios-example-collection>` where the embedded document ``name``
+contains a field ``first`` with the value ``"Yukihiro"`` and a field
+``last`` with the value ``"Matsumoto"``. The query uses :term:`dot
+notation` to access fields in an embedded document:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+        "name.first": "Yukihiro",
+        "name.last": "Matsumoto"
+      }
+   )
+
+The query matches the document where the ``name`` field contains an
+embedded document with the field ``first`` with the value ``"Yukihiro"`` and a
+field ``last`` with the value ``"Matsumoto"``. For instance, the query
+would match documents with ``name`` fields that held either of the
+following values:
+
+.. code-block:: javascript
+
+   {
+     first: "Yukihiro",
+     aka: "Matz",
+     last: "Matsumoto"
+   }
+
+   {
+     last: "Matsumoto",
+     first: "Yukihiro"
+   }
+
+For more information and examples, see also :doc:`/tutorial/query-embedded-documents`.
+
+Query Arrays
+~~~~~~~~~~~~
+
+Query for an Array Element
+``````````````````````````
+
+The following examples query the ``contribs`` array in the :doc:`bios
+collection </reference/bios-example-collection>`.
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the array
+  field ``contribs`` contains the element ``"UNIX"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: "UNIX" } )
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the array
+  field ``contribs`` contains the element ``"ALGOL"`` or ``"Lisp"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: { $in: [ "ALGOL", "Lisp" ]} } )
+
+- The following operation use the :query:`$all` query operator to
+  return documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where the array field
+  ``contribs`` contains both the elements ``"ALGOL"`` and ``"Lisp"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: { $all: [ "ALGOL", "Lisp" ] } } )
+
+  For more examples, see :query:`$all`.  See also :query:`$elemMatch`.
+
+- The following operation uses the :query:`$size` operator to return
+  documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where the array size
+  of ``contribs`` is 4:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: { $size: 4 } } )
+
+For more information and examples of querying an array, see:
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents`
+
+For a list of array specific query operators, see :ref:`operator-query-array`.
+
+Query an Array of Documents
+```````````````````````````
+
+The following examples query the ``awards`` array in the :doc:`bios
+collection </reference/bios-example-collection>`.
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the ``awards``
+  array contains an element with ``award`` field equals
+  ``"Turing Award"``:
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { "awards.award": "Turing Award" }
+     )
+     
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the ``awards``
+  array contains at least one element with both the ``award`` field
+  equals ``"Turing Award"`` and the ``year`` field greater than 1980:
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { awards: { $elemMatch: { award: "Turing Award", year: { $gt: 1980 } } } }
+     )
+
+  Use the :query:`$elemMatch` operator to specify multiple criteria on
+  an array element.
+
+For more information and examples of querying an array, see:
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents`
+
+For a list of array specific query operators, see :ref:`operator-query-array`.
+
+.. _find-projection-examples:
+
+Projections
+~~~~~~~~~~~
+
+The :ref:`projection <find-projection>` parameter specifies
+which fields to return. The parameter contains either include or
+exclude specifications, not both, unless the exclude is for the ``_id``
+field.
+
+.. note::
+
+   Unless the ``_id`` field is explicitly excluded in the projection
+   document ``_id: 0``, the ``_id`` field is returned.
+
+Specify the Fields to Return
+````````````````````````````
+
+The following operation finds all documents in the :doc:`bios collection
+</reference/bios-example-collection>` and returns only the ``name``
+field, ``contribs`` field and ``_id`` field:
+
+.. code-block:: javascript
+
+   db.bios.find( { }, { name: 1, contribs: 1 } )
+
+.. note::
+
+   Unless the ``_id`` field is explicitly excluded in the projection
+   document ``_id: 0``, the ``_id`` field is returned.
+
+Explicitly Excluded Fields
+``````````````````````````
+
+The following operation queries the :doc:`bios collection
+</reference/bios-example-collection>` and returns all fields *except*
+the ``first`` field in the ``name`` embedded document and the ``birth``
+field:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { contribs: 'OOP' },
+      { 'name.first': 0, birth: 0 }
+   )
+
+Explicitly Exclude the ``_id`` Field
+````````````````````````````````````
+
+.. note::
+
+   Unless the ``_id`` field is explicitly excluded in the projection
+   document ``_id: 0``, the ``_id`` field is returned.
+
+The following operation finds documents in the :doc:`bios collection
+</reference/bios-example-collection>` and returns only the ``name``
+field and the ``contribs`` field:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      { name: 1, contribs: 1, _id: 0 }
+   )
+
+On Arrays and Embedded Documents
+````````````````````````````````
+
+The following operation queries the :doc:`bios collection
+</reference/bios-example-collection>` and returns the ``last`` field in
+the ``name`` embedded document and the first two elements in the ``contribs``
+array:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      { _id: 0, 'name.last': 1, contribs: { $slice: 2 } } )
+
+Starting in MongoDB 4.4, you can also specify embedded fields using the
+nested form, e.g.
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      { _id: 0, name: { last: 1 }, contribs: { $slice: 2 } }
+   )
+
+
+
+Use Aggregation Expression
+``````````````````````````
+
+Starting in MongoDB 4.4, :method:`db.collection.find()` projection can
+accept :ref:`aggregation expressions and syntax
+<aggregation-expressions>`.
+
+With the use of aggregation expressions and syntax, you can project new
+fields or project existing fields with new values. For example, the
+following operation uses aggregation expressions to override the value
+of the ``name`` and ``awards`` fields as well as to include new fields
+``reportDate``, ``reportBy``, and ``reportNumber``.
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      {
+        _id: 0,
+        name: { 
+           $concat: [ 
+              { $ifNull: [ "$name.aka", "$name.first" ] },
+              " ",
+              "$name.last"
+           ]
+        },
+        birth: 1,
+        contribs: 1,
+        awards: { $cond: { if: { $isArray: "$awards" }, then: { $size: "$awards" }, else: 0 } },
+        reportDate: { $dateToString: {  date: new Date(), format: "%Y-%m-%d" } },
+        reportBy: "hellouser123",
+        reportNumber: { $literal: 1 }
+      }
+   )
+
+To set the ``reportRun`` field to the value ``1`` 
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "birth" : ISODate("1924-12-03T05:00:00Z"), "contribs" : [ "Fortran", "ALGOL", "Backus-Naur Form", "FP" ], "name" : "John Backus", "awards" : 4, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1927-09-04T04:00:00Z"), "contribs" : [ "Lisp", "Artificial Intelligence", "ALGOL" ], "name" : "John McCarthy", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1906-12-09T05:00:00Z"), "contribs" : [ "UNIVAC", "compiler", "FLOW-MATIC", "COBOL" ], "name" : "Grace Hopper", "awards" : 4, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1926-08-27T04:00:00Z"), "contribs" : [ "OOP", "Simula" ], "name" : "Kristen Nygaard", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1931-10-12T04:00:00Z"), "contribs" : [ "OOP", "Simula" ], "name" : "Ole-Johan Dahl", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1956-01-31T05:00:00Z"), "contribs" : [ "Python" ], "name" : "Guido van Rossum", "awards" : 2, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1941-09-09T04:00:00Z"), "contribs" : [ "UNIX", "C" ], "name" : "Dennis Ritchie", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1965-04-14T04:00:00Z"), "contribs" : [ "Ruby" ], "name" : "Matz Matsumoto", "awards" : 1, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1955-05-19T04:00:00Z"), "contribs" : [ "Java" ], "name" : "James Gosling", "awards" : 2, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "contribs" : [ "Scala" ], "name" : "Martin Odersky", "awards" : 0, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+
+.. seealso::
+
+   :doc:`/tutorial/project-fields-from-query-results`
+
+.. _crud-read-cursor:
+
+Iterate the Returned Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.find()` method returns a
+:ref:`cursor <read-operations-cursors>` to the results.
+
+In :binary:`~bin.mongosh`, if the returned cursor is not assigned to a
+variable using the ``var`` keyword, the cursor is automatically iterated to
+access up to the first 20 documents that match the query. You can set the
+``DBQuery.shellBatchSize`` variable to change the number of automatically
+iterated documents.
+
+To manually iterate over the results, assign the returned cursor to a variable
+with the ``var`` keyword, as shown in the following sections.
+
+With Variable Name
+``````````````````
+
+The following example uses the variable ``myCursor`` to iterate over the
+cursor and print the matching documents:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( );
+
+   myCursor
+
+With ``next()`` Method
+``````````````````````
+
+The following example uses the cursor method :method:`~cursor.next()` to
+access the documents:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( );
+
+   var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+   if (myDocument) {
+       var myName = myDocument.name;
+       print (tojson(myName));
+   }
+
+To print, you can also use the ``printjson()`` method instead of
+``print(tojson())``:
+
+.. code-block:: javascript
+
+   if (myDocument) {
+      var myName = myDocument.name;
+      printjson(myName);
+   }
+
+With ``forEach()`` Method
+`````````````````````````
+
+The following example uses the cursor method :method:`~cursor.forEach()`
+to iterate the cursor and access the documents:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( );
+
+   myCursor.forEach(printjson);
+
+.. _find-modify-cursor:
+
+Modify the Cursor Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongosh` and the :driver:`drivers
+</>` provide several cursor methods that call on the
+*cursor* returned by the :method:`~db.collection.find()` method to
+modify its behavior.
+
+Order Documents in the Result Set
+`````````````````````````````````
+
+The :method:`~cursor.sort()` method orders the documents in the result
+set. The following operation returns documents in the :doc:`bios
+collection </reference/bios-example-collection>` sorted in ascending
+order by the ``name`` field:
+
+.. code-block:: javascript
+
+   db.bios.find().sort( { name: 1 } )
+
+:method:`~cursor.sort()` corresponds to the ``ORDER BY``
+statement in SQL.
+
+Limit the Number of Documents to Return
+```````````````````````````````````````
+
+The :method:`~cursor.limit()` method limits the number of documents in
+the result set. The following operation returns at most ``5`` documents
+in the :doc:`bios collection </reference/bios-example-collection>`:
+
+.. code-block:: javascript
+
+   db.bios.find().limit( 5 )
+
+:method:`~cursor.limit()` corresponds to the ``LIMIT``
+statement in SQL.
+
+Set the Starting Point of the Result Set
+````````````````````````````````````````
+
+The :method:`~cursor.skip()` method controls the starting point of the
+results set. The following operation skips the first ``5`` documents in
+the :doc:`bios collection </reference/bios-example-collection>` and
+returns all remaining documents:
+
+.. code-block:: javascript
+
+   db.bios.find().skip( 5 )
+
+Specify Collation
+`````````````````
+
+.. include:: /includes/extracts/collation-description.rst
+
+The :method:`~cursor.collation()` method specifies the :ref:`collation
+<collation>` for the :method:`db.collection.find()` operation.
+
+.. code-block:: javascript
+
+   db.bios.find( { "name.last": "hopper" } ).collation( { locale: "en_US", strength: 1 } )
+
+Combine Cursor Methods
+``````````````````````
+
+The following statements chain cursor methods :method:`~cursor.limit()`
+and :method:`~cursor.sort()`:
+
+.. code-block:: javascript
+
+   db.bios.find().sort( { name: 1 } ).limit( 5 )
+   db.bios.find().limit( 5 ).sort( { name: 1 } )
+
+The two statements are equivalent; i.e. the order in which you chain
+the :method:`~cursor.limit()` and the :method:`~cursor.sort()` methods
+is not significant. Both statements return the first five documents, as
+determined by the ascending sort order on 'name'.
+
+.. _find-cursor-methods:
+
+Available ``mongosh`` Cursor Methods
+````````````````````````````````````
+
+.. hlist::
+   :columns: 2
+
+   - :method:`cursor.allowDiskUse()`
+   - :method:`cursor.allowPartialResults()`
+   - :method:`cursor.batchSize()`
+   - :method:`cursor.close()`
+   - :method:`cursor.isClosed()`
+   - :method:`cursor.collation()`
+   - :method:`cursor.comment()`
+   - :method:`cursor.count()`
+   - :method:`cursor.explain()`
+   - :method:`cursor.forEach()`
+   - :method:`cursor.hasNext()`
+   - :method:`cursor.hint()`
+   - :method:`cursor.isExhausted()`
+   - :method:`cursor.itcount()`
+   - :method:`cursor.limit()`
+   - :method:`cursor.map()`
+   - :method:`cursor.max()`
+   - :method:`cursor.maxTimeMS()`
+   - :method:`cursor.min()`
+   - :method:`cursor.next()`
+   - :method:`cursor.noCursorTimeout()`
+   - :method:`cursor.objsLeftInBatch()`
+   - :method:`cursor.pretty()`
+   - :method:`cursor.readConcern()`
+   - :method:`cursor.readPref()`
+   - :method:`cursor.returnKey()`
+   - :method:`cursor.showRecordId()`
+   - :method:`cursor.size()`
+   - :method:`cursor.skip()`
+   - :method:`cursor.sort()`
+   - :method:`cursor.tailable()`
+   - :method:`cursor.toArray()`
+
+Use Variables in ``let`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify query options to modify query behavior and indicate how
+results are returned.
+
+For example, to define variables that you can access elsewhere in the
+``find`` method, use the ``let`` option. To filter results using a
+variable, you must access the variable within the :query:`$expr`
+operator.
+
+.. include:: /includes/let-example-create-flavors.rst
+
+The following example defines a ``targetFlavor`` variable in ``let`` and
+uses the variable to retrieve the chocolate cake flavor:
+
+.. code-block:: javascript
+
+   db.cakeFlavors.find(
+      { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
+      { _id: 0 },
+      { let : { targetFlavor: "chocolate" }
+   } )
+
+Output:
+
+.. code-block:: javascript
+
+   [ { flavor: 'chocolate' } ]
+
+To see all available query options, see :node-api-4.0:`FindOptions
+</interfaces/findoptions.html>`.

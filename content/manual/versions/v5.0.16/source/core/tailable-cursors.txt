@@ -1,0 +1,54 @@
+================
+Tailable Cursors
+================
+
+.. default-domain:: mongodb
+
+By default, MongoDB will automatically close a cursor when the client
+has exhausted all results in the cursor. However, for :doc:`capped
+collections </core/capped-collections>` you may use a *Tailable
+Cursor* that remains open after the client exhausts the results in the
+initial cursor. Tailable cursors are conceptually equivalent to the
+``tail`` Unix command with the ``-f`` option (i.e. with "follow"
+mode). After clients insert new additional documents into a capped
+collection, the tailable cursor will continue to retrieve
+documents.
+
+Use tailable cursors on capped collections that have high write
+volumes where indexes aren't practical. For instance,
+MongoDB :doc:`replication </replication>` uses tailable cursors to
+tail the primary's :term:`oplog`.
+
+.. note::
+
+   If your query is on an indexed field, do not use tailable cursors,
+   but instead, use a regular cursor. Keep track of the last value of
+   the indexed field returned by the query. To retrieve the newly
+   added documents, query the collection again using the last value of
+   the indexed field in the query criteria, as in the following
+   example:
+
+   .. code-block:: javascript
+
+      db.<collection>.find( { indexedField: { $gt: <lastvalue> } } )
+
+Consider the following behaviors related to tailable cursors:
+
+- Tailable cursors do not use indexes and return documents in
+  :term:`natural order`.
+
+- Because tailable cursors do not use indexes, the initial scan for the
+  query may be expensive; but, after initially exhausting the cursor,
+  subsequent retrievals of the newly added documents are inexpensive.
+
+- Tailable cursors may become *dead*, or invalid, if either:
+
+  - the query returns no match.
+
+  - the cursor returns the document at the "end" of the collection and
+    then the application deletes that document.
+
+  A *dead* cursor has an ID of ``0``.
+
+See your :driver:`driver documentation </>` for the
+driver-specific method to specify the tailable cursor.

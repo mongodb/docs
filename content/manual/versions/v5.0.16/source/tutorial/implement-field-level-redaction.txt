@@ -1,0 +1,132 @@
+===============================
+Implement Field Level Redaction
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The :pipeline:`$redact` pipeline operator restricts the contents of the
+documents based on information stored in the documents themselves.
+
+.. include:: /images/redact-security-architecture.rst
+
+To store the access criteria data, add a field to the documents and
+embedded documents. To allow for multiple combinations of access levels for
+the same data, consider setting the access field to an array of arrays.
+Each array element contains a required set that allows a user with that
+set to access the data.
+
+Then, include the :pipeline:`$redact` stage in the
+:method:`db.collection.aggregate()` operation to restrict contents of
+the result set based on the access required to view the data.
+
+For more information on the :pipeline:`$redact` pipeline operator,
+including its syntax and associated system variables as well as
+additional examples, see :pipeline:`$redact`.
+
+.. TODO reformat into steps (so should include rewording)
+
+Procedure
+---------
+
+For example, a ``forecasts`` collection contains documents of the
+following form where the ``tags`` field determines the access levels
+required to view the data:
+
+.. code-block:: javascript
+
+   {
+      _id: 1,
+      title: "123 Department Report",
+      tags: [ [ "G" ], [ "FDW" ] ],
+      year: 2014,
+      subsections: [
+          {
+              subtitle: "Section 1: Overview",
+              tags: [ [ "SI", "G" ], [ "FDW" ] ],
+              content:  "Section 1: This is the content of section 1."
+          },
+          {
+              subtitle: "Section 2: Analysis",
+              tags: [ [ "STLW" ] ],
+              content: "Section 2: This is the content of section 2."
+          },
+          {
+              subtitle: "Section 3: Budgeting",
+              tags: [ [ "TK" ], [ "FDW", "TGE" ] ],
+              content: {
+                  text: "Section 3: This is the content of section3.",
+                  tags: [ [ "HCS"], [ "FDW", "TGE", "BX" ] ]
+              }
+          }
+      ]
+   }
+
+For each document, the ``tags`` field contains various access groupings
+necessary to view the data. For example, the value ``[ [ "G" ], [
+"FDW", "TGE" ] ]`` can specify that a user requires either access level
+``["G"]`` or both ``[ "FDW", "TGE" ]`` to view the data.
+
+Consider a user who only has access to view information tagged with
+either ``"FDW"`` or ``"TGE"``. To run a query on all documents with
+year ``2014`` for this user, include a :pipeline:`$redact` stage as in
+the following:
+
+.. code-block:: none
+
+   var userAccess = [ "FDW", "TGE" ];
+   db.forecasts.aggregate(
+      [
+        { $match: { year: 2014 } },
+        { $redact:
+            {
+              $cond: {
+                       if: { $anyElementTrue:
+                              {
+                                $map: {
+                                        input: "$tags" ,
+                                        as: "fieldTag",
+                                        in: { $setIsSubset: [ "$$fieldTag", userAccess ] }
+                                      }
+                              }
+                           },
+                        then: "$$DESCEND",
+                        else: "$$PRUNE"
+                     }
+            }
+        }
+      ]
+   )
+
+The aggregation operation returns the following "redacted" document for the user:
+
+.. code-block:: none
+
+   { "_id" : 1,
+     "title" : "123 Department Report",
+     "tags" : [ [ "G" ], [ "FDW" ] ],
+     "year" : 2014,
+     "subsections" :
+        [
+           {
+             "subtitle" : "Section 1: Overview",
+             "tags" : [ [ "SI", "G" ], [ "FDW" ] ],
+             "content" : "Section 1: This is the content of section 1."
+           },
+          {
+            "subtitle" : "Section 3: Budgeting",
+            "tags" : [ [ "TK" ], [ "FDW", "TGE" ] ]
+          }
+        ]
+   }
+
+.. seealso::
+
+   - :expression:`$map`
+   - :expression:`$setIsSubset`
+   - :expression:`$anyElementTrue`

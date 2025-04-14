@@ -1,0 +1,57 @@
+======================================
+Modify Chunk Size in a Sharded Cluster
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The default chunk size for a sharded cluster is 64 megabytes. This
+default chunk size works well for most deployments; however, if you
+notice that automatic migrations have more I/O than your hardware can
+handle, you may want to reduce the chunk size. For automatic splits and
+migrations, a small chunk size leads to more rapid and frequent
+migrations. The allowed range of the chunk size is between 1 and 1024
+megabytes, inclusive.
+
+To modify the chunk size, use the following procedure:
+
+#. Connect to any :binary:`~bin.mongos` in the cluster using
+   :binary:`~bin.mongosh`.
+
+#. Issue the following command to switch to the :ref:`config-database`:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Issue the following command to store the global chunk size
+   configuration value:
+
+   .. code-block:: javascript
+
+      db.settings.updateOne(
+         { _id: "chunksize" },
+         { $set: { _id: "chunksize", value: <sizeInMB> } },  
+         { upsert: true }
+      )
+
+
+Modifying the chunk size has several limitations:
+
+- Automatic splitting only occurs on insert or update.
+
+- If you lower the chunk size, it may take time for all chunks to split to
+  the new size.
+
+- Splits cannot be undone.
+
+- If you increase the chunk size, existing chunks grow only through
+  insertion or updates until they reach the new size.
+
+- The allowed range of the chunk size is between 1 and 1024 megabytes,
+  inclusive.

@@ -1,0 +1,91 @@
+.. _text-search-on-premises:
+
+================================================
+Perform a Text Search (Self-Managed Deployments)
+================================================
+
+.. default-domain:: mongodb
+
+
+.. include:: /includes/fact-text-search-legacy-atlas.rst
+
+.. include:: /includes/fact-text-index.rst
+
+See the :doc:`/core/index-text` section for a full reference on text
+indexes, including behavior, tokenization, and properties.
+
+.. _text-index-eg:
+
+Examples
+--------
+
+This example demonstrates how to build a text index and use it to find
+coffee shops, given only text fields.
+
+Create a Collection 
+~~~~~~~~~~~~~~~~~~~
+
+Create a collection ``stores`` with the following documents:
+
+.. code-block:: javascript
+
+   db.stores.insertMany(
+      [
+        { _id: 1, name: "Java Hut", description: "Coffee and cakes" },
+        { _id: 2, name: "Burger Buns", description: "Gourmet hamburgers" },
+        { _id: 3, name: "Coffee Shop", description: "Just coffee" },
+        { _id: 4, name: "Clothes Clothes Clothes", description: "Discount clothing" },
+        { _id: 5, name: "Java Shopping", description: "Indonesian goods" }
+      ]
+   )
+
+Create a Text Index 
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-create-text-index.rst
+
+Search for an Exact Phrase
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also search for exact phrases by wrapping them in double-quotes.
+If the ``$search`` string includes a phrase and individual terms, text 
+search will only match documents that include the phrase.
+
+For example, the following will find all documents containing
+"coffee shop":
+
+.. code-block:: javascript
+
+   db.stores.find( { $text: { $search: "\"coffee shop\"" } } )
+
+For more information, see :ref:`text-operator-phrases`.
+
+Exclude a Term 
+~~~~~~~~~~~~~~
+
+To exclude a word, you can prepend a "``-``" character. For example, to
+find all stores containing "java" or "shop" but not "coffee", use the
+following:
+
+.. code-block:: javascript
+
+   db.stores.find( { $text: { $search: "java shop -coffee" } } )
+
+Sort the Results
+~~~~~~~~~~~~~~~~
+
+MongoDB will return its results in unsorted order by default. However,
+text search queries will compute a relevance score for each document
+that specifies how well a document matches the query.
+
+To sort the results in order of relevance score, you must explicitly
+project the :expression:`$meta` ``textScore`` field and sort on it:
+
+.. code-block:: javascript
+
+   db.stores.find(
+      { $text: { $search: "java coffee shop" } },
+      { score: { $meta: "textScore" } }
+   ).sort( { score: { $meta: "textScore" } } )
+
+Text search is also available in the aggregation pipeline.

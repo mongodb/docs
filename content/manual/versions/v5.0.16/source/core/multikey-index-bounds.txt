@@ -1,0 +1,446 @@
+=====================
+Multikey Index Bounds
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The bounds of an index scan define the portions of an index to search
+during a query. When multiple predicates over an index exist, MongoDB
+will attempt to combine the bounds for these predicates, by either
+*intersection* or *compounding*, in order to produce a scan with
+smaller bounds.
+
+.. _multikey-index-bounds-intersecting:
+
+Intersect Bounds for Multikey Index
+-----------------------------------
+
+Bounds intersection refers to a logical conjunction (i.e. ``AND``) of
+multiple bounds. For instance, given two bounds ``[ [ 3, Infinity ] ]``
+and ``[ [ -Infinity, 6 ] ]``, the intersection of the bounds results in
+``[ [ 3, 6 ] ]``.
+
+Given an :ref:`indexed <index-type-multikey>` array field, consider a
+query that specifies multiple predicates on the array and can use a
+:ref:`multikey index <index-type-multikey>`. MongoDB can intersect
+:ref:`multikey index <index-type-multikey>` bounds if an
+:query:`$elemMatch` joins the predicates.
+
+For example, create a ``survey`` collection that contains documents
+with a field ``item`` and an array field ``ratings``:
+
+.. code-block:: javascript
+
+   db.survey.insertMany(
+      [
+         { _id: 1, item: "ABC", ratings: [ 2, 9 ] },
+         { _id: 2, item: "XYZ", ratings: [ 4, 3 ] }
+      ]
+   )
+
+Create a :ref:`multikey index <index-type-multikey>` on the ``ratings``
+array:
+
+.. code-block:: javascript
+
+   db.survey.createIndex( { ratings: 1 } )
+
+The following query uses :query:`$elemMatch` to require that the array
+contains at least one *single* element that matches both conditions:
+
+.. code-block:: javascript
+
+   db.survey.find( { ratings : { $elemMatch: { $gte: 3, $lte: 6 } } } )
+
+Taking the predicates separately:
+
+- the bounds for the greater than or equal to 3 predicate (i.e. ``$gte:
+  3``) are ``[ [ 3, Infinity ] ]``;
+
+- the bounds for the less than or equal to 6 predicate (i.e. ``$lte:
+  6``) are ``[ [ -Infinity, 6 ] ]``.
+
+Because the query uses :query:`$elemMatch` to join these predicates,
+MongoDB can intersect the bounds to:
+
+.. code-block:: javascript
+
+   ratings: [ [ 3, 6 ] ]
+
+If the query does *not* join the conditions on the array field with
+:query:`$elemMatch`, MongoDB cannot intersect the multikey index
+bounds. Consider the following query:
+
+.. code-block:: javascript
+
+   db.survey.find( { ratings : { $gte: 3, $lte: 6 } } )
+
+The query searches the ``ratings`` array for at least one element
+greater than or equal to 3 and at least one element less than or equal
+to 6. Because a single element does not need to meet both criteria,
+MongoDB does *not* intersect the bounds and uses either ``[ [ 3,
+Infinity ] ]`` or ``[ [ -Infinity, 6 ] ]``. MongoDB makes no guarantee
+as to which of these two bounds it chooses.
+
+Compound Bounds for Multikey Index
+----------------------------------
+
+Compounding bounds refers to using bounds for multiple keys of
+:ref:`compound index <index-type-compound>`. For instance, given a
+compound index ``{ a: 1, b: 1 }`` with bounds on field ``a`` of ``[ [
+3, Infinity ] ]`` and bounds on field ``b`` of ``[ [ -Infinity, 6 ]
+]``, compounding the bounds results in the use of both bounds:
+
+.. code-block:: javascript
+
+   { a: [ [ 3, Infinity ] ], b: [ [ -Infinity, 6 ] ] }
+
+If MongoDB cannot compound the two bounds, MongoDB always constrains
+the index scan by the bound on its leading field, in this case, ``a:
+[ [ 3, Infinity ] ]``.
+
+Compound Index on an Array Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a compound multikey index; i.e. a :ref:`compound index
+<index-type-compound>` where one of the indexed fields is an array. For
+example, create a ``survey`` collection that contains documents with a field
+``item`` and an array field ``ratings``:
+
+.. code-block:: javascript
+
+   db.survey.insertMany(
+      [
+         { _id: 1, item: "ABC", ratings: [ 2, 9 ] },
+         { _id: 2, item: "XYZ", ratings: [ 4, 3 ] }
+      ]
+   )
+
+
+Create a :ref:`compound index <index-type-compound>` on the ``item``
+field and the ``ratings`` field:
+
+.. code-block:: javascript
+
+   db.survey.createIndex( { item: 1, ratings: 1 } )
+
+The following query specifies a condition on both keys of the index:
+
+.. code-block:: javascript
+
+   db.survey.find( { item: "XYZ", ratings: { $gte: 3 } } )
+
+Taking the predicates separately:
+
+- the bounds for the ``item: "XYZ"`` predicate are ``[ [ "XYZ", "XYZ" ] ]``;
+
+- the bounds for the ``ratings: { $gte: 3 }`` predicate are ``[ [ 3,
+  Infinity ] ]``.
+
+MongoDB can compound the two bounds to use the combined bounds of:
+
+.. code-block:: javascript
+
+   { item: [ [ "XYZ", "XYZ" ] ], ratings: [ [ 3, Infinity ] ] }
+
+Range Queries on a Scalar Indexed Field (WiredTiger)
+````````````````````````````````````````````````````
+
+*For the WiredTiger and In-Memory storage engines only*, 
+
+In multikey index, MongoDB keeps track of which indexed field or fields 
+cause an index to be a multikey index. Tracking this information allows the
+MongoDB query engine to use tighter index bounds.
+
+The aforementioned :ref:`compound index <index-type-compound>` is on
+the scalar field [#scalar]_ ``item`` and the array field ``ratings``:
+
+.. code-block:: javascript
+
+   db.survey.createIndex( { item: 1, ratings: 1 } )
+
+For the WiredTiger and the In-Memory storage engines, if a query
+operation specifies multiple predicates on the indexed scalar field(s)
+of a compound multikey index, MongoDB will intersect the bounds for the field.
+
+For example, the following operation specifies a range query on the
+scalar field as well as a range query on the array field:
+
+.. code-block:: javascript
+
+   db.survey.find( {
+      item: { $gte: "L", $lte: "Z"}, ratings : { $elemMatch: { $gte: 3, $lte: 6 } }
+   } )
+
+MongoDB will intersect the bounds for ``item`` to ``[ [ "L", "Z" ] ]``
+and ratings to ``[[3.0, 6.0]]`` to use the combined bounds of:
+
+.. code-block:: javascript
+
+   "item" : [ [ "L", "Z" ] ], "ratings" : [ [3.0, 6.0] ]
+
+For another example, consider where the scalar fields belong to a nested document.
+For instance, create a ``survey`` collection that contains the following documents:
+
+.. code-block:: javascript
+   
+   db.survey.insertMany(
+      [
+         { _id: 1, item: { name: "ABC", manufactured: 2016 }, ratings: [ 2, 9 ] },
+         { _id: 2, item: { name: "XYZ", manufactured: 2013 },  ratings: [ 4, 3 ] }
+      ]
+   )
+   
+
+Create a compound multikey index on the scalar fields ``"item.name"``,
+``"item.manufactured"``, and the array field ``ratings`` :
+
+.. code-block:: javascript
+
+   db.survey.createIndex( { "item.name": 1, "item.manufactured": 1, ratings: 1 } )
+
+Consider the following operation that specifies query predicates on the
+scalar fields:
+
+.. code-block:: javascript
+
+   db.survey.find( {
+      "item.name": "L" ,
+      "item.manufactured": 2012
+   } )
+
+For this query, MongoDB can use the combined bounds of:
+
+.. code-block:: javascript
+
+   "item.name" : [ ["L", "L"] ], "item.manufactured" : [ [2012.0, 2012.0] ]
+
+Earlier versions of MongoDB cannot combine these bounds for
+the scalar fields. 
+
+.. [#scalar]
+   A scalar field is a field whose value is neither a document
+   nor an array; e.g. a field whose value is a string or an
+   integer is a scalar field. 
+
+   A scalar field can be a field nested in a document, as long as the
+   field itself is not an array or a document. For example, in the
+   document ``{ a: { b: { c: 5, d: 5 } } }``, ``c`` and ``d`` are
+   scalar fields where as ``a`` and ``b`` are not.
+
+Compound Index on Fields from an Array of Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an array contains embedded documents, to index on fields contained
+in the embedded documents, use the :ref:`dotted field name
+<document-dot-notation>` in the index specification. For instance,
+given the following array of embedded documents:
+
+.. code-block:: javascript
+
+   ratings: [ { score: 2, by: "mn" }, { score: 9, by: "anon" } ]
+
+The dotted field name for the ``score`` field is ``"ratings.score"``.
+
+Compound Bounds of Non-array Field and Field from an Array
+``````````````````````````````````````````````````````````
+
+Consider a collection ``survey2`` contains documents with a field
+``item`` and an array field ``ratings``:
+
+.. code-block:: javascript
+
+   {
+     _id: 1,
+     item: "ABC",
+     ratings: [ { score: 2, by: "mn" }, { score: 9, by: "anon" } ]
+   }
+   {
+     _id: 2,
+     item: "XYZ",
+     ratings: [ { score: 5, by: "anon" }, { score: 7, by: "wv" } ]
+   }
+
+Create a :ref:`compound index <index-type-compound>` on the non-array
+field ``item`` as well as two fields from an array ``ratings.score`` and
+``ratings.by``:
+
+.. code-block:: javascript
+
+   db.survey2.createIndex( { "item": 1, "ratings.score": 1, "ratings.by": 1 } )
+
+The following query specifies a condition on all three fields:
+
+.. code-block:: javascript
+
+   db.survey2.find( { item: "XYZ",  "ratings.score": { $lte: 5 }, "ratings.by": "anon" } )
+
+Taking the predicates separately:
+
+- the bounds for the ``item: "XYZ"`` predicate are ``[ [ "XYZ", "XYZ" ] ]``;
+
+- the bounds for the ``score: { $lte: 5 }`` predicate are ``[ [ -Infinity, 5
+  ] ]``;
+
+- the bounds for the ``by: "anon"`` predicate are ``[ "anon", "anon" ]``.
+
+MongoDB can compound the bounds for the ``item`` key with *either* the
+bounds for ``"ratings.score"`` or the bounds for ``"ratings.by"``,
+depending upon the query predicates and the index key values. MongoDB
+makes no guarantee as to which bounds it compounds with the ``item``
+field. For instance, MongoDB will either choose to compound the
+``item`` bounds with the ``"ratings.score"`` bounds:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3
+
+   {
+     "item" : [ [ "XYZ", "XYZ" ] ],
+     "ratings.score" : [ [ -Infinity, 5 ] ],
+     "ratings.by" : [ [ MinKey, MaxKey ] ]
+   }
+
+Or, MongoDB may choose to compound the ``item`` bounds with
+``"ratings.by"`` bounds:
+
+.. code-block:: javascript
+   :emphasize-lines: 2, 4
+
+   {
+     "item" : [ [ "XYZ", "XYZ" ] ],
+     "ratings.score" : [ [ MinKey, MaxKey ] ],
+     "ratings.by" : [ [ "anon", "anon" ] ]
+   }
+
+However, to compound the bounds for ``"ratings.score"`` with the bounds
+for ``"ratings.by"``, the query must use :query:`$elemMatch`. See
+:ref:`compound-fields-from-array` for more information.
+
+.. _compound-fields-from-array:
+
+Compound Bounds of Index Fields from an Array
+``````````````````````````````````````````````
+
+To compound together the bounds for index keys from the same array:
+
+- the index keys must share the same field path up to but excluding the
+  field names, and
+
+- the query must specify predicates on the fields using
+  :query:`$elemMatch` on that path.
+
+For a field in an embedded document, the :ref:`dotted field name
+<document-dot-notation>`, such as ``"a.b.c.d"``, is the field path for
+``d``. To compound the bounds for index keys from the same array, the
+:query:`$elemMatch` must be on the path up to *but excluding* the field
+name itself; i.e. ``"a.b.c"``.
+
+For instance, create a :ref:`compound index <index-type-compound>` on
+the ``ratings.score`` and the ``ratings.by`` fields:
+
+.. code-block:: javascript
+
+   db.survey2.createIndex( { "ratings.score": 1, "ratings.by": 1 } )
+
+The fields ``"ratings.score"`` and ``"ratings.by"`` share the field
+path ``ratings``. The following query uses :query:`$elemMatch` on the
+field ``ratings`` to require that the array contains at least one
+*single* element that matches both conditions:
+
+.. code-block:: javascript
+
+   db.survey2.find( { ratings: { $elemMatch: { score: { $lte: 5 }, by: "anon" } } } )
+
+Taking the predicates separately:
+
+- the bounds for the ``score: { $lte: 5 }`` predicate is ``[ -Infinity, 5
+  ]``;
+
+- the bounds for the ``by: "anon"`` predicate is ``[ "anon", "anon" ]``.
+
+MongoDB can compound the two bounds to use the combined bounds of:
+
+.. code-block:: javascript
+
+   { "ratings.score" : [ [ -Infinity, 5 ] ], "ratings.by" : [ [ "anon", "anon" ] ] }
+
+Query Without ``$elemMatch``
+````````````````````````````
+
+If the query does *not* join the conditions on the indexed array fields
+with :query:`$elemMatch`, MongoDB *cannot* compound their bounds.
+Consider the following query:
+
+.. code-block:: javascript
+
+   db.survey2.find( { "ratings.score": { $lte: 5 }, "ratings.by": "anon" } )
+
+Because a single embedded document in the array does not need to meet
+both criteria, MongoDB does *not* compound the bounds. When using a
+compound index, if MongoDB cannot constrain all the fields of the
+index, MongoDB always constrains the leading field of the index, in
+this case ``"ratings.score"``:
+
+.. code-block:: javascript
+
+   {
+     "ratings.score": [ [ -Infinity, 5 ] ],
+     "ratings.by": [ [ MinKey, MaxKey ] ]
+   }
+
+``$elemMatch`` on Incomplete Path
+`````````````````````````````````
+
+If the query does not specify :query:`$elemMatch` on the path of the
+embedded fields, up to but excluding the field names, MongoDB
+**cannot** compound the bounds of index keys from the same array.
+
+For example, a collection ``survey3`` contains documents with a field
+``item`` and an array field ``ratings``:
+
+.. code-block:: javascript
+
+   {
+     _id: 1,
+     item: "ABC",
+     ratings: [ { scores: [ { q1: 2, q2: 4 }, { q1: 3, q2: 8 } ], loc: "A" },
+                { scores: [ { q1: 2, q2: 5 } ], loc: "B" } ]
+   }
+   {
+     _id: 2,
+     item: "XYZ",
+     ratings: [ { scores: [ { q1: 7 }, { q1: 2, q2: 8 } ], loc: "B" } ]
+   }
+
+Create a :ref:`compound index <index-type-compound>` on the
+``ratings.scores.q1`` and the ``ratings.scores.q2`` fields:
+
+.. code-block:: javascript
+
+   db.survey3.createIndex( { "ratings.scores.q1": 1, "ratings.scores.q2": 1 } )
+
+The fields ``"ratings.scores.q1"`` and ``"ratings.scores.q2"`` share the
+field path ``"ratings.scores"`` and the :query:`$elemMatch` must be on
+that path.
+
+The following query, however, uses an :query:`$elemMatch` but not on
+the required path:
+
+.. code-block:: javascript
+
+   db.survey3.find( { ratings: { $elemMatch: { 'scores.q1': 2, 'scores.q2': 8 } } } )
+
+As such, MongoDB **cannot** compound the bounds, and the
+``"ratings.scores.q2"`` field will be unconstrained during the index
+scan. To compound the bounds, the query must use :query:`$elemMatch` on
+the path ``"ratings.scores"``:
+
+.. code-block:: javascript
+
+   db.survey3.find( { 'ratings.scores': { $elemMatch: { 'q1': 2, 'q2': 8 } } } )

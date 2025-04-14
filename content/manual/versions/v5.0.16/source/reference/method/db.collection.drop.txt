@@ -1,0 +1,130 @@
+====================
+db.collection.drop()
+====================
+
+.. COMMENT Be sure to synchronize with the corresponding command.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.drop(<options>)
+
+   .. |dbcommand| replace:: :dbcommand:`drop` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   Removes a collection or :doc:`view </core/views>` from the database.
+   The method also removes any indexes associated with the dropped
+   collection. The method provides a wrapper around the
+   :dbcommand:`drop` command.
+
+   :method:`db.collection.drop()` has the form:
+
+   .. code-block:: javascript
+
+      db.collection.drop( { writeConcern: <document> } )
+
+   :method:`db.collection.drop()` takes an optional document with the
+   following field:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - writeConcern
+
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>` of the
+          :method:`db.collection.drop()` operation. Omit to use the
+          default write concern.
+
+          .. include:: /includes/extracts/mongos-operations-wc-drop.rst
+
+   :returns:
+     - ``true`` when successfully drops a collection.
+     - ``false`` when collection to drop does not exist.
+
+Behavior
+--------
+
+- The :method:`db.collection.drop()` method and :dbcommand:`drop`
+  command create an :ref:`change-event-invalidate` for any
+  :doc:`/changeStreams` opened on dropped collection.
+
+- .. include:: /includes/extracts/4.4-changes-drop-in-progress-indexes.rst
+
+- .. include:: /includes/extracts/zoned-sharding-drop-collection-change.rst
+
+- .. include:: /includes/extracts/5.0-changes-drop-sharding.rst
+
+.. _sharding-drop-collections-same-name:
+
+Reusing Dropped Collection Names on Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On a sharded cluster, if you create a collection that has the same name 
+as a previously deleted collection prior to MongoDB 5.0, 
+:binary:`~bin.mongos` may forward operations to the wrong shard.
+To avoid this situation use the version-specific instructions below:
+
+For a sharded cluster running **MongoDB 5.0 or later**, 
+no special action is required. Use the ``drop()`` method
+and then create a new collection with the same name.
+
+For a sharded cluster running **MongoDB 4.4 or earlier**, 
+if you use the ``drop()`` method and then create a new collection with 
+the same name, you must either:
+
+-  Flush the cached routing table on every :binary:`~bin.mongos`
+   using :dbcommand:`flushRouterConfig`.
+
+-  Use :method:`db.collection.remove()` to remove the existing
+   documents and reuse the collection.
+
+Flushing the cached routing tables is the preferred procedure because it
+is faster than removing sharded collections with 
+:method:`db.collection.remove()`. Only use the ``remove()`` approach if 
+you want to avoid flushing the cache.
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.2
+
+.. include:: /includes/extracts/drop-method-resource-lock.rst
+
+Example
+-------
+
+Drop a Collection Using Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation drops the ``students`` collection in the
+current database.
+
+.. code-block:: javascript
+
+   db.students.drop()
+
+Drop a Collection Using ``w: 1`` Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:method:`db.collection.drop()` accepts an options document.
+
+The following operation drops the ``students`` collection in the
+current database. The operation uses the
+:writeconcern:`1 <\<number\>>` write concern:
+
+.. code-block:: javascript
+
+   db.students.drop( { writeConcern: { w: 1 } } )

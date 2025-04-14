@@ -1,0 +1,89 @@
+============
+$setOnInsert
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $setOnInsert
+
+   If an update operation with :ref:`upsert: true <upsert-parameter>`
+   results in an insert of a document, then :update:`$setOnInsert`
+   assigns the specified values to the fields in the document. If the
+   update operation does not result in an insert,
+   :update:`$setOnInsert` does nothing.
+
+   You can specify the ``upsert`` option for:
+
+   - :method:`db.collection.updateOne()`
+   - :method:`db.collection.updateMany()`
+   - :method:`db.collection.findAndModify()`
+
+   .. code-block:: javascript
+
+      db.collection.updateOne(
+         <query>,
+         { $setOnInsert: { <field1>: <value1>, ... } },
+         { upsert: true }
+      )
+
+   .. include:: /includes/use-dot-notation.rst
+
+Behavior
+--------
+
+.. include:: /includes/fact-update-operator-processing-order.rst
+
+.. include:: /includes/extracts/update-operation-empty-operand-expressions-set-on-insert.rst
+   
+Example
+-------
+
+The ``products`` collection contains no documents.
+
+Insert a new document using :method:`db.collection.updateOne()` the :ref:`upsert:
+true <upsert-parameter>` parameter.
+
+.. code-block:: javascript
+
+   db.products.updateOne(
+     { _id: 1 },
+     {
+        $set: { item: "apple" },
+        $setOnInsert: { defaultQty: 100 }
+     },
+     { upsert: true }
+   )
+
+MongoDB uses ``<query>`` to create a new document with ``_id: 1``.
+:update:`$setOnInsert` updates the document as specified.
+
+The ``products`` collection contains the newly-inserted document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "apple", "defaultQty" : 100 }
+
+When the :ref:`upsert <upsert-parameter>` parameter is ``true``
+:method:`db.collection.updateOne()`:
+
+- creates a new document 
+- applies the :update:`$set` operation
+- applies the :update:`$setOnInsert` operation
+
+If :method:`db.collection.updateOne()` matches an existing document,
+MongoDB only applies the :update:`$set` operation.
+
+.. seealso::
+
+   - :method:`db.collection.updateOne()`
+   - :method:`db.collection.findAndModify()`
+

@@ -1,0 +1,439 @@
+=======
+collMod
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: collMod
+
+   :dbcommand:`collMod` makes it possible to add options to a collection
+   or to modify view definitions.
+
+   .. |method| replace:: :method:`~db.collection.hideIndex` and
+      :method:`~db.collection.unhideIndex` helper methods
+   .. include:: /includes/fact-dbcommand-tip
+
+   .. note::
+
+      The view modified by this command does not refer to materialized
+      views. For discussion of on-demand materialized views, see
+      :pipeline:`$merge` instead.
+
+   The command
+   takes the following prototype form:
+
+   .. note:: Starting in MongoDB 4.2
+
+      - .. include:: /includes/collMod-note.rst
+
+      - .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+   .. code-block:: javascript
+
+      db.runCommand( { collMod: <collection or view>, <option1>: <value1>, <option2>: <value2> ... } )
+
+   For the ``<collection or view>``, specify the name of a collection
+   or view in the current database.
+
+Options
+-------
+
+Index Options
+~~~~~~~~~~~~~
+
+
+.. collflag:: index
+
+   The :collflag:`index` option can change the following properties of
+   an **existing** index:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Index Property
+        - Description
+
+      * - ``expireAfterSeconds``
+
+        - The number of seconds that determines the expiration
+          threshold of a :doc:`TTL Collection </tutorial/expire-data>`.
+
+          If successful, the command returns a document that contains
+          both the old and new values for the changed property:
+          ``expireAfterSeconds_old`` and ``expireAfterSeconds_new``.
+
+          You can only modify an existing TTL index; i.e. an index with
+          an existing ``expireAfterSeconds`` property. If the index
+          does not have an existing ``expireAfterSeconds`` property,
+          the operation errors with ``no expireAfterSeconds field to
+          update``.
+
+          Modifying the index option ``expireAfterSeconds`` resets the
+          :pipeline:`$indexStats` for the index.
+
+          .. include:: /includes/indexes/expireAfterSeconds-warning.rst
+
+      * - ``hidden``
+
+        - A boolean that determines whether the index is :doc:`hidden
+          </core/index-hidden>` or not from the query planner.
+
+          If the ``hidden`` value changes, the command returns a
+          document that contains both the old and new values for the
+          changed property: ``hidden_old`` and ``hidden_new``.
+
+          However, if the ``hidden`` value has not changed (i.e. hiding
+          an already hidden index or unhiding an already unhidden
+          index), the command omits the ``hidden_old`` and
+          ``hidden_new`` fields from the output.
+
+          To hide an index, you must have
+          :ref:`featureCompatibilityVersion <view-fcv>` set to ``4.4``
+          or greater.
+
+          Modifying the index option ``hidden`` resets the
+          :pipeline:`$indexStats` for the index if the value changes.
+
+          .. versionadded:: 4.4
+
+   To change index options, specify either the key pattern or name of
+   the existing index and the index option or options you wish to
+   change:
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+         collMod: <collection>,
+         index: {
+            keyPattern: <index_spec> || name: <index_name>,
+            expireAfterSeconds: <number>,  // If changing the TTL expiration threshold
+            hidden: <boolean>              // If changing the visibility of the index from the query planner
+         }
+      } )
+
+
+   If the index does not exist, the command errors with the message
+   ``"cannot find index <name|keyPattern> for ns <db.collection>"``.
+
+   .. seealso::
+
+      - :ref:`index-type-hidden`
+      - :method:`db.collection.hideIndex()`
+      - :method:`db.collection.unhideIndex()`
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+.. collflag:: validator
+
+   .. versionadded:: 3.2
+
+   :collflag:`validator` allows users to specify :doc:`validation rules
+   or expressions </core/schema-validation>` for a collection.
+   For more information, see :doc:`/core/schema-validation`.
+
+   The ``validator`` option takes a document that specifies the
+   validation rules or expressions. You can specify the expressions
+   using the same operators as the :ref:`query operators
+   <query-selectors>` with the exception of :query:`$near`,
+   :query:`$nearSphere`, :query:`$text`, and :query:`$where`.
+
+   .. note::
+
+      - Validation occurs during updates and inserts. Existing
+        documents do not undergo validation checks until modification.
+
+      - You cannot specify a validator for collections in the ``admin``,
+        ``local``, and ``config`` databases.
+
+      - You cannot specify a validator for ``system.*`` collections.
+
+.. collflag:: validationLevel
+
+   .. versionadded:: 3.2
+
+   The :collflag:`validationLevel` determines how strictly MongoDB applies the
+   validation rules to existing documents during an update.
+
+   .. include:: /includes/extracts/table-validationLevel-values.rst
+
+.. collflag:: validationAction
+
+   .. versionadded:: 3.2
+
+   The :collflag:`validationAction` option determines whether to ``error`` on
+   invalid documents or just ``warn`` about the violations but allow
+   invalid documents.
+
+   .. important::
+
+      Validation of documents only applies to those documents as
+      determined by the ``validationLevel``.
+
+   .. include:: /includes/extracts/table-validationAction-values.rst
+
+To view the validation specifications for a collection, use the
+:method:`db.getCollectionInfos()` method.
+
+Views
+~~~~~
+
+.. note::
+
+   The view modified by this command does not refer to materialized
+   views. For discussion of on-demand materialized views, see
+   :pipeline:`$merge` instead.
+
+.. collflag:: viewOn
+
+   The underlying source collection or view for the :doc:`view
+   </core/views>`. The view definition is determined by applying the
+   specified :collflag:`pipeline` to this source.
+
+   Required if modifying a view on a MongoDB deployment that is running
+   with access control.
+
+.. collflag:: pipeline
+
+   The :ref:`aggregation pipeline <aggregation-pipeline>` that defines
+   the :doc:`view </core/views>`.
+
+   .. note::
+
+      .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+   Required if modifying a view on a MongoDB deployment that is running
+   with access control.
+
+   .. include:: /includes/extracts/views-public-definition.rst
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      collMod: "myView",
+      viewOn: "activities",
+      pipeline: [
+        { $match: { status: "Q" } },
+        { $project: { user: 1, date: 1, description: 1} } ]
+   } )
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable automatic removal of documents or change the
+``expireAfterSeconds`` parameter value for an existing :ref:`time
+series collection <manual-timeseries-collection>`, issue the following
+:dbcommand:`collMod` command:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      collMod: <collection>,
+      expireAfterSeconds: <Number> || "off"
+   })
+
+The ``expireAfterSeconds`` field must be either:
+
+- A non-negative decimal number (``>=0``)
+- The string ``"off"``.
+
+A number specifies the number of seconds after which documents expire.
+The string ``"off"`` removes the ``expireAfterSeconds`` parameter and
+disables automatic removal.
+
+.. seealso::
+
+   :ref:`manual-timeseries-automatic-removal`
+
+Write Concern
+~~~~~~~~~~~~~
+
+Optional. A document expressing the :doc:`write concern
+</reference/write-concern>` of the :dbcommand:`collMod` command.
+
+Omit to use the default write concern.
+
+Access Control
+--------------
+
+If the deployment enforces authentication/authorization, you must have
+the following privilege to run the :dbcommand:`collMod` command:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Task
+
+     - Required Privileges
+
+   * - Modify a non-capped collection
+
+     - :authaction:`collMod` in the database
+
+   * - Modify a view
+
+     - :authaction:`collMod` in the database and either:
+
+       - no :authaction:`find` on the view to modify, **or**
+
+       - both :authaction:`find` on the view to modify and
+         :authaction:`find` on the source collection/view.
+
+The built-in role :authrole:`dbAdmin` provides the required privileges.
+
+Behavior
+--------
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collMod-resource-lock.rst
+
+Examples
+--------
+
+Change Expiration Value for Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example updates the ``expireAfterSeconds`` property of an
+existing TTL index ``{ lastAccess: 1 }`` on a collection named
+``user_log``. The current ``expireAfterSeconds`` property for the index
+is set to ``1800`` seconds (or 30 minutes) and the example changes the
+value to ``3600`` seconds (or 60 minutes).
+
+.. code-block:: javascript
+
+   db.runCommand({ 
+      collMod: "user_log",
+      index: { 
+         keyPattern: { lastAccess: 1 },
+         expireAfterSeconds: 3600 
+      }
+   })
+
+If successful, the operation returns a document that includes both the
+old and new value for the changed property:
+
+.. code-block:: javascript
+
+   { "expireAfterSeconds_old" : 1800, "expireAfterSeconds_new" : 3600, "ok" : 1 }
+
+Hide an Index from the Query Planner
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   To hide an index, you must have :ref:`featureCompatibilityVersion
+   <view-fcv>` set to ``4.4`` or greater. However, once hidden, the
+   index remains hidden even with :ref:`featureCompatibilityVersion
+   <view-fcv>` set to ``4.2`` on MongoDB 4.4 binaries.
+
+The following example :doc:`hides </core/index-hidden>` an existing
+index on the ``orders`` collection. Specifically, the operation hides
+the index with the specification ``{ shippedDate: 1 }`` from the query
+planner.
+
+.. code-block:: javascript
+
+   db.runCommand({
+      collMod: "orders",
+      index: {
+         keyPattern: { shippedDate: 1 },
+         hidden: true
+      }
+   })
+
+If successful, the operation returns a document that includes both the
+old and new value for the changed property:
+
+.. code-block:: javascript
+
+   { "hidden_old" : false, "hidden_new" : true, "ok" : 1 }
+
+.. note::
+
+   If the operation is successful but the ``hidden`` value has not
+   changed (i.e. hiding an already hidden index or unhiding an already
+   unhidden index), the command omits the ``hidden_old`` and
+   ``hidden_new`` fields from the output.
+
+To hide a text index, you must specify the index by ``name`` and not by
+``keyPattern``.
+
+.. seealso::
+
+   - :doc:`/core/index-hidden`
+   - :method:`db.collection.hideIndex()`
+   - :method:`db.collection.unhideIndex()`
+      
+Add Document Validation to an Existing Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example adds a validator to an existing collection named
+``contacts``.
+
+.. note::
+
+   MongoDB 3.6 adds the :query:`$jsonSchema` operator to support JSON
+   Schema validation.
+
+.. code-block:: javascript
+
+   db.runCommand( { collMod: "contacts",
+      validator: { $jsonSchema: {
+         bsonType: "object",
+         required: [ "phone" ],
+         properties: {
+            phone: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            },
+            email: {
+               bsonType : "string",
+               pattern : "@mongodb\.com$",
+               description: "must be a string and match the regular expression pattern"
+            },
+            status: {
+               enum: [ "Unknown", "Incomplete" ],
+               description: "can only be one of the enum values"
+            }
+         }
+      } },
+      validationLevel: "moderate",
+      validationAction: "warn"
+   } )
+
+With the ``moderate`` :collflag:`validationLevel`, MongoDB applies
+validation rules to insert operations and to update operationss to
+existing documents that already fulfill the validation criteria.
+Updates to existing documents that do not fulfill the validation
+criteria are not checked for validity.
+ 
+With the ``warn`` :collflag:`validationAction`, MongoDB logs any
+violations but allows the insertion or update to proceed.
+
+For example, the following insert operation violates the validation rule.
+
+.. code-block:: javascript
+
+   db.contacts.insertOne( { name: "Amanda", status: "Updated" } )
+
+However, since the ``validationAction`` is ``warn`` only, MongoDB only
+logs the validation violation message and allows the operation to
+proceed:
+
+.. code-block:: bash
+
+   2017-12-01T12:31:23.738-05:00 W STORAGE  [conn1] Document would fail validation collection: example.contacts doc: { _id: ObjectId('5a2191ebacbbfc2bdc4dcffc'), name: "Amanda", status: "Updated" }
+
+For more information, see :doc:`/core/schema-validation`.

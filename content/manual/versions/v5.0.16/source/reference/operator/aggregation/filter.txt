@@ -1,0 +1,151 @@
+=====================
+$filter (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $filter
+
+   .. versionadded:: 3.2
+
+   Selects a subset of an array to return based on the specified
+   condition. Returns an array with only those elements that match the
+   condition. The returned elements are in the original order.
+
+   :expression:`$filter` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $filter: { input: <array>, as: <string>, cond: <expression> } }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Specification
+
+      * - ``input``
+
+        - An :ref:`expression <aggregation-expressions>` that
+          resolves to an array.
+
+      * - ``as``
+
+        - Optional. A name for the :doc:`variable
+          </reference/aggregation-variables>` that represents each
+          individual element of the ``input`` array. If no name is
+          specified, the variable name defaults to ``this``.
+
+      * - ``cond``
+
+        - An :ref:`expression <aggregation-expressions>` that resolves
+          to a boolean value used to determine if an element should be
+          included in the output array. The expression references each
+          element of the ``input`` array individually with the variable
+          name specified in ``as``.
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+            $filter: {
+               input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+               as: "num",
+               cond: { $and: [
+                  { $gte: [ "$$num", NumberLong("-9223372036854775807") ] }, 
+                  { $lte: [ "$$num", NumberLong("9223372036854775807") ] }
+                ] } 
+            }
+          }
+
+     - ``[ 1, 2, 3.1, NumberLong(4) ]``
+
+Example
+-------
+
+A collection ``sales`` has the following documents:
+
+.. code-block:: javascript
+
+   {
+      _id: 0,
+      items: [
+        { item_id: 43, quantity: 2, price: 10 },
+        { item_id: 2, quantity: 1, price: 240 }
+      ]
+   }
+   {
+      _id: 1,
+      items: [
+        { item_id: 23, quantity: 3, price: 110 },
+        { item_id: 103, quantity: 4, price: 5 },
+        { item_id: 38, quantity: 1, price: 300 }
+      ]
+   }
+   {
+       _id: 2,
+       items: [
+          { item_id: 4, quantity: 1, price: 23 }
+       ]
+   }
+
+The following example filters the ``items`` array to only include
+documents that have a ``price`` greater than or equal to ``100``:
+
+.. code-block:: javascript
+
+   db.sales.aggregate([
+      {
+         $project: {
+            items: {
+               $filter: {
+                  input: "$items", 
+                  as: "item", 
+                  cond: { $gte: [ "$$item.price", 100 ] } 
+               }
+            }
+         }
+      }
+   ])
+
+The operation produces the following results:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 0,
+      "items" : [
+         { "item_id" : 2, "quantity" : 1, "price" : 240 }
+      ]
+   }
+   {
+      "_id" : 1,
+      "items" : [
+         { "item_id" : 23, "quantity" : 3, "price" : 110 },
+         { "item_id" : 38, "quantity" : 1, "price" : 300 }
+      ]
+   }
+   { "_id" : 2, "items" : [ ] }

@@ -1,0 +1,188 @@
+==================================================
+Downgrade |newversion| Replica Set to |oldversion|
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+
+.. include:: /includes/4.4-upgrade-replacements.rst
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+.. |downgrading| replace:: downgrading
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade-path.rst
+
+.. include:: /includes/downgrade/single-version-support.rst
+
+.. include:: /includes/extracts/4.4-changes-downgrade-floor.rst
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+If your replica set has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required
+privileges.
+
+Prerequisites
+-------------
+
+To downgrade from 4.2 to 4.0, you must remove incompatible features
+that are persisted and/or update incompatible configuration settings.
+
+.. |target| replace:: primary
+
+1. Namespace Length
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4:
+
+.. include:: /includes/fact-collection-namespace-limit.rst
+
+Before downgrading, resolve any collections or views with namespaces
+that exceed the 120-byte :limit:`Namespace Length` limit for Feature
+Compatibility Version (fCV) 4.2.
+
+To determine if you have any collections or views with namespaces
+that exceed the 120-byte limit, connect :binary:`~bin.mongo` shell
+to the |target| and run:
+
+.. code-block:: javascript
+
+   db.adminCommand("listDatabases").databases.forEach(function(d){
+      let mdb = db.getSiblingDB(d.name);
+
+      mdb.getCollectionInfos( ).forEach(function(c){
+         namespace = d.name + "." + c.name
+         namespacelenBytes =  encodeURIComponent(namespace).length
+
+         if (namespacelenBytes > 120) {
+            print (c.type.toUpperCase() + " namespace exceeds 120 bytes:: " + namespace )
+         }
+      } )
+   })
+
+If any collection or view namespace exceeds 120 bytes, then :red:`prior` to
+downgrading the fCV:
+
+- Rename the collection using the :dbcommand:`renameCollection` command.
+
+- For views, use :method:`db.createView()` to recreate the view
+  using a shorter name, then drop the original view.
+
+  
+.. _4.4-downgrade-feature-compatibility-rs:
+
+2. Downgrade Feature Compatibility Version (fCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   - Ensure that no initial sync is in progress. Running
+     :dbcommand:`setFeatureCompatibilityVersion` command while an
+     initial sync is in progress will cause the initial sync to restart.
+
+   - Ensure that no replica set member is in :replstate:`ROLLBACK` or
+     :replstate:`RECOVERING` state.
+
+   - Downgrading to 
+     :ref:`featureCompatibilityVersion (fCV) : "4.2" <set-fcv>`
+     implicitly performs a :dbcommand:`replSetReconfig` to remove the
+     :rsconf:`term` field from the configuration document and blocks
+     until the new configuration propagates to a majority of replica set
+     members.
+
+To downgrade the ``featureCompatibilityVersion`` of your replica set:
+
+#. Connect a :binary:`~bin.mongo` shell to the |target|.
+
+#. .. include:: /includes/4.4-downgrade-fcv.rst
+
+#. To ensure that all members of the replica set reflect the updated
+   ``featureCompatibilityVersion``, connect to each replica set member and
+   check the ``featureCompatibilityVersion``:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+   All members should return a result that includes:
+
+   .. code-block:: javascript
+
+      "featureCompatibilityVersion" : { "version" : "4.2" }
+
+   If any member returns a ``featureCompatibilityVersion`` of |newfcv|,
+   wait for the member to reflect version |oldfcv| before proceeding.
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+.. note::
+
+   .. include:: /includes/arbiter-fcv.rst
+
+   .. include:: /includes/arbiter-fcv-version.rst
+
+
+3. Remove FCV |newversion| Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+|newfcv|.
+
+Remove all persisted |newversion| |features| that are incompatible with
+|oldversion|. These include:
+
+Compound Hashed Indexes
+  Remove all :ref:`compound hashed indexes 
+  <index-type-compound-hashed>`.
+
+  Use :method:`db.collection.getIndexes()` to identify 
+  any compound hashed indexes in a collection and use
+  :method:`db.collection.dropIndex()` to remove those indexes.
+
+.. |binary| replace:: any replica set member
+
+4. Remove |newversion| Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Remove all persisted features that use |newversion| features. These
+include but are not limited to:
+
+- If any view definitions that include |newversion| operators, such as
+  :pipeline:`$unionWith` or :expression:`$function`. See also
+  :ref:`4.4-rel-notes-new-agg-operators`.
+
+- :method:`Unhide <db.collection.unhideIndex()>` or :method:`drop
+  <db.collection.dropIndex()>` hidden indexes.
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   replica set members, including delayed replica set members, reflect
+   the prerequisite changes. That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+.. include:: /includes/steps/4.4-downgrade-replica-set.rst

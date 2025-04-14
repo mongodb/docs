@@ -1,0 +1,166 @@
+=============================
+Configure the ``mongo`` Shell
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-mongosh-callout.rst
+
+.. _shell-use-a-custom-prompt:
+
+Customize the Prompt
+--------------------
+
+You may modify the content of the prompt by setting the variable
+``prompt`` in the :binary:`~bin.mongo` shell. The ``prompt`` variable can
+hold strings as well as JavaScript code. If ``prompt`` holds a function
+that returns a string, the :binary:`~bin.mongo` shell can display
+dynamic information in each prompt.
+
+You can add the logic for the prompt in the :ref:`.mongorc.js
+<mongo-mongorc-file>` file to set the prompt each time you start up the
+:binary:`~bin.mongo` shell.
+
+Customize Prompt to Display Number of Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For example,to create a :binary:`~bin.mongo` shell prompt with the number
+of operations issued in the current session, define the following
+variables in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   cmdCount = 1;
+   prompt = function() {
+                return (cmdCount++) + "> ";
+            }
+
+The prompt would then resemble the following:
+
+.. code-block:: javascript
+
+   1>
+   2>
+   3>
+
+Customize Prompt to Display Database and Hostname
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a :binary:`~bin.mongo` shell prompt in the form of
+``<database>@<hostname>$``, define the following variables:
+
+.. code-block:: javascript
+
+   host = db.serverStatus().host;
+
+   prompt = function() {
+                return db+"@"+host+"$ ";
+            }
+
+The prompt would then resemble the following:
+
+.. code-block:: javascript
+
+   test@myHost1$
+
+Customize Prompt to Display Up Time and Document Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a :binary:`~bin.mongo` shell prompt that contains the system
+up time *and* the number of documents in the current database,
+define the following ``prompt`` variable in the :binary:`~bin.mongo`
+shell:
+
+.. code-block:: javascript
+
+   prompt = function() {
+              return "Uptime:"+db.serverStatus().uptime+" Documents:"+db.stats().objects+" > ";
+            }
+
+The prompt would then resemble the following:
+
+.. code-block:: javascript
+
+   Uptime:5897 Documents:6 >
+
+Use an External Editor in the ``mongo`` Shell
+---------------------------------------------
+
+You can use your own editor in the :binary:`~bin.mongo` shell by setting
+the :envvar:`EDITOR` environment variable *before* starting the
+:binary:`~bin.mongo` shell.
+
+.. code-block:: bash
+
+   export EDITOR=vim
+   mongo
+
+Once in the :binary:`~bin.mongo` shell, you can edit with the specified
+editor by typing ``edit <variable>`` or ``edit <function>``, as in the
+following example:
+
+#. Define a function ``myFunction``:
+
+   .. code-block:: javascript
+
+      function myFunction () { }
+
+#. Edit the function using your editor:
+
+   .. code-block:: javascript
+
+      edit myFunction
+
+   The command should open the ``vim`` edit session. When finished
+   with the edits, save and exit ``vim`` edit session.
+
+#. In the :binary:`~bin.mongo` shell, type ``myFunction`` to see the
+   function definition:
+
+   .. code-block:: javascript
+
+      myFunction
+
+   The result should be the changes from your saved edit:
+
+   .. code-block:: javascript
+
+      function myFunction() {
+          print("This was edited");
+      }
+
+.. note::
+
+   As the :binary:`~bin.mongo` shell interprets code edited in an
+   external editor, it may modify code in functions, depending on the
+   JavaScript compiler. For example, the :binary:`~bin.mongo` shell may
+   convert ``1+1`` to ``2`` or remove comments. The actual changes
+   affect only the appearance of the code and will vary based on the
+   version of JavaScript used but will not affect the semantics of the
+   code.
+
+Change the ``mongo`` Shell Batch Size
+-------------------------------------
+
+The :method:`db.collection.find()` method is the JavaScript method to
+retrieve documents from a :term:`collection`. The
+:method:`db.collection.find()` method returns a :term:`cursor` to the
+results; however, in the :binary:`~bin.mongo` shell, if the returned
+cursor is not assigned to a variable using the ``var`` keyword, then the
+cursor is automatically iterated up to 20 times to print up to the
+first 20 documents that match the query. The :binary:`~bin.mongo` shell
+will prompt ``Type it`` to iterate another 20 times.
+
+You can set the ``DBQuery.shellBatchSize`` attribute to change the
+number of documents from the default value of ``20``, as in the
+following example which sets it to ``10``:
+
+.. code-block:: javascript
+
+   DBQuery.shellBatchSize = 10;

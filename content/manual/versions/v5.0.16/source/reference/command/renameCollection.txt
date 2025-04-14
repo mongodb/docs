@@ -1,0 +1,231 @@
+================
+renameCollection
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: renameCollection
+
+   Changes the name of an existing collection. Specify collection names
+   to :dbcommand:`renameCollection` in the form of a complete
+   :term:`namespace` (``<database>.<collection>``).
+
+   .. |method| replace:: :method:`~db.collection.renameCollection` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+   Issue the :dbcommand:`renameCollection` command against the
+   :term:`admin database`.
+
+   The command takes the following form:
+
+   .. code-block:: javascript
+
+      { renameCollection: "<source_namespace>",
+        to: "<target_namespace>",
+        dropTarget: <true|false>,
+        writeConcern: <document>,
+        comment: <any> }
+
+   The command contains the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``renameCollection``
+   
+        - string
+   
+        - The :term:`namespace` of the collection to rename. The namespace is a
+          combination of the database name and the name of the collection.
+   
+      * - ``to``
+   
+        - string
+   
+        - The new namespace of the collection. If the new namespace specifies a
+          different database, the :dbcommand:`renameCollection` command copies
+          the collection to the new database and drops the source collection.
+          See :ref:`restrictions-on-db-names`.
+   
+      * - ``dropTarget``
+   
+        - boolean
+   
+        - Optional. If ``true``, :binary:`~bin.mongod` will drop the ``target`` of
+          :dbcommand:`renameCollection` prior to renaming the collection. The
+          default value is ``false``.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern </reference/write-concern>`
+          for the operation. Omit to use the default write
+          concern.
+          
+          .. include:: /includes/extracts/mongos-operations-wc-rename-collection.rst
+          
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+       
+          .. versionadded:: 4.4          
+   
+
+
+Behavior
+--------
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, you can use the :dbcommand:`renameCollection` 
+command to change the name of a sharded collection. The target 
+database must be the same as the source database.
+
+Unsharded Collections
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use :dbcommand:`renameCollection` to rename an unsharded 
+collection in a sharded cluster as long as the source and target 
+databases are on the same primary shard. 
+
+Existing Target Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`renameCollection` fails if ``target`` is the name of an existing
+collection *and* you do not specify ``dropTarget: true``.
+
+Performance
+~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+:dbcommand:`renameCollection` has different performance implications depending
+on the target :term:`namespace`.
+
+If the target database is the same as the source database,
+:dbcommand:`renameCollection` simply changes the namespace. This is a
+quick operation.
+
+If the target database differs from the source database,
+:dbcommand:`renameCollection` copies all documents from the source
+collection to the target collection. Depending on the size of the
+collection, this may take longer to complete.
+
+Resource Locking in Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 5.0
+
+.. include:: /includes/rename-collection-in-shard.rst
+
+For more information on locking in MongoDB, see :doc:`/faq/concurrency`.
+
+Resource Locking in Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.2
+
+If renaming a collection within the same database, 
+:dbcommand:`renameCollection` obtains an exclusive lock on 
+the source and target collections for the duration of the operation. 
+All subsequent operations on the collections must wait until
+:dbcommand:`renameCollection` completes. 
+
+Prior to MongoDB 4.2, renaming a collection within the same database
+with :dbcommand:`renameCollection` required an exclusive database lock.
+
+If renaming a collection between different databases, 
+:dbcommand:`renameCollection` locking behavior depends on the MongoDB
+version:
+
+- For MongoDB 4.2.2 and later, :dbcommand:`renameCollection` obtains an
+  exclusive (W) lock on the target database, an intent shared (r) lock
+  on the source database, and a shared (S) lock on the 
+  source collection. Subsequent operations on the target database
+  must wait until :dbcommand:`renameCollection` releases the 
+  exclusive database lock.
+
+- For MongoDB 4.2.1 and earlier, :dbcommand:`renameCollection` obtains
+  an exclusive (W) global lock. Subsequent operations on the
+  :binary:`~bin.mongod` must wait until :dbcommand:`renameCollection`
+  releases the global lock.
+
+For more information on locking in MongoDB, see :doc:`/faq/concurrency`.
+
+``local`` Database
+~~~~~~~~~~~~~~~~~~
+
+- You cannot rename a collection from a replicated database to the
+  ``local`` database, which is not replicated.
+
+- You cannot rename a collection from the ``local`` database, which is
+  not replicated, to a replicated database.
+
+Open Cursors
+~~~~~~~~~~~~
+
+.. warning::
+
+   The :method:`db.collection.renameCollection()` method and
+   :dbcommand:`renameCollection` command will invalidate open cursors
+   which interrupts queries that are currently returning data.
+
+Change Streams
+~~~~~~~~~~~~~~
+
+For :doc:`/changeStreams`, the
+:method:`db.collection.renameCollection()` method and
+:dbcommand:`renameCollection` command create an
+:ref:`change-event-invalidate` for any existing :doc:`/changeStreams`
+opened on the source or target collection.
+
+Interaction with ``mongodump``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A :binary:`~bin.mongodump` started with 
+:option:`--oplog <mongodump.--oplog>` fails if a client issues the
+:dbcommand:`renameCollection` command during the 
+dump process. See :option:`mongodump.--oplog` for more information.
+
+Example
+-------
+
+The following example renames a collection named ``orders`` in the
+``test`` database to ``orders2014`` in the ``test`` database.
+
+.. code-block:: javascript
+
+   db.adminCommand( { renameCollection: "test.orders", to: "test.orders2014" } )
+
+:binary:`~bin.mongosh` provides the
+:method:`db.collection.renameCollection()` helper for the command to
+rename collections within the *same* database. The following is
+equivalent to the previous example:
+
+.. code-block:: javascript
+
+   use test
+   db.orders.renameCollection( "orders2014" )

@@ -1,0 +1,128 @@
+====
+$max
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $max
+
+   The :update:`$max` operator updates the value of the field to a
+   specified value *if* the specified value is **greater than** the
+   current value of the field. The :update:`$max` operator can compare
+   values of different types, using the :ref:`BSON comparison order
+   <faq-dev-compare-order-for-BSON-types>`.
+
+   The :update:`$max` operator expression has the form:
+
+   .. code-block:: javascript
+
+      { $max: { <field1>: <value1>, ... } }
+
+   .. include:: /includes/use-dot-notation.rst
+
+Behavior
+--------
+
+.. include:: /includes/fact-update-operator-processing-order.rst
+
+If the field does not exists, the :update:`$max` operator sets the
+field to the specified value.
+
+.. include:: /includes/extracts/update-operation-empty-operand-expressions-max.rst
+
+Examples
+--------
+
+Use ``$max`` to Compare Numbers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the ``scores`` collection:
+
+.. code-block:: javascript
+
+   { _id: 1, highScore: 800, lowScore: 200 }
+
+The ``highScore`` for the document currently has the value 800. The
+following operation:
+
+- Compares the ``highScore``, 800, to the specified value, 950
+- Updates ``highScore`` to 950 since 950 is greater than 800
+
+.. code-block:: javascript
+
+   db.scores.update( { _id: 1 }, { $max: { highScore: 950 } } )
+
+The ``scores`` collection now contains the following modified document:
+
+.. code-block:: javascript
+
+   { _id: 1, highScore: 950, lowScore: 200 }
+
+The next operation has no effect since the value of ``highScore``, 950,
+is greater than 870:
+
+.. code-block:: javascript
+
+   db.scores.updateOne( { _id: 1 }, { $max: { highScore: 870 } } )
+
+The document remains unchanged in the ``scores`` collection:
+
+.. code-block:: javascript
+
+   { _id: 1, highScore: 950, lowScore: 200 }
+
+Use ``$max`` to Compare Dates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the ``tags`` collection:
+
+.. code-block:: javascript
+
+   db.tags.insertOne(
+      {
+        _id: 1,
+        desc: "crafts",
+        dateEntered: ISODate("2013-10-01T05:00:00Z"),
+        dateExpired: ISODate("2013-10-01T16:38:16.163Z")
+      }
+   )
+
+The following operation compares the current value of the
+``dateExpired`` field, ``ISODate("2013-10-01T16:38:16.163Z")``, with
+the specified date ``new Date("2013-09-30")`` to determine whether to
+update the field:
+
+.. code-block:: javascript
+
+   db.tags.updateOne(
+      { _id: 1 },
+      { $max: { dateExpired: new Date("2013-09-30") } }
+   )
+
+``new Date("2013-09-30")`` is not the newest date, so the operation
+does *not* update the ``dateExpired`` field:
+
+.. code-block:: javascript
+   :emphasize-lines: 5
+
+   {
+      _id: 1,
+      desc: "decorative arts",
+      dateEntered: ISODate("2013-10-01T05:00:00Z"),
+      dateExpired: ISODate("2013-10-01T16:38:16.163Z")
+   }
+
+.. seealso::
+
+   - :method:`db.collection.updateMany()`
+   - :method:`db.collection.findAndModify()`
+

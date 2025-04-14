@@ -1,0 +1,948 @@
+====================================
+Compatibility Changes in MongoDB 2.6
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+The following 2.6 changes can affect the compatibility with older
+versions of MongoDB. See :doc:`/release-notes/2.6` for the full list of
+the 2.6 changes.
+
+Index Changes
+-------------
+
+.. _2.6-index-key-length-incompatibility:
+
+Enforce Index Key Length Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB 2.6 implements a stronger enforcement of the limit on
+   :limit:`index key <Index Key Limit>`.
+
+   Creating indexes will error if an index key in an existing document
+   exceeds the limit:
+
+   - :method:`db.collection.ensureIndex()`,
+     :method:`db.collection.reIndex()`, :dbcommand:`compact`, and
+     ``repairDatabase`` will error and not create the index.
+     Previous versions of MongoDB would create the index but not index
+     such documents.
+
+   - Because :method:`db.collection.reIndex()`, :dbcommand:`compact`,
+     and ``repairDatabase`` drop *all* the indexes from a
+     collection and then recreate them sequentially, the error from the
+     index key limit prevents these operations from rebuilding any
+     remaining indexes for the collection and, in the case of the
+     ``repairDatabase`` command, from continuing with the
+     remainder of the process.
+
+   Inserts will error:
+
+   - :method:`db.collection.insert()` and other operations that perform
+     inserts (e.g. ``db.collection.save()`` and
+     :method:`db.collection.update()` with ``upsert`` that result in
+     inserts) will fail to insert if the new document has an indexed
+     field whose corresponding index entry exceeds the limit.
+     Previous versions of MongoDB would insert but not index such
+     documents.
+
+   - :binary:`~bin.mongorestore` and :binary:`~bin.mongoimport` will
+     fail to insert if the new document has an indexed field whose
+     corresponding index entry exceeds the limit.
+
+   Updates will error:
+
+   - :method:`db.collection.update()` and
+     ``db.collection.save()`` operations on an indexed field will error
+     if the updated value causes the index entry to exceed the limit.
+
+   - If an existing document contains an indexed field whose index
+     entry exceeds the limit, updates on other fields that result in
+     the relocation of a document on disk will error.
+
+   Chunk Migration will fail:
+
+   - Migrations will fail for a chunk that has a document with an
+     indexed field whose index entry exceeds the limit.
+
+   - If left unfixed, the chunk will repeatedly fail migration,
+     effectively ceasing chunk balancing for that collection. Or, if
+     chunk splits occur in response to the migration failures, this
+     response would lead to unnecessarily large number of chunks and an
+     overly large config databases.
+
+   Secondary members of replica sets will warn:
+
+   - Secondaries will continue to replicate documents with an indexed
+     field whose corresponding index entry exceeds the limit on initial
+     sync but will print warnings in the logs.
+
+   - Secondaries allow index build and rebuild operations on a
+     collection that contains an indexed field whose corresponding
+     index entry exceeds the limit but with warnings in the logs.
+
+   - With *mixed version* replica sets where the secondaries are
+     version 2.6 and the primary is version 2.4, secondaries will
+     replicate documents inserted or updated on the 2.4 primary, but
+     will print error messages in the log if the documents contain an
+     indexed field whose corresponding index entry exceeds the limit.
+
+Solution
+   Run :v2.6:`db.upgradeCheckAllDBs()
+   </reference/method/db.upgradeCheckAllDBs>` to find current keys that
+   violate this limit and correct as appropriate. Preferably, run the
+   test before upgrading; i.e. connect the 2.6 :binary:`~bin.mongo` shell
+   to your MongoDB 2.4 database and run the method.
+
+If you have an existing data set and want to disable the default index
+key length validation so that you can upgrade before resolving these
+indexing issues, use the :parameter:`failIndexKeyTooLong` parameter.
+
+Index Specifications Validate Field Names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   In MongoDB 2.6, create and re-index operations fail when the index
+   key refers to an empty field, e.g. ``"a..b" : 1`` or the field name
+   starts with a dollar sign (``$``).
+
+   - :method:`db.collection.ensureIndex()` will not create a new index
+     with an invalid or empty key name.
+
+   - :method:`db.collection.reIndex()`, :dbcommand:`compact`, and
+     ``repairDatabase`` will error if an index exists with an
+     invalid or empty key name.
+
+   - Chunk migration will fail if an index exists with an
+     invalid or empty key name.
+
+   Previous versions of MongoDB allow the index.
+
+Solution
+   Run :v2.6:`db.upgradeCheckAllDBs()
+   </reference/method/db.upgradeCheckAllDBs>` to find current keys that
+   violate this limit and correct as appropriate. Preferably, run the
+   test before upgrading; i.e. connect the 2.6 :binary:`~bin.mongo` shell
+   to your MongoDB 2.4 database and run the method.
+
+``ensureIndex`` and Existing Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   :method:`db.collection.ensureIndex()` now errors:
+
+   - if you try to create an existing index but with different
+     options; e.g. in the following example, the second
+     :method:`db.collection.ensureIndex()` will error.
+
+     .. code-block:: javascript
+
+        db.mycollection.ensureIndex( { x: 1 } )
+        db.mycollection.ensureIndex( { x: 1 }, { unique: 1 } )
+
+   - if you specify an index name that already exists but the key
+     specifications differ; e.g. in the following example, the second
+     :method:`db.collection.ensureIndex()` will error.
+
+     .. code-block:: javascript
+
+        db.mycollection.ensureIndex( { a: 1 }, { name: "myIdx" } )
+        db.mycollection.ensureIndex( { z: 1 }, { name: "myIdx" } )
+
+   Previous versions did not create the index but did not error.
+
+.. _write-methods-incompatibility:
+
+Write Method Acknowledgements
+-----------------------------
+
+Description
+   The :binary:`~bin.mongo` shell write methods
+   :method:`db.collection.insert()`, :method:`db.collection.update()`,
+   ``db.collection.save()`` and :method:`db.collection.remove()`
+   now integrate the :doc:`write concern </reference/write-concern>`
+   directly into the method rather than with a separate
+   :dbcommand:`getLastError` command to provide :ref:`acknowledgement of writes
+   <wc-w>` whether run interactively in the
+   :binary:`~bin.mongo` shell or non-interactively in a script. In previous
+   versions, these methods exhibited a "fire-and-forget" behavior.
+   [#mongo-shell-gle-interactive]_
+
+- Existing scripts for the :binary:`~bin.mongo` shell that used these
+  methods will now wait for acknowledgement, which take **longer** than
+  the previous "fire-and-forget" behavior.
+
+- The write methods now return a :method:`WriteResult` object that
+  contains the results of the operation, including any write errors
+  and write concern errors, and obviates the need to call
+  :dbcommand:`getLastError` command to get the status of the results.
+  See :method:`db.collection.insert()`,
+  :method:`db.collection.update()`, ``db.collection.save()``
+  and :method:`db.collection.remove()` for details.
+
+- In sharded environments, :binary:`~bin.mongos` no longer supports
+  "fire-and-forget" behavior. This limits throughput when writing data
+  to sharded clusters.
+
+.. [#mongo-shell-gle-interactive]
+   In previous versions, when using the :binary:`~bin.mongo` shell
+   interactively, the :binary:`~bin.mongo` shell automatically called the
+   :dbcommand:`getLastError` command after a write method to provide
+   acknowledgement of the write. Scripts, however, would observe "fire-and-forget"
+   behavior in previous versions unless the scripts included an
+   **explicit** call to the :dbcommand:`getLastError` command after a
+   write method.
+
+Solution
+  Scripts that used these :binary:`~bin.mongo` shell methods for bulk write
+  operations with "fire-and-forget" behavior should use the
+  :method:`Bulk()` methods.
+
+  In sharded environments, applications using any driver or
+  :binary:`~bin.mongo` shell should use :method:`Bulk()` methods for optimal
+  performance when inserting or modifying groups of documents.
+
+  For example, instead of:
+
+  .. code-block:: javascript
+
+     for (var i = 1; i <= 1000000; i++) {
+         db.test.insert( { x : i } );
+     }
+
+  In MongoDB 2.6, replace with :method:`Bulk()` operation:
+
+  .. code-block:: javascript
+
+     var bulk = db.test.initializeUnorderedBulkOp();
+
+     for (var i = 1; i <= 1000000; i++) {
+         bulk.insert( { x : i} );
+     }
+
+     bulk.execute( { w: 1 } );
+
+  Bulk method returns a :method:`BulkWriteResult` object that contains
+  the result of the operation.
+
+  .. seealso::
+
+     - :ref:`rel-notes-write-operations`
+     - :method:`Bulk()`
+     - :method:`Bulk.execute()`
+     - :method:`db.collection.initializeUnorderedBulkOp()`
+     - :method:`db.collection.initializeOrderedBulkOp()`
+
+``db.collection.aggregate()`` Change
+------------------------------------
+
+Description
+  The :method:`db.collection.aggregate()` method in the
+  :binary:`~bin.mongo` shell defaults to returning a cursor to the results
+  set. This change enables the aggregation pipeline to return result
+  sets of any size and requires cursor iteration to access the result
+  set. For example:
+
+  .. code-block:: javascript
+
+      var myCursor = db.orders.aggregate( [
+          {
+            $group: {
+               _id: "$cust_id",
+               total: { $sum: "$price" }
+            }
+          }
+      ] );
+
+      myCursor.forEach( function(x) { printjson (x); } );
+
+  Previous versions returned a single document with a field ``results``
+  that contained an array of the result set, subject to the :ref:`BSON
+  Document size <limit-bson-document-size>` limit. Accessing the result
+  set in the previous versions of MongoDB required accessing the
+  ``results`` field and iterating the array. For example:
+
+  .. code-block:: javascript
+
+     var returnedDoc = db.orders.aggregate( [
+         {
+           $group: {
+              _id: "$cust_id",
+              total: { $sum: "$price" }
+           }
+         }
+     ] );
+
+     var myArray = returnedDoc.result; // access the result field
+
+     myArray.forEach( function(x) { printjson (x); } );
+
+Solution
+  Update scripts that currently expect
+  :method:`db.collection.aggregate()` to return a document with a
+  ``results`` array to handle cursors instead.
+
+.. seealso::
+
+   - :ref:`rn-2.6-aggregation-cursor`
+   - :method:`db.collection.aggregate()`
+
+Write Concern Validation
+------------------------
+
+Description
+   Specifying a write concern that includes ``j: true`` to a
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` instance running with
+   ``--nojournal`` option now errors. Previous versions would
+   ignore the ``j: true``.
+
+Solution
+   Either remove the ``j: true`` specification from the write concern when
+   issued against a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance
+   with ``--nojournal`` or run :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` with journaling.
+
+Security Changes
+----------------
+
+.. _authentication-incompatibility:
+
+New Authorization Model
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB 2.6 :ref:`authorization model <authorization>` changes how
+   MongoDB stores and manages user privilege information:
+
+   - Before the upgrade, MongoDB 2.6 requires at least one user in the
+     admin database.
+
+   - MongoDB versions using older models cannot create/modify users or
+     create user-defined roles.
+
+Solution
+   Ensure that at least one user exists in the admin database. If no
+   user exists in the admin database, add a user. Then upgrade to
+   MongoDB 2.6. Finally, upgrade the user privilege model. See
+   :doc:`/release-notes/2.6-upgrade`.
+
+   .. important::
+
+      .. include:: /includes/important-upgrade-auth-model-prerequisites.rst
+
+.. seealso::
+
+   :ref:`2.6-relnotes-security`
+
+
+.. _ssl-hostname-validation:
+
+SSL Certificate Hostname Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   The SSL certificate validation now checks the Common Name (``CN``)
+   and the Subject Alternative Name (``SAN``) fields to ensure that
+   either the ``CN`` or one of the ``SAN`` entries matches the hostname
+   of the server. As a result, if you currently use SSL and *neither*
+   the ``CN`` nor any of the ``SAN`` entries of your current SSL
+   certificates match the hostnames, upgrading to version 2.6 will
+   cause the SSL connections to fail.
+
+Solution
+   To allow for the continued use of these certificates, MongoDB
+   provides the :setting:`~net.ssl.allowInvalidCertificates` setting. The
+   setting is available for:
+
+   - :binary:`~bin.mongod` and :binary:`~bin.mongos` to bypass the validation
+     of SSL certificates on other servers in the cluster.
+
+   - :binary:`~bin.mongo` shell, :ref:`MongoDB tools that support SSL
+     <mongodb-tools-support-ssl>`, and the C++ driver to bypass the
+     validation of server certificates.
+
+   When using the :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB
+   logs as a warning the use of the invalid certificates.
+
+   .. warning:: The :setting:`~net.ssl.allowInvalidCertificates` setting
+      bypasses the other certificate validation, such as checks for
+      expiration and valid signatures.
+
+.. _2.6-2dsphere-version-incompatibility:
+
+``2dsphere`` Index Version 2
+----------------------------
+
+Description
+   MongoDB 2.6 introduces a version 2 of the :doc:`2dsphere index
+   </core/2dsphere>`. If a document lacks a ``2dsphere``
+   index field (or the field is ``null`` or an empty array), MongoDB
+   does not add an entry for the document to the ``2dsphere`` index.
+   For inserts, MongoDB inserts the document but does not add to the
+   ``2dsphere`` index.
+
+   Previous version would not insert documents where the ``2dsphere``
+   index field is a ``null`` or an empty array. For documents that lack
+   the ``2dsphere`` index field, previous versions would insert and
+   index the document.
+
+Solution
+   To revert to old behavior, create the ``2dsphere`` index with ``{
+   "2dsphereIndexVersion" : 1 }`` to create a version 1 index. However,
+   version 1 index cannot use the new GeoJSON geometries.
+
+.. seealso::
+
+   :ref:`2dsphere-v2`
+
+Log Messages
+------------
+
+Timestamp Format Change
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+  Each message now starts with the timestamp format given in :ref:`2.6-time-format-changes`.
+  Previous versions used the ``ctime`` format.
+
+Solution
+  MongoDB adds a new option ``--timeStampFormat`` which supports
+  timestamp format in ``ctime``,
+  ``iso8601-utc``, and ``iso8601-local`` (new default).
+
+.. Commenting out the others for now -- they're just placeholders and notes for self
+.. Other
+   ~~~~~
+   - ``query`` log messages add new field ``planSummary`.
+   - ``getmore`` log messages now omit the ``query`` field.
+   - :binary:`~bin.mongo` shell now calls :dbcommand:`isMaster` command
+     instead of the ``admin`` command :dbcommand:`replSetGetStatus`
+     during the construction of the shell prompt. Log messages change
+     accordingly, as in the following
+     .. code-block:: none
+        command: { isMaster: 1.0, forShell: 1.0 } keyUpdates:0 numYields:0  reslen:178 0ms
+   - In 2.6, log messages for write methods consist of a message for
+     the method followed by a message for the associated write command.
+     Previously, the messages consisted of a message for the method
+     followed by a message for the ``getlasterror`` command. For example:
+     .. code-block:: none
+     2014-03-04T21:16:21.992-0500 [conn1] remove test.server12774 query: { a: { $lt: 3.0 } } ndeleted:2 keyUpdates:0 numYields:0 locks(micros) w:344 0ms
+     2014-03-04T21:16:21.993-0500 [conn1] command test.$cmd command: { delete: "myCollection", deletes: [ { q: { a: { $lt: 3.0 } }, limit: 0.0 } ], ordered: true } keyUpdates:0 numYields:0  reslen:40 0ms
+   - MongoDB removes the two blank lines preceding and following the:
+     ``***** SERVER RESTARTED *****`` message.
+   - ``writeback`` error message and ``FlushViewOfFile`` error message
+     removes the space between the duration time and ``ms``.
+
+Package Configuration Changes
+-----------------------------
+
+.. _2.6-default-bindip-incompatibility:
+
+Default ``bindIp`` for RPM/DEB Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   In the official MongoDB packages in RPM (Red Hat, CentOS, Fedora
+   Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives),
+   the default :setting:`~net.bindIp` value attaches MongoDB components to
+   the localhost interface *only*. These packages set this default in
+   the default configuration file (i.e. ``/etc/mongod.conf``.)
+
+Solution
+   If you use one of these packages and have *not* modified the default
+   ``/etc/mongod.conf`` file, you will need to set :setting:`~net.bindIp`
+   before or during the upgrade.
+
+There is no default :setting:`~net.bindIp` setting in any other official MongoDB
+packages.
+
+.. _2.6-snmp-iana-mib-incompatibility:
+
+SNMP Changes
+~~~~~~~~~~~~
+
+Description
+   - The IANA enterprise identifier for MongoDB changed from
+     37601 to 34601.
+
+   - MongoDB changed the MIB field name ``globalopcounts`` to
+     ``globalOpcounts``.
+
+Solution
+   - Users of SNMP monitoring must modify their SNMP configuration
+     (i.e. MIB) from 37601 to 34601.
+
+   - Update references to ``globalopcounts`` to ``globalOpcounts``.
+
+Remove Method Signature Change
+------------------------------
+
+Description
+   :method:`db.collection.remove()` requires a query document as a
+   parameter. In previous versions, the method invocation without a
+   query document deleted all documents in a collection.
+
+Solution
+   For existing :method:`db.collection.remove()` invocations without a
+   query document, modify the invocations to include an empty document
+   :method:`db.collection.remove({})`.
+
+.. _update-operations-incompatibility:
+
+Update Operator Syntax Validation
+---------------------------------
+
+Description
+  - :doc:`Update operators (e.g $set) </reference/operator/update>`
+    must specify a non-empty operand expression. For example, the
+    following expression is now invalid:
+
+    .. code-block:: javascript
+
+       { $set: { } }
+
+  - :doc:`Update operators (e.g $set) </reference/operator/update>`
+    cannot repeat in the update statement. For example, the following
+    expression is invalid:
+
+    .. code-block:: javascript
+
+       { $set: { a: 5 }, $set: { b: 5 } }
+
+.. COMMENT -- could clarify that the MongoDB server cannot accept
+   update expressions that include duplicate operators so as to
+   distinguish from drivers/mongo shell that will flatten out the
+   expression, but will hold off until someone requests.
+
+Updates Enforce Field Name Restrictions
+---------------------------------------
+
+Description
+   - Updates cannot use :doc:`update operators (e.g $set)
+     </reference/operator/update>` to target fields with empty field
+     names (i.e. ``""``).
+
+   - Updates no longer support saving field names that contain a dot
+     (``.``) or a field name that starts with a dollar sign (``$``).
+
+Solution
+   - For existing documents that have fields with empty names ``""``,
+     replace the whole document. See :method:`db.collection.update()`
+     and ``db.collection.save()`` for details on replacing an existing
+     document.
+
+   - For existing documents that have fields with names that contain a
+     dot (``.``), either replace the whole document or :update:`unset
+     <$unset>` the field. To find fields whose names contain a dot, run
+     :v2.6:`db.upgradeCheckAllDBs() </reference/method/db.upgradeCheckAllDBs>`.
+
+   - For existing documents that have fields with names that start with
+     a dollar sign (``$``), :update:`unset <$unset>` or :update:`rename
+     <$rename>` those fields. To find fields whose names start with a
+     dollar sign, run :v2.6:`db.upgradeCheckAllDBs()
+     </reference/method/db.upgradeCheckAllDBs>`.
+
+See :ref:`rel-notes-write-operations` for the changes to the write
+operation protocol, and :ref:`rel-notes-data-modification` for the
+changes to the insert and update operations. Also consider the
+documentation of the :limit:`Restrictions on Field Names`.
+
+Query and Sort Changes
+----------------------
+
+.. _query-field-name-incompatibility:
+
+Enforce Field Name Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   Queries cannot specify conditions on fields with names that start
+   with a dollar sign (``$``).
+
+Solution
+   :update:`Unset <$unset>` or :update:`rename <$rename>` existing
+   fields whose names start with a dollar sign (``$``). Run
+   :v2.6:`db.upgradeCheckAllDBs()
+   </reference/method/db.upgradeCheckAllDBs>` to find fields whose
+   names start with a dollar sign.
+
+.. _2.6-sparse-index-incompatibility:
+
+Sparse Index and Incomplete Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   If a :doc:`sparse index </core/index-sparse>` results in an
+   incomplete result set for queries and sort operations, MongoDB will
+   not use that index unless a :method:`~cursor.hint()` explicitly
+   specifies the index.
+
+   For example, the query ``{ x: { $exists: false } }`` will no longer
+   use a sparse index on the ``x`` field, unless explicitly hinted.
+
+Solution
+   To override the behavior to use the sparse index and return
+   incomplete results, explicitly specify the index with a
+   :method:`~cursor.hint()`.
+
+See :ref:`sparse-index-incomplete-results` for an example that details
+the new behavior.
+
+.. _2.6-sort-value-incompatibility:
+
+``sort()`` Specification Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   The :method:`~cursor.sort()` method **only** accepts the following
+   values for the sort keys:
+
+   - ``1`` to specify ascending order for a field,
+
+   - ``-1`` to specify descending order for a field, or
+
+   - :expression:`$meta` expression to specify sort by the text search
+     score.
+
+   Any other value will result in an error.
+
+   Previous versions also accepted either ``true`` or ``false`` for
+   ascending.
+
+Solution
+   Update sort key values that use ``true`` or ``false`` to ``1``.
+
+.. _2.6-skip-incompatibility:
+
+``skip()`` and ``_id`` Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   Equality match on the ``_id`` field obeys :method:`~cursor.skip()`.
+
+   Previous versions ignored :method:`~cursor.skip()` when performing
+   an equality match on the ``_id`` field.
+
+.. _2.6-explain-query-plan-incompatibility:
+
+``explain()`` Retains Query Plan Cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   :method:`~cursor.explain()` no longer clears the :doc:`query plans
+   </core/query-plans>` cached for that :term:`query shape`.
+
+   In previous versions, :method:`~cursor.explain()` would have the
+   side effect of clearing the query plan cache for that query shape.
+
+.. seealso::
+
+   The :method:`PlanCache() <db.collection.getPlanCache()>` reference.
+
+
+Geospatial Changes
+~~~~~~~~~~~~~~~~~~
+
+.. _2.6-geo-maxDistance-incompatibility:
+
+``$maxDistance`` Changes
+````````````````````````
+
+Description
+   - For :query:`$near` queries on GeoJSON data, if the queries specify
+     a :query:`$maxDistance`, :query:`$maxDistance` must be inside of
+     the :query:`$near` document.
+
+     In previous version, :query:`$maxDistance` could be either inside
+     or outside the :query:`$near` document.
+
+   - :query:`$maxDistance` must be a positive value.
+
+Solution
+   - Update any existing :query:`$near` queries on GeoJSON data that
+     currently have the :query:`$maxDistance` outside the
+     :query:`$near` document
+
+   - Update any existing queries where :query:`$maxDistance` is a
+     negative value.
+
+.. _2.6-uniqueDocs-incompatibility:
+
+Deprecated ``$uniqueDocs``
+``````````````````````````
+
+Description
+   MongoDB 2.6 deprecates ``$uniqueDocs``, and geospatial queries
+   no longer return duplicated results when a document matches the
+   query multiple times.
+
+.. _2.6-geospatial-validation-incompatibility:
+
+Stronger Validation of Geospatial Queries
+`````````````````````````````````````````
+
+Description
+   MongoDB 2.6 enforces a stronger validation of geospatial queries,
+   such as validating the options or GeoJSON specifications, and errors
+   if the geospatial query is invalid. Previous versions
+   allowed/ignored invalid options.
+
+Query Operator Changes
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. _2.6-not-incompatibility:
+
+``$not`` Query Behavior Changes
+```````````````````````````````
+
+Description
+   - Queries with :query:`$not` expressions on an indexed field now match:
+
+     - Documents that are missing the indexed field. Previous versions
+       would not return these documents using the index.
+
+     - Documents whose indexed field value is a different type than
+       that of the specified value. Previous versions would not return
+       these documents using the index.
+
+     For example, if a collection ``orders`` contains the following
+     documents:
+
+     .. code-block:: javascript
+
+        { _id: 1, status: "A", cust_id: "123", price: 40 }
+        { _id: 2, status: "A", cust_id: "xyz", price: "N/A" }
+        { _id: 3, status: "D", cust_id: "xyz" }
+
+     If the collection has an index on the ``price`` field:
+
+     .. code-block:: javascript
+
+        db.orders.ensureIndex( { price: 1 } )
+
+     The following query uses the index to search for documents where
+     ``price`` is not greater than or equal to ``50``:
+
+     .. code-block:: javascript
+
+        db.orders.find( { price: { $not: { $gte: 50 } } } )
+
+     In 2.6, the query returns the following documents:
+
+     .. code-block:: javascript
+
+         { "_id" : 3, "status" : "D", "cust_id" : "xyz" }
+         { "_id" : 1, "status" : "A", "cust_id" : "123", "price" : 40 }
+         { "_id" : 2, "status" : "A", "cust_id" : "xyz", "price" : "N/A" }
+
+     In previous versions, indexed plans would only
+     return matching documents where the type of the field matches the
+     type of the query predicate:
+
+     .. code-block:: javascript
+
+        { "_id" : 1, "status" : "A", "cust_id" : "123", "price" : 40 }
+
+     If using a collection scan, previous versions would return the
+     same results as those in 2.6.
+
+   - MongoDB 2.6 allows chaining of :query:`$not` expressions.
+
+.. _2.6-null-incompatibility:
+
+``null`` Comparison Queries
+````````````````````````````
+
+Description
+   - :query:`$lt` and :query:`$gt` comparisons to ``null`` no
+     longer match documents that are missing the field.
+
+   - ``null`` equality conditions on array elements (e.g. ``"a.b":
+     null``) no longer match document missing the nested field ``a.b``
+     (e.g. ``a: [ 2, 3 ]``).
+
+   - ``null`` equality queries (i.e. ``field: null`` ) now match fields
+     with values ``undefined``.
+
+.. _2.6-all-incompatibility:
+
+``$all`` Operator Behavior Change
+`````````````````````````````````
+
+Description
+   - The :query:`$all` operator is now equivalent to an :query:`$and`
+     operation of the specified values. This change in behavior can
+     allow for more matches than previous versions when passed an array
+     of a single nested array (e.g. ``[ [ "A" ] ]``). When passed an
+     array of a nested array, :query:`$all` can now match documents
+     where the field contains the nested array as an element (e.g.
+     ``field: [ [ "A" ], ... ]``), *or* the field equals the nested
+     array (e.g. ``field: [ "A", "B" ]``). Earlier version could only
+     match documents where the field contains the nested array.
+
+   - The :query:`$all` operator returns no match if the array field
+     contains nested arrays (e.g. ``field: [ "a", ["b"] ]``) and
+     :query:`$all` on the nested field is the element of the nested
+     array (e.g. ``"field.1": { $all: [ "b" ] }``). Previous versions
+     would return a match.
+
+.. _2.6-mod-operator-incompatibility:
+
+``$mod`` Operator Enforces Strict Syntax
+````````````````````````````````````````
+
+Description
+   The :query:`$mod` operator now only accepts an array with exactly
+   two elements, and errors when passed an array with fewer or more
+   elements. See :ref:`mod-not-enough-elements` and :ref:`mod-too-many-elements`
+   for details.
+
+   In previous versions, if passed an array with one element, the
+   :query:`$mod` operator uses ``0`` as the second element, and if
+   passed an array with more than two elements, the :query:`$mod`
+   ignores all but the first two elements. Previous versions do return
+   an error when passed an empty array.
+
+Solution
+   Ensure that the array passed to :query:`$mod` contains exactly two
+   elements:
+
+   - If the array contains the a single element, add ``0`` as the
+     second element.
+
+   - If the array contains more than two elements, remove the extra
+     elements.
+
+.. _2.6-where-incompatibility:
+
+``$where`` Must Be Top-Level
+````````````````````````````
+
+Description
+   :query:`$where` expressions can now only be at top level and cannot be
+   nested within another expression, such as :query:`$elemMatch`.
+
+Solution
+   Update existing queries that nest :query:`$where`.
+
+``$exists`` and ``notablescan``
+```````````````````````````````
+
+If the MongoDB server has disabled collection scans, i.e.
+:parameter:`notablescan`, then :query:`$exists` queries that have no
+*indexed solution* will error.
+
+.. _2.6-min-max-key-equality-match-incompatibility:
+
+``MinKey`` and ``MaxKey`` Queries
+`````````````````````````````````
+
+Description
+   Equality match for either ``MinKey`` or
+   ``MaxKey`` no longer match documents missing the field.
+
+.. COMMENT will wait to doc the following in case the resolution
+   matches the 2.4 behavior. :query:`$elemMatch` against nested arrays
+   - SERVER-12496
+
+Nested Array Queries with $elemMatch
+````````````````````````````````````
+
+Description
+   The :query:`$elemMatch` query operator no longer traverses
+   recursively into nested arrays.
+
+   For example, if a collection ``test`` contains the following
+   document:
+
+   .. code-block:: javascript
+
+      { "_id": 1, "a" : [ [ 1, 2, 5 ] ] }
+
+   In 2.6, the following :query:`$elemMatch` query does *not* match the
+   document:
+
+   .. code-block:: javascript
+
+      db.test.find( { a: { $elemMatch: { $gt: 1, $lt: 5 } } } )
+
+Solution
+   Update existing queries that rely upon the old behavior.
+
+Text Search Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB does not support the use of the :query:`$text` query operator
+in mixed sharded cluster deployments that contain both version 2.4
+and version 2.6 shards. See :doc:`/release-notes/2.6-upgrade` for
+upgrade instructions.
+
+Replica Set/Sharded Cluster Validation
+--------------------------------------
+
+.. _2.6-metadata-check-incompatibility:
+
+Shard Name Checks on Metadata Refresh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   For sharded clusters, MongoDB 2.6 disallows a shard from refreshing
+   the metadata if the shard name has not been explicitly set.
+
+   For mixed sharded cluster deployments that contain both version 2.4
+   and version 2.6 shards, this change can cause errors when migrating
+   chunks **from** version 2.4 shards **to** version 2.6 shards if the
+   shard name is unknown to the version 2.6 shards. MongoDB does not
+   support migrations in mixed sharded cluster deployments.
+
+Solution
+   Upgrade all components of the cluster to 2.6. See
+   :doc:`/release-notes/2.6-upgrade`.
+
+.. _2.6-repl-set-vote-incompatibility:
+
+Replica Set Vote Configuration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB now deprecates giving any :term:`replica set` member more
+   than a single vote. During configuration,
+   :rsconf:`members[n].votes` should only have a
+   value of 1 for voting members and 0 for non-voting members. MongoDB
+   treats values other than 1 or 0 as a value of 1 and produces a
+   warning message.
+
+Solution
+   Update :rsconf:`members[n].votes` with values
+   other than 1 or 0 to 1 or 0 as appropriate.
+
+.. _2.6-time-format-changes:
+
+Time Format Changes
+-------------------
+
+MongoDB now uses ``iso8601-local`` when formatting time data in many
+outputs. This format follows the template
+``YYYY-MM-DDTHH:mm:ss.mmm<+/-Offset>``. For example, ``2014-03-04T20:13:38.944-0500``.
+
+This change impacts all clients using
+:doc:`Extended JSON </reference/mongodb-extended-json>` in *Strict mode*, such as
+:binary:`~bin.mongoexport`.
+
+.. _2.6-compatibility-other-resources:
+
+Other Resources
+---------------
+
+- `All backwards incompatible changes (JIRA) <https://jira.mongodb.org/issues/?jql=project%20%3D%20SERVER%20AND%20fixVersion%20in%20(%222.5.0%22%2C%20%222.5.1%22%2C%20%222.5.2%22%2C%20%222.5.3%22%2C%20%222.5.4%22%2C%20%222.5.5%22%2C%20%222.6.0-rc1%22%2C%20%222.6.0-rc2%22)%20AND%20%22Backwards%20Compatibility%22%20in%20%20(%22Major%20Change%22%2C%20%22Minor%20Change%22)%20ORDER%20BY%20votes%20DESC%2C%20issuetype%20DESC%2C%20key%20DESC>`_.
+
+- :doc:`/release-notes/2.6`.
+
+- :doc:`/release-notes/2.6-upgrade` for the upgrade process.

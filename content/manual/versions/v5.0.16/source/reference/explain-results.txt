@@ -1,0 +1,928 @@
+.. _explain-results:
+
+===============
+Explain Results
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To return information on query plans and execution statistics of the
+query plans, MongoDB provides:
+
+- the :method:`db.collection.explain()` method,
+
+- the :method:`cursor.explain()` method, and
+
+- the :dbcommand:`explain` command.
+
+The ``explain`` results present the query plans as a tree of stages.
+
+.. code-block:: javascript
+
+   "winningPlan" : {
+      "stage" : <STAGE1>,
+      ...
+      "inputStage" : {
+         "stage" : <STAGE2>,
+         ...
+         "inputStage" : {
+            "stage" : <STAGE3>,
+            ...
+         }
+      }
+   },
+
+Each stage passes its results (i.e. documents or index keys) to the
+parent node. The leaf nodes access the collection or the indices. The
+internal nodes manipulate the documents or the index keys that result
+from the child nodes. The root node is the final stage from which
+MongoDB derives the result set.
+
+Stages are descriptive of the operation; e.g.
+
+- ``COLLSCAN`` for a collection scan
+
+- ``IXSCAN`` for scanning index keys
+
+- ``FETCH`` for retrieving documents
+
+- ``SHARD_MERGE`` for merging results from shards
+
+- ``SHARDING_FILTER`` for filtering out orphan documents from shards
+
+Explain Output
+--------------
+
+The following sections presents a list of some key fields returned by
+the ``explain`` operation.
+
+.. note::
+
+   - The list of fields is not meant to be exhaustive, but is meant to
+     highlight some key field changes from earlier versions of explain.
+
+   - The output format is subject to change between releases.
+
+.. _queryPlanner:
+
+``queryPlanner``
+~~~~~~~~~~~~~~~~
+
+:data:`~explain.queryPlanner` information details the plan selected by
+the :doc:`query optimizer </core/query-plans>`.
+
+.. tabs::
+
+   tabs:
+
+      - id: unsharded
+        name: "Unsharded Collections"
+        content: |
+
+            For unsharded collections, ``explain`` returns the following
+            ``queryPlanner`` information:
+
+            .. code-block:: none
+
+               "queryPlanner" : {
+                  "plannerVersion" : <int>,
+                  "namespace" : <string>,
+                  "indexFilterSet" : <boolean>,
+                  "parsedQuery" : {
+                     ...
+                  },
+                  "queryHash" : <hexadecimal string>,
+                  "planCacheKey" : <hexadecimal string>,
+                  "optimizedPipeline" : <boolean>, // Starting in MongoDB 4.2, only appears if true
+                  "winningPlan" : {
+                     "stage" : <STAGE1>,
+                     ...
+                     "inputStage" : {
+                        "stage" : <STAGE2>,
+                        ...
+                        "inputStage" : {
+                           ...
+                        }
+                     }
+                  },
+                  "rejectedPlans" : [
+                     <candidate plan 1>,
+                     ...
+                  ]
+               }
+
+      - id: sharded
+        name: "Sharded Collections"
+        content: |
+            For sharded collections, ``explain`` includes the core
+            query planner and server information for each accessed
+            shard in the ``shards`` field:
+
+            .. code-block:: none
+
+               "queryPlanner" : {
+                  "mongosPlannerVersion" : <int>,
+                  "winningPlan" : {
+                     "stage" : <STAGE1>,
+                     "shards" : [
+                        {
+                           "shardName" : <string>,
+                           "connectionString" : <string>,
+                           "serverInfo" : {
+                              "host" : <string>,
+                              "port" : <int>,
+                              "version" : <string>,
+                              "gitVersion" : <string>
+                           },
+                           "plannerVersion" : <int>,
+                           "namespace" : <string>,
+                           "parsedQuery" : <document>,
+                           "queryHash" : <hexadecimal string>,
+                           "planCacheKey" : <hexadecimal string>,
+                           "optimizedPipeline" : <boolean>, // Starting in MongoDB 4.2, only appears if true
+                           "winningPlan" : {
+                              "stage" : <STAGE2>,
+                              "inputStage" : {
+                                 "stage" : <STAGE3>
+                                 ...,
+                              }
+                           },
+                           "rejectedPlans" : [
+                              <candidate plan 1>,
+                              ...
+                           ]
+                        },
+                        ...
+                     ]
+                  }
+               }
+
+
+.. data:: explain.queryPlanner
+
+   Contains information on the selection of the query plan by the
+   :doc:`query optimizer </core/query-plans>`.
+
+   .. data:: explain.queryPlanner.namespace
+
+      A string that specifies the :term:`namespace` with the names of
+      the database and the collection accessed by the query. The
+      namespace has the format ``<database>.<collection>``.
+
+   .. data:: explain.queryPlanner.indexFilterSet
+
+      A boolean that specifies whether MongoDB applied an :ref:`index
+      filter <index-filters>` for the :term:`query shape`.
+
+   .. data:: explain.queryPlanner.queryHash
+
+      A hexadecimal string that represents the hash of the
+      :term:`query shape` and is dependent only on the query shapes.
+      ``queryHash`` can help identify slow queries (including the
+      query filter of write operations) with the same query shape.
+
+      .. note::
+
+         As with any hash function, two different query shapes may result
+         in the same hash value. However, the occurrence of hash
+         collisions between different query shapes is unlikely.
+
+      For more information on ``queryHash`` and ``planCacheKey``,
+      see :ref:`query-hash-plan-cache-key`.
+
+      .. versionadded:: 4.2
+
+   .. data:: explain.queryPlanner.planCacheKey
+
+      A hash of the key for the plan cache entry associated with the
+      query.
+
+      Unlike the :data:`~explain.queryPlanner.queryHash`, the
+      :data:`~explain.queryPlanner.planCacheKey` is a function of
+      both the query shape and the currently available indexes for
+      that shape. That is, if indexes that can support the query
+      shape are added/dropped, the ``planCacheKey`` value may change
+      whereas the ``queryHash`` value would not change.
+
+      For more information on ``queryHash`` and ``planCacheKey``,
+      see :ref:`query-hash-plan-cache-key`.
+
+      .. versionadded:: 4.2
+
+   .. data:: explain.queryPlanner.optimizedPipeline
+
+      A boolean that indicates that the entire aggregation pipeline
+      operation was optimized away, and instead, fulfilled by a tree
+      of query plan execution stages.
+
+      For example, starting in MongodB 4.2, the following
+      aggregation operation can be fulfilled by the tree of query
+      plan execution rather than using the aggregation pipeline.
+      
+      .. code-block:: javascript
+
+         db.example.aggregate([ { $match: { someFlag: true } } ] )
+
+      The field is only present if the value is ``true`` and only
+      applies to explain on aggregation pipeline operations. When
+      ``true``, because the pipeline was optimized away, no
+      aggregation stage information appears in the output.
+
+      .. versionadded:: 4.2
+
+   .. data:: explain.queryPlanner.winningPlan
+
+      A document that details the plan selected by the :doc:`query
+      optimizer </core/query-plans>`. MongoDB presents the plan as a
+      tree of stages; i.e. a stage can have an
+      :data:`~explain.queryPlanner.winningPlan.inputStage` or, if the
+      stage has multiple child stages,
+      :data:`~explain.queryPlanner.winningPlan.inputStages`.
+
+      .. data:: explain.queryPlanner.winningPlan.stage
+
+         A string that denotes the name of the stage.
+
+         Each stage consists of information specific to the stage. For
+         instance, an ``IXSCAN`` stage will include the index bounds
+         along with other data specific to the index scan. If a stage
+         has a child stage or multiple child stages, the stage will have an
+         inputStage or inputStages.
+
+      .. data:: explain.queryPlanner.winningPlan.inputStage
+
+         A document that describes the child stage, which provides the
+         documents or index keys to its parent. The field is present
+         *if* the parent stage has only one child.
+
+      .. data:: explain.queryPlanner.winningPlan.inputStages
+
+         An array of documents describing the child stages. Child
+         stages provide the documents or index keys to the parent
+         stage. The field is present *if* the parent stage has multiple
+         child nodes. For example, stages for :ref:`$or expressions
+         <explain-output-or-expression>` or :ref:`index intersection
+         <explain-output-index-intersection>` consume input from
+         multiple sources.
+
+   .. data:: explain.queryPlanner.rejectedPlans
+
+      Array of candidate plans considered and rejected by the
+      query optimizer. The array can be empty if there were no other
+      candidate plans.
+
+.. _executionStats:
+
+``executionStats``
+~~~~~~~~~~~~~~~~~~
+
+The returned :data:`~explain.executionStats` information details the
+execution of the winning plan. In order to include
+``executionStats`` in the results, you must run the explain in either:
+
+- :ref:`executionStats <explain-method-executionStats>` or
+
+- :ref:`allPlansExecution <explain-method-allPlansExecution>`
+  verbosity mode. Use ``allPlansExecution`` mode to include partial
+  execution data captured during :ref:`plan selection
+  <query-plans-query-optimization>`.
+
+.. tabs::
+
+   tabs:
+
+      - id: unsharded
+        name: "Unsharded Collections"
+        content: |
+
+            For unsharded collections, ``explain`` returns the following
+            ``executionStats`` information:
+
+            .. code-block:: none
+
+               "executionStats" : {
+                  "executionSuccess" : <boolean>,
+                  "nReturned" : <int>,
+                  "executionTimeMillis" : <int>,
+                  "totalKeysExamined" : <int>,
+                  "totalDocsExamined" : <int>,
+                  "executionStages" : {
+                     "stage" : <STAGE1>
+                     "nReturned" : <int>,
+                     "executionTimeMillisEstimate" : <int>,
+                     "works" : <int>,
+                     "advanced" : <int>,
+                     "needTime" : <int>,
+                     "needYield" : <int>,
+                     "saveState" : <int>,
+                     "restoreState" : <int>,
+                     "isEOF" : <boolean>,
+                     ...
+                     "inputStage" : {
+                        "stage" : <STAGE2>,
+                        "nReturned" : <int>,
+                        "executionTimeMillisEstimate" : <int>,
+                        ...
+                        "inputStage" : {
+                           ...
+                        }
+                     }
+                  },
+                  "allPlansExecution" : [
+                     {
+                        "nReturned" : <int>,
+                        "executionTimeMillisEstimate" : <int>,
+                        "totalKeysExamined" : <int>,
+                        "totalDocsExamined" :<int>,
+                        "executionStages" : {
+                           "stage" : <STAGEA>,
+                           "nReturned" : <int>,
+                           "executionTimeMillisEstimate" : <int>,
+                           ...
+                           "inputStage" : {
+                              "stage" : <STAGEB>,
+                              ...
+                              "inputStage" : {
+                                ...
+                              }
+                           }
+                        }
+                     },
+                     ...
+                  ]
+               }
+
+      - id: sharded
+        name: "Sharded Collections"
+        content: |
+
+            For sharded collections, ``explain`` includes the execution
+            statistics for each accessed shard.
+
+            .. code-block:: javascript
+
+               "executionStats" : {
+                  "nReturned" : <int>,
+                  "executionTimeMillis" : <int>,
+                  "totalKeysExamined" : <int>,
+                  "totalDocsExamined" : <int>,
+                  "executionStages" : {
+                     "stage" : <STAGE1>
+                     "nReturned" : <int>,
+                     "executionTimeMillis" : <int>,
+                     "totalKeysExamined" : <int>,
+                     "totalDocsExamined" : <int>,
+                     "totalChildMillis" : <NumberLong>,
+                     "shards" : [
+                        {
+                           "shardName" : <string>,
+                           "executionSuccess" : <boolean>,
+                           "executionStages" : {
+                              "stage" : <STAGE2>,
+                              "nReturned" : <int>,
+                              "executionTimeMillisEstimate" : <int>,
+                              ...
+                              "chunkSkips" : <int>,
+                              "inputStage" : {
+                                 "stage" : <STAGE3>,
+                                 ...
+                                 "inputStage" : {
+                                    ...
+                                 }
+                              }
+                           }
+                        },
+                        ...
+                     ]
+                  }
+                  "allPlansExecution" : [
+                     {
+                        "shardName" : <string>,
+                        "allPlans" : [
+                           {
+                              "nReturned" : <int>,
+                              "executionTimeMillisEstimate" : <int>,
+                              "totalKeysExamined" : <int>,
+                              "totalDocsExamined" :<int>,
+                              "executionStages" : {
+                                 "stage" : <STAGEA>,
+                                 "nReturned" : <int>,
+                                 "executionTimeMillisEstimate" : <int>,
+                                 ...
+                                 "inputStage" : {
+                                    "stage" : <STAGEB>,
+                                    ...
+                                    "inputStage" : {
+                                      ...
+                                    }
+                                 }
+                              }
+                           },
+                           ...
+                        ]
+                     },
+                     {
+                        "shardName" : <string>,
+                        "allPlans" : [
+                         ...
+                        ]
+                     },
+                     ...
+                  ]
+               }
+
+.. data:: explain.executionStats
+
+   Contains statistics that describe the completed query execution for
+   the winning plan. For write operations, completed query execution
+   refers to the modifications that *would* be performed, but does
+   *not* apply the modifications to the database.
+
+   .. data:: explain.executionStats.nReturned
+
+      Number of documents that match the query condition.
+      :data:`~explain.executionStats.nReturned` corresponds to the ``n`` field
+      returned by ``cursor.explain()`` in earlier versions of MongoDB.
+
+   .. data:: explain.executionStats.executionTimeMillis
+
+      Total time in milliseconds required for query plan selection and
+      query execution. :data:`~explain.executionStats.executionTimeMillis` corresponds
+      to the ``millis`` field returned by ``cursor.explain()`` in
+      earlier versions of MongoDB.
+
+   .. data:: explain.executionStats.totalKeysExamined
+
+      Number of index entries scanned.
+      :data:`~explain.executionStats.totalKeysExamined` corresponds to the
+      ``nscanned`` field returned by ``cursor.explain()`` in
+      earlier versions of MongoDB.
+
+   .. data:: explain.executionStats.totalDocsExamined
+
+      Number of documents examined during query execution. Common
+      query execution stages that examine documents are ``COLLSCAN``
+      and ``FETCH``.
+
+      .. note::
+
+         :data:`~explain.executionStats.totalDocsExamined` refers to
+         the total number of documents examined and *not* to the
+         number of documents returned. For example, a stage can
+         examine a document in order to apply a filter. If the
+         document is filtered out, then it has been examined but
+         will not be returned as part of the query result set.
+
+         If a document is examined multiple times during query
+         execution,
+         :data:`~explain.executionStats.totalDocsExamined` counts
+         each examination. That is,
+         :data:`~explain.executionStats.totalDocsExamined` is *not* a
+         count of the total number of *unique* documents examined.
+
+   .. data:: explain.executionStats.executionStages
+
+      Details the completed execution of the winning plan as a tree of
+      stages; i.e. a stage can have an ``inputStage`` or multiple
+      ``inputStages``.
+
+      Each stage consists of execution information specific to the
+      stage.
+
+      .. data:: explain.executionStats.executionStages.executionTimeMillisEstimate
+
+         The estimated amount of time in milliseconds for query execution.
+
+      .. data:: explain.executionStats.executionStages.works
+
+         Specifies the number of "work units" performed by the query
+         execution stage. Query execution divides its work into small
+         units. A "work unit" might consist of examining a single index key,
+         fetching a single document from the collection, applying a
+         projection to a single document, or doing a piece of internal
+         bookkeeping.
+
+      .. data:: explain.executionStats.executionStages.advanced
+
+         The number of intermediate results returned, or *advanced*, by
+         this stage to its parent stage.
+
+      .. data:: explain.executionStats.executionStages.needTime
+
+         The number of work cycles that did not advance an intermediate
+         result to its parent stage (see
+         :data:`explain.executionStats.executionStages.advanced`). For
+         instance, an index scan stage may spend a work cycle seeking to a
+         new position in the index as opposed to returning an index
+         key; this work cycle would count towards
+         :data:`explain.executionStats.executionStages.needTime` rather
+         than :data:`explain.executionStats.executionStages.advanced`.
+
+      .. data:: explain.executionStats.executionStages.needYield
+
+         The number of times that the storage layer requested that the
+         query stage suspend processing and yield its locks.
+
+      .. data:: explain.executionStats.executionStages.saveState
+
+         The number of times that the query stage suspended processing
+         and saved its current execution state, for example in
+         preparation for yielding its locks.
+
+      .. data:: explain.executionStats.executionStages.restoreState
+
+         The number of times that the query stage restored a saved
+         execution state, for example after recovering locks that it had
+         previously yielded.
+
+      .. data:: explain.executionStats.executionStages.isEOF
+
+         Specifies whether the execution stage has reached end of stream:
+
+         - If ``true`` or ``1``, the execution stage has reached
+           end-of-stream.
+
+         - If ``false`` or ``0``, the stage may still have results to
+           return. For example, consider a query with a limit whose
+           execution stages consists of a ``LIMIT`` stage with an
+           input stage of ``IXSCAN`` for the query. If the query
+           returns more than the specified limit, the ``LIMIT`` stage
+           will report ``isEOF: 1``, but its underlying ``IXSCAN`` stage
+           will report ``isEOF: 0``.
+
+      .. data:: explain.executionStats.executionStages.inputStage.keysExamined
+
+         For query execution stages that scan an index (e.g. IXSCAN),
+         ``keysExamined`` is the total number of in-bounds and out-of-bounds
+         keys that are examined in the process of the index scan. If the
+         index scan consists of a single contiguous range of keys, only
+         in-bounds keys need to be examined. If the index bounds consists of
+         several key ranges, the index scan execution process may examine
+         out-of-bounds keys in order to skip from the end of one range to the
+         beginning of the next.
+
+         Consider the following example, where there is an index of field
+         ``x`` and the collection contains 100 documents with ``x`` values
+         1 through 100:
+
+         .. code-block:: javascript
+
+            db.keys.find( { x : { $in : [ 3, 4, 50, 74, 75, 90 ] } } ).explain( "executionStats" )
+
+         The query will scan keys ``3`` and ``4``. It will then scan the key
+         ``5``, detect that it is out-of-bounds, and skip to the next key
+         ``50``.
+
+         Continuing this process, the query scans keys
+         3, 4, 5, 50, 51, 74, 75, 76, 90, and 91. Keys
+         ``5``, ``51``, ``76``, and ``91`` are out-of-bounds keys that are
+         still examined. The value of ``keysExamined`` is 10.
+
+      .. data:: explain.executionStats.executionStages.inputStage.docsExamined
+
+         Specifies the number of documents scanned during the
+         query execution stage.
+
+         Present for the ``COLLSCAN`` stage, as well as for stages that
+         retrieve documents from the collection (e.g. ``FETCH``)
+
+      .. data:: explain.executionStats.executionStages.inputStage.seeks
+
+         .. versionadded:: 3.4
+
+            For index scan (``IXSCAN``) stages only.
+
+         The number of times that we had to seek the index cursor to
+         a new position in order to complete the index scan.
+
+   .. data:: explain.executionStats.allPlansExecution
+
+      Contains *partial* execution information captured during the
+      :ref:`plan selection phase <query-plans-query-optimization>` for
+      both the winning and rejected plans. The field is present only if
+      ``explain`` runs in ``allPlansExecution`` verbosity mode.
+
+.. _explain-results-lookup:
+
+Execution Plan Statistics for Query with ``$lookup`` Pipeline Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+The :ref:`explain results <explain-results>` can include execution
+statistics for queries that use a :pipeline:`$lookup` pipeline stage. To
+include those execution statistics, you must run the explain operation
+in one of these execution verbosity modes:
+
+- :ref:`executionStats <explain-method-executionStats>`
+- :ref:`allPlansExecution <explain-method-allPlansExecution>`
+
+The following fields are included in the explain results for a
+:pipeline:`$lookup` query:
+
+.. code-block:: none
+   :copyable: false
+
+   '$lookup': {
+      from: <string>,
+      as: <string>,
+      localField: <string>,
+      foreignField: <string>
+   },
+   totalDocsExamined: <long>,
+   totalKeysExamined: <long>,
+   collectionScans: <long>,
+   indexesUsed: [ <string_1>, <string_2>, ..., <string_n> ],
+   nReturned: <long>,
+   executionTimeMillisEstimate: <long>
+
+To see the descriptions for the fields in the ``$lookup`` section, see
+the :pipeline:`$lookup` page.
+
+The other fields are:
+
+.. data:: explain.totalDocsExamined
+
+   Number of documents examined during the query execution.
+
+.. data:: explain.totalKeysExamined
+
+   Number of index keys examined.
+
+.. data:: explain.collectionScans
+
+   Number of times a collection scan occurred during query execution.
+   During a collection scan, each document in a collection is compared
+   to the query predicate. Collection scans occur if no appropriate
+   :ref:`index <indexes>` exists that :ref:`covers
+   <indexes-covered-queries>` the query.
+
+.. data:: explain.indexesUsed
+
+   Array of strings with the names of the indexes used by the query.
+
+.. data:: explain.nReturned
+
+   Number of documents that match the query condition.
+
+.. data:: explain.executionTimeMillisEstimate
+
+   Estimated time in milliseconds for the query execution.
+
+.. _serverInfo:
+
+``serverInfo``
+~~~~~~~~~~~~~~
+
+.. tabs::
+
+   tabs:
+
+      - id: unsharded
+        name: "Unsharded Collections"
+        content: |
+
+            For unsharded collections, ``explain`` returns the following
+            ``serverInfo`` information for the MongoDB instance:
+
+            .. code-block:: none
+
+               "serverInfo" : {
+                  "host" : <string>,
+                  "port" : <int>,
+                  "version" : <string>,
+                  "gitVersion" : <string>
+               }
+
+      - id: sharded
+        name: "Sharded Collections"
+        content: |
+
+           For sharded collections, ``explain`` returns the
+           ``serverInfo`` for each accessed shard, and a top-level
+           ``serverInfo`` object for the :binary:`~bin.mongos`.
+
+           .. code-block:: none
+
+              "queryPlanner" : {
+                 ...
+                 "winningPlan" : {
+                    "stage" : <STAGE1>,
+                    "shards" : [
+                       {
+                          "shardName" : <string>,
+                          "connectionString" : <string>,
+                          "serverInfo" : {
+                             "host" : <string>,
+                             "port" : <int>,
+                             "version" : <string>,
+                             "gitVersion" : <string>
+                          },
+                          ...
+                       }
+                       ...
+                    ]
+                 }
+               },
+               "serverInfo" : {      // serverInfo for mongos
+                 "host" : <string>,
+                 "port" : <int>,
+                 "version" : <string>,
+                 "gitVersion" : <string>
+               }
+               ...
+
+3.0 Format Change
+-----------------
+
+Starting in MongoDB 3.0, the format and fields of the ``explain``
+results have changed from previous versions. The following lists some
+key differences.
+
+.. _explain-output-collection-scan:
+
+Collection Scan vs. Index Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the query planner selects a collection scan, the explain result
+includes a ``COLLSCAN`` stage.
+
+If the query planner selects an index, the explain result includes a
+``IXSCAN`` stage. The stage includes information such as the index
+key pattern, direction of traversal, and index bounds.
+
+In previous versions of MongoDB, ``cursor.explain()`` returned the
+``cursor`` field with the value of:
+
+- ``BasicCursor`` for collection scans, and
+
+- ``BtreeCursor <index name> [<direction>]`` for index scans.
+
+For more information on execution statistics of collection scans versus
+index scans, see :doc:`/tutorial/analyze-query-plan`.
+
+.. _explain-output-covered-queries:
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+When an index covers a query, MongoDB can both match the query
+conditions **and** return the results using only the index keys; i.e.
+MongoDB does not need to examine documents from the collection to
+return the results.
+
+When an index covers a query, the explain result has an ``IXSCAN``
+stage that is **not** a descendant of a ``FETCH`` stage, and in the
+:ref:`executionStats`, the :data:`~explain.executionStats.totalDocsExamined` 
+is ``0``.
+
+In earlier versions of MongoDB, ``cursor.explain()`` returned the
+``indexOnly`` field to indicate whether the index covered a query.
+
+.. _explain-output-index-intersection:
+
+Index Intersection
+~~~~~~~~~~~~~~~~~~
+
+For an :doc:`index intersection plan </core/index-intersection>`, the
+result will include either an ``AND_SORTED`` stage or an ``AND_HASH``
+stage with an :data:`~explain.queryPlanner.winningPlan.inputStages` array that
+details the indexes; e.g.:
+
+.. code-block:: javascript
+
+   {
+      "stage" : "AND_SORTED",
+      "inputStages" : [
+         {
+            "stage" : "IXSCAN",
+            ...
+         },
+         {
+            "stage" : "IXSCAN",
+            ...
+         }
+      ]
+   }
+
+In previous versions of MongoDB, ``cursor.explain()`` returned the
+``cursor`` field with the value of ``Complex Plan`` for index
+intersections.
+
+.. _explain-output-or-expression:
+
+``$or`` Expression
+~~~~~~~~~~~~~~~~~~
+
+If MongoDB uses indexes for an :query:`$or` expression, the result will
+include the ``OR`` stage with an
+:data:`~explain.queryPlanner.winningPlan.inputStages` array that
+details the indexes; e.g.:
+
+.. code-block:: javascript
+
+   {
+      "stage" : "OR",
+      "inputStages" : [
+         {
+            "stage" : "IXSCAN",
+            ...
+         },
+         {
+            "stage" : "IXSCAN",
+            ...
+         },
+         ...
+      ]
+   }
+
+In previous versions of MongoDB, ``cursor.explain()`` returned the
+``clauses`` array that detailed the indexes.
+
+.. _sort-and-group-executionStats-and-above:
+
+``$sort`` and ``$group`` Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When ``explain`` is run in either  
+:ref:`executionStats <explain-method-executionStats>` or 
+:ref:`allPlansExecution <explain-method-allPlansExecution>` verbosity 
+mode, the :pipeline:`$sort` and :pipeline:`$group` stages have 
+additional output.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 15 50
+
+   * - Stage
+
+     - Field
+
+     - Type
+
+     - Description
+
+   * - :pipeline:`$sort` 
+
+     - ``totalDataSizeSortedBytesEstimate``
+
+     - long
+
+     - An estimated number of bytes processed in the :pipeline:`$sort` 
+       stage.
+      
+   * - :pipeline:`$sort`
+ 
+     - ``usedDisk``
+
+     - boolean
+
+     - Whether the :pipeline:`$sort` stage wrote to disk. 
+
+   * - :pipeline:`$group`
+
+     - ``totalOutputDataSizeBytes``
+     
+     - long
+
+     - An estimate of the total size of all documents output by the 
+       :pipeline:`$group` stage in bytes.
+
+   * - :pipeline:`$group`
+ 
+     - ``usedDisk``
+
+     - boolean
+
+     - Whether the :pipeline:`$group` stage wrote to disk. 
+
+.. _explain-output-sort:
+
+Sort Stage
+~~~~~~~~~~
+
+If MongoDB cannot use an index or indexes to obtain the sort order, the
+results include a ``SORT`` stage indicating a blocking sort operation.
+Blocking sorts do not block concurrent operations on the
+collection or database. The name refers to the requirement that the
+``SORT`` stage reads all input documents before returning any output
+documents, blocking the flow of data for that specific query.
+
+If MongoDB requires using more than 100 megabytes of system memory for
+the blocking sort operation, MongoDB returns an error *unless* the query
+specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
+:method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
+on disk to store data exceeding the 100 megabyte system memory limit
+while processing a blocking sort operation. If the explain plan does not
+contain an explicit ``SORT`` stage, then MongoDB can use an index to
+obtain the sort order.
+
+Prior to MongoDB 3.0, ``cursor.explain()`` returned the
+``scanAndOrder`` field to specify whether MongoDB could use the index
+order to return sorted results.

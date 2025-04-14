@@ -1,0 +1,212 @@
+ref: changestream-resume
+content: |
+
+   Unlike the MongoDB :driver:`Drivers </>`, :binary:`~bin.mongosh` does
+   not automatically attempt to resume a change stream cursor after an
+   error. The MongoDB drivers make *one* attempt to automatically resume
+   a change stream cursor after certain errors.
+
+
+   |watchmethod| uses information stored in the oplog to produce the
+   change event description and generate a resume token associated to
+   that operation. If the operation identified by the resume token
+   passed to the ``resumeAfter`` or ``startAfter`` option has already
+   dropped off the :term:`oplog`, |watchmethod| cannot resume the
+   change stream.
+
+   See :ref:`change-stream-resume` for more information on
+   resuming a change stream.
+
+   .. note::
+
+      - .. include:: /includes/extracts/changestream-invalid-events.rst
+
+      - .. include:: /includes/extracts/changestream-remove-shard.rst
+
+---
+ref: changestream-full-document-lookup
+content: |
+   By default, the :ref:`change stream cursor <changeStreams>` returns
+   specific field changes/deltas for update operations. You can also
+   configure the change stream to look up and return the current
+   majority-committed version of the changed document. Depending on other
+   write operations that may have occurred between the update and the
+   lookup, the returned document may differ significantly from the
+   document at the time of the update.
+
+   Depending on the number of changes applied during the update operation
+   and the size of the full document, there is a risk that the size of the
+   change event document for an update operation is greater than the 16MB
+   BSON document limit. If this occurs, the server closes the change stream
+   cursor and returns an error.
+---
+ref: changestream-remove-shard
+content: |
+
+   If the deployment is a sharded cluster, a shard removal may cause an
+   open change stream cursor to close, and the closed change stream cursor may
+   not be fully resumable.
+
+---
+ref: changestream-remove-shard-with-link
+content: |
+
+   A shard removal may cause an open :doc:`change stream cursor
+   </changeStreams>` to close, and the closed change stream cursor may
+   not be fully resumable.
+
+---
+ref: changestream-invalid-events
+content: |
+
+  You cannot use ``resumeAfter`` to resume a change stream after an
+  :ref:`invalidate event <change-event-invalidate>` (for example, a collection
+  drop or rename) closes the stream. Starting in MongoDB 4.2, you can use
+  :ref:`startAfter <change-stream-start-after>` to start a new change
+  stream after an :ref:`invalidate event <change-event-invalidate>`.
+
+---
+ref: changestream-cursor-open
+content: |
+
+   The :ref:`change stream cursor <changeStreams>` remains open until
+   one of the following occurs:
+
+   - The cursor is explicitly closed.
+
+   - An :ref:`invalidate event <change-event-invalidate>` occurs; for
+     example, a collection drop or rename.
+
+   - The connection to the MongoDB deployment is closed.
+
+   - .. include:: /includes/extracts/changestream-remove-shard.rst
+---
+ref: changestream-resume-token-hex-change
+content: |
+
+   With hex-encoded string resume tokens, you can compare and sort the
+   resume tokens.
+
+   Regardless of the fcv value, a 4.0 deployment can use
+   either BinData resume tokens or hex string resume tokens to resume a
+   change stream. As such, a 4.0 deployment can use a resume
+   token from a change stream opened on a collection from a 3.6
+   deployment.
+
+   New resume token formats introduced in a MongoDB version
+   cannot be consumed by earlier MongoDB versions.
+
+---
+ref: changestream-resume-token-downgrade
+content: |
+
+   A 3.6 deployment can, however, use the BinData resume token returned
+   from a change stream opened against a collection from a deployment
+   with fcv ``3.6``. However, a 3.6 deployment cannot use the
+   hex-encoded string resume tokens.
+   
+---
+ref: changestream-resume-token-versions-4.2-greater
+content: |
+
+   The resume token ``_data`` type depends on the MongoDB versions and,
+   in some cases, the feature compatibility version (fcv) at the time
+   of the change stream's opening/resumption (i.e. a change in fcv
+   value does not affect the resume tokens for already opened change
+   streams):
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 45 55 50 
+      
+      * - MongoDB Version
+        - Feature Compatibility Version
+        - Resume Token ``_data`` Type
+
+      * - MongoDB 4.2 and later
+        - "4.2" or "4.0"
+        - Hex-encoded string (``v1``)
+
+      * - MongoDB 4.0.7 and later
+        - "4.0" or "3.6"
+        - Hex-encoded string (``v1``)
+
+      * - MongoDB 4.0.6 and earlier
+        - "4.0"
+        - Hex-encoded string (``v0``)
+
+      * - MongoDB 4.0.6 and earlier
+        - "3.6"
+        - BinData
+
+      * - MongoDB 3.6
+        - "3.6"
+        - BinData
+
+---
+ref: changestream-resume-token-versions-4.0
+content: |
+
+   The resume token ``_data`` type depends on the MongoDB versions and,
+   in some cases, the feature compatibility version (fcv) at the time
+   of the change stream's opening/resumption (i.e. a change in fcv
+   value does not affect the resume tokens for already opened change
+   streams):
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 45 55 40 
+      
+      * - MongoDB Version
+        - Feature Compatibility Version
+        - Resume Token ``_data`` Type
+
+      * - MongoDB 4.0.7 and later
+        - "4.0" or "3.6"
+        - Hex-encoded string (``v1``)
+
+      * - MongoDB 4.0.6 and earlier
+        - "4.0"
+        - Hex-encoded string (``v0``)
+
+      * - MongoDB 4.0.6 and earlier
+        - "3.6"
+        - BinData
+
+      * - MongoDB 3.6
+        - "3.6"
+        - BinData
+
+---
+ref: changestream-disable-rc-majority
+content: |
+   
+   Disabling :readconcern:`"majority"` read concern has no effect on change
+   streams availability.
+---
+ref: changestream-rc-majority-4.2
+content: |
+
+   Starting in MongoDB 4.2, :doc:`change streams </changeStreams>` are
+   available regardless of the :readconcern:`"majority"` read concern
+   support; that is, read concern ``majority`` support can be either
+   enabled (default) or :ref:`disabled <disable-read-concern-majority>`
+   to use change streams.
+
+   In MongoDB 4.0 and earlier, :doc:`change streams </changeStreams>` are
+   available only if :readconcern:`"majority"` read concern support is
+   enabled (default).
+---
+ref: changestream-available-pipeline-stages
+content: |
+
+  - :pipeline:`$addFields`
+  - :pipeline:`$match`
+  - :pipeline:`$project`
+  - :pipeline:`$replaceRoot`
+  - :pipeline:`$replaceWith` (Available starting in MongoDB 4.2)
+  - :pipeline:`$redact`
+  - :pipeline:`$set` (Available starting in MongoDB 4.2)
+  - :pipeline:`$unset` (Available starting in MongoDB 4.2)
+
+...

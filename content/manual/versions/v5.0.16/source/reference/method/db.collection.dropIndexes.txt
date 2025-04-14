@@ -1,0 +1,201 @@
+===========================
+db.collection.dropIndexes()
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+Definition
+----------
+
+.. method:: db.collection.dropIndexes()
+
+
+   .. |dbcommand| replace:: :dbcommand:`dropIndexes` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+
+   Drops the specified index or indexes (except the index on the
+   ``_id`` field) from a collection.
+
+   You can use the method to:
+
+   - Drop all but the ``_id`` index from a collection.
+
+     .. code-block:: javascript
+
+        db.collection.dropIndexes()
+
+   - Drop a specified index from a collection. To specify the index,
+     you can pass the method either:
+   
+     - The index specification document (unless the index is a
+       :doc:`text </core/index-text>` index in which case, use the
+       index name to drop):
+
+       .. code-block:: javascript
+    
+          db.collection.dropIndexes( { a: 1, b: 1 } )
+
+     - The index name:
+
+       .. code-block:: javascript
+
+          db.collection.dropIndexes( "a_1_b_1" )
+
+       .. tip::
+
+          To get the names of the indexes, use the
+          :method:`db.collection.getIndexes()` method.
+
+   - Drop specified indexes from a collection. (Available starting in
+     MongoDB 4.2). To specify multiple indexes to drop, pass the method
+     an array of index names:
+
+     .. code-block:: javascript
+
+        db.collection.dropIndexes( [ "a_1_b_1", "a_1", "a_1__id_-1" ] )
+
+     If the array of index
+     names includes a non-existent index, the method errors without
+     dropping any of the specified indexes.
+
+     .. tip::
+
+        To get the names of the indexes, use the
+        :method:`db.collection.getIndexes()` method.
+
+   The :method:`db.collection.dropIndexes()` method takes the following
+   optional parameter:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+
+        - Type
+
+        - Description
+
+      * - ``indexes``
+
+        - string or document or array of strings
+
+        - Optional. Specifies the index or indexes to drop. 
+
+          **To drop all but the _id index from the collection**,
+          omit the parameter.
+
+          **To drop a single index**, specify either the index name, the
+          index specification document (unless the index is a
+          :doc:`text </core/index-text>` index), or an array of the
+          index name. To drop a :doc:`text </core/index-text>` index,
+          specify the index name or an array of the index name instead
+          of the index specification document.
+
+          **To drop multiple indexes** (Available starting in MongoDB
+          4.2), specify an array of the index names.
+
+   
+Behavior
+--------
+
+Cannot Drop ``Ready`` Indexes During In-Progress Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.0-dropindexes-inprog.rst
+
+Kill related queries only
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-method-dropIndexes-query-behavior.rst
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.2
+
+.. include:: /includes/extracts/dropIndexes-method-resource-lock.rst
+
+Index Names
+~~~~~~~~~~~
+
+If the method is passed an array of index names that includes a
+non-existent index, the method errors without dropping any of the
+specified indexes.
+
+``_id`` Index
+~~~~~~~~~~~~~
+
+You cannot drop the default index on the ``_id`` field.
+
+text Indexes
+~~~~~~~~~~~~
+
+To drop a :doc:`text </core/index-text>` index, specify the index name
+instead of the index specification document.
+
+.. _dropIndexes-method-index-builds:
+
+Aborts In-Progress Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+   If an index specified to :method:`db.collection.dropIndexes()` is
+   still building, :method:`~db.collection.dropIndexes()` attempts to
+   abort the in-progress build. Aborting an index build has the same
+   effect as dropping the built index. Prior to MongoDB 4.4,
+   :method:`~db.collection.dropIndexes()` would return an error if the
+   collection had any in-progress index builds.
+
+For replica sets, run :method:`~db.collection.dropIndexes()` on the
+:term:`primary`. The primary aborts the index build and creates an
+associated "abortIndexBuild" oplog entry. Secondaries which replicate
+the "abortIndexBuild" oplog entry abort the in-progress index build and
+discard the build job. See :ref:`index-build-process` for detailed
+documentation on the index build process and the specific timing for
+terminating an in-progress index build.
+
+The indexes specified to :method:`~db.collection.dropIndexes()` must be
+the entire set of in-progress builds associated to a single
+:dbcommand:`createIndexes` or :method:`db.collection.createIndexes()`
+operation. To drop a specific index out of a set of related in-progress
+builds, wait until the index builds complete and specify that index to
+:method:`~db.collection.dropIndexes()`
+
+For example, a :dbcommand:`createIndexes` /
+:method:`~db.collection.createIndexes()` operation creates three
+indexes. Assuming all three index builds are in-progress,
+:method:`~db.collection.dropIndexes()` must specify all three indexes to
+abort the index builds and drop the indexes.
+
+Use :dbcommand:`currentOp` to identify the index builds associated to a
+:dbcommand:`createIndexes` / :method:`~db.collection.createIndexes()`
+operation. See :ref:`currentOp-cmd-index-creation` for an example.
+
+Hidden Indexes
+~~~~~~~~~~~~~~
+
+Starting in version 4.4, MongoDB adds the ability to hide or unhide
+indexes from the query planner. By hiding an index from the planner,
+users can evaluate the potential impact of dropping an index without
+actually dropping the index. 
+
+If after the evaluation, the user decides to drop the index, the user
+can drop the hidden index; i.e. you do not need to unhide it first to
+drop it.
+
+If, however, the impact is negative, the user can unhide the index
+instead of having to recreate a dropped index. And because indexes are
+fully maintained while hidden, the indexes are immediately available
+for use once unhidden.
+
+For more information on hidden indexes, see :doc:`/core/index-hidden`.

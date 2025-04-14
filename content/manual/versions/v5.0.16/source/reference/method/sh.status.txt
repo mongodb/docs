@@ -1,0 +1,423 @@
+===========
+sh.status()
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. start-include-here
+
+.. method:: sh.status()
+
+   When run on a :binary:`~bin.mongos` instance, prints a formatted report
+   of the sharding configuration and the information regarding existing
+   chunks in a :term:`sharded cluster`. The default behavior suppresses
+   the detailed chunk information if the total number of chunks is
+   greater than or equal to 20.
+
+   The :method:`sh.status()` method has the following parameter:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``verbose``
+   
+        - boolean
+   
+        - Optional. Determines the level of verbosity.
+        
+          If ``true``, the method displays:
+        
+          - Full details of the chunk distribution across shards even if
+            you have 20 or more chunks, as well as the number of chunks
+            on each shard.
+
+          - Details of :ref:`active mongos instances
+            <sharding-status-mongoses>`.
+                                
+          If ``false``, the method displays:
+
+          - Full details of the chunk distribution across shards only if
+            you have less than 20 chunks. If you have 20 or more chunks,
+            the method instead returns a ``too many chunks to print ...``
+            message, showing only the number of chunks on each shard.
+          
+          - Only the :ref:`version and number of active mongos
+            instances <sharding-status-mongoses>`.
+
+          The default verbose value is ``false``.
+
+   .. seealso::
+
+      :method:`db.printShardingStatus()`
+
+
+.. end-include-here
+
+Output Examples
+---------------
+
+The :ref:`sharding-status-version-fields` section displays information on the
+:term:`config database`:
+
+.. code-block:: javascript
+
+   --- Sharding Status ---
+     sharding version: {
+      "_id" : <num>,
+      "minCompatibleVersion" : <num>,
+      "currentVersion" : <num>,
+      "clusterId" : <ObjectId>
+   }
+
+The :ref:`sharding-status-shards-fields` section lists information on
+the shard(s). For each shard, the section displays the name, host, and
+the associated tags, if any.
+
+.. code-block:: javascript
+
+     shards:
+      { "_id" : <shard name1>, "host" : <string>, "tags" : [ <string> ... ], "state" : <num> }
+      { "_id" : <shard name2>, "host" : <string>, "tags" : [ <string> ... ], "state" : <num> }
+      ...
+
+The :ref:`sharding-status-mongoses` section displays, by default,
+information on the version and count of :binary:`~bin.mongos` instances
+that have been active within the last 60 seconds:
+
+.. code-block:: javascript
+
+   active mongoses:
+     <version> : <num>
+
+If the method is run with the ``verbose`` parameter to true, the
+:ref:`sharding-status-mongoses` section displays additional information:
+
+.. code-block:: javascript
+
+   active mongoses:
+   {  "_id" : "<hostname:port>",  "advisoryHostFQDNs" : [ "<name>" ],  "mongoVersion" : <string>,  "ping" : <ISODate>,  "up" : <long>,  "waiting" : <boolean> }
+
+
+The :ref:`autosplit-status` displays information on whether autosplit
+is enabled:
+
+.. code-block:: javascript
+
+   autosplit:
+     Currently enabled: <yes|no>
+
+The :ref:`sharding-status-balancer-fields` section lists information
+about the state of the :term:`balancer`. This provides insight into
+current balancer operation and can be useful when troubleshooting an
+unbalanced sharded cluster.
+
+.. code-block:: none
+
+   balancer:
+         Currently enabled:  yes
+         Currently running:  yes
+         Collections with active migrations: 
+                 config.system.sessions started at Fri May 15 2020 17:38:12 GMT-0400 (EDT)
+         Failed balancer rounds in last 5 attempts:  0
+         Migration Results for the last 24 hours: 
+                416 : Success
+                1 : Failed with error 'aborted', from shardA to shardB
+
+The :ref:`sharding-status-databases-fields` section lists information
+on the database(s). For each database, the section displays the name,
+whether the database has sharding enabled, and the :term:`primary
+shard` for the database.
+
+.. code-block:: javascript
+
+     databases:
+      { "_id" : <dbname1>, "primary" : <string>, "partitioned" : <boolean>, "version": <document> }
+      { "_id" : <dbname2>, "primary" : <string>, "partitioned" : <boolean>, "version": <document> }
+      ...
+
+.. _sharded-collection-output-reference:
+
+The :ref:`sharding-status-collection-fields` section provides
+information on the sharding details for sharded collection(s). For each
+sharded collection, the section displays the shard key, the number of
+chunks per shard(s), the distribution of chunks across shards
+[#chunk-details]_, and the tag information, if any, for shard key
+range(s).
+
+.. include:: /includes/reference/sharded-status-output.rst
+
+Output Fields
+-------------
+
+.. COMMENT to DOCS -- opened https://jira.mongodb.org/browse/DOCS-9308 to redo this page.
+
+.. _sharding-status-version-fields:
+
+Sharding Version
+~~~~~~~~~~~~~~~~
+
+.. data:: sh.status.sharding-version._id
+
+   The :data:`~sh.status.sharding-version._id` is an identifier
+   for the version details.
+
+.. data:: sh.status.sharding-version.minCompatibleVersion
+
+   The :data:`~sh.status.sharding-version.minCompatibleVersion` is
+   the minimum compatible version of the config server.
+
+.. data:: sh.status.sharding-version.currentVersion
+
+   The :data:`~sh.status.sharding-version.currentVersion` is
+   the current version of the config server.
+
+.. data:: sh.status.sharding-version.clusterId
+
+   The :data:`~sh.status.sharding-version.clusterId` is the
+   identification for the sharded cluster.
+
+.. _sharding-status-mongoses:
+
+Active ``mongos`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+.. data:: sh.status.active-mongoses
+
+   If ``verbose`` is ``false``, :data:`sh.status.active-mongoses` lists
+   the version and count of the active :binary:`~bin.mongos` instances.
+   Active :binary:`~bin.mongos` instances are :binary:`~bin.mongos`
+   instances that have been ping'ed within the last 60 seconds.
+
+   If ``verbose`` is ``true``, returns for each active  :binary:`~bin.mongos`  instance:
+   
+   - Its hostname and port.
+   
+   - An array of the instance's fully qualified domain names (FQDNs).
+   
+   - Its MongoDB version.
+   
+   - Its most recent ping date and time.
+   
+   - Its uptime since the last ping.
+   
+   - Its waiting status.
+
+   .. code-block:: javascript
+
+      active mongoses:
+
+      {  "_id" : "<hostname:port>",  "advisoryHostFQDNs" : [ "<name>" ],  "mongoVersion" : <string>,  "ping" : <ISODate>,  "up" : <long>,  "waiting" : <boolean> }
+      ...
+
+.. _autosplit-status:
+
+Autosplit
+~~~~~~~~~
+
+.. data:: sh.status.autosplit
+
+   :data:`sh.status.autosplit` indicates whether autosplit is
+   currently enabled.
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-balancer-autosplit.rst
+ 
+.. _sharding-status-shards-fields:
+
+Shards
+~~~~~~
+
+.. data:: sh.status.shards._id
+
+   The :data:`~sh.status.shards._id` displays the name of the shard.
+
+.. data:: sh.status.shards.host
+
+   The :data:`~sh.status.shards.host` displays the host location
+   of the shard.
+
+.. data:: sh.status.shards.tags
+
+   The :data:`~sh.status.shards.tags` displays all the tags for
+   the shard. The field only displays if the shard has tags.
+
+.. data:: sh.status.shards.state
+
+   .. versionadded:: 3.4
+
+   The :data:`~sh.status.shards.state` displays:
+   
+   - ``0`` if the shard is not shard aware.
+   
+   - ``1`` if the shard is shard aware.
+
+.. _sharding-status-balancer-fields:
+
+Balancer
+~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-balancer-autosplit.rst
+
+.. data:: sh.status.balancer.currently-enabled
+
+   :data:`~sh.status.balancer.currently-enabled` indicates if the
+   :term:`balancer` is currently enabled on the sharded cluster.
+
+.. data:: sh.status.balancer.currently-running
+
+   :data:`~sh.status.balancer.currently-running` indicates whether
+   the :term:`balancer` is currently running, and therefore currently
+   balancing the cluster.
+
+.. data:: sh.status.balancer.collections-with-active-migrations
+
+   :data:`~sh.status.balancer.collections-with-active-migrations`
+   lists the names of any collections with active migrations, and
+   specifies when the migration began. If there are no active
+   migrations, this field will not appear in the :method:`sh.status()`
+   output.
+
+.. data:: sh.status.balancer.failed-balancer-rounds-in-last-5-attempts
+
+   :data:`~sh.status.balancer.failed-balancer-rounds-in-last-5-attempts`
+   displays the number of :term:`balancer` rounds that failed, from among
+   the last five attempted rounds. A balancer round will fail when a chunk
+   migration fails.
+
+.. data:: sh.status.balancer.last-reported-error
+
+   :data:`~sh.status.balancer.last-reported-error` lists the most
+   recent balancer error message. If there have been no errors, this
+   field will not appear in the :method:`sh.status()` output.
+
+.. data:: sh.status.balancer.time-of-reported-error
+
+   :data:`~sh.status.balancer.time-of-reported-error` provides
+   the date and time of the most recently-reported error.
+
+.. data:: sh.status.balancer.migration-results-for-the-last-24-hours
+
+   :data:`~sh.status.balancer.migration-results-for-the-last-24-hours`
+   displays the number of migrations in the last 24 hours, and the
+   error messages from failed
+   migrations . If there have been no recent migrations,
+   :data:`~sh.status.balancer.migration-results-for-the-last-24-hours`
+   displays ``No recent migrations``.
+
+   :data:`~sh.status.balancer.migration-results-for-the-last-24-hours`
+   includes *all* migrations, including those not initiated by the balancer.
+
+.. _sharding-status-databases-fields:
+
+Databases
+~~~~~~~~~
+
+.. data:: sh.status.databases._id
+
+   The :data:`~sh.status.databases._id` displays the name of the database.
+
+.. data:: sh.status.databases.partitioned
+
+   The :data:`~sh.status.databases.partitioned` displays whether
+   the database has sharding enabled. If ``true``, the database has
+   sharding enabled.
+
+.. data:: sh.status.databases.primary
+
+   The :data:`~sh.status.databases.primary` displays the
+   :term:`primary shard` for the database.
+
+.. data:: sh.status.databases.version
+
+   The :data:`~sh.status.databases.version` displays the
+   version information for the database:
+
+   .. code-block:: bash
+
+      {  "uuid" : UUID("cc250b66-8638-49f7-a2e8-c6f1220b9d7a"),  "lastMod" : 1 } 
+
+   where:
+
+   - ``uuid`` is the database identifier.
+
+   - ``lastMod`` is the database version.
+
+.. _sharding-status-collection-fields:
+
+Sharded Collection
+~~~~~~~~~~~~~~~~~~
+
+.. data:: sh.status.databases.<collection>.shard-key
+
+   The :data:`~sh.status.databases.<collection>.shard-key` displays the shard
+   key specification document.
+
+.. data:: sh.status.databases.<collection>.unique
+
+   The :data:`~sh.status.databases.<collection>.unique` displays
+   whether MongoDB enforces uniqueness on the shard key values (i.e.
+   whether the underlying shard key index is unique).
+
+   .. versionadded:: 3.2
+
+.. data:: sh.status.databases.<collection>.balancing
+
+   The :data:`~sh.status.databases.<collection>.balancing` displays
+   whether balancing is enabled (``true``) or disabled (``false``) for
+   the collection.
+
+   .. versionadded:: 3.2
+
+.. data:: sh.status.databases.<collection>.chunks
+
+   The :data:`~sh.status.databases.<collection>.chunks` lists all the shards
+   and the number of chunks that reside on each shard.
+
+.. data:: sh.status.databases.<collection>.chunk-details
+
+   The :data:`~sh.status.databases.<collection>.chunk-details` lists the details
+   of the chunks [#chunk-details]_:
+
+   - The range of shard key values that define the chunk,
+
+   - The shard where the chunk resides, and
+
+   - The last modified timestamp for the chunk.
+
+.. data:: sh.status.databases.<collection>.tag
+
+   The :data:`~sh.status.databases.<collection>.tag` lists the details of
+   the tags associated with a range of shard key values.
+
+.. seealso::
+
+   :method:`sh.balancerCollectionStatus()`
+
+
+.. [#chunk-details] The sharded collection section, by default,
+   displays the chunk information if the total number of chunks is less
+   than 20. To display the information when you have 20 or more chunks,
+   call the :method:`sh.status()` methods with the ``verbose`` parameter
+   set to ``true``, i.e. ``sh.status(true)``.
+

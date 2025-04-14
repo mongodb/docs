@@ -1,0 +1,323 @@
+==============
+Manage Indexes
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page shows how to manage existing indexes. For instructions on
+creating indexes, refer to the specific index type pages.
+
+
+View Existing Indexes
+---------------------
+
+.. include:: /includes/driver-view-existing-indexes-tabs.rst
+
+.. |things| replace:: collections and indexes
+.. |method| replace:: :method:`db.getCollectionNames()` and :method:`db.collection.getIndexes()`
+
+.. _index-list-indexes-for-collection:
+
+.. include:: /includes/driver-list-collection-indexes-tabs.rst
+
+.. _index-list-indexes-for-database:
+
+.. include:: /includes/driver-list-database-indexes-tabs.rst
+
+Remove Indexes
+--------------
+
+.. tip:: Hide an Index Before Dropping It
+
+   If you drop an index that is actively used in production, your
+   application may incur a performance degradation. Before you drop an
+   index, you can evaluate the potential impact of the drop by
+   :ref:`hiding the index <hide-existing-index>`.
+   
+   Hidden indexes are not used to support queries. If you hide an index
+   and observe substantial negative performance impact, consider keeping
+   and unhiding the index so queries can resume using it.
+
+.. include:: /includes/driver-remove-indexes-tabs.rst
+
+Modify an Index
+---------------
+
+.. include:: /includes/driver-examples/driver-example-modify-index-tabs.rst
+
+Minimize Performance Impact With a Temporary Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you drop an index that is actively used in production, your
+application may incur a performance degradation. To ensure queries can
+still use an index during modification, you can create a temporary,
+redundant index that contains the same fields as the modified index.
+
+Example
+```````
+
+This example creates a new index and modifies that index to make it
+:ref:`unique <index-type-unique>`.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a ``siteAnalytics`` collection with an index on the ``url`` field
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.createIndex( { "url": 1 } )
+
+      The command returns the name of the index:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         url_1
+
+   .. step:: Create a temporary index that contains the ``url`` field
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.createIndex( { "url": 1, "dummyField": 1 } )
+
+      The command returns the name of the index:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         url_1_dummyField_1
+
+      This temporary index lets you safely drop the original ``{ "url":
+      1 }`` index without impacting performance.
+
+   .. step:: Drop the original index
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.dropIndex( { "url": 1 } )
+
+      The command returns:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { nIndexesWas: 3, ok: 1 } 
+
+   .. step:: Recreate the ``{ "url": 1 }`` index with the ``unique`` property
+
+       Run this command:
+
+       .. code-block:: javascript
+
+         db.siteAnalytics.createIndex( { "url": 1 }, { "unique": true } )
+         
+       The command returns the name of the index:
+
+       .. code-block:: javascript
+          :copyable: false
+
+          url_1
+         
+       The ``url_1`` index is recreated and you can drop the temporary
+       index without impacting performance. Queries on the ``url`` field
+       can use the new unique index.
+
+   .. step:: Drop the temporary index
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.dropIndex( { "url": 1, "dummyField": 1 } )
+
+      The command returns:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { nIndexesWas: 3, ok: 1 } 
+
+   .. step:: Confirm that the index was updated
+
+      To view the indexes on the ``siteAnalytics`` collection, run this
+      command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.getIndexes()
+
+      The command returns these indexes, indicating that the ``url_1``
+      index is now unique:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+           { v: 2, key: { _id: 1 }, name: '_id_' },
+           { v: 2, key: { url: 1 }, name: 'url_1', unique: true }
+         ]       
+
+.. _manage-indexes-find-inconsistent-indexes:
+
+Find Inconsistent Indexes Across Shards
+---------------------------------------
+
+A sharded collection has an inconsistent index if the collection does
+not have the exact same indexes (including the index options) on each
+shard that contains chunks for the collection. Although inconsistent
+indexes should not occur during normal operations, inconsistent indexes
+can occur , such as:
+
+- When a user is creating an index with a ``unique`` key constraint and
+  one shard contains a chunk with duplicate documents. In such cases,
+  the create index operation may succeed on the shards without
+  duplicates but not on the shard with duplicates.
+  
+- When a user is creating an index across the shards in a :doc:`rolling
+  manner (i.e. manually building the index one by one across the
+  shards) </tutorial/build-indexes-on-sharded-clusters>` but either
+  fails to build the index for an associated shard or incorrectly
+  builds an index with different specification.
+
+Starting in MongoDB 4.4 (and 4.2.6), the :doc:`config server
+</core/sharded-cluster-config-servers>` primary, by default, checks for
+index inconsistencies across the shards for sharded collections, and
+the command :dbcommand:`serverStatus`, when run on the config server
+primary, returns the field :serverstatus:`shardedIndexConsistency`
+field to report on the number of sharded collections with index
+inconsistencies.
+
+If :serverstatus:`shardedIndexConsistency` reports any index
+inconsistencies, you can run the following pipeline for your
+sharded collections until you find the inconsistencies.
+
+.. note::
+
+   The following pipeline is for MongoDB 4.2.4 and above.
+
+#. Define the following :doc:`aggregation pipeline </core/aggregation-pipeline>`:
+
+   .. code-block:: javascript
+
+      const pipeline = [
+          // Get indexes and the shards that they belong to.
+          {$indexStats: {}},
+          // Attach a list of all shards which reported indexes to each document from $indexStats.
+          {$group: {_id: null, indexDoc: {$push: "$$ROOT"}, allShards: {$addToSet: "$shard"}}},
+          // Unwind the generated array back into an array of index documents.
+          {$unwind: "$indexDoc"},
+          // Group by index name.
+          {
+              $group: {
+                  "_id": "$indexDoc.name",
+                  "shards": {$push: "$indexDoc.shard"},
+                  // Convert each index specification into an array of its properties 
+                  // that can be compared using set operators.
+                  "specs": {$push: {$objectToArray: {$ifNull: ["$indexDoc.spec", {}]}}},
+                  "allShards": {$first: "$allShards"}
+              }
+          },
+          // Compute which indexes are not present on all targeted shards and 
+          // which index specification properties aren't the same across all shards.
+          {
+              $project: {
+                  missingFromShards: {$setDifference: ["$allShards", "$shards"]},
+                  inconsistentProperties: {
+                       $setDifference: [
+                           {$reduce: {
+                               input: "$specs",
+                               initialValue: {$arrayElemAt: ["$specs", 0]},
+                               in: {$setUnion: ["$$value", "$$this"]}}},
+                           {$reduce: {
+                               input: "$specs",
+                               initialValue: {$arrayElemAt: ["$specs", 0]},
+                               in: {$setIntersection: ["$$value", "$$this"]}}}
+                       ]
+                   }
+              }
+          },
+          // Only return output that indicates an index was inconsistent, i.e. either a shard was missing
+          // an index or a property on at least one shard was not the same on all others.
+          {
+              $match: {
+                  $expr:
+                      {$or: [
+                          {$gt: [{$size: "$missingFromShards"}, 0]},
+                          {$gt: [{$size: "$inconsistentProperties"}, 0]},
+                      ]
+                  }
+              }
+          },
+          // Output relevant fields.
+          {$project: {_id: 0, indexName: "$$ROOT._id", inconsistentProperties: 1, missingFromShards: 1}}
+      ];
+
+#. Run the aggregation pipeline for the sharded collection to test. For
+   example, to test if the sharded collection ``test.reviews`` has
+   inconsistent indexes across its associated shards:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("test").reviews.aggregate(pipeline)
+
+   If the collection has inconsistent indexes, the aggregation for that
+   collection returns details regarding the inconsistent indexes:
+
+   .. code-block:: javascript
+
+      { "missingFromShards" : [ "shardB" ], "inconsistentProperties" : [ ], "indexName" : "page_1_score_1" }
+      { "missingFromShards" : [ ], "inconsistentProperties" : [ { "k" : "expireAfterSeconds", "v" : 60 }, { "k" : "expireAfterSeconds", "v" : 600 } ], "indexName" : "reviewDt_1" }
+
+   The returned documents indicate two inconsistencies for the sharded
+   collection ``test.reviews``:
+
+   #. An index named ``page_1_score_1`` is missing from the collection
+      on ``shardB``.
+
+   #. An index named ``reviewDt_1`` has inconsistent properties across
+      the collection's shards, specifically, the ``expireAfterSeconds``
+      properties differ.
+
+To resolve the inconsistency where an index is missing  from the collection on a particular shard(s),
+   You can either:
+
+   - Perform a :doc:`rolling index build
+     </tutorial/build-indexes-on-sharded-clusters>` for the collection
+     on the affected shard(s).
+
+     \-OR-
+
+   - Issue an index build :method:`db.collection.createIndex()` from a
+     :binary:`~bin.mongos` instance. The operation only builds the
+     collection's index on the shard(s) missing the index.
+
+To resolve where the index properties differ across the shards, 
+   Drop the incorrect index from the collection on the affected
+   shard(s) and rebuild the index. To rebuild the index, you can either:
+   
+   - Perform a :doc:`rolling index build
+     </tutorial/build-indexes-on-sharded-clusters>` for the collection
+     on the affected shard.
+
+     \-OR-
+
+   - Issue an index build :method:`db.collection.createIndex()` from a
+     :binary:`~bin.mongos` instance. The operation only builds the
+     collection's index on the shard(s) missing the index.
+
+   Alternatively, if the inconsistency is the ``expireAfterSeconds`` property,
+   you can run the :dbcommand:`collMod` command to update the number of
+   seconds instead of dropping and rebuilding the index.

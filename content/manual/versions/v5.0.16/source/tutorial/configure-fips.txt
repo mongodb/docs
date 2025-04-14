@@ -1,0 +1,245 @@
+==========================
+Configure MongoDB for FIPS
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |arrow| unicode:: U+27A4
+
+Overview
+--------
+
+The Federal Information Processing Standard (FIPS) is a U.S. government
+computer security standard used to certify software modules and
+libraries that encrypt and decrypt data securely.  You can configure
+MongoDB to run with a FIPS 140-2 certified library
+for OpenSSL. Configure FIPS to run by default or as needed from the
+command line.
+
+.. include:: /includes/extracts/security-prereq-configure-fips.rst
+
+.. important:: MongoDB and FIPS
+
+   FIPS is property of the encryption system and not the access control
+   system. However, if your environment requires FIPS compliant encryption
+   *and* access control, you must ensure that the access control system
+   uses only FIPS-compliant encryption.
+
+   MongoDB's FIPS support covers the way that MongoDB uses SSL/TLS
+   libraries for network encryption, SCRAM authentication, and x.509
+   authentication. If you use Kerberos or LDAP authentication, you must
+   ensure that these external mechanisms are FIPS-compliant.
+
+
+.. note::
+
+   .. include:: /includes/fact-tls-1.0.rst
+
+   .. |binary| replace:: MongoDB
+
+
+Platform Support
+----------------
+
+.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise-advanced?tck=docs_server
+
+FIPS mode is only available with `MongoDB Enterprise`_ edition. See
+:doc:`/administration/install-enterprise` to download and install
+`MongoDB Enterprise`_.
+
+FIPS mode is supported on the following platforms:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Platform
+     - TLS/SSL library
+
+   * - Linux
+     - OpenSSL
+
+   * - Windows
+     - Secure Channel (SChannel)
+
+   * - macOS
+     - Secure Transport
+
+Configuring FIPS
+----------------
+
+Select the tab below for your platform:
+
+.. tabs::
+
+   .. tab:: Linux
+      :tabid: linux-fips-config
+
+      Prerequisites
+      ~~~~~~~~~~~~~
+
+      Your Linux system must have an OpenSSL library configured with the FIPS
+      140-2 module in order to support FIPS mode for MongoDB.
+
+      - Verify that your OpenSSL software includes FIPS support by running
+        the following command:
+
+        .. code-block:: bash
+
+          openssl version
+
+      - For Red Hat Enterprise Linux 6.x (RHEL 6.x) or its derivatives such
+        as CentOS 6.x, the OpenSSL toolkit must be at least version
+        ``openssl-1.0.1e-16.el6_5`` to use FIPS mode. To upgrade the OpenSSL
+        library on these platforms, run the following command:
+
+        .. code-block:: bash
+
+          sudo yum update openssl
+
+      - Some versions of Linux periodically execute a process to prelink
+        dynamic libraries with pre-assigned addresses. This process modifies
+        the OpenSSL libraries, specifically ``libcrypto``. The OpenSSL FIPS
+        mode will subsequently fail the signature check performed upon
+        startup to ensure ``libcrypto`` has not been modified since
+        compilation.
+
+        To configure the Linux prelink process to not prelink ``libcrypto``,
+        run the following command:
+
+        .. code-block:: bash
+
+          sudo bash -c "echo '-b /usr/lib64/libcrypto.so.*' >>/etc/prelink.conf.d/openssl-prelink.conf"
+
+      Once you have configured your Linux system to support FIPS-compliant
+      operation, follow the steps below to configure your
+      :binary:`~bin.mongod` or :binary:`~bin.mongos` instance to operate in
+      FIPS mode.
+
+      Procedure
+      ~~~~~~~~~
+
+      A. Configure MongoDB to use TLS/SSL
+      ```````````````````````````````````
+
+      See :doc:`/tutorial/configure-ssl` for details about configuring your
+      deployment to use TLS/SSL. Ensure that your certificate is
+      FIPS-compliant.
+
+      B. Run MongoDB instance in FIPS mode
+      ````````````````````````````````````
+
+      Perform these steps after you :doc:`/tutorial/configure-ssl`.
+
+      .. include:: /includes/steps/fips-config.rst
+
+      C. Confirm that FIPS mode is running
+      ````````````````````````````````````
+
+      Check the server log file for a message that FIPS is active:
+
+      .. code-block:: bash
+
+        FIPS 140-2 mode activated
+
+
+   .. tab:: Windows
+      :tabid: windows-fips-config
+
+      Prerequisites
+      ~~~~~~~~~~~~~
+
+      Microsoft provides the following resource on configuring FIPS mode for
+      Windows 10 and Windows Server 2016 or later:
+
+      .. _`FIPS 140-2 Validation on Windows`: https://docs.microsoft.com/en-us/windows/security/threat-protection/fips-140-validation
+
+      |arrow| `FIPS 140-2 Validation on Windows`_
+
+      Once you have configured your Windows system to support FIPS-compliant
+      operation, follow the steps below to configure your
+      :binary:`~bin.mongod` or :binary:`~bin.mongos` instance to operate in
+      FIPS mode.
+
+      Procedure
+      ~~~~~~~~~
+
+      A. Configure MongoDB to use TLS/SSL
+      ```````````````````````````````````
+
+      See :doc:`/tutorial/configure-ssl` for details about configuring your
+      deployment to use TLS/SSL. Ensure that your certificate is
+      FIPS-compliant.
+
+      B. Run MongoDB instance in FIPS mode
+      ````````````````````````````````````
+
+      Perform these steps after you :doc:`/tutorial/configure-ssl`.
+
+      .. include:: /includes/steps/fips-config-windows.rst
+
+      C. Confirm that FIPS mode is running
+      ````````````````````````````````````
+
+      Check the server log file for a message that FIPS is active:
+
+      .. code-block:: bash
+
+        FIPS 140-2 mode activated
+
+   .. tab:: macOS
+      :tabid: macos-fips-config
+
+      Prerequisites
+      ~~~~~~~~~~~~~
+
+      Supported versions of macOS are FIPS-compliant by default. Check the
+      documentation for your version of macOS to verify its compliance
+      status. For example, Apple provides the following resource for
+      macOS 10.14:
+
+      .. _`Apple FIPS Cryptographic Modules for 10.14`: https://support.apple.com/en-us/HT209638
+
+      |arrow| `Apple FIPS Cryptographic Modules for 10.14`_
+
+      On compliant versions of macOS, follow the steps below to configure your
+      :binary:`~bin.mongod` or :binary:`~bin.mongos` instance to operate in
+      FIPS mode.
+
+      Procedure
+      ~~~~~~~~~
+
+      A. Configure MongoDB to use TLS/SSL
+      ```````````````````````````````````
+
+      See :doc:`/tutorial/configure-ssl` for details about configuring your
+      deployment to use TLS/SSL. Ensure that your certificate is
+      FIPS-compliant.
+
+      B. Run MongoDB instance in FIPS mode
+      ````````````````````````````````````
+
+      Perform these steps after you :doc:`/tutorial/configure-ssl`.
+
+      .. include:: /includes/steps/fips-config.rst
+
+      C. Confirm that FIPS mode is running
+      ````````````````````````````````````
+
+      Check the server log file for a message that FIPS is active:
+
+      .. code-block:: bash
+
+        FIPS 140-2 mode activated
+
+Additional Considerations
+--------------------------
+
+.. include:: /includes/extracts/4.2-changes-fips.rst
+
+.. include:: /includes/md5-and-scram-sha-1.rst
