@@ -1,5 +1,5 @@
 In |k8s-op-short| 1.20, the :qr-mdb:`container registry </mongodb-enterprise-server?tab=tags>` changed for the :term:`application database` image and the images use a new tag suffix. When you :ref:`upgrade the Kubernetes Operator <upgrade-k8s-operator>`, the |k8s-op-short| automatically updates the earlier suffix, ``-ent``, for all images that reference the new container registry to ``-ubi8`` or the suffix set in :ref:`mdb-image-type` or :ref:`mongodb-image-type`.
 
-For example, the |k8s-op-short| changes ``quay.io/mongodb/mongodb-enterprise-server:4.4.5-ent`` to ``quay.io/mongodb/mongodb-enterprise-server:4.4.5-ubi8``.
+For example, the |k8s-op-short| changes ``quay.io/mongodb/mongodb-enterprise-server:4.4.5`` to ``quay.io/mongodb/mongodb-enterprise-server:4.4.5-ubi8``.
 
 To stop the |k8s-op-short| from automatically updating the suffix, set :ref:`old-suffix` or :ref:`old-suffix-helm` to ``true``. For example, you might want to stop the automatic suffix change if you're mirroring this image from your own repository.
