@@ -1,0 +1,125 @@
+======
+killOp
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 3.2
+
+Definition
+----------
+
+.. dbcommand:: killOp
+
+   Terminates an operation as specified by the operation ID.
+   The :binary:`~bin.mongo` shell provides the 
+   :method:`db.killOp()` helper.
+   To find operations and their corresponding IDs,
+   see :pipeline:`$currentOp` or :method:`db.currentOp()`.
+   
+   .. |command| replace:: killOp
+
+   The ``killOp`` command must be run against the ``admin`` database.
+
+   .. include:: /includes/fact-dbcommand.rst
+
+   The command has the following form:
+
+   .. code-block:: javascript
+
+      { "killOp": 1, "op": <opid>, comment: <any> } 
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``op``
+   
+        - number
+   
+        - An operation ID.
+          
+          
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+       
+          .. versionadded:: 4.4
+
+
+   .. include:: /includes/extracts/warning-terminating-ops-command.rst
+
+Behavior
+--------
+
+Do *not* use :dbcommand:`killOp` to terminate an in-progress index
+builds in replica sets or sharded clusters. Use :dbcommand:`dropIndexes`
+on the :term:`primary` to drop the index. See 
+:ref:`dropIndexes-cmd-index-builds`.
+
+Access Control
+~~~~~~~~~~~~~~
+
+On systems running with :setting:`~security.authorization`, to kill
+operations not owned by the user, the user must have access that
+includes the :authaction:`killop` privilege action.
+
+On :binary:`~bin.mongod` instances, users can kill their own operations
+even without the :authaction:`killop` privilege action.
+
+Sharded Cluster
+~~~~~~~~~~~~~~~
+
+The :dbcommand:`killOp` command can be run on
+a :binary:`~bin.mongos` and can kill queries (i.e. read operations)
+that span shards in a cluster. The :dbcommand:`killOp` command from the
+:binary:`~bin.mongos` does not propagate to the shards when the
+operation to be killed is a write operation.
+
+For information on how to list sharding operations that are active on a
+:binary:`~bin.mongos`, see the ``localOps`` parameter in
+:pipeline:`$currentOp`.
+
+For more information and examples on killing operations on a sharded
+cluster, see:
+
+- :ref:`kill-read-ops-sharded-cluster`
+
+- :ref:`kill-write-ops-sharded-cluster`
+
+Example
+-------
+
+The following example uses :dbcommand:`killOp` to target
+the running operation with opid ``3478``.
+
+.. code-block:: javascript
+
+   db.adminCommand( { "killOp": 1, "op": 3478 } )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+   { "info" : "attempting to kill op", "ok" : 1 }
+
+:dbcommand:`killOp` reports success if it succeeded in marking the
+specified operation for termination. Operations may not actually be
+terminated until they reach an appropriate interruption point. Use
+:pipeline:`$currentOp` or :method:`db.currentOp()` to confirm the
+target operation was terminated.

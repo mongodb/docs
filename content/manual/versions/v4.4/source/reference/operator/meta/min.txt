@@ -1,0 +1,118 @@
+====
+$min
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. operator:: $min
+
+   .. include:: /includes/extracts/mongo-shell-deprecated-meta-operator-min.rst
+
+   Specify a :operator:`$min` value to specify the *inclusive* lower
+   bound for a specific index in order to constrain the results of
+   :method:`~db.collection.find()`. The :operator:`$min` specifies the
+   lower bound for *all* keys of a specific index *in order*.
+
+   The :binary:`~bin.mongo` shell provides the :method:`~cursor.min()`
+   wrapper method:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } ).min( { field1: <min value>, ... fieldN: <min valueN>} )
+
+   You can also specify the option with either of the two forms:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } )._addSpecial( "$min", { field1: <min value1>, ... fieldN: <min valueN> } )
+      db.collection.find( { $query: { <query> }, $min: { field1: <min value1>, ... fieldN: <min valueN> } } )
+
+.. note:: Index Use
+
+   Starting in MongoDB 4.2, you must explicitly specify the particular
+   index with the :method:`~cursor.hint()` method to run
+   :method:`~cursor.min()`/ :operator:`$min` with the following
+   exception: you do not need to hint if the
+   :method:`~db.collection.find()` query is an equality condition on
+   the ``_id`` field ``{ _id: <value> }``.
+
+
+Behavior
+--------
+
+Interaction with Index Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because :method:`~cursor.min()` requires an index on a field, and
+forces the query to use this index, you may prefer the
+:query:`$gte` operator for the query if possible. Consider the
+following example:
+
+.. code-block:: javascript
+
+   db.collection.find( { _id: { $in: [ 6, 7 ] } } ).min( { age: 25 } ).hint( { age: 1 } )
+
+The query will use the index on the ``age`` field, even if the
+index on ``_id`` may be better.
+
+Index Bounds
+~~~~~~~~~~~~
+
+If you use :operator:`$max` with :operator:`$min` to specify a range,
+
+- the index bounds specified in :operator:`$min` and :operator:`$max`
+  must both refer to the keys of the same index.
+
+- the bound specified by :operator:`$max` must be greater than
+  the bound specified by :operator:`$min`.
+
+  .. versionchanged:: 4.0
+
+``$min`` without ``$max``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-query-min-max.rst
+
+Examples
+--------
+
+The following examples use the :binary:`~bin.mongo` shell wrappers.
+
+Specify Inclusive Lower Bound
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following operations on a collection named
+``collection`` that has an index ``{ age: 1 }``:
+
+.. code-block:: javascript
+
+   db.collection.find().min( { age: 20 } ).hint( { age: 1 } )
+
+This operation limits the query to those documents where the
+field ``age`` is at least ``20`` and forces a query plan which scans the
+``{ age: 1 }`` index from 20 to :doc:`MaxKey</reference/bson-types>`.
+
+Use with ``$max``
+~~~~~~~~~~~~~~~~~
+
+You can use :operator:`$min` in conjunction with :operator:`$max` to
+limit results to a specific range for the *same* index, as in the
+following example:
+
+.. note::
+
+   Starting in MongoDB 4.0, the bound specified by :operator:`$max` must
+   be greater than the bound specified by :operator:`$min`.
+
+.. code-block:: javascript
+
+   db.collection.find().min( { age: 20 } ).max( { age: 25 } ).hint( { age: 1 } )

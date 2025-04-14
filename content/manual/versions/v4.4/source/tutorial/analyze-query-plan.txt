@@ -1,0 +1,585 @@
+=========================
+Analyze Query Performance
+=========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+         The
+         :method:`cursor.explain("executionStats") <cursor.explain()>`
+         and the :method:`db.collection.explain("executionStats")
+         <db.collection.explain()>` methods provide statistics about
+         the performance of a query. These statistics can be useful in
+         measuring if and how a query uses an index.
+
+         .. include:: /includes/fact-explain-collection-method.rst
+
+     - id: compass
+       content: |
+         |compass| provides an
+         `Explain Plan <https://docs.mongodb.com/compass/master/query-plan/>`_
+         tab, which displays statistics about the performance of a
+         query. These statistics can be useful in measuring if and how
+         a query uses an index.
+
+Evaluate the Performance of a Query
+-----------------------------------
+
+Consider a collection ``inventory`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "f1", type: "food", quantity: 500 }
+   { "_id" : 2, "item" : "f2", type: "food", quantity: 100 }
+   { "_id" : 3, "item" : "p1", type: "paper", quantity: 200 }
+   { "_id" : 4, "item" : "p2", type: "paper", quantity: 150 }
+   { "_id" : 5, "item" : "f3", type: "food", quantity: 300 }
+   { "_id" : 6, "item" : "t1", type: "toys", quantity: 500 }
+   { "_id" : 7, "item" : "a1", type: "apparel", quantity: 250 }
+   { "_id" : 8, "item" : "a2", type: "apparel", quantity: 400 }
+   { "_id" : 9, "item" : "t2", type: "toys", quantity: 50 }
+   { "_id" : 10, "item" : "f4", type: "food", quantity: 75 }
+
+.. tabs-drivers::
+   :hidden: true
+
+   .. tab::
+      :tabid: shell
+
+   .. tab::
+      :tabid: compass
+
+      The documents appear in |compass| as the following:
+      
+      .. figure:: /images/compass-analyze-inventory-docs.png
+         :alt: Compass Inventory collection documents
+
+.. _analyze-no-index:
+
+Query with No Index
+~~~~~~~~~~~~~~~~~~~
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+         The following query retrieves documents where the
+         ``quantity`` field has a value between ``100`` and ``200``,
+         inclusive:
+
+         .. code-block:: javascript
+
+            db.inventory.find( { quantity: { $gte: 100, $lte: 200 } } )
+
+         The query returns the following documents:
+
+         .. code-block:: javascript
+
+            { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
+            { "_id" : 3, "item" : "p1", "type" : "paper", "quantity" : 200 }
+            { "_id" : 4, "item" : "p2", "type" : "paper", "quantity" : 150 }
+
+         To view the query plan selected, chain the
+         :method:`cursor.explain("executionStats") <cursor.explain()>`
+         cursor method to the end of the :command:`find` command:
+
+         .. code-block:: javascript
+
+            db.inventory.find(
+               { quantity: { $gte: 100, $lte: 200 } }
+            ).explain("executionStats")
+
+         :method:`~cursor.explain()` returns the following results:
+
+         .. code-block:: javascript
+
+            {
+               "queryPlanner" : {
+                     "plannerVersion" : 1,
+                     ...
+                     "winningPlan" : {
+                        "stage" : "COLLSCAN",
+                        ...
+                     }
+               },
+               "executionStats" : {
+                  "executionSuccess" : true,
+                  "nReturned" : 3,
+                  "executionTimeMillis" : 0,
+                  "totalKeysExamined" : 0,
+                  "totalDocsExamined" : 10,
+                  "executionStages" : {
+                     "stage" : "COLLSCAN",
+                     ...
+                  },
+                  ...
+               },
+               ...
+            }
+
+         - :data:`queryPlanner.winningPlan.stage
+           <explain.queryPlanner.winningPlan.stage>` displays
+           ``COLLSCAN`` to indicate a collection scan.
+
+           Collection scans indicate that the
+           :binary:`~bin.mongod` had to scan the entire collection
+           document by document to identify the results. This is a
+           generally expensive operation and can result in slow
+           queries.
+
+         - :data:`executionStats.nReturned
+           <explain.executionStats.nReturned>` displays ``3`` to
+           indicate that the winning query plan returns three documents.
+
+         - :data:`executionStats.totalKeysExamined
+           <explain.executionStats.totalKeysExamined>` displays ``0``
+           to indicate that this is query is not using an index.
+
+         - :data:`executionStats.totalDocsExamined
+           <explain.executionStats.totalDocsExamined>` displays ``10``
+           to indicate that MongoDB had to scan ten documents (i.e.
+           all documents in the collection) to find the three matching
+           documents.
+
+     - id: compass
+       content: |
+         The following query retrieves documents where the
+         ``quantity`` field has a value between ``100`` and ``200``,
+         inclusive:
+
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+
+         .. code-block:: javascript
+
+            { quantity: { $gte: 100, $lte: 200 } }
+
+         The query returns the following documents:
+
+         .. figure:: /images/compass-find-no-index-results.png
+            :alt: Compass no index query results
+
+         To view the query plan selected:
+
+         1. Click the :guilabel:`Explain Plan` tab for the
+            ``test.inventory`` collection.
+
+         #. Click :guilabel:`Explain`.
+
+         |compass| displays the query plan as follows:
+
+         .. figure:: /images/compass-explain-plan-no-index.png
+            :alt: Compass no index query plan
+
+         .. note::
+
+            Because we are working with such a small dataset for the
+            purposes of this tutorial, the
+            :guilabel:`Actual Query Execution Time` displays
+            ``0`` seconds, even though we are not using an index.
+
+            In a larger dataset, the difference in query
+            execution time between an indexed query versus a
+            non-indexed query would be much more substantial.
+
+         Visual Tree
+         ```````````
+
+         - The :guilabel:`Query Performance Summary` shows the
+           execution stats of the query:
+
+           - :guilabel:`Documents Returned` displays ``3`` to indicate
+             that the winning query plan returns three documents.
+
+           - :guilabel:`Index Keys Examined` displays ``0`` to
+             indicate that this query is not using an index.
+
+           - :guilabel:`Documents Examined` displays ``10`` to indicate
+             that MongoDB had to scan ten documents (i.e. all documents
+             in the collection) to find the three matching documents.
+
+         - Below the :guilabel:`Query Performance Summary`, |compass|
+           displays the ``COLLSCAN`` query stage to indicate that a
+           collection scan was used for this query.
+
+           Collection scans indicate that the
+           :binary:`~bin.mongod` had to scan the entire collection
+           document by document to identify the results. This is a
+           generally expensive operation and can result in slow
+           queries.
+
+         Raw JSON
+         ````````
+
+         The explain details can also be viewed in raw JSON format by
+         clicking :guilabel:`Raw JSON` below the query bar:
+
+         .. figure:: /images/compass-explain-plan-no-index-raw-json.png
+            :alt: Compass no index query plan raw JSON
+
+The difference between the number of matching documents and the number
+of examined documents may suggest that, to improve efficiency, the
+query might benefit from the use of an index.
+
+.. _analyze-index:
+
+Query with Index
+~~~~~~~~~~~~~~~~
+
+To support the query on the ``quantity`` field, add an index on the
+``quantity`` field:
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+         .. code-block:: javascript
+
+            db.inventory.createIndex( { quantity: 1 } )
+
+         To view the query plan statistics, use the
+         :method:`~cursor.explain("executionStats")` method:
+
+         .. code-block:: javascript
+
+            db.inventory.find(
+               { quantity: { $gte: 100, $lte: 200 } }
+            ).explain("executionStats")
+
+         The :method:`~cursor.explain()` method returns the following
+         results:
+
+         .. code-block:: javascript
+
+            {
+               "queryPlanner" : {
+                     "plannerVersion" : 1,
+                     ...
+                     "winningPlan" : {
+                           "stage" : "FETCH",
+                           "inputStage" : {
+                              "stage" : "IXSCAN",
+                              "keyPattern" : {
+                                 "quantity" : 1
+                              },
+                              ...
+                           }
+                     },
+                     "rejectedPlans" : [ ]
+               },
+               "executionStats" : {
+                     "executionSuccess" : true,
+                     "nReturned" : 3,
+                     "executionTimeMillis" : 0,
+                     "totalKeysExamined" : 3,
+                     "totalDocsExamined" : 3,
+                     "executionStages" : {
+                        ...
+                     },
+                     ...
+               },
+               ...
+            }
+
+         - :data:`queryPlanner.winningPlan.inputStage.stage
+           <explain.queryPlanner.winningPlan.inputStage>` displays
+           ``IXSCAN`` to indicate index use.
+
+         - :data:`executionStats.nReturned <explain.executionStats.nReturned>`
+           displays ``3`` to indicate that the winning query plan returns 
+           three documents.
+
+         - :data:`executionStats.totalKeysExamined
+           <explain.executionStats.totalKeysExamined>` displays ``3``
+           to indicate that MongoDB scanned three index entries. The
+           number of keys examined match the number of documents
+           returned, meaning that the :binary:`~bin.mongod` only had
+           to examine index keys to return the results. The
+           :binary:`~bin.mongod` did not have to scan all of the
+           documents, and only the three matching documents had to be
+           pulled into memory. This results in a very efficient query.
+
+         - :data:`executionStats.totalDocsExamined
+           <explain.executionStats.totalDocsExamined>` display ``3``
+           to indicate that MongoDB scanned three documents.
+
+     - id: compass
+       content: |
+         1. Click the :guilabel:`Indexes` tab for the
+            ``test.inventory`` collection.
+
+         2. Click :guilabel:`Create Index`.
+
+         3. Select ``quantity`` from the
+            :guilabel:`Select a field name` dropdown.
+
+         4. Select ``1 (asc)`` from the type dropdown.
+
+         5. Click :guilabel:`Create`.
+
+         .. figure:: /images/compass-create-inventory-index.png
+            :scale: 90 %
+            :alt: Create inventory index in Compass
+
+         .. note::
+
+            Leaving the index name field blank causes |compass| to
+            create a default name for the index.
+
+         You can now see your newly created index in the
+         :guilabel:`Indexes` tab:
+
+         .. figure:: /images/compass-show-new-index.png
+            :alt: Compass show new index
+
+         Return to the :guilabel:`Explain Plan` tab for the
+         ``inventory`` collection and re-run the query from
+         the previous step:
+
+
+         .. code-block:: javascript
+
+            { quantity: { $gte: 100, $lte: 200 } }
+
+         |compass| displays the query plan as follows:
+
+         .. figure:: /images/compass-explain-plan-with-index.png
+            :alt: Compass explain plan with index
+
+         Visual Tree
+         ```````````
+
+         - The :guilabel:`Query Performance Summary` shows the
+           execution stats of the query:
+
+           - :guilabel:`Documents Returned` displays ``3`` to indicate
+             that the winning query plan returns three documents.
+
+           - :guilabel:`Index Keys Examined` displays ``3``
+             to indicate that MongoDB scanned three index entries. The
+             number of keys examined match the number of documents
+             returned, meaning that the :binary:`~bin.mongod` only had
+             to examine index keys to return the results. The
+             :binary:`~bin.mongod` did not have to scan all of the
+             documents, and only the three matching documents had to be
+             pulled into memory. This results in a very efficient
+             query.
+
+           - :guilabel:`Documents Examined` displays ``3`` to indicate
+             that MongoDB scanned three documents.
+
+           - On the right-hand side of the
+             :guilabel:`Query Performance Summary`, |compass| shows
+             that the query used the ``quantity`` index.
+
+         - Below the :guilabel:`Query Performance Summary`, |compass|
+           displays the query stages ``FETCH`` and ``IXSCAN``.
+           ``IXSCAN`` indicates that the
+           :binary:`~bin.mongod` used an index to satisfy the query
+           before exeuting the ``FETCH`` stage and retrieving the
+           documents.
+
+         Raw JSON
+         ````````
+
+         The explain details can also be viewed in raw JSON format by
+         clicking :guilabel:`Raw JSON` below the query bar:
+
+         .. figure:: /images/compass-explain-plan-with-index-raw-json.png
+            :alt: Compass query plan with index raw JSON
+
+Without the index, the query would scan the whole collection of ``10``
+documents to return ``3`` matching documents. The query also had to
+scan the entirety of each document, potentially pulling them into
+memory. This results in an expensive and potentially slow query
+operation.
+
+When run with an index, the query scanned ``3`` index entries
+and ``3`` documents to return ``3`` matching documents, resulting
+in a very efficient query.
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+         .. _analyze-compare-performance:
+
+         Compare Performance of Indexes
+         ------------------------------
+
+         To manually compare the performance of a query using more
+         than one index, you can use the :method:`~cursor.hint()`
+         method in conjunction with the :method:`~cursor.explain()`
+         method.
+
+         Consider the following query:
+
+         .. code-block:: javascript
+
+            db.inventory.find( {
+               quantity: {
+                  $gte: 100, $lte: 300
+               },
+               type: "food"
+            } )
+
+         The query returns the following documents:
+
+         .. code-block:: javascript
+
+            { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
+            { "_id" : 5, "item" : "f3", "type" : "food", "quantity" : 300 }
+
+         To support the query, add a :doc:`compound index
+         </core/index-compound>`. With :doc:`compound indexes
+         </core/index-compound>`, the order of the fields matter.
+
+         For example, add the following two compound indexes. The
+         first index orders by ``quantity`` field first, and then the
+         ``type`` field. The second index orders by ``type`` first,
+         and then the ``quantity`` field.
+
+         .. code-block:: javascript
+
+            db.inventory.createIndex( { quantity: 1, type: 1 } )
+            db.inventory.createIndex( { type: 1, quantity: 1 } )
+
+         Evaluate the effect of the first index on the query:
+
+         .. code-block:: javascript
+
+            db.inventory.find(
+               { quantity: { $gte: 100, $lte: 300 }, type: "food" }
+            ).hint({ quantity: 1, type: 1 }).explain("executionStats")
+
+         The :method:`~cursor.explain()` method returns the following
+         output:
+
+         .. code-block:: javascript
+            :emphasize-lines: 20,22
+
+            {
+               "queryPlanner" : {
+                  ...
+                  "winningPlan" : {
+                     "stage" : "FETCH",
+                     "inputStage" : {
+                        "stage" : "IXSCAN",
+                        "keyPattern" : {
+                           "quantity" : 1,
+                           "type" : 1
+                        },
+                        ...
+                        }
+                     }
+                  },
+                  "rejectedPlans" : [ ]
+               },
+               "executionStats" : {
+                  "executionSuccess" : true,
+                  "nReturned" : 2,
+                  "executionTimeMillis" : 0,
+                  "totalKeysExamined" : 5,
+                  "totalDocsExamined" : 2,
+                  "executionStages" : {
+                  ...
+                  }
+               },
+               ...
+            }
+
+         MongoDB scanned ``5`` index keys
+         (:data:`executionStats.totalKeysExamined
+         <explain.executionStats.totalKeysExamined>`) to return ``2``
+         matching documents (:data:`executionStats.nReturned
+         <explain.executionStats.nReturned>`).
+
+         Evaluate the effect of the second index on the query:
+
+         .. code-block:: javascript
+
+            db.inventory.find(
+               { quantity: { $gte: 100, $lte: 300 }, type: "food" }
+            ).hint({ type: 1, quantity: 1 }).explain("executionStats")
+
+         The :method:`~cursor.explain()` method returns the following
+         output:
+
+         .. code-block:: javascript
+            :emphasize-lines: 19,21
+
+            {
+               "queryPlanner" : {
+                  ...
+                  "winningPlan" : {
+                     "stage" : "FETCH",
+                     "inputStage" : {
+                        "stage" : "IXSCAN",
+                        "keyPattern" : {
+                           "type" : 1,
+                           "quantity" : 1
+                        },
+                        ...
+                     }
+                  },
+                  "rejectedPlans" : [ ]
+               },
+               "executionStats" : {
+                  "executionSuccess" : true,
+                  "nReturned" : 2,
+                  "executionTimeMillis" : 0,
+                  "totalKeysExamined" : 2,
+                  "totalDocsExamined" : 2,
+                  "executionStages" : {
+                     ...
+                  }
+               },
+               ...
+            }
+
+         MongoDB scanned ``2`` index keys
+         (:data:`executionStats.totalKeysExamined
+         <explain.executionStats.totalKeysExamined>`) to return ``2``
+         matching documents (:data:`executionStats.nReturned
+         <explain.executionStats.nReturned>`).
+
+         The second compound index, ``{ type: 1, quantity: 1 }``, is
+         therefore the more efficient index for supporting the example
+         query, as the MongoDB server only needs to scan ``2``
+         :data:`index keys <explain.executionStats.totalKeysExamined>`
+         to find all matching documents using this index, compared to
+         ``5`` when when using the compound index
+         ``{ quantity: 1, type: 1 }``.
+
+         .. seealso::
+
+            - :doc:`/core/query-optimization`
+            - :doc:`/core/query-plans`
+            - :doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`
+            - :doc:`/applications/indexes`
+
+     - id: compass
+       content: |
+         .. seealso::
+
+            - :doc:`Query Optimization </core/query-optimization>`
+            - :ref:`MongoDB Compass Documentation <compass-index>`
+            - `Compass Query Plan Documentation <https://docs.mongodb.com/compass/master/query-plan/>`_

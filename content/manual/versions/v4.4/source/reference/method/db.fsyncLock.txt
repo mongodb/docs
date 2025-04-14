@@ -1,0 +1,135 @@
+==============
+db.fsyncLock()
+==============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: fsync, fsynclock, fsync lock, lock
+   :keywords: fsync, fsynclock, fsync lock, lock
+
+Definition
+----------
+
+.. method:: db.fsyncLock()
+
+   Flushes all pending writes from the storage layer to disk and locks the
+   server to prevent any additional writes until the lock is released.
+
+   .. |fsyncLockUnlock| replace:: the ``db.fsyncLock()`` and
+      :method:`db.fsyncUnlock` methods
+   .. include:: /includes/fsync-mongos
+
+   .. |dbcommand| replace:: :dbcommand:`fsync` command
+   .. include:: /includes/fact-mongo-shell-method-alt.rst
+
+
+   .. include:: /includes/fsync-lock-method
+
+   :method:`db.fsyncLock()`  has the syntax:
+
+   .. code-block:: javascript
+
+      db.fsyncLock()
+
+   The operation returns a document with the following fields:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Field
+        - Description
+
+      * - ``info``
+        - Information on the status of the operation.
+      * - ``lockCount``
+        - Number of locks currently on the instance.
+      * - ``seeAlso``
+        - Link to the :dbcommand:`fsync` command documentation.
+      * - ``ok``
+        - The status code.
+
+   :method:`db.fsyncLock()` is an administrative command. Use this method to
+   lock a server or cluster before :ref:`backup operations <backup-methods>`.
+
+Behavior
+--------
+
+.. include:: /includes/extracts/wt-fsync-lock-compatibility.rst
+
+
+Fsync Locks after Failures
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fsync locks execute on the primary in a replica set or sharded cluster.
+
+
+If the primary goes down or becomes unreachable due to network issues, the
+cluster :ref:`elects <replica-set-elections>` a new primary from the available
+secondaries. If a primary with an fsync lock goes down, the new primary does
+**not** retain the fsync lock and can handle write operations. When elections
+occur during backup operations, the resulting backup may be inconsistent or
+unusable.
+
+To recover from the primary going down:
+
+
+#. Run the :method:`db.fsyncUnlock` method until the lock count reaches zero
+   to release the lock on all nodes.
+
+#. Issue the :method:`db.fsyncLock` command to reestablish the fsync lock on the
+   cluster.
+
+#. Restart the backup.
+
+
+Additionally, fsync locks are persistent. When the old primary comes online
+again, you need to run the :method:`db.fsyncUnlock` command to release the
+lock on the node.
+
+
+Example
+-------
+
+The following operation runs :method:`db.fsyncLock()`:
+
+.. code-block:: javascript
+
+   db.fsyncLock()
+
+The operation returns the following status document that includes the
+``lockCount``:
+
+.. code-block:: javascript
+
+   {
+      "info" : "now locked against writes, use db.fsyncUnlock() to unlock",
+      "lockCount" : NumberLong(1),
+      "seeAlso" : "http://dochub.mongodb.org/core/fsynccommand",
+      "ok" : 1
+   }
+
+If you run :method:`db.fsyncLock()` again, the operation increments the
+``lockCount``:
+
+.. code-block:: javascript
+
+   {
+      "info" : "now locked against writes, use db.fsyncUnlock() to unlock",
+      "lockCount" : NumberLong(2),
+      "seeAlso" : "http://dochub.mongodb.org/core/fsynccommand",
+      "ok" : 1
+   }
+
+To unlock the instance for writes, you must run
+:method:`db.fsyncUnlock()` twice to reduce the ``lockCount`` to 0.

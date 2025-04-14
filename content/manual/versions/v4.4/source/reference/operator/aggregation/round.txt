@@ -1,0 +1,264 @@
+====================
+$round (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $round
+
+   .. versionadded:: 4.2
+
+   :expression:`$round` rounds a number to a whole integer *or* to a 
+   specified decimal place.
+
+   :expression:`$round` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $round : [ <number>, <place> ] }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Field
+
+        - Type
+
+        - Description
+
+      * - ``<number>``
+
+        - number
+
+        - Can be any valid :ref:`expression <aggregation-expressions>`
+          that resolves to a number. Specifically, the expression must
+          resolve to an integer, double, 
+          :bsontype:`decimal <data_numberdecimal>`, or
+          :bsontype:`long <data_numberlong>`.
+
+          :expression:`$round` returns an error if the expression
+          resolves to a non-numeric data type.
+   
+      * - ``<place>``
+
+        - integer
+
+        - *Optional* Can be any valid 
+          :ref:`expression <aggregation-expressions>` that resolves to 
+          an integer between -20 and 100, exclusive. e.g. 
+          ``-20 < place < 100``. Defaults to ``0`` if unspecified.
+
+          - If ``<place>`` resolves to a positive integer,
+            :expression:`$round` rounds to ``<place>`` decimal 
+            places.
+
+            For example, ``$round : [1234.5678, 2]`` rounds to two
+            decimal places and returns ``1234.57``.
+
+          - If ``<place>`` resolves to a negative integer,
+            :expression:`$round` rounds using the digit ``<place>`` 
+            to the left of the decimal. 
+
+            For example, ``$round : [1234.5678, -2]`` uses the
+            2nd digit to the left of the decimal (``3``) and returns
+            ``1200``.
+            
+            If the absolute value of ``<place>`` equals or exceeds the
+            number of digits to the left of the decimal,
+            :expression:`$round` returns ``0``.
+
+            For example, ``$round : [ 1234.5678, -4]`` specifies the
+            fourth digit to the left of the decimal. This equals the
+            number of digits left of the decimal and returns ``0``.
+
+          - If ``<place>`` resolves to ``0``, :expression:`$round`
+            rounds using the first digit to the right of the decimal and
+            returns rounded integer value.
+
+            For example, ``$round : [1234.5678, 0]`` returns ``1235``.
+
+Behavior
+--------
+
+Rounding Numbers Ending in 5
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To minimize the skew errors that are caused by always rounding upwards,
+numbers ending in 5 are rounded to the nearest even value. This is the 
+`IEEE standard <https://ieeexplore.ieee.org/document/8766229>`__
+for floating point numbers and also works well operations across 
+sequences.
+
+For example, consider this chart:
+ 
+..  list-table::
+    :header-rows: 1
+    :widths: 25 25 25 25
+ 
+    * - Original
+      - Rounded 1 
+      - Rounded 0
+      - Rounded -1 
+
+    * - 124.5
+      - 124.5 
+      - 124
+      - 120
+
+    * - 125.5
+      - 125.5 
+      - 126
+      - 130
+
+    * - 25
+      - 25
+      - 25
+      - 20
+
+    * - 12.5
+      - 12.5
+      - 12
+      - 10
+
+    * - 2.25
+      - 2.2
+      - 2
+      - 0
+
+    * - 2.45
+      - 2.5
+      - 2
+      - 0
+
+The chart highlights a few points. 
+
+- The ``$round`` function is not limited to floats. (``25`` becomes ``20``).  
+- Rounded numbers can still end in 5 (``2.45`` becomes ``2.5``)
+- The rounded value is determined by more than one digit 
+
+For further discussion of the 'Round Half to Even' technique, see
+`this article <https://en.wikipedia.org/wiki/Rounding#Round_half_to_even>`__. 
+
+Returned Data Type
+~~~~~~~~~~~~~~~~~~
+
+If rounding to a specific decimal place, the data type returned by
+:expression:`$round` matches the data type of the input expression or
+value.
+
+If rounding to a whole integer value, :expression:`$round` returns
+the value as an integer.
+
+``null``, ``NaN``, and ``+/- Infinity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- If the first argument resolves to a value of ``null`` or
+  refers to a field that is  missing, :expression:`$round` returns 
+  ``null``.
+
+- If the first argument resolves to ``NaN``, :expression:`$round` 
+  returns ``NaN``.
+
+- If the first argument resolves to negative or positive infinity, 
+  :expression:`$round` returns negative or positive infinity 
+  respectively.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $round: [ NaN, 1] }``
+     - ``NaN``
+
+   * - ``{ $round: [ null, 1] }``
+     - ``null``
+
+   * - ``{ $round : [ Infinity, 1 ] }``
+     - ``Infinity`` 
+   
+   * - ``{ $round : [ -Infinity, 1 ] }``
+     - ``-Infinity``
+
+Example
+-------
+
+Create a collection named ``samples`` with the following documents:
+
+.. code-block:: javascript
+
+   db.samples.insertMany(
+      [
+        { _id: 1, value: 19.25 },
+        { _id: 2, value: 28.73 },
+        { _id: 3, value: 34.32 },
+        { _id: 4, value: -45.39 }
+      ]
+   )
+
+
+- The following aggregation returns ``value`` rounded to the
+  first decimal place:
+
+  .. code-block:: javascript
+
+     db.samples.aggregate([
+        { $project: { roundedValue: { $round: [ "$value", 1 ] } } }
+     ])
+
+  The operation returns the following results:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "roundedValue" : 19.2 }
+     { "_id" : 2, "roundedValue" : 28.7 }
+     { "_id" : 3, "roundedValue" : 34.3 }
+     { "_id" : 4, "roundedValue" : -45.4 }
+
+- The following aggregation returns ``value``
+  rounded using the first digit to the left of the decimal:
+
+  .. code-block:: javascript
+
+     db.samples.aggregate([
+        { $project: { roundedValue: { $round: [ "$value", -1 ] } } }
+     ])
+
+  The operation returns the following results:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "roundedValue" : 10 }
+     { "_id" : 2, "roundedValue" : 20 }
+     { "_id" : 3, "roundedValue" : 30 }
+     { "_id" : 4, "roundedValue" : -50 }
+
+- The following aggregation returns ``value`` rounded to the 
+  whole integer:
+
+  .. code-block:: javascript
+
+     db.samples.aggregate([
+        { $project: { roundedValue: { $round: [ "$value", 0 ] } } }
+     ])
+
+  The operation returns the following results:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "roundedValue" : 19 }
+     { "_id" : 2, "roundedValue" : 29 }
+     { "_id" : 3, "roundedValue" : 34 }
+     { "_id" : 4, "roundedValue" : -45 }

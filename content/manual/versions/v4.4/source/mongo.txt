@@ -1,0 +1,440 @@
+.. meta::
+   :canonical: https://www.mongodb.com/docs/mongodb-shell/
+
+===================
+The ``mongo`` Shell
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The :binary:`~bin.mongo` shell is an interactive JavaScript interface to
+MongoDB. You can use the :binary:`~bin.mongo` shell to query and update
+data as well as perform administrative operations.
+
+.. include:: /includes/fact-mongosh-callout.rst
+
+Download the ``mongo`` Shell
+----------------------------
+
+.. include:: /includes/fact-download-mongo-shell.rst
+
+Start the ``mongo`` Shell and Connect to MongoDB 
+------------------------------------------------
+
+Once you have downloaded the :binary:`~bin.mongo` shell, you can use it
+to connect to your running MongoDB server.
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-mongoshell-emulation.rst
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- The MongoDB server must be installed and running before you can
+  connect to it from the :binary:`~bin.mongo` shell. Follow the steps in
+  the :doc:`installation tutorial for your platform </installation>`
+  to install and start the MongoDB server if required.
+
+- Once you have verified that the :binary:`~bin.mongod` server is
+  running, open a terminal window (or a command prompt for Windows) and
+  go to your ``<mongo shell installation dir>`` directory:
+
+  .. code-block:: bash
+
+     cd <mongo shell installation dir>
+
+  .. tip::
+
+     Adding your ``<mongo shell installation dir>`` to the ``PATH``
+     environment variable allows you to type ``mongo`` directly instead
+     of having to first go to the ``<mongo shell installation dir>``
+     directory or specify the full path to the binary. Alternatively, you
+     can copy the ``mongo`` shell to a location on your filesystem that
+     is already present in your ``PATH``, such as ``/usr/bin`` on Linux.
+
+Local MongoDB Instance on Default Port
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run :binary:`~bin.mongo` shell without any command-line options
+to connect to a :doc:`MongoDB </reference/program/mongod>` instance
+running on your **localhost** with **default port** 27017:
+
+.. code-block:: bash
+
+   mongo
+
+Local MongoDB Instance on a Non-default Port
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To explicitly specify the port, include the :option:`--port <mongo
+--port>` command-line option. For example, to connect to a MongoDB
+instance running on localhost with a non-default port 28015:
+
+.. code-block:: bash
+
+   mongo --port 28015
+
+MongoDB Instance on a Remote Host
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To explicitly specify the hostname and/or port,
+
+- You can specify a :doc:`connection string
+  </reference/connection-string>`. For example, to connect to a MongoDB
+  instance running on a remote host machine:
+
+  .. code-block:: bash
+
+     mongo "mongodb://mongodb0.example.com:28015"
+
+- You can use the command-line option :option:`--host \<host\>:\<port\>
+  <mongo --host>`. For example, to connect to a MongoDB instance
+  running on a remote host machine:
+
+  .. code-block:: bash
+
+     mongo --host mongodb0.example.com:28015
+
+- You can use the :option:`--host \<host\> <mongo --host>` and
+  :option:`--port \<port\> <mongo --port>` command-line options. For
+  example, to connect to a MongoDB instance running on a remote host
+  machine:
+
+  .. code-block:: bash
+
+     mongo --host mongodb0.example.com --port 28015
+
+MongoDB Instance with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a MongoDB instance requires authentication:
+
+- You can specify the username, authentication database, and optionally
+  the password in the :doc:`connection string
+  </reference/connection-string>`. For example, to connect and
+  authenticate to a remote MongoDB instance as user ``alice``:
+
+  .. note::
+
+     If you do not specify the password in the connection string, the
+     shell will prompt for the password.
+
+  .. code-block:: bash
+
+     mongo "mongodb://alice@mongodb0.examples.com:28015/?authSource=admin"
+
+- You can use the :option:`--username \<user\> <mongo --username>` and
+  :option:`--password <mongo --password>`,
+  :option:`--authenticationDatabase \<db\> <mongo
+  --authenticationDatabase>` command-line options. For example, to
+  connect and authenticate to a remote MongoDB instance as user
+  ``alice``:
+
+  .. note::
+
+     If you specify ``--password`` without the user's password, the
+     shell will prompt for the password.
+
+  .. code-block:: bash
+
+     mongo --username alice --password --authenticationDatabase admin --host mongodb0.examples.com --port 28015
+
+Connect to a MongoDB Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a replica set:
+
+- You can specify the replica set name and members in the
+  :doc:`connection string </reference/connection-string>`.
+
+  .. code-block:: bash
+
+     mongo "mongodb://mongodb0.example.com.local:27017,mongodb1.example.com.local:27017,mongodb2.example.com.local:27017/?replicaSet=replA"
+
+- If using the :ref:`connections-dns-seedlist`, you can specify the
+  connection string:
+
+  .. code-block:: bash
+
+     mongo "mongodb+srv://server.example.com/"
+
+  .. note::
+  
+     Use of the ``+srv`` connection string modifier automatically sets
+     the ssl option to true for the connection.
+     
+- You can specify the replica set name and members from the
+  :option:`--host \<replica set
+  name\>/\<host1\>:\<port1\>,\<host2\>:\<port2\>,... <mongo --host>`
+  command-line option. For example, to connect to replica set named
+  ``replA``:
+
+  .. code-block:: bash
+
+     mongo --host replA/mongodb0.example.com.local:27017,mongodb1.example.com.local:27017,mongodb2.example.com.local:27017
+
+TLS/SSL Connection
+~~~~~~~~~~~~~~~~~~
+
+For TLS/SSL connections, 
+
+- You can specify the ``ssl=true`` option in the
+  :doc:`connection string </reference/connection-string>`.
+
+  .. code-block:: bash
+
+     mongo "mongodb://mongodb0.example.com.local:27017,mongodb1.example.com.local:27017,mongodb2.example.com.local:27017/?replicaSet=replA&ssl=true"
+
+- If using the :ref:`connections-dns-seedlist`, you can include the
+  ``+srv`` connection string modifier:
+
+  .. code-block:: bash
+
+     mongo "mongodb+srv://server.example.com/"
+
+  .. note::
+  
+     Use of the ``+srv`` connection string modifier automatically sets
+     the ssl option to true for the connection.
+
+- You can specify :option:`--ssl <mongo --ssl>` command-line option.
+  For example, to connect to replica set named ``replA``:
+
+  .. code-block:: bash
+
+     mongo --ssl --host replA/mongodb0.example.com.local:27017,mongodb1.example.com.local:27017,mongodb2.example.com.local:27017 
+
+
+.. seealso::
+
+   For more information on the options used in the connection examples
+   as well as other options, see :doc:`mongo reference
+   </reference/program/mongo>` and :ref:`examples of starting up mongo
+   <mongo-usage-examples>`.
+
+.. _mongo-shell-executing-queries:
+
+Working with the ``mongo`` Shell
+--------------------------------
+
+To display the database you are using, type ``db``:
+
+.. code-block:: bash
+
+   db
+
+The operation should return ``test``, which is the default database.
+
+To switch databases, issue the ``use <db>`` helper, as in the
+following example:
+
+.. code-block:: javascript
+
+   use <database>
+
+See also :method:`db.getSiblingDB()` method to access a
+different database from the current database without switching your
+current database context (i.e. ``db``).
+
+To list the databases available to the user, use the helper ``show
+dbs``. [#access]_
+
+You can switch to non-existing databases. When you first store data in
+the database, such as by creating a collection, MongoDB creates the
+database. For example, the following creates both the database
+``myNewDatabase`` and the :term:`collection` ``myCollection`` during
+the :method:`~db.collection.insertOne()` operation:
+
+.. code-block:: javascript
+
+   use myNewDatabase
+   db.myCollection.insertOne( { x: 1 } );
+
+The :method:`db.myCollection.insertOne() <db.collection.insertOne()>` is one
+of the :doc:`methods available in the mongo shell </reference/method>`.
+
+- ``db`` refers to the current database.
+
+- ``myCollection`` is the name of the collection.
+
+If the :binary:`~bin.mongo` shell does not accept the name of a collection,
+you can use the alternative :method:`db.getCollection()` syntax.
+For instance, if a collection name contains a space or hyphen, starts
+with a number, or conflicts with a built-in function:
+
+.. code-block:: javascript
+
+   db.getCollection("3 test").find()
+   db.getCollection("3-test").find()
+   db.getCollection("stats").find()
+
+.. include:: /includes/fact-mongo-prompt-size.rst
+
+For more documentation of basic MongoDB operations in the
+:binary:`~bin.mongo` shell, see:
+
+- :doc:`Getting Started Guide for the mongo Shell
+  </tutorial/getting-started>`
+- :doc:`/tutorial/insert-documents`
+- :doc:`/tutorial/query-documents`
+- :doc:`/tutorial/update-documents`
+- :doc:`/tutorial/remove-documents`
+- :doc:`/reference/method`
+
+.. [#access]
+   If the deployment runs with access control, the operation
+   returns different values based on user privileges. See
+   :ref:`listDatabases Behavior <listDatabases-behavior>` for details.
+
+Format Printed Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.find()` method returns a :term:`cursor` to
+the results; however, in the :binary:`~bin.mongo` shell, if the returned
+cursor is not assigned to a variable using the ``var`` keyword, then
+the cursor is automatically iterated up to 20 times to print up to the
+first 20 documents that match the query. The :binary:`~bin.mongo` shell
+will prompt ``Type it`` to iterate another 20 times.
+
+To format the printed result, you can add the ``.pretty()`` to the
+operation, as in the following:
+
+.. code-block:: javascript
+
+   db.myCollection.find().pretty()
+
+In addition, you can use the following explicit print methods in the
+:binary:`~bin.mongo` shell:
+
+- ``print()`` to print without formatting
+
+- ``print(tojson(<obj>))`` to print with :term:`JSON` formatting and
+  equivalent to ``printjson()``
+
+- ``printjson()`` to print with :term:`JSON` formatting and equivalent
+  to ``print(tojson(<obj>))``
+
+For more information and examples on cursor handling in the
+:binary:`~bin.mongo` shell, see :doc:`/tutorial/iterate-a-cursor`. See also
+:ref:`mongo-shell-help-cursor` for list of cursor help in the
+:binary:`~bin.mongo` shell.
+
+Multi-line Operations in the ``mongo`` Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you end a line with an open parenthesis (``'('``), an open brace
+(``'{'``), or an open bracket (``'['``), then the subsequent lines start
+with ellipsis (``"..."``) until you enter the corresponding closing
+parenthesis (``')'``), the closing brace (``'}'``) or the closing
+bracket (``']'``). The :binary:`~bin.mongo` shell waits for the closing
+parenthesis, closing brace, or the closing bracket before evaluating
+the code, as in the following example:
+
+.. code-block:: javascript
+
+   > if ( x > 0 ) {
+   ... count++;
+   ... print (x);
+   ... }
+
+You can exit the line continuation mode if you enter two blank
+lines, as in the following example:
+
+.. code-block:: javascript
+
+   > if (x > 0
+   ...
+   ...
+   >
+
+Tab Completion and Other Keyboard Shortcuts
+-------------------------------------------
+
+The :binary:`~bin.mongo` shell supports keyboard shortcuts. For example,
+
+- Use the up/down arrow keys to scroll through command history. See
+  :ref:`.dbshell <mongo-dbshell-file>` documentation for more
+  information on the ``.dbshell`` file.
+
+- Use ``<Tab>`` to autocomplete or to list the completion
+  possibilities, as in the following example which uses ``<Tab>`` to
+  complete the method name starting with the letter ``'c'``:
+
+  .. code-block:: javascript
+
+     db.myCollection.c<Tab>
+
+  Because there are many collection methods starting with the letter
+  ``'c'``, the ``<Tab>`` will list the various methods that start with
+  ``'c'``.
+
+For a full list of the shortcuts, see :ref:`Shell Keyboard Shortcuts
+<mongo-keyboard-shortcuts>`
+
+
+``.mongorc.js`` File
+--------------------
+
+When starting, :binary:`~bin.mongo` checks the user's :envvar:`HOME`
+directory for a JavaScript file named :ref:`.mongorc.js
+<mongo-mongorc-file>`. If found, :binary:`~bin.mongo` interprets the
+content of :file:`.mongorc.js` before displaying the prompt for the
+first time. If you use the shell to evaluate a JavaScript file or
+expression, either by using the :option:`--eval <mongo --eval>`
+option on the command line or by specifying :ref:`a .js file to
+mongo <mongo-shell-file>`, :binary:`~bin.mongo` will read the
+``.mongorc.js`` file *after* the JavaScript has finished processing.
+You can prevent ``.mongorc.js`` from being loaded by using the
+:option:`--norc <mongo --norc>` option.
+
+.. _mongo-shell-exit:
+
+Exit the Shell
+--------------
+
+To exit the shell, type ``quit()`` or use the ``<Ctrl-C>`` shortcut.
+
+.. _compare-mongosh-mongo:
+
+Comparison of the ``mongo`` Shell and ``mongosh``
+-------------------------------------------------
+
+The new MongoDB Shell, :mongosh:`mongosh </>`, offers numerous
+advantages over the :binary:`~bin.mongo` shell, such as:
+
+- Improved syntax highlighting.
+
+- Improved command history.
+
+- Improved logging.
+
+Some :binary:`~bin.mongo` shell methods are unavailable or have been replaced 
+with updated methods in ``mongosh``. 
+
+To maintain backwards compatibility, the methods that ``mongosh`` supports use 
+the same syntax as the corresponding methods in the :binary:`~bin.mongo` shell. 
+To see the complete list of methods supported by ``mongosh``, see
+:mongosh:`MongoDB Shell Methods </reference/methods>`.
+
+.. seealso::
+
+   - :doc:`Getting Started Guide for the mongo Shell
+     </tutorial/getting-started>`
+   - :binary:`~bin.mongo` Reference Page
+   - :mongosh:`mongosh Documentation </>`
+
+.. toctree::
+   :titlesonly:
+
+   /tutorial/configure-mongo-shell
+   /tutorial/access-mongo-shell-help
+   /tutorial/write-scripts-for-the-mongo-shell
+   /core/shell-types
+   /reference/mongo-shell

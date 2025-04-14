@@ -1,0 +1,163 @@
+=========================
+$stdDevPop (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $stdDevPop
+
+   .. versionadded:: 3.2
+
+   Calculates the population standard deviation of the input values.
+   Use if the values encompass the entire population of data you want
+   to represent and do not wish to generalize about a larger
+   population. :group:`$stdDevPop` ignores non-numeric values.
+
+   If the values represent only a sample of a population of data from
+   which to generalize about the population, use :group:`$stdDevSamp`
+   instead.
+
+   .. include:: /includes/extracts/fact-aggregation-accumulator-stdDevPop.rst
+
+   When used in the :pipeline:`$group` stage, :group:`$stdDevPop` returns
+   the population standard deviation of the specified expression for a
+   group of documents that share the same group by key and has the
+   following syntax:
+
+   - :group:`$stdDevPop` has one specified expression as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $stdDevPop: <expression> }
+
+   When used in the other supported stages,
+   :group:`$stdDevPop` returns the standard deviation of the
+   specified expression or list of expressions for each document and
+   has one of two syntaxes:
+
+   - :group:`$stdDevPop` has one specified expression as its operand:
+
+     .. code-block:: javascript
+
+        { $stdDevPop: <expression> }
+
+   - :group:`$stdDevPop` has a list of specified expressions as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $stdDevPop: [ <expression1>, <expression2> ... ]  }
+
+   The argument for :group:`$stdDevPop` can be any
+   :ref:`expression <aggregation-expressions>` as long as it resolves
+   to an array. For more information on expressions, see
+   :ref:`aggregation-expressions`
+
+Behavior
+--------
+
+Non-numeric Values
+~~~~~~~~~~~~~~~~~~
+
+:group:`$stdDevPop` ignores non-numeric values. If all operands for a
+:group:`$stdDevPop` are non-numeric, :group:`$stdDevPop` returns
+``null``.
+
+Single Value
+~~~~~~~~~~~~
+
+If the sample consists of a single numeric value, :group:`$stdDevPop`
+returns ``0``.
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$group` stage, if the expression resolves to an
+array, :group:`$stdDevPop` treats the operand as a non-numerical value.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-stdDevPop.rst
+
+Examples
+--------
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``users`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "dave123", "quiz" : 1, "score" : 85 }
+   { "_id" : 2, "name" : "dave2", "quiz" : 1, "score" : 90 }
+   { "_id" : 3, "name" : "ahn", "quiz" : 1, "score" : 71 }
+   { "_id" : 4, "name" : "li", "quiz" : 2, "score" : 96 }
+   { "_id" : 5, "name" : "annT", "quiz" : 2, "score" : 77 }
+   { "_id" : 6, "name" : "ty", "quiz" : 2, "score" : 82 }
+
+The following example calculates the standard deviation of each quiz:
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+      { $group: { _id: "$quiz", stdDev: { $stdDevPop: "$score" } } }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "stdDev" : 8.04155872120988 }
+   { "_id" : 1, "stdDev" : 8.04155872120988 }
+
+Use in ``$project`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create an example collection named ``quizzes`` with the following
+documents:
+
+.. code-block:: javascript
+
+   db.quizzes.insertMany([
+      {
+         "_id" : 1,
+         "scores" : [
+            { "name" : "dave123", "score" : 85 },
+            { "name" : "dave2", "score" : 90 },
+            { "name" : "ahn", "score" : 71 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "scores" : [
+            { "name" : "li", "quiz" : 2, "score" : 96 },
+            { "name" : "annT", "score" : 77 },
+            { "name" : "ty", "score" : 82 }
+         ]
+      }
+   ])
+   
+
+The following example calculates the standard deviation of each quiz:
+
+.. code-block:: javascript
+
+   db.quizzes.aggregate([
+      { $project: { stdDev: { $stdDevPop: "$scores.score" } } }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "stdDev" : 8.04155872120988 }
+   { "_id" : 2, "stdDev" : 8.04155872120988 }

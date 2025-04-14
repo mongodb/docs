@@ -1,0 +1,4767 @@
+============
+serverStatus
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+.. |mongod-only| replace:: *Available on mongod only.*
+
+.. |mongos-only| replace:: *Available on mongos only.*
+
+Definition
+----------
+
+.. dbcommand:: serverStatus
+
+   The :dbcommand:`serverStatus` command returns a document that
+   provides an overview of the database's state. Monitoring
+   applications can run this command at a regular interval to
+   collect statistics about the instance.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1 } )
+
+The value (i.e. ``1`` above) does not affect the operation of the
+command. The ``db.serverStatus()`` command returns a large amount of
+data. To return a specific object or field from the output append the
+object or field name to the command.
+
+For example:
+
+.. code-block:: javascript
+
+   db.runCommand({ serverStatus: 1}).metrics
+   db.runCommand({ serverStatus: 1}).metrics.commands
+   db.runCommand({ serverStatus: 1}).metrics.commands.update
+
+The :binary:`~bin.mongo` shell provides the :method:`db.serverStatus()`
+wrapper for the :dbcommand:`serverStatus` command.
+
+.. seealso::
+
+   Much of the output of :dbcommand:`serverStatus` is also displayed
+   dynamically by :binary:`~bin.mongostat`. See the
+   :doc:`/reference/program/mongostat` command for more information.
+
+Behavior
+--------
+
+.. include:: /includes/extracts/serverStatus-command-projection.rst
+
+For example, the following operation suppresses the ``repl``,
+``metrics`` and ``locks`` information in the output.
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1, repl: 0, metrics: 0, locks: 0 } )
+
+The following example includes
+all :ref:`server-status-repl` information in the output:
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1,  repl: 1 } )
+
+Initialization
+~~~~~~~~~~~~~~
+
+The statistics reported by :dbcommand:`serverStatus` are reset when the
+:binary:`~bin.mongod` server is restarted.
+
+This command will always return a value, even on a fresh database. The
+related command :method:`db.serverStatus()` does not always return a
+value unless a counter has started to increment for a particular
+metric.
+
+After you run an update query, ``db.serverStatus()`` and
+``db.runCommand({ serverStatus: 1})`` both return the same values.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "arrayFilters" : NumberLong(0),
+      "failed" : NumberLong(0),
+      "pipeline" : NumberLong(0),
+      "total" : NumberLong(1)
+   }
+
+Include ``mirroredReads``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the :serverstatus:`mirroredReads` information (available
+starting in version 4.4) is not included in the output. To return
+:serverstatus:`mirroredReads` information, you must explicitly specify
+the inclusion:
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1, mirroredReads: 1 } )
+
+Include ``latchAnalysis``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the :serverstatus:`latchAnalysis` information (available
+starting in version 4.4) is not included in the output. To return
+:serverstatus:`latchAnalysis` information, you must explicitly specify
+the inclusion:
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1, latchAnalysis: 1 } )
+
+Change ``tcmalloc`` Verbosity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, ``tcmalloc`` information is included in the output. This
+section provides memory allocation statistics for your database. To
+change the verbosity of the ``tcmalloc`` section, specify an integer 
+between ``0`` and ``2`` (inclusive):
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1, tcmalloc: <int> } )
+
+The command has the following behavior:
+
+- By default, ``tcmalloc`` is set to ``1``.
+- Passing a larger integer value increases the verbosity.
+- Passing ``0`` or ``false`` omits the ``tcmalloc`` section from the
+  output. 
+- Passing any other input results in the default setting.
+
+For more information about how MongoDB allocates memory, see `TCMalloc`_.
+
+.. _`TCMalloc`: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
+
+.. _server-status-output:
+
+Output
+------
+
+.. note::
+
+   The output fields vary depending on the version of MongoDB,
+   underlying operating system platform, the storage engine, and the
+   kind of node, including :binary:`~bin.mongos`, :binary:`~bin.mongod` or
+   :term:`replica set` member.
+
+   For the :dbcommand:`serverStatus` output specific to the version of
+   your MongoDB, refer to the appropriate version of the MongoDB Manual.
+
+.. _server-status-instance-information:
+
+Instance Information
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "host" : <string>,
+   "advisoryHostFQDNs" : <array>,
+   "version" : <string>,
+   "process" : <"mongod"|"mongos">,
+   "pid" : <num>,
+   "uptime" : <num>,
+   "uptimeMillis" : <num>,
+   "uptimeEstimate" : <num>,
+   "localTime" : ISODate(""),
+
+.. serverstatus:: host
+
+   The system's hostname. In Unix/Linux systems, this should be the
+   same as the output of the ``hostname`` command.
+
+.. serverstatus:: advisoryHostFQDNs
+
+   .. versionadded:: 3.2
+
+   An array of the system's fully qualified domain names (FQDNs).
+
+.. serverstatus:: version
+
+   The MongoDB version of the current MongoDB process.
+
+.. serverstatus:: process
+
+   The current MongoDB process. Possible values are: :binary:`~bin.mongos` or
+   :binary:`~bin.mongod`.
+
+.. serverstatus:: pid
+
+   The process id number.
+
+.. serverstatus:: uptime
+
+   The number of seconds that the current MongoDB process has been
+   active.
+
+.. serverstatus:: uptimeMillis
+
+   The number of milliseconds that the current MongoDB process has been
+   active.
+
+.. serverstatus:: uptimeEstimate
+
+   The uptime in seconds as calculated from MongoDB's internal
+   course-grained time keeping system.
+
+.. serverstatus:: localTime
+
+   The ISODate representing the current time, according to the server,
+   in UTC.
+
+.. _server-status-asserts:
+
+asserts
+~~~~~~~
+
+.. code-block:: javascript
+
+   "asserts" : {
+      "regular" : <num>,
+      "warning" : <num>,
+      "msg" : <num>,
+      "user" : <num>,
+      "rollovers" : <num>
+   },
+
+.. serverstatus:: asserts
+
+   A document that reports on the number of assertions raised since the
+   MongoDB process started. While assert errors are typically uncommon,
+   if there are non-zero values for the :serverstatus:`asserts`, you should
+   check the log file for more information. In many cases, these errors
+   are trivial, but are worth investigating.
+
+.. serverstatus:: asserts.regular
+
+   The number of regular assertions raised since the MongoDB process
+   started. Check the log file for more information about these
+   messages.
+
+.. serverstatus:: asserts.warning
+
+   This field always returns zero ``0``.
+
+.. serverstatus:: asserts.msg
+
+   The number of message assertions raised since the MongoDB process
+   started. Check the log file for more information about these
+   messages.
+
+.. serverstatus:: asserts.user
+
+   The number of "user asserts" that have occurred since the last time
+   the MongoDB process started. These are errors that user may
+   generate, such as out of disk space or duplicate key. You can
+   prevent these assertions by fixing a problem with your application
+   or deployment. Check the MongoDB log for more information.
+
+.. serverstatus:: asserts.rollovers
+
+   The number of times that the assert counters have rolled over
+   since the last time the MongoDB process started. The counters will
+   roll over to zero after 2\ :superscript:`30` assertions. Use this
+   value to provide context to the other values in the
+   :serverstatus:`asserts` data structure.
+
+.. _server-status-connections:
+
+connections
+~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "connections" : {
+      "current" : <num>,
+      "available" : <num>,
+      "totalCreated" : <num>,
+      "active" : <num>,
+      "exhaustIsMaster" : <num>,
+      "exhaustHello" : <num>,
+      "awaitingTopologyChanges" : <num>
+   },
+
+.. serverstatus:: connections
+
+   A document that reports on the status of the connections. Use these
+   values to assess the current load and capacity requirements of the
+   server.
+
+.. serverstatus:: connections.current
+
+   The number of incoming connections from clients to the database
+   server . This number includes the current shell session. Consider
+   the value of :serverstatus:`connections.available` to add more
+   context to this datum.
+
+   The value will include all incoming connections including any shell
+   connections or connections from other servers, such as
+   :term:`replica set` members or :binary:`~bin.mongos` instances.
+
+.. serverstatus:: connections.available
+
+   The number of unused incoming connections available. Consider this
+   value in combination with the value of
+   :serverstatus:`connections.current` to understand the connection
+   load on the database, and the :doc:`/reference/ulimit` document for
+   more information about system thresholds on available connections.
+
+.. serverstatus:: connections.totalCreated
+
+   Count of **all** incoming connections created to the server. This
+   number includes connections that have since closed.
+
+.. serverstatus:: connections.active
+
+   The number of active client connections to the server. Active client
+   connections refers to client connections that currently have
+   operations in progress.
+
+.. serverstatus:: connections.exhaustIsMaster
+
+   The number of connections whose last request was an
+   :dbcommand:`isMaster` request with
+   :ref:`exhaustAllowed <wire-msg-flags>`.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: connections.exhaustHello
+
+   The number of connections whose last request was a :dbcommand:`hello`
+   request with :ref:`exhaustAllowed <wire-msg-flags>`.
+
+   .. versionadded:: 4.4.2
+
+.. serverstatus:: connections.awaitingTopologyChanges
+
+   The number of clients currently waiting in a :dbcommand:`hello` or
+   an :dbcommand:`isMaster` request for a topology change.
+
+   .. versionadded:: 4.4
+
+.. _server-status-defaultRWConcern:
+
+defaultRWConcern
+~~~~~~~~~~~~~~~~
+
+*Available starting in 4.4*
+
+The ``defaultRWConcern`` section provides information on the local copy
+of the global default read or write concern settings. The data may be
+stale or out of date. See :dbcommand:`getDefaultRWConcern` for more
+information.
+
+.. code-block:: javascript
+
+   "defaultRWConcern" : {
+     "defaultReadConcern" : {
+       "level" : <string>
+     },
+     "defaultWriteConcern" : {
+       "w" : <string> | <int>,
+       "wtimeout" : <int>,
+       "j" : <bool>
+     },
+     "updateOpTime" : Timestamp,
+     "updateWallClockTime" : Date,
+     "localUpdateWallClockTime" : Date
+   }
+
+.. serverstatus:: defaultRWConcern
+
+   The last known global default read or write concern 
+   settings.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.defaultReadConcern
+
+   The last known global default :ref:`read concern <read-concern>`
+   setting.
+
+   If :dbcommand:`serverStatus` does not return this field, the global
+   default read concern has either not been set *or* has not yet
+   propagated to the instance.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.defaultReadConcern.level
+
+   The last known global default :ref:`read concern level
+   <read-concern-levels>` setting.
+
+   If :dbcommand:`serverStatus` does not return this field, the global
+   default for this setting has either not been set *or* has not yet
+   propagated to the instance.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.defaultWriteConcern
+
+   The last known global default :ref:`write concern <write-concern>`
+   setting.
+
+   If :dbcommand:`serverStatus` does not return this field, the global
+   default write concern has either not been set *or* has not yet
+   propagated to the instance. 
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.defaultWriteConcern.w
+
+   The last known global default :ref:`w <wc-w>` setting. 
+
+   If :dbcommand:`serverStatus` does not return this field, the global
+   default for this setting has either not been set *or* has not yet
+   propagated to the instance.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.defaultWriteConcern.wtimeout
+
+   The last known global default :ref:`wtimeout <wc-wtimeout>` setting. 
+
+   If :dbcommand:`serverStatus` does not return this field, the global
+   default for this setting has either not been set *or* has not yet
+   propagated to the instance.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.updateOpTime
+
+   The timestamp when the instance last updated its copy of any global
+   read or write concern settings. If the
+   :serverstatus:`defaultRWConcern.defaultReadConcern` and
+   :serverstatus:`defaultRWConcern.defaultWriteConcern` fields are
+   absent, this field indicates the timestamp when the defaults were
+   last unset.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.updateWallClockTime
+
+   The wall clock time when the instance last updated its copy of 
+   any global read or write concern settings. If the 
+   :serverstatus:`defaultRWConcern.defaultReadConcern` and 
+   :serverstatus:`defaultRWConcern.defaultWriteConcern` fields are 
+   absent, this field indicates the time when the 
+   defaults were last unset.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: defaultRWConcern.localUpdateWallClockTime
+
+   The local system wall clock time when the instance last updated its
+   copy of any global read or write concern setting. If this field is
+   the *only* field under :serverstatus:`defaultRWConcern`, the instance
+   has never had knowledge of a global default read or write concern
+   setting.
+
+   .. versionadded:: 4.4
+   
+
+.. _server-status-electionMetrics:
+
+electionMetrics
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2.1 
+
+The ``electionMetrics`` section provides information on elections
+called by this :binary:`~bin.mongod` instance in a bid to become the
+primary:
+
+.. code-block:: javascript
+
+   "electionMetrics" : {
+      "stepUpCmd" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "priorityTakeover" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "catchUpTakeover" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "electionTimeout" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "freezeTimeout" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "numStepDownsCausedByHigherTerm" : <NumberLong>,
+      "numCatchUps" : <NumberLong>,
+      "numCatchUpsSucceeded" : <NumberLong>,
+      "numCatchUpsAlreadyCaughtUp" : <NumberLong>,
+      "numCatchUpsSkipped" : <NumberLong>,
+      "numCatchUpsTimedOut" : <NumberLong>,
+      "numCatchUpsFailedWithError" :<NumberLong>,
+      "numCatchUpsFailedWithNewTerm" : <NumberLong>,
+      "numCatchUpsFailedWithReplSetAbortPrimaryCatchUpCmd" : <NumberLong>,
+      "averageCatchUpOps" : <double>
+   }
+
+.. serverstatus:: electionMetrics.stepUpCmd
+
+   Metrics on elections that were called by the :binary:`~bin.mongod`
+   instance as part of an election handoff when the primary stepped down.
+
+   The :serverstatus:`~electionMetrics.stepUpCmd` includes both the number of elections
+   called and the number of elections that succeeded.
+
+   .. versionadded:: 4.2.1 
+
+.. serverstatus:: electionMetrics.priorityTakeover
+
+   Metrics on elections that were called by the :binary:`~bin.mongod`
+   instance because its :rsconf:`~members[n].priority` is higher
+   than the primary's.
+
+   The :serverstatus:`electionMetrics.priorityTakeover` includes both the number of
+   elections called and the number of elections that succeeded.
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.catchUpTakeover
+
+   Metrics on elections called by the :binary:`~bin.mongod` instance
+   because it is more-up-to-date than the primary.
+
+   The :serverstatus:`~electionMetrics.catchUpTakeover` includes both the number of
+   elections called and the number of elections that succeeded.
+
+   .. seealso::
+
+      :rsconf:`settings.catchUpTakeoverDelayMillis`
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.electionTimeout
+
+   Metrics on elections called by the :binary:`~bin.mongod` instance
+   because it has not been able to reach the primary within
+   :rsconf:`settings.electionTimeoutMillis`.
+   
+   The :serverstatus:`~electionMetrics.electionTimeout` includes both the number of
+   elections called and the number of elections that succeeded.
+   
+   .. seealso::
+
+      :rsconf:`settings.electionTimeoutMillis`
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.freezeTimeout
+
+   Metrics on elections called by the :binary:`~bin.mongod` instance
+   after its :dbcommand:`freeze period <replSetFreeze>` (during which the
+   member cannot seek an election) has expired.
+   
+   The :serverstatus:`electionMetrics.freezeTimeout` includes both the number of
+   elections called and the number of elections that succeeded.
+
+   ..versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numStepDownsCausedByHigherTerm
+
+   Number of times the :binary:`~bin.mongod` instance stepped down
+   because it saw a higher term (i.e. other member/members have
+   participated in additional elections).
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUps
+
+   Number of elections where the :binary:`~bin.mongod` instance as the
+   newly-elected primary had to catch up to the highest known oplog
+   entry.
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUpsSucceeded
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary successfully caught up to the highest known
+   oplog entry.
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUpsAlreadyCaughtUp
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary concluded its catchup process because it was
+   already caught up when elected
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUpsSkipped
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary skipped the catchup process.
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUpsTimedOut
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary concluded its catchup process because of the
+   :rsconf:`settings.catchUpTimeoutMillis` limit.
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUpsFailedWithError
+
+   Number of times the newly-elected primary's catchup process failed
+   with an error.
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUpsFailedWithNewTerm
+
+   Number of times the newly-elected primary's catchup process
+   concluded because another member(s) had a higher term (i.e. other
+   member/members have participated in additional elections).
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.numCatchUpsFailedWithReplSetAbortPrimaryCatchUpCmd
+
+   Number of times the newly-elected primary's catchup process
+   concluded because the :binary:`~bin.mongod` received the
+   :dbcommand:`replSetAbortPrimaryCatchUp` command.
+
+   .. versionadded:: 4.2.1
+
+.. serverstatus:: electionMetrics.averageCatchUpOps
+
+   Average number of operations applied during the newly-elected
+   primary's catchup processes.
+
+   .. versionadded:: 4.2.1
+
+.. _server-status-extra-info:
+.. _server-status-extra_info:
+.. _server-status-extrainfo:
+
+extra_info
+~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "extra_info" : {
+      "note" : "fields vary by platform.",
+      "page_faults" : <num>
+   },
+
+.. serverstatus:: extra_info
+
+   A document that provides additional information regarding the
+   underlying system.
+
+.. serverstatus:: extra_info.note
+
+   A string with the text ``"fields vary by platform."``
+
+.. serverstatus:: extra_info.page_faults
+
+   The total number of page faults. The
+   :serverstatus:`extra_info.page_faults` counter may increase
+   dramatically during moments of poor performance and may correlate
+   with limited memory environments and larger data sets. Limited and
+   sporadic page faults do not necessarily indicate an issue.
+
+   Windows draws a distinction between "hard" page faults involving
+   disk I/O, and "soft" page faults that only require moving pages in
+   memory. MongoDB counts both hard and soft page faults in this
+   statistic.
+
+.. _server-status-flowControl:
+
+flowControl
+~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+.. code-block:: javascript
+
+   "flowControl" : {
+      "enabled" : <boolean>,
+      "targetRateLimit" : <int>,
+      "timeAcquiringMicros" : <NumberLong>,
+      "locksPerKiloOp" : <double>,  // Available in 4.4+. In 4.2, returned locksPerOp instead.
+      "sustainerRate" : <int>,
+      "isLagged" : <boolean>,
+      "isLaggedCount" : <int>,
+      "isLaggedTimeMicros" : <NumberLong>,
+   },
+
+.. serverstatus:: flowControl
+
+   A document that returns statistics on the :ref:`flow-control`. With
+   flow control enabled, as the :data:`majority commit
+   <replSetGetStatus.optimes.lastCommittedOpTime>` point lag grows
+   close to the :parameter:`flowControlTargetLagSeconds`, writes on the
+   primary must obtain tickets before taking locks. As such, the
+   metrics returned are meaningful when run on the primary.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.enabled
+
+   A boolean that indicates whether :ref:`flow-control` is
+   enabled(``true``) or disabled (``false``).
+   
+   See also :parameter:`enableFlowControl`.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.targetRateLimit
+
+   When run on the primary, the maximum number of tickets that can be
+   acquired per second.
+
+   When run on a secondary, the returned number is a placeholder.
+   
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.timeAcquiringMicros
+
+   When run on the primary, the total time write operations have waited
+   to acquire a ticket.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.locksPerKiloOp
+
+   .. note:: Starting in MongoDB 4.4
+
+
+      :serverstatus:`~flowControl.locksPerKiloOp` replaces
+      :serverstatus:`~flowControl.locksPerOp` field.
+      :serverstatus:`~flowControl.locksPerOp` field is available only
+      on version 4.2.
+
+   When run on the primary, an approximation of the number of locks
+   taken per 1000 operations.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: flowControl.locksPerOp
+
+   .. note:: Available on MongoDB 4.2 only
+
+
+      MongoDB 4.4 replaces :serverstatus:`~flowControl.locksPerOp` with
+      :serverstatus:`flowControl.locksPerKiloOp`.
+
+   When run on the primary, an approximation of the number of locks taken
+   per operation.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.sustainerRate
+
+   When run on the primary, an approximation of operations applied per
+   second by the secondary that is sustaining the commit point.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.isLagged
+
+   When run on the primary, a boolean that indicates whether flow
+   control has engaged. Flow control engages when the majority
+   committed lag is greater than some percentage of the configured
+   :parameter:`flowControlTargetLagSeconds`.
+
+   When run on a secondary, the returned boolean is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.isLaggedCount
+
+   When run on a primary, the number of times flow control has engaged
+   since the last restart. Flow control engages when the majority
+   committed lag is greater than some percentage of the
+   :parameter:`flowControlTargetLagSeconds`.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.isLaggedTimeMicros
+
+   When run on the primary, the amount of time flow control has spent
+   being engaged since the last restart. Flow control engages when the
+   majority committed lag is greater than some percentage of the
+   :parameter:`flowControlTargetLagSeconds`.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. _globalLock:
+.. _globallock:
+.. _global-lock:
+.. _server-status-globallock:
+.. _server-status-global-lock:
+
+globalLock
+~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "globalLock" : {
+      "totalTime" : <num>,
+      "currentQueue" : {
+         "total" : <num>,
+         "readers" : <num>,
+         "writers" : <num>
+      },
+      "activeClients" : {
+         "total" : <num>,
+         "readers" : <num>,
+         "writers" : <num>
+      }
+   },
+
+.. serverstatus:: globalLock
+
+   A document that reports on the database's lock state.
+
+   Generally, the :ref:`locks <locks>` document provides more detailed
+   data on lock uses.
+
+.. serverstatus:: globalLock.totalTime
+
+   The time, in microseconds, since the database last started and
+   created the :serverstatus:`globalLock`. This is roughly equivalent
+   to total server uptime.
+
+.. serverstatus:: globalLock.currentQueue
+
+   A document that provides information concerning the number of
+   operations queued because of a lock.
+
+.. serverstatus:: globalLock.currentQueue.total
+
+   The total number of operations queued waiting for the lock (i.e.,
+   the sum of :serverstatus:`globalLock.currentQueue.readers` and
+   :serverstatus:`globalLock.currentQueue.writers`).
+
+   A consistently small queue, particularly of shorter operations,
+   should cause no concern. The
+   :serverstatus:`globalLock.activeClients` readers and writers
+   information provides context for this data.
+
+.. serverstatus:: globalLock.currentQueue.readers
+
+   The number of operations that are currently queued and waiting for
+   the read lock. A consistently small read-queue, particularly of
+   shorter operations, should cause no concern.
+
+.. serverstatus:: globalLock.currentQueue.writers
+
+   The number of operations that are currently queued and waiting for
+   the write lock. A consistently small write-queue, particularly of
+   shorter operations, is no cause for concern.
+
+.. serverstatus:: globalLock.activeClients
+
+   A document that provides information about the number of connected
+   clients and the read and write operations performed by these clients.
+
+   Use this data to provide context for the
+   :serverstatus:`globalLock.currentQueue` data.
+
+.. serverstatus:: globalLock.activeClients.total
+
+   The total number of internal client connections to the database
+   including system threads as well as queued readers and writers.
+   This metric will be higher than the total of ``activeClients.readers``
+   and ``activeClients.writers`` due to the inclusion of system threads.
+
+.. serverstatus:: globalLock.activeClients.readers
+
+   The number of the active client connections performing read
+   operations.
+
+.. serverstatus:: globalLock.activeClients.writers
+
+   The number of active client connections performing write operations.
+
+.. _server-status-hedgingMetrics:
+
+hedgingMetrics
+~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+   For :binary:`~bin.mongos` instances only.
+
+.. code-block:: javascript
+
+   "hedgingMetrics" : {
+      "numTotalOperations" : <num>,
+      "numTotalHedgedOperations" : <num>,
+      "numAdvantageouslyHedgedOperations" : <num>
+   },
+
+.. serverstatus:: hedgingMetrics
+
+   Provides metrics on :ref:`hedged reads <mongos-hedged-reads>` for
+   the :binary:`~bin.mongos` instance.
+
+   .. versionadded:: 4.4
+
+      For :binary:`~bin.mongos` instances only.
+
+.. serverstatus:: hedgingMetrics.numTotalOperations
+
+   The total number of the operations issued with the :ref:`hedged read
+   option enabled <read-preference-hedged-read>` to this
+   :binary:`~bin.mongos` instance.
+
+   .. versionadded:: 4.4
+
+      For :binary:`~bin.mongos` instances only.
+
+.. serverstatus:: hedgingMetrics.numTotalHedgedOperations
+
+   The number of all operations for which the :binary:`~bin.mongos`
+   instance :ref:`hedged the read operation <mongos-hedged-reads>`;
+   i.e. sent the operation to an additional member of each queried
+   shard.
+
+   .. versionadded:: 4.4
+
+      For :binary:`~bin.mongos` instances only.
+
+.. serverstatus:: hedgingMetrics.numAdvantageouslyHedgedOperations
+
+   The total number of the operation where the additional read sent to
+   :ref:`hedge the read operation <mongos-hedged-reads>` fulfilled the
+   client request.
+
+   .. versionadded:: 4.4
+
+      For :binary:`~bin.mongos` instances only.
+
+.. _server-status-indexBulkBuilder:
+
+indexBulkBuilder
+~~~~~~~~~~~~~~~~
+.. code-block:: json
+
+   "indexBulkBuilder": {
+      "count": <long>, 
+      "resumed": <long>, 
+      "filesOpenedForExternalSort": <long>, 
+      "filesClosedForExternalSort": <long>, 
+   }
+
+.. serverstatus:: indexBulkBuilder
+
+   Provides metrics for index bulk builder operations.  Use these metrics to
+   diagnose index build issues with :dbcommand:`createIndexes`, collection 
+   cloning during initial sync, index builds that resume after startup, and
+   statistics on disk usage by the external sorter.
+
+.. serverstatus:: indexBulkBuilder.count
+
+   The number of instances of the bulk builder created.
+
+.. serverstatus:: indexBulkBuilder.filesClosedForExternalSort
+
+   The number of times the external sorter closed a file handle to spill data
+   to disk.  Combine this value with 
+   :serverstatus:`~indexBulkBuilder.filesOpenedForExternalSort` to determine
+   the number of open file handles in use by the external sorter.
+
+.. serverstatus:: indexBulkBuilder.filesOpenedForExternalSort
+
+   The number of times the external sorter opened a file handle to spill data
+   to disk.  Combine this value with 
+   :serverstatus:`~indexBulkBuilder.filesClosedForExternalSort` to determine
+   the number of open file handles in use by the external sorter.
+
+.. serverstatus:: indexBulkBuilder.resumed
+
+   The number of times the bulk builder was created for a resumable index build.
+
+.. _server-status-latchAnalysis:
+
+latchAnalysis
+~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+
+.. code-block:: javascript
+
+   "latchAnalysis" : {
+      <latch name> : {
+         "created" : <num>,
+         "destroyed" : <num>,
+         "acquired" : <num>,
+         "released" : <num>,
+         "contended" : <num>,
+         "hierarchicalAcquisitionLevelViolations" : {
+               "onAcquire" : <num>,
+               "onRelease" : <num>
+         }
+      },
+      ...
+
+.. serverstatus:: latchAnalysis
+
+   A document that reports on metrics related to internal locking
+   primitives (a.k.a. latches).
+
+   To return :serverstatus:`latchAnalysis` information, you must
+   explicitly specify the inclusion:
+
+   .. code-block:: javascript
+
+      db.runCommand( { serverStatus: 1, latchAnalysis: 1 } )
+
+   The ``latchAnalysis`` returns for each latch the ``<latch name>``
+   and the following associated metrics:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Metric
+        - Description
+
+      * - ``created``
+
+        - Number of times the latch was created.
+
+      * - ``destroyed``
+
+        - Number of times the latch was destroyed.
+
+      * - ``acquired``
+
+        - Number of times the latch was acquired.
+
+      * - ``released``
+
+        - Number of times the latch was released.
+
+      * - ``contended``
+        - Number of times the latch had contention.
+
+      * - ``hierarchicalAcquisitionLevelViolations``
+
+        - *Only returned if violations exist*
+
+          Contains the following fields:
+
+          - ``onAcquire``
+
+            - Number of times the latch hierarchy (i.e. the latch level
+              ordering) has been violated during latch acquisition.
+
+          - ``onRelease``
+
+            - Number of times the latch hierarchy (i.e. the latch level
+              ordering) has been violated during latch release.
+
+   .. versionadded:: 4.4
+
+.. _server-status-logicalSessions:
+
+logicalSessionRecordCache
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+.. code-block:: javascript
+
+   "logicalSessionRecordCache" : {
+      "activeSessionsCount" : <num>,
+      "sessionsCollectionJobCount" : <num>,
+      "lastSessionsCollectionJobDurationMillis" : <num>,
+      "lastSessionsCollectionJobTimestamp" : <Date>,
+      "lastSessionsCollectionJobEntriesRefreshed" : <num>,
+      "lastSessionsCollectionJobEntriesEnded" : <num>,
+      "lastSessionsCollectionJobCursorsClosed" : <num>,
+      "transactionReaperJobCount" : <num>,
+      "lastTransactionReaperJobDurationMillis" : <num>,
+      "lastTransactionReaperJobTimestamp" : <Date>,
+      "lastTransactionReaperJobEntriesCleanedUp" : <num>,
+      "sessionCatalogSize" : <num>   // Starting in MongoDB 4.2
+   },
+
+.. serverstatus:: logicalSessionRecordCache
+
+   Provides metrics around the caching of :doc:`server sessions
+   </reference/server-sessions/>`.
+
+.. serverstatus:: logicalSessionRecordCache.activeSessionsCount
+
+   The number of all active local sessions cached in memory by the
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` instance since the last
+   refresh period.
+
+   .. seealso::
+
+      - :pipeline:`$listLocalSessions`
+      - :parameter:`logicalSessionRefreshMillis`
+
+.. serverstatus:: logicalSessionRecordCache.sessionsCollectionJobCount
+
+   The number that tracks the number of times the refresh process has
+   run on the :data:`config.system.sessions` collection.
+
+   .. seealso::
+
+      :parameter:`logicalSessionRefreshMillis`
+
+.. serverstatus:: logicalSessionRecordCache.lastSessionsCollectionJobDurationMillis
+
+   The length in milliseconds of the last refresh.
+
+.. serverstatus:: logicalSessionRecordCache.lastSessionsCollectionJobTimestamp
+
+   The time at which the last refresh occurred.
+
+.. serverstatus:: logicalSessionRecordCache.lastSessionsCollectionJobEntriesRefreshed
+
+   The number of sessions that were refreshed during the last refresh.
+
+.. serverstatus:: logicalSessionRecordCache.lastSessionsCollectionJobEntriesEnded
+
+   The number of sessions that ended during the last refresh.
+
+.. serverstatus:: logicalSessionRecordCache.lastSessionsCollectionJobCursorsClosed
+
+   The number of cursors that were closed during the last
+   :data:`config.system.sessions` collection refresh.
+
+.. serverstatus:: logicalSessionRecordCache.transactionReaperJobCount
+
+   The number that tracks the number of times the transaction record
+   cleanup process has run on the :data:`config.transactions`
+   collection.
+
+.. serverstatus:: logicalSessionRecordCache.lastTransactionReaperJobDurationMillis
+
+   The length (in milliseconds) of the last transaction record cleanup.
+
+.. serverstatus:: logicalSessionRecordCache.lastTransactionReaperJobTimestamp
+
+   The time of the last transaction record cleanup.
+
+.. serverstatus:: logicalSessionRecordCache.lastTransactionReaperJobEntriesCleanedUp
+
+   The number of entries in the :data:`config.transactions` collection
+   that were deleted during the last transaction record cleanup.
+
+.. serverstatus:: logicalSessionRecordCache.sessionCatalogSize
+
+   - For a :binary:`~bin.mongod` instance, 
+        The size of its in-memory cache of the ``config.transactions``
+        entries. This corresponds to retryable writes
+        or transactions whose sessions have not expired within the
+        :parameter:`localLogicalSessionTimeoutMinutes`.
+
+   - For a :binary:`~bin.mongos` instance, 
+        The number of the in-memory cache of its sessions that have had
+        transactions within the most recent
+        :parameter:`localLogicalSessionTimeoutMinutes` interval.
+
+   .. versionadded:: 4.2
+
+.. _locks:
+.. _server-status-locks:
+
+locks
+~~~~~
+
+.. code-block:: javascript
+
+   "locks" : {
+      <type> : {
+            "acquireCount" : {
+               <mode> : NumberLong(<num>),
+               ...
+            },
+            "acquireWaitCount" : {
+               <mode> : NumberLong(<num>),
+               ...
+            },
+            "timeAcquiringMicros" : {
+               <mode> : NumberLong(<num>),
+               ...
+            },
+            "deadlockCount" : {
+               <mode> : NumberLong(<num>),
+               ...
+            }
+      },
+      ...
+
+
+.. serverstatus:: locks
+
+   A document that reports for each lock ``<type>``, data on lock
+   ``<modes>``.
+
+   The possible lock ``<types>`` are:
+
+   .. include:: /includes/fact-lock-types.rst
+
+   The possible ``<modes>`` are:
+
+   .. include:: /includes/fact-lock-modes.rst
+
+   All values are of the ``NumberLong()`` type.
+
+   .. COMMENT
+
+      these definitions are for the servers and not per operations;
+      as such, they differ from those in db.currentOp.txt
+
+.. serverstatus:: locks.<type>.acquireCount
+
+   Number of times the lock was acquired in the specified mode.
+
+.. serverstatus:: locks.<type>.acquireWaitCount
+
+   Number of times the :serverstatus:`locks.<type>.acquireCount` lock
+   acquisitions encountered waits because the locks were held in a
+   conflicting mode.
+
+.. serverstatus:: locks.<type>.timeAcquiringMicros
+
+   Cumulative wait time in microseconds for the lock acquisitions.
+
+   :serverstatus:`locks.<type>.timeAcquiringMicros` divided by
+   :serverstatus:`locks.<type>.acquireWaitCount` gives an
+   approximate average wait time for the particular lock mode.
+
+.. serverstatus:: locks.<type>.deadlockCount
+
+   Number of times the lock acquisitions encountered deadlocks.
+
+.. _server-status-mirroredReads:
+
+mirroredReads
+~~~~~~~~~~~~~
+
+|mongod-only|
+
+.. code-block:: javascript
+
+   "mirroredReads" : {
+         "seen" : <num>,
+         "sent" : <num>
+   },
+
+.. serverstatus:: mirroredReads
+
+   |mongod-only|
+
+   A document that reports on :ref:`mirrored reads <mirrored-reads>`.
+   To return :serverstatus:`mirroredReads` information, you must
+   explicitly specify the inclusion:
+   
+   .. code-block:: javascript
+   
+      db.runCommand( { serverStatus: 1, mirroredReads: 1 } )
+
+   .. serverstatus:: mirroredReads.seen
+
+      The number of :ref:`operations that support mirroring
+      <mirrored-reads-supported-operations>` received by this member.
+
+      .. seealso::
+
+         :parameter:`mirrorReads` Parameter
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: mirroredReads.sent
+
+      The number of mirrored reads sent by this member when primary.
+      For example, if a read is mirrored and sent to two secondaries,
+      the number of mirrored reads is ``2``.
+
+      .. seealso::
+
+         :parameter:`mirrorReads` Parameter
+
+      .. versionadded:: 4.4
+
+.. _server-status-network:
+
+network
+~~~~~~~
+
+.. code-block:: javascript
+
+   network : {
+      bytesIn : Long("<num>"),
+      bytesOut : Long("<num>"),
+      numSlowDNSOperations : Long("<num>"),
+      numSlowSSLOperations : Long("<num>"),
+      numRequests : Long("<num>"),
+      tcpFastOpen : {
+         serverSupported : <bool>,
+         clientSupported : <bool>,
+         accepted : Long("<num>")
+      },
+      compression : {
+         snappy : {
+            compressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") },
+            decompressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") }
+         }, 
+         zstd : { 
+            compressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") },
+            decompressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") }
+         },
+         zlib : {
+            compressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") },
+            decompressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") }
+         }
+      }
+   }
+
+.. serverstatus:: network
+
+   A document that reports data on MongoDB's network use. These
+   statistics measure *ingress connections* only, i.e. traffic
+   seen by the :binary:`~bin.mongod` / :binary:`~bin.mongos` over
+   network connections initiated by clients or other
+   :binary:`~bin.mongod` / :binary:`~bin.mongos` instances. Traffic from
+   network connections initiated by this :binary:`~bin.mongod` /
+   :binary:`~bin.mongos` instance (i.e. *egress connections*) is *not*
+   measured in these statistics.
+
+.. serverstatus:: network.bytesIn
+
+   The total number of bytes that the server has *received* over network
+   connections initiated by clients or other :binary:`~bin.mongod` /
+   :binary:`~bin.mongos` instances.
+
+.. serverstatus:: network.bytesOut
+
+   The total number of bytes that the server has *sent* over network
+   connections initiated by clients or other :binary:`~bin.mongod` /
+   :binary:`~bin.mongos` instances.
+
+.. serverstatus:: network.numSlowDNSOperations
+
+   .. versionadded:: 4.4
+
+   The total number of DNS resolution operations which took longer than
+   1 second.
+  
+.. serverstatus:: network.numSlowSSLOperations
+
+   .. versionadded:: 4.4
+
+   The total number of SSL handshake operations which took longer than
+   1 second.
+
+.. serverstatus:: network.numRequests
+
+   The total number of distinct requests that the server has received.
+   Use this value to provide context for the
+   :serverstatus:`network.bytesIn` and :serverstatus:`network.bytesOut`
+   values to ensure that MongoDB's network utilization is consistent
+   with expectations and application use.
+
+.. serverstatus:: network.tcpFastOpen
+   
+   .. versionadded:: 4.4
+
+   A document that reports data on MongoDB's support and use of 
+   TCP Fast Open (TFO) connections.
+
+.. serverstatus:: network.tcpFastOpen.kernelSetting
+
+   .. versionadded:: 4.4
+
+   *Linux only* 
+
+   Returns the value of ``/proc/sys/net/ipv4/tcp_fastopen``:
+
+   - ``0`` - TCP Fast Open is disabled on the system.
+
+   - ``1`` - TCP Fast Open is enabled for outgoing connections.
+
+   - ``2`` - TCP Fast Open is enabled for incoming connections.
+
+   - ``3`` - TCP Fast Open is enabled for incoming and outgoing 
+     connections. 
+
+.. serverstatus:: network.tcpFastOpen.serverSupported
+
+   .. versionadded:: 4.4
+
+   - Returns ``true`` if the host operating system supports inbound
+     TCP Fast Open (TFO) connections.
+
+   - Returns ``false`` if the host operating system does *not* support
+     inbound TCP Fast Open (TFO) connections.
+
+.. serverstatus:: network.tcpFastOpen.clientSupported
+
+   .. versionadded:: 4.4
+
+   - Returns ``true`` if the host operating system supports outbound
+     TCP Fast Open (TFO) connections.
+
+   - Returns ``false`` if the host operating system does *not* support
+     outbound TCP Fast Open (TFO) connections.
+
+.. serverstatus:: network.tcpFastOpen.accepted
+
+   .. versionadded:: 4.4
+
+   The total number of accepted incoming TCP Fast Open (TFO) connections
+   to the :binary:`~bin.mongod` or :binary:`~bin.mongos` since the 
+   ``mongod`` or ``mongos`` last started.
+
+.. serverstatus:: network.compression
+
+   A document that reports on the amount of data compressed and decompressed by 
+   each network compressor library.
+
+.. serverstatus:: network.compression.snappy 
+
+   A document that returns statistics on the number of bytes that have been 
+   compressed and decompressed with the :term:`snappy` library.
+
+.. serverstatus:: network.compression.zstd
+
+   A document that returns statistics on the number of bytes that have been 
+   compressed and decompressed with the :term:`zstd` library.
+
+.. serverstatus:: network.compression.zlib 
+
+   A document that returns statistics on the number of bytes that have been 
+   compressed and decompressed with the :term:`zlib` library.
+
+opLatencies
+~~~~~~~~~~~
+
+*Only for ``mongod`` instances*
+
+.. code-block:: javascript
+
+   "opLatencies" : {
+      "reads" : <document>,
+      "writes" : <document>,
+      "commands" : <document>
+   },
+
+.. serverstatus:: opLatencies
+
+   A document containing operation latencies for the instance as a whole.
+   See :ref:`latency-stats-document` for an description of this document.
+
+   Only :binary:`~bin.mongod` instances report
+   :serverstatus:`opLatencies`.
+
+.. serverstatus:: opLatencies.reads
+
+   Latency statistics for read requests.
+
+.. serverstatus:: opLatencies.writes
+
+   Latency statistics for write operations.
+
+.. serverstatus:: opLatencies.commands
+
+   Latency statistics for database commands.
+
+.. _server-status-opReadConcernCounters:
+
+opReadConcernCounters
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0.6
+
+*Only for mongod instances*
+
+.. code-block:: javascript
+
+   "opReadConcernCounters" : {
+      "available" : NumberLong(<num>),
+      "linearizable" : NumberLong(<num>),
+      "local" : NumberLong(<num>),
+      "majority" : NumberLong(<num>),
+      "snapshot" : NumberLong(<num>),
+      "none" :  NumberLong(<num>)
+   }
+
+.. serverstatus:: opReadConcernCounters
+
+   .. versionadded:: 4.0.6
+
+   A document that reports on the :ref:`read concern level
+   <read-concern-levels>` specified by query operations to the
+   :binary:`~bin.mongod` instance since it last started.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Specified ``w``
+        - Description
+
+      * - ``"available"``
+
+        - Number of query operations that specified read concern level
+          :readconcern:`"available"`.
+
+      * - ``"linearizable"``
+
+        - Number of query operations that specified read concern level
+          :readconcern:`"linearizable"`.
+
+      * - ``"local"``
+
+        - Number of query operations that specified read
+          concern level :readconcern:`"local"`.
+
+
+      * - ``"majority"``
+
+        - Number of query operations that specified read
+          concern level :readconcern:`"majority"`.
+
+
+      * - ``"snapshot"``
+
+        - Number of query operations that specified read
+          concern level :readconcern:`"snapshot"`.
+
+      * - ``"none"``
+
+        - Number of query operations that did not specify a read
+          concern level and instead used the default :ref:`read concern level
+          <read-concern-levels>`.
+
+   The sum of the :serverstatus:`opReadConcernCounters` equals
+   :serverstatus:`opcounters.query`.
+
+.. _server-status-opWriteConcernCounters:
+
+opWriteConcernCounters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Only for mongod instances*
+
+.. code-block:: javascript
+
+   "opWriteConcernCounters" : {
+      "insert" : {
+         "wmajority" : NumberLong(<num>),
+         "wnum" : {
+            "<num>" :  NumberLong(<num>),
+            ...
+         },
+         "wtag" : {
+            "<tag1>" :  NumberLong(<num>),
+            ...
+         },
+         "none" : NumberLong(<num>)
+      },
+      "update" : {
+         "wmajority" : NumberLong(<num>),
+         "wnum" : {
+            "<num>" :  NumberLong(<num>),
+         },
+         "wtag" : {
+            "<tag1>" :  NumberLong(<num>),
+            ...
+         },
+         "none" : NumberLong(<num>)
+      },
+      "delete" : {
+         "wmajority" :  NumberLong(<num>)
+         "wnum" : {
+            "<num>" :  NumberLong(<num>),
+            ...
+         },
+         "wtag" : {
+            "<tag1>" :  NumberLong(<num>),
+            ...
+         },
+         "none" : NumberLong(<num>)
+      }
+   }
+
+.. serverstatus:: opWriteConcernCounters
+
+   A document that reports on the :doc:`write concerns
+   </reference/write-concern>` specified by write operations to the
+   :binary:`~bin.mongod` instance since it last started.
+
+   More specifically, the :serverstatus:`opWriteConcernCounters`
+   reports on the :ref:`w: \<value\> <wc-w>` specified by the write
+   operations. The journal flag option (``j``) and the timeout option
+   (``wtimeout``) of the write concerns does not affect the count. The
+   count is incremented even if the operation times out.
+
+   .. note::
+
+      .. include:: /includes/extracts/serverStatus-opWriteConcernCounters.rst
+
+.. serverstatus:: opWriteConcernCounters.insert
+
+   A document that reports on the :ref:`w: \<value\> <wc-w>` specified
+   by insert operations to the :binary:`~bin.mongod` instance since it
+   last started:
+
+   .. note::
+
+      .. include:: /includes/extracts/serverStatus-opWriteConcernCounters.rst
+
+   .. code-block:: javascript
+   
+      "insert" : {
+         "wmajority" : NumberLong(<num>),
+         "wnum" : {
+            "<num>" :  NumberLong(<num>),
+            ...
+         },
+         "wtag" : {
+            "<tag1>" :  NumberLong(<num>),
+            ...
+         },
+         "none" : NumberLong(<num>)
+      },
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Specified ``w``
+        - Description
+
+      * - ``"wmajority"``
+
+        - Number of insert operations that specified
+          :writeconcern:`w: "majority" <"majority">`.
+
+      * - ``"wnum"``
+
+        - Number of insert operations that specified
+          :writeconcern:`w: \<num\> <\<number\>>`. The counts are
+          grouped by the specific``<num>``.
+
+      * - ``"wtag"``
+
+        - Number of insert operations that specified
+          :writeconcern:`w: \<tag\> <\<custom write concern name\>>`.
+          The counts are grouped by the specific ``<tag>``.
+
+      * - ``"none"``
+
+        - Number of insert operations that did not specify ``w`` value.
+          These operations use the default ``w`` value of ``1``.
+
+   The sum of the :serverstatus:`opWriteConcernCounters.insert` equals
+   :serverstatus:`opcounters.insert`.
+
+.. serverstatus:: opWriteConcernCounters.update
+
+   A document that reports on the :ref:`w: \<value\> <wc-w>` specified
+   by update operations to the :binary:`~bin.mongod` instance since it
+   last started:
+
+   .. note::
+
+      .. include:: /includes/extracts/serverStatus-opWriteConcernCounters.rst
+
+   .. code-block:: javascript
+   
+      "update" : {
+         "wmajority" : NumberLong(<num>),
+         "wnum" : {
+            "<num>" :  NumberLong(<num>),
+         },
+         "wtag" : {
+            "<tag1>" :  NumberLong(<num>),
+            ...
+         },
+         "none" : NumberLong(<num>)
+      },
+      
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Specified ``w``
+        - Description
+
+      * - ``"wmajority"``
+
+        - Number of update operations that specified
+          :writeconcern:`w: "majority" <"majority">`.
+
+      * - ``"wnum"``
+
+        - Number of update operations that specified
+          :writeconcern:`w: \<num\> <\<number\>>`. The counts are
+          grouped by the specific ``<num>``.
+
+      * - ``"wtag"``
+
+        - Number of update operations that specified
+          :writeconcern:`w: \<tag\> <\<custom write concern name\>>`.
+          The counts are grouped by the specific ``<tag>``.
+
+      * - ``"none"``
+
+        - Number of update operations that did not specify ``w`` value.
+          These operations use the default ``w`` value of ``1``.
+
+   The sum of the :serverstatus:`opWriteConcernCounters.update` equals
+   :serverstatus:`opcounters.update`.
+
+.. serverstatus:: opWriteConcernCounters.delete
+
+   A document that reports on the :ref:`w: \<value\> <wc-w>` specified
+   by delete operations to the :binary:`~bin.mongod` instance since it
+   last started:
+
+   .. note::
+
+      .. include:: /includes/extracts/serverStatus-opWriteConcernCounters.rst
+
+   .. code-block:: javascript
+   
+      "delete" : {
+         "wmajority" :  NumberLong(<num>)
+         "wnum" : {
+            "<num>" :  NumberLong(<num>),
+            ...
+         },
+         "wtag" : {
+            "<tag1>" :  NumberLong(<num>),
+            ...
+         },
+         "none" : NumberLong(<num>)
+      }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Specified ``w``
+        - Description
+
+      * - ``"wmajority"``
+
+        - Number of delete operations that specified
+          :writeconcern:`w: "majority" <"majority">`.
+
+      * - ``"wnum"``
+
+        - Number of delete operations that specified
+          :writeconcern:`w: \<num\> <\<number\>>`. The counts are
+          grouped by the specific ``<num>``.
+
+      * - ``"wtag"``
+
+        - Number of delete operations that specified
+          :writeconcern:`w: \<tag\> <\<custom write concern name\>>`.
+          The counts are grouped by the specific ``<tag>``.
+
+      * - ``"none"``
+
+        - Number of delete operations that did not specify ``w`` value.
+          These operations use the default ``w`` value of ``1``.
+
+   The sum of the :serverstatus:`opWriteConcernCounters.delete` equals
+   :serverstatus:`opcounters.delete`.
+
+.. _server-status-opcounters:
+
+opcounters
+~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
+.. code-block:: javascript
+
+   "opcounters" : {
+      "insert" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "query" : NumberLong(<num>),   // Starting in MongoDB 4.2, type is NumberLong
+      "update" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "delete" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "getmore" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
+      "command" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
+   },
+
+.. serverstatus:: opcounters
+
+   A document that reports on database operations by type since the
+   :binary:`~bin.mongod` instance last started.
+
+   These numbers will grow over time until next restart. Analyze these
+   values over time to track database utilization.
+
+   .. note::
+
+      The data in :serverstatus:`opcounters` treats operations
+      that affect multiple documents, such as bulk insert or
+      multi-update operations, as a single operation. See
+      :serverstatus:`metrics.document` for more granular
+      document-level operation tracking.
+
+      Additionally, these values reflect received operations, and
+      increment even when operations are not successful.
+
+.. serverstatus:: opcounters.insert
+
+   The total number of insert operations received since the
+   :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+   
+.. serverstatus:: opcounters.query
+
+   The total number of queries received since the :binary:`~bin.mongod`
+   instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
+.. serverstatus:: opcounters.update
+
+   The total number of update operations received since the
+   :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
+.. serverstatus:: opcounters.delete
+
+   The total number of delete operations since the :binary:`~bin.mongod`
+   instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
+.. serverstatus:: opcounters.getmore
+
+   The total number of :dbcommand:`getMore` operations since the
+   :binary:`~bin.mongod` instance last started. This counter can be high
+   even if the query count is low. Secondary nodes send
+   :dbcommand:`getMore` operations as part of the replication process.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
+.. serverstatus:: opcounters.command
+
+   The total number of commands issued to the database since the
+   :binary:`~bin.mongod` instance last started.
+
+   :serverstatus:`opcounters.command` counts all :doc:`commands
+   </reference/command>` **except** the write commands:
+   :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
+.. serverstatus:: opcounters.deprecated
+
+   This section only appears in the :method:`db.serverStatus()` output
+   when one of the following, deprecated opcodes has been used:
+   
+   .. code-block:: javascript
+
+      "deprecated": {
+         "opQuery": NumberLong(<num>),
+         "opGetMore": NumberLong(<num>),
+         "opKillCursors": NumberLong(<num>),
+         "opDelete": NumberLong(<num>),
+         "opUpdate": NumberLong(<num>),
+         "opInsert": NumberLong(<num>),
+         "total": NumberLong(<num>),
+      }
+
+   These opcodes were deprecated in MongoDB 4.4.7 and support for these
+   opcodes is removed in MongoDB 5.1. Starting in MongoDB 5.1,
+   :binary:`~bin.mongod` refuses requests that use a deprecated
+   opcode and increments the corresponding counter.
+
+   ``OP_QUERY`` is an exception to the general rule.
+   :binary:`~bin.mongod` continues to support ``hello`` and
+   ``isMaster`` requests that use ``OP_QUERY``. :binary:`~bin.mongod`
+   refuses any other ``OP_QUERY`` requests.
+
+   The counters are reset when :binary:`~bin.mongod` starts.
+
+.. _server-status-opcountersrepl:
+.. _server-status-opcounters-repl:
+
+opcountersRepl
+~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. code-block:: javascript
+
+   "opcountersRepl" : {
+      "insert" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "query" : NumberLong(<num>),   // Starting in MongoDB 4.2, type is NumberLong
+      "update" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "delete" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "getmore" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
+      "command" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
+   },
+
+.. serverstatus:: opcountersRepl
+
+   A document that reports on database replication operations by type
+   since the :binary:`~bin.mongod` instance last started.
+
+   These values only appear when the current host is a member of a
+   replica set.
+
+   These values will differ from the :serverstatus:`opcounters` values
+   because of how MongoDB serializes operations during replication.
+   See :doc:`/replication` for more information on replication.
+
+   These numbers will grow over time in response to database use until
+   next restart. Analyze these values over time to track database
+   utilization.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. serverstatus:: opcountersRepl.insert
+
+   The total number of replicated insert operations since the
+   :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. serverstatus:: opcountersRepl.query
+
+   The total number of replicated queries since the :binary:`~bin.mongod`
+   instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. serverstatus:: opcountersRepl.update
+
+   The total number of replicated update operations since the
+   :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. serverstatus:: opcountersRepl.delete
+
+   The total number of replicated delete operations since the
+   :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. serverstatus:: opcountersRepl.getmore
+
+   The total number of :dbcommand:`getMore` operations since the
+   :binary:`~bin.mongod` instance last started. This counter can be high
+   even if the query count is low. Secondary nodes send
+   :dbcommand:`getMore` operations as part of the replication process.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. serverstatus:: opcountersRepl.command
+
+   The total number of replicated commands issued to the database since
+   the :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
+.. _server-status-oplogTruncation:
+
+oplogTruncation
+~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "oplogTruncation" : {
+      "totalTimeProcessingMicros" : <NumberLong>,
+      "processingMethod" : <string>,
+      "oplogMinRetentionHours" : <double>
+      "totalTimeTruncatingMicros" : <NumberLong>,
+      "truncateCount" : <NumberLong>
+   },
+
+.. serverstatus:: oplogTruncation
+
+   A document that reports on :doc:`oplog </core/replica-set-oplog>`
+   truncations.
+
+   The field only appears when the current instance is a member of a
+   replica set and uses either the :doc:`/core/wiredtiger` or
+   :doc:`/core/inmemory`.
+
+   .. versionchanged:: 4.4
+
+       Also available in :doc:`/core/inmemory`.
+
+   .. versionadded:: 4.2.1
+
+      Available in the :doc:`/core/wiredtiger`.
+
+.. serverstatus:: oplogTruncation.totalTimeProcessingMicros
+
+   The total time taken, in microseconds, to scan or sample the oplog
+   to determine the oplog truncation points.
+   
+   :serverstatus:`~oplogTruncation.totalTimeProcessingMicros` is only
+   meaningful if the :binary:`~bin.mongod` instance started on existing
+   data files (i.e. not meaningful for :doc:`/core/inmemory`).
+
+   See :serverstatus:`oplogTruncation.processingMethod`
+
+   .. versionchanged:: 4.4
+
+       Also available in :doc:`/core/inmemory`.
+
+   .. versionadded:: 4.2.1
+
+      Available in the :doc:`/core/wiredtiger`.
+
+.. serverstatus:: oplogTruncation.processingMethod
+
+   The method used at start up to determine the oplog truncation points.
+   The value can be either ``"sampling"`` or ``"scanning"``.
+ 
+   :serverstatus:`~oplogTruncation.processingMethod` is only meaningful
+   if the :binary:`~bin.mongod` instance started on existing data files
+   (i.e. not meaningful for :doc:`/core/inmemory`).
+ 
+   .. versionchanged:: 4.4
+
+       Also available in :doc:`/core/inmemory`.
+
+   .. versionadded:: 4.2.1
+
+      Available in the :doc:`/core/wiredtiger`.
+
+.. serverstatus:: oplogTruncation.oplogMinRetentionHours
+
+   .. versionadded:: 4.4
+
+      The minimum retention period for the oplog in hours. If the oplog
+      has exceeded the oplog size, the :binary:`~bin.mongod` only
+      truncates oplog entries older than the configured retention
+      value.
+
+   Only visible if the :binary:`~bin.mongod` is a member of a replica
+   set *and*:
+   
+   - The :binary:`~bin.mongod` was started with the 
+     :option:`--oplogMinRetentionHours 
+     <mongod --oplogMinRetentionHours>` command line option *or* the 
+     :setting:`storage.oplogMinRetentionHours` configuration file 
+     option, 
+     
+     *or*
+
+   - The minimum retention period was configured after startup using
+     :dbcommand:`replSetResizeOplog`.
+     
+.. serverstatus:: oplogTruncation.totalTimeTruncatingMicros
+
+   The cumulative time spent, in microseconds, performing oplog truncations.
+
+   .. versionchanged:: 4.4
+
+       Also available in :doc:`/core/inmemory`.
+
+   .. versionadded:: 4.2.1
+
+      Available in the :doc:`/core/wiredtiger`.
+
+.. serverstatus:: oplogTruncation.truncateCount
+
+
+   The cumulative number of oplog truncations.
+
+   .. versionchanged:: 4.4
+
+       Also available in :doc:`/core/inmemory`.
+
+   .. versionadded:: 4.2.1
+
+      Available in the :doc:`/core/wiredtiger`.
+
+.. _server-status-repl:
+
+repl
+~~~~
+
+.. code-block:: javascript
+
+   "repl" : {
+      "hosts" : [
+            <string>,
+            <string>,
+            <string>
+      ],
+      "setName" : <string>,
+      "setVersion" : <num>,
+      "ismaster" : <boolean>,
+      "secondary" : <boolean>,
+      "primary" : <hostname>,
+      "me" : <hostname>,
+      "electionId" : ObjectId(""),
+      "rbid" : <num>,
+      "replicationProgress" : [
+            {
+               "rid" : <ObjectId>,
+               "optime" : { ts: <timestamp>, term: <num> },
+               "host" : <hostname>,
+               "memberId" : <num>
+            },
+           ...
+      ]
+   }
+
+.. serverstatus:: repl
+
+   A document that reports on the replica set configuration.
+   :serverstatus:`repl` only appear when the current host is a replica
+   set. See :doc:`/replication` for more information on replication.
+
+.. serverstatus:: repl.hosts
+
+   An array of the current replica set members' hostname and port
+   information (``"host:port"``).
+
+.. serverstatus:: repl.setName
+
+   A string with the name of the current replica set. This value
+   reflects the :option:`--replSet <mongod --replSet>` command line
+   argument, or :setting:`~replication.replSetName` value in the
+   configuration file.
+
+.. serverstatus:: repl.ismaster
+
+   A boolean that indicates whether the current node is the
+   :term:`primary` of the replica set.
+
+.. serverstatus:: repl.secondary
+
+   A boolean that indicates whether the current node is a
+   :term:`secondary` member of the replica set.
+
+.. serverstatus:: repl.primary
+
+   The hostname and port information (``"host:port"``) of the current
+   :term:`primary` member of the replica set.
+
+.. serverstatus:: repl.me
+
+    The hostname and port information (``"host:port"``) for the current
+    member of the replica set.
+
+.. serverstatus:: repl.rbid
+
+   :term:`Rollback <rollback>` identifier. Used to determine if a rollback has
+   happened for this :binary:`~bin.mongod` instance.
+
+.. serverstatus:: repl.replicationProgress
+
+   An array with one document for each member of the replica set that
+   reports replication process to this member. Typically this is the
+   primary, or secondaries if using chained replication.
+
+   To include this output, you must pass the ``repl`` option to the
+   :dbcommand:`serverStatus`, as in the following:
+
+   .. code-block:: javascript
+
+      db.serverStatus({ "repl": 1 })
+      db.runCommand({ "serverStatus": 1, "repl": 1 })
+
+   The content of the :serverstatus:`repl.replicationProgress` section
+   depends on the source of each member's replication. This section
+   supports internal operation and is for internal and diagnostic use only.
+
+.. serverstatus:: repl.replicationProgress[n].rid
+
+   An ObjectId used as an ID for the members of the replica
+   set. For internal use only.
+
+.. serverstatus:: repl.replicationProgress[n].optime
+
+   Information regarding the last operation from the :term:`oplog` that
+   the member applied, as reported from this member.
+
+.. serverstatus:: repl.replicationProgress[n].host
+
+   The name of the host in ``[hostname]:[port]`` format for the member
+   of the replica set.
+
+.. serverstatus:: repl.replicationProgress[n].memberID
+
+   The integer identifier for this member of the replica set.
+.. _server-status-security:
+
+security
+~~~~~~~~
+
+.. code-block:: javascript
+
+   "security" : {
+      "authentication" : {
+         "mechanisms" : {
+            "MONGODB-X509" : {
+               "speculativeAuthenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               },
+               "authenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               }
+            },
+            "SCRAM-SHA-1" : {
+               "speculativeAuthenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               },
+               "authenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               }
+            },
+            "SCRAM-SHA-256" : {
+               "speculativeAuthenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               },
+               "authenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               }
+             }
+          }
+        },
+        "SSLServerSubjectName": <string>,
+        "SSLServerHasCertificateAuthority": <boolean>,
+        "SSLServerCertificateExpirationDate": <date>
+   },
+
+.. serverstatus:: security
+
+   A document that reports on:
+   
+   - The number of times a given authentication mechanism has been used
+     to authenticate against the
+     :binary:`~bin.mongod` / :binary:`~bin.mongos` instance. (New in MongoDB 4.4)
+
+   - The :binary:`mongod` / :binary:`mongos` instance's TLS/SSL
+     certificate. (Only appears for :binary:`~bin.mongod` or
+     :binary:`~bin.mongos` instance with support for TLS)
+
+   .. serverstatus:: security.authentication.mechanisms
+
+      A document that reports on the number of times a given
+      authentication mechanism has been used to authenticate against the
+      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance. The values
+      in the document distinguish standard authentication and
+      speculative authentication. [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+      .. note::
+
+         The fields in the ``mechanisms`` document depend on the
+         configuration of the :parameter:`authenticationMechanisms`
+         parameter. The ``mechanisms`` document includes a field for
+         each authentication mechanism supported by your
+         :binary:`~bin.mongod` / :binary:`~bin.mongos` instance.
+         
+         The following example shows the shape of the ``mechanisms``
+         document for a deployment that only supports :doc:`x.509
+         </core/security-x.509/>` authentication.
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509
+
+      A document that reports on the number of times
+      :doc:`x.509 </core/security-x.509/>` has been used to
+      authenticate against the
+      :binary:`~bin.mongod` / :binary:`~bin.mongos` instance.
+
+      Includes total number of ``x.509`` authentication attempts and the
+      subset of those attempts which were speculative.
+      [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.speculativeAuthenticate.received
+
+      Number of speculative authentication attempts received using
+      :doc:`x.509 </core/security-x.509/>`. Includes both successful and
+      failed speculative authentication attempts. [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.speculativeAuthenticate.successful
+
+      Number of successful speculative authentication attempts received
+      using :doc:`x.509 </core/security-x.509/>`. [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.authenticate.received
+
+      Number of successful and failed authentication attempts
+      received using :doc:`x.509 </core/security-x.509/>`. This value
+      includes speculative authentication attempts received using x.509.
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.authenticate.successful
+
+      Number of successful authentication attempts received using
+      :doc:`x.509 </core/security-x.509/>`. This value includes
+      successful speculative authentication attempts which used x.509.
+
+      .. versionadded:: 4.4
+
+   .. [#speculative-auth]
+
+      Speculative authentication minimizes the number of network round
+      trips during the authentication process to optimize performance.
+
+   .. serverstatus:: security.SSLServerSubjectName
+
+      The subject name associated with the
+      :binary:`mongod` / :binary:`mongos` instance's TLS/SSL
+      certificate.
+
+   .. serverstatus:: security.SSLServerHasCertificateAuthority
+
+      A boolean that is:
+
+      - ``true`` when the :binary:`mongod` / :binary:`mongos`
+        instance's TLS/SSL certificate is associated with a certificate
+        authority.
+
+      - ``false`` when the TLS/SSL certificate is self-signed.
+
+   .. serverstatus:: security.SSLServerCertificateExpirationDate
+
+      The expiration date and time of the
+      :binary:`mongod` / :binary:`mongos` instance's TLS/SSL
+      certificate.
+
+.. _server-status-sharding:
+
+sharding
+~~~~~~~~
+
+.. code-block:: javascript
+
+   {
+      "configsvrConnectionString" : "csRS/cfg1.example.net:27019,cfg2.example.net:27019,cfg2.example.net:27019",
+      "lastSeenConfigServerOpTime" : {
+         "ts" : Timestamp(1517462189, 1),
+         "t" : NumberLong(1)
+      },
+      "maxChunkSizeInBytes" : NumberLong(67108864)
+   }
+
+.. serverstatus:: sharding
+
+   A document with data regarding the sharded cluster. The
+   :serverstatus:`~sharding.lastSeenConfigServerOpTime` is present only
+   for a :binary:`~bin.mongos` or a shard member, not for a config
+   server.
+
+.. serverstatus:: sharding.configsvrConnectionString
+
+   The connection string for the config servers.
+
+.. serverstatus:: sharding.lastSeenConfigServerOpTime
+
+   The latest optime of the CSRS primary that the :program:`mongos` or
+   the shard member has seen. The optime document includes:
+
+   .. include:: /includes/fact-optime.rst
+
+   The :serverstatus:`~sharding.lastSeenConfigServerOpTime` is present
+   only if the sharded cluster uses CSRS.
+
+.. serverstatus:: sharding.maxChunkSizeInBytes
+
+   .. versionadded:: 3.6
+
+   The maximum :ref:`size limit <sharding-chunk-size>` for a chunk. If
+   the chunk size has been updated recently on the config server, the
+   :serverstatus:`~sharding.maxChunkSizeInBytes` may not reflect the
+   most recent value.
+
+.. _server-status-sharding-statistics:
+
+shardingStatistics
+~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   tabs:
+   
+      - id: shard
+        name: Shard
+        content: |
+
+         When run on a member of a shard:
+
+         .. code-block:: javascript
+
+            "shardingStatistics" : {
+               "countStaleConfigErrors" : NumberLong(<num>),
+               "countDonorMoveChunkStarted" : NumberLong(<num>),
+               "totalDonorChunkCloneTimeMillis" : NumberLong(<num>),
+               "totalCriticalSectionCommitTimeMillis" : NumberLong(<num>),
+               "totalCriticalSectionTimeMillis" : NumberLong(<num>),
+               "countDocsClonedOnRecipient" : NumberLong(<num>),
+               "countDocsClonedOnDonor" : NumberLong(<num>),
+               "countRecipientMoveChunkStarted" : NumberLong(<num>),
+               "countDocsDeletedOnDonor" : NumberLong(<num>),
+               "countDonorMoveChunkLockTimeout" : NumberLong(<num>),
+               "unfinishedMigrationFromPreviousPrimary" : NumberLong(<num>),
+               "catalogCache" : {
+                  "numDatabaseEntries" : NumberLong(<num>),
+                  "numCollectionEntries" : NumberLong(<num>),
+                  "countStaleConfigErrors" : NumberLong(<num>),
+                  "totalRefreshWaitTimeMicros" : NumberLong(<num>),
+                  "numActiveIncrementalRefreshes" : NumberLong(<num>),
+                  "countIncrementalRefreshesStarted" : NumberLong(<num>),
+                  "numActiveFullRefreshes" : NumberLong(<num>),
+                  "countFullRefreshesStarted" : NumberLong(<num>),
+                  "countFailedRefreshes" : NumberLong(<num>)
+               },
+               "rangeDeleterTasks" : <num>
+            },
+
+      - id: mongos
+        name: mongos
+        content: |
+
+         When run on a :binary:`~bin.mongos`:
+
+         .. code-block:: javascript
+
+            "shardingStatistics" : {
+               "numHostsTargeted": {
+                  "find" : {
+                     "allShards": NumberLong(<num>),
+                     "manyShards": NumberLong(<num>),
+                     "oneShard": NumberLong(<num>),
+                     "unsharded": NumberLong(<num>) 
+                           },
+                  "insert": { 
+                     "allShards": NumberLong(<num>),
+                     "manyShards": NumberLong(<num>),
+                     "oneShard": NumberLong(<num>),
+                     "unsharded": NumberLong(<num>) 
+                           },
+                  "update": { 
+                     "allShards": NumberLong(<num>),
+                     "manyShards": NumberLong(<num>),
+                     "oneShard": NumberLong(<num>),
+                     "unsharded": NumberLong(<num>) 
+                           },
+                  "delete": { 
+                     "allShards": NumberLong(<num>),
+                     "manyShards": NumberLong(<num>),
+                     "oneShard": NumberLong(<num>),
+                     "unsharded": NumberLong(<num>) 
+                           },
+                  "aggregate": { 
+                     "allShards": NumberLong(<num>),
+                     "manyShards": NumberLong(<num>),
+                     "oneShard": NumberLong(<num>),
+                     "unsharded": NumberLong(<num>) 
+                           }
+                  }
+               },
+               catalogCache : {
+                  numDatabaseEntries : Long("<num>"),
+                  numCollectionEntries : Long("<num>"),
+                  countStaleConfigErrors : Long("<num>"),
+                  totalRefreshWaitTimeMicros : Long("<num>"),
+                  numActiveIncrementalRefreshes : Long("<num>"),
+                  countIncrementalRefreshesStarted : Long("<num>"),
+                  numActiveFullRefreshes : Long("<num>"),
+                  countFullRefreshesStarted : Long("<num>"),
+                  countFailedRefreshes : Long("<num>")
+               }
+            },
+
+.. serverstatus:: shardingStatistics
+
+   A document which contains metrics on metadata refresh on sharded
+   clusters.
+
+.. serverstatus:: shardingStatistics.countStaleConfigErrors
+
+   The total number of times that threads hit stale config exception.
+   Since a stale config exception triggers a refresh of the metadata,
+   this number is roughly proportional to the number of metadata
+   refreshes.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.countDonorMoveChunkStarted
+
+   The total number of times that MongoDB starts the
+   :dbcommand:`moveChunk` command on the primary node of the shard as
+   part of the :ref:`chunk migration process
+   <chunk-migration-procedure>`. This increasing number does not
+   consider whether the chunk migrations succeed or not.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.totalDonorChunkCloneTimeMillis
+
+   The cumulative time, in milliseconds, that the :ref:`clone phase of
+   the chunk migrations <chunk-migration-procedure>` takes on the
+   primary node of the shard. Specifically, for each migration on this
+   shard, the tracked time starts with the :dbcommand:`moveChunk`
+   command and ends before the destination shard enters a ``catchup``
+   phase to apply changes that occurred during the :ref:`chunk
+   migrations <chunk-migration-procedure>`.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.totalCriticalSectionCommitTimeMillis
+
+   The cumulative time, in milliseconds, taken by the :ref:`update
+   metadata phase of the chunk migrations <chunk-migration-procedure>`
+   from this shard, of which this node is a member. During the update
+   metadata phase, all operations on the collection are blocked.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.totalCriticalSectionTimeMillis
+
+   The cumulative time, in milliseconds, that the :ref:`catch-up
+   phase and the update metadata phase of the chunk migrations
+   <chunk-migration-procedure>` takes on the primary node of the shard. 
+
+   To calculate the duration of the catch-up phase, subtract
+   :serverstatus:`~shardingStatistics.totalCriticalSectionCommitTimeMillis` from
+   :serverstatus:`~shardingStatistics.totalCriticalSectionTimeMillis`
+
+   .. code-block:: none
+
+      totalCriticalSectionTimeMillis - totalCriticalSectionCommitTimeMillis
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.countDocsClonedOnRecipient
+
+   The cumulative, always-increasing count of documents that MongoDB
+   clones on the primary node of the recipient shard.
+
+   *Only present when run on a shard.*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.countDocsClonedOnDonor
+
+   The cumulative, always-increasing count of documents that MongoDB
+   clones on the primary node of the donor shard. 
+
+   *Only present when run on a shard.*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.countRecipientMoveChunkStarted
+
+   Cumulative, always-increasing count of chunks this member, acting as
+   the primary of the recipient shard, has started to receive (whether
+   the move has succeeded or not.
+
+   *Only present when run on a shard.*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.countDocsDeletedOnDonor
+
+   The cumulative, always-increasing count of documents that MongoDB
+   deletes on the primary node of the donor shard during chunk
+   migration. 
+
+   *Only present when run on a shard.*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.countDonorMoveChunkLockTimeout
+
+   The cumulative, always-increasing count of chunk migrations that MongoDB
+   aborts on the primary node of the donor shard due to lock acquisition
+   timeouts.
+
+   *Only present when run on a shard.*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.unfinishedMigrationFromPreviousPrimary
+
+   The number of unfinished migrations left by the previous
+   primary after an election. This value is only updated after
+   the newly-elected :binary:`~bin.mongod` completes the transition to
+   primary.
+
+   *Only present when run on a shard.*
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: shardingStatistics.catalogCache
+
+   A document with statistics about the cluster's routing information cache.
+
+.. serverstatus:: shardingStatistics.catalogCache.numDatabaseEntries
+
+   The total number of database entries that are currently in the
+   catalog cache.
+
+.. serverstatus:: shardingStatistics.catalogCache.numCollectionEntries
+
+   The total number of collection entries (across all databases) that
+   are currently in the catalog cache.
+
+.. serverstatus:: shardingStatistics.catalogCache.countStaleConfigErrors
+
+   The total number of times that threads hit stale config exception. A
+   stale config exception triggers a refresh of the metadata.
+
+.. serverstatus:: shardingStatistics.catalogCache.totalRefreshWaitTimeMicros
+
+   The cumulative time, in microseconds, that threads had to wait for a
+   refresh of the metadata.
+
+.. serverstatus:: shardingStatistics.catalogCache.numActiveIncrementalRefreshes
+
+   The number of incremental catalog cache refreshes that are currently
+   waiting to complete.
+
+.. serverstatus:: shardingStatistics.countIncrementalRefreshesStarted
+
+   The cumulative number of incremental refreshes that have started.
+
+.. serverstatus:: shardingStatistics.catalogCache.numActiveFullRefreshes
+
+   The number of full catalog cache refreshes that are currently
+   waiting to complete.
+
+.. serverstatus:: shardingStatistics.catalogCache.countFullRefreshesStarted
+
+   The cumulative number of full refreshes that have started.
+
+.. serverstatus:: shardingStatistics.catalogCache.countFailedRefreshes
+
+   The cumulative number of full or incremental refreshes that have failed.
+
+.. serverstatus:: shardingStatistics.rangeDeleterTasks
+
+   The current total of the queued chunk range deletion tasks that are
+   ready to run or are running as part of the :ref:`chunk migration
+   process <chunk-migration-procedure>`.
+
+   Inspect the documents in the :data:`config.rangeDeletions` collection
+   for information about the chunk ranges pending deletion from a shard
+   after a chunk migration.
+
+   *Only present when run on a shard member.*
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: shardingStatistics.numHostsTargeted
+
+   Indicates the number of shards targeted for ``CRUD`` operations and 
+   aggregation commands. When a ``CRUD`` operation or aggregation
+   command is run, the following metrics will be incremented.
+
+   .. include:: /includes/fact-server-status-num-hosts-targeted.rst
+
+   .. note:: 
+
+      Running the :dbcommand:`serverStatus` command on :binary:`mongos` 
+      will provide insight into the CRUD and aggregation operations that
+      run on a sharded cluster.
+
+      Multi-shard operations can either be 
+      scatter-gather or shard specific. Multi-shard scatter-gather 
+      operations can consume more resources. By using the 
+      :serverstatus:`shardingStatistics.numHostsTargeted`
+      metrics you can tune the aggregation queries that run on a 
+      sharded cluster.
+
+shardedIndexConsistency
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "shardedIndexConsistency" : {
+      "numShardedCollectionsWithInconsistentIndexes" : <NumberLong>
+   },
+
+.. serverstatus:: shardedIndexConsistency
+
+   *Available only on config server instances.*
+
+   A document that returns results of index consistency checks for
+   sharded collections.
+
+   The returned metrics are meaningful only when run on the primary of
+   the :doc:`config server replica set
+   </core/sharded-cluster-config-servers>` for a version 4.4+ (and
+   4.2.6+) sharded cluster.
+
+   .. seealso::
+
+      - :parameter:`enableShardedIndexConsistencyCheck` parameter
+      - :parameter:`shardedIndexConsistencyCheckIntervalMS` parameter
+
+   *New in version 4.4. (and 4.2.6)*
+
+.. serverstatus:: shardedIndexConsistency.numShardedCollectionsWithInconsistentIndexes
+
+   *Available only on config server instances.*
+
+   Number of sharded collections whose indexes are inconsistent across
+   the shards. A sharded collection has an inconsistent index if the
+   collection does not have the exact same indexes (including the index
+   options) on each shard that contains chunks for the collection.
+
+   To check if a sharded collection has inconsistent indexes, see
+   :ref:`manage-indexes-find-inconsistent-indexes`.
+
+   The returned metrics are meaningful only when run on the primary of
+   the :doc:`config server replica set
+   </core/sharded-cluster-config-servers>` for a version 4.4+ (and
+   4.2.6+) sharded cluster.
+
+   .. seealso::
+
+      - :parameter:`enableShardedIndexConsistencyCheck` parameter
+      - :parameter:`shardedIndexConsistencyCheckIntervalMS` parameter
+
+   *New in version 4.4. (and 4.2.6)*
+
+.. _server-status-storage-engine:
+
+storageEngine
+~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "storageEngine" : {
+      "name" : <string>,
+      "supportsCommittedReads" : <boolean>,
+      "persistent" : <boolean>
+   },
+
+.. serverstatus:: storageEngine
+
+   A document with data about the current storage engine.
+
+.. serverstatus:: storageEngine.name
+
+   The name of the current storage engine.
+
+.. serverstatus:: storageEngine.supportsCommittedReads
+
+   .. versionadded:: 3.2
+
+   A boolean that indicates whether the storage engine supports
+   :readconcern:`"majority"` :doc:`read concern
+   </reference/read-concern>`.
+
+.. serverstatus:: storageEngine.persistent
+
+   .. versionadded:: 3.2.6
+
+   A boolean that indicates whether the :doc:`storage engine
+   </core/storage-engines>` does or does not persist data to disk.
+
+.. _server-status-transactions:
+
+transactions
+~~~~~~~~~~~~
+
+.. tabs::
+
+   tabs:
+
+      - id: mongod
+        name: mongod
+        content: |
+
+           .. versionadded:: 3.6.3
+
+           .. code-block:: javascript
+
+              "transactions" : {
+                 "retriedCommandsCount" : <NumberLong>,
+                 "retriedStatementsCount" : <NumberLong>,
+                 "transactionsCollectionWriteCount" : <NumberLong>,
+                 "currentActive" : <NumberLong>,
+                 "currentInactive" : <NumberLong>,
+                 "currentOpen" : <NumberLong>,
+                 "totalAborted" : <NumberLong>,
+                 "totalCommitted" : <NumberLong>,
+                 "totalStarted" : <NumberLong>,
+                 "totalPrepared" : <NumberLong>,
+                 "totalPreparedThenCommitted" : <NumberLong>,
+                 "totalPreparedThenAborted" :  <NumberLong>,
+                 "currentPrepared" :  <NumberLong>,
+                 "lastCommittedTransaction" : <document> // Starting in 4.2.2 (and 4.0.9)
+              },
+
+      - id: mongos
+        name: mongos
+        content: |
+
+           .. versionadded:: 4.2
+
+           .. code-block:: javascript
+
+              "transactions" : {
+                 "currentOpen" : <NumberLong>,     // Starting in 4.2.1
+                 "currentActive" : <NumberLong>,   // Starting in 4.2.1
+                 "currentInactive" : <NumberLong>, // Starting in 4.2.1
+                 "totalStarted" : <NumberLong>,
+                 "totalCommitted" : <NumberLong>,
+                 "totalAborted" : <NumberLong>,
+                 "abortCause" : {
+                    <String1> : <NumberLong>,
+                    <String2>" : <NumberLong>,
+                    ...
+                 },
+                 "totalContactedParticipants" : <NumberLong>,
+                 "totalParticipantsAtCommit" : <NumberLong>,
+                 "totalRequestsTargeted" : <NumberLong>,
+                 "commitTypes" : {
+                    "noShards" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "singleShard" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "singleWriteShard" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "readOnly" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "twoPhaseCommit" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" :<NumberLong>,
+                    },
+                    "recoverWithToken" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    }
+                 }
+              },
+
+.. serverstatus:: transactions
+   
+   When run on a :binary:`~bin.mongod`, a document with data about the
+   :doc:`retryable writes </core/retryable-writes>` and
+   :doc:`transactions </core/transactions>`.
+
+   When run on a :binary:`~bin.mongos`, a document with data about the
+   :doc:`transactions </core/transactions>` run on the instance.
+
+.. serverstatus:: transactions.retriedCommandsCount
+
+   |mongod-only|
+
+   The total number of retry attempts that have been received after the
+   corresponding retryable write command has already been committed.
+   That is, a retryable write is attempted even though the write has
+   previously succeeded and has an associated record for the
+   transaction and session in the :data:`config.transactions`
+   collection, such as when the initial write response to the client is
+   lost.
+
+   .. note::
+
+      MongoDB does not re-execute the committed writes.
+
+   The total is across all sessions.
+
+   The total does not include any retryable writes that may happen
+   internally as part of a chunk migration.
+
+   .. versionadded:: 3.6.3
+
+.. serverstatus:: transactions.retriedStatementsCount
+
+   |mongod-only|
+
+   The total number of write statements associated with the retried
+   commands in :serverstatus:`transactions.retriedCommandsCount`.
+
+   .. note::
+
+      MongoDB does not re-execute the committed writes.
+
+   The total does not include any retryable writes that may happen
+   internally as part of a chunk migration.
+
+   .. versionadded:: 3.6.3
+
+.. serverstatus:: transactions.transactionsCollectionWriteCount
+
+   |mongod-only|
+
+   The total number of writes to the :data:`config.transactions`
+   collection, triggered when a new retryable write statement is
+   committed.
+
+   For update and delete commands, since only single document
+   operations are retryable, there is one write per statement.
+
+   For insert operations, there is one write per batch of documents
+   inserted, except when a failure leads to each document being
+   inserted separately.
+
+   The total includes writes to a server's :data:`config.transactions`
+   collection that occur as part of a migration.
+
+   .. versionadded:: 3.6.3
+
+.. serverstatus:: transactions.currentActive
+
+   .. versionchanged:: 4.2.1
+
+      This field is also available on 
+      :program:`mongos`.
+
+   The total number of open transactions currently executing a command.
+
+.. serverstatus:: transactions.currentInactive
+
+   .. versionchanged:: 4.2.1
+
+      This field is also available on 
+      :program:`mongos`.
+
+
+   The total number of open transactions that are not currently
+   executing a command.
+
+.. serverstatus:: transactions.currentOpen
+
+   .. versionchanged:: 4.2.1
+
+      This field is also available on 
+      :program:`mongos`.
+
+   The total number of open transactions. A transaction is opened when
+   the first command is run as a part of that transaction, and stays
+   open until the transaction either commits or aborts.
+
+.. serverstatus:: transactions.totalAborted
+
+   For the :binary:`~bin.mongod`, the total number of transactions
+   aborted on this instance since its last startup.
+
+   For the :binary:`~bin.mongos`, the total number of transactions
+   aborted through this instance since its last startup.
+
+.. serverstatus:: transactions.totalCommitted
+
+   For the :binary:`~bin.mongod`, the total number of transactions
+   committed on the instance since its last startup.
+
+   For the :binary:`~bin.mongos`,the total number of transactions
+   committed through this instance since its last startup.
+
+.. serverstatus:: transactions.totalStarted
+
+   For the :binary:`~bin.mongod`, the total number of transactions
+   started on this instance since its last startup.
+
+   For the :binary:`~bin.mongos`, the total number of transactions
+   started on this instance since its last startup.
+
+.. serverstatus:: transactions.abortCause
+
+   |mongos-only|
+
+   Breakdown of the :serverstatus:`transactions.totalAborted` by cause.
+   If a client issues an explicit ``abortTransaction``, the cause is
+   listed as ``abort``.
+
+   For example:
+
+   .. code-block:: javascript
+
+      "totalAborted" : NumberLong(5),
+      "abortCause" : {
+         "abort" : NumberLong(1),
+         "DuplicateKey" : NumberLong(1),
+         "StaleConfig" : NumberLong(3),
+         "SnapshotTooOld" : NumberLong(1)
+      },
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalContactedParticipants
+
+   |mongos-only|
+
+   The total number of shards contacted for all transactions started
+   through this :binary:`~bin.mongos` since its last startup.
+
+   The number of shards contacted during the transaction processes can
+   include those shards that may not be included as part of the commit.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalParticipantsAtCommit
+
+   |mongos-only|
+
+   Total number of shards involved in the commit for all transactions
+   started through this :binary:`~bin.mongos` since its last startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalRequestsTargeted
+
+   |mongos-only|
+
+   Total number of network requests targeted by the
+   :binary:`~bin.mongos` as part of its transactions.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.commitTypes
+
+   |mongos-only|
+
+   Breakdown of the commits by types.  For example:
+   
+   .. code-block:: javascript
+      :copyable: false
+
+      "noShards" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      },
+      "singleShard" : {
+         "initiated" : NumberLong(5),
+         "successful" : NumberLong(5),
+         "successfulDurationMicros" : NumberLong(203118)
+      },
+      "singleWriteShard" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      },
+      "readOnly" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      },
+      "twoPhaseCommit" : {
+         "initiated" : NumberLong(1),
+         "successful" : NumberLong(1),
+         "successfulDurationMicros" : NumberLong(179616)
+      },
+      "recoverWithToken" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      }
+
+   The types of commit are:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Type
+        - Description
+
+      * - ``noShards``
+
+        - Commits of transactions that did not contact any shards.
+
+      * - ``singleShard``
+        - Commits of transactions that affected a single shard.
+
+      * - ``singleWriteShard``
+
+        - Commits of transactions that contacted multiple shards but
+          whose write operations only affected a single shard.
+
+      * - ``readOnly``
+
+        - Commits of transactions that only involved read operations.
+
+      * - ``twoPhaseCommit``
+
+        - Commits of transactions that included writes to multiple
+          shards
+   
+      * - ``recoverWithToken``
+
+        - Commits that recovered the outcome of transactions from
+          another instance or after this instance was restarted.
+
+   For each commit type, the command returns the following metrics:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Metrics
+        - Description
+
+      * - ``initiated``
+      
+        - Total number of times that commits of this type were
+          initiated.
+
+      * - ``successful``
+
+        - Total number of times that commits of this type succeeded.
+
+      * - ``successfulDurationMicros``
+
+        - Total time, in microseconds, taken by successful commits of
+          this type.
+
+   .. versionadded:: 4.2
+   
+.. serverstatus:: transactions.totalPrepared
+
+   |mongod-only|
+
+   The total number of transactions in prepared state on this server
+   since the :binary:`mongod <bin.mongod>` process's last startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalPreparedThenCommitted
+
+   |mongod-only|
+
+   The total number of transactions that were prepared and committed on
+   this server since the :binary:`mongod <bin.mongod>` process's last
+   startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalPreparedThenAborted
+
+   |mongod-only|
+
+   The total number of transactions that were prepared and aborted on
+   this server since the :binary:`mongod <bin.mongod>` process's last
+   startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.currentPrepared
+
+   |mongod-only|
+
+   The current number of transactions in prepared state on this server.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.lastCommittedTransaction
+
+   |mongod-only|
+
+   The details of the last transaction committed when the
+   :binary:`mongod <bin.mongod>` is primary.
+
+   When returned from a secondary,
+   :serverstatus:`~transactions.lastCommittedTransaction` returns the
+   details of the last transaction committed when that secondary was a
+   primary.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "lastCommittedTransaction" : {
+         "operationCount" : NumberLong(1),
+         "oplogOperationBytes" : NumberLong(211),
+         "writeConcern" : {
+            "w" : "majority",
+            "wtimeout" : 0
+         }
+      }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Metrics
+        - Description
+
+      * - ``operationCount``
+        - The number of write operations in the transaction.
+
+      * - ``oplogOperationBytes``
+
+        - The size of the corresponding oplog entry or entries for
+          the transaction. [#oplog-change]_
+
+      * - ``writeConcern``
+        - The write concern used for the transaction.
+
+   .. versionadded:: 4.2.2 (*Also available in 4.0.9*)
+
+.. [#oplog-change]
+
+   Starting in version 4.2, MongoDB creates as many oplog entries as
+   necessary to encapsulate all write operations in a transaction
+   whereas in version 4.0, the write operations in a transaction must
+   fit within a single oplog entry. See :ref:`txn-oplog-size-limit` for
+   details.
+
+   
+transportSecurity
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "transportSecurity" : {
+      "1.0" : <NumberLong>,
+      "1.1" : <NumberLong>,
+      "1.2" : <NumberLong>,
+      "1.3" : <NumberLong>,
+      "unknown" :<NumberLong>
+   },
+
+.. serverstatus:: transportSecurity.<version>
+
+   The cumulative number of TLS <version> connections that have been
+   made to this :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   instance. The value is reset upon restart.
+
+
+.. _server-status-wiredTiger:
+
+wiredTiger
+~~~~~~~~~~
+
+``wiredTiger`` information only appears if using the :doc:`WiredTiger
+</core/wiredtiger>` storage engine. Some of the statistics roll up for the server.
+
+.. code-block:: javascript
+
+   {
+      "uri" : "statistics:",
+      "async" : {
+         "current work queue length" : <num>,
+         "maximum work queue length" : <num>,
+         "number of allocation state races" : <num>,
+         "number of flush calls" : <num>,
+         "number of operation slots viewed for allocation" : <num>,
+         "number of times operation allocation failed" : <num>,
+         "number of times worker found no work" : <num>,
+         "total allocations" : <num>,
+         "total compact calls" : <num>,
+         "total insert calls" : <num>,
+         "total remove calls" : <num>,
+         "total search calls" : <num>,
+         "total update calls" : <num>
+      },
+      "block-manager" : {
+         "blocks pre-loaded" : <num>,
+         "blocks read" : <num>,
+         "blocks written" : <num>,
+         "bytes read" : <num>,
+         "bytes written" : <num>,
+         "bytes written for checkpoint" : <num>,
+         "mapped blocks read" : <num>,
+         "mapped bytes read" : <num>
+      },
+      "cache" : {
+         "application threads page read from disk to cache count" : <num>,
+         "application threads page read from disk to cache time (usecs)" : <num>,
+         "application threads page write from cache to disk count" : <num>,
+         "application threads page write from cache to disk time (usecs)" : <num>,
+         "bytes belonging to page images in the cache" : <num>,
+         "bytes belonging to the cache overflow table in the cache" : <num>,
+         "bytes currently in the cache" : <num>,
+         "bytes dirty in the cache cumulative" : <num>,
+         "bytes not belonging to page images in the cache" : <num>,
+         "bytes read into cache" : <num>,
+         "bytes written from cache" : <num>,
+         "cache overflow cursor application thread wait time (usecs)" : <num>,
+         "cache overflow cursor internal thread wait time (usecs)" : <num>,
+         "cache overflow score" : <num>,
+         "cache overflow table entries" : <num>,
+         "cache overflow table insert calls" : <num>,
+         "cache overflow table max on-disk size" : <num>,
+         "cache overflow table on-disk size" : <num>,
+         "cache overflow table remove calls" : <num>,
+         "checkpoint blocked page eviction" : <num>,
+         "eviction calls to get a page" : <num>,
+         "eviction calls to get a page found queue empty" : <num>,
+         "eviction calls to get a page found queue empty after locking" : <num>,
+         "eviction currently operating in aggressive mode" : <num>,
+         "eviction empty score" : <num>,
+         "eviction passes of a file" : <num>,
+         "eviction server candidate queue empty when topping up" : <num>,
+         "eviction server candidate queue not empty when topping up" : <num>,
+         "eviction server evicting pages" : <num>,
+         "eviction server slept, because we did not make progress with eviction" : <num>,
+         "eviction server unable to reach eviction goal" : <num>,
+         "eviction server waiting for a leaf page" : <num>,
+         "eviction server waiting for an internal page sleep (usec)" : <num>,
+         "eviction server waiting for an internal page yields" : <num>,
+         "eviction state" : <num>,
+         "eviction walk target pages histogram - 0-9" : <num>,
+         "eviction walk target pages histogram - 10-31" : <num>,
+         "eviction walk target pages histogram - 128 and higher" : <num>,
+         "eviction walk target pages histogram - 32-63" : <num>,
+         "eviction walk target pages histogram - 64-128" : <num>,
+         "eviction walks abandoned" : <num>,
+         "eviction walks gave up because they restarted their walk twice" : <num>,
+         "eviction walks gave up because they saw too many pages and found no candidates" : <num>,
+         "eviction walks gave up because they saw too many pages and found too few candidates" : <num>,
+         "eviction walks reached end of tree" : <num>,
+         "eviction walks started from root of tree" : <num>,
+         "eviction walks started from saved location in tree" : <num>,
+         "eviction worker thread active" : <num>,
+         "eviction worker thread created" : <num>,
+         "eviction worker thread evicting pages" : <num>,
+         "eviction worker thread removed" : <num>,
+         "eviction worker thread stable number" : <num>,
+         "files with active eviction walks" : <num>,
+         "files with new eviction walks started" : <num>,
+         "force re-tuning of eviction workers once in a while" : <num>,
+         "forced eviction - pages evicted that were clean count" : <num>,
+         "forced eviction - pages evicted that were clean time (usecs)" : <num>,
+         "forced eviction - pages evicted that were dirty count" : <num>,
+         "forced eviction - pages evicted that were dirty time (usecs)" : <num>,
+         "forced eviction - pages selected because of too many deleted items count" : <num>,
+         "forced eviction - pages selected count" : <num>,
+         "forced eviction - pages selected unable to be evicted count" : <num>,
+         "forced eviction - pages selected unable to be evicted time" : <num>,
+         "hazard pointer blocked page eviction" : <num>,
+         "hazard pointer check calls" : <num>,
+         "hazard pointer check entries walked" : <num>,
+         "hazard pointer maximum array length" : <num>,
+         "in-memory page passed criteria to be split" : <num>,
+         "in-memory page splits" : <num>,
+         "internal pages evicted" : <num>,
+         "internal pages split during eviction" : <num>,
+         "leaf pages split during eviction" : <num>,
+         "maximum bytes configured" : <num>,
+         "maximum page size at eviction" : <num>,
+         "modified pages evicted" : <num>,
+         "modified pages evicted by application threads" : <num>,
+         "operations timed out waiting for space in cache" : <num>,
+         "overflow pages read into cache" : <num>,
+         "page split during eviction deepened the tree" : <num>,
+         "page written requiring cache overflow records" : <num>,
+         "pages currently held in the cache" : <num>,
+         "pages evicted by application threads" : <num>,
+         "pages queued for eviction" : <num>,
+         "pages queued for eviction post lru sorting" : <num>,
+         "pages queued for urgent eviction" : <num>,
+         "pages queued for urgent eviction during walk" : <num>,
+         "pages read into cache" : <num>,
+         "pages read into cache after truncate" : <num>,
+         "pages read into cache after truncate in prepare state" : <num>,
+         "pages read into cache requiring cache overflow entries" : <num>,
+         "pages read into cache requiring cache overflow for checkpoint" : <num>,
+         "pages read into cache skipping older cache overflow entries" : <num>,
+         "pages read into cache with skipped cache overflow entries needed later" : <num>,
+         "pages read into cache with skipped cache overflow entries needed later by checkpoint" : <num>,
+         "pages requested from the cache" : <num>,
+         "pages seen by eviction walk" : <num>,
+         "pages selected for eviction unable to be evicted" : <num>,
+         "pages walked for eviction" : <num>,
+         "pages written from cache" : <num>,
+         "pages written requiring in-memory restoration" : <num>,
+         "percentage overhead" : <num>,
+         "tracked bytes belonging to internal pages in the cache" : <num>,
+         "tracked bytes belonging to leaf pages in the cache" : <num>,
+         "tracked dirty bytes in the cache" : <num>,
+         "tracked dirty pages in the cache" : <num>,
+         "unmodified pages evicted" : <num>
+      },
+      "capacity" : {
+         "background fsync file handles considered" : <num>,
+         "background fsync file handles synced" : <num>,
+         "background fsync time (msecs)" : <num>,
+         "bytes read" : <num>,
+         "bytes written for checkpoint" : <num>,
+         "bytes written for eviction" : <num>,
+         "bytes written for log" : <num>,
+         "bytes written total" : <num>,
+         "threshold to call fsync" : <num>,
+         "time waiting due to total capacity (usecs)" : <num>,
+         "time waiting during checkpoint (usecs)" : <num>,
+         "time waiting during eviction (usecs)" : <num>,
+         "time waiting during logging (usecs)" : <num>,
+         "time waiting during read (usecs)" : <num>
+      },
+      "connection" : {
+         "auto adjusting condition resets" : <num>,
+         "auto adjusting condition wait calls" : <num>,
+         "detected system time went backwards" : <num>,
+         "files currently open" : <num>,
+         "memory allocations" : <num>,
+         "memory frees" : <num>,
+         "memory re-allocations" : <num>,
+         "pthread mutex condition wait calls" : <num>,
+         "pthread mutex shared lock read-lock calls" : <num>,
+         "pthread mutex shared lock write-lock calls" : <num>,
+         "total fsync I/Os" : <num>,
+         "total read I/Os" : <num>,
+         "total write I/Os" : <num>
+      },
+      "cursor" : {
+         "cached cursor count" : <num>,
+         "cursor bulk loaded cursor insert calls" : <num>,
+         "cursor close calls that result in cache" : <num>,
+         "cursor create calls" : <num>,
+         "cursor insert calls" : <num>,
+         "cursor insert key and value bytes" : <num>,
+         "cursor modify calls" : <num>,
+         "cursor modify key and value bytes affected" : <num>,
+         "cursor modify value bytes modified" : <num>,
+         "cursor next calls" : <num>,
+         "cursor operation restarted" : <num>,
+         "cursor prev calls" : <num>,
+         "cursor remove calls" : <num>,
+         "cursor remove key bytes removed" : <num>,
+         "cursor reserve calls" : <num>,
+         "cursor reset calls" : <num>,
+         "cursor search calls" : <num>,
+         "cursor search near calls" : <num>,
+         "cursor sweep buckets" : <num>,
+         "cursor sweep cursors closed" : <num>,
+         "cursor sweep cursors examined" : <num>,
+         "cursor sweeps" : <num>,
+         "cursor truncate calls" : <num>,
+         "cursor update calls" : <num>,
+         "cursor update key and value bytes" : <num>,
+         "cursor update value size change" : <num>,
+         "cursors reused from cache" : <num>,
+         "open cursor count" : <num>
+      },
+      "data-handle" : {
+         "connection data handle size" : <num>,
+         "connection data handles currently active" : <num>,
+         "connection sweep candidate became referenced" : <num>,
+         "connection sweep dhandles closed" : <num>,
+         "connection sweep dhandles removed from hash list" : <num>,
+         "connection sweep time-of-death sets" : <num>,
+         "connection sweeps" : <num>,
+         "session dhandles swept" : <num>,
+         "session sweep attempts" : <num>
+      },
+      "lock" : {
+         "checkpoint lock acquisitions" : <num>,
+         "checkpoint lock application thread wait time (usecs)" : <num>,
+         "checkpoint lock internal thread wait time (usecs)" : <num>,
+         "dhandle lock application thread time waiting (usecs)" : <num>,
+         "dhandle lock internal thread time waiting (usecs)" : <num>,
+         "dhandle read lock acquisitions" : <num>,
+         "dhandle write lock acquisitions" : <num>,
+         "durable timestamp queue lock application thread time waiting (usecs)" : <num>,
+         "durable timestamp queue lock internal thread time waiting (usecs)" : <num>,
+         "durable timestamp queue read lock acquisitions" : <num>,
+         "durable timestamp queue write lock acquisitions" : <num>,
+         "metadata lock acquisitions" : <num>,
+         "metadata lock application thread wait time (usecs)" : <num>,
+         "metadata lock internal thread wait time (usecs)" : <num>,
+         "read timestamp queue lock application thread time waiting (usecs)" : <num>,
+         "read timestamp queue lock internal thread time waiting (usecs)" : <num>,
+         "read timestamp queue read lock acquisitions" : <num>,
+         "read timestamp queue write lock acquisitions" : <num>,
+         "schema lock acquisitions" : <num>,
+         "schema lock application thread wait time (usecs)" : <num>,
+         "schema lock internal thread wait time (usecs)" : <num>,
+         "table lock application thread time waiting for the table lock (usecs)" : <num>,
+         "table lock internal thread time waiting for the table lock (usecs)" : <num>,
+         "table read lock acquisitions" : <num>,
+         "table write lock acquisitions" : <num>,
+         "txn global lock application thread time waiting (usecs)" : <num>,
+         "txn global lock internal thread time waiting (usecs)" : <num>,
+         "txn global read lock acquisitions" : <num>,
+         "txn global write lock acquisitions" : <num>
+      },
+      "log" : {
+         "busy returns attempting to switch slots" : <num>,
+         "force archive time sleeping (usecs)" : <num>,
+         "log bytes of payload data" : <num>,
+         "log bytes written" : <num>,
+         "log files manually zero-filled" : <num>,
+         "log flush operations" : <num>,
+         "log force write operations" : <num>,
+         "log force write operations skipped" : <num>,
+         "log records compressed" : <num>,
+         "log records not compressed" : <num>,
+         "log records too small to compress" : <num>,
+         "log release advances write LSN" : <num>,
+         "log scan operations" : <num>,
+         "log scan records requiring two reads" : <num>,
+         "log server thread advances write LSN" : <num>,
+         "log server thread write LSN walk skipped" : <num>,
+         "log sync operations" : <num>,
+         "log sync time duration (usecs)" : <num>,
+         "log sync_dir operations" : <num>,
+         "log sync_dir time duration (usecs)" : <num>,
+         "log write operations" : <num>,
+         "logging bytes consolidated" : <num>,
+         "maximum log file size" : <num>,
+         "number of pre-allocated log files to create" : <num>,
+         "pre-allocated log files not ready and missed" : <num>,
+         "pre-allocated log files prepared" : <num>,
+         "pre-allocated log files used" : <num>,
+         "records processed by log scan" : <num>,
+         "slot close lost race" : <num>,
+         "slot close unbuffered waits" : <num>,
+         "slot closures" : <num>,
+         "slot join atomic update races" : <num>,
+         "slot join calls atomic updates raced" : <num>,
+         "slot join calls did not yield" : <num>,
+         "slot join calls found active slot closed" : <num>,
+         "slot join calls slept" : <num>,
+         "slot join calls yielded" : <num>,
+         "slot join found active slot closed" : <num>,
+         "slot joins yield time (usecs)" : <num>,
+         "slot transitions unable to find free slot" : <num>,
+         "slot unbuffered writes" : <num>,
+         "total in-memory size of compressed records" : <num>,
+         "total log buffer size" : <num>,
+         "total size of compressed records" : <num>,
+         "written slots coalesced" : <num>,
+         "yields waiting for previous log file close" : <num>
+      },
+      "perf" : {
+         "file system read latency histogram (bucket 1) - 10-49ms" : <num>,
+         "file system read latency histogram (bucket 2) - 50-99ms" : <num>,
+         "file system read latency histogram (bucket 3) - 100-249ms" : <num>,
+         "file system read latency histogram (bucket 4) - 250-499ms" : <num>,
+         "file system read latency histogram (bucket 5) - 500-999ms" : <num>,
+         "file system read latency histogram (bucket 6) - 1000ms+" : <num>,
+         "file system write latency histogram (bucket 1) - 10-49ms" : <num>,
+         "file system write latency histogram (bucket 2) - 50-99ms" : <num>,
+         "file system write latency histogram (bucket 3) - 100-249ms" : <num>,
+         "file system write latency histogram (bucket 4) - 250-499ms" : <num>,
+         "file system write latency histogram (bucket 5) - 500-999ms" : <num>,
+         "file system write latency histogram (bucket 6) - 1000ms+" : <num>,
+         "operation read latency histogram (bucket 1) - 100-249us" : <num>,
+         "operation read latency histogram (bucket 2) - 250-499us" : <num>,
+         "operation read latency histogram (bucket 3) - 500-999us" : <num>,
+         "operation read latency histogram (bucket 4) - 1000-9999us" : <num>,
+         "operation read latency histogram (bucket 5) - 10000us+" : <num>,
+         "operation write latency histogram (bucket 1) - 100-249us" : <num>,
+         "operation write latency histogram (bucket 2) - 250-499us" : <num>,
+         "operation write latency histogram (bucket 3) - 500-999us" : <num>,
+         "operation write latency histogram (bucket 4) - 1000-9999us" : <num>,
+         "operation write latency histogram (bucket 5) - 10000us+" : <num>
+      },
+      "reconciliation" : {
+         "fast-path pages deleted" : <num>,
+         "page reconciliation calls" : <num>,
+         "page reconciliation calls for eviction" : <num>,
+         "pages deleted" : <num>,
+         "split bytes currently awaiting free" : <num>,
+         "split objects currently awaiting free" : <num>
+      },
+      "session" : {
+         "open session count" : <num>,
+         "session query timestamp calls" : <num>,
+         "table alter failed calls" : <num>,
+         "table alter successful calls" : <num>,
+         "table alter unchanged and skipped" : <num>,
+         "table compact failed calls" : <num>,
+         "table compact successful calls" : <num>,
+         "table create failed calls" : <num>,
+         "table create successful calls" : <num>,
+         "table drop failed calls" : <num>,
+         "table drop successful calls" : <num>,
+         "table import failed calls" : <num>,
+         "table import successful calls" : <num>,
+         "table rebalance failed calls" : <num>,
+         "table rebalance successful calls" : <num>,
+         "table rename failed calls" : <num>,
+         "table rename successful calls" : <num>,
+         "table salvage failed calls" : <num>,
+         "table salvage successful calls" : <num>,
+         "table truncate failed calls" : <num>,
+         "table truncate successful calls" : <num>,
+         "table verify failed calls" : <num>,
+         "table verify successful calls" : <num>
+      },
+      "thread-state" : {
+         "active filesystem fsync calls" : <num>,
+         "active filesystem read calls" : <num>,
+         "active filesystem write calls" : <num>
+      },
+      "thread-yield" : {
+         "application thread time evicting (usecs)" : <num>,
+         "application thread time waiting for cache (usecs)" : <num>,
+         "connection close blocked waiting for transaction state stabilization" : <num>,
+         "connection close yielded for lsm manager shutdown" : <num>,
+         "data handle lock yielded" : <num>,
+         "get reference for page index and slot time sleeping (usecs)" : <num>,
+         "log server sync yielded for log write" : <num>,
+         "page access yielded due to prepare state change" : <num>,
+         "page acquire busy blocked" : <num>,
+         "page acquire eviction blocked" : <num>,
+         "page acquire locked blocked" : <num>,
+         "page acquire read blocked" : <num>,
+         "page acquire time sleeping (usecs)" : <num>,
+         "page delete rollback time sleeping for state change (usecs)" : <num>,
+         "page reconciliation yielded due to child modification" : <num>
+      },
+      "transaction" : {
+         "Number of prepared updates" : <num>,
+         "Number of prepared updates added to cache overflow" : <num>,
+         "Number of prepared updates resolved" : <num>,
+         "durable timestamp queue entries walked" : <num>,
+         "durable timestamp queue insert to empty" : <num>,
+         "durable timestamp queue inserts to head" : <num>,
+         "durable timestamp queue inserts total" : <num>,
+         "durable timestamp queue length" : <num>,
+         "number of named snapshots created" : <num>,
+         "number of named snapshots dropped" : <num>,
+         "prepared transactions" : <num>,
+         "prepared transactions committed" : <num>,
+         "prepared transactions currently active" : <num>,
+         "prepared transactions rolled back" : <num>,
+         "query timestamp calls" : <num>,
+         "read timestamp queue entries walked" : <num>,
+         "read timestamp queue insert to empty" : <num>,
+         "read timestamp queue inserts to head" : <num>,
+         "read timestamp queue inserts total" : <num>,
+         "read timestamp queue length" : <num>,
+         "rollback to stable calls" : <num>,
+         "rollback to stable updates aborted" : <num>,
+         "rollback to stable updates removed from cache overflow" : <num>,
+         "set timestamp calls" : <num>,
+         "set timestamp durable calls" : <num>,
+         "set timestamp durable updates" : <num>,
+         "set timestamp oldest calls" : <num>,
+         "set timestamp oldest updates" : <num>,
+         "set timestamp stable calls" : <num>,
+         "set timestamp stable updates" : <num>,
+         "transaction begins" : <num>,
+         "transaction checkpoint currently running" : <num>,
+         "transaction checkpoint generation" : <num>,
+         "transaction checkpoint max time (msecs)" : <num>,
+         "transaction checkpoint min time (msecs)" : <num>,
+         "transaction checkpoint most recent time (msecs)" : <num>,
+         "transaction checkpoint scrub dirty target" : <num>,
+         "transaction checkpoint scrub time (msecs)" : <num>,
+         "transaction checkpoint total time (msecs)" : <num>,
+         "transaction checkpoints" : <num>,
+         "transaction checkpoints skipped because database was clean" : <num>,
+         "transaction failures due to cache overflow" : <num>,
+         "transaction fsync calls for checkpoint after allocating the transaction ID" : <num>,
+         "transaction fsync duration for checkpoint after allocating the transaction ID (usecs)" : <num>,
+         "transaction range of IDs currently pinned" : <num>,
+         "transaction range of IDs currently pinned by a checkpoint" : <num>,
+         "transaction range of IDs currently pinned by named snapshots" : <num>,
+         "transaction range of timestamps currently pinned" : <num>,
+         "transaction range of timestamps pinned by a checkpoint" : <num>,
+         "transaction range of timestamps pinned by the oldest active read timestamp" : <num>,
+         "transaction range of timestamps pinned by the oldest timestamp" : <num>,
+         "transaction read timestamp of the oldest active reader" : <num>,
+         "transaction sync calls" : <num>,
+         "transactions committed" : <num>,
+         "transactions rolled back" : <num>,
+         "update conflicts" : <num>
+      },
+      "concurrentTransactions" : {
+         "write" : {
+            "out" : <num>,
+            "available" : <num>,
+            "totalTickets" : <num>
+         },
+         "read" : {
+            "out" : <num>,
+            "available" : <num>,
+            "totalTickets" : <num>
+         }
+      },
+      "snapshot-window-settings" : {
+         "cache pressure percentage threshold" : <num>,
+         "current cache pressure percentage" : <num>,
+         "total number of SnapshotTooOld errors" : <num>,
+         "max target available snapshots window size in seconds" : <num>,
+         "target available snapshots window size in seconds" : <num>,
+         "current available snapshots window size in seconds" : <num>,
+         "latest majority snapshot timestamp available" : <string>,
+         "oldest majority snapshot timestamp available" : <string>
+      }
+   }
+
+.. note::
+
+   The following is not an exhaustive list.
+
+.. serverstatus:: wiredTiger.uri
+
+   A string. For internal use by MongoDB.
+
+.. serverstatus:: wiredTiger.async
+
+   A document that returns statistics related to the asynchronous
+   operations API. This is unused by MongoDB.
+
+.. serverstatus:: wiredTiger.block-manager
+
+   A document that returns statistics on the block manager operations.
+
+.. serverstatus:: wiredTiger.cache
+
+   A document that returns statistics on the cache and page evictions
+   from the cache.
+
+   The following describes some of the key
+   :serverstatus:`wiredTiger.cache` statistics:
+
+   .. serverstatus:: wiredTiger.cache.maximum bytes configured
+
+      Maximum cache size.
+
+   .. serverstatus:: wiredTiger.cache.bytes currently in the cache
+
+      Size in byte of the data currently in cache. This value should
+      not be greater than the ``maximum bytes configured`` value.
+
+   .. serverstatus:: wiredTiger.cache.unmodified pages evicted
+
+      Main statistics for page eviction.
+
+   .. serverstatus:: wiredTiger.cache.tracked dirty bytes in the cache
+
+      Size in bytes of the dirty data in the cache. This value should
+      be less than the ``bytes currently in the cache`` value.
+
+   .. serverstatus:: wiredTiger.cache.pages read into cache
+
+      Number of pages read into the cache.
+      :serverstatus:`wiredTiger.cache.pages read into cache` with
+      the :serverstatus:`wiredTiger.cache.pages written from
+      cache` can provide an overview of the I/O activity.
+
+   .. serverstatus:: wiredTiger.cache.pages written from cache
+
+      Number of pages written from the cache.
+      :serverstatus:`wiredTiger.cache.pages written from cache`
+      with the :serverstatus:`wiredTiger.cache.pages read into
+      cache` can provide an overview of the I/O activity.
+
+   .. include:: /includes/extracts/wt-cache-setting.rst
+
+.. serverstatus:: wiredTiger.connection
+
+   A document that returns statistics related to WiredTiger connections.
+
+.. serverstatus:: wiredTiger.cursor
+
+   A document that returns statistics on WiredTiger cursor.
+
+.. serverstatus:: wiredTiger.data-handle
+
+   A document that returns statistics on the data handles and sweeps.
+
+.. serverstatus:: wiredTiger.log
+
+   A document that returns statistics on WiredTiger's write ahead log
+   (i.e. the journal).
+
+   .. seealso::
+
+      :ref:`journaling-wiredTiger`
+
+.. serverstatus:: wiredTiger.reconciliation
+
+   A document that returns statistics on the reconciliation process.
+
+.. serverstatus:: wiredTiger.session
+
+   A document that returns the open cursor count and open session count
+   for the session.
+
+.. serverstatus:: wiredTiger.thread-yield
+
+   A document that returns statistics on yields during page
+   acquisitions.
+
+.. serverstatus:: wiredTiger.transaction
+
+   A document that returns statistics on transaction checkpoints and
+   operations.
+
+   .. serverstatus:: wiredTiger.transaction.transaction checkpoint most recent time (msecs)
+
+      Amount of time, in milliseconds, to create the most recent
+      checkpoint. An increase in this value under stead write load may
+      indicate saturation on the I/O subsystem.
+
+.. serverstatus:: wiredTiger.concurrentTransactions
+
+   A document that returns information on the number of concurrent of
+   read and write transactions allowed into the WiredTiger storage
+   engine. These settings are MongoDB-specific.
+
+   To change the settings for concurrent
+   reads and write transactions, see
+   :parameter:`wiredTigerConcurrentReadTransactions` and
+   :parameter:`wiredTigerConcurrentWriteTransactions`.
+
+.. _server-status-writebacksqueued:
+.. _server-status-write-backs-queued:
+
+writeBacksQueued
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   "writeBacksQueued" : <boolean>,
+
+.. serverstatus:: writeBacksQueued
+
+   A boolean that indicates whether there are operations from a
+   :binary:`~bin.mongos` instance queued for retrying. Typically, this
+   value is false.  See also :term:`writeBacks`.
+
+.. _memory-status:
+.. _server-status-memory:
+
+mem
+~~~
+
+.. code-block:: javascript
+
+   "mem" : {
+      "bits" : <int>,
+      "resident" : <int>,
+      "virtual" : <int>,
+      "supported" : <boolean>
+   },
+
+
+.. serverstatus:: mem
+
+   A document that reports on the system architecture of the
+   :binary:`~bin.mongod` and current memory use.
+
+.. serverstatus:: mem.bits
+
+   A number, either ``64`` or ``32``, that indicates whether the
+   MongoDB instance is compiled for 64-bit or 32-bit architecture.
+
+.. serverstatus:: mem.resident
+
+   The value of :serverstatus:`mem.resident` is roughly equivalent to
+   the amount of RAM, in mebibyte (MiB), currently used by the database
+   process. During normal use, this value tends to grow. In dedicated
+   database servers, this number tends to approach the total amount of
+   system memory.
+
+.. serverstatus:: mem.virtual
+
+   :serverstatus:`mem.virtual` displays the quantity, in mebibyte
+   (MiB), of virtual memory used by the :binary:`~bin.mongod` process.
+
+.. serverstatus:: mem.supported
+
+   A boolean that indicates whether the underlying system supports
+   extended memory information. If this value is false and the system
+   does not support extended memory information, then other
+   :serverstatus:`mem` values may not be accessible to the database
+   server.
+
+
+.. serverstatus:: mem.note
+
+   The field :serverstatus:`mem.note` appears if
+   :serverstatus:`mem.supported` is false.
+
+   The :serverstatus:`mem.note` field contains the text: ``"not all mem
+   info support on this platform"``.
+
+.. _server-status-metrics:
+
+metrics
+~~~~~~~
+
+.. code-block:: javascript
+
+   "metrics" : {
+      "aggStageCounters" : {
+            "<aggregation stage>" : <num>
+            }
+      },
+      "commands": {
+            "<command>": {
+               "failed": <num>,
+               "total": <num>
+            }
+      },
+      "cursor" : {
+            "timedOut" : NumberLong(<num>),
+            "open" : {
+               "noTimeout" : NumberLong(<num>),
+               "pinned" : NumberLong(<num>),
+               "multiTarget" : NumberLong(<num>),
+               "singleTarget" : NumberLong(<num>),
+               "total" : NumberLong(<num>),
+            }
+      },
+      "document" : {
+            "deleted" : NumberLong(<num>),
+            "inserted" : NumberLong(<num>),
+            "returned" : NumberLong(<num>),
+            "updated" : NumberLong(<num>)
+      },
+      "getLastError" : {
+            "wtime" : {
+               "num" : <num>,
+               "totalMillis" : <num>
+            },
+            "wtimeouts" : NumberLong(<num>),
+            "default" : {
+                "unsatisfiable" : <num>
+                "wtimeouts" : <num>
+            }
+      },
+      "operation" : {
+            "scanAndOrder" : NumberLong(<num>),
+            "writeConflicts" : NumberLong(<num>)
+      },
+      "operatorCounters" : {
+            "match" : {
+               "<command>" : Long(<num>)
+            }
+      },
+      "queryExecutor": {
+            "scanned" : NumberLong(<num>),
+            "scannedObjects" : NumberLong(<num>),
+            "collectionScans" : {
+                "nonTailable" : NumbeLong(<num>),
+                "total" : NumberLong(<num>)
+            }
+      },
+      "record" : {
+            "moves" : NumberLong(<num>)
+      },
+      "repl" : {
+         "executor" : {
+            "pool" : {
+               "inProgressCount" : <num>
+            },
+            "queues" : {
+               "networkInProgress" : <num>,
+               "sleepers" : <num>
+            },
+            "unsignaledEvents" : <num>,
+            "shuttingDown" : <boolean>,
+            "networkInterface" : <string>
+         },
+         "apply" : {
+            "attemptsToBecomeSecondary" : <NumberLong>,
+            "batches" : {
+               "num" : <num>,
+               "totalMillis" : <num>
+            },
+            "ops" : <NumberLong>
+         },
+         "buffer" : {
+            "count" : <NumberLong>,
+            "maxSizeBytes" : <NumberLong>,
+            "sizeBytes" : <NumberLong>
+         },
+         "initialSync" : {
+            "completed" : <NumberLong>,
+            "failedAttempts" : <NumberLong>,
+            "failures" : <NumberLong>,
+         },
+         "network" : {
+            "bytes" : <NumberLong>,
+            "getmores" : {
+               "num" : <num>,
+               "totalMillis" : <num>
+            },
+            "notPrimaryUnacknowledgedWrites" : <NumberLong>,
+            "notPrimaryLegacyUnacknowledgedWrites" : <NumberLong>,
+            "oplogGetMoresProcessed" : {
+               "num" : <NumberLong>,
+               "totalMillis" : <NumberLong>
+            },
+            "ops" : <NumberLong>,
+            "readersCreated" : <NumberLong>,
+            "replSetUpdatePosition" : {
+                "num" : <NumberLong>
+            }
+         },
+         "stateTransition" : {
+            "lastStateTransition" : <string>,
+            "userOperationsKilled" : <NumberLong>,
+            "userOperationsRunning" : <NumberLong>
+         },
+         "syncSource" : {
+            "numSelections" : <NumberLong>,
+            "numTimesChoseSame" : <NumberLong>,
+            "numTimesChoseDifferent" : <NumberLong>,
+            "numTimesCouldNotFind" : <NumberLong>
+         }
+      },
+      "storage" : {
+            "freelist" : {
+               "search" : {
+                  "bucketExhausted" : <num>,
+                  "requests" : <num>,
+                  "scanned" : <num>
+               }
+            }
+      },
+      "ttl" : {
+            "deletedDocuments" : NumberLong(<num>),
+            "passes" : NumberLong(<num>)
+      }
+   },
+
+.. serverstatus:: metrics
+
+   A document that returns various statistics that reflect the current
+   use and state of a running :binary:`~bin.mongod` instance.
+
+.. serverstatus:: metrics.aggStageCounters
+
+   A document that reports on the use of
+   :doc:`aggregation pipeline stages
+   </reference/operator/aggregation-pipeline/>`. The fields
+   in :serverstatus:`metrics.aggStageCounters` are the names of
+   aggregation pipeline stages. For each pipeline stage,
+   :dbcommand:`serverStatus` reports the number of times that stage
+   has been executed.
+
+   *New in version 4.4 (4.2.6 and 4.0.19).* 
+
+.. serverstatus:: metrics.operatorCounters.expressions
+
+   A document that reports on the use of :ref:`aggregation pipeline
+   <aggregation-pipeline>` operators and expressions.
+
+.. serverstatus:: metrics.operatorCounters.expressions
+
+   A document with a number that indicates how often
+   :ref:`aggregation-expression-operators` ran.
+
+   To get metrics for a specific operator, such as the greater-than
+   operator (:expression:`$gt`), append the operator to the command:
+
+   .. code-block:: javascript
+
+      db.runCommand( { serverStatus: 1 } ).metrics.operatorCounters.expressions.$gt
+
+   *Updated in version 4.4.13*
+
+.. serverstatus:: metrics.operatorCounters.match
+
+   A document with a number that indicates how often
+   :ref:`match expressions <query-projection-operators-top>` ran.
+
+   :ref:`Match expression operators <query-projection-operators-top>`
+   also increment as part of an aggregation pipeline :pipeline:`$match`
+   stage. If the ``$match`` stage uses the :query:`$expr` operator, the
+   counter for ``$expr`` increments, but the component counters do not
+   increment. 
+
+   Consider the following query: 
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.matchCount.aggregate(
+         [
+            { $match:
+               {  $expr: { $gt: [ "$_id", 0 ] } }
+            }
+         ]
+      )
+
+   The counter for ``$expr`` increments when the query runs. The
+   counter for ``$gt`` does not. 
+
+   .. versionadded:: 4.4.11
+
+.. serverstatus:: metrics.commands
+
+   A document that reports on the use of database commands. The fields
+   in :serverstatus:`metrics.commands` are the names of :doc:`database
+   commands </reference/command>`. For each command, the
+   :dbcommand:`serverStatus` reports the total number of executions and
+   the number of failed executions.
+   
+   Starting in MongoDB 4.0.13 and 4.2.1,
+   :serverstatus:`metrics.commands` include
+   ``replSetStepDownWithForce`` (i.e. the :dbcommand:`replSetStepDown`
+   command with ``force: true``) as well as the overall
+   ``replSetStepDown``. In earlier versions, the command
+   reported only overall ``replSetStepDown`` metrics.
+
+.. serverstatus:: metrics.commands.<command>.failed
+
+   The number of times ``<command>`` failed on this
+   :binary:`~bin.mongod`.
+
+.. serverstatus:: metrics.commands.<command>.total
+
+   The number of times ``<command>`` executed on this
+   :binary:`~bin.mongod`.
+
+.. serverstatus:: metrics.commands.update.pipeline
+
+   The number of times an
+   :ref:`aggregation pipeline <aggregation-pipeline-operator-reference>`
+   was used to update documents on this :binary:`~bin.mongod`. Subtract
+   this value from the total number of updates to get the number of
+   updates made with :ref:`document <update-operators-top-level>` 
+   syntax.
+
+   The ``pipeline`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
+
+.. serverstatus:: metrics.commands.findAndModify.pipeline
+
+   The number of times :method:`~db.collection.findAndModify()` was 
+   used in an
+   :ref:`aggregation pipeline <aggregation-pipeline-operator-reference>`
+   to update documents on this :binary:`~bin.mongod`. 
+
+   The ``pipeline`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
+
+.. serverstatus:: metrics.commands.update.arrayFilters
+
+   The number of times an :ref:`arrayFilter <findAndModify-arrayFilters>`
+   was used to update documents on this :binary:`~bin.mongod`.
+
+   The ``arrayFilters`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
+
+.. serverstatus:: metrics.commands.findAndModify.arrayFilters
+
+   The number of times an :ref:`arrayFilter <findAndModify-arrayFilters>`
+   was used with :method:`~db.collection.findAndModify()` to update 
+   documents on this :binary:`~bin.mongod`.
+
+   The ``arrayFilters`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
+
+.. serverstatus:: metrics.document
+
+   A document that reflects document access and modification patterns.
+   Compare these values to the data in the :serverstatus:`opcounters`
+   document, which track total number of operations.
+
+.. serverstatus:: metrics.document.deleted
+
+   The total number of documents deleted.
+
+.. serverstatus:: metrics.document.inserted
+
+   The total number of documents inserted.
+
+.. serverstatus:: metrics.document.returned
+
+   The total number of documents returned by queries.
+
+.. serverstatus:: metrics.document.updated
+
+   The total number of documents matched for update operations. This value is not 
+   necessarily the same as the number of documents modified by updates.
+
+.. serverstatus:: metrics.executor
+
+   .. versionadded:: 3.2
+
+   A document that reports on various statistics for the replication
+   executor.
+
+.. serverstatus:: metrics.getLastError
+
+   A document that reports on :dbcommand:`getLastError` use.
+
+.. serverstatus:: metrics.getLastError.wtime
+
+   A document that reports :dbcommand:`getLastError` operation counts
+   with a ``w`` argument greater than ``1``.
+
+.. serverstatus:: metrics.getLastError.wtime.num
+
+   The total number of :dbcommand:`getLastError` operations with a
+   specified write concern (i.e. ``w``) that wait for one or more
+   members of a replica set to acknowledge the write operation (i.e. a
+   ``w`` value greater than ``1``.)
+
+.. serverstatus:: metrics.getLastError.wtime.totalMillis
+
+   The total amount of time in milliseconds that the :binary:`~bin.mongod`
+   has spent performing :dbcommand:`getLastError` operations with write
+   concern (i.e. ``w``) that wait for one or more members of a replica
+   set to acknowledge the write operation (i.e. a ``w`` value greater
+   than ``1``.)
+
+.. serverstatus:: metrics.getLastError.wtimeouts
+
+   The number of times that :term:`write concern` operations have timed
+   out as a result of the ``wtimeout`` threshold to
+   :dbcommand:`getLastError`. This number increments for both default
+   and non-default write concern specifications.
+
+.. serverstatus:: metrics.getLastError.default
+
+   A document that reports on the use of :dbcommand:`getLastError`
+   specific to operations where a default write concern was used
+   (meaning, a non-``clientSupplied`` write concern). The possible
+   origins of a default write concern are:
+   
+   - ``implicitDefault``
+   - ``customDefault``
+   - ``getLastErrorDefaults``
+   
+   Refer to the following table for information on
+   each possible write concern origin, or ``provenance``:
+
+   .. include:: /includes/fact-wc-provenance-table.rst
+
+.. serverstatus:: metrics.getLastError.default.unsatisfiable
+
+   Number of times that a non-``clientSupplied`` write concern
+   returned the ``UnsatisfiableWriteConcern`` error code.
+
+.. serverstatus:: metrics.getLastError.default.wtimeouts
+
+   Number of times a non-``clientSupplied`` write concern timed out.
+
+   
+
+.. serverstatus:: metrics.operation
+
+   A document that holds counters for several types of update and query
+   operations that MongoDB handles using special operation types.
+
+.. serverstatus:: metrics.operation.scanAndOrder
+
+   The total number of queries that return sorted numbers that cannot
+   perform the sort operation using an index.
+
+.. serverstatus:: metrics.operation.writeConflicts
+
+   The total number of queries that encountered write conflicts.
+
+.. serverstatus:: metrics.queryExecutor
+
+   A document that reports data from the query execution system.
+
+.. serverstatus:: metrics.queryExecutor.scanned
+
+   The total number of index items scanned during queries and
+   query-plan evaluation. This counter is the same as
+   :data:`~explain.executionStats.totalKeysExamined` in the output of
+   :method:`~cursor.explain()`.
+
+.. serverstatus:: metrics.queryExecutor.scannedObjects
+
+   The total number of documents scanned during queries and query-plan
+   evaluation. This counter is the same as
+   :data:`~explain.executionStats.totalDocsExamined` in the output of
+   :method:`~cursor.explain()`.
+
+.. serverstatus:: metrics.queryExecutor.collectionScans
+
+   A document that reports on the number of queries that performed a
+   collection scan.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.queryExecutor.collectionScans.nonTailable
+
+   The number of queries that performed a collection scan that did not
+   use a :doc:`tailable cursor </core/tailable-cursors>`.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.queryExecutor.collectionScans.total
+
+   The total number queries that performed a collection scan. The total
+   consists of queries that did and did not use a :doc:`tailable cursor
+   </core/tailable-cursors>`.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.record
+
+   A document that reports on data related to record allocation in the
+   on-disk memory files.
+
+.. _server-status-replnetworkqueue:
+.. _server-status-repl-network-queue:
+
+.. serverstatus:: metrics.repl
+
+   A document that reports metrics related to the replication process.
+   :serverstatus:`metrics.repl` document appears on all
+   :binary:`~bin.mongod` instances, even those that aren't members of
+   :term:`replica sets <replica set>`.
+
+.. serverstatus:: metrics.repl.apply
+
+   A document that reports on the application of operations from the
+   replication :term:`oplog`.
+
+.. serverstatus:: metrics.repl.apply.batchSize
+
+   .. versionadded:: 4.0.6 (Also available in 3.6.11+)
+   
+   The total number of oplog operations applied. The
+   :serverstatus:`metrics.repl.apply.batchSize` is incremented with the
+   number of operations in a batch at the batch boundaries instead of
+   being incremented by one after each operation.
+
+   For finer granularity, see :serverstatus:`metrics.repl.apply.ops`.
+
+.. serverstatus:: metrics.repl.apply.batches
+
+   :serverstatus:`metrics.repl.apply.batches` reports on the
+   oplog application process on :term:`secondaries <secondary>`
+   members of replica sets. See
+   :ref:`replica-set-internals-multi-threaded-replication` for more
+   information on the oplog application processes
+
+.. serverstatus:: metrics.repl.apply.batches.num
+
+   The total number of batches applied across all databases.
+
+.. serverstatus:: metrics.repl.apply.batches.totalMillis
+
+   The total amount of time in milliseconds the :binary:`~bin.mongod` has
+   spent applying operations from the oplog.
+
+.. serverstatus:: metrics.repl.apply.ops
+
+   The total number of :term:`oplog` operations applied.
+   :serverstatus:`metrics.repl.apply.ops` is incremented after each
+   operation.  
+
+   .. seealso::
+
+      :serverstatus:`metrics.repl.apply.batchSize`
+
+.. serverstatus:: metrics.repl.buffer
+
+   MongoDB buffers oplog operations from the replication sync source
+   buffer before applying oplog entries in a
+   batch. :serverstatus:`metrics.repl.buffer` provides a way to
+   track the oplog buffer. See
+   :ref:`replica-set-internals-multi-threaded-replication` for more
+   information on the oplog application process.
+
+.. serverstatus:: metrics.repl.buffer.count
+
+   The current number of operations in the oplog buffer.
+
+.. serverstatus:: metrics.repl.buffer.maxSizeBytes
+
+   The maximum size of the buffer. This value is a constant setting in
+   the :binary:`~bin.mongod`, and is not configurable.
+
+.. serverstatus:: metrics.repl.buffer.sizeBytes
+
+   The current size of the contents of the oplog buffer.
+
+.. serverstatus:: metrics.repl.network
+
+   :serverstatus:`metrics.repl.network` reports network use by
+   the replication process.
+
+.. serverstatus:: metrics.repl.network.bytes
+
+   :serverstatus:`metrics.repl.network.bytes` reports the total
+   amount of data read from the replication sync source.
+
+.. serverstatus:: metrics.repl.network.getmores
+
+   :serverstatus:`metrics.repl.network.getmores` reports on the
+   ``getmore`` operations, which are requests for additional results
+   from the oplog :term:`cursor` as part of the oplog replication
+   process.
+
+   .. TODO move the documentation of getmore into some central place
+
+.. serverstatus:: metrics.repl.network.getmores.num
+
+   :serverstatus:`metrics.repl.network.getmores.num` reports the
+   total number of ``getmore`` operations, which are operations that
+   request an additional set of operations from the replication sync
+   source.
+
+.. serverstatus:: metrics.repl.network.getmores.totalMillis
+
+   :serverstatus:`metrics.repl.network.getmores.totalMillis`
+   reports the total amount of time required to collect data from
+   ``getmore`` operations.
+
+   .. note::
+
+      This number can be quite large, as MongoDB will wait for more
+      data even if the ``getmore`` operation does not initial return
+      data.
+
+.. serverstatus:: metrics.repl.network.getmores.numEmptyBatches
+
+   The number of empty ``oplog`` batches a secondary receives from its
+   sync source. A secondary receives an empty batch if it is fully
+   synced with its source and either:
+   
+   - The ``getmore`` times out waiting for more data, or
+   
+   - The sync source's majority commit point has advanced since the
+     last batch sent to this secondary.
+
+   For a primary, if the instance was previously a secondary, the
+   number reports on the empty batches received when it was a
+   secondary. Otherwise, for a primary, this number is ``0``.
+
+   .. versionadded:: 4.4
+   
+.. serverstatus:: metrics.repl.network.notPrimaryLegacyUnacknowledgedWrites
+
+   The number of unacknowledged (``w: 0``) legacy write operations (see
+   :ref:`wp-request-opcodes`) that failed because the current
+   :binary:`~bin.mongod` is not in :replstate:`PRIMARY` state.
+
+   This field name was changed in MongoDB 4.4.3. Previously, this field
+   was named ``notMasterLegacyUnacknowledgedWrites``.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: metrics.repl.network.notPrimaryUnacknowledgedWrites
+
+   The number of unacknowledged (``w: 0``) write operations that failed
+   because the current :binary:`~bin.mongod` is not in
+   :replstate:`PRIMARY` state.
+
+   This field name was changed in MongoDB 4.4.3. Previously, this field
+   was named ``notMasterUnacknowledgedWrites``.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: metrics.repl.network.oplogGetMoresProcessed
+
+   A document that reports the number of :dbcommand:`getMore`
+   commands to fetch the :term:`oplog` that a node processed as a sync
+   source.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.network.oplogGetMoresProcessed.num
+
+   The number of :dbcommand:`getMore` commands to fetch the
+   :term:`oplog` that a node processed as a sync source.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.network.oplogGetMoresProcessed.totalMillis
+
+   The time, in milliseconds, that a node spent processing the
+   :dbcommand:`getMore` commands counted in
+   :serverstatus:`metrics.repl.network.oplogGetMoresProcessed.num`. 
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.network.ops
+
+   The total
+   number of operations read from the replication source.
+
+.. serverstatus:: metrics.repl.network.readersCreated
+
+   The total number of oplog query processes created. MongoDB will
+   create a new oplog query any time an error occurs in the
+   connection, including a timeout, or a network
+   operation. Furthermore,
+   :serverstatus:`metrics.repl.network.readersCreated` will
+   increment every time MongoDB selects a new source for replication.
+
+.. serverstatus:: metrics.repl.network.replSetUpdatePosition
+
+   A document that reports the number of ``replSetUpdatePosition``
+   commands a node sent to its sync source.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.network.replSetUpdatePosition.num
+
+   The number of ``replSetUpdatePosition`` commands a node sent
+   to its sync source. ``replSetUpdatePosition`` commands are internal
+   replication commands that communicate replication progress from
+   nodes to their sync sources.
+
+   .. versionadded:: 4.4
+
+   .. note::
+
+      Replica set members in the :replstate:`STARTUP2` state do not send
+      the ``replSetUpdatePosition`` command to their sync source.
+
+.. serverstatus:: metrics.repl.stateTransition
+
+   Information on user operations when the member undergoes one of the
+   following transitions that can stop user operations:
+
+   - The member steps up to become a primary.
+
+   - The member is actively performing a rollback.
+
+.. serverstatus:: metrics.repl.stateTransition.lastStateTransition
+   
+   The transition being reported:
+   
+   .. list-table::
+      :widths: 20 80
+      :header-rows: 1
+      
+      * - State Change
+        - Description
+
+      * - ``"stepUp"``
+
+        - The member steps up to become a primary.
+
+      * - ``"stepDown"``
+        - The member steps down to become a secondary.
+
+      * - ``"rollback"``
+
+        - The member is actively performing a rollback.
+
+      * - ``""``
+
+        - The member has not undergone any state changes.
+
+.. serverstatus:: metrics.repl.stateTransition.userOperationsKilled
+
+   The number of user operations stopped during the
+   :binary:`~bin.mongod` instance's state change.
+
+.. serverstatus:: metrics.repl.stateTransition.userOperationsRunning
+
+   The number of user operations that remained running during the
+   ``mongod`` instance's state change.
+
+.. serverstatus:: metrics.repl.syncSource
+
+   Information on a replica set node's
+   :doc:`sync source selection </core/replica-set-sync/>` process.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.syncSource.numSelections
+
+   Number of times a node attempted to choose a node to sync from among
+   the available sync source options. A node attempts to choose a node
+   to sync from if, for example, the sync source is re-evaluated or the
+   node receives an error from its current sync source.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.syncSource.numTimesChoseSame
+
+   Number of times a node kept its original sync source after
+   re-evaluating if its current sync source was optimal.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.syncSource.numTimesChoseDifferent
+
+   Number of times a node chose a new sync source after re-evaluating if
+   its current sync source was optimal.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.repl.syncSource.numTimesCouldNotFind
+
+   Number of times a node could not find an available sync source when
+   attempting to choose a node to sync from.
+
+   .. versionadded:: 4.4
+
+.. serverstatus:: metrics.storage.freelist.search.bucketExhausted
+
+   The number of times that :binary:`~bin.mongod` has checked the free list
+   without finding a suitably large record allocation.
+
+.. serverstatus:: metrics.storage.freelist.search.requests
+
+   The number of times :binary:`~bin.mongod` has searched for available
+   record allocations.
+
+.. serverstatus:: metrics.storage.freelist.search.scanned
+
+   The number of available record allocations :binary:`~bin.mongod` has
+   searched.
+
+.. serverstatus:: metrics.ttl
+
+   A document that reports on the operation of the resource use of the
+   :doc:`ttl index </tutorial/expire-data/>` process.
+
+.. serverstatus:: metrics.ttl.deletedDocuments
+
+   The total number of documents deleted from collections with a
+   :doc:`ttl index </tutorial/expire-data/>`.
+
+.. serverstatus:: metrics.ttl.passes
+
+   The number of times the background process removes documents from
+   collections with a :doc:`ttl index </tutorial/expire-data/>`.
+
+.. _server-status-metrics-cursor:
+
+.. serverstatus:: metrics.cursor
+
+   A document that contains data regarding cursor state and use.
+
+.. serverstatus:: metrics.cursor.timedOut
+
+   The total number of cursors that have timed out since the server
+   process started. If this number is large or growing at a regular
+   rate, this may indicate an application error.
+
+.. serverstatus:: metrics.cursor.open
+
+   A document that contains data regarding open cursors.
+
+.. serverstatus:: metrics.cursor.open.noTimeout
+
+   The number of open cursors with the option
+   :data:`DBQuery.Option.noTimeout` set to prevent timeout after a
+   period of inactivity.
+
+.. serverstatus:: metrics.cursor.open.pinned
+
+   The number of "pinned" open cursors.
+
+.. serverstatus:: metrics.cursor.open.total
+
+   The number of cursors that MongoDB is maintaining for clients.
+   Because MongoDB exhausts unused cursors, typically this value small
+   or zero. However, if there is a queue, stale tailable cursors, or a
+   large number of operations this value may rise.
+
+.. serverstatus:: metrics.cursor.open.singleTarget
+
+   The total number of cursors that only target a *single* shard. Only
+   :binary:`~bin.mongos` instances report
+   :serverstatus:`metrics.cursor.open.singleTarget` values.
+
+.. serverstatus:: metrics.cursor.open.multiTarget
+
+   The total number of cursors that only target *more than one* shard.
+   Only :binary:`~bin.mongos` instances report
+   :serverstatus:`metrics.cursor.open.multiTarget` values.
+
+watchdog
+~~~~~~~~
+
+.. versionadded:: 3.6
+
+.. code-block:: javascript
+
+   "watchdog" : {
+      "checkGeneration" : NumberLong(<num>),
+      "monitorGeneration" : NumberLong(<num>),
+      "monitorPeriod" : <num>
+   }
+
+.. note::
+
+   The ``watchdog`` section is only present if the :ref:`Storage Node Watchdog
+   <storage-node-watchdog>` is enabled.
+
+.. serverstatus:: watchdog
+
+   A document reporting the status of the
+   :ref:`Storage Node Watchdog <storage-node-watchdog>`.
+
+.. serverstatus:: watchdog.checkGeneration
+
+   The number of times the directories have been checked since startup.
+   Directories are checked multiple times every ``monitoringPeriod``.
+
+.. serverstatus:: watchdog.monitorGeneration
+
+   The number of times the status of all filesystems used by :binary:`~bin.mongod`
+   has been checked. This is incremented once every ``monitoringPeriod``.
+
+.. serverstatus:: watchdog.monitorPeriod
+
+   The value set by :parameter:`watchdogPeriodSeconds`. This represents the
+   period in between status checks.
+
+Output Changelog
+----------------
+
+.. include:: /includes/extracts/serverStatus-command-output-change.rst

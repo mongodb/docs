@@ -1,0 +1,71 @@
+========
+$orderby
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. operator:: $orderby
+
+   .. include:: /includes/extracts/mongo-shell-deprecated-meta-operator-orderby.rst
+
+   The :operator:`$orderby` operator sorts the results of a query in
+   ascending or descending order.
+
+   The :binary:`~bin.mongo` shell provides the :method:`cursor.sort()`
+   method:
+
+   .. code-block:: javascript
+
+      db.collection.find().sort( { age: -1 } )
+
+   You can also specify the option in either of the following forms:
+
+   .. code-block:: javascript
+
+      db.collection.find()._addSpecial( "$orderby", { age : -1 } )
+      db.collection.find( { $query: {}, $orderby: { age : -1 } } )
+
+   These examples return all documents in the collection named
+   ``collection`` sorted by the ``age`` field in descending order.
+   Specify a value to :operator:`$orderby` of negative one (e.g.
+   ``-1``, as above) to sort in descending order or a positive value
+   (e.g. ``1``) to sort in ascending order.
+
+Behavior
+--------
+
+Since indexes contain ordered records, MongoDB can obtain the results of
+a sort from an index which includes the sort fields. MongoDB *may*
+use multiple indexes to support a sort operation *if* the sort uses the
+same indexes as the query predicate.
+
+If MongoDB cannot use an index or indexes to obtain the sort
+order, MongoDB must perform a blocking sort operation on the data.
+A blocking sort indicates that MongoDB must consume and process all 
+input documents to the sort before returning results. Blocking sorts do
+not block concurrent operations on the collection or database.
+
+Sort operations that use an index often have better performance than
+blocking sorts. For more information on creating indexes to support
+sort operations, see :ref:`sorting-with-indexes`.
+
+If MongoDB requires using more than 100 megabytes of system memory for
+the blocking sort operation, MongoDB returns an error *unless* the query
+specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
+:method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
+on disk to store data exceeding the 100 megabyte system memory limit
+while processing a blocking sort operation.
+
+To avoid this error, create an index to support the sort operation or
+use :operator:`$orderby` in conjunction with
+:method:`cursor.maxTimeMS()` and/or :method:`cursor.limit()`. The
+:method:`cursor.limit()` increases the speed and reduces the amount of
+memory required to return this query by way of an optimized algorithm.
+The specified limit must result in a number of documents that fall
+within the 100 megabyte limit.

@@ -1,0 +1,179 @@
+========================
+$toDecimal (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: type conversion, convert to decimal, decimal conversion, aggregation, convert to Decimal128
+   :keywords: type conversion, convert to decimal, decimal conversion, aggregation, convert to Decimal128
+
+
+Definition
+----------
+
+.. expression:: $toDecimal
+
+   Converts a value to a decimal. If the value cannot be converted
+   to a decimal, :expression:`$toDecimal` errors. If the value is null or
+   missing, :expression:`$toDecimal` returns null.
+
+   :expression:`$toDecimal` has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $toDecimal: <expression>
+      }
+
+   The :expression:`$toDecimal` takes any valid :ref:`expression
+   <aggregation-expressions>`.
+
+   The :expression:`$toDecimal` is a shorthand for the following
+   :expression:`$convert` expression:
+
+   .. code-block:: javascript
+
+      { $convert: { input: <expression>, to: "decimal" } }
+
+   .. seealso::
+
+      :expression:`$convert`
+
+Behavior
+--------
+
+The following table lists the input types that can be converted to a
+decimal:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+     - | Returns ``NumberDecimal("0")`` for  ``false``.
+       | Returns ``NumberDecimal("1")`` for ``true``.
+
+
+   * - Double
+     - Returns double value as a decimal.
+
+   * - Decimal
+     - No-op. Returns the decimal.
+
+   * - Integer
+
+     - Returns the int value as a decimal.
+
+   * - Long
+
+     - Returns the long value as a decimal.
+
+   * - String
+     - Returns the numerical value of the string as a decimal.
+
+       The string value must be of a base\ :sub:`10` numeric value (e.g.
+       ``"-5.5"``, ``"123456"``).
+
+       You cannot convert a string value of a non-base\ :sub:`10`
+       number (e.g. ``"0x6400"``)
+
+   * - Date
+
+     - Returns the number of milliseconds since the epoch that
+       corresponds to the date value.
+
+The following table lists some conversion to decimal examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+
+   * - Example
+     - Results
+
+   * - ``{$toDecimal: true}``
+     - NumberDecimal("1")
+
+   * - ``{$toDecimal: false}``
+     - NumberDecimal("0")
+
+   * - ``{$toDecimal: 2.5}``
+     -  NumberDecimal("2.50000000000000")
+
+   * - ``{$toDecimal: NumberInt(5)}``
+     - NumberDecimal("5")
+
+   * - ``{$toDecimal: NumberLong(10000)}``
+     -  NumberDecimal("10000")
+
+   * - ``{$toDecimal: "-5.5"}``
+     - NumberDecimal("-5.5") 
+
+   * - ``{$toDecimal: ISODate("2018-03-27T05:04:47.890Z")}``
+     -  NumberDecimal("1522127087890")
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insert( [
+      { _id: 1, item: "apple", qty: 5, price: 10 },
+      { _id: 2, item: "pie", qty: 10, price: NumberDecimal("20.0") },
+      { _id: 3, item: "ice cream", qty: 2, price: "4.99" },
+      { _id: 4, item: "almonds",  qty: 5, price: 5 }
+   ] )
+
+The following aggregation operation on the ``orders`` collection
+converts the ``price`` to a decimal and the ``qty`` to an integer
+before calculating the total price:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedPrice and convertedQty fields with the converted price and qty values
+
+   priceQtyConversionStage = { 
+      $addFields: { 
+         convertedPrice: { $toDecimal: "$price" },
+         convertedQty: { $toInt: "$qty" },
+      }
+   };
+
+   // Define stage to calculate total price by multiplying convertedPrice and convertedQty fields 
+
+
+   totalPriceCalculationStage = { 
+      $project: { item: 1, totalPrice: { $multiply: [ "$convertedPrice", "$convertedQty" ] } }
+   };
+
+   db.orders.aggregate( [
+      priceQtyConversionStage,
+      totalPriceCalculationStage
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "apple", "totalPrice" : NumberDecimal("50.0000000000000") }
+   { "_id" : 2, "item" : "pie", "totalPrice" : NumberDecimal("200.0") }
+   { "_id" : 3, "item" : "ice cream", "totalPrice" : NumberDecimal("9.98") }
+   { "_id" : 4, "item" : "almonds", "totalPrice" : NumberDecimal("25.00000000000000") }
+
+.. note::
+
+   If the conversion operation encounters an error, the aggregation
+   operation stops and throws an error. To override this behavior, use
+   :expression:`$convert` instead.

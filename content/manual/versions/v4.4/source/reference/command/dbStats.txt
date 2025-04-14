@@ -1,0 +1,184 @@
+=======
+dbStats
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: dbStats
+
+   The :dbcommand:`dbStats` command returns storage statistics for a
+   given database. The command has the following syntax:
+
+   .. _scale-argument:
+
+   .. code-block:: javascript
+
+      db.runCommand( { 
+         dbStats: 1, 
+         scale: <number>       //Optional 
+      } )
+
+   The :dbcommand:`dbStats` command takes the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+   
+      * - Parameter
+   
+        - Description
+   
+      * - ``dbStats``
+   
+        - 1
+
+      * - :ref:`scale <dbStats-scale>`
+
+        - .. _dbStats-scale:
+        
+          Optional. The scale factor for the various size data. The
+          ``scale`` defaults to 1 to return size data in bytes. To
+          display kilobytes rather than bytes, specify a ``scale``
+          value of ``1024``.
+
+          If you specify a non-integer scale factor, MongoDB uses the
+          integer part of the specified factor. For example, if you
+          specify a scale factor of ``1023.999``, MongoDB uses ``1023``
+          as the scale factor.
+
+          .. include:: /includes/extracts/4.2-changes-stats-scaleFactor.rst
+
+
+   In the :binary:`~bin.mongo` shell, the :method:`db.stats()` function
+   provides a wrapper around :dbcommand:`dbStats`.
+
+Behavior
+--------
+
+The time required to run the command depends on the total size of the
+database. Because the command must touch all data files, the command
+may take several seconds to run.
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :dbcommand:`dbStats`
+.. |opt| replace:: count and size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`dbStats`
+
+.. _dbstats-output:
+
+Output
+------
+
+.. data:: dbStats.db
+
+   Contains the name of the database.
+
+.. data:: dbStats.collections
+
+   Contains a count of the number of collections in that database.
+
+.. data:: dbStats.views
+
+   Contains a count of the number of :doc:`views </core/views>` in that database.
+
+.. data:: dbStats.objects
+
+   Contains a count of the number of objects (i.e. :term:`documents <document>`) in
+   the database across all collections.
+
+.. data:: dbStats.avgObjSize
+
+   The average size of each document in bytes. This is the
+   :data:`~dbStats.dataSize` divided by the number of documents. The
+   :ref:`scale argument <scale-argument>` does not affect the
+   ``avgObjSize`` value.
+
+.. data:: dbStats.dataSize
+
+   The total size of the uncompressed data held in this database.
+   The :data:`~dbStats.dataSize` decreases
+   when you remove :term:`documents <document>`.
+
+   For databases using the :ref:`WiredTiger <storage-wiredtiger-compression>` storage engine,
+   ``dataSize`` may be larger than ``storageSize`` if compression is enabled.  The ``dataSize``
+   decreases when documents shrink.
+
+   .. sum of all records not counting deleted records
+
+.. data:: dbStats.storageSize
+
+   The total amount of space allocated to collections in this database
+   for :term:`document` storage. The :data:`~dbStats.storageSize` does
+   not decrease as you remove or shrink documents. This value may be
+   smaller than ``dataSize`` for databases using the WiredTiger storage
+   engine with
+   :ref:`compression <storage-wiredtiger-compression>` enabled.
+
+   :data:`~dbStats.storageSize` does not include the index size. See
+   :data:`~dbStats.indexSize` for index sizing.
+
+   .. sum of all extents (no indexes or the $freelist)
+   .. include links to eventual documentation of storage management
+
+.. data:: dbStats.indexes
+
+   Contains a count of the total number of indexes across all
+   collections in the database.
+
+.. data:: dbStats.indexSize
+
+   The total size of all indexes created on this database.
+
+.. data:: dbStats.totalSize
+
+   The sum of the :data:`~dbStats.storageSize` and :data:`~dbStats.indexSize`.
+
+   .. versionadded:: 4.4
+
+.. data:: dbStats.scaleFactor
+
+   The ``scale`` value used by the command.
+
+   If you specified a non-integer scale factor, MongoDB uses the
+   integer part of the specified factor. For example, if you specify a
+   scale factor of ``1023.999``, MongoDB uses ``1023`` as the scale
+   factor.
+
+   .. versionadded:: 4.2
+
+.. data:: dbStats.fsUsedSize
+
+   .. versionadded:: 3.6
+
+   Total size of all disk space in use on the filesystem where MongoDB
+   stores data.
+
+   .. seealso::
+
+      :option:`--dbpath <mongod --dbpath>`
+
+.. data:: dbStats.fsTotalSize
+
+   .. versionadded:: 3.6
+
+   Total size of all disk capacity on the filesystem where MongoDB
+   stores data.

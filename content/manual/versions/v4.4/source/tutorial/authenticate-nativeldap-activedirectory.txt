@@ -1,0 +1,206 @@
+=======================================================================
+Authenticate and Authorize Users Using Active Directory via Native LDAP
+=======================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in version 3.4, MongoDB Enterprise provides support via
+platform LDAP libraries for proxying authentication and authorization
+requests to a specified Lightweight Directory Access Protocol (LDAP)
+service such as Active Directory (AD).
+
+This tutorial describes how to configure MongoDB to perform authentication
+and authorization through an Active Directory (AD) server via the platform
+libraries.
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-libldap.rst
+
+Prerequisites
+-------------
+
+.. important::
+
+   Thoroughly familiarize yourself with the following subjects before proceeding:
+
+   - :ref:`LDAP Authentication <security-ldap>`
+   - :ref:`LDAP Authorization <security-ldap-external>`
+   - `Active Directory <https://msdn.microsoft.com/en-us/library/bb742424.aspx>`_
+
+
+A full description of :abbr:`AD (Active Directory)` is beyond the scope of
+this tutorial. This tutorial assumes prior knowledge of :abbr:`AD (Active
+Directory)`.
+
+MongoDB supports using SASL mechanisms for binding between the MongoDB server
+and :abbr:`AD (Active Directory)`. A full description of SASL, SASL
+mechanisms, or the specific :abbr:`AD (Active Directory)` configuration
+requirements for a given SASL mechanism are beyond the scope of this tutorial.
+This tutorial assumes prior knowledge of SASL and its related subject matter.
+
+Configure Internal Member Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, you must configure 
+:ref:`internal member authentication <replica-set-security>` before you
+can set up LDAP authentication or authorization for a cluster.
+
+Considerations
+--------------
+
+This tutorial explains configuring MongoDB for :abbr:`AD (Active Directory)`
+authentication and authorization.
+
+To perform this procedure on your own MongoDB server, you must modify the
+given procedures with respect to your own specific infrastructure, especially
+Active Directory configurations, constructing :abbr:`AD (Active Directory)`
+queries, or managing users.
+
+Transport Layer Security
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, MongoDB creates a TLS/SSL connection when binding to the :abbr:`AD
+(Active Directory)` server. This requires configuring the host of the MongoDB
+server to have access to the AD server's Certificate Authority (CA)
+certificates.
+
+This tutorial provides instructions for the required host configurations.
+
+This tutorial assumes you have access to the AD server's CA certificates and
+can create a copy of the certificates on the MongoDB server.
+
+User Names
+~~~~~~~~~~
+
+.. include:: /includes/extracts/sessions-external-username-limit.rst
+
+.. _activedirectory-authauthz-adschema:
+
+Example Active Directory Schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This tutorial uses the following example :abbr:`AD (Active Directory)` objects
+as the basis for the provided queries, configurations, and output. Each object
+shows only a subset of the possible attributes.
+
+.. _activedirectory-authauthz-userObj:
+
+User Objects
+++++++++++++
+
+.. code-block:: bash
+
+   dn:CN=bob,CN=Users,DC=marketing,DC=example,DC=com
+   userPrincipalName: bob@marketing.example.com
+   memberOf: CN=marketing,CN=Users,DC=example,DC=com
+
+   dn:CN=alice,CN=Users,DC=engineering,DC=example,DC=com
+   userPrincipalName: alice@engineering.example.com
+   memberOf: CN=web,CN=Users,DC=example,DC=com
+   memberOf: CN=PrimaryApplication,CN=Users,DC=example,DC=com
+
+   dn:CN=sam,CN=Users,DC=dba,DC=example,DC=com
+   userPrincipalName: sam@dba.example.com
+   memberOf: CN=dba,CN=Users,DC=example,DC=com
+   memberOf: CN=PrimaryApplication,CN=Users,DC=example,DC=com
+
+   dn:CN=joe,CN=Users,DC=analytics,DC=example,DC=com
+   userPrincipalName: joe@analytics.example.com
+   memberof: CN=marketing,CN=Users,DC=example,DC=com
+
+.. _activedirectory-authauthz-groupObj:
+
+Group Objects
++++++++++++++
+
+.. code-block:: bash
+
+   dn:CN=marketing,CN=Users,DC=example,DC=com
+   member:CN=bob,CN=Users,DC=marketing,DC=example,DC=com
+   member:CN=joe,CN=Users,DC=analytics,DC=example,DC=com
+
+   dn:CN=engineering,CN=Users,DC=example,DC=com
+   member:CN=web,CN=Users,DC=example,DC=com
+   member:CN=dba,CN=users,DC=example,DC=com
+
+   dn:CN=web,CN=Users,DC=example,DC=com
+   member:CN=alice,CN=Users,DC=engineering,DC=example,DC=com
+
+   dn:CN=dba,CN=Users,DC=example,DC=com
+   member:CN=sam,CN=Users,DC=dba,DC=example,DC=com
+
+   dn:CN=PrimaryApplication,CN=Users,DC=example,DC=com
+   member:CN=sam,CN=Users,DC=dba,DC=example,DC=com
+   member:CN=alice,CN=Users,DC=engineering,DC=example,DC=com
+
+
+Active Directory Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This tutorial uses a username and password for performing queries on the
+:abbr:`AD (Active Directory)` server. The credentials provided must have
+sufficient privileges on the AD server for supporting queries related to
+:setting:`security.ldap.userToDNMapping` or
+:setting:`security.ldap.authz.queryTemplate`.
+
+Replica Sets
+~~~~~~~~~~~~
+
+MongoDB LDAP authorization requires *every* :binary:`~bin.mongod` in the replica
+set to be on at least MongoDB 3.4.0 or later.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+MongoDB LDAP authorization requires *every* :binary:`~bin.mongod` and
+:binary:`~bin.mongos` in the sharded cluster to be on at least MongoDB 3.4.0 or
+later.
+
+Procedure
+---------
+
+.. include:: /includes/steps/configure-ldap-sasl-activedirectory-authentication.rst
+
+This procedure produces the following configuration file:
+
+.. code-block:: yaml
+
+   security:
+      authorization: "enabled"
+      ldap:
+         servers: "activedirectory.example.net"
+         bind:
+            queryUser: "mongodbadmin@dba.example.com"
+            queryPassword: "secret123"
+         userToDNMapping:
+            '[
+               {
+                  match: "(.+)",
+                  ldapQuery: "DC=example,DC=com??sub?(userPrincipalName={0})"
+               }
+            ]'
+         authz:
+            queryTemplate: "DC=example,DC=com??sub?(&(objectClass=group)(member:1.2.840.113556.1.4.1941:={USER}))"
+   setParameter:
+      authenticationMechanisms: "PLAIN"
+
+The given sample configuration requires modification to match your Active
+Directory schema, directory structure, and configuration. You may also require
+additional :doc:`configuration file options
+</reference/configuration-options>` for your deployment.
+
+For more information on configuring roles and privileges, see:
+
+- :ref:`role-based access control <authorization>`
+
+- :ref:`privilege actions <security-user-actions>`
+
+- :doc:`collection level access control
+  </core/collection-level-access-control>`

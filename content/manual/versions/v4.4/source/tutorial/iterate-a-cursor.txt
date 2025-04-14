@@ -1,0 +1,249 @@
+.. _read-operations-cursors:
+
+=======================================
+Iterate a Cursor in the ``mongo`` Shell
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The :method:`db.collection.find()` method returns a cursor. To access
+the documents, you need to iterate the cursor. However, in the
+:binary:`~bin.mongo` shell, if the returned cursor is not assigned to a
+variable using the ``var`` keyword, then the cursor is automatically
+iterated up to 20 times [#set-shell-batch-size]_ to print up to the
+first 20 documents in the results.
+
+The following examples describe ways to manually iterate the cursor to
+access the documents or to use the iterator index.
+
+Manually Iterate the Cursor
+---------------------------
+
+In the :binary:`~bin.mongo` shell, when you assign the cursor returned from
+the :method:`find() <db.collection.find()>` method to a variable using
+the ``var`` keyword, the cursor does not automatically iterate.
+
+You can call the cursor variable in the shell to iterate up to 20 times
+[#set-shell-batch-size]_ and print the matching documents, as in the
+following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.users.find( { type: 2 } );
+
+   myCursor
+
+You can also use the cursor method :method:`next() <cursor.next()>` to
+access the documents, as in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.users.find( { type: 2 } );
+
+   while (myCursor.hasNext()) {
+      print(tojson(myCursor.next()));
+   }
+
+As an alternative print operation, consider the ``printjson()`` helper
+method to replace ``print(tojson())``:
+
+.. code-block:: javascript
+
+   var myCursor = db.users.find( { type: 2 } );
+
+   while (myCursor.hasNext()) {
+      printjson(myCursor.next());
+   }
+
+You can use the cursor method :method:`forEach() <cursor.forEach()>` to
+iterate the cursor and access the documents, as in the following
+example:
+
+.. code-block:: javascript
+
+   var myCursor =  db.users.find( { type: 2 } );
+
+   myCursor.forEach(printjson);
+
+See :ref:`JavaScript cursor methods <js-query-cursor-methods>` and your
+:driver:`driver </>` documentation for more
+information on cursor methods.
+
+.. include:: /includes/footnote-set-shell-batch-size.rst
+
+Iterator Index
+--------------
+
+In the :binary:`~bin.mongo` shell, you can use the
+:method:`~cursor.toArray()` method to iterate the cursor and return
+the documents in an array, as in the following:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 2 } );
+   var documentArray = myCursor.toArray();
+   var myDocument = documentArray[3];
+
+The :method:`~cursor.toArray()` method loads into RAM all
+documents returned by the cursor; the :method:`~cursor.toArray()`
+method exhausts the cursor.
+
+Additionally, some :driver:`Drivers </>` provide
+access to the documents by using an index on the cursor (i.e.
+``cursor[index]``). This is a shortcut for first calling the
+:method:`~cursor.toArray()` method and then using an index
+on the resulting array.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.users.find( { type: 2 } );
+   var myDocument = myCursor[1];
+
+The ``myCursor[1]`` is equivalent to the following example:
+
+.. code-block:: javascript
+
+   myCursor.toArray() [1];
+
+.. _cursor-behaviors:
+
+Cursor Behaviors
+----------------
+
+Cursors Opened Within a Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4.8, cursors created within a 
+:doc:`client session </core/read-isolation-consistency-recency>` close 
+when the corresponding :doc:`server session </reference/server-sessions>` 
+ends with the :dbcommand:`killSessions` command, if the session times 
+out, or if the client has exhausted the cursor. 
+
+By default, server sessions have an expiration timeout of 30 minutes. To 
+change the value, set the :parameter:`localLogicalSessionTimeoutMinutes`
+parameter when starting up :binary:`~bin.mongod`.
+
+Cursors Opened Outside of a Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cursors that aren't opened under a session automatically close after 10
+minutes of inactivity, or if client has exhausted the cursor. To
+override this behavior in the :binary:`~bin.mongo` shell, you can use
+the :method:`cursor.noCursorTimeout()` method:
+
+.. code-block:: javascript
+
+   var myCursor = db.users.find().noCursorTimeout();
+
+After setting the ``noCursorTimeout`` option, you must either close the cursor
+manually with :method:`cursor.close()` or by exhausting the cursor's results.
+
+See your :driver:`driver </>` documentation for
+information on setting the ``noCursorTimeout`` option.
+ 
+
+.. _cursor-isolation:
+
+Cursor Isolation
+~~~~~~~~~~~~~~~~
+
+As a cursor returns documents, other operations may interleave with the
+query.
+
+.. _cursor-batches:
+
+Cursor Batches
+~~~~~~~~~~~~~~
+
+The MongoDB server returns the query results in batches. The amount of
+data in the batch will not exceed the :ref:`maximum BSON document size
+<limit-bson-document-size>`. To override the default size of
+the batch, see :method:`~cursor.batchSize()` and
+:method:`~cursor.limit()`.
+
+.. versionadded:: 3.4
+
+   Operations of type :method:`~db.collection.find()`,
+   :method:`~db.collection.aggregate()`,
+   :dbcommand:`listIndexes`, and
+   :dbcommand:`listCollections` return a maximum of 16 megabytes
+   per batch. :method:`~cursor.batchSize()` can enforce a smaller
+   limit, but not a larger one.
+
+   ``find()`` and ``aggregate()`` operations have an initial batch size
+   of 101 documents by default. Subsequent :dbcommand:`getMore`
+   operations issued against the resulting cursor have no default batch
+   size, so they are limited only by the 16 megabyte message size.
+
+For queries that include a sort operation *without* an index, the
+server must load all the documents in memory to perform the sort
+before returning any results.
+
+As you iterate through the cursor and reach the end of the returned
+batch, if there are more results, :method:`cursor.next()` will perform
+a :data:`getMore operation <currentOp.op>` to retrieve the next batch.
+To see how many documents remain in the batch as you iterate the
+cursor, you can use the :method:`~cursor.objsLeftInBatch()` method, as
+in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find();
+
+   var myFirstDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+   myCursor.objsLeftInBatch();
+
+Cursor Information
+------------------
+
+The :method:`db.serverStatus()` method returns a document that includes
+a :serverstatus:`metrics` field. The
+:serverstatus:`metrics` field contains a
+:serverstatus:`metrics.cursor` field with the following
+information:
+
+- number of timed out cursors since the last server restart
+
+- number of open cursors with the option
+  :data:`DBQuery.Option.noTimeout` set to prevent timeout after a
+  period of inactivity
+
+- number of "pinned" open cursors
+
+- total number of open cursors
+
+Consider the following example which calls the
+:method:`db.serverStatus()` method and accesses the ``metrics`` field
+from the results and then the ``cursor`` field from the ``metrics``
+field:
+
+.. code-block:: javascript
+
+   db.serverStatus().metrics.cursor
+
+The result is the following document:
+
+.. code-block:: javascript
+
+   {
+      "timedOut" : <number>
+      "open" : {
+         "noTimeout" : <number>,
+         "pinned" : <number>,
+         "total" : <number>
+      }
+   }
+
+.. seealso::
+
+   :method:`db.serverStatus()`
+

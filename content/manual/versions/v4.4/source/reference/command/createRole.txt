@@ -1,0 +1,171 @@
+==========
+createRole
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: createRole
+
+   Creates a role and specifies its :ref:`privileges <privileges>`.
+   The role applies to the
+   database on which you run the command. The :dbcommand:`createRole`
+   command returns a *duplicate role* error if the role already exists in
+   the database.
+
+   .. |method| replace:: :method:`db.createRole` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+   The :dbcommand:`createRole` command uses the following syntax:
+
+   .. code-block:: javascript
+
+      { createRole: "<new role>",
+        privileges: [
+          { resource: { <resource> }, actions: [ "<action>", ... ] },
+          ...
+        ],
+        roles: [
+          { role: "<role>", db: "<database>" } | "<role>",
+          ...
+        ],
+        authenticationRestrictions: [
+          {
+            clientSource: ["<IP>" | "<CIDR range>", ...],
+            serverAddress: ["<IP>" | "<CIDR range>", ...]
+          },
+          ...
+        ],
+        writeConcern: <write concern document>,
+        comment: <any>
+      }
+
+   The :dbcommand:`createRole` command has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``createRole``
+   
+        - string
+   
+        - The name of the new role.
+          
+          
+   
+      * - ``privileges``
+   
+        - array
+   
+        - The privileges to grant the role. A privilege consists of a resource
+          and permitted actions. For the syntax of a privilege, see the
+          :data:`~admin.system.roles.privileges` array.
+          
+          You must include the ``privileges`` field. Use an
+          empty array to specify *no* privileges.
+          
+          
+   
+      * - ``roles``
+   
+        - array
+   
+        - An array of roles from which this role inherits privileges.
+          
+          You must include the ``roles`` field. Use an empty array to specify
+          *no* roles to inherit from.
+          
+          
+   
+      * - ``authenticationRestrictions``
+   
+        - array
+   
+        - Optional.
+          
+          .. include:: /includes/fact-auth-restrictions-role-desc.rst
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. The level of :doc:`write concern </reference/write-concern>` to apply
+          to this operation. The ``writeConcern`` document uses the same fields
+          as the :dbcommand:`getLastError` command.
+          
+          
+   
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+       
+          .. versionadded:: 4.4
+
+   .. |local-cmd-name| replace:: :dbcommand:`createRole`
+
+Roles
+~~~~~
+
+.. include:: /includes/fact-roles-array-contents.rst
+
+.. _create-role-auth-restrictions:
+
+Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auth-restrictions-array-contents.rst
+
+Behavior
+--------
+
+A role's privileges apply to the database where the role is created. The
+role can inherit privileges from other roles in its database. A role
+created on the ``admin`` database can include privileges that apply to all
+databases or to the :ref:`cluster <resource-cluster>` and can inherit
+privileges from roles in other databases.
+
+Required Access
+---------------
+
+.. include:: /includes/access-create-role.rst
+
+Example
+-------
+
+The following :dbcommand:`createRole` command creates the
+``myClusterwideAdmin`` role on the ``admin`` database:
+
+.. code-block:: javascript
+
+   db.adminCommand({ createRole: "myClusterwideAdmin",
+     privileges: [
+       { resource: { cluster: true }, actions: [ "addShard" ] },
+       { resource: { db: "config", collection: "" }, actions: [ "find", "update", "insert", "remove" ] },
+       { resource: { db: "users", collection: "usersCollection" }, actions: [ "update", "insert", "remove" ] },
+       { resource: { db: "", collection: "" }, actions: [ "find" ] }
+     ],
+     roles: [
+       { role: "read", db: "admin" }
+     ],
+     writeConcern: { w: "majority" , wtimeout: 5000 }
+   })

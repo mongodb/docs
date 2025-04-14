@@ -1,0 +1,143 @@
+==================
+cursor.maxTimeMS()
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: cursor.maxTimeMS(<time limit>)
+
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
+   Specifies a cumulative time limit in milliseconds for processing
+   operations on a cursor.
+
+   The :method:`~cursor.maxTimeMS()` method has the following
+   parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``milliseconds``
+   
+        - integer
+   
+        - Specifies a cumulative time limit in milliseconds for processing operations
+          on the cursor.
+          
+          
+   
+
+
+.. important::
+
+   :method:`~cursor.maxTimeMS()` is not related to the
+   ``NoCursorTimeout`` query flag. :method:`~cursor.maxTimeMS()`
+   relates to processing time, while ``NoCursorTimeout`` relates
+   to idle time. A cursor's idle time does not contribute towards its
+   processing time.
+
+Behaviors
+---------
+
+MongoDB targets operations for termination if the associated cursor
+exceeds its allotted time limit. MongoDB terminates operations that
+exceed their allotted time limit using the same mechanism as
+:method:`db.killOp()`. MongoDB only terminates an operation at one of
+its designated :term:`interrupt points <interrupt point>`.
+
+MongoDB does not count network latency between the client and the
+server towards a cursor's time limit. For a sharded cluster, however,
+MongoDB does include the latency between the :binary:`~bin.mongos` and
+:binary:`~bin.mongod` instances towards this time limit.
+
+Queries that generate multiple batches of results continue to return
+batches until the cursor exceeds its allotted time limit.
+
+Session Idle Timeout Overrides ``maxTimeMS``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/sessions-cursor-timeout.rst
+
+For example, consider a :method:`~db.collection.find()` operation with
+the :method:`~cursor.maxTimeMS` configured for a timeout of 31 minutes.
+The server returns a cursor along with a batch of documents defined by
+the :method:`cursor.batchSize()` of the :method:`~db.collection.find()`.
+The session refreshes each time the application requests a new batch of
+documents from the server. However, if the application takes longer than
+30 minutes to process the current batch of documents, the session is
+marked as expired and closed. When the server closes the session, it
+also kills the cursor *despite* the cursor being configured with
+:method:`~cursor.maxTimeMS` greater than 30 minutes. When the
+application requests the next batch of documents, the server returns an
+error.
+
+For operations that return a cursor, if the cursor may be idle for
+longer than 30 minutes, issue the operation within an explicit session
+using :method:`Mongo.startSession()` and periodically refresh the
+session using the :dbcommand:`refreshSessions` command. For example:
+
+.. code-block:: javascript
+
+   var session = db.getMongo().startSession()
+   var sessionId = session
+   sessionId  // show the sessionId
+
+   var cursor = session.getDatabase("examples").getCollection("data").find().noCursorTimeout()
+   var refreshTimestamp = new Date() // take note of time at operation start
+
+   while (cursor.hasNext()) {
+  
+     // Check if more than 5 minutes have passed since the last refresh
+     if ( (new Date()-refreshTimestamp)/1000 > 300 ) { 
+       print("refreshing session")
+       db.adminCommand({"refreshSessions" : [sessionId]})
+       refreshTimestamp = new Date()
+     }
+
+     // process cursor normally
+  
+   }
+
+In the example operation, the :method:`db.collection.find()` method is
+associated with an explicit session. The cursor is configured with
+:method:`cursor.maxTimeMS()` to keep the cursor open for at least 31
+minutes. The ``while`` loop includes a block that uses
+:dbcommand:`refreshSessions` to refresh the session every 5 minutes.
+Since the session will never exceed the 30 minute idle timeout, the
+cursor can remain open up to the configured
+:method:`~cursor.maxTimeMS()`.
+
+For MongoDB drivers, defer to the :driver:`driver documentation
+</>` for instructions and syntax for creating sessions. 
+
+.. seealso::
+
+   :limit:`Session Idle Timeout`
+
+Examples
+--------
+
+.. example:: The following query specifies a time limit of 50 milliseconds:
+
+   .. code-block:: javascript
+
+      db.collection.find({description: /August [0-9]+, 1969/}).maxTimeMS(50)

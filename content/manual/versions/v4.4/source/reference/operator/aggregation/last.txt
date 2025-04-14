@@ -1,0 +1,106 @@
+===============================
+$last (aggregation)
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $last
+
+   Returns the value that results from applying an expression to the
+   last document in a group of documents that share the same group by
+   a field. Only meaningful when documents are in a defined order.
+
+   .. include:: /includes/extracts/fact-aggregation-accumulator-last.rst
+
+Syntax
+------
+
+``$last`` syntax:
+
+.. code-block:: javascript
+
+   { $last: <expression> }
+
+Behaviors
+---------
+
+Array Operator
+~~~~~~~~~~~~~~
+
+If the expression resolves to an array:
+
+- For a group of documents, as with the :pipeline:`$group` stage,
+  ``$last`` returns the entire array from the last document. It does not
+  traverse array elements.
+
+- For an individual document, as with the :pipeline:`$addFields` stage, 
+  ``$last`` returns the last element of the array.
+
+Missing Values
+~~~~~~~~~~~~~~
+
+Documents in a group may be missing fields or may have fields with
+missing values.
+
+- If there are no documents from the prior pipeline stage, the 
+  :pipeline:`$group` stage returns nothing.
+
+- If the field that the ``$last`` accumulator is processing is
+  missing, ``$last`` returns ``null``.
+
+When using :group:`$last` in a :pipeline:`$group` stage, the output
+value depends on the order of the documents coming into pipeline. To
+guarantee a defined order, the :pipeline:`$group` pipeline stage should
+follow a :pipeline:`$sort` stage.
+
+Example
+-------
+
+Consider a ``sales`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "date" : ISODate("2014-01-01T08:00:00Z"), "price" : 10, "quantity" : 2 }
+   { "_id" : 2, "item" : "jkl", "date" : ISODate("2014-02-03T09:00:00Z"), "price" : 20, "quantity" : 1 }
+   { "_id" : 3, "item" : "xyz", "date" : ISODate("2014-02-03T09:05:00Z"), "price" : 5, "quantity" : 5 }
+   { "_id" : 4, "item" : "abc", "date" : ISODate("2014-02-15T08:00:00Z"), "price" : 10, "quantity" : 10 }
+   { "_id" : 5, "item" : "xyz", "date" : ISODate("2014-02-15T09:05:00Z"), "price" : 5, "quantity" : 10 }
+   { "_id" : 6, "item" : "xyz", "date" : ISODate("2014-02-15T12:05:10Z"), "price" : 5, "quantity" : 5 }
+   { "_id" : 7, "item" : "xyz", "date" : ISODate("2014-02-15T14:12:12Z"), "price" : 5, "quantity" : 10 }
+
+The following operation first sorts the documents by ``item`` and
+``date``, and then in the following ``$group`` stage, groups the now
+sorted documents by the ``item`` field and uses the ``$last``
+accumulator to compute the last sales date for each item:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        { $sort: { item: 1, date: 1 } },
+        {
+          $group:
+            {
+              _id: "$item",
+              lastSalesDate: { $last: "$date" }
+            }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : "xyz", "lastSalesDate" : ISODate("2014-02-15T14:12:12Z") }
+   { "_id" : "jkl", "lastSalesDate" : ISODate("2014-02-03T09:00:00Z") }
+   { "_id" : "abc", "lastSalesDate" : ISODate("2014-02-15T08:00:00Z") }

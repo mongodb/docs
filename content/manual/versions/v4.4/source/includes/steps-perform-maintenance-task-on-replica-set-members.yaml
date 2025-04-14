@@ -1,0 +1,309 @@
+title: Stop a secondary.
+stepnum: 1
+ref: stop-a-secondary
+pre: |
+  In the :binary:`~bin.mongo` shell, shut down the :binary:`~bin.mongod` instance:
+action:
+  language: javascript
+  code: db.shutdownServer()
+---
+title: Restart the secondary as a standalone on a different port.
+stepnum: 2
+ref: restart-diff-port
+content: |
+
+   At the operating system shell prompt restart :binary:`~bin.mongod`
+   as a standalone instance.
+
+   .. tabs::
+
+      tabs:
+         - id: config-file
+           name: Configuration File
+           content: |
+
+              If you are using a configuration file, make the following
+              configuration updates:
+
+              - Comment out the :setting:`replication.replSetName` option.
+
+              - Change the :setting:`net.port` to a different port.
+                Make a note of the original port setting as a comment.
+                
+              - Set parameter ``disableLogicalSessionCacheRefresh`` to
+                ``true`` in the :setting:`setParameter` section.
+
+              - If the :binary:`~bin.mongod` is a :term:`shard` or
+                :term:`config server` member, you must also:
+
+                - Comment out the :setting:`sharding.clusterRole` option.
+
+                - Set parameter :parameter:`skipShardingConfigurationChecks`
+                  (also available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
+                  ``true`` in the :setting:`setParameter` section.
+
+              For example, if performing maintenance on a shard/config
+              server replica set member for maintenance, the updated
+              configuration file will include content like the
+              following example:
+
+              .. code-block:: yaml
+
+                 net:
+                    bindIp: localhost,<hostname(s)|ip address(es)>
+                    port: 27218
+                 #   port: 27018
+                 #replication:
+                 #   replSetName: shardA
+                 #sharding:
+                 #   clusterRole: shardsvr
+                 setParameter:
+                    skipShardingConfigurationChecks: true
+                    disableLogicalSessionCacheRefresh: true
+
+         - id: command-line
+           name: Command-line Options
+           content: |
+
+              If using command-line options, make the following
+              configuration updates to restart:
+
+              - Remove :option:`--replSetName <mongod --replSet>`.
+
+              - Modify :option:`--port <mongod --port>` to a different port.
+
+              - Set parameter ``disableLogicalSessionCacheRefresh`` to
+                ``true`` in the :option:`--setParameter <mongod
+                --setParameter>` option.
+
+              - If the :binary:`~bin.mongod` is a :term:`shard` or
+                :term:`config server` member, you must also:
+
+                - Remove :option:`--shardsvr <mongod --shardsvr>` if a
+                  shard member and :option:`--configsvr <mongod
+                  --configsvr>` if a config server member.
+  
+                - Set parameter
+                  :parameter:`skipShardingConfigurationChecks` (also
+                  available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
+                  ``true`` in the :setting:`setParameter` section.
+
+  
+              For example, to restart a replica set member that is not part of a sharded cluster:
+
+              .. code-block:: bash
+
+                 mongod --port 27218 --dbpath /srv/mongodb --bind_ip localhost,<hostname(s)|ip address(es)> --setParameter disableLogicalSessionCacheRefresh=true
+
+              For example, to restart a shard/config server replica set member for maintenance:
+
+              .. code-block:: bash
+
+                 mongod --port 27218 --dbpath /srv/mongodb --bind_ip localhost,<hostname(s)|ip address(es)> --setParameter skipShardingConfigurationChecks=true --setParameter disableLogicalSessionCacheRefresh=true
+
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   Always start :binary:`~bin.mongod` with the same user, even when
+   restarting a replica set member as a standalone instance.
+---
+title: Perform maintenance operations on the secondary.
+stepnum: 3
+ref: maintenance-on-secondary
+pre: |
+  While the member is a standalone, use the :binary:`~bin.mongo` shell to
+  perform maintenance:
+action:
+  language: sh
+  code: mongo --port 27218
+post: |
+   .. important::
+
+      While the member is a standalone, no writes are replicated to
+      this member nor are writes on this member replicated to the other
+      members of the replica set.
+
+      Ensure that any writes on this standalone do not conflict with
+      oplog writes that will be applied to the member when it rejoins
+      the replica set.
+
+---
+title: Restart ``mongod`` as a member of the replica set.
+stepnum: 4
+ref: restart
+pre: |
+  After performing all maintenance tasks, use the following procedure
+  to restart the :binary:`~bin.mongod` as a member of the replica set
+  on its usual port.
+action:
+  - pre: |
+      From the :binary:`~bin.mongo` shell, shut down the standalone
+      server after completing the maintenance:
+    language: javascript
+    code: |
+       use admin
+       db.shutdownServer()
+  - pre: |
+ 
+      Restart the :binary:`~bin.mongod` instance as a replica set
+      member with its original configuration; that is, undo the
+      configuration changes made when starting as a standalone.
+
+      .. tip::
+
+         Be sure to remove the ``disableLogicalSessionCacheRefresh``
+         parameter.
+         
+         For shard or config server members, be sure to remove the
+         :parameter:`skipShardingConfigurationChecks` parameter.
+
+      When it has started, connect the :binary:`~bin.mongo` shell to the
+      restarted instance.
+
+  - pre: |
+      The secondary takes time to :doc:`catch up to the primary
+      </core/replica-set-sync>`. From the :binary:`~bin.mongo` shell, use the
+      following command to verify that the member has caught up from the
+      :replstate:`RECOVERING` state to the :replstate:`SECONDARY` state.
+    language: javascript
+    code: rs.status()
+---
+title: Perform maintenance on the primary last.
+stepnum: 5
+ref: maintenance-on-primary
+content: |
+
+   a. To perform maintenance on the primary after completing
+      maintenance tasks on all secondaries, connect a
+      :binary:`~bin.mongo` shell to the primary and use
+      :method:`rs.stepDown()` to step down the primary and allow one of
+      the secondaries to be elected the new primary. Specify a 300
+      second waiting period to prevent the member from being elected
+      primary again for five minutes:
+
+      .. code-block:: javascript
+
+         rs.stepDown(300)
+
+      After the primary steps down, the replica set will :ref:`elect a
+      new primary <replica-set-elections>`.
+
+   b. Restart :binary:`~bin.mongod` as a standalone instance, making
+      the following configuration updates.
+
+   .. tabs::
+
+      tabs:
+         - id: config-file
+           name: Configuration File
+           content: |
+
+              If you are using a configuration file, make the following
+              configuration updates:
+
+              - Comment out the :setting:`replication.replSetName` option.
+
+              - Change the :setting:`net.port` to a different port.
+                Make a note of the original port setting as a comment.
+
+              - Set parameter ``disableLogicalSessionCacheRefresh`` to
+                ``true`` in the :option:`--setParameter <mongod
+                --setParameter>` option.
+
+
+              - If the :binary:`~bin.mongod` is a :term:`shard` or
+                :term:`config server` member, you must also:
+
+                - Comment out the :setting:`sharding.clusterRole` option.
+
+                - Set parameter :parameter:`skipShardingConfigurationChecks`
+                  (also available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
+                  ``true`` in the :setting:`setParameter` section.
+
+              For example, if performing maintenance on a shard/config
+              server replica set member for maintenance, the updated
+              configuration file will include content like the
+              following example:
+
+              .. code-block:: yaml
+
+                 net:
+                    bindIp: localhost,<hostname(s)|ip address(es)>
+                    port: 27218
+                 #   port: 27018
+                 #replication:
+                 #   replSetName: shardA
+                 #sharding:
+                 #   clusterRole: shardsvr
+                 setParameter:
+                    skipShardingConfigurationChecks: true
+                    disableLogicalSessionCacheRefresh: true
+
+              .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+         - id: command-line
+           name: Command-line Options
+           content: |
+
+              If using command-line options, make the following
+              configuration updates:
+
+              - Remove :option:`--replSetName <mongod --replSet>`.
+
+              - Modify :option:`--port <mongod --port>` to a different port.
+
+              - Set parameter ``disableLogicalSessionCacheRefresh`` to
+                ``true`` in the :option:`--setParameter <mongod
+                --setParameter>` option.
+
+              - If the :binary:`~bin.mongod` is a :term:`shard` or
+                :term:`config server` member, you must also:
+
+                - Remove :option:`--shardsvr <mongod --shardsvr>` if a
+                  shard member and :option:`--configsvr <mongod
+                  --configsvr>` if a config server member.
+  
+                - Set parameter
+                  :parameter:`skipShardingConfigurationChecks` (also
+                  available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
+                  ``true`` in the :setting:`setParameter` section.
+
+  
+              For example, to restart a replica set member that is not part of a sharded cluster:
+
+              .. code-block:: bash
+
+                 mongod --port 27218 --dbpath /srv/mongodb --bind_ip localhost,<hostname(s)|ip address(es)> --setParameter disableLogicalSessionCacheRefresh=true
+
+              For example, to restart a shard/config server replica set member for maintenance:
+
+              .. code-block:: bash
+
+                 mongod --port 27218 --dbpath /srv/mongodb --bind_ip localhost,<hostname(s)|ip address(es)> --setParameter skipShardingConfigurationChecks=true --setParameter disableLogicalSessionCacheRefresh=true
+
+              .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   c. Perform maintentance task on the now standalone.
+
+      .. important::
+
+         While the member is a standalone, no writes are replicated to
+         this member nor are writes on this member replicated to the other
+         members of the replica set.
+
+         Ensure that any writes on this standalone do not conflict with
+         oplog writes that will be applied to the member when it rejoins
+         the replica set.
+   
+   d. After performing all maintenance tasks, restart the
+      :binary:`~bin.mongod` instance as a replica set member with its
+      original configuration; that is, undo the configuration changes made
+      when starting as a standalone.
+
+      .. tip::
+
+         Be sure to remove the ``disableLogicalSessionCacheRefresh``
+         parameter.
+
+         For shard or config server members, be sure to remove the
+         :parameter:`skipShardingConfigurationChecks` parameter.
+...

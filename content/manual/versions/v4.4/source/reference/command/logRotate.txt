@@ -1,0 +1,77 @@
+=========
+logRotate
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: logRotate
+
+   The :dbcommand:`logRotate` command is an administrative command that
+   allows you to rotate the MongoDB logs to prevent a single logfile
+   from consuming too much disk space.
+
+   If :doc:`auditing </core/auditing>` is enabled, the
+   :dbcommand:`logRotate` command also rotates the audit log.
+
+   You must issue the :dbcommand:`logRotate` command against the
+   :term:`admin database` in the form:
+
+   .. code-block:: javascript
+
+      { logRotate: 1 }
+
+   :dbcommand:`logRotate` takes an optional ``comment`` parameter which
+   may be of any data type.
+
+   .. note::
+
+      Your :binary:`~bin.mongod` instance needs to be running with the
+      :option:`--logpath [file] <mongod --logpath>` option.
+
+   You may also rotate the logs by sending a ``SIGUSR1`` signal to the
+   :binary:`~bin.mongod` process.
+
+   For example, if a running :binary:`~bin.mongod` instance has a
+   process ID (PID) of ``2200``, the following command rotates the log
+   file for that instance on Linux:
+
+   .. code-block:: bash
+
+      kill -SIGUSR1 2200
+
+Behavior
+--------
+
+The :setting:`systemLog.logRotate` setting or :option:`--logRotate <mongod --logRotate>` option
+specify :dbcommand:`logRotate`'s behavior.
+
+When :setting:`systemLog.logRotate` or :option:`--logRotate <mongod --logRotate>` are set to
+``rename``, :dbcommand:`logRotate` renames the existing log file by
+appending the current timestamp to the filename. The appended timestamp
+has the following form:
+
+.. code-block:: none
+
+   <YYYY>-<mm>-<DD>T<HH>-<MM>-<SS>
+
+Then :dbcommand:`logRotate` creates a new log file with the same
+name as originally specified by the :setting:`systemLog.path` setting to
+:binary:`~bin.mongod` or :binary:`~bin.mongos`.
+
+When :setting:`systemLog.logRotate` or :option:`--logRotate <mongod --logRotate>` are set to
+``reopen``, :dbcommand:`logRotate` follows the typical Linux/Unix
+behavior, and simply closes the log file, and then reopens a log file
+with the same name. With ``reopen``, :binary:`~bin.mongod` expects that
+another process renames the file prior to the rotation, and that the
+reopen results in the creation of a new file.
+
+.. :error:`16175` is thrown if logRotate fails

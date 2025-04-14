@@ -1,0 +1,428 @@
+========================
+$collStats (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $collStats
+
+   .. versionadded:: 3.4
+
+   Returns statistics regarding a collection or view.
+
+   The ``$collStats`` stage has the following prototype form:
+
+   .. code-block:: javascript
+
+      {
+        $collStats:
+          {
+            latencyStats: { histograms: <boolean> },
+            storageStats: { scale: <number> },
+            count: {},
+            queryExecStats: {}
+          }
+      }
+
+   The ``$collStats`` stage accepts an argument document with the
+   following *optional* fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Field Name
+        - Description
+
+      * - ``latencyStats``
+
+        - Adds :ref:`latency statistics<latency-stats-document>` to the
+          return document.
+
+      * - ``latencyStats.histograms``
+
+        - Adds latency histogram information to the embedded documents
+          in ``latencyStats`` if ``true``.
+
+      * - ``storageStats``
+
+        - Adds :ref:`storage statistics<storage-stats-document>` to the
+          return document.
+
+          - Specify an empty document (i.e. ``storageStats: {}``) to
+            use the default scale factor of 1 for the various size
+            data. Scale factor of 1 displays the returned sizes in
+            bytes.
+
+          - Specify the scale factor (i.e. ``storageStats: { scale:
+            <number> }``) to use the specified scale factor for the
+            various size data. For example, to display kilobytes rather
+            than bytes, specify a scale value of 1024.
+                        
+            If you specify a non-integer scale factor, MongoDB uses the integer
+            part of the specified factor. For example, if you specify a scale
+            factor of ``1023.999``, MongoDB uses ``1023`` as the scale factor.
+            
+            The scale factor does not affect those sizes that specify
+            the unit of measurement in the field name, such as ``"bytes
+            currently in the cache"``.
+
+      * - ``count``
+
+        - Adds the total number of documents in the collection to the
+          return document.
+
+          .. note::
+
+             The count is based on the collection's metadata, which
+             provides a fast but sometimes inaccurate count for sharded
+             clusters.
+
+          See :ref:`collstat-count`
+
+          .. versionadded:: 3.6
+
+      * - ``queryExecStats``
+        - Adds :ref:`query execution statistics
+          <collstat-queryexecstats>` to the return document.
+
+          .. versionadded:: 4.4
+
+   For a collection in a replica set or a
+   :ref:`non-sharded collection<sharded-vs-non-sharded-collections>` in
+   a cluster, ``$collStats`` outputs a single document. For a
+   :ref:`sharded collection<sharded-vs-non-sharded-collections>`,
+   ``$collStats`` outputs one document per shard. The output document
+   includes the following fields:
+
+   .. list-table::
+    :header-rows: 1
+    :widths: 30 70
+
+    * - Field Name
+      - Description
+
+    * - ``ns``
+      - The :term:`namespace` of the requested collection or view.
+
+    * - ``shard``
+      - The name of the shard the output document corresponds to.
+
+        Only present when ``$collStats`` runs on a sharded cluster. Both
+        :ref:`sharded and non-sharded collections<sharded-vs-non-sharded-collections>`
+        will produce this field.
+
+        .. versionadded:: 3.6
+
+    * - ``host``
+      - The hostname and port of the ``mongod`` process which produced
+        the output document.
+
+        .. versionadded:: 3.6
+
+    * - ``localTime``
+      - The current time on the MongoDB server, expressed as UTC
+        milliseconds since the :term:`UNIX epoch <unix epoch>`.
+
+    * - ``latencyStats``
+      - Statistics related to request latency for a collection or
+        :doc:`view </core/views>`. See :ref:`latency-stats-document`
+        for details on this document.
+
+        Only present when the ``latencyStats: {}`` option is specified.
+
+    * - ``storageStats``
+
+      - Statistics related to a collection's storage engine. See
+        :ref:`storage-stats-document` for details on this
+        document.
+
+        The various size data is scaled by the specified factor (with
+        the exception of those sizes that specify the unit of
+        measurement in the field name).
+
+        Only present when the ``storageStats`` option is specified.
+
+        Returns an error if applied to a :doc:`view </core/views>`.
+
+    * - ``count``
+      - The total number of documents in the collection. This data is
+        also available in ``storageStats.count``.
+
+        .. note::
+
+           The count is based on the collection's metadata, which
+           provides a fast but sometimes inaccurate count for sharded
+           clusters.
+
+        Only present when the ``count: {}`` option is specified. Returns
+        an error if applied to a :doc:`view </core/views>`.
+
+    * - ``queryExecStats``
+      - Statistics related to query execution for the collection. 
+
+        Only present when the ``queryExecStats: {}`` option is
+        specified. Returns an error if applied to a :doc:`view
+        </core/views>`. 
+
+Behavior
+--------
+
+``$collStats`` must be the first stage in an aggregation pipeline, or
+else the pipeline returns an error.
+
+Transactions
+~~~~~~~~~~~~
+
+``$collStats`` is not allowed in :doc:`transactions </core/transactions>`.
+
+.. _latency-stats-document:
+
+``latencyStats`` Document
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``latencyStats`` embedded document only exists in the output if
+you specify the ``latencyStats`` option.
+
+.. include:: /includes/fact-latencystats-reference.rst
+
+For example, if you run ``$collStats`` with the ``latencyStats: {}`` option
+on a ``matrices`` collection:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { latencyStats: { histograms: true } } } ] )
+
+This query returns a result similar to the following:
+
+.. code-block:: javascript
+
+   { "ns" : "test.matrices",
+     "host" : mongo.example.net:27017",
+     "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
+     "latencyStats" :
+       { "reads" :
+           { "histogram" : [
+               { "micros" : NumberLong(16),
+                 "count" : NumberLong(3) },
+               { "micros" : NumberLong(32),
+                 "count" : NumberLong(1) },
+               { "micros" : NumberLong(128),
+                 "count" : NumberLong(1) } ],
+             "latency" : NumberLong(264),
+             "ops" : NumberLong(5) },
+         "writes" :
+           { "histogram" : [
+               { "micros" : NumberLong(32),
+                 "count" : NumberLong(1) },
+               { "micros" : NumberLong(64),
+                 "count" : NumberLong(3) },
+               { "micros" : NumberLong(24576),
+                 "count" : NumberLong(1) } ],
+             "latency" : NumberLong(27659),
+             "ops" : NumberLong(5) },
+         "commands" :
+           { "histogram" : [ 
+               {
+                  "micros" : NumberLong(196608),
+                  "count" : NumberLong(1)
+               } 
+             ],
+             "latency" : NumberLong(0),
+             "ops" : NumberLong(0) },
+         "transactions" : {
+            "histogram" : [ ],
+            "latency" : NumberLong(0),
+            "ops" : NumberLong(0)
+         }
+       }
+   }
+
+.. _storage-stats-document:
+
+``storageStats`` Document
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``storageStats`` embedded document only exists in the output if you
+specify the ``storageStats`` option.
+
+The contents of this document are dependent on the storage engine in use.
+See :ref:`collStats-output` for a reference on this document.
+
+For example, if you run ``$collStats`` with the ``storageStats: {}``
+option on a ``matrices`` collection using the :ref:`storage-wiredtiger`:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { storageStats: { } } } ] )
+
+This query returns a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns" : "test.matrices",
+     "host" : mongo.example.net:27017",
+     "localTime" : ISODate("2020-03-06T01:44:57.437Z"),
+     "storageStats" : {
+       "size" : 608500363,
+       "count" : 1104369,
+       "avgObjSize" : 550,
+       "storageSize" : 352878592,
+       "freeStorageSize" : 2490380,  // Starting in MongoDB 4.4
+       "capped" : false,
+       "wiredTiger" : {
+         ...
+       },
+       "nindexes" : 2,
+       "indexDetails" : {
+         ...
+       },
+       "indexBuilds" : [    // Starting in MongoDB 4.2
+          "_id_1_abc_1"
+       ],
+       "totalIndexSize" : 260337664,
+       "totalSize" : 613216256,    // Starting in MongoDB 4.4
+       "indexSizes" : {
+         "_id_" : 9891840,
+         "_id_1_abc_1" : 250445824
+       },
+       "scaleFactor" : 1    // Starting in MongoDB 4.2
+     }
+   }
+
+See :ref:`collStats-output` for a reference on this document.
+
+.. note:: In-progress Indexes
+
+   Starting in MongoDB 4.2, the returned ``storageStats`` includes
+   information on indexes being built. For details, see:
+
+   - :data:`collStats.nindexes`
+   - :data:`collStats.indexDetails`
+   - :data:`collStats.indexBuilds`
+   - :data:`collStats.totalIndexSize`
+   - :data:`collStats.indexSizes`
+
+Performing ``$collStats`` with the ``storageStats`` option on a
+:doc:`view </core/views>` results in an error.
+
+.. _collstat-count:
+
+``count`` Field
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+The ``count`` field only exists in the output if you specify the
+``count`` option.
+
+For example, if you run ``$collStats`` with the ``count: {}`` option on
+a ``matrices`` collection:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
+
+The query returns a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns" : "test.matrices",
+     "host" : mongo.example.net:27017",
+     "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
+     "count" : 1103869
+   }
+
+.. note::
+
+   The count is based on the collection's metadata, which provides a
+   fast but sometimes inaccurate count for sharded clusters.
+
+The total number of documents in the collection is also available as
+``storageStats.count`` when ``storageStats: {}`` is specified. For more
+information, see :ref:`storage-stats-document`.
+
+.. _collstat-queryexecstats:
+
+``queryExecStats`` Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+The ``queryExecStats`` embedded document only exists in the output if
+you specify the ``queryExecStats`` option.
+
+.. include:: /includes/fact-queryexecstats-reference.rst
+
+For example, if you run ``$collStats`` with the ``queryExecStats: {}``
+option on a ``matrices`` collection:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { queryExecStats: { } } } ] )
+
+The query returns a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns": "test.matrices",
+     "host": "mongo.example.net:27017",
+     "localTime": ISODate("2020-06-03T14:23:29.711Z"),
+     "queryExecStats": {
+         "collectionScans": {
+             "total": NumberLong(33),
+             "nonTailable": NumberLong(31)
+         }
+     }
+   }
+
+``$collStats`` on Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$collStats`` outputs one document per shard when run on
+:ref:`sharded collections<sharded-vs-non-sharded-collections>`. Each
+output document contains a ``shard`` field with the name of the shard
+the document corresponds to.
+
+For example, if you run ``$collStats`` on a sharded collection with the
+``count: {}`` option on a collection named ``matrices``:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
+
+The query returns a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns" : "test.matrices",
+     "shard" : "s1",
+     "host" : "s1-mongo1.example.net:27017",
+     "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
+     "count" : 661705
+   }
+   {
+     "ns" : "test.matrices",
+     "shard" : "s2",
+     "host" : "s2-mongo1.example.net:27017",
+     "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
+     "count" : 442164
+   }
+
+.. seealso::
+
+   - :dbcommand:`collStats`
+   - :method:`db.collection.stats()`

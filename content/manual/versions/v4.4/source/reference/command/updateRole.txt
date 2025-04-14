@@ -1,0 +1,194 @@
+==========
+updateRole
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: updateRole
+
+   Updates a :ref:`user-defined role <user-defined-roles>`. The
+   :dbcommand:`updateRole` command must run on the role's database.
+
+   .. |method| replace:: :method:`db.updateRole` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+   An update to a field **completely replaces** the previous field's values.
+   To grant or remove roles or :ref:`privileges <privileges>` without
+   replacing all values, use one or more of the following commands:
+
+   - :dbcommand:`grantRolesToRole`
+   - :dbcommand:`grantPrivilegesToRole`
+   - :dbcommand:`revokeRolesFromRole`
+   - :dbcommand:`revokePrivilegesFromRole`
+
+   .. warning::
+
+      An update to the ``privileges`` or ``roles`` array
+      completely replaces the previous array's values.
+
+   The :dbcommand:`updateRole` command uses the following syntax. To
+   update a role, you must provide the ``privileges`` array, ``roles``
+   array, or both:
+
+   .. code-block:: javascript
+
+      {
+        updateRole: "<role>",
+        privileges:
+            [
+              { resource: { <resource> }, actions: [ "<action>", ... ] },
+              ...
+            ],
+        roles:
+            [
+              { role: "<role>", db: "<database>" } | "<role>",
+              ...
+            ],
+        authenticationRestrictions:
+            [
+              {
+                clientSource: ["<IP>" | "<CIDR range>", ...],
+                serverAddress: ["<IP>", ...]
+              },
+              ...
+            ]
+        writeConcern: <write concern document>,
+        comment: <any>
+      }
+
+   The :dbcommand:`updateRole` command has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``updateRole``
+   
+        - string
+   
+        - The name of the :ref:`user-defined role <user-defined-roles>` role to update.
+          
+          
+   
+      * - ``privileges``
+   
+        - array
+   
+        - Optional. Required if you do not specify :data:`~admin.system.roles.roles` array.
+          The privileges to grant the role. An update to the ``privileges``
+          array overrides the previous array's values. For the syntax for
+          specifying a privilege, see the :data:`~admin.system.roles.privileges`
+          array.
+          
+          
+   
+      * - ``roles``
+   
+        - array
+   
+        - Optional. Required if you do not specify :data:`~admin.system.roles.privileges` array.
+          The roles from which this role inherits privileges. An update to the
+          ``roles`` array overrides the previous array's values.
+          
+          
+   
+      * - ``authenticationRestrictions``
+   
+        - array
+   
+        - Optional.
+          
+          .. include:: /includes/fact-auth-restrictions-role-desc.rst
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. The level of :doc:`write concern </reference/write-concern>` for the
+          update operation. The ``writeConcern`` document takes the same
+          fields as the :dbcommand:`getLastError` command.
+          
+          
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+       
+          .. versionadded:: 4.4
+
+
+   .. |local-cmd-name| replace:: :dbcommand:`updateRole`
+
+Roles
+~~~~~
+
+.. include:: /includes/fact-roles-array-contents.rst
+
+Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auth-restrictions-array-contents.rst
+
+Behavior
+--------
+
+A role's privileges apply to the database where the role is created. The
+role can inherit privileges from other roles in its database. A role
+created on the ``admin`` database can include privileges that apply to all
+databases or to the :ref:`cluster <resource-cluster>` and can inherit
+privileges from roles in other databases.
+
+Required Access
+---------------
+
+.. include:: /includes/access-update-role.rst
+
+Example
+-------
+
+The following is an example of the :dbcommand:`updateRole` command that
+updates the ``myClusterwideAdmin`` role on the ``admin`` database.
+While the :data:`~admin.system.roles.privileges` and the
+:data:`~admin.system.roles.roles` arrays are both optional, at least
+one of the two is required:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      {
+        updateRole: "myClusterwideAdmin",
+        privileges:
+            [
+              {
+                resource: { db: "", collection: "" },
+                actions: [ "find" , "update", "insert", "remove" ]
+              }
+            ],
+        roles:
+            [
+              { role: "dbAdminAnyDatabase", db: "admin" }
+            ],
+        writeConcern: { w: "majority" }
+      }
+   )
+
+To view a role's privileges, use the :dbcommand:`rolesInfo` command.

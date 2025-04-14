@@ -1,0 +1,255 @@
+.. _aggregation-pipeline:
+
+====================
+Aggregation Pipeline
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/aggregation-pipeline-introduction.rst
+
+.. |page-topic| replace:: :atlas:`run aggregation pipelines in the UI </atlas-ui/agg-pipeline>`
+
+.. cta-banner::
+   :url: https://www.mongodb.com/docs/atlas/atlas-ui/agg-pipeline
+   :icon: Cloud
+
+   .. include:: /includes/fact-atlas-compatible.rst
+
+When you run aggregation pipelines on {+atlas+} deployments in the
+{+atlas+} UI, you can preview the results at each stage.
+
+.. _aggregation-pipeline-example:
+.. _aggregation-pipeline-examples:
+
+Complete Aggregation Pipeline Example
+-------------------------------------
+
+Create the following collection that contains orders for products:
+
+.. code-block:: javascript
+
+   db.orders.insertMany( [
+      { _id: 0, productName: "Steel beam", status: "new", quantity: 10 },
+      { _id: 1, productName: "Steel beam", status: "urgent", quantity: 20 },
+      { _id: 2, productName: "Steel beam", status: "urgent", quantity: 30 },
+      { _id: 3, productName: "Iron rod", status: "new", quantity: 15 },
+      { _id: 4, productName: "Iron rod", status: "urgent", quantity: 50 },
+      { _id: 5, productName: "Iron rod", status: "urgent", quantity: 10 }
+   ] )
+
+.. include:: /includes/aggregation-pipeline-example.rst
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 'Steel beam', sumQuantity: 50 },
+      { _id: 'Iron rod', sumQuantity: 60 }
+   ]
+
+.. seealso::
+
+   - :doc:`/tutorial/aggregation-with-user-preference-data`
+   - :doc:`/tutorial/aggregation-zip-code-data-set`
+   - :doc:`/tutorial/update-documents-with-aggregation-pipeline`
+
+MongoDB provides the :method:`db.collection.aggregate()` method in the
+:binary:`~bin.mongo` shell and the :dbcommand:`aggregate` command to
+run the aggregation pipeline.
+
+.. _aggregation-pipeline-stages:
+
+Aggregation Pipeline Stages
+---------------------------
+
+An aggregation pipeline consists of one or more :ref:`stages
+<aggregation-pipeline-operator-reference>` that process documents:
+ 
+- Each stage transforms the documents as they pass through the pipeline.
+
+- A stage does not have to output one document for every input
+  document. For example, some stages may produce new documents or
+  filter out documents.
+
+- The same stage can appear multiple times in the pipeline with these
+  stage exceptions: :pipeline:`$out`, :pipeline:`$merge`, and
+  :pipeline:`$geoNear`.
+  
+- For all available stages, see
+  :ref:`aggregation-pipeline-operator-reference`.
+
+Run an Aggregation Pipeline
+---------------------------
+
+To run an aggregation pipeline, use:
+
+- :method:`db.collection.aggregate()` or
+
+- :dbcommand:`aggregate`
+
+Update Documents Using an Aggregation Pipeline
+----------------------------------------------
+
+Starting in MongoDB 4.2, you can use the aggregation pipeline to update
+documents using these methods:
+
+.. include:: /includes/table-update-with-aggregation-availability.rst
+
+ .. _aggregation-pipeline-expressions:
+ 
+Pipeline Expressions
+--------------------
+
+Some pipeline stages accept a pipeline expression as the operand.
+Pipeline expressions specify the transformation to apply to the input
+documents. Expressions have a :doc:`document </core/document>`
+structure and can contain other :ref:`expression
+<aggregation-expressions>`.
+
+Pipeline expressions can only operate on the current document in the
+pipeline and cannot refer to data from other documents: expression
+operations provide in-memory transformation of documents.
+
+Generally, expressions are stateless and are only evaluated when seen
+by the aggregation process with one exception: :ref:`accumulator
+<aggregation-accumulator-operators>` expressions.
+
+The accumulators, used in the :pipeline:`$group` stage, maintain their
+state (for example, totals, maximums, minimums, and related data) as
+documents progress through the pipeline. Some accumulators are available
+in the :pipeline:`$project` stage; however, when used in the
+:pipeline:`$project` stage, the accumulators do not maintain their state
+across documents.
+
+Starting in version 4.4, MongoDB provides the :group:`$accumulator` and
+:expression:`$function` aggregation operators. These operators provide
+users with the ability to define custom aggregation expressions in
+JavaScript.
+
+For more information on expressions, see :ref:`aggregation-expressions`.
+
+.. _aggregation-optimize-performance:
+
+Aggregation Pipeline Behavior
+-----------------------------
+
+In MongoDB, the :dbcommand:`aggregate` command operates on a single
+collection, logically passing the *entire* collection into the
+aggregation pipeline. To optimize the operation, wherever possible, use
+the following strategies to avoid scanning the entire collection.
+
+.. _aggregation-pipeline-operators-and-performance:
+
+Pipeline Operators and Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB's :ref:`query planner <query-plans-query-optimization>` analyzes
+an aggregation pipeline to determine whether :ref:`indexes <indexes>`
+can be used to improve pipeline performance. For example, the following
+pipeline stages can take advantage of indexes:
+
+.. note::
+
+   The following pipeline stages do not represent a complete list of all
+   stages which can use an index.
+
+``$match``
+  The :pipeline:`$match` stage can use
+  an index to filter documents if it occurs at the beginning of
+  a pipeline.
+
+``$sort``
+  The :pipeline:`$sort` stage can use an index as long as it is not
+  preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or
+  :pipeline:`$group` stage.
+
+``$group``
+  The :pipeline:`$group` stage can sometimes use an index to find the
+  first document in each group if all of the following criteria are met:
+  
+  - The :pipeline:`$group` stage is preceded by a :pipeline:`$sort`
+    stage that sorts the field to group by,
+
+  - There is an index on the grouped field which matches the sort order
+    and
+
+  - The only accumulator used in the :pipeline:`$group` stage is
+    :group:`$first`.
+
+  See :ref:`group-pipeline-optimization` for an example.
+
+``$geoNear``
+  The :pipeline:`$geoNear` pipeline operator takes advantage of a
+  geospatial index. When using :pipeline:`$geoNear`, the
+  :pipeline:`$geoNear` pipeline operation must appear as the first
+  stage in an aggregation pipeline.
+
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, indexes can :ref:`cover
+   <read-operations-covered-query>` an aggregation pipeline. In MongoDB
+   2.6 and 3.0, indexes could not cover an aggregation pipeline since
+   even when the pipeline uses an index, aggregation still requires
+   access to the actual documents.
+
+Early Filtering
+~~~~~~~~~~~~~~~
+
+If your aggregation operation requires only a subset of the data in a
+collection, use the :pipeline:`$match`, :pipeline:`$limit`, and
+:pipeline:`$skip` stages to restrict the documents that enter at the
+beginning of the pipeline. When placed at the beginning of a pipeline,
+:pipeline:`$match` operations use suitable indexes to scan only
+the matching documents in a collection.
+
+Placing a :pipeline:`$match` pipeline stage followed by a
+:pipeline:`$sort` stage at the start of the pipeline is logically
+equivalent to a single query with a sort and can use an index. When
+possible, place :pipeline:`$match` operators at the beginning of the
+pipeline.
+
+Considerations
+--------------
+
+Aggregation Pipeline Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An aggregation pipeline has some limitations on the value types and
+the result size. See :doc:`/core/aggregation-pipeline-limits`.
+
+Aggregation Pipeline Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An aggregation pipeline has an internal optimization phase that provides
+improved performance for certain sequences of operators. See
+:doc:`/core/aggregation-pipeline-optimization`.
+
+Aggregation on Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An aggregation pipeline supports operations on sharded collections.
+See :ref:`aggregation-pipeline-sharded-collection`.
+
+Aggregation Pipeline as an Alternative to Map-Reduce
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-use-aggregation-not-map-reduce.rst
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /core/aggregation-pipeline-optimization
+   /core/aggregation-pipeline-limits
+   /core/aggregation-pipeline-sharded-collections
+   Example with ZIP Code Data </tutorial/aggregation-zip-code-data-set>
+   Example with User Preference Data </tutorial/aggregation-with-user-preference-data>

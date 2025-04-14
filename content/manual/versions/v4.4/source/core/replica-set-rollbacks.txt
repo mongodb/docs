@@ -1,0 +1,245 @@
+.. _replica-set-rollbacks:
+.. _replica-set-rollback:
+
+=====================================
+Rollbacks During Replica Set Failover
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A rollback reverts write operations on a former :term:`primary` when the
+member rejoins its :term:`replica set` after a :term:`failover`.
+A rollback is necessary only if the primary had accepted write
+operations that the :term:`secondaries <secondary>` had **not**
+successfully replicated before the primary stepped down. When the
+primary rejoins the set as a secondary, it reverts, or "rolls back," its
+write operations to maintain database consistency with the other
+members.
+
+MongoDB attempts to avoid rollbacks, which should be rare. When a
+rollback does occur, it is often the result of a network
+partition. Secondaries that can not keep up with the throughput of
+operations on the former primary, increase the size and impact of the
+rollback.
+
+A rollback does *not* occur if the write operations replicate to another
+member of the replica set before the primary steps down *and* if that
+member remains available and accessible to a majority of the replica
+set.
+
+.. _rollback-data-files:
+
+Collect Rollback Data
+---------------------
+
+Configure Rollback Data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The :parameter:`createRollbackDataFiles` parameter
+controls whether or not rollback files are created during rollbacks.
+
+.. _replica-set-rollback-data:
+
+Rollback Data
+~~~~~~~~~~~~~
+
+By default, when a rollback occurs, MongoDB writes the rollback data to
+:term:`BSON` files.
+
+.. note:: Rollback Directory Change
+   
+   Starting in Mongo 4.4, the rollback directory for a collection is named
+   after the collection's UUID rather than the collection namespace.
+
+.. tabs::
+
+   .. tab:: MongoDB 4.4+
+      :tabid: 4.4
+   
+      For each collection whose data is rolled back, the
+      rollback files are located in a ``<dbpath>/rollback/<collectionUUID>``
+      directory and have filenames of the form:
+
+      .. code-block:: none
+         :copyable: false
+
+         removed.<timestamp>.bson   
+
+      For example, if data for the collection ``comments`` in the
+      ``reporting`` database rolled back:
+
+      .. code-block:: none
+         :copyable: false
+
+         <dbpath>/rollback/20f74796-d5ea-42f5-8c95-f79b39bad190/removed.2020-02-19T04-57-11.0.bson
+
+      where ``<dbpath>`` is the :binary:`~bin.mongod`'s :setting:`~storage.dbPath`.
+
+      .. tip:: Collection Name
+
+         To get the collection name, you can search for ``rollback
+         file`` in the MongoDB log. For example, if the log file is
+         ``/var/log/mongodb/mongod.log``, you can use ``grep`` to
+         search for instances of ``"rollback file"`` in the log:
+
+         .. code-block:: bash
+
+            grep "rollback file" /var/log/mongodb/mongod.log
+
+         Alternatively, you can loop through all the databases and run
+         :method:`db.getCollectionInfos()` for the specific UUID until
+         you get a match. For example:
+
+         .. code-block:: javascript
+
+            var mydatabases=db.adminCommand("listDatabases").databases;
+            var foundcollection=false;
+
+            for (var i = 0; i < mydatabases.length; i++) {
+               let mdb = db.getSiblingDB(mydatabases[i].name);
+               collections = mdb.getCollectionInfos( { "info.uuid": UUID("20f74796-d5ea-42f5-8c95-f79b39bad190") } );
+
+               for (var j = 0; j < collections.length; j++) {   // Array of 1 element
+                  foundcollection=true;
+                  print(mydatabases[i].name + '.' + collections[j].name);
+                  break;
+               }
+
+               if (foundcollection) { break; }
+            }
+
+   .. tab:: MongoDB 4.2
+      :tabid: 4.2
+
+      For each collection whose data is rolled back, the
+      rollback files are located in a ``<dbpath>/rollback/<db>.<collection>``
+      directory and have filenames of the form:
+
+      .. code-block:: none
+         :copyable: false
+
+         removed.<timestamp>.bson   
+
+      For example, if data for the collection ``comments`` in the
+      ``reporting`` database rolled back:
+
+      .. code-block:: none
+         :copyable: false
+
+         <dbpath>/rollback/reporting.comments/removed.2019-01-31T02-57-40.0.bson
+
+      where ``<dbpath>`` is the :binary:`~bin.mongod`'s :setting:`~storage.dbPath`.
+
+
+Rollback Data Exclusion
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If the operation to roll back is a collection drop or a document
+deletion, the rollback of the collection drop or document deletion
+is not written to the rollback data directory.
+
+.. include:: /includes/w-1-rollback-warning.rst
+
+Read Rollback Data
+~~~~~~~~~~~~~~~~~~
+
+To read the contents of the rollback files, use :doc:`bsondump
+</reference/program/bsondump>`. Based on the content and the knowledge
+of their applications, administrators can decide the next course of
+action to take.
+
+.. _rollback-avoid:
+
+Avoid Replica Set Rollbacks
+---------------------------
+
+For replica sets, the default :doc:`write concern {w: 1}
+</reference/write-concern>` only provides acknowledgement of write
+operations on the primary. With the default write concern, data may be
+rolled back if the primary steps down before the write operations have
+replicated to any of the secondaries. This includes data written in
+:doc:`multi-document transactions </core/transactions>` that commit
+using :writeconcern:`"w: 1" <\<number\>>` write concern.
+
+Journaling and Write Concern ``majority``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To prevent rollbacks of data that have been acknowledged to the client,
+run all voting members with journaling enabled and use :ref:`w:
+majority write concern <wc-w>` to guarantee that the write operations
+propagate to a majority of the replica set nodes before returning with
+acknowledgement to the issuing client.
+
+
+.. include:: /includes/extracts/no-journaling-rollback.rst
+
+Visibility of Data That Can Be Rolled Back
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/list-visibility-of-data.rst
+
+
+Rollback Considerations
+-----------------------
+
+User Operations
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-rollback-user-ops.rst
+
+Index Builds
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-rollbacks.rst
+
+Index Operations When :readconcern:`"majority"` Read Concern is Disabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-disable-majority-rc-rollbacks.rst
+
+Size Limitations
+~~~~~~~~~~~~~~~~
+
+MongoDB supports the following rollback algorithms, which have different size limitations:
+
+- **Recover to a Timestamp**, where a former primary reverts to a consistent point in time and
+  applies operations until it catches up to the sync source's branch of history. This is the
+  default rollback algorithm.
+
+  When using this algorithm, MongoDB does not limit the amount of data you can roll back.
+
+- **Rollback via Refetch**, where a former primary finds the common point between its :term:`oplog`
+  and the sync source's oplog. Then, the member examines and reverts all operations in its oplog until
+  it reaches this common point. Rollback via Refetch occurs only when the
+  :setting:`~replication.enableMajorityReadConcern` setting in your configuration file is set to
+  ``false``.
+
+  When using this algorithm, MongoDB can only roll back up to 300 MB of data.
+
+  .. note::
+
+     Starting in MongoDB 5.0, :setting:`~replication.enableMajorityReadConcern` is set to
+     ``true`` and cannot be changed.
+
+.. _rollback-time-limit:
+
+Rollback Elapsed Time Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The rollback time limit defaults to 24 hours and is configurable using 
+the :parameter:`rollbackTimeLimitSecs` parameter.
+
+MongoDB measures elapsed time as the time between the first common 
+operation in the oplogs to  the last entry in the oplog of the member
+being rolled back.
+
+.. seealso::
+
+   :doc:`/core/replica-set-high-availability` and
+   :doc:`/core/replica-set-elections`.

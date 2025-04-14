@@ -1,0 +1,194 @@
+===============
+db.createRole()
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.createRole(role, writeConcern)
+
+   Creates a role in a database. You can specify privileges for the
+   role by explicitly listing the privileges or by having the role
+   inherit privileges from other roles or both. The role applies to
+   the database on which you run the method.
+
+   .. |dbcommand| replace:: :dbcommand:`createRole` command
+   .. include:: /includes/fact-mongo-shell-method-alt.rst
+
+   The :method:`db.createRole()` method accepts the following arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``role``
+   
+        - document
+   
+        - A document containing the name of the role and the role definition.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. The level of :doc:`write concern </reference/write-concern>` to apply
+          to this operation. The ``writeConcern`` document uses the same fields
+          as the :dbcommand:`getLastError` command.
+          
+          
+   
+
+
+   The ``role`` document has the following form:
+
+   .. code-block:: javascript
+
+      {
+        role: "<name>",
+        privileges: [
+           { resource: { <resource> }, actions: [ "<action>", ... ] },
+           ...
+        ],
+        roles: [
+           { role: "<role>", db: "<database>" } | "<role>",
+            ...
+        ],
+        authenticationRestrictions: [
+          {
+            clientSource: ["<IP>" | "<CIDR range>", ...],
+            serverAddress: ["<IP>" | "<CIDR range>", ...]
+          },
+          ...
+        ]
+      }
+
+   The ``role`` document has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``role``
+   
+        - string
+   
+        - The name of the new role.
+          
+          
+   
+      * - ``privileges``
+   
+        - array
+   
+        - The privileges to grant the role. A privilege consists of a resource
+          and permitted actions. For the syntax of a privilege, see the
+          :data:`~admin.system.roles.privileges` array.
+          
+          You must include the ``privileges`` field. Use an
+          empty array to specify *no* privileges.
+          
+          
+   
+      * - ``roles``
+   
+        - array
+   
+        - An array of roles from which this role inherits privileges.
+          
+          You must include the ``roles`` field. Use an empty array to specify
+          *no* roles to inherit from.
+          
+          
+   
+      * - ``authenticationRestrictions``
+   
+        - array
+   
+        - Optional.
+          
+          .. include:: /includes/fact-auth-restrictions-role-desc.rst
+          
+
+Roles
+~~~~~
+
+.. |local-cmd-name| replace:: :method:`db.createRole()`
+.. include:: /includes/fact-roles-array-contents.rst
+
+Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auth-restrictions-array-contents.rst
+
+Behavior
+--------
+
+Replica set
+~~~~~~~~~~~
+
+.. |command| replace:: :method:`db.createRole()`
+
+.. include:: /includes/fact-management-methods-write-concern.rst
+
+Scope
+~~~~~
+
+.. include:: /includes/fact-roles-privileges-scope.rst
+
+
+The :method:`db.createRole()` method returns a *duplicate role* error
+if the role already exists in the database.
+
+Required Access
+---------------
+
+.. include:: /includes/access-create-role.rst
+
+Example
+-------
+
+The following :method:`db.createRole()` method creates the
+``myClusterwideAdmin`` role on the ``admin`` database:
+
+.. code-block:: javascript
+
+   use admin
+   db.createRole(
+      {
+        role: "myClusterwideAdmin",
+        privileges: [
+          { resource: { cluster: true }, actions: [ "addShard" ] },
+          { resource: { db: "config", collection: "" }, actions: [ "find", "update", "insert", "remove" ] },
+          { resource: { db: "users", collection: "usersCollection" }, actions: [ "update", "insert", "remove" ] },
+          { resource: { db: "", collection: "" }, actions: [ "find" ] }
+        ],
+        roles: [
+          { role: "read", db: "admin" }
+        ]
+      },
+      { w: "majority" , wtimeout: 5000 }
+   )

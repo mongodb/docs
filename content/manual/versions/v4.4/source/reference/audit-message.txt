@@ -1,0 +1,671 @@
+===========================
+System Event Audit Messages
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/note-audit-in-enterprise-only.rst
+
+.. _audit-message-format:
+
+Audit Message
+-------------
+
+The :doc:`event auditing feature </core/auditing>` can record events in
+JSON format. To configure auditing output, see
+:doc:`/tutorial/configure-auditing`.
+
+The recorded JSON messages have the following syntax:
+
+.. code-block:: none
+
+   {
+     atype: <String>,
+     ts : { "$date": <timestamp> },
+     local: { ip: <String>, port: <int> },
+     remote: { ip: <String>, port: <int> },
+     users : [ { user: <String>, db: <String> }, ... ],
+     roles: [ { role: <String>, db: <String> }, ... ],
+     param: <document>,
+     result: <int>
+   }
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``atype``
+
+     - string
+
+     - Action type. See :ref:`audit-action-details-results`.
+       
+       
+
+   * - ``ts``
+
+     - document
+
+     - Document that contains the date and UTC time of the event, in ISO
+       8601 format.
+       
+       
+
+   * - ``local``
+
+     - document
+
+     - Document that contains the local ``ip`` address and the ``port``
+       number of the running instance.
+       
+       
+
+   * - ``remote``
+
+     - document
+
+     - Document that contains the remote ``ip`` address and the ``port`` number of
+       the incoming connection associated with the event.
+       
+       
+
+   * - ``users``
+
+     - array
+
+     - Array of user identification documents. Because MongoDB allows a
+       session to log in with different user per database, this array can
+       have more than one user. Each document contains a ``user`` field for
+       the username and a ``db`` field for the authentication database for
+       that user.
+       
+       
+
+   * - ``roles``
+
+     - array
+
+     - Array of documents that specify the :doc:`roles
+       </core/authorization>` granted to the user. Each document contains a
+       ``role`` field for the name of the role and a ``db`` field for the
+       database associated with the role.
+       
+       
+
+   * - ``param``
+
+     - document
+
+     - Specific details for the event. See :ref:`audit-action-details-results`.
+       
+       
+
+   * - ``result``
+
+     - integer
+
+     - Error code. See :ref:`audit-action-details-results`.
+       
+       
+
+
+
+.. _audit-action-details-results:
+
+Audit Event Actions, Details, and Results
+-----------------------------------------
+
+The following table lists for each ``atype`` or action type, the
+associated ``param`` details and the ``result`` values, if any.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 40 25
+
+   * - ``atype``
+
+     - ``param``
+
+     - ``result``
+
+
+   * - .. _audit-message-authenticate:
+
+       ``authenticate``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            user: <user name>,
+            db: <database>,
+            mechanism: <mechanism>
+          }
+
+
+     - | ``0`` - Success
+       | ``18`` - Authentication Failed
+       | ``334`` - Mechanism Unavailable
+
+   * - .. _audit-message-authCheck:
+
+       ``authCheck``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            command: <name>,
+            ns: <database>.<collection>,
+            args: <command object>
+          }
+
+       | ``ns`` field is optional.
+       | ``args`` field may be redacted.
+
+     - | ``0`` - Success
+       | ``13`` - Unauthorized to perform the operation.
+
+       By default, the auditing system logs only the authorization
+       failures. To enable the system to log authorization successes, use
+       the :parameter:`auditAuthorizationSuccess` parameter. [#performance]_
+
+
+   * - :authaction:`createCollection`
+
+     - .. code-block:: none
+          :copyable: false
+
+          { ns: <database>.<collection> }
+
+
+     - ``0`` - Success
+
+
+   * - ``createDatabase``
+
+     - .. code-block:: none
+          :copyable: false
+
+          { ns: <database> }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`createIndex`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            ns: <database>.<collection>,
+            indexName: <index name>,
+            indexSpec: <index specification>
+          }
+
+
+     - ``0`` - Success
+
+   * - ``renameCollection``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            old: <database>.<collection>,
+            new: <database>.<collection>
+          }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`dropCollection`
+
+     - .. code-block:: none
+          :copyable: false
+
+          { ns: <database>.<collection> }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`dropDatabase`
+
+     - .. code-block:: none
+          :copyable: false
+
+          { ns: <database> }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`dropIndex`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            ns: <database>.<collection>,
+            indexName: <index name>
+          }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`createUser`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            user: <user name>,
+            db: <database>,
+            customData: <document>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ]
+          }
+
+       The ``customData`` field is optional.
+
+
+     - ``0`` - Success
+
+   * - :authaction:`dropUser`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            user: <user name>,
+            db: <database>
+          }
+
+
+     - ``0`` - Success
+
+   * - ``dropAllUsersFromDatabase``
+
+     - .. code-block:: none
+          :copyable: false
+
+          { db: <database> }
+
+
+     - ``0`` - Success
+
+   * - ``updateUser``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            user: <user name>,
+            db: <database>,
+            passwordChanged: <boolean>,
+            customData: <document>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ]
+          }
+
+       The ``customData`` field is optional.
+
+
+     - ``0`` - Success
+
+   * - ``grantRolesToUser``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            user: <user name>,
+            db: <database>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ]
+          }
+
+
+     - ``0`` - Success
+
+   * - ``revokeRolesFromUser``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            user: <user name>,
+            db: <database>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ]
+          }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`createRole`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            role: <role name>,
+            db: <database>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ],
+            privileges: [
+              {
+                resource: <resource document>,
+                actions: [ <action>, ... ]
+              },
+              ...
+            ]
+          }
+
+       The ``roles`` and the ``privileges`` fields are optional.
+
+       For details on the resource document, see :ref:`resource-document`.
+       For a list of actions, see :ref:`security-user-actions`.
+
+
+     - ``0`` - Success
+
+   * - ``updateRole``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            role: <role name>,
+            db: <database>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ],
+            privileges: [
+              {
+                resource: <resource document>,
+                actions: [ <action>, ... ]
+              },
+              ...
+            ]
+          }
+
+       The ``roles`` and the ``privileges`` fields are optional.
+
+       For details on the resource document, see :ref:`resource-document`.
+       For a list of actions, see :ref:`security-user-actions`.
+
+
+     - ``0`` - Success
+
+   * - :authaction:`dropRole`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            role: <role name>,
+            db: <database>
+          }
+
+
+     - ``0`` - Success
+
+   * - ``dropAllRolesFromDatabase``
+
+     - .. code-block:: none
+          :copyable: false
+
+          { db: <database> }
+
+
+     - ``0`` - Success
+
+   * - ``grantRolesToRole``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            role: <role name>,
+            db: <database>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ]
+          }
+
+
+     - ``0`` - Success
+
+   * - ``revokeRolesFromRole``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            role: <role name>,
+            db: <database>,
+            roles: [
+               {
+                 role: <role name>,
+                 db: <database>
+               },
+               ...
+            ]
+          }
+
+
+     - ``0`` - Success
+
+   * - ``grantPrivilegesToRole``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            role: <role name>,
+            db: <database>,
+            privileges: [
+              {
+                resource: <resource document>,
+                actions: [ <action>, ... ]
+              },
+              ...
+            ]
+          }
+
+       For details on the resource document, see :ref:`resource-document`.
+       For a list of actions, see :ref:`security-user-actions`.
+
+
+     - ``0`` - Success
+
+   * -  ``revokePrivilegesFromRole``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            role: <role name>,
+            db: <database name>,
+            privileges: [
+              {
+                resource: <resource document>,
+                actions: [ <action>, ... ]
+              },
+              ...
+            ]
+          }
+
+       For details on the resource document, see :ref:`resource-document`.
+       For a list of actions, see :ref:`security-user-actions`.
+
+
+     - ``0`` - Success
+
+   * - ``replSetReconfig``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            old: {
+             _id: <replicaSetName>,
+             version: <number>,
+             ...
+             members: [ ... ],
+             settings: { ... }
+            },
+            new: {
+             _id: <replicaSetName>,
+             version: <number>,
+             ...
+             members: [ ... ],
+             settings: { ... }
+            }
+          }
+
+       For details on the replica set configuration document, see
+       :doc:`/reference/replica-configuration`.
+
+     - ``0`` - Success
+
+   * - :authaction:`enableSharding`
+
+     - .. code-block:: none
+          :copyable: false
+
+          { ns: <database> }
+
+
+     - ``0`` - Success
+
+   * - ``shardCollection``
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            ns: <database>.<collection>,
+            key: <shard key pattern>,
+            options: { unique: <boolean> }
+          }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`addShard`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            shard: <shard name>,
+            connectionString: <hostname>:<port>,
+            maxSize: <maxSize>
+          }
+
+       When a shard is a replica set, the ``connectionString`` includes the
+       replica set name and can include other members of the replica set.
+
+
+     - ``0`` - Success
+
+   * - :authaction:`refineCollectionShardKey`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+            ns: <database>.<collection>,
+            key: <shard key pattern>
+          }
+
+
+     - ``0`` - Success
+
+
+   * - :authaction:`removeShard`
+
+     - .. code-block:: none
+          :copyable: false
+
+          { shard: <shard name> }
+
+
+     - ``0`` - Success
+
+   * - :authaction:`shutdown`
+
+     - .. code-block:: none
+          :copyable: false
+
+          { }
+
+       Indicates commencement of database shutdown.
+
+
+     - ``0`` - Success
+
+   * - :authaction:`applicationMessage`
+
+     - .. code-block:: none
+          :copyable: false
+
+          { msg: <custom message string> }
+
+       See :dbcommand:`logApplicationMessage`.
+
+
+     - ``0`` - Success
+
+
+.. [#performance]
+
+   .. include:: /includes/fact-auditAuthorizationSuccess-performance-impact.rst
+

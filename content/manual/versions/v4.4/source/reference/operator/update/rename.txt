@@ -1,0 +1,168 @@
+=======
+$rename
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $rename
+
+   The :update:`$rename` operator updates the name of a field and has the following form:
+
+   .. code-block:: javascript
+
+      {$rename: { <field1>: <newName1>, <field2>: <newName2>, ... } }
+
+   The new field name must differ from the existing field name. To
+   specify a ``<field>`` in an embedded document, use :term:`dot
+   notation`.
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.students.update( { _id: 1 }, { $rename: { 'nickname': 'alias', 'cell': 'mobile' } } )
+
+   This operation renames the field ``nickname`` to ``alias``, and the
+   field ``cell`` to ``mobile``.
+
+Behavior
+--------
+
+.. include:: /includes/fact-update-operator-lexicographic-order.rst
+
+The :update:`$rename` operator logically performs an :update:`$unset`
+of both the old name and the new name, and then performs a
+:update:`$set` operation with the new name. As such, the operation may
+not preserve the order of the fields in the document; i.e. the renamed
+field may move within the document.
+
+If the document already has a field with the ``<newName>``, the
+:update:`$rename` operator removes that field and renames the specified
+``<field>`` to ``<newName>``.
+
+If the field to rename does not exist in a document, :update:`$rename`
+does nothing (i.e. no operation).
+
+For fields in embedded documents, the :update:`$rename` operator can
+rename these fields as well as move the fields in and out of embedded
+documents. :update:`$rename` does not work if these fields are in array
+elements.
+
+Examples
+--------
+
+A collection ``students`` contains the following documents where a
+field ``nmae`` appears misspelled, i.e. should be ``name``:
+
+.. code-block:: javascript
+
+   {
+     "_id": 1,
+     "alias": [ "The American Cincinnatus", "The American Fabius" ],
+     "mobile": "555-555-5555",
+     "nmae": { "first" : "george", "last" : "washington" }
+   }
+
+   {
+     "_id": 2,
+     "alias": [ "My dearest friend" ],
+     "mobile": "222-222-2222",
+     "nmae": { "first" : "abigail", "last" : "adams" }
+   }
+
+   {
+     "_id": 3,
+     "alias": [ "Amazing grace" ],
+     "mobile": "111-111-1111",
+     "nmae": { "first" : "grace", "last" : "hopper" }
+   }
+
+The examples in this section successively updates the documents in the
+collection.
+
+Rename a Field
+~~~~~~~~~~~~~~
+
+To rename a field, call the :update:`$rename` operator with the current
+name of the field and the new name:
+
+.. code-block:: javascript
+
+   db.students.updateMany( {}, { $rename: { "nmae": "name" } } )
+
+This operation renames the field ``nmae`` to ``name`` for all documents
+in the collection:
+
+.. code-block:: javascript
+
+   {
+     "_id": 1,
+     "alias": [ "The American Cincinnatus", "The American Fabius" ],
+     "mobile": "555-555-5555",
+     "name": { "first" : "george", "last" : "washington" }
+   }
+
+   {
+      "_id" : 2,
+      "alias" : [ "My dearest friend" ],
+      "mobile" : "222-222-2222",
+      "name" : { "first" : "abigail", "last" : "adams" }
+   }
+
+   { "_id" : 3,
+     "alias" : [ "Amazing grace" ],
+     "mobile" : "111-111-1111",
+     "name" : { "first" : "grace", "last" : "hopper" } }
+
+.. _rename-field-in-embedded-document:
+
+Rename a Field in an Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To rename a field in an embedded document, call the :update:`$rename`
+operator using the :ref:`dot notation <document-dot-notation>` to refer
+to the field. If the field is to remain in the same embedded document,
+also use the dot notation in the new name, as in the following:
+
+.. code-block:: javascript
+
+   db.students.update( { _id: 1 }, { $rename: { "name.first": "name.fname" } } )
+
+This operation renames the embedded field ``first`` to ``fname``:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "alias" : [ "The American Cincinnatus", "The American Fabius" ],
+     "mobile" : "555-555-5555",
+     "name" : { "fname" : "george", "last" : "washington" }
+   }
+
+Rename a Field That Does Not Exist
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When renaming a field and the existing field name refers to a field
+that does not exist, the :update:`$rename` operator does nothing, as in
+the following:
+
+.. code-block:: javascript
+
+   db.students.update( { _id: 1 }, { $rename: { 'wife': 'spouse' } } )
+
+This operation does nothing because there is no field named
+``wife``.
+
+.. seealso::
+
+   - :method:`db.collection.update()`
+   - :method:`db.collection.findAndModify()`

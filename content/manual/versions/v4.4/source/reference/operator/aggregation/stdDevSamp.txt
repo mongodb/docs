@@ -1,0 +1,116 @@
+=========================
+$stdDevSamp (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $stdDevSamp
+
+   .. versionadded:: 3.2
+
+   Calculates the sample standard deviation of the input values. Use if
+   the values encompass a sample of a population of data from which
+   to generalize about the population. :group:`$stdDevSamp` ignores
+   non-numeric values. 
+
+   If the values represent the entire population of data or you do not
+   wish to generalize about a larger population, use
+   :group:`$stdDevPop` instead.
+
+   .. include:: /includes/extracts/fact-aggregation-accumulator-stdDevSamp.rst
+
+   When used in the :pipeline:`$group` stage, :group:`$stdDevSamp` has the
+   following syntax and returns the sample standard deviation of the
+   specified expression for a group of documents that share the same
+   group by key:
+
+   .. code-block:: javascript
+
+      { $stdDevSamp: <expression> }
+
+   When used in the other supported stages,
+   :group:`$stdDevSamp` returns the sample standard deviation of
+   the specified expression or list of expressions for each document
+   and has one of two syntaxes:
+
+   - :group:`$stdDevSamp` has one specified expression as its operand:
+
+     .. code-block:: javascript
+
+        { $stdDevSamp: <expression> }
+
+   - :group:`$stdDevSamp` has a list of specified expressions as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $stdDevSamp: [ <expression1>, <expression2> ... ]  }
+
+   The argument for :group:`$stdDevSamp` can be any
+   :ref:`expression <aggregation-expressions>` as long as it resolves
+   to an array. For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+Non-numeric Values
+~~~~~~~~~~~~~~~~~~
+
+:group:`$stdDevSamp` ignores non-numeric values. If all operands for a
+sum are non-numeric, :group:`$stdDevSamp` returns ``null``.
+
+Single Value
+~~~~~~~~~~~~
+
+If the sample consists of a single numeric value, :group:`$stdDevSamp`
+returns ``null``.
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$group` stage, if the expression resolves to an
+array, :group:`$stdDevSamp` treats the operand as a non-numerical value.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-stdDevSamp.rst
+
+Example
+-------
+
+A collection ``users`` contains documents with the following fields:
+
+.. code-block:: javascript
+
+   {_id: 0, username: "user0", age: 20}
+   {_id: 1, username: "user1", age: 42}
+   {_id: 2, username: "user2", age: 28}
+   ...
+
+To calculate the standard deviation of a sample of users, following
+aggregation operation first uses the :pipeline:`$sample` pipeline to
+sample 100 users, and then uses :group:`$stdDevSamp` calculates the
+standard deviation for the sampled users.
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [
+         { $sample: { size: 100 } },
+         { $group: { _id: null, ageStdDev: { $stdDevSamp: "$age" } } }
+      ]
+   )
+
+The operation returns a result like the following:
+
+.. code-block:: javascript
+
+   { "_id" : null, "ageStdDev" : 7.811258386185771 }

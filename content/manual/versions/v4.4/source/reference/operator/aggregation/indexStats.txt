@@ -1,0 +1,229 @@
+=========================
+$indexStats (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $indexStats
+
+   .. versionadded:: 3.2
+
+   Returns statistics regarding the use of each index for the
+   collection. If running with :ref:`access control <authorization>`, 
+   authenticate as a user with at least the :authrole:`clusterMonitor` role.
+
+   The :pipeline:`$indexStats` stage takes an empty document and has
+   the following syntax:
+
+   .. code-block:: javascript
+
+      { $indexStats: { } }
+
+   For each index, the return document includes the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Output Field
+        - Description
+
+      * - ``name``
+        - Index name.
+
+      * - :ref:`key <indexStats-output-key>`
+        - .. _indexStats-output-key:
+
+          Index key specification.
+
+          See also: :ref:`spec <indexStats-output-spec>`.
+
+      * - :ref:`host <indexStats-output-host>`
+
+        - .. _indexStats-output-host:
+        
+          The hostname and port of the :binary:`~bin.mongod` process.
+
+      * - :ref:`accesses <indexStats-output-accesses>`
+
+        - .. _indexStats-output-accesses:
+
+          Statistics on the index use:
+
+          - ``ops`` is the number of operations that used the
+            index.
+
+          - ``since`` is the time from which MongoDB gathered the
+            statistics.
+
+      * - :ref:`shard <indexStats-output-shard>`
+
+        - .. _indexStats-output-shard:
+        
+          The name of the shard associated with the :ref:`host
+          <indexStats-output-host>`
+
+          Only available for a sharded cluster.
+
+          .. versionadded:: 4.2.4
+
+      * - :ref:`spec <indexStats-output-spec>`
+
+        - .. _indexStats-output-spec:
+        
+          The full specfication document for the index, which includes
+          the index key specification document.
+
+          The index option ``hidden``, available starting in MongoDB
+          4.4, is only included if the value is ``true``.
+
+          .. versionadded:: 4.2.4
+
+      * - :ref:`building <indexStats-output-building>`
+      
+        - .. _indexStats-output-building:
+        
+          Indicates if the index is currently being built.
+        
+          Only available if ``true``.
+          
+          .. versionadded:: 4.2.4
+
+   Statistics for an index will be reset on :binary:`~bin.mongod` restart
+   or index drop and recreation.
+
+.. include:: /includes/note-indexstats-behavior.rst   
+
+Behavior
+--------
+
+Accesses Field
+~~~~~~~~~~~~~~
+
+The statistics reported by the :ref:`accesses
+<indexStats-output-accesses>` field only includes index access driven
+by user requests. It does not include internal operations like deletion
+via :doc:`/core/index-ttl` or chunk split and migration operations.
+
+Restrictions
+~~~~~~~~~~~~
+
+- ``$indexStats`` must be the first stage in an aggregation pipeline.
+
+- ``$indexStats`` is not allowed in :doc:`transactions
+  </core/transactions>`.
+
+Index Modifications Resets Statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Modification of an existing index (see :collflag:`collMod <index>`
+command) resets the statistics for that index.
+
+Example
+-------
+
+For example, a collection ``orders`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "price" : 12, "quantity" : 2, "type": "apparel" }
+   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "type": "electronics" }
+   { "_id" : 3, "item" : "abc", "price" : 10, "quantity" : 5, "type": "apparel" }
+
+Create the following two indexes on the collection:
+
+.. code-block:: javascript
+
+   db.orders.createIndex( { item: 1, quantity: 1 } )
+   db.orders.createIndex( { type: 1, item: 1 } )
+
+Run some queries against the collection:
+
+.. code-block:: javascript
+
+   db.orders.find( { type: "apparel"} )
+   db.orders.find( { item: "abc" } ).sort( { quantity: 1 } )
+
+To view statistics on the index use on the ``orders`` collection,
+run the following aggregation operation:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [ { $indexStats: { } } ] )
+
+The operation returns a document that contains usage statistics for
+each index:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "name" : "item_1_quantity_1",
+      "key" : { "item" : 1, "quantity" : 1 },
+      "host" : "examplehost.local:27018",
+      "accesses" : {
+         "ops" : NumberLong(1),
+         "since" : ISODate("2020-02-10T21:11:23.059Z")
+      },
+      "shard" : "shardA",      // Available starting in MongoDB 4.2.4 if run on sharded cluster
+      "spec" : {               // Available starting in MongoDB 4.2.4
+         "v" : 2,
+         "key" : { "item" : 1, "quantity" : 1 },
+         "name" : "item_1_quantity_1"
+      }
+   }
+   {
+      "name" : "item_1_price_1",
+      "key" : { "item" : 1, "price" : 1 },
+      "host" : "examplehost.local:27018",
+      "accesses" : {
+         "ops" : NumberLong(1),
+         "since" : ISODate("2020-02-10T21:11:23.233Z")
+      },
+      "shard" : "shardA",      // Available starting in MongoDB 4.2.4 if run on sharded cluster
+      "spec" : {               // Available starting in MongoDB 4.2.4
+         "v" : 2,
+         "key" : { "item" : 1, "price" : 1 },
+         "name" : "item_1_price_1"
+      }
+   }
+   {
+      "name" : "item_1",
+      "key" : { "item" : 1 },
+      
+      "host" : "examplehost.local:27018",
+      "accesses" : {
+         "ops" : NumberLong(0),
+         "since" : ISODate("2020-02-10T21:11:22.947Z")
+      },
+      "shard" : "shardA",      // Available starting in MongoDB 4.2.4 if run on sharded cluster
+      "spec" : {               // Available starting in MongoDB 4.2.4
+         "v" : 2,
+         "key" : { "item" : 1 },
+         "name" : "item_1"
+      }
+   }
+   {
+      "name" : "_id_",
+      "key" : { "_id" : 1 },
+      "host" : "examplehost.local:27018",
+      "accesses" : {
+         "ops" : NumberLong(0),
+         "since" : ISODate("2020-02-10T21:11:18.298Z")
+      },
+      "shard" : "shardA",      // Available starting in MongoDB 4.2.4 if run on sharded cluster
+      "spec" : {               // Available starting in MongoDB 4.2.4
+         "v" : 2,
+         "key" : { "_id" : 1 },
+         "name" : "_id_"
+      }
+   }

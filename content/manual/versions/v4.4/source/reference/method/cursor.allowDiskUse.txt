@@ -1,0 +1,95 @@
+=====================
+cursor.allowDiskUse()
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 4.4
+
+.. method:: cursor.allowDiskUse()
+
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+   :method:`~cursor.allowDiskUse()` allows MongoDB to use temporary
+   files on disk to store data exceeding the 100 megabyte system memory
+   limit while processing a blocking sort operation. If MongoDB requires
+   using more than 100 megabytes of system memory for the blocking sort
+   operation, MongoDB returns an error *unless* the query specifies
+   :method:`cursor.allowDiskUse()`. 
+
+   :method:`~cursor.allowDiskUse()` has the following form:
+
+   .. code-block:: javascript
+      
+      db.collection.find(<match>).sort(<sort>).allowDiskUse()
+
+See :ref:`sort-index-use` for more information on blocking sort
+operations.
+
+Behavior
+--------
+
+Supports Large Non-Indexed Sorts Only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:method:`cursor.allowDiskUse()` has no effect on sort operations
+answered using an index *or* non-indexed ("blocking") sort operations
+which require less than 100 megabytes of memory. For more complete
+documentation on blocking sorts and sort index use, see
+:ref:`sort-index-use`.
+
+To check if MongoDB must perform an blocking sort, append
+:method:`cursor.explain()` to the query and check the 
+:doc:`explain results </reference/explain-results>`. If the query plan 
+contains a ``SORT`` stage, then MongoDB must perform an 
+blocking sort operation subject to the 100 megabyte memory limit.
+
+Example
+-------
+
+Consider a collection ``sensors`` with only the default index on 
+``_id``. The collection contains documents similar to the
+following:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "sensor-name" : "TEMP-21425",
+     "sensor-location" : "Unit 12",
+     "reading" : {
+       "timestamp" : Timestamp(1580247215, 1),
+       "value" : 212,
+       "unit" : "Fahrenheit"
+     }
+   }
+
+
+
+The following operation includes a :method:`cursor.sort()` on the
+field ``reading.timestamp``. The operation also includes
+:method:`cursor.allowDiskUse()` to support the sort operation.
+
+.. code-block:: javascript
+
+   db.sensors.find({"sensor-location" : "Unit 12"}).
+     sort({"reading.timestamp" : 1}).
+     allowDiskUse()
+
+Since ``reading.timestamp`` is not included in an index, MongoDB
+must perform a blocking sort operation to return results in the 
+requested sort order. By specifying :method:`~cursor.allowDiskUse()`,
+MongoDB can process the sort operation *even if* it requires more than
+100 megabytes of system memory. If :method:`~cursor.allowDiskUse()` 
+was omitted *and* the operation required more than 100 megabytes of
+system memory, MongoDB would return an error.

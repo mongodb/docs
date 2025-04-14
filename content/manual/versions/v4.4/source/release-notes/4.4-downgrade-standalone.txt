@@ -1,0 +1,151 @@
+=================================================
+Downgrade |newversion| Standalone to |oldversion|
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+
+.. include:: /includes/4.4-upgrade-replacements.rst
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade/latest-patch-release.rst
+
+.. include:: /includes/downgrade/single-version-support.rst
+
+.. include:: /includes/extracts/4.4-changes-downgrade-floor.rst
+
+.. |downgrading| replace:: downgrading
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+If your deployment has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required privileges.
+      
+Prerequisites
+-------------
+
+Remove Incompatible Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To downgrade from |newversion| to |oldversion|, you must remove
+incompatible features that are persisted and/or update incompatible
+configuration settings. These include:
+
+.. |target| replace:: :binary:`~bin.mongod` instance
+
+1. Namespace Length
+```````````````````
+
+Starting in MongoDB 4.4:
+
+.. include:: /includes/fact-collection-namespace-limit.rst
+
+Before downgrading, resolve any collections or views with namespaces
+that exceed the 120-byte :limit:`Namespace Length` limit for Feature
+Compatibility Version (fCV) 4.2.
+
+To determine if you have any collections or views with namespaces
+that exceed the 120-byte limit, connect :binary:`~bin.mongo` shell
+to the |target| and run:
+
+.. code-block:: javascript
+
+   db.adminCommand("listDatabases").databases.forEach(function(d){
+      let mdb = db.getSiblingDB(d.name);
+
+      mdb.getCollectionInfos( ).forEach(function(c){
+         namespace = d.name + "." + c.name
+         namespacelenBytes =  encodeURIComponent(namespace).length
+
+         if (namespacelenBytes > 120) {
+            print (c.type.toUpperCase() + " namespace exceeds 120 bytes:: " + namespace )
+         }
+      } )
+   })
+
+If any collection or view namespace exceeds 120 bytes, then :red:`prior` to
+downgrading the fCV:
+
+- Rename the collection using the :dbcommand:`renameCollection` command.
+
+- For views, use :method:`db.createView()` to recreate the view
+  using a shorter name, then drop the original view.
+
+.. _4.4-downgrade-feature-compatibility-standalone:
+
+2. Downgrade Feature Compatibility Version (fCV)
+````````````````````````````````````````````````
+
+To downgrade the ``featureCompatibilityVersion`` of your standalone:
+
+#. Connect a :binary:`~bin.mongo` shell to the |target|.
+
+#. .. include:: /includes/4.4-downgrade-fcv.rst
+
+3. Remove fCV |newversion| Persisted Features
+`````````````````````````````````````````````
+
+The following steps are necessary only if fCV has ever been set to
+|newfcv|.
+
+Remove all persisted |newversion| |features| that are incompatible with
+|oldversion|. These include:
+
+Compound Hashed Indexes
+  Remove all :ref:`compound hashed indexes 
+  <index-type-compound-hashed>`.
+
+  Use :method:`db.collection.getIndexes()` to identify 
+  any compound hashed indexes in a collection and use
+  :method:`db.collection.dropIndex()` to remove those indexes.
+
+.. |binary| replace:: the :binary:`~bin.mongod` instance
+
+4. Remove |newversion| Features
+```````````````````````````````
+
+Remove all persisted features that use |newversion| features. These
+include but are not limited to:
+
+- If any view definitions that include |newversion| operators, such as
+  :pipeline:`$unionWith` or :expression:`$function`. See also
+  :ref:`4.4-rel-notes-new-agg-operators`.
+
+- :method:`Unhide <db.collection.unhideIndex()>` or :method:`drop
+  <db.collection.dropIndex()>` hidden indexes.
+
+Confirm Clean Shutdown
+~~~~~~~~~~~~~~~~~~~~~~
+
+When a step prompts you to stop your deployment, ensure your 
+:binary:`~bin.mongod` instance is 
+:ref:`shut down <terminate-mongod-processes>`.
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that the
+   prerequisites have been completed.
+
+.. include:: /includes/steps/4.4-downgrade-mongod.rst

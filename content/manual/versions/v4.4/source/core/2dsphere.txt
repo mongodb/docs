@@ -1,0 +1,173 @@
+====================
+``2dsphere`` Indexes
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+A ``2dsphere`` index supports queries that calculate geometries on an
+earth-like sphere. ``2dsphere`` index supports all MongoDB geospatial
+queries: queries for inclusion, intersection and proximity.
+For more information on geospatial queries, see
+:doc:`/geospatial-queries`.
+
+The ``2dsphere`` index supports data stored as :ref:`GeoJSON objects
+<geospatial-geojson>` *and* :ref:`legacy coordinate pairs
+<geospatial-legacy>` (See also :ref:`2dsphere-data-restrictions`).
+For legacy coordinate pairs, the index converts the data to GeoJSON
+:ref:`geojson-point`.
+
+.. _2dsphere-v2:
+
+Versions
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - ``2dsphere`` Index Version
+     - Description
+
+   * - Version 3
+
+     - MongoDB 3.2 introduces a version 3 of ``2dsphere`` indexes.
+       Version 3 is the default version of ``2dsphere`` indexes created
+       in MongoDB 3.2 and later.
+
+   * - Version 2
+
+     - MongoDB 2.6 introduces a version 2 of ``2dsphere`` indexes.
+       Version 2 is the default version of ``2dsphere`` indexes created
+       in MongoDB 2.6 and 3.0 series.
+
+To override the default version and specify a different version,
+include the option ``{ "2dsphereIndexVersion": <version> }`` when
+creating the index.
+
+``sparse`` Property
+~~~~~~~~~~~~~~~~~~~
+
+Version 2 and later ``2dsphere`` indexes are always :doc:`sparse
+</core/index-sparse>` and ignore the :doc:`sparse
+</core/index-sparse>` option. If a document lacks a ``2dsphere`` index
+field (or the field is ``null`` or an empty array), MongoDB does not
+add an entry for the document to the index. For inserts, MongoDB
+inserts the document but does not add to the ``2dsphere`` index.
+
+For a compound index that includes a ``2dsphere`` index key along with
+keys of other types, only the ``2dsphere`` index field determines
+whether the index references a document.
+
+Earlier versions of MongoDB only support ``2dsphere (Version 1)``
+indexes. ``2dsphere (Version 1)`` indexes are *not* sparse by default
+and will reject documents with ``null`` location fields.
+
+Additional GeoJSON Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Version 2 and later ``2dsphere`` indexes includes support for additional GeoJSON
+object: :ref:`geojson-multipoint`, :ref:`geojson-multilinestring`,
+:ref:`geojson-multipolygon`, and :ref:`geojson-geometrycollection`. For
+details on all supported GeoJSON objects, see :doc:`/reference/geojson`.
+
+Considerations
+--------------
+
+``geoNear`` and ``$geoNear`` Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |first-geo-index| replace:: ``2dsphere`` index
+.. |second-geo-index| replace:: :doc:`2d </core/2d>` index
+.. include:: /includes/fact-limitation-one-geo-index-per-collection.rst
+
+Shard Key Restrictions
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/geospatial-index-shard-key-restriction-2dsphere.rst
+
+.. _2dsphere-data-restrictions:
+
+``2dsphere`` Indexed Field Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/geo-data-limit-for-2dsphere.rst
+
+Create a ``2dsphere`` Index
+---------------------------
+
+.. include:: /includes/create-2dsphere-index.rst
+
+Unlike a compound :doc:`2d </core/2d>` index which can reference one
+location field and one other field, a :ref:`compound
+<index-type-compound>` ``2dsphere`` index can reference multiple
+location and non-location fields.
+
+For the following examples, consider a collection ``places`` with
+documents that store location data as :ref:`GeoJSON Point
+<geojson-point>` in a field named ``loc``:
+
+.. code-block:: javascript
+
+   db.places.insert(
+      {
+         loc : { type: "Point", coordinates: [ -73.97, 40.77 ] },
+         name: "Central Park",
+         category : "Parks"
+      }
+   )
+
+   db.places.insert(
+      {
+         loc : { type: "Point", coordinates: [ -73.88, 40.78 ] },
+         name: "La Guardia Airport",
+         category : "Airport"
+      }
+   )
+
+Create a ``2dsphere`` Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates a :doc:`2dsphere </core/2dsphere>`
+index on the location field ``loc``:
+
+.. code-block:: javascript
+
+   db.places.createIndex( { loc : "2dsphere" } )
+
+Create a Compound Index with ``2dsphere`` Index Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A :ref:`compound index <index-type-compound>` can include a
+``2dsphere`` index key in combination with non-geospatial index keys.
+For example, the following operation creates a compound index where
+the first key ``loc`` is a ``2dsphere`` index key, and the remaining
+keys ``category`` and ``names`` are non-geospatial index keys,
+specifically descending (``-1``) and ascending (``1``) keys
+respectively.
+
+.. code-block:: javascript
+
+   db.places.createIndex( { loc : "2dsphere" , category : -1, name: 1 } )
+
+Unlike the :doc:`2d </core/2d>` index, a compound ``2dsphere`` index
+does not require the location field to be the first field indexed. For
+example:
+
+.. code-block:: javascript
+
+   db.places.createIndex( { category : 1 , loc : "2dsphere" } )
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/query-a-2dsphere-index

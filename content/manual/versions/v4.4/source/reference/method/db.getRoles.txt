@@ -1,0 +1,191 @@
+=============
+db.getRoles()
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. |getRoleMethod| replace:: ``db.getRoles()``
+
+.. method:: db.getRoles()
+
+   Returns information for all the roles in the database on which the command
+   runs. The method can be run with or without an argument.
+
+   If run without an argument, :method:`db.getRoles()` returns inheritance
+   information for the database's :ref:`user-defined <user-defined-roles>`
+   roles.
+
+   To return more information, pass the :method:`db.getRoles()` a
+   document with the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+        - Type
+        - Description
+   
+      * - ``rolesInfo``
+
+        - integer
+   
+        - Set this field to ``1`` to retrieve all user-defined roles.
+          
+      * - ``showAuthenticationRestrictions``
+
+        - boolean
+
+        - .. include:: /includes/fact-show-auth-restrictions-description.rst
+
+      * - ``showBuiltinRoles``
+   
+        - boolean
+   
+        - Optional. Set this field to true to display :ref:`built-in
+          roles <built-in-roles>` as well as user-defined roles.
+   
+      * - ``showPrivileges``
+   
+        - boolean
+   
+        - Optional. Set this field to ``true`` to show role privileges,
+          including both privileges inherited from other roles and
+          privileges defined directly. By default, the command returns
+          only the roles from which this role inherits privileges and
+          does not return specific privileges.
+
+   :method:`db.getRoles()` wraps the :dbcommand:`rolesInfo` command.
+
+Required Access
+---------------
+
+.. include:: /includes/access-roles-info.rst
+
+Examples
+--------
+
+The examples in this section show how to use ``db.getRoles`` to:
+
+- :ref:`db-getRoles-example-return-built-in-roles`
+
+- :ref:`db-getRoles-example-auth-restrictions`
+
+.. _db-getRoles-example-return-built-in-roles:
+
+Show Role Privileges and Built-In Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns all the roles on the ``products``
+database, including role privileges and built-in roles:
+
+.. code-block:: javascript
+
+   use products
+
+   db.getRoles(
+       {
+         rolesInfo: 1,
+         showPrivileges: true,
+         showBuiltinRoles: true
+       }
+   )
+
+Example output (shortened for readability):
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     roles: [
+       {
+         role: 'dbOwner',
+         db: 'products',
+         isBuiltin: true,
+         roles: [],
+         inheritedRoles: [],
+         privileges: [
+           {
+             resource: { db: 'products', collection: '' },
+             actions: [
+               'analyze',
+               'bypassDocumentValidation',
+               'changeCustomData',
+               ...
+             ]
+           },
+           {
+             resource: { db: 'products', collection: 'system.profile' },
+             actions: [
+               'changeStream',
+               'collStats',
+               'convertToCapped',
+               ...
+             ]
+           }
+         ],
+         inheritedPrivileges: [
+           {
+             resource: { db: 'products', collection: '' },
+             actions: [
+               'analyze',
+               'bypassDocumentValidation',
+               'changeCustomData',
+               ...
+             ]
+           }
+         ]
+       },
+       ...
+     ]
+   }
+
+.. _db-getRoles-example-auth-restrictions:
+  
+Show Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns role inheritance information and
+authentication restrictions for all :ref:`user-defined roles
+<user-defined-roles>` on the ``product`` database:
+
+.. code-block:: javascript
+
+   use products
+
+   db.getRoles( { rolesInfo: 1, showAuthenticationRestrictions: true } )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     roles: [
+       {
+         _id: 'products.associate',
+         role: 'associate',
+         db: 'products',
+         roles: [ { role: 'readWrite', db: 'products' } ],
+         authenticationRestrictions: [
+           [ { clientSource: [ '198.51.100.0' ] } ]
+         ],
+         isBuiltin: false,
+         inheritedRoles: [ { role: 'readWrite', db: 'products' } ],
+         inheritedAuthenticationRestrictions: [
+           [ { clientSource: [ '198.51.100.0' ] } ]
+         ]
+       }
+     ],
+     ok: 1
+   }

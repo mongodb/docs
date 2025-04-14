@@ -1,0 +1,246 @@
+===================
+$sort (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $sort
+
+   Sorts all input documents and returns them to the pipeline in sorted
+   order.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$sort``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :pipeline:`$sort` stage has the following prototype form:
+
+.. code-block:: javascript
+
+   { $sort: { <field1>: <sort order>, <field2>: <sort order> ... } }
+
+:pipeline:`$sort` takes a document that specifies the field(s) to
+sort by and the respective sort order. ``<sort order>`` can have one
+of the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Value
+     - Description
+
+   * - ``1``
+     - Sort ascending.
+
+   * - ``-1``
+     - Sort descending.
+
+   * - ``{ $meta: "textScore" }``
+     - Sort by the computed ``textScore`` metadata in descending
+          order. See :ref:`sort-pipeline-metadata` for an example.
+
+If sorting on multiple fields, sort order is evaluated from left to
+right. For example, in the form above, documents are first sorted by
+``<field1>``. Then documents with the same ``<field1>`` values are
+further sorted by ``<field2>``.
+
+Behavior
+--------
+
+Limits
+~~~~~~
+
+.. include:: /includes/sort-limits.rst
+
+.. _sort-aggregation-consistent-sorting:
+
+Sort Consistency
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-sort-consistency.rst
+
+Consider the following ``restaurant`` collection:
+
+.. code-block:: js
+
+   db.restaurants.insertMany( [
+      { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan"},
+      { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens"},
+      { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn"},
+      { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan"},
+      { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn"},
+   ] )
+
+The following command uses the :pipeline:`$sort` stage to sort on
+the ``borough`` field:
+
+.. code-block:: js
+
+   db.restaurants.aggregate(
+      [
+        { $sort : { borough : 1 } }
+      ]
+   )
+
+In this example, sort order may be inconsistent, since the ``borough``
+field contains duplicate values for both ``Manhattan`` and ``Brooklyn``.
+Documents are returned in alphabetical order by ``borough``, but the
+order of those documents with duplicate values for ``borough`` might not
+the be the same across multiple executions of the same sort. For
+example, here are the results from two different executions of the
+above command:
+
+.. code-block:: js
+   :copyable: false
+
+   { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn" }
+   { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn" }
+   { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan" }
+   { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan" }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens" }
+
+   { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn" }
+   { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn" }
+   { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan" }
+   { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan" }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens" }
+
+While the values for ``borough`` are still sorted in alphabetical order,
+the order of the documents containing duplicate values for ``borough``
+(i.e. ``Manhattan`` and ``Brooklyn``) is not the same.
+
+To achieve a *consistent sort*, add a field which contains exclusively
+unique values to the sort. The following command uses the
+:pipeline:`$sort` stage to sort on both the ``borough`` field and the
+``_id`` field:
+
+.. code-block:: js
+
+   db.restaurants.aggregate(
+      [
+        { $sort : { borough : 1, _id: 1 } }
+      ]
+   )
+
+Since the ``_id`` field is always guaranteed to contain exclusively
+unique values, the returned sort order will always be the same across
+multiple executions of the same sort.
+
+Examples
+--------
+
+.. _sort-pipeline-asc-desc:
+
+Ascending/Descending Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the field or fields to sort by, set the sort order to ``1`` or ``-1`` to
+specify an ascending or descending sort respectively, as in the following example:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [
+        { $sort : { age : -1, posts: 1 } }
+      ]
+   )
+
+This operation sorts the documents in the ``users`` collection,
+in descending order according by the ``age`` field and then in
+ascending order according to the value in the ``posts`` field.
+
+.. include:: /includes/fact-sort-order.rst
+
+For details on the comparison/sort order for specific types, see
+:ref:`bson-types-comparison-order`.
+
+.. _sort-pipeline-metadata:
+
+Text Score Metadata Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a pipeline that includes a :query:`$text` search, you can sort by
+descending relevance score using the :expression:`{ $meta: "textScore"
+} <$meta>` expression. In the ``{ <sort-key> }`` document, set the
+:expression:`{ $meta: "textScore" } <$meta>` expression to an arbitrary
+field name. The field name is ignored by the query system. For example:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [
+        { $match: { $text: { $search: "operating" } } },
+        { $sort: { score: { $meta: "textScore" }, posts: -1 } }
+      ]
+   )
+
+This operation uses the :query:`$text` operator to match the documents,
+and then sorts first by the ``"textScore"`` metadata in descending
+order, and then by the ``posts`` field in descending order. The
+``score`` field name in the sort document is ignored by the query
+system. In this pipeline, the ``"textScore"`` metadata is not included
+in the projection and is not returned as part of the matching
+documents. See :expression:`$meta` for more information.
+
+.. _sort-and-memory:
+
+``$sort`` Operator and Memory
+-----------------------------
+
+.. _sort-limit-sequence:
+
+``$sort`` + ``$limit`` Memory Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-agg-sort-limit.rst
+
+.. include:: /includes/fact-optimizations-subject-to-change.rst
+
+.. _sort-memory-limit:
+
+``$sort`` and Memory Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$sort` stage has a limit of 100 megabytes of RAM for
+in-memory sorts. By default, if the stage exceeds this limit,
+:pipeline:`$sort` produces an error. To allow pipeline processing to
+take up more space, use the :ref:`allowDiskUse
+<aggregate-cmd-allowDiskUse>` option to enable aggregation pipeline
+stages to write data to temporary files.
+
+.. seealso::
+
+   :doc:`/core/aggregation-pipeline-limits`
+
+``$sort`` Operator and Performance
+----------------------------------
+
+The :pipeline:`$sort` operator can take advantage of an index if it's
+used in the first stage of a pipeline or if it's only preceeded by a
+:pipeline:`$match` stage.
+
+When you use the :pipeline:`$sort` on a sharded cluster, each shard
+sorts its result documents using an index where available. Then the
+:binary:`~bin.mongos` or one of the shards performs a streamed merge
+sort.
+
+.. seealso::
+
+   - :doc:`/tutorial/aggregation-zip-code-data-set`
+   - :doc:`/tutorial/aggregation-with-user-preference-data`

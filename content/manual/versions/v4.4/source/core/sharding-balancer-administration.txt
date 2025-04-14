@@ -1,0 +1,340 @@
+
+.. _sharding-balancing:
+
+========================
+Sharded Cluster Balancer
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+The MongoDB balancer is a background process that monitors the number of
+:term:`chunks <chunk>` on each :term:`shard`. When the number of chunks on a
+given shard reaches specific :ref:`migration thresholds
+<sharding-migration-thresholds>`, the balancer attempts to automatically
+migrate chunks between shards and reach an equal number of chunks per shard.
+
+The balancing procedure for :term:`sharded clusters <sharded cluster>` is
+entirely transparent to the user and application layer, though there may be
+some performance impact while the procedure takes place.
+
+.. include:: /images/sharding-migrating.rst
+
+The balancer runs on the primary of the config server replica set
+(CSRS).
+
+.. toctree::
+   :titlesonly: 
+   :hidden: 
+
+   /tutorial/manage-sharded-cluster-balancer
+   /tutorial/migrate-chunks-in-sharded-cluster
+
+
+.. _sharding-balancing-internals:
+.. _sharding-internals-balancing:
+
+Cluster Balancer
+----------------
+
+The :term:`balancer` process is responsible for redistributing the
+chunks of a sharded collection evenly among the shards for every
+sharded collection. By default, the balancer process is always enabled.
+
+To address uneven chunk distribution for a sharded collection, the
+balancer :doc:`migrates chunks </core/sharding-balancer-administration>` from
+shards with more chunks to shards with a fewer number of chunks. The
+balancer migrates the chunks until there is an even
+distribution of chunks for the collection across the shards. For details
+about chunk migration, see :ref:`chunk-migration-procedure`.
+
+.. include:: /includes/fact-archiveMovedChunks.rst
+
+Chunk migrations carry some overhead in terms of bandwidth and
+workload, both of which can impact database performance. [#auto-distribute]_ The
+:term:`balancer` attempts to minimize the impact by:
+
+- Restricting a shard to at most one migration at any given time; i.e.
+  a shard cannot participate in multiple chunk migrations at the same
+  time. To migrate multiple chunks from a shard, the balancer migrates
+  the chunks one at a time.
+
+  .. versionchanged:: 3.4
+
+     Starting in MongoDB 3.4, MongoDB can perform parallel chunk
+     migrations. Observing the restriction that a shard can participate
+     in at most one migration at a time, for a sharded cluster with *n*
+     shards, MongoDB can perform at most *n/2* (rounded down)
+     simultaneous chunk migrations.
+
+  See also :ref:`chunk-migration-queuing`.
+
+- Starting a balancing round **only** when the difference in the
+  number of chunks between the shard with the greatest number of chunks
+  for a sharded collection and the shard with the lowest number of
+  chunks for that collection reaches the :ref:`migration threshold
+  <sharding-migration-thresholds>`.
+
+You may disable the balancer temporarily for maintenance. See
+:ref:`sharding-balancing-disable-temporally` for details.
+
+You can also limit the window during which the balancer runs to prevent
+it from impacting production traffic. See :ref:`Schedule the Balancing
+Window <sharding-schedule-balancing-window>` for details.
+
+.. note::
+
+   The specification of the balancing window is relative to the local
+   time zone of the primary of the config server replica set.
+
+.. seealso::
+
+   :doc:`/tutorial/manage-sharded-cluster-balancer`
+
+
+.. [#auto-distribute]
+
+   .. include:: /includes/extracts/zoned-sharding-shard-operation-chunk-distribution.rst
+
+   .. include:: /includes/extracts/zoned-sharding-shard-operation-chunk-distribution-hashed-short.rst
+
+   See :ref:`pre-define-zone-range-hashed-example` for an example.
+
+
+Adding and Removing Shards from the Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Adding a shard to a cluster creates an imbalance, since the new
+shard has no chunks. While MongoDB begins migrating data to the new
+shard immediately, it can take some time before the cluster balances. See the
+:doc:`/tutorial/add-shards-to-shard-cluster` tutorial for instructions on
+adding a shard to a cluster.
+
+Removing a shard from a cluster creates a similar imbalance, since chunks
+residing on that shard must be redistributed throughout the cluster. While
+MongoDB begins draining a removed shard immediately, it can take some time
+before the cluster balances. *Do not* shutdown the servers associated
+to the removed shard during this process. 
+
+.. include:: /includes/fact-remove-shard-balance-order.rst
+
+See the :doc:`/tutorial/remove-shards-from-cluster` tutorial for
+instructions on safely removing a shard from a cluster.
+
+.. seealso::
+
+   :method:`sh.balancerCollectionStatus()`
+
+
+.. _chunk-migration-procedure:
+
+Chunk Migration Procedure
+-------------------------
+
+All chunk migrations use the following procedure:
+
+#. The balancer process sends the :dbcommand:`moveChunk` command to
+   the source shard.
+
+#. The source starts the move with an internal :dbcommand:`moveChunk`
+   command. During the migration process, operations to the chunk
+   route to the source shard. The source shard is responsible for
+   incoming write operations for the chunk.
+
+#. The destination shard builds any indexes required by the source
+   that do not exist on the destination.
+
+#. The destination shard begins requesting documents in the chunk and
+   starts receiving copies of the data. See also
+   :ref:`chunk-migration-replication`.
+
+#. After receiving the final document in the chunk, the
+   destination shard starts a synchronization process to ensure that it
+   has the changes to the migrated documents that occurred during the
+   migration.
+
+#. When fully synchronized, the source shard connects to the
+   :term:`config database` and updates the cluster metadata with the new
+   location for the chunk.
+
+#. After the source shard completes the update of the metadata,
+   and once there are no open cursors on the chunk, the source shard
+   deletes its copy of the documents.
+
+   .. note::
+
+      If the balancer needs to perform additional chunk migrations from
+      the source shard, the balancer can start the next chunk migration
+      without waiting for the current migration process to finish this
+      deletion step. See :ref:`chunk-migration-queuing`.
+
+   .. seealso::
+   
+      :ref:`moveChunk-directory`
+
+The migration process ensures consistency and maximizes the availability of
+chunks during balancing.
+
+.. seealso::
+
+   :serverstatus:`shardingStatistics.countDonorMoveChunkLockTimeout`
+
+
+.. _sharding-migration-thresholds:
+
+Migration Thresholds
+~~~~~~~~~~~~~~~~~~~~
+
+To minimize the impact of balancing on the cluster, the :term:`balancer`
+begins balancing only after the distribution of data for a sharded
+collection has reached the migration threshold that makes the cluster
+unbalanced. When the number of chunks on the most loaded shard exceeds
+the optimal number of chunks per shard by more than 1 chunk, the
+collection is unbalanced and the :term:`balancer` initiates chunk
+migrations. The optimal number of chunks per shard is the total number
+of chunks in a sharded collection divided by the number of shards,
+rounded up to the nearest integer. If :term:`zones <zone>` exist,
+MongoDB calculates the optimal number of chunks on a per-zone basis. 
+
+For example, if a user adds a new shard to a collection of 10 shards
+with 20 chunks each, the :term:`balancer` does not migrate any data. The
+optimal number of chunks on each shard is 200 divided by 11, or 18.18,
+which MongoDB rounds up to 19. Because the difference between 19 and 20
+is 1, the cluster is balanced and the :term:`balancer` does not migrate
+any chunks to the new shard.
+
+.. seealso::
+
+   :method:`sh.balancerCollectionStatus()`
+
+
+.. _chunk-migration-queuing:
+.. _asynchronous-chunk-migration-cleanup:
+
+Asynchronous Chunk Migration Cleanup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To migrate multiple chunks from a shard, the balancer migrates the
+chunks one at a time. However, the balancer does not wait for the
+current migration's delete phase to complete before starting the next
+chunk migration. See :ref:`sharding-chunk-migration` for the chunk
+migration process and the delete phase.
+
+This queuing behavior allows shards to unload chunks more quickly in
+cases of heavily imbalanced cluster, such as when performing initial
+data loads without pre-splitting and when adding new shards.
+
+This behavior also affects the :dbcommand:`moveChunk` command, and
+migration scripts that use the :dbcommand:`moveChunk` command may
+proceed more quickly.
+
+In some cases, the delete phases may persist longer. Starting in MongoDB
+4.4, chunk migrations are enhanced to be more resilient in the event of
+a failover during the delete phase. Orphaned documents are cleaned up
+even if a replica set's primary crashes or restarts during this phase.
+
+The ``_waitForDelete``, available as a setting for the balancer as well
+as the :dbcommand:`moveChunk` command, can alter the behavior so that
+the delete phase of the current migration blocks the start of the next
+chunk migration. The ``_waitForDelete`` is generally for internal
+testing purposes. For more information, see
+:ref:`wait-for-delete-setting`.
+
+.. _chunk-migration-replication:
+
+Chunk Migration and Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.4
+
+During chunk migration, the ``_secondaryThrottle`` value determines
+when the migration proceeds with next document in the chunk.
+
+In the :data:`config.settings` collection:
+
+- If the ``_secondaryThrottle`` setting for the balancer is set to a
+  write concern, each document move during chunk migration must receive
+  the requested acknowledgement before proceeding with the next
+  document.
+
+- If the ``_secondaryThrottle`` setting for the balancer is set to
+  ``true``, each document move during chunk migration must receive
+  acknowledgement from at least one secondary before the migration
+  proceeds with the next document in the chunk. This is equivalent to a
+  write concern of :writeconcern:`{ w: 2 } <\<number\>>`.
+
+- If the ``_secondaryThrottle`` setting is unset, the migration process
+  does not wait for replication to a secondary and instead continues
+  with the next document.
+
+
+To update the ``_secondaryThrottle`` parameter for the balancer, see
+:ref:`sharded-cluster-config-secondary-throttle` for an example.
+
+Independent of any ``_secondaryThrottle`` setting, certain phases of
+the chunk migration have the following replication policy:
+
+- MongoDB briefly pauses all application reads and writes to the
+  collection being migrated, on the source shard, before updating the
+  config servers with the new location for the chunk, and resumes the
+  application reads and writes after the update. The chunk move requires
+  all writes to be acknowledged by majority of the members of the
+  replica set both before and after committing the chunk move to config
+  servers.
+ 
+- When an outgoing chunk migration finishes and cleanup occurs, all
+  writes must be replicated to a majority of servers before further
+  cleanup (from other outgoing migrations) or new incoming migrations
+  can proceed.
+
+To update the ``_secondaryThrottle`` setting in the
+:data:`config.settings` collection, see
+:ref:`sharded-cluster-config-secondary-throttle` for an example.
+
+.. _migration-chunk-size-limit:
+
+Maximum Number of Documents Per Chunk to Migrate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/limits-sharding-maximum-documents-chunk.rst
+
+.. _range-deletion-performance-tuning:
+
+Range Deletion Performance Tuning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can tune the performance impact of range deletions
+with :parameter:`rangeDeleterBatchSize` and
+:parameter:`rangeDeleterBatchDelayMS` parameters. For example:
+
+- To limit the number of documents deleted per batch, you can set
+  :parameter:`rangeDeleterBatchSize` to a small value such as ``32``.
+
+- To add an additional delay between batch deletions, you can set
+  :parameter:`rangeDeleterBatchDelayMS` above the current default of
+  ``20`` milliseconds.
+
+.. note::
+
+   If there are ongoing read operations or open cursors on the
+   collection targeted for deletes, range deletion processes may
+   not proceed.
+
+.. _sharding-shard-size:
+
+Shard Size
+----------
+
+By default, MongoDB attempts to fill all available disk space with
+data on every shard as the data set grows. To ensure that the cluster
+always has the capacity to handle data growth, monitor disk
+usage as well as other performance metrics.
+
+See the :ref:`sharded-cluster-config-max-shard-size` tutorial for
+instructions on setting the maximum size for a shard.

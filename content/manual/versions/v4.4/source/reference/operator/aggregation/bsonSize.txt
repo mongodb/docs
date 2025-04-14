@@ -1,0 +1,230 @@
+=======================
+$bsonSize (aggregation)
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $bsonSize
+
+   .. versionadded:: 4.4
+
+   Returns the size in bytes of a given document (i.e. bsontype
+   ``Object``) when encoded as :term:`BSON`. You can use
+   :expression:`$bsonSize` as an alternative to the
+   :ref:`Object.bsonSize() <shell-quick-ref-misc>` method.
+
+   :expression:`$bsonSize` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $bsonSize: <object> }
+
+   The argument can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolves to either an object
+   or ``null``. For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If the argument is an object, the expression returns the size of the
+object in bytes when the object is encoded as :term:`BSON`. 
+
+If the argument is ``null``, the expression returns ``null``.
+
+If the argument resolves to a data type other than an object or
+``null``, :expression:`$bsonSize` errors.
+
+Examples
+--------
+
+Return Sizes of Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the :binary:`~bin.mongo` shell, create a sample collection named
+``employees`` with the following documents:
+
+.. code-block:: javascript
+
+   db.employees.insertMany([
+     {
+       "_id": 1,
+       "name": "Alice", "email": "alice@company.com", "position": "Software Developer",
+       "current_task": {
+         "project_id": 1,
+         "project_name": "Aggregation Improvements",
+         "project_duration": 5,
+         "hours": 20
+       }
+     },
+     {
+       "_id": 2,
+       "name": "Bob", "email": "bob@company.com", "position": "Sales",
+       "current_task": {
+         "project_id": 2,
+         "project_name": "Write Blog Posts",
+         "project_duration": 2,
+         "hours": 10,
+         "notes": "Progress is slow. Waiting for feedback."
+       }
+     },
+     {
+       "_id": 3,
+       "name": "Charlie", "email": "charlie@company.com", "position": "HR (On Leave)",
+       "current_task": null
+     },
+     {
+       "_id": 4,
+       "name": "Dianne", "email": "diane@company.com", "position": "Web Designer",
+       "current_task": {
+         "project_id": 3,
+         "project_name": "Update Home Page",
+         "notes": "Need to scope this project."
+       }
+     }
+  ]);
+
+The following aggregation :pipeline:`projects <$project>`:
+
+- The ``name`` field
+
+- The ``object_size`` field, which uses :expression:`$bsonSize`
+  to return the size of the document in bytes. The
+  :variable:`$$ROOT <ROOT>` variable references the document currently
+  being processed by the pipeline. To learn more about variables in the
+  aggregation pipeline, see :doc:`/reference/aggregation-variables`.
+
+.. code-block:: javascript
+
+   db.employees.aggregate([
+     {
+       "$project": {
+         "name": 1,
+         "object_size": { $bsonSize: "$$ROOT" } 
+       } 
+     }
+   ])
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Alice", "object_size" : 222 }
+   { "_id" : 2, "name" : "Bob", "object_size" : 248 }
+   { "_id" : 3, "name" : "Charlie", "object_size" : 112 }
+   { "_id" : 4, "name" : "Dianne", "object_size" : 207 }
+
+Return Combined Size of All Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following pipeline returns the combined size of all of the
+documents in the ``employees`` collection:
+
+.. code-block:: javascript
+
+   db.employees.aggregate([
+     {
+       "$group": {
+         "_id": null,
+         "combined_object_size": { $sum: { $bsonSize: "$$ROOT" } } 
+       } 
+     }
+   ])
+
+When you specify an :pipeline:`$group` _id value of ``null``, or any
+other constant value, the :pipeline:`$group` stage calculates
+accumulated values for all the input documents as a whole.
+
+The operation uses the :group:`$sum` operator to calculate the combined
+:expression:`$bsonSize` of each document in the collection. The
+:variable:`$$ROOT <ROOT>` variable references the document currently
+being processed by the pipeline. To learn more about variables in the
+aggregation pipeline, see :doc:`/reference/aggregation-variables`.
+
+The operation returns the following result:
+
+.. code-block:: none
+   :copyable: false
+
+   { "_id" : null, "combined_object_size" : 789 }
+
+.. seealso::
+
+   - :pipeline:`$group`
+   - :group:`$sum`
+
+Return Document with Largest Specified Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following pipeline returns the document with the largest
+``current_task`` field in bytes:
+
+.. code-block:: javascript
+   
+   db.employees.aggregate([
+      // First Stage
+      { $project: { name: "$name", task_object_size: { $bsonSize: "$current_task" } }  },
+      // Second Stage
+      { $sort: { "task_object_size" : -1 } },
+      // Third Stage
+      { $limit: 1 }
+   ])
+
+First Stage
+  The first stage of the pipeline :pipeline:`projects <$project>`:
+  
+  - The ``name`` field
+
+  - The ``task_object_size`` field, which uses :expression:`$bsonSize`
+    to return the size of the document's ``current_task`` field in
+    bytes.
+
+  This stage outputs the following documents to the next stage:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 1, "name" : "Alice", "task_object_size" : 109 }
+     { "_id" : 2, "name" : "Bob", "task_object_size" : 152 }
+     { "_id" : 3, "name" : "Charlie", "task_object_size" : null }
+     { "_id" : 4, "name" : "Dianne", "task_object_size" : 99 }
+
+Second Stage
+  The second stage :pipeline:`sorts <$sort>` the documents by
+  ``task_object_size`` in descending order.
+
+  This stage outputs the following documents to the next stage:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 2, "name" : "Bob", "task_object_size" : 152 }
+     { "_id" : 1, "name" : "Alice", "task_object_size" : 109 }
+     { "_id" : 4, "name" : "Dianne", "task_object_size" : 99 }
+     { "_id" : 3, "name" : "Charlie", "task_object_size" : null }
+
+Third Stage
+  The third stage :pipeline:`limits <$limit>` the output documents to
+  only return the document appearing first in the sort order:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 2, "name" : "Bob", "task_object_size" : 152 }
+
+.. seealso::
+
+   - :pipeline:`$project`
+   - :pipeline:`$sort`
+   - :pipeline:`$limit`
+   - :expression:`$strLenBytes`
+   - :expression:`$binarySize`

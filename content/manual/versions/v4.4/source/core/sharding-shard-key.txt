@@ -1,0 +1,551 @@
+.. _sharding-shard-key:
+.. _shard-key:
+.. _sharding-internals-shard-keys:
+
+==========
+Shard Keys
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The shard key is either an indexed :term:`field` or indexed
+:term:`compound <compound index>` fields that determines the
+distribution of the collection's :term:`documents <document>` among the
+cluster's :term:`shards <shard>`.
+
+Specifically, MongoDB divides the span of shard key values (or hashed
+shard key values) into non-overlapping ranges of shard key values (or
+hashed shard key values). Each range is associated with a
+:term:`chunk`, and MongoDB attempts to distribute chunks evenly among
+the shards in the cluster.
+
+.. include:: /images/sharding-range-based.rst
+
+The shard key has a direct relationship to the effectiveness of chunk
+distribution. See :ref:`sharding-shard-key-selection`.
+
+.. _sharding-shard-key-creation:
+
+Shard Key Specification
+-----------------------
+
+You must specify the shard key when you shard the collection. You can
+use the :binary:`~bin.mongo` shell method
+:method:`sh.shardCollection()` to shard a collection:
+
+.. code-block:: javascript
+
+   sh.shardCollection(<namespace>, <key>) // Optional parameters omitted
+
+.. list-table::
+   :widths: 20 80
+
+   * - ``namespace``
+   
+     - Specify the full namespace of the collection (i.e.
+       "<database>.<collection>") to shard.
+
+   * - ``key``
+
+     - Specify a document ``{ <shard key field1>: <1|"hashed">, ... }`` where
+
+       - ``1`` indicates :doc:`range-based sharding </core/ranged-sharding>`
+
+       - ``"hashed"`` indicates :doc:`hashed sharding </core/hashed-sharding>`.
+
+.. note:: Shard Key Fields and Values
+
+   Existence
+      Starting in version 4.4, documents in sharded collections can be
+      missing the shard key fields. A missing shard key falls into the
+      same range as a ``null``-valued shard key. See
+      :ref:`shard-key-missing`.
+
+      In version 4.2 and earlier, shard key fields must exist in every
+      document for a sharded collection.
+
+   Update Field's Value
+      .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+      For details on updating the shard key, see :ref:`update-shard-key`.
+
+For more information on the sharding method, see
+:method:`sh.shardCollection()`.
+
+.. _shard-key-refine:
+
+Refine a Shard Key
+------------------
+
+Starting in MongoDB 4.4, you can use
+:dbcommand:`refineCollectionShardKey` to refine a collection's shard
+key. The :dbcommand:`refineCollectionShardKey` adds a suffix field
+or fields to the existing key to create the new shard key.
+
+For example, you may have an existing ``orders`` collection with the
+shard key ``{ customer_id: 1 }``. You can change the shard key by
+adding a suffix ``order_id`` field to the shard key so that ``{
+customer_id: 1, order_id: 1 }`` becomes the new shard key. For more
+information, see the :dbcommand:`refineCollectionShardKey` command.
+
+Refining a collection's shard key allows for a more fine-grained
+data distribution and can address situations where the existing key
+has led to :ref:`jumbo (i.e. indivisible) chunks <jumbo-chunks>` due
+to insufficient cardinality.
+
+In MongoDB 4.2 and earlier, the choice of shard key cannot be changed
+after sharding.
+
+.. _sharding-internals-shard-key-indexes:
+.. _sharding-shard-key-indexes:
+
+Shard Key Indexes
+-----------------
+
+All sharded collections **must** have an index that supports the
+:term:`shard key`; i.e. the index can be an index on the shard key or a
+:term:`compound index` where the shard key is a :ref:`prefix
+<compound-index-prefix>` of the index.
+
+- If the collection is empty, :method:`sh.shardCollection()` creates
+  the index on the shard key if such an index does not already exists.
+
+- If the collection is not empty, you must create the index first
+  before using :method:`sh.shardCollection()`.
+
+If you drop the last valid index for the shard key, recover by
+recreating an index on just the shard key.
+
+.. _sharding-shard-key-unique:
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+MongoDB can enforce a uniqueness constraint on a ranged shard key index.
+Through the use of a unique index on the shard key, MongoDB enforces
+uniqueness on the entire key combination and not individual components
+of the shard key.
+
+For a ranged sharded collection, only the following indexes can be
+:doc:`unique </core/index-unique>`:
+
+- the index on the shard key
+
+- a :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`
+
+- the default ``_id`` index; **however**, the ``_id`` index only
+  enforces the uniqueness constraint per shard **if** the ``_id`` field
+  is **not** the shard key or the prefix of the shard key.
+
+  .. important:: Uniqueness and the ``_id`` Index
+
+     If the ``_id`` field is not the shard key or the prefix of the
+     shard key, ``_id`` index only enforces the uniqueness constraint
+     per shard and **not** across shards.
+
+     For example, consider a sharded collection (with shard key ``{x:
+     1}``) that spans two shards A and B. Because the ``_id`` key is
+     not part of the shard key, the collection could have a document
+     with ``_id`` value ``1`` in shard A and another document with
+     ``_id`` value ``1`` in shard B.
+
+     If the ``_id`` field is not the shard key nor the prefix of the
+     shard key, MongoDB expects applications to enforce the uniqueness
+     of the ``_id`` values across the shards.
+
+The unique index constraints mean that:
+
+- For a to-be-sharded collection, you cannot shard the collection if
+  the collection has other unique indexes.
+
+- For an already-sharded collection, you cannot create unique indexes
+  on other fields.
+
+- A unique index stores a null value for a document missing the
+  indexed field; that is a missing index field is treated as another
+  instance of a ``null`` index key value. For more information, see
+  :ref:`unique-index-and-missing-field`.
+
+To enforce uniqueness on the shard key values, pass the ``unique``
+parameter as ``true`` to the :method:`sh.shardCollection()` method:
+
+.. include:: /includes/extracts/shard-collection-unique-restriction-method.rst
+
+You cannot specify a unique constraint on a :ref:`hashed index
+<index-type-hashed>`.
+
+
+
+.. _shard-key-selection-divisible:
+.. _sharding-internals-operations-and-reliability:
+.. _sharding-shard-key-selection:
+.. _sharding-internals-choose-shard-key:
+.. _sharding-shard-key-requirements:
+
+Choosing a Shard Key
+--------------------
+
+The choice of shard key affects the creation and :ref:`distribution of
+the chunks <sharding-balancing>` across the available :term:`shards
+<shard>`. This affects the overall efficiency and performance of
+operations within the sharded cluster.
+
+The ideal shard key allows MongoDB to distribute documents evenly throughout
+the cluster. See also :ref:`sharding strategy <sharding-strategy>`.
+
+At minimum, consider the consequences of the
+:ref:`cardinality<shard-key-range>`, :ref:`frequency<shard-key-frequency>`, and
+:ref:`monotonicity<shard-key-monotonic>` of a potential shard key.
+
+.. note::
+
+   - Starting in MongoDB 4.4, you can use
+     :dbcommand:`refineCollectionShardKey` to refine a collection's
+     shard key. The :dbcommand:`refineCollectionShardKey` adds a suffix
+     field or fields to the existing key to create the new shard key.
+     
+   - In MongoDB 4.2 and earlier, once you shard a collection, the
+     selection of the shard key is immutable.
+
+Restrictions
+~~~~~~~~~~~~
+
+For restrictions on shard key, see :ref:`limits-shard-keys`.
+
+Collection Size
+~~~~~~~~~~~~~~~
+
+When sharding a collection that is not empty, the shard key can
+constrain the maximum supported collection size for the initial
+sharding operation only. See 
+:limit:`Sharding Existing Collection Data Size`.
+
+.. important::
+
+   A sharded collection can grow to any size after successful sharding.
+
+.. _shard-key-range:
+.. _sharding-shard-key-cardinality:
+.. _shard-key-cardinality:
+
+Shard Key Cardinality
+~~~~~~~~~~~~~~~~~~~~~
+
+The :term:`cardinality` of a shard key determines the maximum number of chunks
+the balancer can create. This can reduce or remove the effectiveness of
+horizontal scaling in the cluster.
+
+A unique shard key value can exist on no more than a single chunk at any
+given time. If a shard key has a cardinality of ``4``, then there can
+be no more than ``4`` chunks within the sharded cluster, each storing
+one unique shard key value. This constrains the number of effective
+shards in the cluster to ``4`` as well - adding additional shards would
+not provide any benefit.
+
+The following image illustrates a sharded cluster using the field
+``X`` as the shard key. If ``X`` has low cardinality, the distribution of
+inserts may look similar to the following:
+
+.. include:: /images/sharded-cluster-ranged-distribution-low-cardinal.rst
+
+The cluster in this example would *not* scale horizontally, as incoming writes
+would only route to a subset of shards.
+
+Choosing a shard key with high cardinality does not, on its own, 
+guarantee even distribution of data across the sharded cluster. The 
+:ref:`frequency <shard-key-frequency>` and 
+:ref:`monotonicity <shard-key-monotonic>` of the shard key also 
+contribute to data distribution. Take each factor into account when 
+choosing a shard key.
+
+If your data model requires sharding on a key that has low cardinality,
+consider using a :term:`compound index` using a field that
+has higher relative cardinality.
+
+.. _shard-key-frequency:
+
+Shard Key Frequency
+~~~~~~~~~~~~~~~~~~~
+
+Consider a set representing the range of shard key values - the ``frequency``
+of the shard key represents how often a given value occurs in the data. If the
+majority of documents contain only a subset of those values, then the chunks
+storing those documents become a bottleneck within the cluster. Furthermore,
+as those chunks grow, they may become :ref:`indivisible chunks <jumbo-chunks>`
+as they cannot be split any further. This reduces or removes the effectiveness
+of horizontal scaling within the cluster.
+
+The following image illustrates a sharded cluster using the field ``X`` as the
+shard key. If a subset of values for ``X`` occur with high frequency, the
+distribution of inserts may look similar to the following:
+
+.. include:: /images/sharded-cluster-ranged-distribution-frequency.rst
+
+Choosing a shard key with low frequency does not, on its own, guarantee 
+even distribution of data across the sharded cluster. 
+The :ref:`cardinality <shard-key-cardinality>` and 
+:ref:`monotonicity <shard-key-monotonic>` of the shard key also 
+contribute to data distribution. Take each factor into account when 
+choosing a shard key.
+
+If your data model requires sharding on a key that has high frequency
+values, consider using a :term:`compound index` using a unique or
+low frequency value.
+
+.. _shard-key-monotonic:
+
+Shard Key Monotonicity
+~~~~~~~~~~~~~~~~~~~~~~
+
+A shard key on a value that increases or decreases monotonically is more
+likely to distribute inserts to a single shard within the cluster.
+
+This occurs because every cluster has a chunk that captures a range with an
+upper bound of :doc:`maxKey</reference/bson-types>`. ``maxKey`` always
+compares as higher than all other values. Similarly, there is a chunk that
+captures a range with a lower bound of :doc:`minKey</reference/bson-types>`.
+``minKey`` always compares as lower than all other values.
+
+If the shard key value is always increasing, all new inserts are routed to the
+chunk with ``maxKey`` as the upper bound. If the shard key value is always
+decreasing, all new inserts are routed to the chunk with ``minKey`` as the
+lower bound. The shard containing that chunk becomes the bottleneck for write
+operations.
+
+The following image illustrates a sharded cluster using the field ``X``
+as the shard key. If the values for ``X`` are monotonically increasing, the
+distribution of inserts may look similar to the following:
+
+.. include:: /images/sharded-cluster-monotonic-distribution.rst
+
+If the shard key value was monotonically decreasing, then all inserts would
+route to ``Chunk A`` instead.
+
+Choosing a shard key that does not change monotonically does not, on 
+its own, guarantee even distribution of data across the sharded cluster. 
+The :ref:`cardinality<shard-key-cardinality>` and
+:ref:`frequency<shard-key-frequency>` of the shard key also contribute
+to data distribution. Take each factor into account when choosing a 
+shard key.
+
+If your data model requires sharding on a key that changes
+monotonically, consider using :doc:`/core/hashed-sharding`.
+
+.. _update-shard-key:
+
+Change a Document's Shard Key Value
+-----------------------------------
+
+.. note:: When updating the shard key value
+
+   - You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+     issue the operation directly on the shard.
+
+   - You :red:`must` run either in a :doc:`transaction
+     </core/transactions>` or as a :doc:`retryable write
+     </core/retryable-writes>`.
+
+   - You :red:`must` include an equality condition on the full shard
+     key in the query filter. For example, if a collection messages
+     uses ``{ activityid: 1, userid : 1 }`` as the shard key, to update
+     the shard key for a document, you must include ``activityid: <value>,
+     userid: <value>`` in the query filter. You can include additional
+     fields in the query as appropriate.
+
+   See also the specific write command/methods for additional
+   operation-specific requirements when run against a sharded
+   collection.
+
+Starting in MongoDB 4.2, you can update a document's shard key value
+unless the shard key field is the immutable ``_id`` field. To update,
+use the following operations to update a document's shard key value:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Command
+     - Method
+
+   * - :ref:`update <command-update-shard-key-modification>` with ``multi: false``
+     - | :ref:`db.collection.replaceOne() <replaceOne-shard-key-modification>`
+       | :ref:`db.collection.updateOne() <updateOne-shard-key-modification>`
+       | :ref:`db.collection.update() <method-update-shard-key-modification>` with ``multi: false``
+
+   * - :ref:`findAndModify <cmd-findAndModify-sharded-collection>`
+     - | :ref:`db.collection.findOneAndReplace() <findOneAndReplace-shard-key-modification>`
+       | :ref:`db.collection.findOneAndUpdate() <findOneAndUpdate-shard-key-modification>`
+       | :ref:`db.collection.findAndModify() <method-findAndModify-sharded-collection>`
+
+   * -
+     - | :method:`db.collection.bulkWrite()`
+       | :method:`Bulk.find.updateOne()`
+
+       If the shard key modification results in moving the document to
+       another shard, you cannot specify more than one shard key
+       modification in the bulk operation; i.e. batch size of
+       1.
+
+       If the shard key modification does not result in moving the
+       document to another shard, you can specify multiple shard
+       key modification in the bulk operation.
+
+.. include:: /includes/shard-key-modification-warning.rst
+
+.. _shard-key-missing:
+
+Missing Shard Key
+-----------------
+
+Starting in version 4.4, documents in sharded collections can be
+missing the shard key fields.
+
+Chunk Range and Missing Shard Key Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Missing shard keys fall within the same chunk range as shard keys with
+null values. For example, if the shard key is on the fields ``{ x: 1, y: 1
+}``, then:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 60 
+
+   * - Document Missing Shard Key
+
+     - Falls into Same Range As
+
+   * - ``{ x: "hello" }``
+     - ``{ x: "hello", y: null }``
+
+   * - ``{ y: "goodbye" }``
+     - ``{ x: null, y: "goodbye" }``
+
+   * - ``{ z: "oops" }``
+     - ``{ x: null, y: null }``
+
+.. _shard-key-missing-read-write-ops:
+
+Read/Write Operations and Missing Shard Key Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To target documents with missing shard key fields, you can use the
+:query:`{ $exists: false } <$exists>` filter condition on the shard key
+fields. For example, if the shard key is on the fields ``{ x: 1, y: 1
+}``, to find the documents with missing shard key fields:
+
+.. code-block:: javascript
+
+   db.shardedcollection.find( { $or: [ { x: { $exists: false } }, { y: { $exists: false } } ] } )
+
+If you specify an :doc:`null equality match
+</tutorial/query-for-null-fields>` filter condition (e.g. ``{ x: null
+}``), the filter matches :red:`both` those documents with missing shard
+key fields :red:`and` those with shard key fields set to ``null``.
+
+Some write operations, such as a write with an ``upsert``
+specification, require an equality match on the shard key. In those
+cases, to target a document that is missing the shard key, include
+another filter condition in addition to the ``null`` equality match.
+For example:
+
+.. code-block:: javascript
+
+   { _id: <value>, <shardkeyfield>: null } // _id of the document missing shard key
+
+.. _shard-key-missing-set:
+
+Set the Missing Shard Key Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To set missing shard key fields (which is different from :ref:`changing
+the value of an existing shard key field <update-shard-key>`), you can
+use the following operations on a :binary:`~bin.mongos`:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Command
+     - Method
+     - Description
+
+   * - | :ref:`update <command-update-shard-key-modification>` with
+       | ``multi: true``
+
+     - | :ref:`db.collection.update() <method-update-shard-key-modification>` with
+       | ``multi: true``
+
+     - - Can be used to set the missing key value to ``null`` only.
+     
+       - Can be performed inside or outside a transaction.
+
+       - Can be performed as a retryable write or not.
+
+       - For additional requirements, refer to the specific
+         command/method.
+
+   * - | :ref:`update <command-update-shard-key-modification>`  with 
+       | ``multi: false``
+
+     - | :ref:`db.collection.replaceOne() <replaceOne-missing-shard-key>`
+       | :ref:`db.collection.updateOne() <updateOne-missing-shard-key>`
+       | :ref:`db.collection.update() <method-update-shard-key-modification>` with 
+       | ``multi: false``
+
+     - - Can be used to set the missing key value to ``null`` or any
+         other value.
+
+       - To set to a non-``null`` value, :red:`must` be performed either
+         inside a transaction or as a retryable write.
+
+       - For additional requirements, refer to the specific
+         command/method.
+
+   * - :ref:`findAndModify <cmd-findAndModify-missing-shard-key>`
+     - | :ref:`db.collection.findOneAndReplace() <findOneAndReplace-missing-shard-key>`
+       | :ref:`db.collection.findOneAndUpdate() <findOneAndUpdate-missing-shard-key>`
+       | :ref:`db.collection.findAndModify() <method-findAndModify-missing-shard-key>`
+
+     - - Can be used to set the missing key value to ``null`` or any
+         other value.
+
+       - To set to a non-``null`` value, :red:`must` be performed either
+         inside a transaction or as a retryable write.
+         
+       - :red:`Must` include in the query filter an equality condition
+         on the shard key. Since a missing key value is returned as part
+         of a ``null`` equality match, to avoid updating a null-valued
+         key, include additional query conditions as
+         appropriate.
+
+       - For additional requirements, refer to the specific
+         command/method.
+
+   * -
+     - | :method:`db.collection.bulkWrite()`
+       | :method:`Bulk.find.replaceOne()`
+       | :method:`Bulk.find.updateOne()`
+       | :method:`Bulk.find.update()`
+
+     - - To set to a ``null`` value,  you can specify multiple shard
+         key modifications in the bulk operation.
+
+       - To set to a non-``null`` value, you can specify a single shard
+         key modification in the bulk operation; i.e. batch size of 1.
+
+       - To set to a non-``null`` value, :red:`must` be performed either
+         inside a transaction or as a retryable write.
+
+       - For additional requirements, refer to the underlying
+         command/method.
+
+Once you set the shard key field, to modify the field's value,
+see :ref:`update-shard-key`.

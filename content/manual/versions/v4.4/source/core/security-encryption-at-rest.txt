@@ -1,0 +1,180 @@
+.. _security-encryption-at-rest:
+
+==================
+Encryption at Rest
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+
+Encryption at rest, when used in conjunction with transport encryption
+and good security policies that protect relevant accounts, passwords,
+and encryption keys, can help ensure compliance with security and
+privacy standards, including HIPAA, PCI-DSS, and FERPA.
+
+.. _encrypted-storage-engine:
+
+Encrypted Storage Engine
+------------------------
+
+.. versionadded:: 3.2
+
+.. include:: /includes/fact-enterprise-only-admonition.rst
+
+.. important:: Available for the WiredTiger Storage Engine only.
+
+MongoDB Enterprise 3.2 introduces a native encryption option for the
+WiredTiger storage engine. This feature allows MongoDB to encrypt data
+files such that only parties with the decryption key can decode and
+read the data.
+
+Encryption Process
+~~~~~~~~~~~~~~~~~~
+
+.. note:: Changed in version 4.0
+
+
+   .. include:: /includes/fact-aes.rst
+
+If encryption is enabled, the default encryption mode that MongoDB
+Enterprise uses is the ``AES256-CBC`` (or 256-bit Advanced Encryption
+Standard in Cipher Block Chaining mode) via OpenSSL. AES-256 uses a
+symmetric key; i.e. the same key to encrypt and decrypt text. MongoDB
+Enterprise for Linux also supports authenticated encryption
+``AES256-GCM`` (or 256-bit Advanced Encryption Standard in
+Galois/Counter Mode). 
+
+The Encrypted Storage Engine uses the certified cryptography provider 
+of the underlying operating system to perform cryptographic operations.
+For example, a MongoDB installation on a Linux operating system 
+uses the OpenSSL ``libcrypto`` FIPS-140 module.
+
+To run MongoDB in a FIPS-compliant mode:
+
+#. Configure the operating system to run in FIPS-enforcing mode.
+
+#. Configure MongoDB to enable the :setting:`net.tls.FIPSMode` setting.
+
+#. Restart the ``mongod`` or ``mongos``.
+
+#. Check the server log file to confirm that FIPS mode is enabled. If FIPS mode is enabled, the message ``FIPS 140-2 mode activated`` appears in the log file.
+
+For more information, see :ref:`configure-mdb-for-fips`.
+
+.. note:: AES256-GCM and Filesystem Backups
+
+   .. include:: /includes/fact-aes256-backups.rst
+
+The data encryption process includes:
+
+- Generating a master key.
+
+- Generating keys for each database.
+
+- Encrypting data with the database keys.
+
+- Encrypting the database keys with the master key.
+
+The encryption occurs transparently in the storage layer; i.e. all data
+files are fully encrypted from a filesystem perspective, and data only
+exists in an unencrypted state in memory and during transmission.
+
+To encrypt all of MongoDB's network traffic, you can use TLS/SSL
+(Transport Layer Security/Secure Sockets Layer). See
+:doc:`/tutorial/configure-ssl` and
+:doc:`/tutorial/configure-ssl-clients`.
+
+
+Key Management
+~~~~~~~~~~~~~~
+
+.. important:: Secure management of the encryption keys is critical.
+
+The database keys are internal to the server and are only paged to disk
+in an encrypted format. MongoDB never pages the master key to disk
+under any circumstances.
+
+Only the master key is external to the server (i.e. kept separate from
+the data and the database keys), and requires external management. To
+manage the master key, MongoDB's encrypted storage engine supports two
+key management options:
+
+- Integration with a third party key management appliance via the Key
+  Management Interoperability Protocol (KMIP). **Recommended**
+
+  .. note::
+
+     .. include:: /includes/fact-required-kmip-ops.rst
+
+- Local key management via a keyfile.
+
+To configure MongoDB for encryption and use one of the two key
+management options, see
+:doc:`/tutorial/configure-encryption`.
+
+Encryption and Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Encryption is not a part of replication:
+
+- Master keys and database keys are not replicated, and
+
+- Data is not natively encrypted over the wire.
+
+Although you could reuse the same key for the nodes, MongoDB recommends
+the use of individual keys for each node as well as the use of
+transport encryption.
+
+For details, see :ref:`rotate-encryption-keys`.
+
+Logging
+~~~~~~~
+
+.. versionadded:: 3.4 Available in MongoDB Enterprise only
+
+The log file is not encrypted as a part of MongoDB's encrypted storage engine.
+A :binary:`~bin.mongod` running with :ref:`logging <monitoring-standard-loggging>`
+may output potentially sensitive information to log files as a part of normal
+operations, depending on the configured :ref:`log verbosity
+<log-messages-configure-verbosity>`.
+
+MongoDB 3.4 Enterprise provides the :setting:`security.redactClientLogData`
+setting to prevent potentially sensitive information from entering the
+:binary:`~bin.mongod` process log. :setting:`~security.redactClientLogData`
+reduces detail in the log and may complicate log diagnostics.
+
+See the :ref:`log redaction <monitoring-log-redaction>` manual entry for
+more information.
+
+.. _app-level-encryption:
+
+Application Level Encryption
+----------------------------
+
+Application Level Encryption provides encryption on a per-field or
+per-document basis within the application layer. 
+
+.. versionadded:: 4.2
+
+   MongoDB 4.2-series drivers provides a client-side field level
+   encryption framework. For more information, see
+   :doc:`/core/security-client-side-encryption`.
+
+To encrypt full documents, write custom encryption and decryption
+routines or use a commercial solution.
+
+.. include:: /includes/partners-security.rst
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/configure-encryption
+   /tutorial/rotate-encryption-key

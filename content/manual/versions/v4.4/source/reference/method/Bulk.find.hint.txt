@@ -1,0 +1,84 @@
+==================
+Bulk.find.hint()
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-bulkwrite.rst
+
+Description
+-----------
+
+.. method:: Bulk.find.hint()
+
+   .. versionadded:: 4.2.1
+
+   Sets the ``hint`` option that specifies the :doc:`index </indexes>`
+   to support the :method:`Bulk.find()` for:
+
+   - :method:`Bulk.find.replaceOne()`
+
+   - :method:`Bulk.find.update()`
+
+   - :method:`Bulk.find.updateOne()`.
+
+   The option can take an index specification document or the index
+   name string.
+
+   If you specify an index that does not exist, the operation
+   errors.
+
+   :method:`Bulk.find.hint()` has no effect on :method:`Bulk.find.removeOne()`
+
+Example
+--------
+
+Create an example collection ``orders``:
+
+.. code-block:: javascript
+
+   db.orders.insert([
+      { "_id" : 1, "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
+      { "_id" : 2, "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
+      { "_id" : 3, "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" },
+      { "_id" : 4, "item" : "abc", "price" : NumberDecimal("8"), "quantity" : 10, "type": "apparel" },
+      { "_id" : 5, "item" : "jkl", "price" : NumberDecimal("15"), "quantity" : 15, "type": "electronics" }
+   ])
+
+Create the following indexes on the example collection:
+
+.. code-block:: javascript
+
+   db.orders.createIndex( { item: 1 } );
+   db.orders.createIndex( { item: 1, quantity: 1 } );
+   db.orders.createIndex( { item: 1, price: 1 } );
+
+The following bulk operations specify different index to use for the
+various update/replace document operations:
+
+.. code-block:: javascript
+
+   var bulk = db.orders.initializeUnorderedBulkOp();
+   bulk.find({ item: "abc", price: { $gte: NumberDecimal("10") }, quantity: { $lte: 10 } }).hint({item: 1, quantity: 1}).replaceOne( { item: "abc123", status: "P", points: 100 } );
+   bulk.find({ item: "abc", price: { $gte: NumberDecimal("10") }, quantity: { $lte: 10 } }).hint({item: 1, price: 1}).updateOne( { $inc: { points: 10 } } );
+   bulk.execute();
+
+To view the indexes used, you can use the :pipeline:`$indexStats` pipeline:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [ { $indexStats: { } }, { $sort: { name: 1 } } ] )
+
+.. seealso::
+
+   - :method:`db.collection.initializeUnorderedBulkOp()`
+   - :method:`db.collection.initializeOrderedBulkOp()`
+   - :method:`Bulk.find()`
+   - :method:`Bulk.execute()`
+   - :ref:`All Bulk Methods <bulk-methods>`

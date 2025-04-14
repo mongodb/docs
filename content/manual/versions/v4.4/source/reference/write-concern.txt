@@ -1,0 +1,491 @@
+.. _write-operations-write-concern:
+.. _write-concern-operation:
+.. _write-concern-internals:
+.. _write-concern:
+
+=============
+Write Concern
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+Write concern describes the level of acknowledgment requested from
+MongoDB for write operations to a standalone :binary:`~bin.mongod`, 
+:ref:`replica sets <replication>`, or :ref:`sharded clusters 
+<sharding-background>`. In sharded clusters, :binary:`~bin.mongos` 
+instances will pass the write concern on to the shards.
+
+.. note::
+
+   For :doc:`multi-document transactions </core/transactions>`, you set
+   the write concern at the transaction level, :red:`not at the individual
+   operation level`. Do not explicitly set the write concern for
+   individual write operations in a transaction.
+
+   .. include:: /includes/write-concern-majority-and-transactions.rst
+
+Starting in MongoDB 4.4, replica sets and sharded clusters support
+setting a global default write concern. Operations which do not 
+specify an explicit write concern inherit the global default 
+write concern settings. See :dbcommand:`setDefaultRWConcern` for 
+more information.
+
+To learn more about setting the write concern for deployments
+hosted in {+atlas+}, see 
+:atlas:`Build a Resilient Application with {+atlas+} 
+</resilient-application/#write-concern>`
+
+.. _wc-specs:
+
+Write Concern Specification
+---------------------------
+
+Write concern can include the following fields:
+
+.. code-block:: javascript
+
+   { w: <value>, j: <boolean>, wtimeout: <number> }
+
+- the :ref:`w <wc-w>` option to request acknowledgment that the write
+  operation has propagated to a specified number of :binary:`~bin.mongod`
+  instances or to :binary:`~bin.mongod` instances with specified tags.
+
+- the :ref:`j <wc-j>` option to request acknowledgment that the write
+  operation has been written to the on-disk journal, and
+
+- the :ref:`wtimeout <wc-wtimeout>` option to specify a time limit to
+  prevent write operations from blocking indefinitely.
+
+.. _wc-w:
+
+``w`` Option
+~~~~~~~~~~~~
+
+The ``w`` option requests acknowledgment that the write operation has
+propagated to a specified number of :binary:`~bin.mongod` instances or
+to :binary:`~bin.mongod` instances with specified tags. If the write
+concern is missing the ``w`` field, MongoDB sets the ``w`` option to the
+default write concern. 
+
+.. note::
+
+  If you use the :dbcommand:`setDefaultRWConcern` to set the default
+  write concern, you must specify a ``w`` field value. 
+
+Using the ``w`` option, the following ``w: <value>`` write concerns are
+available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Value
+     - Description
+
+   * - .. writeconcern:: <number>
+
+     - Requests acknowledgment that the write operation has propagated
+       to the specified number of :binary:`~bin.mongod` instances. For
+       example:
+
+       ``w: 1``
+         Requests acknowledgment that the write operation has
+         propagated to the standalone :binary:`~bin.mongod` or the primary
+         in a replica set. ``w: 1`` is the default write concern for
+         MongoDB. Data can be :ref:`rolled back <rollback-avoid>`
+         if the primary steps down before the write operations have
+         replicated to any of the secondaries.
+
+         .. include:: /includes/w-1-rollback-warning.rst
+
+       ``w: 0``
+         Requests no acknowledgment of the write operation. However, ``w:
+         0`` may return information about socket exceptions and
+         networking errors to the application. Data can be 
+         :ref:`rolled back <rollback-avoid>` if the primary steps down
+         before the write operations have replicated to any of the
+         secondaries.
+
+         If you specify ``w: 0`` but include :ref:`j: true <wc-j>`, the
+         :ref:`j: true <wc-j>` prevails to request acknowledgment from
+         the standalone :binary:`~bin.mongod` or the primary of a replica
+         set.
+
+       ``w`` greater than 1 requires acknowledgment from the primary
+       and as many data-bearing secondaries as needed to meet the
+       specified write concern. The secondaries do not need to be 
+       voting members to meet the write concern threshold. 
+       
+       For example, consider a 3-member replica set with a primary and 2 
+       secondaries. Specifying ``w: 2`` would require acknowledgment from the 
+       primary and one of the secondaries. Specifying ``w: 3`` would require 
+       acknowledgment from the primary and both secondaries.
+
+       .. note:: 
+
+          :ref:`Hidden <replica-set-hidden-members>`,
+          :ref:`delayed <replica-set-delayed-members>`,
+          and :ref:`priority 0 <replica-set-secondary-only-members>`
+          members can acknowledge 
+          :writeconcern:`w: \<number\> <\<number\>>` write operations.
+
+          Delayed secondaries can return write acknowledgment no earlier
+          than the configured :rsconf:`~members[n].slaveDelay`. 
+
+       See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod` instances
+       acknowledge the write.
+
+   * - .. writeconcern:: "majority"
+
+     - Requests acknowledgment that write operations have been durably committed
+       to the :ref:`calculated majority <calculating-majority-count>` of the
+       data-bearing voting members (i.e. primary and secondaries with
+       :rsconf:`members[n].votes` greater than ``0``).
+
+       For example, consider a replica set with 3 voting members,
+       Primary-Secondary-Secondary (P-S-S). For this replica set,
+       :ref:`calculated majority <calculating-majority-count>` is two, and
+       the write must propagate to the primary and one secondary to
+       acknowledge the write concern to the client.
+
+       .. note:: 
+
+          :ref:`Hidden <replica-set-hidden-members>`,
+          :ref:`delayed <replica-set-delayed-members>`,
+          and :ref:`priority 0 <replica-set-secondary-only-members>`
+          members with :rsconf:`members[n].votes` greater than ``0``
+          can acknowledge :writeconcern:`"majority"` write operations.
+
+          Delayed secondaries can return write acknowledgment no earlier
+          than the configured :rsconf:`~members[n].slaveDelay`. 
+
+       After the write operation returns with a :writeconcern:`w:
+       "majority" <"majority">` acknowledgment to the client, the
+       client can read the result of that write with a
+       :readconcern:`"majority"` readConcern.
+
+       .. include:: /includes/write-concern-majority-and-transactions.rst
+
+       See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod` instances
+       acknowledge the write.
+
+   * - .. writeconcern:: <custom write concern name>
+
+     - Requests acknowledgment that the write operations have
+       propagated to :rsconf:`tagged <members[n].tags>` members that
+       satisfy the custom write concern defined in
+       :rsconf:`settings.getLastErrorModes`. For an example, see
+       :ref:`configure-custom-write-concern`.
+       
+       Data can be :ref:`rolled back <rollback-avoid>` if the custom
+       write concern only requires acknowledgement from the primary and
+       the primary steps down before the write operations have
+       replicated to any of the secondaries.
+
+       See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod`
+       instances acknowledge the write.
+
+.. seealso::
+
+   - :doc:`/reference/mongodb-defaults`
+   - :doc:`/reference/replica-set-protocol-versions`
+
+.. _wc-j:
+
+``j`` Option
+~~~~~~~~~~~~
+
+The ``j`` option requests acknowledgment from MongoDB that
+the write operation has been written to the :doc:`on-disk journal
+</core/journaling>`.
+
+.. list-table::
+   :widths: 20 80
+
+   * - .. writeconcern:: j
+
+     - If ``j: true``, requests acknowledgment that the
+       :binary:`~bin.mongod` instances, as specified in the :ref:`w:
+       \<value\> <wc-w>`, have written to the on-disk journal. ``j:
+       true`` does not by itself guarantee that the write will not be
+       rolled back due to replica set primary failover.
+
+       .. versionchanged:: 3.2
+
+          .. include:: /includes/note-write-concern-journaled-replication.rst
+
+.. note::
+
+   - Specifying a write concern that includes ``j: true`` to a
+     :binary:`~bin.mongod` instance that is running without journaling
+     produces an error.
+  
+   - If journaling is enabled, :writeconcern:`w:
+     "majority" <"majority">` may imply ``j: true``. The
+     :rsconf:`writeConcernMajorityJournalDefault` replica set
+     configuration setting determines the behavior. See
+     :ref:`wc-ack-behavior` for details.
+
+   - A write concern that includes or implies ``j: true`` causes an
+     immediate journal synchronization. See :ref:`journal-process`.
+
+.. _wc-wtimeout:
+
+``wtimeout``
+~~~~~~~~~~~~
+
+This option specifies a time limit, in milliseconds, for the write
+concern. ``wtimeout`` is only applicable for ``w`` values greater than
+``1``.
+
+``wtimeout`` causes write operations to return with an error
+after the specified limit, even if the required write concern will
+eventually succeed. When these write operations return,
+MongoDB **does not** undo successful data modifications performed
+before the write concern exceeded the ``wtimeout`` time limit.
+
+If you do not specify the ``wtimeout`` option and the level of write
+concern is unachievable, the write operation will block indefinitely.
+Specifying a ``wtimeout`` value of ``0`` is equivalent to a write
+concern without the ``wtimeout`` option.
+
+.. _wc-ack-behavior:
+
+Acknowledgment Behavior
+-----------------------
+
+The :ref:`w <wc-w>` option and the :ref:`j <wc-j>` option determine
+when :binary:`~bin.mongod` instances acknowledge write operations. 
+
+Standalone
+~~~~~~~~~~
+
+A standalone :binary:`~bin.mongod` acknowledges a write operation either
+after applying the write in memory or after writing to the on-disk
+journal. The following table lists the acknowledgment behavior for a
+standalone and the relevant write concerns:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 40 25 20
+
+   * -
+     - ``j`` is unspecified
+     - ``j:true``
+     - ``j:false``
+
+   * - ``w: 1``
+     - In memory
+     - On-disk journal
+     - In memory
+
+   * - ``w: "majority"``
+     - On-disk journal *if running with journaling*
+     - On-disk journal
+     - In memory
+
+.. note::
+
+   .. include:: /includes/extracts/no-journaling-rollback.rst
+
+.. _wc-replica-ack-behavior:
+
+Replica Sets
+~~~~~~~~~~~~
+
+The value specified to :ref:`w <wc-w>` determines the number
+of replica set members that must acknowledge the write before returning
+success. For each eligible replica set member, the :ref:`j <wc-j>` 
+option determines whether the member acknowledges writes after applying
+the write operation in memory or after writing to the on-disk journal.
+
+``w: "majority"``
+  Any data-bearing voting member of the replica set can contribute
+  to write acknowledgment of :writeconcern:`"majority"` write 
+  operations.
+
+  The following table lists when the member can acknowledge
+  the write based on the :ref:`j <wc-j>` value:
+
+  .. list-table::
+     :stub-columns: 1
+     :widths: 30 70
+
+     * - ``j`` is unspecified
+       - Acknowledgment depends on the value of
+         :rsconf:`writeConcernMajorityJournalDefault`:
+
+         - If ``true``, acknowledgment requires writing operation to 
+           on-disk journal (``j: true``). 
+
+           :rsconf:`writeConcernMajorityJournalDefault` defaults to 
+           ``true`` 
+
+         - If ``false``, acknowledgment requires writing operation in 
+           memory (``j: false``).
+
+     * - ``j: true``
+       - Acknowledgment requires writing operation to on-disk journal.
+
+     * - ``j: false``
+       - Acknowledgment requires writing operation in memory.
+
+  .. note::     
+
+     For behavior details, see :ref:`wc-majority-behavior`.
+
+``w: <number>``
+  Any data-bearing member of the replica set can contribute
+  to write acknowledgment of :ref:`w: \<number\> <wc-w>` write
+  operations.
+       
+  The following table lists when the member can acknowledge
+  the write based on the :ref:`j <wc-j>` value:
+
+  .. list-table::
+     :stub-columns: 1
+     :widths: 30 70
+
+     * - ``j`` is unspecified
+       - Acknowledgment requires writing operation in memory 
+         (``j: false``).
+
+     * - ``j: true``
+       - Acknowledgment requires writing operation to on-disk journal.
+
+     * - ``j: false``
+       - Acknowledgment requires writing operation in memory.
+
+.. note:: 
+
+   :ref:`Hidden <replica-set-hidden-members>`,
+   :ref:`delayed <replica-set-delayed-members>`,
+   and :ref:`priority 0 <replica-set-secondary-only-members>`
+   members can acknowledge 
+   :writeconcern:`w: \<number\> <\<number\>>` write operations.
+
+   Delayed secondaries can return write acknowledgment no earlier
+   than the configured :rsconf:`~members[n].slaveDelay`. 
+
+Additional Information
+----------------------
+
+Causally Consistent Sessions and Write Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With :ref:`causally consistent client sessions <sessions>`, the
+client sessions only guarantee causal consistency if:
+
+- the associated read operations use :readconcern:`"majority"` read
+  concern, and 
+
+- the associated write operations use :writeconcern:`"majority"`
+  write concern.
+
+For details, see :ref:`causal-consistency`.
+
+.. _wc-majority-behavior:
+
+``w: "majority"`` Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- .. include:: /includes/extracts/no-journaling-rollback.rst
+
+- :ref:`Hidden <replica-set-hidden-members>`,
+  :ref:`delayed <replica-set-delayed-members>`,
+  and :ref:`priority 0 <replica-set-secondary-only-members>`
+  members with :rsconf:`members[n].votes` greater than ``0``
+  can acknowledge :writeconcern:`"majority"` write operations.
+
+  - Delayed secondaries can return write acknowledgment no earlier
+    than the configured :rsconf:`~members[n].slaveDelay`. 
+
+Write Concern not Supported on ``local`` Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`local database <replica-set-local-database>` does not support
+write concerns. MongoDB silently ignores any configured write
+concern for an operation on a collection in the local database.
+
+.. _calculating-majority-count:
+
+Calculating Majority for Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   Starting in version 4.2.1, the :method:`rs.status()` returns the
+   :data:`~replSetGetStatus.writeMajorityCount` field which contains
+   the calculated majority number.
+
+The majority for write concern :writeconcern:`"majority"` is calculated
+as the smaller of the following values:
+
+- the majority of *all* voting members (including arbiters) vs.
+
+- the number of all **data-bearing** voting members.
+
+.. warning::
+
+   In cases where the calculated majority number is equal to the number
+   of all **data-bearing** voting members (such as with a 3-member
+   Primary-Secondary-Arbiter deployment), write concern
+   :writeconcern:`"majority"` may time out or never be acknowledged if
+   a data bearing voting member is down or unreachable. If possible,
+   use a data-bearing voting member instead of an arbiter.
+
+For example, consider:
+
+- A replica set with 3 voting members, Primary-Secondary-Secondary
+  (P-S-S):
+
+  - The majority of all voting members is 2.
+
+  - The number of all data-bearing voting members is 3.
+
+  | The calculated majority is 2, the minimum of 2 and 3. The write
+    must propagate to the primary and one of the secondaries to
+    acknowledge the write concern :writeconcern:`"majority"` to the
+    client.
+
+- A replica set with 3 voting members, Primary-Secondary-Arbiter (P-S-A)
+  
+  - The majority of all voting members is 2.
+
+  - The number of all data-bearing voting members is 2.
+
+  | The calculated majority is 2, the minimum of 2 and 2. Since the
+    write can only be applied to data-bearing members, the write must
+    propagate to the primary and the secondary to acknowledge the write
+    concern :writeconcern:`"majority"` to the client.
+
+  .. tip::
+
+     Avoid using a :writeconcern:`"majority"` write concern with a
+     (P-S-A) or other topologies that require all data-bearing voting
+     members to be available to acknowledge the writes. Customers who
+     want the durability guarantees of using a
+     :writeconcern:`"majority"` write concern should instead deploy a
+     topology that does not require all data bearing voting members to be
+     available (e.g. P-S-S).
+
+Write Concern Provenance
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.4, MongoDB tracks write concern ``provenance``,
+which indicates the source of a particular write concern. You may see
+``provenance`` shown in the
+:serverstatus:`getLastError <metrics.getLastError>` metrics, write
+concern error objects, and MongoDB logs.
+
+The following table shows the possible write concern ``provenance``
+values and their significance:
+
+.. include:: /includes/fact-wc-provenance-table.rst

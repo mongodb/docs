@@ -1,0 +1,176 @@
+========================
+balancerCollectionStatus
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: balancerCollectionStatus
+
+   .. versionadded:: 4.4
+
+   Returns a document that contains information about whether the
+   chunks of a sharded collection are balanced (i.e. do not need to be
+   moved) as of the time the command is run or need to be moved because
+   of draining shards, zone violation or imbalance of chunks across
+   shards.
+
+   You can only issue the :dbcommand:`balancerCollectionStatus` against the
+   ``admin`` database.
+
+   .. |method| replace:: :method:`sh.balancerCollectionStatus`
+      helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+   The command takes the following form:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { balancerCollectionStatus: "<db>.<collection>" } )
+   
+   Specify the full namespace ("<db>.<collection>") of the sharded collection.
+   
+   The :binary:`~bin.mongo` shell provides a wrapper method
+   :method:`sh.balancerCollectionStatus()`.
+
+Access Control
+--------------
+
+When running with access control, the user must have the
+:authaction:`enableSharding` privilege actions on :ref:`database
+and/or collection <resource-specific-db-and-or-collection>` to run the
+command. That is, a user must have a :ref:`role <roles>` that grants
+the following :ref:`privilege <privileges>`:
+
+.. code-block:: javascript
+
+  { resource: { db: <database>, collection: <collection> }, actions: [ "enableSharding" ] }
+
+The built-in :authrole:`clusterManager` role provides the appropriate
+privileges.
+
+.. _cmd-balancer-CollectionStatus-output:
+
+Output Document
+---------------
+
+The following is an example of a document returned by the command:
+
+.. code-block:: json
+
+   {
+      "balancerCompliant" : false,
+      "firstComplianceViolation" : "chunksImbalance",
+      "ok" : 1,
+      "operationTime" : Timestamp(1583192967, 16),
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1583192967, 16),
+         "signature" : {
+            "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+            "keyId" : NumberLong(0)
+         }
+      }
+   }
+   
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - ``"balancerCompliant"``
+
+     - A boolean that indicates whether the chunks do not need to be
+       moved (``true``) or need to be moved (``false``).
+
+
+   * - ``"firstComplianceViolation"``
+
+     - A string that indicates the reason  chunks for this namespace need to be
+       moved. The field is only available if ``"balancerCompliant"`` is
+       ``false``.
+
+       Possible values are:
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 25 75
+
+          * - Value
+            - Description
+
+          * - ``"draining"``
+
+            - A :ref:`remove shard operation
+              <remove-shard-remove-chunks>` is in progress and MongoDB
+              must drain chunks off the removed shard to other shard(s).
+
+              .. note::
+
+                 If the ``"firstComplianceViolation"`` returns
+                 ``"draining"``, there may also be pending chunk
+                 migration due to ``"zoneViolation"``.
+
+          * - ``"zoneViolation"``
+
+            - Chunks violate the :ref:`defined zone ranges
+              <zone-sharding-balancer>` for a shard.
+
+              .. note::
+
+                 If the ``"firstComplianceViolation"`` responds with
+                 ``"zoneViolation"``, there may also be pending chunk
+                 migrations due to ``"chunksImbalance"``.
+
+          * - ``"chunksImbalance"``
+      
+            - The difference in the number of chunks between the shard
+              with the most chunks for the collection and the shard
+              with the fewest chunks for the collection exceed the
+              :ref:`migration threshold<sharding-migration-thresholds>`.
+
+In addition to the command-specific return fields, the command also
+returns the ``ok`` status field, the ``operationTime`` field, and the
+``$clusterTime`` field for the operation. For details on these fields,
+see :ref:`command-response`.
+
+Example
+-------
+
+To check whether the chunks of a sharded collection ``test.contacts``
+is currently in balance, connect to a :binary:`~bin.mongos` instance
+and issue the following command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { balancerCollectionStatus: "test.contacts" } )
+
+If the chunks for the collection do not need to be moved, the command
+returns an output similar to the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "balancerCompliant" : true,
+      "ok" : 1,
+      "operationTime" : Timestamp(1583193238, 1),
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1583193238, 1),
+         "signature" : {
+            "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+            "keyId" : NumberLong(0)
+         }
+      }
+   }
+

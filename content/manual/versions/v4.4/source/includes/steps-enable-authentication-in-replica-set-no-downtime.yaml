@@ -1,0 +1,512 @@
+stepnum: 1
+title: Create the user administrator.
+level: 4
+ref: add-user-useradmin
+pre: |
+
+  Connect to the :term:`primary` to create a user with
+  :authrole:`userAdminAnyDatabase` role. The
+  :authrole:`userAdminAnyDatabase` role grants access to user creation
+  on any database in the deployment.
+
+  The following example creates the user ``fred`` with the
+  :authrole:`userAdminAnyDatabase` role on the ``admin`` database.
+
+  .. important::
+     Passwords should be random, long, and complex to ensure system
+     security and to prevent or delay malicious access.
+
+action:
+  pre: |
+      .. tip::
+
+         .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+  language: javascript
+  code: |
+    admin = db.getSiblingDB("admin")
+    admin.createUser(
+      {
+        user: "fred",
+        pwd: " passwordPrompt(),     // or cleartext password
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+      }
+    )
+
+post: |
+
+  At the completion of this procedure, any client that administers users in
+  the replica set must authenticate as this user, or a user with
+  similar permissions.
+
+  See :ref:`database-user-roles` for a full list of built-in roles and
+  related to database administration operations.
+---
+stepnum: 2
+title: Create the cluster administrator.
+level: 4
+ref: add-user-clusteradmin
+pre: |
+
+  Connect to the :term:`primary` to create a user with
+  :authrole:`clusterAdmin` role. The :authrole:`clusterAdmin` role
+  grants access to replication operations, such as configuring the
+  replica set.
+
+  The following example creates the user ``ravi`` with the
+  :authrole:`clusterAdmin` role on the ``admin`` database.
+  
+  .. important::
+     Passwords should be random, long, and complex to ensure system security
+     and to prevent or delay malicious access.
+
+action:
+  pre: |
+     .. tip::
+
+        .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+  language: javascript
+  code: |
+    db.getSiblingDB("admin").createUser(
+      {
+        "user" : "ravi",
+        "pwd" :  passwordPrompt(),     // or cleartext password
+        roles: [ { "role" : "clusterAdmin", "db" : "admin" } ] 
+      }
+    )
+post: |
+
+  At the completion of this procedure, any client that administrates or
+  maintains the replica set must authenticate as this user, or a user with
+  similar permissions.
+
+  See :ref:`cluster-admin-roles` for a full list of built-in roles related to 
+  replica set operations.
+---
+stepnum: 3
+title: Create users for client applications.
+level: 4
+ref: add-replica-set-users
+pre: |
+
+  Create users to allow client application to connect and interact with the
+  replica set. At the completion of this tutorial, clients must authenticate as 
+  a configured user to connect to the replica set.
+  
+  See :ref:`database-user-roles` for basic built-in roles to use
+  in creating read-only and read-write users.
+  
+  The following creates a user with read and write permissions
+  on the ``foo`` database.
+  
+  .. important::
+     Passwords should be random, long, and complex to ensure system security
+     and to prevent or delay malicious access.
+  
+action:
+  - pre: |
+  
+      Create a user with the 
+      :authrole:`readWrite` role in the ``foo`` database.
+
+      .. tip::
+
+         .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+    language: javascript
+    code: |
+      db.getSiblingDB("foo").createUser(
+        {
+          "user" : "joe",
+          "pwd" :  passwordPrompt(),     // or cleartext password
+          roles: [ { "role" : "readWrite", "db" : "foo" } ] 
+        }
+      )
+      
+post: |
+
+  Clients authenticating as this user can perform read and write operations
+  against the ``foo`` database. See :ref:`authentication-auth-as-user` for
+  more on creating an authenticated connection to the replica set.
+  
+  See the :ref:`Add Users <add-new-user>` tutorial for more information on
+  adding users. Consider :ref:`security best practices
+  <security-checklist-role-based-access-control>` when adding new users.
+  
+---
+stepnum: 4
+title: Update Client Applications
+level: 4
+ref: update-client-apps
+pre: |
+  
+  At this point in the procedure, the replica set does not enforce
+  authentication. However, client applications can still specify auth
+  credentials and connect to the replica set.
+  
+  Update client applications to authenticate to the replica set using a
+  configured user. Authenticated connections require a username, password, and
+  the authentication database. See :ref:`authentication-auth-as-user`.
+
+action:
+  - pre: |
+      
+      For example, the following connects to a replica set named ``mongoRepl``
+      and authenticates as the user ``joe``.
+      
+    language: shell
+    code: |
+      mongo  -u joe -password  -authenticationDatabase foo --host mongoRepl/mongo1.example.net:27017, mongo2.example.net:27017, mongo3.example.net:27017
+    post: |
+       If you do not specify the password to the :option:`-p <mongo -p>`
+       command-line option, the :binary:`~bin.mongo` shell prompts for the
+       password.
+  - pre: |
+  
+      If your application uses a MongoDB driver, see the associated
+      :driver:`driver </>` documentation for instructions on
+      creating an authenticated connection.
+  
+post: |
+  
+  At the completion of this tutorial, the replica set rejects non-authenticated
+  client connections. Performing this step now ensures clients can connect
+  to the replica set before and after the transition.
+  
+---
+title: Create a keyfile.
+stepnum: 5
+ref: generate-keyfile
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-generate-keyfile
+---
+stepnum: 6
+ref: copy-keyfile
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-copy-keyfile
+---
+stepnum: 7
+title: Restart each secondary or arbiter member of the replica set with ``transitionToAuth``.
+ref: restart-secondaries
+level: 4
+pre: |
+
+  Restart each :term:`secondary` or :term:`arbiter` member in the
+  replica set, including in the configuration:
+     
+  - The :setting:`security.transitionToAuth` setting. Starting the
+    :binary:`~bin.mongod` with :setting:`security.transitionToAuth` set to
+    ``true`` places the instance in a transition state where it can
+    accept and create both authenticated and non-authenticated
+    connections.
+
+  - An internal authentication mechanism such as
+    :setting:`security.keyFile`.
+
+  You must restart each member one at a time to ensure a majority of
+  members in the replica set remain online.
+
+action:
+  - heading: Shut down the secondary or arbiter members.
+    pre: |
+      From a :binary:`~bin.mongo` shell connected to the secondary or arbiter,
+      issue the :method:`db.shutdownServer()` against the ``admin`` database.
+    
+    language: javascript
+    code: |
+      admin = db.getSiblingDB("admin")
+      admin.shutdownServer()
+  
+  - heading: Restart the secondary or arbiter members with ``transitionToAuth``
+    pre: |
+      Specify the following settings in your :ref:`configuration file
+      <configuration-file>`.
+
+      - :setting:`security.keyFile`, with the path to the keyfile.
+      - :setting:`replication.replSetName` to the original replica set name.
+      - :setting:`security.transitionToAuth` to ``true``.
+
+      .. include:: /includes/extracts/default-bind-ip-security-config-file.rst
+
+      
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+        transitionToAuth: true
+      replication:
+        replSetName: <replicaSetName>
+  
+  - pre: |
+      Specify the :option:`--config <mongod --config>` option with the path to the configuration
+      file when starting the :binary:`~bin.mongod`.
+        
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+      
+    post: |
+    
+      For more information on the configuration file, see 
+      :doc:`configuration options</reference/configuration-options>`.
+    
+post: |
+
+  Alternatively, you can use the equivalent :binary:`~bin.mongod`
+  command-line options (e.g. :option:`--transitionToAuth <mongod --transitionToAuth>` and
+  :option:`--keyFile <mongod --keyFile>`) when starting your :binary:`~bin.mongod`. See the
+  :binary:`~bin.mongod` reference page for a complete list of options.
+
+  Include additional settings as appropriate to your deployment.
+
+  At the end of this step, all secondaries and arbiters should be up
+  and running with :setting:`security.transitionToAuth` set to ``true``.
+  
+---
+stepnum: 8
+level: 4
+ref: enable-auth-primary
+title: Step down the primary member of the replica set and restart it with ``--transitionToAuth``.
+ref: shutdown-repset-primary
+pre: |
+   
+   Step down the :term:`primary` member in the replica set and restart
+   the member, including in its configuration:
+  
+   - The :setting:`security.transitionToAuth` setting. Starting the
+     :binary:`~bin.mongod` with :setting:`security.transitionToAuth` set to
+     ``true`` places the instance in a transition state where it can
+     accept and create both authenticated and non-authenticated
+     connections.
+
+   - An internal authentication mechanism such as
+     :setting:`security.keyFile`.
+action:
+  - heading: Step down the primary replica set member
+    pre: |
+      
+      Connect to the primary using a :binary:`~bin.mongo` shell and step down the
+      primary using the :method:`rs.stepDown()` method.
+      
+    language: javascript
+    code: |
+      rs.stepDown()
+    
+  - heading: Shut down the old primary
+    pre: |
+      
+      Once the primary steps down and the replica set elects a new primary,
+      shut down the old primary :binary:`~bin.mongod`.
+    
+      From a :binary:`~bin.mongo` shell connected to the old primary, issue the
+      :method:`db.shutdownServer()` on the ``admin`` database.
+    
+    language: javascript
+    code: |
+      admin = db.getSiblingDB("admin")
+      admin.shutdownServer()
+  - heading: Restart the old primary with ``transitionToAuth``
+    pre: |
+  
+      Specify the following settings in your :ref:`configuration file
+      <configuration-file>`.
+        
+      - :setting:`security.keyFile`, with the path to the keyfile.
+      - :setting:`replication.replSetName` to the original replica set name.
+      - :setting:`security.transitionToAuth` to ``true``.
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+        transitionToAuth: true
+      replication:
+        replSetName: <replicaSetName>
+        
+  - pre: |
+      
+      Start the :binary:`~bin.mongod` using the configuration file.
+        
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+    post: |
+      For more information on the configuration file, see 
+      :doc:`configuration options</reference/configuration-options>`.
+    
+post: |
+
+  Alternatively, you can use the equivalent :binary:`~bin.mongod`
+  command-line options (e.g. :option:`--transitionToAuth <mongod --transitionToAuth>` and
+  :option:`--keyFile <mongod --keyFile>`) when starting your :binary:`~bin.mongod`. See the
+  :binary:`~bin.mongod` reference page for a complete list of options.
+
+  Include additional settings as appropriate to your deployment.
+
+  At the end of this step, all members of the replica set should be up
+  and running with :setting:`security.transitionToAuth` set to ``true``
+  and :setting:`security.keyFile` set to the keyfile path.
+  
+---
+stepnum: 9
+title: Restart secondaries and arbiters *without* ``--transitionToAuth``
+ref: remove-transition-secondaries
+level: 4
+pre: |
+  Restart each :term:`secondary` or :term:`arbiter` member in the replica set,
+  removing the :setting:`security.transitionToAuth` option on restart. You must do
+  this one at a time to ensure a majority of members in the replica set remain
+  online.
+
+  If the majority of replica set members are offline at the same time, the
+  replica set may go into read-only mode.
+  
+action:
+  - heading: Shut down the secondary or arbiter members
+    pre: |
+    
+      Connect a :binary:`~bin.mongo` shell to the secondary or arbiter, and
+      issue the :method:`db.shutdownServer()` on the ``admin`` database.
+    
+    language: javascript
+    code: |
+      admin = db.getSiblingDB("admin")
+      admin.shutdownServer()
+
+  - heading: Restart the secondary or arbiter members without ``transitionToAuth``
+    pre: |
+      Restart the :binary:`~bin.mongod`, this time *without* the 
+      :setting:`security.transitionToAuth` option but *with* internal authentication
+      mechanism such as :setting:`security.keyFile`.
+
+      Specify the following settings in your :ref:`configuration file
+      <configuration-file>`.
+
+      - :setting:`security.keyFile`, with the path to the keyfile.
+      - :setting:`replication.replSetName` to the original replica set name.
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      replication:
+        replSetName: <replicaSetName>
+  
+  - pre: |
+      Start the :binary:`~bin.mongod` using the configuration file:
+        
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+      
+    post: |
+    
+      For more information on the configuration file, see 
+      :doc:`configuration options</reference/configuration-options>`.
+    
+post: |
+  You can also use the equivalent :binary:`~bin.mongod` options when starting your
+  :binary:`~bin.mongod`. See the :binary:`~bin.mongod` reference page for a complete list of
+  options.
+
+  Include additional settings as appropriate to your deployment.
+
+  At the end of this step, all secondaries and arbiters should be up and
+  running with internal authentication configured, but *without*
+  :setting:`security.transitionToAuth`. Clients can only connect to these
+  :binary:`~bin.mongod` instances by using the configured client authentication
+  mechanism.
+  
+---
+stepnum: 10
+level: 4
+ref: remove-transition-primary
+title: Step down and restart the primary replica set member *without* ``--transitionToAuth``.
+level: 4
+pre: |
+
+  Step down the :term:`primary` member in the replica set, then restart it
+  without the :setting:`security.transitionToAuth` option.
+  
+  .. important::
+    
+     At the end of this step, clients not connecting with auth cannot connect
+     to the replica set. Update clients to connect with authentication *before*
+     completing this step to avoid loss of connectivity.
+
+action:
+  - heading: Step down the primary replica set member
+    pre: |
+      
+      Connect to the primary using a :binary:`~bin.mongo` shell and step down the
+      primary using the :method:`rs.stepDown()` method.
+      
+    language: javascript
+    code: |
+      rs.stepDown()
+    
+  - heading: Shut down the old primary
+    pre: |
+      
+      Once the primary steps down and the replica set elects a new primary,
+      shut down the old primary :binary:`~bin.mongod`. 
+      
+      From a :binary:`~bin.mongo` shell connected to the old primary, issue the
+      :method:`db.shutdownServer()` on the ``admin`` database.
+      
+    language: javascript
+    code: |
+      admin = db.getSiblingDB("admin")
+      admin.shutdownServer()
+  - heading: Restart the old primary without ``transitionToAuth``
+    pre: |
+      
+      Restart the :binary:`~bin.mongod`, this time *without* the 
+      :setting:`security.transitionToAuth` option but *with* the internal authentication
+      mechanism such as :setting:`security.keyFile`.
+
+      Specify the following settings in your :ref:`configuration file
+      <configuration-file>`.
+        
+      - :setting:`security.keyFile`, with the path to the keyfile.
+      - :setting:`replication.replSetName` to the original replica set name.
+      
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      replication:
+        replSetName: <replicaSetName>
+        
+  - pre: |
+      
+      Start the :binary:`~bin.mongod` using the configuration file:
+        
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+    post: |
+      For more information on the configuration file, see 
+      :doc:`configuration options</reference/configuration-options>`.
+    
+post: |
+  You can also use the equivalent :binary:`~bin.mongod` options when starting your
+  mongod. See the :binary:`~bin.mongod` reference page for a complete list of
+  options.
+  
+  Include additional settings as appropriate to your deployment.
+  
+  At the end of this step, all members of the replica set should be up and
+  running with authentication enforced. Clients can only connect to these
+  :binary:`~bin.mongod` instances by using the configured client authentication
+  mechanism.
+...

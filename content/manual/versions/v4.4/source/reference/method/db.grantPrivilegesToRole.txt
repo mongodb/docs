@@ -1,0 +1,148 @@
+==========================
+db.grantPrivilegesToRole()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.grantPrivilegesToRole(rolename, privileges, writeConcern)
+
+   Grants additional :ref:`privileges <privileges>` to a :ref:`user-defined
+   <user-defined-roles>` role.
+
+   .. |dbcommand| replace:: :dbcommand:`grantPrivilegesToRole` command
+   .. include:: /includes/fact-mongo-shell-method-alt.rst
+
+   The :method:`db.grantPrivilegesToRole()` method uses the following syntax:
+
+   .. code-block:: javascript
+
+      db.grantPrivilegesToRole(
+          "< rolename >",
+          [
+              { resource: { <resource> }, actions: [ "<action>", ... ] },
+              ...
+          ],
+          { < writeConcern > }
+      )
+
+   The :method:`db.grantPrivilegesToRole()` method takes the following arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``rolename``
+   
+        - string
+   
+        - The name of the role to grant privileges to.
+          
+          
+   
+      * - ``privileges``
+   
+        - array
+   
+        - The privileges to add to the role. For the format of a privilege, see
+          :data:`~admin.system.roles.privileges`.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. The level of :doc:`write concern </reference/write-concern>` for the
+          modification. The ``writeConcern`` document takes the same
+          fields as the :dbcommand:`getLastError` command.
+          
+          
+   
+
+
+   The :method:`db.grantPrivilegesToRole()` method can grant one or more
+   privileges. Each ``<privilege>`` has the following syntax:
+
+   .. code-block:: javascript
+
+      { resource: { <resource> }, actions: [ "<action>", ... ] }
+
+   .. |local-cmd-name| replace:: :method:`db.grantPrivilegesToRole()`
+
+Behavior
+--------
+
+Replica set
+~~~~~~~~~~~
+
+.. |command| replace:: :method:`db.grantPrivilegesToRole()`
+
+.. include:: /includes/fact-management-methods-write-concern.rst
+
+Scope
+~~~~~
+
+Except for roles created in the ``admin`` database, a role can only
+include privileges that apply to its database 
+
+A role created in the ``admin`` database can include privileges that
+apply to the ``admin`` database, other databases or to the
+:ref:`cluster <resource-cluster>` resource.
+
+Required Access
+---------------
+
+.. include:: /includes/access-grant-privileges.rst
+
+Example
+-------
+
+The following :method:`db.grantPrivilegesToRole()` operation grants two
+additional privileges to the role ``inventoryCntrl01``, which exists on the
+``products`` database. The operation is run on that database:
+
+.. code-block:: javascript
+
+   use products
+   db.grantPrivilegesToRole(
+     "inventoryCntrl01",
+     [
+       {
+         resource: { db: "products", collection: "" },
+         actions: [ "insert" ]
+       },
+       {
+         resource: { db: "products", collection: "system.js" },
+         actions: [ "find" ]
+       }
+     ],
+     { w: "majority" }
+   )
+
+The first privilege permits users with this role to perform the
+``insert`` :ref:`action <security-user-actions>` on all collections of
+the ``products`` database, except the :doc:`system collections
+</reference/system-collections>`. To access a system collection, a
+privilege must explicitly specify the system collection in the resource
+document, as in the second privilege.
+
+The second privilege permits users with this role to perform the
+:authaction:`find` :ref:`action <security-user-actions>` on the
+``product`` database's system collection named :data:`system.js
+<<database>.system.js>`.

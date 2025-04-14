@@ -1,0 +1,244 @@
+
+
+
+.. _replica-set-configuration-tag-sets:
+
+==============================
+Configure Replica Set Tag Sets
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A replica set member or members can be configured with
+:rsconf:`~members[n].tags`:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "<tag1>": "<string1>", "<tag2>": "<string2>",... }
+
+For read operations, you can specify a tag set in the :ref:`read
+preferences <replica-set-read-preference>` to help direct read
+operations to members that have specific tag(s).
+
+For write operations, you can use the tags to create a custom
+:ref:`write concern <write-concern>`.
+
+.. _configure-read-pref-tags:
+
+Use Tag Sets in Read Preference
+-------------------------------
+
+If a replica set member or members are associated with
+:rsconf:`~members[n].tags`, you can specify a tag set in the :ref:`read
+preference <read-preference>` to target those members. A tag
+set is an array of documents, where each document contains the tag and
+value pair(s). The specifications are tried in order until a match is
+found. Once found, that specification is used to find all eligible
+matching members.
+
+.. note::
+
+   You cannot specify a tag set when specifying read preference mode
+   :readmode:`primary`.
+
+For example, a replica set has the following :ref:`replica set
+configuration <replica-set-configuration-document>` (some of the fields
+have been omitted for brevity):
+
+.. code-block:: javascript
+
+   {
+      "_id" : "rs0",
+      "version" : 1,
+      "protocolVersion" : NumberLong(1),
+      "writeConcernMajorityJournalDefault" : true,
+      "members" : [
+          { "_id" : 0, "host" : "mongodb0.example.net:27017", ...,  "tags": { }, ... },
+          { "_id" : 1, "host" : "mongodb1.example.net:27017", ...,  "tags": { }, ... },
+          { "_id" : 2, "host" : "mongodb2.example.net:27017", ...,  "tags": { }, ... }
+      ],
+      "settings" : {
+         ...
+      }
+   }
+
+#. **Add tags to the members.**
+
+   Connect a :binary:`~bin.mongo` shell to the replica set and use
+   :method:`rs.reconfig()` to add tags to the members:
+
+   .. code-block:: javascript
+
+      conf = rs.conf();
+      conf.members[0].tags = { "dc": "east", "usage": "production" };
+      conf.members[1].tags = { "dc": "east", "usage": "reporting" };
+      conf.members[2].tags = { "dc": "west", "usage": "production" };
+      rs.reconfig(conf);
+
+#. **Verify the replica set configuration.**
+
+   Run :method:`rs.conf()` to verify the replica set configuration
+   (some of the fields have been omitted for brevity). The
+   :method:`rs.conf()` returns a document similar to the following:
+
+   .. code-block:: javascript
+
+      {
+         "_id" : "rs0",
+         "version" : 2,
+         "protocolVersion" : NumberLong(1),
+         "writeConcernMajorityJournalDefault" : true,
+         "members" : [
+            {
+                "_id" : 0,
+                "host" : "mongodb0.example.net:27017",
+                ...
+                "tags" : {
+                    "dc": "east",
+                    "usage": "production"
+                },
+                ...
+            },
+            {
+                "_id" : 1,
+                "host" : "mongodb1.example.net:27017",
+                ...
+                "tags" : {
+                    "dc": "east",
+                    "usage": "reporting"
+                },
+                ...
+             },
+            {
+                "_id" : 2,
+                "host" : "mongodb2.example.net:27017",
+                ...
+                "tags" : {
+                    "dc": "west",
+                    "usage": "production"
+                },
+                ...
+            }
+         ],
+         "settings" : {
+            ...
+         }
+      }
+
+#. **Specify tag sets in the read preference.**
+
+   To direct read operations to the secondaries tagged with a particular
+   tag(s), in the :binary:`~mongo` shell connected to the replica set,
+   you can use the :method:`~cursor.readPref()` method to specify the
+   :ref:`read preference mode <read-pref-modes-summary>` and the :ref:`tag
+   set <replica-set-read-preference-tag-sets>`. For example,
+   
+      
+   - To direct read operations to the secondary tagged with *both*
+     ``"dc": "east"`` and ``"usage": "production"``, include the
+     following tag set:
+
+     .. code-block:: javascript
+
+        db.collection.find({}).readPref( "secondary", [ { "dc": "east", "usage": "production" } ] )
+
+   - To direct a read operation to the secondaries tagged with ``"dc":
+     "east"``, and if not found, to secondaries tagged with 
+     ``"usage": "production"``, include the following tag set:
+
+     .. code-block:: javascript
+
+        db.collection.find({}).readPref( "secondary", [ { "dc": "east"}, { "usage": "production" } ] )
+
+   .. seealso::
+
+      :method:`Mongo.setReadPref()`
+
+.. _configure-custom-write-concern:
+
+Custom Multi-Datacenter Write Concerns
+--------------------------------------
+
+If a replica set member or members are associated with
+:rsconf:`~members[n].tags`, you can configure the replica set's
+:rsconf:`settings.getLastErrorModes` setting to create a custom write
+concern.
+
+Given a five member replica set with members in two data centers:
+
+1. a facility ``VA`` tagged ``dc_va``
+
+2. a facility ``CA`` tagged ``dc_ca``
+
+.. code-block:: javascript
+
+   {
+      "_id" : "rs0",
+      "version" : 1,
+      "protocolVersion" : NumberLong(1),
+      "writeConcernMajorityJournalDefault" : true,
+      "members" : [
+          { "_id" : 0, "host" : "mongodb0.example.net:27017", ...,  "tags": { }, ... },
+          { "_id" : 1, "host" : "mongodb1.example.net:27017", ...,  "tags": { }, ... },
+          { "_id" : 2, "host" : "mongodb2.example.net:27017", ...,  "tags": { }, ... }
+          { "_id" : 3, "host" : "mongodb3.example.net:27017", ...,  "tags": { }, ... }
+          { "_id" : 4, "host" : "mongodb4.example.net:27017", ...,  "tags": { }, ... }
+      ],
+      "settings" : {
+         ...
+      }
+   }
+
+#. **Add tags to the replica set members.**
+
+   Connect a :binary:`~bin.mongo` shell to the replica set and use
+   :method:`rs.reconfig()` to add tags to the members:
+
+   .. code-block:: javascript
+
+      conf = rs.conf();
+      conf.members[0].tags = { "dc_va": "rack1"};
+      conf.members[1].tags = { "dc_va": "rack2"};
+      conf.members[2].tags = { "dc_ca": "rack1"};
+      conf.members[3].tags = { "dc_ca": "rack2"};
+      conf.members[4].tags = { "dc_va": "rack1"};
+      rs.reconfig(conf);
+
+
+#. **Create a custom write concern.**
+
+   In the replica set configuration, define a custom write concern in
+   the :rsconf:`settings.getLastErrorModes` setting. For example, the
+   following defines the custom write concern ``MultipleDC`` that
+   requires the write to propagate to two members with *different*
+   ``dc_va`` tag values and one member with any ``dc_ca`` tag value.
+
+   .. code-block:: javascript
+
+      conf = rs.conf();
+      conf.settings = { getLastErrorModes: { MultipleDC : { "dc_va": 2, "dc_ca": 1 } } };
+      rs.reconfig(conf);
+
+   .. note::
+
+      The ``MultipleDC`` write concern is not satisfied if the write
+      propagates to two members with the same ``"dc_va"`` tag. For
+      example, if the write has only propagated to ``members[0]`` and
+      ``members[4]``, ``"dc_va": 2`` is not satisfied since they have
+      the same tag value ``"rack1"``.
+      
+#. **Use the custom write concern.**
+
+   To use the custom write concern, pass in the write concern name to
+   the :ref:`wc-w` in the write concern:
+
+   .. code-block:: javascript
+
+      db.collection.insert( { id: "xyz", status: "A" }, { writeConcern: { w: "MultipleDC" } } )

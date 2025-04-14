@@ -1,0 +1,135 @@
+title: Start each member of the config server replica set.
+stepnum: 1
+level: 4
+ref: sharded-cluster-deploy-config-server
+pre: |
+   When starting *each* :binary:`~bin.mongod`, specify the
+   :binary:`~bin.mongod` settings either via a configuration file or the
+   command line.
+content: |
+
+  .. tabs::
+
+     .. tab:: Configuration File
+        :tabid: config-file
+
+        If using a configuration file, set:
+
+        .. code-block:: yaml
+
+           sharding:
+             clusterRole: configsvr
+           replication:
+             replSetName: <replica set name>
+           net:
+             bindIp: localhost,<hostname(s)|ip address(es)>
+
+        - :setting:`sharding.clusterRole` to ``configsvr``, 
+
+        - :setting:`replication.replSetName` to the desired name of the
+          config server replica set,
+
+        - :setting:`net.bindIp` option to the hostname/ip address or
+          comma-delimited list of hostnames or ip addresses that remote
+          clients (including the other members of the config server
+          replica set as well as other members of the sharded cluster)
+          can use to connect to the instance.
+
+          .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+        - Additional settings as appropriate to your deployment, such as
+          :setting:`storage.dbPath` and :setting:`net.port`. For more
+          information on the configuration file, see :doc:`configuration
+          options</reference/configuration-options>`.
+
+        Start the :binary:`~bin.mongod` with the ``--config`` option
+        set to the configuration file path.
+
+        .. code-block:: bash
+
+           mongod --config <path-to-config-file>
+
+     .. tab:: Command Line
+        :tabid: command-line
+
+        If using the command line options, start the
+        :binary:`~bin.mongod` with the ``--configsvr``, ``--replSet``,
+        ``--bind_ip``, and other options as appropriate to your
+        deployment. For example:
+
+        .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+        .. code-block:: bash
+
+           mongod --configsvr --replSet <replica set name> --dbpath <path> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+        For more information on startup parameters, see the
+        :binary:`~bin.mongod` reference page.
+---
+stepnum: 2
+level: 4
+title: Connect to one of the config servers.
+ref: csrs-connect
+pre: |
+  Connect a :binary:`~bin.mongo` shell to one of the config server 
+  members. 
+action:
+  copyable: true
+  language: sh
+  code: |
+    mongo --host <hostname> --port <port>
+---
+stepnum: 3
+title: Initiate the replica set.
+level: 4
+ref: csrs-initiate
+pre: |
+
+  From the :binary:`~bin.mongo` shell, run the :method:`rs.initiate()` method.
+
+  :method:`rs.initiate()` can take an optional :doc:`replica set
+  configuration document </reference/replica-configuration>`. In the
+  :doc:`replica set configuration document
+  </reference/replica-configuration>`, include:
+
+  - The :rsconf:`_id` set to the replica set name specified in either
+    the :setting:`replication.replSetName` or the ``--replSet`` option.
+
+  - The :rsconf:`configsvr` field  set to ``true`` for the config server replica set.
+
+  - The :rsconf:`members` array with a document per each member of the replica set.
+
+action:
+  - pre: |
+
+      .. important::
+
+         .. include:: /includes/fact-rs-initiate-once-only.rst
+
+    copyable: true
+    language: javascript
+    code: |
+      rs.initiate(
+        {
+          _id: "myReplSet",
+          configsvr: true,
+          members: [
+            { _id : 0, host : "cfg1.example.net:27019" },
+            { _id : 1, host : "cfg2.example.net:27019" },
+            { _id : 2, host : "cfg3.example.net:27019" }
+          ]
+        }
+      )
+post: |
+
+   See :doc:`/reference/replica-configuration` for more information on 
+   replica set configuration documents.
+
+   .. note::
+
+      The :method:`rs.initiate` command may take a few seconds to complete.
+      To use the config server replica set (CSRS) in this procedure, you must wait
+      until it completes its initialization.  If the CSRS has not initialized, you 
+      will see ``NotYetInitialized`` errors when you try to perform operations on a
+      CSRS member.
+...

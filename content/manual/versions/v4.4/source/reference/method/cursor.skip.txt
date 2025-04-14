@@ -1,0 +1,179 @@
+=============
+cursor.skip()
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: cursor.skip(<offset>)
+
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
+   Call the :method:`~cursor.skip()` method on a cursor to control where
+   MongoDB begins returning results. This approach may be useful in
+   implementing paginated results.
+
+   .. note::
+
+      You must apply :method:`~cursor.skip()` to the cursor before
+      retrieving any documents from the database.
+
+   The :method:`~cursor.skip()` method has the following parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``offset``
+   
+        - number
+   
+        - The number of documents to skip in the results set.
+          
+Behavior
+--------
+
+Using ``skip()`` with ``sort()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If using :method:`~cursor.skip()` with :method:`~cursor.sort()`, be
+sure to include at least one field in your sort that contains
+unique values, before passing results to :method:`~cursor.skip()`.
+
+Sorting on fields that contain duplicate values may return an
+inconsistent sort order for those duplicate fields over multiple
+executions, especially when the collection is actively receiving writes.
+
+The easiest way to guarantee sort consistency is to include the
+``_id`` field in your sort query.
+
+See :ref:`Consistent sorting with the sort() method
+<sort-cursor-consistent-sorting>` for more information.
+
+Pagination Example
+------------------
+
+Using ``skip()``
+~~~~~~~~~~~~~~~~
+
+The following JavaScript function uses :method:`~cursor.skip()` to
+paginate a collection by its ``_id`` field:
+
+.. code-block:: javascript
+
+   function printStudents(pageNumber, nPerPage) {
+     print( "Page: " + pageNumber );
+     db.students.find()
+                .sort( { _id: 1 } )
+                .skip( pageNumber > 0 ? ( ( pageNumber - 1 ) * nPerPage ) : 0 )
+                .limit( nPerPage )
+                .forEach( student => {
+                  print( student.name );
+                } );
+   }
+
+The :method:`~cursor.skip()` method requires the server to scan from the
+beginning of the input results set before beginning to return results.
+As the offset increases, :method:`~cursor.skip()` will become slower.
+
+Using Range Queries
+~~~~~~~~~~~~~~~~~~~
+
+Range queries can use :ref:`indexes <indexes>` to avoid scanning
+unwanted documents, typically yielding better performance as the offset
+grows compared to using :method:`~cursor.skip()` for pagination.
+
+Descending Order
+````````````````
+
+Use this procedure to implement pagination with range queries:
+
+* Choose a field such as ``_id`` which generally changes in a consistent
+  direction over time and has a :ref:`unique index <index-type-unique>`
+  to prevent duplicate values,
+* Query for documents whose field is less than the start value
+  using the :query:`$lt` and :method:`~cursor.sort()` operators, and
+* Store the last-seen field value for the next query.
+
+For example, the following function uses the above procedure to print
+pages of student names from a collection, sorted approximately in order
+of newest documents first using the ``_id`` field (that is, in
+*descending* order):
+
+.. code-block:: javascript
+
+   function printStudents(startValue, nPerPage) {
+     let endValue = null;
+     db.students.find( { _id: { $lt: startValue } } )
+                .sort( { _id: -1 } )
+                .limit( nPerPage )
+                .forEach( student => {
+                  print( student.name );
+                  endValue = student._id;
+                } );
+
+     return endValue;
+   }
+
+You may then use the following code to print all student names using this
+pagination function, using :bsontype:`MaxKey` to start
+from the largest possible key:
+
+.. code-block:: javascript
+
+   let currentKey = MaxKey;
+   while (currentKey !== null) {
+     currentKey = printStudents(currentKey, 10);
+   }
+
+.. note::
+
+   .. include:: /includes/fact-ObjectId-timestamp-order.rst
+
+Ascending Order
+```````````````
+
+Returning paginated results in ascending order is similar to the
+previous, but uses :query:`$gt` with an *ascending* sort order:
+
+.. code-block:: javascript
+
+   function printStudents(startValue, nPerPage) {
+     let endValue = null;
+     db.students.find( { _id: { $gt: startValue } } )
+                .sort( { _id: 1 } )
+                .limit( nPerPage )
+                .forEach( student => {
+                  print( student.name );
+                  endValue = student._id;
+                } );
+
+     return endValue;
+   }
+
+Using this function is likewise similar, but with
+:bsontype:`MinKey` as the starting key:
+
+.. code-block:: javascript
+
+   let currentKey = MinKey;
+   while (currentKey !== null) {
+     currentKey = printStudents(currentKey, 10);
+   }

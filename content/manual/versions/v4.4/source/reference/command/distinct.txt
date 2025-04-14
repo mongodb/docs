@@ -1,0 +1,322 @@
+========
+distinct
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: distinct
+
+   Finds the distinct values for a specified field across a single
+   collection. :dbcommand:`distinct` returns a document that contains
+   an array of the distinct values. The return document also contains
+   an embedded document with query statistics and the query plan.
+
+   .. |method| replace:: :method:`db.collection.distinct()` helper method.
+   .. include:: /includes/fact-dbcommand-tip
+
+   The command takes the following form
+
+   .. code-block:: javascript
+
+      {
+        distinct: "<collection>",
+        key: "<field>",
+        query: <query>,
+        readConcern: <read concern document>,
+        collation: <collation document>,
+        comment: <any>
+      }
+
+   The command contains the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``distinct``
+   
+        - string
+   
+        - The name of the collection to query for distinct values.
+          
+          
+   
+      * - ``key``
+   
+        - string
+   
+        - The field for which to return distinct values.
+          
+          
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. A query that specifies the documents from which to retrieve the
+          distinct values.
+          
+          
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+       
+          .. versionadded:: 4.4
+
+          .. note:: 
+
+             MongoDB v4.4 only supports :ref:`BSON type <bson-types>`
+             ``string``. Starting in v4.4.14, a comment can be any
+             valid :ref:`BSON type <bson-types>`.
+
+   .. include:: /includes/note-distinct-bson-limit-agg-alternative.rst
+
+   MongoDB also provides the shell wrapper method
+   :method:`db.collection.distinct()` for the :dbcommand:`distinct`
+   command. Additionally, many MongoDB :term:`drivers <driver>`
+   provide a wrapper method. Refer to the specific driver documentation.
+
+Behavior
+--------
+
+In a :term:`sharded cluster`, the :dbcommand:`distinct` command may return
+:term:`orphaned documents <orphaned document>`.
+
+.. _distinct-command-array-behavior:
+
+Array Fields
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-distinct-command-array-field.rst
+
+For an example, see :ref:`distinct-command-array`.
+
+Index Use
+~~~~~~~~~
+
+.. include:: /includes/extracts/fact-distinct-command-index-use.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-distinct-support.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :dbcommand:`distinct`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`distinct`
+
+Examples
+--------
+
+The examples use the ``inventory`` collection that contains the
+following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "dept": "A", "item": { "sku": "111", "color": "red" }, "sizes": [ "S", "M" ] }
+   { "_id": 2, "dept": "A", "item": { "sku": "111", "color": "blue" }, "sizes": [ "M", "L" ] }
+   { "_id": 3, "dept": "B", "item": { "sku": "222", "color": "blue" }, "sizes": "S" }
+   { "_id": 4, "dept": "A", "item": { "sku": "333", "color": "black" }, "sizes": [ "S" ] }
+
+Return Distinct Values for a Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``dept`` from all documents in the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand ( { distinct: "inventory", key: "dept" } )
+
+The command returns a document with a field named ``values`` that
+contains the distinct ``dept`` values:
+
+.. code-block:: javascript
+
+   {
+      "values" : [ "A", "B" ],
+      "ok" : 1
+   }
+
+Return Distinct Values for an Embedded Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sku``, embedded in the ``item`` field, from all documents in the
+``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand ( { distinct: "inventory", key: "item.sku" } )
+
+The command returns a document with a field named ``values`` that
+contains the distinct ``sku`` values:
+
+.. code-block:: javascript
+
+   {
+     "values" : [ "111", "222", "333" ],
+     "ok" : 1
+   }
+
+.. seealso::
+
+   :ref:`document-dot-notation` for information on accessing fields
+   within embedded documents
+
+.. _distinct-command-array:
+
+Return Distinct Values for an Array Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sizes`` from all documents in the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand ( { distinct: "inventory", key: "sizes" } )
+
+The command returns a document with a field named ``values`` that
+contains the distinct ``sizes`` values:
+
+.. code-block:: javascript
+
+   {
+     "values" : [ "M", "S", "L" ],
+     "ok" : 1
+   }
+
+For information on :dbcommand:`distinct` and array fields, see the
+:ref:`Behavior <distinct-command-array-behavior>` section.
+
+Specify Query with ``distinct``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sku``, embedded in the ``item`` field, from the documents whose
+``dept`` is equal to ``"A"``:
+
+.. code-block:: javascript
+
+   db.runCommand ( { distinct: "inventory", key: "item.sku", query: { dept: "A"} } )
+
+The command returns a document with a field named ``values`` that
+contains the distinct ``sku`` values:
+
+.. code-block:: javascript
+
+   {
+     "values" : [ "111", "333" ],
+     "ok" : 1
+   }
+
+Specify a Collation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following aggregation operation includes the :ref:`collation`
+option:
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      { 
+         distinct: "myColl",
+         key: "category",
+         collation: { locale: "fr", strength: 1 } 
+      }
+   )
+
+For descriptions on the collation fields, see
+:ref:`collation-document-fields`.
+
+
+Override Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the default read concern level of :readconcern:`"local"`,
+use the ``readConcern`` option.
+
+The following operation on a replica set specifies a
+:doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        distinct: "restaurants",
+        key: "rating",
+        query: { cuisine: "italian" },
+        readConcern: { level: "majority" }
+      }
+   )
+
+.. include:: /includes/usage-read-concern-majority.rst

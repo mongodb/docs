@@ -1,0 +1,202 @@
+.. This page is hidden from the TOC and search indexing. 
+ 
+:orphan: 
+ 
+.. meta:: 
+   :robots: noindex, nosnippet
+
+==========================
+Downgrade MongoDB from 3.2
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document, particularly the :ref:`3.2-downgrade-considerations`
+and the procedure for :ref:`downgrading sharded clusters
+<3.2-downgrade-cluster>`.
+
+.. _3.2-downgrade-considerations:
+
+Downgrade Recommendations and Checklist
+---------------------------------------
+
+When downgrading, consider the following:
+
+Downgrade Path
+~~~~~~~~~~~~~~
+
+To downgrade, use the latest version in the 3.0-series.
+
+Preparedness
+~~~~~~~~~~~~
+
+- :ref:`Remove or downgrade version 3 text indexes
+  <downgrade-text-index-v3>` before downgrading MongoDB 3.2 to 3.0.
+
+- :ref:`Remove or downgrade version 3 2dsphere indexes
+  <downgrade-2dsphere-index-v3>` before downgrading MongoDB 3.2 to 3.0.
+
+Procedures
+~~~~~~~~~~
+
+Follow the downgrade procedures:
+
+- To downgrade sharded clusters, see :ref:`3.2-downgrade-cluster`.
+
+- To downgrade replica sets, see :ref:`3.2-downgrade-replica-set`.
+
+- To downgrade a standalone MongoDB instance, see :ref:`3.2-downgrade-standalone`.
+
+Prerequisites
+-------------
+
+.. _downgrade-text-index-v3:
+
+Text Index Version Check
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have *version 3* text indexes (i.e. the default version for text
+indexes in MongoDB 3.2), drop the *version 3* text indexes before
+downgrading MongoDB. After the downgrade,
+recreate the dropped text indexes.
+
+To determine the version of your ``text`` indexes, run
+:method:`db.collection.getIndexes()` to view index specifications. For
+text indexes, the method returns the version information in the field
+``textIndexVersion``. For example, the following shows that the
+``text`` index on the ``quotes`` collection is version 3.
+
+.. code-block:: javascript
+   :emphasize-lines: 15
+
+   {
+      "v" : 1,
+      "key" : {
+         "_fts" : "text",
+         "_ftsx" : 1
+      },
+      "name" : "quote_text_translation.quote_text",
+      "ns" : "test.quotes",
+      "weights" : {
+         "quote" : 1,
+         "translation.quote" : 1
+      },
+      "default_language" : "english",
+      "language_override" : "language",
+      "textIndexVersion" : 3
+   }
+
+.. _downgrade-2dsphere-index-v3:
+
+``2dsphere`` Index Version Check
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have *version 3* ``2dsphere`` indexes (i.e. the default version
+for ``2dsphere`` indexes in MongoDB 3.2), drop the *version 3*
+``2dsphere`` indexes before downgrading MongoDB. After the downgrade,
+recreate the ``2dsphere`` indexes.
+
+To determine the version of your ``2dsphere`` indexes, run
+:method:`db.collection.getIndexes()` to view index specifications. For
+``2dsphere`` indexes, the method returns the version information in the field
+``2dsphereIndexVersion``. For example, the following shows that the
+``2dsphere`` index on the ``locations`` collection is version 3.
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   {
+      "v" : 1,
+      "key" : {
+         "geo" : "2dsphere"
+      },
+      "name" : "geo_2dsphere",
+      "ns" : "test.locations",
+      "sparse" : true,
+      "2dsphereIndexVersion" : 3
+   }
+
+.. _downgrade-partial-index:
+
+Partial Indexes Check
+~~~~~~~~~~~~~~~~~~~~~
+
+Before downgrading MongoDB, drop any partial indexes.
+
+.. _3.2-downgrade-standalone:
+
+Downgrade a Standalone ``mongod`` Instance
+------------------------------------------
+
+The following steps outline the procedure to downgrade a standalone
+:binary:`~bin.mongod` from version 3.2 to 3.0.
+
+.. include:: /includes/steps/3.2-downgrade-mongod.rst
+
+.. _`MongoDB Download Page`: http://www.mongodb.org/downloads
+
+.. _3.2-downgrade-replica-set:
+
+Downgrade a 3.2 Replica Set
+---------------------------
+
+The following steps outline a "rolling" downgrade process for the
+replica set. The "rolling" downgrade process minimizes downtime by
+downgrading the members individually while the other members are
+available:
+
+.. include:: /includes/steps/3.2-downgrade-replica-set.rst
+
+Replica set failover is not instant but will render the set unavailable to
+writes and interrupt reads until the failover process
+completes. Typically this takes 10 seconds or more. You may wish to
+plan the downgrade during a predetermined maintenance window.
+
+.. _3.2-downgrade-cluster:
+
+Downgrade a 3.2 Sharded Cluster
+-------------------------------
+
+Requirements
+~~~~~~~~~~~~
+
+While the downgrade is in progress, you cannot make changes to the
+collection metadata. For example, during the downgrade, do
+**not** do any of the following:
+
+- :method:`sh.enableSharding()`
+
+- :method:`sh.shardCollection()`
+
+- :method:`sh.addShard()`
+
+- :method:`db.createCollection()`
+
+- :method:`db.collection.drop()`
+
+- :method:`db.dropDatabase()`
+
+- any operation that creates a database
+
+- any other operation that modifies the cluster meta-data in any
+  way. See :doc:`/reference/sharding` for a complete list of
+  sharding commands. Note, however, that not all commands on the
+  :doc:`/reference/sharding` page modifies the cluster meta-data.
+
+Downgrade a Sharded Cluster with SCCC Config Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/3.2-downgrade-sharded-cluster-sccc.rst
+
+Downgrade a Sharded Cluster with CSRS Config Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/3.2-downgrade-sharded-cluster.rst
+

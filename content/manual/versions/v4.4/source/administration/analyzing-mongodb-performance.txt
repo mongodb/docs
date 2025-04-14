@@ -1,0 +1,260 @@
+===================
+MongoDB Performance
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+As you develop and operate applications with MongoDB, you may need to
+analyze the performance of the application and its database.
+When you encounter degraded performance, it is often a function of database
+access strategies, hardware availability, and the number of open database
+connections.
+
+Some users may experience performance limitations as a result of inadequate
+or inappropriate indexing strategies, or as a consequence of poor schema
+design patterns. :ref:`analyzing-performance-locks` discusses how these can
+impact MongoDB's internal locking.
+
+Performance issues may indicate that the database is operating at
+capacity and that it is time to add additional capacity to the
+database. In particular, the application's working set should fit in
+the available physical memory.
+
+In some cases performance issues may be temporary and related to
+abnormal traffic load. As discussed in :ref:`number-of-connections`, scaling
+can help relax excessive traffic.
+
+:ref:`database-profiling` can help you to understand what operations are causing
+degradation.
+
+.. _analyzing-performance-locks:
+
+Locking Performance
+-------------------
+
+MongoDB uses a locking system to ensure data set consistency. If
+certain operations are long-running or a queue forms, performance
+will degrade as requests and operations wait for the lock.
+
+Lock-related slowdowns can be intermittent. To see if the lock has been
+affecting your performance, refer to the :ref:`server-status-locks`
+section and the :ref:`globalLock` section of the
+:dbcommand:`serverStatus` output.
+
+Dividing :serverstatus:`locks.<type>.timeAcquiringMicros` by
+:serverstatus:`locks.<type>.acquireWaitCount`
+can give an approximate average wait time for a particular lock mode.
+
+:serverstatus:`locks.<type>.deadlockCount` provide
+the number of times the lock acquisitions encountered deadlocks.
+
+If :serverstatus:`globalLock.currentQueue.total` is consistently high,
+then there is a chance that a large number of requests are waiting for
+a lock. This indicates a possible concurrency issue that may be affecting
+performance.
+
+If :serverstatus:`globalLock.totalTime` is
+high relative to :serverstatus:`uptime`, the database has
+existed in a lock state for a significant amount of time.
+
+Long queries can result from ineffective use of indexes;
+non-optimal schema design; poor query structure; system architecture issues; or
+insufficient RAM resulting in disk reads.
+
+.. _number-of-connections:
+
+Number of Connections
+---------------------
+
+In some cases, the number of connections between the applications and the
+database can overwhelm the ability of the server to handle requests. The
+following fields in the :dbcommand:`serverStatus` document can provide insight:
+
+- :serverstatus:`connections` is a container for the following
+  two fields:
+
+  - :serverstatus:`connections.current` the total number of
+    current clients connected to the database instance.
+
+  - :serverstatus:`connections.available` the total number of
+    unused connections available for new clients.
+
+If there are numerous concurrent application requests, the database may have
+trouble keeping up with demand. If this is the case, then you will need to
+increase the capacity of your deployment.
+
+For write-heavy applications, deploy :term:`sharding` and add one or more
+:term:`shards <shard>` to a :term:`sharded cluster` to distribute load among
+:binary:`~bin.mongod` instances.
+
+Spikes in the number of connections can also be the result of
+application or driver errors. All of the officially supported MongoDB
+drivers implement connection pooling, which allows clients to use and
+reuse connections more efficiently. An extremely high number of
+connections, particularly without corresponding workload, is often
+indicative of a driver or other configuration error.
+
+Unless constrained by system-wide limits, the maximum number of
+incoming connections supported by MongoDB is configured with the
+:setting:`~net.maxIncomingConnections` setting. On Unix-based systems,
+system-wide limits can be modified using the ``ulimit`` command, or by
+editing your system's ``/etc/sysctl`` file. See :doc:`/reference/ulimit`
+for more information.
+
+.. _database-profiling:
+
+Database Profiling
+------------------
+
+The :doc:`/tutorial/manage-the-database-profiler` collects detailed
+information about operations run against a mongod instance. The
+profiler's output can help to identify inefficient queries and
+operations.
+
+You can enable and configure profiling for individual databases or for
+all databases on a :binary:`~bin.mongod` instance.
+Profiler settings affect only a single :binary:`~bin.mongod` instance and
+will not propagate across a :term:`replica set` or :term:`sharded
+cluster`.
+
+See :doc:`/tutorial/manage-the-database-profiler` for information on
+enabling and configuring the profiler.
+
+The following profiling levels are available:
+
+.. include:: /includes/database-profiler-levels.rst
+
+.. include:: /includes/warning-profiler-performance.rst
+
+.. note::
+
+   .. include:: /includes/fact-log-slow-queries.rst
+   
+.. include:: /includes/extracts/4.2-changes-log-query-shapes-plan-cache-key.rst
+
+.. _ftdc-stub:
+
+Full Time Diagnostic Data Capture
+---------------------------------
+
+To help MongoDB engineers analyze server behavior, :binary:`~bin.mongod` and
+:binary:`~bin.mongos` processes include a Full Time Diagnostic Data
+Capture (FTDC) mechanism. FTDC is enabled by default. Due to its
+importance in debugging deployments, FTDC thread failures are fatal and
+stop the parent ``mongod`` or ``mongos`` process.
+
+.. important:: FTDC Privacy
+
+   FTDC data files are compressed and not human-readable. MongoDB Inc.
+   engineers cannot access FTDC data without explicit permission
+   and assistance from system owners or operators.
+
+   FTDC data **never** contains any of the following information:
+
+   - Samples of queries, query predicates, or query results
+   - Data sampled from any end-user collection or index
+   - System or MongoDB user credentials or security certificates
+
+   FTDC data contains certain host machine information such as
+   hostnames, operating system information, and the options or settings
+   used to start the :binary:`mongod <bin.mongod>` or 
+   :binary:`mongos <bin.mongos>`. This information may be
+   considered protected or confidential by some organizations or
+   regulatory bodies, but is not typically considered to be Personally
+   Identifiable Information (PII). For clusters where these fields were
+   configured with protected, confidential, or PII data, please notify
+   MongoDB Inc. engineers before sending the FTDC data so appropriate
+   measures can be taken.
+
+FTDC periodically collects statistics produced by the following 
+commands:
+
+- :dbcommand:`serverStatus`
+- :dbcommand:`replSetGetStatus` (:binary:`mongod <bin.mongod>` only)
+- :dbcommand:`collStats` for the :data:`local.oplog.rs` collection (:binary:`mongod <bin.mongod>` only)
+- :dbcommand:`connPoolStats` (:binary:`mongos <bin.mongos>` only)
+
+Depending on the host operating system, the diagnostic data may include
+one or more of the following utilization statistics:
+
+- CPU utilization
+- Memory utilization
+- Disk utilization related to performance. FTDC does not include
+  data related to storage capacity.
+- Network performance statistics. FTDC only captures metadata and
+  does not capture or inspect any network packets.
+
+.. note::
+
+   Starting in MongoDB 4.4, if the :binary:`~bin.mongod` process runs
+   in a :term:`container`, FTDC will report utilization statistics from
+   the perspective of the container instead of the host operating
+   system. For example, if a the :binary:`~bin.mongod` runs in a
+   container that is configured with RAM restrictions, FTDC will
+   calculate memory utilization against the container's RAM limit, as
+   opposed to the host operating system's total available RAM.
+
+FTDC collects statistics produced by the following commands on
+file rotation or startup:
+
+- :dbcommand:`getCmdLineOpts`
+- :dbcommand:`buildInfo`
+- :dbcommand:`hostInfo`
+
+:binary:`mongod <bin.mongod>` processes store FTDC data files in a 
+``diagnostic.data`` directory under the instances 
+:setting:`storage.dbPath`. All diagnostic data files are stored
+under this directory. For example, given a :setting:`~storage.dbPath`
+of ``/data/db``, the diagnostic data directory would be
+``/data/db/diagnostic.data``. 
+
+:binary:`mongos <bin.mongos>` processes store FTDC data files in a 
+diagnostic directory relative to the :setting:`systemLog.path` log 
+path setting. MongoDB truncates the logpath's file extension and 
+concatenates ``diagnostic.data`` to the remaining name. For example, 
+given a :setting:`~systemLog.path` setting of
+``/var/log/mongodb/mongos.log``, the diagnostic data directory would be 
+``/var/log/mongodb/mongos.diagnostic.data``.
+
+FTDC runs with the following defaults:
+
+- Data capture every 1 second
+- 200MB maximum ``diagnostic.data`` folder size. 
+
+These defaults are designed to provide useful data to MongoDB Inc. 
+engineers with minimal impact on performance or storage size. These 
+values only require modifications if requested by MongoDB Inc. engineers 
+for specific diagnostic purposes.
+
+You can view the FTDC source code on the
+`MongoDB Github Repository <https://github.com/mongodb/mongo/tree/master/src/mongo/db/ftdc>`_.
+The ``ftdc_system_stats_*.ccp`` files specifically define any
+system-specific diagnostic data captured.
+
+To disable FTDC, start up the :binary:`mongod <bin.mongod>` or 
+:binary:`mongos <bin.mongos>` with the 
+``diagnosticDataCollectionEnabled: false`` option specified to the 
+:setting:`setParameter` setting in your configuration file:
+
+.. code-block:: yaml
+
+   setParameter:
+     diagnosticDataCollectionEnabled: false
+
+Disabling FTDC may increase the time or resources required when 
+analyzing or debugging issues with support from MongoDB Inc. engineers. 
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /administration/connection-pool-overview
+   /tutorial/manage-the-database-profiler
+   /tutorial/transparent-huge-pages
+   /reference/ulimit

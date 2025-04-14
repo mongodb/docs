@@ -1,0 +1,111 @@
+title: Start the replacement config server.
+ref: start-config-server
+pre: |
+
+   Start a :binary:`~bin.mongod` instance, specifying the ``--configsvr``,
+   ``--replSet``, ``--bind_ip`` options, and other options as
+   appropriate to your deployment.
+
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+action:
+   language: sh
+   code: |
+      mongod --configsvr --replSet <replicaSetName> --bind_ip localhost,<hostname(s)|ip address(es)>
+---
+title: Add the new config server to the replica set.
+ref: add-to-replica-set
+pre: |
+    Connect a :binary:`~bin.mongo` shell to the primary of the config server
+    replica set and use :method:`rs.add()` to add the new member.
+    
+    .. tip:: 
+
+       .. include:: /includes/tip-repl-set-add-members.rst
+
+action:
+   language: javascript
+   code: |
+      rs.add( { host: "<hostnameNew>:<portNew>", priority: 0, votes: 0 } )
+      
+post: |
+   The initial sync process copies all the data from one member of the
+   config server replica set to the new member without restarting.
+
+   :binary:`~bin.mongos` instances automatically recognize the change in the
+   config server replica set members without restarting.
+---
+title: Update the newly added config server's votes and priority settings.
+ref: reconfig
+
+content: |
+
+   a. Ensure that the new member has reached :replstate:`SECONDARY`
+      state. To check the state of the replica set members, run
+      :method:`rs.status()`:
+
+      .. code-block:: javascript
+
+         rs.status()
+      
+   #. Reconfigure the replica set to update the votes and priority of
+      the new member:
+
+      .. code-block:: javascript
+
+         var cfg = rs.conf();
+
+         cfg.members[n].priority = 1;  // Substitute the correct array index for the new member
+         cfg.members[n].votes = 1;     // Substitute the correct array index for the new member
+
+         rs.reconfig(cfg)
+ 
+      where ``n`` is the array index of the new member in the
+      :rsconf:`members` array.
+
+   .. include:: /includes/warning-rs-reconfig.rst
+---
+title: Shut down the member to replace.
+ref: shut-down-old-member
+content: |
+   If replacing the primary member, step down the primary first before
+   shutting down.
+---
+title: Remove the member to replace from the config server replica set.
+ref: remove-old-member
+pre: |
+    Upon completion of initial sync of the replacement config server,
+    from a :binary:`~bin.mongo` shell connected to the primary, use
+    :method:`rs.remove()` to remove the old member.
+action:
+   language: javascript
+   code: |
+     rs.remove("<hostnameOld>:<portOld>")
+post: |
+   :binary:`~bin.mongos` instances automatically recognize the change in the
+   config server replica set members without restarting.
+
+   .. end-for-migration-steps
+---
+title: "If necessary, update ``mongos`` configuration or DNS entry."
+ref: update-mongos-setting
+pre: |
+    With replica set config servers, the :binary:`~bin.mongos` instances specify
+    in the :option:`--configdb <mongos --configdb>` or :setting:`sharding.configDB` setting the config
+    server replica set name and at least one of the replica set members. 
+
+    As such, if the :binary:`~bin.mongos` instance does not specify the
+    removed replica set member in the :option:`--configdb <mongos --configdb>` or
+    :setting:`sharding.configDB` setting, no further action is necessary.
+
+    If, however, a :binary:`~bin.mongos` instance specified the removed
+    member in the ``--configdb`` or :setting:`~sharding.configDB`
+    setting, either:
+
+    - Update the setting for the next time you restart the
+      :binary:`~bin.mongos`, or
+
+    - Modify the DNS entry that points to the system that provided the old
+      config server, so that the *same* hostname points to the new
+      config server.
+...

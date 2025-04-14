@@ -1,0 +1,331 @@
+=====
+count
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: count
+
+   Counts the number of documents in a collection or a view. Returns a
+   document that contains this count and as well as the command status.
+
+   .. |method| replace:: :method:`~db.collection.count`  helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+   .. note::
+
+      MongoDB drivers compatible with the 4.0 features deprecate their
+      respective cursor and collection ``count()`` APIs (which runs the
+      :dbcommand:`count` command) in favor of new APIs that corresponds to
+      ``countDocuments()`` and ``estimatedDocumentCount()``. For the
+      specific API names for a given driver, see the driver API
+      documentation.
+
+   :dbcommand:`count` has the following form:
+
+   .. note::
+
+      .. include:: /includes/extracts/4.2-changes-count-syntax-validation.rst
+
+   .. code-block:: javascript
+
+      {
+        count: <collection or view>,
+        query: <document>,
+        limit: <integer>,
+        skip: <integer>,
+        hint: <hint>,
+        readConcern: <document>,
+        maxTimeMS: <integer>,
+        collation: <document>,
+        comment: <any>
+      }
+
+   :dbcommand:`count` has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+ 
+      * - Field
+ 
+        - Type
+   
+        - Description
+   
+      * - ``count``
+   
+        - string
+   
+        - The name of the collection or view to count.
+          
+          
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. A query that selects which documents to count in the collection or view.
+          
+          
+   
+      * - ``limit``
+   
+        - integer
+   
+        - Optional. The maximum number of matching documents to return.
+          
+          
+   
+      * - ``skip``
+   
+        - integer
+   
+        - Optional. The number of matching documents to skip before returning results.
+          
+          
+   
+      * - ``hint``
+   
+        - string or document
+   
+        - Optional. The index to use. Specify either the index name as a string or the
+          index specification document.
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`. The option has the following
+          syntax:
+          
+          .. code-block:: javascript
+          
+             readConcern: { level: <value> }
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+
+      * - ``maxTimeMS``
+
+        - non-negative integer
+
+        - Optional.
+
+          .. include:: /includes/maxTimeMS-description.rst
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+ 
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+       
+          .. versionadded:: 4.4
+
+          .. note:: 
+
+             Prior to v4.4.14, MongoDB only supports :ref:`BSON type <bson-types>`
+             ``string``. Starting in v4.4.14, a comment can be any
+             valid :ref:`BSON type <bson-types>`.
+
+   .. important::
+
+      - Avoid using the :dbcommand:`count` and its wrapper methods
+        without a query predicate (note:
+        :method:`db.collection.estimatedDocumentCount()` does not take
+        a query predicate) since without the query predicate, these
+        operations return results based on the collection's metadata,
+        which may result in an approximate count. In particular,
+
+        - On a sharded cluster, the resulting count will not correctly
+          filter out :term:`orphaned documents <orphaned document>`.
+
+        - :ref:`After an unclean shutdown <count-accuracy-shutdown>`,
+          the count may be incorrect.
+
+      - For counts based on collection metadata, see also 
+        :ref:`collStats pipeline stage with the count <collstat-count>`
+        option.
+
+Behavior
+--------
+
+Count and Transactions
+~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use :dbcommand:`count` and shell helpers
+:method:`~cursor.count()` and :method:`db.collection.count()` in
+:ref:`transactions <transactions-ops-count>`.
+
+For details, see :ref:`Transactions and Count Operations
+<transactions-ops-count>`.
+
+Accuracy and Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-count-on-sharded-clusters-cmd-count.rst
+
+.. _count-accuracy-shutdown:
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :dbcommand:`count`
+.. |opt| replace:: count
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+.. note:: 
+   This loss of accuracy only applies to :dbcommand:`count`
+   operations that do *not* include a query document.
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+.. |operation| replace:: :dbcommand:`count`
+
+Examples
+--------
+
+The following sections provide examples of the :dbcommand:`count`
+command.
+
+Count All Documents
+~~~~~~~~~~~~~~~~~~~
+
+The following operation counts the number of all documents in the
+``orders`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand( { count: 'orders' } )
+
+In the result, the ``n``, which represents the count, is ``26``,
+and the command status ``ok`` is ``1``:
+
+.. code-block:: javascript
+
+   { "n" : 26, "ok" : 1 }
+
+Count Documents That Match a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns a count of the documents in the
+``orders`` collection where the value of the ``ord_dt`` field is
+greater than ``Date('01/01/2012')``:
+
+.. code-block:: javascript
+
+   db.runCommand( { count:'orders',
+                    query: { ord_dt: { $gt: new Date('01/01/2012') } }
+                  } )
+
+In the result, the ``n``, which represents the count, is ``13``
+and the command status ``ok`` is ``1``:
+
+.. code-block:: javascript
+
+   { "n" : 13, "ok" : 1 }
+
+Skip Documents in Count
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns a count of the documents in the
+``orders`` collection where the value of the ``ord_dt`` field is
+greater than ``Date('01/01/2012')`` and skip the first ``10`` matching
+documents:
+
+.. code-block:: javascript
+
+   db.runCommand( { count:'orders',
+                    query: { ord_dt: { $gt: new Date('01/01/2012') } },
+                    skip: 10 }  )
+
+In the result, the ``n``, which represents the count, is ``3`` and
+the command status ``ok`` is ``1``:
+
+.. code-block:: javascript
+
+   { "n" : 3, "ok" : 1 }
+
+Specify the Index to Use
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the index ``{ status: 1 }`` to return a
+count of the documents in the ``orders`` collection where the value of
+the ``ord_dt`` field is greater than ``Date('01/01/2012')`` and the
+``status`` field is equal to ``"D"``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        count:'orders',
+        query: {
+                 ord_dt: { $gt: new Date('01/01/2012') },
+                 status: "D"
+               },
+        hint: { status: 1 }
+      }
+   )
+
+In the result, the ``n``, which represents the count, is ``1`` and
+the command status ``ok`` is ``1``:
+
+.. code-block:: javascript
+
+   { "n" : 1, "ok" : 1 }
+   
+Override Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the default read concern level of :readconcern:`"local"`,
+use the ``readConcern`` option.
+
+The following operation on a replica set specifies a
+:doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. important::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - To use the ``readConcern`` level of ``"majority"``, you must specify
+     a nonempty ``query`` condition.
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        count: "restaurants",
+        query: { rating: { $gte: 4 } },
+        readConcern: { level: "majority" }
+      }
+   )
+
+.. include:: /includes/usage-read-concern-majority.rst

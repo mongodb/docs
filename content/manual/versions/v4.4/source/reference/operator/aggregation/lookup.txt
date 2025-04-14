@@ -1,0 +1,765 @@
+=====================
+$lookup (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $lookup
+
+   .. versionadded:: 3.2
+
+   Performs a left outer join to an unsharded collection in the *same*
+   database to filter in documents from the "joined" collection for
+   processing. To each input document, the :pipeline:`$lookup` stage
+   adds a new array field whose elements are the matching documents
+   from the "joined" collection. The :pipeline:`$lookup` stage passes
+   these reshaped documents to the next stage.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$lookup``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :pipeline:`$lookup` stage has the following syntaxes:
+
+.. _lookup-single-equality:
+
+Equality Match with a Single Join Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform an equality match between a field from the input documents
+with a field from the documents of the "joined" collection, the
+:pipeline:`$lookup` stage has the following syntax:
+
+.. code-block:: none
+
+   {
+      $lookup:
+        {
+          from: <collection to join>,
+          localField: <field from the input documents>,
+          foreignField: <field from the documents of the "from" collection>,
+          as: <output array field>
+        }
+   }
+
+The :pipeline:`$lookup` takes a document with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - :ref:`from <lookup-eq-from>`
+
+     - .. _lookup-eq-from:
+     
+       Specifies the collection in the *same* database to perform
+       the join with. The ``from`` collection cannot be sharded. For
+       details, see :ref:`lookup-sharded-collections`.
+
+   * - :ref:`localField <lookup-eq-localField>`
+
+     - .. _lookup-eq-localField:
+     
+       Specifies the field from the documents input to the
+       :pipeline:`$lookup` stage. :pipeline:`$lookup` performs an
+       equality match on the ``localField`` to the
+       ``foreignField`` from the documents of the ``from``
+       collection. If an input document does not contain the
+       ``localField``, the :pipeline:`$lookup` treats the
+       field as having a value of ``null`` for matching purposes.
+
+   * - :ref:`foreignField <lookup-eq-foreignField>`
+
+     - .. _lookup-eq-foreignField:
+     
+       Specifies the field from the documents in the ``from``
+       collection. :pipeline:`$lookup` performs an equality match on
+       the ``foreignField`` to the ``localField`` from the input
+       documents. If a document in the ``from`` collection does not
+       contain the ``foreignField``, the :pipeline:`$lookup` treats
+       the value as ``null`` for matching purposes.
+
+   * - :ref:`as <lookup-eq-as>`
+
+     - .. _lookup-eq-as:
+     
+       Specifies the name of the new array field to add to the input
+       documents. The new array field contains the matching
+       documents from the ``from`` collection. If the specified name
+       already exists in the input document, the existing field is
+       *overwritten*.
+
+The operation corresponds to this pseudo-SQL statement:
+
+.. code-block:: sql
+   :copyable: false
+
+   SELECT *, (
+      SELECT ARRAY_AGG(*)
+      FROM <collection to join>
+      WHERE <foreignField> = <collection.localField>
+   ) AS <output array field>
+   FROM collection;
+
+.. note::
+
+   The SQL statements on this page are included for comparison to the
+   MongoDB aggregation pipeline syntax. The SQL statements aren't
+   runnable.
+
+For MongoDB examples, see these pages:
+
+- :ref:`lookup-single-equality-example`
+- :ref:`unwind-example`
+- :ref:`lookup-mergeObjects`
+
+.. _lookup-syntax-let-pipeline:
+
+Join Conditions and Uncorrelated Sub-queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB supports:
+
+To perform uncorrelated subqueries between two collections as well as
+allow other join conditions besides a single equality match, the
+:pipeline:`$lookup` stage has the following syntax:
+
+.. code-block:: none
+
+   {
+      $lookup:
+        {
+          from: <collection to join>,
+          let: { <var_1>: <expression>, …, <var_n>: <expression> },
+          pipeline: [ <pipeline to execute on the collection to join> ],
+          as: <output array field>
+        }
+   }
+
+The :pipeline:`$lookup` takes a document with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - :ref:`from <lookup-join-from>`
+
+     - .. _lookup-join-from:
+     
+       Specifies the collection in the *same* database to perform the
+       join with. The ``from`` collection cannot be sharded. For
+       details, see :ref:`lookup-sharded-collections`.
+
+   * - :ref:`let <lookup-join-let>`
+
+     - .. _lookup-join-let:
+     
+       Optional. Specifies variables to use in the
+       :ref:`pipeline <lookup-join-pipeline>` field stages. Use the
+       variable expressions to access the fields from the documents
+       input to the :pipeline:`$lookup` stage.
+
+       The :ref:`pipeline <lookup-join-pipeline>` cannot directly access
+       the input document fields. Instead, first define the variables
+       for the input document fields, and then reference the variables
+       in the stages in the ``pipeline``.
+
+       .. include:: /includes/fact-let-variable-access-note.rst
+
+   * - :ref:`pipeline <lookup-join-pipeline>`
+
+     - .. _lookup-join-pipeline:
+     
+       Specifies the pipeline to run on the joined collection. The
+       ``pipeline`` determines the resulting documents from the joined
+       collection. To return all documents, specify an empty pipeline
+       ``[]``.
+
+       The ``pipeline`` cannot include the :pipeline:`$out` stage or
+       the :pipeline:`$merge` stage.
+
+       The ``pipeline`` cannot directly access the input document
+       fields. Instead, first define the variables for the input
+       document fields, and then reference the variables in the stages
+       in the ``pipeline``.
+
+       .. include:: /includes/fact-let-variable-access-note.rst
+ 
+   * - :ref:`as <lookup-join-as>`
+
+     - .. _lookup-join-as:
+     
+       Specifies the name of the new array field to add to the input
+       documents. The new array field contains the matching
+       documents from the ``from`` collection. If the specified name
+       already exists in the input document, the existing field is
+       *overwritten*.
+
+The operation would correspond to the following pseudo-SQL statement:
+
+.. code-block:: sql
+   :copyable: false
+
+   SELECT *, <output array field>
+   FROM collection
+   WHERE <output array field> IN (SELECT <documents as determined from the pipeline>
+                                  FROM <collection to join>
+                                  WHERE <pipeline> );
+
+See the following examples:
+
+- :ref:`lookup-multiple-joins`
+- :ref:`lookup-uncorrelated-subquery`
+
+Consideration
+-------------
+
+Views and Collation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/views-collation-agg.rst
+
+Restrictions
+~~~~~~~~~~~~~
+
+- .. versionchanged:: 4.2
+
+   You cannot include the :pipeline:`$out` or the :pipeline:`$merge`
+   stage in the :pipeline:`$lookup` stage. That is, when specifying a
+   :ref:`pipeline for the joined collection
+   <lookup-syntax-let-pipeline>`, you cannot include either stage in
+   the ``pipeline`` field.
+
+  .. code-block:: javascript
+     :emphasize-lines: 6
+
+     {
+       $lookup:
+         {
+            from: <collection to join>,
+            let: { <var_1>: <expression>, …, <var_n>: <expression> },
+            pipeline: [ <pipeline to execute on the joined collection> ],  // Cannot include $out or $merge
+            as: <output array field>
+         }
+     }
+
+.. _lookup-sharded-collections:
+
+Sharded Collection Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the :pipeline:`$lookup` stage, the ``from`` collection cannot be
+:doc:`sharded</sharding>`. However, the collection on which you run the
+:method:`~db.collection.aggregate()` method can be sharded. That is, in
+the following:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([ 
+      { $lookup: { from: "fromCollection", ... } } 
+   ])
+
+- The ``collection`` can be sharded.
+
+- The ``fromCollection`` cannot be sharded.
+
+As such, to join a sharded collection with an unsharded collection, you
+can run the aggregation on the sharded collection and lookup the
+unsharded collection; e.g.:
+
+.. code-block:: javascript
+
+   db.shardedCollection.aggregate([
+      { $lookup: { from: "unshardedCollection", ... } }
+   ])
+
+Alternatively, or to join multiple sharded collections, consider:
+
+- Modifying client applications to perform manual lookups instead of
+  using the :pipeline:`$lookup` aggregation stage.
+
+- If possible, using an :ref:`embedded data model
+  <data-modeling-embedding>` that removes the need to join collections.
+
+- If possible, using an `Atlas Data Lake 
+  <https://docs.mongodb.com/datalake/>`__ 
+  `$lookup 
+  <https://docs.mongodb.com/datalake/reference/pipeline/lookup-stage/>`__ 
+  pipeline stage to lookup a sharded collection.
+
+.. _lookup-performance-considerations:
+
+Performance Considerations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$lookup`` performance depends on the type of operation performed.
+Refer to the following table for performance considerations for
+different ``$lookup`` operations. 
+
+.. list-table::
+   :header-rows: 1 
+   :widths: 20 80
+
+   * - ``$lookup`` Operation
+     - Performance Considerations
+
+   * - :ref:`Equality Match with a Single Join
+       <lookup-single-equality-example>`
+
+     - .. _equality-match-performance:
+
+       - ``$lookup`` operations that perform equality matches with a
+         single join perform better when the foreign collection contains
+         an index on the ``foreignField``.
+
+         .. important::
+
+            If a supporting index on the ``foreignField`` does not
+            exist, a ``$lookup`` operation that performs an equality
+            match with a single join will likely have poor performance.
+
+   * - :ref:`Uncorrelated Subqueries <lookup-uncorrelated-subquery>`
+
+     - .. _uncorrelated-subqueries-performance:
+     
+       - ``$lookup`` operations that contain uncorrelated subqueries
+         perform better when the inner pipeline can reference an
+         index of the foreign collection.
+
+       - MongoDB only needs to run the ``$lookup`` subquery once before
+         caching the query because there is no relationship between the
+         source and foreign collections. The ``$lookup`` subquery is not
+         based on any value in the source collection. This behavior
+         improves performance for subsequent executions of this query.
+
+For general performance strategies, see :ref:`Indexing Strategies
+<manual-indexing-strategies>` and :ref:`Query Optimization
+<read-operations-indexing>`. 
+
+.. important::
+
+   Excessive use of ``$lookup`` within a query may slow down
+   performance. To avoid multiple ``$lookup`` stages, consider an
+   :ref:`embedded data model <embedded-data-modeling>` to optimize query
+   performance. 
+
+Examples
+--------
+
+.. _lookup-single-equality-example:
+
+Perform a Single Equality Join with ``$lookup``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insert([
+      { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
+      { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 },
+      { "_id" : 3  }
+   ])
+
+Create another collection ``inventory`` with the following documents:
+
+.. code-block:: javascript
+
+   db.inventory.insert([
+      { "_id" : 1, "sku" : "almonds", "description": "product 1", "instock" : 120 },
+      { "_id" : 2, "sku" : "bread", "description": "product 2", "instock" : 80 },
+      { "_id" : 3, "sku" : "cashews", "description": "product 3", "instock" : 60 },
+      { "_id" : 4, "sku" : "pecans", "description": "product 4", "instock" : 70 },
+      { "_id" : 5, "sku": null, "description": "Incomplete" },
+      { "_id" : 6 }
+   ])
+
+The following aggregation operation on the ``orders`` collection
+joins the documents from ``orders`` with the documents from the
+``inventory`` collection using the fields ``item`` from the
+``orders`` collection and the ``sku`` field from the ``inventory``
+collection:
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+      {
+        $lookup:
+          {
+            from: "inventory",
+            localField: "item",
+            foreignField: "sku",
+            as: "inventory_docs"
+          }
+     }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "item" : "almonds",
+      "price" : 12,
+      "quantity" : 2,
+      "inventory_docs" : [
+         { "_id" : 1, "sku" : "almonds", "description" : "product 1", "instock" : 120 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "item" : "pecans",
+      "price" : 20,
+      "quantity" : 1,
+      "inventory_docs" : [
+         { "_id" : 4, "sku" : "pecans", "description" : "product 4", "instock" : 70 }
+      ]
+   }
+   {
+      "_id" : 3,
+      "inventory_docs" : [ 
+         { "_id" : 5, "sku" : null, "description" : "Incomplete" },
+         { "_id" : 6 }
+      ]
+   }
+
+The operation would correspond to the following pseudo-SQL statement:
+
+.. code-block:: sql
+   :copyable: false
+
+   SELECT *, inventory_docs
+   FROM orders
+   WHERE inventory_docs IN (SELECT *
+   FROM inventory
+   WHERE sku= orders.item);
+
+For more information, see
+:ref:`Equality Match Performance Considerations<equality-match-performance>`. 
+
+For more information, see
+:ref:`Equality Match Performance Considerations<equality-match-performance>`. 
+
+.. _unwind-example:
+
+Use ``$lookup`` with an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting MongoDB 3.4, if the ``localField`` is an array, you can match
+the array elements against a scalar ``foreignField`` without needing an
+:pipeline:`$unwind` stage.
+
+For example, create an example collection ``classes`` with the
+following document:
+
+.. code-block:: javascript
+
+   db.classes.insert( [
+      { _id: 1, title: "Reading is ...", enrollmentlist: [ "giraffe2", "pandabear", "artie" ], days: ["M", "W", "F"] },
+      { _id: 2, title: "But Writing ...", enrollmentlist: [ "giraffe1", "artie" ], days: ["T", "F"] }
+   ])
+
+Create another collection ``members`` with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insert( [
+      { _id: 1, name: "artie", joined: new Date("2016-05-01"), status: "A" }, 
+      { _id: 2, name: "giraffe", joined: new Date("2017-05-01"), status: "D" }, 
+      { _id: 3, name: "giraffe1", joined: new Date("2017-10-01"), status: "A" }, 
+      { _id: 4, name: "panda", joined: new Date("2018-10-11"), status: "A" },  
+      { _id: 5, name: "pandabear", joined: new Date("2018-12-01"), status: "A" },
+      { _id: 6, name: "giraffe2", joined: new Date("2018-12-01"), status: "D" }
+   ])
+
+The following aggregation operation joins documents in the ``classes``
+collection with the ``members`` collection, matching on the
+``enrollmentlist`` field to the ``name`` field:
+
+.. code-block:: javascript
+
+   db.classes.aggregate([
+      {
+         $lookup:
+            {
+               from: "members",
+               localField: "enrollmentlist",
+               foreignField: "name",
+               as: "enrollee_info"
+           }
+      }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "title" : "Reading is ...",
+      "enrollmentlist" : [ "giraffe2", "pandabear", "artie" ],
+      "days" : [ "M", "W", "F" ],
+      "enrollee_info" : [
+         { "_id" : 1, "name" : "artie", "joined" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 5, "name" : "pandabear", "joined" : ISODate("2018-12-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 6, "name" : "giraffe2", "joined" : ISODate("2018-12-01T00:00:00Z"), "status" : "D" }
+      ]
+   }
+   {
+      "_id" : 2,
+      "title" : "But Writing ...",
+      "enrollmentlist" : [ "giraffe1", "artie" ],
+      "days" : [ "T", "F" ],
+      "enrollee_info" : [
+         { "_id" : 1, "name" : "artie", "joined" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 3, "name" : "giraffe1", "joined" : ISODate("2017-10-01T00:00:00Z"), "status" : "A" }
+      ]
+   }
+
+.. _lookup-mergeObjects:
+
+Use ``$lookup`` with ``$mergeObjects``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+   MongoDB 3.6 adds the :expression:`$mergeObjects` operator to combine
+   multiple documents into a single document
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insert([
+      { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
+      { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 }
+   ])
+
+Create another collection ``items`` with the following documents:
+
+.. code-block:: javascript
+
+   db.items.insert([
+     { "_id" : 1, "item" : "almonds", description: "almond clusters", "instock" : 120 },
+     { "_id" : 2, "item" : "bread", description: "raisin and nut bread", "instock" : 80 },
+     { "_id" : 3, "item" : "pecans", description: "candied pecans", "instock" : 60 }
+   ])
+
+The following operation first uses the :pipeline:`$lookup` stage to
+join the two collections by the ``item`` fields and then uses
+:expression:`$mergeObjects` in the :pipeline:`$replaceRoot` to merge
+the joined documents from ``items`` and ``orders``:
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+      {
+         $lookup: {
+            from: "items",
+            localField: "item",    // field in the orders collection
+            foreignField: "item",  // field in the items collection
+            as: "fromItems"
+         }
+      },
+      {
+         $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$fromItems", 0 ] }, "$$ROOT" ] } }
+      },
+      { $project: { fromItems: 0 } }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "almonds", "description" : "almond clusters", "instock" : 120, "price" : 12, "quantity" : 2 }
+   { "_id" : 2, "item" : "pecans", "description" : "candied pecans", "instock" : 60, "price" : 20, "quantity" : 1 }
+
+.. _lookup-multiple-joins:
+
+Specify Multiple Join Conditions with ``$lookup``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insert([
+     { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2 },
+     { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1 },
+     { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60 }
+   ])
+
+Create another collection ``warehouses`` with the following documents:
+
+.. code-block:: javascript
+
+   db.warehouses.insert([
+     { "_id" : 1, "stock_item" : "almonds", warehouse: "A", "instock" : 120 },
+     { "_id" : 2, "stock_item" : "pecans", warehouse: "A", "instock" : 80 },
+     { "_id" : 3, "stock_item" : "almonds", warehouse: "B", "instock" : 60 },
+     { "_id" : 4, "stock_item" : "cookies", warehouse: "B", "instock" : 40 },
+     { "_id" : 5, "stock_item" : "cookies", warehouse: "A", "instock" : 80 }
+   ])
+
+The following operation joins the ``orders`` collection with the
+``warehouse`` collection by the item and whether the quantity in stock
+is sufficient to cover the ordered quantity:
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+      {
+         $lookup:
+            {
+              from: "warehouses",
+              let: { order_item: "$item", order_qty: "$ordered" },
+              pipeline: [
+                 { $match: 
+                    { $expr: 
+                       { $and: 
+                          [ 
+                            { $eq: [ "$stock_item",  "$$order_item" ] }, 
+                            { $gte: [ "$instock", "$$order_qty" ] }
+                          ] 
+                       }
+                    }
+                 },
+                 { $project: { stock_item: 0, _id: 0 } }
+              ],
+              as: "stockdata"
+            }
+       }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2,
+      "stockdata" : [ { "warehouse" : "A", "instock" : 120 },
+      { "warehouse" : "B", "instock" : 60 } ] }
+   { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1,
+      "stockdata" : [ { "warehouse" : "A", "instock" : 80 } ] }
+   { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60,
+      "stockdata" : [ { "warehouse" : "A", "instock" : 80 } ] }
+
+The operation corresponds to the following pseudo-SQL statement:
+
+.. code-block:: sql
+   :copyable: false
+
+   SELECT *, stockdata
+   FROM orders
+   WHERE stockdata IN ( SELECT warehouse, instock
+                        FROM warehouses
+                        WHERE stock_item = orders.item
+                        AND instock >= orders.ordered );
+
+The :query:`$expr` operator only uses indexes on the ``from``
+collection for equality matches. For example, if the index
+``{ stock_item: 1, instock: 1 }`` exists on the ``warehouses``
+collection:
+
+- The equality match on the ``warehouses.stock_item`` field uses the
+  index.
+- The range part of the query on the ``warehouses.instock`` field
+  does not use the indexed field in the compound index.
+
+.. seealso::
+
+   - :query:`$expr`
+   - :doc:`/reference/aggregation-variables/`.
+
+.. _lookup-uncorrelated-subquery:
+
+Uncorrelated Subquery
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+   MongoDB 3.6 adds support for executing a pipeline on the joined
+   collection, which allows for specifying multiple join conditions as
+   well as uncorrelated sub-queries.
+
+Create a collection ``absences`` with the following documents:
+
+.. code-block:: javascript
+
+   db.absences.insert([
+      { "_id" : 1, "student" : "Ann Aardvark", sickdays: [ new Date ("2018-05-01"),new Date ("2018-08-23") ] },
+      { "_id" : 2, "student" : "Zoe Zebra", sickdays: [ new Date ("2018-02-01"),new Date ("2018-05-23") ] },
+   ])
+
+Create another collection ``holidays`` with the following documents:
+
+.. code-block:: javascript
+
+   db.holidays.insert([
+      { "_id" : 1, year: 2018, name: "New Years", date: new Date("2018-01-01") },
+      { "_id" : 2, year: 2018, name: "Pi Day", date: new Date("2018-03-14") },
+      { "_id" : 3, year: 2018, name: "Ice Cream Day", date: new Date("2018-07-15") },
+      { "_id" : 4, year: 2017, name: "New Years", date: new Date("2017-01-01") },
+      { "_id" : 5, year: 2017, name: "Ice Cream Day", date: new Date("2017-07-16") }
+   ])
+
+The following operation joins the ``absences`` collection with 2018
+holiday information from the ``holidays`` collection:
+
+.. code-block:: javascript
+
+   db.absences.aggregate([
+      {
+         $lookup:
+            {
+              from: "holidays",
+              pipeline: [
+                 { $match: { year: 2018 } },
+                 { $project: { _id: 0, date: { name: "$name", date: "$date" } } },
+                 { $replaceRoot: { newRoot: "$date" } }
+              ],
+              as: "holidays"
+            }
+       }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "student" : "Ann Aardvark", "sickdays" : [ ISODate("2018-05-01T00:00:00Z"), ISODate("2018-08-23T00:00:00Z") ],
+       "holidays" : [ { "name" : "New Years", "date" : ISODate("2018-01-01T00:00:00Z") }, { "name" : "Pi Day", "date" : ISODate("2018-03-14T00:00:00Z") }, { "name" : "Ice Cream Day", "date" : ISODate("2018-07-15T00:00:00Z") } ] }
+   { "_id" : 2, "student" : "Zoe Zebra", "sickdays" : [ ISODate("2018-02-01T00:00:00Z"), ISODate("2018-05-23T00:00:00Z") ],
+       "holidays" : [ { "name" : "New Years", "date" : ISODate("2018-01-01T00:00:00Z") }, { "name" : "Pi Day", "date" : ISODate("2018-03-14T00:00:00Z") }, { "name" : "Ice Cream Day", "date" : ISODate("2018-07-15T00:00:00Z") } ] }
+
+The operation would correspond to the following pseudo-SQL statement:
+
+.. code-block:: sql
+   :copyable: false
+
+   SELECT *, holidays
+   FROM absences
+   WHERE holidays IN (SELECT name, date
+                       FROM holidays
+                       WHERE year = 2018);
