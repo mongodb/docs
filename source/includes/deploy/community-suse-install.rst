@@ -18,7 +18,7 @@ specific release of MongoDB.
 
       To install a specific release of MongoDB, specify each
       component package individually and append the version
-      number to the package name, as in the following example:
+      number to the package name.
 
       .. code-block:: sh
 

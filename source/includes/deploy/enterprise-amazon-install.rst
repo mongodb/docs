@@ -14,9 +14,22 @@
    .. tab:: Specific Release
       :tabid: specific
 
-      .. include:: /includes/release/pin-version-intro.rst
-      .. include:: /includes/release/pin-repo-to-version-yum-enterprise.rst
-       
+      To install a specific release, you must specify each
+      component package individually along with the version
+      number.
+
+      .. code-block::
+
+         sudo yum install -y \
+            {+package-name-enterprise+}-{+release+} \
+            {+package-name-enterprise+}-database-{+release+} \
+            {+package-name-enterprise+}-server-{+release+} \
+            {+package-name+}-mongosh \
+            {+package-name-enterprise+}-mongos-{+release+} \
+            {+package-name-enterprise+}-tools-{+release+} \
+            {+package-name-enterprise+}-cryptd-{+release+} \
+            {+package-name-enterprise+}-database-tools-extra-{+release+}
+
       .. note::
       
          Although you can specify any available version of MongoDB
