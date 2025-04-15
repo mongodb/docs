@@ -1,7 +1,7 @@
 **Connection String Indexing for Multi-Region Clusters**
 
-After you add a new region to your cluster and configure a private
-endpoint for the region, you might see the following error when you use
+After you configure a private endpoint for a new region and deploy cluster
+nodes to that region, you might see the following error when you use
 your private endpoint to connect to the cluster:
 
 .. code-block:: none
@@ -24,9 +24,10 @@ and resembles the following:
 
     mongodb+srv://abc-pl-1.xxxxx.mongodb.net/
     
-Then, suppose you add a new region to your cluster and configure a private
-endpoint for this region. Your cluster now includes multiple regions, and
-your connection string updates to use an index of ``0``:
+Then, suppose you configure a private endpoint for a new region in your
+cluster and subsequently add cluster nodes to that region. Your cluster
+now includes multiple regions, and your connection string updates to use an
+index of ``0``:
 
 .. code-block:: none
     :copyable: false
