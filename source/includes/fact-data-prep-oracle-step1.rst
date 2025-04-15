@@ -14,7 +14,7 @@ a. Create a service account:
    .. code-block:: sql
       :copyable: true
 
-      CREATE USER '<user>'@'localhost' IDENTIFIED BY '<password>';
+      CREATE USER <user> IDENTIFIED BY "<password>";
 
 #. Confirm that the service account owns the tables in the migration job.
 
