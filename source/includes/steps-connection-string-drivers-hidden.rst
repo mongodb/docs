@@ -1,7 +1,3 @@
-Replace ``<connection-string>`` with the
-connection string for your |service| {+cluster+}
-or local deployment, and then save the file.
-
 .. tabs::
    :hidden: true
 
@@ -18,7 +14,7 @@ or local deployment, and then save the file.
       
    .. tab:: Local Deployment
       :tabid: local
-
+      
       Your connection string should use the following format:
 
       .. code-block::

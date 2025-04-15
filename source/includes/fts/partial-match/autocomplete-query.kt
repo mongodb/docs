@@ -16,7 +16,7 @@ fun main() {
         // define query
         val agg = Document(
             "\$search",
-            Document("index", "partial-match-tutorial")
+            Document("index", "default")
                 .append(
                     "autocomplete",
                     Document("path", "plot")

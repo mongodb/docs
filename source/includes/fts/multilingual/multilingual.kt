@@ -43,7 +43,7 @@ fun main() {
         // define query
         val agg = Document(
             "\$search",
-            Document("index", "multilingual-tutorial")
+            Document("index", "default")
                 .append(
                     "compound",
                     Document().append("must", mustClauses)

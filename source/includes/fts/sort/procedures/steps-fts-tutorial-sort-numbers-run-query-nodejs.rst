@@ -1,34 +1,19 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a file named ``sort-by-numbers.js``. 
+   .. step:: Define the query.
 
-   .. step:: Copy and paste the following code into the ``sort-by-numbers.js`` file.
+      a. Create a new file named ``sort-by-numbers.js`` 
+         and paste the following code:
 
-      The code example performs the following tasks:
+         .. literalinclude:: /includes/fts/sort/numbers-query.js
+            :language: javascript
+            :linenos:
+            :emphasize-lines: 5
 
-      - Imports ``mongodb``, MongoDB's Node.js driver.
-      - Creates an instance of the ``MongoClient`` class to establish a 
-        connection to your |service| cluster.
+      #. Specify the ``<connection-string>``.
 
-      - .. include:: /includes/fts/extracts/fts-sort-by-numbers-constant-desc.rst 
-
-        .. include:: /includes/fts/extracts/fts-sort-by-numbers-stage.rst
-
-      - Iterates over the cursor to print the documents that match the 
-        query.
-
-      .. literalinclude:: /includes/fts/sort/numbers-query.js
-         :language: javascript
-         :linenos:
-         :dedent:
-         :emphasize-lines: 5
-
-      .. note::
-      
-         .. include:: /includes/fts/facts/fact-fts-driver-connection-string.rst
-
-   .. step:: Run the following command to query your collection: 
+   .. step:: Run the query.
 
       .. io-code-block::
          :copyable: true
@@ -39,8 +24,8 @@
             node sort-by-numbers.js
 
          .. output::
-            :language: javascript
-            :visible: true
+            :language: json
+            :visible: false
 
             { title: '12 Years a Slave', awards: { wins: 267 } }
             { title: 'Gravity', awards: { wins: 231 } }

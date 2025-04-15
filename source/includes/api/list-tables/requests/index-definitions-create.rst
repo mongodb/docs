@@ -82,8 +82,8 @@
        filters in the index definition for :ref:`synonyms 
        <synonyms-ref>`: 
 
-       - :ref:`nGram <ngram-tokenizer-ref>` tokenizer
-       - :ref:`edgeGram <edgegram-tokenizer-ref>` tokenizer 
+       - :ref:`nGram <nGram-tokenizer-ref>` tokenizer
+       - :ref:`edgeGram <edgeGram-tokenizer-ref>` tokenizer 
        - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>` 
          token filter
        - :ref:`nGram <ngram-tf-ref>` token filter 

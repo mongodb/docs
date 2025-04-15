@@ -65,5 +65,5 @@
 
       The {+atlas-ui+} might not display all the values in the 
       documents it returns. To view all the values for the fields that
-      you searched in the :ref:`query path <ref-path>`, expand the
+      you searched in the query path, expand the
       fields in the documents.

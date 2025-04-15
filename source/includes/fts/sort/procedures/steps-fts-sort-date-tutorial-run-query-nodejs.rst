@@ -1,34 +1,19 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a file named ``sort-by-date.js``. 
+   .. step:: Define the query.
 
-   .. step:: Copy and paste the following code into the ``sort-by-date.js`` file.
+      a. Create a new file named ``sort-by-date.js`` 
+         and paste the following code:
+         
+         .. literalinclude:: /includes/fts/sort/date-tutorial.js
+            :language: javascript
+            :linenos:
+            :emphasize-lines: 5
 
-      The code example performs the following tasks:
-
-      - Imports ``mongodb``, MongoDB's Node.js driver.
-      - Creates an instance of the ``MongoClient`` class to establish a 
-        connection to your |service| cluster.
-
-      - .. include:: /includes/fts/extracts/fts-sort-by-date-constant-desc.rst 
-
-        .. include:: /includes/fts/extracts/fts-sort-by-date-stage.rst
-
-      - Iterates over the cursor to print the documents that match the 
-        query.
-
-      .. literalinclude:: /includes/fts/sort/date-tutorial.js
-         :language: javascript
-         :linenos:
-         :dedent:
-         :emphasize-lines: 5
-
-      .. note:: 
-        
-        .. include:: /includes/fts/facts/fact-fts-driver-connection-string.rst
+      #. Specify the ``<connection-string>``.
           
-   .. step:: Run the following command to query your collection: 
+   .. step:: Run the query.
 
       .. io-code-block::
          :copyable: true
@@ -39,8 +24,8 @@
             node sort-by-date.js
 
          .. output::
-            :language: javascript
-            :visible: true
+            :language: json
+            :visible: false
 
             {
               title: 'Summer Nights',

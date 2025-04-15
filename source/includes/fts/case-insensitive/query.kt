@@ -16,7 +16,7 @@ fun main() {
         // define query
         val agg = Document(
             "\$search",
-            Document("index", "case-insensitive-sort")
+            Document("index", "default")
                 .append(
                     "text",
                     Document("path", "title")

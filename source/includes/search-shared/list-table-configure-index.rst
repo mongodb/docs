@@ -8,8 +8,8 @@
      - Specify the following information:
        
        - :guilabel:`Index Name`: |index-name|   
-       - :guilabel:`Database and Collection`: 
-
+       - :guilabel:`Database and Collection`:
+         
          - |database-name|
          - |collection-name|
 

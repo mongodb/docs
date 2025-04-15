@@ -1,7 +1,7 @@
 db.movies.aggregate([
 {
   $search: {
-    "index": "sort-tutorial",
+    "index": "default",
     "compound": {
       "filter": [{
         "wildcard": {

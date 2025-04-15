@@ -20,35 +20,32 @@ Define Synonym Mappings in Your |fts| Index
    :depth: 3
    :class: singlecol
 
-``synonyms`` allow you to index and search your collection for 
-words that have the same or nearly the same meaning. To configure an 
-|fts| :ref:`index <ref-index-definitions>` with synonym mappings, you 
+The ``synonyms`` option in an |fts| :ref:`index definition
+<ref-index-definitions>` specifies synonym mappings that allow you to 
+index and search your collection for words that have the same or nearly the same meaning.  
+To configure an |fts| :ref:`index <ref-index-definitions>` with synonym mappings, you 
 must:
 
-1. Create a new collection with properly formatted synonym documents 
-   in it. Ensure that: 
-   
+1. Add a collection of synonym documents to your {+cluster+}. Ensure that:  
+
    - Your collection is in the same database as the index that will 
-     reference the collection.
-   - You format the documents in the collection as described in the 
-     :ref:`<synonyms-coll-spec>`.
+     reference the collection
+   - The documents are :ref:`properly formatted <synonyms-coll-spec>`
 
 #. Reference the synonym source collection in a synonym mapping in 
    the :ref:`index definition <ref-index-definitions>`. 
 
-   .. note:: Free (``M0``), {+Flex-cluster+}, and Shared (``M2`` and ``M5``) Tier Cluster Limitation
+A synonym mapping configures an |fts| index to support queries that apply synonyms from a synonym 
+source collection in the same database as the collection you are indexing. You can use synonyms 
+only in queries that use the :ref:`text-ref` operator.
 
-      .. include:: /includes/fts/facts/fact-fts-synonym-mapping-limitation.rst
+.. note:: Free (``M0``) and Shared (``M2`` and ``M5``) Tier Cluster Limitation
+
+   .. include:: /includes/fts/facts/fact-fts-synonym-mapping-limitation.rst
 
 This page describes the format of the synonyms source collection and 
 how to define synonym mappings that reference the synonym source 
-collection in your |fts| index. A synonym mapping configures an |fts| 
-index to support queries that apply synonyms from a separate synonym 
-source collection. You can use the |fts| :guilabel:`Visual Editor` view
-or the |fts| :guilabel:`JSON Editor` view in the :ref:`{+atlas-ui+}
-<ref-create-index>` or the |fts| :oas-atlas-op:`API 
-</createAtlasSearchIndex>` to create the index. You can use synonyms 
-only in queries that use the :ref:`text-ref` operator.
+collection in your |fts| index. 
 
 .. _synonyms-syntax:
 
@@ -60,9 +57,9 @@ Syntax
 .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-synonyms.json 
    :language: json
    :linenos:
-   :copyable: false
-   :emphasize-lines: 9-17 
-
+   :copyable: true
+   :caption: Syntax 
+   
 .. _synonyms-options:
 
 Options 
@@ -101,8 +98,8 @@ Options
        :ref:`Custom 
        analyzer <custom-analyzers>` tokenizers and token filters: 
 
-       - :ref:`nGram <ngram-tokenizer-ref>` Tokenizer
-       - :ref:`edgeGram <edgegram-tokenizer-ref>` Tokenizer
+       - :ref:`nGram <nGram-tokenizer-ref>` Tokenizer
+       - :ref:`edgeGram <edgeGram-tokenizer-ref>` Tokenizer
        - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>` 
          Token Filter
        - :ref:`nGram <ngram-tf-ref>` Token Filter 
@@ -110,8 +107,6 @@ Options
        - :ref:`shingle <shingle-tf-ref>` Token Filter
        - :ref:`wordDelimiterGraph <wordDelimiterGraph-tf-ref>` Token 
          Filter
-         
-
 
      - Required
 
@@ -145,7 +140,7 @@ those words.
 
 .. _synonyms_limits_shared_tier:
 
-.. note::
+.. note:: 
 
    On free and shared tier |service| clusters, the synonyms collection can't exceed 10,000 documents.
 
@@ -240,10 +235,15 @@ If you make changes to your synonyms source collection:
   the synonym source collection size. Note that the changes to synonym 
   documents are reflected in your |fts| query results eventually.
 
+.. _synonyms-egs:
+
+Examples 
+--------
+
 .. _synonyms-mapping-type-egs:
 
-``mappingType`` Examples 
-~~~~~~~~~~~~~~~~~~~~~~~~
+Source Collection Document Examples 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| provides the documents for the following |fts| mapping type
 examples in a collection named ``sample_synonyms``. You can load these
@@ -259,68 +259,50 @@ a. When you select the :guilabel:`Configuration Method`, select the
 
 .. _synonyms-equivalent-mapping-type-eg:
 
-``equivalent`` 
-``````````````
+``equivalent`` ``mappingType``
+``````````````````````````````
 
-.. example:: 
+In the following example source collection document, the ``mappingType`` is set to ``equivalent`` so that the tokens 
+``car``, ``vehicle``, and ``automobile`` are configured to be synonyms of one another. 
 
-   In this ``equivalent`` mapping type example, the ``synonyms`` tokens 
-   ``car``, ``vehicle``, and ``automobile`` are configured to be 
-   synonyms of one another:
+.. code-block:: json 
+   :copyable: false
 
-   .. code-block:: json 
-      :copyable: false
+   {
+     "mappingType": "equivalent",
+     "synonyms": ["car", "vehicle", "automobile"]
+   }
 
-      {
-        "mappingType": "equivalent",
-        "synonyms": ["car", "vehicle", "automobile"]
-      }
-
-   For a :ref:`text-ref` query for ``car``, ``vehicle``, or 
-   ``automobile`` applying a synonym mapping that includes such a 
-   document, |fts| returns documents that contain the term ``car``, 
-   ``vehicle``, or ``automobile``.
+For a :ref:`text-ref` query for ``car``, ``vehicle``, or 
+``automobile`` applying a synonym mapping that includes such a 
+document, |fts| returns documents that contain the term ``car``, 
+``vehicle``, or ``automobile``.
 
 .. _synonyms-explicit-mapping-type-eg:
 
-``explicit`` 
-````````````
+``explicit`` ``mappingType``
+````````````````````````````
 
-.. example:: 
+In the following example source collection document, ``mappingType`` is set to ``equivalent`` 
+so that the tokens ``beer``, ``brew``, and ``pint`` are configured to be synonyms of 
+the ``input`` token ``beer``. 
 
-   In this ``explicit`` mapping type example, ``input`` token ``beer`` 
-   is configured to consider ``beer``, ``brew``, and ``pint`` as 
-   synonyms:
+.. code-block:: json 
+   :copyable: false
 
-   .. code-block:: json 
-      :copyable: false
+   {
+     "mappingType": "explicit",
+     "input": ["beer"],
+     "synonyms": ["beer", "brew", "pint"]
+   }
 
-      {
-        "mappingType": "explicit",
-        "input": ["beer"],
-        "synonyms": ["beer", "brew", "pint"]
-      }
-
-   For a :ref:`text-ref` query for ``beer`` applying a synonym mapping 
-   that includes such a document, |fts| returns documents that contain 
-   the terms "beer", "brew", or "pint" because the ``input`` token 
-   ``beer`` is explicitly mapped to all these ``synonyms`` tokens. 
-   However, for a query for ``pint``, |fts| does not find documents 
-   that contain ``beer`` because ``pint`` is not explicitly mapped to 
-   ``beer``.
-
-.. _synonyms-egs:
-
-Example 
--------
-
-The examples on this page include:
-
-- A :ref:`sample synonyms source collection <sample-synonyms-coll>` 
-  named ``synonymous_terms`` in the ``sample_mflix`` database.
-- :ref:`Index definition examples <synonyms-index-definition-ex>` that 
-  rely on documents in the ``sample_mflix.movies`` and 
-  ``sample_mflix.synonymous_terms`` collections.
+For a :ref:`text-ref` query for ``beer`` applying a synonym mapping 
+that includes such a document, |fts| returns documents that contain 
+the terms "beer", "brew", or "pint" because the ``input`` token 
+``beer`` is explicitly mapped to all these ``synonyms`` tokens. 
+However, for a query for ``pint``, |fts| does not find documents 
+that contain ``beer`` because ``pint`` is not explicitly mapped to 
+``beer``.
 
 .. _sample-synonyms-coll:
 
@@ -330,11 +312,6 @@ Synonym Source Collection Example
 The following collection named ``synonymous_terms`` is an example synonym
 source collection that can be used with the ``movies`` collection in the
 ``sample_mflix`` database. 
-
-.. note::
-   
-  To learn how to format the documents in the collection, see
-  :ref:`<synonyms-coll-spec>`.
 
 The ``sample_mflix.synonymous_terms`` collection contains the following
 documents: 
@@ -377,13 +354,6 @@ Index Definition Examples
 The following examples for the ``sample_mflix.movies`` collection show
 the index definitions using :ref:`static and dynamic mappings
 <static-dynamic-mappings>`. 
-
-.. note:: 
-
-   For sample queries on the ``sample_mflix.movies`` collection 
-   using the dynamic mapping index below, see :ref:`examples
-   <text-ref-synonyms-eg>` in the :ref:`text-ref` and :ref:`phrase-ref`
-   operators. 
 
 Static Mapping 
 ``````````````
@@ -536,3 +506,13 @@ the ``sample_mflix`` database.
               }
             ]
           }
+
+Learn More
+----------
+
+To learn how to add a collection that configures words as synonyms to your {+cluster+}, and use this collection to 
+create an |fts| index and run |fts| queries using synonyms, see :ref:`synonyms-tutorial`.
+
+To see examples of ``text`` queries that use synonyms, see :ref:`text-ref-synonyms-eg` in the :ref:`text-ref` reference page. 
+
+To see an example ``phrase`` queries that uses synonyms, see :ref:`fts-phrase-synonyms-example` in the :ref:`phrase-ref` reference page. 

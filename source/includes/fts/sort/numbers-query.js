@@ -18,7 +18,7 @@ async function run() {
     const agg = [
       {
         '$search': {
-          'index': 'sort-tutorial',
+          'index': 'default',
           'range': {
             'path': 'awards.wins', 
             'gte': 10

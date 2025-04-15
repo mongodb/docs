@@ -18,7 +18,7 @@ public class SortByDate {
     // define query
 	    Document agg =
 	        new Document("$search", 
-	        	    new Document("index", "sort-tutorial")
+	        	    new Document("index", "default")
 	                .append("compound", 
 	        new Document("filter", Arrays.asList(new Document("wildcard", 
 	                        new Document("query", "Summer*")

@@ -1,8 +1,8 @@
 .. _fts-about-indexing:
 
-===============================
-Create and Manage |fts| Indexes
-===============================
+====================
+Manage |fts| Indexes
+====================
 
 .. default-domain:: mongodb
 
@@ -15,77 +15,14 @@ Create and Manage |fts| Indexes
    :depth: 1
    :class: singlecol
 
+.. facet::
+   :name: programming_language
+   :values: c, cpp, csharp, java, javascript/typescript, python, shell
+
 .. include:: /includes/fts/facts/fts-index-description.rst
-
-You can specify the fields to index using the following methods: 
-
-- :ref:`Dynamic mappings <static-dynamic-mappings>`, which enables 
-  |fts| to automatically index all the fields of :ref:`supported types 
-  <bson-data-chart>` in each document. This might waste disk space to
-  index fields that you would never search and negatively impact
-  {+cluster+} performance.  
-- :ref:`Static mappings <static-dynamic-mappings>`, which allows you to 
-  selectively identify the fields to index. If fields contain
-  polymorphic data, |fts| indexes only documents that correspond to the
-  mapping in the index definition and ignores documents that contain
-  values that don't correspond to the mapping specified in the index
-  definition for the fields.
 
 Considerations
 --------------
-
-When creating and managing |fts| indexes, 
-consider the following:
-
-Analyzers and Field Mappings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|fts| provides built-in analyzers for creating indexable terms that 
-correct for differences in punctuation, capitalization, stop words, 
-and more. Analyzers apply parsing and language rules to the query. You 
-can also create a custom analyzer using available built-in character 
-filters, tokenizers, and token filters. To learn more about the 
-built-in and custom analyzers, see :ref:`analyzers-ref`.
-
-To learn which data types |fts| supports for field mappings, see 
-:ref:`bson-data-types`. The ``mongot`` process stores the indexed fields
-and the ``_id`` field on disk per index for the collections on the
-{+cluster+}.
-
-.. note::
-
-   |fts| doesn't support encrypting |fts| indexes with 
-   :ref:`encryption keys using Customer Key Management 
-   <security-kms-encryption>` in the {+atlas-ui+}.
-
-**Prefer to learn by watching?**
-
-Watch this video for an overview of |fts| indexes. In this video, you
-can learn more about :ref:`analyzers <analyzers-ref>` and |fts|
-:ref:`autocomplete <autocomplete-ref>` field type. 
-
-*Duration: 8 Minutes*
-
-.. video:: https://youtu.be/XrJG994YxD8
- 
-Disk, Memory, and Resource Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Although the data stored on |fts| isn't an identical copy of data from
-the collection on your |service| {+cluster+}, |fts| indexes still take
-some disk space and memory. If you enable the ``store`` option for
-fields that contain :ref:`string <bson-data-types-string>` values or if
-you configure the :ref:`stored source fields <fts-stored-source-definition>`
-in your index, |fts| stores an identical copy of the specified fields on
-disk, which can take disk space.
-
-.. |search-type| replace:: |fts|
-
-.. include:: /includes/search-shared/fact-fts-avs-index-resource-consumption.rst
-
-.. note::
-   
-   .. include:: /includes/fts/facts/fact-fts-document-size.rst
 
 Index Consistency and Rebuilding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,6 +51,10 @@ update <fts-index-rebuild>`), |service| automatically deploys additional
 nodes for free to build the indexes, while the old nodes continue to
 serve your queries.
 
+.. include:: /includes/fact-shardCollection-fts-indexes.rst
+
+.. include:: /includes/fts/facts/fact-fts-out-agg.rst
+
 Dedicated Search Nodes
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -127,7 +68,7 @@ If you've deployed Search Nodes, consider the following:
   on those shards might fail or return incorrect results.
 
 - If you :manual:`reshard </core/sharding-reshard-a-collection/>` a
-  collection with |fts| indexes,|fts| indexes on the collection
+  collection with |fts| indexes, |fts| indexes on the collection
   become unavailable when the resharding operation completes. You 
   *must* delete and create new |fts| indexes once the operation 
   is complete.  
@@ -138,60 +79,968 @@ If you've deployed Search Nodes, consider the following:
   once the operation completes. You *must* delete and create new |fts|
   indexes once the :dbcommand:`movePrimary` operation is complete.
 
-.. _ref-index-management:
+To learn more about |fts| node architecture, see :ref:`fts-deployment-options`. 
 
-Supported Clients
------------------
+.. _fts-required-access: 
 
-You can create and manage |fts| indexes from the {+atlas-ui+}, |fts|
-API, {+atlas-cli+}, {+mongosh+}, |compass|, and :driver:`MongoDB drivers </>`. 
+Required Access
+---------------
 
-{+atlas-cli+} 
-~~~~~~~~~~~~~
+You can assign Project User Roles or Database User Roles to provide access to the user privileges
+necessary to perform {+fts+} index actions described in this guide. 
 
-To create and manage |fts| indexes using the {+atlas-cli+}, your
-|service| {+cluster+} must run MongoDB 6.0+ or 7.0+.
+.. include:: /includes/fts/facts/fact-fts-required-roles.rst
 
-``mongosh``
-~~~~~~~~~~~
+The following :ref:`MongoDB Database Roles <mongodb-users-roles-and-privileges>` support the given
+:manual:`{+fts+} Index Privilege Actions </reference/privilege-actions/#atlas-search-index-actions>`:   
 
-To create and manage |fts| indexes using {+mongosh+}, 
-your |service| {+cluster+} must run MongoDB 6.0+ or 7.0+.
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
 
-|compass|
-~~~~~~~~~
+   * - Action Description 
+     - Database Roles
+     - {+fts+} Index Privilege Action
 
-To create and manage |fts| indexes using {+Compass+}, 
-your |service| {+cluster+} must run MongoDB 7.0+.
+   * - View |fts| index
+     - :atlasrole:`read` or :atlasrole:`readAnyDatabase`
+     - :manual:`</reference/privilege-actions/#mongodb-authaction-listSearchIndexes>`
+   * - Create |fts| index 
+     - :atlasrole:`readWrite` or :atlasrole:`readWriteAnyDatabase`
+     - :manual:`createSearchIndexes </reference/privilege-actions/#mongodb-authaction-createSearchIndexes>`
+   * - Edit |fts| index
+     - :atlasrole:`readWrite` or :atlasrole:`readWriteAnyDatabase`
+     - :manual:`updateSearchIndex </reference/privilege-actions/#mongodb-authaction-updateSearchIndex>`
+   * - Delete |fts| index 
+     - :atlasrole:`readWrite` or :atlasrole:`readWriteAnyDatabase`
+     - :manual:`dropSearchIndex </reference/privilege-actions/#mongodb-authaction-dropSearchIndex>`
 
-.. _fts-index-supported-drivers:
+To learn more, see :ref:`atlas-user-privileges` or :ref:`atlas-specific-privileges`.
 
-MongoDB Drivers 
-~~~~~~~~~~~~~~~
+.. _ref-create-index:
+.. _ref-create-index-programmatically:
+.. _default-index-definition:
+.. _fts-create-an-index:
 
-To create and manage |fts| indexes programmatically on any
-{+cluster+} tier, you can use any of the following
-:driver:`MongoDB Drivers </>`: 
+Create an {+fts+} Index
+----------------------------
 
-.. include:: /includes/fts/list-tables/list-table-index-supported-drivers-fts.rst
+The following tutorial describes how to create an |fts| index using your selected method. 
 
-Next Steps 
+To see an example tutorial that creates an index for the ``sample_mflix.movies`` collection, see :ref:`fts-tutorial-ref`. 
+For a conceptual overview of how to define an index to meet your query preferences, see :ref:`fts-define-index`. 
+
+You can also use |fts| with local |service| deployments that you create 
+with the {+atlas-cli+}. To learn more, see :atlascli:`Create a Local Atlas Deployment </atlas-cli-deploy-local>`.
+
 ----------
 
-To learn how to create an |fts| index, see :ref:`ref-create-index`. 
-For hands-on experience creating |fts| indexes for the :ref:`sample
-datasets <sample-data>` and running |fts| queries against the indexed
-data, try the tutorials in the following pages:
+.. |arrow| unicode:: U+27A4
 
-- :ref:`fts-tutorial-ref`
-- :ref:`fts-tutorials`
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the procedure in this section.
 
-.. toctree::
-   :titlesonly:
+----------
 
-   Create a Search Index </atlas-search/create-index>
-   Resume or Delete a Draft </atlas-search/resume-index>
-   View </atlas-search/view-index>
-   Edit </atlas-search/edit-index>
-   Delete </atlas-search/delete-index>
-   Update </atlas-search/rebuild-index>
+.. tabs-selector:: drivers
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-cli
+
+      To create an |fts| index using the {+atlas-cli+}:
+
+      Cloud Deployment
+      ~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-create.rst
+
+      Local Deployment 
+      ~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-deployments-search-indexes-create.rst
+
+      To learn more about how to use the {+atlas-cli+} to create a local 
+      |service| deployment, see :atlascli:`Create a Local Atlas Deployment </atlas-cli-deploy-local>`.
+
+      .. see:: Related Links
+
+         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>`
+         - :atlascli:`Connect to the {+atlas-cli+} </connect-atlas-cli/>`
+
+      Example
+      ~~~~~~~
+
+      The following example shows you how to use the
+      ``atlas clusters`` or ``atlas deployments`` command to create an
+      |fts| index in non-interactive mode with a configuration file.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create an ``indexDef.json`` configuration file.
+
+            .. code-block:: json
+
+               {
+                 "collectionName": "movies",
+                 "database": "sample_mflix",
+                 "definition": {
+                   "mappings": {
+                    "dynamic": true
+                   },
+                 },
+                 "name": "searchIndex"
+               }
+
+         .. step:: Create an |fts| index.
+
+            a. Run one of the following commands.
+
+               **Cloud Deployment:**
+
+               .. code-block:: sh
+
+                  atlas clusters search indexes create --file indexDef.json
+
+               **Local Deployment:**
+
+               .. code-block:: sh
+
+                  atlas deployments search indexes create --file indexDef.json
+
+            #. Specify the deployment and press :kbd:`Enter`.
+
+   .. tab::
+      :tabid: atlas-api
+
+      To create an |fts| index using the |fts| |api|:
+      
+      .. procedure::
+         :style: normal
+         
+         .. step:: Send a ``POST`` request.
+            
+            Send a ``POST`` request to the ``search/indexes`` 
+            :oas-atlas-op:`endpoint </createAtlasSearchIndex>`.
+
+            .. code-block:: sh
+
+               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+               --header "Accept: application/json" \
+               --header "Content-Type: application/json" \
+               --include \
+               --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes" \
+               --data '
+                 {
+                   "collectionName": "<collection-name>",
+                   "database": "<database-name>",
+                   "name": "<index-name>",
+                   "type": "search",
+                   "definition": 
+                   {
+                     "analyzer": "<analyzer-name>",
+                     "searchAnalyzer": "<analyzer-name>",
+                     "mappings": {
+                       "dynamic": <boolean>,
+                       "fields": { <field-definition> }
+                     },
+                     "numPartitions": <integer>,
+                     "analyzers": [ {
+                         <custom-analyzer-definition>
+                       }
+                     ],
+                     "storedSource": <boolean> | {
+                       <stored-source-definition>
+                     },
+                     "synonyms": [
+                       {
+                         <synonym-mapping-definition>
+                       }
+                     ]
+                   }
+                 }'
+            
+            To learn more about the syntax and parameters for this 
+            endpoint, see :oas-atlas-op:`Create One 
+            </createAtlasSearchIndex>`.
+
+         .. step:: Review the response.
+
+            .. note:: 
+
+               |service| doesn't create the index if the collection 
+               doesn't exist, but it still returns a ``200`` status.
+
+   .. tab::
+      :tabid: atlas-ui
+
+      To create an |fts| index using the {+atlas-ui+}:
+
+      .. |database-name| replace:: name of the database
+      .. |collection-name| replace:: name of the collection
+      .. |index-name| replace:: ``default``
+      .. |search-type| replace:: |fts|
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-create-fts-index.rst
+
+   .. tab::
+      :tabid: shell
+
+      To create an |fts| index using {+mongosh+}:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-shell.rst
+   
+   .. tab::
+      :tabid: compass
+
+      To create an |fts| index using |compass|:
+
+      .. |database| replace:: name of the database
+      .. |collection| replace:: name of the collection
+      .. |index-name| replace:: ``default``
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-tutorial-create-index-compass.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-node.rst
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-csharp.rst
+
+   .. tab::
+      :tabid: java-sync
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-java.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-python.rst
+
+   .. tab::
+      :tabid: c
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-c.rst
+
+   .. tab::
+      :tabid: cpp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-cxx.rst
+
+When you create the |fts| index, the |fts| page displays information
+about |fts| indexes. The :guilabel:`Status` column shows the current
+state of the index on the primary node of the cluster. To learn more,
+see :ref:`search-index-statuses`. 
+
+.. include:: /includes/fact-shardCollection-fts-indexes.rst
+
+.. _ref-view-index:
+.. _ref-view-index-programmatically:
+
+View {+fts+} Indexes
+-------------------------
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the procedure in this section.
+
+----------
+
+.. tabs::
+
+   .. tab::
+      :tabid: atlas-cli
+
+      Retrieve |fts| Indexes for a Cloud Deployment 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-list-and-describe.rst
+
+      Retrieve |fts| Indexes for a Local Deployment 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-deployments-search-indexes-list-and-describe.rst
+
+   .. tab::
+      :tabid: atlas-api
+
+      To retrieve an |fts| index using the |fts| |api|:
+      
+      .. procedure::
+         :style: normal
+         
+         .. step:: Send a ``GET`` request.
+      
+            Send a ``GET`` request with either the unique ID or name of 
+            the |fts| index that you wish to retrieve to the ``search/indexes/`` endpoint.
+
+            .. code-block:: sh
+
+               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \ --header "Accept: application/json" \
+               --include \
+               --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}"
+            
+            To learn more about the syntax and parameters for either 
+            endpoint, see :oas-atlas-op:`Get One By Name 
+            </getAtlasSearchIndexByName>` and
+            :oas-atlas-op:`Get One By ID </getAtlasSearchIndex>`.
+
+         .. step:: Review the response.
+
+      To retrieve all |fts| indexes for a collection:
+      
+      .. procedure::
+         :style: normal
+         
+         .. step:: Send a ``GET`` request.
+
+            Send a ``GET`` request to the ``search/indexes/`` 
+            :oas-atlas-op:`endpoint </listAtlasSearchIndexes>` with the 
+            name of the collection whose indexes you want to retrieve.
+
+            .. code-block:: sh
+
+               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \ --header "Accept: application/json" \
+               --include \
+               --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}"
+
+         .. step:: Review the response.
+
+      To retrieve all |fts| indexes for a cluster:
+      
+      .. procedure::
+         :style: normal
+         
+         .. step:: Send a ``GET`` request.
+            
+            Send a ``GET`` request to the ``search/indexes/`` 
+            :oas-atlas-op:`endpoint </listAtlasSearchIndexesCluster>` 
+            with the name of the cluster whose indexes you want to 
+            retrieve.
+
+            .. code-block:: sh
+
+               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \ --header "Accept: application/json" \
+               --include \
+               --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes"
+
+         .. step:: Review the response.
+
+   .. tab::
+      :tabid: atlas-ui
+
+      To view the {+atlas-ui+} :guilabel:`{+fts+}` page:  
+
+      .. include:: /includes/avs/index-examples/steps-avs-view-index-atlas-ui.rst
+
+      The |fts| page contains a table that describes each of the existing |fts| indexes in your project
+      in the following columns. 
+
+      .. include:: /includes/fts/list-tables/search-indexes.rst
+
+      By default, |service| sorts the indexes by first the database name and then the collection
+      name. To sort by multiple columns, press :kbd:`Shift` and click the column names in the order in 
+      which you want to multi-sort the list of indexes.
+      
+      From this table, you can go to the following sections for more details about each index: 
+
+      .. _search-index-node-status:
+
+      Index Overview 
+      ~~~~~~~~~~~~~~
+      
+      To go to the :guilabel:`Index Overview` page from the :guilabel:`{+fts+}` page, 
+      click the name of the index that you want to view in the :guilabel:`Index Name` column. 
+      For each index, the :guilabel:`Index Overview` page shows the 
+      :manual:`namespace </reference/limits/#std-label-faq-dev-namespace>` for the index and the 
+      following configurations specified in the index definition:
+
+      .. include:: /includes/fts/list-tables/index-overview.rst
+
+      .. _search-index-statuses:
+      .. _search-index-details:
+
+      Index Statuses
+      ~~~~~~~~~~~~~~
+
+      The :guilabel:`Status` column on the :guilabel:`{+fts+}` page shows the 
+      current status of the index on the primary node of the cluster.
+      The following table describes the possible index statuses: 
+
+      .. include:: /includes/fts/list-tables/index-statuses.rst
+      
+      You can view more status information in the :guilabel:`Status Details` page in one of the following ways:
+      
+      - Click the :guilabel:`View status details` link in the :guilabel:`Status` column.
+      - Click the name in the :guilabel:`Index Name` column then select :guilabel:`Status Details`
+        from the menu on the left of the :guilabel:`Index Overview`.
+
+      The :guilabel:`Status Details` page contains the following sections:
+
+      .. _queryable-index:
+
+      Index Serving Queries
+      `````````````````````
+
+      This section displays the index that is being used to serve queries.
+      
+      If you have only one version of the index with this name for the
+      collection, the section contains a link to the :guilabel:`Index
+      Overview` where you can see the index definition for the index being
+      used. 
+
+      If you had other indexes with the same name on the collection, the
+      section shows the latest index definition and also shows prior valid
+      versions of the index that you can copy in different tabs. 
+
+      When you update an index, different nodes apply the updates at different
+      speeds. Therefore, some nodes might use the latest version and some might
+      use the prior version. |service| displays both versions of the index
+      until the changes are applied to all the nodes. 
+
+      If you attempt to update the index with an invalid index definition, the 
+      index build will fail and |service| displays only the previous valid
+      index definition. 
+    
+      .. _node-status-ref:
+
+      Status Details by Node
+      ``````````````````````
+
+      This section displays the status of the index on each node of the
+      {+cluster+}. You can see the following details about the index on each
+      node:
+
+      .. include:: /includes/fts/list-tables/status-details-by-node.rst
+
+      .. _search-node-migration-status:
+
+      Migration to Search Nodes
+      `````````````````````````
+
+      This section displays the status of the in-progress migration of your
+      |fts| and {+avs+} indexes to search nodes, if applicable. This section displays
+      only if you are currently migrating to search nodes.
+
+      Click the :guilabel:`View Migration Progress` link in the information
+      banner under the :guilabel:`Index Status by Search Node` section for 
+      details on the progress of the migration of the indexes to Search Nodes
+      (on a per node basis). 
+
+      The {+atlas-ui+} displays the following columns for each index on the
+      {+cluster+}.  
+
+      .. include:: /includes/fts/list-tables/node-migration-progress.rst 
+
+      The status column displays one of the following statuses of the index on the Search Nodes: 
+
+      .. include:: /includes/fts/list-tables/search-node-migration-status.rst
+
+      Your queries can continue to use existing indexes while the new indexes
+      are building on the Search Nodes. The migration to the Search Nodes
+      completes only when |service| successfully builds all the indexes
+      on the Search Nodes. Then, your queries are automatically routed to
+      the use the indexes on the Search Nodes.
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-shell.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-node.rst
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-csharp.rst
+
+   .. tab::
+      :tabid: java-sync
+
+      To retrieve |fts| indexes on a collection using the :driver:`Java
+      Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
+      use the ``listSearchIndexes()`` method. You must have
+      :driver:`Java Driver </java/sync/current/>` v4.11.0 or higher.
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-java.txt
+
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
+   
+   .. tab::
+      :tabid: cpp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-cxx.rst
+         
+   .. tab::
+      :tabid: c
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-c.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-python.rst
+
+.. _ref-resume-index:
+
+Resume or Delete an Atlas Search Index Draft
+--------------------------------------------
+
+To resume or delete your index definition that you saved as a :ref:`draft <ref-create-index>` in the {+atlas-ui+}:
+
+.. include:: /includes/fts/facts/fact-index-draft-pending.rst
+
+.. include:: /includes/fts/search-index-management/procedures/steps-resume-fts-index.rst
+
+.. _ref-edit-index:
+.. _ref-edit-index-programmatically:
+
+Edit an Atlas Search Index
+--------------------------
+
+You can change the :ref:`index definition <ref-index-definitions>`
+of an existing |fts| index. You cannot rename an index; if you need to
+change an index's name, you must create a new index and delete the old
+one.
+
+You can edit an |fts| index in the {+atlas-ui+}, or programmatically by
+using {+mongosh+}, the {+atlas-cli+}, the |api|, or a supported
+:driver:`MongoDB Driver </>` in your preferred language. 
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the procedure in this section.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-cli
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-update.rst
+   
+   .. tab::
+      :tabid: atlas-api
+
+      To edit an |fts| index through the |api|:
+      
+      .. procedure::
+         :style: normal
+         
+         .. step:: Send a ``PATCH`` request.
+            
+            Send a ``PATCH`` request with either the unique ID or name 
+            of the |fts| index that you wish to modify to the 
+            ``search/indexes/`` endpoint.
+
+            .. code-block:: sh
+
+               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+               --header "Accept: application/json" \
+               --header "Content-Type: application/json" \
+               --include \
+               --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}" \
+               --data '
+                 {
+                   "definition":
+                   {
+                     "analyzer": "lucene.<analyzer>",
+                     "analyzers": [
+                       {
+                         "charFilters": [ ... ],
+                         "name": "string",
+                         "tokenFilters": [ ... ],
+                         "tokenizer": { ... }
+                       }
+                     ],
+                     "mappings": {
+                       "dynamic": true | false,
+                       "fields": {
+                         "property1": {},
+                         ...
+                       }
+                     },
+                     "searchAnalyzer": "<analyzer-name>",
+                     "storedSource": {
+                       "include | exclude": [...]
+                     },
+                     "synonyms": [
+                       {
+                         <synonym-mapping-definition>
+                         }
+                       }
+                     ]
+                   }  
+                 }'
+            
+            To learn more about the syntax and parameters for either 
+            endpoint, see :oas-atlas-op:`Update One By Name 
+            </updateAtlasSearchIndexByName>` and
+            :oas-atlas-op:`Update One By ID </updateAtlasSearchIndex>`.
+
+         .. step:: Review the response.
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-edit-fts-index.rst
+
+   .. tab::
+      :tabid: compass
+
+      To edit an |fts| index using |compass|:
+
+      .. |database| replace:: name of the database
+      .. |collection| replace:: name of the collection
+      .. |index-name| replace:: ``default``
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-compass.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-shell.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-node.rst
+   
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-csharp.rst
+
+   .. tab::
+      :tabid: java-sync
+
+      To edit an |fts| index on a collection using the :driver:`Java
+      Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
+      construct a document that modifies the search index settings, and
+      then pass the document to the ``updateSearchIndex()`` method. You
+      must have :driver:`Java Driver </java/sync/current/>` v4.11.0 or
+      higher. 
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-java.txt
+
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
+
+   .. tab::
+      :tabid: cpp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-cpp.rst
+      
+   .. tab::
+      :tabid: c
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-c.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-python.rst
+
+.. note::
+
+   While your updated index is building, different nodes may update at
+   varying speeds. During this period, you may experience mixed query
+   results, reflecting both the new index definition and the previous
+   index definition. You can view the index that is serving queries
+   in the :ref:`index status details <queryable-index>` page.
+
+.. _sort-index-rebuild:
+.. _fts-index-rebuild:
+
+Update an Existing Index  
+------------------------
+
+Some |fts| features require that you update the index. To update your index,
+you can take one of the following actions: 
+
+- Edit the index definition using the steps in :ref:`ref-edit-index`.
+- Do the following steps to opt-in for an index update from the {+atlas-ui+}:
+
+.. important:: 
+   
+   The process for updating the |fts| index requires time and resources.
+   For the index update to complete successfully, allocate free disk space
+   equal to 125% of your current index's disk space.
+
+.. _fts-index-rebuild-procedure:
+
+.. procedure:: 
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. include:: /includes/nav/steps-atlas-search.rst
+
+   .. step:: Click the name of the index that you want to update. 
+
+       .. tip::
+       
+          If an index requires an update to enable a new feature, the
+          {+atlas-ui+} shows a warning icon next to the index name. 
+
+   .. step:: Update your index to use the new feature. 
+      
+      a. In the :guilabel:`Index Overview` page, click :guilabel:`Update` in the banner.
+      #. Click :guilabel:`Update Index` in the confirmation window. 
+
+         While your index is updating, you can continue to query your
+         collection using your previous index.
+
+.. _ref-delete-index:
+.. _ref-delete-index-programmatically:
+
+Delete an Atlas Search Index
+----------------------------
+
+You can delete an |fts| index in the {+atlas-ui+}, or programmatically by
+using {+mongosh+}, the {+atlas-cli+}, the |api|, or a supported
+:driver:`MongoDB Driver </>` in your preferred language. 
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the procedure in this section.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-cli
+
+      Delete an |fts| Index for a Cloud Deployment 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-delete.rst
+
+      Delete an |fts| Index for a Local Deployment 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-deployments-search-indexes-delete.rst
+   
+   .. tab::
+      :tabid: atlas-api
+
+      To delete an |fts| index through the |api|:
+      
+      .. procedure::
+         :style: normal
+         
+         .. step:: Send a ``DELETE`` request.
+      
+            Send a ``DELETE`` request with either the unique ID or name 
+            of the |fts| index that you wish to delete to the ``search/indexes/`` endpoint.
+
+            .. code-block:: sh
+
+               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \ --header "Accept: application/json" \
+               --include \
+               --request DELETE "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}"
+            
+            To learn more about the syntax and parameters for either 
+            endpoint, see :oas-atlas-op:`Delete One By Name 
+            </deleteAtlasSearchIndexByName>` and
+            :oas-atlas-op:`Delete One By ID </deleteAtlasSearchIndex>`.
+
+         .. step:: Review the response.
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-delete-fts-index.rst
+      
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-shell.rst
+
+   .. tab::
+      :tabid: compass
+
+      To delete an |fts| index using |compass|:
+
+      .. |database| replace:: name of the database
+      .. |collection| replace:: name of the collection
+      .. |index-name| replace:: ``default``
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-compass.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-node.rst
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-csharp.rst
+
+   .. tab::
+      :tabid: java-sync
+
+      To delete an |fts| index on a collection using the :driver:`Java 
+      Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
+      use the ``dropSearchIndex()`` method. You must have :driver:`Java
+      Driver </java/sync/current/>` v4.11.0 or higher.
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-java.txt
+
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
+
+   .. tab::
+      :tabid: cpp
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-cpp.rst
+         
+   .. tab::
+      :tabid: c
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-c.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-python.rst
+
+.. _fts-estimate-index-size: 
+
+Estimate the Size of Your Index
+-------------------------------
+
+The ``mongot`` process stores the indexed fields and the ``_id`` field on disk, so you may 
+want to adjust the size of your index before you build it. 
+You can estimate the size of your full |fts| index by creating an index on a subset of your collection 
+and scaling the size of the sample data index based on the total size of
+your data using the following formula:
+
+.. code-block:: shell 
+   :copyable: false 
+
+   estimated-index-size = ( subset-data-index-size / subset-data-size ) x total-collection-data-size
+        
+For example, if you want to estimate the size of an index for the ``movies`` collection in the ``sample_mflix`` database,
+perform the following steps in {+mongosh+}:
+
+a. Run :pipeline:`$sample` to create a new collection called ``sample_data`` using a random sample of your data: 
+
+   .. io-code-block::
+      :copyable: true 
+
+      .. input:: 
+         :language: shell 
+
+         use sample_mflix
+         db.movies.aggregate([
+           { $sample: { size: 10 } },
+           { $out: "sample_data" }
+         ]) 
+
+      .. output:: /includes/fts/search-index-management/estimate-index-size-sample-data.js 
+         :language: shell 
+         :visible: false
+
+#. Create a search index on the collection with the sample data using the 
+   index definition you want to use for your full collection:
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input::  
+         :language: shell
+
+         db.sample_data.createSearchIndex(
+           "sample-index",
+           { mappings: { dynamic: true } } 
+         )
+
+      .. output::
+         :language: shell
+         :visible: false
+
+         sample-index
+
+#. Scale the size of the sample data by the total size of the collection. 
+   For example, if the size of the ``sample-index`` index is 44.88, 
+   according to the :ref:`{+atlas-ui+} Index Overview page <ref-view-index>`,
+   then you can use the following commands to calculate your total index size:
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input::
+         :language: shell
+
+         let sampleSize = db.sample_data.totalSize()
+         let totalSize = db.movies.totalSize()
+
+         let totalIndexSize = ( 44.88 / sampleSize ) * totalSize; totalIndexSize
+
+      .. output:: 
+         :language: shell
+         :visible: false
+
+         45864.28
+
+Learn More
+----------
+
+To learn how to define an |fts| index to meet your 
+|fts| query needs, see :ref:`atlas-search-queries`. 
+
+To learn how to create an |fts| index, see :ref:`Create an {+fts+} index <create-fts-index>`. 
+
+To learn more about the |fts| index configurations described in this tutorial,
+see the following reference pages:
+
+- :ref:`analyzers-ref`
+- :ref:`fts-field-mappings`
+- :ref:`fts-stored-source-definition`
+- :ref:`synonyms-ref`
+
+For hands-on experience creating |fts| indexes for the :doc:`sample
+datasets </sample-data>` and running |fts| queries against the indexed
+data, try the :ref:`fts-tutorial-ref`.
+
+
+Continue Learning 
+-----------------
+
+.. _fts-manage-indexes-video-section:
+
+Learn by Watching
+~~~~~~~~~~~~~~~~~
+
+Follow along with this video tutorial walk-through that demonstrates 
+how to create |fts| indexes of various complexity.
+
+*Duration: 15 Minutes*
+
+.. video:: https://youtu.be/o2ss2LJNZVE 

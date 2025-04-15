@@ -23,8 +23,7 @@ method.
             :tabid: create-one
 
             The following sample application specifies the ``createSearchIndexes``
-            command to define a search index that dynamically indexes the fields in
-            your collection. Then, the application converts the command and search index
+            command to define a search index. Then, the application converts the command and search index
             information to |bson| and passes this information to the ``mongoc_collection_command_simple()``
             method to create the search index. To learn more, see :ref:`ref-index-definitions`.
 
@@ -35,11 +34,10 @@ method.
          .. tab:: Create Multiple Search Indexes
             :tabid: create-multiple
 
-            You can also create multiple |fts| indexes at once. In the following example,
-            define each search index that you want to create as a document inside the
-            ``indexes`` array. Then, convert your command and search index information to
-            |bson| and call the ``mongoc_collection_command_simple()`` method to create the search
-            index:
+            The following sample application uses the ``createSearchIndexes`` command to 
+            define multiple search indexes. Then, the application converts the command and search index
+            information to |bson| and passes this information to the ``mongoc_collection_command_simple()``
+            method to create the search index. To learn more, see :ref:`ref-index-definitions`.
 
             .. literalinclude:: /includes/fts/search-index-management/c/create-indexes.c
                :language: c
@@ -50,17 +48,7 @@ method.
       - Your |service| connection string. To learn more, see :ref:`connect-via-driver`.
       - The database and collection for which you want to create the index. 
       - The name of your index. If you omit the index name, |fts| names the index ``default``.
-
-      .. tabs::
-         :hidden: true
-
-         .. tab:: Create One Search Index
-            :tabid: create-one
-
-         .. tab:: Create Multiple Search Indexes
-            :tabid: create-multiple
-            
-            - The search index definition. To learn more, see :ref:`ref-index-definitions`.
+      - The search index definition. To learn more, see :ref:`ref-index-definitions`.
 
    .. step:: Compile and run the file by using the following commands.
 

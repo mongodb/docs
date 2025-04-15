@@ -15,7 +15,7 @@ public class CompoundBuryQuery {
     // define query
     Document agg =
         new Document("$search", 
-        	new Document("index", "compound-query-custom-score-tutorial")
+        	new Document("index", "default")
             .append("compound", 
             	new Document("should", Arrays.asList(
             	    new Document("compound", 

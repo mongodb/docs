@@ -35,7 +35,7 @@ a. Initialize your Go module:
 
    .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
-#. Run the following command to create the index.
+#. Create the index.
 
    .. io-code-block::
       :copyable: true 

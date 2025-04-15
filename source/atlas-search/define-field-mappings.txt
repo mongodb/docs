@@ -16,40 +16,94 @@ Define Field Mappings
    :depth: 2
    :class: singlecol
 
-When you create an |fts| index, you can:
+When you create an |fts| index, you can specify the fields to index using the following methods: 
 
-- Specify the fields to index using static mappings. 
-- Configure |fts| to automatically index all supported field types using
-  dynamic mappings. 
+- **Dynamic mappings**: Enables {+fts+} to automatically index all fields of :ref:`supported types <bson-data-chart>`. 
+- **Static mappings**: Enables you to specify which fields to index.
 
-To use static mappings, you must explicitly include the fields in the
-collection that you want to index. In the ``type`` field, specify the 
-:ref:`data type <bson-data-chart>` of the field in the field 
-definition. Alternatively, you can specify an array of field definitions
-for a field, one for each data type.
+.. _bson-data-types-limitations:
 
-.. code-block:: json  
-   :caption: Syntax 
-   :emphasize-lines: 5-14
-   :linenos:
+Data Type Limitations
+---------------------
 
-   {
-     "mappings": { 
-       "dynamic": <boolean>, 
-       "fields": { 
-         "<field-name>": [
-           {
-             "type": "<field-type>",
-             ...
-           },
-           ...
-         ],
-         ...  
-       }
-     }
-   }
+By default, |fts| stops replicating changes for indexes larger than 2.1 billion
+index objects, on a replica set or single shard, where each indexed document 
+or nested ``embeddedDocument`` counts as a single object. This means that your 
+index is queryable, but you might get stale results.
 
-.. include:: /includes/fts/facts/fact-fts-index-field-order.rst 
+If you plan to index fields that might exceed 2.1 billion objects,
+use ``numPartitions`` or :ref:`shard your cluster <create-cluster-sharding>`.
+
+.. include:: /includes/fts/facts/fact-fts-field-name-restriction.rst
+
+Syntax
+------
+
+.. tabs:: 
+   
+   .. tab:: Dynamic Mappings
+      :tabid: dynamic-mappings-syntax
+
+      To use dynamic mappings, set ``mappings.dynamic`` to ``true`` 
+      in your index definition. You can also configure individual fields by specifying the 
+      field name, :ref:`data type <bson-data-chart>`, and other configuration options
+      for each field that you want to configure in ``mappings.fields``.
+      You can specify the fields in any order. 
+  
+      .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-dynamic.json 
+         :language: json
+         :linenos:
+         :emphasize-lines: 3
+         :copyable: true
+
+   .. tab:: Static Mappings
+      :tabid: static-mappings-syntax
+
+      To use static mappings, set ``mappings.dynamic`` to ``false`` and specify 
+      the field name, :ref:`data type <bson-data-chart>`, and other configuration options 
+      for each field that you want to index in ``mappings.fields``. 
+      You can specify the fields in any order. 
+
+      If you omit the ``mappings.dynamic`` field, it defaults to ``false``. 
+
+      .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-static.json
+         :language: json
+         :linenos:
+         :emphasize-lines: 3
+         :copyable: true
+   
+   .. tab:: Index Field as Multiple Data Types
+      :tabid: index-field-as-multiple-data-types-syntax
+
+      You can index a field that contains polymorphic data as multiple types by specifying an array of field 
+      definitions for the field, one for each data type. 
+
+      .. code-block:: json
+         :linenos:
+         :emphasize-lines: 5-15
+         :caption: Syntax
+         :copyable: true
+
+         {
+           "mappings": { 
+             "dynamic": <boolean>, 
+             "fields": { 
+               "<field-name>": [
+                  {
+                    "type": "<field-type>",
+                    ...
+                  },
+                  {
+                    "type": "<field-type>",
+                    ...
+                  },
+                  ...
+               ],
+               ...  
+             },
+             ... 
+           }
+         }
 
 .. _static-dynamic-mappings:
 
@@ -60,46 +114,43 @@ You can use static and dynamic mappings to specify whether |fts| must
 automatically index all the dynamically indexable fields in your
 collection.
 
-Static Mappings 
-~~~~~~~~~~~~~~~
-
-Use static mappings to configure index options for fields that
-you *don't* want indexed dynamically, or to configure a single field 
-independently from others in an index.
-
-For static mappings, set ``mappings.dynamic`` to ``false`` and 
-specify the fields to index using ``mappings.fields``. |fts| 
-indexes only the specified fields with specific options. If an indexed
-field contains polymorphic data, |fts| indexes only documents that
-correspond to the mappings specified in the index definition for that
-field and ignores documents that contain values that aren't the data
-type specified in the index definition for that field.
-
-You can't use the dot notation to statically index nested fields. When
-defining the index for a nested field, you must define the mappings for 
-each parent field of that nested field. For an example, see the
-:ref:`Examples <index-config-example>` on this page, which demonstrates
-the index syntax for a field named ``city`` that is nested inside a
-field named ``address``.    
+.. _fts-dynamic-mappings: 
 
 Dynamic Mappings 
 ~~~~~~~~~~~~~~~~
 
-Use dynamic mappings if your schema changes regularly or is unknown, or 
-when experimenting with |fts|. You can configure an entire index to use 
-dynamic mappings, or specify individual fields, such as fields of type 
-``document``, to be dynamically mapped. Before using dynamic mappings,
-see the table for :ref:`bson-data-chart`. 
+Use dynamic mapping to automatically index all fields of :ref:`supported types <bson-data-chart>` 
+in your collection. We recommend using dynamic mappings only if your schema changes regularly or is unknown, or 
+if you're experimenting with |fts|. Dynamically mapped indexes occupy more disk space
+than statically mapped indexes and may be less performant.
 
-For dynamic mappings, set ``mappings.dynamic`` to ``true``. |fts| 
-automatically indexes the fields of :ref:`supported types 
-<bson-data-chart>` in each document. For fields of type 
-:ref:`string <bson-data-types-string>`, |fts| stores the fields on ``mongot``.
+When you dynamically index a field that contains polymorphic data, |fts| automatically indexes
+the field as all of the dynamically indexable field types that correspond to the data.
+If the field contains data of a type that |fts| doesn't index automatically, |fts| won't index that data.
 
-.. note::
+|fts| dynamically indexes all fields in a document using the default settings for the detected data type.
+|fts| also dynamically indexes all nested documents under the document, unless you explicitly override by setting ``dynamic`` to ``false``.
 
-   Dynamically mapped indexes occupy more disk space than statically 
-   mapped indexes and may be less performant.
+To learn which data types support dynamic indexing, see the :ref:`bson-data-types` section below. 
+
+.. _fts-static-mappings: 
+
+Static Mappings 
+~~~~~~~~~~~~~~~
+
+Use static mapping to configure index options for fields that
+you *don't* want indexed dynamically, or to configure a single field 
+independently from others in an index. When you use static mapping,
+|fts| indexes only the fields that you specify in ``mappings.fields``. 
+
+When you statically index a field containing polymorphic data, |fts| only indexes documents that
+correspond to the mapping specified in the index definition for that field. 
+|fts| doesn't index documents that don't match the data type specified in the
+index definition for that field. 
+
+To define the index for a nested field, you must define the mappings 
+for each parent field of that nested field. You can't use the dot notation to statically index nested fields.
+For examples, see the :ref:`index-config-example` or :ref:`fts-combined-mapping-example` below. 
 
 .. _bson-data-chart:
 .. _bson-data-types:
@@ -117,22 +168,19 @@ Data Types
 - Regular Expression
 - Timestamp
 
+|fts| automatically stores fields of type :ref:`string <bson-data-types-string>` on ``mongot``.
+You can store fields of all supported :ref:`data types <bson-data-chart>` on |fts| using the 
+:ref:`fts-stored-source-definition` option in your index definition.
+To learn more about ``mongot`` and |fts| node architecture, see :ref:`fts-deployment-options`. 
+
 The following table enumerates the supported :manual:`BSON data types
-</reference/bson-types/>` and the :ref:`Atlas Search field
-types <bson-data-types>` that you can use to index the BSON data types. 
+</reference/bson-types/>` and the :ref:`{+fts+} field
+types <bson-data-types>` that you can use to index the |bson| data types. 
 The table also indicates whether the |fts| field type is automatically
 included in an |fts| index when you enable :ref:`dynamic mappings
 <static-dynamic-mappings>` and lists the 
 :ref:`operators and collectors <operators-ref>` that you can use to
 query the field value. 
-
-.. note::
-
-   When you dynamically index a field that has polymorphic data, |fts| 
-   automatically indexes the field as all the dynamically indexable 
-   field types that correspond to the data. If the field contains data 
-   of a type that |fts| doesn't index automatically, |fts| won't index 
-   that data.
 
 .. list-table::
    :header-rows: 1
@@ -296,21 +344,6 @@ query the field value.
    <bson-data-chart>` on |fts| using the ``storedSource`` :ref:`option 
    <index-definition-options>`.
 
-.. _bson-data-types-limitations:
-
-Limitations
-~~~~~~~~~~~
-
-By default, |fts| stops replicating changes for indexes larger than 2.1 billion
-index objects, on a replica set or single shard, where each indexed document 
-or nested ``embeddedDocument`` counts as a single object. This means that your 
-index is queryable, but you might get stale results.
-
-If you plan to index fields that might exceed 2.1 billion objects,
-use ``numPartitions`` or :ref:`shard your cluster <create-cluster-sharding>`.
-
-.. include:: /includes/fts/facts/fact-fts-field-name-restriction.rst
-
 .. _bson-data-types-indexing:
 
 Index Field as Multiple Data Types 
@@ -356,6 +389,8 @@ definition array for the field.
 Examples
 --------
 
+.. _fts-static-mapping-example: 
+
 Static Mapping Example 
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -388,9 +423,6 @@ The following index definition example uses static mappings.
     named ``mySecondaryAnalyzer`` which uses the 
     :ref:`lucene.french <ref-language-analyzers>` analyzer by 
     default for queries.
-
-    To learn more about ``multi`` analyzers, see :ref:`Path 
-    Construction <ref-path>`.
 
   - The ``employees`` field, which is an array of strings. It 
     uses the :ref:`lucene.standard <ref-keyword-analyzer>` 
@@ -439,7 +471,7 @@ The following index definition example uses static mappings.
      }
    }
 
-.. _index-combined-config-example:
+.. _fts-combined-mapping-example:
 
 Combined Mapping Example 
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -462,8 +494,7 @@ and dynamic mappings.
     analyzer by default for queries. It has a ``multi`` analyzer 
     named ``mySecondaryAnalyzer`` which uses the 
     :ref:`lucene.french <ref-language-analyzers>` analyzer by 
-    default for queries. To learn more about ``multi`` 
-    analyzers, see :ref:`Path Construction <ref-path>`.
+    default for queries.
   - The ``employees`` field, which  is an array of strings. It 
     uses the :ref:`lucene.standard <ref-keyword-analyzer>` 
     analyzer by default for queries. 

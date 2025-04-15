@@ -23,7 +23,7 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
-		"index": "multilingual-tutorial",
+		"index": "default",
 		"compound": bson.M{
 			"must": bson.D{
 				{"text", bson.M{

@@ -32,7 +32,7 @@ public class BuryGenreCompoundExample
                         Builders<MovieDocument>.SearchPath.Multi(movie => movie.Title, movie => movie.Plot), "ghost"))
                     .Filter(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Comedy", score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(0.5)))
                 ),
-                indexName: "compound-query-custom-score-tutorial")
+                indexName: "default")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)

@@ -15,7 +15,7 @@ public class PartialMatchQuery {
 
         // define query
 		Document agg = new Document("$search",
-		new Document ("index", "partial-match-tutorial")
+		new Document ("index", "default")
 		.append("autocomplete", 
 			new Document("path", "plot")
 				.append("query", "new purchase")

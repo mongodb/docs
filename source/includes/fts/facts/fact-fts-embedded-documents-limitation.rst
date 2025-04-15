@@ -1,13 +1,12 @@
 |fts| stops replicating changes for indexes larger than 2,100,000,000
 index objects per partition, on a replica set or single shard, where each indexed
-embedded document counts as a single object. Using the
-``embeddedDocuments`` field type can result in indexing objects over
-this limit, which causes an index to transition to a ``Stale``
-queryable state, and may result in stale results.
+embedded parent document counts as a single object. Surpassing this limit causes 
+an index to transition to a ``stale`` queryable state, which may result in stale query results. 
+
+Using the ``embeddedDocuments`` field type can result in indexing objects over
+this index size limit, because each indexed embedded document is counted as a single object. 
 If you create an |fts| index for a collection that has or will soon
-have more than 2.1 billion index objects, you must use the
-``numPartitions`` :ref:`option <index-definition-options>`
-or :ref:`shard your cluster <create-cluster-sharding>`.
+have more than 2.1 billion index objects, you must :ref:`shard your cluster <create-cluster-sharding>`.
 
 The exact number of index objects can vary based on the rate of document
 changes and deletions. The :ref:`Search Max Number of Lucene Docs
@@ -21,7 +20,7 @@ index by doing the following:
    .. code-block:: shell 
       :copyable: false 
 
-      total number of index objects = 1 + number of nested embedded documents
+      number of index objects in document = 1 + number of nested embedded documents
 
 2. Multiply the number of index objects per document by the
    total number of documents in the collection
@@ -29,7 +28,7 @@ index by doing the following:
    .. code-block:: shell 
       :copyable: false 
 
-      total number of index objects x total number of documents in collection
+      total number of index objects = number of index objects in document x total number of documents in collection
 
 Note that this approximation is a lower bound. 
 

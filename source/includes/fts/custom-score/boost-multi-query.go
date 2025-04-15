@@ -32,7 +32,7 @@ func main() {
 	collection := client.Database("sample_mflix").Collection("movies")
 	// define pipeline
 	searchStage := bson.D{{"$search", bson.M{
-		"index": "compound-query-custom-score-tutorial",
+		"index": "default",
 		"compound": bson.M{
 			"must": bson.A{
 				bson.M{

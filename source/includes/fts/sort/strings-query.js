@@ -18,7 +18,6 @@ async function run() {
     const agg = [
       {
         '$search': {
-          'index': 'sort-tutorial', 
           'compound': {
             'should': [
               {

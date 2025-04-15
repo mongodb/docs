@@ -17,7 +17,7 @@ async function run() {
     // define pipeline
     const agg = [
       {$search: {
-        index: "sort-tutorial",
+        index: "default",
         compound: {
           filter: {wildcard: {query: "Summer*", path: "title"}},
           must: [{near: {path: "released", origin: new Date("2014-04-18T00:00:00.000Z"), pivot: 13149000000}}]

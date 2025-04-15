@@ -1,23 +1,7 @@
 .. procedure::
    :style: normal
-
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-atlas-search.rst
       
-   .. step:: Go to the :guilabel:`Search Tester`.
-      
-      Click the :guilabel:`Query` button to the right of the index to 
-      query.
-      
-   .. step:: View and edit the query syntax.
-      
-      Click :guilabel:`Edit Query` to view a default query syntax 
-      sample in |json| format.
-      
-   .. step:: Run an |fts| query against the indexed field and sort the results.
-
-      .. include:: /includes/fts/extracts/fts-sort-by-numbers-constant-desc.rst 
+   .. step:: Run the query.
       
       Copy and paste the following query into the :guilabel:`Query Editor`, 
       and then click the :guilabel:`Search` button in the 
@@ -32,7 +16,6 @@
             [
               {
                 "$search": {
-                  "index": "sort-tutorial",
                   "range": {
                     "path": "awards.wins",
                     "gte": 10
@@ -45,7 +28,7 @@
             ]
             
          .. output::
-            :visible: true
+            :visible: false
             :emphasize-lines: 8, 19, 30, 41, 52, 63, 74, 85, 96, 107
             
             SCORE: 1  _id:  "573a13d5f29313caabd9cae7"

@@ -14,9 +14,7 @@
 
    .. step:: Customize your |fts| index configuration settings.
 
-      Click :guilabel:`Refine Your Index` to make changes to any of 
-      the following settings and click :guilabel:`Save Changes`.
-
-      .. include:: /includes/fts/list-tables/list-table-fts-index-visual-editor.rst
-
+      a. Click :guilabel:`Refine Your Index` to make changes to your index configuration.
+      #. Click :guilabel:`Save Changes`.
+      
    .. include:: /includes/fts/search-index-management/procedures/steps-fts-finish-index-creation.rst

@@ -1,16 +1,8 @@
-Create One Index
-~~~~~~~~~~~~~~~~
-
 To create an |fts| index through the :driver:`Node Driver </node/current/>`:
 
 1. Define the search index from your application.
-      
-#. Run the ``createSearchIndex`` or ``createSearchIndexes`` helper method.
 
-The following sample application named ``create-index.js`` 
-defines a search index to dynamically index the fields in your collection,
-and then runs the ``createSearchIndex`` command to create the index.
-To learn more, see :ref:`ref-index-definitions`.
+#. Run the ``createSearchIndex`` or ``createSearchIndexes`` helper method.
 
 .. procedure::
    :style: normal
@@ -19,33 +11,79 @@ To learn more, see :ref:`ref-index-definitions`.
 
    .. step:: Define the search index.
 
-      Replace the placeholder values in the following example:
+      .. tabs:: 
 
-      .. list-table::
-         :widths: 20 80
-         :header-rows: 1
+         .. tab:: Create One Search Index
+            :tabid: create-one
 
-         * - Value
-           - Description
+            Replace the placeholder values in the following example application named
+            ``create-index.js``, which uses the ``createSearchIndex`` command to define 
+            an |fts| index:
 
-         * - ``<connection-string>`` 
-           - Your |service| connection string. To learn more, see 
-             :ref:`connect-via-driver`.
+            .. list-table::
+               :widths: 20 80
+               :header-rows: 1
 
-         * - ``<databaseName>``
-           -  Database for which you want to create the index.
+               * - Value
+                 - Description
 
-         * - ``<collectionName>``   
-           - Collection for which you want to create the index.
+               * - ``<connectionString>`` 
+                 - Your |service| connection string. To learn more, see 
+                   :ref:`connect-via-driver`.
 
-         * - ``<index-name>`` 
-           - Name of your index. If you omit the index name, |fts| 
-             names the index ``default``.
+               * - ``<databaseName>``
+                 -  Database for which you want to create the index.
 
-      .. literalinclude:: /includes/fts/search-index-management/create-index.js
-         :caption: create-index.js
-         :language: javascript
-         :copyable:
+               * - ``<collectionName>``   
+                 - Collection for which you want to create the index.
+
+               * - ``<indexName>`` 
+                 - Name of your index. If you omit the index name, |fts| 
+                   names the index ``default``.
+
+               * - ``<IndexDefinition>``
+                 - The definition of your index. To learn about index definition syntax, see :ref:`ref-index-definitions`.  
+
+            .. literalinclude:: /includes/fts/search-index-management/create-index.js
+               :caption: create-index.js
+               :language: javascript
+               :copyable:
+
+         .. tab:: Create Multiple Search Indexes
+            :tabid: create-multiple
+
+            .. list-table::
+               :widths: 20 80
+               :header-rows: 1
+
+               * - Value
+                 - Description
+
+               * - ``<connectionString>`` 
+                 - Your |service| connection string. To learn more, see 
+                   :ref:`connect-via-driver`.
+
+               * - ``<databaseName>``
+                 -  Database for which you want to create the index.
+
+               * - ``<collectionName>``   
+                 - Collection for which you want to create the index.
+
+               * - ``<indexName>`` 
+                 - Name of your index. If you omit the index name, |fts| 
+                   names the index ``default``.
+
+               * - ``<IndexDefinition>``
+                 - The definition of your index. To learn about index definition syntax, see :ref:`ref-index-definitions`.
+
+            Replace the placeholder values in the following example application named
+            ``create-index.js``, which uses the ``createSearchIndexes`` command to define 
+            an |fts| index:  
+
+            .. literalinclude:: /includes/fts/search-index-management/create-indexes.js
+               :caption: create-index.js
+               :language: javascript
+               :copyable:        
 
    .. step:: Run the sample application to create the index.
       
@@ -60,69 +98,6 @@ To learn more, see :ref:`ref-index-definitions`.
             node create-index.js
 
          .. output::
-
-            <index-name>
-
-Create Multiple Indexes
-~~~~~~~~~~~~~~~~~~~~~~~
-   
-To create multiple |fts| indexes at once:
-
-1. In your application, define an array of search indexes.
-      
-#. Pass the array into the ``createSearchIndexes`` command.
-
-The following example shows how to use the ``createSearchIndexes`` 
-command to create multiple indexes:
-
-.. procedure::
-   :style: normal
-
-   .. step:: Create a file named ``create-index-mult.js``.
-
-   .. step:: Define the search index.
-
-      Replace the placeholder values in the following example:
-
-      .. list-table::
-         :widths: 20 80
-         :header-rows: 1
-
-         * - Value
-           - Description
-
-         * - ``<connection-string>`` 
-           - Your |service| connection string. To learn more, see 
-             :ref:`connect-via-driver`.
-
-         * - ``<databaseName>``
-           -  Database for which you want to create the index.
-
-         * - ``<collectionName>``   
-           - Collection for which you want to create the index.
-
-         * - ``<first-index-name>`` 
-           - Name of your first index.
-
-         * - ``<last-index-name>``
-           - Name of your last index. 
-
-      .. literalinclude:: /includes/fts/search-index-management/create-indexes.js
-         :language: javascript
-         :copyable:
-
-   .. step:: Run the sample application to create the index.
-      
-      Use the following command:
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: shell
-
-            node create-index-mult.js
-
-         .. output::
+            :visible: false
 
             <index-name>

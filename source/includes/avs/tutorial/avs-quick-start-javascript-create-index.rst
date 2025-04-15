@@ -30,7 +30,7 @@ a. Add the MongoDB Node Driver as a dependency in your project:
 
    .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
-#. Run the following command to create the index.
+#. Create the index.
 
    .. io-code-block::
        :copyable: true 

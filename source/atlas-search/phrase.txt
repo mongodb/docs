@@ -74,8 +74,7 @@ Options
    * - ``path``
      - string or array of strings
      - Indexed field or fields to search. You can also specify a 
-       :ref:`wildcard path <ref-path-usage>` to search. 
-       To learn more, see :ref:`Construct a Query Path <ref-path>`. 
+       wildcard path to search.
 
        :gold:`IMPORTANT:` To use the ``phrase`` operator, you must index the query field as type ``string`` with the ``indexOptions`` property
        set to ``positions`` or the default value, ``offsets``. To learn more, see :ref:`Configure String Field Properties <fts-field-types-string-options>`. 
@@ -156,6 +155,69 @@ includes a:
 - :pipeline:`$project` stage to exclude all fields except
   ``title`` and add a field named ``score``.
 
+Basic Example 
+`````````````
+
+The following query returns the documents that match the search
+criteria. 
+
+.. io-code-block:: 
+   :copyable: true 
+    
+   .. input:: 
+      :language: json
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "phrase": {
+              "path": "title",
+              "query": "new york"
+            }
+          }
+        },
+        { $limit: 10 },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: shell
+      :linenos:
+      :visible: false
+
+      [
+        { title: 'New York, New York', score: 6.786321640014648 }
+        { title: 'New York', score: 6.258549213409424 }
+        { title: 'New York Stories', score: 5.3813982009887695 }
+        { title: 'New York Minute', score: 5.3813982009887695 }
+        { title: 'Synecdoche, New York', score: 5.3813982009887695 }
+        { title: 'New York Doll', score: 5.3813982009887695 }
+        { title: 'Little New York', score: 5.3813982009887695 }
+        { title: 'Escape from New York', score: 4.719893455505371 }
+        { title: 'Naked in New York', score: 4.719893455505371 }
+        { title: 'Autumn in New York', score: 4.719893455505371 }
+      ]
+
+Metadata Example 
+````````````````
+
+The following query returns the metadata results for the search
+criteria. It uses the :pipeline:`$searchMeta` stage to get the
+number of movies in the following buckets (years) that match the search 
+criteria:
+
+- 2000, inclusive lower bound for this bucket
+- 2005, exclusive upper bound for the 2000 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2005 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2010 bucket
+
 .. example::
 
    .. io-code-block:: 
@@ -167,19 +229,22 @@ includes a:
 
          db.movies.aggregate([
            {
-             "$search": {
-               "phrase": {
-                 "path": "title",
-                 "query": "new york"
+             "$searchMeta": {
+               "facet": {
+                 "operator": {
+                   "phrase": {
+                     "path": "title",
+                     "query": "new york"
+                   }
+                 },
+                 "facets": {
+                   "yearFacet": {
+                     "type": "number",
+                     "path": "year",
+                     "boundaries": [2000, 2005, 2010, 2015 ]
+                   }
+                 }
                }
-             }
-           },
-           { $limit: 10 },
-           {
-             $project: {
-               "_id": 0,
-               "title": 1,
-               score: { $meta: "searchScore" }
              }
            }
          ])
@@ -190,17 +255,23 @@ includes a:
          :visible: false
 
          [
-           { title: 'New York, New York', score: 6.786321640014648 }
-           { title: 'New York', score: 6.258549213409424 }
-           { title: 'New York Stories', score: 5.3813982009887695 }
-           { title: 'New York Minute', score: 5.3813982009887695 }
-           { title: 'Synecdoche, New York', score: 5.3813982009887695 }
-           { title: 'New York Doll', score: 5.3813982009887695 }
-           { title: 'Little New York', score: 5.3813982009887695 }
-           { title: 'Escape from New York', score: 4.719893455505371 }
-           { title: 'Naked in New York', score: 4.719893455505371 }
-           { title: 'Autumn in New York', score: 4.719893455505371 }
+           {
+             count: { lowerBound: Long('27') },
+             facet: {
+               yearFacet: {
+                 buckets: [
+                   { _id: 2000, count: Long('3') },
+                   { _id: 2005, count: Long('8') },
+                   { _id: 2010, count: Long('4') }
+                 ]
+               }
+             }
+           }
          ]
+
+   The results show that there are 3 movies between 2000 and 2005, 8
+   movies between 2005 and 2010, and 4 movies between 2010 and 2015 that
+   contain the term ``new york`` in the ``title``.
 
 Multiple Phrases Example
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -212,55 +283,53 @@ value defaults to ``0``, which means the position of the words
 must exactly match the query string to be included in the
 results. The query also includes a:
 
-.. example::
+- :pipeline:`$limit` stage to limit the output to 10.
+- :pipeline:`$project` stage to exclude all fields except
+  ``title`` and add a field named ``score``.
 
-   - :pipeline:`$limit` stage to limit the output to 10.
-   - :pipeline:`$project` stage to exclude all fields except
-     ``title`` and add a field named ``score``.
+.. io-code-block:: 
+   :copyable: true 
+  
+   .. input:: 
+      :language: json
+      :linenos:
 
-   .. io-code-block:: 
-      :copyable: true 
-      
-      .. input:: 
-         :language: json
-         :linenos:
+      db.movies.aggregate([
+        {
+          "$search": {
+            "phrase": {
+              "path": "title",
+              "query": ["the man", "the moon"]
+            }
+          }
+        },
+        { $limit: 10 },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
 
-         db.movies.aggregate([
-           {
-             "$search": {
-               "phrase": {
-                 "path": "title",
-                 "query": ["the man", "the moon"]
-               }
-             }
-           },
-           { $limit: 10 },
-           {
-             $project: {
-               "_id": 0,
-               "title": 1,
-               score: { $meta: "searchScore" }
-             }
-           }
-         ])
+   .. output:: 
+      :language: shell
+      :linenos:
+      :visible: false
 
-      .. output:: 
-         :language: shell
-         :linenos:
-         :visible: false
-
-         [
-           { title: 'The Man in the Moon', score: 4.4830474853515625 },
-           { title: 'Shoot the Moon', score: 3.252699851989746 },
-           { title: 'Kick the Moon', score: 3.252699851989746 },
-           { title: 'The Man', score: 2.8923356533050537 },
-           { title: 'The Moon and Sixpence', score: 2.8528637886047363 },
-           { title: 'The Moon Is Blue', score: 2.8528637886047363 },
-           { title: 'Racing with the Moon', score: 2.8528637886047363 },
-           { title: 'Mountains of the Moon', score: 2.8528637886047363 },
-           { title: 'Man on the Moon', score: 2.8528637886047363 },
-           { title: 'Castaway on the Moon', score: 2.8528637886047363 }
-         ]
+      [
+        { title: 'The Man in the Moon', score: 4.4830474853515625 },
+        { title: 'Shoot the Moon', score: 3.252699851989746 },
+        { title: 'Kick the Moon', score: 3.252699851989746 },
+        { title: 'The Man', score: 2.8923356533050537 },
+        { title: 'The Moon and Sixpence', score: 2.8528637886047363 },
+        { title: 'The Moon Is Blue', score: 2.8528637886047363 },
+        { title: 'Racing with the Moon', score: 2.8528637886047363 },
+        { title: 'Mountains of the Moon', score: 2.8528637886047363 },
+        { title: 'Man on the Moon', score: 2.8528637886047363 },
+        { title: 'Castaway on the Moon', score: 2.8528637886047363 }
+      ]
 
 Slop Example
 ~~~~~~~~~~~~
@@ -313,6 +382,8 @@ stage to:
         { title: 'Women Without Men', score: 1.9656763076782227 },
         { title: 'Women Vs Men', score: 1.9656763076782227 }
       ]
+
+.. _fts-phrase-synonyms-example: 
 
 Synonyms Example
 ~~~~~~~~~~~~~~~~

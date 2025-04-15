@@ -39,7 +39,7 @@ public class GeoQuery
             .Search(Builders<AirbnbDocument>.Search.Compound()
                 .Must(Builders<AirbnbDocument>.Search.GeoWithin(airbnb => airbnb.Address.Location, polygon))
                 .Should((Builders<AirbnbDocument>.Search.Text(airbnb => airbnb.PropertyType, property_type))),
-                indexName: "geo-json-tutorial")
+                indexName: "<INDEX-NAME>")
             .Limit (10)
             .Project<AirbnbDocument>(Builders<AirbnbDocument>.Projection
                 .Include(airbnb => airbnb.PropertyType)

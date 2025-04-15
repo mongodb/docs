@@ -1,23 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-atlas-search.rst
-      
-   .. step:: Go to the :guilabel:`Search Tester`.
-      
-      Click the :guilabel:`Query` button to the right of the index to 
-      query.
-      
-   .. step:: View and edit the query syntax.
-      
-      Click :guilabel:`Edit Query` to view a default query syntax 
-      sample in |json| format.
-      
-   .. step:: Run an |fts| query against the indexed date field and sort the results.
-
-      .. include:: /includes/fts/extracts/fts-sort-by-date-constant-desc.rst
+   .. step:: Run the query.
       
       Copy and paste the following query into the :guilabel:`Query Editor`, 
       and then click the :guilabel:`Search` button in the 
@@ -32,7 +16,6 @@
             [
               {
                 $search: {
-                  "index": "sort-tutorial",
                   "compound": {
                     "filter": [{
                       "wildcard": {
@@ -57,7 +40,7 @@
             ]
             
          .. output::
-            :visible: true
+            :visible: false
       
             SCORE: 0.348105788230896  _id:  "573a13f0f29313caabddaf7a"
               countries: Array

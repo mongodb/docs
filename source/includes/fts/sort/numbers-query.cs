@@ -23,7 +23,7 @@ public class SortByNumbers
         var searchOptions = new SearchOptions<MovieDocument>() 
             { 
                 Sort = Builders<MovieDocument>.Sort.Descending(movies => movies.Awards.Wins),
-                IndexName = "sort-tutorial"
+                IndexName = "default"
             };
 
         // define and run pipeline

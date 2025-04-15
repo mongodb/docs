@@ -9,7 +9,7 @@
      - .. code-block:: javascript
 
           {
-            "index": "compound-query-custom-score-tutorial",
+            "index": "default",
             "compound": {
               "should": [ 
                 {

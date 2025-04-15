@@ -1,33 +1,39 @@
-.. procedure::
-   :style: normal
+a. Connect to the |service| {+cluster+} using {+mongosh+}.
 
-   .. step:: Connect to your {+cluster+} in {+mongosh+}.
+   Open {+mongosh+} in a terminal window and connect to your |service|
+   {+cluster+}. For detailed instructions on connecting, see
+   :ref:`Connect via mongosh <connect-mongo-shell>`.
 
-      Open {+mongosh+} in a terminal window and
-      connect to your {+cluster+}. For detailed instructions on 
-      connecting, see :ref:`connect-mongo-shell`.
-   
-   .. step:: Use the ``sample_mflix`` database.
+#. Switch to the database that contains the collection for which you want to create the index. 
 
-      Run the following command in the {+mongosh+} prompt:
+   .. example:: 
 
-      .. code-block:: javascript
+      .. io-code-block:: 
+         :copyable: true 
 
-         use sample_mflix
-   
-   .. step:: Create an |fts| index on the ``movies`` collection.
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
+         .. input:: 
             :language: shell
+              
+            use sample_mflix 
 
-            db.movies.createSearchIndex(
-               "default",
-               { mappings: { dynamic: true } }
-            )
+         .. output:: 
+            :language: shell 
 
-         .. output::
+            switched to db sample_mflix
 
-            default
+#. Run the :method:`db.collection.createSearchIndex()` method.
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input::
+         :language: shell
+
+         db.movies.createSearchIndex(
+            "default",
+            { mappings: { dynamic: true } }
+         )
+
+      .. output::
+
+         default

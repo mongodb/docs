@@ -1,9 +1,9 @@
-On :ref:`separate Search Nodes <configure-search-nodes>`, each node has
-its own copy of a document with a different internal ID that Lucene uses
-to sort the results when multiple documents have identical scores. If
-the internal ID of the document on a node that isn't processing the
-query has a greater pagination order than the pagination token, the 
-``mongot`` on the node that is processing the query might include it in
-the results if you sort and :ref:`paginate <fts-paginate-results>` the
-results. To mitigate this, use :pipeline:`$match` after
-:pipeline:`$search` to exclude the document by its ``_id``.
+On :ref:`separate Search Nodes <configure-search-nodes>`, 
+each node assigns documents different internal Lucene IDs 
+used for sorting when scores are identical. 
+When sorting and :ref:`paginating <fts-paginate-results>` results, 
+the ``mongot`` process on the node that is processing the query
+might include documents from other nodes if their internal IDs have
+greater pagination order than the token. 
+To prevent this, use :pipeline:`$match` after :pipeline:`$search` 
+to exclude documents by their ``_id``.

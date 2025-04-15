@@ -1,45 +1,44 @@
-.. procedure:: 
-   :style: normal 
+a. Set up and initialize the .NET/C# project for the query.
 
-   .. step:: Set up and initialize the .NET/C# project for the query.
+   Create a new directory called ``atlas-search-quickstart`` and
+   initialize your project with the dotnet new command. 
 
-      a. Create a new directory called ``create-index-tutorial`` and
-         initialize your project with the dotnet new command. 
-  
-         .. code-block:: bash
+   .. code-block:: bash
 
-            mkdir create-index-tutorial
-            cd create-index-tutorial
-            dotnet new console
+      mkdir atlas-search-quickstart
+      cd atlas-search-quickstart
+      dotnet new console
 
-      #. Add the .NET/C# Driver to your project as a dependency.
+   Then, add the .NET/C# Driver to your project as a dependency.
 
-         .. code-block:: bash
+   .. code-block:: bash
 
-            dotnet add package MongoDB.Driver
+      dotnet add package MongoDB.Driver
 
-   .. step:: Copy and paste the query into the ``Program.cs`` file.
+   For more detailed installation instructions, see the 
+   :ref:`MongoDB C# Driver documentation <csharp-quickstart>`.
+   
+#. Copy and paste the query into the ``Program.cs`` file.
 
-      .. literalinclude:: /includes/fts/search-index-management/csharp/CreateIndexTutorial.cs
-         :caption: Program.cs
-         :language: csharp
-         :copyable:
+   .. literalinclude:: /includes/fts/search-index-management/csharp/CreateIndexTutorial.cs
+      :caption: Program.cs
+      :language: csharp
+      :copyable:
 
-   .. step:: Replace the ``<connection-string>`` in the query and then save the file.
+#. Specify the ``<connection-string>``.
 
-      Ensure that your connection string includes your database user's
-      credentials. To learn more, see :ref:`connect-via-driver`. 
+   .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
-   .. step:: Compile and run the ``Program.cs`` file.
-      
-      .. io-code-block::
-         :copyable: true
+#. Compile and run the file to create the index.
+   
+   .. io-code-block::
+      :copyable: true
 
-         .. input::
-            :language: shell
+      .. input::
+         :language: shell
 
-            dotnet run csharp-create-index.csproj
+         dotnet run Program.cs
 
-         .. output::
+      .. output::
 
-            default
+         default

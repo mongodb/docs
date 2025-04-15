@@ -2,7 +2,7 @@
    :style: normal 
 
    .. include:: /includes/avs/bson-bindata-vectors/steps-preliminary-shared-java.rst
-
+    
    .. step:: Generate embeddings from your data. 
 
       You can use an embedding model provider to generate ``float``,

@@ -35,7 +35,7 @@ public class BuryDocumentCompoundExample
                         Builders<MovieDocument>.SearchPath.Multi(movie => movie.Title, movie => movie.Plot), "ghost"))
                     .Filter(Builders<MovieDocument>.Search.In(movie => movie.Id, new[] {ObjectId.Parse(id1), ObjectId.Parse(id2)}, score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(0.5)))
                 ),
-                indexName: "compound-query-custom-score-tutorial")
+                indexName: "default")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)

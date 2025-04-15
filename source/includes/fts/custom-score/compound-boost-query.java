@@ -30,7 +30,7 @@ public class CompoundBoostQuery {
     // define query
     Document agg =
         new Document("$search",
-            new Document("index", "compound-query-custom-score-tutorial")
+            new Document("index", "default")
             .append("compound",
                 new Document("must", mustClauses).append("should", shouldClauses))
             .append("highlight", highlightOption));

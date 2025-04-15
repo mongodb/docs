@@ -18,7 +18,7 @@ async function run() {
     const agg = [
         {
           '$search': {
-            'index': 'case-insensitive-sort', 
+            'index': 'default', 
             'text': { 'path': 'title', 'query': 'train' }, 
             'sort': { 'title': 1 }
           }

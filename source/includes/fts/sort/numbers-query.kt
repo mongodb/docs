@@ -16,7 +16,7 @@ fun main() {
         // define query
         val agg = Document(
             "\$search",
-            Document("index", "sort-tutorial")
+            Document("index", "default")
                 .append(
                     "range",
                     Document("path", "awards.wins")

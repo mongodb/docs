@@ -40,7 +40,7 @@
             ]
       
          .. output::
-            :visible: true
+            :visible: false
                
             SCORE: 3.8531038761138916  _id:  "573a13b3f29313caabd3b409"
               fullplot: "Three guys, all their lives, have been living in the shadow of bullies…"
@@ -91,11 +91,6 @@
               fullplot: "The story of Baseball Hall-of-Famer Hank Greenberg is told through arc…"
               imdb: Object
               year: 1998
-      
-      To learn more about the :ref:`$search <query-syntax-ref>`
-      pipeline stage, see its reference page. For complete aggregation
-      pipeline documentation, see the :manual:`MongoDB Server Manual
-      </aggregation>`.
       
    .. step:: Expand your query results.
       

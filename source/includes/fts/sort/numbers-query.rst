@@ -9,7 +9,7 @@
      - .. code-block:: javascript
 
           {
-            index: "sort-tutorial",
+            index: "default",
             "range": {
               "path": "awards.wins",
               "gte": 10

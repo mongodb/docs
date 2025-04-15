@@ -1,190 +1,171 @@
-:template: product-landing
-:hidefeedback: header
 :noprevnext:
 
 .. _fts-top-ref:
 .. _atlas-search:
 
-======================
-What is MongoDB |fts|?
-======================
+=====================
+Atlas Search Overview 
+=====================
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. meta::
-   :keywords: custom database search engine, autocomplete, search API, in-app search, product catalog search, full-text search, text search, lexical search
-   :description: Use MongoDB Atlas Search to customize and embed a full-text search engine in your app.
+   :keywords: advanced search capabilities, search architecture, apache lucene
+   :description: Learn about MongoDB Atlas Search.
 
-.. introduction:: 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
-   |fts| is an embedded full-text search in |service-fullname| that 
-   gives you a seamless, scalable experience for building 
-   relevance-based app features. Built on Apache Lucene, |fts| 
-   eliminates the need to run a separate search system alongside your 
-   database.
+.. _what-is-fts:
 
-   .. button:: Get Started
-      :uri: https://www.mongodb.com/docs/atlas/atlas-search/tutorial/
+What is |fts|? 
+---------------
 
-   :doc:`Learn More About Atlas Search </atlas-search/atlas-search-overview>`
+|fts| is an embedded full-text search that gives you a seamless,
+scalable experience for building relevance-based app features
+and eliminates the need to run a separate search system
+alongside your database.
 
-.. image:: /images/atlas-search-plp/atlas-search-plp-hero.svg 
-   :alt: MongoDB Atlas Search landing page hero image
+You can use |fts| for fine-grained text indexing and querying of data on your
+{+cluster+}. |fts| provides several kinds of :ref:`text analyzers <analyzers-ref>`, 
+a rich :ref:`query language <query-syntax-ref>` to create complex search logic,
+customizable score-based results ranking, and advanced search features for your
+applications like autocomplete, pagination, and faceting.
 
-.. kicker:: What You Can Do
+.. button:: Get Started with |fts|
+   :uri: https://www.mongodb.com/docs/atlas/atlas-search/tutorial/
 
-Integrated Search in |service-fullname|
----------------------------------------
+Use Cases
+---------
 
-Easily build search on top of your data with an integrated, fully 
-managed search engine that automatically syncs to your database.
+|fts| supports diverse use cases including the following:
 
-.. tabs::
+- **Search-as-you-type:** To predict words with increasing accuracy as users
+  enter characters in your application's search field, you can use the |fts|
+  :ref:`autocomplete-ref` operator to predict and return results for
+  partial words. To learn more, see :ref:`partial-match-tutorial`.
+- **Faceted Search:** To enable users of your application to narrow down
+  search results through the use of filters, you can use
+  the |fts| :ref:`fts-facet-ref` collector to build facets that group
+  results by values or ranges in the faceted fields. To learn more, see
+  :ref:`facet-tutorial`. 
+- **Paginated Results:** To group pages of results and implement functions like
+  "Next Page" and "Previous Page", you can use the |fts|
+  ``searchSequenceToken`` with ``searchAfter`` and ``searchBefore``
+  options to traverse pages in-order and jump across pages. To learn
+  more, see :ref:`How to Paginate the Results <fts-paginate-results>`.
 
-   .. tab:: Get Started With |fts|
-      :tabid: atlas-search-get-started
+Key Concepts
+------------
 
-      .. procedure::
+The following concepts form the basis of |fts| and are essential to
+optimize your application. 
 
-         .. step:: Create Search Indexes
+What are search queries? 
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-            Create index definitions for your data using editors in the 
-            {+atlas-ui+}, with a single |service| Admin API call, or 
-            using the {+atlas-cli+}.
+Search queries consult a search index to return a set of results. Search
+queries are different than traditional database queries, as they are
+intended to meet more general information needs. Where a database query
+must follow a strict syntax, search queries can be used for simple text
+matching, but can also look for similar phrases, number or date ranges,
+or use regular expressions or wildcards. 
 
-            To learn more, see :ref:`Atlas Search Index Definition 
-            <ref-index-definitions>`
+|fts| queries take the form of an :manual:`aggregation pipeline stage 
+</aggregation>`. |fts| provides :pipeline:`$search` and 
+:pipeline:`$searchMeta` stages, which can be used in conjunction with
+other :manual:`aggregation pipeline stages </aggregation>` in your query
+pipeline. |fts| provides query :ref:`operators <operators-ref>` and 
+:ref:`collectors <collectors-ref>` that you can use inside these
+aggregation pipeline stages.
 
-         .. step:: Construct Search Queries
+To learn more, see :ref:`fts-about-queries`.
 
-            Build and run |fts| queries using the :pipeline:`$search` 
-            MongoDB aggregation pipeline stage.
+What is a search index? 
+~~~~~~~~~~~~~~~~~~~~~~~
 
-            To learn more, see :ref:`searching-ref`.
+In the context of search, an *index* is a data structure that
+categorizes data in an easily searchable format. Search indexes enable
+faster retrieval of documents that contain a given term without having
+to scan the entire collection. While both |fts| indexes and
+:manual:`MongoDB Indexes </indexes>` make data retrieval faster, note
+that they are not the same. Like the index in the back of a book, a
+search index is a mapping between terms and the documents that contain
+those terms. Search indexes also contain other relevant metadata, such
+as the positions of terms in documents. 
 
-         .. step:: Implement Best Practices
+You can create an |fts| index on a single field or on multiple fields by
+using :ref:`static mappings <static-dynamic-mappings>`. Alternatively,
+you can enable :ref:`dynamic mappings <static-dynamic-mappings>` to
+automatically index all the dynamically indexable fields in your
+documents. You can create |fts| indexes on polymorphic data and embedded
+documents, or for specific use-cases like search-as-you-type or faceted
+search.
 
-            Refer to our guidelines on scaling and monitoring |fts| 
-            workloads.
+To learn more, see :ref:`fts-about-indexing`.
 
-            To learn more, see :ref:`perf-ref`.
+What are search analyzers and tokens?  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. image:: /images/atlas-search-plp/get-started.svg
-         :alt: MongoDB Atlas Search get started image
+When creating a search index, data must first be transformed into a
+sequence of *tokens* or *terms*. An *analyzer* facilitates this process
+through steps including: 
 
-   .. tab:: Use Rich Indexing Functionality
-      :tabid: atlas-searchi-ndexing
+- *Tokenization*: Breaking up words in a string into indexable tokens.
+  For example, dividing a sentence by whitespace and punctuation.
+- *Normalization*: Organizing data so that it is consistently
+  represented and easier to analyze. For example, transforming text to
+  lower case or removing unwanted words called *stop words*. 
+- *Stemming*: Reducing words to their root form. For example, ignoring
+  suffixes, prefixes, and plural word forms. 
 
-      .. procedure::
+The specifics of tokenization are language-specific and can require
+making additional choices. Which analyzer to use depends on your data
+and application. 
 
-         .. step:: Define Field Mappings
+|fts| provides some built-in :ref:`analyzers <analyzers-ref>`. You can
+also create your own :ref:`custom analyzer <custom-analyzers>`. You can
+specify alternate analyzers using :ref:`multi <ref-multi-analyzers>`
+analyzer. 
 
-            Index field values to run queries that use 
-            :ref:`autocomplete-ref`, :ref:`text-ref`, :ref:`range-ref`, 
-            and other |fts| :ref:`operators and collectors <operators-ref>`.
+To learn more, see :ref:`analyzers-ref`.
 
-            To learn more, see :ref:`bson-data-types`.
+What is a search score? 
+~~~~~~~~~~~~~~~~~~~~~~~
 
-         .. step:: Pre-Process Data With Analyzers
+Each document in the query results receives a relevancy score that
+enables query results to be returned in order from the highest relevance
+to the lowest. In the simplest form of scoring, documents score higher
+if the query term appears frequently in a document and lower if the
+query term appears across many documents in the collection. Scoring can
+also be customized. Tailoring search to a specific domain often means
+customizing the relevance-based default score by boosting, decaying, or
+modifying it in other ways.
 
-            Define how |fts| creates search terms using built-in 
-            analyzers or create your own. 
+To learn more, see :ref:`Score Documents <scoring-ref>`.
 
-            To learn more, see :ref:`Atlas Search Analyzers 
-            <analyzers-ref>`.
+Next Steps
+----------
 
-         .. step:: Add Synonyms for Search Terms
-
-            Configure synonyms to index and search collections for 
-            words that have the same or similar meanings.
-
-            To learn more, see :ref:`synonyms-ref`.
-
-      .. image:: /images/atlas-search-plp/rich-indexing.gif
-         :alt: MongoDB Atlas Search create index UI video
-
-   .. tab:: Deliver Fast, Relevant Results
-      :tabid: atlas-search-results
-
-      .. procedure::
-
-         .. step:: Build Complex Queries With Compound
-
-            Combine two or more operators and multiple clauses in a 
-            single search query using the :ref:`compound-ref` operator. 
-
-            To learn more, see :ref:`compound-query-custom-score-tutorial`.
-
-         .. step:: Customize Relevance Scores
-
-            Modify the ranking of |fts| results to boost certain 
-            documents or match relevance requirements.
-
-            To learn more, see :ref:`scoring-ref`.
-
-         .. step:: Filter and Parse Results Quickly
-
-            Use :ref:`facets <fts-facet-ref>` to group and count |fts| 
-            results by multiple categories.
-
-            To learn more, see :ref:`facet-tutorial`.
-
-      .. image:: /images/atlas-search-plp/fast-relevant-results.gif
-         :alt: MongoDB Atlas Search custom scoring video
-
-.. kicker:: Related Products & Resources
-
-Get Hands-On Experience With |fts|
-----------------------------------
-
-Follow tutorials on additional features, learn how to return more 
-information with ``explain``, and browse the MongoDB Developer Hub
-for more real-world examples.
-
-.. card-group::
-   :columns: 3
-   :style: compact
-
-   .. card::
-      :cta: Follow Tutorials For Common Search Use Cases
-      :url: https://www.mongodb.com/docs/atlas/atlas-search/tutorials/
-      :icon: atlas_autocomplete
-      :icon-alt: MongoDB Atlas Search icon for Tutorials
-
-      Create indexes and queries that use features like autocomplete, 
-      faceted search, compound clauses, and more.
-
-   .. card::
-      :cta: Watch and Learn from MongoDB University Course
-      :url: https://learn.mongodb.com/courses/mongodb-atlas-search
-      :icon: general_content_learn
-      :icon-alt: MongoDB Atlas Search icon for MongoDB University
-
-      Learn more from the Atlas Search unit in the "Intro to MongoDB"
-      course on MongoDB University. 
-
-   .. card::
-      :cta: Browse Real-World Examples in the MongoDB Developer Center
-      :url: https://www.mongodb.com/developer/learn/?products=Atlas%20Search
-      :icon: general_content_tutorial
-      :icon-alt: MongoDB Atlas Search icon for Developer Hub
-
-      Explore video tutorials and sample applications that use |fts| 
-      and other MongoDB products.
+For a hands-on experience creating |fts| indexes and running |fts|
+queries against sample data, try the :ref:`fts-tutorial-ref`.
 
 .. toctree::
    :titlesonly:
 
-   Overview </atlas-search/atlas-search-overview>
-   Search Playground </atlas-search/playground>
-   Get Started </atlas-search/tutorial>
-   Tutorials </atlas-search/tutorials>
-   Create and Manage Indexes </atlas-search/manage-indexes>
-   Create and Run Queries </atlas-search/searching>
-   Transform Documents & Filter Collections </atlas-search/transform-documents-collections>
-   Monitor Atlas Search </atlas-search/monitoring>
+   Quick Start </atlas-search/tutorial>
+   Queries & Indexes </atlas-search/searching>
+   Improve Accuracy </atlas-search/accuracy>
    Improve Performance </atlas-search/performance>
-   APIs <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search>
-   Shared Tier Limitations </atlas-search/shared-tier-limitations>
-   FAQs </atlas-search/faq>
+   Deployment Options </atlas-search/about/deployment-options>
+   Monitor Atlas Search </atlas-search/monitoring>
+   Design Search for Your Data Model </atlas-search/design-patterns>
+   Compatibility & Limitations </atlas-search/about/feature-compatibility>
    Changelog </atlas-search/changelog>

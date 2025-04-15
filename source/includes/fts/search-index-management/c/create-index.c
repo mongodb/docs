@@ -28,8 +28,25 @@ int main (void)
     const char *cmd_str = BSON_STR({
         "createSearchIndexes" : "<collectionName>",
         "indexes" : [ {
-            "definition" : {"mappings" : {"dynamic" : true}},
-            "name" : "<indexName>"
+            "name" : "<indexName>",
+            "definition" : {
+                "analyzer": "<indexAnalyzer>", 
+                "searchAnalyzer": "<queryAnalyzer>", 
+                "mappings": { 
+                    "dynamic": <boolean>, 
+                    "fields": { <fieldDefinition> } 
+                },
+                "numPartitions": <integer>,
+                "analyzers": [ <customAnalyzer> ],
+                "storedSource": <boolean> | {
+                    <storedSourceDefinition>
+                },
+                "synonyms": [
+                    {
+                        <synonymMappingDefinition>
+                    }
+                ] 
+            }
 	    } ]
 	});
 

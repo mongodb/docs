@@ -27,7 +27,7 @@ public class OneLanguageQuery {
         // define query
         Document agg = 
             new Document( "$search",
-                new Document( "index", "multilingual-tutorial")
+                new Document( "index", "default")
                 .append("compound",
                     new Document().append("must", mustClauses)
                     .append("mustNot", mustNotClauses)

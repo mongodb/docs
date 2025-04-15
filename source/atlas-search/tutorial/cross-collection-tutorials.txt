@@ -1,8 +1,8 @@
 .. _fts-cross-collection-tutorials:
 
-===========================================
-How to Run |fts| Queries Across Collections
-===========================================
+====================================================
+How to Run |fts| Queries Across Multiple Collections
+====================================================
 
 .. default-domain:: mongodb
 
@@ -13,26 +13,318 @@ How to Run |fts| Queries Across Collections
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-The following tutorials take you through the steps for querying across 
-multiple collections:
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, kotlin, python, shell
 
-- The :ref:`query-materialized-views` tutorial demonstrates 
-  how to index and query on multiple collections using a combination of 
-  On-Demand Materialized Views and :ref:`atlas-scheduled-triggers`.
-- The :ref:`lookup-with-search-tutorial` tutorial demonstrates how to 
-  perform cross-collection search by first joining collections in the 
-  same database using :pipeline:`$lookup`, and then running a query in 
-  the sub-pipeline using :pipeline:`$search`.
-- The :ref:`search-with-unionwith-tutorial` tutorial demonstrates how 
-  to search multiple collections using :pipeline:`$search` in the 
-  :pipeline:`$unionWith` aggregation stage sub-pipeline.
+This page contains tutorials that demonstrate the 
+different ways you can run |fts| queries across multiple collections:
 
-.. toctree::
-   :titlesonly:
+- To join collections and search across them, use :ref:`$lookup with $search <lookup-with-search-tutorial>`.
+- To combine search results from multiple collections, :ref:`$unionWith with $search <search-with-unionwith-tutorial>`.
+- To consolidate multiple collections so you can index and search them together,
+  :ref:`use materialized views <query-materialized-views>`.
 
-   Materialized Views </atlas-search/tutorial/query-materialized-views>
-   $lookup with $search </atlas-search/tutorial/lookup-with-search>
-   $unionWith with $search </atlas-search/tutorial/search-with-unionwith>
+.. include:: /includes/fts/fts-design-patterns-prereqs.rst
+ 
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu on this page to 
+set the language of the examples on this page.
+
+----------
+
+.. _lookup-with-search-tutorial:
+
+Search Joined Collections
+-------------------------
+
+Starting in v6.0, the MongoDB :pipeline:`$lookup` aggregation stage 
+supports :pipeline:`$search` inside the :pipeline:`$lookup` 
+``pipeline`` option. Using :pipeline:`$lookup`, you can join 
+multiple collections in the same database at query-time and run a 
+:pipeline:`$search` query to further narrow down your search.
+
+This tutorial demonstrates how to run a :pipeline:`$lookup` query 
+with :pipeline:`$search` against the ``accounts`` and ``customers`` 
+collections in the ``sample_analytics`` database.
+It takes you through the following steps:
+
+1. Create a default |fts| index on the ``accounts`` 
+   collection in the ``sample_analytics`` database.
+#. Run a :pipeline:`$lookup` query with :pipeline:`$search` to find 
+   customers from the ``customers`` collections whose accounts have 
+   purchased both ``CurrencyService`` and ``InvestmentStock`` products 
+   in the ``accounts`` collection.
+
+Considerations
+~~~~~~~~~~~~~~
+
+To run :pipeline:`$lookup` query with :pipeline:`$search`, your 
+cluster must run MongoDB v6.0 or later. To upgrade your MongoDB version, 
+see :ref:`upgrade-major-MongoDB-version`.
+
+:pipeline:`$lookup` queries are not very performant because |fts| 
+does a full document lookup on the database for each document in the 
+collection.
+
+To learn more, see :ref:`embedded-documents-arrays-anti-pattern`.
+
+Create the |fts| Index
+~~~~~~~~~~~~~~~~~~~~~~
+
+Create an |fts| index named ``lookup-with-search-tutorial`` on all the
+fields in the ``sample_analytics.accounts`` collection.
+
+.. |search-type| replace:: :guilabel:`Atlas Search`
+.. |index-name| replace:: ``lookup-with-search-tutorial``
+.. |database-name| replace:: ``sample_analytics`` database 
+.. |collection-name| replace:: ``accounts`` collection
+
+.. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-create-index.txt
+
+Run ``$lookup`` with ``$search`` to Search the Collections 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu on this page to 
+set the language of the examples in this section.
+
+----------
+
+.. tabs-selector:: drivers
+
+Connect to your |service| cluster and run the sample query against the
+indexed collections in the ``sample_analytics`` database. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query.txt
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query-compass.txt
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query-cs.txt
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query-go.txt
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query-java.txt 
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query-kotlin.txt
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query-nodejs.txt
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-run-query-python.txt 
+
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, kotlin, python, shell
+
+.. _search-with-unionwith-tutorial:
+
+Combine Query Results
+---------------------
+
+Starting in v6.0, the MongoDB :pipeline:`$unionWith` aggregation stage 
+supports :pipeline:`$search` inside the :pipeline:`$unionWith` 
+``pipeline`` option. Using :pipeline:`$unionWith`, you can combine 
+:pipeline:`$search` results from multiple collections in the same 
+database in the result set.
+
+This tutorial demonstrates how to run a :pipeline:`$unionWith` query 
+with :pipeline:`$search` against the ``companies`` and ``inspections`` 
+collections in the ``sample_training`` database. It takes you through 
+the following steps:
+
+1. Create a default |fts| index on the ``companies`` and ``inspections`` 
+   collections in the ``sample_training`` database.
+#. Run a :pipeline:`$unionWith` query with :pipeline:`$search` to perform 
+   a union of companies with ``mobile`` in their name from both the
+   ``companies`` and ``inspections`` collections.
+
+.. note:: 
+
+   To run a :pipeline:`$unionWith` query with :pipeline:`$search`, your 
+   {+cluster+} must run MongoDB v6.0 or higher. To upgrade your MongoDB version, 
+   see :ref:`upgrade-major-MongoDB-version`.
+
+Create the |fts| Indexes  
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this section, you will create an |fts| index named ``default`` on 
+all the fields in the ``companies`` collection in the 
+``sample_training`` database. You will create another |fts| index 
+named ``default`` on all the fields in the ``inspections`` 
+collection in the ``sample_training`` database. You must perform the 
+following steps for each collection.
+
+.. |search-type| replace:: :guilabel:`Atlas Search`
+.. |index-name| replace:: ``default``
+.. |database-name| replace:: ``sample_training`` database 
+.. |collection-name| replace:: ``companies`` or ``inspections`` collection
+
+.. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-create-index.txt
+
+Run ``$unionWith`` with ``$search`` to Search the Collections 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this section, you will connect to your |service| {+cluster+} and run 
+the sample query against the indexed collections in the 
+``sample_training`` database. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-run-query.txt
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-run-query-compass.txt
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-run-query-cs.txt
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-run-query-go.txt
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-run-query-java.txt
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-run-query-kotlin.txt
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-run-query-nodejs.txt
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/search-with-unionwith/procedures/steps-fts-unionwith-tutorial-run-query-python.txt
+
+.. _query-materialized-views:
+
+Run |fts| Queries Using Materialized Views
+------------------------------------------
+
+This tutorial describes how to create an index and run queries against 
+the  ``sample_supplies.sales`` collection from the :ref:`sample dataset 
+<sample-data>` and a new ``sample_supplies.purchaseOrders``.
+
+An on-demand materialized view is a collection that you create and 
+update using a ``$merge`` aggregation pipeline stage. You can create an
+|fts| index on the materialized view and then run queries on the
+materialized view using the ``$search`` aggregation pipeline stage.
+
+This tutorial takes you through the following steps:
+
+1. Create a collection named ``purchaseOrders`` in the 
+   ``sample_supplies`` database.
+
+#. Create two scheduled triggers:
+
+   - ``updateMonthlySales``, with a function named ``updateMonthlySales`` that 
+     initializes the ``monthlyPhoneTransactions`` materialized view using data 
+     from the sample ``sample_supplies.sales`` collection.
+
+   - ``updateMonthlyPurchaseOrders``, with a function named 
+     ``updateMonthlyPurchaseOrders`` that updates the ``monthlyPhoneTransactions`` 
+     materialized view using data from the ``sample_supplies.purchaseOrders`` 
+     collection.
+
+#. Create an |fts| index on the ``monthlyPhoneTransactions`` 
+   materialized view.
+
+#. Run a query on the ``monthlyPhoneTransactions`` materialized view.
+
+Create the ``purchaseOrders`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fts/cross-collection/steps/cross-collection-add-collection.rst
+
+Create the Scheduled Triggers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   To create the triggers, you must have :authrole:`Project Owner` or higher access 
+   to the project.
+
+In the following procedures, you create triggers to create a materialized view 
+and schedule a function to update the materialized view daily. Expand
+the following sections to view the steps for each trigger:
+
+.. collapsible:: 
+   :heading: Create the updateMonthlySales Trigger
+   :expanded: false
+
+   .. include:: /includes/fts/cross-collection/steps-cross-collection-index-create-realm-scheduled-trigger.rst
+
+.. collapsible:: 
+   :heading: Create the updateMonthlyPurchaseOrders Trigger
+   :expanded: false
+
+   .. include:: /includes/fts/cross-collection/steps-cross-collection-define-po-function.rst
+
+Create an Atlas Search Index on the Materialized View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create an |fts| index on the ``monthlyPhoneTransactions`` collection.
+
+.. |search-type| replace:: :guilabel:`Atlas Search`
+.. |index-name| replace:: ``monthlyPhoneTransactions``
+.. |database-name| replace:: ``sample_supplies`` database
+.. |collection-name| replace:: ``monthlyPhoneTransactions`` collection
+
+.. include:: /includes/fts/cross-collection/steps-cross-collection-index-create-index.rst
+
+Run a Query on the Materialized View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run a query against the newly updated and indexed 
+``monthlyPhoneTransactions`` collection.
+
+.. include:: /includes/fts/cross-collection/steps/cross-collection-index-run-query.rst

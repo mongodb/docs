@@ -15,7 +15,7 @@
      - Name of the index.
 
    * - :guilabel:`Status`
-     - Status of the index. To learn more, see :ref:`search-index-status`.
+     - Status of the index on the primary node of the {+cluster+}. To learn more, see :ref:`search-index-status`.
 
    * - :guilabel:`Queryable`
      - Icon that identifies whether collection is queryable using the

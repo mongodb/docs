@@ -7,7 +7,7 @@ client = pymongo.MongoClient('<connection-string>')
 pipeline = [
     {
         '$search': {
-            'index': 'geo-json-tutorial',
+            'index': '<INDEX-NAME>',
             'compound': {
                 'must': [
                     {

@@ -9,7 +9,7 @@ compound
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 3
    :class: singlecol
 
 .. meta::
@@ -26,8 +26,7 @@ Definition
    The ``compound`` operator combines two or more operators into a
    single query. Each element of a ``compound`` query is called a
    clause, and each clause consists of one or more sub-queries. |fts| 
-   provides a sample compound query template with guidance. To learn 
-   more, see :ref:`query-guidance-template`.
+   provides a sample compound query template with guidance.
 
 .. _compound-syntax:
 
@@ -217,23 +216,18 @@ don't contribute to the score.
 
    * - Clause 
      - Contributes to Score 
-     - Doesn't Contribute to Score 
 
    * - ``filter`` 
      -  
-     - :icon:`check-square` 
 
    * - ``must`` 
      - :icon:`check-square` 
-     -  
 
    * - ``mustNot`` 
      -  
-     - :icon:`check-square` 
 
    * - ``should`` 
      - :icon:`check-square`
-     -  
 
 You can boost or replace the score of the entire compound query using
 the ``score`` option. For an example of replacing the entire compound
@@ -772,3 +766,170 @@ The documents in the results fulfill all the requirements for inclusion:
 - The document with ``_id: 1`` matches the first ``should`` clause.  
 
 |arrow| Try this in the :asp:`Atlas Search Playground </66140231bfc02dcf24ce958a>`.
+
+Metadata Examples 
+`````````````````
+
+The following queries retrieve metadata to return the number of
+categories in the ``fruit`` collection using either the $searchMeta pipeline stage 
+or the $$SEARCHMETA variable of the $search stage. 
+
+.. tabs:: 
+   
+   .. tab:: $searchMeta Stage
+      :tabid: searchmeta-stage
+
+      The following query returns only the metadata in the results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+
+            db.fruit.aggregate([
+              {
+                "$searchMeta": {
+                  "facet": {
+                    "operator": {
+                      "compound": {
+                        "must": [{
+                          "text": {
+                            "query": "varieties",
+                            "path": "description"
+                          }
+                        }],
+                        "should": [{
+                          "text": {
+                            "query": "Fuji",
+                            "path": "description"
+                          }
+                        }]
+                      }
+                    },
+                    "facets": {
+                      "categoryFacet": {
+                        "type": "string",
+                        "path": "category"
+                      }
+                    }
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [
+              {
+                count: { lowerBound: Long('2') },
+                facet: {
+                  categoryFacet: {
+                    buckets: [
+                      { _id: 'nonorganic', count: Long('1') },
+                      { _id: 'organic', count: Long('1') }
+                    ]
+                  }
+                }
+              }
+            ]
+
+   .. tab:: $$SEARCH_META Variable
+      :tabid: searchmeta-variable 
+
+      The following query returns the metadata and search results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "facet": {
+                    "operator": {
+                      "compound": {
+                        "must": [{
+                          "text": {
+                            "query": "varieties",
+                            "path": "description"
+                          }
+                        }],
+                        "should": [{
+                          "text": {
+                            "query": "Fuji",
+                            "path": "description"
+                          }
+                        }]
+                      }
+                    },
+                    "facets": {
+                      "categoryFacet": {
+                        "type": "string",
+                        "path": "category"
+                      }
+                    }
+                  }
+                }
+              },
+              { "$limit": 2 },
+              {
+                "$facet": {
+                  "docs": [
+                    { "$project":
+                      {
+                        "type": 1,
+                        "description": 1
+                      }
+                    }
+                  ],
+                  "meta": [
+                    {"$replaceWith": "$$SEARCH_META"},
+                    {"$limit": 1}
+                  ]
+                }
+              },
+              {
+                "$set": {
+                  "meta": {
+                    "$arrayElemAt": ["$meta", 0]
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript 
+            :visible: false
+
+            [
+              {
+                docs: [
+                  {
+                    _id: 1,
+                    type: 'apple',
+                    description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.'
+                  },
+                  {
+                    _id: 3,
+                    type: 'pear',
+                    description: 'Bosc and Bartlett are the most common varieties of pears.'
+                  }
+                ],
+                meta: {
+                  count: { lowerBound: Long('2') },
+                  facet: {
+                    categoryFacet: {
+                      buckets: [
+                        { _id: 'nonorganic', count: Long('1') },
+                        { _id: 'organic', count: Long('1') }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]

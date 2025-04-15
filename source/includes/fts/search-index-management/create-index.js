@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 // connect to your Atlas deployment
-const uri =  "<connection-string>";
+const uri =  "<connectionString>";
 
 const client = new MongoClient(uri);
 
@@ -12,12 +12,10 @@ async function run() {
     
     // define your Atlas Search index
     const index = {
-        name: "<index-name>",
+        name: "<indexName>",
         definition: {
             /* search index definition fields */
-            "mappings": {
-                "dynamic": true
-            }
+            <indexDefinition>
         }
     }
 

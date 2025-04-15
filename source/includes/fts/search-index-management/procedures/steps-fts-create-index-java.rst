@@ -1,8 +1,6 @@
 To use the :driver:`Java Driver </java/sync/current/>` to create an |fts| index,
 construct a document that defines the search index, and then pass the document
 to the ``createSearchIndex()`` or ``createSearchIndexes()`` method.
-To learn more, refer to the :driver:`Driver documentation 
-</java/sync/current/fundamentals/indexes/#atlas-search-indexes>`.
 
 .. note::
 

@@ -126,15 +126,14 @@ See the :ref:`equals-query-examples` section for scoring examples.
 Examples
 --------
 
+The following examples use a sample ``users`` collection.
+
 .. _equals-eg-collection:
 
 Sample Collection 
 ~~~~~~~~~~~~~~~~~
 
-The examples on this page use a collection named ``users`` containing 
-the following three documents:
-
-.. include:: /includes/fts/facts/atlas-search-op-insert-syntax.rst
+The  ``users`` collection contains the following three documents:
 
 .. tabs:: 
 
@@ -280,7 +279,15 @@ The ``users`` collection is indexed with the following
          "name": {
            "type": "token",
            "normalizer": "lowercase"
-         }
+         },
+         "region": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "stringFacet"
+          }
+         ]
        }
      }
    }
@@ -290,6 +297,8 @@ The index definition specifies the following:
 - Automatically index all dynamically indexable fields. 
 - Index the ``name`` field as type ``token`` to support string search
   using the ``equals`` operator.
+- Index the ``region`` field as types ``string`` to support string
+  search and ``stringFacet`` to support ``facet`` search.
 
 To learn how to create an |fts| index, see :ref:`ref-create-index`.
 
@@ -657,3 +666,143 @@ The above query returns the following results:
 
 The document for "Ellen Smith" receives a score of ``2`` because it contains
 two of the specified ObjectIDs in its ``teammates`` array.
+
+Metadata Examples 
+~~~~~~~~~~~~~~~~~
+
+The following query uses the :pipeline:`$searchMeta` stage to retrieve
+the number of regions in which ``verified_users`` is true in the
+``users`` collection. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.users.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "equals": {
+                  "path": "verified_user",
+                  "value": true
+                }
+              },
+              "facets": {
+                "regionFacet": {
+                  "type": "string",
+                  "path": "region"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      [
+        {
+          count: { lowerBound: Long('2') },
+          facet: {
+            regionFacet: {
+              buckets: [
+                { _id: 'East', count: Long('1') },
+                { _id: 'Southwest', count: Long('1') }
+              ]
+            }
+          }
+        }
+      ]
+
+The following query uses the ``$$SEARCH_META`` aggregation variable to
+return both the metadata and search results for a search to retrieve the
+number of regions in which ``verified_users`` is true in the ``users``
+collection.  
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.users.aggregate([
+        {
+          "$search": {
+            "facet": {
+              "operator": {
+                "equals": {
+                  "path": "verified_user",
+                  "value": true
+                }
+              },
+              "facets": {
+                "regionFacet": {
+                  "type": "string",
+                  "path": "region"
+                }
+              }
+            }
+          }
+        },
+        { "$limit": 2 },
+        {
+          "$facet": {
+            "docs": [
+              { "$project":
+                {
+                  "type": 1,
+                  "description": 1
+                }
+              }
+            ],
+            "meta": [
+              {"$replaceWith": "$$SEARCH_META"},
+              {"$limit": 1}
+            ]
+          }
+        },
+        {
+          "$set": {
+            "meta": {
+              "$arrayElemAt": ["$meta", 0]
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      [
+        {
+          docs: [
+            {
+              _id: ObjectId('5ed698faa1199b471010d70c'),
+              name: 'Jim Hall',
+              region: 'East'
+            },
+            {
+              _id: ObjectId('5ed6990aa1199b471010d70d'),
+              name: 'Ellen Smith',
+              region: 'Southwest'
+            }
+          ],
+          meta: {
+            count: { lowerBound: Long('2') },
+            facet: {
+              regionFacet: {
+                buckets: [
+                  { _id: 'East', count: Long('1') },
+                  { _id: 'Southwest', count: Long('1') }
+                ]
+              }
+            }
+          }
+        }
+      ]

@@ -1,4 +1,4 @@
-To complete the following tutorials, you must have: 
+To complete the tutorials, you must have: 
 
 - An |service| {+cluster+} with MongoDB version 4.2 or higher.
 
@@ -7,7 +7,7 @@ To complete the following tutorials, you must have:
 
 - .. include:: /includes/atlas-roles/create-search-index.rst
    
-- :ref:`Search Tester <atlas-search-queries>`, {+mongosh+}, {+Compass+}, or a supported
+- :ref:`Search Tester <fts-tutorial-run-query>`, {+mongosh+}, {+Compass+}, or a supported
   :driver:`MongoDB Driver </>` to run queries on your {+cluster+}.
  
 .. note:: 

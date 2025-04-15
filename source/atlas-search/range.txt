@@ -110,7 +110,6 @@ Options
    * - ``path``
      - string or array of strings
      - Indexed field or fields to search.
-       See :ref:`Path Construction <ref-path>`.
      - yes
 
    * - ``score``
@@ -138,8 +137,6 @@ The following examples use the collection in the :ref:`sample data
 <available-sample-datasets>` on your cluster, you can create the 
 indexes using the index definitions in the examples below and run the
 example queries on your cluster. 
-
-.. include:: /includes/fts/facts/get-started-atlas-search.rst
 
 Number Example
 ~~~~~~~~~~~~~~
@@ -742,4 +739,68 @@ exclude all fields except ``title``.
         { title: 'City Lights' },
         { title: 'Comradeship' },
         { title: 'Come and Get It' }
+      ]
+
+Metadata Example 
+~~~~~~~~~~~~~~~~
+
+The following query searches for movies with a runtime greater than or
+equal to ``2`` and less than or equal to ``3``. The query uses the
+:pipeline:`$searchMeta` stage to retrieve all movies in the following
+buckets (years) that match the search criteria:
+
+- 1990, inclusive lower bound for this bucket
+- 2000, exclusive upper bound for the 1990 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2000 bucket and inclusive lower bound for this bucket
+- 2020, exclusive upper bound for the 2010 bucket
+
+The query uses an index named ``default`` that dynamically indexes all
+the fields in the ``sample_mflix.movies`` namespace. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "range": {
+                  "path": "runtime",
+                  "gte": 2,
+                  "lte": 3
+                }
+              },
+              "facets": {
+                "yearFacet": {
+                  "type": "number",
+                  "path": "year",
+                  "boundaries": [1990, 2000, 2010, 2020 ]
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript 
+      :visible: false 
+
+      [
+        {
+          count: { lowerBound: Long('15') },
+          facet: {
+            yearFacet: {
+              buckets: [
+                { _id: 1990, count: Long('2') },
+                { _id: 2000, count: Long('3') },
+                { _id: 2010, count: Long('5') }
+              ]
+            }
+          }
+        }
       ]

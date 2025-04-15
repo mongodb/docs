@@ -16,7 +16,7 @@ public class SortByNumbers {
     // define query
     Document agg =
         new Document("$search", 
-        	    new Document("index", "sort-tutorial")
+        	    new Document("index", "default")
         	            .append("range", 
         	    new Document("path", "awards.wins")
         	                .append("gte", 10L))

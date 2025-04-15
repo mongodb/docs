@@ -22,7 +22,7 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{Key: "$search", Value: bson.D{
-		{Key: "index", Value: "sort-tutorial"},
+		{Key: "index", Value: "default"},
 		{Key: "range", Value: bson.D{
 			{Key: "path", Value: "awards.wins"},
 			{Key: "gte", Value: 10},

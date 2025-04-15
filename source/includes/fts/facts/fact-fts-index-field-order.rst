@@ -1,1 +1,0 @@
-You can define fields in the |fts| index definition in any order. 

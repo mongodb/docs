@@ -64,9 +64,8 @@ Fields
 
    * - ``path``
      - string 
-     - Indexed field to search. You can also specify a :ref:`wildcard
-       path <ref-path-usage>` to search. See :ref:`Construct a Query Path
-       <ref-path>` for more information. 
+     - Indexed field to search. You can also specify a wildcard
+       path to search.
        
        To search for :manual:`string </reference/bson-types/#string>`
        values in a field, you must index the field as the |fts| :ref:`token
@@ -328,3 +327,73 @@ Sample Queries
       ``Jennifer Lawrence`` in the ``name`` field. |fts| scores the
       document that contains ``name: 'James Sanchez'`` higher because it
       matches the ``ObjectId`` specified in the ``should`` clause.
+
+Facet Query 
+~~~~~~~~~~~
+
+The following query uses the ``in`` operator to search the ``active``
+field, which contains a boolean value, for customers who are active. The
+query returns the number of active customers whose birthdate falls in
+the following buckets: 
+
+- 1970-01-01, inclusive lower bound for this bucket
+- 1980-01-01, exclusive upper bound for the 1970-01-01 bucket and inclusive lower bound for this bucket
+- 1990-01-01, exclusive upper bound for the 1980-01-01 bucket and inclusive lower bound for this bucket
+- 2000-01-01, exclusive upper bound for the 1990-01-01 bucket
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json
+      :linenos: 
+
+      db.customers.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "in": {
+                  "path": "active",
+                  "value": null
+                }
+              },
+              "facets": {
+                "birthdateFacet": {
+                  "type": "date",
+                  "path": "birthdate",
+                  "boundaries": [ISODate("1970-01-01"), ISODate("1980-01-01"), ISODate("1990-01-01"), ISODate("2000-01-01")],
+                  "default": "other"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
+
+      [
+        {
+          count: { lowerBound: Long('1') },
+          facet: {
+            birthdateFacet: {
+              buckets: [
+                {
+                  _id: ISODate('1970-01-01T00:00:00.000Z'),
+                  count: Long('1')
+                },
+                {
+                  _id: ISODate('1980-01-01T00:00:00.000Z'),
+                  count: Long('0')
+                },
+                {
+                  _id: ISODate('1990-01-01T00:00:00.000Z'),
+                  count: Long('0')
+                }
+              ]
+            }
+          }
+        }
+      ]

@@ -14,7 +14,7 @@ a. Add the Java driver version 5.2 or higher as a dependency in your project.
 
             <dependencies>
                <!-- MongoDB Java Sync Driver v5.2.0 or later -->
-               dependency>
+               <dependency>
                   <groupId>org.mongodb</groupId>
                   <artifactId>mongodb-driver-sync</artifactId>
                   <version>[5.2.0,)</version>

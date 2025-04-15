@@ -1,4 +1,5 @@
 .. procedure:: 
+   :style: normal
 
    .. include:: /includes/nav/steps-db-deployments-page.rst
 

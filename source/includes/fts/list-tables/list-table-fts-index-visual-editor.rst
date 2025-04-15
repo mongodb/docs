@@ -1,18 +1,18 @@
 .. list-table:: 
    :header-rows: 1
-   :widths: 25 53 22
+   :widths: 20 60 20
 
-   * - Field Name 
+   * - Visual Editor Field
      - Description 
      - Necessity
      
-   * - :guilabel:`Index Analyzer` 
+   * - :guilabel:`Index Analyzer`
      - .. include:: /includes/fts/extracts/fts-field-analyzer.rst
 
        Corresponds to the  ``analyzer`` |json| setting.
      - Optional
        
-   * - :guilabel:`Query Analyzer` 
+   * - :guilabel:`Search Analyzer` 
      - .. include:: /includes/fts/extracts/fts-field-search-analyzer.rst
 
        Corresponds to the  ``searchAnalyzer`` |json| setting.

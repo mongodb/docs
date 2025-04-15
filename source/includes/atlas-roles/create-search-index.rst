@@ -1,1 +1,1 @@
-To create an |fts| index, you must have :authrole:`Project Data Access Admin` or higher access to the project.
+:authrole:`Project Data Access Admin` or higher access to your |service| project to create |fts| indexes.

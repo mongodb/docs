@@ -22,18 +22,18 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
-		"index": "case-insensitive-sort",
+		"index": "default",
 		"text": bson.D{
-          {"path", "title"},
-          {"query", "train"},
-        },
-        "sort": bson.D{{"title", 1}},
+			{"path", "title"},
+			{"query", "train"},
+		},
+		"sort": bson.D{{"title", 1}},
 	}}}
-    limitStage := bson.D{{"$limit", 5}}
+	limitStage := bson.D{{"$limit", 5}}
 	projectStage := bson.D{{"$project", bson.D{{"_id", 1}, {"title", 1}, {"awards", 1}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
 
 	// run pipeline
-	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage,projectStage})
+	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage, projectStage})
 	if err != nil {
 		panic(err)
 	}

@@ -13,7 +13,7 @@ geoShape
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -79,8 +79,7 @@ Options
    * - ``path``
      - string or array of strings
      - Indexed :ref:`geo <bson-data-types-geo>` type field or
-       fields to search. See :ref:`Path Construction <ref-path>` for
-       more information.
+       fields to search.
      - yes
 
    * - ``relation``
@@ -123,9 +122,10 @@ The following examples use the ``listingsAndReviews`` collection in the
 ``sample_airbnb`` database. If you have the :ref:`sample dataset
 <available-sample-datasets>` on your cluster, you can create a custom
 |fts| index for :ref:`geo <bson-data-types-geo>` type and run the
-example queries on your cluster. 
-
-.. include:: /includes/fts/facts/get-started-atlas-search.rst
+example queries on your cluster. The :ref:`fts-tutorial-ref` contains
+instructions for loading the :ref:`sample dataset
+<available-sample-datasets>`, creating an :ref:`index definition
+<ref-index-definitions>`, and running |fts| queries.
 
 The following is a sample index definition for
 indexing the ``address.location`` field in the ``listingsAndReviews``
@@ -145,20 +145,13 @@ collection:
              }
            },
            "type": "document"
+         },
+         "property_type": {
+           "type": "stringFacet"
          }
        }
      }
    }
-
-The :ref:`fts-tutorial-ref` contains instructions for loading the
-:ref:`sample dataset <available-sample-datasets>`, creating an
-:ref:`index definition <ref-index-definitions>`, and running |fts|
-queries.
-
-.. note::
-
-   For the following sample queries, make sure that ``indexShapes`` in
-   the index definition is set to ``true``.
 
 Disjoint Example
 ~~~~~~~~~~~~~~~~
@@ -173,92 +166,94 @@ The query includes a:
 - :pipeline:`$project` stage
   to exclude all fields except ``name`` and ``address``.
 
-.. code-block:: javascript
-   :linenos:
+.. io-code-block:: 
+   :copyable: true 
 
-   db.listingsAndReviews.aggregate([
-     {
-       "$search": {
-         "geoShape": {
-           "relation": "disjoint",
-           "geometry": {
-             "type": "Polygon",
-             "coordinates": [[[-161.323242,22.512557],
-                            [-152.446289,22.065278],
-                            [-156.09375,17.811456],
-                            [-161.323242,22.512557]]]
-           },
-           "path": "address.location"
-         }
-       }
-     },
-     {
-       $limit: 3
-     },
-     {
-       $project: {
-         "_id": 0,
-         "name": 1,
-         "address": 1,
-         score: { $meta: "searchScore" }
-       }
-     }
-   ])
+   .. input:: 
+      :language: json 
+      :linenos:
 
-The query returns the following search results:
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "geoShape": {
+              "relation": "disjoint",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[-161.323242,22.512557],
+                                [-152.446289,22.065278],
+                                [-156.09375,17.811456],
+                                [-161.323242,22.512557]]]
+              },
+              "path": "address.location"
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
 
-.. code-block:: json
-   :linenos:
-   :copyable: false
+   .. output:: 
+      :language: javascript 
+      :visible: false 
 
-   {
-     "name" : "Ribeira Charming Duplex",
-     "address" : {
-       "street" : "Porto, Porto, Portugal",
-       "suburb" : "",
-       "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória",
-       "market" : "Porto",
-       "country" : "Portugal",
-       "country_code" : "PT",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ -8.61308, 41.1413 ],
-         "is_location_exact" : false
-       }
-     }
-   }
-   {
-     "name" : "Horto flat with small garden",
-     "address" : {
-       "street" : "Rio de Janeiro, Rio de Janeiro, Brazil",
-       "suburb" : "Jardim Botânico",
-       "government_area" : "Jardim Botânico",
-       "market" : "Rio De Janeiro",
-       "country" : "Brazil",
-       "country_code" : "BR",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ -43.23074991429229, -22.966253551739655 ],
-         "is_location_exact" : true
-       }
-     }
-   }
-   {
-     "name" : "Private Room in Bushwick",
-     "address" : {
-       "street" : "Brooklyn, NY, United States",
-       "suburb" : "Brooklyn",
-       "government_area" : "Bushwick",
-       "market" : "New York",
-       "country" : "United States",
-       "country_code" : "US",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ -73.93615, 40.69791 ],
-         "is_location_exact" : true
-       }
-     }
-   }
+      {
+        "name" : "Ribeira Charming Duplex",
+        "address" : {
+          "street" : "Porto, Porto, Portugal",
+          "suburb" : "",
+          "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória",
+          "market" : "Porto",
+          "country" : "Portugal",
+          "country_code" : "PT",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -8.61308, 41.1413 ],
+            "is_location_exact" : false
+          }
+        }
+      }
+      {
+        "name" : "Horto flat with small garden",
+        "address" : {
+          "street" : "Rio de Janeiro, Rio de Janeiro, Brazil",
+          "suburb" : "Jardim Botânico",
+          "government_area" : "Jardim Botânico",
+          "market" : "Rio De Janeiro",
+          "country" : "Brazil",
+          "country_code" : "BR",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -43.23074991429229, -22.966253551739655 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+      {
+        "name" : "Private Room in Bushwick",
+        "address" : {
+          "street" : "Brooklyn, NY, United States",
+          "suburb" : "Brooklyn",
+          "government_area" : "Bushwick",
+          "market" : "New York",
+          "country" : "United States",
+          "country_code" : "US",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.93615, 40.69791 ],
+            "is_location_exact" : true
+          }
+        }
+      }
 
 Intersects Example
 ~~~~~~~~~~~~~~~~~~
@@ -273,102 +268,104 @@ The query includes a:
 - :pipeline:`$project` stage to
   exclude all fields except ``name`` and ``address``.
 
-.. code-block:: javascript
-   :linenos:
+.. io-code-block:: 
+   :copyable: true 
 
-   db.listingsAndReviews.aggregate([
-     {
-       "$search": {
-         "geoShape": {
-           "relation": "intersects",
-           "geometry": {
-             "type": "MultiPolygon",
-             "coordinates": [
-                          [[[2.16942,41.40082],
-                          [2.17963,41.40087],
-                          [2.18146,41.39716],
-                          [2.15533,41.40686],
-                          [2.14596,41.38475],
-                          [2.17519,41.41035],
-                          [2.16942,41.40082]]],
-                          [[[2.16365,41.39416],
-                          [2.16963,41.39726],
-                          [2.15395,41.38005],
-                          [2.17935,41.43038],
-                          [2.16365,41.39416]]]
-             ]
-           },
-           "path": "address.location"
-         }
-       }
-     },
-     {
-       $limit: 3
-     },
-     {
-       $project: {
-         "_id": 0,
-         "name": 1,
-         "address": 1,
-         score: { $meta: "searchScore" }
-       }
-     }
-   ])
+   .. input:: 
+      :language: json 
+      :linenos:
 
-The query returns the following search results:
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "geoShape": {
+              "relation": "intersects",
+              "geometry": {
+                "type": "MultiPolygon",
+                "coordinates": [
+                              [[[2.16942,41.40082],
+                              [2.17963,41.40087],
+                              [2.18146,41.39716],
+                              [2.15533,41.40686],
+                              [2.14596,41.38475],
+                              [2.17519,41.41035],
+                              [2.16942,41.40082]]],
+                              [[[2.16365,41.39416],
+                              [2.16963,41.39726],
+                              [2.15395,41.38005],
+                              [2.17935,41.43038],
+                              [2.16365,41.39416]]]
+                ]
+              },
+              "path": "address.location"
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
 
-.. code-block:: json
-   :linenos:
-   :copyable: false
+   .. output:: 
+      :language: javascript 
+      :visible: false 
 
-   {
-     "name" : "Cozy bedroom Sagrada Familia",
-     "address" : {
-       "street" : "Barcelona, Catalunya, Spain",
-       "suburb" : "Eixample",
-       "government_area" : "el Fort Pienc",
-       "market" : "Barcelona",
-       "country" : "Spain",
-       "country_code" : "ES",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ 2.17963, 41.40087 ],
-         "is_location_exact" : true
-       }
-     }
-   }
-   {
-     "name" : "",
-     "address" : {
-       "street" : "Barcelona, Catalunya, Spain",
-       "suburb" : "Vila de Gràcia",
-       "government_area" : "la Vila de Gràcia",
-       "market" : "Barcelona",
-       "country" : "Spain",
-       "country_code" : "ES",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ 2.15759, 41.40349 ],
-         "is_location_exact" : true
-       }
-     }
-   }
-   {
-     "name" : "SPACIOUS RAMBLA CATALUÑA",
-     "address" : {
-       "street" : "Barcelona, Catalunya, Spain",
-       "suburb" : "L'Antiga Esquerra de l'Eixample",
-       "government_area" : "l'Antiga Esquerra de l'Eixample",
-       "market" : "Barcelona",
-       "country" : "Spain",
-       "country_code" : "ES",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ 2.15255, 41.39193 ],
-         "is_location_exact" : true
-       }
-     }
-   }
+      {
+        "name" : "Cozy bedroom Sagrada Familia",
+        "address" : {
+          "street" : "Barcelona, Catalunya, Spain",
+          "suburb" : "Eixample",
+          "government_area" : "el Fort Pienc",
+          "market" : "Barcelona",
+          "country" : "Spain",
+          "country_code" : "ES",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 2.17963, 41.40087 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+      {
+        "name" : "",
+        "address" : {
+          "street" : "Barcelona, Catalunya, Spain",
+          "suburb" : "Vila de Gràcia",
+          "government_area" : "la Vila de Gràcia",
+          "market" : "Barcelona",
+          "country" : "Spain",
+          "country_code" : "ES",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 2.15759, 41.40349 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+      {
+        "name" : "SPACIOUS RAMBLA CATALUÑA",
+        "address" : {
+          "street" : "Barcelona, Catalunya, Spain",
+          "suburb" : "L'Antiga Esquerra de l'Eixample",
+          "government_area" : "l'Antiga Esquerra de l'Eixample",
+          "market" : "Barcelona",
+          "country" : "Spain",
+          "country_code" : "ES",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 2.15255, 41.39193 ],
+            "is_location_exact" : true
+          }
+        }
+      }
 
 .. _geoshape-within-egs:
 
@@ -387,94 +384,176 @@ The query includes a:
 - :pipeline:`$project` stage to exclude all
   fields except ``name`` and ``address``.
 
-.. code-block:: javascript
-   :linenos:
+Basic Search 
+````````````
 
-   db.listingsAndReviews.aggregate([
-     {
-       "$search": {
-         "geoShape": {
-           "relation": "within",
-           "geometry": {
-             "type": "Polygon",
-             "coordinates": [[[-74.3994140625,40.5305017757],
-                            [-74.7290039063,40.5805846641],
-                            [-74.7729492188,40.9467136651],
-                            [-74.0698242188,41.1290213475],
-                            [-73.65234375,40.9964840144],
-                            [-72.6416015625,40.9467136651],
-                            [-72.3559570313,40.7971774152],
-                            [-74.3994140625,40.5305017757]]]
-           },
-           "path": "address.location"
-         }
-       }
-     },
-     {
-       $limit: 3
-     },
-     {
-       $project: {
-         "_id": 0,
-         "name": 1,
-         "address": 1,
-         score: { $meta: "searchScore" }
-       }
-     }
-   ])
+The following query returns the documents that match the specified
+search criteria.
 
-The query returns the following search results:
+.. io-code-block:: 
+   :copyable: true 
 
-.. code-block:: json
-   :linenos:
-   :copyable: false
+   .. input:: 
+      :language: json 
+      :linenos:
 
-   {
-     "name" : "Private Room in Bushwick",
-     "address" : {
-       "street" : "Brooklyn, NY, United States",
-       "suburb" : "Brooklyn",
-       "government_area" : "Bushwick",
-       "market" : "New York",
-       "country" : "United States",
-       "country_code" : "US",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ -73.93615, 40.69791 ],
-         "is_location_exact" : true
-       }
-     },
-     {
-       "name" : "New York City - Upper West Side Apt",
-       "address" : {
-         "street" : "New York, NY, United States",
-         "suburb" : "Manhattan",
-         "government_area" : "Upper West Side",
-         "market" : "New York",
-         "country" : "United States",
-         "country_code" : "US",
-         "location" : {
-           "type" : "Point",
-           "coordinates" : [ -73.96523, 40.79962 ],
-           "is_location_exact" : false
-         }
-       },
-       "score" : 1
-     }
-     {
-       "name" : "Deluxe Loft Suite",
-       "address" : {
-         "street" : "Brooklyn, NY, United States",
-         "suburb" : "Greenpoint",
-         "government_area" : "Greenpoint",
-         "market" : "New York",
-         "country" : "United States",
-         "country_code" : "US",
-         "location" : {
-           "type" : "Point",
-           "coordinates" : [ -73.94472, 40.72778 ],
-           "is_location_exact" : true
-         }
-       },
-       "score" : 1
-     }
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "geoShape": {
+              "relation": "within",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[-74.3994140625,40.5305017757],
+                                [-74.7290039063,40.5805846641],
+                                [-74.7729492188,40.9467136651],
+                                [-74.0698242188,41.1290213475],
+                                [-73.65234375,40.9964840144],
+                                [-72.6416015625,40.9467136651],
+                                [-72.3559570313,40.7971774152],
+                                [-74.3994140625,40.5305017757]]]
+              },
+              "path": "address.location"
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      {
+        "name" : "Private Room in Bushwick",
+        "address" : {
+          "street" : "Brooklyn, NY, United States",
+          "suburb" : "Brooklyn",
+          "government_area" : "Bushwick",
+          "market" : "New York",
+          "country" : "United States",
+          "country_code" : "US",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.93615, 40.69791 ],
+            "is_location_exact" : true
+          }
+        },
+        {
+          "name" : "New York City - Upper West Side Apt",
+          "address" : {
+            "street" : "New York, NY, United States",
+            "suburb" : "Manhattan",
+            "government_area" : "Upper West Side",
+            "market" : "New York",
+            "country" : "United States",
+            "country_code" : "US",
+            "location" : {
+              "type" : "Point",
+              "coordinates" : [ -73.96523, 40.79962 ],
+              "is_location_exact" : false
+            }
+          },
+          "score" : 1
+        }
+        {
+          "name" : "Deluxe Loft Suite",
+          "address" : {
+            "street" : "Brooklyn, NY, United States",
+            "suburb" : "Greenpoint",
+            "government_area" : "Greenpoint",
+            "market" : "New York",
+            "country" : "United States",
+            "country_code" : "US",
+            "location" : {
+              "type" : "Point",
+              "coordinates" : [ -73.94472, 40.72778 ],
+              "is_location_exact" : true
+            }
+          },
+          "score" : 1
+        }
+
+Metadata Search 
+```````````````
+
+The following query returns the number of types of properties (such
+as apartment, house, and so on) for the specified search criteria.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos:
+
+      db.listingsAndReviews.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "geoShape": {
+                "relation": "within",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [[[-74.3994140625,40.5305017757],
+                                  [-74.7290039063,40.5805846641],
+                                  [-74.7729492188,40.9467136651],
+                                  [-74.0698242188,41.1290213475],
+                                  [-73.65234375,40.9964840144],
+                                  [-72.6416015625,40.9467136651],
+                                  [-72.3559570313,40.7971774152],
+                                  [-74.3994140625,40.5305017757]]]
+                },
+                "path": "address.location"
+              }
+              },
+              "facets": {
+                "propertyTypeFacet": {
+                  "type": "string",
+                  "path": "property_type"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      [
+        {
+          count: { lowerBound: Long('599') },
+          facet: {
+            propertyTypeFacet: {
+              buckets: [
+                { _id: 'Apartment', count: Long('486') },
+                { _id: 'House', count: Long('43') },
+                { _id: 'Townhouse', count: Long('24') },
+                { _id: 'Condominium', count: Long('19') },
+                { _id: 'Loft', count: Long('19') },
+                { _id: 'Guest suite', count: Long('2') },
+                { _id: 'Guesthouse', count: Long('2') },
+                { _id: 'Aparthotel', count: Long('1') },
+                { _id: 'Hostel', count: Long('1') },
+                { _id: 'Serviced apartment', count: Long('1') }
+              ]
+            }
+          }
+        }
+      ]
+
+The query results show the different types of properties in the
+specified coordinates.

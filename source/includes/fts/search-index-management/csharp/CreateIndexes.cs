@@ -13,18 +13,18 @@ var collection = db.GetCollection<BsonDocument>("<collectionName>");
 var indexes = new List<CreateSearchIndexModel>
 {
     new CreateSearchIndexModel(
-        "<first-index-name>",
+        "<firstIndexName>",
         new BsonDocument
         {
-            // search index definition fields
+            <IndexDefinition>// search index definition fields
         }
     ),
     ...
     new CreateSearchIndexModel(
-        "<last-index-name>",
+        "<lastIndexName>",
         new BsonDocument
         {
-            // search index definition fields
+            <IndexDefinition> // search index definition fields
         }
     )
 };

@@ -100,8 +100,22 @@ This tutorial includes examples for the following clients:
 
 .. note::
 
-   Ensure that your |service| {+cluster+} has enough memory to store
-   both |fts| and {+avs+} indexes and run performant queries.
+- The :doc:`sample data </sample-data>` loaded into your |service| 
+  cluster.
+  
+- One of the following clients to run queries on your |service|
+  {+cluster+}:
+
+  - Search Tester
+  - {+mongosh+}
+  - {+Compass+}
+  - :driver:`C# </csharp/current/>`
+  - :driver:`Java </java-drivers/>`
+  - :driver:`MongoDB Node Driver </node/current/>`
+  - :driver:`PyMongo </pymongo/>`
+  
+- :authrole:`Project Data Access Admin` access to the project to create
+  {+avs+} and |fts| indexes. 
 
 Create the {+avs+} and |fts| Indexes 
 -------------------------------------------------

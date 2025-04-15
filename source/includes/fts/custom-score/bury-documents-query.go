@@ -42,7 +42,7 @@ func main() {
 	}
 	// define pipeline
 	searchStage := bson.D{{"$search", bson.D{
-		{"index", "compound-query-custom-score-tutorial"},
+		{"index", "default"},
 		{"compound", bson.D{
 			{"should", bson.A{
 				bson.D{{"compound", bson.D{

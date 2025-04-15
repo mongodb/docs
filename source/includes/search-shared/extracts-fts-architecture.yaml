@@ -1,18 +1,46 @@
 ref: fts-architecture-coupled
 content: | 
-  In this deployment model, the search ``mongot`` process runs alongside
-  ``mongod`` on each node in the |service| {+cluster+}. The ``mongod`` 
-  process routes queries to the ``mongot`` on the same node and they share
-  the same resources. 
+  For testing and prototyping environments, we recommend a node architecture
+  in which MongoDB processes and |fts| processes run on the same node. 
+  In the following diagram of this deployment model, the |fts| ``mongot`` process runs alongside
+  ``mongod`` on each node in the |service| {+cluster+} and they share the same resources. 
 
   .. image:: /images/atlas-search/fts-architecture.png
      :alt: Atlas Search architecture 
      :figwidth: 100%
 
-  By default, |service| enables the search ``mongot`` process on the same
+  By default, |service| enables the |fts| ``mongot`` process on the same
   node that runs the ``mongod`` process when you create your first
-  |product-name| index. The ``mongot`` process   performs the actions
-  described in :ref:`about-mongot`.  
+  |product-name| index.
+  
+  When you run a query, |fts| uses the :ref:`configured read preference
+  <replica-set-tags>` to identify the node on which to run the query. The
+  query first goes to the MongoDB process, which is ``mongod`` for a
+  replica set cluster or ``mongos`` for a sharded cluster.  
+
+  For a replica set {+cluster+}, the ``mongod`` process routes the query to
+  the ``mongot`` on the same node. For sharded clusters, your cluster data
+  is partitioned across ``mongod`` instances (shards) and each ``mongot`` process
+  can only access the data on the ``mongod`` instance on the same node.
+  Therefore, you can't run |fts| queries that target a particular  shard. 
+  ``mongos`` routes the query to all shards, making these *scatter gather*
+  queries. If you use :manual:`zones </core/zone-sharding/>` to
+  distribute a sharded collection over a subset of the shards in the
+  {+cluster+}, |fts| routes the query to the zone that contains the
+  shards for the collection that you are querying and runs your
+  :pipeline:`$search` queries on just the shards where the collection is
+  located.
+
+  After the query is routed to an |fts| ``mongot`` process, the ``mongot`` process
+  performs the search and scoring and returns the document IDs and other search metadata 
+  for the matching results to its corresponding ``mongod`` process. The
+  ``mongod`` process then performs a full document lookup implicitly for the
+  matching results and returns the results to the client. If you use
+  the :pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in
+  your query, |fts| enables intra-query parallelism. To learn more, see
+  :ref:`Parallelize Query Execution Across Segments <concurrent-ref>`.
+
+  To learn more about the ``mongot`` process, see :ref:`about-mongot`.  
 
 ---
 ref: fts-coupled-benefits
@@ -26,21 +54,28 @@ content: |
   other MongoDB aggregation pipeline stages, and score-based results
   ranking.
 
-  Deploying both the processes on the same node might be more
-  cost-efficient, depending on the resources provisioned for your
-  {+cluster+}, than running the search process on a separate, dedicated
-  node. 
+  Depending on the resources provisioned for your {+cluster+}, deploying
+  both processes on the same node might be more cost-efficient than running
+  the search process on a separate, dedicated node.
 
 ---
 ref: fts-architecture-decoupled
 content: | 
-  In this deployment model, the ``mongot`` process runs on Search Nodes,
-  which are separate from the {+cluster+} nodes on which the ``mongod``
-  process runs. |service| deploys Search Nodes with each {+cluster+} or
-  with each shard on the {+cluster+}. 
+  For production environments, we recommend a node architecture
+  in which MongoDB processes and |fts| processes run on separate nodes.
+  To deploy separate Search Nodes, see :ref:`fts-migrate-to-decoupled`.
 
-  For example, if you deploy two Search Nodes for a {+cluster+} with three
-  shards, |service| deploys six Search Nodes, two per shard. You can also
+  In the following diagram of this deployment model, the |fts| ``mongot`` process runs on dedicated 
+  Search Nodes, which are separate from the {+cluster+} nodes on which the ``mongod``
+  process runs.
+
+  .. image:: /images/atlas-search/search-nodes-architecture.png
+     :alt: Separate Search Nodes architecture 
+     :figwidth: 100%
+  
+  |service| deploys Search Nodes with each {+cluster+} or
+  with each shard on the {+cluster+}. For example, if you deploy two Search Nodes for a {+cluster+} with three
+  shards, |service| deploys six Search Nodes (two per shard). You can also
   configure the number of Search Nodes and the amount of resources
   provisioned for each search node. 
 
@@ -48,14 +83,10 @@ content: |
   ``mongod`` for each ``mongot`` for indexing. The ``mongot`` communicates
   with the ``mongod`` to listen for and sync index changes for the indexes
   that it stores. |product-name| indexes and processes your queries
-  similar to when both the ``mongod`` and ``mongot`` processes run on
-  the same node. To learn more, see |index-doc| and |query-doc|. To
+  similar to a deployment where both the ``mongod`` and ``mongot`` processes
+  run on the same node. To learn more, see |index-doc| and |query-doc|. To
   learn more about deploying Search Nodes separately, see
-  :ref:`configure-search-nodes`. 
-
-  .. image:: /images/atlas-search/search-nodes-architecture.png
-     :alt: Separate Search Nodes architecture 
-     :figwidth: 100%
+  :ref:`configure-search-nodes`.
 
   When you migrate to Search Nodes, |service| deploys the Search Nodes,
   but doesn't serve queries on the nodes until it successfully builds
@@ -64,9 +95,23 @@ content: |
   queries using the indexes on the {+cluster+} nodes. |service| starts
   serving queries from the Search Nodes only after it successfully
   builds the indexes on the Search Nodes and removes the indexes on the
-  {+cluster+} nodes. 
+  {+cluster+} nodes.
 
-  If you delete all the Search Nodes on your {+cluster+}, there will be an 
+  When you run a query, the query routes to the ``mongod`` based on
+  the :ref:`configured read preference <replica-set-tags>`. The
+  ``mongod`` process routes the search query through a load balancer on
+  the same node, which distributes the requests across all of the
+  ``mongot`` processes. 
+  
+  The |fts| ``mongot`` process performs the search and scoring and
+  returns the document IDs and metadata for the matching results to
+  ``mongod``. The ``mongod`` then performs a full document lookup for
+  the matching results and returns the results to the client. If you use 
+  the :pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in
+  your query, |fts| enables intra-query parallelism. To learn more, see
+  :ref:`Parallelize Query Execution Across Segments <concurrent-ref>`.  
+
+  If you delete all the Search Nodes on your {+cluster+}, there will be an
   interruption in processing your search query results. To learn more, see
   :ref:`Modify a Cluster <scale-cluster-cloud-provider>`. If you delete
   your |service| {+cluster+}, |service| pauses and then deletes all

@@ -104,7 +104,7 @@ Syntax
 .. code-block:: json
    :copyable: true
    :caption: searchSequenceToken Syntax
-   :emphasize-lines: 11
+   :emphasize-lines: 16
    :linenos: 
 
    [{
@@ -157,7 +157,7 @@ to the query for which ``searchSequenceToken`` generated the token.
 
 You can use the ``searchAfter`` option to build a "Next Page" function
 in your application. For a demonstration of this, see the :ref:`example
-<search-after-query-eg>` on this page. 
+<search-before-egs>` on this page. 
 
 .. _search-after-syntax:
 
@@ -230,7 +230,7 @@ the following:
   ``reverse()`` methods.  
   
 For a demonstration of this, see the ``searchBefore`` query :ref:`examples
-<search-before-query-eg>` on this page.
+<search-before-egs>` on this page.
 
 .. _search-before-syntax:
 
@@ -285,498 +285,147 @@ collection, which has an |fts| index named ``default`` with dynamic
 mappings. If you load the collection and create the index, you can run
 the following queries against the collection.
 
-.. _search-sequence-token-eg:
+The queries demonstrate how to retrieve a point of reference, which you
+then use in the subsequent queries to retrieve additional results for
+the same term before and after the specified point of reference. 
 
-``searchSequenceToken`` Query
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This examples demonstrate how to do the following tasks:
 
-The following query uses the following pipeline stages: 
-
-- :pipeline:`$search` to do the following:
-
-  - Search for the term ``war`` in ``title`` field of the collection.
-  - Sort the results first by score and then by the value of the
-    ``released`` field in ascending order for documents with identical
-    scores. 
-    
-- :pipeline:`$limit` stage to limit the results to ``10`` documents. 
-- :pipeline:`$project` stage to do the following: 
-
-  - Include only the ``title`` and ``released`` fields.
-  - Add the following fields: 
-
-    - Field named ``paginationToken`` that contains the Base64-encoded
-      token for each document. 
-    - Field named ``score`` that contains the relevance score of each
-      document. 
-
-.. io-code-block::
-   :copyable:
-
-   .. input:: 
-      :language:  json
-      :linenos: 
-
-      db.movies.aggregate([
-        {
-          "$search": {
-            "text": {
-              "path": "title",
-              "query": "war"
-            },
-            "sort": {score: {$meta: "searchScore"}, "released": 1}
-          }
-        },
-        {
-          "$limit": 10
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "released": 1,
-            "paginationToken" : { "$meta" : "searchSequenceToken" },
-            "score": {$meta: "searchScore"}
-          }
-        }
-      ])
-
-   .. output:: 
-      :language: shell
-      :visible: false
-      :emphasize-lines: 5,11,16,22,28,34,40,46,52,58
-      :linenos: 
-
-      [
-        {
-          title: 'War',
-          released: ISODate('2002-03-14T00:00:00.000Z'),
-          paginationToken: 'CMFRGgYQup3BhQgaCSkAQCKS7AAAAA==',
-          score: 3.3774025440216064
-        },
-        {
-          title: 'War',
-          released: ISODate('2014-09-21T00:00:00.000Z'),
-          paginationToken: 'CMelARoGELqdwYUIGgkpAAiClUgBAAA=',
-          score: 3.3774025440216064
-        },
-        {
-          title: 'War Photographer',
-          paginationToken: 'CMBRGgYQuq+ngwgaAmAA',
-          score: 2.8268959522247314
-        },
-        {
-          title: "Troma's War",
-          released: ISODate('1989-11-18T00:00:00.000Z'),
-          paginationToken: 'CL8kGgYQuq+ngwgaCSkAbP8QkgAAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'The War',
-          released: ISODate('1994-11-04T00:00:00.000Z'),
-          paginationToken: 'CI0wGgYQuq+ngwgaCSkAnIKEtgAAAA==',
-          score: 2.8268959522247314
-        },
-        {
-         title: 'War Stories',
-          released: ISODate('1996-05-09T00:00:00.000Z'),
-          paginationToken: 'CPIyGgYQuq+ngwgaCSkA/DifwQAAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: "Gaston's War",
-          released: ISODate('1997-10-23T00:00:00.000Z'),
-          paginationToken: 'CMQ7GgYQuq+ngwgaCSkALPBSzAAAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'Shooting War',
-          released: ISODate('2000-12-07T00:00:00.000Z'),
-          paginationToken: 'CMJJGgYQuq+ngwgaCSkAOOhG4wAAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: "Varian's War",
-          released: ISODate('2001-04-22T00:00:00.000Z'),
-          paginationToken: 'CM5IGgYQuq+ngwgaCSkAGEkD5gAAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: "Hart's War",
-          released: ISODate('2002-02-15T00:00:00.000Z'),
-          paginationToken: 'CMtJGgYQuq+ngwgaCSkAjBYH7AAAAA==',
-          score: 2.8268959522247314
-        }
-      ]
+1. :ref:`sequential-pagination-tutorial-por-query`
+2. :ref:`sequential-pagination-tutorial-after-query`
+3. :ref:`sequential-pagination-tutorial-before-query`
+4. :ref:`sequential-pagination-tutorial-skip-query`
+5. :ref:`sequential-pagination-tutorial-facet-query`
 
 .. note:: 
 
-   The tokens for the documents in your results might be different.
-   Replace the tokens in the :ref:`subsequent queries
-   <subsequent-query-egs>` with the tokens that |fts| returned in your
-   results before running the ``searchAfter`` or ``searchBefore``
-   queries. 
+   By default, |fts| sorts the documents in the results by the relevance
+   score of the documents. If multiple documents in the results have
+   identical scores, |fts| returns arbitrarily ordered results. To
+   return documents in a determined order, the queries specify a unique 
+   field, ``released``, to sort the results.
 
-.. _subsequent-query-egs:
+.. _sequential-pagination-tutorial-por-query:
 
-Subsequent ``searchAfter`` and ``searchBefore`` Queries 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. collapsible::
+   :heading: Retrieve Page 1 and Generate Pagination Tokens 
+   :sub_heading: Retrieve results for the first page and retrieve tokens or a point of reference for subsequent queries.
+   :expanded: false 
 
-The following queries use the token from another query with the same
-semantics to retrieve paginated results after or before the specified
-token. If you ran the example :ref:`search-sequence-token-eg`, the
-tokens for the documents in your results might be different. Make sure
-to replace the tokens in the queries in this section with the tokens
-returned in your query result.
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-point-of-ref-query-desc.rst
 
-The queries use the following pipeline stages:
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/point-of-ref-query-mongosh.json 
+         :language: json
 
-- :pipeline:`$search` stage to do the following: 
+      .. output:: /includes/fts/sequential-pagination/point-of-ref-mongosh-query-results.json
+         :language: json
+         :visible: false
 
-  - Search for documents from the |fts| results for the term ``war`` in
-    ``title`` field.  
-  - Sort the results first by score and then by the value of the 
-    ``released`` field in ascending order for documents with identical 
-    scores. 
-    
-- :pipeline:`$limit` stage to limit the results to ``10`` documents. 
-- :pipeline:`$project` stage to do the following: 
+.. _sequential-pagination-tutorial-after-query:
 
-  - Include only the ``title`` and ``released`` fields in the documents. 
-  - Add the following fields: 
+.. collapsible::
+   :heading: Retrieve Page 2 Using searchAfter 
+   :sub_heading: Retrieve results to build a function like "Next Page" in your application.
+   :expanded: false 
 
-    - Field named ``paginationToken`` that contains the Base64-encoded
-      token for  each document.  
-    - Field named ``score`` that contains the relevance score of each
-      document. 
+   To retrieve additional results, specify the point of reference after
+   which you want to retrieve the results. 
 
-.. _search-after-query-eg:
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-search-after-query-desc.rst
 
-Search After the Reference Point 
-````````````````````````````````
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/search-after-query-mongosh.json 
+         :language: json
 
-The following query requests documents in the |fts| results that contain
-the term ``war`` in ``title`` field *after* the specified reference
-point. It uses the token (on line 58) associated with the last document
-from the :ref:`search-sequence-token-eg` results as the reference point
-to retrieve the next ``10`` documents in the results.  
+      .. output:: /includes/fts/sequential-pagination/search-after-mongosh-query-results.json 
+         :language: json
+         :visible: false
 
-.. io-code-block::
-   :copyable: true 
+.. _sequential-pagination-tutorial-before-query:
 
-   .. input:: 
-      :language: json 
-      :linenos:
+.. collapsible::
+   :heading: Return to Page 1 Using searchBefore
+   :sub_heading: Retrieve results to build a function like "Previous Page" in your application.
+   :expanded: false 
 
-      db.movies.aggregate([
-        {
-          "$search": {
-            "text": {
-              "path": "title",
-              "query": "war"
-            },
-            "sort": {score: {$meta: "searchScore"}, "released": 1},
-            "searchAfter": "CMtJGgYQuq+ngwgaCSkAjBYH7AAAAA=="
-          }
-        },
-        {
-          "$limit": 10
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "released": 1,
-            "paginationToken" : { "$meta" : "searchSequenceToken" },
-            "score": { "$meta": "searchScore" }
-          }
-        }
-      ])
+   To retrieve previous results, specify the point of reference before
+   which you want to retrieve the results. 
 
-   .. output::
-      :language: json 
-      :visible: false
-      :emphasize-lines: 5,11,17,23,29,35,41,47,53,59
-      :linenos:
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-search-before-query-desc.rst
 
-      [
-        {
-          title: 'The War',
-          released: ISODate('2007-09-23T00:00:00.000Z'),
-          paginationToken: 'CP9xGgYQuq+ngwgaCSkA1KkvFQEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War, Inc.',
-          released: ISODate('2008-06-13T00:00:00.000Z'),
-          paginationToken: 'COhuGgYQuq+ngwgaCSkAtDh/GgEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War, Inc.',
-          released: ISODate('2008-06-13T00:00:00.000Z'),
-          paginationToken: 'COluGgYQuq+ngwgaCSkAtDh/GgEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Dance',
-          released: ISODate('2008-11-01T00:00:00.000Z'),
-          paginationToken: 'CONvGgYQuq+ngwgaCSkAYFlVHQEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Horse',
-          released: ISODate('2011-12-25T00:00:00.000Z'),
-          paginationToken: 'CJWFARoGELqvp4MIGgkpAEyEcjQBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'Cold War',
-          released: ISODate('2012-11-08T00:00:00.000Z'),
-          paginationToken: 'CJGUARoGELqvp4MIGgkpAPBQ3ToBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'Drug War',
-          released: ISODate('2013-04-04T00:00:00.000Z'),
-          paginationToken: 'CMWTARoGELqvp4MIGgkpAMRX0j0BAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Story',
-          released: ISODate('2014-07-30T00:00:00.000Z'),
-          paginationToken: 'CJCdARoGELqvp4MIGgkpAPyQhEcBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'A War',
-          released: ISODate('2015-09-10T00:00:00.000Z'),
-          paginationToken: 'CL2kARoGELqvp4MIGgkpAECNtE8BAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Pigs',
-          released: ISODate('2015-09-18T00:00:00.000Z'),
-          paginationToken: 'CJ6kARoGELqvp4MIGgkpACDA3U8BAAA=',
-          score: 2.8268959522247314
-        }
-      ]
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/search-before-query-mongosh.json
+         :language: json
 
-.. _search-before-query-eg:
+      .. output:: /includes/fts/sequential-pagination/search-before-mongosh-query-results.json
+         :language: json
+         :visible: false 
 
-Search Before the Reference Point 
-`````````````````````````````````
+.. _sequential-pagination-tutorial-skip-query:
 
-The following query requests |fts| results for the term ``war`` in
-``title`` field *before* the specified reference point. It uses the
-token (on line 59) associated with the last document in the :ref:`sample 
-<search-after-query-eg>` ``searchAfter`` query results as the 
-reference point to retrieve the preceding ``10`` documents from the
-results.  
+.. collapsible::
+   :heading: Jump from Page 2 to Page 5 Using searchAfter and $skip
+   :sub_heading: Retrieve results to build a function in your application that allows skipping pages.
+   :expanded: false 
 
-.. io-code-block::
-   :copyable: true 
+   To skip results and jump from page 2 to 5, use the token that
+   the ``searchSequenceToken`` generates to specify the point of reference after which you
+   want to retrieve the results and then skip twenty documents in the
+   results.
 
-   .. input:: 
-      :language: json 
-      :linenos:
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-skip-results-query-desc.rst
 
-      db.movies.aggregate([
-        {
-          "$search": {
-            "text": {
-              "path": "title",
-              "query": "war"
-            },
-            "sort": {score: {$meta: "searchScore"}, "released": 1},
-            "searchBefore": "CJ6kARoGELqvp4MIGgkpACDA3U8BAAA="
-          }
-        },
-        {
-          "$limit": 10
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "released": 1,
-            "paginationToken" : { "$meta" : "searchSequenceToken" },
-            "score": { "$meta": "searchScore" }
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/skip-results-query-mongosh.json 
+         :language: json
+
+      .. output:: /includes/fts/sequential-pagination/skip-results-mongosh-query-results.json 
+         :language: json
+         :visible: false
+
+.. _sequential-pagination-tutorial-facet-query:
+
+.. collapsible::
+   :heading: Use Facet with the Paginated Results
+   :sub_heading: Use searchSequenceToken with Atlas Search facets.
+   :expanded: false 
+
+   To group results by using |fts| :ref:`fts-facet-ref`, you must index
+   any ``string`` field as the ``stringFacet`` type. To run the following
+   query and group the results by the ``genres`` field in the ``movies``
+   collection, your index must resemble the following example:
+
+   .. code-block:: json 
+
+      {
+        "mappings": {
+          "dynamic": true,
+            "fields": {
+              "genres": {
+                "type": "stringFacet"
+              }
+            }
           }
         }
-      ])
+      }
 
-   .. output::
-      :language: json 
-      :visible: false
-      :emphasize-lines: 5,11,17,23,29,35,41,47,53,59
-      :linenos:
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-facet-query-desc.rst
 
-      [
-        {
-          title: 'A War',
-          released: ISODate('2015-09-10T00:00:00.000Z'),
-          paginationToken: 'CL2kARoGELqvp4MIGgkpAECNtE8BAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Story',
-          released: ISODate('2014-07-30T00:00:00.000Z'),
-          paginationToken: 'CJCdARoGELqvp4MIGgkpAPyQhEcBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'Drug War',
-          released: ISODate('2013-04-04T00:00:00.000Z'),
-          paginationToken: 'CMWTARoGELqvp4MIGgkpAMRX0j0BAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'Cold War',
-          released: ISODate('2012-11-08T00:00:00.000Z'),
-          paginationToken: 'CJGUARoGELqvp4MIGgkpAPBQ3ToBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Horse',
-          released: ISODate('2011-12-25T00:00:00.000Z'),
-          paginationToken: 'CJWFARoGELqvp4MIGgkpAEyEcjQBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Dance',
-          released: ISODate('2008-11-01T00:00:00.000Z'),
-          paginationToken: 'CONvGgYQuq+ngwgaCSkAYFlVHQEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War, Inc.',
-          released: ISODate('2008-06-13T00:00:00.000Z'),
-          paginationToken: 'COluGgYQuq+ngwgaCSkAtDh/GgEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War, Inc.',
-          released: ISODate('2008-06-13T00:00:00.000Z'),
-          paginationToken: 'COhuGgYQuq+ngwgaCSkAtDh/GgEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'The War',
-          released: ISODate('2007-09-23T00:00:00.000Z'),
-          paginationToken: 'CP9xGgYQuq+ngwgaCSkA1KkvFQEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: "Hart's War",
-          released: ISODate('2002-02-15T00:00:00.000Z'),
-          paginationToken: 'CMtJGgYQuq+ngwgaCSkAjBYH7AAAAA==',
-          score: 2.8268959522247314
-        }
-      ]
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/facet-query-mongosh.json 
+         :language: json
 
-For the preceding query, note that |fts| results are in reverse order. 
-The following query uses the :pipeline:`$limit` stage with the
-:manual:`toArray() </reference/method/cursor.toArray/>` and
-``reverse()`` methods to build a function similar to "Previous Page". 
-
-.. io-code-block::
-   :copyable: true 
-
-   .. input:: 
-      :language: json 
-      :linenos:
-
-      db.movies.aggregate([
-        {
-          "$search": {
-            "text": {
-              "path": "title",
-              "query": "war"
-            },
-            "sort": {score: {$meta: "searchScore"}, "released": 1},
-            "searchBefore": "CJ6kARoGELqvp4MIGgkpACDA3U8BAAA="
-          }
-        },
-        {
-          "$limit": 10
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "released": 1,
-            "paginationToken" : { "$meta" : "searchSequenceToken" },
-            "score": { "$meta": "searchScore" }
-          }
-        }
-      ]).toArray().reverse()
-
-   .. output::
-      :language: json 
-      :visible: false
-      :emphasize-lines: 5,11,17,23,29,35,41,47,53,59
-      :linenos:
-
-      [
-        {
-          title: "Hart's War",
-          released: ISODate('2002-02-15T00:00:00.000Z'),
-          paginationToken: 'CMtJGgYQuq+ngwgaCSkAjBYH7AAAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'The War',
-          released: ISODate('2007-09-23T00:00:00.000Z'),
-          paginationToken: 'CP9xGgYQuq+ngwgaCSkA1KkvFQEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War, Inc.',
-          released: ISODate('2008-06-13T00:00:00.000Z'),
-          paginationToken: 'COhuGgYQuq+ngwgaCSkAtDh/GgEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War, Inc.',
-          released: ISODate('2008-06-13T00:00:00.000Z'),
-          paginationToken: 'COluGgYQuq+ngwgaCSkAtDh/GgEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Dance',
-          released: ISODate('2008-11-01T00:00:00.000Z'),
-          paginationToken: 'CONvGgYQuq+ngwgaCSkAYFlVHQEAAA==',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Horse',
-          released: ISODate('2011-12-25T00:00:00.000Z'),
-          paginationToken: 'CJWFARoGELqvp4MIGgkpAEyEcjQBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'Cold War',
-          released: ISODate('2012-11-08T00:00:00.000Z'),
-          paginationToken: 'CJGUARoGELqvp4MIGgkpAPBQ3ToBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'Drug War',
-          released: ISODate('2013-04-04T00:00:00.000Z'),
-          paginationToken: 'CMWTARoGELqvp4MIGgkpAMRX0j0BAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'War Story',
-          released: ISODate('2014-07-30T00:00:00.000Z'),
-          paginationToken: 'CJCdARoGELqvp4MIGgkpAPyQhEcBAAA=',
-          score: 2.8268959522247314
-        },
-        {
-          title: 'A War',
-          released: ISODate('2015-09-10T00:00:00.000Z'),
-          paginationToken: 'CL2kARoGELqvp4MIGgkpAECNtE8BAAA=',
-          score: 2.8268959522247314
-        }
-      ]
+      .. output:: /includes/fts/sequential-pagination/facet-mongosh-query-results.json 
+         :language: json
+         :visible: false

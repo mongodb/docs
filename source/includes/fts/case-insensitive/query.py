@@ -7,7 +7,7 @@ client = pymongo.MongoClient('<connection-string>')
 pipeline = [
     {
         '$search': {
-            'index': 'case-insensitive-sort', 
+            'index': 'default', 
             'text': { 'path': 'title', 'query': 'train' }, 
             'sort': { 'title': 1 }
         }

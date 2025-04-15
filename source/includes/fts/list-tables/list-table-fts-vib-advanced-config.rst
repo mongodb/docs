@@ -1,6 +1,6 @@
 .. list-table:: 
    :header-rows: 1
-   :widths: 25 53 22
+   :widths: 20 60 20
 
    * - Field Name 
      - Description 
@@ -14,14 +14,14 @@
      - Conditional 
 
    * - :guilabel:`Stored Source Fields`
-     - .. include:: /includes/fts/extracts/fts-stored-source-vib.rst 
+     - .. include:: /includes/fts/extracts/fts-stored-source.rst 
 
        Corresponds to the ``storedSource`` |json| setting.
 
      - Optional  
 
    * - :guilabel:`Synonyms Mappings`
-     - .. include:: /includes/fts/extracts/fts-field-synonyms-vib.rst
+     - .. include:: /includes/fts/extracts/fts-field-synonyms.rst
 
        Corresponds to the ``synonyms`` |json| setting.
 

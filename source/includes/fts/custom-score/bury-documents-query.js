@@ -17,7 +17,7 @@ async function run() {
     const agg = [
       {
         '$search': {
-          'index': 'compound-query-custom-score-tutorial',
+          'index': 'default',
           'compound': {
             'should': [
               {

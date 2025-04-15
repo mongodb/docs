@@ -1,30 +1,19 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a file named ``sort-by-date.go``. 
-   .. step:: Copy and paste the following code into the ``sort-by-date.go`` file.
+   .. step:: Define the query.
 
-      The code example performs the following tasks:
+      a. Create a new file named ``sort-by-date.go`` 
+         and paste the following code:
 
-      - Imports ``mongodb`` packages and dependencies.
-      - Establishes a connection to your |service| cluster.
-      - .. include:: /includes/fts/extracts/fts-sort-by-date-constant-desc.rst 
+         .. literalinclude:: /includes/fts/sort/date-tutorial.go
+            :language: go
+            :linenos:
+            :emphasize-lines: 15
 
-        .. include:: /includes/fts/extracts/fts-sort-by-date-stage.rst
+      #. Specify the ``<connection-string>``.
 
-      - Iterates over the cursor to print the documents that match the query.
-
-      .. literalinclude:: /includes/fts/sort/date-tutorial.go
-         :language: go
-         :linenos:
-         :dedent:
-         :emphasize-lines: 15
-
-      .. note:: 
-         
-         .. include:: /includes/fts/facts/fact-fts-driver-connection-string.rst
-
-   .. step:: Run the following command to query your collection: 
+   .. step:: Run the query.
 
       .. io-code-block::
          :copyable: true
@@ -35,8 +24,8 @@
             go run sort-by-date.go
      
          .. output::
-            :language: none
-            :visible: true
+            :language: json
+            :visible: false
 
             [{title Summer Nights} {released 1422403200000} {score 0.348105788230896}]
             [{title Summertime} {released 1406851200000} {score 0.5917375683784485}]

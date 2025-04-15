@@ -1,9 +1,10 @@
 .. list-table:: 
    :stub-columns: 1
    :header-rows: 1
+   :widths: 25 75
 
    * - MongoDB Driver 
-     - Version 
+     - Driver Version 
 
    * - :driver:`C </c/>` 
      - 1.25.0 or higher 

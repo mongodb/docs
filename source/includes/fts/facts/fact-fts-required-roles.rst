@@ -1,9 +1,9 @@
-The following table shows the modes of access that each user role supports for the specified {+fts+} actions:
+The following table shows the modes of access that the following :ref:`Project Roles <project-roles>` support for the specified {+fts+} actions:
 
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :widths: 25 35 10 10 10
+   :widths: 25 30 10 10 15
 
    * - Role
      - {+fts+} Action
@@ -12,13 +12,13 @@ The following table shows the modes of access that each user role supports for t
      - |service| API [*]_ 
 
    * - :authrole:`Project Data Access Read Only` or higher 
-     - To view {+fts+} analyzers and indexes.
+     - To view {+fts+} indexes and analyzers.
      - ✓
      - 
      - ✓
 
    * - :authrole:`Project Data Access Admin` or higher
-     - To create and manage {+fts+} analyzers and indexes.
+     - To create, view, update, and delete {+fts+} indexes and analyzers.
      - ✓
      - ✓
      - ✓

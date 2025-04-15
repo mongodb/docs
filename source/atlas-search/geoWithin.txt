@@ -124,7 +124,7 @@ Options
    * - ``path``
      - string or array of strings
      - Indexed :ref:`geo <bson-data-types-geo>` type field or fields to
-       search. See :ref:`Path Construction <ref-path>`.
+       search.
      - yes
 
    * - ``score``
@@ -152,17 +152,6 @@ The following examples use the ``listingsAndReviews`` collection in the
 |fts| index for :ref:`geo <bson-data-types-geo>` type and run the
 example queries on your cluster. 
 
-.. include:: /includes/fts/facts/get-started-atlas-search.rst
-
-You can use any of the following :ref:`sample datasets 
-<available-sample-datasets>` for running |fts| queries with the 
-``geoWithin`` operator:
-
-- :ref:`sample-airbnb`
-- :ref:`sample-geospatial`
-- :ref:`sample-restaurants`
-- :ref:`Sample Training Dataset Trips Collection <training-trips>`
-
 Use the following sample index definition for
 indexing the ``address.location`` field in the ``listingsAndReviews``
 collection:
@@ -180,6 +169,9 @@ collection:
              }
            },
            "type": "document"
+         },
+         "property_type": {
+           "type": "stringFacet"
          }
        }
      }
@@ -202,93 +194,170 @@ The query includes a:
 
 .. include:: /includes/fts/facts/fact-fts-index-default.rst
 
-.. code-block:: javascript
-   :linenos:
+Basic Example 
+`````````````
 
-   db.listingsAndReviews.aggregate([
-     {
-       "$search": {
-         "geoWithin": {
-           "path": "address.location",
-           "box": {
-             "bottomLeft": {
-               "type": "Point",
-               "coordinates": [112.467, -55.050]
-             },
-             "topRight": {
-               "type": "Point",
-               "coordinates": [168.000, -9.133]
-             }
-           }
-         }
-       }
-     },
-     {
-       $limit: 3
-     },
-     {
-       $project: {
-         "_id": 0,
-         "name": 1,
-         "address": 1
-       }
-     }
-   ])
+The following query returns the documents that match the specified
+search criteria. 
 
-The query returns the following results:
+.. io-code-block:: 
+   :copyable: true 
 
-.. code-block:: json
-   :linenos:
-   :copyable: false
+   .. input:: 
+      :language: json 
+      :linenos:
+      
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "geoWithin": {
+              "path": "address.location",
+              "box": {
+                "bottomLeft": {
+                  "type": "Point",
+                  "coordinates": [112.467, -55.050]
+                },
+                "topRight": {
+                  "type": "Point",
+                  "coordinates": [168.000, -9.133]
+                }
+              }
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1
+          }
+        }
+      ])
 
-   {
-     "name" : "Surry Hills Studio - Your Perfect Base in Sydney",
-     "address" : {
-       "street" : "Surry Hills, NSW, Australia",
-       "suburb" : "Darlinghurst",
-       "government_area" : "Sydney",
-       "market" : "Sydney",
-       "country" : "Australia",
-       "country_code" : "AU",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ 151.21554, -33.88029 ],
-         "is_location_exact" : true
-       }
-     }
-   }
-   {
-     "name" : "Sydney Hyde Park City Apartment (checkin from 6am)",
-     "address" : {
-       "street" : "Darlinghurst, NSW, Australia",
-       "suburb" : "Darlinghurst",
-       "government_area" : "Sydney",
-       "market" : "Sydney",
-       "country" : "Australia",
-       "country_code" : "AU",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ 151.21346, -33.87603 ],
-         "is_location_exact" : false
-       }
-     }
-   }
-   {
-     "name" : "THE Place to See Sydney's FIREWORKS",
-     "address" : {
-       "street" : "Rozelle, NSW, Australia",
-       "suburb" : "Lilyfield/Rozelle",
-       "government_area" : "Leichhardt",
-       "market" : "Sydney",
-       "country" : "Australia",
-       "country_code" : "AU",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ 151.17956, -33.86296 ],
-         "is_location_exact" : true
-       }
-     }
-   }
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      {
+        "name" : "Surry Hills Studio - Your Perfect Base in Sydney",
+        "address" : {
+          "street" : "Surry Hills, NSW, Australia",
+          "suburb" : "Darlinghurst",
+          "government_area" : "Sydney",
+          "market" : "Sydney",
+          "country" : "Australia",
+          "country_code" : "AU",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 151.21554, -33.88029 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+      {
+        "name" : "Sydney Hyde Park City Apartment (checkin from 6am)",
+        "address" : {
+          "street" : "Darlinghurst, NSW, Australia",
+          "suburb" : "Darlinghurst",
+          "government_area" : "Sydney",
+          "market" : "Sydney",
+          "country" : "Australia",
+          "country_code" : "AU",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 151.21346, -33.87603 ],
+            "is_location_exact" : false
+          }
+        }
+      }
+      {
+        "name" : "THE Place to See Sydney's FIREWORKS",
+        "address" : {
+          "street" : "Rozelle, NSW, Australia",
+          "suburb" : "Lilyfield/Rozelle",
+          "government_area" : "Leichhardt",
+          "market" : "Sydney",
+          "country" : "Australia",
+          "country_code" : "AU",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 151.17956, -33.86296 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+
+Metadata Example 
+````````````````
+
+The following query returns the number of types of properties (such
+as apartment, house, and so on) for the specified search criteria.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos:
+
+      db.listingsAndReviews.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "geoWithin": {
+                    "path": "address.location",
+                    "box": {
+                      "bottomLeft": {
+                        "type": "Point",
+                        "coordinates": [112.467, -55.050]
+                      },
+                      "topRight": {
+                        "type": "Point",
+                        "coordinates": [168.000, -9.133]
+                      }
+                    }
+                  }
+              },
+              "facets": {
+                "propertyTypeFacet": {
+                  "type": "string",
+                  "path": "property_type"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      [
+        {
+          count: { lowerBound: Long('610') },
+          facet: {
+            propertyTypeFacet: {
+              buckets: [
+                { _id: 'Apartment', count: Long('334') },
+                { _id: 'House', count: Long('168') },
+                { _id: 'Townhouse', count: Long('29') },
+                { _id: 'Guest suite', count: Long('20') },
+                { _id: 'Condominium', count: Long('11') },
+                { _id: 'Cabin', count: Long('8') },
+                { _id: 'Serviced apartment', count: Long('7') },
+                { _id: 'Villa', count: Long('7') },
+                { _id: 'Bungalow', count: Long('5') },
+                { _id: 'Guesthouse', count: Long('5') }
+              ]
+            }
+          }
+        }
+      ]
 
 .. _geowithin-circle-eg:
 
@@ -307,90 +376,92 @@ The query includes a:
 
 .. include:: /includes/fts/facts/fact-fts-index-default.rst
 
-.. code-block:: javascript
-   :linenos:
+.. io-code-block:: 
+   :copyable: true 
 
-   db.listingsAndReviews.aggregate([
-     {
-       "$search": {
-         "geoWithin": {
-           "circle": {
-             "center": {
-               "type": "Point",
-               "coordinates": [-73.54, 45.54]
-             },
-             "radius": 1600
-           },
-           "path": "address.location"
-         }
-       }
-     },
-     {
-       $limit: 3
-     },
-     {
-       $project: {
-         "_id": 0,
-         "name": 1,
-         "address": 1
-       }
-     }
-   ])
+   .. input:: 
+      :language: json 
+      :linenos:
+      
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "geoWithin": {
+              "circle": {
+                "center": {
+                  "type": "Point",
+                  "coordinates": [-73.54, 45.54]
+                },
+                "radius": 1600
+              },
+              "path": "address.location"
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1
+          }
+        }
+      ])
 
-The query returns the following results:
+   .. output:: 
+      :language: javascript 
+      :visible: false 
 
-.. code-block:: json
-   :linenos:
-   :copyable: false
-
-   {
-     "name" : "Ligne verte - à 15 min de métro du centre ville.",
-     "address" : {
-       "street" : "Montréal, Québec, Canada",
-       "suburb" : "Hochelaga-Maisonneuve",
-       "government_area" : "Mercier-Hochelaga-Maisonneuve",
-       "market" : "Montreal",
-       "country" : "Canada",
-       "country_code" : "CA",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ -73.54949, 45.54548 ],
-         "is_location_exact" : false
-       }
-     }
-   }
-   {
-     "name" : "Belle chambre à côté Metro Papineau",
-     "address" : {
-       "street" : "Montréal, QC, Canada",
-       "suburb" : "Gay Village",
-       "government_area" : "Ville-Marie",
-       "market" : "Montreal",
-       "country" : "Canada",
-       "country_code" : "CA",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ -73.54985, 45.52797 ],
-         "is_location_exact" : false
-       }
-     }
-   }
-   {
-     "name" : "L'IDÉAL, ( à 2 min du métro Pie-IX ).",
-     "address" : {
-       "street" : "Montréal, Québec, Canada",
-       "suburb" : "Mercier-Hochelaga-Maisonneuve",
-       "government_area" : "Mercier-Hochelaga-Maisonneuve",
-       "market" : "Montreal",
-       "country" : "Canada",
-       "country_code" : "CA",
-       "location" : {
-         "type" : "Point",
-         "coordinates" : [ -73.55208, 45.55157 ],
-         "is_location_exact" : true
-       }
-     }
-   }
+      {
+        "name" : "Ligne verte - à 15 min de métro du centre ville.",
+        "address" : {
+          "street" : "Montréal, Québec, Canada",
+          "suburb" : "Hochelaga-Maisonneuve",
+          "government_area" : "Mercier-Hochelaga-Maisonneuve",
+          "market" : "Montreal",
+          "country" : "Canada",
+          "country_code" : "CA",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.54949, 45.54548 ],
+            "is_location_exact" : false
+          }
+        }
+      }
+      {
+        "name" : "Belle chambre à côté Metro Papineau",
+        "address" : {
+          "street" : "Montréal, QC, Canada",
+          "suburb" : "Gay Village",
+          "government_area" : "Ville-Marie",
+          "market" : "Montreal",
+          "country" : "Canada",
+          "country_code" : "CA",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.54985, 45.52797 ],
+            "is_location_exact" : false
+          }
+        }
+      }
+      {
+        "name" : "L'IDÉAL, ( à 2 min du métro Pie-IX ).",
+        "address" : {
+          "street" : "Montréal, Québec, Canada",
+          "suburb" : "Mercier-Hochelaga-Maisonneuve",
+          "government_area" : "Mercier-Hochelaga-Maisonneuve",
+          "market" : "Montreal",
+          "country" : "Canada",
+          "country_code" : "CA",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.55208, 45.55157 ],
+            "is_location_exact" : true
+          }
+        }
+      }
 
 .. _geowithin-geometry-eg:
 
@@ -413,188 +484,300 @@ The queries include a:
 .. tabs::
 
    .. tab:: Polygon Example
-      :tabid: polygon
+      :tabid: polygon ****  **** 
 
-      .. code-block:: javascript
-        :linenos:
+      ----------
 
-         db.listingsAndReviews.aggregate([
-           {
-             "$search": {
-               "geoWithin": {
-                 "geometry": {
-                   "type": "Polygon",
-                   "coordinates": [[[ -161.323242, 22.512557 ],
-                                  [ -152.446289, 22.065278 ],
-                                  [ -156.09375, 17.811456 ],
-                                  [ -161.323242, 22.512557 ]]]
-                 },
-                 "path": "address.location"
-               }
-             }
-           },
-           {
-             $limit: 3
-           },
-           {
-             $project: {
-               "_id": 0,
-               "name": 1,
-               "address": 1
-             }
-           }
-         ])
+      .. |arrow| unicode:: U+27A4
 
-      The query returns the following results:
+      |arrow| Use the **Select your language** drop-down menu on this page to 
+      set the language of the examples in this section.
 
-      .. code-block:: json
-         :linenos:
-         :copyable: false
+      ----------
 
-         {
-           "name" : "Ocean View Waikiki Marina w/prkg",
-           "address" : {
-             "street" : "Honolulu, HI, United States",
-             "suburb" : "Oʻahu",
-             "government_area" : "Primary Urban Center",
-             "market" : "Oahu",
-             "country" : "United States",
-             "country_code" : "US",
-             "location" : {
-               "type" : "Point",
-               "coordinates" : [ -157.83919, 21.28634 ],
-               "is_location_exact" : true
-             }
-           }
-         }
-         {
-           "name" : "Kailua-Kona, Kona Coast II 2b condo",
-           "address" : {
-             "street" : "Kailua-Kona, HI, United States",
-             "suburb" : "Kailua/Kona",
-             "government_area" : "North Kona",
-             "market" : "The Big Island",
-             "country" : "United States",
-             "country_code" : "US",
-             "location" : {
-               "type" : "Point",
-               "coordinates" : [ -155.96445, 19.5702 ],
-               "is_location_exact" : true
-             }
-           }
-         }
-         {
-           "name" : "LAHAINA, MAUI! RESORT/CONDO BEACHFRONT!! SLEEPS 4!",
-           "address" : {
-             "street" : "Lahaina, HI, United States",
-             "suburb" : "Maui",
-             "government_area" : "Lahaina",
-             "market" : "Maui",
-             "country" : "United States",
-             "country_code" : "US",
-             "location" : {
-               "type" : "Point",
-               "coordinates" : [ -156.68012, 20.96996 ],
-               "is_location_exact" : true
-             }
-           }
-         }
+      .. tabs-selector:: drivers
+
+      The following |fts| query:
+
+      .. include:: /includes/fts/facts/fact-fts-tutorial-run-geo-query-results.rst
+
+      .. tabs-drivers::
+
+        .. tab::
+           :tabid: atlas-ui 
+
+           .. io-code-block::  
+              :copyable: true 
+            
+              .. input:: /includes/fts/geo/ui-query.json
+                 :language: json 
+
+              .. output:: /includes/fts/geo/ui-query-output.js
+                 :language: javascript
+                 :linenos:
+                 :visible: false
+
+        .. tab::
+           :tabid: shell
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/shell-query.json
+                 :language: json
+
+              .. output:: /includes/fts/geo/shell-query-output.js
+                 :language: javascript
+                 :visible: false
+
+        .. tab::
+           :tabid: compass
+
+           To learn how to run the following queries in the |compass|,
+           see :ref:`atlas-search-queries`. 
+
+           .. input:: /includes/fts/geo/compass-query.rst
+              :language: json
+
+           .. output:: /includes/fts/geo/compass-output.js
+              :language: javascript
+              :visible: false
+
+        .. tab::
+           :tabid: csharp
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/geo-tutorial-query.cs
+                 :language: csharp
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 13
+
+              .. output:: /includes/fts/geo/csharp-output.js
+                 :language: javascript
+                 :visible: false  
+
+        .. tab::
+           :tabid: go
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/run-geo-query.go
+                 :language: go
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 14
+                  
+              .. output:: /includes/fts/geo/run-geo-query.go
+                 :language: javascript
+                 :visible: false
+
+        .. tab::
+           :tabid: java-sync
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/GeoQuery.java
+                 :language: java
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 29
+                  
+              .. output::
+                 :language: json
+                 :visible: false
+
+        .. tab::
+           :tabid: kotlin-coroutine
+
+           The following code example:
+
+           - Imports ``mongodb`` packages and dependencies.
+           - Establishes a connection to your |service| cluster.
+           - Prints the documents that match the query from the
+             ``AggregateFlow`` instance.
+
+           .. io-code-block:: 
+              :copyable: true 
+              
+              .. input:: /includes/fts/geo/tutorial.kt
+                 :language: kotlin
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 10
+
+              .. output:: /includes/fts/geo/kotlin-query-results.js
+                 :language: javascript 
+                 :visible: false
+
+        .. tab::
+           :tabid: nodejs
+
+           The following code example:
+
+           - Imports ``mongodb``, MongoDB's Node.js driver. 
+           - Creates an instance of the ``MongoClient`` class to establish a 
+             connection to your |service| cluster.
+           - Iterates over the cursor to print the documents that match the 
+             query.
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/run-geo-query.js
+                 :language: javascript
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 4
+                  
+              .. output::
+                 :language: javascript
+                 :visible: false
+
+        .. tab::
+           :tabid: python
+
+           The following code example:
+
+           - Imports ``pymongo``, MongoDB's Python driver, and the ``dns``
+             module, which is required to connect ``pymongo`` to ``Atlas`` 
+             using a |dns| seed list connection string. 
+
+           - Creates an instance of the ``MongoClient`` class to establish a 
+             connection to your |service| cluster.
+
+             .. include:: /includes/fts/facts/fact-fts-tutorial-run-geo-query-results.rst
+
+           - Iterates over the cursor to print the documents that match the 
+             query.
+
+           .. io-code-block::
+              :copyable: true 
+
+              .. input:: /includes/fts/geo/run-geo-query.py
+                 :language: python
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 4
+
+              .. output:: /includes/fts/geo/python-query-output.js
+                 :language: javascript
+                 :visible: false
 
    .. tab:: MultiPolygon Example
       :tabid: multipolygon
 
+      The following examples use the ``geoWithin`` operator with the
+      ``geometry`` field to search for properties in Hawaii. The ``type`` field
+      specifies whether the area is a GeoJSON :ref:`Polygon <geojson-polygon>` or 
+      :ref:`MultiPolygon <geojson-multipolygon>`.
+
+      The query includes a: 
+
+      - :pipeline:`$limit` stage to limit the output to ``3`` results.
+      - :pipeline:`$project` stage to
+        exclude all fields except ``name`` and ``address``.
+
+      .. include:: /includes/fts/facts/fact-fts-index-default.rst
+
       .. code-block:: javascript
          :linenos:
 
-         db.listingsAndReviews.aggregate([
-           {
-             "$search": {
-               "geoWithin": {
-                 "geometry": {
-                   "type": "MultiPolygon",
-                   "coordinates": [
-                         [[[-157.8412413882,21.2882235819],
-                         [-157.8607925468,21.2962046205],
-                         [-157.8646640634,21.3077019651],
-                         [-157.862776699,21.320776283],
-                         [-157.8341758705,21.3133826738],
-                         [-157.8349985678,21.3000822569],
-                         [-157.8412413882,21.2882235819]]],
-                         [[[-157.852898124,21.301208833],
-                         [-157.8580050499,21.3050871833],
-                         [-157.8587346108,21.3098050385],
-                         [-157.8508811028,21.3119240258],
-                         [-157.8454308541,21.30396767],
-                         [-157.852898124,21.301208833]]]
-                   ]
-                 },
-                 "path": "address.location"
-               }
-             }
-           },
-           {
-             $limit: 3
-           },
-           {
-             $project: {
-               "_id": 0,
-               "name": 1,
-               "address": 1
-             }
-           }
-         ])
+         .. input:: 
+            :language: json 
+            :linenos:
+      
+            db.listingsAndReviews.aggregate([
+              {
+                "$search": {
+                  "geoWithin": {
+                    "geometry": {
+                      "type": "MultiPolygon",
+                      "coordinates": [
+                            [[[-157.8412413882,21.2882235819],
+                            [-157.8607925468,21.2962046205],
+                            [-157.8646640634,21.3077019651],
+                            [-157.862776699,21.320776283],
+                            [-157.8341758705,21.3133826738],
+                            [-157.8349985678,21.3000822569],
+                            [-157.8412413882,21.2882235819]]],
+                            [[[-157.852898124,21.301208833],
+                            [-157.8580050499,21.3050871833],
+                            [-157.8587346108,21.3098050385],
+                            [-157.8508811028,21.3119240258],
+                            [-157.8454308541,21.30396767],
+                            [-157.852898124,21.301208833]]]
+                      ]
+                    },
+                    "path": "address.location"
+                  }
+                }
+              },
+              {
+                $limit: 3
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "name": 1,
+                  "address": 1
+                }
+              }
+            ])
 
-      The query returns the following results:
+         .. output:: 
+            :language: javascript 
+            :visible: false 
 
-      .. code-block:: json
-         :linenos:
-         :copyable: false
-
-         {
-           "name" : "Heart of Honolulu, 2BD gem! Free Garage Parking!",
-           "address" : {
-             "street" : "Honolulu, HI, United States",
-             "suburb" : "Makiki/Lower Punchbowl/Tantalus",
-             "government_area" : "Primary Urban Center",
-             "market" : "Oahu",
-             "country" : "United States",
-             "country_code" : "US",
-             "location" : {
-               "type" : "Point",
-               "coordinates" : [ -157.84343, 21.30852 ],
-               "is_location_exact" : false
-             }
-           }
-         }
-         {
-           "name" : "Private Studio closed to town w/ compact parking",
-           "address" : {
-             "street" : "Honolulu, HI, United States",
-             "suburb" : "Oʻahu",
-             "government_area" : "Primary Urban Center",
-             "market" : "Oahu",
-             "country" : "United States",
-             "country_code" : "US",
-             "location" : {
-               "type" : "Point",
-               "coordinates" : [ -157.85228, 21.31184 ],
-               "is_location_exact" : true
-             }
-           }
-         }
-         {
-           "name" : "Comfortable Room (2) at Affordable Rates",
-           "address" : {
-             "street" : "Honolulu, HI, United States",
-             "suburb" : "Oʻahu",
-             "government_area" : "Primary Urban Center",
-             "market" : "Oahu",
-             "country" : "United States",
-             "country_code" : "US",
-             "location" : {
-               "type" : "Point",
-               "coordinates" : [ -157.83889, 21.29776 ],
-               "is_location_exact" : false
-             }
-           }
-         }
+            {
+                "name" : "Heart of Honolulu, 2BD gem! Free Garage Parking!",
+                "address" : {
+                  "street" : "Honolulu, HI, United States",
+                  "suburb" : "Makiki/Lower Punchbowl/Tantalus",
+                  "government_area" : "Primary Urban Center",
+                  "market" : "Oahu",
+                  "country" : "United States",
+                  "country_code" : "US",
+                  "location" : {
+                    "type" : "Point",
+                    "coordinates" : [ -157.84343, 21.30852 ],
+                    "is_location_exact" : false
+                  }
+                }
+              }
+              {
+                "name" : "Private Studio closed to town w/ compact parking",
+                "address" : {
+                  "street" : "Honolulu, HI, United States",
+                  "suburb" : "Oʻahu",
+                  "government_area" : "Primary Urban Center",
+                  "market" : "Oahu",
+                  "country" : "United States",
+                  "country_code" : "US",
+                  "location" : {
+                    "type" : "Point",
+                    "coordinates" : [ -157.85228, 21.31184 ],
+                    "is_location_exact" : true
+                  }
+                }
+              }
+              {
+                "name" : "Comfortable Room (2) at Affordable Rates",
+                "address" : {
+                  "street" : "Honolulu, HI, United States",
+                  "suburb" : "Oʻahu",
+                  "government_area" : "Primary Urban Center",
+                  "market" : "Oahu",
+                  "country" : "United States",
+                  "country_code" : "US",
+                  "location" : {
+                    "type" : "Point",
+                    "coordinates" : [ -157.83889, 21.29776 ],
+                    "is_location_exact" : false
+                  }
+                }
+              }

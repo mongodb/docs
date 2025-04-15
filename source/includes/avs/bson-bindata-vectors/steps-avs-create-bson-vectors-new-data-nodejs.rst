@@ -203,7 +203,7 @@
             * - ``<INDEX-NAME>``
               - Name of the index for the collection. 
 
-      #. Run the following command to create the index. 
+      #. Create the index. 
 
          .. code-block:: shell 
 

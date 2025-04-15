@@ -27,7 +27,7 @@ public class SortByStrings
         var searchOptions = new SearchOptions<MovieDocument>() 
             { 
                 Sort = Builders<MovieDocument>.Sort.Descending(movie => movie.Released),
-                IndexName = "sort-tutorial"
+                IndexName = "default"
             };
             
         // define and run pipeline

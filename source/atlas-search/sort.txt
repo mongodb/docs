@@ -30,7 +30,29 @@ following field types using the ``sort`` option:
 - ``string`` (indexed as the :ref:`token <bson-data-types-token>` type) 
 
 You can also sort by the score of the documents in the results and by
-:ref:`null values <fts-sort-null>`. 
+:ref:`null values <fts-sort-null>`.
+
+.. _sort-compatibility-ref:
+
+``sort`` Option Compatibility 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports non-sharded sort queries across all major and minor
+MongoDB 5.0 and later versions. Sharded sort queries are available on
+all major releases for 6.0 and on all major and minor releases for 
+7.0 and later versions. If you use ``sort``  on sharded |service|
+{+clusters+} running MongoDB v5.0 and earlier, |fts| returns an error.
+
+.. _sort-option-limitations:
+
+``sort`` Option Limitations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- You can't sort on fields of :ref:`embeddedDocuments
+  <bson-data-types-embedded-documents>` type.
+- You can't use the ``sort`` option with the deprecated
+  :ref:`knn-beta-ref`
+  operator.
 
 .. _fts-sort-usage:
 
@@ -311,26 +333,6 @@ results. However, you might see higher scoring documents after lower
 scoring documents because the order of documents in the results is based
 on the sort criteria unless you explicitly sort by score.
 
-Limitations 
-~~~~~~~~~~~
-
-- You can't sort on fields of :ref:`embeddedDocuments
-  <bson-data-types-embedded-documents>` type.
-- You can't use the ``sort`` option with the deprecated
-  :ref:`knn-beta-ref`
-  operator. 
-
-.. _sort-compatibility-ref:
-
-Compatibility 
-~~~~~~~~~~~~~
-
-|service| supports non-sharded sort queries across all major and minor
-MongoDB 5.0 and later versions. Sharded sort queries are available on
-all major releases for 6.0 and on all major and minor releases for 
-7.0 and later versions. If you use ``sort``  on sharded |service|
-{+clusters+} running MongoDB v5.0 and earlier, |fts| returns an error.
-
 .. _sort-syntax-ref:
 
 Syntax 
@@ -395,6 +397,17 @@ Examples
 The following examples use the ``sample_mflix.movies``, 
 ``sample_airbnb.listingsAndReview``, or a custom collection named
 ``users``. 
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the examples in this section.
+
+----------
+
+.. tabs-selector:: drivers
 
 .. _fts-sort-index:
 
@@ -573,140 +586,120 @@ sample queries against the indexed fields.
 Date Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~
 
-The following query on the ``sample_mflix.movies`` namespace uses the
-:pipeline:`$search` stage to do the following: 
+.. include:: /includes/fts/extracts/fts-sort-by-date-constant-desc.rst 
 
-- Search for movies released between 01 January, 2010 and 01, January,
-  2015 using the :ref:`range-ref` operator. 
-- Sort the results in descending order of released date using the 
-  ``sort`` option. 
+.. include:: /includes/fts/extracts/fts-sort-by-date-stage.rst
 
-The query uses the :pipeline:`$limit` stage to limit the output to ``5``
-documents. It also uses the :pipeline:`$project` stage to omit all fields
-except ``title`` and ``released`` in the results.
+.. tabs-drivers::
 
-.. io-code-block:: 
-   :copyable: true
+   .. tab:: 
+      :tabid: atlas-ui
 
-   .. input:: 
-      :language: json 
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-atlas-ui.rst
+     
+   .. tab:: 
+      :tabid: shell
 
-      db.movies.aggregate([
-        {
-          "$search": {
-            "range": {
-              "path": "released",
-              "gt": ISODate("2010-01-01T00:00:00.000Z"),
-              "lt": ISODate("2015-01-01T00:00:00.000Z")
-            },
-            "sort": {
-              "released": -1
-            }
-          }
-        },
-        {
-          "$limit": 5
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "released": 1
-          }
-        }
-      ])
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-shell.rst
 
-   .. output::
-      :language: json
-      :visible: false
+   .. tab:: 
+      :tabid: compass
 
-      [
-        {
-          title: 'Cold in July',
-          released: ISODate("2014-12-31T00:00:00.000Z")
-        },
-        {
-          title: 'The Gambler',
-          released: ISODate("2014-12-31T00:00:00.000Z")
-        },
-        {
-          title: 'Force Majeure',
-          released: ISODate("2014-12-30T00:00:00.000Z")
-        },
-        { 
-          title: 'LFO', 
-          released: ISODate("2014-12-27T00:00:00.000Z") 
-        },
-        {
-          title: 'Peace After Marriage',
-          released: ISODate('2014-12-26T00:00:00.000Z')
-        }
-      ]
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-compass.rst
+  
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-cs.rst
+
+   .. tab:: 
+      :tabid: nodejs
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-nodejs.rst
+
+   .. tab:: 
+      :tabid: java-sync
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-kotlin.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-go.rst
+
+   .. tab:: 
+      :tabid: python
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-python.rst
 
 .. _fts-sort-eg-number:
 
 Number Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The following query on the ``sample_mflix.movies`` namespace uses the
-:pipeline:`$search` stage to do the following: 
+.. include:: /includes/fts/extracts/fts-sort-by-numbers-constant-desc.rst 
+ 
+.. include:: /includes/fts/extracts/fts-sort-by-numbers-stage.rst
 
-- Search for movies that have won awards.  
-- Sort the results in descending order using ``sort`` option. 
+.. tabs-drivers::
 
-The query uses the :pipeline:`$limit` stage to limit the output to ``5``
-documents. It also uses the :pipeline:`$project` stage to omit all fields
-except ``title`` and ``awards.wins`` in the results.
+   .. tab:: 
+      :tabid: atlas-ui
 
-.. io-code-block::
-   :copyable: true 
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-atlas-ui.rst
 
-   .. input:: 
-      :language: json 
+   .. tab:: 
+      :tabid: shell
 
-      db.movies.aggregate([
-        {
-          "$search": {
-             "range": {
-               "path": "awards.wins",
-               "gt": 3
-            },
-            "sort": {
-              "awards.wins": -1
-            }
-          }
-        },
-        {
-          "$limit": 5
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "awards.wins": 1
-          }
-        }
-      ])
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-shell.rst  
 
-   .. output::
-      :language: json
-      :visible: false
+   .. tab:: 
+      :tabid: compass
 
-      [
-        { title: '12 Years a Slave', awards: { wins: 267 } },
-        { title: 'Gravity', awards: { wins: 231 } },
-        { title: 'Gravity', awards: { wins: 231 } },
-        {
-          title: 'Birdman: Or (The Unexpected Virtue of Ignorance)',
-          awards: { wins: 210 }
-        },
-        { title: 'Boyhood', awards: { wins: 185 } },
-      ]
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-cs.rst
+
+   .. tab:: 
+      :tabid: nodejs
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-nodejs.rst
+
+   .. tab:: 
+      :tabid: java-sync
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-kotlin.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-go.rst
+
+   .. tab:: 
+      :tabid: python
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-python.rst
 
 .. _fts-sort-eg-string:
 
 String Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~~
+
+Basic Example 
+`````````````
 
 The following query on the ``sample_mflix.movies`` namespace uses the
 :pipeline:`$search` stage to do the following: 
@@ -762,6 +755,1028 @@ following:
         { title: 'A Sunday in the Country', score: 2.258953094482422 },
         { title: 'Another Country', score: 3.3635599613189697 }
       ]
+
+Compound Wildcard Search and Sort Example 
+`````````````````````````````````````````
+
+.. include:: /includes/fts/extracts/fts-sort-by-string-desc.rst
+.. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+.. tabs-drivers::
+
+   .. tab:: 
+      :tabid: atlas-ui
+
+      .. io-code-block::
+         :copyable: true 
+      
+         .. input::
+            :language: json
+      
+            [
+              { 
+                $search: {
+                  "compound": {
+                    "should": [{
+                      "wildcard": {
+                        "query": ["Prance*"],
+                        "path": "title",
+                        "allowAnalyzedField": true
+                      }
+                    },
+                    {
+                      "wildcard": {
+                        "query": ["Prince*"],
+                        "path": "title",
+                        "allowAnalyzedField": true
+                      }
+                    }]
+                  },
+                  "sort": {
+                    "title": 1
+                  }
+                }
+              }
+            ]
+            
+         .. output::
+            :visible: false
+            
+            SCORE: 1  _id:  "573a1398f29313caabceb98e"
+              plot: "A farm girl nurses a wounded reindeer she believes is one of Santa's, …"
+              genres: Array
+              runtime: 103
+              ...
+              title: "Prancer"
+              ...
+      
+            SCORE: 1  _id:  "573a13a5f29313caabd14f54"
+              plot: "Preteen brothers from a broken marriage live with their mother, Denise…"
+              genres: Array
+              runtime: 91
+              ...
+              title: "Prancer Returns"
+              ...
+      
+            SCORE: 1  _id:  "573a13f5f29313caabde3755"
+              plot: "A troubled teenager attempts to conquer the love of his life by becomi…"
+              genres: Array
+              runtime: 78
+              ...
+              title: "Prince"
+              ...
+      
+            SCORE: 1  _id:  "573a13d8f29313caabda665f"
+              fullplot: "Two highway road workers spend the summer of 1988 away from their city…"
+              imdb: Object
+              year: 2013
+              ...
+              title: "Prince Avalanche"
+              ...
+      
+            SCORE: 1  _id:  "573a13bdf29313caabd5898a"
+              plot: "A New York street drama about the lives of immigrants in America seeki…"
+              genres: Array
+              runtime: 70
+              ...
+              title: "Prince of Broadway"
+              ...
+      
+            SCORE: 1  _id:  "573a1398f29313caabcea967"
+              fullplot: "A sinister secret has been kept in the basement of an abandoned Los An…"
+              imdb: Object
+              year: 1987
+              ...
+              title: "Prince of Darkness"
+              ...
+      
+            SCORE: 1  _id:  "573a1393f29313caabcde40d"
+              plot: "An unscrupulous agent for the Borgias suffers a change of heart when a…"
+              genres: Array
+              runtime: 107
+              ...
+              title: "Princess of Foxes"
+              ...
+      
+            SCORE: 1  _id:  "573a13b5f29313caabd43816"
+              plot: "A young fugitive prince and princess must stop a villain who unknowing…"
+              genres: Array
+              runtime: 116
+              ...
+              title: "Prince of Persia: The Sands of Time"
+              ...
+      
+            SCORE: 1  _id:  "573a1397f29313caabce8081"
+              plot: "A New York City narcotics detective reluctantly agrees to cooperate wi…"
+              genres: Array
+              runtime: 167
+              ...
+              title: "Prince of the City"
+              ...
+      
+            SCORE: 1  _id:  "573a13a2f29313caabd0a767"
+              plot: "Six old-style funny silhouetted fairy tales for not so-old-style peopl…"
+              genres: Array
+              runtime: 70
+              ...
+              title: "Princes and Princesses"
+              ...
+      
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab:: 
+      :tabid: shell
+
+      .. io-code-block::
+         :copyable: true
+
+        .. input:: /includes/fts/sort/strings-query-shell.js
+           :language: js
+           :linenos:
+
+        .. output:: 
+           :language: shell
+           :visible: true
+
+           [
+             { title: 'Prancer', score: 1 },
+             { title: 'Prancer Returns', score: 1 },
+             { title: 'Prince', score: 1 },
+             { title: 'Prince Avalanche', score: 1 },
+             { title: 'Prince of Broadway', score: 1 }
+           ]
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst 
+
+   .. tab:: 
+      :tabid: compass
+
+      .. include:: /includes/fts/sort/strings-query.rst
+
+      If you enabled :guilabel:`Auto Preview`, |compass| displays the 
+      following documents next to the ``$project`` pipeline stage:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         {
+          title: 'Prancer',
+          score: 1
+         },
+         {
+          title: 'Prancer Returns',
+          score: 1
+         },
+         {
+          title: 'Prince',
+          score: 1
+         },
+         {
+          title: 'Prince Avalanche',
+          score: 1
+         },
+         {
+          title: 'Prince of Boradway',
+          score: 1
+         }
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+     
+      - .. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.cs
+            :language: csharp
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: json
+            :visible: false
+
+            { "title" : "Prancer", "score" : 1.0 }
+            { "title" : "Prancer Returns", "score" : 1.0 }
+            { "title" : "Prince", "score" : 1.0 }
+            { "title" : "Prince Avalanche", "score" : 1.0 }
+            { "title" : "Prince of Broadway", "score" : 1.0 }
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: nodejs
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb``, MongoDB's Node.js driver.
+      - Creates an instance of the ``MongoClient`` class to establish a 
+        connection to your |service| cluster.
+      - .. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.js
+            :language: javascript
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            { title: 'Prancer', score: 1 }
+            { title: 'Prancer Returns', score: 1 }
+            { title: 'Prince', score: 1 }
+            { title: 'Prince Avalanche', score: 1 }
+            { title: 'Prince of Broadway', score: 1 }
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: java-sync
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Iterates over the cursor to print the documents that match the 
+        query.
+     
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.java
+            :language: java
+            :linenos:
+            :dedent:
+
+            javac SortByString.java
+            java SortByString
+
+         .. output::
+            :language:  json
+            :visible: false
+
+            {"title": "Prancer", "score": 1.0}
+            {"title": "Prancer Returns", "score": 1.0}
+            {"title": "Prince", "score": 1.0}
+            {"title": "Prince Avalanche", "score": 1.0}
+            {"title": "Prince of Broadway", "score": 1.0}
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Prints the documents that match the query from the ``AggregateFlow`` instance.
+     
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: /includes/fts/sort/strings-query.kt
+            :language: kotlin
+            :linenos:
+            :dedent:
+
+         .. output:: 
+            :language: shell
+            :visible: false
+
+            Document{{title=Prancer, score=1.0}}
+            Document{{title=Prancer Returns, score=1.0}}
+            Document{{title=Prince, score=1.0}}
+            Document{{title=Prince Avalanche, score=1.0}}
+            Document{{title=Prince of Broadway, score=1.0}}
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: go
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.go
+            :language: go
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: none
+            :visible: true
+
+            [{title Prancer} {score 1}]
+            [{title Prancer Returns} {score 1}]
+            [{title Prince} {score 1}]
+            [{title Prince Avalanche} {score 1}]
+            [{title Prince of Broadway} {score 1}]
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: python
+
+      The following code example:
+
+      - Imports ``pymongo``, MongoDB's Python driver, and the ``dns``
+        module, which is required to connect ``pymongo`` to ``Atlas`` 
+        using a |dns| seed list connection string. 
+      - Creates an instance of the ``MongoClient`` class to establish a 
+        connection to your |service| cluster.
+      - .. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+         
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.py
+            :language: python
+            :linenos:
+            :dedent:
+
+
+         .. output::
+            :language: python
+            :visible: true
+
+            {'title': 'Prancer', 'score': 1.0}
+            {'title': 'Prancer Returns', 'score': 1.0}
+            {'title': 'Prince', 'score': 1.0}
+            {'title': 'Prince Avalanche', 'score': 1.0}
+            {'title': 'Prince of Broadway', 'score': 1.0}
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+Cases-Insensitive Sort Example 
+``````````````````````````````
+
+.. include:: /includes/fts/extracts/fts-normalized-sort-query-desc.rst
+.. include:: /includes/fts/extracts/fts-normalized-sort-query-stages.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+
+            [
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "train",
+                  },
+                  "sort": {
+                    "title": 1
+                  }
+                }
+              }
+            ]
+      
+         .. output:: 
+            :language: shell
+            :visible: false
+                
+            SCORE: 3.317898988723755  _id: "573a139cf29313caabcf662c"
+            plot: "A train filled with atomic devices threatens to destroy the city of De…"
+            genres: Array
+            runtime: 122
+
+            SCORE: 3.317898988723755  _id: "64de50ae2932de4dd3203061"
+            genres: Array
+            title: "atomic train"
+            awards: Object
+
+            SCORE: 2.228306293487549  _id: "573a13bbf29313caabd52ff4"
+            fullplot: "Long ago up North on the Island of Berk, the young Viking, Hiccup, wan…"
+            imdb: Object
+            year: 2010
+                
+            SCORE: 2.228306293487549  _id: "64de50da2932de4dd3204393"
+            genres: Array
+            title: "how to train your dragon"
+            awards: Object
+
+            SCORE: 2.008449077606201  _id: "573a13ccf29313caabd83281"
+            plot: "When Hiccup and Toothless discover an ice cave that is home to hundred…"
+            genres: Array
+            runtime: 102
+
+            SCORE: 1.4400973320007324  _id: "573a13b1f29313caabd36490"
+            plot: "The life and times of Howard Zinn: the historian, activist, and author…"
+            genres: Array
+            runtime: 78
+
+            SCORE: 2.228306293487549  _id: "573a1394f29313caabce0fb4"
+            plot: "A marshal tries to bring the son of an old friend, an autocratic cattl…"
+            genres: Array
+            runtime: 95
+
+            SCORE: 2.8528976440429688  _id: "573a13c8f29313caabd78a6b"
+            plot: "A couple embarks on a journey home for Chinese new year along with 130…"
+            genres: Array
+            runtime: 85
+
+            SCORE: 2.502213716506958  _id: "573a13baf29313caabd50811"
+            plot: "Two thugs from the Perth suburb of Midland catch the last train to Fre…"
+            genres: Array
+            runtime: 89
+
+            SCORE: 2.502213716506958  _id: "573a13a7f29313caabd1b667"
+            fullplot: "A teacher and a gangster meet by chance in a small town pharmacy. As a…"
+            imdb: Object
+            year: 2002
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: json
+         :copyable: false 
+                
+         SCORE: 3.317898988723755  _id: "573a139cf29313caabcf662c"
+         plot: "A train filled with atomic devices threatens to destroy the city of De…"
+         genres: Array
+         runtime: 122
+
+         SCORE: 2.2382168769836426  _id: "573a13bbf29313caabd52ff4"
+         fullplot: "Long ago up North on the Island of Berk, the young Viking, Hiccup, wan…"
+         imdb: object
+         year: 2010
+
+         SCORE: 2.008449077606201  _id: "573a13ccf29313caabd83281"
+         plot: "When Hiccup and Toothless discover an ice cave that is home to hundred…"
+         genres: Array
+         runtime: 102
+
+         SCORE: 1.4400973320007324  _id: "573a13b1f29313caabd36490"
+         plot: "The life and times of Howard Zinn: the historian, activist, and author…"
+         genres: Array
+         runtime: 78
+
+         SCORE: 2.8528976440429688  _id: "573a13c8f29313caabd78a6b"
+         plot: "A couple embarks on a journey home for Chinese new year along with 130…"
+         genres: Array
+         runtime: 85
+
+         SCORE: 2.228306293487549  _id: "573a1394f29313caabce0fb4"
+         plot: "A marshal tries to bring the son of an old friend, an autocratic cattl…"
+         genres: Array
+         runtime: 95
+
+         SCORE: 2.502213716506958  _id: "573a13baf29313caabd50811"
+         plot: "Two thugs from the Perth suburb of Midland catch the last train to Fre…"
+         genres: Array
+         runtime: 89
+
+         SCORE: 2.502213716506958  _id: "573a13a7f29313caabd1b667"
+         fullplot: "A teacher and a gangster meet by chance in a small town pharmacy. As a…"
+         imdb: Object
+         year: 2002
+
+         SCORE: 3.3326687812805176  _id: "573a139af29313caabcef573"
+         plot: "A vengeful New York transit cop decides to steal a trainload of subway…"
+         genres: Array
+         runtime: 110
+                
+         SCORE: 3.3326687812805176  _id: "573a1398f29313caabceb8f2"
+         plot: "Three stories are connected by a Memphis hotel and the spirit of Elvis…"
+         genres: Array
+         runtime: 110
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst 
+
+   .. tab::
+      :tabid: shell
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+
+            db.movies.aggregate(
+              {
+                "$search": {
+                  "index": "default",
+                  "text": {
+                    "path": "title",
+                    "query": "train",
+                  },
+                  "sort": {
+                    "title": 1
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "title": 1,
+                  "awards": 1,
+                  "score": { $meta: "searchScore" }
+                }
+              }
+            )
+      
+         .. output:: 
+            :language: javascript
+            :visible: false
+
+            [
+              {
+                _id: ObjectId("573a139cf29313caabcf662c"),
+                title: 'Atomic Train',
+                awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+                score: 3.317898988723755
+              },
+              {
+                _id: ObjectId("64de50ae2932de4dd3203061"),
+                title: 'atomic train',
+                awards: { wins: 1, nominations: 1 },
+                score: 3.317898988723755
+              },
+              {
+                _id: ObjectId("573a13bbf29313caabd52ff4"),
+                title: 'How to Train Your Dragon',
+                awards: {
+                  wins: 32,
+                  nominations: 51,
+                  text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+                },
+                score: 2.228306293487549
+              },
+              {
+                _id: ObjectId("64de50da2932de4dd3204393"),
+                title: 'how to train your dragon',
+                awards: { wins: 32, nominations: 51 },
+                score: 2.228306293487549
+              },
+              {
+                _id: ObjectId("573a13ccf29313caabd83281"),
+                title: 'How to Train Your Dragon 2',
+                awards: {
+                  wins: 18,
+                  nominations: 52,
+                  text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+                },
+                score: 2.008449077606201
+              }
+            ]
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: json
+         :copyable: false 
+
+         [
+           {
+             _id: ObjectId("573a139cf29313caabcf662c"),
+             title: 'Atomic Train',
+             awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+             score: 3.3326687812805176
+           },
+          {
+             _id: ObjectId("573a13bbf29313caabd52ff4"),
+             title: 'How to Train Your Dragon',
+             awards: {
+               wins: 32,
+               nominations: 51,
+               text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+             },
+             score: 2.2382168769836426
+           },
+           {
+             _id: ObjectId("573a13ccf29313caabd83281"),
+             title: 'How to Train Your Dragon 2',
+             awards: {
+               wins: 18,
+              nominations: 52,
+               text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+             },
+             score: 2.0173802375793457
+           },
+           {
+             _id: ObjectId("573a13b1f29313caabd36490"),
+             title: "Howard Zinn: You Can't Be Neutral on a Moving Train",
+             awards: { wins: 1, nominations: 0, text: '1 win.' },
+             score: 1.446497917175293
+           },
+           {
+             _id: ObjectId("573a13c8f29313caabd78a6b"),
+             title: 'Last Train Home',
+             awards: { wins: 14, nominations: 9, text: '14 wins & 9 nominations.' },
+             score: 2.8655927181243896
+           }
+         ]  
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 75
+
+         * - Pipeline Stage
+           - Query
+
+         * - ``$search``
+           - .. code-block:: javascript
+                :copyable: true 
+
+                {
+                  "index": "default",
+                  "text": {
+                    "path": "title",
+                    "query": "train",
+                  },
+                  "sort": {
+                    "title": 1,
+                  }
+                }
+
+         * - ``$limit``
+           - ``5``
+
+         * - ``$project``
+           - .. code-block:: javascript
+                :copyable: true 
+
+                {
+                  "_id": 1,
+                  "title": 1,
+                  "awards": 1,
+                  "score": { $meta: "searchScore" }
+                }
+
+      If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+      :guilabel:`Auto Preview`, |compass| displays the following
+      documents next to the ``$project`` pipeline stage: 
+
+      .. code-block:: json
+         :copyable: false 
+
+         _id: ObjectId('573a139cf29313caabcf662c')
+         title: 'Atomic Train'
+         awards: Object
+         score: 3.317898988723755
+
+         _id:  ObjectId("64de50ae2932de4dd3203061")
+         title: 'atomic train'
+         awards: Object
+         score: 3.317898988723755
+
+         _id: ObjectId('573a13bbf29313caabd52ff4')
+         title: 'How to Train Your Dragon'
+         awards: Object
+         score: 2.228306293487549
+
+         _id: ObjectId("64de50da2932de4dd3204393"),
+         title: 'how to train your dragon'
+         awards: 
+         score: 2.228306293487549
+
+         _id: ObjectId('573a13ccf29313caabd83281')
+         title: 'How to Train Your Dragon 2'
+         awards: object
+         score: 2.0173802375793457        
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+         .. code-block:: json 
+            :copyable: false 
+
+            _id: ObjectId('573a139cf29313caabcf662c')
+            title: 'Atomic Train'
+            awards: Object
+            score: 3.317898988723755
+
+            _id: ObjectId('573a13bbf29313caabd52ff4')
+            title: 'How to Train Your Dragon'
+            awards: Object
+            score: 2.228306293487549
+
+            _id: ObjectId('573a13ccf29313caabd83281')
+            title: 'How to Train Your Dragon 2'
+            awards: 
+            score: 2.0173802375793457
+
+            _id: ObjectId('573a13b1f29313caabd36490')
+            title: 'Howard Zinn: You Can't Be Neutral on a Moving Train'
+            awards: Object
+            score: 1.446497917175293
+
+            _id: ObjectId('573a13c8f29313caabd78a6b')
+            title: 'Last Train Home'
+            awards: Object
+            score: 2.8655927181243896
+
+         .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab::
+      :tabid: csharp
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.cs
+            :language: csharp
+            :linenos:
+            :dedent:
+
+         .. output:: 
+            :language: javascript
+
+            { "_id" : ObjectId("573a139cf29313caabcf662c"), "title" : "Atomic Train", "awards" : { "wins" : 1, "nominations" : 1 }, "score" : 3.3035578727722168 }
+            { "_id" : ObjectId("64de50ae2932de4dd3203061"), "title" : "atomic train", "awards" : { "wins" : 1, "nominations" : 1 }, "score" : 3.3035578727722168 }
+            { "_id" : ObjectId("573a13bbf29313caabd52ff4"), "title" : "How to Train Your Dragon", "awards" : { "wins" : 32, "nominations" : 51 }, "score" : 2.2186923027038574 }
+            { "_id" : ObjectId("64de50da2932de4dd3204393"), "title" : "how to train your dragon", "awards" : { "wins" : 32, "nominations" : 51 }, "score" : 2.2186923027038574 }
+            { "_id" : ObjectId("573a13ccf29313caabd83281"), "title" : "How to Train Your Dragon 2", "awards" : { "wins" : 18, "nominations" : 52 }, "score" : 1.9997868537902832 }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         { "_id" : ObjectId("573a139cf29313caabcf662c"), "title" : "Atomic Train", "awards" : { "wins" : 1, "nominations" : 1 }, "score" : 3.3035225868225098 }
+         { "_id" : ObjectId("573a13bbf29313caabd52ff4"), "title" : "How to Train Your Dragon", "awards" : { "wins" : 32, "nominations" : 51 }, "score" : 2.2186522483825684 }
+         { "_id" : ObjectId("573a13ccf29313caabd83281"), "title" : "How to Train Your Dragon 2", "awards" : { "wins" : 18, "nominations" : 52 }, "score" : 1.9997482299804688 }
+         { "_id" : ObjectId("573a13b1f29313caabd36490"), "title" : "Howard Zinn: You Can't Be Neutral on a Moving Train", "awards" : { "wins" : 1, "nominations" : 0 }, "score" : 1.4338588714599609 }
+         { "_id" : ObjectId("573a13c8f29313caabd78a6b"), "title" : "Last Train Home", "awards" : { "wins" : 14, "nominations" : 9 }, "score" : 2.8405368328094482 }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst 
+
+   .. tab:: 
+      :tabid: go
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: /includes/fts/case-insensitive/query.go
+            :language: go
+            :linenos:
+            :dedent:
+      
+         .. output:: 
+            :language: javascript
+
+            [{_id ObjectID("573a139cf29313caabcf662c")} {title Atomic Train} {awards [{wins 1} {nominations 1} {text 1 win & 1 nomination.}]} {score 3.317898988723755}]
+            [{_id ObjectId("64de50ae2932de4dd3203061")} {title atomic train} {awards [{wins 1} {nominations 1}]} {score 3.317898988723755}]
+            [{_id ObjectID("573a13bbf29313caabd52ff4")} {title How to Train Your Dragon} {awards [{wins 32} {nominations 51} {text Nominated for 2 Oscars. Another 30 wins & 51 nominations.}]} {score 2.228306293487549}]
+            [{_id ObjectId("64de50da2932de4dd3204393")} {title how to train your dragon} {awards [{wins 32} {nominations 51}]} {score 2.228306293487549}]
+            [{_id ObjectID("573a13ccf29313caabd83281")} {title How to Train Your Dragon 2} {awards [{wins 18} {nominations 52} {text Nominated for 1 Oscar. Another 17 wins & 52 nominations.}]} {score 2.008449077606201}]
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         [{_id ObjectID("573a139cf29313caabcf662c")} {title Atomic Train} {awards [{wins 1} {nominations 1} {text 1 win & 1 nomination.}]} {score 3.3326687812805176}]
+         [{_id ObjectID("573a13bbf29313caabd52ff4")} {title How to Train Your Dragon} {awards [{wins 32} {nominations 51} {text Nominated for 2 Oscars. Another 30 wins & 51 nominations.}]} {score 2.2382168769836426}]
+         [{_id ObjectID("573a13ccf29313caabd83281")} {title How to Train Your Dragon 2} {awards [{wins 18} {nominations 52} {text Nominated for 1 Oscar. Another 17 wins & 52 nominations.}]} {score 2.0173802375793457}]
+         [{_id ObjectID("573a13b1f29313caabd36490")} {title Howard Zinn: You Can't Be Neutral on a Moving Train} {awards [{wins 1} {nominations 0} {text 1 win.}]} {score 1.446497917175293}]
+         [{_id ObjectID("573a13c8f29313caabd78a6b")} {title Last Train Home} {awards [{wins 14} {nominations 9} {text 14 wins & 9 nominations.}]} {score 2.8655927181243896}]
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+        
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.java
+            :language: java
+            :linenos:
+            :dedent:
+        
+         .. output::
+            :language: json
+            :visible: true
+
+            {"_id": {"$oid": "573a139cf29313caabcf662c"}, "title": "Atomic Train", "awards": {"wins": 1, "nominations": 1, "text": "1 win & 1 nomination."}, "score": 3.317898988723755}
+            {"_id": {"$oid": "64de50ae2932de4dd3203061"}, "title": "atomic train", "awards": {"wins": 1, "nominations": 1}, "score": 3.317898988723755}
+            {"_id": {"$oid": "573a13bbf29313caabd52ff4"}, "title": "How to Train Your Dragon", "awards": {"wins": 32, "nominations": 51, "text": "Nominated for 2 Oscars. Another 30 wins & 51 nominations."}, "score": 2.228306293487549}
+            {"_id": {"$oid": "64de50da2932de4dd3204393"}, "title": "how to train your dragon", "awards": {"wins": 32, "nominations": 51}, "score": 2.228306293487549}
+            {"_id": {"$oid": "573a13ccf29313caabd83281"}, "title": "How to Train Your Dragon 2", "awards": {"wins": 18, "nominations": 52, "text": "Nominated for 1 Oscar. Another 17 wins & 52 nominations."}, "score": 2.008449077606201}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: shell
+         :copyable: false 
+
+         {"_id": {"$oid": "573a139cf29313caabcf662c"}, "title": "Atomic Train", "awards": {"wins": 1, "nominations": 1, "text": "1 win & 1 nomination."}, "score": 3.3326687812805176}
+         {"_id": {"$oid": "573a13bbf29313caabd52ff4"}, "title": "How to Train Your Dragon", "awards": {"wins": 32, "nominations": 51, "text": "Nominated for 2 Oscars. Another 30 wins & 51 nominations."}, "score": 2.2382168769836426}
+         {"_id": {"$oid": "573a13ccf29313caabd83281"}, "title": "How to Train Your Dragon 2", "awards": {"wins": 18, "nominations": 52, "text": "Nominated for 1 Oscar. Another 17 wins & 52 nominations."}, "score": 2.0173802375793457}
+         {"_id": {"$oid": "573a13b1f29313caabd36490"}, "title": "Howard Zinn: You Can't Be Neutral on a Moving Train", "awards": {"wins": 1, "nominations": 0, "text": "1 win."}, "score": 1.446497917175293}
+         {"_id": {"$oid": "573a13c8f29313caabd78a6b"}, "title": "Last Train Home", "awards": {"wins": 14, "nominations": 9, "text": "14 wins & 9 nominations."}, "score": 2.8655927181243896}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.kt
+            :language: kotlin
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: javascript
+
+            Document{{title=atomic train, awards=Document{{wins=1, nominations=1}}, score=3.3326687812805176}}
+            Document{{title=Atomic Train, awards=Document{{wins=1, nominations=1, text=1 win & 1 nomination.}}, score=3.3326687812805176}}
+            Document{{title=how to train your dragon, awards=Document{{wins=32, nominations=51}}, score=2.2382168769836426}}
+            Document{{title=How to Train Your Dragon, awards=Document{{wins=32, nominations=51, text=Nominated for 2 Oscars. Another 30 wins & 51 nominations.}}, score=2.2382168769836426}}
+            Document{{title=How to Train Your Dragon 2, awards=Document{{wins=18, nominations=52, text=Nominated for 1 Oscar. Another 17 wins & 52 nominations.}}, score=2.0173802375793457}}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: none
+         :copyable: false 
+
+         Document{{title=Atomic Train, awards=Document{{wins=1, nominations=1, text=1 win & 1 nomination.}}, score=3.3326687812805176}}
+         Document{{title=How to Train Your Dragon, awards=Document{{wins=32, nominations=51, text=Nominated for 2 Oscars. Another 30 wins & 51 nominations.}}, score=2.2382168769836426}}
+         Document{{title=How to Train Your Dragon 2, awards=Document{{wins=18, nominations=52, text=Nominated for 1 Oscar. Another 17 wins & 52 nominations.}}, score=2.0173802375793457}}
+         Document{{title=Howard Zinn: You Can't Be Neutral on a Moving Train, awards=Document{{wins=1, nominations=0, text=1 win.}}, score=1.446497917175293}}
+         Document{{title=Last Train Home, awards=Document{{wins=14, nominations=9, text=14 wins & 9 nominations.}}, score=2.8655927181243896}}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst 
+
+   .. tab::
+      :tabid: nodejs
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.js
+            :language: go
+            :linenos:
+            :dedent:
+        
+         .. output::
+            :language: json
+            :visible: false
+
+            {
+              _id: new ObjectId("573a139cf29313caabcf662c"),
+              title: 'Atomic Train',
+              awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+              score: 3.317898988723755
+            }
+            {
+              _id: new ObjectId("64de50ae2932de4dd3203061"),
+              title: 'atomic train',
+              awards: { wins: 1, nominations: 1 },
+             score: 3.317898988723755
+            }
+            {
+              _id: new ObjectId("573a13bbf29313caabd52ff4"),
+              title: 'How to Train Your Dragon',
+              awards: {
+                wins: 32,
+                nominations: 51,
+                text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+              },
+              score: 2.228306293487549
+            }
+            {
+              _id: new ObjectId("64de50da2932de4dd3204393"),
+              title: 'how to train your dragon',
+              awards: { wins: 32, nominations: 51 },
+              score: 2.228306293487549
+            }
+            {
+              _id: new ObjectId("573a13ccf29313caabd83281"),
+              title: 'How to Train Your Dragon 2',
+              awards: {
+                wins: 18,
+                nominations: 52,
+                text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+              },
+              score: 2.008449077606201
+            }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         {
+           _id: new ObjectId("573a139cf29313caabcf662c"),
+           title: 'Atomic Train',
+           awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+           score: 3.3326687812805176
+         }
+         {
+           _id: new ObjectId("573a13bbf29313caabd52ff4"),
+           title: 'How to Train Your Dragon',
+           awards: {
+             wins: 32,
+             nominations: 51,
+             text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+           },
+           score: 2.2382168769836426
+         }
+         {
+           _id: new ObjectId("573a13ccf29313caabd83281"),
+           title: 'How to Train Your Dragon 2',
+           awards: {
+             wins: 18,
+             nominations: 52,
+             text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+           },
+           score: 2.0173802375793457
+         }
+         {
+           _id: new ObjectId("573a13b1f29313caabd36490"),
+           title: "Howard Zinn: You Can't Be Neutral on a Moving Train",
+           awards: { wins: 1, nominations: 0, text: '1 win.' },
+           score: 1.446497917175293
+         }
+         {
+           _id: new ObjectId("573a13c8f29313caabd78a6b"),
+           title: 'Last Train Home',
+           awards: { wins: 14, nominations: 9, text: '14 wins & 9 nominations.' },
+           score: 2.8655927181243896
+         }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab::
+      :tabid: python
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/fts/case-insensitive/query.py
+            :language: go
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: json
+            :visible: false
+            
+            {'_id': ObjectId('573a139cf29313caabcf662c'), 'title': 'Atomic Train', 'awards': {'wins': 1, 'nominations': 1, 'text': '1 win & 1 nomination.'}, 'score': 3.317898988723755}
+            {'_id': ObjectId('64de50ae2932de4dd3203061'), 'title': 'atomic train', 'awards': {'wins': 1, 'nominations': 1}, 'score': 3.317898988723755}
+            {'_id': ObjectId('573a13bbf29313caabd52ff4'), 'title': 'How to Train Your Dragon', 'awards': {'wins': 32, 'nominations': 51, 'text': 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'}, 'score': 2.228306293487549}
+            {'_id': ObjectId('64de50da2932de4dd3204393'), 'title': 'how to train your dragon', 'awards': {'wins': 32, 'nominations': 51}, 'score': 2.228306293487549}
+            {'_id': ObjectId('573a13ccf29313caabd83281'), 'title': 'How to Train Your Dragon 2', 'awards': {'wins': 18, 'nominations': 52, 'text': 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'}, 'score': 2.008449077606201}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: shell
+         :copyable: false 
+
+         {'_id': ObjectId('573a139cf29313caabcf662c'), 'title': 'Atomic Train', 'awards': {'wins': 1, 'nominations': 1, 'text': '1 win & 1 nomination.'}, 'score': 3.3326687812805176}
+         {'_id': ObjectId('573a13bbf29313caabd52ff4'), 'title': 'How to Train Your Dragon', 'awards': {'wins': 32, 'nominations': 51, 'text': 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'}, 'score': 2.2382168769836426}
+         {'_id': ObjectId('573a13ccf29313caabd83281'), 'title': 'How to Train Your Dragon 2', 'awards': {'wins': 18, 'nominations': 52, 'text': 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'}, 'score': 2.0173802375793457}
+         {'_id': ObjectId('573a13b1f29313caabd36490'), 'title': "Howard Zinn: You Can't Be Neutral on a Moving Train", 'awards': {'wins': 1, 'nominations': 0, 'text': '1 win.'}, 'score': 1.446497917175293}
+         {'_id': ObjectId('573a13c8f29313caabd78a6b'), 'title': 'Last Train Home', 'awards': {'wins': 14, 'nominations': 9, 'text': '14 wins & 9 nominations.'}, 'score': 2.8655927181243896}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
 
 .. _fts-sort-eg-objectid:
 
@@ -2040,7 +3055,6 @@ the following actions:
 
          .. output::
             :language: json
-            :emphasize-lines: 12-21
             :visible: false
 
             [

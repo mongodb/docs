@@ -1,6 +1,6 @@
 db.movies.aggregate([{ 
   $search: { 
-    "index": "sort-tutorial",
+    "index": "default",
     "compound": {
       "should": [{
         "wildcard": {

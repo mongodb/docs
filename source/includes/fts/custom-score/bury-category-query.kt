@@ -40,7 +40,7 @@ fun main() {
             )
 
         val agg = Document("\$search",
-            Document("index", "compound-query-custom-score-tutorial")
+            Document("index", "default")
                 .append("compound", Document("should", listOf(
                     Document("compound", compound1),
                     Document("compound", compound2)

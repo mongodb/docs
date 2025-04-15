@@ -15,7 +15,7 @@ import org.bson.Document;
 public class GeoQuery {
         public static void main( String[] args ) {
                 Document agg = new Document( "$search",
-                new Document( "index", "geo-json-tutorial")
+                new Document( "index", "<INDEX-NAME>")
                 .append("compound",
                     new Document("must", Arrays.asList(new Document("geoWithin", 
                     new Document("geometry", 

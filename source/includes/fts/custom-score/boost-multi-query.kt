@@ -17,7 +17,7 @@ fun main() {
         // define pipeline
         val agg = Document(
             "\$search",
-            Document("index", "compound-query-custom-score-tutorial")
+            Document("index", "default")
                 .append(
                     "compound",
                     Document(

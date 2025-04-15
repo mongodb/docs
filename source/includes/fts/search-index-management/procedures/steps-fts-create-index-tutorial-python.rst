@@ -1,32 +1,36 @@
-.. procedure::
-   :style: normal
+a. Install the MongoD Python Driver.
 
-   .. step:: Create a file named ``create_index.py``.
+   .. code-block:: sh
+
+      pip install pymongo
+
+   For detailed installation instructions, see 
+   :ref:`MongoDB Python Driver (PyMongo) <pymongo-get-started-download-and-install>`.
+
+#. Define the index.
+
+   Create a file named ``create_index.py``. Copy and paste the following
+   code into the file.
    
-   .. step:: Copy and paste the following code into the ``create_index.py`` file.
-      
-      .. literalinclude:: /includes/fts/search-index-management/python/create-index-tutorial.py
-         :caption: create_index.py
-         :language: python
-         :copyable:
-      
-   .. step:: Replace the ``<connection-string>`` in the query and then save the file.
+   .. literalinclude:: /includes/fts/search-index-management/python/create-index-tutorial.py
+      :caption: create_index.py
+      :language: python
+      :copyable:
+   
+#. Specify the ``<connection-string>``.
 
-      Ensure that your connection string includes your database user's
-      credentials. To learn more, see :ref:`connect-via-driver`. 
+   .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
-   .. step:: Create the index.
+#. Create the index.
 
-      To create the index, run the following command:
+   .. io-code-block::
+      :copyable: true 
 
-      .. io-code-block::
-         :copyable: true
+      .. input::
+         :language: shell
 
-         .. input::
-            :language: shell
+         python create_index.py
 
-            python create_index.py
+      .. output::
 
-         .. output::
-
-            default
+         default

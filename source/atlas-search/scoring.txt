@@ -10,39 +10,33 @@ Score the Documents in the Results
    :keywords: multiply base score, boost fields, constant option, replace score, alter final document score, score details
    :description: Modify, normalize, or return a breakdown of the score assigned to a returned document with the boost, constant, embedded, or function options.
 
-Every document returned by an |fts| query is assigned a score based
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Every document returned by an |fts| or {+avs+} query is assigned a score based
 on relevance, and the documents included in a result set are returned
 in order from highest score to lowest. 
 
-Many factors can influence a document's score, including:
+Usage
+-----
 
-- The position of the search term in the document,
-- The frequency of occurrence of the search term in the document,
-- The type of :ref:`operator <fts-operators>` the query uses,
-- The type of :ref:`analyzer <analyzers-ref>` the query uses.
+To include the score of each document in your search results,
+use the :pipeline:`$project` stage in your aggregation pipeline.
 
-.. note:: 
+- For the :pipeline:`$search` stage, the ``score`` field 
+  takes the :manual:`$meta </reference/operator/aggregation/meta/>` expression, 
+  which requires the ``searchScore`` value. You can also specify the 
+  ``searchScoreDetails`` value for the 
+  ``scoreDetails`` field :manual:`$meta </reference/operator/aggregation/meta/>` 
+  expression for a detailed breakdown of the score. 
 
-   .. include:: /includes/fts/facts/fact-fts-array-scoring.rst
-
-The score assigned to a returned document is part of the document's
-metadata. You can include each returned document's score along with the
-result set by using a :pipeline:`$project` stage in your aggregation
-pipeline. 
-
-After the :pipeline:`$search` stage, in the :pipeline:`$project` stage,
-the ``score`` field takes the :manual:`$meta
-</reference/operator/aggregation/meta/>` expression, which requires the
-``searchScore`` value. You can also specify the ``searchScoreDetails``
-value for the ``scoreDetails`` field :manual:`$meta
-</reference/operator/aggregation/meta/>` expression for a detailed
-breakdown of the score. 
-
-After the :pipeline:`$vectorSearch` stage, in the :pipeline:`$project`
-stage, the ``score`` field takes the :manual:`$meta
-</reference/operator/aggregation/meta/>` expression, which requires the 
-``vectorSearchScore`` value to return the score of each document in your
-vector search results. 
+- For the :pipeline:`$vectorSearch` stage, the ``score`` field
+  takes the :manual:`$meta </reference/operator/aggregation/meta/>` expression, 
+  which requires the ``vectorSearchScore`` value to return the score of 
+  each document in your vector search results. 
 
 .. example::
 
@@ -75,9 +69,6 @@ vector search results.
                 }
               }
             ])
-
-         To learn more, see :ref:`modify <scoring-behavior>` and
-         :ref:`normalize <fts-normalize-score>` the search score.
 
       .. tab:: Search Score Details
          :tabid: scoredetails
@@ -133,30 +124,78 @@ vector search results.
 
          To learn more, see :ref:`vectorSearch-agg-pipeline-score`.
 
-After a :pipeline:`$project` stage, you don't need to include a
-descending :pipeline:`$sort` because |fts| returns the documents from
-highest score to lowest. However, if multiple documents in the results
-have identical scores, the ordering of the documents in the results is
-non-deterministic. If you want the results to have a determined order,
-we recommend that you include the :ref:`sort <sort-ref>` option in your
-:pipeline:`$search` stage to sort the results by a unique field. If you 
-don't specify a unique field, |fts| defaults to sorting the results
-arbitrarily when the results have an identical score. You can use the
-:ref:`sort <sort-ref>` option to also return an ascending sort of the
-results by score. To learn more, see :ref:`sort-ref` and :ref:`Sort by
-Score Examples <sort-by-score-egs>`. 
+.. _scoring-behavior:
 
-.. note:: 
+Behavior
+--------
 
-   .. include:: /includes/fts/facts/fact-fts-pagination-search-nodes.rst 
+The score assigned to a returned document is part of the document's 
+metadata. You can use a :pipeline:`$project` stage in your aggregation
+pipeline to include each returned document's score along with the
+result set. Documents return from highest score to lowest. 
+Many factors can influence a document's score, including
+the following:
 
-More information about the Lucene scoring algorithm can be found in the
+- Position of the search term in the document.
+- Frequency of occurrence of the search term in the document.
+- Type of :ref:`operator <fts-operators>` or :ref:`analyzer <analyzers-ref>` 
+  an |fts| query uses.
+
+To learn more about the Lucene scoring algorithm, see
 `Lucene documentation
 <https://lucene.apache.org/core/3_5_0/scoring.html>`__.
+
+Additional Options
+~~~~~~~~~~~~~~~~~~
+
+In addition to the default scoring behavior, |fts|
+supports the following options:
+
+- :ref:`Modifying <scoring-options>` the score assigned to
+  certain documents.
+- Returning a detailed breakdown of the score by using the 
+  :ref:`score details <fts-score-details>` option.
+- :ref:`Normalizing <fts-normalize-score>` the search score.
+
+Considerations
+~~~~~~~~~~~~~~
+
+If multiple documents in the results have identical scores, 
+the ordering of the documents in the results is non-deterministic.
+If you want your |fts| results to have a determined order,
+include the :ref:`sort <sort-ref>` option in your
+:pipeline:`$search` stage to sort the results by a unique field. 
+You can use the :ref:`sort <sort-ref>` option to also return an 
+ascending sort of the results by score. To learn more, 
+see :ref:`sort-ref` and :ref:`Sort by Score Examples <sort-by-score-egs>`. 
+
+.. include:: /includes/fts/facts/fact-fts-pagination-search-nodes.rst 
+
+.. include:: /includes/fts/facts/fact-fts-array-scoring.rst
+
+Tutorials
+---------
+
+.. list-table::
+   :widths: 50 50
+
+   * - For examples on how to use additional 
+       ``score`` options in your |fts| queries, see
+       the following pages:
+
+     - - :ref:`scoring-options`
+       - :ref:`fts-score-details` 
+       - :ref:`fts-normalize-score`
+
+   * - For examples on how to use the ``score`` field 
+       in some common |fts| queries, see the following pages:
+
+     - - :ref:`Compound Query Examples <compound-examples>`
+       - :ref:`Embedded Document Examples <embedded-document-query-examples>`
+       - :ref:`String Sort Example <fts-sort-eg-string>`
 
 .. toctree::
    :titlesonly:
    
-   /atlas-search/score/modify-score
-   /atlas-search/score/get-details 
-   /atlas-search/score/normalize-score
+   Score Options </atlas-search/score/modify-score>
+   Score Details </atlas-search/score/get-details>

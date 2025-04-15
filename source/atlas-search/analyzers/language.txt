@@ -164,7 +164,7 @@ The following query searches for the string ``pour`` in the
 
    .. output::
       :language: json
-      :visible: true
+      :visible: false
 
 The previous query returns no results when using the ``french`` analyzer,
 because ``pour`` is a built-in stop word. Using the ``standard``
@@ -198,7 +198,7 @@ The following query searches for the string ``carburant`` in the
 
    .. output::
       :language: json
-      :visible: true
+      :visible: false
 
       { subject: { fr: "Le meilleur moment pour le faire c'est immédiatement après que vous aurez fait le plein de carburant." } }
 
@@ -309,7 +309,7 @@ The following query searches for the string ``המכוניות`` in the
 
    .. output::
       :language: json
-      :visible: true
+      :visible: false
 
       { subject: { he: 'עדיף לצייד את המכוניות שלנו כדי להבין את הגורמים לתאונה.' } }
   
@@ -332,3 +332,115 @@ for the ``subject.he`` field in document with ``_id: 1``:
    * - ``את``
      - ``הגורמים``
      - ``לתאונה``
+
+.. _fts-multilingual-example: 
+
+Multilingual Search Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also create an index that uses multiple language analyzers
+to perform a multilingual search. 
+
+The following example index definition specifies an index with dynamic mapping 
+on the ``sample_mflix.movies`` collection. The definition applies the ``lucene.italian`` 
+language analyzer to index the ``fullplot`` field, and uses the :ref:`multi <ref-multi-analyzers>`
+option to specify ``lucene.english`` as an alternate language analyzer. |fts| uses the default 
+``lucene.english`` language analyzer for all other fields that it dynamically indexes in the 
+``movies`` collection.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     "analyzer": "lucene.standard",
+     "mappings": {
+       "dynamic": true,
+       "fields": {
+         "fullplot": {
+           "type": "string",
+           "analyzer": "lucene.italian",
+           "multi": {
+             "fullplot_english": {
+               "type": "string",
+               "analyzer": "lucene.english",
+             }
+           }
+         }
+      }
+     }
+   }
+
+The following |fts| query uses the following :ref:`compound <compound-ref>` operator clauses to query the collection: 
+
+- ``must`` clause searches for movie plots in English and Italian that contain the term ``Bella`` using the :ref:`text-ref` operator 
+- ``mustNot`` clause excludes movies released between the years 1984 to 2016 using the :ref:`range-ref` operator
+- ``should`` clause specifies preference for the ``Comedy`` genre using the :ref:`text-ref` operator
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      [
+        {
+          $search: {
+            "index": "multilingual-tutorial",
+            "compound": {
+              "must": [{
+                "text": {
+                  "query": "Bella",
+                  "path": { "value": "fullplot", "multi": "fullplot_english" }
+                }
+              }],
+              "mustNot": [{
+                "range": {
+                  "path": "released",
+                  "gt": ISODate("1984-01-01T00:00:00.000Z"),
+                  "lt": ISODate("2016-01-01T00:00:00.000Z")
+                }
+              }],
+              "should": [{
+                "text": {
+                  "query": "Comedy",
+                  "path": "genres"
+                }
+              }]
+            }
+          }
+        }
+      ]
+
+   .. output:: 
+      :language: json
+      :visible: false
+
+      SCORE: 3.909510850906372  _id: "573a1397f29313caabce8bad"
+        plot: "He is a revenge-obssessed stevedore whose sister was brutally raped an…"
+        genres:
+          0: "Drama"
+        runtime: 137
+        fullplot: "In Marseilles, a woman commits suicide after she is raped in an alley.…"
+        released: 1983-05-18T00:00:00.000+00:00
+      SCORE: 3.4253346920013428  _id: "573a1396f29313caabce5735"
+        plot: "Giovanna e' una bella ragazza, ma ha qualche problema con gli uomini: …"
+        genres:
+          0: "Comedy"
+        runtime: 100
+        fullplot: "Giovanna e' una bella ragazza, ma ha qualche problema con gli uomini: …"
+        released: 1974-11-15T00:00:00.000+00:00
+      SCORE: 3.363344430923462  _id: "573a1395f29313caabce13cf"
+        plot: "Gerardo è un attore o almeno cerca di esserlo, ma il pubblico non è de…"
+        genres:
+          0: "Comedy"
+        runtime: 95
+        fullplot: "Gerardo è un attore o almeno cerca di esserlo, ma il pubblico non è de…"
+        released: 1960-02-10T00:00:00.000+00:00
+      SCORE: 1.9502882957458496  _id: "573a1396f29313caabce5299"
+        plot: "Dr Tremayne is an enigmatic Psychiatrist running a
+        Futuristic asylum h…"
+        genres:
+          0: "Horror"
+        runtime: 90
+        fullplot: "Dr Tremayne is an enigmatic Psychiatrist running a Futuristic asylum h…"
+        released: 1973-10-31T00:00:00.000+00:00

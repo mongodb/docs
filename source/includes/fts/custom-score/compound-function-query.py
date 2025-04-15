@@ -6,7 +6,7 @@ client = pymongo.MongoClient('<connection-string>')
 # define pipeline
 pipeline = [
   {'$search': {
-      'index': 'compound-query-custom-score-tutorial',
+      'index': 'default',
       'compound': {
         'must': [{'range': {'path': 'year', 'gte': 2013, 'lte': 2015}}],
         'should': [{'text': {'query': 'snow', 'path': 'title', 

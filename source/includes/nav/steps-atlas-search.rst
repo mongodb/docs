@@ -11,14 +11,13 @@
          a. In the sidebar, click :guilabel:`Atlas Search` under
             the :guilabel:`Services` heading.
 
-            .. note::
+            If you have no {+clusters+}, click 
+            :guilabel:`Create cluster` to create one. To learn more, 
+            see :ref:`create-new-cluster`.
 
-               If you have no {+clusters+}, click 
-               :guilabel:`Create cluster` to create one. To learn more, 
-               see :ref:`create-new-cluster`.
-
-         #. From the :guilabel:`Select data source` dropdown, select
-            your {+cluster+} and click :guilabel:`Go to Atlas Search`.
+         #. If your project has multiple {+clusters+}, select the {+cluster+} 
+            you want to use from the :guilabel:`Select cluster` dropdown,
+            then click :guilabel:`Go to Atlas Search`.
 
             The `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E>`__ page displays.
 

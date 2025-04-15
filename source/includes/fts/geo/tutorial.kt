@@ -18,7 +18,7 @@ fun main() {
         // define pipeline
         val agg = Document(
             "\$search",
-            Document("index", "geo-json-tutorial")
+            Document("index", "<INDEX-NAME>")
                 .append(
                     "compound",
                     Document(

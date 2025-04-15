@@ -9,15 +9,12 @@
    
    .. step:: Review the default |fts| index configuration settings in the :guilabel:`Index Configurations` section.
 
-      You can use either the default index definition or specify a custom
-      index definition: 
-  
-      - The default index definition is a :ref:`dynamic mapping
-        <static-dynamic-mappings>` of the fields in the documents and will  
-        work with any collection. 
-      - A custom index definition is a :ref:`static mapping
-        <static-dynamic-mappings>`. You specify the fields to index, the
-        analyzer, and the data type.   
+      The default index definition is a :ref:`dynamic mapping
+      <static-dynamic-mappings>` of the fields in the documents and will  
+      work with any collection.
+
+      To customize your index definition, review the following 
+      index configurations: 
 
       .. tabs:: 
 
@@ -67,12 +64,10 @@
 
       .. note::
 
+         You can't save the :ref:`default index definition <default-index-definition>` as a draft.
          If you use the :guilabel:`Visual Editor` and your index definition 
          contains :ref:`static mappings <static-dynamic-mappings>`, you can 
-         save an index definition as a draft. You can't save the 
-         :ref:`default index definition <default-index-definition>` as a 
-         draft. You can save only a :ref:`custom index definition 
-         <default-index-definition>` as a draft.
+         save an index definition as a draft. 
       
       a. Click :guilabel:`Cancel`.
       
@@ -80,7 +75,6 @@
       
          .. include:: /includes/fts/facts/fact-index-draft-pending.rst
       
-         To learn more about creating an index using an index draft, see 
-         :ref:`ref-resume-index`.
+         To learn more, see :ref:`ref-resume-index`.
        
    .. include:: /includes/fts/search-index-management/procedures/steps-fts-finish-index-creation.rst

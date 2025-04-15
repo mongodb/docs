@@ -22,7 +22,7 @@ public class CaseInsensitiveSort
         // define options for search 
         var searchOptions = new SearchOptions<MovieDocument>() {
             Sort = Builders<MovieDocument>.Sort.Ascending(movie => movie.Title), 
-            IndexName = "case-insensitive-sort"
+            IndexName = "default"
         };
         
         // define and run pipeline
