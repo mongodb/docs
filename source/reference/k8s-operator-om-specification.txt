@@ -1762,7 +1762,79 @@ database settings specific to your |multi-cluster-om|, see
       especially when the system is under heavy load. We recommend using the ``file``
       option for production systems to ensure accurate timestamps.
 
-.. setting:: spec.applicationDatabase.memberConfig
+.. opsmgrkube:: spec.applicationDatabase.externalAccess
+
+   *Type*: collection
+
+   Specification to expose your cluster for external connections. 
+   To learn how to connect to your MongoDB resource from outside of the |k8s| cluster, see
+   :ref:`connect-from-outside-k8s`.
+
+   If you add ``spec.externalAccess``, the |k8s-op-short| creates an external service 
+   for each Pod in a replica set. External services provide an external entry point 
+   for each MongoDB database Pod in a cluster. Each external service has 
+   :k8sdocs:`selectors </concepts/overview/working-with-objects/labels/>`
+   that match the external service to a specific Pod.
+
+   If you add this setting without any values, the |k8s-op-short| creates 
+   an external service with the following default values:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 25 45
+
+      * - Field
+        - Value
+        - Description
+
+      * - ``Name``
+        - ``<pod-name>-svc-external``
+        - Name of the external service. You can't change this value.
+
+      * - ``Type``
+        - ``LoadBalancer``
+        - Creates an external :k8sdocs:`LoadBalancer 
+          </concepts/services-networking/service/#loadbalancer>` service.
+
+      * - ``Port``
+        - ``<Port Number>``
+        - A port for |mongod|.
+      
+      * - ``publishNotReadyAddress``
+        - ``true``
+        -  Specifies that :k8sdocs:`DNS records </concepts/services-networking/dns-pod-service/>`
+           are created even if the Pod isn't ready. 
+           Do not set to ``false`` for any database Pod.
+
+.. opsmgrkube:: spec.externalAccess.externalService
+
+   *Type*: collection
+
+   Specification for overriding the default values in :setting:`spec.externalAccess`.
+
+   .. |external-access| replace:: :setting:`spec.externalAccess`
+   .. |default-values| replace:: :ref:`default values <spec-external-access>`
+
+   .. include:: /includes/facts/fact-external-service-spec.rst
+
+.. opsmgrkube:: spec.externalAccess.externalService.annotations
+
+   *Type*: collection
+
+   .. include:: /includes/facts/fact-external-service-annotation-spec.rst
+   
+   .. include:: /includes/list-tables/annotation-placeholders.rst
+
+   .. include:: /includes/facts/annotation-placeholders-example.rst
+
+.. opsmgrkube:: spec.externalAccess.externalService.spec
+  
+   *Type*: collection
+
+   Configuration for the :k8sdocs:`ServiceSpec </reference/kubernetes-api/service-resources/service-v1/#ServiceSpec>`.
+   To learn more, see :setting:`spec.externalAccess.externalService`.
+
+.. opsmgrkube:: spec.applicationDatabase.memberConfig
 
    *Type*: array of objects
 
@@ -1772,9 +1844,9 @@ database settings specific to your |multi-cluster-om|, see
 
       If you set :opsmgrkube:`spec.topology` to ``MultiCluster``, use 
       :setting:`spec.applicationDatabase.clusterSpecList.memberConfig` instead 
-      of :setting:`spec.applicationDatabase.memberConfig`.
+      of :opsmgrkube:`spec.applicationDatabase.memberConfig`.
       In a |multi-cluster-om|, the |k8s-op-short| ignores all parameters under 
-      :setting:`spec.applicationDatabase.memberConfig`.      
+      :opsmgrkube:`spec.applicationDatabase.memberConfig`.      
    
    The number of elements in the ``memberConfig`` list must equal 
    :setting:`spec.applicationDatabase.members <spec.members>`.
@@ -2284,6 +2356,34 @@ This section describes settings specific to your
 This section describes settings specific to your 
 |multi-cluster-om| that you can use for your {+appdb+}.
 
+.. setting:: spec.applicationDatabase.clusterSpecList.externalAccess
+
+  *Type*: string
+
+  .. |hostname-format| replace:: ``<replica-set-name>-<cluster-idx>-<pod-idx>.<externalDomain>``
+
+  .. |hostname-example| replace:: ``multi-replica-set-0-1.cluster-0.example.com``
+
+  An external domain used to externally expose your replica set deployment.
+
+  By default, each replica set member uses the |k8s| Pod's |fqdn| 
+  (``*.svc.cluster.local``) as the default hostname. However, if you add an
+  external domain to this setting, the replica set uses a hostname that is a 
+  subdomain of the specified domain instead. This hostname uses the following 
+  format:
+
+  |hostname-format|
+
+  For example:
+
+  |hostname-example|
+
+  .. important::
+
+     Use this setting only when deploying a {+appdb+} deployment *without
+     a service mesh*. See :ref:`reference-architectures-multi-cluster-ops-manager-no-mesh`.
+
+
 .. setting:: spec.applicationDatabase.clusterSpecList.memberConfig
 
    *Type*: array of strings
@@ -2292,8 +2392,8 @@ This section describes settings specific to your
    
    .. important::
 
-      If you set :opsmgrkube:`spec.topology` to ``SingleCluster``, use 
-      :setting:`spec.applicationDatabase.memberConfig` instead of :setting:`spec.applicationDatabase.clusterSpecList.memberConfig`.      
+      If you set ``spec.topology`` to ``SingleCluster``, use 
+      :opsmgrkube:`spec.applicationDatabase.memberConfig` instead of :setting:`spec.applicationDatabase.clusterSpecList.memberConfig`.      
    
    The number of elements in the ``memberConfig`` list must equal 
    :opsmgrkube:`spec.applicationDatabase.clusterSpecList.members`.
@@ -2376,4 +2476,3 @@ This section describes settings specific to your
    Determines whether an {+appdb+} replica set member can vote in an 
    :manual:`election </core/replica-set-elections/#voting-members>`. Set to ``1`` 
    to allow the member to vote. Set to ``0`` to exclude the member from an election.
-
