@@ -5,25 +5,25 @@
      - Description
 
    * - :guilabel:`Name`
-     - Name of the {+database-deployment+}.
+     - Name of the cluster.
 
    * - :guilabel:`Version`
-     - MongoDB Version of the {+database-deployment+}.
+     - MongoDB Version of the cluster.
 
    * - :guilabel:`Data Size`
-     - Size of the {+database-deployment+} data.
+     - Size of the cluster data.
 
    * - :guilabel:`Backup`
      - Backup enabled status.
 
    * - :guilabel:`Nodes`
-     - Number of nodes in the {+database-deployment+}. This only displays for {+clusters+}.
+     - Number of nodes in the cluster.
 
    * - :guilabel:`SSL`
-     - SSL enabled status. This displays only for {+clusters+}.
+     - SSL enabled status.
 
    * - :guilabel:`Auth`
-     - Authentication required status. This displays only for {+clusters+}.
+     - Authentication required status.
 
    * - :guilabel:`Alerts`
-     - Number of open alerts. This displays only for {+clusters+}.
+     - Number of open alerts.

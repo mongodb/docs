@@ -3,38 +3,37 @@
       
    .. include:: /includes/nav/steps-db-deployments-page.rst
       
-   .. step:: Review the {+database-deployment+}'s' details.
+   .. step:: Review the cluster details.
       
-      The |service| consoles displays the following for {+database-deployments+} in the
+      The |service| console displays the following for clusters in the
       selected project:
       
       - Metadata:
       
         .. include:: /includes/list-tables/per-project-cluster-list.rst
       
-      - High-level :doc:`metrics </monitor-cluster-metrics/>`:
+      - High-level :ref:`metrics <monitor-cluster-metrics>`:
       
         - Read / write operations per second.
       
-        - Number of open connections to the {+database-deployment+}.
+        - Number of open connections to the cluster.
       
-        - Logical size of {+database-deployment+} data.
+        - Logical size of the cluster data.
       
-        - {+Database-deployment+} disk |iops| (*Available on M10+ {+clusters+}*).
+        - Cluster disk |iops| (*Available on M10+ {+clusters+}*).
       
       .. note::
       
          |service| pauses monitoring for these metrics on ``M0``
          {+clusters+} without connection activity for seven days. |service|
          indicates which {+clusters+} fell into this state in the
-         :guilabel:`{+Database-Deployment+} Detail` view. |service| limits details
-         displayed for these {+clusters+}.
+         :guilabel:`Cluster Detail` view. |service| limits details
+         displayed for these clusters.
       
-         To resume monitoring, make a successful connection to the {+cluster+}
-         using:
+         To resume monitoring, make a successful connection to the cluster using:
       
          - The {+atlas-admin-api+},
-         - A :doc:`Driver </driver-connection>`,
+         - A :ref:`Driver <connect-via-driver>`,
          - {+mongosh+}, or
-         - The :doc:`{+atlas-ui+} </atlas-ui>`.
+         - The :ref:`{+atlas-ui+} <atlas-ui>`.
       

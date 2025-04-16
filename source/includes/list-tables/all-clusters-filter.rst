@@ -27,18 +27,17 @@
 
    * - :guilabel:`Version`
      - MongoDB versions
-     - Version of MongoDB that the {+database-deployments+} are running.
+     - Version of MongoDB that the clusters are running.
 
        - All
        - Inconsistent
-       - 5.0
        - 6.0
        - 7.0
 
        .. include:: /includes/fact-fcv-in-cluster-card.rst
 
    * - :guilabel:`Configuration`
-     - Additional configuration options for the {+database-deployment+} including
+     - Additional configuration options for the cluster including
        authentication, backup, and |tls|.
      -
 

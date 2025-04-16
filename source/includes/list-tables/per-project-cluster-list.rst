@@ -4,19 +4,18 @@
    * - Field
      - Description
 
-   * - :guilabel:`{+Database-Deployment+} Name`
-     - Name of the {+database-deployment+}.
+   * - :guilabel:`Cluster Name`
+     - Name of the cluster.
 
    * - :guilabel:`Version`
-     - Version of MongoDB that the {+database-deployment+} runs.
+     - Version of MongoDB that the cluster runs.
 
    * - :guilabel:`{+Cluster+} Tier`
-     - {+Cluster+} tiers such as ``M10``, ``M30``, or the like ({+clusters+} only).
+     - Cluster tiers, such as ``M10``, ``M30``, or a {+Flex-cluster+}.
 
    * - :guilabel:`Region`
-     - Cloud region where |service| hosts the {+database-deployment+}.
+     - Cloud region where |service| hosts the cluster.
 
    * - :guilabel:`Type`
-     - Type of structure for the {+cluster+} (i.e., Replica Set or
-       Sharded {+Cluster+}), and number of nodes in the {+cluster+}
-       ({+clusters+} only).
+     - Type of structure for the cluster, such as Replica Set or
+       Sharded Cluster, and number of nodes in the cluster.
