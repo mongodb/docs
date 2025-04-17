@@ -15,6 +15,57 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.33.x:
+
+|k8s-op-full| 1.33 Series
+-------------------------
+
+.. _ent-op-1.33.0:
+
+|k8s-op-full| 1.33.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-04-16*
+
+New Features
+````````````
+
+- Adds support for |mms| and Application Database deployments across multiple Kubernetes clusters
+  :ref:`without requiring a Service Mesh <reference-architectures-multi-cluster-no-mesh>`.
+
+  - Adds the :opsmgrkube:`spec.applicationDatabase.externalAccess` setting used for common service configuration or for single-cluster deployments.
+  - Adds the :setting:`spec.applicationDatabase.clusterSpecList.externalAccess` setting.
+  - Supports annotations for external services managed by the operator, which contain placeholders that are automatically replaced to the proper values:
+    
+    - **AppDB**: ``spec.applicationDatabase.externalAccess.externalService.annotations``
+    - **MongoDBOpsManager**: Not yet supported
+
+Bug Fixes
+`````````
+
+- Fixes a bug where workloads in the ``static`` container architecture were still downloading binaries. 
+  This occurred when the operator was running with the default container architecture set to ``non-static``, 
+  but the workload was deployed with the ``static`` architecture using the ``mongodb.com/v1.architecture: "static"`` annotation.
+- Fixes a bug where the |k8s-op-short| was not correctly applying external service customization based on ``spec.externalAccess`` and ``spec.mongos.clusterSpecList.externalAccess`` configuration. 
+  Previously it was ignored, but only for Multi-Cluster Sharded Clusters.
+- Fixes an issue where |mms| resources were not properly cleaned up on deletion. The operator now ensures that all resources are removed when you delete an |mms| resource.
+- Fixes an issue with wrong monitoring hostnames for Application Databases deployed in multi-cluster mode. Monitoring agents should discover the correct hostnames and send data back to |mms|. The hostnames used for monitoring AppDB in Multi-Cluster deployments with a service mesh are ``{resource_name}-db-{cluster_index}-{pod_index}-svc.{namespace}.svc.{cluster_domain}``. TLS certificates should be defined for these hostnames.
+  
+  .. note:: 
+    
+     This bug fix will result in the loss of historical monitoring data for multi-cluster AppDB members. If retaining this data is critical, please back it up before upgrading. This only affects monitoring data for multi-cluster AppDB deployments. It doesn't affect single-cluster AppDBs or any other MongoDB deployments that |mms| manages.
+
+  To export AppDB member monitoring data, See :opsmgr:`Get Host, Process, System Measurements </current/reference/api/measures/get-host-process-system-measurements/>` in the |mms| documentation.
+
+- Fixes a bug where the |k8s-op-short| was not using the ``spec.clusterSpecList.externalConnectivity`` field, but it appears in the :opsmgrkube:`documentation <spec.clusterSpecList.externalConnectivity>`.
+- Fixes a bug where a custom CA would always be expected when configuring |mms| with TLS enabled.
+
+Breaking Changes
+````````````````
+
+- Removes all references to the ``mongodb-enterprise-appdb-database-ubi`` image and repository, as it has been deprecated since |k8s-op-short| 1.22.0. 
+
+
 .. _ent-op-1.32.x:
 
 |k8s-op-full| 1.32 Series
