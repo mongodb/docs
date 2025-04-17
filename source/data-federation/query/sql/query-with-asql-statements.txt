@@ -60,6 +60,29 @@ WHERE Statement
 
 {+asql+} returns documents from the ``Users`` collection where the user's ``name`` is ``Jon Snow``.
 
+WITH Keyword 
+~~~~~~~~~~~~
+
+The ``WITH`` keyword makes it easier to create derived data sources for
+subsequent use.  
+
+.. code-block:: sh
+   :copyable: true
+
+   WITH RecentSales AS (
+     SELECT customer_id, SUM(amount) AS total_sales
+     FROM sales
+     WHERE sale_date > '2025-01-01'
+     GROUP BY customer_id
+   )
+   SELECT customer_id, total_sales
+   FROM RecentSales
+   WHERE total_sales > 1000;
+
+{+asql+} returns documents from the ``Sales`` collection that have
+``customer_id`` with total sales greater than 1000 after January 1,
+2025.  
+ 
 .. _asql-flatten-and-unwind:
 
 FLATTEN and UNWIND
@@ -184,7 +207,7 @@ and options.
 
    SELECT * 
    FROM UNWIND(<data source> 
-    WITH PATH => <array_path>, 
+    WITH PATH | PATHS => <array_paths>, 
     INDEX => <identifier>, 
     OUTER => <bool>
    )
@@ -200,10 +223,10 @@ and options.
      - Required
      - Source of the array field to unwind.
 
-   * - ``PATH``
+   * - ``PATH`` | ``PATHS``
      - Required
      - Path to the field in the data source to 
-       unwind.
+       unwind. Use parentheses to specify multiple paths. 
 
    * - ``INDEX``
      - Optional
@@ -217,8 +240,8 @@ and options.
        null, missing, or empty array values are preserved. Defaults to 
        ``false``.
 
-Unwind Example
-~~~~~~~~~~~~~~
+Unwind Example: Top Level Fields 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In an example scenario, a ``customerInfo`` collection contains 
 documents that are structured as follows:
@@ -271,6 +294,7 @@ If you run the query
 {+asql+} returns documents with the following top-level fields:
 
 .. list-table::
+   :widths: 22 26 26 26
 
    * - ``id``
      - 1
@@ -297,9 +321,117 @@ If you run the query
      - { year: 2021, score: 8 }
      - { year: 2022, score: 7 }
      
-
 When you use ``UNWIND`` with ``PATH => visits``, each ``visits`` object 
 becomes a table row.
+
+Unwind Example: Nested and Sibling Arrays 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In an example scenario, a ``customerInfo`` collection contains 
+documents that are structured as follows:
+
+.. code-block:: json
+   
+   {  
+     "id": 1,  
+     "location": "New York",  
+     "customer": {  
+       "age": 50,  
+       "email": "customer@email.com",  
+       "satisfaction": 5  
+     },  
+     "visits": [  
+       {  
+         "year": 2020,  
+         "score": 10  
+       },  
+       {  
+         "year": 2021,  
+         "score": 8  
+       },  
+       {  
+         "year": 2022,  
+         "score": 7  
+       }  
+     ],  
+     "purchases": [  
+       {  
+         "transaction": "1A",  
+         "transactions": [  
+           {  
+             "amount": 100  
+           },  
+           {  
+             "amount": 150  
+           }  
+         ]  
+       },  
+       {  
+         "transaction": "2B",  
+         "transactions": [  
+           {  
+             "amount": 200  
+           }  
+         ]  
+       }  
+     ]  
+   }  
+
+Suppose you run the following query:
+
+.. code-block:: javascript 
+
+   SELECT v.year AS visit_year, v.score AS visit_score, p.transaction AS transaction_id, t.amount AS purchase_amount  
+   FROM UNWIND(  
+     customerInfo WITH PATHS => (  
+       visits[INDEX => visit_idx],  
+       purchases[OUTER => TRUE, INDEX => purchase_idx].transactions[]  
+     ),  
+     INDEX => idx,  
+     OUTER => FALSE  
+   )  
+
+The preceding query does the following:
+
+- Unwinds the ``visits`` array and assigns an index name ``visit_idx`` to
+  track the index position inside the unwound array. 
+- Unwinds the ``purchases`` array and unwinds the ``transactions`` array inside each ``purchases`` object. It
+  also preserves any purchase with a missing or empty ``transactions``
+  array by using ``OUTER => TRUE``.
+
+{+asql+} returns documents with the following fields:
+
+.. list-table::
+   :widths: 22 26 26 26
+   :header-rows: 1
+
+   * - ``visit_year``
+     - ``visit_score``
+     - ``transaction_id``
+     - ``purchase_amount``
+
+   * - 2020
+     - 10
+     - 1A
+     - 100
+
+   * - 2020
+     - 10
+     - 2B
+     - 150
+
+   * - 2021
+     - 8
+     - 1A
+     - 100
+
+   * - 2021
+     - 8
+     - 2B
+     - 150
+
+In the results, each row contains data from a single ``visits`` entry
+and a single ``transactions`` entry.
 
 Combined FLATTEN and UNWIND Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -402,4 +534,5 @@ If you run the query
      - 7
 
 When you use both the ``FLATTEN`` and ``UNWIND`` functions,
-the ``visits`` array is unwound, and the resulting document is then flattened.
+the ``visits`` array is unwound, and the resulting document is then
+flattened.
