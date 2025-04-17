@@ -2,7 +2,7 @@
 
 a. In the :guilabel:`Database type` drop-down, select the database type.
 
-#. To enter a :ref:`connection string <rm-relational-database-connection-strings>` directly, enable the :guilabel:`Enter URI manually` toggle and paste your connection string into the :guilabel:`JDBC URI`.
+#. To enter a connection string directly, enable the :guilabel:`Enter URI manually` toggle and paste your connection string into the :guilabel:`JDBC URI`.
 
 #. To create a connection string by entering database information, enter the following:
 

@@ -1,8 +1,9 @@
+.. _rm-introduction:
 .. _relational-migrator-get-started:
 
-====================================
-Get Started with Relational Migrator
-====================================
+============================
+{+rel-mig+} Overview
+============================
 
 .. facet::
    :name: genre
@@ -18,69 +19,182 @@ Get Started with Relational Migrator
    :depth: 1
    :class: singlecol
 
-Relational Migrator is a tool to help you migrate your relational 
-data to MongoDB. This page guides you through installing the tool 
-and running your first migration job.
+{+rel-mig+} is a free tool to help you migrate from a relational database to MongoDB.
+This page provides an overview of {+rel-mig+}'s :ref:`key features <rm-key-features>`, 
+:ref:`use cases <rm-use-cases>`, :ref:`migration scenarios <rm-migration-scenarios>`, 
+and :ref:`supported databases and versions<supported-databases>`.
 
-To get familiar with Relational Migrator capabilities, 
-features, and use cases, review the following resources:
+.. _rm-key-features:
 
-- :ref:`<supported-databases>`
--  :ref:`<rm-migration-scenarios>`
-- `Relational Migrator Learning Byte <https://learn.mongodb.com/courses/mongodb-relational-migrator>`__
+Key Features
+------------
 
-Steps
------
+Map and Model Data
+~~~~~~~~~~~~~~~~~~
 
-.. procedure::
+{+rel-mig+} provides an entity-relationship diagram builder to map your 
+relational schema to a MongoDB schema. You can start with a recommended schema,
+a 1:1 mapping, or create a new schema from scratch. For more information, 
+see :ref:`<rm-mapping-rules>`.
 
-   .. step:: Install
 
-      You can install Relational Migrator with a
-      :ref:`single machine install <local-machine-install>` suitable 
-      for testing or a :ref:`unattended server install <unattended-server>` 
-      for production workloads.
+Generate Application Code
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. step:: Create a project
+{+rel-mig+} generates MongoDB-compatible C#, Java, and JavaScript application code
+for entity classes, persistence layers, and APIs. 
 
-      To start using Relational Migrator,
-      :ref:`create a project <rm-projects>`. Projects hold the 
-      settings, schema conversion logic, and table mappings for a 
-      migration. You can connect to source and destination databases with the
-      appropriate :ref:`connection strings <rm-connection-strings>` and save
-      the source and destination :ref:`database connections <rm-database-connections>`.
-      
+Code generation templates support JSON output and common application frameworks like 
+Spring Data, Node, and Mongoose. For more information, see :ref:`<rm-code-generation-templates>`.
 
-   .. step:: Create mapping rules with suggested mappings
 
-      Use :ref:`suggested mappings<rm-new-rules-from-mappings>` to 
-      create initial mapping rules based on your 
-      relational schema. Mapping rules specify how data from each 
-      relational table migrates to MongoDB and how columns map to 
-      fields in MongoDB documents.
+Convert and Validate SQL Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. step:: Customize your mapping rules
+{+rel-mig+} uses generative AI to :ref:`convert <rm-query-converter>` SQL queries, 
+views, and stored procedures into MongoDB-compatible code for C#, Java, or JavaScript.
 
-      Add or update :ref:`mapping rules <rm-mapping-rules>` to create 
-      the destination data model that best matches your 
-      application needs.
+You can test queries within {+rel-mig+} to validate converted SQL and 
+ensure that your queries are compatible with MongoDB.
 
-   .. step:: Create a migration job
+Migrate to MongoDB
+~~~~~~~~~~~~~~~~~~
 
-      :ref:`Migration jobs <rm-sync-jobs>` move the data from relational 
-      tables to MongoDB collections. Migration jobs have two types: 
+Use {+rel-mig+} to migrate data from :ref:`supported relational databases <supported-databases>` 
+to MongoDB Atlas or a self-managed MongoDB deployment. You can choose either a 
+snapshot migration, or continuous synchronization with change data capture (CDC).
+For more information, see :ref:`<rm-use-cases>`.
 
-      - **Snapshot** for point in time migrations. 
-      - **Continuous** for ongoing change data capture zero-downtime migrations.
+{+rel-mig+} integrates with Apache Kafka and Confluent Cloud for large scale 
+migrations. For more information, see :ref:`<kafka-intro>`.
 
-      To start your migration to MongoDB, 
-      :ref:`create a migration job <rm-create-jobs>`.
+.. _rm-use-cases:
+
+Use Cases
+---------
+
+{+rel-mig+} supports both Snapshot and Continuous 
+:ref:`migration jobs <rm-migration-job-types>`.
+
+- Snapshot migration jobs migrate all data once, and then stop. You can 
+  use snapshot migrations for point-in-time database migrations,
+  batch migrations, and incremental syncs. You can also use them with 
+  :ref:`table filters <rm-table-filters>` to split large migration jobs 
+  into parallel batches to improve performance. 
+- Continuous migration jobs run a snapshot migration and then enter 
+  a :abbr:`CDC (Change Data Capture)` stage, which continuously replicates 
+  data changes.
+
+Some relational databases are only compatible with Snapshot migration jobs.
+For more information, see the following table:
+
+.. include:: /includes/table-supported-migration-types.rst
+
+.. _rm-migration-scenarios:
+
+Migration Scenarios
+-------------------
+
+You can use {+rel-mig+} to migrate one legacy application at a
+time to MongoDB. Depending on your application's needs, you can migrate
+either with or without downtime.
+
+Migrate During Scheduled Downtime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application does not require constant uptime, such as in the
+case of an internal application, you can have the migration occur during
+scheduled downtime. Migrating during downtime is the easiest way to
+configure and complete the migration process.
+
+When you start the migration process, {+rel-mig+} takes a
+snapshot of the data on the legacy application and migrates the data
+from that point in time. During the migration process, your legacy
+application can remain online to support incoming reads, but cannot
+support incoming writes. The length of the migration process depends on
+several factors, such as the amount of data being migrated and your
+connection speed.
+
+After the migration completes, take your legacy application offline and
+launch your new application.
+
+
+Migrate Without Downtime
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application must remain online to support reads and writes
+during the migration process, you can use :abbr:`CDC (Change Data Capture)` to 
+migrate data without downtime. This process is called a **continuous**
+migration.
+
+When you start a continuous migration job, {+rel-mig+} takes a
+snapshot of the data on the legacy application and tracks database
+updates in near real time. During the migration process, your source and
+destination databases remain in sync.
+
+After the continuous migration job completes, you can transfer users to
+the new application and shut down the legacy application.
+
+To learn more about migration jobs, see :ref:`rm-sync-jobs`.
+
+
+Unsupported Scenarios
+~~~~~~~~~~~~~~~~~~~~~
+
+{+rel-mig+} currently does not support migrating an operational
+data store. Depending on your workload, migrating a data store could
+cause :abbr:`CDC (Change Data Capture)` to run indefinitely without
+completing, which is not recommended with {+rel-mig+}.
+
+.. _supported-databases:
+
+Supported Databases and Versions
+--------------------------------
+
+Source Databases and Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+rel-mig+} supports the following source databases:
+
+.. include:: /includes/table-supported-dbs-and-versions.rst
+
+For information on connecting to relational databases, see :ref:`<rm-database-connections>`.
+
+.. _jdbc-databases:
+
+Databases Supported with a JDBC Driver
+''''''''''''''''''''''''''''''''''''''
+
+.. important::
+
+   This feature is in public preview.
+
+Some databases are supported for snapshot data migration through a JDBC
+connection. You can run snapshot migration jobs against these databases, but
+not continuous :abbr:`CDC (Change Data Capture)` sync jobs.
+
+.. include:: /includes/table-supported-jdbc-driver-dbs.rst
+
+Target Databases and Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+rel-mig+} supports the following target databases:
+
+.. include:: /includes/table-supported-mongodb-versions.rst
+
+For information on connecting to MongoDB, see :ref:`<rm-connect-to-mongo>`.
+
+Learn More
+----------
+
+- `{+rel-mig+} Introductory Video Series <https://learn.mongodb.com/courses/mongodb-relational-migrator>`__
+- :ref:`User Interface Overview <rm-project-overview>`
+
+
 
 .. toctree::
    :titlesonly:
    :hidden:
 
-   Supported Databases & Versions </getting-started/supported-databases>
-   Migration Scenarios </getting-started/migration-scenarios>
-   User Interface </getting-started/overview>
-   Log In with Atlas </getting-started/atlas-log-in>
+   UI Overview </getting-started/overview>
+   Create & Manage Projects </projects>

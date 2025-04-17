@@ -1,9 +1,9 @@
 .. step:: (Optional) Set up user permissions
 
    The following code creates a new MySQL service account 
-   for Relational Migrator to connect to the MySQL 
+   for {+rel-mig+} to connect to the MySQL 
    instance. Alternatively, you can use an existing MySQL service 
-   account to connect to Relational Migrator with the appropriate 
+   account to connect to {+rel-mig+} with the appropriate 
    permissions.
 
    a. Create a service account:
