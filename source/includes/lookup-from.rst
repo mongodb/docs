@@ -1,3 +1,3 @@
-``from`` is optional, you can use a :pipeline:`$documents` stage in a
-:pipeline:`$lookup` stage instead. For an example, see
+It is possible in some edge cases to subsitute ``from`` with ``pipeline`` with
+:pipeline:`$documents` as the first stage. For an example, see
 :ref:`documents-lookup-example`.
