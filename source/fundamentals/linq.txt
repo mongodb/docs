@@ -135,17 +135,17 @@ You can print the results of the preceding example as follows:
 
       var results = query.ToCursor();
 
-
 Supported Aggregation Stages
 ----------------------------
 
-You can use LINQ to create an :ref:`aggregation pipeline <aggregation-pipeline-intro>`.
+You can use LINQ to create an :manual:`aggregation pipeline </core/aggregation-pipeline/>`.
 The {+driver-short+} automatically translates each LINQ statement into the corresponding
 aggregation pipeline stages. In this section you can learn which
 aggregation pipeline stages are supported.
 
-To learn more about the aggregation pipeline stages, see the 
-:ref:`aggregation-pipeline-operator-reference` page in the server manual.
+To learn more about the aggregation pipeline stages, see 
+:manual:`Aggregation Stages </reference/operator/aggregation-pipeline/>`
+in the {+mdb-server+} manual.
 
 $project
 ~~~~~~~~
@@ -519,7 +519,7 @@ The ``$group`` aggregation stage separates documents into groups according to
 the criteria you specify.
 
 Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
-to generate an ``$group`` stage using LINQ:
+to generate a ``$group`` stage using LINQ:
 
 .. tabs::
 
@@ -570,7 +570,7 @@ The ``$sort`` aggregation stage returns the results of your query in the order
 that you specify.
 
 Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
-to generate an ``$sort`` stage using LINQ:
+to generate a ``$sort`` stage using LINQ:
 
 .. tabs::
 
@@ -793,6 +793,16 @@ in the Atlas manual. For more examples about running Atlas Vector Search queries
 {+driver-short+}, see :atlas:`Run Vector Search Queries </atlas-vector-search/vector-search-stage/>`
 in the Atlas manual and select :guilabel:`C#` from the language dropdown.
 
+Aggregation Operators
+---------------------
+
+You can use :manual:`aggregation pipeline operators
+</reference/operator/aggregation/>` in your aggregation stages to modify
+documents and perform calculations.
+
+The following sections describe aggregation operators that you can
+implement by using LINQ methods.
+
 Bitwise Operators
 ~~~~~~~~~~~~~~~~~
 
@@ -967,6 +977,42 @@ The result contains the following values:
    0
    1
 
+.. _csharp-linq-convert:
+
+$convert
+~~~~~~~~
+
+The ``$convert`` operator converts a value to a specified type. You can
+use this operator to perform type conversions in stages such as
+``$project``, ``$addFields``, and ``$set``.
+
+In the driver, you can use the ``Mql.Convert()`` method to
+convert a value from one type to a different specified type. To learn
+more about conversion behavior and permitted conversions, see the
+:manual:`$convert reference </reference/operator/aggregation/convert/>`
+in the {+mdb-server+} manual.
+
+The ``Convert()`` method takes the following parameters:
+
+- Value to convert.
+- ``ConvertOptions`` instance that specifies the type to convert to
+  and options. Some conversions require you to specify certain options, but
+  you can also set options to handle errors or null values.
+
+The following code performs the following actions by using LINQ methods:
+
+- Converts the ``RestaurantId`` string values to ``int`` values in a
+  ``Select()`` projection
+- Sets the returned value to ``-1`` if an error occurs during conversion
+- Sets the returned value to ``0`` if the input value is ``null`` or missing
+
+.. code-block:: csharp
+   
+   var query = queryableCollection
+       .Select(r => Mql.Convert(r.RestaurantId, new ConvertOptions<int> { OnError = -1, OnNull = 0 }));
+
+The driver stores the converted values under the original field name in
+the output documents.
 
 Unsupported Aggregation Stages
 ------------------------------
@@ -984,7 +1030,8 @@ the :ref:`<csharp-builders-out>` section.
 Supported Methods
 -----------------
 
-The following are some methods supported by the {+driver-long+} implementation of LINQ:
+The following table describes some methods supported by the
+{+driver-long+} implementation of LINQ:
 
 .. list-table::
    :header-rows: 1
@@ -1004,6 +1051,9 @@ The following are some methods supported by the {+driver-long+} implementation o
 
    * - ``LongCount``
      - Returns an ``Int64`` that represents the number of documents that match the specified criteria
+
+   * - ``Convert``
+     - Converts a value from one type to a different specified type
 
    * - ``DateFromString``
      - Converts a ``string`` to a ``DateTime`` object
