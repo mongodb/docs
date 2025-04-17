@@ -48,6 +48,50 @@ changes between the current and upgrade versions. For example, if you
 are upgrading the provider from v8.0 to v8.5, address all breaking changes from
 the version after v8.0, including any listed under v8.5.
 
+.. _entity-framework-breaking-changes-v8.3:
+
+Version 8.30.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Version 8.3.0 of the {+provider-short+} introduces a breaking change that
+corrects the handling of nullable properties configured with an alternative BSON
+representation. In previous versions, configurations set by the
+``[BsonRepresentation]`` attribute or the ``HasBsonRepresentation()`` fluent API
+were not applied. 
+
+You can take action to address this discrepency in one of two ways:
+
+- If using the alternative BSON representation is not critical, remove the
+  configuration from your application before it starts.
+
+- Alternatively, you can update the affected elments to the new representation.
+  As part of your upgrade process, use the ``updateMany`` method for each
+  affected MongoDB collection to rewrite any affected nullable properties or
+  elements into the desired BSON representation using the ``$convert``
+  operation.
+
+  For example, you can convert a ``dateOfBirth`` element in a collection named
+  ``people`` from a BSON ``date`` into BSON ``int`` as shown in the following
+  code:
+
+  .. code-block:: csharp
+
+      db.people.updateMany(
+        { dateOfBirth: {$type: "date" } },
+        [
+          { $set: { 
+              dateOfBirth: 
+                { $convert: 
+                  { input: "$dateOfBirth", 
+                    to: "int", 
+                    onNull: null 
+                  } 
+                } 
+            } 
+          }
+        ]
+      )
+
 .. _entity-framework-breaking-changes-v8.2:
 
 Version 8.2.0 Breaking Changes
