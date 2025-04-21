@@ -18,7 +18,8 @@ by March 2025. You must remove all remaining ``M2``, ``M5``, and
 {+Serverless-instance+} features from your {+ak8so+} configurations before 
 January 2026.
 
-If your workloads require :atlas:`Private Endpoints
-</private-endpoint-overview>` or :atlas:`Continuous Backup and Point-in-Time Restore </pit-restore>`,
-switch to |service| {+Dedicated-Clusters+}. To learn more, see :ref:`ak8so-migration-to-flex`
-and the :atlas:`Atlas Flex Migration Guide </flex-migration>`.
+If your workloads require :atlas:`Private Endpoints </data-federation/admin/manage-private-endpoint/>` or
+:atlas:`Continuous Backup
+</backup/cloud-backup/dedicated-cluster-backup/#continuous-cloud-backups>`, switch to
+|service| {+Dedicated-Clusters+}. To learn more, see :ref:`ak8so-migration-to-flex` and
+the :atlas:`Atlas Flex Migration Guide </flex-migration>`.
