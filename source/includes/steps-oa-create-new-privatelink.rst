@@ -10,11 +10,15 @@
       
    .. step:: Click the button to set up the private endpoint.
       
-      Click :guilabel:`Create New Endpoint` button.
+      Click :guilabel:`Add Private Endpoint` button.
       
-   .. step:: Choose an |aws| region.
+   .. step:: Choose a cloud provider and region.
+
+      a. Click the |aws| button.
+
+      #. Click :guilabel:`Next`.
       
-      a. From the :guilabel:`AWS Region` list, select the region where you 
+      #. From the :guilabel:`Choose a region` list, select the region where you 
          want to create the private endpoint.
       
          You can select one of the following regions:
@@ -23,7 +27,7 @@
             :widths: 75 25
             :header-rows: 1
       
-            * - {+adf+} Regions
+            * - {+Online-Archive+} Regions
               - |aws| Regions
       
             * - Northern Virginia, North America

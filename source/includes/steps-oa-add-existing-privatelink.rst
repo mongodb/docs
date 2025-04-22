@@ -8,10 +8,51 @@
       Click :guilabel:`Federated Database Instance / Online Archive` for
       a private endpoint for your {+fdi+} or online archive. 
       
-   .. step:: Click the button to set up the private endpoint.
+   .. step:: Click the :guilabel:`Connect Existing Endpoint` button.
       
-      Click :guilabel:`Connect Existing Endpoint` button.    
+   .. step:: Choose a cloud provider and region.
+
+      a. Click the |aws| button.
       
+      #. From the :guilabel:`Choose a region` list, select the region where you 
+         want to create the private endpoint.
+      
+         You can select one of the following regions:
+      
+         .. list-table::
+            :widths: 75 25
+            :header-rows: 1
+      
+            * - {+adf+} Regions
+              - |aws| Regions
+      
+            * - Northern Virginia, North America
+              - us-east-1
+      
+            * - Oregon, North America
+              - us-west-2
+      
+            * - Ireland, Europe
+              - eu-west-1
+      
+            * - London, Europe
+              - eu-west-2
+      
+            * - Frankfurt, Europe
+              - eu-central-1
+      
+            * - Tokyo, Japan
+              - ap-northeast-1
+      
+            * - Mumbai, Asia
+              - ap-south-1
+      
+            * - Sydney, Australia
+              - ap-southeast-2
+      
+            * - Montreal, Canada
+              - ca-central-1
+
    .. step:: Enter your VPC endpoint ID and DNS name.
       
       a. Enter the 22-character alphanumeric string that identifies your 
