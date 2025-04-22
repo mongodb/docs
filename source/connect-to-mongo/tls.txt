@@ -17,11 +17,27 @@ TLS/SSL
    :depth: 2
    :class: singlecol
 
+Overview
+--------
+
+In this guide, you can learn how to use the **TLS protocol** to secure your
+connection to a MongoDB deployment. TLS is a cryptographic protocol that
+secures communication between your application and MongoDB. To configure
+your connection to use TLS, enable the TLS option and provide your
+certificates for validation when creating a client.
+
 By default, the driver supports TLS/SSL connections to MongoDB
 servers using the underlying support for TLS/SSL provided by the JDK.
-This can be changed either by utilizing the extensibility of the `Java SE
-API <https://docs.oracle.com/javase/8/docs/api/>`__, or by using the
-`Netty API <https://netty.io/4.1/api/>`__.
+This can be changed either by using the `Netty API
+<https://netty.io/4.1/api/>`__ or the extensibility of the `Java SE
+API <https://docs.oracle.com/javase/8/docs/api/>`__.
+
+.. tip:: Prefer Netty for Asynchronous Apps
+
+   We recommend using Netty for asychronous applications because it supports
+   asynchronous I/O and handles high connection volumes effectively. To
+   learn about using Netty to configure your TLS settings, see the
+   :ref:`java-rs-tls-netty-config` section of this guide.
 
 MongoClient API
 ---------------
@@ -68,6 +84,54 @@ To specify TLS/SSL in a ``MongoClientSettings`` instance, set the
        .build();
    MongoClient client = MongoClients.create(settings);
 
+.. _java-rs-tls-netty-config:
+
+Configure TLS/SSL by Using Netty SslContext
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Include the following import statements:
+
+.. code-block:: java
+   :copyable: true
+
+   import com.mongodb.MongoClientSettings;
+   import com.mongodb.client.MongoClients;
+   import com.mongodb.client.MongoClient;
+   import io.netty.handler.ssl.SslContext;
+   import io.netty.handler.ssl.SslContextBuilder;
+   import io.netty.handler.ssl.SslProvider;
+
+.. note:: Netty Package Version
+
+   The driver tests with Netty package version ``{+netty-version+}``
+
+To instruct the driver to use
+`io.netty.handler.ssl.SslContext <https://netty.io/4.1/api/io/netty/handler/ssl/SslContext.html>`__,
+configure `NettyTransportSettings <{+core-api+}/connection/NettyTransportSettings.html>`__
+when you define your ``MongoClientSettings``.
+
+Use ``MongoClientSettings.Builder.transportSettings()``
+and ``NettyTransportSettings.Builder.sslContext()`` to build your settings:
+
+.. code-block:: java
+   :emphasize-lines: 7-9
+
+   SslContext sslContext = SslContextBuilder.forClient()
+           .sslProvider(SslProvider.OPENSSL)
+           .build();
+   
+   MongoClientSettings settings = MongoClientSettings.builder()
+           .applyToSslSettings(builder -> builder.enabled(true))
+           .transportSettings(TransportSettings.nettyBuilder()
+                              .sslContext(sslContext)
+                              .build())
+           .build();
+   
+   MongoClient client = MongoClients.create(settings);
+
+For more details about the ``io.netty.handler.ssl.SslProvider``, see the `Netty
+documentation <https://netty.io/4.1/api/io/netty/handler/ssl/SslProvider.html>`__.
+
 Specify Java SE SSLContext in MongoClientSettings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -89,49 +153,6 @@ To specify the ``javax.net.ssl.SSLContext`` with
        .applyToSslSettings(builder -> builder.enabled(true).context(sslContext))
        .build();
    MongoClient client = new MongoClient(settings);
-
-Customize TLS/SSL Configuration through the Netty SslContext
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Include the following import statements:
-
-.. code-block:: java
-   :copyable: true
-
-   import com.mongodb.MongoClientSettings;
-   import com.mongodb.client.MongoClients;
-   import com.mongodb.client.MongoClient;
-   import io.netty.handler.ssl.SslContext;
-   import io.netty.handler.ssl.SslContextBuilder;
-   import io.netty.handler.ssl.SslProvider;
-
-.. note::
-
-   The driver tests with Netty version ``io.netty:netty-all:4.1.87.Final``
-
-To instruct the driver to use
-`io.netty.handler.ssl.SslContext <https://netty.io/4.1/api/io/netty/handler/ssl/SslContext.html>`__,
-configure `NettyTransportSettings <{+core-api+}/connection/NettyTransportSettings.html>`__
-when you define your ``MongoClientSettings``.
-
-Use ``MongoClientSettings.Builder.transportSettings()``
-and ``NettyTransportSettings.Builder.sslContext()`` to build your settings:
-
-.. code-block:: java
-
-   SslContext sslContext = SslContextBuilder.forClient()
-           .sslProvider(SslProvider.OPENSSL)
-           .build();
-   MongoClientSettings settings = MongoClientSettings.builder()
-           .applyToSslSettings(builder -> builder.enabled(true))
-           .transportSettings(TransportSettings.nettyBuilder()
-                              .sslContext(sslContext)
-                              .build())
-           .build();
-   MongoClient client = MongoClients.create(settings);
-
-For more details about the ``io.netty.handler.ssl.SslProvider``, see the `Netty
-documentation <https://netty.io/4.1/api/io/netty/handler/ssl/SslProvider.html>`__.
 
 Disable Hostname Verification
 -----------------------------
