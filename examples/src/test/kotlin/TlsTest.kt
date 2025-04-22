@@ -1,6 +1,7 @@
-
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
+import com.mongodb.connection.SslSettings
+import com.mongodb.connection.TransportSettings
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import io.netty.handler.ssl.SslContextBuilder
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import javax.net.ssl.SSLContext
 import kotlin.test.assertEquals
+
 
 // :replace-start: {
 //    "terms": {
@@ -64,6 +66,28 @@ internal class TlsTest {
         // :snippet-end:
         mongoClient.close()
         assertEquals(true, settings.sslSettings.isInvalidHostNameAllowed)
+        assertEquals(true, settings.sslSettings.isEnabled)
+    }
+
+    @Test
+    fun nettyTlsConfigurationTest() = runBlocking {
+        // :snippet-start: netty-tls-configuration
+        val sslContext = SslContextBuilder.forClient()
+            .sslProvider(SslProvider.OPENSSL)
+            .build()
+
+        val settings = MongoClientSettings.builder()
+            .applyToSslSettings { builder: SslSettings.Builder -> builder.enabled(true) }
+            .transportSettings(
+                TransportSettings.nettyBuilder()
+                    .sslContext(sslContext)
+                    .build()
+            )
+            .build()
+
+        val mongoClient = MongoClient.create(settings);
+        // :snippet-end:
+        mongoClient.close()
         assertEquals(true, settings.sslSettings.isEnabled)
     }
 
