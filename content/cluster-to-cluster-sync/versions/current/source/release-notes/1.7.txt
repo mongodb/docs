@@ -1,0 +1,228 @@
+.. _c2c-release-notes-1.7:
+
+===============================
+Release Notes for mongosync 1.7
+===============================
+
+.. meta::
+   :description: Discover the latest updates and fixes in mongosync 1.7, including critical advisories, patch releases, and new features for improved data synchronization.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. warning:: Past Release Limitations
+
+   .. include:: /includes/critical-warning-text
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 70 30
+
+      * - Issue
+        - Affected Versions
+
+      * - .. include:: /includes/release-notes/REP-4294
+        - 1.5.0 - 1.7.1
+
+      * - .. include:: /includes/release-notes/REP-4274
+        - 1.1.0 - 1.7.1
+
+
+Patch Releases
+--------------
+
+.. _1.7.3-c2c-release-notes:
+
+1.7.3 Release
+~~~~~~~~~~~~~
+
+**June 4, 2024**
+
+Issues Fixed:
+
+- Fixed bug introduced in v1.0.0 where the destination may have missing
+  or extra indexes after mongosync is committed. This is an unlikely
+  edge case.
+
+- Fixed bug introduced in v1.0.0 where mongosync may miss change events
+  for a document. This is an unlikely edge case that is only possible if
+  the destination server version is MongoDB 5.0 or earlier.
+
+- Fixed bug introduced in v1.7.0 that could result in size mismatches
+  between source and destination capped collections. This can only
+  affect migrations if all of the following conditions are met:
+  
+  - The source cluster is MongoDB 6.0 or earlier.
+  
+  - The destination cluster is MongoDB 7.0 or later.
+  
+  - A capped collection's size was modified during a migration.
+
+- Fixed bug introduced in v1.0.0 where mongosync ignored the
+  ``changeStreamPreAndPostImages`` field in ``modify`` change events.
+  This could result in a destination collection having a different value
+  for this field compared to its source collection. mongosync now
+  correctly handles this field.
+
+- Mitigated bug introduced in v1.0.0 that could result in missed change
+  events when mongosync is interrupted and resumed. This is an unlikely
+  edge case.
+
+Other Changes:
+
+- Adds a two minute delay when restarting and resuming sync operations.
+
+Limitations:
+
+- You must stop the balancer on both the source and destination sharded
+  clusters for the entire lifetime of a migration. If you try to start
+  mongosync while the balancer is still running, it throws an error.
+
+- You must not run the ``moveChunk`` or ``moveRange`` commands on the
+  destination cluster. If you try to run these commands on the source
+  cluster, mongosync throws an error.
+
+- mongosync reads from the destination cluster using the ``primary``
+  read preference. If you try to start mongosync with a different read
+  preference, it throws an error.
+
+
+.. _1.7.2-c2c-release-notes:
+
+1.7.2 Release
+~~~~~~~~~~~~~
+
+**April 4, 2024**
+
+Issues Fixed:
+
+- Fixed bug introduced in v1.5.0 where mongosync could miss change
+  events when reading documents from a lagging secondary node by
+  disabling the Oplog Rollover Resilience mechanism.
+
+- Fixed bug introduced in v1.1.0 where mongosync could miss
+  copying documents during long running reads in the initial
+  copying phase if the source cluster is sharded and the source
+  balancer is enabled.
+
+- Fixed bug introduced in v1.5.0 that could result in data
+  inconsistencies when mongosync is killed or paused during
+  the initial collection copy phase and then resumed.
+
+  This can only affect migrations if:
+
+  - The migration includes mixed _id types and the destination
+    cluster runs MongoDB 4.4 or earlier.
+
+  - The migration includes capped collections and the
+    destination cluster runs MongoDB 6.0 or later.
+
+- Fixed bug introduced in v1.0.0 where indexes could be created
+  on the destination cluster that were dropped on the source
+  cluster during migration.
+
+  This can only affect migrations where the given index is both
+  created and dropped while mongosync is running.
+
+- Fixed bug introduced in v1.0.0 that could result in
+  collections being created on the destination cluster with
+  incorrect types, options, or indexes.
+
+  This can only affect migrations where collections are dropped
+  or renamed while mongosync is running and the source or
+  destination cluster runs MongoDB 6.0.0 to 6.0.12 or MongoDB
+  7.0.0 or 7.0.3.
+
+- Fixed bug introduced in v1.1.0 that could result in a
+  mongosync crash if shard key indexes on the source cluster
+  have inconsistent values across shards for the "background"
+  index build option.
+
+  This can only affect migrations that involve sharded
+  collections and source clusters older than MongoDB 6.0.
+
+Other Changes:
+
+- Disables the Oplog Rollover Resilience mechanism.
+
+- Live upgrade to mongosync 1.7.2 is not allowed.
+
+- Reduces latency of the mongosync API.
+
+Limitations:
+
+- mongosync must read from the source cluster using the
+  :readmode:`primary` read preference. If you try to start mongosync
+  with a different read preference, it throws an error.
+
+- You must stop the balancer on a sharded source cluster until
+  mongosync finishes the collection copy phase. If you try to
+  start mongosync while the balancer is still running, it throws
+  an error.
+
+- You must not run the :dbcommand:`moveChunk` or :dbcommand:`moveRange`
+  commands on the source cluster. If these are run on the
+  source cluster, mongosync throws an error.
+
+.. _1.7.1-c2c-release-notes:
+
+1.7.1 Release
+~~~~~~~~~~~~~
+
+**November 9, 2023**
+
+Issues Fixed:
+
+- Fixed a bug that caused mongosync to crash when attempting to live
+  upgrade from version 1.6. The bug does not result in modified user data
+  and doesn't preclude the sync from being continued using version 1.7.1.
+
+.. _1.7.0-c2c-release-notes:
+
+1.7.0 Release
+-------------
+
+**October 18, 2023**
+
+Live Upgrade
+~~~~~~~~~~~~
+
+.. include:: /includes/live-upgrade.rst
+
+Synchronize Data Between Clusters with Different MongoDB Server Major Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/cross-version-sync.rst
+
+Other Notes
+~~~~~~~~~~~
+
+New Features:
+
+- ``mongosync`` now truncates logged fields that contain more than 1,024
+  characters.
+
+Issues Fixed:
+
+- Fixed bug introduced in ``mongosync`` 1.5.0 that may cause ORR to insert
+  capped collection documents out of order. That is, documents on the source
+  and destination cluster may not be deleted from the capped collection in the
+  same order. This bug is only triggered if documents are inserted into a
+  capped collection during migration, before or while the Collection Copy phase
+  is working on the same capped collection.
+
+- Fixed bug introduced in 1.6 that caused ``mongosync`` to fail during
+  initialization if the user specified only an exclusion filter and there were
+  no fully excluded databases.
+
+Minimum Supported Version
+-------------------------
+
+In 1.7.3, the minimum supported version of MongoDB is 6.0.13 and 7.0.6.
+
+.. include:: /includes/migration-upgrade-recommendation.rst

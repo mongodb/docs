@@ -1,0 +1,242 @@
+.. _c2c-limitations:
+
+===========
+Limitations
+===========
+
+.. meta::
+   :description: Understand the limitations of using `mongosync` for cluster-to-cluster sync, including unsupported features, required configurations, and specific conditions for successful migration.
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. warning::
+
+   ``mongosync`` does not check for compliance with the documented
+   limitations. Please ensure that your application is not affected by
+   the limitations. Running ``mongosync`` in the presence of one of
+   these limitations could lead to undefined behavior on the destination
+   cluster.
+
+   You must adhere to these limitations for the full duration of the the
+   migration, including when the migration is paused or stopped if it will be
+   resumed.
+
+General Limitations
+-------------------
+
+.. note::
+
+  For information on MongoDB server compatibility, see
+  :ref:`c2c-server-version-compatibility`.
+
+- ``mongosync`` does not support in-place server version upgrades that change the major or minor version during a migration. ``mongosync`` does allow patch version upgrades. 
+  To learn more, see the :ref:`server upgrade instructions <upgrade-to-latest-revision>`.
+- The destination cluster must be empty.
+- ``mongosync`` doesn't validate that the clusters or the environment
+  are properly configured.
+- Other clients must not write to the destination cluster while
+  ``mongosync`` is running.
+- If you want to start the :ref:`commit <c2c-api-commit>`
+  process and you did not set ``enableUserWriteBlocking`` to ``"sourceAndDestination"``
+  when you used the :ref:`c2c-api-start` endpoint, you
+  must :ref:`prevent writes <c2c-api-start>` to the source cluster
+  before you start the commit process. 
+- :ref:`system.* collections <metadata-system-collections>` aren't
+  replicated.
+- Documents that have dollar (``$``) prefixed field names aren't
+  supported. See :ref:`Field Names with Periods and Dollar Signs
+  <crud-concepts-dot-dollar-considerations>`.
+- Serverless clusters aren't supported.
+- A MongoDB Shared Tier isn't supported.
+- `Queryable Encryption
+  <https://www.mongodb.com/docs/v6.0/core/queryable-encryption/>`__
+  isn't supported.
+- You cannot sync a collection that has a unique index and a non-unique
+  index defined on the same field(s).
+- .. include:: /includes/fact-atlas-require-indexes-limitation.rst
+- ``mongosync`` doesn't sync users or roles.
+- .. include:: /includes/fact-applyOps.rst
+- ``mongosync`` must read from the source cluster using the 
+  :readmode:`primary` read preference.
+- ``mongosync`` does not support source or destination clusters that 
+  are currently upgrading MongoDB versions.
+- ``mongosync`` does not support syncing 
+  `Atlas Search Indexes
+  <https://www.mongodb.com/docs/atlas/atlas-search/create-index/>`__.
+- ``mongosync`` only supports clusters that use the :ref:`WiredTiger 
+  <storage-wiredtiger>` storage engine.
+- You can't sync a collection with any documents that have an empty timestamp,
+  such as ``Timestamp(0,0)`` on pre-6.0 source clusters. 
+- ``mongosync`` does not support documents with duplicate field names.
+  For details, see :manual:`MongoDB does not support duplicate field names
+  </reference/limits/#mongodb-does-not-support-duplicate-field-names>`.
+
+MongoDB Community Edition
+-------------------------
+
+MongoDB does not test {+c2c-product-name+} with Community builds and in
+most cases, MongoDB does not offer support for {+c2c-product-name+} with
+Community deployments. If you would like to use {+c2c-product-name+}
+with MongoDB Community Edition, contact a MongoDB sales representative
+to discuss requirements and individualized options.
+
+Unsupported Collection Types
+----------------------------
+
+- Time-series collections aren't supported.
+- Clustered collections with :ref:`expireAfterSeconds
+  <db.createCollection.expireAfterSeconds>` set aren't supported.
+
+.. _c2c-sharded-limitations:
+
+Sharded Clusters
+----------------
+
+- ``mongosync`` doesn't support sync from a sharded cluster
+  to a replica set.
+- ``mongosync`` doesn't support sync to a sharded cluster 
+  topology with one or more arbiters.
+- ``mongosync`` doesn't support sync to or from :ref:`global clusters 
+  <global-clusters>`.
+- Sync from a replica set to a sharded cluster has the following
+  limitations:
+
+  .. include:: /includes/limitations-rs-to-sharded.rst
+    
+- Within a collection, the ``_id`` field must be unique across all of
+  the shards in the cluster. See :ref:`sharded-clusters-unique-indexes`
+  for more details.
+- The :dbcommand:`movePrimary` command cannot be used to reassign the
+  primary shard while syncing.
+- There is no replication for zone configuration. ``mongosync``
+  replicates data, it doesn't inherit zones.
+- Shards cannot be added or removed while syncing.
+- ``mongosync`` only syncs indexes that exist on all shards.
+- ``mongosync`` only syncs indexes that have consistent index
+  specifications on all shards. 
+
+  .. note::
+
+     To check for index inconsistencies, see :ref:`Find Inconsistent
+     Indexes Across Shards <manage-indexes-find-inconsistent-indexes>`.
+
+- If the source or destination cluster is a sharded cluster
+  and you are not running ``mongosync`` with :ref:`namespace
+  filtering <c2c-filtered-sync>`,
+  you must disable the source cluster's balancer
+  by running the :dbcommand:`balancerStop` command and waiting 15 minutes
+  for the command to complete.
+
+  If the source or destination cluster is a sharded cluster and you
+  are running ``mongosync`` with namespace filtering, you can 
+  globally enable the source cluster's
+  balancer but you must disable it for 
+  all collections within the namespace filter. 
+  See :ref:`disabling-balancer-filtered`. You can also fully disable
+  the source cluster's balancer.
+
+  You must always disable the balancer on a sharded destination
+  cluster by using :dbcommand:`balancerStop`.
+
+- If you have enabled the source cluster's
+  balancer, but disabled it for collections within the namespace
+  filter, do not run :dbcommand:`shardCollection` on collections
+  within the namespace filter. If you run :dbcommand:`shardCollection` on 
+  collections within the namespace filter during the migration, ``mongosync``
+  returns an error and stops, which requires you to start the migration
+  from scratch.
+
+- ``mongosync`` doesn't support running the command :dbcommand:`transitionFromDedicatedConfigServer`
+  during execution.
+
+- You must not run the :dbcommand:`moveChunk` and
+  :dbcommand:`moveRange` commands on the source or destination clusters.
+- The shard key cannot be :ref:`refined <shard-key-refine>` while
+  syncing.
+- The :dbcommand:`reshardCollection` operations from the source cluster
+  are not supported during sync. 
+- The maximum number of indexes per sharded collection is 63, which is
+  one less than the :ref:`default limit
+  <limit-number-of-indexes-per-collection>` of 64.
+- ``mongosync`` only supports syncing sharded collections that have
+  default :ref:`collation <collation>` settings.
+
+Reversing
+---------
+
+- If the old source has :ref:`unique indexes <index-type-unique>` which
+  are partially distributed across shards, reversing may cause failures.
+  Ensure that unique indexes exist on all shards before reversing.
+- .. include:: /includes/fact-reverse-limitation.rst
+
+.. _multiple-clusters-limitations:
+
+Multiple Clusters
+-----------------
+
+- ``mongosync`` does not support syncing multiple source clusters to one
+  destination cluster. 
+- One cluster cannot simultaneously be a source cluster in one
+  ``mongosync`` instance and a destination cluster in another
+  ``mongosync`` instance. 
+
+.. _c2c-filtering-limitations:
+
+Filtered Sync
+-------------
+
+.. include:: /includes/limitations-filtering.rst
+
+Capped Collections
+------------------
+
+.. include:: /includes/collections/behavior-capped-collections.rst
+
+System Collections
+------------------
+
+.. include:: /includes/collections/behavior-system-collections.rst
+
+Rolling Index Builds
+--------------------
+
+.. include:: /includes/rolling-build-limitation.rst
+
+.. _c2c-embedded-verifier-limitations:
+.. _c2c-verify-embedded-limitations:
+
+Embedded Verifier
+-----------------
+
+Starting in 1.9, ``mongosync`` can use an embedded verifier to confirm the
+successful sync of collections from the source cluster to the destination
+cluster.
+
+.. include:: /includes/fact-verifier-limitations
+
+Persistent Query Settings
+-------------------------
+
+``mongosync`` doesn't migrate Persistent Query Settings (PQS), which were
+introduced in MongoDB 8.0. If your source cluster uses PQS, you must 
+:ref:`migrate them manually <c2c-migrate-pqs>`.
+
+.. _c2c-older-version-limitations:
+
+Pre-6.0 Migrations 
+------------------
+
+Starting in 1.10, ``mongosync`` supports migrations from source clusters running 
+MongoDB server versions older than 6.0. For information on supported migration 
+paths, see :ref:`c2c-server-version-compatibility`.
+
+The following limitations apply to pre-6.0 migrations:
+
+.. include:: /includes/fact-older-version-limitations.rst

@@ -1,0 +1,248 @@
+.. _c2c-faq:
+
+==========================
+Frequently Asked Questions
+==========================
+
+.. meta::
+   :description: Find answers to common questions about using `mongosync` for cluster-to-cluster synchronization, including handling errors and hardware requirements.
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page provides answers to some frequently asked questions we have
+encountered. If you have additional questions please contact MongoDB
+Support.
+
+Can I change the load level while ``mongosync`` is syncing? 
+-----------------------------------------------------------
+
+Yes, you can adjust the cluster workload level during a migration by 
+following the steps in :ref:`c2c-reconfigure-mid-migration`. 
+
+.. _c2c-faq-reads-writes-mongosync:
+
+Can I perform reads or writes to my destination cluster while ``mongosync`` is syncing?
+---------------------------------------------------------------------------------------
+
+``mongosync`` :ref:`combines and reorders <c2c-behavior-consistency>` writes 
+from the source to destination during synchronization, and 
+:ref:`temporarily modifies <c2c-behavior-temporary-changes>` collection 
+characteristics. As a result, ``mongosync`` can't guarantee that the destination 
+matches the source, including a stale version of the source, at any point in 
+time when the sync is running, even if the sync is paused. To safely accept 
+traffic to the destination cluster, wait for the migration to 
+:ref:`c2c-api-commit`. To learn more, see :ref:`mongosync-considerations`. 
+
+Performing writes to your destination cluster during synchronization results in 
+undefined behavior. ``mongosync`` blocks writes on the destination cluster by 
+default. To learn more about write-blocking, see :ref:`c2c-write-blocking` and 
+:ref:`c2c-api-start`.
+
+Upon commit, it is only safe to write to the destination cluster when 
+``canWrite`` is ``true``. To check the value of ``canWrite``, run the 
+:ref:`c2c-api-progress` endpoint.
+
+To learn more about permissable reads and writes during synchronization, see 
+:ref:`c2c-reads-and-writes`. 
+
+.. note::
+   
+   Index builds on the destination cluster are treated as writes 
+   while ``mongosync`` is syncing.
+
+Can I use ``mongosync`` to maintain a Disaster Recovery cluster?
+----------------------------------------------------------------
+
+No, you can't currently maintain a Disaster Recovery cluster with ``mongosync``, 
+since ``mongosync`` must :ref:`c2c-api-commit` in order to 
+safely accept traffic to the destination cluster. 
+For more information, see :ref:`c2c-faq-reads-writes-mongosync`.
+
+Why are the destination cluster indexes larger than the source cluster indexes?
+-------------------------------------------------------------------------------
+
+The following factors may contribute to an increase in index size on destination
+clusters:
+
+- ``mongosync`` inserts and removes data during a migration, which can cause data 
+  to be stored inefficiently on disk.
+- By default, ``mongosync`` builds indexes before copying data. ``mongosync`` 
+  copies data in ``_id`` order. If an index is not correlated with  ``_id``, 
+  the index size can become large. For more information, see the MongoDB Manual
+  :ref:`FAQ: Indexes<faq-indexes-random-data-performance>` page.
+
+Use the following methods to mitigate an increase in index size:
+
+- Restart the migration with the ``buildIndexes`` 
+  :ref:`parameter <c2c-api-start-params>` set to ``never``. When the migration 
+  finishes, manually build indexes on the destination cluster.
+- After the migration, perform a rolling :ref:`initial sync <replica-set-sync>` 
+  on the destination cluster.
+- After the migration, run :ref:`<compact>` on the destination cluster. This 
+  rebuilds indexes and releases unneeded disk space to the OS, but may impact
+  cluster :ref:`performance <compact-perf>`.
+
+Can ``mongosync`` run on its own hardware? 
+------------------------------------------
+
+Yes, ``mongosync`` can run on its own hardware. ``mongosync`` does not
+have to run on the servers that host your MongoDB instances. When
+``mongosync`` runs on its own hardware, it can use an operating system
+(OS) that is different than the OS on the source or destination
+clusters.
+
+What hardware specifications should the destination cluster have?
+-----------------------------------------------------------------
+
+For most migrations, the destination cluster should have higher hardware 
+specifications than the source cluster, including the following properties:
+
+- CPU
+- Memory
+- Disk I/O 
+
+These hardware specifications ensure that the destination cluster can handle 
+``mongosync`` writes and that the sync can keep up with the source cluster's 
+workload.
+
+.. include:: /includes/fact-oplog-disk-storage.rst
+
+.. _c2c-faq-increase-oplog:
+
+Should I increase the size of the ``oplog`` in the source cluster?
+------------------------------------------------------------------
+
+.. include:: includes/fact-oplog-background.rst
+
+Which connection string options does ``mongosync`` allow?
+---------------------------------------------------------
+
+``mongosync`` requires :ref:`readConcern: "majority" <read-concern>`
+and :ref:`writeConcern: "majority" <write-concern>`. 
+
+If the ``readConcern`` is not ``majority``, ``mongosync`` returns an
+error:
+
+.. code-block:: shell
+
+   Invalid URI option, read concern must be majority
+
+If the ``writeConcern`` is not ``majority``, ``mongosync`` returns an
+error:
+
+.. code-block:: shell
+
+   Invalid URI option, write concern must be majority
+
+``mongosync`` accepts all other :ref:`connection string options
+<mongodb-uri>`.
+
+
+Which security and authentication options are supported?
+--------------------------------------------------------
+
+``mongosync`` uses a standard MongoDB :ref:`connection string
+<mongodb-uri>` to connect to the source and destination clusters. 
+
+:ref:`LDAP <security-auth-ldap>` and :ref:`X509
+<authentication-mechanism-x509>` are supported. For available
+authentication options, see :ref:`authentication`.
+
+
+Does ``mongosync`` automatically restart on error?
+--------------------------------------------------
+
+``mongosync`` does not automatically restart on error. However, you
+can write a script or use your operating system's process managers,
+``systemd`` for example, to restart the ``mongosync`` process. 
+
+The ``mongosync`` binary is stateless. The metadata for restarting is
+stored on the destination cluster.
+
+A ``mongosync`` operation can be resumed if ``mongosync`` becomes
+unavailable during synchronization. When ``mongosync`` becomes
+available again, restart the ``mongosync`` process with the same
+parameters. ``mongosync`` resumes the operation from where it stopped
+when ``mongosync`` became unavailable.
+
+.. include:: /includes/fact-restart-resume-delay.rst
+
+.. _c2c-faq-arbiters:
+
+Can the source or destination be a replica set with arbiters? 
+-------------------------------------------------------------
+
+Yes, the replica set can have arbiters. The source replica set must
+have more than 2 non-arbiter nodes and you must sync from a non-arbiter
+node. Use the source cluster's connection string to specify a
+:ref:`read preference <mongodb-uri>` for a non-arbiter, data-bearing
+node. 
+
+What if I see a Slow Operation Warning?
+---------------------------------------
+
+Slow operation warnings can occur during the initial sync or the application 
+of a change event when there is a slow read operation on the source cluster 
+or a slow write operation on the destination cluster.  The warning may
+indicate network congestion or resource strain on the source or destination
+cluster.
+
+While these warnings do not indicate failures in themselves, slow operations
+can cause operation timeout errors in ``mongosync`` and migration failures.
+
+If you see slow operation warnings, check CPU, memory, and network usage on the
+source and destination clusters.  If the clusters are underprovisioned for your
+needs, consider upgrading the cluster hardware.
+
+Should I stop a migration if the logs contain the word "error" or "failure"?
+----------------------------------------------------------------------------
+
+No, logs that contain the word "error" or "failure" show non-fatal
+errors and do not signal that you need to stop ``mongosync`` early.
+These logs do not indicate that ``mongosync`` is failing or corrupting
+data. If a fatal error occurs, ``mongosync`` stops the sync and writes a
+fatal log entry. 
+
+What if I see a lot of duplicate key errors in the logs?
+--------------------------------------------------------
+
+Duplicate key errors are a normal part of the sync process. These errors can 
+occur if:
+
+- You insert a document on the source cluster after ``mongosync`` starts. 
+  ``mongosync`` may directly copy the document and redundantly apply the insert 
+  change event for the document later.
+- You stop and resume ``mongosync``. This can lead to duplicate insertions when 
+  ``mongosync`` restarts.
+- ``mongosync`` encounters a transient error and reattempts an insertion that 
+  may have already succeeded.
+
+What should I do if mongosync returns a fatal error?
+----------------------------------------------------
+
+A fatal error indicates a problem that must be corrected and requires the 
+migration to be restarted. After addressing the error, delete all migrated 
+data on the destination cluster, including the ``mongosync_reserved_for_internal_use`` 
+database. Then, relaunch ``mongosync`` and start a new migration.
+
+Does ``mongosync`` Support TTL Indexes?
+----------------------------------------
+
+{+c2c-product-name+} supports syncing :ref:`index-feature-ttl` from the source
+to the destination cluster.
+
+
+Can I customize chunk distributions when syncing into a sharded cluster?
+------------------------------------------------------------------------
+
+No, you can't configure ``mongosync`` to customize chunk distributions
+on a destination sharded cluster.  ``mongosync`` samples each collection
+during initialization to determine how to distribute documents
+efficiently across the destination cluster’s shards after migration.

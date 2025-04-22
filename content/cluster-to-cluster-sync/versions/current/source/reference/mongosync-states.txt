@@ -1,0 +1,105 @@
+.. _c2c-states:
+
+====================
+``mongosync`` States
+====================
+
+.. meta::
+   :description: Explore the different states of `mongosync`, which determine the available API operations for managing sync processes between clusters.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+``mongosync`` enters different states depending on the requests it
+receives. ``mongosync`` can only be in a single state at a given time.
+The current ``mongosync`` states determines which API operations you can
+run.
+
+.. include:: /includes/fact-state-transitions.rst
+
+This page describes ``mongosync`` states.
+
+View the Current State
+----------------------
+
+To view the current state of ``mongosync``, use the :ref:`/progress
+<c2c-api-progress>`. endpoint. The :ref:`/progress <c2c-api-progress>`
+endpoint returns the state in the ``state`` field.
+
+.. include:: /includes/fact-restart-resume-delay.rst
+
+.. _c2c-states-descriptions:
+
+State Descriptions
+------------------
+
+The following table describes each state and lists the permitted
+operations in that state.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30 20
+
+   * - State
+     - Description
+     - Possible API Operations
+
+   * - .. _c2c-state-idle:
+
+       ``IDLE``
+     - ``mongosync`` is initialized and ready for a sync job to
+       begin.
+     - - ``POST`` :ref:`/start <c2c-api-start>`
+       - ``GET`` :ref:`/progress <c2c-api-progress>`
+
+   * - .. _c2c-state-running:
+
+       ``RUNNING``
+     - The sync process is currently running. In this state, data is
+       initially synced to the destination cluster. Subsequent writes to
+       the source cluster are applied to the destination cluster.
+     - - ``POST`` :ref:`/pause <c2c-api-pause>`
+       - ``POST`` :ref:`/commit <c2c-api-commit>`
+       - ``GET`` :ref:`/progress <c2c-api-progress>`
+
+   * - .. _c2c-state-paused:
+
+       ``PAUSED``
+     - The sync process is paused. To resume the sync process, send a
+       request to the :ref:`/resume <c2c-api-resume>` endpoint.
+     - - ``POST`` :ref:`/resume <c2c-api-resume>`
+       - ``GET`` :ref:`/progress <c2c-api-progress>`
+
+   * - .. _c2c-state-committing:
+   
+       ``COMMITTING``
+     - The cutover for the sync process has started. The time it takes
+       to transition to the ``COMMITTED`` phase depends on
+       ``lagTimeSeconds``. To monitor ``lagTimeSeconds`` or to see if
+       ``mongosync`` has finished committing, use the :ref:`/progress
+       <c2c-api-progress>` endpoint.
+     - - ``GET`` :ref:`/progress <c2c-api-progress>`
+
+   * - .. _c2c-state-committed:
+
+       ``COMMITTED``
+     - The cutover for the sync process is complete.
+     - - ``GET`` :ref:`/progress <c2c-api-progress>`
+       - ``POST`` :ref:`/reverse <c2c-api-reverse>`
+
+   * - .. _c2c-state-reversing:
+
+       ``REVERSING``
+
+     - The sync process copies metadata from the destination
+       cluster to the source cluster. Then, MongoDB swaps the
+       source and destination clusters and resumes applying
+       change events.
+
+     - - ``GET`` :ref:`/progress <c2c-api-progress>`
+

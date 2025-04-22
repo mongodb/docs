@@ -1,0 +1,254 @@
+.. _c2c-cutover-process:
+
+========================
+Finalize Cutover Process
+========================
+
+.. meta::
+   :description: Finalize a migration and transfer application workload using the mongosync cutover process, ensuring successful data sync and write permissions on the destination cluster.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :class: singlecol
+   :depth: 1
+
+You can finalize a migration and transfer your application
+workload from the source to the destination cluster using the
+:ref:`mongosync <c2c-mongosync>` cutover process.
+
+``mongosync`` should remain active until it reaches the
+:ref:`COMMITTED <c2c-state-committed>` state. This allows ``mongosync`` to sync
+any additional writes that occur during the migration.
+
+.. note::
+
+   Before you switch your application workload to the
+   destination cluster, you should always verify a successful sync.
+   For more information, see :ref:`c2c-verification`.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Verify the status of mongosync.
+
+      Call the :ref:`progress <c2c-api-progress>` endpoint to determine
+      the status of ``mongosync`` before starting the cutover process.
+      Ensure that the ``mongosync`` process status indicates the
+      following values:
+
+      - ``canCommit`` is ``true``.
+
+      - ``lagTimeSeconds`` is small (near ``0``).
+
+        If ``lagTimeSeconds`` isn't close to ``0`` when the cutover
+        starts, cutover might take a long time.
+
+      - When using the :ref:`c2c-start-verifier` check **both**
+        the ``verification.source`` and the
+        ``verification.destination`` return documents. The
+        ``lagTimeSeconds`` fields in both documents should be
+        near ``0`` and the ``phase`` fields should show ``"stream
+        hashing"``.
+
+        If the verifier is not in the stream hashing phase, the cutover
+        process might take a long time.
+
+      The following example returns the status of the
+      synchronization process.
+
+      Request
+      ~~~~~~~
+
+      .. literalinclude:: /includes/api/requests/progress.sh
+         :language: shell
+
+      Response
+      ~~~~~~~~
+
+      .. literalinclude:: /includes/api/responses/progress.json
+         :language: json
+         :copyable: false
+         :emphasize-lines: 5, 8
+
+   .. step:: Stop any write operations to the synced collections on the source.
+
+      - Wait for all transactions on the source cluster to either commit or 
+        abort.
+      - ``mongosync`` enables destination-only write-blocking by default. 
+        You can explicitly enable it by starting ``mongosync`` with
+        ``enableUserWriteBlocking`` set to ``"destinationOnly"``.
+        ``mongosync`` only blocks writes on the 
+        destination and unblocks them right before ``canWrite`` is
+        set to ``true``.
+      - If you start ``mongosync`` with ``enableUserWriteBlocking``
+        set to ``"sourceAndDestination"``, ``mongosync`` blocks all write operations
+        on the destination cluster and unblocks them right before ``canWrite``
+        is set to ``true``. ``mongosync`` blocks writes on the source after you call
+        ``/commit``.
+      - If you start ``mongosync`` with ``enableUserWriteBlocking`` set
+        to ``"none"``, ensure that you disable writes.
+        For example, run the :dbcommand:`setUserWriteBlockMode` command on the
+        source cluster:
+
+        .. code-block:: javascript
+
+           db.adminCommand( {
+               setUserWriteBlockMode: 1,
+               global: true 
+           } )
+
+      - If ``mongosync`` uses filtered sync, it's not necessary to
+        disable writes to the entire source cluster. However, you must ensure
+        that you stop write operations for the collections that the
+        filter includes.
+
+   .. step:: Send a :ref:`commit <c2c-api-commit>` request to ``mongosync``.
+
+      If you start multiple ``mongosync`` instances for your
+      migration, you must issue a commit request for each ``mongosync``
+      instance.
+
+      Request
+      ~~~~~~~~
+
+      .. literalinclude:: /includes/api/requests/commit.sh
+         :language: shell
+
+      Response
+      ~~~~~~~~
+
+      .. literalinclude:: /includes/api/responses/success.json
+         :language: json
+         :copyable: false
+
+      .. note::
+
+         After you submit a ``commit`` request, call the ``progress`` endpoint
+         to ensure that the ``mongosync`` state is ``COMMITTING`` or
+         ``COMMITTED``.
+
+      Once you complete this step, ``mongosync`` blocks writes on the source
+      cluster.
+      
+      If your source cluster contains Persistant Query Settings (PQS), you must
+      :ref:`manually migrate PQS <c2c-migrate-pqs>` to your destination cluster.
+
+      If you previously set ``enableUserWriteBlocking``
+      to ``sourceAndDestination``, ``mongosync`` blocks writes on the source cluster
+      once you complete this step.
+
+   .. step:: Wait until you can perform writes on the destination cluster.
+
+      Call the ``progress`` endpoint to determine if ``canWrite`` is
+      ``true``. If ``canWrite`` is ``false``, wait until ``progress``
+      shows ``canWrite`` is ``true``.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: bash
+
+            curl -sS localhost:27182/api/v1/progress -XGET | jq ".progress.canWrite"
+
+         .. output::
+            :language: json
+
+            true
+
+   .. step:: Verify data transfer.
+
+      Verify the successful sync of data from the source to the
+      destination cluster.
+
+      For more information, see :ref:`c2c-verification`.
+
+   .. step:: If you manually blocked writes on the destination cluster by using :dbcommand:`setUserWriteBlockMode`, enable application writes on the destination cluster.
+
+      To enable writes, update :dbcommand:`setUserWriteBlockMode`:
+
+      .. code-block:: javascript
+
+         db.adminCommand(
+            {
+               setUserWriteBlockMode: 1,
+               global: false
+            }
+         )
+
+      Then, transfer your application workload to the destination cluster.
+
+      If you started ``mongosync``
+      with write-blocking by using the ``enableUserWriteBlocking`` option on
+      the :ref:`/start <c2c-api-start>` endpoint, you do not need
+      to complete this step.
+
+   .. step:: Call the ``progress`` endpoint to determine the status of the ``mongosync`` process.
+
+      When the ``mongosync`` progress response indicates that the
+      ``mongosync`` state is ``COMMITTED``, the cutover process is
+      complete.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: bash
+
+            curl -sS localhost:27182/api/v1/progress -XGET | jq ".progress.state"
+
+         .. output::
+            :language: json
+
+            "COMMITTED"
+   
+Behavior
+--------
+
+.. _c2c-canWrite-committed:
+
+canWrite and COMMITTED
+~~~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` permits writes on the destination cluster at an
+earlier stage than the ``COMMITTED`` state.
+
+In the initial sync, ``mongosync`` replicates unique indexes on
+the source cluster as non-unique indexes on the destination
+cluster. During commit, the relevant non-unique indexes on the
+destination cluster are set to ``prepareUnique``. When this is
+done, the ``/progress`` endpoint begins to return ``canWrite:
+true``. Collections with ``prepareUnique`` indexes reject
+new documents that violate the unique index constraint.
+``mongosync`` then converts the ``prepareUnique``
+indexes into unique indexes. When this is done, ``mongosync``
+changes its state to ``COMMITTED``.
+
+.. note::
+
+   The conversion of ``prepareUnique`` indexes to unique
+   indexes can be resource intensive when syncing large
+   collections. This can result in a long time between the
+   ``/progress`` endpoint returning ``canWrite: true`` and
+   ``mongosync`` reaching the ``COMMITTED`` state.
+
+Learn More
+----------
+
+- :ref:`c2c-verification`
+- :ref:`c2c-api-start`
+- :ref:`c2c-api-commit`
+- :ref:`c2c-api-progress`
+- :ref:`c2c-states`
+
+.. toctree::
+   :titlesonly: 
+
+   Migrate Persistent Query Settings </reference/c2c-migrate-pqs>
+
