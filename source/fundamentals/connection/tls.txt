@@ -20,20 +20,24 @@ Enable TLS/SSL on a Connection
 Overview
 --------
 
-In this guide, you can learn how to connect to MongoDB instances with the
-`TLS/SSL <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__
-security protocol using the underlying TLS/SSL support in the JDK. To
-configure your connection to use TLS/SSL, enable the TLS/SSL settings in
-either the `ConnectionString <{+core-api+}/ConnectionString.html>`__
-or `MongoClientSettings <{+core-api+}/MongoClientSettings.html>`__.
+In this guide, you can learn how to use the **TLS protocol** to secure your
+connection to a MongoDB deployment. TLS is a cryptographic protocol that
+secures communication between your application and MongoDB. To configure
+your connection to use TLS, enable the TLS option and provide your
+certificates for validation when creating a client.
 
-.. note:: Debugging TLS/SSL
+By default, the driver supports TLS/SSL connections to MongoDB
+servers using the underlying support for TLS/SSL provided by the JDK.
+This can be changed either by using the `Netty API
+<https://netty.io/4.1/api/>`__ or the extensibility of the `Java SE
+API <https://docs.oracle.com/javase/8/docs/api/>`__.
 
-   If you experience trouble setting up your TLS/SSL connection, you can
-   use the ``-Djavax.net.debug=all`` system property to view more
-   log statements. See `the Oracle guide to debugging TLS/SSL connections
-   <https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/ReadDebug.html>`__
-   for more information.
+.. tip:: Prefer Netty for Asynchronous Apps
+
+   We recommend using Netty for asychronous applications because it supports
+   asynchronous I/O and handles high connection volumes effectively. To
+   learn about using Netty to configure your TLS settings, see the
+   :ref:`kotlin-tls-netty-sslContext` section of this guide.
 
 .. _tls-enable:
 
@@ -81,6 +85,14 @@ using a method in the ``MongoClientSettings.Builder`` class.
 
       .. literalinclude:: /examples/generated/TlsTest.snippet.tls-mongoclient-settings.kt
          :language: kotlin
+
+.. note:: Debugging TLS/SSL
+
+   If you experience trouble setting up your TLS/SSL connection, you can
+   use the ``-Djavax.net.debug=all`` system property to view more
+   log statements. See `the Oracle guide to debugging TLS/SSL connections
+   <https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/ReadDebug.html>`__
+   for more information.
 
 .. _tls_configure-certificates:
 
@@ -224,6 +236,38 @@ To restrict your application to use only the TLS 1.2 protocol, set the
    the TLS 1.2 protocol in update releases. If your JRE has not enabled
    the TLS 1.2 protocol, upgrade to a later release to connect by using
    TLS 1.2.
+
+.. _kotlin-tls-netty-sslContext:
+
+Configure TLS/SSL by Using Netty SslContext
+-------------------------------------------
+
+Include the following import statements:
+
+.. code-block:: kotlin
+   :copyable: true
+
+   import com.mongodb.MongoClientSettings
+   import com.mongodb.connection.SslSettings
+   import com.mongodb.connection.TransportSettings
+   import com.mongodb.kotlin.client.coroutine.MongoClient
+   import io.netty.handler.ssl.SslContextBuilder
+   import io.netty.handler.ssl.SslProvider
+
+.. note:: Netty Package Version
+
+   The driver tests with Netty package version ``{+netty-version+}``
+
+To instruct the driver to use
+`io.netty.handler.ssl.SslContext <https://netty.io/4.1/api/io/netty/handler/ssl/SslContext.html>`__,
+configure `NettyTransportSettings <{+core-api+}/connection/NettyTransportSettings.html>`__
+when you define your ``MongoClientSettings``.
+
+Use ``MongoClientSettings.Builder.transportSettings()``
+and ``NettyTransportSettings.Builder.sslContext()`` to build your settings:
+
+.. literalinclude:: /examples/generated/TlsTest.snippet.netty-tls-configuration.kt
+   :language: kotlin
 
 .. _tls-custom-sslContext:
 
