@@ -51,6 +51,25 @@ object Tls {
     val mongoClient = MongoClient(contextSettings);
     // end-ssl-context
 
+    // start-netty-ssl-context
+    val sslContext = SslContextBuilder.forClient()
+      .sslProvider(SslProvider.OPENSSL)
+      .build()
+
+    val nettySettings = MongoClientSettings.builder()
+      .applyToSslSettings {
+        builder => builder.enabled(true)
+      }
+      .transportSettings(
+        TransportSettings.nettyBuilder()
+          .sslContext(sslContext)
+          .build()
+      )
+      .build()
+
+    val mongoClient = MongoClient(nettySettings);
+    // end-netty-ssl-context
+
     // Keep the main thread alive long enough for the asynchronous operations to complete
     Thread.sleep(5000)
 
