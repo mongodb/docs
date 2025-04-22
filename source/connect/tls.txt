@@ -20,17 +20,11 @@ Configure Transport Layer Security (TLS)
 Overview
 --------
 
-In this guide, you can learn how to use the Transport Layer Security (TLS)
-protocol to secure your connection to a MongoDB deployment.
-
-When you enable TLS for a connection, the {+driver-short+} performs the following actions:
-
-- Uses TLS to connect to the MongoDB deployment
-- Verifies the deployment's certificate
-
-To learn how to configure your MongoDB deployment for TLS, see the
-:manual:`TLS configuration guide </tutorial/configure-ssl/>` in the
-{+mdb-server+} manual. 
+In this guide, you can learn how to use the **TLS protocol** to secure your
+connection to a MongoDB deployment. TLS is a cryptographic protocol that
+secures communication between your application and MongoDB. To configure
+your connection to use TLS, enable the TLS option and provide your
+certificates for validation when creating a client.
 
 .. note::
 
@@ -38,6 +32,29 @@ To learn how to configure your MongoDB deployment for TLS, see the
    A full description of TLS/SSL, PKI (Public Key Infrastructure) certificates, and
    Certificate Authorities (CAs) is beyond the scope of this documentation. To
    learn more about TLS, see the Wikipedia entry for :wikipedia:`Transport Layer Security <Transport_Layer_Security>`.
+
+When you enable TLS for a connection, the {+driver-short+} performs the
+following actions:
+
+- Uses TLS to connect to the MongoDB deployment
+- Verifies the deployment's certificate
+
+To learn how to configure your MongoDB deployment for TLS, see the
+:manual:`TLS configuration guide </tutorial/configure-ssl/>` in the
+{+mdb-server+} manual.
+
+By default, the driver supports TLS/SSL connections to MongoDB
+servers using the underlying support for TLS/SSL provided by the JDK.
+This can be changed either by using the `Netty API
+<https://netty.io/4.1/api/>`__ or the extensibility of the `Java SE
+API <https://docs.oracle.com/javase/8/docs/api/>`__.
+
+.. tip:: Prefer Netty for Asynchronous Apps
+
+   We recommend using Netty for asychronous applications because it supports
+   asynchronous I/O and handles high connection volumes effectively. To
+   learn about using Netty to configure your TLS settings, see the
+   :ref:`scala-tls-netty-sslContext` section of this guide.
 
 .. _scala-enable-tls:
 
@@ -228,6 +245,39 @@ To restrict your application to use only the TLS 1.2 protocol, set the
    only the TLS 1.2 protocol in update releases. If your JRE has not enabled
    the TLS 1.2 protocol, upgrade to a later release to use
    TLS 1.2.
+
+.. _scala-tls-netty-sslContext:
+
+Configure TLS/SSL by Using Netty SslContext
+-------------------------------------------
+
+Include the following import statements:
+
+.. code-block:: kotlin
+   :copyable: true
+
+   import io.netty.handler.ssl.SslContextBuilder
+   import io.netty.handler.ssl.SslProvider
+   import org.mongodb.scala.connection.TransportSettings
+
+.. note:: Netty Package Version
+
+   The driver tests with Netty package version ``{+netty-version+}``
+
+To instruct the driver to use
+`io.netty.handler.ssl.SslContext <https://netty.io/4.1/api/io/netty/handler/ssl/SslContext.html>`__,
+configure `NettyTransportSettings <{+core-api+}/connection/NettyTransportSettings.html>`__
+when you define your ``MongoClientSettings``.
+
+Use ``MongoClientSettings.Builder.transportSettings()``
+and ``NettyTransportSettings.Builder.sslContext()`` to build your settings:
+
+.. literalinclude:: /includes/connect/tls.scala
+   :start-after: start-netty-ssl-context
+   :end-before: end-netty-ssl-context
+   :language: scala
+   :copyable:
+   :dedent:
 
 .. _scala-tls-custom-sslContext:
 
