@@ -1,0 +1,202 @@
+.. _c2c-api-commit:
+
+==========
+``commit``
+==========
+
+.. meta::
+   :description: Finalize the sync between clusters using the `commit` endpoint, ensuring data consistency and restoring collection characteristics.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Description
+-----------
+
+Finalizes the sync between the source cluster and the destination
+cluster and stops continuous sync between clusters.
+
+For more information, see :ref:`c2c-cutover-process`.
+
+Requirements
+------------
+
+Before using the ``commit`` endpoint:
+
+- Stop your application to prevent any further writes to the source cluster. 
+  During commit, you may still read from the source cluster.
+  
+  .. warning:: 
+
+     If you write to the source cluster during commit, you might experience 
+     data loss. 
+
+- Use the :ref:`progress <c2c-api-progress>` endpoint to confirm the
+  following values:
+
+  - ``lagTimeSeconds`` for ``mongosync``, the source cluster 
+    for the verifier, and the destination cluster for the 
+    verifier are all near ``0`` (*Recommended, but not required*)
+
+    .. note:: lagTimeSeconds
+
+       ``lagTimeSeconds`` indicates the time between the last applied
+       event and time of the current latest event. When you send a
+       ``commit`` request, ``mongosync`` enters the ``COMMITTING`` state
+       for the amount of seconds reported by ``lagTimeSeconds``, and
+       then transitions to the ``COMMITTED`` state.
+       
+       When ``lagTimeSeconds`` is ``0``, the source and destination
+       clusters are in a consistent state.
+
+       For more information on the ``lagTimeSeconds`` fields, see
+       :ref:`c2c-api-progress`.
+
+  - ``state: "RUNNING"``
+  - ``canCommit: true``
+
+.. note::
+
+   .. include:: /includes/api/facts/multiple-mongosync-endpoints
+
+   For more information, see :ref:`c2c-sharded-commit`. 
+
+Request
+-------
+
+.. code-block:: http
+   :copyable: false
+
+   POST /api/v1/commit 
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: includes/api/facts/no-body-parameters.rst
+
+Response
+--------
+
+.. include:: /includes/api/tables/basic-response.rst
+
+Example
+-------
+
+The following example commits the synchronization operation to the
+destination cluster.
+
+Confirm that the Synchronization is Ready
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before sending a request to the ``commit`` endpoint, use the
+:ref:`progress <c2c-api-progress>` endpoint to confirm that the
+synchronization is ready to be committed.
+
+Request
+```````
+
+.. literalinclude:: /includes/api/requests/progress.sh
+   :language: shell
+
+Response
+````````
+
+.. literalinclude:: /includes/api/responses/progress.json
+   :language: shell
+   :emphasize-lines: 5
+   :copyable: false
+
+The ``progress`` endpoint returned ``"canCommit":true``, which means
+that the ``commit`` request can run successfully.
+
+Send the Commit Request
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command sends a request to the ``commit`` endpoint:
+
+Request
+```````
+
+.. literalinclude:: /includes/api/requests/commit.sh
+   :language: shell
+
+Response
+````````
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+Behavior
+--------
+
+State
+~~~~~
+
+If the ``commit`` request is successful, ``mongosync`` enters the
+``COMMITTED`` state. Once ``mongosync`` enters the ``COMMITTED`` state,
+continuous sync between the clusters stops. 
+
+Data Verification
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-verification
+
+.. _c2c-collection-changes:
+
+Collection Characteristic Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``commit`` restores collection characteristics that ``mongosync`` temporarily
+alters during synchronization. 
+
+The following table illustrates the impact of ``commit`` on collection
+characteristics that ``mongosync`` alters during the synchronization process.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Collection Characteristic
+     - Impact of ``commit`` 
+   * - Unique Indexes
+     - ``commit`` resets unique indexes that ``mongosync`` replicated as
+       non-unique on the destination cluster.
+
+   * - TTL Indexes
+     - ``commit`` resets ``expireAfterSeconds`` which ``mongosync`` set
+       to the value of ``MAX_INT`` on the destination cluster.
+
+   * - Hidden Indexes
+     - ``commit`` resets hidden indexes that ``mongosync``
+       replicated as non-hidden on the destination cluster.
+
+   * - Write Blocking
+     - If you enable dual write-blocking, ``mongosync`` blocks writes: 
+
+       - On the destination cluster during sync.
+       - On the source cluster when ``commit`` is received.
+
+       ``mongosync`` enables destination-only write-blocking
+       by default.
+       
+       To learn more, see :ref:`c2c-write-blocking`.
+  
+   * - Capped Collections
+     - ``commit`` resets the required maximum size of capped collections
+       which ``mongosync`` set to the maximum allowable size on the
+       destination cluster.
+
+
+Endpoint Protection
+~~~~~~~~~~~~~~~~~~~
+
+.. |endpoint| replace:: ``commit``
+.. include:: /includes/fact-api-endpoint
+
+
+

@@ -1,0 +1,130 @@
+.. _c2c-verification:
+
+====================
+Verify Data Transfer
+====================
+
+.. meta::
+   :description: Verify data transfer between clusters using methods like embedded verifier, document counts, hash comparison, and custom scripts to ensure successful migration.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Before you switch your application load from the source cluster
+to the destination cluster, you should verify that the migration
+was successful.
+
+Starting in 1.9, ``mongosync`` provides an embedded verifier
+that can perform a series of verification checks on the source
+and destination cluster to confirm the sync was successful. 
+
+.. _c2c-verify-method:
+
+Tasks
+-----
+
+You should verify your data after every sync. This is important
+in cases where you plan to move your application load from the
+source to the destination cluster.
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Verification Method
+     - Description
+   * - :ref:`Embedded Verifier <c2c-embedded-verifier>`
+     - Starting in 1.9, ``mongosync`` includes an embedded
+       verifier, which runs a series of verification checks on
+       the source and destination clusters to confirm that the
+       migration was successful. **This is the preferred
+       verification method for deployments that meet the**
+       :ref:`requirements <c2c-verify-embedded-limitations>`.
+
+       When the ``mongosync`` process starts, it prompts the
+       user with a disclaimer about the embedded verifier. You
+       must accept the disclaimer, or if you have already read
+       and acknowledged it, start ``mongosync`` with the
+       :option:`--acceptDisclaimer` option to use the verifier.
+
+       The verifier doesn't check every aspect of a migration:
+
+       - To verify sync on unsupported namespaces, use a different 
+         verification method.
+       - To verify index sync, use the :ref:`Index Comparison
+         <c2c-index-comparison>` method. 
+       - To verify metdata sync, use the :ref:`Metadata
+         Comparison <c2c-metadata-comparison>` method.
+
+   * - :ref:`Document Counts <c2c-verify-doc-counts>`
+     - The most basic method of verification is to compare the
+       number of documents in each synced collection on the
+       source cluster to the number on the destination cluster.
+       
+       Before you can verify data transfer with this method,
+       ``mongosync`` must be in the ``COMMITTED`` state.
+
+       This method only verifies a successful sync when run
+       against clusters with insert-only workloads.
+
+   * - :ref:`Hash Comparison <c2c-verify-hash-comp>`
+     - You can verify sync by comparing MD5 hashes of
+       collections synced from the source cluster to the
+       destination cluster.
+
+       Before you can verify data transfer with this method,
+       ``mongosync`` must be in the ``COMMITTED`` state.
+
+       While hash comparison ensures that the destination
+       cluster has received all changes from the source, the
+       :dbcommand:`dbHash` command locks the cluster, preventing
+       additional writes until it completes.
+
+       Hash comparison is **not** possible with sharded
+       clusters. It also does not work with standalone servers
+       and replica sets that use MongoDB 4.4 or earlier
+       releases, since the document field order can vary.
+
+   * - :ref:`Migration Verifier <c2c-migration-verifier>`
+     - Migration Verifier connects to the source and destination
+       clusters and performs a series of verification checks,
+       comparing documents, views, and indexes to confirm the
+       sync was successful.
+
+   * - :ref:`Verifying Data with Custom Scripts <c2c-custom-manual-verification>`
+     - Different types of data require different methods of verification. You can
+       can use custom or manual verification to verify :ref:`documents <c2c-document-comparison>`,
+       :ref:`indexes <c2c-index-comparison>`, :ref:`metadata <c2c-metadata-comparison>`,
+       and :ref:`shard keys <c2c-shardkey-comparison>`. 
+
+The specific method you use to verify your data depends on your
+application workload and the complexity of the data.
+
+.. toctree::
+   :hidden:
+
+   Use Embedded Verifier </reference/verification/embedded>
+   Use Document Counts </reference/verification/count>
+   Use Hash Comparison </reference/verification/hash>
+   Use Migration Verifier </reference/verification/verifier>
+   Verifying Data with Custom Scripts </reference/verification/custom-manual>
+
+Learn More
+----------
+
+- :method:`db.collection.countDocuments`
+
+- :dbcommand:`dbHash`
+
+
+

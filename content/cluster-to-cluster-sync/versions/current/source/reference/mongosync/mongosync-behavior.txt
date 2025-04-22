@@ -1,0 +1,528 @@
+.. _c2c-mongosync-behavior:
+
+======================
+``mongosync`` Behavior
+======================
+
+.. meta::
+   :description: Understand how `mongosync` migrates and syncs data between clusters, including its behavior, settings, and considerations for continuous synchronization.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+The ``mongosync`` binary is the primary process used in
+{+c2c-product-name+}. ``mongosync`` migrates data from one cluster to
+another and can keep the clusters in continuous sync. 
+
+For an overview of the ``mongosync`` process, see :ref:`about-mongosync`.
+
+To get started with ``mongosync``, refer to the :ref:`Quick Start Guide
+<c2c-quickstart>`. 
+
+For more detailed information, refer to the
+:ref:`c2c-install` or :ref:`c2c-connecting` page that best fits your
+situation. 
+
+.. _c2c-verifier-disclaimer:
+
+Embedded Verifier Disclaimer
+----------------------------
+
+Starting in 1.9, ``mongosync`` includes an embedded verifier to
+perform a series of verification checks on all supported
+collections on the destination cluster to confirm that
+it was successful in transferring documents from the
+source cluster to the destination.
+
+When you start the ``mongosync`` process, it provides the following disclaimer: 
+
+.. code-block:: none
+
+   Embedded verification is enabled by default. Verification checks for data 
+   consistency between the source and destination clusters. Verification will 
+   cause mongosync to fail if any inconsistencies are detected, but it does not 
+   check for all possible data inconsistencies. Please see the documentation at 
+   https://www.mongodb.com/docs/cluster-to-cluster-sync/current/reference/verification/embedded 
+   for more details. Verification requires approximately 0.5 GB of memory per 1 
+   million documents on the source cluster and will fail if insufficient memory 
+   is available. Accepting this disclaimer indicates that you understand the 
+   limitations and memory requirements for this tool. To skip this disclaimer 
+   prompt, use –-acceptDisclaimer.
+
+   To disable the embedded verifier, specify 'verification: false' when starting 
+   mongosync. Please see https://www.mongodb.com/docs/cluster-to-cluster-sync/current/reference/verification/ 
+   for alternative verification methods.
+
+   Do you want to continue? (y/n):
+
+If you have already read and accepted the disclaimer, you can 
+start ``mongosync`` with the :option:`--acceptDisclaimer` option 
+to skip this notification.
+
+Settings
+--------
+
+Cluster Independence
+~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` syncs collection data between a source cluster and
+destination cluster. ``mongosync`` does not synchronize :ref:`users
+<users>` or :ref:`roles <built-in-roles>`. As a result, you can create
+users with different access permissions on each cluster.
+
+.. _c2c-mongosync-config:
+
+Configuration File
+~~~~~~~~~~~~~~~~~~
+
+Options for ``mongosync`` can be set in a YAML configuration file. Use
+the :option:`--config` option. For example:
+
+.. code-block:: console
+
+   $ mongosync --config /etc/mongosync.conf
+
+For information on available settings, see :ref:`Configuration <c2c-config>`.
+
+Cluster and Collection Types
+----------------------------
+
+.. _c2c-sharded-cluster-behavior:
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+{+c2c-product-name+} supports replication between sharded clusters.
+``mongosync`` replicates individual shards in parallel from the source
+cluster to the destination cluster. However ``mongosync`` does not
+preserve the source cluster's sharding configuration.
+
+.. include:: /includes/fact-mongosync-balancer.rst
+
+.. _disabling-balancer-filtered:
+
+Disabling Balancer for Collections in Filtered Sync
+'''''''''''''''''''''''''''''''''''''''''''''''''''
+
+If you are using a :ref:`namespace filter <c2c-filtered-sync>`
+and want to enable your source cluster's balancer for 
+collections outside the namespace filter,
+follow these instructions before
+you start ``mongosync``.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable the balancer for the source cluster.
+    
+      Before starting ``mongosync`` with a :ref:`namespace filter 
+      <c2c-filtered-sync>`, enable the balancer for the source cluster
+      by running the :method:`sh.startBalancer()` method in ``mongosh``.
+
+   .. step:: Disable the balancer for each collection.
+      
+      Disable the balancer for each collection within the
+      namespace filter by running the :dbcommand:`setAllowMigrations` command:
+
+      .. code-block:: javascript
+        
+        db.adminCommand(
+          { 
+            setAllowMigrations: “<db>.<collection>”,
+            allowMigrations: false
+          }
+        )
+
+      Run the preceding command for every collection within the
+      namespace filter.
+
+.. important:: 
+
+   If you enable the source cluster's balancer but do not use a
+   namespace filter, or if you do not disable the balancer for all
+   collections within the namespace filter, ``mongosync`` fails.
+
+Pre-Split Chunks
+''''''''''''''''
+
+When ``mongosync`` syncs to a sharded destination cluster, it pre-splits chunks 
+for sharded collections on the destination cluster. For each sharded collection, 
+``mongosync`` creates twice as many chunks as there are shards in the 
+destination cluster. 
+
+Chunk Distribution
+''''''''''''''''''
+
+.. important::
+   
+   Even if the source cluster is balanced, ``mongosync`` doesn't
+   ensure balance of the destination cluster. Because ``mongosync``
+   doesn't support the execution of sharding operations during
+   migration, you must wait until it is safe to accept writes 
+   to rebalance the destination cluster. See :ref:`sharding-balancing`
+   for guidance on how to rebalance the cluster and 
+   :ref:`sharded cluster limitations <c2c-sharded-limitations>`
+   for information on sharded cluster limitations in ``mongosync``.
+
+``mongosync`` does not preserve chunk distribution from the source to
+the destination, even with multiple ``mongosync`` instances. It is not
+possible to reproduce a particular pre-split of chunks from a source
+cluster on the destination cluster. 
+
+The only sharding configuration that ``mongosync`` preserves from the
+source cluster to the destination cluster is the sharding key. Once the
+migration finishes, you can enable the destination cluster's balancer which
+distributes documents independently of the source cluster's distribution. 
+
+Primary Shards
+''''''''''''''
+
+When you sync to a sharded destination cluster, ``mongosync`` assigns a
+primary shard to each database by means of a round-robin. 
+
+.. warning::
+
+   Running :dbcommand:`movePrimary` on the source or destination cluster
+   during migration may result in a fatal error or require you to
+   restart the migration from the start. For more information, see
+   :ref:`c2c-sharded-limitations`. 
+
+Config Shard Cluster
+''''''''''''''''''''
+
+Starting in 8.0, MongoDB introduces support for config shard clusters, also known
+as embedded config server clusters.
+
+``mongosync`` supports sync from dedicated config server sharded clusters to 
+embedded config server sharded clusters and vice versa. Additionally, ``mongosync`` 
+supports sync from replica sets to config sharded clusters, but not vice versa.
+
+To learn more about embedded config servers, see :ref:`config-shard-concept`.
+
+Multiple Clusters
+~~~~~~~~~~~~~~~~~
+
+To sync a source cluster to multiple destination clusters, use one
+``mongosync`` instance for each destination cluster. For more
+information, see :ref:`Multiple Clusters Limitations
+<multiple-clusters-limitations>`. 
+
+.. _c2c-capped-collections:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/collections/behavior-capped-collections.rst
+
+.. _c2c-reads-and-writes: 
+
+Reads and Writes
+----------------
+
+.. _c2c-write-blocking:
+
+Write Blocking
+~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-write-blocking-enable.rst
+
+If you want to use :ref:`reverse synchronization <c2c-api-reverse>` later,
+you must enable dual write-blocking when you start ``mongosync``.
+
+User Permissions
+''''''''''''''''
+
+.. include:: /includes/fact-write-blocking-requirement.rst
+
+Permissible Reads
+'''''''''''''''''
+
+.. include:: /includes/fact-read-operations-source.rst
+
+.. include:: /includes/fact-read-operations-check.rst
+
+Permissible Writes
+''''''''''''''''''
+
+.. include:: /includes/fact-write-blocking-check.rst
+
+.. include:: /includes/fact-write-blocking-when.rst
+
+Read and Write Concern
+~~~~~~~~~~~~~~~~~~~~~~
+
+By default, ``mongosync`` sets the read concern level to
+:readconcern:`"majority"` for reads on the source cluster. For writes on
+the destination cluster, ``mongosync`` sets the write concern level to
+:writeconcern:`"majority"` with :ref:`j: true <wc-j>`. 
+
+For more information on read and write concern configuration and
+behavior, see :ref:`read-concern` and :ref:`write-concern`. 
+
+Read Preference
+~~~~~~~~~~~~~~~
+
+``mongosync`` requires the :readmode:`primary` read preference when
+connecting to the source and destination clusters. For more information,
+see :ref:`connections-read-preference`. 
+
+Legacy Index Handling 
+~~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` rewrites legacy index values, like ``0`` or an empty
+string, to ``1`` on the destination. ``mongosync`` also removes any 
+invalid index options on the destination.
+
+.. _mongosync-considerations:
+
+Considerations for Continuous Sync
+----------------------------------
+
+.. important::
+
+   .. include:: /includes/fact-no-mongosync-disaster-recovery.rst
+
+If the source cluster shuts down before ``mongosync`` can commit, such as in 
+a disaster scenario, the destination cluster might not have a consistent 
+snapshot of the source data. To learn more, see :ref:`c2c-behavior-consistency`.
+
+.. note:: 
+  
+   After commit, you can't resume continuous sync between two clusters since 
+   ``mongosync`` can only sync into empty destination clusters. If you need to 
+   use the same two clusters after :ref:`cutover <c2c-cutover-process>`, you can 
+   call the :ref:`c2c-api-reverse` endpoint to keep the clusters in sync.
+   Otherwise, start a new continuous sync operation by using a new empty 
+   destination cluster. 
+
+.. _c2c-behavior-temporary-changes:
+
+Temporary Changes to Collection Characteristics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` temporarily alters the following collection characteristics during 
+synchronization. The original values are restored during the commit process.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Change
+     - Description
+  
+   * - Unique Indexes
+     - Unique indexes on the source cluster are synced as non-unique indexes 
+       on the destination cluster.
+
+   * - TTL Indexes
+     - Synchronization sets ``expireAfterSeconds`` to the value of ``MAX_INT``
+       on the destination cluster.
+
+   * - Hidden Indexes
+     - Synchronization replicates hidden indexes as non-hidden.
+
+   * - Write Blocking
+     - If you enable dual write-blocking, ``mongosync`` blocks writes: 
+
+       - On the destination cluster during sync.
+       - On the source cluster when ``commit`` is received.
+
+       ``mongosync`` enables destination-only write-blocking
+       by default.
+
+       To learn more, see :ref:`c2c-write-blocking`.
+
+   * - Capped Collections
+     - Synchronization sets capped collections to the maximum allowable
+       size. 
+
+   * - Dummy Indexes 
+     - In some cases, synchronization may create dummy indexes on the 
+       destination to support writes on sharded or collated collections. 
+
+Rolling Index Builds
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/rolling-build-limitation.rst
+
+``mongosync`` Metadata
+~~~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` stores its metadata in a database or multiple databases 
+during migration. The metadata databases can be named any of the following: 
+
+- ``mongosync_reserved_for_internal_use``
+- Anything beginning with ``mongosync_internal_``
+- Anything beginning with ``mongosync_reserved_for_verification_``
+
+You should drop any metadata databases after a successful migration. 
+
+Destination Clusters
+--------------------
+
+.. _c2c-behavior-consistency:
+
+Consistency
+~~~~~~~~~~~
+
+``mongosync`` supports :term:`eventual consistency` on the destination
+cluster. Read consistency is not guaranteed on the destination cluster until 
+commit. Before committing, the source and destination clusters may differ at a 
+given point in time. To learn more, see :ref:`mongosync-considerations`.
+
+While ``mongosync`` is syncing, ``mongosync`` may reorder or combine writes 
+as it relays them from source to destination. For a given document, the total 
+number of writes may differ between source and destination.
+
+Transactions might not appear atomically on the destination cluster.
+Retryable writes may not be retryable on the destination cluster.
+
+Profiling
+~~~~~~~~~
+
+If profiling is enabled on a source database, MongoDB creates a special
+collection named ``<db>.system.profile``. After synchronization is
+complete, {+c2c-product-name+} will not drop the
+``<db>.system.profile`` collection from the destination even if the
+source database is dropped at a later time. The ``<db>.system.profile``
+collection will not change the accuracy of user data on the
+destination.
+
+Views
+~~~~~
+
+If a database with views is dropped on the source, the destination may
+show an empty ``system.views`` collection in that database. The empty
+``system.views`` collection will not change the accuracy of user
+data on the destination.
+
+.. _c2c-system-collections:
+
+System Collections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/collections/behavior-system-collections.rst
+
+UUIDs
+~~~~~
+
+``mongosync`` creates collections with new :abbr:`UUIDs (universally
+unique identifiers)` on the destination cluster. There is no
+relationship between UUIDs on the source cluster and the destination
+cluster. If applications contain hard-coded UUIDs (which MongoDB does
+not recommend), you may need to update those applications before they
+work properly with the migrated cluster. 
+
+Sorting
+~~~~~~~
+
+``mongosync`` inserts documents on the destination cluster in an
+undefined order which does not preserve natural sort order from the
+source cluster. If applications depend on document order but don't have
+a defined sort method, you may need to update those applications to
+specify the expected sort order before the applications work properly
+with the migrated cluster. 
+
+Performance
+-----------
+
+Resilience
+~~~~~~~~~~
+
+``mongosync`` is resilient and able to handle non-fatal errors. Logs
+that contain the word "error" or "failure" do not indicate that
+``mongosync`` is failing or corrupting data. For example, if a network
+error occurs, the ``mongosync`` log may contain the word "error' but
+``mongosync`` is still able to complete the sync. In the case that a
+sync does not complete, ``mongosync`` writes a fatal log entry. 
+
+.. _c2c-mongosync-ddl:
+
+Data Definition Language (DDL) Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using DDL operations (operations that act on collections or databases
+such as :method:`db.createCollection()` and :method:`db.dropDatabase()`)
+during sync increase the risk of migration failure and may negatively
+impact ``mongosync`` performance. For best performance, refrain from
+performing DDL operations on the source cluster while the sync is in
+progress.
+
+For more information on DDL operations, see
+:ref:`txn-prod-considerations-ddl`. 
+
+Network Latency
+~~~~~~~~~~~~~~~
+
+Network latency or long physical distances between migration components
+can negatively affect sync speed.
+
+Latency between ``mongosync`` and destination shards
+  For each operation on the source cluster, ``mongosync`` does two 
+  roundtrips to the destination server. The larger the latency, the 
+  slower the sync.
+
+Latency between destination shards
+  ``mongosync`` runs operations and updates its own metadata in batches 
+  in a transaction on the destination cluster. This can result in 
+  cross-shard transactions, which may be more costly if the shards are 
+  far apart.
+
+Latency between the nodes of any replica set on the source or destination cluster
+  ``mongosync`` uses :writeconcern:`"majority"` writes and 
+  :readconcern:`"majority"` reads, which require acknowledgement from 
+  multiple nodes in a replica set, including shard-backing replica 
+  sets. If the majority of these nodes aren't in the same region, there 
+  will be negative performance implications.
+
+Interruptions During Sync
+-------------------------
+
+The following considerations pertain to interruptions during the
+``mongosync`` process. 
+
+Errors and Crashes
+~~~~~~~~~~~~~~~~~~
+
+If ``mongosync`` encounters an error or becomes unavailable during
+synchronization, or you can resume your ``mongosync`` operation from where
+it stopped. The ``mongosync`` binary is stateless and stores the
+metadata for a restart on the destination cluster. 
+
+To continue sync, restart ``mongosync`` once it becomes available again
+and use the same parameters as your interupted sync. Once you restart
+``mongosync``, the process resumes from where it stopped.
+
+Cluster Availability
+~~~~~~~~~~~~~~~~~~~~
+
+If your source or destination cluster crashes unexpectedly, you can safely
+restart ``mongosync`` from where it left off. Once your cluster is available
+again, restart ``mongosync`` and use the same parameters as your interupted
+sync. 
+
+.. _c2c-pause-behavior:
+
+Paused Sync
+~~~~~~~~~~~
+
+If ``mongosync`` is in the :ref:`PAUSED <c2c-state-paused>` state,
+``mongosync`` does not support the following actions:
+
+- Upgrading the MongoDB version of the source or destination cluster
+- Enabling and then disabling the balancer
+
+You can upgrade ``mongosync`` while it is in the ``PAUSED`` state. 
+
+Learn More
+----------
+
+- :ref:`c2c-connecting`
+- :ref:`c2c-states`
+- :ref:`c2c-api`
+- :ref:`c2c-cutover-process`

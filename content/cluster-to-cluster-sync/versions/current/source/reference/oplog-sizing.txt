@@ -1,0 +1,83 @@
+.. _c2c-oplog-sizing:
+
+============
+oplog Sizing
+============
+
+.. meta::
+   :description: Ensure successful data synchronization between clusters by managing oplog size and monitoring replication lag with `mongosync`.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The :ref:`mongosync <c2c-mongosync>` program uses :ref:`change streams
+<changeStreams>` to synchronize data between source and destination
+clusters. ``mongosync`` does not access the :term:`oplog` directly,
+but when a change stream returns events from the past, the events must
+be within the ``oplog`` time range. 
+
+.. include:: /includes/fact-oplog-background
+
+Considerations 
+--------------
+
+.. include:: /includes/fact-oplog-disk-storage.rst
+
+Monitor oplog Size Needed for Initial Sync
+------------------------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Determine oplog Window
+
+      To get the difference in seconds between the first and last entry
+      in the ``oplog`` run :method:`db.getReplicationInfo()`. If you
+      are replicating a sharded cluster, run the command on each shard.
+      
+      .. code-block:: javascript
+       
+         db.getReplicationInfo().timeDiff
+         
+      The value returned is the minimum ``oplog`` window of the
+      cluster. If there are multiple shards, the smallest number is the
+      minimum ``oplog`` window.
+
+   .. step:: Determine mongosync Replication Lag
+
+      To get the ``lagTimeSeconds`` value, run the  
+      :ref:`/progress <c2c-api-progress>` command. 
+      The lag time is the time in seconds between the 
+      last event applied by ``mongosync`` and time of the current
+      latest event on the source cluster.
+
+      It is a measure of how far behind the source cluster ``mongosync`` is.
+
+   .. step:: Validate oplog Size
+
+      If the lag time approaches the minimum ``oplog`` window, make 
+      one of the following changes:
+
+      - Increase the ``oplog`` window. Use :dbcommand:`replSetResizeOplog`
+        to set ``minRetentionHours`` greater than the current ``oplog`` 
+        window.
+
+        .. note:: 
+
+           :dbcommand:`replSetResizeOplog` is unsupported in Atlas. To resize 
+           the oplog in Atlas, see :ref:`set-oplog-min-window`.    
+
+      - Scale up the ``mongosync`` instance. Add CPU or memory to scale
+        up the ``mongosync`` node so that it has a higher copy rate.
+
+.. note::
+
+   The :term:`oplog` window and rate of change for replication lag may vary 
+   during synchronization. Repeat these steps during a migration to monitor the 
+   progress.
+

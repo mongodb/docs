@@ -1,0 +1,107 @@
+.. _c2c-api-progress:
+
+============
+``progress``
+============
+
+.. meta::
+   :description: Retrieve the synchronization status or error details using the `progress` endpoint in the cluster-to-cluster sync API.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Description
+-----------
+
+Returns either an updated status of the synchronization process or an error.
+
+Request
+-------
+
+.. code-block:: http
+   :copyable: false
+
+   GET /api/v1/progress 
+
+Response
+--------
+
+The ``progress`` endpoint returns either an updated status or an error.
+
+Successful Response
+~~~~~~~~~~~~~~~~~~~
+
+The response object contains 2 top-level fields, ``success`` and
+``progress``. 
+
+The ``success`` field contains the status of the ``progress`` command. 
+Value is ``true`` if always ``true``. 
+
+If ``mongosync`` successfully gets the status of the sync process, 
+all response fields are wrapped in the top-level ``progress`` object 
+with the following fields:
+
+.. include:: /includes/api/tables/progress-response.rst
+
+Error Response
+~~~~~~~~~~~~~~
+
+If ``mongosync`` encounters an error, the ``progress`` endpoint returns 
+the following fields:
+
+.. include:: /includes/api/tables/progress-error-response.rst
+
+Behavior
+--------
+
+- When ``mongosync`` is in the ``IDLE`` state, all output
+  fields except ``state`` and ``canCommit`` are ``null``.
+  
+- When ``mongosync`` is in the ``PAUSED`` state, the
+  ``lagTimeSeconds`` field is ``null``.
+
+- The endpoint does not auto-refresh. To get updated status, call the
+  ``progress`` endpoint again.
+
+- Calls to ``/progress`` before ``mongosync`` reaches the collection
+  copy phase return 0 for ``estimatedCopiedBytes`` and 1 for 
+  ``estimatedTotalBytes``.
+
+- ``estimatedTotalBytes`` may change throughout the collection copy 
+  phase if documents are inserted or deleted on the source cluster.
+
+- ``estimatedCopiedBytes`` is never greater than 
+  ``estimatedTotalBytes``. Progress reaches 100% at the end of the 
+  collection copy phase (``estimatedCopiedBytes`` = 
+  ``estimatedTotalBytes``).
+
+Endpoint Protection
+~~~~~~~~~~~~~~~~~~~
+
+.. |endpoint| replace:: ``progress``
+.. include:: /includes/fact-api-endpoint
+
+
+Example
+-------
+
+The following example returns the status of the synchronization process.
+
+Request
+~~~~~~~
+
+.. literalinclude:: /includes/api/requests/progress.sh
+   :language: shell
+
+Response
+~~~~~~~~
+
+.. literalinclude:: /includes/api/responses/progress.json
+   :language: json
+   :copyable: false
+
