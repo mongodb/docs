@@ -422,173 +422,177 @@ in a very efficient query.
 
 .. tabs-drivers::
 
-   tabs:
-     - id: shell
-       content: |
-         .. _analyze-compare-performance:
+   .. tab:: Shell
+      :tabid: shell
 
-         Compare Performance of Indexes
-         ------------------------------
+      .. _analyze-compare-performance:
 
-         To manually compare the performance of a query using more
-         than one index, you can use the :method:`~cursor.hint()`
-         method in conjunction with the :method:`~cursor.explain()`
-         method.
+      **Compare Performance of Indexes**
 
-         Consider the following query:
+      To manually compare the performance of a query using more
+      than one index, you can use the :method:`~cursor.hint()`
+      method in conjunction with the :method:`~cursor.explain()`
+      method.
 
-         .. code-block:: javascript
+      Consider the following query:
 
-            db.inventory.find( {
-               quantity: {
-                  $gte: 100, $lte: 300
-               },
-               type: "food"
-            } )
+      .. code-block:: javascript
 
-         The query returns the following documents:
+         db.inventory.find( {
+            quantity: {
+               $gte: 100, $lte: 300
+            },
+            type: "food"
+         } )
 
-         .. code-block:: javascript
+      The query returns the following documents:
 
-            { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
-            { "_id" : 5, "item" : "f3", "type" : "food", "quantity" : 300 }
 
-         To support the query, add a :doc:`compound index
-         </core/index-compound>`. With :doc:`compound indexes
-         </core/index-compound>`, the order of the fields matter.
+      .. code-block:: javascript
 
-         For example, add the following two compound indexes. The
-         first index orders by ``quantity`` field first, and then the
-         ``type`` field. The second index orders by ``type`` first,
-         and then the ``quantity`` field.
+         { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
+         { "_id" : 5, "item" : "f3", "type" : "food", "quantity" : 300 }
 
-         .. code-block:: javascript
+      To support the query, add a :ref:`compound index
+      <index-type-compound>`. With compound indexes, the order
+      of the fields matter.
 
-            db.inventory.createIndex( { quantity: 1, type: 1 } )
-            db.inventory.createIndex( { type: 1, quantity: 1 } )
+      For example, add the following two compound indexes. The
+      first index orders by ``quantity`` field first, and then the
+      ``type`` field. The second index orders by ``type`` first,
+      and then the ``quantity`` field.
 
-         Evaluate the effect of the first index on the query:
+      .. code-block:: javascript
 
-         .. code-block:: javascript
+         db.inventory.createIndex( { quantity: 1, type: 1 } )
+         db.inventory.createIndex( { type: 1, quantity: 1 } )
 
-            db.inventory.find(
-               { quantity: { $gte: 100, $lte: 300 }, type: "food" }
-            ).hint({ quantity: 1, type: 1 }).explain("executionStats")
+      Evaluate the effect of the first index on the query:
 
-         The :method:`~cursor.explain()` method returns the following
-         output:
+      .. code-block:: javascript
 
-         .. code-block:: javascript
-            :emphasize-lines: 22,24
+         db.inventory.find(
+            { quantity: { $gte: 100, $lte: 300 }, type: "food" }
+         ).hint({ quantity: 1, type: 1 }).explain("executionStats")
 
-            {
-               queryPlanner: {
-                  ...
-                  winningPlan: {
-                     queryPlan: {
-                        stage: 'FETCH',
-                        inputStage: {
-                           stage: 'IXSCAN',
-                           keyPattern: {
-                              quantity: 1,
-                              type: 1
-                           },
-                           ...
-                           }
-                        }
-                     }
-                  },
-                  rejectedPlans: [ ]
-               },
-               executionStats: {
-                  executionSuccess: true,
-                  nReturned: 2,
-                  executionTimeMillis: 0,
-                  totalKeysExamined: 5,
-                  totalDocsExamined: 2,
-                  executionStages: {
-                  ...
-                  }
-               },
+      The :method:`~cursor.explain()` method returns the following
+      output:
+
+      .. code-block:: javascript
+         :emphasize-lines: 22,24
+
+         {
+            queryPlanner: {
                ...
-            }
-
-         MongoDB scanned ``5`` index keys
-         (:data:`executionStats.totalKeysExamined
-         <explain.executionStats.totalKeysExamined>`) to return ``2``
-         matching documents (:data:`executionStats.nReturned
-         <explain.executionStats.nReturned>`).
-
-         Evaluate the effect of the second index on the query:
-
-         .. code-block:: javascript
-
-            db.inventory.find(
-               { quantity: { $gte: 100, $lte: 300 }, type: "food" }
-            ).hint({ type: 1, quantity: 1 }).explain("executionStats")
-
-         The :method:`~cursor.explain()` method returns the following
-         output:
-
-         .. code-block:: javascript
-            :emphasize-lines: 19,21
-
-            {
-               queryPlanner: {
-                  ...
+               winningPlan: {
                   queryPlan: {
-                     winningPlan: {
-                        stage: 'FETCH',
-                        inputStage: {
-                           stage: 'IXSCAN',
-                           keyPattern: {
-                              type: 1,
-                              quantity: 1
-                           },
-                           ...
+                     stage: 'FETCH',
+                     inputStage: {
+                        stage: 'IXSCAN',
+                        keyPattern: {
+                           quantity: 1,
+                           type: 1
+                        },
+                        ...
                         }
                      }
-                  },
-                  rejectedPlans: [ ]
-               },
-               executionStats: {
-                  executionSuccess: true,
-                  nReturned: 2,
-                  executionTimeMillis: 0,
-                  totalKeysExamined: 2,
-                  totalDocsExamined: 2,
-                  executionStages: {
-                     ...
                   }
                },
+               rejectedPlans: [ ]
+            },
+            executionStats: {
+               executionSuccess: true,
+               nReturned: 2,
+               executionTimeMillis: 0,
+               totalKeysExamined: 5,
+               totalDocsExamined: 2,
+               executionStages: {
                ...
-            }
+               }
+            },
+            ...
+         }
 
-         MongoDB scanned ``2`` index keys
-         (:data:`executionStats.totalKeysExamined
-         <explain.executionStats.totalKeysExamined>`) to return ``2``
-         matching documents (:data:`executionStats.nReturned
-         <explain.executionStats.nReturned>`).
+      MongoDB scanned ``5`` index keys
+      (:data:`executionStats.totalKeysExamined
+      <explain.executionStats.totalKeysExamined>`) to return ``2``
+      matching documents (:data:`executionStats.nReturned
+      <explain.executionStats.nReturned>`).
 
-         The second compound index, ``{ type: 1, quantity: 1 }``, is
-         therefore the more efficient index for supporting the example
-         query, as the MongoDB server only needs to scan ``2``
-         :data:`index keys <explain.executionStats.totalKeysExamined>`
-         to find all matching documents using this index, compared to
-         ``5`` when when using the compound index
-         ``{ quantity: 1, type: 1 }``.
+      Evaluate the effect of the second index on the query:
 
-         .. seealso::
+      .. code-block:: javascript
 
-            - :doc:`/core/query-optimization`
-            - :doc:`/core/query-plans`
-            - :doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`
-            - :doc:`/applications/indexes`
+         db.inventory.find(
+            { quantity: { $gte: 100, $lte: 300 }, type: "food" }
+         ).hint({ type: 1, quantity: 1 }).explain("executionStats")
 
-     - id: compass
-       content: |
-         .. seealso::
+      The :method:`~cursor.explain()` method returns the following
+      output:
 
-            - :ref:`Query Optimization <read-operations-indexing>`
-            - :ref:`MongoDB Compass Documentation <compass-index>`
-            - :compass:`Compass Query Plan Documentation </query-plan/>`
+      .. code-block:: javascript
+         :emphasize-lines: 19,21
+
+         {
+            queryPlanner: {
+               ...
+               queryPlan: {
+                  winningPlan: {
+                     stage: 'FETCH',
+                     inputStage: {
+                        stage: 'IXSCAN',
+                        keyPattern: {
+                           type: 1,
+                           quantity: 1
+                        },
+                        ...
+                     }
+                  }
+               },
+               rejectedPlans: [ ]
+            },
+            executionStats: {
+               executionSuccess: true,
+               nReturned: 2,
+               executionTimeMillis: 0,
+               totalKeysExamined: 2,
+               totalDocsExamined: 2,
+               executionStages: {
+                  ...
+               }
+            },
+            ...
+         }
+
+      MongoDB scanned ``2`` index keys
+      (:data:`executionStats.totalKeysExamined
+      <explain.executionStats.totalKeysExamined>`) to return ``2``
+      matching documents (:data:`executionStats.nReturned
+      <explain.executionStats.nReturned>`).
+
+      The second compound index, ``{ type: 1, quantity: 1 }``, is
+      therefore the more efficient index for supporting the example
+      query, as the MongoDB server only needs to scan ``2``
+      :data:`index keys <explain.executionStats.totalKeysExamined>`
+      to find all matching documents using this index, compared to
+      ``5`` when when using the compound index
+      ``{ quantity: 1, type: 1 }``.
+
+      .. seealso::
+
+         - :doc:`/core/query-optimization`
+         - :doc:`/core/query-plans`
+         - :doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`
+         - :doc:`/applications/indexes`
+
+
+   .. tab:: Compass
+      :tabid: compass
+
+      .. seealso::
+
+         - :ref:`Query Optimization <read-operations-indexing>`
+         - :ref:`MongoDB Compass Documentation <compass-index>`
+         - :compass:`Compass Query Plan Documentation </query-plan/>`
+
+
