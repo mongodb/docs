@@ -3,7 +3,7 @@ query engine <sbe-landing>` to execute :pipeline:`$lookup` stages
 if *all* preceding stages in the pipeline can also be executed by the
 |sbe-short| and none of the following conditions are true:
 
-- The ``$lookup`` operation executes a pipeline on a joined collection.
+- The ``$lookup`` operation executes a pipeline on a foreign collection.
   To see an example of this kind of operation, see
   :ref:`lookup-syntax-let-pipeline`.
 

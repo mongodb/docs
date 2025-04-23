@@ -6,7 +6,7 @@ $lookup (aggregation)
 
 .. meta:: 
    :keywords: atlas
-   :description: Learn about the $lookup aggregation stage, which performs a left outer join to a collection in the same database, and filters in documents from the "joined" collection for processing.
+   :description: Learn about the $lookup aggregation stage, which performs a left outer join to a collection in the same database, and filters in documents from the foreign collection for processing.
 
 .. contents:: On this page
    :local:
@@ -22,10 +22,10 @@ Definition
    .. versionchanged:: 8.0
 
    Performs a left outer join to a collection in the *same* database to
-   filter in documents from the "joined" collection for processing. The
+   filter in documents from the foreign collection for processing. The
    :pipeline:`$lookup` stage adds a new array field to each input
    document. The new array field contains the matching documents from
-   the "joined" collection. The :pipeline:`$lookup` stage passes these
+   the foreign collection. The :pipeline:`$lookup` stage passes these
    reshaped documents to the next stage.
 
    Starting in MongoDB 5.1, you can use :pipeline:`$lookup` with sharded 
@@ -64,7 +64,7 @@ The :pipeline:`$lookup` accepts a document with these fields:
 
 .. list-table::
    :header-rows: 1
-   :widths: 15 15 70
+   :widths: 20 20 80
 
    * - Field
      - Necessity
@@ -163,7 +163,7 @@ Equality Match with a Single Join Condition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To perform an equality match between a field from the input documents
-with a field from the documents of the "joined" collection, the
+with a field from the documents of the foreign collection, the
 :pipeline:`$lookup` stage has this syntax:
 
 .. code-block:: none
@@ -210,12 +210,12 @@ For MongoDB examples, see these pages:
 
 .. _lookup-syntax-let-pipeline:
 
-Join Conditions and Subqueries on a Joined Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Join Conditions and Subqueries on a Foreign Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB supports:
 
-- Executing a pipeline on a joined collection.
+- Executing a pipeline on a foreign collection.
 
 - Multiple join conditions.
 
@@ -248,9 +248,9 @@ this :pipeline:`$lookup` syntax:
    {
       $lookup:
          {
-            from: <joined collection>,
+            from: <foreign collection>,
             let: { <var_1>: <expression>, …, <var_n>: <expression> },
-            pipeline: [ <pipeline to run on joined collection> ],
+            pipeline: [ <pipeline to run on foreign collection> ],
             as: <output array field>
          }
    }
@@ -281,8 +281,8 @@ Correlated Subqueries Using Concise Syntax
 .. versionadded:: 5.0
 
 Starting in MongoDB 5.0, you can use a concise syntax for a correlated
-subquery. Correlated subqueries reference document fields from a joined
-"foreign" collection  *and* the "local" collection on which the
+subquery. Correlated subqueries reference document fields from a foreign
+collection  *and* the "local" collection on which the
 :method:`~db.collection.aggregate()` method was run.
 
 The following new concise syntax removes the requirement for an equality
@@ -358,7 +358,7 @@ Restrictions
 
 You cannot include the :pipeline:`$out` or the :pipeline:`$merge`
 stage in the :pipeline:`$lookup` stage. That is, when specifying a
-:ref:`pipeline for the joined collection
+:ref:`pipeline for the foreign collection
 <lookup-syntax-let-pipeline>`, you cannot include either stage in
 the ``pipeline`` field.
 
@@ -370,7 +370,7 @@ the ``pipeline`` field.
       {
          from: <collection to join>,
          let: { <var_1>: <expression>, …, <var_n>: <expression> },
-         pipeline: [ <pipeline to execute on the joined collection> ],  // Cannot include $out or $merge
+         pipeline: [ <pipeline to execute on the foreign collection> ],  // Cannot include $out or $merge
          as: <output array field>
       }
    }
@@ -402,7 +402,7 @@ shown below:
 
          [{
            "$lookup": {
-             "from": <joined collection>,
+             "from": <foreign collection>,
              localField: <field from the input documents>,
              foreignField: <field from the documents of the "from" collection>,
              "as": <output array field>,
@@ -426,7 +426,7 @@ shown below:
 
          [{
            "$lookup": {
-             "from": <joined collection>,
+             "from": <foreign collection>,
              localField: <field from the input documents>,
              foreignField: <field from the documents of the "from" collection>,
              "as": <output array field>,
@@ -668,12 +668,12 @@ Create another collection ``members`` with these documents:
 .. code-block:: javascript
 
    db.members.insertMany( [
-      { _id: 1, name: "artie", joined: new Date("2016-05-01"), status: "A" }, 
-      { _id: 2, name: "giraffe", joined: new Date("2017-05-01"), status: "D" }, 
-      { _id: 3, name: "giraffe1", joined: new Date("2017-10-01"), status: "A" }, 
-      { _id: 4, name: "panda", joined: new Date("2018-10-11"), status: "A" },  
-      { _id: 5, name: "pandabear", joined: new Date("2018-12-01"), status: "A" },
-      { _id: 6, name: "giraffe2", joined: new Date("2018-12-01"), status: "D" }
+      { _id: 1, name: "artie", foreign: new Date("2016-05-01"), status: "A" }, 
+      { _id: 2, name: "giraffe", foreign: new Date("2017-05-01"), status: "D" }, 
+      { _id: 3, name: "giraffe1", foreign: new Date("2017-10-01"), status: "A" }, 
+      { _id: 4, name: "panda", foreign: new Date("2018-10-11"), status: "A" },  
+      { _id: 5, name: "pandabear", foreign: new Date("2018-12-01"), status: "A" },
+      { _id: 6, name: "giraffe2", foreign: new Date("2018-12-01"), status: "D" }
    ] )
 
 The following aggregation operation joins documents in the ``classes``
@@ -704,9 +704,9 @@ The operation returns the following:
       "enrollmentlist" : [ "giraffe2", "pandabear", "artie" ],
       "days" : [ "M", "W", "F" ],
       "enrollee_info" : [
-         { "_id" : 1, "name" : "artie", "joined" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
-         { "_id" : 5, "name" : "pandabear", "joined" : ISODate("2018-12-01T00:00:00Z"), "status" : "A" },
-         { "_id" : 6, "name" : "giraffe2", "joined" : ISODate("2018-12-01T00:00:00Z"), "status" : "D" }
+         { "_id" : 1, "name" : "artie", "foreign" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 5, "name" : "pandabear", "foreign" : ISODate("2018-12-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 6, "name" : "giraffe2", "foreign" : ISODate("2018-12-01T00:00:00Z"), "status" : "D" }
       ]
    }
    {
@@ -715,8 +715,8 @@ The operation returns the following:
       "enrollmentlist" : [ "giraffe1", "artie" ],
       "days" : [ "T", "F" ],
       "enrollee_info" : [
-         { "_id" : 1, "name" : "artie", "joined" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
-         { "_id" : 3, "name" : "giraffe1", "joined" : ISODate("2017-10-01T00:00:00Z"), "status" : "A" }
+         { "_id" : 1, "name" : "artie", "foreign" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 3, "name" : "giraffe1", "foreign" : ISODate("2017-10-01T00:00:00Z"), "status" : "A" }
       ]
    }
 
@@ -750,7 +750,7 @@ Create another collection ``items`` with these documents:
 The following operation first uses the :pipeline:`$lookup` stage to
 join the two collections by the ``item`` fields and then uses
 :expression:`$mergeObjects` in the :pipeline:`$replaceRoot` to merge
-the joined documents from ``items`` and ``orders``:
+the foreign documents from ``items`` and ``orders``:
 
 .. code-block:: javascript
 
@@ -795,13 +795,13 @@ The operation returns these documents:
 Use Multiple Join Conditions and a Correlated Subquery
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Pipelines can execute on a joined collection and include multiple join
+Pipelines can execute on a foreign collection and include multiple join
 conditions. The :query:`$expr` operator enables more complex join
 conditions including conjunctions and non-equality matches.
 
 A join condition can reference a field in the local collection on which
 the :method:`~db.collection.aggregate()` method was run and reference a
-field in the joined collection. This allows a correlated subquery
+field in the foreign collection. This allows a correlated subquery
 between the two collections.
 
 MongoDB 5.0 supports :ref:`concise correlated subqueries
@@ -926,8 +926,8 @@ Perform an Uncorrelated Subquery with ``$lookup``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An aggregation pipeline :pipeline:`$lookup` stage can execute a pipeline
-on the joined collection, which allows uncorrelated subqueries. An
-uncorrelated subquery does not reference the joined document fields.
+on the foreign collection, which allows uncorrelated subqueries. An
+uncorrelated subquery does not reference the local document fields.
 
 .. note::
 
@@ -1113,7 +1113,7 @@ The following example:
 
 There is a match for the ``soda`` value in the ``orders.drink`` and
 ``restaurants.beverages`` fields. This output shows the ``matches``
-array and contains all joined fields from the ``restaurants`` collection
+array and contains all foreign fields from the ``restaurants`` collection
 for the match:
 
 .. code-block:: javascript
