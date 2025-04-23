@@ -21,9 +21,12 @@ Overview
 --------
 
 In this guide, you can learn how to customize the way the {+driver-long+}
-maps BSON documents to and from {+language+} classes. You should read this page
+maps BSON documents to and from {+language+} classes. You can read this page
 to learn more about the default class mapping behavior, or if you need to
 customize the way the driver serializes or deserializes your data.
+
+You can also use POCO attributes to set serialization behavior. To learn
+more, see the :ref:`csharp-poco` guide.
 
 Automatic Class Mapping
 -----------------------
@@ -69,7 +72,7 @@ class:
        classMap.MapMember(p => p.Hobbies);
    });
 
-.. important::
+.. important:: When to Register a Class Map
 
    You must register a class map *before* it's needed in your code. We recommend
    registering class maps prior to initializing a connection with MongoDB.
@@ -95,8 +98,33 @@ Customize Class Serialization
 -----------------------------
 
 You can customize how the driver serializes and deserializes documents at the class
-level by using attributes with the class or by calling methods while registering
+level by applying attributes to the class or by calling methods while registering
 a class map.
+
+.. _csharp-class-map-omit-fields:
+
+Omit Fields
+~~~~~~~~~~~
+
+You can prevent specified fields from being serialized by using the
+``UnmapMember()`` method when registering a class map.
+
+The following example shows how to create a class map to prevent the
+``Age`` property from being serialized:
+
+.. code-block:: csharp
+   :emphasize-lines: 4
+
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
+   {
+        classMap.AutoMap();
+        classMap.UnmapMember(p => p.Age);
+   });
+
+.. tip::
+
+   To learn about how to set this behavior by using a field attribute,
+   see the :ref:`csharp-poco-omit-fields` section of the POCOs guide.
 
 Ignore Extra Elements
 ~~~~~~~~~~~~~~~~~~~~~
@@ -133,6 +161,89 @@ You can also ignore any extra elements when registering a class map:
         classMap.AutoMap();
         classMap.SetIgnoreExtraElements(true);
    });
+
+Identify Id Field
+~~~~~~~~~~~~~~~~~
+
+By default, the driver maps any public property named ``Id``, ``id``, or
+``_id`` to the BSON ``_id`` field. To explicitly select the
+property to map to the ``_id`` field, use the ``MapIdMember()`` class
+map method.
+
+The following code sample maps the ``Identifier`` property to the
+``_id`` field:
+
+.. code-block:: csharp
+   :emphasize-lines: 4
+   
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
+   {
+        classMap.AutoMap();
+        classMap.MapIdMember(p => p.Identifier);
+   });
+
+String IDs
+``````````
+
+If you are using strings to represent your
+documement IDs, you can use the ``IdMemberMap.SetSerializer()`` class
+map method to serialize these values to ``ObjectId`` instances in
+MongoDB. This way, you can customize how your ID values are represented
+in your application while adhering to MongoDB best practices for ID
+management in the database.
+
+The following example directs the driver to serialize string ID values
+as ``ObjectId`` values:
+
+.. code-block:: csharp
+   :emphasize-lines: 4
+
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
+   {
+        classMap.AutoMap();
+        classMap.IdMemberMap.SetSerializer(new StringSerializer(BsonType.ObjectId));
+   });
+
+If you want the driver to generate valid 24-digit hex strings to
+use as your ID values, you can chain the ``SetIdGenerator()`` method to
+the ``MapIdMember()`` method and pass an instance of
+``StringObjectIdGenerator``:
+
+.. code-block:: csharp
+   :emphasize-lines: 4
+
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
+   {
+        classMap.AutoMap();
+        classMap.MapIdMember(p => p.Identifier).SetIdGenerator(StringObjectIdGenerator.Instance);
+   });
+
+To learn more about ID generators, see the
+:ref:`csharp-poco-specify-id-gen` section of the POCOs guide.
+
+GUID IDs
+````````
+
+If your application uses GUIDs as unique identifiers in your documents,
+you can register a class map to specify how ``Guid`` values are
+serialized. By default, the driver uses the
+``GuidGenerator`` type to generate a unique value for the ID property.
+You must specify the GUID representation by initializing a
+``GuidSerializer``.
+
+The following code specifies the ``Standard`` GUID representation when
+registering the class map:
+
+.. code-block:: csharp
+   :emphasize-lines: 4
+
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
+   {
+        classMap.AutoMap();
+        classMap.IdMemberMap.SetSerializer(new GuidSerializer(GuidRepresentation.Standard));
+   });
+
+To learn more about serializing GUIDs, see the :ref:`csharp-guids` guide.
 
 Mapping with Constructors
 -------------------------
