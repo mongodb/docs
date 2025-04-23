@@ -1,4 +1,4 @@
-If you are using driver version C#/.NET 3.0 or later, perform the following 
+If you are using C#/.NET driver version 3.0 or later, perform the following 
 steps:
 
 - Install the `MongoDB.Driver.Encryption <https://www.nuget.org/packages/MongoDB.Driver.Encryption>`_
