@@ -31,8 +31,11 @@ Limitations
 - Index names must be unique across a source collection and 
   all of its Views.
 
-- |product-name| doesn't support View definitions with variables that 
-  produce dynamic results like ``$$USER_ROLES`` and ``$random``.
+- |product-name| doesn't support :manual:`view definitions </core/views>`
+  with operators that produce dynamic results, such as
+  the :manual:`$$USER_ROLES </reference/aggregation-variables/#mongodb-variable-variable.USER_ROLES>`
+  system variable and the :manual:`$rand </reference/operator/aggregation/rand/>`
+  aggregation operator.
 
 - |product-name| queries return the original documents as they appear 
   in the source collection.

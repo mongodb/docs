@@ -129,13 +129,15 @@ limitations and considerations:
 
        .. include:: /includes/fact-unsupported-stable-api.rst
 
-       Aggregation pipelines for {+Serverless-instances+} don't support
-       the :pipeline:`$currentOp`, :pipeline:`$listLocalSessions`,
-       :pipeline:`$listSessions`, and :pipeline:`$planCacheStats` 
-       stages.
-
        Aggregation pipelines for {+Serverless-instances+} can have a 
-       maximum of 50 stages.
+       maximum of 50 stages. Aggregation pipelines for {+Serverless-instances+}
+       don't support:
+
+       - :pipeline:`$currentOp`, :pipeline:`$listLocalSessions`, :pipeline:`$listSessions`,
+          and :pipeline:`$planCacheStats` stages.
+
+       - The :manual:`$$USER_ROLES </reference/aggregation-variables/#mongodb-variable-variable.USER_ROLES>`
+         system variable.
 
    * - Sort
      - The :manual:`$sort </reference/operator/aggregation/sort/>` 
