@@ -14,7 +14,7 @@
 
       .. code-block:: ini
 
-         mongo.mongoUri=mongodb+srv:mongodbuser1:password@mongos.example.com:40000
+         mongo.mongoUri=mongodb+srv://mongodbuser1:password@mongos.example.com:40000
 
       .. include:: /includes/tabsets/connstring/fact-scram-roles.rst
 
@@ -25,7 +25,7 @@
 
       .. code-block:: ini
 
-         mongo.mongoUri=mongodb+srv:<new_mongodb_user>@mongos.example.com:40000/?authMechanism=MONGODB-X509
+         mongo.mongoUri=mongodb+srv://<new_mongodb_user>@mongos.example.com:40000/?authMechanism=MONGODB-X509
 
    .. tab:: LDAP
       :tabid: ldap
@@ -34,7 +34,7 @@
 
       .. code-block:: ini
 
-         mongo.mongoUri=mongodb+srv:mongodbuser1:password@mongos.example.com:40000/?authMechanism=PLAIN&authSource=$external
+         mongo.mongoUri=mongodb+srv://mongodbuser1:password@mongos.example.com:40000/?authMechanism=PLAIN&authSource=$external
 
    .. tab:: Kerberos
       :tabid: kerberos
@@ -43,7 +43,7 @@
 
       .. code-block:: ini
 
-         mongo.mongoUri=mongodb+srv:username%40REALM.EXAMPLE.COM@mongos.example.com:40000/?authMechanism=GSSAPI
+         mongo.mongoUri=mongodb+srv://username%40REALM.EXAMPLE.COM@mongos.example.com:40000/?authMechanism=GSSAPI
 
       .. include:: /includes/tabsets/connstring/fact-kerberos-settings.rst
 
