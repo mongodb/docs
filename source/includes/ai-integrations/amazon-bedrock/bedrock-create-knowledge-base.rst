@@ -41,8 +41,12 @@
 
    .. step:: Connect |service| to the Knowledge Base.
 
-      a. In the :guilabel:`Vector database` section, select :guilabel:`Choose a vector store you have created`.
+      a. In the :guilabel:`Vector database` section, select :guilabel:`Use an existing vector store`.
       #. Select :guilabel:`MongoDB Atlas` and configure the following options:
+
+         .. figure:: /images/amazon-bedrock-vector-store-config.png
+            :alt: Screenshot of the Amazon Bedrock vector store configuration section.
+            :figwidth: 550px
          
          - For the :guilabel:`Hostname`, enter the |url| for your |service| {+cluster+}
            located in its :manual:`connection string
@@ -60,13 +64,22 @@
            To learn more, see :aws:`AWS Secrets Manager concepts </secretsmanager/latest/userguide/getting-started.html>`.
 
       #. In the :guilabel:`Metadata field mapping` section, configure the 
-         following options to determine the search index and field names 
+         following options to determine the {+avs+} index and field names 
          that |service| uses to embed and store your data source:
+
+         .. figure:: /images/amazon-bedrock-field-mapping-config.png
+            :alt: Screenshot of the vector store field mapping configuration section.
+            :figwidth: 550px
 
          - For the :guilabel:`Vector search index name`, enter ``vector_index``.
          - For the :guilabel:`Vector embedding field path`, enter ``embedding``.
          - For the :guilabel:`Text field path`, enter ``bedrock_text_chunk``.
          - For the :guilabel:`Metadata field path`, enter ``bedrock_metadata``.
+
+         .. note::
+
+            Optionally, you can specify the :guilabel:`Text search index name` field 
+            to configure hybrid search. To learn more, see :ref:`bedrock-hybrid-search`.
 
       #. If you :ref:`configured an endpoint service 
          <bedrock-configure-privatelink>`,

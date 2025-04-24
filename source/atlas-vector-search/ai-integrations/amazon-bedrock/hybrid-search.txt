@@ -1,0 +1,146 @@
+.. _bedrock-hybrid-search:
+
+==========================================================
+Hybrid Search with {+aws-bedrock+} and {+service+}
+==========================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Perform hybrid search by using the Amazon Bedrock knowledge base integration for Atlas Vector Search.
+   :keywords: RAG, retrieval, Amazon Bedrock, vector database, vector store, hybrid search, generative AI, integration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note::
+
+   {+aws-bedrock+} supports hybrid search with |service|
+   currently for only US West (Oregon) and US East 
+   (N. Virginia) |aws| regions.
+
+The {+aws-bedrock-kb+} integration with |service-fullname|
+supports :ref:`hybrid search <as_hybrid-search>`. 
+Hybrid search combines {+avs+} and |fts| (full-text search) to 
+help improve the relevancy of your search results.
+
+To use hybrid search with {+aws-bedrock+}, you must create 
+both an {+avs+} index and an |fts| index on your data. Then, you can
+enable hybrid search through the {+aws-bedrock+} console or API. 
+
+Create the Indexes
+------------------
+
+To enable hybrid search for your knowledge base,
+you must have both an {+avs+} index and an |fts| index 
+on your collection in |service|. In this example, 
+we assume that you have a database named 
+``bedrock_db`` with collection named ``test``.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the {+avs+} index.
+
+      If you haven't already, complete the steps to 
+      :ref:`create an {+avs+} index
+      <bedrock-create-index>` on your collection 
+      in the {+atlas-ui+}.
+
+   .. step:: Create the |fts| index.
+
+      .. |search-type| replace:: :guilabel:`Atlas Search`
+      .. |index-name| replace:: ``search_index``
+      .. |database-name| replace:: ``bedrock_db`` database
+      .. |collection-name| replace:: ``test`` collection
+      .. |avs-namespace| replace:: ``bedrock_db.test``
+
+      .. include:: /includes/ai-integrations/amazon-bedrock/bedrock-create-fts-index.rst
+
+Configure Hybrid Search for your Knowledge Base
+-----------------------------------------------
+
+After you create both indexes, configure your knowledge base 
+to use hybrid search. You can use either the {+aws-bedrock+} 
+console or the {+aws-bedrock+} API to enable hybrid search.
+
+.. tabs::
+
+   .. tab:: {+aws-bedrock+} Console
+      :tabid: console
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Navigate to {+aws-bedrock+} management console. 
+
+            a. Log in to the `AWS Console <https://aws.amazon.com/console/>`__.
+            #. In the upper-left corner, click the :guilabel:`Services` dropdown menu.
+            #. Click :guilabel:`Machine Learning`, and then select :guilabel:`{+aws-bedrock+}`.
+
+         .. step:: Update your knowledge base configuration.
+            
+            Either :ref:`create a new knowledge base <bedrock-knowledge-base>` 
+            with |service| as the vector store, or `modify 
+            <https://docs.aws.amazon.com/bedrock/latest/userguide/kb-update.html>`__ 
+            an existing knowledge base.
+
+            a. In the vector store configuration, set the 
+               :guilabel:`Text search index name` field to ``search_index``,
+               or the name of your |fts| index if you used a different name.
+            
+               .. figure:: /images/amazon-bedrock-hybrid-search-config.png
+                  :alt: Screenshot of the vector store search index configuration section.
+                  :figwidth: 550px
+
+            #. Save the configuration.
+
+         .. step:: Enable hybrid search for your knowledge base.
+
+            a. In the left navigation of the {+aws-bedrock+} console, 
+               click :guilabel:`Knowledge Bases`.
+            #. Select your knowledge base.
+            #. Click :guilabel:`Test knowledge base`.
+            #. Click the configurations icon.
+            #. For :guilabel:`Search type`, select :guilabel:`Hybrid search (semantic & text)`.
+
+            By default, you can choose a foundation model to
+            generate a response based on your query. 
+            To see only the retrieved documents, toggle 
+            :guilabel:`Generate response` to off.
+
+   .. tab:: {+aws-bedrock+} API
+      :tabid: API
+
+      If you have an existing knowledge base, complete the following steps:
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Specify the |fts| index in your knowledge base configuration.
+
+            In `MongoDbAtlasConfiguration 
+            <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_MongoDbAtlasConfiguration.html>`__,
+            set the ``textIndexName`` field to your |fts| index name for your knowledge base.
+
+         .. step:: Specify the search type in your knowledge base configuration.
+
+            In `KnowledgeBaseVectorSearchConfiguration 
+            <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_KnowledgeBaseVectorSearchConfiguration.html>`__
+            for your knowledge base, set the ``overrideSearchType`` field to ``HYBRID``.
+
+            You use this configuration to retrieve data in the following
+            API requests:
+
+            - `Retrieve request <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax>`__ 
+            - `RetrieveAndGenerate <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax>`__'
+
+After you enable hybrid search, you can test your 
+knowledge base or :ref:`create an agent <bedrock-agent>`.
