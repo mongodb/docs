@@ -38,7 +38,7 @@ object is optional.
      - Absolute file path to the certificate used to authenticate
        through |tls| on a Linux or UNIX host. 
        
-       |mms| requires either **ssl.CAFilePath** or **ssa.CAFilePathWindows** if:
+       |mms| requires either **ssl.CAFilePath** or **ssl.CAFilePathWindows** if:
        
        - You're using |tls| or X.509 authentication, and
        - The CA file is not in your operating system's root certificates.
@@ -49,7 +49,7 @@ object is optional.
      - Absolute file path to the certificate used to authenticate
        through |tls| on a Windows host.
               
-       |mms| requires either **ssl.CAFilePath** or **ssa.CAFilePathWindows** if:
+       |mms| requires either **ssl.CAFilePath** or **ssl.CAFilePathWindows** if:
        
        - You're using |tls| or X.509 authentication, and
        - The CA file is not in your operating system's root certificates.
@@ -61,7 +61,7 @@ object is optional.
        authenticates the |tls| connection on a Linux or UNIX
        host. 
          
-       |mms| requires either **ssl.autoPEMKeyFilePath** or **ssa.autoPEMKeyFilePathWindows**
+       |mms| requires either **ssl.autoPEMKeyFilePath** or **ssl.autoPEMKeyFilePathWindows**
        if you're using |tls| or X.509 authentication.
 
    * - ssl.autoPEMKeyFilePathWindows
@@ -70,13 +70,13 @@ object is optional.
      - Absolute file path to the client private key (PEM) file that
        authenticates the |tls| connection on a Windows host.
 
-       |mms| requires either **ssl.autoPEMKeyFilePath** or **ssa.autoPEMKeyFilePathWindows**
+       |mms| requires either **ssl.autoPEMKeyFilePath** or **ssl.autoPEMKeyFilePathWindows**
        if you're using |tls| or X.509 authentication.
 
    * - ssl.autoPEMKeyFilePwd
      - string
      - Conditional
      - Password for the private key (PEM) file specified in
-       **ssl.autoPEMKeyFilePath** or **ssa.autoPEMKeyFilePathWindows**. |mms|
+       **ssl.autoPEMKeyFilePath** or **ssl.autoPEMKeyFilePathWindows**. |mms|
        requires this password if the PEM file is encrypted.
       
