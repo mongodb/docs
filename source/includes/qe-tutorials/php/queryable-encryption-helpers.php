@@ -190,14 +190,6 @@ function createEncryptedCollection(
 ): void
 {
     try {
-        // This should be done in the createEncryptedCollection method
-        foreach ($encryptedFieldsMap['encryptedFields']['fields'] as &$field) {
-            if (!isset($field['keyId'])) {
-                $keyId = $clientEncryption->createDataKey($kmsProviderName, $customerMasterKeyCredentials);
-                $field['keyId'] = $keyId;
-            }
-        }
-
         // start-create-encrypted-collection
         $client->getDatabase($encryptedDatabase)->createEncryptedCollection(
             $encryptedCollectionName,

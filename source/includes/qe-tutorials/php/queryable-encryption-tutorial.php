@@ -52,10 +52,12 @@ $encryptedFieldsMap = [
                 'path' => 'patientRecord.ssn',
                 'bsonType' => 'string',
                 'queries' => ['queryType' => 'equality'],
+                'keyId' => null,
             ],
             [
                 'path' => 'patientRecord.billing',
                 'bsonType' => 'object',
+                'keyId' => null,
             ],
         ],
     ],
