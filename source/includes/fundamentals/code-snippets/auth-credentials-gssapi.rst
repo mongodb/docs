@@ -1,6 +1,6 @@
 .. code-block:: java
 
-   MongoCredential credential = MongoCredential.createGSSAPICredential(<db_username>);
+   MongoCredential credential = MongoCredential.createGSSAPICredential(<principal_username>);
 
    MongoClient mongoClient = MongoClients.create(
        MongoClientSettings.builder()
