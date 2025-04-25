@@ -19,12 +19,16 @@
       For audit filters specifying the 
       ``authCheck`` :manual:`action type 
       </reference/audit-message/#audit-event-actions-details-and-results>`, 
-      by default the
-      auditing system logs only authorization
-      failures for any specified ``param.command``. Enabling
+      the auditing system logs only authorization failures for 
+      any specified ``param.command`` by default. Enabling
       :guilabel:`Audit authorization successes` directs the auditing
-      system to also log authorization successes. For more information,
+      system to also log authorization successes. If you don't enable 
+      :manual:`auditAuthorizationSuccess 
+      </reference/parameters/#param.auditAuthorizationSuccess>`, your 
+      audit system can't log successful CRUD operations specified in the 
+      :manual:`action type </reference/audit-message/#audit-event-actions-details-and-results>`. 
+      To learn more, 
       see :manual:`auditAuthorizationSuccess 
-      </reference/parameters/#param.auditAuthorizationSuccess>`
+      </reference/parameters/#param.auditAuthorizationSuccess>`.
       
    .. step:: Click :guilabel:`Save`.    
