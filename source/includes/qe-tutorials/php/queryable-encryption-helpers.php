@@ -128,28 +128,18 @@ function getAutoEncryptionOptions(
         $tlsOptions = getKmipTlsOptions();
 
         // start-kmip-encryption-options
-        $sharedLibraryPathOptions = [
-            'cryptSharedLibPath' => getenv('SHARED_LIB_PATH'), // Path to your Automatic Encryption Shared Library
-        ];
-
         $autoEncryptionOptions = [
             'keyVaultNamespace' => $keyVaultNamespace,
             'kmsProviders' => $kmsProviders,
-            'sharedLibraryPathOptions' => $sharedLibraryPathOptions,
             'tlsOptions' => $tlsOptions,
         ];
         // end-kmip-encryption-options
         return $autoEncryptionOptions;
     } else {
         // start-auto-encryption-options
-        $sharedLibraryPathOptions = [
-            'cryptSharedLibPath' => getenv('SHARED_LIB_PATH'), // Path to your Automatic Encryption Shared Library
-        ];
-
         $autoEncryptionOptions = [
             'keyVaultNamespace' => $keyVaultNamespace,
             'kmsProviders' => $kmsProviders,
-            'sharedLibraryPathOptions' => $sharedLibraryPathOptions,
         ];
         // end-auto-encryption-options
 
