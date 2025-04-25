@@ -19,7 +19,21 @@ perform with help from MongoDB Support:
      paths, and configuration for replicas and sharding roles.
 
 4. :v4.2:`Restore the CSRS </tutorial/restore-sharded-cluster/#c-restore-config-server-replica-set>`.
-5. :v4.2:`Restore each shard's replica set </tutorial/restore-sharded-cluster#d-restore-each-shard-replica-set>`.
+
+   .. note:: For Point-in-Time Restore
+
+      Before :manual:`restarting </tutorial/restore-sharded-cluster/#restart-the-mongod-as-a-new-single-node-replica-set>`
+      the ``mongod`` as a new single-node replica set, :ref:`restore the point-in-time snapshots <restore-pit-snapshots>`
+      to a CSRS node. 
+
+5. :v4.2:`Restore each shard's replica set </tutorial/restore-sharded-cluster#d-restore-each-shard-replica-set>`. 
+
+   .. note:: For Point-in-Time Restore
+
+      Before :manual:`restarting </tutorial/restore-sharded-cluster/#restart-the-mongod-as-a-new-single-node-replica-set-1>`
+      the ``mongod`` as a new single-node replica set, :ref:`restore the point-in-time snapshots <restore-pit-snapshots>`
+      to each shard's node. 
+
 6. :v4.2:`Restart each mongos process in the target cluster </tutorial/restore-sharded-cluster/#e-restart-each-mongos>`.
 7. :v4.2:`Verify that you can connect to the cluster </tutorial/restore-sharded-cluster/#f-validate-cluster-accessibility>`.
 
@@ -27,5 +41,3 @@ The full manual restore procedure can be found in the
 :v4.2:`MongoDB Server 4.2 </tutorial/restore-sharded-cluster/>`
 documentation. For MongoDB 4.4 or later deployments, refer to the
 corresponding versions of the manual.
-
-
