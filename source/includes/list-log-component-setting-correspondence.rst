@@ -1,5 +1,7 @@
 - :setting:`accessControl <systemLog.component.accessControl.verbosity>`
 
+- :setting:`assert <systemLog.component.assert.verbosity>`
+
 - :setting:`command <systemLog.component.command.verbosity>`
 
 - :setting:`control <systemLog.component.control.verbosity>`
@@ -31,7 +33,7 @@
 - :setting:`sharding <systemLog.component.sharding.verbosity>`
 
 - :setting:`storage <systemLog.component.storage.verbosity>`
-  
+
 - :setting:`storage.journal <systemLog.component.storage.journal.verbosity>`
 
 - :setting:`transaction <systemLog.component.transaction.verbosity>`
