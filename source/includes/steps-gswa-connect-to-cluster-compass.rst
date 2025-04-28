@@ -7,16 +7,23 @@
       
       Click :guilabel:`Connect` for the {+database-deployment+} to 
       which you want to connect.
+
+   .. include:: /includes/cluster-connection-options.rst
+
+   .. step:: Click :guilabel:`Compass`.
       
+      From the `Connect Modal 
+      <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2Fconnect%3FclusterId%3D%3Ccluster%3E>`__, click :guilabel:`Compass`.
+
    .. step:: Get the Connection String for |compass| from |service|.
       
-      a. Click :guilabel:`I have MongoDB Compass`.
+      a. Click :guilabel:`I have MongoDB Compass installed`.
       
       #. Choose your version of |compass| in the dropdown. To check
          the version of |compass| that you have installed on your system,
          click :guilabel:`About MongoDB Compass` in the application.
       
-      #. Copy the connection string presented in the |service|
+      #. Copy the connection string in the |service|
          :guilabel:`Connect` dialog box.
       
    .. step:: Open |compass| and Connect to |service|.

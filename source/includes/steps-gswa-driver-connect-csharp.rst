@@ -7,6 +7,8 @@
       
       Click :guilabel:`Connect` for the {+database-deployment+} to 
       which you want to connect.
+
+   .. include:: /includes/cluster-connection-options.rst
       
    .. step:: Click :guilabel:`Drivers`.
       
