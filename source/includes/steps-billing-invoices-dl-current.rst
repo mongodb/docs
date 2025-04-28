@@ -9,9 +9,11 @@
       
       In the :guilabel:`Overview` tab, you can explore:
           
-      - The :guilabel:`Running Invoice Total` section that shows the 
-        total invoice for one organization, or for all invoices for 
-        linked organizations, per billing period.
+      - Invoice information that includes a :guilabel:`Pending Invoice` section,
+        which shows your :guilabel:`Net Month-to-Date Amount` for the current billing period. The
+        net month-to-date amount reflects your net charges from the start of the period
+        to the current day. You can also see a :guilabel:`Last Invoice` section,
+        which shows your usage and amount due for the previous billing period.
          
       - The :ref:`billing cost visualization charts 
         <billing-visualizations>`.
@@ -19,7 +21,7 @@
       - The :ref:`Available Credits <subscription-level>` and
         :ref:`History <subscription-level>` sections.
       
-   .. step:: Click :guilabel:`View Current Invoice`.
+   .. step:: Click :guilabel:`View Pending Invoice`.
       
       |service| displays the current invoice. The current invoice page shows
       the following sections:
@@ -28,7 +30,7 @@
       
    .. step:: Choose the format of your invoice.
       
-      a. Click :guilabel:`Export To` in the upper right corner of the
+      a. Click :guilabel:`Download` in the upper right corner of the
          :guilabel:`Invoice` page.
       
       #. Select :guilabel:`PDF` or :guilabel:`CSV`.
