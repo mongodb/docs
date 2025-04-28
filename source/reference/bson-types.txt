@@ -293,6 +293,107 @@ zero-indexed, so that January is month ``0``.
    created an index on ``Date`` values with an earlier version, and
    dates before 1970 are relevant to your application.
 
+``decimal128`` BSON Data Type 
+-----------------------------
+
+``decimal128`` is a 128-bit decimal representation for storing very 
+large or very precise numbers, whenever rounding decimals is important. 
+It was created in August 2009 as part of the 
+`IEEE 754-2008 <https://en.wikipedia.org/wiki/IEEE_754-2008_revision>`__ 
+revision of floating points. When you need high precision when 
+working with BSON data types, you should use ``decimal128``.
+
+``decimal128`` supports 34 decimal digits of precision, or 
+`significand <https://en.wikipedia.org/wiki/Significand>`__ along with 
+an exponent range of -6143 to +6144. The significand is not normalized
+in the ``decimal128`` standard, allowing for multiple possible representations: 
+``10 x 10^-1 = 1 x 10^0 = .1 x 10^1 = .01 x 10^2``, etc. Having the 
+ability to store maximum and minimum values in the order of ``10^6144`` 
+and ``10^-6143``, respectively, allows for a lot of precision.
+
+Use ``decimal128`` With the ``NumberDecimal()`` Constructor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In MongoDB, you can store data in ``decimal128`` format using the
+``NumberDecimal()`` constructor. If you pass in the decimal value 
+as a string, MongoDB stores the value in the database as follows:
+
+.. code-block:: javascript
+   :copyable: true 
+
+   NumberDecimal("9823.1297")
+
+You can also pass in the decimal value as a ``double``:
+
+.. code-block:: javascript
+   :copyable: true 
+
+   NumberDecimal(1234.99999999999)
+
+You should also consider the usage and support your programming 
+language has for ``decimal128``. The following languages don’t 
+natively support this feature and require a plugin 
+or additional package to get the functionality:
+
+- **Python:** The `decimal.Decimal <https://docs.python.org/3/library/decimal.html>`__ 
+  module can be used for floating-point arithmetic.
+- **Java:** The `Java BigDecimal <https://docs.oracle.com/javase/1.5.0/docs/api/java/math/BigDecimal.html>`__ 
+  class provides support for ``decimal128`` numbers.
+- **Node.js:**  There are several packages that provide support, 
+  such as `js-big-decimal <https://www.npmjs.com/package/js-big-decimal>`__ 
+  or `node.js bigdecimal <https://www.npmjs.com/package/bigdecimal>`__
+  available on `npm <https://www.npmjs.com/>`__.
+
+Use Cases
+~~~~~~~~~
+
+When you perfom mathematical calculations programmatically, you can sometimes 
+receive unexpected results. The following example in Node.js yields incorrect results:
+
+.. code-block:: javascript
+
+   > 0.1
+   0.1
+   > 0.2
+   0.2
+   > 0.1 * 0.2
+   0.020000000000000004
+   > 0.1 + 0.1
+   0.010000000000000002
+
+Similarly, the following example in Java produces incorrect output: 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: java 
+      :linenos: 
+
+      class Main {
+         public static void main(String[] args) {
+            System.out.println("0.1 * 0.2:");
+            System.out.println(0.1 * 0.2);
+         }
+      }
+
+   .. output::
+      :language: javascript
+      :linenos: 
+
+      0.1 * 0.2:
+      0.020000000000000004
+
+The same computations in Python, Ruby, Rust, and other languages
+produce the same results. This happens because binary floating-point 
+numbers do not represent base 10 values well. 
+
+For example, the ``0.1`` used in the above examples is represented 
+in binary as ``0.0001100110011001101``. Most of the time, this 
+does not cause any significant issues. However, in applications 
+such as finance or banking where precision is important, 
+use ``decimal128`` as your data type.
+
 .. toctree::
    :titlesonly:
    :hidden:
