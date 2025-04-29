@@ -16,13 +16,13 @@
 
 package documentation;
 
+// Start AWS Lambda Example 1
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.bson.Document;
 
-// Start AWS Lambda Example 1
 public class ExampleAwsLambdaHandler implements RequestHandler<String, String> {
     private final MongoClient client;
 

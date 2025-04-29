@@ -6,6 +6,7 @@
 
 package examples
 
+// Start AWS Lambda Example 1
 import (
 	"context"
 	"os"
@@ -14,8 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
-
-// Start AWS Lambda Example 1
 
 var client, err = mongo.Connect(options.Client().ApplyURI(os.Getenv("MONGODB_URI")))
 
