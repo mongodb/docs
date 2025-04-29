@@ -93,7 +93,19 @@ object CsotExample {
         .timeoutMode(TimeoutMode.CURSOR_LIFETIME)
       // end-cursor-lifetime
     }
+    {
+      val settings = MongoClientSettings.builder
+        .applyConnectionString(ConnectionString("<connection string>"))
+        .timeout(200L, MILLISECONDS)
+        .build
 
+      val mongoClient = MongoClient(settings)
+      val database = mongoClient.getDatabase("db")
+
+      // start-gridfsbucket-timeout
+      val gridFSBucket = GridFSBucket(database).withTimeout(200L, MILLISECONDS)
+      // end-gridfsbucket-timeout
+    }
 
   }
 }
