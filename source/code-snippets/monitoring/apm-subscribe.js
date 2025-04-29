@@ -10,16 +10,16 @@ const client = new MongoClient(uri, { monitorCommands:true });
 // Replace <event name> with the name of the event you are subscribing to
 const eventName = "<event name>";
 
-// Subscribe to a specified event and print a message when the event is received
+// Subscribes to a specified event and print a message when the event is received
 client.on(eventName, event => console.log(event));
 
 async function run() {
   try {
-    // Establish and verify connection to the "admin" database
+    // Establishes and verifies connection to the "admin" database
     await client.db("admin").command({ ping: 1 });
     console.log("Connected successfully");
   } finally {
-    // Close the database connection on completion or error
+    // Closes the database connection on completion or error
     await client.close();
   }
 }

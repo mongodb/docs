@@ -1,0 +1,739 @@
+.. _node-monitoring:
+
+==========================
+Monitor Application Events
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. meta::
+   :description: Explore cluster, command, and connection pool monitoring in the MongoDB Node.js Driver.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: event
+   :description: Learn how to monitor events by using the {+driver-long+}.
+
+Overview
+--------
+
+In this guide, you can learn how to set up and configure **monitoring** in the
+{+driver-long+}.
+
+Monitoring involves collecting information about the activities of a running
+program, which you can use with an application performance management
+library.
+
+Monitoring the {+driver-short+} lets you understand the driver's resource usage
+and performance,  and can help you make informed decisions when designing and
+debugging your application.
+
+In this guide you will learn how to perform these tasks:
+
+- :ref:`Monitor Command Events <node-command-monitoring>`
+- :ref:`Monitor Server Discovery and Monitoring (SDAM) Events <node-cluster-monitoring>`
+- :ref:`Monitor Connection Pool Events <node-connection-pool-monitoring>`
+
+This guide shows how to use information about the activity of the driver in code.
+To learn how to record events in the driver, see the {+driver-short+}'s 
+:ref:`Logging <node-logging>` guide. 
+
+.. _node-monitoring-events:
+
+Monitor Events
+--------------
+
+You can monitor events using the {+driver-short+} by subscribing to them in your
+application.
+
+An event is any action that occurs within the driver during its operation. The
+{+driver-short+} includes functionality for listening to a subset of these
+events.
+
+The {+driver-short+} organizes the events it defines into the following categories:
+
+- Command Events
+- Server Discovery and Monitoring (SDAM) Events
+- Connection Pool Events
+
+The following sections show how to monitor each event category.
+
+.. _node-command-monitoring:
+
+Command Events
+~~~~~~~~~~~~~~
+
+A command event is an event related to a MongoDB database command. You can
+access one or more command monitoring events using the driver by subscribing to
+them in your application.
+
+To learn more about MongoDB database commands, see the
+:manual:`Database Commands </reference/command/>` guide in the Server Manual.
+
+.. note::
+
+   Command monitoring is disabled by default. To enable command
+   monitoring, pass the ``monitorCommands`` option as ``true`` to
+   your ``MongoClient`` constructor. 
+
+Example
+```````
+
+The following example demonstrates connecting to a replica set and subscribing
+to one of the command monitoring events created by the MongoDB deployment:
+
+.. literalinclude:: /code-snippets/monitoring/apm-subscribe.js
+   :language: javascript
+
+Event Descriptions
+``````````````````
+
+You can subscribe to any of the following command monitoring events:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - ``commandStarted``
+     - Created when a command is started.
+
+   * - ``commandSucceeded``
+     - Created when a command succeeded.
+
+   * - ``commandFailed``
+     - Created when a command failed.
+
+commandStarted
+++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   CommandStartedEvent {
+     requestId: 1534,
+     databaseName: "app",
+     commandName: "find",
+     address: 'localhost:27017',
+     connectionId: 812613,
+     command: {
+       find: { firstName: "Jane", lastName: "Doe" }
+     }
+   }
+
+commandSucceeded
+++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   CommandSucceededEvent {
+     requestId: 1534,
+     commandName: "find",
+     address: 'localhost:27017',
+     connectionId: 812613,
+     duration: 15,
+     reply: {
+       cursor: {
+         firstBatch: [
+           {
+             _id: ObjectId("5e8e2ca217b5324fa9847435"),
+             firstName: "Jane",
+             lastName: "Doe"
+           }
+         ],
+         _id: 0,
+         ns: "app.users"
+       },
+       ok: 1,
+       operationTime: 1586380205
+     }
+   }
+
+
+commandFailed
++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   CommandFailedEvent {
+     requestId: 1534,
+     commandName: "find",
+     address: 'localhost:27017',
+     connectionId: 812613,
+     failure: Error("something failed"),
+     duration: 11
+   }
+
+
+.. _node-cluster-monitoring:
+
+Server Discovery and Monitoring Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-short+} creates topology events, also known as SDAM events, when
+there is a change in the state of the instance or cluster that you connected to.
+For example, the driver creates an event when you establish a new connection or
+if the cluster elects a new primary node.
+
+To learn more about topology events, see the :manual:`Replication </replication>` guide in the Server Manual.
+
+The following sections demonstrate how to record topology changes in your application
+and explore the information provided in these events.
+
+Event Subscription Example
+``````````````````````````
+
+You can access one or more SDAM events by subscribing to them
+in your application. The following example demonstrates connecting to a
+replica set and subscribing to one of the SDAM events created by the MongoDB
+deployment:
+
+.. literalinclude:: /code-snippets/monitoring/sdam-subscribe.js
+   :language: javascript
+
+Event Descriptions
+``````````````````
+
+You can subscribe to any of the following SDAM events:
+
+.. list-table::
+   :widths: 33 67 
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - ``serverOpening``
+     - Created when a connection to an instance opens.
+
+   * - ``serverClosed``
+     - Created when a connection to an instance closes.
+
+   * - ``serverDescriptionChanged``
+     - Created when an instance state changes (such as from secondary to
+       primary).
+
+   * - ``topologyOpening``
+     - Created before attempting a connection to an instance.
+
+   * - ``topologyClosed``
+     - Created after all instance connections in the topology close.
+
+   * - ``topologyDescriptionChanged``
+     - Created when the topology changes, such as an election of a new
+       primary or a **mongos** proxy disconnecting.
+
+   * - ``serverHeartbeatStarted``
+     - Created before issuing a ``hello`` command to a MongoDB instance.
+
+   * - ``serverHeartbeatSucceeded``
+     - Created when the ``hello`` command returns successfully from a
+       MongoDB instance.
+
+   * - ``serverHeartbeatFailed``
+     - Created when a ``hello`` command issued to a specific MongoDB
+       instance fails to return a successful response.
+
+Example Event Documents
+```````````````````````
+
+The following sections show sample output for each type of SDAM event.
+
+serverDescriptionChanged
+++++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerDescriptionChangedEvent {
+     topologyId: 0,
+     address: 'localhost:27017',
+     previousDescription: ServerDescription {
+       address: 'localhost:27017',
+       error: null,
+       roundTripTime: 0,
+       lastUpdateTime: 1571251089030,
+       lastWriteDate: null,
+       opTime: null,
+       type: 'Unknown',
+       minWireVersion: 0,
+       maxWireVersion: 0,
+       hosts: [],
+       passives: [],
+       arbiters: [],
+       tags: []
+     },
+     newDescription: ServerDescription {
+       address: 'localhost:27017',
+       error: null,
+       roundTripTime: 0,
+       lastUpdateTime: 1571251089051,
+       lastWriteDate: 2019-10-16T18:38:07.000Z,
+       opTime: { ts: Timestamp, t: 18 },
+       type: 'RSPrimary',
+       minWireVersion: 0,
+       maxWireVersion: 7,
+       maxBsonObjectSize: 16777216,
+       maxMessageSizeBytes: 48000000,
+       maxWriteBatchSize: 100000,
+       me: 'localhost:27017',
+       hosts: [ 'localhost:27017' ],
+       passives: [],
+       arbiters: [],
+       tags: [],
+       setName: 'rs',
+       setVersion: 1,
+       electionId: ObjectID,
+       primary: 'localhost:27017',
+       logicalSessionTimeoutMinutes: 30,
+       '$clusterTime': ClusterTime
+     }
+   }
+
+The ``type`` field of the ``ServerDescription`` object in this event contains
+one of the following possible values:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Type
+     - Description
+   * - ``Unknown``
+     - Unknown instance
+   * - ``Standalone``
+     - Standalone instance
+   * - ``Mongos``
+     - Mongos proxy instance
+   * - ``PossiblePrimary``
+     - At least one server recognizes this as the primary, but is not yet
+       verified by all instances.
+   * - ``RSPrimary``
+     - Primary instance
+   * - ``RSSecondary``
+     - Secondary instance
+   * - ``RSArbiter``
+     - Arbiter instance
+   * - ``RSOther``
+     - See the `RSGhost and RSOther specification <https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#rsghost-and-rsother>`__
+       for more details
+   * - ``RSGhost``
+     - See the `RSGhost and RSOther specification <https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#rsghost-and-rsother>`__
+       for more details
+
+serverHeartbeatStarted
+++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerHeartbeatStartedEvent {
+     connectionId: 'localhost:27017'
+   }
+
+serverHeartbeatSucceeded
+++++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerHeartbeatSucceededEvent {
+     duration: 1.939997,
+     reply:{
+       hosts: [ 'localhost:27017' ],
+       setName: 'rs',
+       setVersion: 1,
+       isWritablePrimary: true,
+       secondary: false,
+       primary: 'localhost:27017',
+       me: 'localhost:27017',
+       electionId: ObjectID,
+       lastWrite: {
+         opTime: { ts: [Timestamp], t: 18 },
+         lastWriteDate: 2019-10-16T18:38:17.000Z,
+         majorityOpTime: { ts: [Timestamp], t: 18 },
+         majorityWriteDate: 2019-10-16T18:38:17.000Z
+       },
+       maxBsonObjectSize: 16777216,
+       maxMessageSizeBytes: 48000000,
+       maxWriteBatchSize: 100000,
+       localTime: 2019-10-16T18:38:19.589Z,
+       logicalSessionTimeoutMinutes: 30,
+       minWireVersion: 0,
+       maxWireVersion: 7,
+       readOnly: false,
+       ok: 1,
+       operationTime: Timestamp,
+       '$clusterTime': ClusterTime
+     },
+     connectionId: 'localhost:27017'
+   }
+
+serverHeartbeatFailed
++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerHeartbeatFailed {
+     duration: 20,
+     failure: MongoError('some error'),
+     connectionId: 'localhost:27017'
+   }
+
+serverOpening
++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerOpeningEvent {
+     topologyId: 0,
+     address: 'localhost:27017'
+   }
+
+serverClosed
+++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerClosedEvent {
+     topologyId: 0,
+     address: 'localhost:27017'
+   }
+
+topologyOpening
++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   TopologyOpeningEvent {
+     topologyId: 0
+   }
+
+topologyClosed
+++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   TopologyClosedEvent {
+     topologyId: 0
+   }
+
+topologyDescriptionChanged
+++++++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   TopologyDescriptionChangedEvent {
+     topologyId: 0,
+     previousDescription: TopologyDescription {
+       type: 'ReplicaSetNoPrimary',
+       setName: null,
+       maxSetVersion: null,
+       maxElectionId: null,
+       servers: Map {
+         'localhost:27017' => ServerDescription
+       },
+       stale: false,
+       compatible: true,
+       compatibilityError: null,
+       logicalSessionTimeoutMinutes: null,
+       heartbeatFrequencyMS: 10000,
+       localThresholdMS: 15,
+       options: Object,
+       error: undefined,
+       commonWireVersion: null
+     },
+     newDescription: TopologyDescription {
+       type: 'ReplicaSetWithPrimary',
+       setName: 'rs',
+       maxSetVersion: 1,
+       maxElectionId: null,
+       servers: Map {
+         'localhost:27017' => ServerDescription
+       },
+       stale: false,
+       compatible: true,
+       compatibilityError: null,
+       logicalSessionTimeoutMinutes: 30,
+       heartbeatFrequencyMS: 10000,
+       localThresholdMS: 15,
+       options: Object,
+       error: undefined,
+       commonWireVersion: 7
+     }
+   }
+
+The ``type`` field of the ``TopologyDescription`` object in this event contains
+one of the following possible values:
+
+.. list-table::
+   :widths: 30 70 
+   :header-rows: 1
+
+   * - Type
+     - Description
+
+   * - ``Single``
+     - Standalone instance
+
+   * - ``ReplicaSetWithPrimary``
+     - Replica set with a primary
+
+   * - ``ReplicaSetNoPrimary``
+     - Replica set with no primary
+
+   * - ``Sharded``
+     - Sharded cluster
+
+   * - ``Unknown``
+     - Unknown topology
+
+.. _node-connection-pool-monitoring:
+
+Connection Pool Events
+~~~~~~~~~~~~~~~~~~~~~~
+
+A connection pool is a set of open TCP connections your driver maintains with a
+MongoDB instance. Connection pools help reduce the number of network handshakes
+your application needs to perform and can help your application run faster.
+
+The following sections demonstrate how to record connection pool events in your
+application and explore the information provided in these events.
+
+Event Subscription Examples
+```````````````````````````
+
+You can access one or more connection pool events using the driver by
+subscribing to them in your application. The following example demonstrates
+connecting to a replica set and subscribing to one of the connection
+pool monitoring events created by the MongoDB deployment:
+
+.. literalinclude:: /code-snippets/monitoring/cpm-subscribe.js
+   :language: javascript
+
+Connection pool monitoring events can aid you in debugging and understanding
+the behavior of your application's connection pool. The following example uses connection
+pool monitoring events to return a count of checked-out connections in the pool:
+
+.. literalinclude:: /code-snippets/monitoring/cpm-status.js
+   :language: javascript
+
+Event Descriptions
+``````````````````
+
+You can subscribe to any of the following connection pool monitoring events:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - ``connectionPoolCreated``
+     - Created when a connection pool is created.
+
+   * - ``connectionPoolReady``
+     - Created when a connection pool is ready.
+
+   * - ``connectionPoolClosed``
+     - Created when a connection pool is closed before server
+       instance destruction.
+
+   * - ``connectionCreated``
+     - Created when a connection is created, but not necessarily
+       when it is used for an operation.
+
+   * - ``connectionReady``
+     - Created after a connection has successfully completed a
+       handshake and is ready to be used for operations.
+
+   * - ``connectionClosed``
+     - Created when a connection is closed.
+
+   * - ``connectionCheckOutStarted``
+     - Created when an operation attempts to acquire a connection for
+       execution.
+
+   * - ``connectionCheckOutFailed``
+     - Created when an operation fails to acquire a connection for
+       execution.
+
+   * - ``connectionCheckedOut``
+     - Created when an operation successfully acquires a connection for
+       execution.
+
+   * - ``connectionCheckedIn``
+     - Created when a connection is checked back into the pool after an operation
+       is executed.
+
+   * - ``connectionPoolCleared``
+     - Created when all connections are closed and the connection pool is
+       cleared.
+
+Example Event Documents
+```````````````````````
+
+The following sections show sample output for each type of connection
+pool monitoring event.
+
+connectionPoolCreated
++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionPoolCreatedEvent {
+     time: 2023-02-13T15:54:06.944Z,
+     address: '...',
+     options: {...}
+   }
+
+connectionPoolReady
++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionPoolReadyEvent {
+     time: 2023-02-13T15:56:38.440Z,
+     address: '...'
+   }
+
+connectionPoolClosed
+++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionPoolClosedEvent {
+     time: 2023-02-13T15:56:38.440Z,
+     address: '...'
+   }
+
+connectionCreated
++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionCreatedEvent {
+     time: 2023-02-13T15:56:38.291Z,
+     address: '...',
+     connectionId: 1
+   }
+
+connectionReady
++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionReadyEvent {
+     time: 2023-02-13T15:56:38.291Z,
+     address: '...',
+     connectionId: 1,
+     durationMS: 60
+   }
+
+connectionClosed
+++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionClosedEvent {
+     time: 2023-02-13T15:56:38.439Z,
+     address: '...',
+     connectionId: 1,
+     reason: 'poolClosed',
+     serviceId: undefined
+   }
+
+connectionCheckOutStarted
++++++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionCheckOutStartedEvent {
+     time: 2023-02-13T15:56:38.291Z,
+     address: '...',
+   }
+
+connectionCheckOutFailed
+++++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionCheckOutFailedEvent {
+     time: 2023-02-13T15:56:38.291Z,
+     address: '...',
+     reason: ...,
+     durationMS: 60
+   }
+
+connectionCheckedOut
+++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionCheckedOutEvent {
+     time: 2023-02-13T15:54:07.188Z,
+     address: '...',
+     connectionId: 1,
+     durationMS: 60
+   }
+
+connectionCheckedIn
++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionCheckedInEvent {
+     time: 2023-02-13T15:54:07.189Z,
+     address: '...',
+     connectionId: 1
+   }
+
+connectionPoolCleared
++++++++++++++++++++++
+
+.. code-block:: javascript
+   :copyable: false
+
+   ConnectionPoolClearedEvent {
+     time: 2023-02-13T15:56:38.439Z,
+     address: '...',
+     serviceId: undefined,
+     interruptInUseConnections: true,
+   }
+
+API Documentation
+-----------------
+
+To learn more about any of the options or types discussed in this guide, see the
+following API documentation:
+
+- `MongoClientOptions <{+api+}/interfaces/MongoClientOptions.html>`__
+- `MongoClient <{+api+}/classes/MongoClient.html>`__

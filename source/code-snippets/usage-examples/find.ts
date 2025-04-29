@@ -25,13 +25,10 @@ async function run() {
     const movies = database.collection<Movie>("movies");
 
     const query = { runtime: { $lt: 15 } };
-    const cursor = movies.find<Movie>(
-      query,
-      {
-        sort: { title: 1 },
-        projection: { _id: 0, title: 1, imdb: 1 },
-      }
-    );
+    const sortFields = { title: 1 };
+    const projectFields = { _id: 0, title: 1, imdb: 1 };
+
+    const cursor = movies.find<Movie>(query).sort(sortFields).project(projectFields);
 
     if ((await movies.countDocuments(query)) === 0) {
       console.warn("No documents found!");

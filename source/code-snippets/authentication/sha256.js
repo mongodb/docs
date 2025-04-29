@@ -3,7 +3,7 @@ const { MongoClient } = require("mongodb");
 // Replace the following with values for your environment.
 const username = encodeURIComponent("<db_username>");
 const password = encodeURIComponent("<db_password>");
-const clusterUrl = "<MongoDB cluster url>";
+const clusterUrl = "<cluster_url>";
 
 const authMechanism = "SCRAM-SHA-256";
 

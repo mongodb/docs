@@ -9,14 +9,14 @@ const client = new MongoClient(uri);
 // Replace <event name> with the name of the event you are subscribing to
 const eventName = "<event name>";
 
-// Subscribe to the event
+// Subscribes to the event
 client.on(eventName, (event) =>
   console.log("\nreceived event:\n", event)
 );
 
 async function run() {
   try {
-    // Establish and verify connection
+    // Establishes and verifies connection
     await client.db("admin").command({ ping: 1 });
     console.log("\nConnected successfully!\n");
   } finally {
