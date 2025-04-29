@@ -22,9 +22,9 @@ from the dropdown and adding the query for that stage. Click
                 }
               },
               {
-                "text": {
-                  "path": "inter",
-                  "query": "plot",
+                "autocomplete": {
+                  "query": "inter",
+                  "path": "plot"
                 }
               }],
               "minimumShouldMatch": 1

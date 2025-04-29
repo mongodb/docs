@@ -23,7 +23,7 @@ public class AutocompleteCompoundExample
         var results = moviesCollection.Aggregate()
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Should(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "inter"))
-                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Plot, "inter")))
+                .Should(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Plot, "inter")))
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)

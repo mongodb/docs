@@ -8,44 +8,44 @@
          :linenos: 
 
          {
-            "plot": "Filmmakers James Franco and Travis Mathews re-imagine the lost 40 minutes from \"Cruising\" as a starting point to a broader exploration of sexual and creative freedom.",
-            "title": "Interior. Leather Bar."
-         }
-         {
-            "plot": "Almost forty years after the John F. Kennedy assassination, an ex-Marine named Walter Ohlinger has come forward with a startling claim.",
-            "title": "Interview with the Assassin"
-         }
-         {
             "plot": "A graduate student (Nicholson) copes with a recent breakup by conducting interviews with various men.",
             "title": "Brief Interviews with Hideous Men"
          }
          {
-            "plot": "A 1960s hipster secret agent is brought out of cryofreeze to oppose his greatest enemy in the 1990s, where his social attitudes are glaringly out of place.",
-            "title": "Austin Powers\:\ International Man of Mystery"
+            "plot": "An Interpol agent attempts to expose a high-profile financial institution's role in an international arms dealing ring.",
+            "title": "The International"
          }
          {
-            "plot": "A confused young man (Marsden) takes a journey on a road that doesn't exist on any map.",
-            "title": "Interstate 60\:\ Episodes of the Road"
+            "plot": "A variety of losers in Dublin have harrowingly farcical intersecting stories of love, greed and violence.",
+            "title": "Intermission"
          }
          {
-            "plot": "A vampire tells his epic life story\:\ love, betrayal, loneliness, and hunger.",
-            "title": "Interview with the Vampire\:\ The Vampire Chronicles"
+            "plot": "A hospital nurse becomes an \"international girl\", a prostitute who caters to foreigners with hard currency.",
+            "title": "Interdevochka"
          }
          {
-            "plot": "The story of programming prodigy and information activist Aaron Swartz, who took his own life at the age of 26.",
-            "title": "The Internet's Own Boy\:\ The Story of Aaron Swartz"
+            "plot": "After falling out with his editor, a fading political journalist is forced to interview America's most popular soap actress.",
+            "title": "Interview"
+         }
+         {
+            "plot": "Cinecitta, the huge movie studio outside Rome, is 50 years old and Fellini is interviewed by a Japanese TV crew about the films he has made there over the years as he begins production on ...",
+            "title": "Intervista"
+         }
+         {
+            "plot": "Political intrigue and deception unfold inside the United Nations, where a U.S. Secret Service agent is assigned to investigate an interpreter who overhears an assassination plot.",
+            "title": "The Interpreter"
          }
          { 
-            "plot": "The film chronicles Australian-born opera star Marjorie Lawrence's success, her battle with polio, and her eventual career comeback.",
-            "title": "Interrupted Melody"
+            "plot": "Boy Interrupted looks at the life of Evan Perry a 15-year-old boy from New York who committed suicide in 2005. The film made by his parents Dana and Hart examines how Evan's bipolar ...",
+            "title": "Boy Interrupted"
          }
          {
-            "plot": "Locked up and isolated, constantly exposed and threatened to be killed, for the first time in his life Lazaro understood that he was a free man.",
-            "title": "Richness of Internal Space"
+            "plot": "Two salesmen whose careers have been torpedoed by the digital age find their way into a coveted internship at Google, where they must compete with a group of young, tech-savvy geniuses for a shot at employment.",
+            "title": "The Internship"
          }
          {
-            "plot": "Three sisters find their lives spinning out of control in the wake of their parents' sudden, unexpected divorce.",
-            "title": "Interiors"
+            "plot": "Dave Skylark and producer Aaron Rapoport run the celebrity tabloid show \"Skylark Tonight.\" When they land an interview with a surprise fan, North Korean dictator Kim Jong-un, they are recruited by the CIA to turn their trip to Pyongyang into an assassination mission.",
+            "title": "The Interview"
          }
 
       .. include:: /includes/fts/extracts/fts-autocomplete-edgegram-result.rst
@@ -58,44 +58,44 @@
          :linenos: 
 
          {
-            "plot": "After her son is hospitalized, a doctor cheats on her husband with a snow plow driver who is a suspect in her investigation of the recent death of a young Arab boy.",
-            "title": "Kissed by Winter"
+            "plot": "Sean is a little duck with a big problem. Due to a mishap with a jet aircraft Sean misses the annual migration South and has to face the winter alone. However, he is befriended by a water ...",
+            "title": "The First Snow of Winter"
          }
          {
-            "plot": "The American oil company KIC Corporation is building an ice road to explore the remote Northern Arctic National Wildlife Refuge seeking energy independence. Independent environmentists ...",
-            "title": "The Last Winter"
+            "plot": "As Steve Rogers struggles to embrace his role in the modern world, he teams up with another super soldier, the black widow, to battle a new threat from old history: an assassin known as the Winter Soldier.",
+            "title": "Captain America: The Winter Soldier"
          }
          {
-            "plot": "A couple engage in discussions with people on the street, politicians and religious leaders about the discrimination against gays and lesbians in Italy.",
-            "title": "Suddenly, Last Winter"
+            "plot": "During a winter of record-breaking cold; an apocalyptic blackout strands a group of Brooklynites in a remote farmhouse. At first it's a party of sex; drugs; and yoga. But as supplies dwindle; they turn against one another.",
+            "title": "First Winter"
          }
          {
             "plot": "WINTER is a dangerous, sexy, poignant and at times darkly funny story about two people who desperately want intimacy but have fashioned lives of reclusivity and emotional fracture which ...",
             "title": "After Fall, Winter"
          }
          {
-            "plot": "Rita, a middle aged New York City homemaker, finds herself in an emotional crisis which forces her to re-examine her life, as well as her relationships with her mother, her eye doctor ...",
-            "title": "Summer Wishes, Winter Dreams"
+            "plot": "Trapped in an isolated gas station by a voracious Splinter parasite that transforms its still living victims into deadly hosts, a young couple and an escaped convict must find a way to work together to survive this primal terror.",
+            "title": "Splinter"
          }
          {
-            "plot": "1183 AD\:\ King Henry II's three sons all want to inherit the throne, but he won't commit to a choice. They and his wife variously plot to force him.",
-            "title": "The Lion in Winter"
+            "plot": "Set against the momentous backdrop of the whirlwind Tahrir Square protests, Winter of discontent poetically explores the anguish of a victim state terror in 2009, presaging and intertwining...",
+            "title": "Winter of Discontent"
          }
          {
-            "plot": "Felicie and Charles have a serious if whirlwind holiday romance. Due to a mix-up on addresses they lose contact, and five years later at Christmas-time Felicie is living with her mother in ...",
-            "title": "A Tale of Winter"
+            "plot": "A couple engage in discussions with people on the street, politicians and religious leaders about the discrimination against gays and lesbians in Italy.",
+            "title": "Suddenly, Last Winter"
+         }
+         {
+            "plot": "After her son is hospitalized, a doctor cheats on her husband with a snow plow driver who is a suspect in her investigation of the recent death of a young Arab boy.",
+            "title": "Kissed by Winter"
          }
          {
             "plot": "A mysterious creature is killing a farmer's livestock.",
             "title": "In the Winter Dark"
          }
          {
-            "plot": "Sean is a little duck with a big problem. Due to a mishap with a jet aircraft Sean misses the annual migration South and has to face the winter alone. However, he is befriended by a water ...",
-            "title": "The First Snow of Winter"
-         }
-         {
-            "plot": "A renowned artist must uncover a young dancer's secrets in order to truly capture her likeness for a commissioned work.",
-            "title": "A Year Ago in Winter"
+            "plot": "Felicie and Charles have a serious if whirlwind holiday romance. Due to a mix-up on addresses they lose contact, and five years later at Christmas-time Felicie is living with her mother in ...",
+            "title": "A Tale of Winter"
          }
 
       .. include:: /includes/fts/extracts/fts-autocomplete-rightedgegram-result.rst
@@ -108,44 +108,44 @@
          :linenos: 
       
          {
-            "plot": "A 1960s hipster secret agent is brought out of cryofreeze to oppose his greatest enemy in the 1990s, where his social attitudes are glaringly out of place.",
-            "title": "Austin Powers\:\ International Man of Mystery"
-         }
-         {
-            "plot": "On an isolated lake, an old monk lives on a small floating temple. The wise master has also a young boy with him who learns to become a monk. And we watch as seasons and years pass by.",
-            "title": "Spring, Summer, Fall, Winter... and Spring"
-         }
-         {
-            "plot": "Rita, a middle aged New York City homemaker, finds herself in an emotional crisis which forces her to re-examine her life, as well as her relationships with her mother, her eye doctor ...",
-            "title": "Summer Wishes, Winter Dreams"
-         }
-         {
-            "plot": "A mysterious creature is killing a farmer's livestock.",
-            "title": "In the Winter Dark"
-         }
-         {
-            "plot": "Locked up and isolated, constantly exposed and threatened to be killed, for the first time in his life Lazaro understood that he was a free man.",
-            "title": "Richness of Internal Space"
-         }
-         {
             "plot": "A graduate student (Nicholson) copes with a recent breakup by conducting interviews with various men.",
             "title": "Brief Interviews with Hideous Men"
          }
          {
-            "plot": "As Steve Rogers struggles to embrace his role in the modern world, he teams up with another super soldier, the black widow, to battle a new threat from old history\:\ an assassin known as the Winter Soldier.",
-            "title": "Captain America\:\ The Winter Soldier"
-         }
-         {
             "plot": "On a cold winter day a mysterious stranger shows up at the Witting Farm. He is John Witting, the father of Jacob Witting who abandoned Jacob and his mother when Jacob was little. Jacob is ...",
-            "title": "Sarah, Plain and Tall\:\ Winter's End"
+            "title": "Sarah, Plain and Tall: Winter's End"
          }
          {
-            "plot": "The story of programming prodigy and information activist Aaron Swartz, who took his own life at the age of 26.",
-            "title": "The Internet's Own Boy\:\ The Story of Aaron Swartz"
+            "plot": "As Steve Rogers struggles to embrace his role in the modern world, he teams up with another super soldier, the black widow, to battle a new threat from old history: an assassin known as the Winter Soldier.",
+            "title": "Captain America: The Winter Soldier"
          }
          {
-            "plot": "Out of work actor Joe volunteers to help try and save his sister's local church for the community by putting on a Christmas production of Hamlet, somewhat against the advice of his agent ...",
-            "title": "A Midwinter's Tale"
+            "plot": "Set against the momentous backdrop of the whirlwind Tahrir Square protests, Winter of discontent poetically explores the anguish of a victim state terror in 2009, presaging and intertwining...",
+            "title": "Winter of Discontent"
+         }
+         {
+            "plot": "Sean is a little duck with a big problem. Due to a mishap with a jet aircraft Sean misses the annual migration South and has to face the winter alone. However, he is befriended by a water ...",
+            "title": "The First Snow of Winter"
+         }
+         {
+            "plot": "WINTER is a dangerous, sexy, poignant and at times darkly funny story about two people who desperately want intimacy but have fashioned lives of reclusivity and emotional fracture which ...",
+            "title": "After Fall, Winter"
+         }
+         {
+            "plot": "An Interpol agent attempts to expose a high-profile financial institution's role in an international arms dealing ring.",
+            "title": "The International"
+         }
+         {
+            "plot": "Political intrigue and deception unfold inside the United Nations, where a U.S. Secret Service agent is assigned to investigate an interpreter who overhears an assassination plot.",
+            "title": "The Interpreter"
+         }
+         {
+            "plot": "Connie Doyle is eighteen and pregnant when her boyfriend kicks her out. She accidentally ends up on a train where she meets Hugh Winterbourne and his wife Patricia who is pregnant. The ...",
+            "title": "Mrs. Winterbourne"
+         }
+         {
+            "plot": "Two salesmen whose careers have been torpedoed by the digital age find their way into a coveted internship at Google, where they must compete with a group of young, tech-savvy geniuses for a shot at employment.",
+            "title": "The Internship"
          }
 
       .. include:: /includes/fts/extracts/fts-autocomplete-ngram-result.rst

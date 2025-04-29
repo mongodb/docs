@@ -25,7 +25,7 @@ public class AutocompleteQuery {
             Document agg = new Document(new Document("should", Arrays.asList(new Document("autocomplete", 
                                 new Document("path", "title")
                                         .append("query", "inter")), 
-                                new Document("text", 
+                                new Document("autocomplete", 
                                 new Document("path", "plot")
                                         .append("query", "inter"))))
                             .append("minimumShouldMatch", 1L));

@@ -10,9 +10,9 @@ db.movies.aggregate([
             },
           },
           {
-            "text": {
+            "autocomplete": {
               "query": "inter",
-              "path": "plot",
+              "path": "plot"
             }
           }
         ],

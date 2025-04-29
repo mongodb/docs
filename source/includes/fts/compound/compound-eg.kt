@@ -22,7 +22,7 @@ fun main() {
                             .append("query", "inter")
                     ),
                     Document(
-                        "text",
+                        "autocomplete",
                         Document("path", "plot")
                             .append("query", "inter")
                     )
