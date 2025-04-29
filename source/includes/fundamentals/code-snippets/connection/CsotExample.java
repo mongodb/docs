@@ -133,4 +133,22 @@ public class CsotExample {
         }
 
     }
+
+    private void gridFSTimeout(){
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString("<connection string>"))
+                .build();
+
+        try (MongoClient mongoClient = MongoClients.create(settings)) {
+            MongoDatabase database = mongoClient.getDatabase("db");
+
+            // start-gridfsbucket-timeout
+            GridFSBucket gridFSBucket = GridFSBuckets
+                    .create(database)
+                    .withTimeout(200L, MILLISECONDS);
+            // end-gridfsbucket-timeout
+        }
+
+    }
+
 }
