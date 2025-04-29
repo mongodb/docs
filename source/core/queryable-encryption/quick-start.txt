@@ -76,6 +76,11 @@ language in the language selector.
 
       `Complete C# Application <{+sample-app-url-qe+}/csharp/>`__
 
+   .. tab:: Rust
+      :tabid: rust
+
+      `Complete Rust Application <{+sample-app-url-qe+}/rust/>`__
+
 .. tabs-selector:: drivers
 
 Procedure
@@ -206,6 +211,35 @@ Procedure
                :language: csharp
                :dedent:
 
+         .. tab::
+            :tabid: rust
+
+            - **kms_provider_name** - The KMS you're using to store your {+cmk-long+}.
+              Set this variable to ``"local"`` for this tutorial.
+            - **uri** - Your MongoDB deployment connection URI. Set your connection
+              URI in the ``MONGODB_URI`` environment variable.
+            - **key_vault_database_name** - The database in MongoDB where your data
+              encryption keys (DEKs) will be stored. Set this variable
+              to ``"encryption"``.
+            - **key_vault_collection_name** - The collection in MongoDB where your DEKs
+              will be stored. Set this variable to ``"__keyVault"``, which is the 
+              convention to help prevent mistaking it for a user collection.
+            - **key_vault_namespace** - The namespace in MongoDB where your DEKs will
+              be stored. Set this variable to a ``Namespace`` struct and pass the values of
+              the ``key_vault_database_name`` and ``key_vault_collection_name`` variables.
+            - **encrypted_database_name** - The database in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"medicalRecords"``.
+            - **encrypted_collection_name** - The collection in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"patients"``.
+
+            You can declare these variables by using the following code:
+
+            .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_tutorial.rs
+               :start-after: start-setup-application-variables
+               :end-before: end-setup-application-variables
+               :language: rust
+               :dedent:
+
       .. important:: {+key-vault-long-title+} Namespace Permissions
 
          .. include:: /includes/note-key-vault-permissions
@@ -278,6 +312,15 @@ Procedure
                   :start-after: start-generate-local-key
                   :end-before: end-generate-local-key
                   :language: csharp
+                  :dedent:
+
+            .. tab::
+               :tabid: rust
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_helpers.rs
+                  :start-after: start-generate-local-key
+                  :end-before: end-generate-local-key
+                  :language: rust
                   :dedent:
 
          .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
@@ -367,7 +410,15 @@ Procedure
                   :emphasize-lines: 13-18
                   :dedent:
 
-               .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note-local.rst
+            .. tab::
+               :tabid: rust
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_helpers.rs
+                  :start-after: start-get-local-key
+                  :end-before: end-get-local-key
+                  :language: rust
+                  :emphasize-lines: 20-26
+                  :dedent:
 
       #. Set Your Automatic Encryption Options
 
@@ -479,13 +530,29 @@ Procedure
                   :emphasize-lines: 6-9
                   :language: csharp
                   :dedent:
+   
+            .. tab::
+               :tabid: rust
+
+               Create an ``EncryptedClientBuilder`` object that contains the following
+               options:
+
+               - A ``ClientOptions`` object
+               - The namespace of your {+key-vault-long+}
+               - The ``kms_providers`` object, defined in the previous step
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_helpers.rs
+                  :start-after: start-auto-encryption-options
+                  :end-before: end-auto-encryption-options
+                  :language: rust
+                  :dedent:
 
          .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
 
       #. Create a Client to Set Up an Encrypted Collection
 
          To create a client used to encrypt and decrypt data in
-         your collection, instantiate a new ``MongoClient`` by using your
+         your collection, instantiate a new client by using your
          connection URI and your automatic encryption options.
 
          .. tabs-drivers::
@@ -557,12 +624,21 @@ Procedure
                   :language: csharp
                   :dedent:
 
+            .. tab::
+               :tabid: rust
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_tutorial.rs
+                  :start-after: start-create-client
+                  :end-before: end-create-client
+                  :language: rust
+                  :dedent:
+
       #. Specify Fields to Encrypt
 
          .. _qe-quickstart-encrypted-fields-map:
 
          To encrypt a field, add it to the {+enc-schema+}.
-         To enable queries on a field, add the "queries"
+         To enable queries on a field, add the ``queries``
          property. Create the {+enc-schema+} as follows:
 
          .. tabs-drivers::
@@ -621,15 +697,24 @@ Procedure
                   :language: csharp
                   :dedent:
 
+            .. tab::
+               :tabid: rust
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_tutorial.rs
+                  :start-after: start-encrypted-fields-map
+                  :end-before: end-encrypted-fields-map
+                  :language: rust
+                  :dedent:
+
          .. note::
 
-            In the previous code sample, both the "ssn" and
-            "billing" fields are encrypted, but only the "ssn"
+            In the previous code sample, both the ``ssn`` and
+            ``billing`` fields are encrypted, but only the ``ssn``
             field can be queried.
 
       #. Create the Collection
 
-         Instantiate ``ClientEncryption`` to access the API for the
+         Instantiate a ``ClientEncryption`` object to access the API for the
          encryption helper methods.
 
          .. tabs-drivers::
@@ -686,6 +771,15 @@ Procedure
                   :start-after: start-client-encryption
                   :end-before: end-client-encryption
                   :language: csharp
+                  :dedent:
+
+            .. tab::
+               :tabid: rust
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_helpers.rs
+                  :start-after: start-client-encryption
+                  :end-before: end-client-encryption
+                  :language: rust
                   :dedent:
 
          Because you are using a local {+cmk-long+}, you don't need to
@@ -747,6 +841,15 @@ Procedure
                   :start-after: start-kmip-local-cmk-credentials
                   :end-before: end-kmip-local-cmk-credentials
                   :language: csharp
+                  :dedent:
+
+            .. tab::
+               :tabid: rust
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_helpers.rs
+                  :start-after: start-local-cmk-credentials
+                  :end-before: end-local-cmk-credentials
+                  :language: rust
                   :dedent:
 
          .. tabs-drivers::
@@ -905,6 +1008,24 @@ Procedure
                to a database *object* rather than the database *name*. You can
                obtain this reference by using a method on your client object.
 
+            .. tab::
+               :tabid: rust
+
+               Create your encrypted collection by using the encryption
+               helper method accessed through the ``ClientEncryption`` class.
+               This method automatically generates data encryption keys for your
+               encrypted fields and creates the encrypted collection:
+
+               .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_tutorial.rs
+                  :start-after: start-create-encrypted-collection
+                  :end-before: end-create-encrypted-collection
+                  :language: rust
+                  :dedent:
+
+               The method that creates the encrypted collection requires a reference
+               to a database *object* rather than the database *name*. You can
+               obtain this reference by using the ``database()`` method on your client object.
+
    .. step:: Insert a Document with Encrypted Fields
 
       .. tabs-drivers::
@@ -1016,6 +1137,20 @@ Procedure
                :language: csharp
                :dedent:
 
+         .. tab::
+            :tabid: rust
+
+            Create a sample document that describes a patient's personal information.
+            Use the encrypted client to insert it into the ``patients`` collection,
+            as shown in the following example:
+
+            .. literalinclude::  /includes/qe-tutorials/rust/src/queryable_encryption_tutorial.rs
+               :start-after: start-insert-document
+               :end-before: end-insert-document
+               :emphasize-lines: 18
+               :language: rust
+               :dedent:
+
    .. step:: Query on an Encrypted Field
 
       The following code sample executes a find query on an encrypted field and
@@ -1075,6 +1210,15 @@ Procedure
                :start-after: start-find-document
                :end-before: end-find-document
                :language: csharp
+               :dedent:
+
+         .. tab::
+            :tabid: rust
+
+            .. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_tutorial.rs
+               :start-after: start-find-document
+               :end-before: end-find-document
+               :language: rust
                :dedent:
 
       The output of the preceding code sample should look similar to the
