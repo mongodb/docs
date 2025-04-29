@@ -1,0 +1,145 @@
+.. _c2c-limitations:
+
+===========
+Limitations
+===========
+
+.. include:: /includes/preview-warning
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+{+c2c-full-product-name+} is under active development. This preview
+release has several limitations. Review the list for changes after the
+{+c2c-product-name+} General Availability release.
+
+.. warning::
+
+   ``mongosync`` does not check for compliance with the documented
+   limitations. Please ensure that your application is not affected by
+   the limitations . Running ``mongosync`` in the presence of one of
+   these limitations could lead to undefined behavior on the destination
+   cluster.
+
+General Limitations
+-------------------
+
+- The minimum supported server version is MongoDB 6.0.
+- The source and destination clusters must have the same release
+  version.
+- The minimum supported :dbcommand:`Feature Compatibility Version
+  <setFeatureCompatibilityVersion>` is 6.0.
+- The source and destination clusters must have the same Feature
+  Compatibility Version.
+- The destination cluster must be empty.
+- ``mongosync`` does not validate that the clusters or the environment
+  are properly configured. 
+- Other clients must not write to the destination cluster while
+  ``mongosync`` is running.
+- If write blocking is disabled, the client must :ref:`prevent writes
+  <c2c-api-start>` to the source cluster before starting the commit
+  process.
+- Synchronizing a subset of the source data, "Filtered
+  Synchronization", is not supported.
+- Network compression is not supported.
+- :dbcommand:`applyOps` operations from the source cluster are not
+  supported.
+- :ref:`system.* collections <metadata-system-collections>` are not
+  replicated.
+- Documents that have dollar (``$``) prefixed field names are not
+  supported. See :ref:`Field Names with Periods and Dollar Signs
+  <crud-concepts-dot-dollar-considerations>`.
+- Serverless clusters are not supported.
+- The MongoDB Shared Tier is not supported.
+- `Queryable Encryption 
+  <https://www.mongodb.com/docs/v6.0/core/queryable-encryption/>`__ is
+  not supported.
+
+MongoDB Community Edition
+-------------------------
+
+{+c2c-product-name+} supports a limited number of operations with
+MongoDB Community Edition. Please contact a sales representative to
+discuss your requirements.
+
+Unsupported Collection Types
+----------------------------
+
+- Capped collections are currently not supported.
+- Time-series collections are not supported.
+
+
+Sharded Clusters
+----------------
+
+- The :ref:`shard topologies <sharding-introduction>` must be the same
+  in the source and target clusters. The following configurations are
+  not supported.
+
+  - Replica set to sharded cluster.
+  - Sharded cluster to replica set.
+  - Unequal numbers of source and destination shards.
+- The :dbcommand:`movePrimary` command cannot be used to reassign the primary
+  shard while syncing
+- There is no replication for zone configuration. ``mongosync``
+  replicates data, it does not inherit zones.
+- Shards cannot be added or removed while synchronizing.
+- Only indexes which exist on all shards are synchronized.
+- The shard key cannot be :ref:`refined <shard-key-refine>` while
+  synchronizing.
+- The shard key cannot be modified using :dbcommand:`reshardCollection`
+  during resharding.
+- The maximum number of :ref:`shard key indexes
+  <sharding-shard-key-indexes>` is one lower than normal, 63 instead of
+  64.
+
+
+Reversing
+---------
+
+If the old source has :ref:`unique indexes <index-type-unique>` which
+are partially distributed across shards, reversing may cause failures.
+Ensure that unique indexes exist on all shards before reversing.
+
+
+Multiple Clusters
+-----------------
+
+- Syncing multiple source clusters to one destination cluster is not
+  supported.
+- Syncing one source cluster to many destination clusters is not
+  supported.
+
+System Collections
+------------------
+
+{+c2c-product-name+} does not replicate :ref:`system collections 
+<metadata-system-collections>` to the destination cluster.
+
+If you issue a :dbcommand:`dropDatabase` command on the source cluster,
+this change is not directly applied on the destination cluster. Instead,
+{+c2c-product-name+} drops user collections and views in the database 
+on the destination cluster, but it does not drop system collections 
+on that database.
+
+For example, on the destination cluster:
+
+- The drop operation does not affect a user-created  
+  :data:`system.js <<database>.system.js>` collection. 
+
+- If you enable profiling, the :data:`system.profile 
+  <<database>.system.profile>` collection remains.
+
+- If you create views on the source cluster and then drop the database,
+  replicating the drop removes the views, but leaves an empty
+  :data:`system.views <<database>.system.views>` collection.
+
+In these cases, the replication of ``dropDatabase`` removes all user-created
+collections from the database, but leaves its system collections on the
+destination cluster.
+
