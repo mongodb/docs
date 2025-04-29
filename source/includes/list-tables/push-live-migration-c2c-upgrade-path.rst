@@ -7,8 +7,8 @@
      - | Destination |service| {+Cluster+}
        | MongoDB Version
 
-   * - {+c2c-version+}
-     - {+c2c-version+}
+   * - 6.0.17
+     - 6.0.17
 
-   * - {+c2c-version-7+}
-     - {+c2c-version-7+}
+   * - 7.0.13
+     - 7.0.13

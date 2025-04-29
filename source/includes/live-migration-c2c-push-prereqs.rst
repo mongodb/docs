@@ -1,4 +1,4 @@
-- Upgrade the source {+cluster+} to MongoDB {+c2c-version+} or later.
+- Upgrade the source cluster to MongoDB version 6.0 or later.
 - :ref:`Create an Atlas Account <create-atlas-account>`.
 - :ref:`Create an Atlas organization <create-organization>` and
   then :ref:`create a project <create-project>` in this organization.

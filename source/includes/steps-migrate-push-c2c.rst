@@ -12,7 +12,7 @@
          .. note::
 
             The UI label mentions |onprem|, however, for this procedure, you
-            can only migrate to |service| MongoDB deployments {+c2c-version+} or later
+            can only migrate clusters running MongoDB 6.0 or later to |service|
             that |mms| monitors.
       
       #. Click :guilabel:`I'm Ready to Start`.
@@ -80,8 +80,8 @@
          .. note::
           
             The UI label mentions |onprem|, however, for this procedure, you
-            can only migrate to |service| MongoDB deployments {+c2c-version+} or later
-            that |mms| monitors.
+            can only migrate to |service| clusters running MongoDB 6.0 or later 
+            to |service| that |mms| monitors.
          
          Fill in the fields as follows:
       

@@ -7,9 +7,27 @@
      - | Destination |service| {+Cluster+}
        | MongoDB Version
 
+   * - 4.4 Replica Set/Sharded Cluster 
+     - 6.0 Sharded Cluster
 
-   * - {+c2c-version+}
-     - {+c2c-version+}
 
-   * - {+c2c-version-7+}
-     - {+c2c-version-7+}
+   * - 5.0 Replica Set/Sharded Cluster 
+     - 6.0 Sharded Cluster
+
+   * - 5.0 Replica Set 
+     - 7.0 Replica Set
+  
+   * - 5.0 Replica Set/Sharded Cluster  
+     - 7.0 Sharded Cluster
+
+   * - 6.0 Replica Set 
+     - 6.0 Replica Set
+
+   * - 6.0 Replica Set/Sharded Cluster 
+     - 6.0 Sharded Cluster
+
+   * - 7.0 Replica Set 
+     - 7.0 Replica Set
+   
+   * - 7.0 Replica Set/Sharded Cluster 
+     - 7.0 Sharded Cluster
