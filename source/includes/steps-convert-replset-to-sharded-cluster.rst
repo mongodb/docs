@@ -20,6 +20,11 @@
          |service| automatically selects :guilabel:`1 Shard` from the
          drop-down menu. You can increase the number of shards in a later
          step after you restart your application clients.
+
+         .. warning:: 
+
+            .. include:: /includes/fts/facts/fact-sharded-cluster-upgrade.rst
+
       #. Click :guilabel:`Review Changes` to review the changes to 
          billing and click :guilabel:`Apply Changes`.
       
