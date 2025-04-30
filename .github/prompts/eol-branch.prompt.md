@@ -49,6 +49,6 @@ This script should add the following code to the top of every file in the repo:
 - Run `git status`
 - Run `git add -- ':!submodules/mongodb-atlas-cli'`. This is to add all files to the commit except for the submodules files.
 - Generate a short PR description like "Sunset v1.20" and run `gcmsg "<PR description>"` in the terminal.
-- Generate a descriptive PR title like "Sunset Atlas CLI v1.20" and Run `gh pr create --title "(<current-branch>): <title>"`. Replace the placeholders with appropriate values.
+- Generate a descriptive PR title like "Sunset Atlas CLI v1.20" and Run `gh pr create --base <version> --title "(<current-branch>): <title>"`. Replace the placeholders with appropriate values. Version should be something like "v1.20".
 
 The user will finalize the PR via the terminal prompts.
