@@ -29,6 +29,14 @@ results. You can use aggregation operations to:
 
 - Analyze data changes over time.
 
+- Query the most up-to-date version of your data. 
+
+By using the built-in aggregation operators in MongoDB, you can perform 
+analytics on your cluster without having to move your data to another platform. 
+
+Get Started 
+-----------
+
 To perform aggregation operations, you can use:
 
 - :ref:`Aggregation pipelines <aggregation-pipeline-intro>`, which are
@@ -56,7 +64,97 @@ Aggregation Pipelines
 Aggregation Pipeline Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/aggregation-pipeline-example.rst
+The following example pipeline uses documents from the :ref:`sample data 
+<sample-data>` available in MongoDB Atlas, specifically the 
+``sample_training.routes`` collection. In this pipeline, we'll find the top 
+three airlines that offer the most direct flights out of the airport in 
+Portland, Oregon, USA (PDX). 
+
+First, add a :pipeline:`$match` stage to filter the documents to flights 
+that have a ``src_airport`` value of ``PDX`` and zero ``stops``:
+
+.. code-block:: javascript 
+
+   {
+      $match : { 
+         "src_airport" : "PDX", 
+         "stops" : 0
+      }
+   }
+
+The ``$match`` stage reduces the number of documents in our pipeline from 66,985 
+to 113. Next, :pipeline:`$group` the documents by airline name and count 
+the number of flights: 
+
+.. code-block:: javascript
+
+   {
+      $group : { 
+         _id : { 
+            "airline name": "$airline.name", 
+         }
+         count : { 
+            $sum : 1
+         }
+      }
+   }
+
+The ``$group`` stage reduces the number of documents in the pipeline to 16 
+airlines. To find the airlines with the most flights, use the :pipeline:`$sort` 
+stage to sort the remaining documents in descending order:
+
+.. code-block:: javascript
+
+   {
+      $sort : { 
+         count : -1
+      }
+   }
+
+After you sort your documents, use the :pipeline:`$limit` stage to return the 
+top three airlines that offer the most direct flights out of PDX:
+
+.. code-block:: javascript
+
+   {
+      $limit : 3
+   }
+
+After putting the documents in the ``sample_training.routes`` collection through 
+this aggregation pipeline, the top three airlines offering non-stop flights from 
+PDX are Alaska, American, and United Airlines with 39, 17, and 13 flights, 
+respectively.
+
+The full pipeline resembles the following: 
+
+.. code-block:: javascript 
+
+   db.routes.aggregate( [
+      {
+         $match : { 
+            "src_airport" : "PDX", 
+            "stops" : 0
+         }
+      },
+      {
+         $group : { 
+            _id : { 
+               "airline name": "$airline.name", 
+            }
+            count : { 
+               $sum: 1
+            }
+         }
+      },
+      {
+         $sort : { 
+            count : -1
+         }
+      },
+      {
+         $limit : 3
+      }
+   ] )
 
 For runnable examples containing sample input documents, see
 :ref:`Complete Aggregation Pipeline Examples
