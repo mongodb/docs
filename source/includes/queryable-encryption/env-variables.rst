@@ -77,3 +77,16 @@
          To learn how you can setup these environment variables, see the
          `README.md <{+sample-app-url-qe+}/csharp/README.md>`__ file
          included in the sample application on GitHub.
+
+   .. tab::
+      :tabid: rust
+
+      .. tip:: Environment Variables
+
+         The sample code in this tutorial references environment variables that
+         you need to set. Alternatively, you can replace the values directly in
+         the code.
+
+         To learn how you can setup these environment variables, see the
+         `README.md <{+sample-app-url-qe+}/rust/README.md>`__ file
+         included in the sample application on GitHub.

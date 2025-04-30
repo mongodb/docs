@@ -57,3 +57,16 @@
             kmsProviderCredentials := map[string]map[string]interface{}{
               "aws": { },
             }
+
+      .. tab::
+         :tabid: rust
+
+         .. code-block:: rust
+
+            kms_providers = vec![(
+                KmsProvider::aws(),
+                doc! {},
+                None,
+            )];
+
+   You cannot automatically retrieve credentials if you are using a named KMS provider.
