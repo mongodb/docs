@@ -3,7 +3,7 @@ const { MongoClient } = require("mongodb");
 // Replace the following with values for your environment.
 const accessKeyId = encodeURIComponent("<AWS_ACCESS_KEY_ID>");
 const secretAccessKey = encodeURIComponent("<AWS_SECRET_ACCESS_KEY>");
-const clusterUrl = "<MongoDB cluster url>";
+const clusterUrl = "<cluster_url>";
 
 const authMechanism = "MONGODB-AWS";
 

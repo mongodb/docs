@@ -1,8 +1,8 @@
 const { MongoClient } = require("mongodb");
 
 // Replace the following with values for your environment.
-const clusterUrl = "<MongoDB cluster url>";
-const clientPEMFile = encodeURIComponent("<path to the client pem certificate file>");
+const clusterUrl = "<cluster_url>";
+const clientPEMFile = encodeURIComponent("<pem_certificate_file_path>");
 
 const authMechanism = "MONGODB-X509";
 

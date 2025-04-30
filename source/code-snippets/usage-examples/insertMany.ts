@@ -5,24 +5,24 @@ const uri = "<connection string uri>";
 
 const client = new MongoClient(uri);
 
-interface Food {
-  name: string;
-  healthy: boolean;
+interface Movie {
+  title: string;
+  genres: string[];
+  year: number;
+  cast: string[];
 }
 
 async function run() {
   try {
-    const database = client.db("insertDB");
+    const database = client.db("sample_mflix");
     // Specifying a schema is optional, but it enables type hints on
     // finds and inserts
-    const foods = database.collection<Food>("foods");
+    const movies = database.collection<Movie>("movies");
 
-    const result = await foods.insertMany(
-      [
-        { name: "cake", healthy: false },
-        { name: "lettuce", healthy: true },
-        { name: "donut", healthy: false },
-      ],
+    const result = await movies.insertMany(
+      { title: "Arsenic and Old Lace", genres: ["Comedy", "Romance"], year: 1944, cast: ["Cary Grant", "Priscilla Lane", "Raymond Massey"] },
+      { title: "Ball of Fire", genres: ["Comedy", "Romance"], year: 1941, cast: ["Gary Cooper", "Barbara Stanwyck", "Oskar Homolka"] },
+      { title: "I Married a Witch", genres: ["Comedy", "Fantasy", "Romance"], year: 1942, cast: ["Veronica Lake", "Fredric March", "Susan Hayward"] },
       { ordered: true }
     );
     console.log(`${result.insertedCount} documents were inserted`);

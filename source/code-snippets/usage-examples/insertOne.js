@@ -8,17 +8,19 @@ const client = new MongoClient(uri);
 
 async function run() {
   try {
-    // Connect to the "insertDB" database and access its "haiku" collection
-    const database = client.db("insertDB");
-    const haiku = database.collection("haiku");
+    // Connect to the "sample_mflix" database and access its "movies" collection
+    const database = client.db("sample_mflix");
+    const movies = database.collection("movies");
     
     // Create a document to insert
     const doc = {
-      title: "Record of a Shriveled Datum",
-      content: "No bytes, no problem. Just insert a document, in MongoDB",
+      title: "Charade",
+      genres: ["Comedy", "Romance", "Thriller"],
+      year: 1963,
+      cast: ["Cary Grant", "Audrey Hepburn", "Walter Matthau"],
     }
-    // Insert the defined document into the "haiku" collection
-    const result = await haiku.insertOne(doc);
+    // Insert the defined document into the "movies" collection
+    const result = await movies.insertOne(doc);
 
     // Print the ID of the inserted document
     console.log(`A document was inserted with the _id: ${result.insertedId}`);

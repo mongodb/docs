@@ -1,0 +1,234 @@
+.. _node-fundamentals-query-document:
+.. _node-query-document:
+
+===============
+Specify a Query
+===============
+
+.. meta::
+   :description: Learn how to use query documents with the MongoDB Node.js Driver by using comparison, logical, element, and evaluation operators to filter documents in a collection.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Most CRUD operations allow you to narrow the set of matched documents by
+specifying matching criteria in a **query document**. Query documents contain
+one or more query operators that apply to specific fields which  determine which
+documents to include in the result set.
+
+In a query document, you can match fields against literal values, such as
+``{ title: 'The Room' }``, or you can compose
+:manual:`query operators </reference/operator/query/>` to express more
+complex matching criteria. In this guide, we cover the following categories
+of query operators in MongoDB and show examples on how to use them:
+
+- :manual:`Comparison Operators </reference/operator/query-comparison/>`
+
+- :manual:`Logical Operators </reference/operator/query-logical/>`
+
+- :manual:`Element Operators </reference/operator/query-element/>`
+
+- :manual:`Evaluation Operators </reference/operator/query-evaluation/>`
+
+To follow the examples in this guide, use the following code
+snippet to insert documents that describe fruits into the ``myDB.fruits`` collection:
+
+.. code-block:: javascript
+
+   const myDB = client.db("myDB");
+   const myColl = myDB.collection("fruits");
+
+   await myColl.insertMany([
+     { "_id": 1, "name": "apples", "qty": 5, "rating": 3 },
+     { "_id": 2, "name": "bananas", "qty": 7, "rating": 1, "color": "yellow" },
+     { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 },
+     { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 },
+   ]);
+
+.. include:: /includes/access-cursor-note.rst
+
+Literal Value Queries
+---------------------
+
+Literal value queries allow you to query for data that exactly matches
+a value you provide in the query document. A literal value query has two
+parts: a field name and a value. Documents returned from such a query
+must contain a field that has exactly the same name as the provided name
+and a value for that field that is exactly the same as the provided
+value. The following operation uses a literal query to search for
+documents containing a field called "name" that has a value of "apples":
+
+.. code-block:: javascript
+
+   const query = { "name": "apples" };
+   const cursor = myColl.find(query);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+This code snippet returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id": 1, "name": "apples", "qty": 5, "rating": 3 }
+
+.. note::
+
+  Literal value queries are equivalent to the ``$eq`` comparison
+  operator. As a result, the following two queries are equivalent:
+
+  .. code-block:: javascript
+
+      myColl.find({
+         rating: { $eq: 5 }
+      });
+
+  .. code-block:: javascript
+
+      myColl.find({
+         rating: 5
+      });
+
+Comparison Operators
+--------------------
+
+Comparison operators allow you to query for data based on comparisons
+with values in a collection. Common comparison operators include
+``$gt`` for "greater than" comparisons, ``$lt`` for "less than" comparisons,
+and ``$ne`` for "not equal to" comparisons. The following operation uses
+the comparison operator ``$gt`` to search for documents in which the ``qty``
+field value is greater than ``5`` and prints them out:
+
+.. code-block:: javascript
+
+   // $gt means "greater than"
+   const query = { qty: { $gt : 5 } };
+   const cursor = myColl.find(query);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+This code snippet returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 }
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+
+Logical Operators
+-----------------
+
+Logical operators allow you to query for data using logic applied to the
+results of field-level operators. For instance, you can use the ``$or``
+method to query for documents that match either a ``$gt`` comparison
+operator or a literal value query. The following operation uses the
+logical operator ``$not`` to search for documents with a quantity value
+that is not greater than 5 and prints them out:
+
+.. code-block:: javascript
+
+   const query = { qty: { $not: { $gt: 5 }}};
+   const cursor = myColl.find(query);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+This code snippet returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 }
+   { "_id": 1, "name": "apples", "qty": 5, "rating": 3 }
+
+.. note::
+
+  Whenever a query document contains multiple elements, those elements
+  are combined together with an implicit ``$and`` logical operator to
+  figure out which documents match the query. As a result, the following
+  two queries are equivalent:
+
+  .. code-block:: javascript
+
+     myColl.find({
+       rating: { $eq: 5 },
+       qty: { $gt: 4 }
+     });
+
+  .. code-block:: javascript
+
+     myColl.find({
+       $and: [
+          { rating: { $eq: 5 }},
+          { qty: { $gt: 4 }}
+       ]
+     });
+
+For more information on comparison operators, see the reference manual
+entry for :manual:`Comparison Query Operators </reference/operator/query-comparison/>`.
+
+Element Operators
+-----------------
+
+Element operators allow you to query based on the presence, absence, or
+type of a field. The following operation uses the element operator
+``$exists`` to search for documents containing the ``color``
+field:
+
+.. code-block:: javascript
+
+   const query = { color: { $exists: true } };
+   const cursor = myColl.find(query);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+This code snippet returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1, "color": "yellow" }
+
+For more information on this operator, see the reference manual entry for
+the :manual:`$exists operator </reference/operator/query/exists/>`.
+
+Evaluation Operators
+--------------------
+
+Evaluation operators allow you to execute higher level logic, like
+regex and text searches, when querying for documents in a collection.
+Common evaluation operators include ``$regex`` and ``$text``.
+The following operation uses the evaluation operator ``$mod`` to search
+for documents in which the ``qty`` field value is divisible by 3 with
+a remainder of 0:
+
+.. code-block:: javascript
+
+   // $mod means "modulo" and returns the remainder after division
+   const query = { qty: { $mod: [ 3, 0 ] } };
+   const cursor = myColl.find(query);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+This code snippet returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+   { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 }
+
+For more information on this operator, see the reference manual entry for
+the :manual:`$mod operator </reference/operator/query/mod/>`.

@@ -17,7 +17,7 @@ async function run() {
         const collection = database.collection("<collectionName>");
 
         // start createSearchIndex example
-        // Create a search index
+        // Creates an Atlas Search index
         const index1 = {
             name: "search1",
             definition: {
@@ -30,7 +30,7 @@ async function run() {
         // end createSearchIndex example
 
         // start vectorSearchIdx example
-        // Create a Vector Search index
+        // Creates an Atlas Vector Search index
         const vectorSearchIdx = {
             name: "vsidx1",
             type: "vectorSearch",
@@ -48,7 +48,7 @@ async function run() {
         // end vectorSearchIdx example
 
         // start listSearchIndexes example
-        // List search indexes
+        // Lists search indexes
         const result = await collection.listSearchIndexes().toArray();
         console.log("Existing search indexes:\n");
         for (const doc in result) {
@@ -57,7 +57,7 @@ async function run() {
         // end listSearchIndexes example
 
         // start updateSearchIndex example
-        // Update a search index
+        // Updates a search index
         const index2 = {
             "mappings": {
                 "dynamic": true,
@@ -72,7 +72,7 @@ async function run() {
         // end updateSearchIndex example
 
         // start dropSearchIndex example
-        // Dropping (deleting) a search index
+        // Drops (deletes) a search index
         await collection.dropSearchIndex("search1");
         // end dropSearchIndex example
     } finally {

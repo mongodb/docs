@@ -1,0 +1,215 @@
+.. _node-fundamentals-text:
+.. _node-search-text:
+
+===========
+Search Text
+===========
+
+.. meta::
+   :description: Perform text searches with the MongoDB Node.js Driver using the $text operator to find documents with specified words or phrases, and sort results by relevance.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Text searches let you search string type fields in your collection for specified words or
+phrases. You can perform a text search by using the ``$text`` operator, which performs a
+logical ``OR`` on each term separated by a space in the search string. You can also
+specify more options to the operator to handle case sensitivity, stop words, and word
+stemming (such as plural forms or other tenses) for a supported language.
+This is often used for unstructured text such as transcripts, essays, or web pages.
+
+The ``$text`` query operator requires that you specify the search field in
+a **text index** on your collection. See the examples below for sample
+code for creating a text index and using the ``$text`` query operator.
+
+.. include:: /includes/atlas-search.rst
+
+Examples
+--------
+
+The following examples use sample data from the ``movies`` collection in the
+``sample_mflix`` database. To enable text searches on the ``title``  field, create a
+**text index** by using the following command:
+
+.. code-block:: javascript
+
+   db.movies.createIndex({ title: "text" });
+
+We use a single field text index for the examples in this guide, but you can
+create a compound text index that broadens your text queries to multiple
+fields. The following command creates a text index on two fields in the
+``movies`` collection:
+
+.. code-block:: javascript
+
+   db.movies.createIndex({ title: "text", plot: "text" });
+
+.. tip:: Specify Field Weights in a Text Index
+   
+   When creating a compound text index, you can specify a weight option to
+   prioritize certain text fields in your index. When you execute a text
+   search, the field weights influence how MongoDB calculates the
+   :ref:`text search score <node-text-search-score>` for each matching
+   document.
+
+   To learn more about specifying field weights when creating a text
+   index, see the :ref:`Text Indexes <node-fundamentals-text-indexes>`
+   section in the Indexes guide.
+
+You can only create *one* text index per collection. Every text search
+queries all the fields specified in that index for matches.
+
+To learn more about text indexes, see :manual:`Text Indexes
+</core/index-text>` in the Server manual.
+
+Query for Words
+~~~~~~~~~~~~~~~
+
+This example queries for Star Trek movies by searching for titles
+containing the word "trek". If you want to query using multiple words,
+separate your words with spaces to query for documents that match any of
+the search terms (logical ``OR``).
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start word text example
+   :end-before: end word text example
+
+This operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { title: 'Trek Nation' }
+   { title: 'Star Trek' }
+   { title: 'Star Trek Into Darkness' }
+   { title: 'Star Trek: Nemesis' }
+   { title: 'Star Trek: Insurrection' }
+   { title: 'Star Trek: Generations' }
+   { title: 'Star Trek: First Contact' }
+   { title: 'Star Trek: The Motion Picture' }
+   { title: 'Star Trek VI: The Undiscovered Country' }
+   { title: 'Star Trek V: The Final Frontier' }
+   { title: 'Star Trek IV: The Voyage Home' }
+   { title: 'Star Trek III: The Search for Spock' }
+   { title: 'Star Trek II: The Wrath of Khan' }
+
+Success! The query found every document in the ``movies`` collection
+with a title including the word "trek". Unfortunately, the search included
+one unintended item: "Trek Nation," which is a movie about Star Trek and not
+part of the Star Trek movie series. To solve this, we can query with a more
+specific **phrase**.
+
+Query By Phrase
+~~~~~~~~~~~~~~~
+
+To make your query more specific, try using the phrase "star trek"
+instead of just the word "trek". To search by phrase, surround your
+multi-word phrase with escaped quotes (``\"<term>\"``):
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start phrase text example
+   :end-before: end phrase text example
+
+Querying by the phrase ``"star trek"`` instead of just the term ``"trek"``
+matches the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { title: 'Star Trek' }
+   { title: 'Star Trek Into Darkness' }
+   { title: 'Star Trek: Nemesis' }
+   { title: 'Star Trek: Insurrection' }
+   { title: 'Star Trek: Generations' }
+   { title: 'Star Trek: First Contact' }
+   { title: 'Star Trek: The Motion Picture' }
+   { title: 'Star Trek VI: The Undiscovered Country' }
+   { title: 'Star Trek V: The Final Frontier' }
+   { title: 'Star Trek IV: The Voyage Home' }
+   { title: 'Star Trek III: The Search for Spock' }
+   { title: 'Star Trek II: The Wrath of Khan' }
+
+These results include all movies in the database that contain the phrase
+``"star trek"``, which in this case results in only fictional Star Trek
+movies. Unfortunately, this query returned ``"Star Trek Into
+Darkness"``, a movie that was not part of the original series of movies. To
+resolve this issue, we can omit that document with a **negation**.
+
+Query with Negations
+~~~~~~~~~~~~~~~~~~~~
+
+To use a negated term, place a negative sign, ``-``, in front of the term
+you to omit from the result set. The query operation omits any
+documents that contain this term from the search result. Since this query
+includes two distinct terms, separate them with a space.
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start negation text example
+   :end-before: end negation text example
+
+Querying with the negated term yields the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { title: 'Star Trek' }
+   { title: 'Star Trek: Nemesis' }
+   { title: 'Star Trek: Insurrection' }
+   { title: 'Star Trek: Generations' }
+   { title: 'Star Trek: First Contact' }
+   { title: 'Star Trek: The Motion Picture' }
+   { title: 'Star Trek VI: The Undiscovered Country' }
+   { title: 'Star Trek V: The Final Frontier' }
+   { title: 'Star Trek IV: The Voyage Home' }
+   { title: 'Star Trek III: The Search for Spock' }
+   { title: 'Star Trek II: The Wrath of Khan' }
+
+.. include:: /includes/access-cursor-note.rst
+
+.. _node-text-search-score:
+
+Sort by Relevance
+~~~~~~~~~~~~~~~~~
+
+Now that the result set reflects the desired results, you can use the
+text search ``textScore``, accessed using the :manual:`$meta
+</reference/operator/projection/meta/>` operator in the query
+projection, to order the results by relevance:
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start relevance text example
+   :end-before: end relevance text example
+
+Querying in this way returns the following documents in the following
+order. In general, text relevance increases as a string matches more
+terms and decreases as the unmatched portion of the string lengthens.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { title: 'Star Trek', score: 1.5 }
+   { title: 'Star Trek: Generations', score: 1.3333333333333333 }
+   { title: 'Star Trek: Insurrection', score: 1.3333333333333333 }
+   { title: 'Star Trek: Nemesis', score: 1.3333333333333333 }
+   { title: 'Star Trek: The Motion Picture', score: 1.25 }
+   { title: 'Star Trek: First Contact', score: 1.25 }
+   { title: 'Star Trek II: The Wrath of Khan', score: 1.2 }
+   { title: 'Star Trek III: The Search for Spock', score: 1.2 }
+   { title: 'Star Trek IV: The Voyage Home', score: 1.2 }
+   { title: 'Star Trek V: The Final Frontier', score: 1.2 }
+   { title: 'Star Trek VI: The Undiscovered Country', score: 1.2 }
+
+For more information about the $text operator and its options, see the
+:manual:`manual entry </reference/operator/query/text/>`.
