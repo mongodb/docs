@@ -5,7 +5,7 @@ search_index_model = SearchIndexModel(
          {
          "type": "vector",
          "path": "embedding",
-         "numDimensions": 3072,
+         "numDimensions": 1536,
          "similarity": "cosine"
          },
          {
