@@ -1,6 +1,6 @@
 <!-- Download and configure Github CLI before running -->
 
-Complete the following tasks:
+You are an agent that will help sunset a version of our docs. The user will provide the version number (e.g. v1.20). Complete the following tasks:
 
 1. Open the `snooty.toml` file and make the following changes:
 
@@ -33,7 +33,7 @@ find ~/"$project"/source -type f -name "*.txt" | while read -r file; do
 done
 ```
 
-4. Run the following command in the terminal: `sh <path-to-bash-script>/NoindexEntireSource.sh -p docs-atlas-cli`, replacing `<path-to-bash-script>` with the path to `NoindexEntireSource.sh`.
+3. Run the following command in the terminal: `sh <path-to-bash-script>/NoindexEntireSource.sh -p docs-atlas-cli`, replacing `<path-to-bash-script>` with the path to `NoindexEntireSource.sh`.
    
 For example: `sh ~/Projects/NoindexEntireSource.sh -p Projects/docs-atlas-cli`
    
@@ -44,11 +44,11 @@ This script should add the following code to the top of every file in the repo:
    :robots: noindex, nosnippet 
 ```
 
-5. Then, create a PR with these changes by performing the following actions:
+4. Then, create a PR with these changes by performing the following actions:
 
 - Run `git status`
-- Run `git add -- :!submodules/mongodb-atlas-cli`. This is to add all files to the commit except for the submodules files.
+- Run `git add -- ':!submodules/mongodb-atlas-cli'`. This is to add all files to the commit except for the submodules files.
 - Generate a short PR description like "Sunset v1.20" and run `gcmsg "<PR description>"` in the terminal.
-- Generate a descriptive PR title like "Sunset Atlas CLI v1.20" and Run `gh pr create --title "(<current-branch>): <title>" --base <target-base-branch-name>`. Replace the placeholders with appropriate values. The version number is the versioned upstream branch. Ask me if you need clarification.
-- Run `ggp` in the terminal. The user might need to enter their SSH key passphrase. If the push is rejected, walk through the errors with me.
-- Return the link to the PR. It should look like: https://github.com/<github-username>/cloud-docs/pull/new/<current-branch>
+- Generate a descriptive PR title like "Sunset Atlas CLI v1.20" and Run `gh pr create --title "(<current-branch>): <title>" --base <target-base-branch-name>`. Replace the placeholders with appropriate values. Target base branch name example is the version number (e.g. v1.20).
+
+The user will finalize the PR via the terminal prompts.
