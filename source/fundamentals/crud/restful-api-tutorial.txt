@@ -1,0 +1,377 @@
+.. _csharp-crud-restful-api-tutorial:
+
+============================================================
+Tutorial: Create a RESTful API by Using the {+driver-short+}
+============================================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: crud, code example, tutorial
+   :description: Learn how to use the .NET/C# Driver to create a RESTful API for your application.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you can learn how to create a RESTful API with endpoints that
+perform basic create, read, update, and delete (CRUD) operations across
+collections in a MongoDB Atlas cluster.
+
+Prerequisites
+-------------
+
+Before you start this tutorial, perform the following actions:
+
+- Set up a MongoDB Atlas account and deploy and configure a cluster that is M0
+  or higher. To view instructions, see the :atlas:`Get Started with Atlas </getting-started>` guide.
+
+- Install .NET 6.0 or later on your machine. To install .NET, visit the
+  `Microsoft .NET download page <https://dotnet.microsoft.com/en-us/download>`__.
+
+.. note:: Language Compatibility
+   
+   This tutorial uses .NET Core 8.0, but you can use any version later than .NET 6.0.
+
+Set Up Your Project
+-------------------
+
+Run the following commands in your terminal to create a new .NET Core project
+that uses a web application template:
+
+.. code-block:: bash
+
+   dotnet new webapi -o MongoExample
+   cd MongoExample
+
+To add the {+driver-short+} to your project as a dependency, run the following command:
+
+.. code-block:: bash
+
+   dotnet add package MongoDB.Driver
+
+The preceding commands create a new web application project for .NET Core named
+``MongoExample`` and install the latest {+driver-short+}. The template project
+includes some boilerplate files that you modify to implement a RESTful API.
+
+Design a Document Model and Database Service
+--------------------------------------------
+
+In this section, you can create and configure your MongoDB service and define
+the data model for your RESTful API.
+
+.. procedure:: Create a MongoDB Service
+   :style: connected
+
+   .. step:: Create the MongoDBSettings class
+
+      Your MongoDB service is responsible for establishing a connection and
+      directly working with documents within MongoDB. In your project, create a
+      folder named ``Models``. In the ``Models`` folder, create a new file named
+      ``MongoDBSettings.cs``. In this file, add the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBSettingsSetup.cs
+         :language: csharp
+         :dedent:
+
+      The preceding code defines a class named ``MongoDBSettings`` that
+      contains information about your connection, the database name, and the
+      collection name.
+
+   .. step:: Update the appsettings.json file
+
+      You can find the data that is stored in the class fields defined in the
+      ``MongoDBSettings`` class in the projects' ``appsettings.json``
+      file. Open this file and add the following configuration:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+            "Logging": {
+               "LogLevel": {
+               "Default": "Information",
+               "Microsoft.AspNetCore": "Warning"
+               }
+            },
+            "AllowedHosts": "*",
+            "MongoDB": {
+               "ConnectionURI": "<Atlas connection string>",
+               "DatabaseName": "sample_mflix",
+               "CollectionName": "playlist"
+               }
+         }
+
+      This tutorial uses the ``sample_mflix`` database and the ``playlist``
+      collection. Replace the ``<Atlas connection string>`` placeholder with
+      your MongoDB Atlas connection string. For more information on how to find
+      your connection string, see the :atlas:`Connect to Your Cluster </tutorial/connect-to-your-cluster>`
+      tutorial in the Atlas documentation.
+
+   .. step:: Create the service
+
+      In your project, create a folder named ``Services``. In the ``Services``
+      folder, create a new file named ``MongoDBService.cs`` and add the
+      following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBServiceSetup.cs
+         :language: csharp
+         :dedent:
+      
+      The preceding code defines a class named ``MongoDBService`` that includes
+      empty asynchronous functions. Throughout this tutorial, you add code to these
+      functions as you create your endpoints. The settings you configured in the
+      ``appsettings.json`` file are set to variables.
+
+   .. step:: Connect the service to the application
+
+      Open the ``Program.cs`` file and add the following code to the top of the file:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBExampleProgram.cs
+         :language: csharp
+         :dedent:
+         :start-after: start-program-setup
+         :end-before: end-program-setup
+
+      In the preceding code, the ``GetSection()`` function pulls your settings
+      from the ``MongoDB`` field in the ``appsettings.json`` file. 
+      
+      .. tip::
+         
+         If the template code already has the ``builder`` variable, don't add it twice. 
+
+   .. step:: Create the document model
+
+      Now that the service is set up, you can create a data model for your collection.
+
+      In the ``Models`` folder, create a new file named ``Playlist.cs`` and add
+      the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/PlaylistSetup.cs
+         :language: csharp
+         :dedent:
+
+      In the preceding code, the ``Id`` field is serialized as an ``ObjectId``
+      in the ``_id`` field. The field is represented as a string in your application.
+
+      The ``movieIds`` field is serialized as ``items``. When you send or
+      receive JSON values, the field is also named ``items`` instead of
+      ``movieIds``.
+
+      If you plan to have your local class field match the document field
+      directly, it isn't necessary to define custom mappings. For example, the
+      ``username`` field in the preceding code has no custom mappings. It is called
+      be ``username`` in C#, in JSON, and in MongoDB.
+
+After this step, you have a MongoDB service and document model for your collection to work
+with .NET Core.
+
+Build CRUD Endpoints
+--------------------
+
+To create the CRUD endpoints for this application, you must update two
+different files within the project. In this section, you can learn how to define
+the endpoint within a controller and update the corresponding work within the
+service.
+
+.. note:: Data Validation
+
+   In this example project, there is no data validation for the HTTP requests.
+
+.. procedure:: Build endpoints to interact with MongoDB
+   :style: connected
+
+   .. step:: Create a controller
+
+      In your project, create a folder named ``Controllers``. In the
+      ``Controllers`` folder, create a new file named ``PlaylistController.cs``
+      and add the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/PlaylistControllerSetup.cs
+         :language: csharp
+         :dedent:
+
+      The ``PlaylistController`` class contains a constructor method that gains
+      access to your singleton service class. Then, there is a series of
+      endpoints for this controller.
+
+   .. step:: Add data through the POST endpoint
+
+      Go to ``Services/MongoDBService.cs`` and update the ``CreateAsync``
+      function to use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBServiceComplete.cs
+         :language: csharp
+         :start-after: start-create-async
+         :end-before: end-create-async
+         :dedent:
+
+      The preceding code sets the ``_playlistCollection`` in the constructor
+      method of the service. This lets your application use the
+      ``InsertOneAsync`` method, which takes a passed ``Playlist`` variable and
+      inserts it.
+
+      To complete the creation of the ``POST`` endpoint, go to the
+      ``Controllers/PlaylistController.cs`` file and update the ``Post`` method
+      to use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/PlaylistControllerComplete.cs
+         :language: csharp
+         :start-after: start-post
+         :end-before: end-post
+         :dedent:
+
+      When the ``POST`` endpoint executes, the application takes the
+      ``Playlist`` object from the ``request``, which .NET Core parses, and
+      passes it to the ``CreateAsync`` function in the service. After the
+      insert, the code returns information about the interaction.
+
+   .. step:: Read data through the GET endpoint
+
+      Go to ``Services/MongoDBService.cs`` and update the ``GetAsync`` function to
+      use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBServiceComplete.cs
+         :language: csharp
+         :start-after: start-get-async
+         :end-before: end-get-async
+         :dedent:
+
+      The ``Find`` operation in the preceding code returns all documents that
+      exist in the collection. 
+
+      To complete the creation of the ``GET`` endpoint, go to the
+      ``Controllers/PlaylistController.cs`` file and update the ``Get`` method to
+      use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/PlaylistControllerComplete.cs
+         :language: csharp
+         :start-after: start-get
+         :end-before: end-get
+         :dedent:
+      
+   .. step:: Update data using the PUT endpoint
+
+      Go to ``Services/MongoDBService.cs`` and update the ``AddToPlaylistAsync``
+      function to use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBServiceComplete.cs
+         :language: csharp
+         :start-after: start-add-to-playlist-async
+         :end-before: end-add-to-playlist-async
+         :dedent:
+
+      The preceding code sets up a match filter to determine which document or
+      documents receive an update, in this case adding an item to your playlist.
+      The code matches based on the ``Id`` field, which is unique. Then, the
+      code defines the update critera, which is an ``AddtoSet`` operation that
+      only adds an item to the array if it doesn't already exist in the array.
+
+      The ``UpdateOneAsync`` methods only updates on document even if the match
+      filter returns more than one match.
+
+      To complete the creation of the PUT endpoint, go to the
+      ``Controllers/PlaylistController.cs`` file and update the
+      ``AddToPlaylist`` function to use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/PlaylistControllerComplete.cs
+         :language: csharp
+         :start-after: start-put
+         :end-before: end-put
+         :dedent:
+   
+   .. step:: Delete data by using the DELETE endpoint
+
+      Go to ``Services/MongoDBService.cs`` and update the ``DeleteAsync`` function to
+      use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBServiceComplete.cs
+         :language: csharp
+         :start-after: start-delete-async
+         :end-before: end-delete-async
+         :dedent:
+
+      The preceding code deletes a single document based on the filter criteria,
+      which matches the unique value of the ``Id`` field.
+
+      To complete the creation of the DELETE endpoint, go to the
+      ``Controllers/PlaylistController.cs`` file and update the
+      ``Delete`` function to use the following code:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/PlaylistControllerComplete.cs
+         :language: csharp
+         :start-after: start-delete
+         :end-before: end-delete
+         :dedent:
+
+After this step, you have a complete set of CRUD endpoints for your RESTful API.
+
+Test Your API Endpoints
+-----------------------
+
+With the endpoints created, you can test them using the Swagger UI that is
+included with the template .NET Core application. To do this, go to the
+``Program.cs`` file and remove any code from the template project related to the
+``WeatherForecast`` class. Update the file to include the following code:
+
+.. literalinclude:: /includes/fundamentals/code-examples/restful-api-tutorial/MongoDBExampleProgram.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-program-example
+   :end-before: end-program-example
+
+You can replace any repetitive code from the project template with the preceding code.
+
+Execute the following command to run your application:
+
+.. code-block:: bash
+
+   dotnet run
+
+After the application starts, open your browser and go to your configured
+localhost URL to access the Swagger UI, for example
+``http://localhost:5000/swagger``. The following image shows how the Swagger UI
+appears:
+
+.. figure:: /includes/figures/restful-api-tutorial-swagger-ui.jpg
+   :alt: Swagger UI
+   :align: center
+
+   The Swagger UI for the RESTful API.
+
+You can test the application by clicking the :guilabel:`Try it out` button on each
+endpoint. To get started, go to the ``/api/playlists`` ``POST`` endpoint
+to add some data to the database. Add the following sample data:
+
+.. code-block:: json
+   :copyable: true
+
+   {
+      "username": "testuser",
+      "items": [
+         "1234",
+         "5678"
+      ]
+   }
+
+Run this request to insert data into the database. You can then go to the ``GET``
+endpoint to see the data you just inserted. You can also test the ``PUT`` and
+``DELETE`` endpoints to update and delete data.
+
+Next Steps
+----------
+
+To learn more about the operations discussed in this tutorial, see the following
+guides:
+
+- :ref:`csharp-insert-guide`
+- :ref:`csharp-retrieve`
+- :ref:`csharp-update-one`
+- :ref:`csharp-delete-guide`
