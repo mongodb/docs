@@ -1,0 +1,318 @@
+.. _langchain-local-rag:
+
+===========================================================
+Build a Local RAG Implementation with MongoDB and LangChain
+===========================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Build a local RAG implementation with the LangChain integration for Atlas Vector Search.
+   :keywords: RAG, retrieval, local, langchain, chatbot, vector database, vector search, semantic search, integration, OpenAI
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In addition to deploying |service-fullname| on the cloud, you 
+use the {+atlas-cli+} to deploy self-contained MongoDB instances 
+on your local machine. The LangChain MongoDB integration supports 
+both |service| {+clusters+} and local |service| deployments. When you 
+specify the connection string parameter, you can specify your local 
+{+deployment+} connection string instead the {+cluster+} connection string.
+
+This tutorial demonstrates how to
+implement retrieval-augmented generation (RAG) 
+with a local |service| deployment,
+local models, and the LangChain MongoDB integration. 
+Specifically, you perform the following actions:
+
+#. Create a local |service| {+deployment+}.
+#. Use a local embedding model to generate vector embeddings.
+#. Use the local |service| deployment as a vector store.
+#. Use a local |llm| to answer questions about your data.
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-local-rag.ipynb?tck=docs
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langchain-local-rag.ipynb?tck=docs>`.
+
+To learn how to implement |rag| locally without 
+using LangChain, see :ref:`local-rag`.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or later.
+
+- An interactive Python notebook that you can run locally. 
+  You can run interactive Python notebooks in `VS Code 
+  <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__.
+  Ensure that your environment runs Python v3.10 or later.
+
+Create a Local |service| Deployment
+-----------------------------------
+
+To create the local deployment, run ``atlas deployments setup`` 
+in your terminal and follow the prompts to create the deployment.
+
+For detailed instructions, see :atlascli:`Create a Local Atlas Deployment 
+</atlas-cli-deploy-local/#create-a-local-atlas-deployment-1>`.
+
+.. collapsible::
+   :heading: About Local Deployments
+   :expanded: false
+   
+   You use the {+atlas-cli+} to create local |service| {+deployments+}.
+   The {+atlas-cli+} is the command-line interface for |service-fullname|, and you can use 
+   the {+atlas-cli+} to interact with |service| from the terminal for 
+   various tasks, including creating local |service| {+deployments+}.
+   These are fully local deployments that do not require
+   connecting to the cloud.
+
+   Local |service| {+deployments+} are intended for testing only. 
+   For production environments, :ref:`deploy a {+cluster+} <create-new-cluster>`.
+
+Set Up the Environment
+----------------------
+
+In this section, you set up the environment for this tutorial.
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Create a directory to store your project.
+
+      Run the following commands in your terminal 
+      to create a new directory named ``local-rag-langchain-mongodb``.
+
+      .. code-block:: console
+
+         mkdir local-rag-langchain-mongodb
+         cd local-rag-langchain-mongodb
+
+   .. step:: Create an interactive Python notebook.
+
+      The following command creates a notebook in 
+      the directory named ``langchain-local-rag.ipynb``.
+      
+      .. code-block:: shell
+
+         touch langchain-local-rag.ipynb
+
+   .. step:: Install and import dependencies.
+
+      Run the following command in your notebook:
+
+      .. code-block:: python
+
+         pip install --quiet --upgrade pymongo langchain langchain-community langchain-huggingface gpt4all pypdf
+
+   .. step:: Define your connection string.
+
+      Run the following code in your notebook, replacing ``<port-number>`` 
+      with the port for your local {+deployment+}.
+      
+      .. code-block:: python
+
+         MONGODB_URI = ("mongodb://localhost:<port-number>/?directConnection=true")
+
+Use Your Local Deployment as a Vector Store
+-------------------------------------------
+
+You can use your local |service| deployment as
+a vector database, also called a `vector store 
+<https://python.langchain.com/docs/how_to/#vector-stores>`__.
+Copy and paste the following code snippets into your notebook.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Instantiate the vector store.
+
+      The following code uses the LangChain integration for 
+      {+avs+} to instantiate your local |service| {+deployment+} 
+      as a vector database, also called a `vector store 
+      <https://python.langchain.com/docs/modules/data_connection/vectorstores/>`__,
+      using the ``langchain_db.local_rag`` namespace.
+
+      This example specifies the `mixedbread-ai/mxbai-embed-large-v1
+      <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ model
+      from Hugging Face.
+
+      .. code-block:: python
+       
+         from langchain_mongodb import MongoDBAtlasVectorSearch
+         from langchain_huggingface import HuggingFaceEmbeddings
+
+         # Load the embedding model (https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1)
+         embedding_model = HuggingFaceEmbeddings(model_name="mixedbread-ai/mxbai-embed-large-v1")
+
+         # Instantiate vector store
+         vector_store = MongoDBAtlasVectorSearch.from_connection_string(
+            connection_string = MONGODB_URI,
+            namespace = "langchain_db.local_rag",
+            embedding=embedding_model,
+            index_name="vector_index"
+         )
+
+   .. step:: Add documents to the vector store.
+
+      Paste and run the following code in your notebook 
+      to ingest a sample PDF that contains a recent `MongoDB earnings report
+      <https://investors.mongodb.com/node/12881/pdf>`__ into the vector store.
+
+      This code uses a `text splitter <https://python.langchain.com/docs/how_to/#text-splitters/>`__
+      to chunk the PDF data into smaller parent documents. It specifies the *chunk size*
+      (number of characters) and *chunk overlap* (number of overlapping characters 
+      between consecutive chunks) for each document.
+
+      .. code-block:: python
+
+         from langchain_community.document_loaders import PyPDFLoader
+         from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+         # Load the PDF
+         loader = PyPDFLoader("https://investors.mongodb.com/node/13176/pdf")
+         data = loader.load()
+
+         # Split PDF into documents
+         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
+         docs = text_splitter.split_documents(data)
+
+         # Add data to the vector store
+         vector_store.add_documents(docs)
+
+      This code might take several minutes to run. After it's finished, you can
+      view your vector embeddings by connecting to your local {+deployment+}
+      from {+mongosh+} or your application using your {+deployment+}\'s
+      connection string. Then you can run :manual:`read operations
+      </crud/#read-operations>` on the ``langchain_db.local_rag``
+      collection.
+
+   .. step:: Create the {+avs+} index.
+
+      To enable vector search queries on your vector store,
+      create an {+avs+} index on the ``langchain_db.test`` collection.
+      You can create the index using the LangChain helper method:
+
+      .. code-block:: python
+
+         # Use helper method to create the vector search index
+         vector_store.create_vector_search_index(
+            dimensions = 1024 # The dimensions of the vector embeddings to be indexed
+         )
+
+      .. tip::
+
+         `create_vector_search_index API reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/index/langchain_mongodb.index.create_vector_search_index.html>`__
+
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
+
+Use Local LLM to Answer Questions
+---------------------------------
+
+This section demonstrates a sample |rag| implementation 
+that you can run locally using {+avs+} and GPT4All.
+
+To learn about other ways to run LLMs locally with LangChain,
+see `Run models locally <https://python.langchain.com/docs/how_to/local_llms/>`__.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Load the local |llm|.
+
+      a. Click the following button to download the Mistral 7B model
+         from GPT4All. To explore other models, refer to the 
+         `GPT4All website <https://gpt4all.io/index.html>`__.
+
+         .. button:: Download
+            :uri: https://gpt4all.io/models/gguf/mistral-7b-openorca.gguf2.Q4_0.gguf
+
+      #. Move this model into your ``local-rag-mongodb`` project directory.
+
+      #. Paste the following code in your notebook to configure the |llm|.
+         Before running, replace ``<path-to-model>`` with 
+         the path where you saved the |llm| locally.
+
+         .. code-block:: python
+
+            from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+            from langchain_community.llms import GPT4All
+
+            # Configure the LLM
+            local_path = "<path-to-model>"
+
+            # Callbacks support token-wise streaming
+            callbacks = [StreamingStdOutCallbackHandler()]
+            
+            # Verbose is required to pass to the callback manager
+            llm = GPT4All(model=local_path, callbacks=callbacks, verbose=True)
+
+   .. step:: Answer questions on your data.
+
+      Run the following code to complete your |rag| implementation:
+      
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: python
+
+            from langchain_core.prompts import PromptTemplate
+            from langchain_core.output_parsers import StrOutputParser
+            from langchain_core.runnables import RunnablePassthrough
+
+            # Instantiate Atlas Vector Search as a retriever
+            retriever = vector_store.as_retriever()
+
+            # Define prompt template
+            template = """
+            Use the following pieces of context to answer the question at the end.
+            {context}
+            Question: {question}
+            """
+            custom_rag_prompt = PromptTemplate.from_template(template)
+
+            def format_docs(docs):
+               return "\n\n".join(doc.page_content for doc in docs)
+
+            # Create chain   
+            rag_chain = (
+               {"context": retriever | format_docs, "question": RunnablePassthrough()}
+               | custom_rag_prompt
+               | llm
+               | StrOutputParser()
+            )
+
+            # Prompt the chain
+            question = "What was MongoDB's latest acquisition?"
+            answer = rag_chain.invoke(question)
+
+            # Return source documents
+            documents = retriever.invoke(question)
+            print("\nSource documents:")
+            pprint.pprint(documents)
+
+         .. output:: 
+
+            Answer: MongoDB's latest acquisition was Voyage AI, a pioneer in state-of-the-art embedding and reranking models that power next-generation
+            Source documents:
+            [Document(id='680a98187685ddb66d29ed88', metadata={'_id': '680a98187685ddb66d29ed88', 'producer': 'West Corporation using ABCpdf', 'creator': 'PyPDF', 'creationdate': '2025-03-05T21:06:26+00:00', 'title': 'MongoDB, Inc. Announces Fourth Quarter and Full Year Fiscal 2025 Financial Results', 'source': 'https://investors.mongodb.com/node/13176/pdf', 'total_pages': 9, 'page': 1, 'page_label': '2'}, page_content='Measures."\nFourth Quarter Fiscal 2025 and Recent Business Highlights\nMongoDB  acquired Voyage AI, a pioneer in state-of-the-art embedding and reranking models that power next-generation'),
+             Document(id='680a98187685ddb66d29ed8c', metadata={'_id': '680a98187685ddb66d29ed8c', 'producer': 'West Corporation using ABCpdf', 'creator': 'PyPDF', 'creationdate': '2025-03-05T21:06:26+00:00', 'title': 'MongoDB, Inc. Announces Fourth Quarter and Full Year Fiscal 2025 Financial Results', 'source': 'https://investors.mongodb.com/node/13176/pdf', 'total_pages': 9, 'page': 1, 'page_label': '2'}, page_content='conjunction with the acquisition of Voyage, MongoDB  is announcing a stock buyback program of $200 million, to offset the\ndilutive impact of the acquisition consideration.'),
+             Document(id='680a98187685ddb66d29ee3f', metadata={'_id': '680a98187685ddb66d29ee3f', 'producer': 'West Corporation using ABCpdf', 'creator': 'PyPDF', 'creationdate': '2025-03-05T21:06:26+00:00', 'title': 'MongoDB, Inc. Announces Fourth Quarter and Full Year Fiscal 2025 Financial Results', 'source': 'https://investors.mongodb.com/node/13176/pdf', 'total_pages': 9, 'page': 8, 'page_label': '9'}, page_content='View original content to download multimedia:https://www.prnewswire.com/news-releases/mongodb-inc-announces-fourth-quarter-and-full-\nyear-fiscal-2025-financial-results-302393702.html'),
+             Document(id='680a98187685ddb66d29edde', metadata={'_id': '680a98187685ddb66d29edde', 'producer': 'West Corporation using ABCpdf', 'creator': 'PyPDF', 'creationdate': '2025-03-05T21:06:26+00:00', 'title': 'MongoDB, Inc. Announces Fourth Quarter and Full Year Fiscal 2025 Financial Results', 'source': 'https://investors.mongodb.com/node/13176/pdf', 'total_pages': 9, 'page': 3, 'page_label': '4'}, page_content='distributed database on the market. With integrated capabilities for operational data, search, real-time analytics, and AI-powered retrieval, MongoDB')]

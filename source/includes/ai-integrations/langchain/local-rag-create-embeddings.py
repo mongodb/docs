@@ -2,12 +2,12 @@ from pymongo import MongoClient
 from sentence_transformers import SentenceTransformer
 
 # Connect to your local Atlas deployment or Atlas Cluster
-client = MongoClient(ATLAS_CONNECTION_STRING)
+client = MongoClient(MONGODB_URI)
 
 # Select the sample_airbnb.listingsAndReviews collection
 collection = client["sample_airbnb"]["listingsAndReviews"]
 
-# Load the embedding model (https://huggingface.co/sentence-transformers/mixedbread-ai/mxbai-embed-large-v1)
+# Load the embedding model (https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1)
 model_path = "<model-path>"
 model = SentenceTransformer('mixedbread-ai/mxbai-embed-large-v1')
 model.save(model_path)

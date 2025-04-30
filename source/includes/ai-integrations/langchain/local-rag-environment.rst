@@ -14,11 +14,11 @@
    .. step:: Create an interactive Python notebook.
 
       The following command creates a notebook in 
-      the directory named ``local-rag.ipynb``.
+      the directory named ``langchain-local-rag.ipynb``.
       
-      .. code-block:: shell
+      .. code-block:: console
 
-         touch local-rag.ipynb
+         touch langchain-local-rag.ipynb
 
    .. step:: Install and import dependencies.
 
@@ -26,13 +26,10 @@
 
       .. code-block:: python
 
-         pip install --quiet --upgrade pymongo gpt4all sentence_transformers
+         pip install --upgrade --quiet langchain langchain-mongodb pymongo sentence-transformers gpt4all
 
-   .. step:: Define your connection string.
+   .. step:: Define your |service| connection string.
 
-      Run the following code in your notebook, replacing ``<port-number>`` 
-      with the port for your local {+deployment+}.
-      
-      .. code-block:: python
+            .. code-block:: python
 
-         MONGODB_URI = ("mongodb://localhost:<port-number>/?directConnection=true")
+               MONGODB_URI = ("mongodb://localhost:<port-number>/?directConnection=true")

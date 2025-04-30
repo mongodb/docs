@@ -1,17 +1,6 @@
 .. procedure::
    :style: normal 
 
-   .. step:: Connect from the {+atlas-cli+}.
-
-      In your terminal, run ``atlas auth login`` to authenticate with your 
-      |service| login credentials. To learn more, see 
-      :atlascli:`Connect from the {+atlas-cli+} </connect-atlas-cli/>`.
-
-      .. note::
-
-         If you don't have an existing |service| account, run ``atlas setup`` 
-         or `create a new account <https://account.mongodb.com/account/register?tck=docs_atlas>`__.
-
    .. step:: Create a local {+deployment+} by using the {+atlas-cli+}.
       
       Run ``atlas deployments setup`` and follow the prompts to create a 
