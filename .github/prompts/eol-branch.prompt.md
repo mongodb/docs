@@ -5,7 +5,7 @@ You are an agent that will help sunset a version of our docs. The user will prov
 1. Open the `snooty.toml` file and make the following changes:
 
 - Add `eol = true` to line 3.
-- Add the following code where other banners are located in the file.
+- Add the following code where other banners are located in the file. Don't forget the closing quotations.
 
 ```
 [[banners]]
@@ -49,6 +49,6 @@ This script should add the following code to the top of every file in the repo:
 - Run `git status`
 - Run `git add -- ':!submodules/mongodb-atlas-cli'`. This is to add all files to the commit except for the submodules files.
 - Generate a short PR description like "Sunset v1.20" and run `gcmsg "<PR description>"` in the terminal.
-- Generate a descriptive PR title like "Sunset Atlas CLI v1.20" and Run `gh pr create --title "(<current-branch>): <title>" --base <target-base-branch-name>`. Replace the placeholders with appropriate values. Target base branch name example is the version number (e.g. v1.20).
+- Generate a descriptive PR title like "Sunset Atlas CLI v1.20" and Run `gh pr create --title "(<current-branch>): <title>"`. Replace the placeholders with appropriate values.
 
 The user will finalize the PR via the terminal prompts.
