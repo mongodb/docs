@@ -43,6 +43,11 @@
          For installation instructions on other operating 
          systems, see :compass:`Download and Install Compass </install>`.
           
+      #. (Optional) Install `Visual Studio Code <https://code.visualstudio.com/download>`__ 
+         and `MongoDB for VS Code Extension <https://www.mongodb.com/docs/mongodb-vscode/install/>`__.
+           
+         To learn more, see `Install MongoDB for VS Code Extension <https://www.mongodb.com/docs/mongodb-vscode/install/>`__.
+
    .. step:: Create an |service| account.
 
       If you don't already have an existing |service| account, run ``atlas setup`` in your terminal
