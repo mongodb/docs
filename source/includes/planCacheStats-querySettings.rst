@@ -19,7 +19,7 @@ A document that contains query settings previously set using
 
 .. list-table::
    :header-rows: 1
-   :widths: 5 35 60
+   :widths: 30 20 50
 
    * - Field
      - Type
@@ -30,7 +30,7 @@ A document that contains query settings previously set using
      - Namespace for index hints.
 
        .. list-table::
-          :widths: 5 35 50
+          :widths: 25 25 60
 
           * - ``db`` 
             - string
