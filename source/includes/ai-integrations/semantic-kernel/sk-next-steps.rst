@@ -6,5 +6,4 @@ MongoDB also provides the following developer resources:
 .. seealso:: 
 
    - `Semantic Kernel Documentation <https://learn.microsoft.com/en-us/semantic-kernel/>`__
-   - `Semantic Kernel Python API Reference <https://learn.microsoft.com/en-us/python/api/semantic-kernel/semantic_kernel.connectors.memory.mongodb_atlas.mongodb_atlas_memory_store.mongodbatlasmemorystore?view=semantic-kernel-python>`__
    - `Semantic Kernel C# API Reference <https://learn.microsoft.com/en-us/dotnet/api/microsoft.semantickernel.connectors.mongodb>`__ 

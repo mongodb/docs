@@ -1,0 +1,9 @@
+- `LangChain Python API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/api_docs.html>`__
+- `LangChain JS/TS API Reference <https://api.js.langchain.com/modules/langchain_mongodb.html>`__
+- `LangGraph Python API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langgraph_checkpoint_mongodb/api_docs.html>`__
+- `LangGraph.js API Reference <https://langchain-ai.github.io/langgraphjs/reference/classes/checkpoint_mongodb.MongoDBSaver.html>`__
+- `LangChain4j API Reference <https://docs.langchain4j.dev/apidocs/index.html>`__   
+- `LlamaIndex API Reference <https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store/mongodb/>`__
+- `Semantic Kernel C# API Reference <https://learn.microsoft.com/en-us/dotnet/api/microsoft.semantickernel.connectors.mongodb>`__
+- `Haystack API Reference <https://docs.haystack.deepset.ai/reference/integrations-mongodb-atlas>`__
+- `Spring AI API Reference <https://docs.spring.io/spring-ai/docs/current/api/org/springframework/ai/vectorstore/package-summary.html>`__
