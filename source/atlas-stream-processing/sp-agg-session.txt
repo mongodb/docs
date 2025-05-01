@@ -33,8 +33,8 @@ input stream. Two documents are in the same session if they have the same partit
 the difference of their timestamps is less than the session gap. When a window is closed, 
 its results are released to the next stage. 
 
-A session window closes when the gap and ``allowedLateness`` value of the watermark advances 
-past the maximum document timestamp in the session. A closed session window's start time 
+A session window closes when the watermark advances a duration of the ``gap`` value plus the ``allowedLateness``  
+value beyond the maximum document timestamp in the session. A closed session window's start time 
 is the timestamp of the first event in the session, and the end time is the timestamp 
 of the last event in the session, plus the gap. Session window end time adds the gap 
 to the maximum timestamp in the session. The window results are the output of 
@@ -49,9 +49,9 @@ to the maximum timestamp in the session. The window results are the output of
 
       { 
         $sessionWindow: {
-            partitionBy: “$userId”,
-            gap: {unit: “minute”, size: 5},
-            pipeline: [{$match: {ad: true}}, {$group: { _id: null, total: {$sum: “$value”}}}], 
+            partitionBy: "$userId",
+            gap: {unit: "minute", size: 5},
+            pipeline: [{$match: {ad: true}}, {$group: { _id: null, total: {$sum: "$value"}}}], 
             boundary: "eventTime",
             allowedLateness: {unit: "second", size: 5}
         }
@@ -67,7 +67,7 @@ fields:
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 10 15 15 70
+   :widths: 20 15 15 50
 
    * - Field 
      - Type 
@@ -77,13 +77,26 @@ fields:
    * - ``partitionBy``
      - expression
      - Required
-     - Expression that determines the window to which a document 
-       is assigned. 
+     - Fields that the ``$sessionWindow`` will be partitioned by. Each incoming document that shares the same ``paritionBy`` fields will be processed together.
 
    * - ``gap``
-     - duration
+     - document
      - Required
-     - Duration that determines the period of inactivity between sessions.
+     - Document that defines the amount of time as a combination of a ``size`` and a ``unit`` to wait for 
+       additional records that share ``partitionBy`` values before closing the session, where:
+
+       - The value of ``size`` must be a non-zero positive integer.
+       - The value of ``unit`` must be one of the following:
+
+         - ``"ms"`` (millisecond)
+         - ``"second"``
+         - ``"minute"``
+         - ``"hour"``
+         - ``"day"``
+
+       For example, with a ``size`` of "1" and a ``unit`` of "minute",
+       this stage waits one minute for additional records with the same
+       ``partitionBy`` values before closing the session window.
 
    * - ``boundary``
      - string
@@ -95,7 +108,7 @@ fields:
 
        .. note::
 
-          ``idleTimeout`` and ``allowedLateness`` fields can't be set when 
+          You can't set the ``allowedLateness`` field when 
           ``boundary`` is set to ``processingTime``. 
 
    * - ``pipeline``
@@ -107,13 +120,25 @@ fields:
    * - ``allowedLateness``
      - duration
      - Optional
-     - Document that specifies how long to keep 
-       :ref:`windows <atlas-sp-windows>` generated from the 
-       source open to accept late-arriving data after processing
-       documents for window end time. If omitted, defaults to 3
-       seconds.
+     - Document that specifies the amount of time as a combination of a ``size`` and a ``unit`` to keep 
+       :ref:`windows <atlas-sp-windows>` generated from the source open to accept late-arriving data after processing
+       documents for window end time, where:
 
- .. _atlas-sp-agg-session-behavior:
+       - The value of ``size`` must be a non-zero positive integer.
+       - The value of ``unit`` must be one of the following:
+
+         - ``"ms"`` (millisecond)
+         - ``"second"``
+         - ``"minute"``
+         - ``"hour"``
+         - ``"day"``
+
+       For example, a ``size`` of "3" and a ``unit`` of "second" waits 3 seconds after the gap for 
+       late-arriving records before moving records to the next stage.
+       
+       If omitted, defaults to 3 seconds.
+
+.. _atlas-sp-agg-session-behavior:
 
 Behavior
 ~~~~~~~~

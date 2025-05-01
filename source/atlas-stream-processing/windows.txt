@@ -7,7 +7,7 @@ Stream Processor Windows
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas stream processing, streaming data, data stream, window, tumbling window, hopping window
+   :keywords: atlas stream processing, streaming data, data stream, window, tumbling window, hopping window, session window
    :description: Learn how stream processors use windows to organize and operate on subsets of data streams.
 
 .. contents:: On this page
@@ -43,8 +43,8 @@ that interval, and passes this set through its internal pipeline. From
 within this pipeline, the batched documents are indistinguishable from
 data-at-rest.
 
-{+atlas-sp+} provides support for :ref:`tumbling-windows` and 
-:ref:`hopping-windows`.
+{+atlas-sp+} provides support for :ref:`tumbling-windows`, 
+:ref:`hopping-windows`, and :ref:`session-windows`.
 
 .. _tumbling-windows:
 
@@ -126,6 +126,31 @@ interval.
    - The next window opens after a further 2 seconds elapse.
    - {+atlas-sp+} does not process any documents that the stream 
      generates during those 2 seconds.
+
+.. _session-windows:
+
+Session Windows
+---------------
+
+**Session windows** are windows that allow you to run a pipeline on each 
+"session" of activity in an input stream. Two documents are in the same 
+session if they have the same partition, and the difference of their 
+timestamps is less than the session gap.
+
+When a window is closed, its results are released to the next stage.
+
+.. example::
+
+   You define a partition of ``$userId``, a gap of 5 minutes,
+   and an allowed lateness of 5 seconds.
+   When you start your stream processor:
+
+   - A window opens when the first document reaches the :pipeline:`$sessionWindow`.
+   - Any documents that reach the stage that contain the same ``userId``
+     value (including an absensce of this field) within five minutes and five seconds of the most recent matching document arriving at the processor 
+     are added to same session window.
+   - The window remains open until no documents are added to it for
+     the gap of five minutes plus the allowed lateness of five seconds.
 
 .. _atlas-sp-timing:
 
