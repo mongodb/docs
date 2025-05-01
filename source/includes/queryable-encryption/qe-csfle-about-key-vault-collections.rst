@@ -19,24 +19,27 @@ command against the {+key-vault-long+}:
    .. input::
       :language: json
       :linenos:
-   
+
       db.runCommand({
-         listIndexes: "__keyVault",
-      });
+         listIndexes: "keyVault"
+      }).cursor.firstBatch;
 
    .. output::
       :linenos:
 
-      {
-         cursor: {
-            id: Long("0"),
-            ns: 'encryption.__keyVault',
-            firstBatch: [ 
-               { v: 2, key: { _id: 1 }, name: '_id_' } 
-               ]
-         },
-         ok: 1,
-      }
+      [
+         { v: 2, key: { _id: 1 }, name: '_id_' },
+         {
+           v: 2,
+           key: { keyAltNames: 1 },
+           name: 'keyAltNames_1',
+           unique: true
+        }
+      ]
+
+Chain ``cursor.firstBatch`` to the :dbcommand:`listIndexes` command to return only index
+information including the keys and options used to create the index. The output shows that
+the ``keyAltNames`` field has a unique index named ``keyAltNames_1``.
 
 If the unique index does not exist, your application must create it
 before performing {+dek-abbr+} management.
