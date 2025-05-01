@@ -1,0 +1,236 @@
+.. _node-usage-watch:
+.. _node-change-streams:
+
+================================
+Monitor Data with Change Streams
+================================
+
+.. meta::
+   :description: Monitor changes in MongoDB using the watch() method in the MongoDB Node.js Driver on collections, databases, or clients to open change streams and handle change events.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+Open a Change Stream
+--------------------
+
+You can watch for changes in MongoDB using the ``watch()`` method on the
+following objects:
+
+- `Collection <{+api+}/classes/Collection.html#watch>`__
+- `Database <{+api+}/classes/Db.html#watch>`__
+- `MongoClient <{+api+}/classes/MongoClient.html#watch>`__
+
+For each object, the ``watch()`` method opens a **change stream** to
+emit **change event** documents when they occur.
+
+The ``watch()`` method optionally takes an **aggregation pipeline** which consists of an array of **aggregation stages**
+as the first parameter. The aggregation stages filter and transform the change events.
+
+In the following snippet, the ``$match`` stage matches all change event documents with a ``runtime`` value of less than
+15, filtering all others out.
+
+.. code-block:: javascript
+
+   const pipeline = [ { $match: { runtime: { $lt: 15 } } } ];
+   const changeStream = myColl.watch(pipeline);
+
+The ``watch()`` method accepts an ``options`` object as the second parameter. Refer to the links at the end of this
+section for more information on the settings you can configure with this object.
+
+The ``watch()`` method returns an instance of a `ChangeStream <{+api+}/classes/ChangeStream.html>`__. You can read events from
+change streams by iterating over them or listening for events. 
+
+Select the tab that corresponds to the way you want to
+read events from the change stream:
+
+.. tabs::
+
+   .. tab::
+      :tabid: Idiomatic Iteration
+
+      Starting in version 4.12, ``ChangeStream`` objects are async
+      iterables. With this change, you can use ``for-await`` loops to
+      retrieve events from an open change stream:
+
+      .. code-block:: js
+         :copyable: false
+      
+         for await (const change of changeStream) {
+           console.log("Received change: ", change);
+         }
+
+   .. tab::
+      :tabid: Manual Iteration
+
+      You can call methods on the ``ChangeStream`` object such as:
+
+      - ``hasNext()`` to check for remaining documents in the stream
+      - ``next()`` to request the next document in the stream
+      - ``close()`` to close the ChangeStream
+
+
+   .. tab::
+      :tabid: Event
+
+      You can attach listener functions to the ``ChangeStream``  object
+      by calling the ``on()`` method. This method is inherited from the
+      Javascript ``EventEmitter`` class. Pass the string ``"change"`` as
+      the first parameter and your listener function as the second parameter as shown below:
+
+      .. code-block:: javascript
+
+         changeStream.on("change", (changeEvent) => { /* your listener function */ });
+
+      The listener function triggers when a ``change`` event is emitted. You
+      can specify logic in the listener to process the change event document
+      when it is received.
+
+      You can control the change stream by calling ``pause()`` to stop emitting events or ``resume()`` to continue to emit events.
+
+      To stop processing change events, call the `close() <{+api+}/classes/ChangeStream.html#close>`__ method on the
+      ``ChangeStream`` instance. This closes the change stream and frees resources.
+
+      .. code-block:: javascript
+
+         changeStream.close();
+
+.. include:: /includes/changestream-paradigm-warning.rst
+
+Examples
+--------
+
+Iteration
+~~~~~~~~~
+
+The following example opens a change stream on the ``haikus`` collection in
+the ``insertDB`` database and prints change events as they occur:
+
+.. include:: /includes/connect-guide-note.rst
+
+.. tabs::
+
+   .. tab:: JavaScript
+      :tabid: javascript
+
+      .. literalinclude:: /code-snippets/usage-examples/changeStream.js
+         :language: javascript
+         :linenos:
+
+   .. tab:: TypeScript
+      :tabid: typescript
+
+      .. literalinclude:: /code-snippets/usage-examples/changeStream.js
+         :language: javascript
+         :linenos:
+
+.. note:: Identical Code Snippets
+
+   The JavaScript and TypeScript code snippets above are identical. There are no
+   TypeScript specific features of the driver relevant to this use case.
+
+When you run this code and then make a change to the ``haikus``
+collection, such as performing an insert or delete operation, you can
+see the change event document printed in your terminal.
+
+For example, if you insert a document to the collection, the code prints
+the following output:
+
+.. code-block:: none
+   :copyable: false
+
+   Received change:
+   {
+     _id: {
+       _data: '...'
+     },
+     operationType: 'insert',
+     clusterTime: new Timestamp({ t: 1675800603, i: 31 }),
+     fullDocument: {
+       _id: new ObjectId("..."),
+       ...
+     },
+     ns: { db: 'insertDB', coll: 'haikus' },
+     documentKey: { _id: new ObjectId("...") }
+   }
+
+.. note:: Receive Full Documents From Updates
+
+   Change events that contain information on update operations only return the modified
+   fields by default rather than the full updated document. You can configure
+   your change stream to also return the most current version of the document
+   by setting the ``fullDocument`` field of the options object to
+   ``"updateLookup"`` as follows:
+
+   .. code-block:: javascript
+      :emphasize-lines: 1, 5
+
+      const options = { fullDocument: "updateLookup" };
+      // This could be any pipeline.
+      const pipeline = [];
+
+      const changeStream = myColl.watch(pipeline, options);
+
+Listener Function
+~~~~~~~~~~~~~~~~~
+
+The following example opens a change stream on the ``haikus`` collection in
+the ``insertDB`` database. Let's create a listener function to receive and
+print change events that occur on the collection.
+
+First, open the change stream on the collection and then define a listener
+on the change stream using the ``on()`` method. Once you set the
+listener, generate a change event by performing a change to the collection.
+
+To generate the change event on the collection, let's use the ``insertOne()``
+method to add a new document. Since ``insertOne()`` may run before the
+listener function can register, we use a timer, defined as
+``simulateAsyncPause`` to wait 1 second before executing the insert.
+
+We also use ``simulateAsyncPause`` after the insertion of the document.
+This provides ample time for the listener function to receive the change
+event and for the listener to complete its execution before
+closing the ``ChangeStream`` instance using the ``close()`` method.
+
+.. note:: Reason to include timers
+
+   The timers used in this example are only for demonstration
+   purposes. They make sure that there is enough time to register
+   the listener and have the listener process the change event before
+   exiting.
+
+.. tabs::
+
+   .. tab:: JavaScript
+      :tabid: javascript
+
+      .. literalinclude:: /code-snippets/usage-examples/changeStream_listener.js
+         :language: javascript
+         :linenos:
+
+   .. tab:: TypeScript
+      :tabid: typescript
+
+      .. literalinclude:: /code-snippets/usage-examples/changeStream_listener.js
+         :language: javascript
+         :linenos:
+
+.. note:: Identical Code Snippets
+
+   The JavaScript and TypeScript code snippets above are identical. There are no
+   TypeScript specific features of the driver relevant to this use case.
+
+Visit the following resources for more material on the classes and
+methods mentioned on this page:
+
+- :manual:`Change streams </changeStreams/>`
+- :manual:`Change events </reference/change-events/>`
+- :manual:`Aggregation pipeline </reference/operator/aggregation-pipeline/>`
+- :manual:`Aggregation stages </changeStreams/#modify-change-stream-output>`
+- `ChangeStream class API documentation <{+api+}/classes/ChangeStream.html>`__
+- `Collection.watch() <{+api+}/classes/Collection.html#watch>`__,
+- `Db.watch() <{+api+}/classes/Db.html#watch>`__,
+- `MongoClient.watch() API documentation <{+api+}/classes/MongoClient.html#watch>`__
