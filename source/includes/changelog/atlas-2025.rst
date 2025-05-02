@@ -39,9 +39,10 @@
   which is the size in bytes of orphaned documents in the shard when uncompressed.
   To learn more, see :ref:`review-available-metrics`.
 
-- Adds the ``autoCompact`` privilege action in |service| that allows database
+- Adds the :dbcommand:`autoCompact` privilege action in |service| that allows database
   users with the :atlasrole:`atlasAdmin` role to enable background compaction.
-  To learn more, see :ref:`faq-reduce-storage-usage`
+  This privilege action is supported only on dedicated clusters running
+  MongoDB 8.0+. To learn more, see :ref:`faq-reduce-storage-usage`
 
 .. _atlas_2025_03_12:
 
