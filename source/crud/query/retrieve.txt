@@ -1,0 +1,245 @@
+.. _node-fundamentals-retrieve-data:
+.. _node-find:
+
+==============
+Find Documents
+==============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to retrieve data, aggregate data, and monitor data changes in MongoDB by using the Node.js driver.   
+   :keywords: node.js, code example, find one, find many
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _nodejs-driver-retrieve-data-overview:
+
+Overview
+--------
+
+You can perform find operations to retrieve data from your MongoDB database.
+You can perform a find operation to match documents on a set of criteria
+by calling the ``find()`` or ``findOne()`` method.
+
+.. tip:: Interactive Lab
+   
+   This page includes a short interactive lab that demonstrates how to
+   retrieve data by using the ``find()`` method. You can complete this lab
+   directly in your browser window without installing MongoDB or a code editor.
+
+   To start the lab, click the :guilabel:`Open Interactive Tutorial` button at the
+   top of the page. To expand the lab to a full-screen format, click the
+   full-screen button (:guilabel:`⛶`) in the top-right corner of the lab pane.
+
+You can also further specify the information that the find operation
+returns by specifying optional parameters or by chaining other methods,
+as shown in the following guides:
+
+- :ref:`node-fundamentals-sort`
+- :ref:`node-fundamentals-skip`
+- :ref:`node-fundamentals-limit`
+- :ref:`node-fundamentals-project`
+
+You can also use an aggregation operation to retrieve data. This type of
+operation allows you to apply an ordered pipeline of transformations to the
+matched data.
+
+If you want to monitor the database for incoming data that matches a set of
+criteria, you can use the watch operation to be notified in real-time when
+matching data is inserted.
+
+.. include:: /includes/access-cursor-note.rst
+
+.. |page-topic| replace:: perform read operations
+.. |link-topic-ing| replace:: performing read operations in the Atlas UI
+
+.. |atlas-url| replace:: :atlas:`View, Filter, and Sort Documents </atlas-ui/documents/#view--filter--and-sort-documents>`
+
+.. include:: /includes/fact-atlas-compatible.rst
+.. include:: /includes/fact-atlas-link.rst
+
+Find Documents
+--------------
+
+You can call the ``find()`` method on a ``Collection`` object. The
+method accepts a query document that describes the documents you want to
+retrieve. For more information on how to specify your query document,
+see the :ref:`node-fundamentals-query-document` guide.
+
+.. tip:: No Query Criteria
+   
+   To execute a find operation that has no query criteria, you can
+   pass an empty query or omit the query document in your find
+   method parameters.
+
+   The following operations both return all documents in the
+   ``myColl`` collection:
+
+   .. code-block:: javascript
+
+      myColl.find(); // no query
+      myColl.find({}); // empty query
+   
+   If you don't pass a query or pass an empty query
+   to the ``findOne()`` method, the operation returns a single
+   document from a collection.
+
+   You can specify options in a find operation even when you pass an
+   empty query. For example, the following code shows how you can
+   specify a projection as an option while executing a find operation
+   that receives an empty query parameter:
+
+   .. code-block:: javascript
+
+      const options = {
+        projection: { _id: 0, field1: 1 },
+      };
+
+      const findResult = await myColl.findOne({}, options);
+
+   For more information about projecting document fields, see the
+   :ref:`node-fundamentals-project` guide.
+
+The ``find()`` method returns a ``Cursor`` instance from which you can
+access the matched documents. The ``findOne()`` method returns a ``Promise``
+instance, which you can resolve to access either the matching document or
+a ``null`` value if there are no matches.
+
+.. example::
+
+   A pizza restaurant wants to find all pizzas ordered by Lemony Snicket
+   yesterday. They run the following ``find()`` query on the
+   ``orders`` collection:
+
+   .. literalinclude:: /code-snippets/crud/pizza.js
+      :language: javascript
+      :start-after: start find crud example
+      :end-before: end find crud example
+
+   Once the operation returns, the ``findResult`` variable references a
+   ``Cursor``. You can print the documents retrieved using the ``for await...of``
+   syntax as shown below:
+
+   .. code-block:: javascript
+
+      for await (const doc of findResult) {
+        console.log(doc);
+      }
+
+   The output might resemble the following:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      [
+        { name: "Lemony Snicket", type: "horseradish pizza", qty: 1, status: "delivered", date: ... },
+        { name: "Lemony Snicket", type: "coal-fired oven pizza", qty: 3, status: "canceled", date: ...},
+        ...
+      ]
+
+Additional Information
+~~~~~~~~~~~~~~~~~~~~~~
+
+For runnable code examples that demonstrate find operations, see the following
+usage examples:
+
+- :ref:`node-usage-findone`
+- :ref:`node-usage-find`
+
+For more information about the ``findOne()`` and ``find()`` methods, see the
+following Server manual documentation:
+
+- :manual:`findOne() </reference/method/db.collection.findOne/>`
+- :manual:`find() </reference/method/db.collection.find/>`
+
+Aggregate Data from Documents
+-----------------------------
+
+If you want to run a custom processing pipeline to retrieve data from your
+database, you can use the ``aggregate()`` method. This method accepts
+aggregation expressions to run in sequence. These expressions let you filter,
+group, and arrange the result data from a collection.
+
+.. example::
+
+   A pizza restaurant wants to run a status report on-demand to
+   summarize pizza orders over the past week. They run the following
+   ``aggregate()`` query on the ``orders`` collection to fetch the
+   totals for each distinct "status" field:
+
+   .. literalinclude:: /code-snippets/crud/pizza.js
+      :language: javascript
+      :start-after: start aggregate crud example
+      :end-before: end aggregate crud example
+
+   Once the operation returns, the ``aggregateResult`` variable references a
+   ``Cursor``. You can print the documents retrieved using the ``for await...of``
+   syntax as shown below:
+
+   .. code-block:: javascript
+
+      for await (const doc of aggregateResult) {
+        console.log(doc);
+      }
+
+   The output might resemble the following:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      [
+        { _id: 'delivering', count: 5 },
+        { _id: 'delivered', count: 37 },
+        { _id: 'created', count: 9 }
+      ]
+
+Additional Information
+~~~~~~~~~~~~~~~~~~~~~~
+
+For more information on how to construct an aggregation pipeline, see
+the :ref:`node-aggregation` guide or :manual:`Aggregation Operations </aggregation>`
+in the Server manual.
+
+.. _node-fundamentals-watch:
+
+Monitor Data Changes
+--------------------
+
+You can use the ``watch()`` method to monitor a collection for changes to
+a collection that match certain criteria. These changes include inserted,
+updated, replaced, and deleted documents. You can pass this method
+a pipeline of aggregation commands that sequentially runs on the changed
+data whenever write operations are executed on the collection.
+
+.. example::
+
+   A pizza restaurant wants to receive a notification whenever a new pizza
+   order comes in. To accomplish this, they create an aggregation pipeline
+   to filter on insert operations and return specific fields. They pass
+   this pipeline to the ``watch()`` method called on the ``orders``
+   collection as shown below:
+
+   .. literalinclude:: /code-snippets/crud/pizza.js
+      :language: javascript
+      :start-after: start watch crud example
+      :end-before: end watch crud example
+
+Additional Information
+~~~~~~~~~~~~~~~~~~~~~~
+
+For a runnable example of the ``watch()`` method, see the :ref:`examples
+<node-usage-watch>` section in the :ref:`node-change-streams` guide.
+
+.. _node-retrieve-instruqt-lab:
+
+.. instruqt:: /mongodb-docs/tracks/find-node?token=em_OVNHWCPNPMLwNOCm
+   :title: find() Lesson
+   :drawer:
+   
