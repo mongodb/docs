@@ -1,5 +1,4 @@
-const { MongoClient, Binary } = require("mongodb");
-const { ClientEncryption } = require("mongodb-client-encryption");
+const { MongoClient, ClientEncryption } = require("mongodb");
 
 const keyVaultDatabase = "encryption";
 const keyVaultCollection = "__keyVault";
