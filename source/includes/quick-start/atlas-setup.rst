@@ -50,7 +50,7 @@ when applicable, and connection options.
       3. Find the cluster you would like to connect to and click the :guilabel:`Connect` button.
       4. Under :guilable:`Connect to your application`, click the :guilabel:`Drivers` option. 
       5. Select "Go" from the :guilabel:`Driver` selection menu and the appropriate version from the :guilabel:`Version` selection menu.
-      6. Copy the connection string clipboard, as shown in the following screenshot:
+      6. Copy the connection string clipboard.
 
    .. step:: Update the placeholders
 
@@ -63,5 +63,5 @@ when applicable, and connection options.
 After completing these steps, you have a connection string that corresponds your
 Atlas cluster.
 
-To learn more about connecting to Atlas through the {+driver-long+} and applying
+To learn more about connecting to Atlas by using the {+driver-long+} and applying
 connection options, see the :atlas:`Atlas driver connection guide </driver-connection>`.
