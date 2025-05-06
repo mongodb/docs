@@ -14,7 +14,7 @@
      - .NET Core 3.X
      - .NET Core 2.X
 
-   * - 3.0 to 3.3
+   * - 3.0 to 3.4
      - ✓
      - ✓
      - ✓
@@ -60,5 +60,4 @@
      - ✓
      - ✓
 
-.. [#2.14-note] {+driver-short+} versions 2.14 or later requires .NET Framework 4.7.2 or
-   later.
+.. [#2.14-note] {+driver-short+} versions 2.14 and later require .NET Framework 4.7.2 or later.
