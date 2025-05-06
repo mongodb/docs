@@ -29,7 +29,7 @@
          .. tab::
             :tabid: compass
 
-            .. include:: /includes/fts/search-index-management/procedures/steps-fts-tutorial-create-index-compass.rst
+            .. include:: /includes/fts/quickstart/create-index/steps-fts-create-index-tutorial-compass.rst
             
          .. tab::
             :tabid: csharp
