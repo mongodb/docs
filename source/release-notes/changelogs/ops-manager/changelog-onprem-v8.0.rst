@@ -195,8 +195,8 @@ Improvements
 
 - Updates the {+mdbagent+} to :ref:`108.0.2.8729-1 <mongodb-108.0.2.8729-1>`.
 - Adds support for |bic-full| 2.14.19.
-- Adds {+mdbagent+} support for Ubuntu 24.04 on x86_64 and ARM architectures.
-- Adds support for deploying |onprem| on Ubuntu 24.04 on x86_64 and ARM architectures.
+- Adds {+mdbagent+} support for Ubuntu 24.04 on x86_64 architectures.
+- Adds support for deploying |onprem| on Ubuntu 24.04 on x86_64 architectures.
 - Updates the password hashing algorithm to ``pbkdf2``. Old passwords are migrated
   automatically without any user impact. New passwords cannot exceed 256
   characters. Users with passwords longer than 256 characters must migrate their passwords.
