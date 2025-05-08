@@ -26,18 +26,16 @@
       :guilabel:`Download KMIP Proxy` and select the binary for your
       operating system.
       
-      .. tip::
-         
-         You can also do one of the following steps to access the
-         :guilabel:`download KMIP Proxy Standalone` link:
+      You can also do one of the following steps to access the
+      :guilabel:`download KMIP Proxy Standalone` link:
 
-         - Click the :guilabel:`Restores & Downloads` tab.
+      - Click the :guilabel:`Restores & Downloads` tab.
 
-         - .. include:: /includes/nav/list-advanced.rst
+      - .. include:: /includes/nav/list-advanced.rst
            
-           The link appears in the 
-           :guilabel:`Encryption at Rest using your Key Management` 
-           section.
+        The link appears in the 
+        :guilabel:`Encryption at Rest using your Key Management` 
+        section.
       
    .. step:: Start the |kmip| Proxy Standalone.
       

@@ -1,8 +1,4 @@
 Each |service| :ref:`project <projects>` supports up to 25 {+database-deployments+}. 
-Please contact |service| support for questions or assistance regarding 
-the {+database-deployment+} limit. To contact support:
-
-a. .. include:: /includes/nav/roman-project-support.rst
-
-#. Request support.
+If you have questions or need assistance regarding the {+database-deployment+} limit,
+:ref:`contact support <atlas-support>`. 
     

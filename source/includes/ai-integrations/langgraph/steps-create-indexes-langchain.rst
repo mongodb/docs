@@ -1,44 +1,39 @@
-.. procedure::
-   :style: normal
+a. Create the {+avs+} index.
+   
+   Run the following code to create a :ref:`vector search index <avs-types-vector-search>` that indexes the 
+   ``plot_embedding`` field in the collection.
+   
+   .. code-block:: python
 
-   .. step:: Create the {+avs+} index.
+      # Use helper method to create the vector search index
+      vector_store.create_vector_search_index( 
+         dimensions = 1536
+      )
 
-      Run the following code to create
-      a :ref:`vector search index <avs-types-vector-search>` that indexes the 
-      ``plot_embedding`` field in the collection.
+   .. tip::
+      
+      `create_vector_search_index API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html#langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.create_vector_search_index>`__
 
-      .. code-block:: python
+#. Create the {+fts+} index.
 
-        # Use helper method to create the vector search index
-        vector_store.create_vector_search_index( 
-           dimensions = 1536
-        )
+   Run the following code in your notebook to create a :ref:`search index <fts-about-indexing>`
+   that indexes the ``title`` field in the collection.
 
-      .. tip::
+   .. code-block:: python
 
-         `create_vector_search_index API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html#langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.create_vector_search_index>`__
+      from langchain_mongodb.index import create_fulltext_search_index
+      from pymongo import MongoClient
 
-   .. step:: Create the {+fts+} index.
+      # Connect to your cluster
+      client = MongoClient(MONGODB_URI)
 
-      Run the following code in your notebook to create a 
-      :ref:`search index <fts-about-indexing>`
-      that indexes the ``title`` field in the collection.
+      # Use helper method to create the search index
+      create_fulltext_search_index( 
+         collection = client["sample_mflix"]["embedded_movies"],
+         field = "title",
+         index_name = "search_index"
+      )
 
-      .. code-block:: python
+   .. tip::
 
-         from langchain_mongodb.index import create_fulltext_search_index
-         from pymongo import MongoClient
-
-         # Connect to your cluster
-         client = MongoClient(MONGODB_URI)
-
-         # Use helper method to create the search index
-         create_fulltext_search_index( 
-            collection = client["sample_mflix"]["embedded_movies"],
-            field = "title",
-            index_name = "search_index"
-         )
-
-      .. tip::
-
-         `create_fulltext_search_index API Reference <https://api.python.langchain.com/en/latest/index/langchain_mongodb.index.create_fulltext_search_index.html#langchain_mongodb.index.create_fulltext_search_index>`__
+      `create_fulltext_search_index API Reference <https://api.python.langchain.com/en/latest/index/langchain_mongodb.index.create_fulltext_search_index.html#langchain_mongodb.index.create_fulltext_search_index>`__

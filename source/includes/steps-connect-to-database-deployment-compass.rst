@@ -8,24 +8,25 @@
       Click :guilabel:`Connect` for the {+database-deployment+} to 
       which you want to connect.
       
-   .. step:: Choose your Connection Security.
-      
-      :guilabel:`Choose Connection Type` from the set of available buttons.
-      
-      .. note:: Options Display if Feature Enabled
-      
+   .. step:: Choose your Connection Type.
+
+      .. note:: Enable Features to Display Connection Options
+
          |service| displays the connection type options after you enable
          :doc:`Private IP for Peering </security-vpc-peering>`,
          :ref:`Private Endpoint <atlas-configure-private-endpoint>`, or
          both. If you haven't enabled either feature, no buttons display
          and **Connection Type** defaults to **Standard**.
-      
+
+      Under :guilabel:`Choose Connection Type`, select one of the following connection types: 
+
       .. tabs::
       
          .. tab:: Standard Connection
             :tabid: standard
       
-            Use this connection type for allowed public IP addresses.
+            Use this connection type for allowed public IP addresses. If you are
+            connecting directly to |service| from an office or home network, this might be the preferred option.
       
          .. tab:: Private IP for Peering
             :tabid: peering
@@ -33,23 +34,15 @@
             Use this connection type if you enabled peering:
       
             - For |gcp| or |azure| and are connecting with Compass
-              from a peered network, or
+              from a peered network
             - For |aws| and are connecting with Compass from a
-              peered network which uses a custom |dns| service.
-      
-            If neither of these apply, add your IP address to your IP
-            access list and use the Standard Connection string. If you are
-            connecting directly to |service| from an office or home
-            network, this might be the preferred option.
+              peered network which uses a custom |dns| service
       
             .. note:: Peer must be available
       
                You can't select this option unless one of your peers
-               is marked as ``AVAILABLE``. To
-               :doc:`check the status of your peers 
-               </security-vpc-peering>`:
-
-               .. include:: /includes/nav/list-network-access.rst
+               is marked as ``AVAILABLE``. To learn how to check the status of your peers, 
+               see :ref:`view-network-peer-connection`. 
       
             .. note:: Multi-Cloud Clusters
       
@@ -72,29 +65,20 @@
       
             Use the connection string for the appropriate interface
             endpoint if you are connecting with Compass over a
-            Private Endpoint connection either because Compass:
+            private endpoint connection because:
       
-            - Runs inside your cloud provider network, or
-            - Has transitive network access to your cloud provider network.
-            - You want to use an :ref:`optimized connection string
-              <optimized-connection-strings>`.
-      
-            If none of these apply, add your IP address to your IP
-            access list and use the Standard Connection string. If you are
-            connecting directly to |service| from an office or home
-            network, this might be the preferred option.
+            - |compass| runs inside your cloud provider network
+            - |compass| has transitive network access to your cloud provider network
+            - You want to use an :ref:`optimized connection string <optimized-connection-strings>`.
       
             .. note::
       
                You can't select this option unless your configured
-               PrivateLink connection is ready to use. To 
-               :ref:`check the status of your {+aws-pl+} 
-               <atlas-troubleshoot-private-endpoint>`:
-
-               .. include:: /includes/nav/list-network-access.rst
+               PrivateLink connection is ready to use. To learn how to
+               check the status of your {+aws-pl+}, see :ref:`atlas-troubleshoot-private-endpoint`. 
       
    .. step:: Choose how you want to limit connections to your {+database-deployment+}.
-      
+
       .. tabs::
          :hidden:
       
@@ -108,12 +92,11 @@
                Skip this step if |service| indicates in the
                :guilabel:`Setup connection security` step that you have
                already configured an IP access list entry in your {+database-deployment+}.
-               To manage the IP access list, see
-               :ref:`Add Entries to the Access List <access-list>`.
+               To manage the IP access list, see :ref:`access-list`.
       
             |service| allows standard client connections to the {+database-deployment+}
-            from entries in the :ref:`project's IP access list
-            <access-list>`. The project IP access list differs from the
+            from entries in the project's :ref:`IP access list <access-list>`.
+            The project IP access list differs from the
             :ref:`API access list <enable-api-access-list>`, which
             restricts *API* access to specific IP or |cidr| addresses.
       
@@ -140,8 +123,7 @@
                Skip this step if |service| indicates in the
                :guilabel:`Setup connection security` step that you have
                already configured an IP access list entry in your {+database-deployment+}.
-               To manage the IP access list, see :ref:`Add Entries to the
-               IP access list <access-list>`.
+               To manage the IP access list, see :ref:`access-list`.
       
             |service| allows standard client connections to the cluster
             from entries in the :ref:`project's IP access list

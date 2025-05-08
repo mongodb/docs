@@ -9,7 +9,7 @@
   {+Clusters+} with sustained loads on M10 and M20 tiers may experience
   degraded performance over time.
 
-- .. include:: /includes/fact-database-deployment-project-limit.rst
+- .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
 
 - If your |service| project contains a
   :ref:`custom role <mongodb-roles>` that uses actions introduced
