@@ -6,7 +6,10 @@
    * - C++ Driver Version
      - Minimum libmongoc Version
 
-   * - 4.0.x and 4.1.x
+   * - 4.1.x
+     - 2.0.0
+
+   * - 4.0.x
      - 1.29.0
    
    * - 3.11.x
