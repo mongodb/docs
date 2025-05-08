@@ -59,22 +59,14 @@
              they are valid.
       
              Accepted values are:
-      
-             .. list-table::
-                :widths: 25 75
-                :stub-columns: 1
-      
-                * - Optional
-                  - Every client may present a valid |tls| certificate when
-                    connecting to MongoDB deployments. {+mdbagent+}\s might
-                    use |tls| certificates if you *don't* set the |mongod|
-                    :parameter:`tlsMode` to ``None``.
-      
-                * - Required
-                  - Every MongoDB deployment in this project starts with
-                    |tls|\-encrypted network connections. All Agents
-                    must use |tls| to connect to any MongoDB
-                    deployment.
+
+             - ``Optional``: Every client may present a valid |tls| certificate when
+               connecting to MongoDB deployments. {+mdbagent+}\s might
+               use |tls| certificates if you *don't* set the |mongod|
+               :parameter:`tlsMode` to ``None``.
+             - ``Required``: Every MongoDB deployment in this project starts with
+               |tls|\-encrypted network connections. All Agents must use |tls|
+               to connect to any MongoDB deployment.
       
    .. step:: Choose the authentication mechanism.
 
@@ -146,12 +138,10 @@
                 connecting to an LDAP server. Specifying a new password in
                 this field allows you to smoothly rotate the query password.
 
-                .. important::
-
-                   After you rotate the password on the LDAP server side,
-                   move the contents of the :guilabel:`New Query Password`
-                   field into the :guilabel:`Query Password` field and make
-                   the :guilabel:`New Query Password` field empty.
+                :gold:`IMPORTANT:` After you rotate the password on the LDAP server side,
+                move the contents of the :guilabel:`New Query Password`
+                field into the :guilabel:`Query Password` field and make
+                the :guilabel:`New Query Password` field empty.
 
             * - LDAP User Cache Invalidation Interval (s)  
 

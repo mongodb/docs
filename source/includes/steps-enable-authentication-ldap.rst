@@ -59,22 +59,14 @@
              they are valid.
       
              Accepted values are:
-      
-             .. list-table::
-                :widths: 25 75
-                :stub-columns: 1
-      
-                * - Optional
-                  - Every client may present a valid |tls| certificate when
-                    connecting to MongoDB deployments. {+mdbagent+}\s might
-                    use |tls| certificates if you *don't* set the |mongod|
-                    :parameter:`tlsMode` to ``None``.
-      
-                * - Required
-                  - Every MongoDB deployment in this project starts with
-                    |tls|\-encrypted network connections. All Agents
-                    must use |tls| to connect to any MongoDB
-                    deployment.
+
+             - ``Optional``: Every client may present a valid |tls| certificate when
+               connecting to MongoDB deployments. {+mdbagent+}\s might
+               use |tls| certificates if you *don't* set the |mongod|
+               :parameter:`tlsMode` to ``None``.
+             - ``Required``: Every MongoDB deployment in this project starts with
+               |tls|\-encrypted network connections. All Agents must use |tls|
+               to connect to any MongoDB deployment.
       
    .. step:: Choose the authentication mechanism.
 
