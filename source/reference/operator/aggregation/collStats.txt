@@ -296,38 +296,94 @@ This query returns a result similar to the following:
 
 .. code-block:: javascript
 
-   {
-     "ns" : "test.matrices",
-     "host" : "mongo.example.net:27017",
-     "localTime" : ISODate("2020-03-06T01:44:57.437Z"),
-     "storageStats" : {
-       "size" : 608500363,
-       "count" : 1104369,
-       "avgObjSize" : 550,
-       "storageSize" : 352878592,
-       "freeStorageSize" : 2490380, 
-       "capped" : false,
-       "wiredTiger" : {
+    {
+      localTime : 2020-03-06T01:44:57.437Z,
+      storageStats: {
+       size: 608500363,
+       count: 1104369,
+       avgObjectSize: 550,
+       storageSize: 4096,
+       freeStorageSize: 2490380,
+       capped: false,
+       wiredTiger : {
          ...
        },
-       "nindexes" : 2,
-       "indexDetails" : {
+       nindexes : 2,
+       indexDetails : {
          ...
        },
-       "indexBuilds" : [
-          "_id_1_abc_1"
+       indexBuilds: [
+        _id_1_abc_1
        ],
-       "totalIndexSize" : 260337664,
-       "totalSize" : 613216256,  
-       "indexSizes" : {
-         "_id_" : 9891840,
-         "_id_1_abc_1" : 250445824
+       totalIndexSize: 260337664,
+       indexSizes: {
+       _id_ : 9891840,
+       _id_1_abc_1 : 250445824
        },
-       "scaleFactor" : 1 
-     }
+       totalSize: 613216256,
+       scaleFactor : 1 
+     },
+     host : 'mongo.example.net:27017',
+     ns : 'test.matrices'
    }
 
-See :ref:`collStats-output` for a reference on this document.
+.. _storage-stats-time-series:
+
+``storageStats`` Output on Time Series Collections
+``````````````````````````````````````````````````
+
+When you run ``$collStats`` on a time series collection with the ``storageStats: {}``
+option, the output includes time series data. For example, the following command
+runs ``$collStats`` with the ``storageStats: {}`` option on a ``weather`` time series
+collection using the :ref:`storage-wiredtiger` and filters for only time series data:
+
+.. code-block:: javascript
+
+   db.weather.aggregate( [ { $collStats: { storageStats: { } } } ] ).toArray()[0].storageStats.timeseries
+
+This query returns a result similar to the following, which includes time series data for
+internal diagnostic use:
+
+.. code-block:: javascript
+
+   {
+      bucketsNs: 'test.system.buckets.weather',
+      bucketCount: 12,
+      avgBucketSize: 300,
+      numActiveBuckets: 1,
+      numBucketInserts: 12,
+      numBucketUpdates: 0,
+      numBucketsOpenedDueToMetadata: 1,
+      numBucketsClosedDueToCount: 0,
+      numBucketsClosedDueToSchemaChange: 0,
+      numBucketsClosedDueToSize: 0,
+      numBucketsClosedDueToTimeForward: 11,
+      numBucketsClosedDueToMemoryThreshold: 0,
+      numCommits: 12,
+      numMeasurementsGroupCommitted: 0,
+      numWaits: 0,
+      numMeasurementsCommitted: 12,
+      avgNumMeasurementsPerCommit: 1,
+      numBucketsClosedDueToReopening: 0,
+      numBucketsArchivedDueToMemoryThreshold: 0,
+      numBucketsArchivedDueToTimeBackward: 0,
+      numBucketsReopened: 0,
+      numBucketsKeptOpenDueToLargeMeasurements: 0,
+      numBucketsClosedDueToCachePressure: 0,
+      numBucketsFrozen: 0,
+      numCompressedBucketsConvertedToUnsorted: 0,
+      numBucketsFetched: 0,
+      numBucketsQueried: 0,
+      numBucketFetchesFailed: 0,
+      numBucketQueriesFailed: 1,
+      numBucketReopeningsFailed: 0,
+      numDuplicateBucketsReopened: 0
+   }
+
+To learn more about the fields returned in the ``timeseries: {}`` document, see
+:ref:`server-status-bucketcatalog`. 
+
+See :ref:`collStats-output` for field and subdocument descriptions.
 
 .. note:: In-progress Indexes
 
