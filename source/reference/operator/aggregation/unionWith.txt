@@ -19,7 +19,7 @@ Definition
    outputs the combined result set (including duplicates) to the next
    stage.
 
-   The order in which the combined result set documents are output is 
+   The order in which the combined result set documents are output is
    unspecified.
 
 Syntax
@@ -67,18 +67,18 @@ The ``$unionWith`` stage takes a document with the following fields:
     - ..  _unionWith-pipeline:
 
       An aggregation pipeline to apply to the input documents.
-      
+
       - If you specify ``coll``, the pipeline applies to the documents
         in ``coll``.
-        
+
       - If you omit ``coll``, the pipeline applies to the documents in
         the pipeline's ``$documents`` stage. For an example, see
         :ref:`unionWith-example-specified-docs`.
 
       The pipeline cannot include the :pipeline:`$out` and
-      :pipeline:`$merge` stages. Starting in v6.0, the ``pipeline`` 
-      can contain the :atlas:`Atlas Search </atlas-search>` 
-      :pipeline:`$search` stage as the first stage inside the pipeline. 
+      :pipeline:`$merge` stages. Starting in v6.0, the ``pipeline``
+      can contain the :atlas:`Atlas Search </atlas-search>`
+      :pipeline:`$search` stage as the first stage inside the pipeline.
       To learn more, see :ref:`fts-unionwith-behavior`.
 
 The :pipeline:`$unionWith` operation would correspond to the following
@@ -86,11 +86,11 @@ SQL statement:
 
 .. code-block:: sql
 
-   SELECT * 
+   SELECT *
    FROM Collection1
    WHERE ...
    UNION ALL
-   SELECT * 
+   SELECT *
    FROM Collection2
    WHERE ...
 
@@ -121,12 +121,12 @@ For example, create a ``suppliers`` collection and a ``warehouses`` collection:
      { _id: 3, warehouse: "C", region: "East", state: "Florida" },
    ])
 
-The following aggregation combines the ``state`` field projection results from 
+The following aggregation combines the ``state`` field projection results from
 the ``suppliers`` and ``warehouse`` collections.
 
 .. code-block:: javascript
 
-   db.suppliers.aggregate([ 
+   db.suppliers.aggregate([
       { $project: { state: 1, _id: 0 } },
       { $unionWith: { coll: "warehouses", pipeline: [ { $project: { state: 1, _id: 0 } } ]} }
    ])
@@ -143,13 +143,13 @@ The result set contains duplicates:
    { "state" : "California" }
    { "state" : "Colorado" }
    { "state" : "Florida" }
-   
+
 To remove the duplicates, you can include a :pipeline:`$group` stage to
 group by the ``state`` field:
 
 .. code-block:: javascript
 
-   db.suppliers.aggregate([ 
+   db.suppliers.aggregate([
       { $project: { state: 1, _id: 0 } },
       { $unionWith: { coll: "warehouses", pipeline: [ { $project: { state: 1, _id: 0 } } ]} },
       { $group: { _id: "$state" } }
@@ -218,19 +218,19 @@ top-level collection/view on which the
 Atlas Search Support
 ~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 6.0, you can specify the :atlas:`Atlas Search 
-</atlas-search>` :pipeline:`$search` or :pipeline:`$searchMeta` stage 
-in the ``$unionWith`` pipeline to search collections on the Atlas 
-cluster. The :pipeline:`$search` or the :pipeline:`$searchMeta` stage 
-must be the first stage inside the ``$unionWith`` pipeline. 
+Starting in MongoDB 6.0, you can specify the :atlas:`Atlas Search
+</atlas-search>` :pipeline:`$search` or :pipeline:`$searchMeta` stage
+in the ``$unionWith`` pipeline to search collections on the Atlas
+cluster. The :pipeline:`$search` or the :pipeline:`$searchMeta` stage
+must be the first stage inside the ``$unionWith`` pipeline.
 
-.. tabs:: 
+.. tabs::
 
    .. tab:: $search
       :tabid: search
 
-      .. code-block:: 
-         :copyable: false 
+      .. code-block::
+         :copyable: false
          :emphasize-lines: 5-9
 
          [{
@@ -242,16 +242,16 @@ must be the first stage inside the ``$unionWith`` pipeline.
                    <operator-specification>
                  }
                },
-               ... 
+               ...
              }]
            }
-         }] 
+         }]
 
    .. tab:: $searchMeta
       :tabid: searchmeta
 
-      .. code-block:: 
-         :copyable: false 
+      .. code-block::
+         :copyable: false
          :emphasize-lines: 5-9
 
          [{
@@ -266,10 +266,10 @@ must be the first stage inside the ``$unionWith`` pipeline.
                ...
              }]
            }
-         }] 
+         }]
 
-To see an example of :pipeline:`$unionWith` with :pipeline:`$search`, 
-see the Atlas Search tutorial :atlas:`Run an Atlas Search $search Query 
+To see an example of :pipeline:`$unionWith` with :pipeline:`$search`,
+see the Atlas Search tutorial :atlas:`Run an Atlas Search $search Query
 Using $unionWith </atlas-search/tutorial/search-with-unionwith/>`.
 
 .. warning:: 
@@ -303,7 +303,7 @@ Restrictions
        <unionWith-coll>` cannot be sharded.
 
    * - :pipeline:`$out`
-   
+
      - The :ref:`$unionWith pipeline <unionWith-pipeline>` cannot
        include the :pipeline:`$out` stage.
 
@@ -315,229 +315,263 @@ Restrictions
 Examples
 --------
 
-Create Sales Reports from the Union of Yearly Data Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. tabs-drivers::
 
-The following examples use the :pipeline:`$unionWith` stage to combine data and
-return results from multiple collections. In these examples, each collection 
-contains a year of sales data. 
+   .. tab::
+      :tabid: shell
 
-Populate Sample Data
-````````````````````
+      Create Sales Reports from the Union of Yearly Data Collections
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Create a ``sales_2017`` collection with the following documents:
+      The following examples use the :pipeline:`$unionWith` stage to combine data and
+      return results from multiple collections. In these examples, each collection
+      contains a year of sales data.
 
-   .. code-block:: javascript
-   
-      db.sales_2017.insertMany( [
-        { store: "General Store", item: "Chocolates", quantity: 150 },
-        { store: "ShopMart", item: "Chocolates", quantity: 50 },
-        { store: "General Store", item: "Cookies", quantity: 100 },
-        { store: "ShopMart", item: "Cookies", quantity: 120 },
-        { store: "General Store", item: "Pie", quantity: 10 },
-        { store: "ShopMart", item: "Pie", quantity: 5 }
-      ] )
+      Populate Sample Data
+      ````````````````````
 
-#. Create a ``sales_2018`` collection with the following documents:
+      #. Create a ``sales_2017`` collection with the following documents:
 
-   .. code-block:: javascript
-   
-      db.sales_2018.insertMany( [
-        { store: "General Store", item: "Cheese", quantity: 30 },
-        { store: "ShopMart", item: "Cheese", quantity: 50 },
-        { store: "General Store", item: "Chocolates", quantity: 125 },
-        { store: "ShopMart", item: "Chocolates", quantity: 150 },
-        { store: "General Store", item: "Cookies", quantity: 200 },
-        { store: "ShopMart", item: "Cookies", quantity: 100 },
-        { store: "ShopMart", item: "Nuts", quantity: 100 },
-        { store: "General Store", item: "Pie", quantity: 30 },
-        { store: "ShopMart", item: "Pie", quantity: 25 }
-      ] )
+         .. code-block:: javascript
 
+            db.sales_2017.insertMany( [
+              { store: "General Store", item: "Chocolates", quantity: 150 },
+              { store: "ShopMart", item: "Chocolates", quantity: 50 },
+              { store: "General Store", item: "Cookies", quantity: 100 },
+              { store: "ShopMart", item: "Cookies", quantity: 120 },
+              { store: "General Store", item: "Pie", quantity: 10 },
+              { store: "ShopMart", item: "Pie", quantity: 5 }
+            ] )
 
-#. Create a ``sales_2019`` collection with the following documents:
+      #. Create a ``sales_2018`` collection with the following documents:
 
-   .. code-block:: javascript
-   
-      db.sales_2019.insertMany( [
-        { store: "General Store", item: "Cheese", quantity: 50 },
-        { store: "ShopMart", item: "Cheese", quantity: 20 },
-        { store: "General Store", item: "Chocolates", quantity: 125 },
-        { store: "ShopMart", item: "Chocolates", quantity: 150 },
-        { store: "General Store", item: "Cookies", quantity: 200 },
-        { store: "ShopMart", item: "Cookies", quantity: 100 },
-        { store: "General Store", item: "Nuts", quantity: 80 },
-        { store: "ShopMart", item: "Nuts", quantity: 30 },
-        { store: "General Store", item: "Pie", quantity: 50 },
-        { store: "ShopMart", item: "Pie", quantity: 75 }
-      ] )
+         .. code-block:: javascript
 
-#. Create a ``sales_2020`` collection with the following documents:
-
-   .. code-block:: javascript
-   
-      db.sales_2020.insertMany( [
-        { store: "General Store", item: "Cheese", quantity: 100, },
-        { store: "ShopMart", item: "Cheese", quantity: 100},
-        { store: "General Store", item: "Chocolates", quantity: 200 },
-        { store: "ShopMart", item: "Chocolates", quantity: 300 },
-        { store: "General Store", item: "Cookies", quantity: 500 },
-        { store: "ShopMart", item: "Cookies", quantity: 400 },
-        { store: "General Store", item: "Nuts", quantity: 100 },
-        { store: "ShopMart", item: "Nuts", quantity: 200 },
-        { store: "General Store", item: "Pie", quantity: 100 },
-        { store: "ShopMart", item: "Pie", quantity: 100 }
-      ] )
+            db.sales_2018.insertMany( [
+              { store: "General Store", item: "Cheese", quantity: 30 },
+              { store: "ShopMart", item: "Cheese", quantity: 50 },
+              { store: "General Store", item: "Chocolates", quantity: 125 },
+              { store: "ShopMart", item: "Chocolates", quantity: 150 },
+              { store: "General Store", item: "Cookies", quantity: 200 },
+              { store: "ShopMart", item: "Cookies", quantity: 100 },
+              { store: "ShopMart", item: "Nuts", quantity: 100 },
+              { store: "General Store", item: "Pie", quantity: 30 },
+              { store: "ShopMart", item: "Pie", quantity: 25 }
+            ] )
 
 
-Report 1: All Sales by Year and Stores and Items
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      #. Create a ``sales_2019`` collection with the following documents:
 
-The following aggregation creates a yearly sales report that lists all sales by 
-quarter and stores. The pipeline uses :pipeline:`$unionWith` to combine documents 
-from all four collections:
+         .. code-block:: javascript
 
-.. code-block:: javascript
+            db.sales_2019.insertMany( [
+              { store: "General Store", item: "Cheese", quantity: 50 },
+              { store: "ShopMart", item: "Cheese", quantity: 20 },
+              { store: "General Store", item: "Chocolates", quantity: 125 },
+              { store: "ShopMart", item: "Chocolates", quantity: 150 },
+              { store: "General Store", item: "Cookies", quantity: 200 },
+              { store: "ShopMart", item: "Cookies", quantity: 100 },
+              { store: "General Store", item: "Nuts", quantity: 80 },
+              { store: "ShopMart", item: "Nuts", quantity: 30 },
+              { store: "General Store", item: "Pie", quantity: 50 },
+              { store: "ShopMart", item: "Pie", quantity: 75 }
+            ] )
 
-   db.sales_2017.aggregate( [ 
-      { $set: { _id: "2017" } },
-      { $unionWith: { coll: "sales_2018", pipeline: [ { $set: { _id: "2018" } } ] } },
-      { $unionWith: { coll: "sales_2019", pipeline: [ { $set: { _id: "2019" } } ] } },
-      { $unionWith: { coll: "sales_2020", pipeline: [ { $set: { _id: "2020" } } ] } },
-      { $sort: { _id: 1, store: 1, item: 1 } }
-   ] )
+      #. Create a ``sales_2020`` collection with the following documents:
 
-Specifically, the aggregation pipeline uses:
+         .. code-block:: javascript
 
-- A :pipeline:`$set` stage to update the ``_id`` field to contain the
-  year. 
-    
-- A sequence of :pipeline:`$unionWith` stages to combine all documents
-  from the four collections, each also using the :pipeline:`$set` stage
-  on its documents.
+            db.sales_2020.insertMany( [
+              { store: "General Store", item: "Cheese", quantity: 100, },
+              { store: "ShopMart", item: "Cheese", quantity: 100},
+              { store: "General Store", item: "Chocolates", quantity: 200 },
+              { store: "ShopMart", item: "Chocolates", quantity: 300 },
+              { store: "General Store", item: "Cookies", quantity: 500 },
+              { store: "ShopMart", item: "Cookies", quantity: 400 },
+              { store: "General Store", item: "Nuts", quantity: 100 },
+              { store: "ShopMart", item: "Nuts", quantity: 200 },
+              { store: "General Store", item: "Pie", quantity: 100 },
+              { store: "ShopMart", item: "Pie", quantity: 100 }
+            ] )
 
-- A :pipeline:`$sort` stage to sort by the ``_id`` (the year),
-  the ``store``, and ``item``.
+      Report 1: All Sales by Year and Stores and Items
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Pipeline output:
+      The following aggregation creates a yearly sales report that lists all sales by
+      quarter and stores. The pipeline uses :pipeline:`$unionWith` to combine documents
+      from all four collections:
 
-.. code-block:: javascript
-   :copyable: false
+      .. code-block:: javascript
 
-   { "_id" : "2017", "store" : "General Store", "item" : "Chocolates", "quantity" : 150 }
-   { "_id" : "2017", "store" : "General Store", "item" : "Cookies", "quantity" : 100 }
-   { "_id" : "2017", "store" : "General Store", "item" : "Pie", "quantity" : 10 }
-   { "_id" : "2017", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 50 }
-   { "_id" : "2017", "store" : "ShopMart", "item" : "Cookies", "quantity" : 120 }
-   { "_id" : "2017", "store" : "ShopMart", "item" : "Pie", "quantity" : 5 }
-   { "_id" : "2018", "store" : "General Store", "item" : "Cheese", "quantity" : 30 }
-   { "_id" : "2018", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
-   { "_id" : "2018", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
-   { "_id" : "2018", "store" : "General Store", "item" : "Pie", "quantity" : 30 }
-   { "_id" : "2018", "store" : "ShopMart", "item" : "Cheese", "quantity" : 50 }
-   { "_id" : "2018", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
-   { "_id" : "2018", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
-   { "_id" : "2018", "store" : "ShopMart", "item" : "Nuts", "quantity" : 100 }
-   { "_id" : "2018", "store" : "ShopMart", "item" : "Pie", "quantity" : 25 }
-   { "_id" : "2019", "store" : "General Store", "item" : "Cheese", "quantity" : 50 }
-   { "_id" : "2019", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
-   { "_id" : "2019", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
-   { "_id" : "2019", "store" : "General Store", "item" : "Nuts", "quantity" : 80 }
-   { "_id" : "2019", "store" : "General Store", "item" : "Pie", "quantity" : 50 }
-   { "_id" : "2019", "store" : "ShopMart", "item" : "Cheese", "quantity" : 20 }
-   { "_id" : "2019", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
-   { "_id" : "2019", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
-   { "_id" : "2019", "store" : "ShopMart", "item" : "Nuts", "quantity" : 30 }
-   { "_id" : "2019", "store" : "ShopMart", "item" : "Pie", "quantity" : 75 }
-   { "_id" : "2020", "store" : "General Store", "item" : "Cheese", "quantity" : 100 }
-   { "_id" : "2020", "store" : "General Store", "item" : "Chocolates", "quantity" : 200 }
-   { "_id" : "2020", "store" : "General Store", "item" : "Cookies", "quantity" : 500 }
-   { "_id" : "2020", "store" : "General Store", "item" : "Nuts", "quantity" : 100 }
-   { "_id" : "2020", "store" : "General Store", "item" : "Pie", "quantity" : 100 }
-   { "_id" : "2020", "store" : "ShopMart", "item" : "Cheese", "quantity" : 100 }
-   { "_id" : "2020", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 300 }
-   { "_id" : "2020", "store" : "ShopMart", "item" : "Cookies", "quantity" : 400 }
-   { "_id" : "2020", "store" : "ShopMart", "item" : "Nuts", "quantity" : 200 }
-   { "_id" : "2020", "store" : "ShopMart", "item" : "Pie", "quantity" : 100 }
+         db.sales_2017.aggregate( [
+            { $set: { _id: "2017" } },
+            { $unionWith: { coll: "sales_2018", pipeline: [ { $set: { _id: "2018" } } ] } },
+            { $unionWith: { coll: "sales_2019", pipeline: [ { $set: { _id: "2019" } } ] } },
+            { $unionWith: { coll: "sales_2020", pipeline: [ { $set: { _id: "2020" } } ] } },
+            { $sort: { _id: 1, store: 1, item: 1 } }
+         ] )
 
-Report 2: Aggregated Sales by Items
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Specifically, the aggregation pipeline uses:
 
-The following aggregation creates a sales report that lists the sales quantity 
-per item. The pipeline uses :pipeline:`$unionWith` to combine documents from all
-four years:
+      - A :pipeline:`$set` stage to update the ``_id`` field to contain the
+        year.
 
-.. code-block:: javascript
+      - A sequence of :pipeline:`$unionWith` stages to combine all documents
+        from the four collections, each also using the :pipeline:`$set` stage
+        on its documents.
 
-   db.sales_2017.aggregate( [ 
-      { $unionWith: "sales_2018" }, 
-      { $unionWith: "sales_2019" },
-      { $unionWith: "sales_2020" },
-      { $group: { _id: "$item", total: { $sum: "$quantity" } } },
-      { $sort: { total: -1 } }
-   ] )
-   
-- The sequence of :pipeline:`$unionWith` stages retrieve documents
-  from the specified collections into the pipeline:
+      - A :pipeline:`$sort` stage to sort by the ``_id`` (the year),
+        the ``store``, and ``item``.
 
-- The :pipeline:`$group` stage groups by the ``item`` field and uses
-  :group:`$sum` to calculate the total sales quantity per ``item``.
+      Pipeline output:
 
-- The :pipeline:`$sort` stage orders the documents by descending
-  ``total``.
+      .. code-block:: javascript
+         :copyable: false
 
-Pipeline output: 
+         { "_id" : "2017", "store" : "General Store", "item" : "Chocolates", "quantity" : 150 }
+         { "_id" : "2017", "store" : "General Store", "item" : "Cookies", "quantity" : 100 }
+         { "_id" : "2017", "store" : "General Store", "item" : "Pie", "quantity" : 10 }
+         { "_id" : "2017", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 50 }
+         { "_id" : "2017", "store" : "ShopMart", "item" : "Cookies", "quantity" : 120 }
+         { "_id" : "2017", "store" : "ShopMart", "item" : "Pie", "quantity" : 5 }
+         { "_id" : "2018", "store" : "General Store", "item" : "Cheese", "quantity" : 30 }
+         { "_id" : "2018", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
+         { "_id" : "2018", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
+         { "_id" : "2018", "store" : "General Store", "item" : "Pie", "quantity" : 30 }
+         { "_id" : "2018", "store" : "ShopMart", "item" : "Cheese", "quantity" : 50 }
+         { "_id" : "2018", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
+         { "_id" : "2018", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
+         { "_id" : "2018", "store" : "ShopMart", "item" : "Nuts", "quantity" : 100 }
+         { "_id" : "2018", "store" : "ShopMart", "item" : "Pie", "quantity" : 25 }
+         { "_id" : "2019", "store" : "General Store", "item" : "Cheese", "quantity" : 50 }
+         { "_id" : "2019", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
+         { "_id" : "2019", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
+         { "_id" : "2019", "store" : "General Store", "item" : "Nuts", "quantity" : 80 }
+         { "_id" : "2019", "store" : "General Store", "item" : "Pie", "quantity" : 50 }
+         { "_id" : "2019", "store" : "ShopMart", "item" : "Cheese", "quantity" : 20 }
+         { "_id" : "2019", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
+         { "_id" : "2019", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
+         { "_id" : "2019", "store" : "ShopMart", "item" : "Nuts", "quantity" : 30 }
+         { "_id" : "2019", "store" : "ShopMart", "item" : "Pie", "quantity" : 75 }
+         { "_id" : "2020", "store" : "General Store", "item" : "Cheese", "quantity" : 100 }
+         { "_id" : "2020", "store" : "General Store", "item" : "Chocolates", "quantity" : 200 }
+         { "_id" : "2020", "store" : "General Store", "item" : "Cookies", "quantity" : 500 }
+         { "_id" : "2020", "store" : "General Store", "item" : "Nuts", "quantity" : 100 }
+         { "_id" : "2020", "store" : "General Store", "item" : "Pie", "quantity" : 100 }
+         { "_id" : "2020", "store" : "ShopMart", "item" : "Cheese", "quantity" : 100 }
+         { "_id" : "2020", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 300 }
+         { "_id" : "2020", "store" : "ShopMart", "item" : "Cookies", "quantity" : 400 }
+         { "_id" : "2020", "store" : "ShopMart", "item" : "Nuts", "quantity" : 200 }
+         { "_id" : "2020", "store" : "ShopMart", "item" : "Pie", "quantity" : 100 }
 
-.. code-block:: javascript
-   :copyable: false
+      Report 2: Aggregated Sales by Items
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   { "_id" : "Cookies", "total" : 1720 }
-   { "_id" : "Chocolates", "total" : 1250 }
-   { "_id" : "Nuts", "total" : 510 }
-   { "_id" : "Pie", "total" : 395 }
-   { "_id" : "Cheese", "total" : 350 }
+      The following aggregation creates a sales report that lists the sales quantity
+      per item. The pipeline uses :pipeline:`$unionWith` to combine documents from all
+      four years:
 
-.. _unionWith-example-specified-docs:
+      .. code-block:: javascript
 
-Create a Union with Specified Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         db.sales_2017.aggregate( [
+            { $unionWith: "sales_2018" },
+            { $unionWith: "sales_2019" },
+            { $unionWith: "sales_2020" },
+            { $group: { _id: "$item", total: { $sum: "$quantity" } } },
+            { $sort: { total: -1 } }
+         ] )
 
-You can use ``$unionWith`` to perform a union with documents that you
-specify in the ``pipeline`` field. When you specify a
-:pipeline:`$documents` stage in the ``pipeline`` field, you perform a
-union with documents that aren't stored in a separate collection.
+      - The sequence of :pipeline:`$unionWith` stages retrieve documents
+        from the specified collections into the pipeline:
 
-.. include:: /includes/let-example-create-flavors.rst
+      - The :pipeline:`$group` stage groups by the ``item`` field and uses
+        :group:`$sum` to calculate the total sales quantity per ``item``.
 
-The following ``$unionWith`` operation performs a union with documents
-specified in the ``pipeline`` :pipeline:`$documents` field:
+      - The :pipeline:`$sort` stage orders the documents by descending
+        ``total``.
 
-.. code-block:: javascript
+      Pipeline output:
 
-   db.cakeFlavors.aggregate( [
-      {
-         $unionWith: {
-            pipeline: [
-               {
-                  $documents: [
-                     { _id: 4, flavor: "orange" },
-                     { _id: 5, flavor: "vanilla", price: 20 }
+      .. code-block:: javascript
+         :copyable: false
+
+         { "_id" : "Cookies", "total" : 1720 }
+         { "_id" : "Chocolates", "total" : 1250 }
+         { "_id" : "Nuts", "total" : 510 }
+         { "_id" : "Pie", "total" : 395 }
+         { "_id" : "Cheese", "total" : 350 }
+
+      .. _unionWith-example-specified-docs:
+
+      Create a Union with Specified Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can use ``$unionWith`` to perform a union with documents that you
+      specify in the ``pipeline`` field. When you specify a
+      :pipeline:`$documents` stage in the ``pipeline`` field, you perform a
+      union with documents that aren't stored in a separate collection.
+
+      .. include:: /includes/let-example-create-flavors.rst
+
+      The following ``$unionWith`` operation performs a union with documents
+      specified in the ``pipeline`` :pipeline:`$documents` field:
+
+      .. code-block:: javascript
+
+         db.cakeFlavors.aggregate( [
+            {
+               $unionWith: {
+                  pipeline: [
+                     {
+                        $documents: [
+                           { _id: 4, flavor: "orange" },
+                           { _id: 5, flavor: "vanilla", price: 20 }
+                        ]
+                     }
                   ]
                }
-            ]
-         }
-      }
-   ] )
+            }
+         ] )
 
-Output:
+      Output:
 
-.. code-block:: javascript
-   :copyable: false
+      .. code-block:: javascript
+         :copyable: false
 
-   [
-      { _id: 1, flavor: 'chocolate' },
-      { _id: 2, flavor: 'strawberry' },
-      { _id: 3, flavor: 'cherry' },
-      { _id: 4, flavor: 'orange' },
-      { _id: 5, flavor: 'vanilla', price: 20 }
-   ]
+         [
+            { _id: 1, flavor: 'chocolate' },
+            { _id: 2, flavor: 'strawberry' },
+            { _id: 3, flavor: 'cherry' },
+            { _id: 4, flavor: 'orange' },
+            { _id: 5, flavor: 'vanilla', price: 20 }
+         ]
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/driver-examples/aggregation/sample-data-movie.rst
+
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$unionWith`` 
+
+         .. replacement:: method-name-and-link 
+
+            `UnionWith() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.UnionWith.html>`__
+
+         .. replacement:: stage-specific-info
+         
+         .. replacement:: method-description
+
+            combines the incoming documents from the ``sample_mflix.movies`` collection
+            with the ``Movie`` documents in the ``sample_mflix.Movies`` collection:
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start unionWith
+         :end-before: // end unionWith
+         :language: csharp
+         :dedent: 8

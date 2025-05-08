@@ -47,7 +47,7 @@ inclusion of fields, the suppression of the ``_id`` field,
 the addition of new fields, and the resetting of the values of existing
 fields. Alternatively, you may specify the *exclusion*
 of fields.
-   
+
 The :pipeline:`$project` specifications have the following forms:
 
 .. list-table::
@@ -58,7 +58,7 @@ The :pipeline:`$project` specifications have the following forms:
 
    * - ``<field>: <1 or true>``
 
-     - Specifies the inclusion of a field. Non-zero integers are also treated 
+     - Specifies the inclusion of a field. Non-zero integers are also treated
        as ``true``.
 
    * - ``_id: <0 or false>``
@@ -236,14 +236,14 @@ Empty Specification
 ~~~~~~~~~~~~~~~~~~~
 
 MongoDB returns an error if the :pipeline:`$project` stage is passed an
-empty document. 
+empty document.
 
-For example, running the following pipeline produces an error: 
+For example, running the following pipeline produces an error:
 
 .. code-block:: javascript
 
-   db.myCollection.aggregate( [ { 
-      $project: { } 
+   db.myCollection.aggregate( [ {
+      $project: { }
    } ] )
 
 Array Index
@@ -254,388 +254,434 @@ Array Index
 Examples
 --------
 
-Include Specific Fields in Output Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. tabs-drivers::
 
-Consider a ``books`` collection with the following document:
+   .. tab::
+      :tabid: shell
 
-.. code-block:: javascript
+      Include Specific Fields in Output Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   {
-     "_id" : 1,
-     title: "abc123",
-     isbn: "0001122223334",
-     author: { last: "zzz", first: "aaa" },
-     copies: 5
-   }
+      Consider a ``books`` collection with the following document:
 
-The following :pipeline:`$project` stage includes only the ``_id``,
-``title``, and the ``author`` fields in its output documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-
-   db.books.aggregate( [ { $project : { title : 1 , author : 1 } } ] )
-
-The operation results in the following document:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
-
-Suppress ``_id`` Field in the Output Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``_id`` field is always included by default. To exclude the ``_id``
-field from the output documents of the :pipeline:`$project` stage,
-specify the exclusion of the ``_id`` field by setting it to ``0`` in
-the projection document.
-
-Consider a ``books`` collection with the following document:
-
-.. code-block:: javascript
-
-   {
-     "_id" : 1,
-     title: "abc123",
-     isbn: "0001122223334",
-     author: { last: "zzz", first: "aaa" },
-     copies: 5
-   }
-
-The following :pipeline:`$project` stage excludes the ``_id`` field but
-includes the ``title``, and the ``author`` fields in its output
-documents:
-
-.. code-block:: javascript
-
-   db.books.aggregate( [ { $project : { _id: 0, title : 1 , author : 1 } } ] )
-
-The operation results in the following document:
-
-.. code-block:: javascript
-
-   { "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
-
-Exclude Fields from Output Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Consider a ``books`` collection with the following document:
-
-.. code-block:: javascript
-
-   {
-     "_id" : 1,
-     title: "abc123",
-     isbn: "0001122223334",
-     author: { last: "zzz", first: "aaa" },
-     copies: 5,
-     lastModified: "2016-07-28"
-   }
-
-The following :pipeline:`$project` stage excludes the ``lastModified``
-field from the output:
-
-.. code-block:: javascript
-
-   db.books.aggregate( [ { $project : { "lastModified": 0 } } ] )
-
-See also the :pipeline:`$unset` stage to exclude fields.
-
-Exclude Fields from Embedded Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Consider a ``books`` collection with the following document:
-
-.. code-block:: javascript
-
-   {
-     "_id" : 1,
-     title: "abc123",
-     isbn: "0001122223334",
-     author: { last: "zzz", first: "aaa" },
-     copies: 5,
-     lastModified: "2016-07-28"
-   }
-
-The following :pipeline:`$project` stage excludes the ``author.first``
-and ``lastModified`` fields from the output:
-
-.. code-block:: javascript
-
-   db.books.aggregate( [ { $project : { "author.first" : 0, "lastModified" : 0 } } ] )
-
-Alternatively, you can nest the exclusion specification in a document:
-
-.. code-block:: javascript
-
-   db.bookmarks.aggregate( [ { $project: { "author": { "first": 0}, "lastModified" : 0 } } ] )
-
-Both specifications result in the same output:
-
-.. code-block:: javascript
-
-   {
-      "_id" : 1,
-      "title" : "abc123",
-      "isbn" : "0001122223334",
-      "author" : {
-         "last" : "zzz"
-      },
-      "copies" : 5,
-   }
-
-See also the :pipeline:`$unset` stage to exclude fields.
-
-.. _remove-example:
-
-Conditionally Exclude Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use the variable :variable:`REMOVE` in aggregation expressions
-to conditionally suppress a field.
-
-Consider a ``books`` collection with the following document:
-
-.. code-block:: javascript
-
-   {
-     "_id" : 1,
-     title: "abc123",
-     isbn: "0001122223334",
-     author: { last: "zzz", first: "aaa" },
-     copies: 5,
-     lastModified: "2016-07-28"
-   }
-   {
-     "_id" : 2,
-     title: "Baked Goods",
-     isbn: "9999999999999",
-     author: { last: "xyz", first: "abc", middle: "" },
-     copies: 2,
-     lastModified: "2017-07-21"
-   }
-   {
-     "_id" : 3,
-     title: "Ice Cream Cakes",
-     isbn: "8888888888888",
-     author: { last: "xyz", first: "abc", middle: "mmm" },
-     copies: 5,
-     lastModified: "2017-07-22"
-   }
-
-The following :pipeline:`$project` stage uses the :variable:`REMOVE`
-variable to excludes the ``author.middle`` field only if it equals ``""``:
-
-.. code-block:: javascript
-
-   db.books.aggregate( [ 
-      {
-         $project: { 
-            title: 1,
-            "author.first": 1,
-            "author.last" : 1,
-            "author.middle": {
-               $cond: {
-                  if: { $eq: [ "", "$author.middle" ] }, 
-                  then: "$$REMOVE",
-                  else: "$author.middle"
-               } 
-            }
-         }
-      }
-   ] )
-
-The aggregation operation results in the following output:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
-   { "_id" : 2, "title" : "Baked Goods", "author" : { "last" : "xyz", "first" : "abc" } }
-   { "_id" : 3, "title" : "Ice Cream Cakes", "author" : { "last" : "xyz", "first" : "abc", "middle" : "mmm" } }
-   
-.. tip:: Comparison with $addFields
-
-   .. include:: /includes/aggregation/agg-project-remove-fields-compare.rst
-
-   To see an example using ``$$REMOVE`` in an ``$addFields`` stage, see
-   :ref:`addFields-remove-example`.
-
-
-Include Specific Fields from Embedded Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Consider a ``bookmarks`` collection with the following documents:
-
-.. code-block:: javascript
-
-   { _id: 1, user: "1234", stop: { title: "book1", author: "xyz", page: 32 } }
-   { _id: 2, user: "7890", stop: [ { title: "book2", author: "abc", page: 5 }, { title: "book3", author: "ijk", page: 100 } ] }
-
-To include only the ``title`` field in the embedded document in the
-``stop`` field, you can use  the :term:`dot notation`:
-
-.. code-block:: javascript
-
-   db.bookmarks.aggregate( [ { $project: { "stop.title": 1 } } ] )
-
-Or, you can nest the inclusion specification in a document:
-
-.. code-block:: javascript
-
-   db.bookmarks.aggregate( [ { $project: { stop: { title: 1 } } } ] )
-
-Both specifications result in the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "stop" : { "title" : "book1" } }
-   { "_id" : 2, "stop" : [ { "title" : "book2" }, { "title" : "book3" } ] }
-
-Include Computed Fields
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Consider a ``books`` collection with the following document:
-
-.. code-block:: javascript
-
-   {
-     "_id" : 1,
-     title: "abc123",
-     isbn: "0001122223334",
-     author: { last: "zzz", first: "aaa" },
-     copies: 5
-   }
-
-The following :pipeline:`$project` stage adds the new fields
-``isbn``, ``lastName``, and ``copiesSold``:
-
-.. code-block:: javascript
-
-   db.books.aggregate(
-      [
          {
-            $project: {
-               title: 1,
-               isbn: {
-                  prefix: { $substr: [ "$isbn", 0, 3 ] },
-                  group: { $substr: [ "$isbn", 3, 2 ] },
-                  publisher: { $substr: [ "$isbn", 5, 4 ] },
-                  title: { $substr: [ "$isbn", 9, 3 ] },
-                  checkDigit: { $substr: [ "$isbn", 12, 1] }
-               },
-               lastName: "$author.last",
-               copiesSold: "$copies"
-            }
+           "_id" : 1,
+           title: "abc123",
+           isbn: "0001122223334",
+           author: { last: "zzz", first: "aaa" },
+           copies: 5
          }
-      ]
-   )
 
-The operation results in the following document:
+      The following :pipeline:`$project` stage includes only the ``_id``,
+      ``title``, and the ``author`` fields in its output documents:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   {
-      "_id" : 1,
-      "title" : "abc123",
-      "isbn" : {
-         "prefix" : "000",
-         "group" : "11",
-         "publisher" : "2222",
-         "title" : "333",
-         "checkDigit" : "4"
-      },
-      "lastName" : "zzz",
-      "copiesSold" : 5
-   }
+         db.books.aggregate( [ { $project : { title : 1 , author : 1 } } ] )
 
-.. _example-project-new-array-fields:
+      The operation results in the following document:
 
-Project New Array Fields
-~~~~~~~~~~~~~~~~~~~~~~~~
+      .. code-block:: javascript
 
-For example, if a collection includes the following document:
+         { "_id" : 1, "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
 
-.. code-block:: javascript
+      Suppress ``_id`` Field in the Output Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "x" : 1, "y" : 1 }
+      The ``_id`` field is always included by default. To exclude the ``_id``
+      field from the output documents of the :pipeline:`$project` stage,
+      specify the exclusion of the ``_id`` field by setting it to ``0`` in
+      the projection document.
 
-The following operation projects the fields ``x`` and ``y`` as elements
-in a new field ``myArray``:
+      Consider a ``books`` collection with the following document:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y" ] } } ] )
+         {
+           "_id" : 1,
+           title: "abc123",
+           isbn: "0001122223334",
+           author: { last: "zzz", first: "aaa" },
+           copies: 5
+         }
 
-The operation returns the following document:
+      The following :pipeline:`$project` stage excludes the ``_id`` field but
+      includes the ``title``, and the ``author`` fields in its output
+      documents:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1 ] }
+         db.books.aggregate( [ { $project : { _id: 0, title : 1 , author : 1 } } ] )
 
-If array specification includes fields that are non-existent in a
-document, the operation substitutes ``null`` as the value for that
-field.
+      The operation results in the following document:
 
-For example, given the same document as above, the following operation
-projects the fields ``x``, ``y``, and a non-existing field
-``$someField`` as elements in a new field ``myArray``:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         { "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
 
-   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y", "$someField" ] } } ] )
+      Exclude Fields from Output Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The operation returns the following document:
+      Consider a ``books`` collection with the following document:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1, null ] }
+         {
+           "_id" : 1,
+           title: "abc123",
+           isbn: "0001122223334",
+           author: { last: "zzz", first: "aaa" },
+           copies: 5,
+           lastModified: "2016-07-28"
+         }
 
-.. _example-project-array-indexes:
+      The following :pipeline:`$project` stage excludes the ``lastModified``
+      field from the output:
 
-Array Indexes are Unsupported
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. code-block:: javascript
 
-You cannot use an array index with the :pipeline:`$project` stage. This
-section shows an example.
+         db.books.aggregate( [ { $project : { "lastModified": 0 } } ] )
 
-Create the following ``pizzas`` collection:
+      See also the :pipeline:`$unset` stage to exclude fields.
 
-.. code-block:: javascript
+      Exclude Fields from Embedded Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.pizzas.insert( [
-      { _id: 0, name: [ 'Pepperoni' ] },
-   ] )
+      Consider a ``books`` collection with the following document:
 
-The following example returns the pizza:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         {
+           "_id" : 1,
+           title: "abc123",
+           isbn: "0001122223334",
+           author: { last: "zzz", first: "aaa" },
+           copies: 5,
+           lastModified: "2016-07-28"
+         }
 
-   db.pizzas.aggregate( [
-      { $project: { x: '$name', _id: 0 } },
-   ] )
+      The following :pipeline:`$project` stage excludes the ``author.first``
+      and ``lastModified`` fields from the output:
 
-The pizza is returned in the example output:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         db.books.aggregate( [ { $project : { "author.first" : 0, "lastModified" : 0 } } ] )
 
-   [ { x: [ 'Pepperoni' ] } ]
+      Alternatively, you can nest the exclusion specification in a document:
 
-The following example uses an array index (``$name.0``) to attempt to
-return the pizza:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.bookmarks.aggregate( [ { $project: { "author": { "first": 0}, "lastModified" : 0 } } ] )
 
-   db.pizzas.aggregate( [
-      { $project: { x: '$name.0', _id: 0 } },
-   ] )
+      Both specifications result in the same output:
 
-The pizza is not returned in the example output:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         {
+            "_id" : 1,
+            "title" : "abc123",
+            "isbn" : "0001122223334",
+            "author" : {
+               "last" : "zzz"
+            },
+            "copies" : 5,
+         }
 
-   [ { x: [] } ]
+      See also the :pipeline:`$unset` stage to exclude fields.
+
+      .. _remove-example:
+
+      Conditionally Exclude Fields
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can use the variable :variable:`REMOVE` in aggregation expressions
+      to conditionally suppress a field.
+
+      Consider a ``books`` collection with the following document:
+
+      .. code-block:: javascript
+
+         {
+           "_id" : 1,
+           title: "abc123",
+           isbn: "0001122223334",
+           author: { last: "zzz", first: "aaa" },
+           copies: 5,
+           lastModified: "2016-07-28"
+         }
+         {
+           "_id" : 2,
+           title: "Baked Goods",
+           isbn: "9999999999999",
+           author: { last: "xyz", first: "abc", middle: "" },
+           copies: 2,
+           lastModified: "2017-07-21"
+         }
+         {
+           "_id" : 3,
+           title: "Ice Cream Cakes",
+           isbn: "8888888888888",
+           author: { last: "xyz", first: "abc", middle: "mmm" },
+           copies: 5,
+           lastModified: "2017-07-22"
+         }
+
+      The following :pipeline:`$project` stage uses the :variable:`REMOVE`
+      variable to excludes the ``author.middle`` field only if it equals ``""``:
+
+      .. code-block:: javascript
+
+         db.books.aggregate( [
+            {
+               $project: {
+                  title: 1,
+                  "author.first": 1,
+                  "author.last" : 1,
+                  "author.middle": {
+                     $cond: {
+                        if: { $eq: [ "", "$author.middle" ] },
+                        then: "$$REMOVE",
+                        else: "$author.middle"
+                     }
+                  }
+               }
+            }
+         ] )
+
+      The aggregation operation results in the following output:
+
+      .. code-block:: javascript
+
+         { "_id" : 1, "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
+         { "_id" : 2, "title" : "Baked Goods", "author" : { "last" : "xyz", "first" : "abc" } }
+         { "_id" : 3, "title" : "Ice Cream Cakes", "author" : { "last" : "xyz", "first" : "abc", "middle" : "mmm" } }
+
+      .. tip:: Comparison with $addFields
+
+         .. include:: /includes/aggregation/agg-project-remove-fields-compare.rst
+
+         To see an example using ``$$REMOVE`` in an ``$addFields`` stage, see
+         :ref:`addFields-remove-example`.
+
+
+      Include Specific Fields from Embedded Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Consider a ``bookmarks`` collection with the following documents:
+
+      .. code-block:: javascript
+
+         { _id: 1, user: "1234", stop: { title: "book1", author: "xyz", page: 32 } }
+         { _id: 2, user: "7890", stop: [ { title: "book2", author: "abc", page: 5 }, { title: "book3", author: "ijk", page: 100 } ] }
+
+      To include only the ``title`` field in the embedded document in the
+      ``stop`` field, you can use  the :term:`dot notation`:
+
+      .. code-block:: javascript
+
+         db.bookmarks.aggregate( [ { $project: { "stop.title": 1 } } ] )
+
+      Or, you can nest the inclusion specification in a document:
+
+      .. code-block:: javascript
+
+         db.bookmarks.aggregate( [ { $project: { stop: { title: 1 } } } ] )
+
+      Both specifications result in the following documents:
+
+      .. code-block:: javascript
+
+         { "_id" : 1, "stop" : { "title" : "book1" } }
+         { "_id" : 2, "stop" : [ { "title" : "book2" }, { "title" : "book3" } ] }
+
+      Include Computed Fields
+      ~~~~~~~~~~~~~~~~~~~~~~~
+
+      Consider a ``books`` collection with the following document:
+
+      .. code-block:: javascript
+
+         {
+           "_id" : 1,
+           title: "abc123",
+           isbn: "0001122223334",
+           author: { last: "zzz", first: "aaa" },
+           copies: 5
+         }
+
+      The following :pipeline:`$project` stage adds the new fields
+      ``isbn``, ``lastName``, and ``copiesSold``:
+
+      .. code-block:: javascript
+
+         db.books.aggregate(
+            [
+               {
+                  $project: {
+                     title: 1,
+                     isbn: {
+                        prefix: { $substr: [ "$isbn", 0, 3 ] },
+                        group: { $substr: [ "$isbn", 3, 2 ] },
+                        publisher: { $substr: [ "$isbn", 5, 4 ] },
+                        title: { $substr: [ "$isbn", 9, 3 ] },
+                        checkDigit: { $substr: [ "$isbn", 12, 1] }
+                     },
+                     lastName: "$author.last",
+                     copiesSold: "$copies"
+                  }
+               }
+            ]
+         )
+
+      The operation results in the following document:
+
+      .. code-block:: javascript
+
+         {
+            "_id" : 1,
+            "title" : "abc123",
+            "isbn" : {
+               "prefix" : "000",
+               "group" : "11",
+               "publisher" : "2222",
+               "title" : "333",
+               "checkDigit" : "4"
+            },
+            "lastName" : "zzz",
+            "copiesSold" : 5
+         }
+
+      .. _example-project-new-array-fields:
+
+      Project New Array Fields
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      For example, if a collection includes the following document:
+
+      .. code-block:: javascript
+
+         { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "x" : 1, "y" : 1 }
+
+      The following operation projects the fields ``x`` and ``y`` as elements
+      in a new field ``myArray``:
+
+      .. code-block:: javascript
+
+         db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y" ] } } ] )
+
+      The operation returns the following document:
+
+      .. code-block:: javascript
+
+         { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1 ] }
+
+      If array specification includes fields that are non-existent in a
+      document, the operation substitutes ``null`` as the value for that
+      field.
+
+      For example, given the same document as above, the following operation
+      projects the fields ``x``, ``y``, and a non-existing field
+      ``$someField`` as elements in a new field ``myArray``:
+
+      .. code-block:: javascript
+
+         db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y", "$someField" ] } } ] )
+
+      The operation returns the following document:
+
+      .. code-block:: javascript
+
+         { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1, null ] }
+
+      .. _example-project-array-indexes:
+
+      Array Indexes are Unsupported
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You cannot use an array index with the :pipeline:`$project` stage. This
+      section shows an example.
+
+      Create the following ``pizzas`` collection:
+
+      .. code-block:: javascript
+
+         db.pizzas.insert( [
+            { _id: 0, name: [ 'Pepperoni' ] },
+         ] )
+
+      The following example returns the pizza:
+
+      .. code-block:: javascript
+
+         db.pizzas.aggregate( [
+            { $project: { x: '$name', _id: 0 } },
+         ] )
+
+      The pizza is returned in the example output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [ { x: [ 'Pepperoni' ] } ]
+
+      The following example uses an array index (``$name.0``) to attempt to
+      return the pizza:
+
+      .. code-block:: javascript
+
+         db.pizzas.aggregate( [
+            { $project: { x: '$name.0', _id: 0 } },
+         ] )
+
+      The pizza is not returned in the example output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [ { x: [] } ]
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/driver-examples/aggregation/sample-data-movie.rst
+      
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$project`` 
+        
+         .. replacement:: method-name-and-link 
+
+            `Project() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.Project.html>`__
+
+         .. replacement:: stage-specific-info
+         
+         .. replacement:: method-description
+
+            includes only the ``Title`` and ``Plot`` fields:
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start project
+         :end-before: // end project
+         :language: csharp
+         :dedent: 8
+
+      Projecting Computed Fields
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The following example creates a pipeline stage that projects the ``Rated`` field
+      into a new field called ``Rating``, effectively renaming the field:
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start projectComputed
+         :end-before: // end projectComputed
+         :language: csharp
+         :dedent:
 
 .. seealso::
 

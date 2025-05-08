@@ -350,117 +350,150 @@ Restrictions
 Examples
 --------
 
-In the ``test`` database, create a collection ``books`` with the
-following documents:
+.. tabs-drivers::
 
-.. code-block:: javascript
+   .. tab::
+      :tabid: shell
 
-   db.getSiblingDB("test").books.insertMany([
-      { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
-      { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
-      { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 },
-      { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
-      { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
-   ])
+      In the ``test`` database, create a collection ``books`` with the
+      following documents:
 
-If the ``test`` database does not already exist, the insert operation
-creates the database as well as the ``books`` collection.
+      .. code-block:: javascript
+      
+         db.getSiblingDB("test").books.insertMany([
+            { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
+            { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
+            { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 },
+            { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
+            { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+         ])
 
-Output to Same Database
-~~~~~~~~~~~~~~~~~~~~~~~
+      If the ``test`` database does not already exist, the insert operation
+      creates the database as well as the ``books`` collection.
 
-The following aggregation operation pivots the data in the ``books``
-collection in the ``test`` database to have titles grouped by authors and then writes
-the results to the ``authors`` collection, also in the ``test`` database.
+      Output to Same Database
+      ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
+      The following aggregation operation pivots the data in the ``books``
+      collection in the ``test`` database to have titles grouped by authors and then writes
+      the results to the ``authors`` collection, also in the ``test`` database.
 
-   db.getSiblingDB("test").books.aggregate( [
-       { $group : { _id : "$author", books: { $push: "$title" } } },
-       { $out : "authors" }
-   ] )
+      .. code-block:: javascript
+      
+         db.getSiblingDB("test").books.aggregate( [
+             { $group : { _id : "$author", books: { $push: "$title" } } },
+             { $out : "authors" }
+         ] )
 
-First Stage (``$group``):
-   The :pipeline:`$group` stage groups by the ``authors`` and uses
-   :group:`$push` to add the titles to a ``books`` array field:
-   
-   .. code-block:: javascript
-      :copyable: false
+      First Stage (``$group``):
+         The :pipeline:`$group` stage groups by the ``authors`` and uses
+         :group:`$push` to add the titles to a ``books`` array field:
 
-      { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
-      { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+         .. code-block:: javascript
+            :copyable: false
 
-Second Stage (``$out``):
-   The ``$out`` stage outputs the documents to the ``authors``
-   collection in the ``test`` database.
+            { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+            { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
 
-To view the documents in the output collection, run the following
-operation:
+      Second Stage (``$out``):
+         The ``$out`` stage outputs the documents to the ``authors``
+         collection in the ``test`` database.
 
-.. code-block:: javascript
+      To view the documents in the output collection, run the following
+      operation:
 
-   db.getSiblingDB("test").authors.find()
+      .. code-block:: javascript
+      
+         db.getSiblingDB("test").authors.find()
 
-The collection contains the following documents:
+      The collection contains the following documents:
 
-.. code-block:: javascript
-   :copyable: false
+      .. code-block:: javascript
+         :copyable: false
 
-   { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
-   { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+         { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+         { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
 
-Output to a Different Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Output to a Different Database
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+      .. note::
+      
+         For a :ref:`replica set <replica-set>` or a standalone, if the
+         output database does not exist, ``$out`` also creates
+         the database.
 
-   For a :ref:`replica set <replica-set>` or a standalone, if the
-   output database does not exist, ``$out`` also creates
-   the database.
+         For a :ref:`sharded cluster <sharded-cluster>`, the specified
+         output database must already exist.
 
-   For a :ref:`sharded cluster <sharded-cluster>`, the specified
-   output database must already exist.
+      ``$out`` can output to a collection in a database different from where the 
+      aggregation is run.
 
-``$out`` can output to a collection in a database different from where the 
-aggregation is run.
+      The following aggregation operation pivots the data in the ``books``
+      collection to have titles grouped by authors and then writes the
+      results to the ``authors`` collection in the ``reporting`` database:
 
-The following aggregation operation pivots the data in the ``books``
-collection to have titles grouped by authors and then writes the
-results to the ``authors`` collection in the ``reporting`` database:
+      .. code-block:: javascript
+      
+         db.getSiblingDB("test").books.aggregate( [
+             { $group : { _id : "$author", books: { $push: "$title" } } },
+             { $out : { db: "reporting", coll: "authors" } }
+         ] )
 
-.. code-block:: javascript
+      First Stage (``$group``):
+         The :pipeline:`$group` stage groups by the ``authors`` and uses
+         :group:`$push` to add the titles to a ``books`` array field:
 
-   db.getSiblingDB("test").books.aggregate( [
-       { $group : { _id : "$author", books: { $push: "$title" } } },
-       { $out : { db: "reporting", coll: "authors" } }
-   ] )
+         .. code-block:: javascript
+            :copyable: false
 
-First Stage (``$group``):
-   The :pipeline:`$group` stage groups by the ``authors`` and uses
-   :group:`$push` to add the titles to a ``books`` array field:
-   
-   .. code-block:: javascript
-      :copyable: false
+            { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+            { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
 
-      { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
-      { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+      Second Stage (``$out``):
+         The ``$out`` stage outputs the documents to the ``authors``
+         collection in the ``reporting`` database.
 
-Second Stage (``$out``):
-   The ``$out`` stage outputs the documents to the ``authors``
-   collection in the ``reporting`` database.
+      To view the documents in the output collection, run the following
+      operation:
 
-To view the documents in the output collection, run the following
-operation:
+      .. code-block:: javascript
+      
+         db.getSiblingDB("reporting").authors.find()
 
-.. code-block:: javascript
+      The collection contains the following documents:
 
-   db.getSiblingDB("reporting").authors.find()
+      .. code-block:: javascript
+         :copyable: false
 
-The collection contains the following documents:
+         { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+         { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
 
-.. code-block:: javascript
-   :copyable: false
+   .. tab::
+      :tabid: csharp
 
-   { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
-   { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+      .. include:: /includes/driver-examples/aggregation/sample-data-movie.rst
+      
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
 
+         .. replacement:: stage-name
+
+            ``$out`` 
+        
+         .. replacement:: method-name-and-link 
+
+            `Out() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.Out.html>`__
+
+         .. replacement:: stage-specific-info
+         
+         .. replacement:: method-description
+
+            writes the results of the pipeline into the ``movies`` collection:
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start out
+         :end-before: // end out
+         :language: csharp
+         :dedent: 8

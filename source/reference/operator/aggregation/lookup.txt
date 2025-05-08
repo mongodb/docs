@@ -4,7 +4,7 @@ $lookup (aggregation)
 
 .. default-domain:: mongodb
 
-.. meta:: 
+.. meta::
    :keywords: atlas
    :description: Use the `$lookup` aggregation stage to filter and process documents from local and foreign collections.
 
@@ -28,11 +28,11 @@ Definition
    the foreign collection. The :pipeline:`$lookup` stage passes these
    reshaped documents to the next stage.
 
-   Starting in MongoDB 5.1, you can use :pipeline:`$lookup` with sharded 
+   Starting in MongoDB 5.1, you can use :pipeline:`$lookup` with sharded
    collections.
 
    To combine elements from two different collections, use the
-   :pipeline:`$unionWith` pipeline stage. 
+   :pipeline:`$unionWith` pipeline stage.
 
 Compatibility
 -------------
@@ -354,27 +354,27 @@ the ``pipeline`` field.
 
 .. _fts-lookup-behavior:
 
-Atlas Search Support 
+Atlas Search Support
 ~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 6.0, you can specify the :atlas:`Atlas Search 
-</atlas-search>` :pipeline:`$search` or :pipeline:`$searchMeta` stage 
-in the ``$lookup`` pipeline to search collections on the Atlas 
-cluster. The :pipeline:`$search` or the :pipeline:`$searchMeta` stage 
+Starting in MongoDB 6.0, you can specify the :atlas:`Atlas Search
+</atlas-search>` :pipeline:`$search` or :pipeline:`$searchMeta` stage
+in the ``$lookup`` pipeline to search collections on the Atlas
+cluster. The :pipeline:`$search` or the :pipeline:`$searchMeta` stage
 must be the first stage inside the ``$lookup`` pipeline.
 
-For example, when you :ref:`lookup-syntax-let-pipeline` or run 
-:ref:`lookup-syntax-concise-correlated-subquery`, you can specify 
-:pipeline:`$search` or :pipeline:`$searchMeta` inside the pipeline as 
+For example, when you :ref:`lookup-syntax-let-pipeline` or run
+:ref:`lookup-syntax-concise-correlated-subquery`, you can specify
+:pipeline:`$search` or :pipeline:`$searchMeta` inside the pipeline as
 shown below:
 
-.. tabs:: 
+.. tabs::
 
    .. tab:: $search
       :tabid: search
 
-      .. code-block:: 
-         :copyable: false 
+      .. code-block::
+         :copyable: false
          :emphasize-lines: 7-11
 
          [{
@@ -389,16 +389,16 @@ shown below:
                    <operator-specification>
                  }
                },
-               ... 
+               ...
              }]
            }
-         }] 
+         }]
 
    .. tab:: $searchMeta
       :tabid: searchmeta
 
-      .. code-block:: 
-         :copyable: false 
+      .. code-block::
+         :copyable: false
          :emphasize-lines: 7-11
 
          [{
@@ -413,13 +413,13 @@ shown below:
                    <collector-specification>
                  }
                },
-               ... 
+               ...
              }]
            }
-         }] 
+         }]
 
-To see an example of :pipeline:`$lookup` with :pipeline:`$search`, 
-see the Atlas Search tutorial :atlas:`Run an Atlas Search $search Query 
+To see an example of :pipeline:`$lookup` with :pipeline:`$search`,
+see the Atlas Search tutorial :atlas:`Run an Atlas Search $search Query
 Using $lookup </atlas-search/tutorial/lookup-with-search/>`.
 
 .. _lookup-sharded-collections:
@@ -427,8 +427,8 @@ Using $lookup </atlas-search/tutorial/lookup-with-search/>`.
 Sharded Collections
 ~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 5.1, you can specify :ref:`sharded collections 
-<sharding-sharded-cluster>` in the ``from`` parameter of 
+Starting in MongoDB 5.1, you can specify :ref:`sharded collections
+<sharding-sharded-cluster>` in the ``from`` parameter of
 :pipeline:`$lookup` stages.
 
 You **cannot** use the ``$lookup`` stage within a transaction while 
@@ -447,15 +447,15 @@ For more information, see :ref:`agg-lookup-optimization-sbe`.
 
 .. _lookup-performance-considerations:
 
-Performance Considerations 
+Performance Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``$lookup`` performance depends on the type of operation performed.
 Refer to the following table for performance considerations for
-different ``$lookup`` operations. 
+different ``$lookup`` operations.
 
 .. list-table::
-   :header-rows: 1 
+   :header-rows: 1
    :widths: 20 80
 
    * - ``$lookup`` Operation
@@ -470,14 +470,14 @@ different ``$lookup`` operations.
          single join perform better when the foreign collection contains
          an index on the ``foreignField``.
 
-         :gold:`IMPORTANT:` If a supporting index on the ``foreignField`` does 
-         not exist, a ``$lookup`` operation that performs an equality match with 
+         :gold:`IMPORTANT:` If a supporting index on the ``foreignField`` does
+         not exist, a ``$lookup`` operation that performs an equality match with
          a single join will likely have poor performance.
 
    * - :ref:`Uncorrelated Subqueries <lookup-uncorrelated-subquery>`
 
      - .. _uncorrelated-subqueries-performance:
-     
+
        - ``$lookup`` operations that contain uncorrelated subqueries
          perform better when the inner pipeline can reference an
          index of the foreign collection.
@@ -491,676 +491,719 @@ different ``$lookup`` operations.
 
    * - :ref:`Correlated Subqueries <lookup-concise-correlated-subquery>`
 
-     - .. _correlated-subqueries-performance: 
+     - .. _correlated-subqueries-performance:
 
        - ``$lookup`` operations that contain correlated subqueries
          perform better when the following conditions apply:
-         
+
          - The foreign collection contains an index on the
            ``foreignField``.
 
          - The foreign collection contains an index that references the
-           inner pipline. 
- 
+           inner pipline.
+
        - If your pipeline passes a large number of documents to the
          ``$lookup`` query, the following strategies may improve
          performance:
 
-         - Reduce the number of documents that MongoDB passes to the 
+         - Reduce the number of documents that MongoDB passes to the
            ``$lookup`` query. For example, set a stricter filter
-           during the ``$match`` stage. 
+           during the ``$match`` stage.
 
          - Run the inner pipeline of the ``$lookup`` subquery as a
            separate query and use ``$out`` to create a temporary
            collection. Then, run an :ref:`equality match with a single
-           join <lookup-single-equality>`. 
+           join <lookup-single-equality>`.
 
          - Reconsider the data's schema to ensure it is optimal for the
-           use case. 
+           use case.
 
 For general performance strategies, see :ref:`Indexing Strategies
 <manual-indexing-strategies>` and :ref:`Query Optimization
-<read-operations-indexing>`. 
+<read-operations-indexing>`.
 
 .. important::
 
    Excessive use of ``$lookup`` within a query may slow down
    performance. To avoid multiple ``$lookup`` stages, consider an
    :ref:`embedded data model <data-modeling-embedding>` to optimize
-   query performance. 
+   query performance.
 
 Examples
 --------
 
-.. _lookup-single-equality-example:
+.. tabs-drivers::
 
-Perform a Single Equality Join with ``$lookup``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. tab::
+      :tabid: shell
 
-Create a collection ``orders`` with these documents:
+      .. _lookup-single-equality-example:
 
-.. code-block:: javascript
+      Perform a Single Equality Join with ``$lookup``
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.orders.insertMany( [
-      { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
-      { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 },
-      { "_id" : 3  }
-   ] )
+      Create a collection ``orders`` with these documents:
 
-Create another collection ``inventory`` with these documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.orders.insertMany( [
+            { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
+            { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 },
+            { "_id" : 3  }
+         ] )
 
-   db.inventory.insertMany( [
-      { "_id" : 1, "sku" : "almonds", "description": "product 1", "instock" : 120 },
-      { "_id" : 2, "sku" : "bread", "description": "product 2", "instock" : 80 },
-      { "_id" : 3, "sku" : "cashews", "description": "product 3", "instock" : 60 },
-      { "_id" : 4, "sku" : "pecans", "description": "product 4", "instock" : 70 },
-      { "_id" : 5, "sku": null, "description": "Incomplete" },
-      { "_id" : 6 }
-   ] )
+      Create another collection ``inventory`` with these documents:
 
-The following aggregation operation on the ``orders`` collection
-joins the documents from ``orders`` with the documents from the
-``inventory`` collection using the fields ``item`` from the
-``orders`` collection and the ``sku`` field from the ``inventory``
-collection:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.inventory.insertMany( [
+            { "_id" : 1, "sku" : "almonds", "description": "product 1", "instock" : 120 },
+            { "_id" : 2, "sku" : "bread", "description": "product 2", "instock" : 80 },
+            { "_id" : 3, "sku" : "cashews", "description": "product 3", "instock" : 60 },
+            { "_id" : 4, "sku" : "pecans", "description": "product 4", "instock" : 70 },
+            { "_id" : 5, "sku": null, "description": "Incomplete" },
+            { "_id" : 6 }
+         ] )
 
-   db.orders.aggregate( [
-      {
-        $lookup:
-          {
-            from: "inventory",
-            localField: "item",
-            foreignField: "sku",
-            as: "inventory_docs"
-          }
-     }
-   ] )
+      The following aggregation operation on the ``orders`` collection
+      joins the documents from ``orders`` with the documents from the
+      ``inventory`` collection using the fields ``item`` from the
+      ``orders`` collection and the ``sku`` field from the ``inventory``
+      collection:
 
-The operation returns these documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-
-   {
-      "_id" : 1,
-      "item" : "almonds",
-      "price" : 12,
-      "quantity" : 2,
-      "inventory_docs" : [
-         { "_id" : 1, "sku" : "almonds", "description" : "product 1", "instock" : 120 }
-      ]
-   }
-   {
-      "_id" : 2,
-      "item" : "pecans",
-      "price" : 20,
-      "quantity" : 1,
-      "inventory_docs" : [
-         { "_id" : 4, "sku" : "pecans", "description" : "product 4", "instock" : 70 }
-      ]
-   }
-   {
-      "_id" : 3,
-      "inventory_docs" : [ 
-         { "_id" : 5, "sku" : null, "description" : "Incomplete" },
-         { "_id" : 6 }
-      ]
-   }
-
-The operation corresponds to this pseudo-SQL statement:
-
-.. code-block:: sql
-   :copyable: false
-
-   SELECT *, inventory_docs
-   FROM orders
-   WHERE inventory_docs IN (
-      SELECT *
-      FROM inventory
-      WHERE sku = orders.item
-   );
-
-For more information, see
-:ref:`Equality Match Performance Considerations <equality-match-performance>`. 
-
-.. _unwind-example:
-
-Use ``$lookup`` with an Array
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If the ``localField`` is an array, you can match the array elements
-against a scalar ``foreignField`` without an :pipeline:`$unwind` stage.
-
-For example, create an example collection ``classes`` with these
-documents:
-
-.. code-block:: javascript
-
-   db.classes.insertMany( [
-      { _id: 1, title: "Reading is ...", enrollmentlist: [ "giraffe2", "pandabear", "artie" ], days: ["M", "W", "F"] },
-      { _id: 2, title: "But Writing ...", enrollmentlist: [ "giraffe1", "artie" ], days: ["T", "F"] }
-   ] )
-
-Create another collection ``members`` with these documents:
-
-.. code-block:: javascript
-
-   db.members.insertMany( [
-      { _id: 1, name: "artie", foreign: new Date("2016-05-01"), status: "A" }, 
-      { _id: 2, name: "giraffe", foreign: new Date("2017-05-01"), status: "D" }, 
-      { _id: 3, name: "giraffe1", foreign: new Date("2017-10-01"), status: "A" }, 
-      { _id: 4, name: "panda", foreign: new Date("2018-10-11"), status: "A" },  
-      { _id: 5, name: "pandabear", foreign: new Date("2018-12-01"), status: "A" },
-      { _id: 6, name: "giraffe2", foreign: new Date("2018-12-01"), status: "D" }
-   ] )
-
-The following aggregation operation joins documents in the ``classes``
-collection with the ``members`` collection, matching on the
-``enrollmentlist`` field to the ``name`` field:
-
-.. code-block:: javascript
-
-   db.classes.aggregate( [
-      {
-         $lookup:
+         db.orders.aggregate( [
             {
-               from: "members",
-               localField: "enrollmentlist",
-               foreignField: "name",
-               as: "enrollee_info"
+              $lookup:
+                {
+                  from: "inventory",
+                  localField: "item",
+                  foreignField: "sku",
+                  as: "inventory_docs"
+                }
            }
-      }
-   ] )
+         ] )
 
-The operation returns the following:
+      The operation returns these documents:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   {
-      "_id" : 1,
-      "title" : "Reading is ...",
-      "enrollmentlist" : [ "giraffe2", "pandabear", "artie" ],
-      "days" : [ "M", "W", "F" ],
-      "enrollee_info" : [
-         { "_id" : 1, "name" : "artie", "foreign" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
-         { "_id" : 5, "name" : "pandabear", "foreign" : ISODate("2018-12-01T00:00:00Z"), "status" : "A" },
-         { "_id" : 6, "name" : "giraffe2", "foreign" : ISODate("2018-12-01T00:00:00Z"), "status" : "D" }
-      ]
-   }
-   {
-      "_id" : 2,
-      "title" : "But Writing ...",
-      "enrollmentlist" : [ "giraffe1", "artie" ],
-      "days" : [ "T", "F" ],
-      "enrollee_info" : [
-         { "_id" : 1, "name" : "artie", "foreign" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
-         { "_id" : 3, "name" : "giraffe1", "foreign" : ISODate("2017-10-01T00:00:00Z"), "status" : "A" }
-      ]
-   }
-
-.. _lookup-mergeObjects:
-
-Use ``$lookup`` with ``$mergeObjects``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :expression:`$mergeObjects` operator combines multiple documents
-into a single document.
-
-Create a collection ``orders`` with these documents:
-
-.. code-block:: javascript
-
-   db.orders.insertMany( [
-      { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
-      { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 }
-   ] )
-
-Create another collection ``items`` with these documents:
-
-.. code-block:: javascript
-
-   db.items.insertMany( [
-     { "_id" : 1, "item" : "almonds", description: "almond clusters", "instock" : 120 },
-     { "_id" : 2, "item" : "bread", description: "raisin and nut bread", "instock" : 80 },
-     { "_id" : 3, "item" : "pecans", description: "candied pecans", "instock" : 60 }
-   ] )
-
-The following operation first uses the :pipeline:`$lookup` stage to
-join the two collections by the ``item`` fields and then uses
-:expression:`$mergeObjects` in the :pipeline:`$replaceRoot` to merge
-the foreign documents from ``items`` and ``orders``:
-
-.. code-block:: javascript
-
-   db.orders.aggregate( [
-      {
-         $lookup: {
-            from: "items",
-            localField: "item",    // field in the orders collection
-            foreignField: "item",  // field in the items collection
-            as: "fromItems"
+         {
+            "_id" : 1,
+            "item" : "almonds",
+            "price" : 12,
+            "quantity" : 2,
+            "inventory_docs" : [
+               { "_id" : 1, "sku" : "almonds", "description" : "product 1", "instock" : 120 }
+            ]
          }
-      },
-      {
-         $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$fromItems", 0 ] }, "$$ROOT" ] } }
-      },
-      { $project: { fromItems: 0 } }
-   ] )
+         {
+            "_id" : 2,
+            "item" : "pecans",
+            "price" : 20,
+            "quantity" : 1,
+            "inventory_docs" : [
+               { "_id" : 4, "sku" : "pecans", "description" : "product 4", "instock" : 70 }
+            ]
+         }
+         {
+            "_id" : 3,
+            "inventory_docs" : [
+               { "_id" : 5, "sku" : null, "description" : "Incomplete" },
+               { "_id" : 6 }
+            ]
+         }
 
-The operation returns these documents:
+      The operation corresponds to this pseudo-SQL statement:
 
-.. code-block:: javascript
+      .. code-block:: sql
+         :copyable: false
 
-   {
-     _id: 1,
-     item: 'almonds',
-     description: 'almond clusters',
-     instock: 120,
-     price: 12,
-     quantity: 2
-   },
-   {
-     _id: 2,
-     item: 'pecans',
-     description: 'candied pecans',
-     instock: 60,
-     price: 20,
-     quantity: 1
-   }
+         SELECT *, inventory_docs
+         FROM orders
+         WHERE inventory_docs IN (
+            SELECT *
+            FROM inventory
+            WHERE sku = orders.item
+         );
 
-.. _lookup-multiple-joins:
+      For more information, see
+      :ref:`Equality Match Performance Considerations <equality-match-performance>`.
 
-Use Multiple Join Conditions and a Correlated Subquery
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. _unwind-example:
 
-Pipelines can execute on a foreign collection and include multiple join
-conditions. The :query:`$expr` operator enables more complex join
-conditions including conjunctions and non-equality matches.
+      Use ``$lookup`` with an Array
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A join condition can reference a field in the local collection on which
-the :method:`~db.collection.aggregate()` method was run and reference a
-field in the foreign collection. This allows a correlated subquery
-between the two collections.
+      If the ``localField`` is an array, you can match the array elements
+      against a scalar ``foreignField`` without an :pipeline:`$unwind` stage.
 
-MongoDB 5.0 supports :ref:`concise correlated subqueries
-<lookup-concise-correlated-subquery>`.
+      For example, create an example collection ``classes`` with these
+      documents:
 
-Create a collection ``orders`` with these documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.classes.insertMany( [
+            { _id: 1, title: "Reading is ...", enrollmentlist: [ "giraffe2", "pandabear", "artie" ], days: ["M", "W", "F"] },
+            { _id: 2, title: "But Writing ...", enrollmentlist: [ "giraffe1", "artie" ], days: ["T", "F"] }
+         ] )
 
-   db.orders.insertMany( [
-     { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2 },
-     { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1 },
-     { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60 }
-   ] )
+      Create another collection ``members`` with these documents:
 
-Create another collection ``warehouses`` with these documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.members.insertMany( [
+            { _id: 1, name: "artie", foreign: new Date("2016-05-01"), status: "A" }, 
+            { _id: 2, name: "giraffe", foreign: new Date("2017-05-01"), status: "D" }, 
+            { _id: 3, name: "giraffe1", foreign: new Date("2017-10-01"), status: "A" }, 
+            { _id: 4, name: "panda", foreign: new Date("2018-10-11"), status: "A" },  
+            { _id: 5, name: "pandabear", foreign: new Date("2018-12-01"), status: "A" },
+            { _id: 6, name: "giraffe2", foreign: new Date("2018-12-01"), status: "D" }
+         ] )
 
-   db.warehouses.insertMany( [
-     { "_id" : 1, "stock_item" : "almonds", warehouse: "A", "instock" : 120 },
-     { "_id" : 2, "stock_item" : "pecans", warehouse: "A", "instock" : 80 },
-     { "_id" : 3, "stock_item" : "almonds", warehouse: "B", "instock" : 60 },
-     { "_id" : 4, "stock_item" : "cookies", warehouse: "B", "instock" : 40 },
-     { "_id" : 5, "stock_item" : "cookies", warehouse: "A", "instock" : 80 }
-   ] )
+      The following aggregation operation joins documents in the ``classes``
+      collection with the ``members`` collection, matching on the
+      ``enrollmentlist`` field to the ``name`` field:
 
-The following example:
+      .. code-block:: javascript
 
-- Uses a correlated subquery with a join on the ``orders.item`` and
-  ``warehouse.stock_item`` fields.
-
-- Ensures the quantity of the item in stock can fulfill the
-  ordered quantity.
-
-.. code-block:: javascript
-
-    db.orders.aggregate( [
-      {
-         $lookup:
+         db.classes.aggregate( [
             {
-              from : "warehouses",
-              localField : "item",
-              foreignField : "stock_item",
-              let : { order_qty: "$ordered" },
-              pipeline : [
-                 { $match : 
-                    { $expr : 
-                       [  
-                         { $gte: [ "$instock", "$$order_qty" ] }
-                       ] 
-                    }
-                 },
-                 { $project : { stock_item: 0, _id: 0 } }
-              ],
-              as : "stockdata"
+               $lookup:
+                  {
+                     from: "members",
+                     localField: "enrollmentlist",
+                     foreignField: "name",
+                     as: "enrollee_info"
+                 }
             }
-       }
-   ] )
+         ] )
 
-The operation returns these documents:
+      The operation returns the following:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   {
-     _id: 1,
-     item: 'almonds',
-     price: 12,
-     ordered: 2,
-     stockdata: [
-       { warehouse: 'A', instock: 120 },
-       { warehouse: 'B', instock: 60 }
-     ]
-   },
-   {
-     _id: 2,
-     item: 'pecans',
-     price: 20,
-     ordered: 1,
-     stockdata: [ { warehouse: 'A', instock: 80 } ]
-   },
-   {
-     _id: 3,
-     item: 'cookies',
-     price: 10,
-     ordered: 60,
-     stockdata: [ { warehouse: 'A', instock: 80 } ]
-   }
+         {
+            "_id" : 1,
+            "title" : "Reading is ...",
+            "enrollmentlist" : [ "giraffe2", "pandabear", "artie" ],
+            "days" : [ "M", "W", "F" ],
+            "enrollee_info" : [
+               { "_id" : 1, "name" : "artie", "foreign" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+               { "_id" : 5, "name" : "pandabear", "foreign" : ISODate("2018-12-01T00:00:00Z"), "status" : "A" },
+               { "_id" : 6, "name" : "giraffe2", "foreign" : ISODate("2018-12-01T00:00:00Z"), "status" : "D" }
+            ]
+         }
+         {
+            "_id" : 2,
+            "title" : "But Writing ...",
+            "enrollmentlist" : [ "giraffe1", "artie" ],
+            "days" : [ "T", "F" ],
+            "enrollee_info" : [
+               { "_id" : 1, "name" : "artie", "foreign" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+               { "_id" : 3, "name" : "giraffe1", "foreign" : ISODate("2017-10-01T00:00:00Z"), "status" : "A" }
+            ]
+         }
 
-The operation corresponds to this pseudo-SQL statement:
+      .. _lookup-mergeObjects:
 
-.. code-block:: sql
-   :copyable: false
+      Use ``$lookup`` with ``$mergeObjects``
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   SELECT *, stockdata
-   FROM orders
-   WHERE stockdata IN (
-      SELECT warehouse, instock
-      FROM warehouses
-      WHERE stock_item = orders.item
-      AND instock >= orders.ordered
-   );
+      The :expression:`$mergeObjects` operator combines multiple documents
+      into a single document.
 
-.. include:: /includes/expr-operators-and-indexes.rst
+      Create a collection ``orders`` with these documents:
 
-For example, if the index ``{ stock_item: 1, instock: 1 }`` exists on
-the ``warehouses`` collection:
+      .. code-block:: javascript
 
-- The equality match on the ``warehouses.stock_item`` field uses the
-  index.
-- The range part of the query on the ``warehouses.instock`` field
-  also uses the indexed field in the compound index.
+         db.orders.insertMany( [
+            { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
+            { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 }
+         ] )
 
-.. seealso::
+      Create another collection ``items`` with these documents:
 
-   - :query:`$expr`
-   - :doc:`/reference/aggregation-variables/`
+      .. code-block:: javascript
 
-.. _lookup-uncorrelated-subquery:
+         db.items.insertMany( [
+           { "_id" : 1, "item" : "almonds", description: "almond clusters", "instock" : 120 },
+           { "_id" : 2, "item" : "bread", description: "raisin and nut bread", "instock" : 80 },
+           { "_id" : 3, "item" : "pecans", description: "candied pecans", "instock" : 60 }
+         ] )
 
-Perform an Uncorrelated Subquery with ``$lookup``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      The following operation first uses the :pipeline:`$lookup` stage to
+      join the two collections by the ``item`` fields and then uses
+      :expression:`$mergeObjects` in the :pipeline:`$replaceRoot` to merge
+      the foreign documents from ``items`` and ``orders``:
 
-An aggregation pipeline :pipeline:`$lookup` stage can execute a pipeline
-on the foreign collection, which allows uncorrelated subqueries. An
-uncorrelated subquery does not reference the local document fields.
+      .. code-block:: javascript
 
-.. note::
-
-   .. include:: /includes/uncorrelated-subquery.rst
-
-Create a collection ``absences`` with these documents:
-
-.. code-block:: javascript
-
-   db.absences.insertMany( [
-      { "_id" : 1, "student" : "Ann Aardvark", sickdays: [ new Date ("2018-05-01"),new Date ("2018-08-23") ] },
-      { "_id" : 2, "student" : "Zoe Zebra", sickdays: [ new Date ("2018-02-01"),new Date ("2018-05-23") ] },
-   ] )
-
-Create another collection ``holidays`` with these documents:
-
-.. code-block:: javascript
-
-   db.holidays.insertMany( [
-      { "_id" : 1, year: 2018, name: "New Years", date: new Date("2018-01-01") },
-      { "_id" : 2, year: 2018, name: "Pi Day", date: new Date("2018-03-14") },
-      { "_id" : 3, year: 2018, name: "Ice Cream Day", date: new Date("2018-07-15") },
-      { "_id" : 4, year: 2017, name: "New Years", date: new Date("2017-01-01") },
-      { "_id" : 5, year: 2017, name: "Ice Cream Day", date: new Date("2017-07-16") }
-   ] )
-
-The following operation joins the ``absences`` collection with 2018
-holiday information from the ``holidays`` collection:
-
-.. code-block:: javascript
-
-   db.absences.aggregate( [
-      {
-         $lookup:
+         db.orders.aggregate( [
             {
-              from: "holidays",
-              pipeline: [
-                 { $match: { year: 2018 } },
-                 { $project: { _id: 0, date: { name: "$name", date: "$date" } } },
-                 { $replaceRoot: { newRoot: "$date" } }
-              ],
-              as: "holidays"
-            }
-       }
-   ] )
-
-The operation returns the following:
-
-.. code-block:: javascript
-
-   {
-     _id: 1,
-     student: 'Ann Aardvark',
-     sickdays: [
-       ISODate("2018-05-01T00:00:00.000Z"),
-       ISODate("2018-08-23T00:00:00.000Z")
-     ],
-     holidays: [
-       { name: 'New Years', date: ISODate("2018-01-01T00:00:00.000Z") },
-       { name: 'Pi Day', date: ISODate("2018-03-14T00:00:00.000Z") },
-       { name: 'Ice Cream Day', date: ISODate("2018-07-15T00:00:00.000Z")
-       }
-     ]
-   },
-   {
-     _id: 2,
-     student: 'Zoe Zebra',
-     sickdays: [
-       ISODate("2018-02-01T00:00:00.000Z"),
-       ISODate("2018-05-23T00:00:00.000Z")
-     ],
-     holidays: [
-       { name: 'New Years', date: ISODate("2018-01-01T00:00:00.000Z") },
-       { name: 'Pi Day', date: ISODate("2018-03-14T00:00:00.000Z") },
-       { name: 'Ice Cream Day', date: ISODate("2018-07-15T00:00:00.000Z")
-       }
-     ]
-   }
-
-The operation corresponds to this pseudo-SQL statement:
-
-.. code-block:: sql
-   :copyable: false
-
-   SELECT *, holidays
-   FROM absences
-   WHERE holidays IN (
-      SELECT name, date
-      FROM holidays
-      WHERE year = 2018
-   );
-
-For more information, see
-:ref:`Uncorrelated Subquery Performance Considerations <uncorrelated-subqueries-performance>`.
-
-.. _lookup-concise-correlated-subquery:
-
-Perform a Concise Correlated Subquery with ``$lookup``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 5.0
-
-Starting in MongoDB 5.0, an aggregation pipeline :pipeline:`$lookup`
-stage supports a :ref:`concise correlated subquery syntax
-<lookup-syntax-concise-correlated-subquery>` that improves joins between
-collections. The new concise syntax removes the requirement for an
-equality match on the foreign and local fields inside of an
-:query:`$expr` operator in a :pipeline:`$match` stage.
-
-Create a collection ``restaurants``:
-
-.. code-block:: javascript
-
-   db.restaurants.insertMany( [
-      {
-         _id: 1,
-         name: "American Steak House",
-         food: [ "filet", "sirloin" ],
-         beverages: [ "beer", "wine" ]
-      },
-      {
-         _id: 2,
-         name: "Honest John Pizza",
-         food: [ "cheese pizza", "pepperoni pizza" ],
-         beverages: [ "soda" ]
-      }
-   ] )
-
-Create another collection ``orders`` with food and optional drink
-orders:
-
-.. code-block:: javascript
-
-   db.orders.insertMany( [
-      {
-         _id: 1,
-         item: "filet",
-         restaurant_name: "American Steak House"
-      },
-      {
-         _id: 2,
-         item: "cheese pizza",
-         restaurant_name: "Honest John Pizza",
-         drink: "lemonade"
-      },
-      {
-         _id: 3,
-         item: "cheese pizza",
-         restaurant_name: "Honest John Pizza",
-         drink: "soda"
-      }
-   ] )
-
-The following example:
-
-- Joins the ``orders`` and ``restaurants`` collections by matching the
-  ``orders.restaurant_name`` :ref:`localField <lookup-subquery-localField>` with
-  the ``restaurants.name`` :ref:`foreignField <lookup-subquery-foreignField>`. 
-  The match is performed before the ``pipeline`` is run.
-
-- Performs an :expression:`$in` array match between the ``orders.drink``
-  and ``restaurants.beverages`` fields that are accessed using
-  ``$$orders_drink`` and ``$beverages`` respectively.
-
-.. code-block:: javascript
-
-   db.orders.aggregate( [
-      {
-         $lookup: {
-            from: "restaurants",
-            localField: "restaurant_name",
-            foreignField: "name",
-            let: { orders_drink: "$drink" },
-            pipeline: [ {
-               $match: {
-                  $expr: { $in: [ "$$orders_drink", "$beverages" ] }
+               $lookup: {
+                  from: "items",
+                  localField: "item",    // field in the orders collection
+                  foreignField: "item",  // field in the items collection
+                  as: "fromItems"
                }
-            } ],
-            as: "matches"
+            },
+            {
+               $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$fromItems", 0 ] }, "$$ROOT" ] } }
+            },
+            { $project: { fromItems: 0 } }
+         ] )
+
+      The operation returns these documents:
+
+      .. code-block:: javascript
+
+         {
+           _id: 1,
+           item: 'almonds',
+           description: 'almond clusters',
+           instock: 120,
+           price: 12,
+           quantity: 2
+         },
+         {
+           _id: 2,
+           item: 'pecans',
+           description: 'candied pecans',
+           instock: 60,
+           price: 20,
+           quantity: 1
          }
-      }
-   ] )
 
-There is a match for the ``soda`` value in the ``orders.drink`` and
-``restaurants.beverages`` fields. This output shows the ``matches``
-array and contains all foreign fields from the ``restaurants`` collection
-for the match:
+      .. _lookup-multiple-joins:
 
-.. code-block:: javascript
-   :copyable: false
+      Use Multiple Join Conditions and a Correlated Subquery
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   {
-      "_id" : 1, "item" : "filet",
-      "restaurant_name" : "American Steak House",
-      "matches" : [ ]
-   }
-   {
-      "_id" : 2, "item" : "cheese pizza",
-      "restaurant_name" : "Honest John Pizza",
-      "drink" : "lemonade",
-      "matches" : [ ]
-   }
-   {
-      "_id" : 3, "item" : "cheese pizza",
-      "restaurant_name" : "Honest John Pizza",
-      "drink" : "soda",
-      "matches" : [ {
-         "_id" : 2, "name" : "Honest John Pizza",
-         "food" : [ "cheese pizza", "pepperoni pizza" ],
-         "beverages" : [ "soda" ]
-      } ]
-   }
+      Pipelines can execute on a foreign collection and include multiple join
+      conditions. The :query:`$expr` operator enables more complex join
+      conditions including conjunctions and non-equality matches.
 
-This example uses the older verbose syntax from MongoDB versions before
-5.0 and returns the same results as the previous concise example:
+      A join condition can reference a field in the local collection on which
+      the :method:`~db.collection.aggregate()` method was run and reference a
+      field in the foreign collection. This allows a correlated subquery
+      between the two collections.
 
-.. code-block:: javascript
+      MongoDB 5.0 supports :ref:`concise correlated subqueries
+      <lookup-concise-correlated-subquery>`.
 
-   db.orders.aggregate( [
-      {
-         $lookup: {
-            from: "restaurants",
-            let: { orders_restaurant_name: "$restaurant_name",
-                   orders_drink: "$drink" },
-            pipeline: [ {
-               $match: { 
-                  $expr: {
-                     $and: [
-                        { $eq: [ "$$orders_restaurant_name", "$name" ] },
-                        { $in: [ "$$orders_drink", "$beverages" ] }
-                     ]
+      Create a collection ``orders`` with these documents:
+
+      .. code-block:: javascript
+
+         db.orders.insertMany( [
+           { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2 },
+           { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1 },
+           { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60 }
+         ] )
+
+      Create another collection ``warehouses`` with these documents:
+
+      .. code-block:: javascript
+
+         db.warehouses.insertMany( [
+           { "_id" : 1, "stock_item" : "almonds", warehouse: "A", "instock" : 120 },
+           { "_id" : 2, "stock_item" : "pecans", warehouse: "A", "instock" : 80 },
+           { "_id" : 3, "stock_item" : "almonds", warehouse: "B", "instock" : 60 },
+           { "_id" : 4, "stock_item" : "cookies", warehouse: "B", "instock" : 40 },
+           { "_id" : 5, "stock_item" : "cookies", warehouse: "A", "instock" : 80 }
+         ] )
+
+      The following example:
+
+      - Uses a correlated subquery with a join on the ``orders.item`` and
+        ``warehouse.stock_item`` fields.
+
+      - Ensures the quantity of the item in stock can fulfill the
+        ordered quantity.
+
+      .. code-block:: javascript
+
+         db.orders.aggregate( [
+            {
+               $lookup:
+                  {
+                    from : "warehouses",
+                    localField : "item",
+                    foreignField : "stock_item",
+                    let : { order_qty: "$ordered" },
+                    pipeline : [
+                       { $match : 
+                          { $expr : 
+                             [  
+                               { $gte: [ "$instock", "$$order_qty" ] }
+                             ] 
+                          }
+                       },
+                       { $project : { stock_item: 0, _id: 0 } }
+                    ],
+                    as : "stockdata"
                   }
-               }
-            } ],
-            as: "matches"
+             }
+         ] )
+
+      The operation returns these documents:
+
+      .. code-block:: javascript
+
+         {
+           _id: 1,
+           item: 'almonds',
+           price: 12,
+           ordered: 2,
+           stockdata: [
+             { warehouse: 'A', instock: 120 },
+             { warehouse: 'B', instock: 60 }
+           ]
+         },
+         {
+           _id: 2,
+           item: 'pecans',
+           price: 20,
+           ordered: 1,
+           stockdata: [ { warehouse: 'A', instock: 80 } ]
+         },
+         {
+           _id: 3,
+           item: 'cookies',
+           price: 10,
+           ordered: 60,
+           stockdata: [ { warehouse: 'A', instock: 80 } ]
          }
-      }
-   ] )
 
-The previous examples correspond to this pseudo-SQL statement:
+      The operation corresponds to this pseudo-SQL statement:
 
-.. code-block:: sql
-   :copyable: false
+      .. code-block:: sql
+         :copyable: false
 
-   SELECT *, matches
-   FROM orders
-   WHERE matches IN (
-      SELECT *
-      FROM restaurants
-      WHERE restaurants.name = orders.restaurant_name
-      AND restaurants.beverages = orders.drink
-   );
+         SELECT *, stockdata
+         FROM orders
+         WHERE stockdata IN (
+            SELECT warehouse, instock
+            FROM warehouses
+            WHERE stock_item = orders.item
+            AND instock >= orders.ordered
+         );
 
-For more information, see
-:ref:`Correlated Subquery Performance Considerations <correlated-subqueries-performance>`.
+      .. include:: /includes/expr-operators-and-indexes.rst
+
+      For example, if the index ``{ stock_item: 1, instock: 1 }`` exists on
+      the ``warehouses`` collection:
+
+      - The equality match on the ``warehouses.stock_item`` field uses the
+        index.
+      - The range part of the query on the ``warehouses.instock`` field
+        also uses the indexed field in the compound index.
+
+      .. seealso::
+
+         - :query:`$expr`
+         - :doc:`/reference/aggregation-variables/`
+
+      .. _lookup-uncorrelated-subquery:
+
+      Perform an Uncorrelated Subquery with ``$lookup``
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      An aggregation pipeline :pipeline:`$lookup` stage can execute a pipeline
+      on the foreign collection, which allows uncorrelated subqueries. An
+      uncorrelated subquery does not reference the local document fields.
+
+      .. note::
+
+         .. include:: /includes/uncorrelated-subquery.rst
+
+      Create a collection ``absences`` with these documents:
+
+      .. code-block:: javascript
+
+         db.absences.insertMany( [
+            { "_id" : 1, "student" : "Ann Aardvark", sickdays: [ new Date ("2018-05-01"),new Date ("2018-08-23") ] },
+            { "_id" : 2, "student" : "Zoe Zebra", sickdays: [ new Date ("2018-02-01"),new Date ("2018-05-23") ] },
+         ] )
+
+      Create another collection ``holidays`` with these documents:
+
+      .. code-block:: javascript
+
+         db.holidays.insertMany( [
+            { "_id" : 1, year: 2018, name: "New Years", date: new Date("2018-01-01") },
+            { "_id" : 2, year: 2018, name: "Pi Day", date: new Date("2018-03-14") },
+            { "_id" : 3, year: 2018, name: "Ice Cream Day", date: new Date("2018-07-15") },
+            { "_id" : 4, year: 2017, name: "New Years", date: new Date("2017-01-01") },
+            { "_id" : 5, year: 2017, name: "Ice Cream Day", date: new Date("2017-07-16") }
+         ] )
+
+      The following operation joins the ``absences`` collection with 2018
+      holiday information from the ``holidays`` collection:
+
+      .. code-block:: javascript
+
+         db.absences.aggregate( [
+            {
+               $lookup:
+                  {
+                    from: "holidays",
+                    pipeline: [
+                       { $match: { year: 2018 } },
+                       { $project: { _id: 0, date: { name: "$name", date: "$date" } } },
+                       { $replaceRoot: { newRoot: "$date" } }
+                    ],
+                    as: "holidays"
+                  }
+             }
+         ] )
+
+      The operation returns the following:
+
+      .. code-block:: javascript
+
+         {
+           _id: 1,
+           student: 'Ann Aardvark',
+           sickdays: [
+             ISODate("2018-05-01T00:00:00.000Z"),
+             ISODate("2018-08-23T00:00:00.000Z")
+           ],
+           holidays: [
+             { name: 'New Years', date: ISODate("2018-01-01T00:00:00.000Z") },
+             { name: 'Pi Day', date: ISODate("2018-03-14T00:00:00.000Z") },
+             { name: 'Ice Cream Day', date: ISODate("2018-07-15T00:00:00.000Z")
+             }
+           ]
+         },
+         {
+           _id: 2,
+           student: 'Zoe Zebra',
+           sickdays: [
+             ISODate("2018-02-01T00:00:00.000Z"),
+             ISODate("2018-05-23T00:00:00.000Z")
+           ],
+           holidays: [
+             { name: 'New Years', date: ISODate("2018-01-01T00:00:00.000Z") },
+             { name: 'Pi Day', date: ISODate("2018-03-14T00:00:00.000Z") },
+             { name: 'Ice Cream Day', date: ISODate("2018-07-15T00:00:00.000Z")
+             }
+           ]
+         }
+
+      The operation corresponds to this pseudo-SQL statement:
+
+      .. code-block:: sql
+         :copyable: false
+
+         SELECT *, holidays
+         FROM absences
+         WHERE holidays IN (
+            SELECT name, date
+            FROM holidays
+            WHERE year = 2018
+         );
+
+      For more information, see
+      :ref:`Uncorrelated Subquery Performance Considerations <uncorrelated-subqueries-performance>`.
+
+      .. _lookup-concise-correlated-subquery:
+
+      Perform a Concise Correlated Subquery with ``$lookup``
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. versionadded:: 5.0
+
+      Starting in MongoDB 5.0, an aggregation pipeline :pipeline:`$lookup`
+      stage supports a :ref:`concise correlated subquery syntax
+      <lookup-syntax-concise-correlated-subquery>` that improves joins between
+      collections. The new concise syntax removes the requirement for an
+      equality match on the foreign and local fields inside of an
+      :query:`$expr` operator in a :pipeline:`$match` stage.
+
+      Create a collection ``restaurants``:
+
+      .. code-block:: javascript
+
+         db.restaurants.insertMany( [
+            {
+               _id: 1,
+               name: "American Steak House",
+               food: [ "filet", "sirloin" ],
+               beverages: [ "beer", "wine" ]
+            },
+            {
+               _id: 2,
+               name: "Honest John Pizza",
+               food: [ "cheese pizza", "pepperoni pizza" ],
+               beverages: [ "soda" ]
+            }
+         ] )
+
+      Create another collection ``orders`` with food and optional drink
+      orders:
+
+      .. code-block:: javascript
+
+         db.orders.insertMany( [
+            {
+               _id: 1,
+               item: "filet",
+               restaurant_name: "American Steak House"
+            },
+            {
+               _id: 2,
+               item: "cheese pizza",
+               restaurant_name: "Honest John Pizza",
+               drink: "lemonade"
+            },
+            {
+               _id: 3,
+               item: "cheese pizza",
+               restaurant_name: "Honest John Pizza",
+               drink: "soda"
+            }
+         ] )
+
+      The following example:
+
+      - Joins the ``orders`` and ``restaurants`` collections by matching the
+        ``orders.restaurant_name`` :ref:`localField <lookup-subquery-localField>` with
+        the ``restaurants.name`` :ref:`foreignField <lookup-subquery-foreignField>`. 
+        The match is performed before the ``pipeline`` is run.
+
+      - Performs an :expression:`$in` array match between the ``orders.drink``
+        and ``restaurants.beverages`` fields that are accessed using
+        ``$$orders_drink`` and ``$beverages`` respectively.
+
+      .. code-block:: javascript
+
+         db.orders.aggregate( [
+            {
+               $lookup: {
+                  from: "restaurants",
+                  localField: "restaurant_name",
+                  foreignField: "name",
+                  let: { orders_drink: "$drink" },
+                  pipeline: [ {
+                     $match: {
+                        $expr: { $in: [ "$$orders_drink", "$beverages" ] }
+                     }
+                  } ],
+                  as: "matches"
+               }
+            }
+         ] )
+
+      There is a match for the ``soda`` value in the ``orders.drink`` and
+      ``restaurants.beverages`` fields. This output shows the ``matches``
+      array and contains all foreign fields from the ``restaurants`` collection
+      for the match:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         {
+            "_id" : 1, "item" : "filet",
+            "restaurant_name" : "American Steak House",
+            "matches" : [ ]
+         }
+         {
+            "_id" : 2, "item" : "cheese pizza",
+            "restaurant_name" : "Honest John Pizza",
+            "drink" : "lemonade",
+            "matches" : [ ]
+         }
+         {
+            "_id" : 3, "item" : "cheese pizza",
+            "restaurant_name" : "Honest John Pizza",
+            "drink" : "soda",
+            "matches" : [ {
+               "_id" : 2, "name" : "Honest John Pizza",
+               "food" : [ "cheese pizza", "pepperoni pizza" ],
+               "beverages" : [ "soda" ]
+            } ]
+         }
+
+      This example uses the older verbose syntax from MongoDB versions before
+      5.0 and returns the same results as the previous concise example:
+
+      .. code-block:: javascript
+
+         db.orders.aggregate( [
+            {
+               $lookup: {
+                  from: "restaurants",
+                  let: { orders_restaurant_name: "$restaurant_name",
+                         orders_drink: "$drink" },
+                  pipeline: [ {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              { $eq: [ "$$orders_restaurant_name", "$name" ] },
+                              { $in: [ "$$orders_drink", "$beverages" ] }
+                           ]
+                        }
+                     }
+                  } ],
+                  as: "matches"
+               }
+            }
+         ] )
+
+      The previous examples correspond to this pseudo-SQL statement:
+
+      .. code-block:: sql
+         :copyable: false
+
+         SELECT *, matches
+         FROM orders
+         WHERE matches IN (
+            SELECT *
+            FROM restaurants
+            WHERE restaurants.name = orders.restaurant_name
+            AND restaurants.beverages = orders.drink
+         );
+
+      For more information, see
+      :ref:`Correlated Subquery Performance Considerations <correlated-subqueries-performance>`.
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/driver-examples/aggregation/sample-data-movie.rst
+
+      The following ``Comment`` class models the documents in the ``sample_mflix.comments``
+      collection:
+
+      .. literalinclude:: /includes/driver-examples/aggregation/Comment.cs
+         :language: csharp
+
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$lookup``
+
+         .. replacement:: method-name-and-link
+
+            `Lookup() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.Lookup.html>`__
+
+         .. replacement:: stage-specific-info
+
+         .. replacement:: method-description
+
+            performs a left outer join between the ``movies`` and ``comments`` collections.
+            The code joins the ``Id`` field from each ``Movie`` document to the ``MovieId``
+            field in the ``Comment`` documents. The comments for each movie are stored in a field
+            named ``Comments`` in each ``Movie`` document.
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start lookup
+         :end-before: // end lookup
+         :language: csharp
+         :dedent: 8
