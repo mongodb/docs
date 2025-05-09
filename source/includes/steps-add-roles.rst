@@ -55,6 +55,16 @@
       
            - Database on which the selected actions and roles
              are granted, if applicable.
+
+             To specify the database, type the database name or select
+             :guilabel:`Apply to any database`.
+
+             .. warning:: 
+
+                If you select :guilabel:`Apply to any database`, the
+                roles grants permissions for actions on the ``admin``,
+                ``local``, and ``config`` databases. We **don't**
+                recommend writes to these databases.
       
              This field is required for all roles and actions under the
              :guilabel:`Collection Actions` and
@@ -64,6 +74,16 @@
       
            - Collection within the specified database on which
              the actions and roles are granted, if applicable.
+
+             To specify the collection, type the collection name or
+             select :guilabel:`Apply to any collection`.
+
+             .. warning:: 
+
+                If you select :guilabel:`Apply to any collection`, the
+                roles grants permissions for actions on the collections
+                in the ``admin``, ``local``, and ``config`` databases.
+                We **don't** recommend writes to these collections.
       
              This field is required for all roles and actions under
              :guilabel:`Collection Actions`.
