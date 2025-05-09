@@ -108,7 +108,7 @@ The following syntax defines the ``vectorSearch`` index type:
 The {+avs+} index definition takes the following fields:
 
 .. list-table::
-   :widths: 25 10 15 50
+   :widths: 25 15 15 45
    :header-rows: 1
 
    * - Option
@@ -117,13 +117,14 @@ The {+avs+} index definition takes the following fields:
      - Purpose
 
    * - ``fields``
-     - array of documents 
+     - array of field definition documents 
      - Required 
-     - Vector and filter fields to index, one per document. At least one
-       document *must* contain the field definition for the vector
-       field. You can also index additional fields 
-       for :ref:`pre-filtering <avs-types-filter>` the data.
-
+     - Definitions for the vector and filter fields to index, one definition per document.
+       Each field definition document specifies the ``type``, ``path``, and other configuration options for the field to index. 
+       
+       The ``fields`` array must contain at least one ``vector``-type field definition. You can add additional
+       ``filter``-type field definitions to your array to pre-filter your data. 
+       
    * - ``fields.type``
      - string 
      - Required 
@@ -134,24 +135,23 @@ The {+avs+} index definition takes the following fields:
        - ``filter`` - for additional fields to filter on. You
          can filter on {+avs-filter-types+}.
 
+       To learn more, see :ref:`avs-types-vector` and :ref:`avs-types-filter`.
+
    * - ``fields.path``
      - string 
      - Required 
      - Name of the field to index. For nested fields, use dot notation
        to specify path to embedded fields.
-       
-       You *cannot* index field names with two consecutive dots or field names
-       ending with dots. For example, {+avs+} doesn't support indexing the
-       following field names: ``foo..bar`` or ``foo_bar.``.
 
    * - ``fields.numDimensions``
      - int
      - Required
      - Number of vector dimensions that {+avs+} enforces at index-time and
-       query-time. You must specify a value less than or equal to
-       ``8192``. For indexing :manual:`BinData
-       </reference/method/BinData/>` or quantized vectors, value must be
-       one of the following:
+       query-time. You can set this field only for ``vector``-type fields.
+       You must specify a value less than or equal to ``8192``.
+       
+       For indexing quantized vectors or :manual:`BinData </reference/method/BinData/>`,
+       you can specify one of the following values:
 
        - ``1`` to ``8192`` for ``int8`` vectors for ingestion.
        - Multiple of ``8`` for ``int1`` vectors for ingestion.
@@ -160,7 +160,9 @@ The {+avs+} index definition takes the following fields:
        - Multiple of ``8`` for ``binData(float32)`` and
          ``array(float32)`` vectors for automatic binary quantization.
        
-       You can set this field only for ``vector`` type fields.
+       The embedding model you choose determines the number of dimensions
+       in your vector embeddings, with some models having multiple options 
+       for how many dimensions are output. To learn more, see :ref:`choose-embedding-method`. 
 
    * - ``fields.similarity``
      - string
@@ -168,8 +170,9 @@ The {+avs+} index definition takes the following fields:
      - .. _fields-similarity:
       
        Vector similarity function to use to search for top K-nearest 
-       neighbors. You can set this field only for ``vector`` type
-       fields. Value can be one of the following: 
+       neighbors. You can set this field only for ``vector``-type fields.
+       
+       You can specify one of the following values:
 
        - ``euclidean`` - measures the distance between ends of vectors. 
        - ``cosine`` - measures similarity based on the angle between 
@@ -184,10 +187,11 @@ The {+avs+} index definition takes the following fields:
      - Optional
      - .. _fields-quantization:
 
-       Type of automatic vector quantization for your vectors. You can
-       specify the type of quantization to apply on your vectors. Use
+       Type of automatic vector quantization for your vectors. Use
        this setting only if your embeddings are ``float`` or ``double``
-       vectors. Value can be one of the following:  
+       vectors. 
+       
+       You can specify one of the following values:  
 
        - ``none`` - Indicates no automatic quantization for the vector
          embeddings. Use this setting if you have pre-quantized vectors
@@ -195,11 +199,11 @@ The {+avs+} index definition takes the following fields:
        - ``scalar`` - Indicates scalar quantization, which transforms
          values to 1 byte integers.    
        - ``binary`` - Indicates binary quantization, which transforms
-         values to a single bit. To use this quantization,
+         values to a single bit. To use this value,
          ``numDimensions`` must be a multiple of 8. 
-
-       If precision is critical, select ``none`` or ``scalar`` instead
-       of ``binary``. 
+         
+         If precision is critical, select ``none`` or ``scalar`` instead
+         of ``binary``. 
 
        To learn more, see :ref:`avs-quantization`.
 
