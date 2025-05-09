@@ -1,9 +1,9 @@
 ====================================================
-MongoDB Controllers for Kubernetes Documentation
+MongoDB Controllers for Kubernetes Operator Documentation
 ====================================================
 
 This repository contains documentation regarding components of the
-the MongoDB Controllers for Kubernetes.
+the MongoDB Controllers for Kubernetes Operator.
 
 Building
 --------

@@ -5,14 +5,14 @@ in the current namespace named ``default``. By default, the
 
 .. code-block:: sh
 
-   helm install enterprise-operator mongodb/enterprise-operator
+   helm install mongodb-kubernetes-operator mongodb/mongodb-kubernetes
 
 The following command installs the |k8s-op-short|  in the ``mongodb``
 namespace with the optional ``--create-namespace`` option.
 
 .. code-block:: sh
 
-   helm install enterprise-operator mongodb/enterprise-operator \
+   helm install mongodb-kubernetes-operator mongodb/mongodb-kubernetes \
      --namespace mongodb \
      --create-namespace
 

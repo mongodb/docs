@@ -5,7 +5,7 @@ the |k8s-op-short| ServiceAccount :k8sdocs:`can access
 this namespace.
 
 - To watch *all namespaces*, specify **\*** and assign the |k8s-cr| to the
-  ``mongodb-enterprise-operator`` ServiceAccount that you use to run the
+  ``mongodb-kubernetes-operator`` ServiceAccount that you use to run the
   |k8s-op-short|.
 
 - To watch a *subset of all namespaces*, specify them in a

@@ -1,5 +1,5 @@
 .. code-block:: yaml
 
    # Watch one namespace
-   helm install enterprise-operator mongodb/enterprise-operator \
+   helm install mongodb-kubernetes-operator mongodb/mongodb-kubernetes \
       --set operator.watchNamespace='namespace-to-watch' <...>

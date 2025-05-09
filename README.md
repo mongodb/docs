@@ -1,6 +1,6 @@
 # docs-mck
 
-MongoDB Controllers for Kubernetes
+MongoDB Controllers for Kubernetes Operator
 
 [Your words here].
 

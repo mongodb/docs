@@ -1,4 +1,4 @@
-git clone https://github.com/mongodb/mongodb-enterprise-kubernetes.git
-cd mongodb-enterprise-kubernetes
+git clone https://github.com/mongodb/mongodb-kubernetes.git
+cd mongodb-kubernetes
 git checkout {+dl-version+}
-cd architectures
+cd public/architectures

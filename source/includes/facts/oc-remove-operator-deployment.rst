@@ -1,3 +1,3 @@
 .. code-block:: sh
 
-    oc delete deployment/mongodb-enterprise-operator -n <metadata.namespace>
+    oc delete deployment/mongodb-kubernetes-operator -n <metadata.namespace>

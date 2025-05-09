@@ -3,18 +3,18 @@
 
    .. step:: Download the MongoDB installation file.
       
-      To download the ``1.26.0`` release using Darwin with an ARM64 architecture, run the following command:
+      To download the ``1.0.0`` release using Darwin with an ARM64 architecture, run the following command:
    
       .. io-code-block::
          :copyable: true
 
          .. input::
          
-            wget https://github.com/mongodb/mongodb-enterprise-kubernetes/releases/download/1.26.0/kubectl-mongodb_1.26.0_darwin_arm64.tar.gz
+            wget https://github.com/mongodb/mongodb-kubernetes/releases/download/1.0.0/public/kubectl-mongodb_1.0.0_darwin_arm64.tar.gz
          
          .. output::
          
-            Saving : « kubectl-mongodb_1.26.0_darwin_arm64.tar.gz »
+            Saving : « kubectl-mongodb_1.0.0_darwin_arm64.tar.gz »
 
    .. step:: Unzip the MongoDB installation file.
 
@@ -23,7 +23,7 @@
 
          .. input::
          
-            tar -xvzf kubectl-mongodb_1.26.0_darwin_arm64.tar.gz
+            tar -xvzf kubectl-mongodb_1.0.0_darwin_arm64.tar.gz
 
          .. output::
          

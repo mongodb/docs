@@ -5,5 +5,5 @@ To learn about optional |k8s-op-short| installation settings, see
 
 .. code-block:: sh
 
-   helm install enterprise-operator mongodb/enterprise-operator \
+   helm install mongodb-kubernetes-operator mongodb/mongodb-kubernetes \
      --set registry.pullPolicy='IfNotPresent'

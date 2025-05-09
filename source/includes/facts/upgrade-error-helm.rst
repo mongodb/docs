@@ -4,7 +4,7 @@ You might receive the following error when you upgrade the
 .. code-block:: sh
    :copyable: false
 
-   Error: UPGRADE FAILED: cannot patch "mongodb-enterprise-operator"
-   with kind Deployment: Deployment.apps "mongodb-enterprise-operator"
+   Error: UPGRADE FAILED: cannot patch "mongodb-kubernetes-operator"
+   with kind Deployment: Deployment.apps "mongodb-kubernetes-operator"
    is invalid: ... field is immutable
 

@@ -1,4 +1,4 @@
-- Creates a default ConfigMap named ``mongodb-enterprise-operator-member-list``
+- Creates a default ConfigMap named ``mongodb-kubernetes-operator-member-list``
   that contains all the member clusters of the |multi-cluster|. This name is
   hard-coded and you can't change it. See :ref:`Known Issues <hardcoded_configmap_multi-clusters>`.
 - Creates :k8sdocs:`ServiceAccounts </tasks/configure-pod-container/configure-service-account/>`,
