@@ -90,6 +90,6 @@
       - Set ``networking.access.vpcCIDR`` to the {+service+}
 	|cidr| that you retrieved earlier.
       - Set ``networking.access.type`` to ``TRANSIT_GATEWAY``.
-      - Set ``security.protocol`` to ``SASL_SSL``.
+      - Set ``security.protocol`` to ``SASL_SSL`` or ``SSL``
       - Set ``type`` to ``Kafka``.
       

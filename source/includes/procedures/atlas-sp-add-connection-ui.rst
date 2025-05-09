@@ -72,7 +72,7 @@
 
 		     ``SASL_PLAINTEXT`` is incompatible with
 		     VPC peering. To use VPC peering, you must
-		     select the ``SASL_SSL`` method.
+		     select the ``SASL_SSL`` or ``SSL`` method.
 
                      a. From the dropdown menu, select a
                         :guilabel:`SASL Mechanism`. 
@@ -114,6 +114,21 @@
 
                      #. Provide a password for authentication.
 
+                     #. Click :guilabel:`Add connection`.
+
+                  .. tab:: ``SSL``  
+                     :tabid: stream-connect-kafka-mtls-auth  
+  
+                     1. **(Optional)** If you are using a Certificate Authority other than the default {+kafka+} CA, 
+                        click :guilabel:`Upload` to upload your :guilabel:`Certificate Authority PEM file`. 
+  
+                     #. Click :guilabel:`Upload` to upload your :guilabel:`Client SSL Certificate`.  
+  
+                     #. Click :guilabel:`Upload` to upload your :guilabel:`Client SSL Keyfile`.  
+  
+                     #. **(Optional)** If your Client SSL Keyfile is password-protected,  
+                        type your password into the :guilabel:`Client key password` field.  
+  
                      #. Click :guilabel:`Add connection`.
 
          .. tab:: {+service+} Database
