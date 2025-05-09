@@ -45,7 +45,7 @@
 5 March 2025 Release
 --------------------
 
-- Support the :ref:`createUUID <atlas-sp-agg-createuuid>`
+- Supports the :ref:`createUUID <atlas-sp-agg-createuuid>`
   expression that takes no arguments and returns UUID |bson| type values
   in Stream Processors.
 
