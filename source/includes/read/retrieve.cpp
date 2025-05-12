@@ -25,7 +25,11 @@ int main() {
     // Retrieves and prints one document that has a "name" value of "LinkedIn"
     // start-find-one
     auto result = collection.find_one(make_document(kvp("name", "LinkedIn")));
-    std::cout << bsoncxx::to_json(*result) << std::endl;
+    if (result) {
+        std::cout << bsoncxx::to_json(*result) << std::endl;
+    } else {
+        std::cout << "No result found" << std::endl;
+    }
     // end-find-one
 
     // Retrieves documents that have a "founded_year" value of 1970
