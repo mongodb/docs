@@ -23,7 +23,11 @@ int main() {
         // Retrieves one document that matches a query filter
         // start-find-one
         auto result = collection.find_one(make_document(kvp("<field name>", "<value>")));
-        std::cout << bsoncxx::to_json(*result) << std::endl;
+        if (result) {
+            std::cout << bsoncxx::to_json(*result) << std::endl;
+        } else {
+            std::cout << "No result found" << std::endl;
+        }
         // end-find-one
     }
 

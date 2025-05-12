@@ -19,6 +19,9 @@ int main() {
     auto collection = db["movies"];
 
     auto result = collection.find_one(make_document(kvp("title", "The Shawshank Redemption")));
-    std::cout << bsoncxx::to_json(*result) << std::endl;
-
+    if (result) {
+        std::cout << bsoncxx::to_json(*result) << std::endl;
+    } else {
+        std::cout << "No result found" << std::endl;
+    }
 }
