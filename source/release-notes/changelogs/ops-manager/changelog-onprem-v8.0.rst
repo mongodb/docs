@@ -1,3 +1,41 @@
+.. _opsmgr-server-8.0.7:
+
+|onprem| Server 8.0.7
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-05-03*
+
+Improvements
+`````````````
+
+- Updates the {+mdbagent+} to 108.0.7.8810.
+- Supports MongoDB Database Tools 100.12.0.
+- Updates JDK to ``jdk-21.0.7+6``. 
+- Supports copying file blocks for incremental snapshot using the
+  filesystem store. 
+- Adds a validation on the cluster topology when starting backup for
+  clusters that are managed by automation agent.
+
+Bug Fixes 
+`````````
+ 
+- Updates ``automationConfig`` validations for ``lastErrorMode`` and
+  ``lastErrorDefaults`` to eliminate false positives due to Map
+  ordering.
+- Fixes a bug to ensure that the indexes created on the oplog store
+  metadata database exist and are properly functioning on |s3| oplog
+  store. 
+- Makes |kmip| proxy's ``custodian.Stop()`` command to wait until the server
+  is fully stopped. 
+- Fixes the following |cve|\s:
+
+  - `CVE-2023-26159 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-26159>`__.
+  - `CVE-2023-42282 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-42282>`__.
+  - `CVE-2024-11831 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-11831>`__.
+  - `CVE-2024-12905 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-12905>`__.
+  - `CVE-2024-28849 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-28849>`__.
+  - `CVE-2025-27789 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-27789>`__.
+
 .. _opsmgr-server-8.0.6:
 
 |onprem| Server 8.0.6
