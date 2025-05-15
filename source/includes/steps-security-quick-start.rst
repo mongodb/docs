@@ -102,7 +102,7 @@
                ``M10`` or higher cluster. 
       
             a. Choose :guilabel:`Cloud Environment` to configure network 
-               access between |service| and your cloud or on-premise 
+               access between |service| and your cloud or on-premises 
                environment.
 
             #. Enter the IP address and a description to associate with the 
