@@ -2,7 +2,9 @@ A collection ``inventory`` has the following document:
 
 .. code-block:: javascript
 
-   { _id: 2, item: "cable", tags: [ "electronics", "supplies" ] }
+   db.inventory.insertOne (
+      { _id: 2, item: "cable", tags: [ "electronics", "supplies" ] }
+   )
 
 Then the following operation uses the :update:`$addToSet` operator
 with the :update:`$each` modifier to add multiple elements to the
