@@ -50,10 +50,10 @@
       
                .. code-block:: sh
       
-                  kmipProxyStandalone 
-                    -awsAccessKey <accessKey> -awsSecretAccessKey <secretAccessKey> \ 
+                  kmipProxyStandalone
+                    -awsAccessKeyId <accessKey> -awsSecretAccessKey <secretAccessKey> \
                     -awsSessionToken <token> -awsRegion <region> -cloudProvider aws \
-                    -dbpath <dbpath> -kmipPort <kmipPort> -mongodPort <mongodPort>  
+                    -dbpath <dbpath> -kmipPort <kmipPort> -mongodPort <mongodPort>
       
                .. list-table::
                   :widths: 30 70
@@ -143,6 +143,10 @@
       
       Invoke the following command with the specified parameters:
       
+      .. note::
+
+         This command is only available for |service| Enterprise customers.
+
       .. code-block:: sh
       
          mongod --dbpath <dbpath> --port  <mongodPort> --enableEncryption --kmipPort <kmipPort> --kmipServerName 127.0.0.1 --kmipServerCAFile <dbpath>/kmipCA.pem --kmipActivateKeys false --kmipClientCertificateFile <dbpath>/kmipClient.pem
