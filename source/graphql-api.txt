@@ -1,0 +1,153 @@
+========================================================================
+Manage Data on Your |service| Cluster Using AWS AppSync Lambda Resolvers
+========================================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: migrate to flex cluster
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can manage data on your |service| cluster using |aws| AppSync Direct
+Lambda Resolvers. The Lambda function, serving as a resolver for the |aws|
+AppSync GraphQL API, enables seamless 
+:abbr:`CRUD (Create, Read, Update, Delete)` operations on your data in
+your |service| cluster. Integrating |service| with |aws| AppSync offers
+a powerful, flexible solution for building scalable, serverless GraphQL
+APIs. 
+
+This integration not only reduces the complexity of managing multiple
+data sources, but also enhances the development experience by providing a
+unified and flexible platform for modern application architectures.
+Whether you're handling CRUD operations or optimizing payloads, this
+integration enables you to build scalable, efficient, and cost-effective
+|api|\s.  
+
+This page walks you through the following steps: 
+
+a. Deploy the CloudFormation stack that contains the Serverless Lambda
+   function and an |aws|-managed AppSync GraphQL API.
+#. Test the AppSync API by running queries from the |aws| AppSync API 
+   console or `Postman <https://www.postman.com/>`__.
+
+Prerequisites
+-------------
+
+Before you begin, you must do the following: 
+
+- Deploy an |service| cluster
+- Configure the database for :ref:`network security <gswa-access-list>`
+  and :ref:`access <gswa-user>`
+- Set up an |aws| account with access to the |aws| Management Console
+
+Procedure 
+---------
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Create the Serverless Lambda function in |aws|.
+
+      a. Log in to the |aws| Management Console and navigate to 
+         :guilabel:`Applications`, which is located on the left sidebar
+         within the |aws| Lambda console.
+
+      #. Click :guilabel:`Create application` and then select the
+         :guilabel:`Serverless application` tab. 
+
+      #. Type ``MongoDB-AppSync-App`` in the search bar and then select
+         the checkbox to show apps that create custom |iam| roles or
+         resource policies. 
+         
+      #. Click the ``MongoDB-AppSync-App`` App in the search
+         results.
+
+      #. Paste the |service| connection string in the
+         :guilabel:`AtlasConnectionString` field under
+         :guilabel:`Application settings`.
+
+      #. Select the checkbox to create |iam| roles and click
+         :guilabel:`Deploy` to deploy the CloudFormation stack.  
+
+         The CloudFormation stack initiates the creation of:
+
+         - A Lambda function containing the essential logic required to
+           resolve queries from the AppSync API.
+         - An AppSync GraphQL API containing a schema that defines Queries
+           and Mutations. These Queries and Mutations are linked to the
+           Lambda function established by the CloudFormation stack. 
+
+         When the deployment completes, copy the following
+         in the :guilabel:`Outputs` section of the CloudFormation stack: 
+
+         - ``GraphQLApiKey``, which is the AppSync API Key
+         - ``GraphQLAPIURL``, which is the AppSync API URL
+         - ``LambdaFunction``, which is the |arn| of the Lambda Function
+
+   .. step:: Test the AppSync API with a Lambda resolver as its data source. 
+
+      You can use the |aws| AppSync console or 
+      `Postman <https://www.postman.com/>`__ to test the AppSync |api|. 
+      
+      The |api| request and response payloads must be in the MongoDB
+      Atlas Data API (v1) format. Each query must include the necessary
+      request query and body parameters. To learn more about the Data
+      |api| syntax, see :atlas:`MongoDB Atlas Data API (v1) 
+      </app-services/data-api/openapi/>`:  
+
+      .. tabs:: 
+
+         .. tab:: |aws| AppSync Console
+            :tabid: aws 
+
+            a. Log in to the |aws| Management Console and navigate to the
+               |aws| AppSync page.
+
+            #. Click the link to the ``MongoDB-AppSync-SAM_API``.
+            #. Click :guilabel:`Queries` in the left navigation under
+               :guilabel:`MongoDB-AppSync-SAM_API`. 
+            #. Select the :guilabel:`Explorer` (third icon) under
+               :guilabel:`Queries`.
+            #. Select the type of query and enter the query. 
+
+               You can run any of the following types of query: 
+
+               - ``aggregate``
+               - ``find`` and ``findOne``
+               - ``insertOne`` and ``insertMany``
+               - ``updateOne`` and ``updateMany`` 
+               - ``deleteOne`` and ``deleteMany``
+               
+               If you type the query in the :guilabel:`input` field,
+               the escape characters are automatically added to your
+               query. 
+
+            #. Click the play button to run the query.
+
+               The output contains escape sequence characters. We recommend
+               implementing a logic in your application to convert the
+               escape sequence into |json|. 
+
+         .. tab:: Postman
+            :tabid: postman 
+
+            a. Download the Postman collection named ``postman.json`` from `GitHub
+               <https://github.com/mongodb-partners/MongoDB-AppSync-SAM-App/blob/main/postman.json>`__.
+            #. Open Postman and click :guilabel:`Import`.
+            #. Complete the steps to import the downloaded
+               ``postman.json`` file.
+            #. To query, do the following: 
+            
+               - Send ``POST`` request to the ``GraphQLAPIURL``. 
+               - Authenticate with ``GraphQLApiKey``.
+
+            #. Click :guilabel:`Try` to run the query.
