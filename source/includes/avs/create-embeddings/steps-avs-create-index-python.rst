@@ -3,19 +3,6 @@ you must create an {+avs+} index on your
 collection.
 
 a. Paste the following code in your notebook.
-   
-   This code creates an index on your collection that specifies the
-   following: 
-
-   - ``embedding`` field as the :ref:`vector <avs-types-vector-search>`
-     type field. 
-   - ``dotProduct`` as the similarity type for ``float32`` embeddings.
-   - ``768`` as the number of dimensions in the embeddings.
-
-   ..
-      NOTE: If you edit this Python code, also update the Jupyter Notebooks
-      at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-new-data.ipynb
-      and https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-existing-data.ipynb
 
    .. code-block:: python
       :copyable: true 
@@ -30,7 +17,7 @@ a. Paste the following code in your notebook.
               "type": "vector",
               "path": "embedding",
               "similarity": "dotProduct",
-              "numDimensions": 768
+              "numDimensions": <dimensions>
             }
           ]
         },
@@ -38,6 +25,13 @@ a. Paste the following code in your notebook.
         type="vectorSearch"
       )
       collection.create_search_index(model=search_index_model)
+
+#. Replace the ``<dimensions>`` placeholder with one of 
+   the following values:
+
+   - ``768`` if you used ``nomic-embed-text-v1``
+   - ``1024`` if you used ``voyage-3-large``
+   - ``1536`` if you used ``text-embedding-3-small``
 
 #. Run the code.
  

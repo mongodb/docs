@@ -11,7 +11,7 @@
       ``sample_airbnb.listingsAndReviews`` collection that specifies the 
       ``embedding`` field as the :ref:`vector
       <avs-types-vector-search>` type 
-      and the similarity measure as ``euclidean``.
+      and the similarity measure as ``dotProduct``.
 
       a. Create a file named named ``create-index.js`` and paste the following code.
 
@@ -20,9 +20,12 @@
             :copyable:
             :caption: create-index.js
 
-      #. Replace the ``<dimensions>`` placeholder value with ``768`` if you
-         used the open-source model and ``1536`` if you used the model from
-         OpenAI.
+      #. Replace the ``<dimensions>`` placeholder with one of 
+         the following values:
+
+         - ``768`` if you used ``nomic-embed-text-v1``
+         - ``1024`` if you used ``voyage-3-large``
+         - ``1536`` if you used ``text-embedding-3-small``
     
       #. Save the file, then run the following command:
 
@@ -48,7 +51,9 @@
             :caption: vector-query.js
 
       #. Save the file, then run the following command:
-         
+
+         .. include:: /includes/avs/facts/fact-avs-results-vary.rst
+
          .. tabs:: 
             :hidden:
 

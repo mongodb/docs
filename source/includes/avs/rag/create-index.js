@@ -16,9 +16,9 @@ async function run() {
             "fields": [
               {
                 "type": "vector",
-                "numDimensions": 768,
                 "path": "embedding",
-                "similarity": "cosine"
+                "similarity": "cosine",
+                "numDimensions": <dimensions> // Replace with the number of dimensions of your embeddings
               }
             ]
           }

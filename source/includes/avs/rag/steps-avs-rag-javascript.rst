@@ -7,18 +7,41 @@
 
    .. step:: Create a function to generate vector embeddings.
 
-      In this section, you create a function that:
-
-      - Loads the `nomic-embed-text-v1 <https://huggingface.co/xenova/nomic-embed-text-v1>`__ 
-        embedding model from Hugging Face's model hub.
-      - Creates vector embeddings from the inputted data.
-
-      Create a file called ``get-embeddings.js`` in your project, and paste
+      To generate embeddings, use an embedding model. For this tutorial,
+      you can use an open-source model from Hugging Face or a 
+      proprietary model from Voyage AI.
+         
+      In your project, create a file called ``get-embeddings.js`` and paste
       the following code:
 
-      .. literalinclude:: /includes/avs/rag/get-embeddings.js
-         :language: javascript
+      .. tabs::
+         
+         .. tab:: Open-Source
+            :tabid: open-source
 
+            .. literalinclude:: /includes/avs/rag/get-embeddings.js
+               :language: javascript
+
+            The ``getEmbedding`` function generates vector embeddings by 
+            using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
+            from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
+         
+         .. tab:: Voyage AI
+            :tabid: voyage-ai
+
+            .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.js
+               :language: python
+               :copyable:
+
+            The ``getEmbedding`` function generates vector embeddings by 
+            using the ``voyage-3-large`` embedding model
+            from `Voyage AI <https://docs.voyageai.com/docs/embeddings>`__.
+
+            .. tip::
+
+               To learn more, see `Voyage AI Typescript Library 
+               <https://www.npmjs.com/package/voyageai>`__.
+               
    .. step:: Ingest data into |service|.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
@@ -75,7 +98,11 @@
          Create a new file named ``rag-vector-index.js`` and paste the following code. 
          This code connects to your |service| {+cluster+} and creates an 
          index of the :ref:`vectorSearch <avs-types-vector-search>` type on 
-         the ``rag_db.test`` collection.    
+         the ``rag_db.test`` collection. Replace the ``<dimensions>`` placeholder 
+         with one of the following values:
+         
+         - ``768`` if you used ``nomic-embed-text-v1``
+         - ``1024`` if you used ``voyage-3-large``
 
          .. literalinclude:: /includes/avs/rag/create-index.js
             :language: javascript
@@ -94,7 +121,7 @@
          ``getQueryResults`` that runs a query to retrieve relevant documents.
          It uses the ``getEmbedding`` function to create an embedding from the
          search query. Then, it runs the query to return semantically-similar
-         documents.
+         documents. 
 
          To learn more, refer to :ref:`return-vector-search-results`.
 
@@ -108,12 +135,14 @@
          Create a new file called ``retrieve-documents-test.js``. In this step,
          you check that the function you just defined returns relevant results.
          
+         
          Paste this code into your file:
 
          .. literalinclude:: /includes/avs/rag/retrieve-documents-test.js
             :language: javascript
 
-         Then, run the following command to execute the code:
+         Then, run the following command to execute the code.
+         Your results might vary depending on the embedding model you use.
 
          .. io-code-block:: 
             :copyable: true

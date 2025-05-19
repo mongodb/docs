@@ -3,27 +3,14 @@
 
    .. step:: Create the {+avs+} index.
          
-      .. tabs::
-         :hidden:
-         
-         .. tab:: Open-Source
-            :tabid: open-source
-
-            .. include:: /includes/avs/create-embeddings/steps-avs-create-index-open-source.rst
-
-         .. tab:: OpenAI
-            :tabid: openai
-
-            .. include:: /includes/avs/create-embeddings/steps-avs-create-index-openai.rst
+      .. include:: /includes/avs/create-embeddings/steps-avs-create-index-python.rst
 
    .. step:: Create embeddings for a vector search query, then run the query. 
 
       .. include:: /includes/avs/tutorial/avs-run-query-description.rst
 
-      .. note:: 
-
-         The query might take some time to complete.
-
+      .. include:: /includes/avs/facts/fact-avs-results-vary.rst
+       
       .. tabs::
          :hidden:
          
@@ -41,6 +28,18 @@
                   :language: python
 
                .. output:: /includes/avs/create-embeddings/output-new-open-source-python.json
+                  :language: shell
+
+         .. tab:: Voyage AI
+            :tabid: voyage-ai
+
+            .. io-code-block:: 
+               :copyable: true 
+               
+               .. input:: /includes/avs/create-embeddings/query_embeddings_new_voyage.py
+                  :language: python
+
+               .. output:: /includes/avs/create-embeddings/output-new-voyage.json
                   :language: shell
 
          .. tab:: OpenAI

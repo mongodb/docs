@@ -9,13 +9,19 @@
       to generate embeddings from an array of sample texts and ingest them 
       into the ``sample_db.embeddings`` collection in |service|.
 
-      If you defined the ``convertEmbeddingsToBSON`` function,  
-      uncomment lines ``3`` and ``32``-``33``  to convert your 
-      embeddings to |bson| ``binData`` vectors.
+      .. collapsible::
+         :heading: (Advanced) Compress your embeddings.
+         :sub_heading: Expand this section if you defined the function to convert your embeddings to BSON binary format.
+         :expanded: false
+         
+         If you defined the ``convertEmbeddingsToBSON`` function,  
+         uncomment lines ``3`` and ``32``-``33``  to convert your 
+         embeddings to |bson| ``binData`` vectors.
 
       .. literalinclude:: /includes/avs/tutorial/create-embeddings-new.js
          :language: javascript
          :copyable:
+         :linenos:
          :caption: create-embeddings.js
 
    .. step:: Save and run the file.

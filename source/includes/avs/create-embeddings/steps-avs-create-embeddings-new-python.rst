@@ -17,14 +17,19 @@
    .. step:: Generate embeddings from your data.
             
       Use the ``get_embedding`` function to generate 
-      embeddings from your data. Use the following code 
-      generates embeddings from the sample texts.
+      embeddings from the sample texts. Your 
+      embeddings might vary depending on the model you use.
 
-      If you defined the ``generate_bson_vector`` function, 
-      uncomment the line that calls this function to compress 
-      your embeddings to ``binData`` vectors. Your embeddings
-      will appear in binary format.
-            
+      .. collapsible::
+         :heading: (Advanced) Compress your embeddings.
+         :sub_heading: Expand this section if you defined the function to convert your embeddings to BSON binary format.
+         :expanded: false
+
+         If you defined the ``generate_bson_vector`` function, 
+         uncomment the line that calls this function to compress 
+         your embeddings to ``binData`` vectors. Your embeddings
+         will appear in binary format.
+               
       .. io-code-block:: 
          :copyable: true
          
@@ -48,8 +53,6 @@
          .. output:: 
             :language: shell
             :visible: false
-
-            Generated embeddings:
 
             Text: Titanic: The story of the 1912 sinking of the largest luxury liner ever built
             Embedding: [-0.01089042  0.05926645 -0.00291325]... (truncated)

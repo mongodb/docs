@@ -3,20 +3,13 @@
 
    .. step:: Create the {+avs+} index.
          
-      .. tabs::
-         :hidden:
-         
-         .. tab:: Open-Source
-            :tabid: open-source
-
-            .. include:: /includes/avs/create-embeddings/steps-avs-create-index-open-source.rst
-
-         .. tab:: OpenAI
-            :tabid: openai
-
-            .. include:: /includes/avs/create-embeddings/steps-avs-create-index-openai.rst
+      .. include:: /includes/avs/create-embeddings/steps-avs-create-index-python.rst
 
    .. step:: Create embeddings for vector search queries and run a query. 
+
+      .. include:: /includes/avs/tutorial/avs-run-query-description.rst
+
+      .. include:: /includes/avs/facts/fact-avs-results-vary.rst
 
       .. tabs::
          :hidden:
@@ -26,8 +19,6 @@
 
             .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-existing-data.ipynb
             
-            .. include:: /includes/avs/tutorial/avs-run-query-description.rst
-
             .. io-code-block:: 
                :copyable: true 
                
@@ -37,13 +28,23 @@
                .. output:: /includes/avs/tutorial/output-existing-open-source-python.json
                   :language: shell
 
+         .. tab:: Voyage AI
+            :tabid: voyage-ai
+
+            .. io-code-block:: 
+               :copyable: true 
+               
+               .. input:: /includes/avs/create-embeddings/query_embeddings_existing_voyage.py
+                  :language: python
+
+               .. output:: /includes/avs/create-embeddings/output-existing-voyage.json
+                  :language: shell
+
          .. tab:: OpenAI
             :tabid: openai
 
             .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-existing-data.ipynb
             
-            .. include:: /includes/avs/tutorial/avs-run-query-description.rst
-
             .. io-code-block:: 
                :copyable: true 
                

@@ -1,9 +1,9 @@
 import OpenAI from 'openai';
 
-// Setup OpenAI configuration
+// Set up OpenAI configuration
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
-// Function to get the embeddings using the OpenAI API
+// Function to generate embeddings using the OpenAI API
 export async function getEmbedding(text) {
     const results = await openai.embeddings.create({
         model: "text-embedding-3-small",

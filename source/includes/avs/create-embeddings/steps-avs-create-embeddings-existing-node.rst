@@ -19,13 +19,19 @@
         that contains the embedding value by using the MongoDB 
         :driver:`Node.js Driver </nodejs/>`.
 
-      If you defined the ``convertEmbeddingsToBSON`` function,  
-      uncomment lines ``3`` and ``29``-``30``  to convert your 
-      embeddings to |bson| ``binData`` vectors.
+      .. collapsible::
+         :heading: (Advanced) Compress your embeddings.
+         :sub_heading: Expand this section if you defined the function to convert your embeddings to BSON binary format.
+         :expanded: false
+
+         If you defined the ``convertEmbeddingsToBSON`` function,  
+         uncomment lines ``3`` and ``29``-``30``  to convert your 
+         embeddings to |bson| ``binData`` vectors.
 
       .. literalinclude:: /includes/avs/tutorial/create-embeddings-existing.js
          :language: javascript
          :copyable:
+         :linenos:
          :caption: create-embeddings.js
 
    .. step:: Save and run the file.

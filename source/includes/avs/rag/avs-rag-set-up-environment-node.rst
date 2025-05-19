@@ -16,7 +16,7 @@ a. Initialize your Node.js project.
 
    .. code-block::
 
-      npm install mongodb langchain @langchain/community @xenova/transformers @huggingface/inference pdf-parse
+      npm install mongodb voyageai langchain @langchain/community @xenova/transformers @huggingface/inference pdf-parse
 
 #. Update your ``package.json`` file.
 
@@ -40,9 +40,13 @@ a. Initialize your Node.js project.
    .. code-block::
 
       HUGGING_FACE_ACCESS_TOKEN = "<access-token>"
+      VOYAGE_API_KEY = "<api-key>" # optional
       ATLAS_CONNECTION_STRING = "<connection-string>"
 
    Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
+   Optionally, you can replace the ``<api-key>`` placeholder value with your
+   `Voyage API key <https://docs.voyageai.com/docs/api-key-and-installation>`__
+   if you have one.
 
    .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 

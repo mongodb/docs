@@ -40,10 +40,15 @@
 
       - Updates each document with a new ``embedding`` field 
         that contains the embedding value.
-        
-      If you defined the ``generate_bson_vector`` function to 
-      convert your vector embeddings to |bson| ``binData`` vectors, 
-      uncomment the line that calls this function before running the code.
+
+      .. collapsible::
+         :heading: (Advanced) Compress your embeddings.
+         :sub_heading: Expand this section if you defined the function to convert your embeddings to BSON binary format.
+         :expanded: false
+
+         If you defined the ``generate_bson_vector`` function to 
+         convert your vector embeddings to |bson| ``binData`` vectors, 
+         uncomment the line that calls this function before running the code.
 
       .. note::
       
