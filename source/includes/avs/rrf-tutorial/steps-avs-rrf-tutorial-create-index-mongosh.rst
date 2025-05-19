@@ -13,9 +13,8 @@
 
    .. step:: Define the |fts| index. 
 
-      The following index definition indexes the ``title`` field as the 
-      :ref:`string <bson-data-types-string>` type for querying the
-      field.
+      The following index definition automatically indexes all the
+      dynamically indexable fields in the collection.
 
       To create a |fts| index for a collection using {+mongosh+}
       v2.1.2 or later, perform the following steps:

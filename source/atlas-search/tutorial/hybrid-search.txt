@@ -25,7 +25,186 @@ How to Perform Hybrid Search
    :class: singlecol
 
 .. |prereq-link| replace:: :ref:`common prerequisites <fts-accuracy-tutorials-prereqs>`
- 
-.. tabs-selector:: drivers
 
-.. include:: /includes/fts/hybrid-search.rst 
+You can combine {+avs+} and |fts| queries into a hybrid search for
+unified results. 
+
+This tutorial demonstrates how to run a hybrid search on the
+``sample_mflix.embedded_movies`` collection, which contains details 
+about movies. Specifically, this tutorial takes you through the
+following steps: 
+
+1. Create an {+avs+} index on the ``plot_embedding`` field. This field
+   contains vector embeddings that represent the summary of a movie's
+   plot. 
+#. Create an |fts| index on the ``sample_mflix.embedded_movies``
+   collection.   
+#. Run a query to combine the results from a :pipeline:`$vectorSearch`
+   query and a :pipeline:`$search` query by using the following
+   techniques:
+   
+   - Semantic boosting 
+   - Reciprocal rank fusion
+
+Why Hybrid Search?
+------------------
+
+.. include:: /includes/search-shared/extracts/why-hybrid-search.rst
+
+You can apply the following techniques to achieve a hybrid search:
+
+.. list-table:: 
+   :widths: 15 40 45
+   :stub-columns: 1
+   
+   * - Technique 
+     - **Semantic Boosting** 
+     - **Reciprocal Rank Fusion** 
+
+   * - Purpose 
+     - Improves the accuracy of the full-text search results by
+       boosting documents that match vector search. Useful when retrieving very large result sets. 
+     - Combines results from different search methods into a single
+       ranked result set by calculating the reciprocal rank of documents
+       in the results. 
+
+   * - Ranking Method
+     - - Run :pipeline:`$vectorSearch` to retrieves semantically similar results.
+       - Run :pipeline:`$search` to retrieve full-text results while boosting the
+         documents that were returned by :pipeline:`$vectorSearch`. 
+
+     - - Retrieves :pipeline:`$vectorSearch` and :pipeline:`$search` results.
+       - Merges both sets of results using the rank of each document in
+         the respective result sets. 
+
+   * - Scoring Method
+     - Boosts the full-text results score for documents that match the
+       results from the vector search, by the weighted vector search
+       score. 
+
+     - Calculates the score by using the following formula:
+
+       .. code-block:: shell 
+          :copyable: false
+
+          1.0/{document position in the results + constant value}
+
+       Then, for each method of search, applies different weights (``w``) to
+       give more importance to that method of search. For each document,
+       the weighted reciprocal rank is calculated by multiplying the
+       weight by the reciprocal rank of the document. 
+
+       .. code-block:: shell 
+          :copyable: false 
+
+          weighted_reciprocal_rank = w x reciprocal_rank
+
+   * - Search Features
+     - - Supports :ref:`faceting <fts-facet-ref>` to group data into
+         categories. 
+       - Supports :ref:`paginating <fts-paginate-results>` results using
+         ``searchAfter`` and ``searchBefore``. 
+
+     - Supports further processing of results in subsequent aggregation
+       stages such as :pipeline:`$group`.  
+
+   * - Output 
+     - Single result set that contains documents from :pipeline:`$search`
+     - Single result set that contains documents from both search
+       methods.  
+
+Prerequisites 
+-------------
+
+.. include:: /includes/search-shared/extracts/hybrid-search-prereq.rst 
+
+Create the {+avs+} and |fts| Indexes 
+-------------------------------------------------
+
+This section demonstrates how to create the following indexes on the
+fields in the ``sample_mflix.embedded_movies`` collection: 
+
+- An {+avs+} index on the ``plot_embedding`` field for running vector
+  queries against that field. 
+- An |fts| index on the ``title`` field for running full-text search
+  against that field.
+
+Procedure 
+~~~~~~~~~
+
+.. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-tutorial-create-index-mongosh.rst
+
+Semantic Boosting 
+-----------------
+
+This section demonstrates how to query the data in the
+``sample_mflix.embedded_movies`` collection for *star wars* in the
+``plot_embedding`` and ``plot`` fields by using the
+:pipeline:`$vectorSearch` and :pipeline:`$search` pipeline stages,
+respectively. The query enhances relevancy of :pipeline:`$search`
+queries  by boosting the full-text scores using
+:pipeline:`$vectorSearch` scores for the same documents.  
+
+Procedure 
+~~~~~~~~~
+
+.. include:: /includes/fts/hybrid-search/steps-semantic-boost-shell-query.rst 
+
+About the Query 
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/search-shared/extracts/about-semantic-boosting-query.rst 
+
+.. collapsible::
+   :heading: Query Variables
+   :sub_heading: Variables used in the query.
+   :expanded: false
+
+   .. include:: /includes/search-shared/extracts/semantic-boosting-query-variables.rst 
+
+.. collapsible::
+   :heading: Query Stages
+   :sub_heading: Aggregations pipeline stages used in the query.
+   :expanded: false
+
+   .. include:: /includes/search-shared/extracts/semantic-boosting-query-stages.rst 
+
+Reciprocal Rank Fusion
+----------------------
+
+This section demonstrates how to query the data in the
+``sample_mflix.embedded_movies`` collection for *star wars* in the
+``plot_embedding`` and ``title`` fields by using the
+:pipeline:`$vectorSearch` and :pipeline:`$search` pipeline stages and 
+combine each document's scores from both stages to re-sort the documents
+in the results. This ensures that documents appearing in both searches
+appear at the top of the combined results.  
+
+Procedure 
+~~~~~~~~~
+
+.. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-shell-query.rst
+
+About the Query 
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/search-shared/extracts/rrf-query-intro.rst 
+
+.. collapsible::
+   :heading: Query Variables
+   :sub_heading: Variables used in the query.
+   :expanded: false
+
+   .. include:: /includes/search-shared/extracts/rrf-query-variables.rst 
+
+.. collapsible::
+   :heading: Query Stages
+   :sub_heading: Aggregations pipeline stages used in the query.
+   :expanded: false
+
+   .. include:: /includes/search-shared/extracts/rrf-query-stages.rst 
+
+Learn by Watching
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/search-shared/extracts/hybrid-search-learn.rst 

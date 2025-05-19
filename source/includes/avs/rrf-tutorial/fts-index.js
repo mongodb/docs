@@ -10,16 +10,11 @@ async function run() {
 
       // Define your Atlas Search index
       const index = {
-          name: "rrf-full-text-search",
+          name: "hybrid-full-text-search",
           type: "search",
           definition: {
             "mappings": {
-              "dynamic": false,
-              "fields": {
-                "title": [{
-                  "type": "string"
-                }]
-              }
+              "dynamic": true
             }
           }
       }

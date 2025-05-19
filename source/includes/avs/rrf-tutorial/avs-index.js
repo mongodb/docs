@@ -10,7 +10,7 @@ async function run() {
 
       // Define your Atlas Vector Search index
       const index = {
-          name: "rrf-vector-search",
+          name: "hybrid-vector-search",
           type: "vectorSearch",
           definition: {
             "fields": [

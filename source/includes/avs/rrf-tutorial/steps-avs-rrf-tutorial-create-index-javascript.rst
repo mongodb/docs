@@ -85,9 +85,8 @@
 
    .. step:: Define the |fts| index. 
 
-      The following index definition indexes the ``title`` field as the 
-      :ref:`string <bson-data-types-string>` type for querying the
-      field.
+      The following index definition automatically indexes all
+      dynamically indexable fields in the collection.
 
       A. Create a file called ``fts-index.js``, and paste the following
          code into it:
