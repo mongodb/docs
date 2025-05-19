@@ -46,9 +46,9 @@
 
      - id: kotlin-coroutine
        content: |
-         The `MongoCollection.deleteMany() <{+java-api-docs+}/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/delete-many.html>`__
+         The `MongoCollection.deleteMany() <{+java-api-docs+}/driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/delete-many.html>`__
          method returns an instance of
-         `com.mongodb.client.result.DeleteResult <{+java-api-docs+}/mongodb-driver-core/com/mongodb/client/result/DeleteResult.html>`__
+         `com.mongodb.client.result.DeleteResult <{+java-api-docs+}/driver-core/com/mongodb/client/result/DeleteResult.html>`__
          that describes the status of the
          operation and count of deleted documents.
 

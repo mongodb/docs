@@ -66,7 +66,7 @@
          To create an index by using the
          :driver:`Kotlin Coroutine Driver </kotlin/coroutine/current/>`,
          use the `MongoCollection.createIndex()
-         <{+java-api-docs+}/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/create-index.html>`__
+         <{+java-api-docs+}/driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/create-index.html>`__
          method.
 
          .. code-block:: kotlin
