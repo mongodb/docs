@@ -15,7 +15,7 @@
 
 The ``mongosync`` binary is the primary process used in
 {+c2c-product-name+}. ``mongosync`` migrates data from one cluster to
-another and can keep the clusters in continuous sync. 
+another. 
 
 For an overview of the ``mongosync`` process, see :ref:`about-mongosync`.
 
@@ -235,25 +235,29 @@ invalid index options on the destination.
 
 .. _mongosync-considerations:
 
-Considerations for Continuous Sync
-----------------------------------
+Mid-sync Considerations
+-----------------------
+
+``mongosync`` replication is different from replication of data
+within a `Replica Set <https://www.mongodb.com/docs/manual/replication/>`__.
+``mongosync`` :ref:`combines and reorders writes <c2c-behavior-consistency>`
+from the source to destination cluster during the sync, and also 
+:ref:`temporarily modifies <c2c-behavior-temporary-changes>` various collection
+characteristics. 
+
+As a result, the destination is not guaranteed to match 
+the source cluster at any point while the sync is still executing, including
+when the sync is paused. To ensure the destination and source clusters match 
+before cutting over, call the :ref:`commit <c2c-api-commit>` endpoint.
+
+The relationship between the source and destination cluster
+terminates upon commit, unless you use the :ref:`reverse <c2c-reverse-process>`
+functionality. For information on mid-sync constraints, see 
+:ref:`c2c-limitations` for limitations.
 
 .. important::
 
    .. include:: /includes/fact-no-mongosync-disaster-recovery.rst
-
-If the source cluster shuts down before ``mongosync`` can commit, such as in 
-a disaster scenario, the destination cluster might not have a consistent 
-snapshot of the source data. To learn more, see :ref:`c2c-behavior-consistency`.
-
-.. note:: 
-  
-   After commit, you can't resume continuous sync between two clusters since 
-   ``mongosync`` can only sync into empty destination clusters. If you need to 
-   use the same two clusters after :ref:`cutover <c2c-cutover-process>`, you can 
-   call the :ref:`c2c-api-reverse` endpoint to keep the clusters in sync.
-   Otherwise, start a new continuous sync operation by using a new empty 
-   destination cluster. 
 
 .. _c2c-behavior-temporary-changes:
 
