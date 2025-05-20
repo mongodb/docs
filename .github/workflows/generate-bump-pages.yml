@@ -1,0 +1,52 @@
+name: Check & deploy API documentation
+
+on:
+  # For deployments
+  workflow_dispatch: # Allow manual trigger in case of quick fix
+  push:
+    branches:
+      - master
+    paths:
+      - 'source/rm-openapi-latest.json'
+
+  # For previews
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'source/rm-openapi-latest.json'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-doc:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    name: Deploy API documentation on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy API documentation
+        uses: bump-sh/github-action@59eaae922e81ac8d127bd2b2ac6dc4804bda8a4c
+        with:
+          doc: ${{vars.RM_DOC_ID}}
+          token: ${{secrets.BUMP_TOKEN}}
+          file: source/rm-openapi-latest.json
+          branch: main
+  
+  api-preview:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Create API preview on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create API preview
+        uses: bump-sh/github-action@59eaae922e81ac8d127bd2b2ac6dc4804bda8a4c
+        with:
+          doc: ${{vars.RM_DOC_ID}}
+          token: ${{secrets.BUMP_TOKEN}}
+          file: source/rm-openapi-latest.json
+          branch: main
+          command: preview
