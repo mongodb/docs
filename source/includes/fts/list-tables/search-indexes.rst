@@ -48,6 +48,10 @@
    * - :guilabel:`Size`
      - Size of the index.
 
+   * - :guilabel:`Required Memory`
+     - Approximate amount of memory required to run queries.
+       Applies only to {+avs+} indexes.
+
    * - :guilabel:`Actions`
      - Actions you can take on the index: 
 
