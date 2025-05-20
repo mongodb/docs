@@ -30,12 +30,6 @@
        Host added
      - yes
 
-   * - ``ADD_HOST_TO_REPLICA_SET_AUDIT``
-     - .. _atlas_event_add_host_to_replica_set_audit:
-
-       Host added to replica set
-     - yes
-
    * - ``ADMIN_CLUSTER_LOCK_UPDATED``
      - .. _atlas_event_admin_cluster_lock_updated:
 
@@ -2838,12 +2832,6 @@
        Host is recovering
      - yes
 
-   * - ``HOST_RESTARTED``
-     - .. _atlas_event_host_restarted:
-
-       Host has restarted
-     - yes
-
    * - ``HOST_ROLLBACK``
      - .. _atlas_event_host_rollback:
 
@@ -4547,12 +4535,6 @@
 
        User left the team
      - no
-
-   * - ``REMOVE_HOST_FROM_REPLICA_SET_AUDIT``
-     - .. _atlas_event_remove_host_from_replica_set_audit:
-
-       Host removed from replica set
-     - yes
 
    * - ``REPLICATION_OPLOG_WINDOW_HEALTHY``
      - .. _atlas_event_replication_oplog_window_healthy:
