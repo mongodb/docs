@@ -1,0 +1,196 @@
+.. _atlas-ui-validation:
+
+====================================
+Set Validation Rules for Your Schema
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Validation Tab
+--------------
+
+The :guilabel:`Validation` tab allows you to manage
+:manual:`schema validation rules </core/document-validation>`
+for a collection.
+
+Schema validation ensures that all documents in a
+collection follow a defined set of rules, such as conforming to a
+specific shape or only allowing a specified range of values in fields.
+
+.. figure:: /images/atlas-ui/compass/validation-view.png
+  :figwidth: 720px
+  :alt: Validation view
+
+.. _atlas-ui-update-validation:
+
+Validation Rules
+----------------
+
+The validation editor supports :manual:`JSON Schema validation
+</core/schema-validation/#json-schema>`, and validation with query
+expressions using :manual:`query operators </reference/operator/query>`.
+After you click the :guilabel:`Update` button, |service| updates to
+display a document from your collection that passes the validation and a
+document that fails.
+
+JSON Schema Validation
+~~~~~~~~~~~~~~~~~~~~~~
+
+To specify JSON Schema validation, use the
+:manual:`$jsonSchema </reference/operator/query/jsonSchema>`
+operator.
+
+.. code-block:: javascript
+
+   {
+      $jsonSchema: {
+         required: ['name', 'borough'], // the name and borough fields are required
+         properties: {
+            cuisine: {
+               bsonType: "string",
+               description: "must be a string"
+            }
+         }
+      }
+   }
+
+The :manual:`$jsonSchema </reference/operator/query/jsonSchema>`
+operator supports various keywords to specify validation rules. For
+example:
+
+- The ``required`` array defines required fields in your document.
+
+- The ``properties`` object defines rules for specific document
+  fields.
+
+Consider the following example validation:
+
+.. code-block:: javascript
+
+   {
+      $jsonSchema: {
+         bsonType: "object",
+         required: [ "address", "borough", "name" ],
+         properties: {
+            address: {
+               bsonType: "object",
+               properties: {
+                  coord: {
+                     bsonType: "array",
+                     items: [
+                        {
+                           bsonType: "double",
+                           minimum: -180,
+                           maximum: 180,
+                           exclusiveMaximum: false,
+                           description: "must be a number in [ -180, 180 ]"
+                        },
+                        {
+                           bsonType: "double",
+                           minimum: -90,
+                           maximum: 90,
+                           exclusiveMaximum: false,
+                           description: "must be a number in [ -90, 90 ]"
+                        }
+                     ]
+                  }
+               },
+               description: "must be an object"
+            },
+            borough: {
+               bsonType: "string",
+               enum: [ "Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island" ],
+               description: "must be one of the enum strings"
+            }
+         }
+      }
+   }
+
+
+This validation specifies:
+
+- The list of
+  :manual:`required </reference/operator/query/jsonSchema/#available-keywords>`
+  fields.
+
+- The :manual:`bsonType </reference/operator/query/jsonSchema/#available-keywords>` for
+  all required fields.
+
+- The :manual:`minimum </reference/operator/query/jsonSchema/#available-keywords>`
+  and :manual:`maximum </reference/operator/query/jsonSchema/#available-keywords>`
+  values in the ``address.coord`` array.
+
+- The acceptable values for the  ``borough`` field, using
+  :manual:`enum </reference/operator/query/jsonSchema/#available-keywords>`.
+
+For all available ``$jsonSchema`` keywords, refer to the
+:manual:`$jsonSchema </reference/operator/query/jsonSchema>` page in
+the MongoDB manual.
+
+Validation using Query Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also specify validation using
+:manual:`query operators </reference/operator/query>`, with the
+exception of the following query operators: :query:`$near`,
+:query:`$nearSphere`, :query:`$text`, and :query:`$where`.
+
+.. code-block:: javascript
+
+   { 
+      $or: [
+         { name: { $type: "string" } },
+         { borough: {
+               bsonType: "string",
+               enum: [ "Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island" ],
+               description: "must be one of the enum strings"
+         } }
+      ]
+   }
+
+Using this validation, *one* of the following must be true:
+
+- The ``name`` field must be BSON type string.
+- The ``borough`` field must be one of the enum strings.
+
+Validation Actions and Levels
+-----------------------------
+
+At the top, specify a :guilabel:`Validation Action` and
+:guilabel:`Validation Level`:
+
+- The validation action determines whether to ``warn`` but accept
+  invalid documents, or ``error`` and reject invalid documents.
+
+- The validation level determines how strictly MongoDB applies
+  validation rules to existing documents.
+
+  - ``Strict`` validation applies your rules to all document inserts
+    and updates.
+
+  - ``Moderate`` validation only applies your rules to new documents
+    and existing valid documents. Existing invalid documents are not
+    affected.
+
+For details on validation actions and levels, see
+:manual:`Specify Validation Rules
+</core/schema-validation/#specify-validation-rules>` in the MongoDB
+manual.
+
+.. seealso::
+
+   - :manual:`Schema Validation </core/schema-validation/>`
+
+Limitations
+-----------
+
+The :guilabel:`Validation` tab is not available if you are connected to
+:atlas:`Atlas Data Federation </data-federation>`.
+
+

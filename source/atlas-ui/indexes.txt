@@ -4,9 +4,9 @@
 
 .. _atlas-ui-indexes:
 
-====================================
-Create, View, Drop, and Hide Indexes
-====================================
+==============
+Manage Indexes
+==============
 
 .. default-domain:: mongodb
 
@@ -16,23 +16,36 @@ Create, View, Drop, and Hide Indexes
    :depth: 1
    :class: singlecol
 
-You can use the {+atlas-cli+} or the {+atlas-ui+} to manage
-:manual:`indexes </core/indexes>` on your collections.
+Indexes are special data structures that improve query performance.
+Indexes store a portion of a collection's data in an easy-to-traverse
+form. The index stores the value of a specific field or set of fields,
+ordered by the value of the field.
 
-Indexes support the efficient execution of queries in MongoDB and should
-be considered for fields which your application reads often. To learn
-more about creating effective indexes, see :manual:`Indexing Strategies
-</applications/indexes/>`.
+To improve query performance, build indexes on fields that appear often 
+in queries and for all operations that 
+:ref:`sort by a field <atlas-ui-query-bar-sort>`.
 
-You can enable auto-creation of indexes for {+Serverless-instances+} (deprecated).
-To learn more, see :ref:`auto-index-serverless`.
+- Queries on an indexed field can use the index to limit the number of 
+  documents that must be scanned to find matching documents.
+
+- Sort operations on an indexed field can return documents pre-sorted 
+  by the index.
+
+To learn more about indexes, see :manual:`Indexes </indexes>`.
+
+.. note:: Considerations
+
+   Indexes have some negative performance impact on write operations. 
+   For collections with high write-to-read ratio, indexes are expensive 
+   since each insert must also update any indexes. For a detailed list 
+   of considerations for indexes, see
+   :ref:`Operational Considerations for Indexes <data-model-indexes>`.
 
 Required Roles
 --------------
 
-To :ref:`create <atlas-ui-create-an-index>`,
-:ref:`drop <atlas-ui-drop-an-index>`, or :ref:`hide <atlas-ui-hide-an-index>` indexes,
-you must have access provided by at least one of the following roles:
+To create, drop, or hide indexes, you must have access provided by at least one 
+of the following roles:
 
 - :authrole:`Project Owner` or :authrole:`Organization Owner`
 - :authrole:`Project Data Access Admin`
@@ -44,104 +57,125 @@ By default, you can have up to three concurrent index builds. To learn
 more, see :manual:`Maximum Concurrent Index Builds
 </core/index-creation/#maximum-concurrent-index-builds>`. 
 
-When you initiate a rolling index build, the node will be in :ref:`HOST_DOWN <atlas-alert-event-types>` 
-state for the duration of the build. To cancel a rolling index build, you must contact 
-:ref:`MongoDB support <request-support>`.
-
-If you select to build indexes in a rolling fashion, you must ensure 
-the following:
-
-- Request rolling index builds and non-rolling index builds 
-  sequentially and not simultaneously. Wait for a currently executing 
-  index build to complete before you request another index 
-  build.
-
-- If you need to request multiple rolling index builds, wait for the 
-  currently executing rolling index build to complete before you 
-  request another rolling index build.
-
-To track rolling index builds, see the :ref:`Activity Feed 
-<activity-feed>`.
-
-For aborted rolling index builds, you must run :dbcommand:`listIndexes` 
-on each node to verify that the cancelled index no longer exists. 
-Otherwise, the {+cluster+} might remain in an inconsistent state.
-
 .. _atlas-ui-view-indexes:
+.. _atlas-ui-indexes-tab:
 
-View Indexes
-------------
+Indexes Tab
+-----------
 
-To view index information for a collection:
+The :guilabel:`Indexes` tab lists the existing indexes for a collection.
 
-.. include:: /includes/steps-atlas-ui-indexes.rst
+To access the :guilabel:`Indexes` tab for a collection, click on the
+collection on the left hand pane and select the :guilabel:`Indexes` tab.
+
+.. figure:: /images/atlas-ui/compass/indexes-view.png
+  :figwidth: 816px
+  :alt: Indexes view
+
+For each index, |service| displays the following information:
+
+.. list-table::
+
+   * - Name and Definition
+     - The name of the index and keys.
+
+   * - Type
+     - Regular, text, geospatial or hashed index.
+
+   * - Size
+     - How large the index is.
+
+   * - Usage
+     - Number of times the index has been used in a lookup since the time
+       the index was created or the last server restart.
+
+   * - Properties
+
+     - Any special properties (such as uniqueness, partial) of the
+       index.
+
 
 .. _atlas-ui-create-an-index:
+.. _atlas-ui-create-index:
 
 Create an Index
 ---------------
 
-.. tip::
+.. include:: /atlas-ui/includes/shared/steps/create-index.rst
 
-   When you create indexes, keep the ratio of reads to writes on the
-   target collection in mind. Indexes come with a performance cost, but
-   are more than worth the cost for frequent queries on large data sets.
-   Before you create an index, review the documented
-   :manual:`indexing strategies </applications/indexes/>`.
+{+fts+} and {+avs+} Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+You can't create {+fts+} or {+avs+} indexes in Data Explorer. To manage 
+{+fts+} and {+avs+} indexes for your collection, see:
 
-   You can build full-text search with :ref:`Atlas Search 
-   <fts-top-ref>` and semantic search with :ref:`{+avs+} 
-   <fts-vector-search>`. |fts| offers fine-grained text indexing. To learn 
-   more, see :ref:`ref-index-definitions` and :ref:`avs-types-vector-search`.
+- :ref:`fts-about-indexing`.
+- :ref:`atlas-ui-create-vector-search`
 
-.. tabs::
+.. _atlas-ui-wildcard-index:
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
+Create a Wildcard Index
+~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/extracts/atlas-clusters-indexes-create.rst
+You can create :manual:`wildcard indexes </core/index-wildcard/>` to
+support queries against unknown or arbitrary fields. To create a
+wildcard index in |service|, manually type the wildcard index
+field (``<field>.$**``) into the :guilabel:`Select a field name`
+input.
 
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
+.. example::
 
-      To create an index for a collection by using the {+atlas-ui+}:
+   Consider a collection where documents contain a ``userMetadata``
+   object. The fields within the ``userMetadata`` object may vary
+   between documents.
 
-      .. Attention writers: If you make changes to the following
-      .. procedure please check the related procedures in the following
-      .. Server docs page(s) to see if they require changes as well: 
-      .. www.mongodb.com/docs/manual/tutorial/expire-data/
+   You can create a wildcard index on ``userMetadata`` to account for
+   all potential fields within the object. Type the following into
+   the :guilabel:`Select a field name` input:
 
-      .. include:: /includes/steps/atlas-ui-create-index.rst
+   .. code-block:: javascript
 
+      userMetadata.$**
+
+   Specify a type (``ascending`` or ``descending``) for your wildcard
+   index, then click :guilabel:`Create Index`.
+
+   |service| shows the type of your new index as
+   :guilabel:`Wildcard`.
+
+Hide or Unhide an Index
+-----------------------
+
+You can :manual:`hide an index </core/index-hidden>` from the query planner to 
+evaluate the potential impact of dropping an index without actually dropping the 
+index.
+
+.. procedure:: 
+   :style: normal 
+   
+   .. step:: Hover over the index. 
+
+      From the :guilabel:`Indexes` tab, hover over the index you want to hide.
+
+   .. step:: Click the :guilabel:`Hide Index` button.
+
+      Click the closed-eye icon on the right that appears when you hover over 
+      your selected index.
+
+   .. step:: Click :guilabel:`Confirm`.
+      
+      In the dialog box, confirm the index you want to hide. After you confirm 
+      your selection, a :guilabel:`Hidden` badge appears under the 
+      :guilabel:`Properties` column.
+
+      To unhide your index, repeat steps 1-3. After you unhide your index, 
+      |service| removes the :guilabel:`Hidden` badge from the 
+      :guilabel:`Properties` column.
+
+.. _atlas-ui-drop-index:
 .. _atlas-ui-drop-an-index:
 
 Drop an Index
 -------------
 
-To drop an index from a collection by using the {+atlas-ui+}:
-
-.. include:: /includes/steps-atlas-ui-drop-index.rst
-
-.. important::
-
-   You can't delete or hide the ``_id`` index. To learn more, see
-   :manual:`Unique Indexes </core/index-unique/>`.
-
-   Consider :ref:`hiding the index <atlas-ui-hide-an-index>` 
-   to evaluate the impact of dropping an index before you
-   drop it. To learn more, see :manual:`Hidden Indexes </core/index-hidden/>`.
-
-.. note:: {+atlas-cli+} Limitation
-
-   You can't drop a {+cluster+}'s index by using the {+atlas-cli+}.
-
-.. _atlas-ui-hide-an-index:
-
-Hide an Index
--------------
-
-To hide an index by using the {+atlas-ui+}:
-
-.. include:: /includes/steps-atlas-ui-hide-index.rst
+.. include:: /atlas-ui/includes/shared/steps/drop-index.rst

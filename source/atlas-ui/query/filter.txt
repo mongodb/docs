@@ -1,0 +1,483 @@
+.. _atlas-ui-query-bar-filter:
+.. _atlas-ui-query-bar:
+
+===============
+Query Your Data
+===============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :description: Query documents in your Atlas, Enterprise, or Community database deployments.
+   :keywords: sample dataset
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can type MongoDB filter documents into the query bar to display only
+documents which match the specified criteria. To learn more about
+querying documents, see :manual:`Query Documents
+</tutorial/query-documents/>` in the MongoDB manual.
+
+
+
+Set Query Filter
+----------------
+
+#. In the :guilabel:`Filter` field, enter a filter document between the
+   curly braces. You can use all the MongoDB :manual:`query operators
+   </reference/operator/query/>` except the :query:`$text` and
+   :query:`$expr` operators.
+
+   .. example::
+
+      The following filter returns documents that have a ``title`` value
+      of ``Jurassic Park``:
+      
+      .. code-block:: json
+      
+         { "title": "Jurassic Park" }
+
+#. .. include:: /atlas-ui/includes/shared/run-query.rst
+
+   .. figure:: /images/atlas-ui/querybar/query-filter-success.png
+      :figwidth: 600px
+      :lightbox:
+      :alt: Results of applying a query filter
+
+Examples
+--------
+
+The examples on this page use a small example dataset. To import the
+sample data into your MongoDB deployment, perform the following steps:
+
+1. Copy the following documents to your clipboard:
+
+   .. code-block:: JSON
+
+      [
+         {
+            "name": "Andrea Le",
+            "email": "andrea_le@fake-mail.com",
+            "school": {
+               "name": "Northwestern"
+            },
+            "version": 5,
+            "scores": [ 85, 95, 75 ],
+            "dateCreated": { "$date": "2003-03-26" }
+         },
+         {
+            "email": "no_name@fake-mail.com",
+            "version": 4,
+            "scores": [ 90, 90, 70 ],
+            "dateCreated": { "$date": "2001-04-15" }
+         },
+         {
+            "name": "Greg Powell",
+            "email": "greg_powell@fake-mail.com",
+            "version": 1,
+            "scores": [ 65, 75, 80 ],
+            "dateCreated": { "$date": "1999-02-10" }
+         }
+      ]
+
+#. In |service|, use the left navigation panel to select the 
+   database and the collection you want to import the data to.
+
+#. Click the :guilabel:`Documents` tab.
+
+#. Click :guilabel:`Add Data` and select :guilabel:`Insert Document`.
+
+#. Set the :guilabel:`View` to JSON (``{}``).
+
+#. Paste the JSON documents from your clipboard into the modal.
+
+#. Click :guilabel:`Insert`.
+
+.. note::
+
+   If you do not have a MongoDB deployment or if you want to query a
+   larger sample data set, see :atlas:`Sample Data for Atlas Clusters
+   </sample-data/>` for instructions on creating a free-tier cluster
+   with sample data. The following example queries filter the sample
+   documents provided on this page.
+
+Match by a Single Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter finds all documents where the value of
+``name`` is "Andrea Le":
+
+.. code-block:: shell
+
+   { name: "Andrea Le" }
+
+The query returns the following document:
+
+.. code-block:: JSON
+   :copyable: false
+
+   {
+      "_id": { "$oid": "5e349915cebae490877d561d" },
+      "name": "Andrea Le",
+      "email": "andrea_le@fake-mail.com",
+      "school": {
+         "name": "Northwestern"
+      },
+      "version": 5,
+      "scores": [ 85, 95, 75 ],
+      "dateCreated": { "$date": "2003-03-26" }
+   }
+
+Match by Multiple Conditions ($and)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query filter finds all documents where ``scores`` array
+contains the value ``75``, and the ``name`` is ``Greg Powell``:
+
+.. code-block:: shell
+
+   { $and: [ { scores: 75, name: "Greg Powell" } ] }
+
+The query returns the following document:
+
+.. code-block:: JSON
+   :copyable: false
+
+   {
+      "_id": { "$oid":"5a9427648b0beebeb69579cf" },
+      "name": "Greg Powell",
+      "email": "greg_powell@fake-mail.com",
+      "version": 1,
+      "scores": [ 65, 75, 80 ],
+      "dateCreated": { "$date": "1999-02-10" }
+   }
+
+Match by Multiple Possible Conditions ($or)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query filter uses the :query:`$or` operator to find
+documents where ``version`` is ``4``, or ``name`` is ``Andrea Le``:
+
+.. code-block:: shell
+
+   { $or: [ { version: 4 }, { name: "Andrea Le" } ] }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid": "5e349915cebae490877d561d" },
+         "name": "Andrea Le",
+         "email": "andrea_le@fake-mail.com",
+         "school": {
+            "name": "Northwestern"
+         },
+         "version": 5,
+         "scores": [ 85, 95, 75 ],
+         "dateCreated": { "$date": "2003-03-26" }
+      },
+      {
+         "_id": { "$oid":"5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      }
+   ]
+
+Match by Exclusion ($not)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$not` operator to find all
+documents where the value of the ``name`` field is **not** equal to
+"Andrea Le", or the ``name`` field does not exist:
+
+.. code-block:: shell
+
+   { name: { $not: { $eq: "Andrea Le" } } }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid":"5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      },
+      {
+         "_id": { "$oid":"5a9427648b0beebeb69579cf" },
+         "name": "Greg Powell",
+         "email": "greg_powell@fake-mail.com",
+         "version": 1,
+         "scores": [ 65, 75, 80 ],
+         "dateCreated": { "$date": "1999-02-10" }
+      }
+   ]
+
+.. seealso::
+
+   For a complete list of logical query operators, see 
+   :manual:`Logical Query Operators</reference/operator/query-logical/>`.
+
+
+Match with Comparison Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$lte` operator to find all
+documents where ``version`` is less than or equal to ``4``:
+
+.. code-block:: shell
+
+   { version: { $lte: 4 } }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid":"5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      },
+      {
+         "_id": { "$oid":"5a9427648b0beebeb69579cf" },
+         "name": "Greg Powell",
+         "email": "greg_powell@fake-mail.com",
+         "version": 1,
+         "scores": [ 65, 75, 80 ],
+         "dateCreated": { "$date": "1999-02-10" }
+      }
+   ]
+
+.. seealso::
+
+   For a complete list of comparison operators, see 
+   :manual:`Comparison Query Operators </reference/operator/query-comparison/>`.
+
+Match by Date
+~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$gt` operator and
+:method:`Date()` method to find all documents where the ``dateCreated``
+field value is later than June 22nd, 2000:
+
+.. code-block:: shell
+
+   { dateCreated: { $gt: new Date('2000-06-22') } }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid": "5e349915cebae490877d561d" },
+         "name": "Andrea Le",
+         "email": "andrea_le@fake-mail.com",
+         "school": {
+            "name": "Northwestern"
+         },
+         "version": 5,
+         "scores": [ 85, 95, 75 ],
+         "dateCreated": { "$date": "2003-03-26" }
+      },
+      {
+         "_id": { "$oid": "5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      }
+   ]
+         
+Match by Array Conditions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$elemMatch` operator
+to find all documents where at least one value in the ``scores``
+array is greater than ``80`` and less than ``90``:
+
+.. code-block:: shell
+
+   { scores: { $elemMatch: { $gt: 80, $lt: 90 } } }
+
+The query returns the following document because one of the values
+in the ``scores`` array is ``85``:
+
+.. code-block:: JSON
+   :copyable: false
+
+   {
+      "_id": { "$oid": "5e349915cebae490877d561d" },
+      "name": "Andrea Le",
+      "email": "andrea_le@fake-mail.com",
+      "school": {
+         "name": "Northwestern"
+      },
+      "version": 5,
+      "scores": [ 85, 95, 75 ],
+      "dateCreated": { "$date": "2003-03-26" }
+   }
+
+For more query examples, see 
+:manual:`Query Documents </tutorial/query-documents/>` 
+in the MongoDB manual.
+
+Match by Substring 
+~~~~~~~~~~~~~~~~~~
+
+The following query filter uses the :query:`$regex` operator
+to find all documents where the value of ``email`` includes the term
+"andrea_le":
+
+.. code-block:: shell
+
+   { email: { $regex: "andrea_le" } }
+
+The query returns the following document:
+
+.. code-block:: JSON
+   :copyable: false
+   :emphasize-lines: 4
+
+   {
+      "_id": { "$oid": "5e349915cebae490877d561d" },
+      "name": "Andrea Le",
+      "email": "andrea_le@fake-mail.com",
+      "school": {
+         "name": "Northwestern"
+      },
+      "version": 5,
+      "scores": [ 85, 95, 75 ],
+      "dateCreated": { "$date": "2003-03-26" }
+   }
+
+Match by Embedded Field
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query filter finds the
+document with the ``school.name`` subfield of "Northwestern":
+
+.. code-block:: shell
+
+   { "school.name": "Northwestern" }
+
+
+The query returns the following document:
+
+.. code-block:: JSON
+   :copyable: false
+   :emphasize-lines: 6
+
+   {
+      "_id": { "$oid": "5e349915cebae490877d561d" },
+      "name": "Andrea Le",
+      "email": "andrea_le@fake-mail.com",
+      "school": {
+         "name": "Northwestern"
+      },
+      "version": 5,
+      "scores": [ 85, 95, 75 ],
+      "dateCreated": { "$date": "2003-03-26" }
+   }
+
+
+For more query examples, see 
+:manual:`Query Documents </tutorial/query-documents/>` 
+in the MongoDB manual.
+
+Supported Data Types in the Query Bar
+-------------------------------------
+
+The |service| :guilabel:`Filter` supports using the
+:binary:`~bin.mongosh` representation of the MongoDB
+Extended JSON :manual:`BSON data types </reference/mongodb-extended-json#bson-data-types-and-associated-representations>`.
+
+.. example::
+
+   The following filter returns documents where
+   ``start_date`` is greater than than the BSON ``Date``
+   ``2017-05-01``:
+
+   .. code-block:: javascript
+
+      { "start_date": {$gt: new Date('2017-05-01')} }
+
+   By specifying the ``Date`` type in both ``start_date`` and the
+   ``$gt`` comparison operator, |service| performs the ``greater
+   than`` comparison chronologically, returning documents with
+   ``start_date`` later than ``2017-05-01``.
+
+   Without the ``Date`` type specification, |service| compares the
+   ``start_dates`` as strings
+   `lexicographically <https://en.wikipedia.org/wiki/Lexicographical_order>`_,
+   instead of comparing the values chronologically.
+
+
+Clear the Query
+---------------
+
+.. include:: /atlas-ui/includes/shared/clear-query.rst
+
+
+
+How Does the |service| Query Compare to MongoDB and SQL Queries?
+----------------------------------------------------------------------
+
+:expression:`$filter` corresponds to the ``WHERE`` clause in a
+:abbr:`SQL (Structured Query Language)` ``SELECT`` statement.
+
+.. example::
+
+   You have 3,235 articles. You would like to see all articles
+   that Joe Bloggs wrote.
+
+   |service| Filter Option
+      .. code-block:: javascript
+
+         { author : { $eq : "Joe Bloggs" } }
+
+   MongoDB Aggregation
+      .. code-block:: javascript
+
+         db.article.aggregate( { $match: { "author": "Joe Bloggs" } } )
+
+   SQL
+      .. code-block:: sql
+
+         SELECT * FROM article
+         WHERE author = "Joe Bloggs";
+
+.. toctree::
+   :titlesonly:
+
+   Set Returned Fields </atlas-ui/query/project>
+   Sort Returned Documents </atlas-ui/query/sort>
+   Adjust Maximum Time </atlas-ui/query/maxtimems>
+   Specify Collation </atlas-ui/query/collation>
+   Skip Documents </atlas-ui/query/skip>
+   Limit Results </atlas-ui/query/limit>
+   View Query Performance </atlas-ui/query-plan>
+   Export to a Language </atlas-ui/export-query-to-language>
+
