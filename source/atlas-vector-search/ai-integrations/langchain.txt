@@ -522,6 +522,68 @@ Usage
    - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/cache/langchain_mongodb.cache.MongoDBAtlasSemanticCache.html>`__
    - `LangChain Documentation <https://python.langchain.com/docs/integrations/providers/mongodb_atlas/#mongodbatlassemanticcache>`__
 
+MongoDB Agent Toolkit
+---------------------
+
+The `MongoDB Agent Toolkit <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/agent_toolkit/langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit.html#langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit>`__ 
+is a collection of tools that you can pass to a `LangGraph ReAct Agent <https://python.langchain.com/api_reference/langchain/agents/langchain.agents.react.agent.create_react_agent.html>`__ so that it can interact with your |service| resources.
+
+Available Tools
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
+
+   * - Name
+     - Description
+
+   * - ``MongoDBDatabaseToolkit``
+     - A tool for querying a MongoDB database.
+
+   * - ``InfoMongoDBDatabaseTool``
+     - A tool for getting metadata about a MongoDB database.
+
+   * - ``ListMongoDBDatabaseTool``
+     - A Tool for getting a MongoDB database's collection names.
+
+   * - ``QueryMongoDBCheckerTool``
+     - A Tool that calls an LLM LLM to check if a database query is correct.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from langchain_openai import ChatOpenAI
+   from langgraph.prebuilt import create_react_agent
+   from langchain_mongodb.agent_toolkit import (
+       MONGODB_AGENT_SYSTEM_PROMPT,
+       MongoDBDatabase,
+       MongoDBDatabaseToolkit,
+   )
+
+   db_wrapper = MongoDBDatabase.from_connection_string(
+   CONNECTION_STRING, database=DB_NAME
+   )
+   llm = ChatOpenAI(model="gpt-4o-mini", timeout=60)
+   toolkit = MongoDBDatabaseToolkit(db=db_wrapper, llm=llm)
+
+   system_message = MONGODB_AGENT_SYSTEM_PROMPT.format(top_k=5)
+
+   test_query = "Which country's customers spent the most?"
+   agent = create_react_agent(llm, toolkit.get_tools(), state_modifier=system_message)
+   agent.step_timeout = 60
+   events = agent.stream(
+      {"messages": [("user", test_query)]},
+       stream_mode="values",
+   )
+   messages = []
+
+.. note::
+   
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/agent_toolkit/langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit.html#langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit>`__
+
 Document Loader
 ---------------
 
@@ -694,4 +756,6 @@ MongoDB also provides the following developer resources:
    Parent Document Retrieval </atlas-vector-search/ai-integrations/langchain/parent-document-retrieval>
    Local RAG </atlas-vector-search/ai-integrations/langchain/local-rag>
    GraphRAG </atlas-vector-search/ai-integrations/langchain/graph-rag>
+   Convert Natural Language to MQL </atlas-vector-search/ai-integrations/langchain/natural-language-to-mql>
+
    
