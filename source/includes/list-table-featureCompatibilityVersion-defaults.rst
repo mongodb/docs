@@ -22,6 +22,6 @@
    * - For new 5.0 deployments
      - ``"5.0"``
 
-   * - For 5.0 deployments :ref:`upgraded from 4.4 <5.0-upgrade>`
+   * - For 5.0 deployments upgraded from 4.4
 
      - ``"4.4"`` until you :dbcommand:`setFeatureCompatibilityVersion` to ``"5.0"``.
