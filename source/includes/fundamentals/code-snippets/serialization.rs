@@ -37,7 +37,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // begin-insert-struct
     let article = Article {
-        title: "Mainting Your Garden in Winter".to_string(),
+        title: "Maintaining Your Garden in Winter".to_string(),
         date: DateTime::now(),
         content: "As fall winds down, you might be wondering what you should be doing in your garden in the coming months ...".to_string(),
         content_embeddings: Vector::Float32(vec! [0.01020927,-0.011224265,0.015686288,-0.018586276,-0.023160344])
