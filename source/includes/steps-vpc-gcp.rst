@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. step:: Add a new Network Peering connection for your project.
+   .. step:: Add a new network peering connection for your project.
       
       .. note::
       

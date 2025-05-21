@@ -1,4 +1,4 @@
-|service| uses the specified |cidr| block for all other Network Peering
+|service| uses the specified |cidr| block for all other network peering
 connections created in the project. You can't create peering connection 
 if a peer with an overlapping |cidr| block already exists. The 
 |service| |cidr| block must be at least ``/24`` and at most ``/21`` in 
@@ -25,7 +25,7 @@ one of the following :rfc:`private networks <rfc1918#section-3>`.
      - 192.168/16
 
 |service| locks this value for a given region if an ``M10`` or greater
-cluster or a Network Peering connection already exists in that region.  
+cluster or a network peering connection already exists in that region.  
 
 To modify the |cidr| block, the target project cannot have:
 
@@ -34,8 +34,8 @@ To modify the |cidr| block, the target project cannot have:
 - Any other |vpc| peering connections to the target region
 
 Alternatively, :ref:`create a new project <atlas-create-atlas-project>`
-and create a Network Peering Connection to set the desired |service| 
-Network Peering |cidr| block for that project.
+and create a network peering connection to set the desired |service| 
+network peering |cidr| block for that project.
 
 :gold:`IMPORTANT:` |service| limits the number of MongoDB nodes per Network Peering
 connection based on the |cidr| block and the region selected for the project. 

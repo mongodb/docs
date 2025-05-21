@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. step:: Add a new Network Peering connection for your project.
+   .. step:: Add a new network peering connection for your project.
       
       .. note::
       
@@ -43,7 +43,7 @@
             a. In the :guilabel:`Peering Connection` modal, select
                :guilabel:`Azure` and click :guilabel:`Next`.
       
-            #. To create the Network Peering connection, fill in the
+            #. To create the network peering connection, fill in the
                requested information:
       
                .. include:: /includes/list-table-network-peering-azure.rst

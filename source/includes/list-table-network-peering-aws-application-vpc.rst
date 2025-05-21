@@ -25,7 +25,7 @@
 
      - |aws| |vpc| |cidr| block or subset of the network in which
        your application runs. This range cannot overlap with your
-       :guilabel:`Atlas CIDR Block` or any other Network Peering
+       :guilabel:`Atlas CIDR Block` or any other network peering
        connection :guilabel:`VPC CIDR`.
 
        The |cidr| block must be in one of the following

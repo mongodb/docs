@@ -1,4 +1,4 @@
-|service| uses the specified |cidr| block for all other Network Peering
+|service| uses the specified |cidr| block for all other network peering
 connections created in the project. By default, the |service| |cidr|
 block must be at least an ``/18`` in one of the following 
 :rfc:`private networks <rfc1918#section-3>`.
@@ -58,7 +58,7 @@ choose) to which to deploy the network peering container. You can
 deploy |service| clusters only to these regions in this project.
 
 |service| locks this value for all regions if an ``M10`` or greater
-cluster or a Network Peering connection already exists in that project.  
+cluster or a network peering connection already exists in that project.  
 
 To modify the |cidr| block, the target project cannot have:
 
@@ -66,11 +66,11 @@ To modify the |cidr| block, the target project cannot have:
 - Any other |vpc| peering connections
 
 Alternatively, :ref:`create a new project <atlas-create-atlas-project>`
-and create a Network Peering Connection to set the desired |service| 
-Network Peering |cidr| block for that project.
+and create a network peering connection to set the desired |service| 
+network peering |cidr| block for that project.
 
-:gold:`IMPORTANT:` |service| limits the number of MongoDB nodes per Network Peering
+:gold:`IMPORTANT:` |service| limits the number of MongoDB nodes per network peering
 connection based on the |cidr| block and the region selected for the project. For example, a project with an |service| |vpc| |cidr| block of
 ``/18`` is limited to approximately 80 three-node
 replica sets per |gcp| region. Contact :website:`MongoDB Support </contact>` for any questions on
-|service| limits of MongoDB nodes per Network Peering connection.
+|service| limits of MongoDB nodes per network peering connection.
