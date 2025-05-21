@@ -1,8 +1,16 @@
 .. _django-limitations:
+.. _django-feature-compat:
 
-=================================
-Limitations and Upcoming Features
-=================================
+========================================
+Django and MongoDB Feature Compatibility
+========================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: upcoming, odm, support
 
 .. contents:: On this page
    :local:
@@ -10,303 +18,564 @@ Limitations and Upcoming Features
    :depth: 2
    :class: singlecol
 
-.. facet::
-   :name: genre
-   :values: reference
-
-.. meta::
-   :keywords: support, features, django
-
 Overview
 --------
 
-On this page, you can find a list of features that
-{+django-odm+} does not support. You can also find features
+On this page, you can find information about supported and unsupported
+features in {+django-odm+}. You can also find features
 currently planned for the General Availability (GA) and post-GA
 releases. We will prioritize these upcoming features
 based on user demand, and you can request support
 for a feature by :ref:`creating a JIRA issue <django-issues-and-help>`.
 
-Feature Limitations
--------------------
+MongoDB Features
+----------------
 
-In this section, you can learn about the following
-types of unsupported {+framework+} and MongoDB features:
+This section indicates whether the {+django-odm+} supports various
+MongoDB features and which features we plan to support in
+the GA release.
 
-- :ref:`django-limitations-transactions`
-- :ref:`django-limitations-models`
-- :ref:`django-limitations-query`
-- :ref:`django-limitations-management`
-- :ref:`django-limitations-migration`
-- :ref:`django-limitations-caching`
-- :ref:`django-limitations-performance`
+.. important::
 
-.. _django-limitations-transactions:
+   Unsupported MongoDB features that have a checkmark (``✓``) symbol in the
+   **Planned GA Support** column are planned for the General Availability
+   release later in 2025. However, support is not guaranteed.
 
-Transaction management
-~~~~~~~~~~~~~~~~~~~~~~
+Index Support
+~~~~~~~~~~~~~
 
-Query execution uses Django and MongoDB's default behavior of autocommit mode.
-Each query is immediately committed to the database.
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
 
-Django's transaction management APIs are not supported.
+   * - MongoDB Feature
+     - Current Support
+     - Planned GA Support
 
-.. _django-limitations-models:
+   * - Atlas Search and Atlas Vector Search indexes
+     - *Unsupported*. You cannot use the Django
+       Indexes API to create these indexes, but you can use
+       the PyMongo Driver by :ref:`exposing your MongoClient <django-client-operations>`.
+     - ✓
 
-Model Limitations
+   * - Compound indexes
+     - ✓
+     - ✓
+
+   * - Embedded document indexes
+     - ✓
+     - ✓
+
+   * - Geospatial indexes
+     - *Unsupported*. You cannot use the Django
+       Indexes API to create these indexes, but you can use
+       the PyMongo Driver by :ref:`exposing your MongoClient <django-client-operations>`.
+     - ✓
+
+   * - Multikey indexes
+     - ✓
+     - ✓
+
+   * - Partial indexes
+     - ✓
+     - ✓
+
+   * - Single field indexes
+     - ✓
+     - ✓
+
+   * - Unique indexes
+     - ✓
+     - ✓
+
+   * - Updating ``EmbeddedModelFields`` indexes after model creation
+     - *Unsupported*.
+     - ✓
+
+Data Type Support
 ~~~~~~~~~~~~~~~~~
 
-Django doesn't support MongoDB's `polymorphic pattern
-<https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/>`__
-where slightly different models share the same collection.
+{+django-odm+} currently supports all MongoDB data types not included
+in the following table. To view a full list of supported types, see the
+:ref:`django-models-mongodb-fields` section of the Create Models guide.
 
-Indexes
-```````
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
 
-{+django-odm+} does not support the following index functionalities:
+   * - BSON Data Type
+     - Current Support
+     - Planned GA Support
 
-- Creating ``$vectorSearch`` and ``$search`` indexes through the Django
-  Indexes API
-- Creating geospatial indexes through the Django Indexes API
-- Updating indexes in ``EmbeddedModelFields`` after model creation
+   * - ``Array``
+     - *Partially Supported*. You can use the ``ArrayField`` field type with the
+       following limitations:
 
-.. _django-limitations-models-fields:
+       - ``ArrayField`` polymorphism is not supported.
+       -  Nested ``EmbeddedModelField`` values within an ``ArrayField`` are not supported.
 
-Fields
-``````
+     - ✓
 
-{+django-odm+} has the following limitations on the specified field types:
+   * - ``Object``
+     - *Partially Supported*. You can use the ``EmbeddedModelField`` field type with the
+       following limitations:
 
-- ``ArrayField``
+       - ``EmbeddedModel`` schema changes do not register after creation.
+       - Embedded documents cannot take Django foreign keys.
+       - Arbitrary or untyped embedded model fields are not supported. You must
+         derive all fields from a ``EmbeddedModel`` class.
+       
+     - *Partial Support Planned*. We plan to add support for registering 
+       ``EmbeddedModel`` schema changes after creation.
 
-  - ``ArrayField`` polymorphism is not supported.
-  - Nested ``EmbeddedModelField`` values within an ``ArrayField`` are not supported.
+   * - ``Regular Expression``
+     - *Unsupported*.
+     - *Unsupported*. However, we plan to support this type
+       in a post-GA release.
 
-- ``EmbeddedModelField``
+Query Support
+~~~~~~~~~~~~~
 
-  - ``EmbeddedModel`` schema changes do not register after creation.
-  - Embedded documents cannot take Django foreign keys.
-  - Arbitrary or untyped embedded model fields are not supported. You must
-    derive all fields from a ``EmbeddedModel`` class.
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
 
-- ``JSONField``
+   * - MongoDB Feature
+     - Current Support
+     - Planned GA Support
 
-  - {+django-odm+} cannot distinguish between a JSON and a SQL ``null`` value.
-    Queries that use ``Value(None, JSONField())`` or the ``isnull`` lookup
-    return both JSON and SQL ``null`` values.
-  - Some queries with ``Q`` objects, such as ``Q(value__foo="bar")``, might
-    not work as expected.
-  - Filtering for ``None`` values incorrectly returns objects in which a field
-    does not exist.
+   * - Aggregation operations
+     - *Partially Supported*. The {+django-odm+} does not include custom
+       Django field lookups for the MongoDB aggregation framework, but you
+       can use the :ref:`raw_aggregate() method <django-raw-queries-filter-group>`.
+     - *Full Support Not Planned*. However, we plan to add support for MongoDB
+       aggregation operators in a post-GA release.
 
-- ``DateTimeField``
+   * - Atlas Search queries
+     - *Partially Supported*. You cannot use the Django
+       ``QuerySet`` API to run Atlas Search queries, but you can use
+       the :ref:`raw_aggregate() method <django-raw-queries-search>`.
+     - ✓
 
-  - Microsecond granularity for ``DateTimeField`` values is not supported.
+   * - Delete operations
+     - ✓
+     - ✓
 
-- ``DurationField``
+   * - Geospatial queries
+     - *Partially Supported*. You cannot use the Django
+       ``QuerySet`` or ``GeoDjango`` API to run geospatial queries, but you can use
+       the :ref:`raw_aggregate() method <django-raw-queries-geospatial>`.
+     - ✓
 
-  - ``DurationField`` stores milliseconds rather than microseconds.
+   * - Insert operations
+     - ✓
+     - ✓
 
-- ``ForeignKey``
+   * - Read operations
+     - ✓
+     - ✓
 
-  - When possible, you should use an ``EmbeddedModelField`` instead of a
-    ``ForeignKey`` field to avoid using ``$lookup`` operations. An
-    ``EmbeddedModelField`` emulates a MongoDB embedded document and performs
-    better than a ``ForeignKey`` field. To learn more about how to reduce
-    ``$lookup`` operations, see the :atlas:`Reduce $lookup Operations
-    </schema-suggestions/reduce-lookup-operations/>` guide in the Atlas
-    documentation.
-  - Performance of `CASCADE deletes <{+django-docs+}/ref/models/fields/#django.db.models.CASCADE>`__
-    on a ``ForeignKey`` field is not as performant as using an
-    ``EmbeddedModelField``.
+   * - Update operations
+     - ✓
+     - ✓
 
-The following field types are unavailable in {+django-odm+}:
+   * - Vector Search queries
+     - *Partially Supported*. You cannot use the Django
+       ``QuerySet`` API to run Vector Search queries, but you can use
+       the :ref:`raw_aggregate() method <django-raw-queries-search>`.
+     - ✓
 
-- ``GeneratedField``
-- ``AutoField`` (including ``BigAutoField`` and ``SmallAutoField``)
-
-.. _django-limitations-query:
-
-Querying Limitations
-~~~~~~~~~~~~~~~~~~~~
-
-{+django-odm+} does not support the following ``QuerySet`` API methods:
-
-- ``prefetch_related()``
-- ``extra()``
-
-{+django-odm+} does not support ``QuerySet.delete()`` and ``update()`` queries
-that span multiple collections.
-
-Geospatial Queries
-``````````````````
-
-{+django-odm+} does not support the following geospatial query features:
-
-- ``GeoDjango``
-- Django lookup operators for MongoDB-specific geospatial queries
-
-Aggregation Operators
-`````````````````````
-
-{+django-odm+} does not include any custom Django field lookups for the MongoDB
-aggregation framework. Instead, use the ``raw_aggregate()`` method. See the
-:ref:`django-raw-queries` guide.
-
-Database Functions
-``````````````````
-
-{+django-odm+} does not support the following database functions:
-
-- ``Chr``
-- ``ExtractQuarter``
-- ``MD5``
-- ``Now``
-- ``Ord``
-- ``Pad``
-- ``Repeat``
-- ``Reverse``
-- ``Right``
-- ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``
-- ``Sign``
-
-- The ``tzinfo`` parameter of the
-  :py:class:`~django.db.models.functions.TruncDate` and
-  :py:class:`~django.db.models.functions.TruncTime` database functions isn't
-  supported.
-
-.. _django-limitations-management:
-
-Unsupported Management Commands
+Database and Collection Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following ``django-admin`` commands are unsupported:
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
 
-- ``createcachetable`` (see :ref:`django-limitations-caching`)
-- ``inspectdb``
+   * - MongoDB Feature
+     - Current Support
+     - Planned GA Support
 
-.. _django-limitations-migration:
+   * - Asynchronous support
+     - ✓
+     - ✓
 
-Migration Limitations
-~~~~~~~~~~~~~~~~~~~~~
+   * - Authentication
+     - ✓
+     - ✓
 
-{+django-odm+} does not support the following migration features:
+   * - Cached data storage
+     - ✓ Use the ``django_mongodb_backend.cache.MongoDBCache`` backend rather
+       than {+framework+}'s built-in database cache backend, ``django.core.cache.backends.db.DatabaseCache``.
+     - ✓
 
-- Enforced schema validation. To learn how to enforce schema
-  validation in your application, see the :manual:`Specify JSON
-  Schema Validation </core/schema-validation/specify-json-schema/>` guide in the
-  {+mdb-server+} manual.
-- `DDL Transactions <{+django-docs+}/topics/migrations/#transactions>`__.
-- The ``migrate --fake-initial`` option.
+   * - Change Streams
+     - *Unsupported*.
+     - *Unsupported*. However, we plan to add support for this feature
+       in a post-GA release.
 
-.. _django-limitations-caching:
+   * - Client-side Field Level Encryption and Queryable Encryption
+     - *Unsupported*.
+     - ✓
 
-Caching
-~~~~~~~
+   * - Collection interaction
+     - ✓
+     - ✓
 
-Database caching uses {+django-odm+}'s ``createcachecollection`` command
-rather than {+framework+}'s SQL-specific ``createcachetable`` command.
+   * - Database interaction
+     - ✓
+     - ✓
 
-Secondly, you must use the ``django_mongodb_backend.cache.MongoDBCache``
-backend rather than {+framework+}'s built-in database cache backend,
-``django.core.cache.backends.db.DatabaseCache``.
+   * - GridFS
+     - *Unsupported*.
+     - *Unsupported*. However, we plan to add support for this feature
+       in a post-GA release.
 
-.. _django-limitations-performance:
+   * - Multiple models for one collection
+     - *Unsupported*.
+     - ✓
 
-Performance
-~~~~~~~~~~~
+   * - Representing documents
+     - ✓ Use models to represent MongoDB documents.
+     - ✓
 
-The engineering team is prioritizing feature development for the Public Preview
-release of {+django-odm+}. Because of this, you might notice performance
-limitations with certain workloads. If you encounter any performance issues,
-please report them as shown in the :ref:`Issues & Help <django-issues-and-help>`
-guide.
+   * - Schema validation
+     - *Unsupported*.
+     - *Unsupported*. However, we plan to add support for this feature
+       in a post-GA release.
 
-General Availability Release Features
--------------------------------------
+   * - Timeseries data
+     - ✓
+     - ✓
 
-In this section, you can learn about the following
-types of {+framework+} and MongoDB features that
-GA and post-GA {+django-odm+} releases will likely introduce:
+   * - Transactions
+     - *Unsupported*.
+     - ✓
 
-- :ref:`django-upcoming-mongodb`
-- :ref:`django-upcoming-models`
-- :ref:`django-upcoming-management`
-- :ref:`django-upcoming-third-party`
+Django Features
+---------------
 
-.. _django-upcoming-mongodb:
+This section indicates whether the {+django-odm+} supports various
+{+framework+} features and which features we plan to support in
+the GA release.
 
-MongoDB Features
-~~~~~~~~~~~~~~~~
+.. important::
 
-We plan to support the following MongoDB features in the GA release:
+   Unsupported {+framework+} features that have a checkmark (``✓``) symbol in the
+   **General Availability Support** column are planned for the GA
+   release later in 2025. However, support is not guaranteed.
 
-- Programmatic management of Vector Search, Atlas Search,
-  and geospatial indexes by using the Django API
-- Vector Search, Atlas Search, and geospatial queries
-  by using the Django API
-- Queryable Encryption and Client-side Field Level Encryption
-- Database transactions
+Field Type Support
+~~~~~~~~~~~~~~~~~~
 
-We plan to support the following MongoDB features in future post-GA releases:
+{+django-odm+} currently supports all {+framework+} field types not included in
+the following table. To view a full list of supported fields, see the :ref:`django-models-django-fields`
+section of the Create Models guide.
 
-- GridFS for large file storage
-- Change streams for data monitoring
-- Schema validation
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
 
-.. tip::
+   * - {+framework+} Field Type
+     - Current Support
+     - Planned GA Support
 
-   To learn more about the MongoDB features mentioned in this section, see
-   the following resources:
+   * - ``AutoField``
+     - *Unsupported*. The ``BigAutoField`` and ``SmallAutoField`` types are also
+       not supported. Instead, use ``ObjectIdField``.
+     - *Unsupported*.
 
-   - :atlas:`Atlas Vector Search </atlas-vector-search/vector-search-overview/>` in the Atlas documentation
-   - :atlas:`Atlas Search </atlas-search>` in the Atlas documentation
-   - :manual:`Geospatial Queries </geospatial-queries/>` in the {+mdb-server+}
-     manual
-   - :manual:`In-Use Encryption </core/security-in-use-encryption/>` in the {+mdb-server+}
-     manual
-   - :manual:`Transactions </core/transactions/>` in the {+mdb-server+}
-     manual
-   - :manual:`GridFS </core/gridfs/>` in the {+mdb-server+}
-     manual
-   - :manual:`Change Streams </changeStreams/>` in the {+mdb-server+}
-     manual
+   * - ``DateTimeField``
+     - *Partially Supported*. You can use this field type with the
+       following limitations:
 
-.. _django-upcoming-models:
+       - Microsecond granularity for ``DateTimeField`` values is not supported.
+       
+     - *Full Support Not Planned*.
 
-Model Features
-~~~~~~~~~~~~~~
+   * - ``DurationField``
+     - *Partially Supported*. You can use this field type with the
+       following limitations:
 
-We plan to support the following model features in the GA release:
+       - ``DurationField`` stores milliseconds rather than microseconds
+       
+     - *Full Support Not Planned*.
 
-- Arrays of embedded documents
-- Polymorphic embedded documents and arrays
-- Application of changes to the embedded model schema to
-  ``EmbeddedModelField`` values
-- Multiple models within a collection
-- Improved form representation in embedded models
+   * - ``ForeignKey``
+     - *Partially Supported*. You can use this field type with the
+       following limitations:
 
-In a future post-GA release, we plan to add a custom model field for the
-``BSONRegExp`` data type.
+       - When possible, you should use an ``EmbeddedModelField`` instead of a
+         ``ForeignKey`` field to avoid using ``$lookup`` operations. An
+         ``EmbeddedModelField`` emulates a MongoDB embedded document and performs
+         better than a ``ForeignKey`` field. To learn more about how to reduce
+         ``$lookup`` operations, see the :atlas:`Reduce $lookup Operations
+         </schema-suggestions/reduce-lookup-operations/>` guide in the Atlas
+         documentation.
+       - Performance of `CASCADE deletes <{+django-docs+}/ref/models/fields/#django.db.models.CASCADE>`__
+         on a ``ForeignKey`` field is not as performant as using an
+         ``EmbeddedModelField``.
+       
+     - *Full Support Not Planned*.
 
-.. _django-upcoming-management:
+   * - ``GeneratedField``
+     - *Unsupported*.
+     - *Unsupported*.
 
-Management Command Features
+   * - ``JSONField``
+     - *Partially Supported*. You can use this field type with the
+       following limitations:
+
+       - {+django-odm+} cannot distinguish between a JSON and a SQL ``null`` value.
+         Queries that use ``Value(None, JSONField())`` or the ``isnull`` lookup
+         return both JSON and SQL ``null`` values.
+       - Some queries with ``Q`` objects, such as ``Q(value__foo="bar")``, might
+         not work as expected.
+       - Filtering for ``None`` values incorrectly returns objects in which a field
+         does not exist.
+
+     - *Full Support Not Planned*. However, we plan to address the
+       ``Q`` object and ``None`` key filtering limitations in a post-GA release.
+
+Query Support
+~~~~~~~~~~~~~
+
+{+django-odm+} currently supports all {+framework+} ``QuerySet`` methods not
+included in the following table. To view the supported methods, see `QuerySet API
+<{+django-docs+}/ref/models/querysets/#queryset-api>`__ in the {+framework+}
+documentation.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
+
+   * - {+framework+} ``QuerySet`` Feature
+     - Current Support
+     - Planned GA Support
+
+   * - ``delete()``
+     - *Partially Supported*. You cannot use this method to perform
+       queries that span multiple collections.
+     - *Full Support Not Planned*.
+
+   * - ``extra()``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``prefetch_related()``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``raw()``
+     - *Unsupported*. However, you can use the ``raw_aggregate()`` method
+       to run queries that use MongoDB's aggregation pipeline syntax.
+     - *Full Support Not Planned*.
+
+   * - ``update()``
+     - *Partially Supported*. You cannot use this method to perform
+       queries that span multiple collections.
+     - *Full Support Not Planned*.
+
+Database Function Support
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+django-odm+} currently supports all database functions not included in
+the following table. To view a full list of functions, see `Database Functions
+<{+django-docs+}/ref/models/database-functions/>`__ in the {+framework+}
+documentation.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
+
+   * - {+framework+} Function
+     - Current Support
+     - Planned GA Support
+
+   * - ``Chr``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``ExtractQuarter``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``MD5``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Now``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Ord``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Pad``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Repeat``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Reverse``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Right``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Sign``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``Trunc``
+     - *Partially Supported*. The ``tzinfo`` parameter of the
+       :py:class:`~django.db.models.functions.TruncDate` and
+       :py:class:`~django.db.models.functions.TruncTime` database
+       functions is not supported.
+     - *Full Support Not Planned*.
+
+Management Support
+~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
+
+   * - {+framework+} Feature
+     - Current Support
+     - Planned GA Support
+
+   * - {+framework+} Admin
+     - ✓
+     - ✓
+
+   * - {+framework+} Forms
+     - ✓
+     - ✓
+
+   * - {+framework+} Authentication
+     - ✓
+     - ✓
+
+   * - Management commands
+     - *Partially Supported*. To view the unsupported
+       commands, see the :ref:`following section <django-management-commands>`.
+     - *Full Support Not Planned*.
+
+.. _django-management-commands:
+
+Management Command Support
+``````````````````````````
+
+{+django-odm+} currently supports all management commands not included in
+the following table. To view a full list of commands, see `Available commands
+<{+django-docs+}/ref/django-admin/#available-commands>`__ in the {+framework+}
+documentation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 40
+
+   * - {+framework+} Command
+     - Current Support
+     - Planned GA Support
+
+   * - ``createcachetable``
+     - *Unsupported*. Instead, use {+django-odm+}'s ``createcachecollection`` command.
+     - *Unsupported*.
+
+   * - ``dumpdata``
+     - *Unsupported*.
+     - ✓
+
+   * - ``inspectdb``
+     - *Unsupported*.
+     - *Unsupported*. However, we plan to support this command
+       in a post-GA release.
+
+   * - ``loaddata``
+     - *Unsupported*.
+     - ✓
+
+   * - ``sqlflush``
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``sqlsequencereset``
+     - *Unsupported*.
+     - *Unsupported*.
+
+Migration Support
+~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
+
+   * - {+framework+} Feature
+     - Current Support
+     - Planned GA Support
+
+   * - Creating, deleting, and updating indexes through migration
+       commands
+     - *Partially Supported*. You cannot update indexes on embedded model
+       or array fields.
+     - *Full Support Not Planned*.
+
+   * - `DDL Transactions <{+django-docs+}/topics/migrations/#transactions>`__
+     - *Unsupported*.
+     - *Unsupported*.
+
+   * - ``migrate --fake-initial`` option
+     - *Unsupported*.
+     - *Unsupported*.
+
+Third Party Library Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Serialization support for ``EmbeddedModelField`` (i.e. Django's ``dumpdata``
-and ``loaddata`` management commands) will be added by the GA release.
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 40
 
-.. _django-upcoming-third-party:
+   * - Library
+     - Current Support
+     - Planned GA Support
 
-Third-Party Libraries
-~~~~~~~~~~~~~~~~~~~~~
+   * - `Django-filter <https://django-filter.readthedocs.io/en/stable/>`__
+     - *Partially Supported*. Most use cases are supported.
+     - *Partially Supported*. This release will outline use case limitations.
 
-We plan to test compatibility with the following third-party libraries by the
-GA release:
+   * - `Django Rest Framework <https://www.django-rest-framework.org/>`__
+     - *Partially Supported*. Most use cases are supported.
+     - *Partially Supported*. This release will outline use case limitations.
 
-- `Django-filter <https://django-filter.readthedocs.io/en/stable/>`__
-- `Django Rest Framework <https://www.django-rest-framework.org/>`__
-- `Django-allauth <https://docs.allauth.org/en/latest/>`__
-- `Wagtail <https://wagtail.org/>`__
-- `Django Debug Toolbar <https://django-debug-toolbar.readthedocs.io/en/latest/>`__
+   * - `Django-allauth <https://docs.allauth.org/en/latest/>`__
+     - *Partially Supported*. Most use cases are supported.
+     - *Partially Supported*. This release will outline use case limitations.
+
+   * - `Wagtail <https://wagtail.org/>`__
+     - *Unsupported*.
+     - *Partially Supported*. This release will outline use case limitations.
+
+   * - `Django Debug Toolbar <https://django-debug-toolbar.readthedocs.io/en/latest/>`__
+     - *Partially Supported*. Most use cases are supported.
+     - *Partially Supported*. This release will outline use case limitations.
