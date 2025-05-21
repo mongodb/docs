@@ -288,21 +288,68 @@ environments:
 Example
 -------
 
+.. include:: /includes/collation-data-setup.rst
+
 The following example initializes a :method:`Bulk()` operations builder
-for the ``myColl`` collection and specifies a collation for the find
-filter.
+for the ``restaurants`` collection and specifies a collation for the
+find filter.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      var bulk = db.restaurants.initializeUnorderedBulkOp();
+
+      bulk.find(
+         { category: "cafe" }
+      ).collation( 
+         { locale: "fr", strength: 1 } 
+      ).update(
+         { $set: { status: "closed", points: "0" } }
+      );
+
+      bulk.execute();
+
+   .. output::
+      :language: javascript
+
+         {
+            acknowledged: true,
+            insertedCount: 0,
+            insertedIds: {},
+            matchedCount: 3,
+            modifiedCount: 3,
+            deletedCount: 0,
+            upsertedCount: 0,
+            upsertedIds: {}
+         }
+
+The operation specifies a collation with ``strength: 1``, which
+means the collation ignores differences between case and letter
+variants. As a result, even though there is only one document that has
+an exact match as the string specified in the filter (``cafe``), the
+operation matches and updates all documents in the collection.
+
+After the bulk operation completes, the collection contains these
+documents:
 
 .. code-block:: javascript
+   :copyable: false
 
-   var bulk = db.myColl.initializeUnorderedBulkOp();
-   bulk.find( { category: "cafe" } ).collation({ locale: "fr", strength: 1 }).update( { $set: { status: "I", points: "0" } } );
-   bulk.execute();
+   [
+      { _id: 1, category: 'café', status: 'closed', points: '0' },
+      { _id: 2, category: 'cafe', status: 'closed', points: '0' },
+      { _id: 3, category: 'cafE', status: 'closed', points: '0' }
+   ]
 
-.. seealso::
+Learn More
+----------
 
-   - :method:`db.collection.initializeUnorderedBulkOp()`
-   - :method:`db.collection.initializeOrderedBulkOp()`
-   - :method:`Bulk.find()`
-   - :method:`Bulk.find.updateOne()`
-   - :method:`Bulk.execute()`
-   - :ref:`All Bulk Methods <bulk-methods>`
+- :method:`db.collection.initializeUnorderedBulkOp()`
+- :method:`db.collection.initializeOrderedBulkOp()`
+- :method:`Bulk.find()`
+- :method:`Bulk.find.updateOne()`
+- :method:`Bulk.execute()`
+- :ref:`All Bulk Methods <bulk-methods>`
