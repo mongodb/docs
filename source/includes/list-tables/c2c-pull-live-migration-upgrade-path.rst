@@ -23,11 +23,35 @@
    * - 6.0 Replica Set 
      - 6.0 Replica Set
 
+   * - 6.0 Replica Set 
+     - 7.0 Replica Set
+
+   * - 6.0 Replica Set 
+     - 8.0 Replica Set
+
    * - 6.0 Replica Set/Sharded Cluster 
      - 6.0 Sharded Cluster
 
+   * - 6.0 Replica Set/Sharded Cluster 
+     - 7.0 Sharded Cluster
+
+   * - 6.0 Replica Set/Sharded Cluster 
+     - 8.0 Sharded Cluster
+
    * - 7.0 Replica Set 
      - 7.0 Replica Set
-   
+
+   * - 7.0 Replica Set 
+     - 8.0 Replica Set
+
    * - 7.0 Replica Set/Sharded Cluster 
      - 7.0 Sharded Cluster
+
+   * - 7.0 Replica Set/Sharded Cluster 
+     - 8.0 Sharded Cluster
+
+   * - 8.0 Replica Set
+     - 8.0 Replica Set
+
+   * - 8.0 Replica Set/Sharded Cluster 
+     - 8.0 Sharded Cluster
