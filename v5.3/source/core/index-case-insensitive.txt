@@ -1,0 +1,152 @@
+.. _index-feature-case-insensitive:
+
+========================
+Case Insensitive Indexes
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Case insensitive indexes support queries that perform string
+comparisons without regard for case.
+
+You can create a case insensitive index with
+:method:`db.collection.createIndex()` by specifying the ``collation``
+parameter as an option. For example:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "key" : 1 },
+                              { collation: {
+                                  locale : <locale>,
+                                  strength : <strength>
+                                }
+                              } )
+
+To specify a collation for a case sensitive index, include:
+
+- ``locale``: specifies language rules. See
+  :ref:`Collation Locales<collation-languages-locales>` for a list of
+  available locales.
+
+- ``strength``: determines comparison rules. A value of
+  ``1`` or ``2`` indicates a case insensitive collation.
+
+For additional collation fields, see
+:ref:`Collation<collation-document-fields>`.
+
+Behavior
+--------
+
+Using a case insensitive index does not affect
+the results of a query, but it can increase performance; see
+:doc:`Indexes</indexes>` for a detailed discussion of the costs and
+benefits of indexes.
+
+To use an index that specifies a collation, query and sort operations
+must specify the same collation as the index. If a collection has
+defined a collation, all queries and indexes inherit that collation
+unless they explicitly specify a different collation.
+
+Examples
+--------
+
+.. _no-default-collation-example:
+
+Create a Case Insensitive Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use a case insensitive index on a collection with no default
+collation, create an index with a collation and set the ``strength``
+parameter to ``1`` or ``2`` (see
+:ref:`Collation<collation-document-fields>` for a detailed
+description of the ``strength`` parameter). You must specify the same
+collation at the query level in order to use the index-level collation.
+
+The following example creates a collection with no default collation,
+then adds an index on the ``type`` field with a case insensitive
+collation.
+
+.. code-block:: javascript
+
+   db.createCollection("fruit")
+
+   db.fruit.createIndex( { type: 1},
+                         { collation: { locale: 'en', strength: 2 } } )
+
+To use the index, queries must specify the same collation.
+
+.. code-block:: javascript
+
+   db.fruit.insertMany( [
+      { type: "apple" },
+      { type: "Apple" },
+      { type: "APPLE" }
+   ] )
+
+   db.fruit.find( { type: "apple" } ) // does not use index, finds one result
+
+   db.fruit.find( { type: "apple" } ).collation( { locale: 'en', strength: 2 } )
+   // uses the index, finds three results
+
+   db.fruit.find( { type: "apple" } ).collation( { locale: 'en', strength: 1 } )
+   // does not use the index, finds three results
+
+.. _default-collation-example:
+
+Case Insensitive Indexes on Collections with a Default Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you create a collection with a default collation, all the indexes
+you create subsequently inherit that collation unless you specify a
+different collation. All queries which do not
+specify a different collation also inherit the default collation.
+
+The following example creates a collection called ``names`` with a
+default collation, then creates an index on the ``first_name`` field.
+
+.. code-block:: javascript
+
+   db.createCollection("names", { collation: { locale: 'en_US', strength: 2 } } )
+
+   db.names.createIndex( { first_name: 1 } ) // inherits the default collation
+
+Insert a small collection of names:
+
+.. code-block:: javascript
+
+   db.names.insertMany( [
+      { first_name: "Betsy" },
+      { first_name: "BETSY"},
+      { first_name: "betsy"}
+   ] )
+
+Queries on this collection use the specified collation by default,
+and if possible use the index as well.
+
+.. code-block:: javascript
+
+   db.names.find( { first_name: "betsy" } )
+   // inherits the default collation: { collation: { locale: 'en_US', strength: 2 } }
+   // finds three results
+
+The above operation uses the collection's default collation and finds
+all three documents. It uses the index on the ``first_name`` field for
+better performance.
+
+It is still possible to perform case sensitive searches on this
+collection by specifying a different collation in the query:
+
+.. code-block:: javascript
+
+   db.names.find( { first_name: "betsy" } ).collation( { locale: 'en_US' } )
+   // does not use the collection's default collation, finds one result
+
+The above operation finds only one document, because it uses a
+collation with no ``strength`` value specified. It does not use the
+collection's default collation or the index.

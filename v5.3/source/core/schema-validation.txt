@@ -1,0 +1,500 @@
+.. _schema-validation-overview:
+
+=================
+Schema Validation
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB provides the capability to perform schema validation during
+updates and insertions.
+
+.. _schema-validation-document:
+
+Specify Validation Rules
+------------------------
+
+Validation rules are on a per-collection basis.
+
+To specify validation rules when creating a new collection, use
+:method:`db.createCollection()` with the ``validator`` option.
+
+To add document validation to an existing collection, use
+:dbcommand:`collMod` command with the ``validator`` option.
+
+MongoDB also provides the following related options:
+
+- ``validationLevel`` option, which determines how strictly MongoDB
+  applies validation rules to existing documents during an update.
+
+- ``validationAction`` option, which determines whether MongoDB should
+  ``error`` and reject documents that violate the validation rules or
+  ``warn`` about the violations in the log but allow invalid documents.
+
+.. _schema-validation-json:
+
+JSON Schema
+-----------
+
+MongoDB supports JSON Schema validation. To specify JSON Schema validation, 
+use the :query:`$jsonSchema` operator in your ``validator`` expression.
+
+.. note::
+
+   JSON Schema is the recommended means of performing schema validation.
+
+For example, the following example specifies validation rules using
+JSON schema:
+
+.. code-block:: javascript
+
+   db.createCollection("students", {
+      validator: {
+         $jsonSchema: {
+            bsonType: "object",
+            required: [ "name", "year", "major", "address" ],
+            properties: {
+               name: {
+                  bsonType: "string",
+                  description: "must be a string and is required"
+               },
+               year: {
+                  bsonType: "int",
+                  minimum: 2017,
+                  maximum: 3017,
+                  description: "must be an integer in [ 2017, 3017 ] and is required"
+               },
+               major: {
+                  enum: [ "Math", "English", "Computer Science", "History", null ],
+                  description: "can only be one of the enum values and is required"
+               },
+               gpa: {
+                  bsonType: [ "double" ],
+                  description: "must be a double if the field exists"
+               },
+               address: {
+                  bsonType: "object",
+                  required: [ "city" ],
+                  properties: { 
+                     street: { 
+                        bsonType: "string",
+                        description: "must be a string if the field exists"
+                     },
+                     city: { 
+                        bsonType: "string", 
+                        description: "must be a string and is required" 
+                     } 
+                  }
+               }
+            }
+         }
+      }
+   })
+
+For more information, see :query:`$jsonSchema`.
+
+``bsonType`` definitions can be found on the :doc:`BSON Types
+</reference/bson-types/>` page.
+
+.. _schema-validation-query-expression:
+
+Other Query Expressions
+-----------------------
+
+In addition to JSON Schema validation that uses the
+:query:`$jsonSchema` query operator, MongoDB supports
+validation with :ref:`other query operators
+<query-selectors>`, with the exception of:
+
+- :query:`$near`,
+
+- :query:`$nearSphere`, 
+
+- :query:`$text`, 
+
+- :query:`$where`, and 
+
+- :query:`$expr` with :expression:`$function` expressions.
+
+For example, the following example specifies validator rules using the
+query expression:
+
+.. code-block:: bash
+
+   db.createCollection( "contacts",
+      { validator: { $or:
+         [
+            { phone: { $type: "string" } },
+            { email: { $regex: /@mongodb\.com$/ } },
+            { status: { $in: [ "Unknown", "Incomplete" ] } }
+         ]
+      }
+   } )
+
+.. seealso::
+
+   :ref:`query operators <query-selectors>`
+
+Behavior and Examples
+---------------------
+
+Validation occurs during updates and inserts. When you add validation to
+a collection, existing documents do not undergo validation checks until
+modification.
+
+Validation on Existing Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform validation checks on existing documents, use the
+:dbcommand:`validate` command or the :method:`db.collection.validate()` 
+shell helper.
+
+The ``validationLevel`` option determines which operations MongoDB
+applies the validation rules:
+
+- If the ``validationLevel`` is ``strict`` (the default), MongoDB
+  applies validation rules to all inserts and updates.
+
+- If the ``validationLevel`` is ``moderate``, MongoDB applies
+  validation rules to inserts and to updates to existing documents that
+  already fulfill the validation criteria. With the ``moderate`` level,
+  updates to existing documents that do not fulfill the validation
+  criteria are not checked for validity.
+
+For example, create a ``contacts`` collection with the following
+documents:
+
+.. code-block:: json
+
+   db.contacts.insertMany([
+      { "_id": 1, "name": "Anne", "phone": "+1 555 123 456", "city": "London", "status": "Complete" },
+      { "_id": 2, "name": "Ivan", "city": "Vancouver" }
+   ])
+
+Issue the following command to add a validator to the ``contacts``
+collection:
+
+.. code-block:: bash
+
+   db.runCommand( {
+      collMod: "contacts", 
+      validator: { $jsonSchema: {
+         bsonType: "object",
+         required: [ "phone", "name" ],
+         properties: {
+            phone: {
+               bsonType: "string",
+               description: "phone must be a string and is required"
+            },
+            name: {
+               bsonType: "string",
+               description: "name must be a string and is required"
+            }
+         }
+      } },
+      validationLevel: "moderate"
+   } )
+
+The ``contacts`` collection now has a validator with the ``moderate``
+validationLevel:
+
+- If you attempted to update the document with ``_id: 1``,  MongoDB
+  would apply the new validation rules since the existing document
+  matches the criteria.
+
+- In contrast, MongoDB will not apply validation rules to updates to
+  the document with ``_id: 2`` as it does not meet the validation
+  rules.
+
+Starting in MongoDB version 5.0, the validator returns detailed error
+information when a validation condition isn't met. The error output is
+exhaustive - all errors are reported, not just the first one. 
+
+.. important:: 
+
+   The error output is intended for human consumption. It may change in
+   the future and should not be relied upon in scripts.   
+
+In the next example, neither of the updates is consistent with the
+validation rule we created above that requires ``name`` to be a string. 
+
+.. code-block:: javascript
+
+   db.contacts.updateOne(
+      { _id: 1 },
+      { $set: { name: 10 } }
+   )
+
+   db.contacts.updateOne(
+      { _id: 2 },
+      { $set: { name: 20 } }
+   )
+
+The output below shows that the document with ``_id: 1`` fails
+validation with a detailed explanation, as shown in the ``errInfo``
+object. The update succeeds for the document with ``_id: 2`` since this
+document did not meet the initial criteria when validation was added.
+
+.. code-block:: javascript
+   :copyable: false
+
+   // _id: 1
+   MongoServerError: Document failed validation
+   Additional information: {
+   failingDocumentId: 1,
+   details: {
+      operatorName: '$jsonSchema',
+      schemaRulesNotSatisfied: [
+         {
+         operatorName: 'properties',
+         propertiesNotSatisfied: [
+            {
+               propertyName: 'name',
+               description: 'name must be a string and is required',
+               details: [
+               {
+                  operatorName: 'bsonType',
+                  specifiedAs: { bsonType: 'string' },
+                  reason: 'type did not match',
+                  consideredValue: 10,
+                  consideredType: 'int'
+               }
+               ]
+            }
+         ]
+         }
+      ]
+   }
+   }
+
+   // _id: 2
+   {
+      acknowledged: true,
+      insertedId: null,
+      matchedCount: 1,
+      modifiedCount: 0,
+      upsertedCount: 0
+   }
+
+To disable validation entirely, you can set ``validationLevel`` to
+``off``.
+
+Accept or Reject Invalid Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``validationAction`` option determines how MongoDB handles
+documents that violate the validation rules:
+
+- If the ``validationAction`` is ``error`` (the default), MongoDB
+  rejects any insert or update that violates the validation criteria.
+
+- If the ``validationAction`` is ``warn``, MongoDB logs any violations
+  but allows the insertion or update to proceed.
+
+For example, create a ``contacts2`` collection with the following JSON
+Schema validator:
+
+.. code-block:: json
+
+   db.createCollection( "contacts2", {
+      validator: { $jsonSchema: {
+         bsonType: "object",
+         required: [ "phone" ],
+         properties: {
+            phone: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            },
+            email: {
+               bsonType : "string",
+               pattern : "@mongodb\.com$",
+               description: "must be a string and match the regular expression pattern"
+            },
+            status: {
+               enum: [ "Unknown", "Incomplete" ],
+               description: "can only be one of the enum values"
+            }
+         }
+      } },
+      validationAction: "warn" 
+   } )
+
+For example, the following insert operation violates the validation rule:
+
+.. code-block:: javascript
+
+   db.contacts2.insertOne( { name: "Amanda", status: "Updated" } )
+
+However, since the ``validationAction`` is ``warn``, MongoDB only
+logs the validation violation message and allows the operation to
+proceed. Run the following command to view the MongoDB logs:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getLog: "global" } )
+
+Depending on collection usage, this command might return a lot of data.
+The validation error (one long line in the log, reformatted here for
+readability) contains information like this:
+
+.. code-block:: bash
+   :copyable: false
+
+   "{\"t\":{\"$date\":\"2021-01-20T15:59:57.305+00:00\"},
+    \"s\":\"W\",  
+    \"c\":\"STORAGE\",  
+    \"id\":20294,   
+    \"ctx\":\"conn1\",
+    \"msg\":\"Document would fail validation\",
+    \"attr\":{\"namespace\":\"test.contacts2\",
+      \"document\":{\"_id\":{\"$oid\":\"6008537d42e0d23385568881\"},
+            \"name\":\"Amanda\",
+            \"status\":\"Updated\"},
+       \"errInfo\":{\"failingDocumentId\":{\"$oid\":\"6008537d42e0d23385568881\"},
+            \"details\":{\"operatorName\":\"$jsonSchema\",
+                 \"schemaRulesNotSatisfied\":[
+                     {\"operatorName\":\"properties\",
+                       \"propertiesNotSatisfied\":[
+                           {\"propertyName\":\"status\",
+                            \"details\":[
+                                 {\"operatorName\":\"enum\",
+                                  \"specifiedAs\":{\"enum\":[
+                                       \"Unknown\",
+                                       \"Incomplete\"]},
+                             \"reason\":\"value was not found in enum\",
+                             \"consideredValue\":\"Updated\"}]}]},
+    {\"operatorName\":\"required\",
+    \"specifiedAs\":{\"required\":[\"phone\"]},
+        \"missingProperties\":[\"phone\"]}]}}}}"
+
+.. _validation-description-example:
+
+Use Title and Description Fields to Clarify Validation Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-schema-validation-description-overview.rst
+
+Consider a ``users`` collection with the following schema validation:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      collMod: "users",
+      validator: { $jsonSchema: {
+         bsonType: "object",
+         title: "Email validation",
+         properties: {
+            email: {
+               "bsonType": "string",
+               "pattern": "^@mongodb\.com$",
+               "description": "Email address must end with '@mongodb.com'"
+            },
+         }
+      } },
+      validationLevel: "moderate"
+   } )
+
+The ``pattern`` field indicates that all ``email`` fields must
+end with ``@mongodb.com``. If you try to insert a document that
+does not match the pattern, MongoDB includes the validation
+``title`` and ``description`` in the error output:
+
+Input:
+
+.. code-block:: javascript
+ 
+   db.users.insertOne( { "name": "Amelia Morrison", "email": "a.morrison@nwsueicn.com" } )
+   
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 6,13
+
+   MongoServerError: Document failed validation
+   Additional information: {
+     failingDocumentId: ObjectId("614a10bab93bbd15dd2e2eb6"),
+     details: {
+       operatorName: '$jsonSchema',
+       title: 'Email validation',
+       schemaRulesNotSatisfied: [
+         {
+           operatorName: 'properties',
+           propertiesNotSatisfied: [
+             {
+               propertyName: 'email',
+               description: "Email address must end with '@mongodb.com'",
+               details: [
+                 {
+                   operatorName: 'pattern',
+                   specifiedAs: { pattern: '^@mongodb.com$' },
+                   reason: 'regular expression did not match',
+                   consideredValue: 'a.morrison@nwsueicn.com'
+                 }
+               ]
+             }
+           ]
+         }
+       ]
+     }
+   }
+
+.. note::
+
+   The validation error output is formatted differently in the legacy
+   ``mongo`` shell.
+
+Restrictions
+------------
+
+You cannot specify a validator for collections in the ``admin``,
+``local``, and ``config`` databases.
+
+You cannot specify a validator for ``system.*`` collections.
+
+Bypass Document Validation
+--------------------------
+
+Users can bypass document validation using the
+``bypassDocumentValidation`` option. 
+
+The following commands can bypass validation per operation using the
+new option ``bypassDocumentValidation``:
+
+- :dbcommand:`applyOps` command
+
+- :dbcommand:`findAndModify` command and
+  :method:`db.collection.findAndModify()` method
+
+- :dbcommand:`mapReduce` command and
+  :method:`db.collection.mapReduce()` method
+
+- :dbcommand:`insert` command
+
+- :dbcommand:`update` command
+
+- :pipeline:`$out` and :pipeline:`$merge` stages for the
+  :dbcommand:`aggregate` command and
+  :method:`db.collection.aggregate()` method
+
+
+For deployments that have enabled access control, to bypass document
+validation, the authenticated user must have
+:authaction:`bypassDocumentValidation` action. The built-in roles
+:authrole:`dbAdmin` and :authrole:`restore` provide this action.
+
+Additional Information
+----------------------
+
+.. seealso::
+
+   - :dbcommand:`collMod`
+   - :method:`db.createCollection()`
+   - :method:`db.getCollectionInfos()`
+   - :method:`db.collection.validate()`

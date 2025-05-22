@@ -1,0 +1,1498 @@
+
+
+.. _mongodb-uri:
+
+============================
+Connection String URI Format
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document describes the URI formats for defining connections
+between applications and MongoDB instances in the official MongoDB
+:driver:`Drivers </>`. For a list of drivers and links to
+driver documentation, see :driver:`Drivers </>`.
+
+Connection String Formats
+-------------------------
+
+You can specify the MongoDB connection string using either:
+
+- the :ref:`connections-standard-connection-string-format` or 
+
+- the :ref:`connections-dns-seedlist`.
+
+
+.. _connections-standard-connection-string-format:
+
+Standard Connection String Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section describes the standard format of the MongoDB connection
+URI used to connect to a MongoDB deployment: standalone, replica set,
+or a sharded cluster.
+
+The standard URI connection scheme has the form:
+
+.. code-block:: none
+
+   mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
+
+Examples
+````````
+
+.. tabs::
+
+   tabs:
+
+      - id: standalone
+        name: Standalone
+        content: |
+
+           - For a standalone:
+
+             .. code-block:: bash
+
+                mongodb://mongodb0.example.com:27017
+
+           - For a standalone that :doc:`enforces access control
+             </tutorial/enable-authentication>`:
+
+             .. code-block:: bash
+
+                mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
+
+             .. include:: /includes/fact-pct-encode-uri.rst
+
+      - id: repl
+        name: Replica Set
+        content: |
+
+           .. note::
+
+              .. include:: /includes/fact-uri-rs-hostnames.rst
+
+              For a replica set, include the :urioption:`replicaSet`
+              option.
+
+           - For a replica set:
+
+             .. code-block:: bash
+
+                mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myRepl
+            
+           - For a replica set that :doc:`enforces access control
+             </tutorial/enable-authentication>`, include
+             user credentials:
+
+             .. code-block:: bash
+
+                mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?authSource=admin&replicaSet=myRepl
+
+             .. include:: /includes/fact-pct-encode-uri.rst
+
+      - id: sharded
+        name: Sharded Cluster
+        content: |
+
+           .. note::
+
+              For a connection string to a sharded cluster, specify
+              :binary:`~bin.mongos` hosts in the connection string.
+
+           - For a sharded cluster:
+
+             .. code-block:: bash
+
+                mongodb://mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017
+
+           - For a sharded cluster that :doc:`enforces access
+             control </tutorial/enable-authentication>`, include
+             user credentials:
+
+             .. code-block:: bash
+
+                mongodb://myDBReader:D1fficultP%40ssw0rd@mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017/?authSource=admin
+
+             .. include:: /includes/fact-pct-encode-uri.rst
+
+      - id: atlas
+        name: Atlas Deployment
+        content: |
+
+           MongoDB Atlas provides the connection strings for 
+           your deployment when you click the :atlas:`Connect
+           </connect-to-database-deployment/>` button in the Atlas UI. 
+           To register a new Atlas account, start at the 
+           `MongoDB Atlas registration page 
+           <https://www.mongodb.com/cloud/atlas/register?tck=docs_server_connection_cta>`__. To learn more, see
+           :atlas:`Get Started with Atlas </getting-started/>`.
+
+           Your Atlas connection string might resemble the following 
+           example:
+
+           .. code-block:: bash
+
+              mongosh "mongodb+srv://cluster0.example.mongodb.net myFirstDatabase" --username JohnDoe
+
+For more examples, see :ref:`connections-connection-examples`.
+
+Components
+``````````
+
+The standard URI connection string includes the following components:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Component
+     - Description
+
+   * - ``mongodb://``
+
+     - A required prefix to identify that this is a string in the
+       standard connection format.
+
+   * - ``username:password@``
+
+     - Optional. Authentication credentials. 
+     
+       If specified, the client will attempt to authenticate the
+       user to the :urioption:`authSource`. If
+       :urioption:`authSource` is unspecified, the client will
+       attempt to authenticate the user to the ``defaultauthdb``.
+       And if the ``defaultauthdb`` is unspecified, to the ``admin``
+       database.
+
+       .. include:: /includes/fact-pct-encode-uri.rst
+
+       See also :urioption:`authSource`.
+
+   * - ``host[:port]``
+
+     - The host (and optional port number) where the
+       :binary:`~bin.mongod` instance (or :binary:`~bin.mongos`
+       instance for a sharded cluster) is running. You can specify a
+       hostname, IP address, or UNIX domain socket. Specify as many
+       hosts as appropriate for your deployment topology:
+
+       - For a standalone, specify the hostname of the standalone
+         :binary:`~bin.mongod` instance.
+
+       - .. include:: /includes/fact-uri-rs-hostnames.rst
+
+       - For a sharded cluster, specify the hostname(s) of the
+         :binary:`~bin.mongos` instance(s).
+
+       If the port number is not specified, the default port ``27017``
+       is used.
+
+
+   * - ``/defaultauthdb``
+     
+     - Optional. The authentication database to use if the
+       connection string includes ``username:password@``
+       authentication credentials but the :urioption:`authSource` option
+       is unspecified.
+
+       If both :urioption:`authSource` and ``defaultauthdb`` are
+       unspecified, the client will attempt to authenticate the
+       specified user to the ``admin`` database.
+
+   * - ``?<options>``
+
+     - Optional. A query string that specifies connection specific
+       options as ``<name>=<value>`` pairs. See
+       :ref:`connections-connection-options` for a full description of
+       these options.
+
+       If the connection string does not specify a database/ you must
+       specify a slash (``/``) between the last ``host`` and the
+       question mark (``?``) that begins the string of options.
+
+.. _connections-dns-seedlist:
+
+DNS Seed List Connection Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to the standard connection format, MongoDB supports a
+:abbr:`DNS (Domain Name Service)`-constructed :term:`seed list`. Using 
+DNS to construct the available servers list allows more flexibility of
+deployment and the ability to change the servers in rotation without
+reconfiguring clients.
+
+In order to leverage the DNS seed list, use a connection string prefix of
+``mongodb+srv`` rather than the standard ``mongodb``. The ``+srv``
+indicates to the client that the hostname that follows corresponds to a
+DNS SRV record. The driver or :binary:`~bin.mongosh` will then
+query the DNS for the record to determine which hosts are running the
+:binary:`~bin.mongod` instances.
+
+.. note::
+
+   Use of the ``+srv`` connection string modifier
+   automatically sets the :urioption:`tls` (or the equivalent
+   :urioption:`ssl`) option to ``true`` for the connection. You can
+   override this behavior by explicitly setting the :urioption:`tls`
+   (or the equivalent :urioption:`ssl`) option to ``false`` with
+   ``tls=false`` (or ``ssl=false``) in the query string.
+
+The following example shows a typical connection string for a DNS
+:term:`seed list` connection string:
+
+.. code-block:: none
+
+   mongodb+srv://server.example.com/
+
+The corresponding DNS configuration might resemble:
+
+.. code-block:: none
+
+   Record                            TTL   Class    Priority Weight Port  Target
+   _mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27317 mongodb1.example.com.
+   _mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27017 mongodb2.example.com.
+
+When a client connects to a member of the :term:`seed list`, the client 
+retrieves a list of replica set members it can connect to. Clients 
+often use DNS aliases in their seed lists which means the host may
+return a server list that differs from the original seed list. If this
+happens, clients will use the hostnames provided by the replica set 
+rather than the hostnames listed in the seed list to ensure that 
+replica set members can be reached via the hostnames in the resulting
+replica set config. 
+
+.. important::
+
+   The hostnames returned in SRV records must share the same parent
+   domain (in this example, ``example.com``) as the given hostname. If
+   the parent domains and hostname do not match, you will not be able to
+   connect.
+
+Like the standard connection string, the DNS seed list connection string
+supports specifying options as a query string. With a DNS seed list
+connection string, you can *also* specify the following options via a
+TXT record:
+
+- ``replicaSet``
+- ``authSource``
+
+You may only specify one TXT record per :binary:`~bin.mongod` instance.
+If multiple TXT records appear in the DNS and/or if the TXT
+record contains an option other than ``replicaSet`` or ``authSource``,
+the client will return an error.
+
+The TXT record for the ``server.example.com`` DNS entry would resemble:
+
+.. code-block:: none
+
+   Record              TTL   Class    Text
+   server.example.com. 86400 IN TXT   "replicaSet=mySet&authSource=authDB"
+
+Taken together, the DNS SRV records and the options specified in the TXT
+record resolve to the following standard format connection string:
+
+.. code-block:: none
+
+   mongodb://mongodb1.example.com:27317,mongodb2.example.com:27017/?replicaSet=mySet&authSource=authDB
+
+You can override the options specified in a TXT record by passing the option
+in the query string. In the following example, the query string has provided
+an override for the ``authSource`` option configured in the TXT record
+of the DNS entry above.
+
+.. code-block:: none
+
+   mongodb+srv://server.example.com/?connectTimeoutMS=300000&authSource=aDifferentAuthDB
+
+Given the override for the ``authSource``, the equivalent connection
+string in the standard format would be:
+
+.. code-block:: none
+
+   mongodb://mongodb1.example.com:27317,mongodb2.example.com:27017/?connectTimeoutMS=300000&replicaSet=mySet&authSource=aDifferentAuthDB
+
+.. note::
+   The ``mongodb+srv`` option will fail if there is no available DNS
+   with records that correspond to the hostname identified in the
+   connection string. In addition, use of the ``+srv`` connection string modifier
+   automatically sets the :urioption:`tls` (or the equivalent
+   :urioption:`ssl`) option to ``true`` for the connection. You can
+   override this behavior by explicitly setting the :urioption:`tls`
+   (or the equivalent :urioption:`ssl`) option to ``false`` with
+   ``tls=false`` (or ``ssl=false``) in the query string.
+
+.. see::
+
+   :ref:`example-connect-mongo-using-srv` provides an example of
+   connecting :binary:`~bin.mongosh` to a replica set using
+   the DNS Seed list Connection Format.
+
+
+.. _connections-connection-options:
+
+Connection String Options
+-------------------------
+
+This section lists all connection options.
+
+Connection options are pairs in the following form: ``name=value``.
+
+- The option ``name`` is case insensitive when using a driver.
+
+- The option ``name`` is case insensitive when using
+  :binary:`~bin.mongosh`, or the version 4.2 or later legacy
+  :binary:`~bin.mongo` shell.
+
+- The option ``name`` is case sensitive when using a version 4.0 and
+  earlier legacy :binary:`~bin.mongo` shell.
+
+- The ``value`` is always case sensitive.
+
+Separate options with the ampersand (i.e. ``&``) character
+``name1=value1&name2=value2``. In the following example, a
+connection includes the :urioption:`replicaSet` and
+:urioption:`connectTimeoutMS` options:
+
+.. code-block:: none
+
+   mongodb://db1.example.net:27017,db2.example.net:2500/?replicaSet=test&connectTimeoutMS=300000
+
+.. note:: Semi-colon separator for connection string arguments
+
+   To provide backwards compatibility, drivers currently accept
+   semi-colons (i.e. ``;``) as option separators.
+
+.. _replica-set-option:
+
+Replica Set Option
+~~~~~~~~~~~~~~~~~~
+
+The following connection string to a replica set named ``myRepl`` with
+members running on the specified hosts:
+
+.. code-block:: bash
+
+   mongodb://db0.example.com:27017,db1.example.com:27017,db2.example.com:27017/?replicaSet=myRepl
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: replicaSet
+
+     - Specifies the name of the :term:`replica set`, if the
+       :binary:`~bin.mongod` is a member of a replica set.
+
+       When connecting to a replica set, provide a :term:`seed list` of 
+       the replica set member(s) to the ``host[:port]`` component of the
+       uri. For specific details, refer to your :driver:`driver </>` 
+       documentation.
+
+Connection Options
+~~~~~~~~~~~~~~~~~~
+
+.. _uri-options-tls:
+
+TLS Options
+```````````
+
+The following connection string to a replica set includes 
+:urioption:`tls=true <tls>` option (available starting in MongoDB 4.2):
+
+.. code-block:: none
+
+   mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&tls=true
+
+Alternatively, you can also use the equivalent :urioption:`ssl=true
+<ssl>` option:
+
+.. code-block:: none
+
+   mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&ssl=true
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: tls
+
+     - Enables or disables TLS/SSL for the connection:
+
+       - ``true``: Initiate the connection with TLS/SSL. Default for
+         :ref:`connections-dns-seedlist`.
+
+       - ``false``: Initiate the connection without TLS/SSL. Default for
+         :ref:`connections-standard-connection-string-format`.
+
+       .. note::
+
+          The :urioption:`tls` option is equivalent to the
+          :urioption:`ssl` option.
+
+       If the :binary:`mongo` shell specifies additional
+       :ref:`tls/ssl <mongo-shell-tls>` options from the
+       command-line, use the :option:`--tls <mongosh --tls>`
+       command-line option instead.
+       
+       .. versionadded:: 4.2
+
+   * - .. urioption:: ssl
+
+     - A boolean to enable or disables TLS/SSL for the connection:
+  
+       - ``true``: Initiate the connection with TLS/SSL. Default for
+         :ref:`connections-dns-seedlist`.
+      
+       - ``false``: Initiate the connection without TLS/SSL. Default
+         for :ref:`connections-standard-connection-string-format`.
+
+       .. note::
+
+          The :urioption:`ssl` option is equivalent to the
+          :urioption:`tls` option.
+
+       If the :binary:`mongo` shell specifies additional
+       :ref:`tls/ssl <mongo-shell-ssl>` options from the
+       command-line, use the ``--ssl``
+       command-line option instead.
+
+   * - .. urioption:: tlsCertificateKeyFile
+
+     - Specifies the location of a local :file:`.pem` file that
+       contains either the client's TLS/SSL X.509 certificate or the
+       client's TLS/SSL certificate and key.
+
+       The client presents this file to the
+       :binary:`~bin.mongod`/:binary:`~bin.mongos` instance.
+
+       .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
+
+       This option is not supported by all drivers. Refer to the
+       :driver:`Drivers </>` documentation.
+       
+       .. include:: /includes/fact-uri-option-availability.rst
+
+       .. versionadded:: 4.2
+
+   * - .. urioption:: tlsCertificateKeyFilePassword
+
+     - Specifies the password to de-crypt the
+       :urioption:`tlsCertificateKeyFile`.
+
+       This option is not supported by all drivers. Refer to the
+       :driver:`Drivers </>` documentation.
+
+       .. include:: /includes/fact-uri-option-availability.rst
+
+       .. versionadded:: 4.2
+
+   * - .. urioption:: tlsCAFile
+
+     - Specifies the location of a local :file:`.pem` file that
+       contains the root certificate chain from the Certificate
+       Authority. This file is used to validate the certificate
+       presented by the :binary:`~bin.mongod`/:binary:`~bin.mongos`
+       instance.
+
+       This option is not supported by all drivers. Refer to the
+       :driver:`Drivers </>` documentation.
+
+       .. include:: /includes/fact-uri-option-availability.rst
+
+       .. versionadded:: 4.2
+
+   * - .. urioption:: tlsAllowInvalidCertificates
+   
+     - Bypasses validation of the certificates presented by the
+       :binary:`~bin.mongod`/:binary:`~bin.mongos` instance
+
+       Set to ``true`` to connect to MongoDB instances even if the
+       server's present invalid certificates.
+
+       This option is not supported by all drivers. Refer to the
+       :driver:`Drivers </>` documentation.
+
+       .. include:: /includes/fact-uri-option-availability.rst
+
+       .. warning::
+
+          Disabling certificate validation creates a vulnerability.
+
+       .. versionadded:: 4.2
+
+   * - .. urioption:: tlsAllowInvalidHostnames
+
+     - Disables hostname validation of the certificate presented by
+       the :binary:`~bin.mongod`/:binary:`~bin.mongos` instance.
+
+       Set to ``true`` to connect to MongoDB instances even if the
+       hostname in the server certificates do not match the server's
+       host.
+
+       This option is not supported by all drivers. Refer to the
+       :driver:`Drivers </>` documentation.
+
+       .. include:: /includes/fact-uri-option-availability.rst
+
+       .. warning::
+
+          Disabling certificate validation creates a vulnerability.
+
+       .. versionadded:: 4.2
+
+
+   * - .. urioption:: tlsInsecure
+
+     - Disables various certificate validations. 
+     
+       Set to ``true`` to disable certificate validations. The exact
+       validatations disabled vary by drivers. Refer to the
+       :driver:`Drivers </>` documentation.
+
+       .. include:: /includes/fact-uri-option-availability.rst
+
+       .. warning::
+
+          Disabling certificate validation creates a vulnerability.
+
+       .. versionadded:: 4.2
+
+Timeout Options
+````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: connectTimeoutMS
+
+     - The time in milliseconds to attempt a connection before timing
+       out. The default is never to timeout, though different drivers
+       might vary. See the :driver:`driver </>`
+       documentation.
+
+   * - .. urioption:: socketTimeoutMS
+
+     - The time in milliseconds to attempt a send or receive on a
+       socket before the attempt times out. The default is never to
+       timeout, though different drivers might vary. See the
+       :driver:`driver </>` documentation.
+
+Compression Options
+```````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: compressors
+
+     - Comma-delimited string of compressors to enable
+       network compression for communication between this
+       client and a :binary:`~bin.mongod`/:binary:`~bin.mongos`
+       instance.
+
+       You can specify the following compressors:	
+
+       - :term:`snappy`
+
+       - :term:`zlib` (Available in MongoDB 3.6 or greater)
+
+       - :term:`zstd` (Available in MongoDB 4.2 or greater)
+
+       If you specify multiple compressors, then the order in which you list
+       the compressors matter as well as the communication initiator. For
+       example, if the client specifies the following network
+       compressors ``"zlib,snappy"`` and the :binary:`~bin.mongod` specifies
+       ``"snappy,zlib"``, messages between the client and the
+       :binary:`~bin.mongod` uses ``zlib``.
+
+       .. important::
+
+          Messages are compressed when both parties enable network
+          compression. Otherwise, messages between the parties are
+          uncompressed.
+
+          If the parties do not share at least one common compressor,
+          messages between the parties are uncompressed.
+
+       :binary:`~bin.mongosh` supports the uri connection string
+       option :urioption:`compressors`.
+
+   * - .. urioption:: zlibCompressionLevel
+
+     - An integer that specifies the compression level if using
+       :term:`zlib` for :urioption:`network compression <compressors>`.
+
+       You can specify an integer value ranging from ``-1`` to ``9``:
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 25 75
+
+          * - Value
+            - Notes
+
+          * - ``-1``
+
+            - Default compression level, usually level ``6`` compression.
+
+          * - ``0``
+            - No compression
+
+          * - ``1`` - ``9``
+
+            - Increasing level of compression but at the cost of speed, with:
+
+              - ``1`` providing the best speed but least compression, and
+
+              - ``9`` providing the best compression but at the slowest speed.
+
+       Not supported by :binary:`~bin.mongosh`.
+
+.. _connection-pool-options:
+
+Connection Pool Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Most drivers implement some kind of connection pool handling.
+Some drivers do not support connection
+pools. See your :driver:`driver </>` documentation
+for more information on the connection pooling implementation. These
+options allow applications to configure the connection pool when
+connecting to the MongoDB deployment.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: maxPoolSize
+
+     - The maximum number of connections in the connection pool. The
+       default value is ``100``.
+
+   * - .. urioption:: minPoolSize
+
+     - The minimum number of connections in the connection pool. The
+       default value is ``0``.
+
+       .. note::
+          The :urioption:`minPoolSize` option is not supported by all
+          drivers. For information on your driver, see the
+          :driver:`Drivers </>` documentation.
+
+   * - .. urioption:: maxIdleTimeMS
+
+     - The maximum number of milliseconds that a connection can remain
+       idle in the pool before being removed and closed.
+
+       This option is not supported by all drivers.
+
+   * - .. urioption:: waitQueueMultiple
+
+     - A number that the driver multiplies the :urioption:`maxPoolSize`
+       value to, to provide the maximum number of threads allowed to
+       wait for a connection to become available from the pool. For
+       default values, see the :driver:`driver </>`
+       documentation.
+
+       This option is not supported by all drivers.
+
+   * - .. urioption:: waitQueueTimeoutMS
+
+     - The maximum time in milliseconds that a thread can wait for a
+       connection to become available. For default values, see the
+       :driver:`driver </>` documentation.
+
+       This option is not supported by all drivers.
+
+.. _connections-write-concern:
+
+Write Concern Options
+~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Write concern <write-concern>` describes the level of
+acknowledgment requested from MongoDB. The write concern option is
+supported by the:
+
+- MongoDB drivers
+
+- :binary:`~bin.mongosh`
+
+- :binary:`~bin.mongofiles`
+
+- :binary:`~bin.mongoimport`
+
+- :binary:`~bin.mongorestore`
+
+You can specify the write concern both in the connection string and
+as a parameter to methods like ``insert`` or ``update``. If the
+write concern is specified in both places, the method parameter
+overrides the connection-string setting.
+
+The following connection string to a replica set specifies
+:writeconcern:`"majority"` write concern and a 5 second
+timeout using the :urioption:`wtimeoutMS` write concern parameter:
+
+.. code-block:: none
+
+   mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&w=majority&wtimeoutMS=5000
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: w
+
+     - Corresponds to the write concern :ref:`wc-w`. The ``w`` option
+       requests acknowledgement that the write operation has propagated
+       to a specified number of :binary:`~bin.mongod` instances or to
+       :binary:`~bin.mongod` instances with specified tags.
+
+       You can specify a :writeconcern:`number <\<number\>>`, the
+       string :writeconcern:`majority <"majority">`, or a
+       :writeconcern:`tag set <\<custom write concern name\>>`.
+
+       For details, see :ref:`wc-w`.
+
+   * - .. urioption:: wtimeoutMS
+
+     - Corresponds to the write concern :ref:`wc-wtimeout`.
+       :urioption:`wtimeoutMS` specifies a time limit, in milliseconds,
+       for the write concern.
+
+       When ``wtimeoutMS`` is ``0``, write operations will never time
+       out. For more information, see :ref:`wc-wtimeout`.
+
+   * - .. urioption:: journal
+
+     - Corresponds to the write concern :ref:`wc-j` option. The
+       :urioption:`journal` option requests acknowledgement from
+       MongoDB that the write operation has been written to the
+       :doc:`journal </core/journaling>`. For details, see :ref:`wc-j`.
+
+       If you set :urioption:`journal` to ``true``, and specify a
+       :urioption:`w` value less than 1, :urioption:`journal` prevails.
+
+       If you set :urioption:`journal` to true, and the
+       :binary:`~bin.mongod` does not have journaling enabled, as with
+       :setting:`storage.journal.enabled`, then MongoDB will error.
+
+For more information, see :doc:`/reference/write-concern`.
+
+``readConcern`` Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+For the WiredTiger storage engine, MongoDB 3.2 introduces the
+readConcern option for replica sets and replica set shards.
+
+:doc:`/reference/read-concern` allows clients to choose a level of
+isolation for their reads from replica sets.
+
+The following connection string to a replica set specifies
+:urioption:`readConcernLevel=majority <readConcernLevel>`:
+
+.. code-block:: none
+
+   mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&readConcernLevel=majority
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: readConcernLevel
+
+     - The level of isolation. Can accept one of the following values:
+
+       - :readconcern:`local <"local">`
+       - :readconcern:`majority <"majority">`
+       - :readconcern:`linearizable <"linearizable">`
+       - :readconcern:`available <"available">`
+
+       This connection string option is not available for
+       :binary:`~bin.mongosh`. Specify the read concern as an
+       :ref:`option to the specific operation
+       <read-concern-operations>`.
+
+For more information, see :doc:`/reference/read-concern`.
+
+.. _connections-read-preference:
+
+Read Preference Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+:doc:`Read preferences </core/read-preference>` describe the
+behavior of read operations with regards to :term:`replica sets
+<replica set>`. These parameters allow you to specify read preferences
+on a per-connection basis in the connection string.
+
+.. note::
+
+   To specify the hedged reads option using the drivers, refer to the
+   :driver:`drivers' read preference API </>`.
+
+For example:
+
+- The following connection string to a replica set specifies
+  :readmode:`secondary` read preference mode and a
+  :urioption:`maxStalenessSeconds` value of 120 seconds:
+
+  .. code-block:: none
+
+     mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&readPreference=secondary&maxStalenessSeconds=120
+
+- The following connection string to a sharded cluster specifies
+  :readmode:`secondary` read preference mode and a
+  :urioption:`maxStalenessSeconds` value of 120 seconds:
+
+  .. code-block:: none
+
+     mongodb://mongos1.example.com,mongos2.example.com/?readPreference=secondary&maxStalenessSeconds=120
+
+- The following connection string to a sharded cluster specifies
+  :readmode:`secondary` read preference mode as well as three
+  :urioption:`readPreferenceTags`:
+
+  .. code-block:: none
+
+     mongodb://mongos1.example.com,mongos2.example.com/?readPreference=secondary&readPreferenceTags=dc:ny,rack:r1&readPreferenceTags=dc:ny&readPreferenceTags=
+
+Order matters when using multiple ``readPreferenceTags``. The
+``readPreferenceTags`` are tried in order until a match is found. Once
+found, that specification is used to find all eligible matching
+members and any remaining ``readPreferenceTags``  are ignored.
+For details, see :ref:`read-preference-tag-order-matching`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: readPreference
+
+     - Specifies the :doc:`read preferences </core/read-preference>`
+       for this connection. Possible values are:
+
+       - :readmode:`primary` (*Default*)
+       - :readmode:`primaryPreferred`
+       - :readmode:`secondary`
+       - :readmode:`secondaryPreferred`
+       - :readmode:`nearest`
+
+       .. include:: /includes/extracts/transactions-read-pref.rst
+
+       This connection string option is not available for the
+       :binary:`mongo` shell. See :method:`cursor.readPref()` and
+       :method:`Mongo.setReadPref()` instead.
+
+   * - .. urioption:: maxStalenessSeconds
+
+     - Specifies, in seconds, how stale a secondary can be before the client
+       stops using it for read operations. For details, see
+       :ref:`replica-set-read-preference-max-staleness`.
+
+       By default, there is no maximum staleness and clients will not consider a
+       secondary's lag when choosing where to direct a read operation.
+
+       The minimum :urioption:`maxStalenessSeconds` value is 90
+       seconds. Specifying a value between 0 and 90 seconds will produce
+       an error. MongoDB drivers treat a ``maxStalenessSeconds`` value
+       of ``-1`` as "no max staleness", the same as if
+       ``maxStalenessSeconds`` is omitted.
+
+       .. important::
+          To use ``maxStalenessSeconds``, all of the
+          MongoDB instances in your deployment must be using MongoDB 3.4 or
+          later. If any instances are on an earlier version of MongoDB, the
+          driver or :binary:`~bin.mongod`/:binary:`~bin.mongos` will raise an error.
+
+   * - .. urioption:: readPreferenceTags
+
+     - Specifies the :ref:`tags document
+       <replica-set-read-preference-tag-sets>` as a comma-separated
+       list of colon-separated key-value pairs. For example,
+       
+       - To specify the tags document ``{ "dc": "ny", "rack": "r1" }``,
+         use ``readPreferenceTags=dc:ny,rack:r1`` in the connection
+         string.
+         
+       - To specify an empty tags document ``{ }``, use
+         ``readPreferenceTags=`` without setting the value.
+
+       To specify a *list* of tag documents, use multiple
+       ``readPreferenceTags``. For example,
+       ``readPreferenceTags=dc:ny,rack:r1&readPreferenceTags=``.
+
+       Order matters when using multiple ``readPreferenceTags``. The
+       ``readPreferenceTags`` are tried in order until a match is
+       found. For details, see
+       :ref:`read-preference-tag-order-matching`.
+       
+       This connection string option is not available for the
+       :binary:`mongo` shell. See :method:`cursor.readPref()` and
+       :method:`Mongo.setReadPref()` instead.
+
+For more information, see :doc:`Read preferences </core/read-preference>`.
+
+.. _connection-string-auth-options:
+
+Authentication Options
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following connection string to a replica set specifies the
+:urioption:`authSource` to the ``admin`` database. That is, the user
+credentials are authenticated against the ``admin`` database.
+
+.. code-block:: bash
+
+   mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myRepl&authSource=admin
+
+.. include:: /includes/fact-pct-encode-uri.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: authSource
+
+     - Specify the database name associated with the user's
+       credentials. If :urioption:`authSource` is unspecified,
+       :urioption:`authSource` defaults to the ``defaultauthdb``
+       specified in the connection string. If ``defaultauthdb`` is
+       unspecified, then :urioption:`authSource` defaults to ``admin``.
+
+       The ``PLAIN`` (LDAP), ``GSSAPI`` (Kerberos), and ``MONGODB-AWS``
+       (IAM) authentication mechanisms require that
+       :urioption:`authSource` be set to ``$external``, as these
+       mechanisms delegate credential storage to external services.
+
+       MongoDB will ignore :urioption:`authSource` values if no username
+       is provided, either in the connection string or via the
+       ``--username`` parameter.
+
+   * - .. urioption:: authMechanism
+
+     - Specify the authentication mechanism that MongoDB will use to
+       authenticate the connection. Possible values include:
+
+       - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+
+       - :ref:`SCRAM-SHA-256 <authentication-scram-sha-256>` (*Added in MongoDB 4.0*)
+
+       - :ref:`MONGODB-X509 <security-auth-x509>`
+
+       - ``MONGODB-AWS`` (*Added in MongoDB 4.4*)
+
+       - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+
+       - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+
+       MongoDB 4.0 removes support for the ``MONGODB-CR``
+       authentication mechanism. You cannot specify ``MONGODB-CR`` as
+       the authentication mechanism when connecting to MongoDB 4.0+
+       deployments.
+
+       Only MongoDB Enterprise :binary:`~bin.mongod` and
+       :binary:`~bin.mongos` instances provide ``GSSAPI`` (Kerberos) and
+       ``PLAIN`` (LDAP) mechanisms.
+       
+       To use ``MONGODB-X509``, you must have TLS/SSL Enabled.
+
+       To use ``MONGODB-AWS``, you must be connecting to a
+       `MongoDB Atlas
+       <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster
+       which has been configured to support authentication via
+       `AWS IAM credentials
+       <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__
+       (i.e. an AWS access key ID and a secret access key, and
+       optionally an `AWS session token
+       <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__).
+       The ``MONGODB-AWS`` authentication mechanism requires that the
+       :urioption:`authSource` be set to ``$external``.
+
+       When using ``MONGODB-AWS``, provide your AWS access key ID as the
+       username and the secret access key as the password. If using an
+       `AWS session token
+       <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__
+       as well, provide it with the ``AWS_SESSION_TOKEN``
+       :urioption:`authMechanismProperties` value.
+
+       .. note::
+
+          If the AWS access key ID, secret access key, or session token
+          include the following characters:
+
+          .. code-block:: none
+
+             : / ? # [ ] @
+
+          those characters must be converted using `percent encoding
+          <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
+
+       Alternatively, if the AWS access key ID, secret access key, or
+       session token are defined on your platform using their respective
+       `AWS IAM environment variables
+       <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__
+       :binary:`~bin.mongosh` will use these environment
+       variable values to authenticate; you do not need to specify them
+       in the connection string.
+
+       See :ref:`Connect to an Atlas Cluster
+       <connections-string-example-mongodb-aws>` for example usage of
+       the ``MONGODB-AWS`` authentication mechanism using both a
+       connection string and the environment variables method.
+
+       See :doc:`/core/authentication` for more information about the
+       authentication system in MongoDB. Also consider
+       :doc:`/tutorial/configure-x509-client-authentication` for more
+       information on x509 authentication.
+
+   * - .. urioption:: authMechanismProperties
+
+     - Specify properties for the specified :urioption:`authMechanism`
+       as a comma-separated list of colon-separated key-value pairs.
+
+       Possible key-value pairs are:
+
+       ``SERVICE_NAME:<string>``
+         Set the Kerberos service name when connecting to Kerberized
+         MongoDB instances. This value must match the service name set
+         on MongoDB instances to which you are connecting. Only valid
+         when using the :ref:`GSSAPI<security-auth-kerberos>`
+         authentication mechanism.
+
+         ``SERVICE_NAME`` defaults to ``mongodb`` for all clients and
+         MongoDB instances. If you change the
+         :parameter:`saslServiceName` setting on a MongoDB instance, you
+         must set ``SERVICE_NAME`` to match that setting. Only valid
+         when using the :ref:`GSSAPI<security-auth-kerberos>`
+         authentication mechanism.
+
+       ``CANONICALIZE_HOST_NAME:true|false``
+         Canonicalize the hostname of the client host machine when
+         connecting to the Kerberos server. This may be required when
+         hosts report different hostnames than what is in the Kerberos
+         database. Defaults to ``false``. Only valid when using the
+         :ref:`GSSAPI<security-auth-kerberos>` authentication
+         mechanism.
+
+       ``SERVICE_REALM:<string>``
+         Set the Kerberos realm for the MongoDB service. This may be
+         necessary to support cross-realm authentication where the user
+         exists in one realm and the service in another. Only valid when
+         using the :ref:`GSSAPI<security-auth-kerberos>` authentication
+         mechanism.
+
+       ``AWS_SESSION_TOKEN:<security_token>``
+         Set the AWS session token for authentication with temporary
+         credentials when using an `AssumeRole
+         <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__
+         request, or when working with AWS resources that specify this
+         value such as Lambda. Only valid when using the ``MONGODB-AWS``
+         authentication mechanism. You must have an AWS access key ID
+         and a secret access key as well. See
+         :ref:`Connect to an Atlas Cluster
+         <connections-string-example-mongodb-aws>` for example usage.
+
+   * - .. urioption:: gssapiServiceName
+
+     - Set the Kerberos service name when connecting to Kerberized
+       MongoDB instances. This value must match the service name set on
+       MongoDB instances to which you are connecting.
+
+       :urioption:`gssapiServiceName` defaults to ``mongodb`` for all
+       clients and MongoDB instances. If you change
+       :parameter:`saslServiceName` setting on a MongoDB instance, you
+       must set :urioption:`gssapiServiceName` to match that setting.
+
+       :urioption:`gssapiServiceName` is a deprecated aliases for
+       :urioption:`authMechanismProperties=SERVICE_NAME:mongodb
+       <authMechanismProperties>`. For more information on which
+       options your driver supports and their relative priority to each
+       other, reference the documentation for your preferred driver
+       version.
+
+.. _selection-discovery-options:
+
+Server Selection and Discovery Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides the following options to configure how MongoDB drivers
+and :binary:`~bin.mongos` instances select a server to which to direct read
+or write operations.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: localThresholdMS
+
+     - The size (in milliseconds) of the latency window for selecting
+       among multiple suitable MongoDB instances. *Default*: 15
+       milliseconds.
+
+       All drivers use :urioption:`localThresholdMS`. Use the
+       ``localThreshold`` alias when specifying the latency window size
+       to :binary:`~bin.mongos`.
+
+   * - .. urioption:: serverSelectionTimeoutMS
+
+     - Specifies how long (in milliseconds) to block for server
+       selection before throwing an exception. *Default*: 30,000
+       milliseconds.
+
+   * - .. urioption:: serverSelectionTryOnce
+
+     - **Single-threaded drivers only**. When ``true``, instructs the
+       driver to scan the MongoDB deployment exactly once after server
+       selection fails and then either select a server or raise an
+       error. When ``false``, the driver blocks and searches for a
+       server up to the :urioption:`serverSelectionTimeoutMS` value.
+       *Default*: ``true``.
+
+       Multi-threaded drivers and :binary:`~bin.mongos` do not support
+       :urioption:`serverSelectionTryOnce`.
+
+   * - .. urioption:: heartbeatFrequencyMS
+
+     - :urioption:`heartbeatFrequencyMS` controls when the driver
+       checks the state of the MongoDB deployment. Specify the interval
+       (in milliseconds) between checks, counted from the end of the
+       previous check until the beginning of the next one.
+
+       *Default*:
+
+       - Single-threaded drivers: 60 seconds.
+       - Multi-threaded drivers: 10 seconds.
+
+       :binary:`~bin.mongos` does not support changing the frequency of
+       the heartbeat checks.
+
+Miscellaneous Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: appName
+
+     - Specify a custom app name. The app name appears in
+
+       - :binary:`~bin.mongod` and :binary:`~bin.mongos` :doc:`logs
+         </reference/log-messages>`,
+
+       - the :data:`currentOp.appName` field in the :dbcommand:`currentOp`
+         command and :method:`db.currentOp()` method output,
+
+       - the :data:`system.profile.appName` field in the :doc:`database
+         profiler </reference/database-profiler>` output.
+
+       The :urioption:`appName` connection option is only applicable
+       when provided to a :ecosystem:`MongoDB Driver </>`. This
+       parameter has no effect when supplied to a client application
+       such as :compass:`MongoDB Compass </>` or :binary:`~bin.mongosh`.
+
+       .. versionadded:: 4.0
+
+   * - .. urioption:: retryReads
+
+     - Enables :ref:`retryable reads <retryable-reads>`.
+
+       Possible values are:
+
+       - ``true``. Enables retryable reads for the connection. 
+
+         Official MongoDB drivers compatible with 
+         MongoDB Server 4.2 and later default to ``true``.
+
+       - ``false``. Disables retryable reads for the connection.
+       
+       :binary:`~bin.mongosh` does not support retryable reads.
+
+       .. versionadded:: 4.2
+
+   * - .. urioption:: retryWrites
+
+     - Enable :ref:`retryable writes <retryable-writes>`.
+
+       Possible values are:
+
+       - ``true``. Enables retryable writes for the connection. 
+
+         Official MongoDB 4.2+ compatible drivers default to ``true``.
+
+       - ``false``. Disables retryable writes for the connection. 
+       
+         Official MongoDB 4.0 and 3.6-compatible drivers default to ``false``.
+
+       MongoDB drivers retry 
+       :ref:`transaction commit and abort operations <transactions-retry>`
+       regardless of the value of :urioption:`retryWrites`. For more 
+       information on transaction retryability, see
+       :ref:`transactions-retry`. 
+
+   * - .. urioption:: uuidRepresentation
+
+     - Possible values are:
+
+       ``standard``
+         The standard binary representation.
+
+       ``csharpLegacy``
+         The default representation for the C# driver.
+
+       ``javaLegacy``
+         The default representation for the Java driver.
+
+       ``pythonLegacy``
+         The default representation for the Python driver.
+
+       For the default, see the :driver:`Drivers </>`
+       documentation for your driver.
+
+       .. note::
+          Not all drivers support the :urioption:`uuidRepresentation`
+          option. For information on your driver, see the :driver:`drivers
+          </>` documentation.
+
+.. _connections-connection-examples:
+
+Examples
+--------
+
+The following provide example URI strings for common connection targets.
+
+Database Server Running Locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following connects to a database server running locally on the
+default port:
+
+.. code-block:: none
+
+   mongodb://localhost
+
+``admin`` Database
+~~~~~~~~~~~~~~~~~~
+
+The following connects and logs in to the ``admin`` database as user
+``sysop`` with the password ``moon``:
+
+.. code-block:: none
+
+   mongodb://sysop:moon@localhost
+
+``records`` Database
+~~~~~~~~~~~~~~~~~~~~
+
+The following connects and logs in to the ``records`` database as user
+``sysop`` with the password ``moon``:
+
+.. code-block:: none
+
+   mongodb://sysop:moon@localhost/records
+
+UNIX Domain Socket
+~~~~~~~~~~~~~~~~~~
+
+Use a URL encoded connection string when connecting to a UNIX domain
+socket.
+
+The following connects to a UNIX domain socket with file path
+``/tmp/mongodb-27017.sock``:
+
+.. code-block:: none
+
+   mongodb://%2Ftmp%2Fmongodb-27017.sock
+
+.. note:: Not all drivers support UNIX domain sockets. For information
+   on your driver, see the :driver:`Drivers </>`
+   documentation.
+
+Replica Set with Members on Different Machines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following connects to a :term:`replica set` with two members, one on
+``db1.example.net`` and the other on ``db2.example.net``:
+
+.. note::
+
+   .. include:: /includes/fact-uri-rs-hostnames.rst
+
+.. code-block:: none
+
+   mongodb://db1.example.net,db2.example.com/?replicaSet=test
+
+Replica Set with Members on ``localhost``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following connects to a replica set with three members running on ``localhost`` on
+ports ``27017``, ``27018``, and ``27019``:
+
+.. note::
+
+   .. include:: /includes/fact-uri-rs-hostnames.rst
+
+.. code-block:: none
+
+   mongodb://localhost,localhost:27018,localhost:27019/?replicaSet=test
+
+Replica Set with Read Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following connects to a replica set with three members and
+distributes reads to the :term:`secondaries <secondary>`:
+
+.. note::
+
+   .. include:: /includes/fact-uri-rs-hostnames.rst
+
+.. code-block:: none
+
+   mongodb://example1.com,example2.com,example3.com/?replicaSet=test&readPreference=secondary
+
+Replica Set with a High Level of Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following connects to a replica set with write concern configured to wait
+for replication to succeed across a majority of the data-bearing voting
+members, with a two-second timeout.
+
+.. note::
+
+   .. include:: /includes/fact-uri-rs-hostnames.rst
+
+.. code-block:: none
+
+   mongodb://example1.com,example2.com,example3.com/?replicaSet=test&w=majority&wtimeoutMS=2000
+
+Sharded Cluster
+~~~~~~~~~~~~~~~
+
+The following connects to a sharded cluster with three :binary:`~bin.mongos` instances:
+
+.. code-block:: none
+
+   mongodb://router1.example.com:27017,router2.example2.com:27017,router3.example3.com:27017/
+
+.. _connections-string-example-mongodb-aws:
+
+MongoDB Atlas Cluster
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+The following connects to a `MongoDB Atlas
+<https://www.mongodb.com/cloud/atlas?tck=docs_server>`_ cluster which
+has been configured to support authentication via `AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__:
+
+.. code-block:: none
+
+   mongosh 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'
+
+Connecting to Atlas using AWS IAM credentials in this manner uses the
+``MONGODB-AWS`` :urioption:`authentication mechanism <authMechanism>`
+and the ``$external`` :urioption:`authSource`, as shown in this example.
+
+If using an `AWS session token
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__,
+as well, provide it with the ``AWS_SESSION_TOKEN``
+:urioption:`authMechanismProperties` value, as follows:
+
+.. code-block:: none
+
+   mongosh 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<aws session token>'
+
+.. note::
+
+   If the AWS access key ID, the secret access key, or the session token
+   include the following characters:
+
+   .. code-block:: none
+
+      : / ? # [ ] @
+
+   those characters must be converted using `percent encoding
+   <https://tools.ietf.org/html/rfc3986#section-2.1>`__. 
+
+You may also set these credentials on your platform using standard
+`AWS IAM environment variables
+<https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__.
+:binary:`~bin.mongosh` checks for the following environment
+variables when you use the ``MONGODB-AWS``
+:urioption:`authentication mechanism <authMechanism>`:
+
+- ``AWS_ACCESS_KEY_ID``
+- ``AWS_SECRET_ACCESS_KEY``
+- ``AWS_SESSION_TOKEN``
+
+If set, these credentials do not need to be specified in the connection
+string.
+
+The following example sets these environment variables in the ``bash``
+shell:
+
+.. code-block:: none
+
+   export AWS_ACCESS_KEY_ID='<aws access key id>'
+   export AWS_SECRET_ACCESS_KEY='<aws secret access key>'
+   export AWS_SESSION_TOKEN='<aws session token>'
+
+Syntax for setting environment variables in other shells will be
+different. Consult the documentation for your platform for more
+information.
+
+You can verify that these environment variables have been set with the
+following command:
+
+.. code-block:: none
+
+   env | grep AWS
+
+Once set, the following example connects to a MongoDB Atlas cluster
+using these environment variables:
+
+.. code-block:: none
+
+   mongosh 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'

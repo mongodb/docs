@@ -1,0 +1,265 @@
+.. _troubleshooting:
+
+========================
+FAQ: MongoDB Diagnostics
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document provides answers to common diagnostic questions and
+issues.
+
+If you don't find the answer you're looking for, check
+the :doc:`complete list of FAQs </faq>` or post your question to the
+`MongoDB Community <https://community.mongodb.com/?tck=docs_server>`_.
+
+Where can I find information about a ``mongod`` process that stopped running unexpectedly?
+------------------------------------------------------------------------------------------
+
+If :binary:`~bin.mongod` shuts down unexpectedly on a UNIX or UNIX-based
+platform, and if :binary:`~bin.mongod` fails to log a shutdown or error
+message, then check your system logs for messages pertaining to MongoDB.
+For example, for logs located in ``/var/log/messages``, use the
+following commands:
+
+.. code-block:: bash
+
+   sudo grep mongod /var/log/messages
+   sudo grep score /var/log/messages
+
+.. _faq-keepalive:
+
+Does TCP ``keepalive`` time affect MongoDB Deployments?
+-------------------------------------------------------
+
+If you experience network timeouts or socket errors in communication
+between clients and servers, or between members of a sharded cluster or
+replica set, check the *TCP keepalive value* for the affected systems.
+
+Many operating systems set this value to ``7200`` seconds (two hours) by
+default. For MongoDB, you will generally experience better results with
+a shorter keepalive value, on the order of ``120`` seconds (two
+minutes).
+
+If your MongoDB deployment experiences keepalive-related issues, you
+must alter the keepalive value on *all* affected systems. This includes
+all machines running :binary:`~bin.mongod` or :binary:`~bin.mongos`
+processes and all machines hosting client processes that connect to
+MongoDB.
+
+Adjusting the TCP keepalive value:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: Linux
+      :tabid: linux-keepalive
+
+      .. include:: /includes/fact-tcp-keepalive-linux.rst
+
+   .. tab:: Windows
+      :tabid: windows-keepalive
+
+      .. include:: /includes/fact-tcp-keepalive-windows.rst
+
+   .. tab:: macOS
+      :tabid: macos-keepalive
+
+      .. include:: /includes/fact-tcp-keepalive-osx.rst
+
+You will need to restart :binary:`~bin.mongod` and :binary:`~bin.mongos`
+processes for new system-wide keepalive settings to take effect.
+
+Why does MongoDB log so many "Connection Accepted" events?
+----------------------------------------------------------
+
+If you see a very large number of connection and re-connection messages
+in your MongoDB log, then clients are frequently connecting and
+disconnecting to the MongoDB server. This is normal behavior for
+applications that do not use request pooling, such as CGI. Consider
+using FastCGI, an Apache Module, or some other kind of persistent
+application server to decrease the connection overhead.
+
+If these connections do not impact your performance you can use the
+run-time :setting:`~systemLog.quiet` option or the command-line option
+:option:`--quiet <mongod --quiet>` to suppress these messages from the
+log.
+
+What tools are available for monitoring MongoDB?
+------------------------------------------------
+
+Starting in version 4.0, MongoDB offers :doc:`free Cloud monitoring
+</administration/free-monitoring>` for standalones and replica sets.
+Free monitoring provides information about your deployment, including:
+
+- Operation Execution Times
+
+- Memory Usage
+
+- CPU Usage
+
+- Operation Counts
+
+For more information, see :doc:`/administration/free-monitoring`.
+
+.. include:: /includes/replacement-mms.rst
+
+The |mms-home| and
+:products:`Ops Manager, an on-premise solution available in MongoDB
+Enterprise Advanced </mongodb-enterprise-advanced?tck=docs_server>` include
+monitoring functionality, which collects data from running MongoDB
+deployments and provides visualization and alerts based on that data.
+
+For more information, see also the |mms-docs| and
+:opsmgr:`Ops Manager documentation </application>`.
+
+A full list of third-party tools is available as part of the
+:doc:`/administration/monitoring/` documentation.
+
+.. _faq-memory-wt:
+
+Memory Diagnostics for the WiredTiger Storage Engine
+----------------------------------------------------
+
+Must my working set size fit RAM?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+No.
+
+.. include:: /includes/extracts/wt-cache-size.rst
+
+How do I calculate how much RAM I need for my application?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/wt-configure-cache.rst
+
+Sharded Cluster Diagnostics
+---------------------------
+
+The two most important factors in maintaining a successful sharded cluster are:
+
+- :ref:`choosing an appropriate shard key <sharding-internals-shard-keys>` and
+
+- :ref:`sufficient capacity to support current and future operations
+  <sharding-capacity-planning>`.
+
+While you can :ref:`change your shard key <change-a-shard-key>` later,
+it is important to carefully consider your shard key choice to avoid
+scalability and performance issues. Continue reading for specific issues
+you may encounter in a production environment.
+
+.. _sharding-troubleshooting-not-splitting:
+
+In a new sharded cluster, why does all data remain on one shard?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your cluster must have sufficient data for sharding to make
+sense. Sharding works by migrating chunks between the shards until
+each shard has roughly the same number of chunks.
+
+The default chunk size is 128 megabytes. MongoDB will not begin
+migrations until the imbalance of chunks in the cluster exceeds the
+:ref:`migration threshold <sharding-migration-thresholds>`. This
+behavior helps prevent unnecessary chunk migrations, which can degrade
+the performance of your cluster as a whole.
+
+If you have just deployed a sharded cluster, make sure that you have
+enough data to make sharding effective. If you do not have sufficient
+data to create more than eight 128 megabyte chunks, then all data will
+remain on one shard. Either lower the :ref:`chunk size
+<sharding-chunk-size>` setting, or add more data to the cluster.
+
+As a related problem, the system will split chunks only on
+inserts or updates, which means that if you configure sharding and do not
+continue to issue insert and update operations, the database will not
+create any chunks. You can either wait until your application inserts
+data *or* :doc:`split chunks manually </tutorial/split-chunks-in-sharded-cluster>`.
+
+Finally, if your shard key has a low :ref:`cardinality
+<sharding-shard-key-cardinality>`, MongoDB may not be able to create
+sufficient splits among the data.
+
+Why would one shard receive a disproportionate amount of traffic in a sharded cluster?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In some situations, a single shard or a subset of the cluster will
+receive a disproportionate portion of the traffic and workload. In
+almost all cases this is the result of a shard key that does not
+effectively allow :ref:`write scaling <sharding-shard-key-write-scaling>`.
+
+It's also possible that you have "hot chunks." In this case, you may
+be able to solve the problem by splitting and then migrating parts of
+these chunks.
+
+You may have to consider :ref:`resharding your collection
+<sharding-resharding>` with a :ref:`different shard key
+<sharding-internals-choose-shard-key>` to correct this pattern.
+
+What can prevent a sharded cluster from balancing?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have just deployed your sharded cluster, you may want to
+consider the :ref:`troubleshooting suggestions for a new cluster where
+data remains on a single shard <sharding-troubleshooting-not-splitting>`.
+
+If the cluster was initially balanced, but later developed an uneven
+distribution of data, consider the following possible causes:
+
+- You have deleted or removed a significant amount of data from the
+  cluster. If you have added additional data, it may have a
+  different distribution with regards to its shard key.
+
+- Your :term:`shard key` has low :ref:`cardinality <sharding-shard-key-cardinality>`
+  and MongoDB cannot split the chunks any further.
+
+- Your data set is growing faster than the balancer can distribute
+  data around the cluster. This is uncommon and
+  typically is the result of:
+
+  - a :ref:`balancing window <sharding-schedule-balancing-window>` that
+    is too short, given the rate of data growth.
+
+  - an uneven distribution of :ref:`write operations
+    <sharding-shard-key-write-scaling>` that requires more data
+    migration. You may have to choose a different shard key to resolve
+    this issue.
+
+  - poor network connectivity between shards, which may lead to chunk
+    migrations that take too long to complete. Investigate your
+    network configuration and interconnections between shards.
+
+Why do chunk migrations affect sharded cluster performance?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If migrations impact your cluster or application's performance,
+consider the following options, depending on the nature of the impact:
+
+#. If migrations only interrupt your clusters sporadically, you can
+   limit the :ref:`balancing window
+   <sharding-schedule-balancing-window>` to prevent balancing activity
+   during peak hours. Ensure that there is enough time remaining to
+   keep the data from becoming out of balance again.
+
+#. If the balancer is always migrating chunks to the detriment of
+   overall cluster performance:
+
+   - You may want to attempt :doc:`decreasing the chunk size </tutorial/modify-chunk-size-in-sharded-cluster>`
+     to limit the size of the migration.
+
+   - Your cluster may be over capacity, and you may want to attempt to
+     :ref:`add one or two shards <sharding-procedure-add-shard>` to
+     the cluster to distribute load.
+
+It's also possible that your shard key causes your
+application to direct all writes to a single shard. This kind of
+activity pattern can require the balancer to migrate most data soon after writing
+it. You may have to consider :ref:`resharding your collection
+<sharding-resharding>` with a :ref:`different shard key
+<sharding-internals-choose-shard-key>` that provides better :ref:`write
+scaling <sharding-shard-key-write-scaling>`.

@@ -1,0 +1,361 @@
+.. _indexes:
+
+=======
+Indexes
+=======
+
+.. default-domain:: mongodb
+
+Indexes support the efficient execution of queries in MongoDB. Without
+indexes, MongoDB must perform a *collection scan*, i.e. scan every
+document in a collection, to select those documents that match the
+query statement. If an appropriate index exists for a query,
+MongoDB can use the index to limit the number of documents it must
+inspect.
+
+Indexes are special data structures [#b-tree]_ that store a small
+portion of the collection's data set in an easy to traverse form. The
+index stores the value of a specific field or set of fields, ordered by
+the value of the field. The ordering of the index entries supports
+efficient equality matches and range-based query operations. In
+addition, MongoDB can return sorted results by using the ordering in
+the index.
+
+The following diagram illustrates a query that selects and orders the
+matching documents using an index:
+
+.. include:: /images/index-for-sort.rst
+
+Fundamentally, indexes in MongoDB are similar to indexes in other
+database systems. MongoDB defines indexes at the :term:`collection`
+level and supports indexes on any field or sub-field of the documents
+in a MongoDB collection.
+
+.. _index-type-id:
+
+Default ``_id`` Index
+---------------------
+
+MongoDB creates a :ref:`unique index <index-type-unique>` on the
+:ref:`_id <document-id-field>` field during the creation of a
+collection. The ``_id`` index prevents clients from inserting two
+documents with the same value for the ``_id`` field. You cannot drop
+this index on the ``_id`` field.
+
+.. note::
+
+   In :term:`sharded clusters <sharded cluster>`, if you do *not* use
+   the ``_id`` field as the :term:`shard key`, then your application
+   **must** ensure the uniqueness of the values in the ``_id`` field
+   to prevent errors.  This is most-often done by using a standard
+   auto-generated :term:`ObjectId`.
+
+Create an Index
+---------------
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu in the
+upper-right to set the language of the examples on this page.
+
+----------
+
+.. tabs-selector:: drivers
+
+.. include:: /includes/driver-examples/driver-example-indexes-1.rst
+
+.. [#b-tree] MongoDB indexes use a B-tree data structure.
+
+
+.. _index-names:
+
+Index Names
+~~~~~~~~~~~
+
+The default name for an index is the concatenation of the indexed keys
+and each key's direction in the index ( i.e. 1 or -1) using underscores
+as a separator. For example, an index created on 
+``{ item : 1, quantity: -1 }`` has the name ``item_1_quantity_-1``.
+
+You can create indexes with a custom name, such as one that is more 
+human-readable than the default. For example, consider an application
+that frequently queries the ``products`` collection to populate data on
+existing inventory. The following :method:`~db.collection.createIndex()`
+method creates an index on ``item`` and ``quantity`` named ``query for
+inventory``:
+
+.. code-block:: javascript
+
+   db.products.createIndex( 
+     { item: 1, quantity: -1 } , 
+     { name: "query for inventory" } 
+   )
+
+You can view index names using the :method:`db.collection.getIndexes()`
+method. You cannot rename an index once created. Instead, you must
+drop and re-create the index with a new name. 
+
+.. _index-types:
+
+Index Types
+-----------
+
+MongoDB provides a number of different index types to support specific
+types of data and queries.
+
+.. _index-intro-single-field:
+
+Single Field
+~~~~~~~~~~~~
+
+In addition to the MongoDB-defined ``_id`` index, MongoDB supports the
+creation of user-defined ascending/descending indexes on a :doc:`single
+field of a document </core/index-single>`.
+
+.. include:: /images/index-ascending.rst
+
+For a single-field index and sort operations, the sort order (i.e.
+ascending or descending) of the index key does not matter because
+MongoDB can traverse the index in either direction.
+
+See :doc:`/core/index-single` and :ref:`sort-results-single-field` for
+more information on single-field indexes.
+
+Compound Index
+~~~~~~~~~~~~~~
+
+MongoDB also supports user-defined indexes on multiple fields, i.e.
+:doc:`compound indexes </core/index-compound>`.
+
+The order of fields listed in a compound index has significance. For
+instance, if a compound index consists of ``{ userid: 1, score: -1 }``,
+the index sorts first by ``userid`` and then, within each ``userid``
+value, sorts by ``score``.
+
+.. include:: /images/index-compound-key.rst
+
+For compound indexes and sort operations, the sort order (i.e.
+ascending or descending) of the index keys can determine whether the
+index can support a sort operation. See
+:ref:`index-ascending-and-descending` for more information on the
+impact of index order on results in compound indexes.
+
+See also:
+
+- :ref:`index-type-compound`,
+- :ref:`sort-on-multiple-fields`, and
+- :ref:`esr-indexing-rule` 
+
+Multikey Index
+~~~~~~~~~~~~~~
+
+MongoDB uses :doc:`multikey indexes </core/index-multikey>` to index
+the content stored in arrays. If you index a field that holds an array
+value, MongoDB creates separate index entries for *every* element of
+the array. These :doc:`multikey indexes </core/index-multikey>` allow
+queries to select documents that contain arrays by matching on element
+or elements of the arrays. MongoDB automatically determines whether to
+create a multikey index if the indexed field contains an array value;
+you do not need to explicitly specify the multikey type.
+
+.. include:: /images/index-multikey.rst
+
+See :doc:`/core/index-multikey` and :doc:`/core/multikey-index-bounds`
+for more information on multikey indexes.
+
+Geospatial Index
+~~~~~~~~~~~~~~~~
+
+To support efficient queries of geospatial coordinate data, MongoDB
+provides two special indexes: :doc:`2d indexes </core/2d>` that uses
+planar geometry when returning results and :doc:`2dsphere indexes
+</core/2dsphere>` that use spherical geometry to return results.
+
+See :doc:`/core/geospatial-indexes` for a high level introduction to
+geospatial indexes.
+
+Text Indexes
+~~~~~~~~~~~~
+
+MongoDB provides a ``text`` index type that supports searching
+for string content in a collection. These text indexes do not store
+language-specific *stop* words (e.g. "the", "a", "or") and *stem* the
+words in a collection to only store root words.
+
+See :doc:`/core/index-text` for more information on text indexes and
+search.
+
+Hashed Indexes
+~~~~~~~~~~~~~~
+
+To support :ref:`hash based sharding <sharding-hashed-sharding>`,
+MongoDB provides a :doc:`hashed index </core/index-hashed>` type,
+which indexes the hash of the value of a field. These indexes have a
+more random distribution of values along their range, but *only*
+support equality matches and cannot support range-based queries.
+
+Clustered Indexes
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/clustered-collections-introduction.rst
+
+See :ref:`clustered-collections`.
+
+Index Properties
+----------------
+
+.. _unique-index:
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+The :doc:`unique </core/index-unique>` property for an index causes
+MongoDB to reject duplicate values for the indexed field. Other than
+the unique constraint, unique indexes are functionally interchangeable
+with other MongoDB indexes.
+
+.. _partial-index:
+
+Partial Indexes
+~~~~~~~~~~~~~~~
+
+:doc:`Partial indexes </core/index-partial>` only index the documents in
+a collection that meet a specified filter expression. By indexing a
+subset of the documents in a collection, partial indexes have lower
+storage requirements and reduced performance costs for index creation
+and maintenance.
+
+Partial indexes offer a superset of the functionality of sparse indexes
+and should be preferred over sparse indexes.
+
+Sparse Indexes
+~~~~~~~~~~~~~~
+
+The :doc:`sparse </core/index-sparse>` property of an index ensures
+that the index only contain entries for documents that have the indexed
+field. The index skips documents that *do not* have the indexed field.
+
+You can combine the sparse index option with the unique index option
+to prevent inserting documents that have duplicate values for the indexed
+field(s) and skip indexing documents that lack the indexed field(s).
+
+.. _ttl-index:
+
+TTL Indexes
+~~~~~~~~~~~
+
+:doc:`TTL indexes </core/index-ttl>` are special indexes that MongoDB
+can use to automatically remove documents from a collection after a
+certain amount of time. This is ideal for certain types of information
+like machine generated event data, logs, and session information that
+only need to persist in a database for a finite amount of time.
+
+See: :doc:`/tutorial/expire-data` for implementation instructions.
+
+Hidden Indexes
+~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+:doc:`Hidden indexes </core/index-hidden>` are not visible to the
+:doc:`query planner </core/query-plans>` and cannot be used to support
+a query.
+
+By hiding an index from the planner, users can evaluate the potential
+impact of dropping an index without actually dropping the index. If the
+impact is negative, the user can unhide the index instead of having to
+recreate a dropped index. And because indexes are fully maintained
+while hidden, the indexes are immediately available for use once
+unhidden.
+
+Except for the ``_id`` index, you can hide any indexes.
+
+Index Use
+---------
+
+Indexes can improve the efficiency of read operations. The
+:doc:`/tutorial/analyze-query-plan` tutorial provides an example of the
+execution statistics of a query with and without an index.
+
+For information on how MongoDB chooses an index to use, see :ref:`query
+optimizer <read-operations-query-optimization>`.
+
+Indexes and Collation
+---------------------
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+.. include:: /includes/driver-examples/driver-example-indexes-2.rst
+
+.. include:: /includes/extracts/collation-index-use.rst
+
+For more information on collation, see the :doc:`collation reference
+page </reference/collation/>`.
+
+.. include:: /includes/extracts/collation-index-type-restrictions.rst
+
+Covered Queries
+---------------
+
+When the query criteria and the :term:`projection` of a query include
+*only* the indexed fields, MongoDB returns results directly from
+the index *without* scanning any documents or bringing documents into
+memory. These covered queries can be *very* efficient.
+
+.. include:: /images/index-for-covered-query.rst
+
+For more information on covered queries, see
+:ref:`read-operations-covered-query`.
+
+Index Intersection
+------------------
+
+MongoDB can use the :doc:`intersection of indexes
+</core/index-intersection>` to fulfill queries. For queries that
+specify compound query conditions, if one index can fulfill a part of a
+query condition, and another index can fulfill another part of the
+query condition, then MongoDB can use the intersection of the two
+indexes to fulfill the query. Whether the use of a compound index or
+the use of an index intersection is more efficient depends on the
+particular query and the system.
+
+For details on index intersection, see :doc:`/core/index-intersection`.
+
+Restrictions
+------------
+
+Certain restrictions apply to indexes, such as the length of the index
+keys or the number of indexes per collection. See :ref:`Index
+Limitations <index-limitations>` for details.
+
+Additional Considerations
+-------------------------
+
+Although indexes can improve query performances, indexes also present
+some operational considerations. See :ref:`Operational Considerations
+for Indexes <data-model-indexes>` for more information.
+
+.. include:: /includes/index-tutorials-considerations.rst
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /core/index-single
+   /core/index-compound
+   /core/index-multikey
+   /core/index-text
+   /core/index-wildcard
+   /core/2dsphere
+   /core/2d
+   /core/geohaystack
+   /core/index-hashed
+   /core/index-properties
+   /core/index-creation
+   /core/index-intersection
+   /tutorial/manage-indexes
+   /tutorial/measure-index-use
+   /applications/indexes
+   /reference/indexes

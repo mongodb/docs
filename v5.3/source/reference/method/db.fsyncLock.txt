@@ -1,0 +1,107 @@
+==============
+db.fsyncLock()
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: fsync, fsynclock, fsync lock, lock
+   :keywords: fsync, fsynclock, fsync lock, lock
+
+Definition
+----------
+
+.. method:: db.fsyncLock()
+
+   Forces the :binary:`~bin.mongod` to flush all pending write operations to
+   disk and locks the *entire* :binary:`~bin.mongod` instance to prevent
+   additional writes until the user releases the lock with a corresponding
+   :method:`db.fsyncUnlock()` command. 
+
+   .. important::
+
+      The :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()`
+      operations maintain a lock count. :method:`db.fsyncLock()`
+      increments the lock count, and :method:`db.fsyncUnlock()`
+      decrements the lock count.
+
+      To unlock a :binary:`~bin.mongod` instance for writes, the lock count
+      must be zero. That is, for a given number of
+      :method:`db.fsyncLock()` operations, you must issue a
+      corresponding number of :method:`db.fsyncUnlock()` operations to
+      unlock the instance for writes.
+
+   :method:`db.fsyncLock()`  has the syntax:
+
+   .. code-block:: javascript
+
+      db.fsyncLock()
+
+   The operation returns a document with the following fields:
+
+   - ``info`` - Information on the status of the operation
+
+   - ``lockCount`` (*New in version 3.4*)- The number of locks currently on the instance.
+
+   - ``seeAlso`` - Link to the :dbcommand:`fsync` command documentation.
+
+   - ``ok`` - The status code.
+   
+   
+   This command provides a simple wrapper around a :dbcommand:`fsync`
+   database command with the following syntax:
+
+   .. code-block:: javascript
+
+      { fsync: 1, lock: true } 
+
+   :method:`db.fsyncLock()` is an administrative command. You can use
+   this operation to locks the database and create a window for
+   :doc:`backup operations </core/backups>`.
+
+Behavior
+--------
+
+.. include:: /includes/extracts/wt-fsync-lock-compatibility.rst
+
+Example
+-------
+
+The following operation runs :method:`db.fsyncLock()`:
+
+.. code-block:: javascript
+
+   db.fsyncLock()
+
+The operation returns the following status document that includes the
+``lockCount``:
+
+.. code-block:: javascript
+
+   {
+      "info" : "now locked against writes, use db.fsyncUnlock() to unlock",
+      "lockCount" : NumberLong(1),
+      "seeAlso" : "http://dochub.mongodb.org/core/fsynccommand",
+      "ok" : 1
+   }
+
+If you run :method:`db.fsyncLock()` again, the operation increments the
+``lockCount``:
+
+.. code-block:: javascript
+
+   {
+      "info" : "now locked against writes, use db.fsyncUnlock() to unlock",
+      "lockCount" : NumberLong(2),
+      "seeAlso" : "http://dochub.mongodb.org/core/fsynccommand",
+      "ok" : 1
+   }
+
+To unlock the instance for writes, you must run
+:method:`db.fsyncUnlock()` twice to reduce the ``lockCount`` to 0.

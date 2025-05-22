@@ -1,0 +1,524 @@
+======================
+$geoNear (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $geoNear
+
+   Outputs documents in order of nearest to farthest from a specified
+   point.
+
+   .. note::
+
+      .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
+   The :pipeline:`$geoNear` stage has the following prototype form:
+
+   .. code-block:: javascript
+
+      { $geoNear: { <geoNear options> } }
+
+   The :pipeline:`$geoNear` operator accepts a :term:`document` that
+   contains the following :pipeline:`$geoNear` options. Specify all
+   distances in the same units as those of the processed documents'
+   coordinate system:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Field
+
+        - Type
+
+        - Description
+
+
+      * - ``distanceField``
+         
+        - string
+
+        - The output field that contains the
+          calculated distance. To specify a field within an embedded document,
+          use :term:`dot notation`.
+
+
+      * - ``distanceMultiplier``
+
+        - number
+
+        - Optional. The factor to multiply all distances returned by the query. For
+          example, use the ``distanceMultiplier`` to convert radians, as
+          returned by a spherical query, to kilometers by multiplying by the
+          radius of the Earth.
+
+
+      * - ``includeLocs``
+
+        - string
+
+        - Optional. This specifies the output field that identifies the location used to
+          calculate the distance. This option is useful when a location field
+          contains multiple locations. To specify a field within an
+          embedded document, use :term:`dot notation`.
+            
+      * - ``key``
+
+        - 
+
+        - Optional. Specify the geospatial indexed field to use when calculating the
+          distance.
+        
+          If your collection has multiple ``2d`` and/or multiple ``2dsphere``
+          indexes, you **must** use the ``key`` option to specify the indexed
+          field path to use. :ref:`pipeline-geoNear-key-param-example`
+          provides a full example.
+        
+          If there is more than one ``2d`` index or more than one ``2dsphere``
+          index and you do not specify a ``key``, MongoDB will return an error.
+        
+          If you do not specify the ``key``, and you have at most only one
+          ``2d`` index and/or only one ``2dsphere`` index, MongoDB looks first
+          for a ``2d`` index to use. If a ``2d`` index does not exists, then
+          MongoDB looks for a ``2dsphere`` index to use.
+        
+          .. versionadded:: 4.0
+            
+      * - ``maxDistance``
+
+        - number
+
+        - Optional. The maximum distance from the center point that the documents *can*
+          be. MongoDB limits the results to those documents that fall within
+          the specified distance from the center point.
+        
+          Specify the distance in meters if the specified point is
+          :term:`GeoJSON` and in radians if the specified point is
+          :term:`legacy coordinate pairs <legacy coordinate pairs>`.
+    
+    
+      * - ``minDistance``
+
+        - number
+
+        - Optional. The minimum distance from the center point that the documents *can*
+          be. MongoDB limits the results to those documents that fall outside
+          the specified distance from the center point.
+
+          Specify the distance in meters for GeoJSON data and in radians for
+          legacy coordinate pairs.
+
+      * - ``near``
+
+        - GeoJSON point or :term:`legacy coordinate pair <legacy coordinate pairs>`
+
+        - The point for which to find the closest documents.
+
+          If using a :doc:`2dsphere </core/2dsphere>` index, you can specify
+          the point as either a GeoJSON point or legacy coordinate pair.
+
+          If using a :doc:`2d </core/2d>` index, specify the point as a legacy
+          coordinate pair.
+
+      * - ``query``
+
+        - document
+
+        - Optional. Limits the results to the documents that match the query. The query
+          syntax is the usual MongoDB :ref:`read operation query
+          <read-operations-query-argument>` syntax.
+
+          .. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+      
+      
+      * - ``spherical``
+
+        - boolean
+
+        - Optional. Determines how MongoDB calculates the distance between two points: 
+
+          - When ``true``, MongoDB uses :query:`$nearSphere` semantics and
+            calculates distances using spherical geometry.
+
+          - When ``false``, MongoDB uses :query:`$near` semantics:
+            spherical geometry for :doc:`2dsphere </core/2dsphere>`
+            indexes and planar geometry for :doc:`2d </core/2d>` indexes.
+
+          *Default: false.*
+
+
+      * - ``uniqueDocs``
+
+        - boolean
+
+        - Optional. If this value is ``true``, the query returns a matching document once,
+          even if more than one of the document's location fields match the
+          query.
+
+          .. include:: /includes/deprecation-uniqueDocs.rst
+   
+
+          
+          
+   
+
+
+Behavior
+--------
+
+When using :pipeline:`$geoNear`, consider that:
+
+- You can only use :pipeline:`$geoNear` as the first stage of a
+  pipeline.
+
+- You must include the ``distanceField`` option. The
+  ``distanceField`` option specifies the field that will contain
+  the calculated distance.
+
+- .. include:: /includes/extracts/geoNear-stage-index-requirement.rst
+
+  If you have more than one geospatial index on the collection, use the
+  ``keys`` parameter to specify which field to use in the calculation.
+  If you have only one geospatial index, :pipeline:`$geoNear` implicitly
+  uses the indexed field for the calculation.
+
+.. |geoNear| replace:: :pipeline:`$geoNear` stage
+
+- .. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+
+- .. include:: /includes/extracts/views-unsupported-geoNear.rst
+
+- Starting in version 4.2, :pipeline:`$geoNear` no longer has a default
+  limit of 100 documents.
+
+- Starting in MongoDB 5.1, the ``near`` parameter supports the 
+  :ref:`let option <geoNear_let_example>` and
+  :ref:`bound let option <geoNear_bounded_let_example>`.
+
+- Starting in MongoDB 5.3, you can use :pipeline:`$geoNear` on any field
+  in a :ref:`time series collection <manual-timeseries-collection>`.
+
+Examples
+--------
+
+.. include:: /includes/geospatial-places-data-setup.rst
+
+Maximum Distance
+~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
+The ``places`` collection above has a ``2dsphere`` index.
+The following aggregation uses :pipeline:`$geoNear` to find documents 
+with a location at most 2 meters from the center 
+``[ -73.99279 , 40.719296 ]`` and ``category`` equal to ``Parks``.
+
+.. code-block:: javascript
+
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "dist.calculated",
+           maxDistance: 2,
+           query: { category: "Parks" },
+           includeLocs: "dist.location",
+           spherical: true
+        }
+      }
+   ])
+
+The aggregation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 8,
+      "name" : "Sara D. Roosevelt Park",
+      "category" : "Parks",
+      "location" : {
+         "type" : "Point",
+         "coordinates" : [ -73.9928, 40.7193 ]
+      },
+      "dist" : {
+         "calculated" : 0.9539931676365992,
+         "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.9928, 40.7193 ]
+         }
+      }
+   }
+
+The matching document contains two new fields:
+
+- ``dist.calculated`` field that contains the calculated distance, and
+
+- ``dist.location`` field that contains the location used in the
+  calculation.
+
+Minimum Distance
+~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
+The following example uses the option ``minDistance`` to specify
+the minimum distance from the center point that the documents can be.
+The following aggregation finds all documents with a location at least
+2 meters from the center ``[ -73.99279 , 40.719296 ]`` and ``category`` 
+equal to ``Parks``.
+
+.. code-block:: javascript
+
+   db.places.aggregate([ 
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "dist.calculated",
+           minDistance: 2,
+           query: { category: "Parks" },
+           includeLocs: "dist.location",
+           spherical: true
+        }
+      }
+   ])
+
+.. _geoNear_let_example:
+
+$geoNear with the ``let`` option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this example:
+
+- The ``let`` option is used to set an array value of 
+  ``[-73.99279,40.719296]`` to the variable ``$pt``.
+
+- ``$pt`` is specified as a let option to the ``near`` parameter in the 
+  ``$geoNear`` stage.
+
+.. code-block:: javascript
+   :emphasize-lines: 6,16
+
+   db.places.aggregate(
+   [
+      {
+         "$geoNear":
+         {
+            "near":"$$pt",
+            "distanceField":"distance",
+            "maxDistance":2,
+            "query":{"category":"Parks"},
+            "includeLocs":"dist.location",
+            "spherical":true
+         }
+      }
+   ],
+   {
+      "let":{ "pt": [ -73.99279, 40.719296 ] }
+   }
+   )
+
+The aggregation returns all documents with: 
+
+- A location at most 2 meters from the point defined in  the ``let`` variable
+- A ``category`` equal to ``Parks``.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: ObjectId("61715cf9b0c1d171bb498fd7"),
+      name: 'Sara D. Roosevelt Park',
+      location: { type: 'Point', coordinates: [ -73.9928, 40.7193 ] },
+      category: 'Parks',
+      distance: 1.4957325341976439e-7,
+      dist: { location: { type: 'Point', coordinates: [ -73.9928, 40.7193 ] } }
+   },
+   {
+      _id: ObjectId("61715cf9b0c1d171bb498fd6"),
+      name: 'Central Park',
+      location: { type: 'Point', coordinates: [ -73.97, 40.77 ] },
+      category: 'Parks',
+      distance: 0.0009348548688841822,
+      dist: { location: { type: 'Point', coordinates: [ -73.97, 40.77 ] } }
+   }
+
+.. _geoNear_bounded_let_example:
+
+$geoNear with Bound ``let`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``let`` option can bind a variable which can be used in a 
+$geoNear query.
+
+In this example, :pipeline:`$lookup` uses:
+
+- ``let`` to define ``$pt``.
+- :pipeline:`$geoNear` in the ``pipeline``.
+- ``$pt`` to define ``near`` in the :pipeline:`$geoNear` pipeline stage.
+
+.. code-block:: javascript
+   :emphasize-lines: 5
+
+   db.places.aggregate( [
+      {
+         $lookup: {
+            from: "places",
+            let: { pt: "$location" },
+            pipeline: [
+               {
+                  $geoNear: {
+                     near: "$$pt",
+                     distanceField: "distance"
+                  }
+               }
+            ],
+            as: "joinedField"
+         }
+      },
+      { 
+         $match: { name: "Sara D. Roosevelt Park" }
+      }
+   ] );
+
+The aggregation returns a document with: 
+
+- The 'Sara D. Roosevelt Park' document as the main document.
+- Every document in the places collection as subDocuments using the 
+  ``$pt`` variable for calculating distance.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: ObjectId("61715cf9b0c1d171bb498fd7"),
+         name: 'Sara D. Roosevelt Park',
+         location: { type: 'Point', coordinates: [ -73.9928, 40.7193 ] },
+         category: 'Parks',
+         joinedField: [
+            {
+            _id: ObjectId("61715cf9b0c1d171bb498fd7"),
+            name: 'Sara D. Roosevelt Park',
+            location: { type: 'Point', coordinates: [ -73.9928, 40.7193 ] },
+            category: 'Parks',
+            distance: 0
+            },
+            {
+            _id: ObjectId("61715cf9b0c1d171bb498fd6"),
+            name: 'Central Park',
+            location: { type: 'Point', coordinates: [ -73.97, 40.77 ] },
+            category: 'Parks',
+            distance: 5962.448255234964
+            },
+            {
+            _id: ObjectId("61715cfab0c1d171bb498fd8"),
+            name: 'Polo Grounds',
+            location: { type: 'Point', coordinates: [ -73.9375, 40.8303 ] },
+            category: 'Stadiums',
+            distance: 13206.535424939102
+            }
+         ]
+   }
+
+.. _pipeline-geoNear-key-param-example:
+
+Specify Which Geospatial Index to Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+Consider a ``places`` collection that has a :doc:`2dsphere
+</core/2dsphere>` index on the ``location`` field and a
+:doc:`2d </core/2d>` index on the ``legacy`` field.
+
+A document in the ``places`` collection resembles the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 3,
+      "name" : "Polo Grounds",
+      "location": {
+         "type" : "Point",
+         "coordinates" : [ -73.9375, 40.8303 ]
+      },
+      "legacy" : [ -73.9375, 40.8303 ],
+      "category" : "Stadiums"
+   }
+
+The following example uses the ``key`` option to specify that the
+aggregation should use the ``location`` field values for the
+:pipeline:`$geoNear` operation rather than the ``legacy`` field values.
+The pipeline also uses :pipeline:`$limit` to return at most 5 documents.
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
+.. code-block:: javascript
+
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.98142 , 40.71782 ] },
+           key: "location",
+           distanceField: "dist.calculated",
+           query: { "category": "Parks" }
+        }
+      },
+      { $limit: 5 }
+   ])
+
+The aggregation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 8,
+      "name" : "Sara D. Roosevelt Park",
+      "location" : {
+         "type" : "Point",
+         "coordinates" : [
+            -73.9928,
+            40.7193
+         ]
+      },
+      "category" : "Parks",
+      "dist" : {
+         "calculated" : 974.175764916902
+      }
+   }
+   {
+      "_id" : 1,
+      "name" : "Central Park",
+      "location" : {
+         "type" : "Point",
+         "coordinates" : [
+            -73.97,
+            40.77
+         ]
+      },
+      "legacy" : [
+         -73.97,
+         40.77
+      ],
+      "category" : "Parks",
+      "dist" : {
+         "calculated" : 5887.92792958097
+      }
+   }
+

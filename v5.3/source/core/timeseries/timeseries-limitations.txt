@@ -1,0 +1,195 @@
+.. _manual-timeseries-collection-limitations:
+
+==================================
+Time Series Collection Limitations
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :description: Time Series, IOT
+   :keywords: Time Series, IOT
+
+Unsupported Features
+~~~~~~~~~~~~~~~~~~~~~
+
+The following features are not supported for 
+:ref:`time series collections <manual-timeseries-collection>`.
+
+* :atlas:`Atlas Search </atlas-search>`
+* :doc:`Change streams </changeStreams>`
+* :doc:`Client-side field level encryption </core/security-client-side-encryption>`
+* :realm:`Database Triggers </triggers/database-triggers>`
+* :realm:`GraphQL API </graphql>`
+* :realm:`Realm Sync </sync>`
+* :dbcommand:`reIndex`
+* :doc:`Schema validation rules </core/schema-validation>`
+
+Constraints
+~~~~~~~~~~~
+
+The maximum size of a measurement document is 4 MB.
+
+Aggregation $out and $merge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can't use aggregation pipeline stages :pipeline:`$out` and :pipeline:`$merge`
+to output or merge into to :ref:`time series collections
+<manual-timeseries-collection>` from another collection.
+
+.. _timeseries-limitations-updates-deletes:
+
+Updates and Deletes
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.1, you can perform some delete and update
+operations.
+
+Delete commands must meet the following requirements:
+
+- The query may only match on ``metaField`` field values.
+- The delete command may not limit the number of documents to be
+  deleted. You must use a delete command with ``justOne: false`` or the
+  :method:`~db.collection.deleteMany()` method.
+
+Update commands must meet the following requirements:
+
+- The query may only match on ``metaField`` field values.
+- The update command may only modify the ``metaField`` field value.
+- The update must be performed with an update document that contains
+  only :ref:`update operator <update-operators>` expressions.
+- The update command may not limit the number of documents to be
+  updated. You must use an update command with ``multi: true`` or the
+  :method:`~db.collection.updateMany()` method.
+- The update command may not set :ref:`upsert: true <update-upsert>`.
+
+In MongoDB 5.0, :ref:`Time series collections
+<manual-timeseries-collection>` only support insert operations and read
+queries. Updates and manual delete operations result in an error.
+
+To automatically delete old data, :ref:`set up automatic removal (TTL)
+<set-up-automatic-removal>`.
+
+To remove all documents from a collection, use the
+:method:`~db.collection.drop()` method to drop the collection.
+
+.. _timeseries-limitations-secondary-indexes:
+
+Secondary Indexes
+~~~~~~~~~~~~~~~~~
+
+You can add :term:`secondary indexes <secondary index>` on the fields
+specified as the ``timeField`` and the ``metaField``. If the field value
+for the ``metaField`` field is a document, you can also create secondary
+indexes on fields inside that document.
+
+In MongoDB 5.1, the ``metaField`` doesn't support :doc:`text
+</core/index-text>` indexes.
+
+In MongoDB 5.0, the ``metaField`` doesn't support the following index
+types:
+
+- :doc:`2d </core/2d>`
+- :doc:`2dsphere </core/2dsphere>`
+- :doc:`text </core/index-text>`
+
+Secondary indexes don't support the following index properties:
+
+- :doc:`TTL </core/index-ttl>`
+- :doc:`Unique </core/index-unique>`
+- :doc:`Partial </core/index-partial>`
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+A time series collection can't be created as a :ref:`capped collection
+<manual-capped-collection>`.
+
+Modification of Collection Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection's type can only be set when creating the collection:
+
+- An existing collection can't be converted into a :ref:`time series
+  collection <manual-capped-collection>`.
+- A :ref:`time series collection <manual-capped-collection>` can't be
+  converted into a different collection type.
+
+To move data from an existing collection to a time series collection,
+:ref:`migrate data into a time series collection
+<migrate-data-into-a-timeseries-collection>`.
+
+Modification of ``timeField`` and ``metaField``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can only set a collection's ``timeField`` and ``metaField``
+parameters when creating the collection. After creation these parameters
+can't be modified.
+
+.. _timeseries-limitations-granularity:
+
+Modification of ``granularity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the ``granularity`` is set it can only be increased by one level at
+a time. From ``"seconds"`` to ``"minutes"`` or from ``"minutes"`` to
+``"hours"``. Other changes are not allowed. If you need to change the
+``granularity`` from ``"seconds"`` to ``"hours"``, first increase the
+``granularity`` to ``"minutes"`` and then to ``"hours"``.
+
+.. _time-series-limitations-sharding:
+
+Sharding
+~~~~~~~~
+
+Starting in MongoDB 5.1 (and 5.0.6), sharded time series collections are
+supported. When using sharded time series collections, you cannot modify
+the ``granularity`` of a sharded time series collection.
+
+In versions earlier than MongoDB 5.0.6, you cannot shard time series
+collections.
+
+Sharding Administration Commands
+````````````````````````````````
+
+Starting in MongoDB 5.2 (and 5.1.2, 5.0.6), you can run :ref:`sharding
+administration commands <db-commands-sharding>` (such as
+:dbcommand:`moveChunk`) on the ``system.buckets`` collection.
+
+In versions earlier than MongoDB 5.0.6, you cannot run sharding
+administration commands for sharded time series collections.
+
+Shard Zones
+```````````
+
+.. include:: /includes/time-series/fact-shard-zone-limitations.rst
+
+Shard Key Fields
+````````````````
+
+.. include:: /includes/time-series/fact-shard-key-limitations.rst
+
+Resharding
+``````````
+
+You can't reshard sharded time series collections.
+
+Transactions
+~~~~~~~~~~~~
+
+You can't write to :ref:`time series collections
+<manual-timeseries-collection>` in :doc:`transactions
+</core/transactions>`.
+
+.. note::
+
+  Reads from time series collections are supported in transactions.
+
+
+

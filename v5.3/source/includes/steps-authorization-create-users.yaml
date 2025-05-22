@@ -1,0 +1,184 @@
+title: Connect and authenticate
+level: 4
+stepnum: 1
+ref: auth-as-admin
+content: |
+   Using :binary:`~bin.mongosh`, connect to your primary
+   :binary:`~bin.mongod` or, in a sharded cluster, connect to your
+   :binary:`~bin.mongos` and authenticate as a user administrator or a
+   user with the :ref:`required privileges <add-user-prereq>`:
+
+   .. tabs::
+
+      tabs:
+         - id: cmdline
+           name: Authenticate during Connection
+           content: |
+              Start :binary:`~bin.mongosh` with the :option:`-u
+              \<username\> <mongosh -u>`, :option:`-p <mongosh -p>`, and the
+              :option:`--authenticationDatabase \<database\> <mongo
+              --authenticationDatabase>` command line options:
+
+              .. code-block:: bash
+
+                 mongosh --port 27017  --authenticationDatabase \
+                     "admin" -u "myUserAdmin" -p
+
+              Enter your password when prompted.
+
+         - id: authafter
+           name: Authenticate after Connection
+           content: |
+
+              Using :binary:`~bin.mongosh`, connect to your database
+              deployment:
+
+              .. code-block:: bash
+
+                 mongosh --port 27017
+
+              In :binary:`~bin.mongosh`, switch to the
+              authentication database (in this case, ``admin``), and
+              use the :method:`db.auth(\<username\>, \<pwd\>)
+              <db.auth()>` method to authenticate:
+
+              .. code-block:: javascript
+
+                 use admin
+                 db.auth("myUserAdmin", passwordPrompt()) // or cleartext password
+
+              .. tip::
+
+                 .. include:: /includes/extracts/mongosh-password-prompt.rst
+
+              Enter the password when prompted.
+---
+title: Create additional users for your deployment
+level: 4
+stepnum: 2
+ref: create-additionalusers
+pre: |
+
+  .. note::
+
+     The following step uses :ref:`authentication-scram` authentication.
+     For additional information on other authentication mechanisms, see
+     :ref:`create-users-examples`.
+
+  After authenticating as the user administrator, use the
+  :method:`db.createUser()` method to create additional users. You can assign
+  any :doc:`built-in roles </reference/built-in-roles>` or
+  :doc:`user-defined roles </core/security-user-defined-roles>` to the
+  users.
+
+action:
+  pre: |
+    The following operation adds a user ``myTester`` to the ``test``
+    database who has the :authrole:`readWrite` role in the ``test``
+    database as well as the :authrole:`read` role in the ``reporting``
+    database.
+
+  language: javascript
+  code: |
+    use test
+    db.createUser(
+      {
+        user: "myTester",
+        pwd:  passwordPrompt(),   // or cleartext password
+        roles: [ { role: "readWrite", db: "test" },
+                 { role: "read", db: "reporting" } ]
+      }
+    )
+
+post: |
+
+   .. tip::
+
+      .. include:: /includes/extracts/mongosh-password-prompt.rst
+
+   The database where you create the user (in this example, ``test``) is
+   that user's :ref:`authentication database
+   <user-authentication-database>`. Although the user authenticates to
+   this database, the user can have roles in other databases. The
+   user's authentication database does not limit the user's privileges.
+
+   After creating the additional users, exit :binary:`~bin.mongosh`.
+
+---
+title: Connect to the instance and authenticate as ``myTester``
+level: 4
+ref: auth-as-mytester
+content: |
+
+   .. important::
+
+      It is not possible to switch between users in the same
+      :binary:`~bin.mongosh` session. Authenticating as a different user
+      means the session has the privileges of **both** authenticated
+      users. To switch between users exit and relaunch
+      :binary:`~bin.mongosh`.
+
+   After exiting :binary:`~bin.mongosh` as ``myUserAdmin``, reconnect as
+   ``myTester``:
+
+   .. tabs::
+
+      tabs:
+         - id: cmdline2
+           name: Authenticate during Connection
+           content: |
+              Start :binary:`~bin.mongosh` with the :option:`-u
+              \<username\> <mongosh --username>`, :option:`-p <mongosh -p>`, and the
+              :option:`--authenticationDatabase \<database\> <mongo
+              --authenticationDatabase>` command line options:
+
+              .. code-block:: bash
+
+                 mongosh --port 27017 -u "myTester" \
+                     --authenticationDatabase "test" -p
+
+              Enter the password for the user when prompted.
+
+         - id: authafter2
+           name: Authenticate after Connection
+           content: |
+
+              Using :binary:`~bin.mongosh`, connect to your database
+              deployment:
+
+              .. code-block:: bash
+
+                 mongosh --port 27017
+
+              In :binary:`~bin.mongosh`, switch to the
+              authentication database (in this case, ``admin``), and
+              use the :method:`db.auth(\<username\>, \<pwd\>)
+              <db.auth()>` method to authenticate:
+
+              .. code-block:: javascript
+
+                 use test
+                 db.auth("myTester", passwordPrompt())  // or cleartext password
+
+              .. tip::
+
+                 .. include:: /includes/extracts/mongosh-password-prompt.rst
+
+              Enter the password for the user when prompted.
+---
+title: Insert a document as ``myTester``
+level: 4
+ref: insert-as-mytester
+content: |
+
+   As the user ``myTester``, you have privileges to perform read and
+   write operations in the ``test`` database (as well as perform read
+   operations in the ``reporting`` database). Once authenticated as
+   ``myTester``, insert a document into a collection in the ``test``
+   database. For example, you can perform the following insert
+   operation in the ``test`` database:
+
+   .. code-block:: javascript
+
+      db.foo.insertOne( { x: 1, y: 1 } )
+...

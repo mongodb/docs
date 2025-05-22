@@ -1,0 +1,172 @@
+=========================
+db.collection.dropIndex()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.dropIndex(index)
+
+
+   .. include:: /includes/fact-mongosh-shell-method.rst
+
+
+   Drops or removes the specified index from a collection. The
+   :method:`db.collection.dropIndex()` method provides a wrapper around
+   the :dbcommand:`dropIndexes` command.
+
+   .. note::
+
+      - You cannot drop the default index on the ``_id`` field.
+      
+      - Starting in MongoDB 4.2, you cannot specify
+        :method:`db.collection.dropIndex("*")
+        <db.collection.dropIndex>` to drop all non-``_id`` indexes. Use
+        :method:`db.collection.dropIndexes()` instead.
+
+   The :method:`db.collection.dropIndex()` method takes the following
+   parameter:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+
+        - Type
+
+        - Description
+
+      * - ``index``
+
+        - string or document
+
+        - Optional. Specifies the index to drop. You can specify the
+          index either by the index name or by the index specification
+          document.
+
+          To drop a :doc:`text </core/index-text>` index, specify the
+          index name.
+
+          Starting in MongoDB 4.2, you cannot specify ``"*"`` to drop
+          all non-``_id`` indexes. Use
+          :method:`db.collection.dropIndexes()` instead.
+
+          .. versionadded:: 4.4
+          
+             If an index specified to
+             :method:`db.collection.dropIndex()` is still building,
+             :method:`db.collection.dropIndex()` attempts to stop the
+             in-progress build. Stopping an index build has the same
+             effect as dropping the built index. Prior to MongoDB 4.4,
+             :method:`db.collection.dropIndex()` returned an error if
+             the specified index was still building. See
+             :ref:`dropIndex-method-index-builds` for more complete
+             documentation.
+
+   To get the index name or the index specification document for the
+   :method:`db.collection.dropIndex()` method, use the
+   :method:`db.collection.getIndexes()` method.
+
+Behavior
+--------
+
+.. |drop-index| replace:: :method:`db.collection.dropIndex()`
+
+.. include:: /includes/fact-drop-index-5.2.rst
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.2
+
+.. include:: /includes/extracts/dropIndex-method-resource-lock.rst
+
+.. _dropIndex-method-index-builds:
+
+Stop In-Progress Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-stop-in-progress-index-builds.rst
+
+Hidden Indexes
+~~~~~~~~~~~~~~
+
+Starting in version 4.4, MongoDB adds the ability to hide or unhide
+indexes from the query planner. By hiding an index from the planner,
+users can evaluate the potential impact of dropping an index without
+actually dropping the index. 
+
+If after the evaluation, the user decides to drop the index, the user
+can drop the hidden index; i.e. you do not need to unhide it first to
+drop it.
+
+If, however, the impact is negative, the user can unhide the index
+instead of having to recreate a dropped index. And because indexes are
+fully maintained while hidden, the indexes are immediately available
+for use once unhidden.
+
+For more information on hidden indexes, see :doc:`/core/index-hidden`.
+
+Example
+-------
+
+Consider a ``pets`` collection. Calling the
+:method:`db.collection.getIndexes()` method on the ``pets`` collection
+returns the following indexes:
+
+.. code-block:: javascript
+
+   [
+      {
+         "v" : 2,
+         "key" : {
+            "_id" : 1
+         },
+         "name" : "_id_"
+      },
+      {
+         "v" : 2,
+         "key" : {
+            "cat" : -1
+         },
+         "name" : "catIdx"
+      },
+      {
+         "v" : 2,
+         "key" : {
+            "cat" : 1,
+            "dog" : -1
+         },
+         "name" : "cat_1_dog_-1"
+      }
+   ]
+   
+The single field index on the field ``cat`` has the user-specified name
+of ``catIdx`` [#index-name]_ and the index specification document of
+``{ "cat" : -1 }``.
+
+To drop the index ``catIdx``, you can use either the index name:
+
+.. code-block:: javascript
+
+   db.pets.dropIndex( "catIdx" )
+
+Or you can use the index specification document ``{ "cat" : -1 }``:
+
+.. code-block:: javascript
+
+   db.pets.dropIndex( { "cat" : -1 } )
+
+.. [#index-name] During index creation, if the user does **not**
+   specify an index name, the system generates the name by
+   concatenating the index key field and value with an underscore,
+   e.g. ``cat_1``.

@@ -1,0 +1,61 @@
+====================
+cursor.isExhausted()
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: cursor.isExhausted()
+
+
+   .. include:: /includes/fact-mongosh-shell-method.rst
+
+
+   :returns: Boolean.
+
+   :method:`cursor.isExhausted()` returns ``true`` if the cursor
+   is closed *and* there are no remaining objects in the batch.
+
+   Use :method:`~cursor.isExhausted()` to support iterating cursors
+   that remain open even if there are no documents remaining in the
+   current batch, such as :method:`tailable <cursor.tailable()>` or
+   :method:`change stream <db.collection.watch()>` cursors.
+
+Example
+-------
+
+Consider the following ``while`` loop iterating through updates to
+a :method:`change stream <db.collection.watch()>` cursor:
+
+.. code-block:: javascript
+
+   watchCursor = db.collection.watch();
+
+   while (watchCursor.hasNext()) {
+      watchCursor.next();
+   }
+
+A change stream cursor can return an empty batch if no new data changes
+have occured within a set period of time. This causes the while loop
+to exit prematurely as :method:`cursor.hasNext()` returns ``false``
+when it detects the empty batch. However, the change stream cursor 
+is still open and able to return more documents in the future.
+
+Use :method:`cursor.isExhausted()` to ensure the while loop only exits
+when the cursor is closed *and* there are no documents remaining in the
+batch:
+
+.. code-block:: javascript
+
+   watchCursor = db.collection.watch();
+
+   while (!watchCursor.isExhausted()) {
+      if (watchCursor.hasNext()){
+         watchCursor.next();
+      }
+   }
