@@ -1,0 +1,110 @@
+===================================================
+Change a Self-Managed Sharded Cluster to WiredTiger
+===================================================
+
+.. default-domain:: mongodb
+
+.. note::
+
+   You must upgrade to WiredTiger. MongoDB removed the deprecated MMAPv1 storage 
+   engine in version 4.2. 
+
+Use this tutorial to update a sharded cluster to use :ref:`WiredTiger 
+<storage-wiredtiger>`.
+
+Considerations
+--------------
+
+Downtime
+~~~~~~~~
+
+If you change the host or port of any :term:`shard`, you must update
+the shard configuration as well.
+
+.. _sharded-cluster-mmapv1-wt-4.0-psa:
+
+PSA 3-member Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :readconcern:`"majority"` read concern,
+available for WiredTiger, is enabled by default. However,
+if you have a three-member shard replica set with a
+primary-secondary-arbiter (PSA) architecture, you can disable
+:readconcern:`"majority"` read concern for that shard replica set.
+Disabling :readconcern:`"majority"` for a three member PSA architecture
+avoids possible cache-pressure build up.
+
+.. note::
+
+   .. include:: /includes/extracts/changestream-disable-rc-majority.rst
+
+   .. include:: /includes/fact-disable-majority-rc-rollbacks.rst
+
+   .. include:: /includes/extracts/transactions-read-concern-majority.rst
+
+For more information on PSA architecture and read concern
+:readconcern:`"majority"`, see :ref:`disable-read-concern-majority`.
+
+Default Bind to Localhost
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-default-bind-ip-change.rst
+
+Config Servers
+~~~~~~~~~~~~~~
+
+Config servers must be deployed as replica sets (CSRS). As such, config
+servers already use the WiredTiger storage engine.
+
+XFS and WiredTiger
+~~~~~~~~~~~~~~~~~~
+
+With the WiredTiger storage engine, using XFS for data bearing nodes is
+recommended on Linux. For more information, see
+:ref:`prod-notes-linux-file-system`.
+
+MMAPv1 Only Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mmapv1-only-restrictions.rst
+
+Procedure
+---------
+
+For each replica set :term:`shard <shard>`, to change the storage
+engine to WiredTiger:
+
+A. Update the secondary members to WiredTiger.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update the secondary members one at a time:
+
+.. include:: /includes/steps/change-replica-set-wiredtiger.rst
+
+Repeat the steps for the remaining secondary members, updating them one
+at a time.
+
+B. Step down the primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once all the secondary members have been upgraded to WiredTiger,
+connect :binary:`~bin.mongosh` to the primary and use
+:method:`rs.stepDown()` to step down the primary and force an election
+of a new primary.
+
+.. code-block:: javascript
+
+   rs.stepDown()
+
+C. Update the old primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the primary has stepped down and become a secondary, update the
+secondary to use WiredTiger as before:
+
+.. include:: /includes/steps/change-replica-set-wiredtiger.rst
+
+
+Repeat the procedure for the other shards.
+
+.. |seemore| replace:: See :ref:`sharded-cluster-mmapv1-wt-4.0-psa`.

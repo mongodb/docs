@@ -1,0 +1,201 @@
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta::
+   :keywords: queryable encryption, code example, node.js
+
+.. _qe-create-encryption-schema:
+
+========================================================================
+Create an {+enc-schema-title+}
+========================================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+About this Task
+---------------
+
+To make encrypted fields queryable, create an :term:`{+enc-schema+}`. 
+This schema defines which fields are queryable, and which
+query types are permitted. For more information, see :ref:`qe-fundamentals-encrypt-query`.
+
+.. _qe-specify-fields-for-encryption:
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a JSON {+enc-schema+} document.
+
+      Include an ``encryptedFieldsObject`` with a nested ``fields`` array:
+
+      .. code-block:: javascript
+
+         const encryptedFieldsObject = {
+            fields: []
+         }
+   
+   .. step:: Specify encryption parameters for each field you want to encrypt.
+
+      a. Add the ``path`` and ``bsonType`` strings to the ``fields`` array:
+
+         .. code-block:: javascript
+            :emphasize-lines: 4, 5
+
+            const encryptedFieldsObject = {
+               fields: [
+                  {
+                     path: "myDocumentField",
+                     bsonType: "int"
+                  }
+               ]
+            }
+
+         .. important::
+
+            You can specify any field for encryption except the
+            ``_id`` field.
+
+      #. If you are using :ref:`{+manual-enc+}
+         <qe-fundamentals-manual-encryption>`, add a ``keyId`` field
+         with the {+dek-abbr+} ID.
+
+         .. code-block:: javascript
+            :emphasize-lines: 4
+
+            {
+               path: "myDocumentField",
+               bsonType: "int",
+               keyId: "<unique data encryption key>"
+            }
+
+         .. tip::
+         
+            With Automatic Encryption, MongoDB creates encryption keys for
+            each field. You configure ``AutoEncryptionSettings`` on the
+            client, then use the ``createEncryptedCollection`` helper method
+            to create your collections.
+
+      #. If you want a field to be queryable, add the ``queries`` property 
+         and list allowed ``queryTypes``.
+
+         .. _qe-enable-queries:
+
+         {+qe+} currently supports ``equality`` queries only.
+
+         .. code-block:: javascript
+            :emphasize-lines: 4
+
+            {
+               path: "myDocumentField",
+               bsonType: "int",
+               queries: { queryType: "equality" }
+            }
+
+      #. (Optional) Include the ``contention`` property on queryable fields 
+         to favor either find performance, or write and update performance:
+
+         .. code-block:: javascript
+            :emphasize-lines: 5
+
+            {
+               path: "myDocumentField",
+               bsonType: "int",
+               queries: { queryType: "equality",
+                          contention: "0"}
+            }
+         
+         For more information, see :ref:`contention<qe-contention>`.
+
+Example
+-------
+This example shows how to create an {+enc-schema+} for hospital data.
+
+Consider the following document that contains personally identifiable information
+(PII), credit card information, and sensitive medical information:
+
+.. code-block:: json
+
+   {
+      "firstName": "Jon",
+      "lastName": "Snow",
+      "patientId": 12345187,
+      "address": "123 Cherry Ave",
+      "medications": [
+         "Adderall",
+         "Lipitor"
+      ],
+      "patientInfo": {
+         "ssn": "921-12-1234",
+         "billing": {
+               "type": "visa",
+               "number": "1234-1234-1234-1234"
+         }
+      }
+   }
+
+To ensure the PII and sensitive medical information stays secure, this 
+{+enc-schema+} adds the relevant fields:
+
+.. code-block:: javascript
+
+   const encryptedFieldsObject = {
+      fields: [
+         {
+            path: "patientId",
+            bsonType: "int"
+         },
+         {
+            path: "patientInfo.ssn",
+            bsonType: "string"
+         },
+         {
+            path: "medications",
+            bsonType: "array"
+         },
+         {
+            path: "patientInfo.billing",
+            bsonType: "object"
+         }
+      ]
+   }
+
+Adding the ``queries`` property makes the ``patientId`` and
+``patientInfo.ssn`` fields queryable. This example enables equality queries:
+
+.. code-block:: javascript
+   :emphasize-lines: 6, 11
+
+   const encryptedFieldsObject = {
+      fields: [
+         {
+            path: "patientId",
+            bsonType: "int",
+            queries: { queryType: "equality" }
+         },
+         {
+            path: "patientInfo.ssn",
+            bsonType: "string",
+            queries: { queryType: "equality" }
+         },
+         {
+            path: "medications",
+            bsonType: "array"
+         },
+         {
+            path: "patientInfo.billing",
+            bsonType: "object"
+         },
+      ]
+   }

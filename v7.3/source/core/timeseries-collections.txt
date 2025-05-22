@@ -1,0 +1,217 @@
+.. _manual-timeseries-landing:
+
+===========
+Time Series
+===========
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: IOT
+   :description:  Improve query efficiency and reduce disk usage for time series data and secondary indexes by storing time series data in time series collections.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Time series data is a sequence of data points in which insights are
+gained by analyzing changes over time.
+
+Time series data is generally composed of these components:
+
+- **Time** when the data point was recorded.
+
+- **metadata** (sometimes referred to as source), which is a label or
+  tag that identifies a data series and rarely changes. Metadata is
+  stored in a metaField. You cannot add metaFields to time series
+  documents after you create them. For more information on metaField
+  behavior and selection, see :ref:`timeseries-collections-metafield`.
+
+- **Measurements** (sometimes referred to as metrics or values), which
+  are the data points tracked at increments in time. Generally these are
+  key-value pairs that change over time.
+
+This table shows examples of time series data:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30, 30, 40
+
+   * - **Example**
+     - **Measurement**
+     - **Metadata**
+
+   * - Stock data
+     - Stock price
+     - Stock ticker, exchange
+
+   * - Weather data
+     - Temperature
+     - Sensor identifier, location
+     
+   * - Website visitors
+     - View count
+     - URL
+
+For efficient time series data storage, MongoDB provides time series
+collections.
+
+.. _manual-timeseries-collection:
+
+Time Series Collections
+-----------------------
+
+.. versionadded:: 5.0
+
+Time series collections efficiently store time series data. In time
+series collections, writes are organized so that data from the same
+source is stored alongside other data points from a similar point in
+time.
+
+.. |page-topic| replace:: :ref:`create time series collections in the UI <atlas-ui-create-a-collection>`
+
+.. cta-banner::
+   :url: https://www.mongodb.com/docs/atlas/atlas-ui/collections/#std-label-atlas-ui-create-a-collection
+   :icon: Cloud
+
+   .. include:: /includes/fact-atlas-compatible.rst
+
+Benefits
+~~~~~~~~
+
+Compared to normal collections, storing time series data in time series
+collections improves query efficiency and reduces the disk usage for
+time series data and :term:`secondary indexes <secondary index>`.
+MongoDB 6.3 and later automatically creates a :ref:`compound index
+<index-type-compound>` on the time and metadata
+fields for new time series collections. 
+
+Time series collections use an underlying columnar storage format and
+store data in time-order. This format provides the following benefits:
+
+- Reduced complexity for working with time series data
+- Improved query efficiency
+- Reduced disk usage
+- Reduced I/O for read operations
+- Increased WiredTiger cache usage
+
+.. _timeseries-collections-behavior:
+
+Behavior
+~~~~~~~~
+
+Time series collections generally behave like other MongoDB collections.
+You insert and query data as usual. 
+
+.. warning::
+
+   Match expressions in update and delete commands can only specify the
+   metaField. You can't update other fields in a time series document.
+   For more details, see :ref:`Time Series Delete and Update Limitations
+   <timeseries-limitations-updates-deletes>`. 
+   
+
+MongoDB treats time series collections as writable non-materialized
+:ref:`views <views-landing-page>` backed by an internal collection. When
+you insert data, the internal collection automatically organizes time
+series data into an optimized storage format. 
+
+Starting in MongoDB 6.3: if you create a new time series collection,
+MongoDB also generates a :ref:`compound index <index-create-compound>`
+on the :ref:`metaField and timeField <time-series-fields>` fields. To
+improve query performance, queries on time series collections use the
+new compound index. The compound index also uses the optimized storage
+format.
+
+.. tip::
+
+   To improve query performance, you can manually :ref:`add secondary
+   indexes <timeseries-add-secondary-index>` on measurement fields or
+   any field in your time series collection.
+
+.. important:: Backward-Incompatible Feature
+
+   .. include:: /includes/downgrade-for-timeseries-collections.rst
+
+.. include:: /includes/database-profiler-note.rst
+
+.. _timeseries-collections-metafield:
+
+metaFields
+~~~~~~~~~~
+
+Time series documents can contain an optional metaField to group sets of
+documents, both for internal storage optimization and query efficiency.
+A metaField should rarely change and can be any data type. A metaField
+can be an object and can contain subfields. Once you define a field as
+the metaField, you can change the value of the metaField but you cannot
+redefine the metaField as another field. For example, if you create time
+series documents with the metaField defined as field ``A``, you cannot
+later convert a field ``B`` to be the metaField. However, if the value
+of metaField ``A`` is an object, you can add new subfields to field
+``A``. 
+
+.. note::
+
+   Using an array as a metaField may cause unexpected collection
+   behavior because array equality depends on specific order.
+
+Buckets
+```````
+
+MongoDB uses the metaField to partition data for efficient organization
+and retrieval. When you create a time series collection, MongoDB groups
+documents into buckets. Documents within a bucket share an identical
+metaField value and have timeField values that are close together.
+
+The number of buckets in a time series collection depends on the number
+of unique metaField values. Collections with fine-grained or dynamic
+metaField values may generate more, sparsely packed, short-lived buckets
+than collections with simple metaFields that rarely or never change.
+Fine-grained and dynamic metaField values typically decrease storage and
+query effiency. 
+
+Indexes
+```````
+
+MongoDB automatically creates a :ref:`compound index
+<index-type-compound>` on both the metaField and timeField of a time
+series collection. 
+
+metaField Best Practices
+````````````````````````
+
+- Select fields that rarely or never change as part of your metaField.
+- If possible, select identifiers or other stable values that are common in filter
+  expressions as part of your metaField. 
+- Avoid selecting fields that are not used for filtering as part of your
+  metaField. Instead, use those fields as measurements. 
+
+.. _manual-timeseries-internal-index:
+
+Get Started
+-----------
+
+To get started with time series collections, see
+:ref:`timeseries-create-query-procedures`.
+
+.. toctree::
+   :titlesonly:
+
+   /core/timeseries/timeseries-procedures
+   /core/timeseries/timeseries-check-type
+   /core/timeseries/timeseries-automatic-removal
+   /core/timeseries/timeseries-granularity
+   /core/timeseries/timeseries-secondary-index
+   /core/timeseries/timeseries-migrate-data-into-timeseries-collection
+   /core/timeseries/timeseries-build-materialized-views
+   /core/timeseries/timeseries-shard-collection
+   /core/timeseries/timeseries-best-practices
+   Reference </core/timeseries/timeseries-reference>

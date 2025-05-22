@@ -1,0 +1,941 @@
+.. _server-limits-thresholds:
+
+=============================
+MongoDB Limits and Thresholds
+=============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. meta:: 
+   :keywords: case sensitive
+
+.. meta:: 
+   :description: Hard and soft limitations of the MongoDB system in Atlas, Enterprise, and Community.  
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document provides a collection of hard and soft limitations of
+the MongoDB system. The limitations on this page apply to deployments
+hosted in all of the following environments unless specified otherwise:
+
+.. include:: /includes/fact-environments.rst
+
+{+atlas+} Limitations
+------------------------------
+
+The following limitations apply only to deployments hosted in
+{+atlas+}. If any of these limits present a problem for your organization, contact :atlas:`Atlas support </support>`.
+
+{+atlas+} Cluster Limits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+   
+
+   * - Component
+     - Limit
+
+   * - Shards in
+       :atlas:`multi-region clusters </cluster-config/multi-cloud-distribution/>`
+     - 12
+
+   * - Shards in single-region clusters
+     - 50
+
+   * - :ref:`Cross-region network permissions <faq-cross-region>`
+       for a multi-region cluster
+     - 40. Additionally, a cluster in any :ref:`project
+       <projects>` spans more than 40 regions, you can't create a
+       multi-region cluster in this project.
+
+   * - :ref:`Electable nodes <replica-set-elections>` per
+       replica set or shard
+     - 7
+
+   * - :atlas:`Cluster tier </manage-clusters/#select-cluster-tier>`
+       for the :ref:`Config server <sharding-config-server>` (minimum
+       and maximum)
+     - ``M30``
+
+{+atlas+} Connection Limits and Cluster Tier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+atlas+} limits concurrent incoming connections
+based on the cluster tier and :ref:`class <storage-class-ui>`. 
+{+atlas+} connection limits apply per node. For
+sharded clusters, {+atlas+} connection limits apply per
+:ref:`mongos <sharding-read-operations>` router. The number of
+:ref:`mongos <sharding-read-operations>` routers is equal to
+the number of replica set nodes across all shards. 
+
+Your :manual:`read preference </core/read-preference/>` also
+contributes to the total number of connections that {+atlas+} can
+allocate for a given query.
+
+{+atlas+} has the following connection limits for the specified cluster
+tiers:
+
+.. tabs::
+
+   .. tab:: AWS
+      :tabid: aws
+
+      .. tabs::
+
+         .. tab:: General Class
+            :tabid: general-class
+
+            .. list-table::
+               :header-rows: 1
+
+               * - {+atlas+} Cluster Tier
+                 - Maximum Connections Per Node
+
+               * - ``M0``
+                 - 500
+
+               * - ``M2``
+                 - 500
+
+               * - ``M5``
+                 - 500
+
+               * - ``M10``
+                 - 1500
+
+               * - ``M20``
+                 - 3000
+
+               * - ``M30``
+                 - 3000
+
+               * - ``M40``
+                 - 6000
+
+               * - ``M50``
+                 - 16000
+
+               * - ``M60``
+                 - 32000
+
+               * - ``M80``
+                 - 96000
+
+               * - ``M140``
+                 - 96000
+
+               * - ``M200``
+                 - 128000
+
+               * - ``M300``
+                 - 128000
+
+         .. tab:: Low-CPU Class
+            :tabid: low-cpu-class
+
+            .. list-table::
+               :header-rows: 1
+
+               * - {+atlas+} Cluster Tier
+                 - Maximum Connections Per Node
+
+               * - ``M40``
+                 - 4000
+
+               * - ``M50``
+                 - 16000
+
+               * - ``M60``
+                 - 32000
+
+               * - ``M80``
+                 - 64000
+
+               * - ``M140``
+                 - 96000
+
+               * - ``M200``
+                 - 128000
+
+               * - ``M300``
+                 - 128000
+
+               * - ``M400``
+                 - 128000
+
+               * - ``M700``
+                 - 128000
+
+   .. tab:: Azure and GCP
+      :tabid: other
+
+      .. list-table::
+         :header-rows: 1
+
+         * - {+atlas+} Cluster Tier
+           - Maximum Connections Per Node
+
+         * - ``M0``
+           - 500
+
+         * - ``M2``
+           - 500
+
+         * - ``M5``
+           - 500
+
+         * - ``M10``
+           - 1500
+
+         * - ``M20``
+           - 3000
+
+         * - ``M30``
+           - 3000
+
+         * - ``M40``
+           - 6000
+
+         * - ``M50``
+           - 16000
+
+         * - ``M60``
+           - 32000
+
+         * - ``M80``
+           - 64000
+
+         * - ``M140``
+           - 96000
+
+         * - ``M200``
+           - 128000
+
+         * - ``M300``
+           - 128000
+
+.. note::
+
+   {+atlas+} reserves a small number of connections to each cluster for
+   supporting {+atlas+} services.
+
+{+atlas+} Multi-Cloud Connection Limitation 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're connecting to a multi-cloud {+atlas+} deployment through a 
+:ref:`private connection <conn-string-options>`, you can access only
+the nodes in the same cloud provider that you're connecting from. This 
+cloud provider might not have the :term:`primary` node in its region. 
+When this happens, you must specify the 
+:ref:`secondary read preference <read-preference>` mode in the
+connection string to access the deployment.
+
+If you need access to all nodes for your multi-cloud {+atlas+}
+deployment from your current provider through a private connection, you
+must perform one of the following actions:
+
+- Configure a VPN in the current provider to each of the remaining 
+  providers.
+- Configure a :ref:`private endpoint <private-endpoint>` to {+atlas+}
+  for each of the remaining providers.
+
+{+atlas+} Collection and Index Limits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While there is no hard limit on the number of collections in a single 
+{+atlas+} cluster, the performance of a cluster might degrade if it
+serves a large number of collections and indexes. Larger collections
+have a greater impact on performance.
+
+The recommended maximum combined number of collections and indexes by
+{+atlas+} cluster tier are as follows:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - {+atlas+} Cluster Tier
+     - Recommended Maximum
+
+   * - ``M10``
+     - 5,000 collections and indexes
+
+   * - ``M20`` / ``M30``
+     - 10,000 collections and indexes
+
+   * - ``M40``/+
+     - 100,000 collections and indexes
+
+{+atlas+} Organization and Project Limits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+atlas+} deployments have the following organization and project
+limits: 
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+   
+
+   * - Component
+     - Limit
+
+   * - :atlas:`Database users </security-add-mongodb-users/>` per
+       {+atlas+} project
+     - 100
+
+   * - :atlas:`Atlas users </access/manage-org-users>` per
+       {+atlas+} project
+     - 500
+
+   * - Atlas users per {+atlas+} organization
+     - 500
+
+   * - API Keys per {+atlas+} organization
+     - 500
+
+   * - :atlas:`Access list entries </security/ip-access-list/>` per
+       {+atlas+} Project
+     - 200
+
+   * - Users per {+atlas+} team
+     - 250
+
+   * - Teams per {+atlas+} project
+     - 100
+
+   * - Teams per {+atlas+} organization
+     - 250
+
+   * - Teams per {+atlas+} user
+     - 100
+
+   * - Organizations per {+atlas+} user
+     - 250
+
+   * - :ref:`Linked organizations <cross-org-billing>` per 
+       cross-organization configuration
+     - 250
+
+   * - Clusters per {+atlas+} project
+     - 25
+
+   * - Projects per {+atlas+} organization
+     - 250
+
+   * - :atlas:`Custom MongoDB roles </security-add-mongodb-roles/>` per
+       {+atlas+} project
+     - 100
+
+   * - Assigned roles per database user
+     - 100
+
+   * - Hourly billing per {+atlas+} organization
+     - $50
+
+   * - :ref:`Federated database instances <atlas-data-federation>` per
+       {+atlas+} project
+     - 25
+
+   * - Total Network Peering Connections per {+atlas+}
+       project
+     - 50. Additionally, {+atlas+} limits the number of nodes per
+       :ref:`Network Peering connection <vpc-peering>` based on the
+       CIDR block and the 
+       :atlas:`region </cloud-providers-regions/>` 
+       selected for the project.
+
+   * - Pending network peering connections per {+atlas+}
+       project
+     - 25
+
+   * - :ref:`AWS Private Link <atlas-pl-limitations>` addressable
+       targets per region
+     - 50
+
+   * - :ref:`Azure PrivateLink <atlas-pl-limitations>` addressable 
+       targets per region
+     - 150
+
+   * - Unique shard keys per MongoDB Atlas-managed Global Cluster project
+     - 40. This applies only to Global Clusters with :atlas:`Atlas-Managed
+       Sharding </tutorial/create-global-cluster/>`. There are no limits on 
+       the number of unique shard keys per project for :atlas:`Global Clusters 
+       with Self-Managed Sharding </shard-global-collection/>`.
+
+   * - `Atlas Data Lake <https://www.mongodb.com/docs/datalake/>`__
+       pipelines per {+atlas+} project
+     - 25
+
+   * - ``M0`` clusters per {+atlas+} project
+     - 1
+
+{+atlas+} Label Limits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+atlas+} limits the length and enforces ReGex requirements for the
+following component labels:
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+   
+
+   * - Component
+     - Character Limit
+     - RegEx Pattern
+
+   * - Cluster Name
+     - 64 [1]_
+     - ``^([a-zA-Z0-9]([a-zA-Z0-9-]){0,21}(?<!-)([\w]{0,42}))$`` [2]_
+
+   * - Project Name
+     - 64
+     -  ``^[\p{L}\p{N}\-_.(),:&@+']{1,64}$`` [3]_
+
+   * - Organization Name
+     - 64
+     -  ``^[\p{L}\p{N}\-_.(),:&@+']{1,64}$`` [3]_
+
+   * - API Key Description
+     - 250
+     - 
+
+.. [1] If you have :ref:`peering-only mode enabled 
+       <atlas-faq-azure-gcp-peering-only>`, the cluster name
+       character limit is 23.
+
+.. [2] {+atlas+} uses the first 23 characters of a cluster's name.
+       These characters must be unique within the cluster's project.
+       Cluster names with fewer than 23 characters can't end with a
+       hyphen (``-``). Cluster names with more than 23 characters can't
+       have a hyphen as the 23rd character. 
+
+.. [3] Organization and project names can include any Unicode letter or
+       number plus the following punctuation: ``-_.(),:&@+'``.
+
+
+Serverless Instance, Free Cluster, and Shared Cluster Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Additional limitations apply to {+atlas+} serverless instances,
+free clusters, and shared clusters. To learn more, see the following
+resources:
+
+- :atlas:`Serverless Instance Limitations 
+  </reference/serverless-instance-limitations>`
+- :atlas:`Atlas M0 (Free Cluster), M2, and M5 Limitations 
+  </reference/free-shared-limitations>`
+
+{+atlas+} Command Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some MongoDB commands are unsupported in {+atlas+}. Additionally, some
+commands are supported only in {+atlas+} free clusters. To learn more,
+see the following resources:
+
+- :atlas:`Unsupported Commands in Atlas </unsupported-commands>`
+- :atlas:`Commands Available Only in Free Clusters 
+  </free-tier-commands>`
+
+BSON Documents
+--------------
+
+.. _limit-bson-document-size:
+.. limit:: BSON Document Size
+
+   .. include:: /includes/fact-document-max-size.rst
+
+.. _limit-nested-depth:
+.. limit:: Nested Depth for BSON Documents
+
+   MongoDB supports no more than 100 levels of nesting for :term:`BSON
+   documents <document>`. Each object or array adds a level.
+
+.. _restrictions-on-db-names:
+.. _restrictions-on-collection-names:
+.. _faq-restrictions-on-collection-names:
+
+Naming Restrictions
+-------------------
+
+.. limit:: Use of Case in Database Names
+
+   Do not rely on case to distinguish between databases. For example,
+   you cannot use two databases with names like, ``salesData`` and
+   ``SalesData``.
+
+   After you create a database in MongoDB, you must use consistent
+   capitalization when you refer to it. For example, if you create the
+   ``salesData`` database, do not refer to it using alternate
+   capitalization such as ``salesdata`` or ``SalesData``.
+
+.. limit:: Restrictions on Database Names for Windows
+
+   For MongoDB deployments running on Windows, database names cannot
+   contain any of the following characters:
+
+   .. code-block:: none
+
+      /\. "$*<>:|?
+
+   Also database names cannot contain the null character.
+
+.. limit:: Restrictions on Database Names for Unix and Linux Systems
+
+   For MongoDB deployments running on Unix and Linux systems, database
+   names cannot contain any of the following characters:
+
+   .. code-block:: none
+
+      /\. "$
+
+   Also database names cannot contain the null character.
+
+.. limit:: Length of Database Names
+
+   Database names cannot be empty and must be less than 64 bytes.
+
+.. limit:: Restriction on Collection Names
+
+   Collection names should begin with an underscore or a letter
+   character, and *cannot*:
+
+   - contain the ``$``.
+
+   - be an empty string (e.g. ``""``).
+
+   - contain the null character.
+
+   - begin with the ``system.`` prefix. (Reserved for internal use.)
+
+   - contain ``.system.``. 
+
+   If your collection name includes special characters, such as the
+   underscore character, or begins with numbers, then to access the
+   collection use the :method:`db.getCollection()` method in
+   :binary:`~bin.mongosh` or a :api:`similar method for your driver <>`.
+
+   Namespace Length:
+   
+   .. include:: /includes/fact-collection-namespace-limit.rst
+
+.. _limit-restrictions-on-field-names:
+
+.. limit:: Restrictions on Field Names
+
+   .. include:: /includes/fact-document-field-name-restrictions.rst
+
+.. limit:: Restrictions on _id
+
+   .. include:: /includes/fact-id-field-name-rules.rst
+
+Naming Warnings
+---------------
+
+.. warning::
+
+   Use caution, the issues discussed in this section could lead to data
+   loss or corruption.  
+
+MongoDB does not support duplicate field names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/warning-document-duplicate-key-names-body.rst
+
+Import and Export Concerns With Dollar Signs (``$``) and Periods (``.``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/warning-dot-dollar-import-export-body.rst
+
+Possible Data Loss With Dollar Signs (``$``) and Periods (``.``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/warning-possible-data-loss-body.rst
+
+.. _faq-dev-namespace:
+
+Namespaces
+----------
+
+.. _limit-namespace-length:
+.. limit:: Namespace Length
+
+   .. include:: /includes/fact-collection-namespace-limit.rst
+
+   .. seealso::
+
+      :ref:`faq-restrictions-on-collection-names`
+
+.. _index-limitations:
+
+Indexes
+-------
+
+.. _limit-number-of-indexes-per-collection:
+.. limit:: Number of Indexes per Collection
+
+   A single collection can have *no more* than 64 indexes.
+
+.. limit:: Number of Indexed Fields in a Compound Index
+
+   There can be no more than 32 fields in a compound index.
+
+.. limit:: Queries cannot use both text and Geospatial Indexes
+
+   .. |operation| replace:: :query:`$text` query
+
+   .. include:: /includes/fact-special-indexes-and-text.rst
+
+   .. TODO remove in the 2.6 version of the manual
+
+.. limit:: Fields with 2dsphere Indexes can only hold Geometries
+
+   .. include:: /includes/geo-data-limit-for-2dsphere.rst
+
+   .. seealso::
+
+      The unique indexes limit in :ref:`limits-sharding-operations`.
+
+.. limit:: Limited Number of 2dsphere index keys
+
+   .. include:: /includes/fact-2dsphere-index-limitations.rst
+
+.. limit:: NaN values returned from Covered Queries by the WiredTiger Storage Engine are always of type double
+
+   If the value of a field returned from a query that is :ref:`covered
+   by an index <covered-queries>` is ``NaN``, the type of that ``NaN``
+   value is *always* ``double``.
+
+.. limit:: Multikey Index
+
+   .. include:: /includes/fact-multikey-index-covered-query.rst
+
+.. limit:: Geospatial Index
+
+   .. include:: /includes/fact-geospatial-index-covered-query.rst
+
+.. limit:: Memory Usage in Index Builds
+
+   .. include:: /includes/fact-index-build-default-memory-limit.rst
+
+   .. include:: /includes/extracts/4.2-index-limit.rst
+
+   .. include:: /includes/fact-index-build-memory-limit.rst
+
+.. limit:: Collation and Index Types
+
+   The following index types only support simple binary comparison and
+   do not support :ref:`collation <collation>`:
+
+   - :ref:`Text <index-type-text>` indexes
+
+   - :ref:`2d <2d-index>` indexes
+
+   .. include:: /includes/extracts/collation-index-type-restrictions-addendum.rst
+
+.. limit:: Hidden Indexes
+
+   - You cannot :ref:`hide <index-type-hidden>` the ``_id`` index.
+
+   - You cannot use :method:`~cursor.hint()` on a :doc:`hidden index
+     </core/index-hidden>`.
+
+Sorts
+-----
+
+.. limit:: Maximum Number of Sort Keys
+
+   .. include:: /includes/sort-limits.rst
+
+Data
+----
+
+.. limit:: Maximum Number of Documents in a Capped Collection
+
+   If you specify the maximum number of documents in a capped
+   collection with :dbcommand:`create`'s ``max`` parameter, the value
+   must be less than 2\ :sup:`31` documents. 
+   
+   If you do not specify a maximum number of documents when creating a 
+   capped collection, there is no limit on the number of documents.
+
+
+Replica Sets
+------------
+
+.. limit:: Number of Members of a Replica Set
+
+   Replica sets can have up to 50 members.
+
+.. limit:: Number of Voting Members of a Replica Set
+
+   Replica sets can have up to 7 voting members. For replica sets with
+   more than 7 total members, see :ref:`replica-set-non-voting-members`.
+
+.. limit:: Maximum Size of Auto-Created Oplog
+
+   If you do not explicitly specify an oplog size (i.e. with
+   :setting:`~replication.oplogSizeMB` or :option:`--oplogSize
+   <mongod --oplogSize>`) MongoDB will create an oplog that is no
+   larger than 50 gigabytes. [#oplog]_
+
+   .. [#oplog]
+
+      .. include:: /includes/fact-oplog-size.rst
+
+.. _limits-sharding:
+
+Sharded Clusters
+----------------
+
+Sharded clusters have the restrictions and thresholds described here.
+
+.. _limits-sharding-operations:
+
+Sharding Operational Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. limit:: Operations Unavailable in Sharded Environments
+
+   .. include:: /includes/limits-sharding-unavailable-operations.rst
+
+.. limit:: Covered Queries in Sharded Clusters
+
+   .. include:: /includes/extracts/fact-covered-query-sharded-collection-covered-queries.rst
+
+.. limit:: Single Document Modification Operations in Sharded Collections
+
+   .. |single-modification-operation-names| replace:: :dbcommand:`update` and :method:`~db.collection.remove()`
+   .. |single-modification-operation-option| replace:: ``justOne`` or ``multi: false``
+
+   .. include:: /includes/fact-single-modification-in-sharded-collections.rst
+
+.. _limit-sharding-unique-indexes:
+
+.. limit:: Unique Indexes in Sharded Collections
+
+   .. include:: /includes/limits-sharding-unique-indexes.rst
+
+.. _limit-balancer-migration-document-limit:
+
+.. limit:: Maximum Number of Documents Per Range to Migrate
+
+   .. include:: /includes/limits-sharding-maximum-documents-range.rst
+
+.. _limits-shard-keys:
+
+Shard Key Limitations
+~~~~~~~~~~~~~~~~~~~~~
+
+.. limit:: Shard Key Index Type
+
+   .. include:: /includes/limits-sharding-index-type.rst
+
+.. limit:: Shard Key Selection 
+
+   Your options for changing a shard key depend on the version of
+   MongoDB that you are running:
+
+   - Starting in MongoDB 5.0, you can :ref:`reshard a collection
+     <sharding-resharding>` by changing a document's shard key.
+   - You can :ref:`refine a shard key <shard-key-refine>` by adding a suffix 
+     field or fields to the existing shard key.
+
+.. limit:: Monotonically Increasing Shard Keys Can Limit Insert Throughput
+
+   .. include:: /includes/limits-sharding-shardkey-monotonic-throughput.rst
+
+Operations
+---------- 
+
+.. _limit-sort:
+.. limit:: Sort Operations
+
+   If MongoDB cannot use an index or indexes to obtain the sort order,
+   MongoDB must perform a blocking sort operation on the data. The name
+   refers to the requirement that the ``SORT`` stage reads all input
+   documents before returning any output documents, blocking the flow of
+   data for that specific query.
+   
+   If MongoDB requires using more than 100 megabytes of system memory
+   for the blocking sort operation, MongoDB returns an error *unless*
+   the query specifies :method:`cursor.allowDiskUse()`. 
+   :method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files on 
+   disk to store data exceeding the 100 megabyte system memory limit while 
+   processing a blocking sort operation.
+
+   For more information on sorts and index use, see
+   :ref:`sort-index-use`.
+
+.. _limit-agg-sort:
+
+.. limit:: Aggregation Pipeline Stages 
+
+   .. include:: /includes/fact-agg-stage-limit.rst
+
+.. limit:: Aggregation Pipeline Memory
+
+   .. include:: /includes/fact-agg-memory-limit.rst
+
+.. limit:: Aggregation and Read Concern
+
+   - .. include:: /includes/extracts/4.2-changes-out-linearizable.rst
+   
+   - .. include:: /includes/extracts/4.2-changes-linearizable-merge-restriction.rst
+
+.. limit:: 2d Geospatial queries cannot use the $or operator
+
+   .. see::
+
+      - :query:`$or`
+
+      - :ref:`2d-index-internals`
+
+.. limit:: Geospatial Queries
+
+   .. include:: /includes/extracts/geospatial-queries-longitude-values.rst
+
+.. limit:: Geospatial Coordinates
+
+   .. include:: /includes/extracts/geospatial-valid-long-lat-values.rst
+
+.. limit:: Area of GeoJSON Polygons
+
+   .. |geo-operator-method| replace:: :query:`$geoIntersects` or :query:`$geoWithin`
+
+   .. include:: /includes/fact-geometry-hemisphere-limitation.rst
+
+.. limit:: Multi-document Transactions
+
+   For :ref:`multi-document transactions <transactions>`:
+
+   .. include:: /includes/extracts/transactions-operations-crud.rst
+
+   .. include:: /includes/extracts/transactions-operations-restrictions.rst
+   
+   Transactions have a lifetime limit as specified by
+   :parameter:`transactionLifetimeLimitSeconds`. The default is 60 seconds.
+
+.. limit:: Write Command Batch Limit Size
+
+   ``100,000`` :ref:`writes <query-and-write-commands>` are
+   allowed in a single batch operation, defined by a single request to
+   the server.
+
+   The :method:`Bulk()` operations in :binary:`~bin.mongosh` and
+   comparable methods in the drivers do not have this limit.
+
+.. limit:: Views
+
+   .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+   Views have the following operation restrictions:
+
+   - Views are read-only.
+
+   - .. include:: /includes/extracts/views-unsupported-rename.rst
+
+   - .. include:: /includes/extracts/views-unsupported-projection-operators.rst
+
+   - .. include:: /includes/extracts/views-unsupported-text-search.rst
+
+   - .. include:: /includes/extracts/views-unsupported-mapReduce.rst
+
+.. limit:: Projection Restrictions
+
+    ``$``-Prefixed Field Path Restriction
+       .. include:: /includes/extracts/projection-dollar-prefixed-field-full.rst
+
+    ``$`` Positional Operator Placement Restriction
+       .. include:: /includes/extracts/projection-positional-operator-path.rst
+       
+    Empty Field Name Projection Restriction
+       .. include:: /includes/extracts/projection-empty-field-full.rst
+
+    Path Collision: Embedded Documents and Its Fields
+       .. include:: /includes/extracts/projection-path-collision-embedded-document-full.rst
+
+    Path Collision: ``$slice`` of an Array and Embedded Fields
+       .. include:: /includes/extracts/projection-path-collision-slice-embedded-field-full.rst
+
+    ``$`` Positional Operator and ``$slice`` Restriction
+       .. include:: /includes/extracts/projection-positional-operator-slice-full.rst
+    
+    .. |findoperation| replace:: :method:`~db.collection.find` and :method:`~db.collection.findAndModify`
+
+Sessions
+--------
+
+.. limit:: Sessions and $external Username Limit 
+
+   .. include:: /includes/extracts/sessions-external-username-limit.rst
+
+.. limit:: Session Idle Timeout
+
+   Sessions that receive no read or write operations for 30 minutes *or*
+   that are not refreshed using :dbcommand:`refreshSessions` within this
+   threshold are marked as expired and can be closed by the MongoDB
+   server at any time. Closing a session kills any in-progress
+   operations and open cursors associated with the session. This
+   includes cursors configured with :method:`~cursor.noCursorTimeout` or
+   a :method:`~cursor.maxTimeMS` greater than 30 minutes.
+
+   Consider an application that issues a :method:`db.collection.find()`.
+   The server returns a cursor along with a batch of documents defined
+   by the :method:`cursor.batchSize()` of the
+   :method:`~db.collection.find()`. The session refreshes each time the
+   application requests a new batch of documents from the server.
+   However, if the application takes longer than 30 minutes to process
+   the current batch of documents, the session is marked as expired and
+   closed. When the application requests the next batch of documents,
+   the server returns an error as the cursor was killed when the session
+   was closed.
+
+   For operations that return a cursor, if the cursor may be idle for
+   longer than 30 minutes, issue the operation within an explicit
+   session using :method:`Mongo.startSession()` and periodically
+   refresh the session using the :dbcommand:`refreshSessions` command.
+   For example:
+
+   .. code-block:: bash
+
+     var session = db.getMongo().startSession()
+     var sessionId = session
+     sessionId  // show the sessionId
+
+     var cursor = session.getDatabase("examples").getCollection("data").find().noCursorTimeout()
+     var refreshTimestamp = new Date() // take note of time at operation start
+    
+     while (cursor.hasNext()) {
+      
+       // Check if more than 5 minutes have passed since the last refresh
+       if ( (new Date()-refreshTimestamp)/1000 > 300 ) { 
+         print("refreshing session")
+         db.adminCommand({"refreshSessions" : [sessionId]})
+         refreshTimestamp = new Date()
+       }
+
+       // process cursor normally
+      
+     }
+
+   In the example operation, the :method:`db.collection.find()` method
+   is associated with an explicit session. The cursor is configured with
+   :method:`~cursor.noCursorTimeout()` to prevent the server from
+   closing the cursor if idle. The ``while`` loop includes a block that
+   uses :dbcommand:`refreshSessions` to refresh the session every 5
+   minutes. Since the session will never exceed the 30 minute idle
+   timeout, the cursor can remain open indefinitely.
+
+   For MongoDB drivers, defer to the :driver:`driver documentation
+   </>` for instructions and syntax for creating sessions. 

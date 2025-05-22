@@ -1,0 +1,313 @@
+title: Disable the Balancer.
+level: 4
+ref: 3.6-upgrade-disable-balancer
+content: |
+
+   Connect a ``mongo`` shell to a :binary:`~bin.mongos` instance in
+   the sharded cluster, and run :method:`sh.stopBalancer()` to
+   disable the balancer:
+
+   .. code-block:: javascript
+
+      sh.stopBalancer()
+
+   .. note::
+
+      If a migration is in progress, the system will complete the
+      in-progress migration before stopping the balancer. You can run
+      :method:`sh.isBalancerRunning()` to check the balancer's current
+      state.
+
+   To verify that the balancer is disabled, run
+   :method:`sh.getBalancerState()`, which returns false if the balancer
+   is disabled:
+
+   .. code-block:: javascript
+
+      sh.getBalancerState()
+
+   For more information on disabling the balancer, see
+   :ref:`sharding-balancing-disable-temporarily`.
+
+---
+title: "Upgrade the config servers."
+level: 4
+ref: 3.6-upgrade-config-servers
+content: |-
+   1. Upgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the replica set one at a time:
+
+      a. Shut down the secondary :binary:`~bin.mongod` instance and replace
+         the |oldversion| binary with the |newversion| binary.
+
+      #. Start the |newversion| binary with the :option:`--configsvr <mongod --configsvr>`,
+         :option:`--replSet <mongod --replSet>`, and :option:`--port <mongod --port>`. 
+         Include any other options as used by the deployment.
+
+         .. include:: /includes/fact-bind-ip-sharded-clusters.rst
+
+         .. code-block:: bash
+
+            mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: configsvr
+         <sharding.clusterRole>`, :setting:`replication.replSetName`,
+         :setting:`net.port`, and :setting:`net.bindIp`,
+         then start the |newversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: configsvr
+            replication:
+               replSetName: <string>
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+
+         Include any other settings as appropriate for your deployment.
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         upgrading the next secondary member. To check the member's state,
+         issue :method:`rs.status()` in the ``mongo`` shell.
+
+         Repeat for each secondary member.
+
+   #. Step down the replica set primary.
+
+      a. Connect a ``mongo`` shell to the primary and use
+         :method:`rs.stepDown()` to step down the primary and force an
+         election of a new primary:
+
+         .. code-block:: javascript
+
+            rs.stepDown()
+
+      #. When :method:`rs.status()` shows that the primary has stepped
+         down and another member has assumed ``PRIMARY`` state, shut down
+         the stepped-down primary and replace the :binary:`~bin.mongod` binary
+         with the |newversion| binary.
+
+      #. Start the |newversion| binary with the :option:`--configsvr <mongod --configsvr>`,
+         :option:`--replSet <mongod --replSet>`, :option:`--port <mongod --port>`, and :option:`--bind_ip <mongod --bind_ip>`
+         options. Include any optional command line options used by the
+         previous deployment:
+
+         .. code-block:: bash
+
+            mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         .. include:: /includes/fact-bind-ip-sharded-clusters.rst
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: configsvr
+         <sharding.clusterRole>`, :setting:`replication.replSetName`,
+         :setting:`net.port`, and :setting:`net.bindIp`,
+         then start the |newversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: configsvr
+            replication:
+               replSetName: <string>
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+---
+title: Upgrade the shards.
+level: 4
+ref: 3.6-upgrade-shards
+content: |-
+   Upgrade the shards one at a time.
+
+   For each shard replica set:
+
+   1. Upgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the replica set one at a time:
+
+      a. Shut down the :binary:`~bin.mongod` instance and replace the |oldversion|
+         binary with the |newversion| binary.
+
+      #. Start the |newversion| binary with the :option:`--shardsvr <mongod --shardsvr>`,
+         :option:`--replSet <mongod --replSet>`, :option:`--port <mongod --port>`, and :option:`--bind_ip <mongod --bind_ip>`
+         options. Include any optional command line options used by the
+         previous deployment:
+
+         .. code-block:: bash
+
+            mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         .. include:: /includes/fact-bind-ip-sharded-clusters.rst
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         include :setting:`sharding.clusterRole: shardsvr <sharding.clusterRole>`,
+         :setting:`replication.replSetName`, :setting:`net.port`, and
+         :setting:`net.bindIp`, then start the |newversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: shardsvr
+            replication:
+               replSetName: <string>
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         upgrading the next secondary member. To check the member's
+         state, you can issue :method:`rs.status()` in the
+         ``mongo`` shell.
+
+         Repeat for each secondary member.
+
+   #. Step down the replica set primary.
+
+      Connect a ``mongo`` shell to the primary and use
+      :method:`rs.stepDown()` to step down the primary and force an
+      election of a new primary:
+
+      .. code-block:: javascript
+
+         rs.stepDown()
+
+   #. When :method:`rs.status()`
+      shows that the primary has stepped down and another member
+      has assumed ``PRIMARY`` state, upgrade the stepped-down primary: 
+
+      1. Shut down the stepped-down primary and replace the
+         :binary:`~bin.mongod` binary with the |newversion| binary.
+
+      #. Start the |newversion| binary with the :option:`--shardsvr <mongod --shardsvr>`,
+         :option:`--replSet <mongod --replSet>`, :option:`--port <mongod --port>`, and :option:`--bind_ip <mongod --bind_ip>`
+         options. Include any optional command line options used by the
+         previous deployment:
+
+         .. code-block:: bash
+
+            mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         .. include:: /includes/fact-bind-ip-sharded-clusters.rst
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: shardsvr
+         <sharding.clusterRole>`, :setting:`replication.replSetName`,
+         :setting:`net.port`, and :setting:`net.bindIp`, then start the
+         |newversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: shardsvr
+            replication:
+               replSetName: <string>
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+---
+title: "Upgrade the ``mongos`` instances."
+level: 4
+ref: 3.6-upgrade-mongos-instances
+content: |-
+   Replace each :binary:`~bin.mongos` instance with the |newversion| binary
+   and restart. Include any other configuration as appropriate for your
+   deployment.
+
+   .. include:: /includes/fact-bind-ip-sharded-clusters.rst
+
+   .. code-block:: bash
+
+      mongos --configdb csReplSet/<rsconfigsver1:port1>,<rsconfigsver2:port2>,<rsconfigsver3:port3> --bind_ip localhost,<hostname(s)|ip address(es)>
+---
+title: "Re-enable the balancer."
+level: 4
+ref: 3.6-upgrade-reenable-balancer
+content: |-
+
+   Using a |newversion| ``mongo`` shell, connect to a
+   :binary:`~bin.mongos` in the cluster and run
+   :method:`sh.setBalancerState()` to re-enable the balancer:
+
+   .. code-block:: javascript
+   
+      sh.setBalancerState(true)
+
+   The |oldversion| and earlier ``mongo`` shell is not
+   compatible with |newversion| clusters.
+
+   For more information about re-enabling the balancer, see
+   :ref:`sharding-balancing-enable`.
+
+---
+title: "Enable backwards-incompatible |newversion| features."
+level: 5
+ref: 3.6-upgrade-enable-features-mongos
+pre: |
+
+   At this point, you can run the |newversion| binaries without the
+   |newversion| :ref:`features that are incompatible
+   <3.6-compatibility-enabled>` with |oldversion|. That is, you can run
+   the 3.6 sharded cluster with feature compatibility version set to 3.4
+
+   .. important::
+
+      For MongoDB 3.6.0-3.6.3, you should upgrade your drivers to
+      :ref:`3.6 feature compatible drivers <3.6-drivers>` only after
+      you have updated the feature compatibility version of the sharded
+      cluster to 3.6. For more information, see :issue:`SERVER-33763`.
+
+   To enable these |newversion| features, set the feature compatibility
+   version (``fCV``) to |newversion|.
+
+   .. note::
+
+      .. include:: /includes/featureCompatibility-caveat.rst
+
+action:
+   pre: |
+      On a :binary:`~bin.mongos` instance, run the
+      :dbcommand:`setFeatureCompatibilityVersion` command in the ``admin``
+      database:
+   copyable: true
+   language: javascript
+   code: |
+      db.adminCommand( { setFeatureCompatibilityVersion: "3.6" } )
+
+   post: |
+      This command must perform writes to an internal system
+      collection. If for any reason the command does not complete
+      successfully, you can safely retry the command on the
+      :binary:`~bin.mongos` as the operation is idempotent.
+      
+
+---
+title: "Restart ``mongos`` instances."
+level: 5
+ref: 3.6-upgrade-bounde-mongos
+content: |
+
+   After changing the ``featureCompatibilityVersion``, all
+   :binary:`~bin.mongos` instances need to be restarted to pick up the
+   changes in the causal consistency behavior.
+
+...

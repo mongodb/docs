@@ -1,0 +1,128 @@
+.. _2dsphere-query-intersection:
+
+===================================================
+Query for Locations that Intersect a GeoJSON Object
+===================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can query for location data that intersects with a :ref:`GeoJSON
+object <geospatial-indexes-store-geojson>`. For example, consider an
+application that stores coordinates of gas stations. You can create a
+GeoJSON :ref:`LineString <geojson-linestring>` that represents a road
+trip, and query for gas stations that intersect with the road trip
+route.
+
+To query for location data that intersects with a GeoJSON object, use
+the :query:`$geoIntersects` operator:
+
+.. code-block:: javascript
+
+   db.<collection>.find( {
+      <location field> : {
+         $geoIntersects : {
+            $geometry : {
+               type : "<GeoJSON object type>",
+               coordinates : [ <coordinates> ]
+            }
+          }
+       }
+    } )
+
+About this Task
+---------------
+
+.. |geo-operator-method| replace:: ``$geoIntersects``
+
+- .. include:: /includes/indexes/geojson-lat-long.rst
+
+- A location intersects with an object if it shares at least one point
+  with the specified object. This includes objects that have a shared
+  edge.
+
+- .. include:: /includes/indexes/geospatial-index-not-required.rst
+
+Before You Begin
+----------------
+
+Create a ``gasStations`` collection that contains these documents:
+
+.. code-block:: javascript
+
+   db.gasStations.insertMany( [
+      {
+         loc: { type: "Point", coordinates: [ -106.31, 35.65 ] },
+         state: "New Mexico",
+         country: "United States",
+         name: "Horizons Gas Station"
+      },
+      {
+         loc: { type: "Point", coordinates: [ -122.62, 40.75 ] },
+         state: "California",
+         country: "United States",
+         name: "Car and Truck Rest Area"
+      },
+      {
+         loc: { type: "Point", coordinates: [ -72.71, 44.15 ] },
+         state: "Vermont",
+         country: "United States",
+         name: "Ready Gas and Snacks"
+      }
+   ] )
+
+Procedure
+---------
+
+The following ``$geoIntersects`` query specifies a ``LineString``
+containing four points and returns documents that intersect with the
+line:
+
+.. code-block:: javascript
+
+   db.gasStations.find( {
+      loc: {
+         $geoIntersects: {
+            $geometry: {
+               type: "LineString",
+               coordinates: [
+                  [ -105.82, 33.87 ],
+                  [ -106.01, 34.09 ],
+                  [ -106.31, 35.65 ],
+                  [ -107.39, 35.98 ]
+               ]
+             }
+         }
+      }
+   } )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+        _id: ObjectId("63f658d45e5eefbdfef81ca4"),
+        loc: { type: 'Point', coordinates: [ -106.31, 35.65 ] },
+        state: 'New Mexico',
+        country: 'United States',
+        name: 'Horizons Gas Station'
+      }
+   ]
+
+Learn More
+----------
+
+- :query:`$geoIntersects`
+
+- :ref:`geojson-linestring`
+
+- :ref:`2dsphere-query-geojson-objects-polygon`
+
+- :ref:`geospatial-restrictions`

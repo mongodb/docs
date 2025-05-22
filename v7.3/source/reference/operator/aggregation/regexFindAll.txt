@@ -1,0 +1,784 @@
+===========================
+$regexFindAll (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $regexFindAll
+
+   Provides regular expression (regex) pattern matching capability in
+   aggregation expressions. The operator returns an array of documents
+   that contains information on each match. If a match is not found,
+   returns an empty array.
+
+Syntax
+------
+
+The :expression:`$regexFindAll` operator has the following syntax:
+
+.. code-block:: javascript
+
+   { $regexFindAll: { input: <expression> , regex: <expression>, options: <expression> } }
+
+.. |regexpattern| replace:: :ref:`regex pattern <regexFindAll-regex>`
+
+.. |regexoptions| replace:: :ref:`options <regexFindAll-options>`
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - :ref:`input <regexFindAll-input>`
+
+     - .. _regexFindAll-input:
+
+       .. include:: /includes/extracts/agg-regex-input.rst
+
+   * - :ref:`regex <regexFindAll-regex>`
+
+     - .. _regexFindAll-regex:
+
+       .. include:: /includes/extracts/agg-regex-pattern.rst
+
+   * - :ref:`options <regexFindAll-options>`
+
+     - .. _regexFindAll-options:
+     
+       .. include:: /includes/extracts/agg-regex-options.rst
+
+Returns
+~~~~~~~
+
+The operator returns an array:
+
+- If the operator does not find a match, the operator returns an empty
+  array.
+
+- If the operator finds a match, the operator returns an array of
+  documents that contains the following information for each match:
+
+  - the matching string in the :ref:`input <regexFindAll-input>`, 
+
+  - the `code point <http://www.unicode.org/glossary/#code_point>`_
+    index (not byte index) of the matching string in the :ref:`input
+    <regexFindAll-input>`, and
+
+  - An array of the strings that corresponds to the groups captured by
+    the matching string. Capturing groups are specified with unescaped
+    parenthesis ``()`` in the :ref:`regex <regexFindAll-regex>` pattern.
+
+  .. code-block:: javascript
+     :copyable: false
+
+     [ { "match" : <string>, "idx" : <num>, "captures" : <array of strings> }, ... ]
+
+.. seealso::
+
+   - :expression:`$regexFind`
+   - :expression:`$regexMatch`
+
+Behavior
+--------
+
+PCRE Library
+~~~~~~~~~~~~
+
+.. include:: /includes/fact-6.1-pcre2.rst
+
+``$regexFindAll`` and Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:expression:`$regexFindAll` ignores the collation specified for the
+collection, :method:`db.collection.aggregate()`, and the index, if used.
+
+For example, the create a sample collection with collation strength
+``1`` (i.e. compare base character only and ignore other differences
+such as case and diacritics):
+
+.. code-block:: javascript
+
+   db.createCollection( "myColl", { collation: { locale: "fr", strength: 1 } } )
+
+Insert the following documents:
+
+.. code-block:: javascript
+
+   db.myColl.insertMany([
+      { _id: 1, category: "café" },
+      { _id: 2, category: "cafe" },
+      { _id: 3, category: "cafE" }
+   ])
+
+Using the collection's collation, the following operation performs a
+case-insensitive and diacritic-insensitive match:
+
+.. code-block:: javascript
+
+   db.myColl.aggregate( [ { $match: { category: "cafe" } } ] )
+
+The operation returns the following 3 documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café" }
+   { "_id" : 2, "category" : "cafe" }
+   { "_id" : 3, "category" : "cafE" }
+
+However, the aggregation expression :expression:`$regexFind` ignores
+collation; that is, the following regular expression pattern matching examples
+are case-sensitive and diacritic sensitive:
+
+.. code-block:: javascript
+
+   db.myColl.aggregate( [ { $addFields: { results: { $regexFindAll: { input: "$category", regex: /cafe/ }  } } } ] )
+   db.myColl.aggregate( 
+      [ { $addFields: { results: { $regexFindAll: { input: "$category", regex: /cafe/ }  } } } ], 
+      { collation: { locale: "fr", strength: 1 } }       // Ignored in the $regexFindAll
+   )
+
+Both operations return the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café", "results" : [ ] }
+   { "_id" : 2, "category" : "cafe", "results" : [ { "match" : "cafe", "idx" : 0, "captures" : [ ] } ] }
+   { "_id" : 3, "category" : "cafE", "results" : [ ] }
+
+To perform a case-insensitive regex pattern matching, use the
+:ref:`regexFindAll-example-i-options` instead. See
+:ref:`regexFindAll-example-i-options` for an example.
+
+.. _regexFindAll-captures-behavior:
+
+``captures`` Output Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your :ref:`regex <regexFindAll-regex>` pattern contains capture
+groups and the pattern finds a match in the
+:ref:`input <regexFindAll-input>`, the ``captures`` array in the results
+corresponds to the groups captured by the matching string. Capture
+groups are specified with unescaped parentheses ``()`` in the
+:ref:`regex <regexFindAll-regex>` pattern. The length of the
+``captures`` array equals the number of capture groups in the pattern
+and the order of the array matches the order in which the capture groups
+appear.
+
+Create a sample collection named ``contacts`` with the following
+documents:
+
+.. code-block:: javascript
+
+   db.contacts.insertMany([
+     { "_id": 1, "fname": "Carol", "lname": "Smith", "phone": "718-555-0113" },
+     { "_id": 2, "fname": "Daryl", "lname": "Doe", "phone": "212-555-8832" },
+     { "_id": 3, "fname": "Polly", "lname": "Andrews", "phone": "208-555-1932" },
+     { "_id": 4, "fname": "Colleen", "lname": "Duncan", "phone": "775-555-0187" },
+     { "_id": 5, "fname": "Luna", "lname": "Clarke", "phone": "917-555-4414" }
+   ])
+
+The following pipeline applies the :ref:`regex <regexFindAll-regex>`
+pattern ``/(C(ar)*)ol/`` to the ``fname`` field:
+
+.. code-block:: javascript
+
+   db.contacts.aggregate([
+     {
+       $project: {
+         returnObject: {
+           $regexFindAll: { input: "$fname", regex: /(C(ar)*)ol/ }
+         }
+       }
+     }
+   ])
+
+The :ref:`regex <regexFindAll-regex>` pattern finds a match with ``fname``
+values ``Carol`` and ``Colleen``:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 1,4
+
+   { "_id" : 1, "returnObject" : [ { "match" : "Carol", "idx" : 0, "captures" : [ "Car", "ar" ] } ] }
+   { "_id" : 2, "returnObject" : [ ] }
+   { "_id" : 3, "returnObject" : [ ] }
+   { "_id" : 4, "returnObject" : [ { "match" : "Col", "idx" : 0, "captures" : [ "C", null ] } ] }
+   { "_id" : 5, "returnObject" : [ ] }
+
+The pattern contains the capture group ``(C(ar)*)`` which contains the
+nested group ``(ar)``. The elements in the ``captures`` array correspond
+to the two capture groups. If a matching document is not captured by a
+group (e.g. ``Colleen`` and the group ``(ar)``),
+:expression:`$regexFindAll` replaces the group with a null placeholder.
+
+As shown in the previous example, the ``captures`` array contains an
+element for each capture group (using ``null`` for non-captures).
+Consider the following example which searches for phone numbers with
+New York City area codes by applying a logical ``or`` of capture
+groups to the ``phone`` field. Each group represents a New York City
+area code:
+
+.. code-block:: javascript
+
+   db.contacts.aggregate([
+     {
+       $project: {
+         nycContacts: {
+           $regexFindAll: { input: "$phone", regex: /^(718).*|^(212).*|^(917).*/ }
+         }
+       }
+     }
+   ])
+
+For documents which are matched by the :ref:`regex <regexFindAll-regex>`
+pattern, the ``captures`` array includes the matching capture group
+and replaces any non-capturing groups with ``null``:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "nycContacts" : [ { "match" : "718-555-0113", "idx" : 0, "captures" : [ "718", null, null ] } ] }
+   { "_id" : 2, "nycContacts" : [ { "match" : "212-555-8832", "idx" : 0, "captures" : [ null, "212", null ] } ] }
+   { "_id" : 3, "nycContacts" : [ ] }
+   { "_id" : 4, "nycContacts" : [ ] }
+   { "_id" : 5, "nycContacts" : [ { "match" : "917-555-4414", "idx" : 0, "captures" : [ null, null, "917" ] } ] }
+
+Examples
+--------
+
+``$regexFindAll`` and Its Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To illustrate the behavior of the :expression:`$regexFindAll` operator as
+discussed in this example, create a sample collection ``products`` with
+the following documents:
+
+.. code-block:: javascript
+
+   db.products.insertMany([
+      { _id: 1, description: "Single LINE description." },
+      { _id: 2, description: "First lines\nsecond line" },
+      { _id: 3, description: "Many spaces before     line" },
+      { _id: 4, description: "Multiple\nline descriptions" },
+      { _id: 5, description: "anchors, links and hyperlinks" },
+      { _id: 6, description: "métier work vocation" }
+   ])
+
+By default, :expression:`$regexFindAll` performs a case-sensitive match.
+For example, the following aggregation performs a case-*sensitive*
+:expression:`$regexFindAll` on the ``description`` field. The regex
+pattern ``/line/`` does not specify any grouping:
+
+
+.. code-block:: javascript
+
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex: /line/ } } } }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : 1,
+      "description" : "Single LINE description.",
+      "returnObject" : [ ]
+   }
+   {
+      "_id" : 2,
+      "description" : "First lines\nsecond line",
+      "returnObject" : [ { "match" : "line", "idx" : 6, "captures" : [ ]}, { "match" : "line", "idx" : 19, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 3,
+      "description" : "Many spaces before     line",
+      "returnObject" : [ { "match" : "line", "idx" : 23, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 4,
+      "description" : "Multiple\nline descriptions",
+      "returnObject" : [ { "match" : "line", "idx" : 9, "captures" : [ ] }
+   ] }
+
+   {
+      "_id" : 5,
+      "description" : "anchors, links and hyperlinks",
+      "returnObject" : [ ]
+   }
+   { 
+      "_id" : 6,
+      "description" : "métier work vocation",
+      "returnObject" : [ ]
+   }
+      
+
+The following regex pattern ``/lin(e|k)/`` specifies a grouping
+``(e|k)`` in the pattern:
+
+.. code-block:: javascript
+
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex: /lin(e|k)/ } } } }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { 
+      "_id" : 1,
+      "description" : "Single LINE description.", 
+      "returnObject": [ ]
+   }
+   {
+      "_id" : 2,
+      "description" : "First lines\nsecond line",
+      "returnObject" : [ { "match" : "line", "idx" : 6, "captures" : [ "e" ] }, { "match" : "line", "idx" : 19, "captures" : [ "e" ] } ]
+   }
+   {
+      "_id" : 3,
+      "description" : "Many spaces before     line",   
+      "returnObject" : [ { "match" : "line", "idx" : 23, "captures" : [ "e" ] } ]
+   }
+   {
+      "_id" : 4,
+      "description" : "Multiple\nline descriptions",
+      "returnObject" : [ { "match" : "line", "idx" : 9, "captures" : [ "e" ] } ]
+   }
+   {
+      "_id" : 5,
+      "description" : "anchors, links and hyperlinks",
+      "returnObject" : [ { "match" : "link", "idx" : 9, "captures" : [ "k" ] }, { "match" : "link", "idx" : 24, "captures" : [ "k" ] } ]
+   }
+   { 
+      "_id" : 6,
+      "description" : "métier work vocation",
+      "returnObject" : [ ]
+   }
+
+In the return option, the ``idx`` field is the `code point
+<http://www.unicode.org/glossary/#code_point>`_ index and not the byte
+index. To illustrate, consider the following example that uses the
+regex pattern ``/tier/``:
+
+.. code-block:: javascript
+
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex: /tier/ } } } }
+   ])
+
+The operation returns the following where only the last record
+matches the pattern and the returned ``idx`` is ``2`` (instead of 3
+if using a byte index)
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : [ ] }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : [ ] }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : [ ] }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : [ ] }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : [ ] }
+   { "_id" : 6, "description" : "métier work vocation", 
+                "returnObject" : [ { "match" : "tier", "idx" : 2, "captures" : [ ] } ] }
+
+.. _regexFindAll-example-i-options:
+
+``i`` Option
+````````````
+
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+
+To perform case-*insensitive* pattern matching, include the :ref:`i
+<regexFindAll-options>` option as part of the :ref:`regex
+<regexFindAll-regex>` field or in the :ref:`options <regexFindAll-options>`
+field:
+
+.. code-block:: javascript
+  :copyable: false
+
+  // Specify i as part of the regex field
+  { $regexFindAll: { input: "$description", regex: /line/i } }
+
+  // Specify i in the options field
+  { $regexFindAll: { input: "$description", regex: /line/, options: "i" } }
+  { $regexFindAll: { input: "$description", regex: "line", options: "i" } }
+
+For example, the following aggregation performs a case-*insensitive*
+:expression:`$regexFindAll` on the ``description`` field. The regex
+pattern ``/line/`` does not specify any grouping:
+
+.. code-block:: javascript
+
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex: /line/i } } } }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : 1,
+      "description" : "Single LINE description.",
+      "returnObject" : [ { "match" : "LINE", "idx" : 7, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 2,
+      "description" : "First lines\nsecond line",
+      "returnObject" : [ { "match" : "line", "idx" : 6, "captures" : [ ] }, { "match" : "line", "idx" : 19, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 3,
+      "description" : "Many spaces before     line",
+      "returnObject" : [ { "match" : "line", "idx" : 23, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 4,
+      "description" : "Multiple\nline descriptions",
+      "returnObject" : [ { "match" : "line", "idx" : 9, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 5,
+      "description" : "anchors, links and hyperlinks",
+      "returnObject" : [ ]
+   }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : [ ] }
+      
+
+``m`` Option
+````````````
+
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+
+To match the specified anchors (e.g. ``^``, ``$``) for each line of a
+multiline string, include the :ref:`m <regexFindAll-options>` option
+as part of the :ref:`regex <regexFindAll-regex>` field or in the
+:ref:`options <regexFindAll-options>` field:
+
+.. code-block:: javascript
+  :copyable: false
+
+  // Specify m as part of the regex field
+  { $regexFindAll: { input: "$description", regex: /line/m } }
+
+  // Specify m in the options field
+  { $regexFindAll: { input: "$description", regex: /line/, options: "m" } }
+  { $regexFindAll: { input: "$description", regex: "line", options: "m" } }
+
+The following example includes both the ``i`` and the ``m`` options to
+match lines starting with either the letter ``s`` or ``S`` for
+multiline strings:
+
+.. code-block:: javascript
+
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex: /^s/im } } } }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : 1,
+      "description" : "Single LINE description.",
+      "returnObject" : [ { "match" : "S", "idx" : 0, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 2,
+      "description" : "First lines\nsecond line",
+      "returnObject" : [ { "match" : "s", "idx" : 12, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 3,
+      "description" : "Many spaces before     line",
+      "returnObject" : [ ]
+   }
+   {
+      "_id" : 4,
+      "description" : "Multiple\nline descriptions",
+      "returnObject" : [ ]
+   }
+   {
+      "_id" : 5,
+      "description" : "anchors, links and hyperlinks",
+      "returnObject" : [ ]
+   }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : [ ] }
+
+``x`` Option
+````````````
+
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+
+To ignore all unescaped white space characters and comments (denoted by
+the un-escaped hash ``#`` character and the next new-line character) in
+the pattern, include the :ref:`s <regexFindAll-options>` option in the
+:ref:`options <regexFindAll-options>` field:
+
+.. code-block:: javascript
+  :copyable: false
+
+  // Specify x in the options field
+  { $regexFindAll: { input: "$description", regex: /line/, options: "x" } }
+  { $regexFindAll: { input: "$description", regex: "line", options: "x" } }
+
+
+The following example includes the ``x`` option to skip unescaped white
+spaces and comments:
+
+.. code-block:: javascript
+
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex: /lin(e|k) # matches line or link/, options:"x" } } } }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : 1,
+      "description" : "Single LINE description.",
+      "returnObject" : [ ]
+   }
+   {
+      "_id" : 2,
+      "description" : "First lines\nsecond line",
+      "returnObject" : [ { "match" : "line", "idx" : 6, "captures" : [ "e" ] }, { "match" : "line", "idx" : 19, "captures" : [ "e" ] } ]
+   }
+   {
+      "_id" : 3,
+      "description" : "Many spaces before     line",
+      "returnObject" : [ { "match" : "line", "idx" : 23, "captures" : [ "e" ] } ]
+   }
+   {
+      "_id" : 4,
+      "description" : "Multiple\nline descriptions",
+      "returnObject" : [ { "match" : "line", "idx" : 9, "captures" : [ "e" ] } ]
+   }
+   {
+      "_id" : 5,
+      "description" : "anchors, links and hyperlinks",
+      "returnObject" : [ { "match" : "link", "idx" : 9, "captures" : [ "k" ] }, { "match" : "link", "idx" : 24, "captures" : [ "k" ] } ]
+   }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : [ ] }
+
+``s`` Option
+````````````
+
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+
+To allow the dot character (i.e. ``.``) in the pattern to match all
+characters including the new line character, include the :ref:`s
+<regexFindAll-options>` option in the :ref:`options
+<regexFindAll-options>` field:
+
+.. code-block:: javascript
+  :copyable: false
+
+  // Specify s in the options field
+  { $regexFindAll: { input: "$description", regex: /m.*line/, options: "s" } }
+  { $regexFindAll: { input: "$description", regex: "m.*line", options: "s" } }
+
+The following example includes the ``s`` option to allow the dot
+character (i.e. .) to match all characters including new line as well
+as the ``i`` option to perform a case-insensitive match:
+
+.. code-block:: javascript
+
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex:/m.*line/, options: "si"  } } } }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : 1,
+      "description" : "Single LINE description.",
+      "returnObject" : [ ]
+   }
+   {
+      "_id" : 2,
+      "description" : "First lines\nsecond line",
+      "returnObject" : [ ]
+   }
+   {
+      "_id" : 3,
+      "description" : "Many spaces before     line",
+      "returnObject" : [ { "match" : "Many spaces before line", "idx" : 0, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 4,
+      "description" : "Multiple\nline descriptions",
+      "returnObject" : [ { "match" : "Multiple\nline", "idx" : 0, "captures" : [ ] } ]
+   }
+   {
+      "_id" : 5,
+      "description" : "anchors, links and hyperlinks",
+      "returnObject" : [ ]
+   }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : [ ] }
+
+Use ``$regexFindAll`` to Parse Email from String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a sample collection ``feedback`` with the following documents:
+
+.. code-block:: javascript
+
+   db.feedback.insertMany([
+      { "_id" : 1, comment: "Hi, I'm just reading about MongoDB -- aunt.arc.tica@example.com"  },
+      { "_id" : 2, comment: "I wanted to concatenate a string" },
+      { "_id" : 3, comment: "How do I convert a date to string? Contact me at either cam@mongodb.com or c.dia@mongodb.com" },
+      { "_id" : 4, comment: "It's just me. I'm testing.  fred@MongoDB.com" }
+   ])
+   
+The following aggregation uses the :expression:`$regexFindAll` to extract
+all emails from the ``comment`` field (case insensitive).
+
+.. code-block:: javascript
+
+   db.feedback.aggregate( [ 
+       { $addFields: { 
+          "email": { $regexFindAll: { input: "$comment", regex: /[a-z0-9_.+-]+@[a-z0-9_.+-]+\.[a-z0-9_.+-]+/i } }
+       } },
+       { $set: { email: "$email.match"} }
+   ] )
+
+First Stage
+   The stage uses the :pipeline:`$addFields` stage to add a new field
+   ``email`` to the document. The new field is an array that contains
+   the result of performing the :expression:`$regexFindAll` on the
+   ``comment`` field:
+
+   .. code-block:: javascript
+      :copyable: false
+   
+      { "_id" : 1, "comment" : "Hi, I'm just reading about MongoDB -- aunt.arc.tica@example.com", "email" : [ { "match" : "aunt.arc.tica@example.com", "idx" : 38, "captures" : [ ] } ] }
+      { "_id" : 2, "comment" : "I wanted to concatenate a string", "email" : [ ] }
+      { "_id" : 3, "comment" : "How do I convert a date to string? Contact me at either cam@mongodb.com or c.dia@mongodb.com", "email" : [ { "match" : "cam@mongodb.com", "idx" : 56, "captures" : [ ] }, { "match" : "c.dia@mongodb.com", "idx" : 75, "captures" : [ ] } ] }
+      { "_id" : 4, "comment" : "It's just me. I'm testing.  fred@MongoDB.com", "email" : [ { "match" : "fred@MongoDB.com", "idx" : 28, "captures" : [ ] } ] }
+
+
+Second Stage
+   The stage use the :pipeline:`$set` stage to reset the ``email`` array elements to
+   the ``"email.match"`` value(s). If the current value of ``email``
+   is null, the new value of ``email`` is set to null.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { "_id" : 1, "comment" : "Hi, I'm just reading about MongoDB -- aunt.arc.tica@example.com", "email" : [ "aunt.arc.tica@example.com" ] }
+      { "_id" : 2, "comment" : "I wanted to concatenate a string", "email" : [ ] }
+      { "_id" : 3, "comment" : "How do I convert a date to string? Contact me at either cam@mongodb.com or c.dia@mongodb.com", "email" : [ "cam@mongodb.com", "c.dia@mongodb.com" ] }
+      { "_id" : 4, "comment" : "It's just me. I'm testing.  fred@MongoDB.com", "email" : [ "fred@MongoDB.com" ] }
+
+Use Captured Groupings to Parse User Name
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a sample collection ``feedback`` with the following documents:
+
+.. code-block:: javascript
+
+   db.feedback.insertMany([
+      { "_id" : 1, comment: "Hi, I'm just reading about MongoDB -- aunt.arc.tica@example.com"  },
+      { "_id" : 2, comment: "I wanted to concatenate a string" },
+      { "_id" : 3, comment: "How do I convert a date to string? Contact me at either cam@mongodb.com or c.dia@mongodb.com" },
+      { "_id" : 4, comment: "It's just me. I'm testing.  fred@MongoDB.com" }
+   ])
+
+To reply to the feedback, assume you want to parse the local-part of
+the email address to use as the name in the greetings. Using the
+``captured`` field returned in the :expression:`$regexFindAll` results,
+you can parse out the local part of each email address:
+
+.. code-block:: javascript
+
+   db.feedback.aggregate( [ 
+       { $addFields: { 
+          "names": { $regexFindAll: { input: "$comment", regex: /([a-z0-9_.+-]+)@[a-z0-9_.+-]+\.[a-z0-9_.+-]+/i } },
+       } },
+       { $set: { names: { $reduce: { input:  "$names.captures", initialValue: [ ], in: { $concatArrays: [ "$$value", "$$this" ] } } } } }
+   ] )
+
+First Stage
+   The stage uses the :pipeline:`$addFields` stage to add a new field
+   ``names`` to the document. The new field contains the result of
+   performing the :expression:`$regexFindAll` on the ``comment`` field:
+
+   .. code-block:: javascript
+      :copyable: false
+   
+      {
+         "_id" : 1,
+         "comment" : "Hi, I'm just reading about MongoDB -- aunt.arc.tica@example.com",
+         "names" : [ { "match" : "aunt.arc.tica@example.com", "idx" : 38, "captures" : [ "aunt.arc.tica" ] } ] 
+      }
+      
+      { "_id" : 2, "comment" : "I wanted to concatenate a string", "names" : [ ] }
+      {
+         "_id" : 3,
+         "comment" : "How do I convert a date to string? Contact me at either cam@mongodb.com or c.dia@mongodb.com",
+         "names" : [ 
+            { "match" : "cam@mongodb.com", "idx" : 56, "captures" : [ "cam" ] }, 
+            { "match" : "c.dia@mongodb.com", "idx" : 75, "captures" : [ "c.dia" ] }
+          ]
+      }
+      {
+         "_id" : 4,
+         "comment" : "It's just me. I'm testing.  fred@MongoDB.com",
+         "names" : [ { "match" : "fred@MongoDB.com", "idx" : 28, "captures" : [ "fred" ] } ]
+      }
+
+Second Stage
+   The stage use the :pipeline:`$set` stage with the
+   :expression:`$reduce` operator to reset  ``names`` to an array that contains
+   the ``"$names.captures"`` elements.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      {
+         "_id" : 1,
+         "comment" : "Hi, I'm just reading about MongoDB -- aunt.arc.tica@example.com",
+         "names" : [ "aunt.arc.tica" ]
+      }
+      { "_id" : 2, "comment" : "I wanted to concatenate a string", "names" : [ ] }
+      {
+         "_id" : 3,
+         "comment" : "How do I convert a date to string? Contact me at either cam@mongodb.com or c.dia@mongodb.com",
+         "names" : [ "cam", "c.dia" ]
+      }
+      {
+         "_id" : 4,
+         "comment" : "It's just me. I'm testing.  fred@MongoDB.com",
+         "names" : [ "fred" ]
+      }
+
+.. seealso::
+
+   For more information on the behavior of the ``captures`` array and
+   additional examples, see
+   :ref:`regexFindAll-captures-behavior`.

@@ -1,0 +1,182 @@
+.. _create-wildcard-text-index:
+
+========================================================
+Create a Wildcard Text Index on Self-Managed Deployments
+========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can create a text index that contains every document field with
+string data in a collection. These text indexes are called **wildcard
+text indexes**. Wildcard text indexes support :ref:`text search
+<text-search>` on unknown, arbitrary, or dynamically generated fields.
+
+To create a wildcard text index, set the index key to the wildcard
+specifier (``$**``) and set the index value to ``text``:
+
+.. code-block:: javascript
+
+   db.<collection>.createIndex( { "$**": "text" } )
+
+About this Task
+---------------
+
+Wildcard text indexes are distinct from :ref:`wildcard indexes
+<wildcard-index-core>`. Wildcard text indexes support queries that use
+the :query:`$text` operator, while wildcard indexes do not.
+
+.. include:: /includes/text-search-legacy-atlas-section.rst
+
+After you create a wildcard text index, when you insert or update
+documents, the index updates to include any new string field values. As
+a result, wildcard text indexes negatively impact performance for
+inserts and updates.
+
+Only use wildcard text indexes when the fields you want to index are
+unknown or may change. Wildcard text indexes don't perform as well as
+targeted text indexes on specific fields. If your collection contains
+arbitrary field names that prevent targeted indexes, consider remodeling
+your schema to have consistent field names. To learn more about targeted
+indexes, see :ref:`create-indexes-to-support-queries`.
+
+Before You Begin
+----------------
+
+.. include:: /includes/indexes/text-search-blog-example-documents.rst
+
+Procedure
+---------
+
+Create a wildcard text index on the ``blog`` collection:
+
+.. code-block:: javascript
+
+   db.blog.createIndex( { "$**": "text" } )
+
+Results
+-------
+
+The wildcard text index supports text search queries on all fields in the
+collection. Consider the following queries:
+
+Search for a Single Word
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Query the ``blog`` collection for the string ``coffee``:
+
+.. code-block:: javascript
+
+   db.blog.find( { $text: { $search: "coffee" } } )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: 1,
+       content: 'This morning I had a cup of coffee.',
+       about: 'beverage',
+       keywords: [ 'coffee' ]
+     },
+     {
+       _id: 3,
+       content: 'My favorite flavors are strawberry and coffee',
+       about: 'ice cream',
+       keywords: [ 'food', 'dessert' ]
+     }
+   ]
+
+The preceding query returns all documents that contain the string
+``coffee`` in any field.
+
+Search for Multiple Terms
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Query the ``blog`` collection for documents that contain the string
+``poll`` **or** ``coffee``:
+
+.. code-block:: javascript
+
+   db.blog.find( { $text: { $search: "poll coffee" } } )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: 1,
+       content: 'This morning I had a cup of coffee.',
+       about: 'beverage',
+       keywords: [ 'coffee' ]
+     },
+     {
+       _id: 3,
+       content: 'My favorite flavors are strawberry and coffee',
+       about: 'ice cream',
+       keywords: [ 'food', 'dessert' ]
+     },
+     {
+       _id: 2,
+       content: 'Who likes chocolate ice cream for dessert?',
+       about: 'food',
+       keywords: [ 'poll' ]
+     }
+   ]
+   
+
+The preceding query returns documents that contain the string ``poll``
+or ``coffee`` in any field.
+
+Search for an Exact Phrase
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Query the ``blog`` collection for documents that contain the phrase
+``chocolate ice cream``:
+
+.. code-block:: javascript
+
+   db.blog.find( { $text: { $search: "\"chocolate ice cream\"" } } )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false 
+
+   [
+     {
+       _id: 2,
+       content: 'Who likes chocolate ice cream for dessert?',
+       about: 'food',
+       keywords: [ 'poll' ]
+     }
+   ]
+
+The preceding query returns documents that contain the exact phrase
+``chocolate ice cream`` in any field.
+
+Learn More
+----------
+
+- To learn how to control the ranking of text query results, see
+  :ref:`specify-weights`.
+
+- You can include a wildcard text index as part of a compound text
+  index. To learn more about compound text indexes, see
+  :ref:`compound-text-index-example`.
+
+- To see examples of text search queries, see :query:`$text`.
+
+  .. include:: /includes/text-search-legacy-atlas-section.rst
+
+- To learn about text index properties such as case sensitivity, see
+  :ref:`text-index-properties`.

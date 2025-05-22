@@ -1,0 +1,147 @@
+.. _server-replica-set-deploy-convert:
+
+=========================================================
+Convert a Standalone Self-Managed mongod to a Replica Set
+=========================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Convert a standalone mongod to a replica set for production, ensuring redundancy. Check security before exposing the cluster.
+
+A :term:`standalone` :binary:`mongod` instance is useful for testing and
+development. A standalone instance isn't a good choice for a production
+deployment because it can be a single point of failure. A :ref:`replica
+set <replication>`, also known as a *cluster*, provides redundancy and
+availability. Always use a replica set in production.
+
+If you have a standalone server with data that you want to use in
+production, convert the standalone server to a replica set first. 
+
+.. important::
+
+   If you convert a development server to a replica set for production
+   use, consult the :ref:`security checklist <security-checklist>`
+   before you expose your cluster to the internet. 
+
+You can easily migrate from a standalone server
+to a `MongoDB Atlas <https://www.mongodb.com/docs/atlas>`__ cluster.
+MongoDB Atlas is the fully managed service for MongoDB deployments in
+the cloud. To learn more, see `Migrate or Import Data 
+<https://www.mongodb.com/docs/atlas/import/>`__ in the {+atlas+}
+documentation.
+
+Before You Begin
+----------------
+
+Cluster Type
+~~~~~~~~~~~~
+
+Before you convert your standalone instance, consider whether a
+:ref:`replica set <replication>` or a :ref:`sharded cluster
+<sharding-background>` is more appropriate for your workload.
+
+A sharded cluster is a special kind of cluster. A sharded cluster
+provides redundancy and availability; it also distributes data across
+:ref:`shards <shards-concepts>`. Shards are usually hosted on multiple
+servers and allow for horizontal scaling.
+
+Authorization
+~~~~~~~~~~~~~
+
+To use authorization with a replica set, you must also configure
+replica set members to use X.509 certificates or keyfiles to
+perform internal authentication.
+
+For more information, see:
+
+- :ref:`x509-internal-authentication`
+- :ref:`deploy-repl-set-with-keyfile`
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Shut down the standalone instance.
+
+      Use :binary:`mongosh` to :ref:`connect <mdb-shell-connect>` to
+      your ``mongod`` instance.
+
+      .. code-block:: shell
+
+         mongosh
+
+      Switch to the ``admin`` database and run :dbcommand:`shutdown`.
+
+      .. code-block:: javascript
+
+         use admin
+         db.adminCommand( 
+            {
+               shutdown: 1,
+               comment: "Convert to cluster"
+            }
+         )      
+
+   .. step:: Configure Replica Set Members
+
+      Update the configuration file on each server and to set
+      the :setting:`~replication.replSetName` setting.
+
+      .. code-block:: yaml
+
+         replication:
+           replSetName: "rs0"
+
+   .. step:: Configure Member Authentication
+
+      .. include:: /includes/configure-rs-members 
+
+   .. step:: Start MongoDB
+   
+      Start :program:`mongod` for each member.
+
+   .. step:: Initialize the replica set.
+    
+       To initialize the replica set, use ``mongosh`` to reconnect to
+       your server instance. Then, run :method:`rs.initiate()
+       <rs.initiate>`.
+
+       .. code-block:: javascript
+
+          rs.initiate()
+
+       You only have to initiate the replica set once.
+
+       To view the replica set configuration, use :method:`rs.conf()`.
+       
+       To check the status of the replica set, use :method:`rs.status()`.
+
+   .. step:: Add nodes to the replica set.
+
+      The new replica set has a single, primary node. The next step is
+      to add new nodes to the replica set. Review the documentation on
+      clusters before you add additional nodes:
+
+      - :ref:`Replica set architectures
+        <replica-set-deployment-overview>`
+      - :ref:`Adding members to a replica set
+        <server-replica-set-deploy-expand>`
+
+      When you are ready to add nodes, use :method:`rs.add()`.
+
+   .. step:: Update Your Application Connection String.
+
+      After you convert the mongod to a replica set, update the
+      :ref:`connection string <mongodb-uri>` used by your applications
+      to the connection string for your replica set. Then, restart your
+      applications. 
+
+Learn More
+----------
+
+- :ref:`Configuration options <configuration-options>`
+- :ref:`Deploy a standalone instance <tutorials-installation>`
+- :ref:`Deploy a new replica set <server-replica-set-deploy>`

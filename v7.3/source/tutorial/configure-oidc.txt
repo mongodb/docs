@@ -1,0 +1,97 @@
+.. _configure-oidc:
+
+==================================================
+Configure Self-Managed MongoDB with OpenID Connect
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB Enterprise provides support for OpenID Connect Authentication. You can 
+use OpenID Connect to configure single sign-on between your MongoDB 
+database and a third-party identity provider. 
+
+Before you Begin
+----------------
+
+- Set up an OpenID Connect client profile with your chosen provider: 
+  `Microsoft Azure AD <https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/add-application-portal-setup-oidc-sso>`_
+  or `Okta <https://help.okta.com/oie/en-us/Content/Topics/Apps/apps-about-oidc.htm>`_.
+
+- When using :binary:`~bin.mongosh` to connect, if you use the ``oidcRedirectUri`` 
+  option, the URI must match the configuration of the identity provider. 
+
+- Ensure that you are on MongoDB Enterprise. 
+
+  .. include:: /includes/fact-confirm-enterprise-binaries.rst
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the MongoDB server
+
+      To configure the MongoDB server, enable the :ref:`MONGODB-OIDC <authentication-oidc>`
+      authentication mechanism and use the :parameter:`oidcIdentityProviders` 
+      to specify identity provider (IDP) configurations.  
+    
+      You can configure the MongoDB server using your configuration file or the command line.
+
+
+      .. tabs::
+
+         .. tab:: Configuration file
+            :tabid: config file
+
+            To configure using your configuration file, specify two parameters in 
+            the file: 
+
+            .. code-block:: yaml
+
+               setParameter:
+                  authenticationMechanisms: MONGODB-OIDC
+                  oidcIdentityProviders: [ {"issuer": "https://...", ...} ]
+
+         .. tab:: Command line
+            :tabid: command line
+
+            To configure using the command line, specify the following: 
+
+            .. code-block::
+
+               mongod --auth --setParameter authenticationMechanisms=MONGODB-OIDC --setParameter \ 
+               'oidcIdentityProviders=[ {"issuer": "https://...", ...} ]'
+
+   .. step:: Create MongoDB roles
+
+      In the ``admin`` database, use the :method:`db.createRole()` method to create 
+      roles that map the identity provider group roles to MongoDB roles. 
+      
+      Use the following format to create roles: 
+      
+      .. code-block::
+
+         <authNamePrefix>/<authorizationClaim>
+
+      The :parameter:`oidcIdentityProviders` parameter provides the ``authNamePrefix`` 
+      field and the ``authorizationClaim`` field. For example: 
+
+      .. code-block:: javascript
+
+         db.createRole( { 
+            role: "okta/Everyone", 
+            privileges: [ ], 
+            roles: [ "readWriteAnyDatabase" ] 
+            } )
+
+Learn More
+----------
+
+- :ref:`OpenID Connect Authentication <authentication-oidc>` 

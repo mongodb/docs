@@ -1,0 +1,107 @@
+.. _index-subdocuments:
+.. _index-embedded-documents:
+
+=======================================
+Create an Index on an Embedded Document
+=======================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can create indexes on embedded documents as a whole. However, only
+queries that specify the **entire** embedded document use the index.
+Queries on a specific field within the document do not use the index.
+
+About this Task
+---------------
+
+- To utilize an index on an embedded document, your query must specify
+  the entire embedded document. This can lead to unexpected behaviors if
+  your schema model changes and you add or remove fields from your
+  indexed document.
+
+- When you query embedded documents, the order that you specify fields
+  in the query matters. The embedded documents in your query and
+  returned document must match exactly. To see examples of queries on
+  embedded documents, see :ref:`read-operations-subdocuments`.
+
+- Before you create an index on an embedded document, consider if you
+  should instead index specific fields in that document, or use a
+  :ref:`wildcard index <wildcard-index-core>` to index all of the
+  document's subfields.
+
+Before you Begin
+----------------
+
+Create a ``students`` collection that contains the following documents:
+
+.. code-block:: javascript
+
+   db.students.insertMany( [
+      {
+         "name": "Alice",
+         "gpa": 3.6,
+         "location": { city: "Sacramento", state: "California" }
+      },
+      {
+         "name": "Bob",
+         "gpa": 3.2,
+         "location": { city: "Albany", state: "New York" }
+      }
+   ] )
+
+Steps
+-----
+
+Create an index on the ``location`` field:
+
+.. code-block:: javascript
+
+   db.students.createIndex( { location: 1 } )
+
+Results
+-------
+
+The following query uses the index on the ``location`` field:
+
+.. code-block:: javascript
+   
+   db.students.find( { location: { city: "Sacramento", state: "California" } } )
+
+The following queries *do not* use the index on the ``location`` field
+because they query on specific fields within the embedded document:
+
+.. code-block:: javascript
+
+   db.students.find( { "location.city": "Sacramento" } )
+
+   db.students.find( { "location.state": "New York" } )
+
+In order for a :term:`dot notation` query to use an index, you must
+create an index on the specific embedded field you are querying, not the
+entire embedded object. For an example, see
+:ref:`index-embedded-fields`.
+
+The following query returns no results because the embedded fields in
+the query predicate are specified in a different order than they appear
+in the document:
+
+.. code-block:: javascript
+
+   db.students.find( { location: { state: "California", city: "Sacramento" } } )
+
+Learn More
+----------
+
+- :ref:`indexes-single-field`
+
+- :ref:`server-diagnose-queries`
+
+- :ref:`optimize-query-performance`

@@ -1,0 +1,149 @@
+:orphan:
+
+=========================================
+Store a JavaScript Function on the Server
+=========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+There is a special system collection named ``system.js`` that can 
+store JavaScript functions for reuse.
+
+Before you Begin
+----------------
+
+This task uses the legacy :binary:`~bin.mongo` shell to load server side 
+functions from the ``system.js`` collection. This version of the shell
+is no longer supported. For an alternative solution in the MongoDB 
+Shell, see :ref:`mdb-shell-write-scripts`.
+
+About this Task
+---------------
+
+Consider the follow recommendations when using ``system.js``:
+
+- Do not store application logic in the database.
+- There are performance limitations to running JavaScript inside of 
+  MongoDB. 
+- Application code is most effective when it shares version 
+  control with the application.
+
+Steps
+-----
+
+To store a function, insert the function into the ``system.js`` 
+collection, as in these examples:
+
+.. procedure::
+
+   .. step:: Create a test collection
+
+      .. code-block:: javascript
+
+         db.test_numbers.insertMany([
+            { value: 1 },
+            { value: 2 },
+            { value: 3 },
+            { value: 4 },
+            { value: 5 },
+            { value: 6 }
+         ])
+
+   .. step:: Store JavaScript functions in the database
+
+      To store JavaScript functions in the database, insert a document
+      with these fields:
+
+      - The ``_id`` field holds the name of the function and is unique 
+        per database.
+
+      - The ``value`` field holds the function definition.
+
+      The following example creates an ``echo`` 
+      function in the ``system.js`` collection:
+
+      .. code-block:: javascript
+
+         db.system.js.insertOne(
+            {
+               _id: "echo",
+               value : function(x) { return x; }
+            }
+         )
+
+      The following example creates an ``isEven`` function 
+      in the ``system.js`` collection:
+
+      .. code-block:: javascript
+
+         db.system.js.insertOne(
+            {
+               _id: "isEven",
+               value: function (num) {
+                  return num % 2 === 0;
+               }
+            }
+         )
+
+      These functions, saved as :ref:`BSON type <bson-types>`, are available 
+      for use from any JavaScript context, such as :dbcommand:`mapReduce` and 
+      :query:`$where`.
+
+      .. note::
+         
+         Functions saved as the deprecated BSON type :ref:`JavaScript (with
+         scope) <bson-types>`, cannot be used by
+         :dbcommand:`mapReduce` and :query:`$where`.
+
+   .. step:: Load the stored JavaScript functions into the shell
+
+         .. code-block:: javascript
+
+            db.loadServerScripts()
+
+   .. step:: Run the stored JavaScript functions
+
+         a. The following code example runs the ``echo`` function
+            stored in ``system.js``:
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: javascript
+                  
+                  echo("test")
+
+               .. output::
+                  :language: javascript
+                  :visible: false
+
+                  test
+
+         #. The following code example runs the ``isEven``
+            function stored in ``system.js`` in the ``$where`` 
+            operator on the ``test_numbers`` collection:
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: javascript
+                  
+                  db.test_numbers.find({
+                     $where: function () {
+                        return isEven(this.value);
+                     }
+                  })
+
+               .. output::
+                  :language: javascript
+                  :visible: false
+
+                  { "_id" : ObjectId("668d7be41b55bec1bf191499"), "value" : 2 }
+                  { "_id" : ObjectId("668d7be41b55bec1bf19149b"), "value" : 4 }
+                  { "_id" : ObjectId("668d7be41b55bec1bf19149d"), "value" : 6 }  

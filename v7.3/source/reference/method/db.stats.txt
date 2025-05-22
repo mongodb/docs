@@ -1,0 +1,184 @@
+==========
+db.stats()
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+.. method:: db.stats(scale)
+
+   Returns statistics that reflect the use state of a single :term:`database`.
+
+   The :method:`db.stats()` method is a wrapper around the
+   :dbcommand:`dbStats` database command. 
+
+
+Compatibility
+-------------
+
+.. |command| replace:: method
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-limited-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Parameters
+~~~~~~~~~~
+
+The :method:`db.stats()` method has the following optional parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - :ref:`scale <db.stats-scale>`
+     - number
+     - .. _db.stats-scale:
+
+       Optional. The scale factor for the various size data. The
+       ``scale`` defaults to 1 to return size data in bytes. To
+       display kilobytes rather than bytes, specify a ``scale``
+       value of ``1024``.
+
+       If you specify a non-integer scale factor, MongoDB uses the
+       integer part of the specified factor. For example, if you
+       specify a scale factor of ``1023.999``, MongoDB uses ``1023``
+       as the scale factor.
+
+       .. include:: /includes/extracts/4.2-changes-stats-scaleFactor.rst
+
+   * - :ref:`freeStorage <db.stats-freeStorage>`
+     - number
+     - .. _db.stats-freeStorage:
+
+       Optional. To return information on free space allocated to
+       collections, set ``freeStorage`` to 1.
+       
+       If the instance has a large number of collections or indexes,
+       obtaining free space usage data may cause processing delays. To
+       gather :method:`db.stats()` data without free space details,
+       either set ``freeStorage`` to 0 or do not include the parameter.
+
+Output
+~~~~~~
+
+The :method:`db.stats()` method returns a :term:`document` with
+statistics about the database system's state. A complete listing,
+including :ref:`freeStorage <db.stats-freeStorage>` details, resembles
+the following:
+
+.. code-block:: javascript
+
+   {
+     db: 'test',
+     collections: 2,
+     views: 0,
+     objects: 1689,
+     avgObjSize: 52.56542332741267,
+     dataSize: 86.7021484375,
+     storageSize: 100,
+     freeStorageSize: 32,
+     indexes: 2,
+     indexSize: 116,
+     indexFreeStorageSize: 36,
+     totalSize: 216,
+     totalFreeStorageSize: 68,
+     scaleFactor: 1024,
+     fsUsedSize: 60155820,
+     fsTotalSize: 61255492,
+     ok: 1,
+     '$clusterTime': {
+       clusterTime: Timestamp({ t: 1646085664, i: 1 }),
+       signature: {
+         hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+         keyId: Long("0")
+       }
+     },
+     operationTime: Timestamp({ t: 1646085664, i: 1 })
+   }
+
+For an explanation of the output, see :ref:`dbstats-output`.
+
+Behavior
+--------
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :method:`db.stats`
+.. |opt| replace:: count and size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`dbStats`
+
+Examples
+--------
+
+Scale Output Values
+~~~~~~~~~~~~~~~~~~~
+
+To return values in kilobytes, set the :ref:`scale <db.stats-scale>`
+to ``1024``:
+
+.. code-block:: javascript
+
+   db.stats(1024)
+
+.. note::
+
+   The scale factor rounds values to whole numbers.
+
+Return a Single Value
+~~~~~~~~~~~~~~~~~~~~~
+
+To return a single value, such as :data:`~dbStats.indexSize`, append
+the field name to ``db.stats()``.
+
+.. code-block:: javascript
+
+   db.stats().indexSize
+   db.stats(1024).indexSize
+
+The output shows the difference between the original and scaled values.
+
+.. code-block:: javascript
+   :copyable: false
+
+   118784
+   116
+
+Return Information on Free Space Allocated to Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return information on free space allocated to collections, pass the
+:ref:`freeStorage <dbStats-freeStorage>` parameter to ``db.stats()``.
+
+The following example returns the :data:`~dbStats.indexFreeStorageSize`
+in kilobytes:
+
+.. code-block::
+
+   db.stats( { freeStorage: 1, scale: 1024 } ).indexFreeStorageSize
+

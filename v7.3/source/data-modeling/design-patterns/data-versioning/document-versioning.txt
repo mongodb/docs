@@ -1,0 +1,289 @@
+.. _design-patterns-document-versioning:
+
+===================================
+Keep a History of Document Versions
+===================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When your data changes, some applications require that older versions of
+your data are kept available. In the **Document Versioning Pattern**,
+older data versions are retained in a separate collection from the
+current data.
+
+The Document Versioning Pattern lets you keep current documents and
+their history in the same database, and avoid having to use multiple
+systems to manage data history.
+
+About this Task
+---------------
+
+The Document Versioning Pattern works best if your data meets these
+criteria:
+
+- Documents are updated infrequently.
+
+- There are few documents that require version tracking.
+
+- Current data and historical data are generally queried separately. In
+  the Document Versioning Pattern, historical data is stored in a
+  separate collection from the current data, so returning both in the
+  same operation can be expensive.
+
+If the preceding criteria do not fit your use case, consider a different
+solution or change how you implement the Document Versioning Pattern.
+
+Before you Begin
+----------------
+
+In the following example, an insurance company uses the Document
+Versioning Pattern to track changes to customer policies. Insert the
+sample document into the ``currentPolicies`` and ``policyRevisions``
+collections:
+
+.. code-block:: javascript
+
+   db.currentPolicies.insertOne(
+      {
+         policyId: 1,
+         customerName: "Michelle",
+         revision: 1,
+         itemsInsured: [
+            "golf clubs",
+            "car"
+         ],
+         dateSet: new Date()
+      }
+   )
+
+.. code-block:: javascript
+
+   db.policyRevisions.insertOne(
+      {
+         policyId: 1,
+         customerName: "Michelle",
+         revision: 1,
+         itemsInsured: [
+            "golf clubs",
+            "car"
+         ],
+         dateSet: new Date()
+      }
+   )
+
+Steps
+-----
+
+With the Document Versioning Pattern, when a policy is updated, the
+following writes occur:
+
+- The policy is updated in the ``currentPolicies`` collection. The
+  ``currentPolicies`` collection only contains the current data revision
+  of each ``policyId``.
+
+- The original policy is written to the ``policyRevisions`` collection to
+  keep a record of policy changes.
+
+For example, if the user Michelle wants to add a watch to her policy,
+the application runs these operations:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Update the policy in the currentPolicies collection
+
+      .. code-block:: javascript
+
+         db.currentPolicies.updateOne(
+            { policyId: 1 },
+            {
+               $push: {
+                  itemsInsured: "watch"
+               },
+               $inc: {
+                  revision: 1
+               },
+               $currentDate: {
+                  dateSet: true
+               }
+            }
+         )
+
+      Updated document:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 5-6
+
+         {
+            _id: ObjectId("661e873d1a930b8ea1f75c57"),
+            policyId: 1,
+            customerName: 'Michelle',
+            revision: 2,
+            itemsInsured: [ 'golf clubs', 'car', 'watch' ],
+            dateSet: ISODate("2024-04-16T14:12:24.476Z")
+         }
+
+   .. step:: Write the updated policy to the policyRevisions collection
+
+      .. code-block:: javascript
+
+         db.currentPolicies.aggregate( [
+            {
+               $match: { policyId: 1 }
+            },
+            {
+               $set: { _id: new ObjectId() }
+            },
+            {
+               $merge: {
+                  into: { db: "test", coll: "policyRevisions" },
+                  on: "_id",
+                  whenNotMatched: "insert"
+               }
+            }
+         ] )
+
+      After you run the previous aggregation, the ``policyRevisions``
+      collection contains both the original and updated policies:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+            {
+               _id: ObjectId("6626c8f02a98aba8ddec31d1"),
+               policyId: 1,
+               customerName: 'Michelle',
+               revision: 1,
+               itemsInsured: [ 'golf clubs', 'car' ],
+               dateSet: ISODate("2024-04-22T20:30:40.809Z")
+            },
+            {
+               _id: ObjectId("6626c92b2a98aba8ddec31d2"),
+               customerName: 'Michelle',
+               dateSet: ISODate("2024-04-22T20:31:03.000Z"),
+               itemsInsured: [ 'golf clubs', 'car', 'watch' ],
+               policyId: 1,
+               revision: 2
+            }
+         ]
+
+Next Steps
+----------
+
+To view a customer's policy history, you can sort the
+``policyRevisions`` collection by revision. Consider if the customer
+Michelle makes another change to her policy and no longer wants to
+insure her golf clubs.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Update the policy in the currentPolicies collection
+
+      .. code-block:: javascript
+
+         db.currentPolicies.updateOne(
+            { policyId: 1 },
+            {
+               $pull: {
+                  itemsInsured: "golf clubs"
+               },
+               $inc: {
+                  revision: 1
+               },
+               $currentDate: {
+                  dateSet: true
+               }
+            }
+         )
+
+      Updated document:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 5-6
+
+         {
+            _id: ObjectId("661e873d1a930b8ea1f75c57"),
+            policyId: 1,
+            customerName: 'Michelle',
+            revision: 3,
+            itemsInsured: [ 'car', 'watch' ],
+            dateSet: ISODate("2024-04-16T14:13:38.203Z")
+         }
+
+   .. step:: Write the updated policy to the policyRevisions collection
+
+      .. code-block:: javascript
+
+         db.currentPolicies.aggregate( [
+            {
+               $match: { policyId: 1 }
+            },
+            {
+               $set: { _id: new ObjectId() }
+            },
+            {
+               $merge: {
+                  into: { db: "test", coll: "policyRevisions" },
+                  on: "_id",
+                  whenNotMatched: "insert"
+               }
+            }
+         ] )
+
+   .. step:: Return a history of the policy changes
+
+      .. code-block:: javascript
+
+         db.policyRevisions.find( { policyId: 1 } ).sort( { revision: 1 } )
+
+      Output:
+
+      .. code-block:: javascript
+
+         [
+            {
+               _id: ObjectId("6626c8f02a98aba8ddec31d1"),
+               policyId: 1,
+               customerName: 'Michelle',
+               revision: 1,
+               itemsInsured: [ 'golf clubs', 'car' ],
+               dateSet: ISODate("2024-04-22T20:30:40.809Z")
+            },
+            {
+               _id: ObjectId("6626c92b2a98aba8ddec31d2"),
+               customerName: 'Michelle',
+               dateSet: ISODate("2024-04-22T20:31:03.000Z"),
+               itemsInsured: [ 'golf clubs', 'car', 'watch' ],
+               policyId: 1,
+               revision: 2
+            },
+            {
+               _id: ObjectId("6626c9832a98aba8ddec31d3"),
+               customerName: 'Michelle',
+               dateSet: ISODate("2024-04-22T20:32:43.232Z"),
+               itemsInsured: [ 'car', 'watch' ],
+               policyId: 1,
+               revision: 3
+            }
+         ]
+
+Learn More
+----------
+
+- :ref:`design-patterns-schema-versioning`
+
+- :ref:`data-modeling-schema-design`
+
+- :ref:`schema-pattern-group-data`

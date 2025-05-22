@@ -1,0 +1,164 @@
+.. _index-type-compound:
+
+================
+Compound Indexes
+================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :description: Details on when and how to use compound indexes to cover multiple fields and improve query performance in a MongoDB database.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/indexes/fact-compound-index-intro.rst
+
+Indexing commonly queried fields increases the
+likelihood of :ref:`covered queries <indexes-covered-queries>`. A
+covered query is a query that can be satisfied entirely using an index
+and does not have to examine any documents, leading to greatly improved performance.
+
+To create a compound index, use the following prototype:
+
+.. include:: /includes/indexes/code-examples/create-compound-index.rst
+
+.. |page-topic| replace:: :atlas:`create and manage compound indexes in the UI </atlas-ui/indexes>`
+
+.. cta-banner::
+   :url: https://www.mongodb.com/docs/atlas/atlas-ui/indexes/
+   :icon: Cloud
+
+   .. include:: /includes/fact-atlas-compatible.rst
+
+Use Cases
+---------
+
+If your application repeatedly runs a query that contains multiple
+fields, you can create a compound index to improve performance for that
+query. For example, a grocery store manager often needs to look up
+inventory items by name and quantity to determine which items are low
+stock. You can create a compound index on both the ``item`` and
+``quantity`` fields to improve query performance.
+
+A compound index on commonly queried fields increases the chances of
+:ref:`covering <indexes-covered-queries>` those queries. Covered queries
+are queries that can be satisfied entirely using an index, without
+examining any documents. This optimizes query performance.
+
+Get Started
+-----------
+
+To create a compound index, see :ref:`index-create-compound`.
+
+Details
+-------
+
+This section describes technical details and limitations for compound
+indexes.
+
+Field Limit
+~~~~~~~~~~~
+
+A single compound index can contain up to 32 fields.
+
+Field Order
+~~~~~~~~~~~
+
+The order of the indexed fields impacts the effectiveness of a compound
+index. Compound indexes contain references to documents according to the
+order of the fields in the index. To create efficient compound indexes,
+follow the :ref:`ESR (Equality, Sort, Range) rule <esr-indexing-rule>`.
+
+Sort Order
+~~~~~~~~~~
+
+Indexes store references to fields in either ascending (``1``) or
+descending (``-1``) sort order. For compound indexes, sort order can
+determine whether the index supports a sort operation. For more
+information, see :ref:`index-compound-sort-order`.
+
+Hashed Index Fields
+~~~~~~~~~~~~~~~~~~~
+
+Compound indexes may contain **a single** 
+:ref:`hashed index field <index-type-hashed>`.
+
+.. _compound-index-prefix:
+
+Index Prefixes
+~~~~~~~~~~~~~~
+
+Index prefixes are the beginning subsets of indexed fields. Compound
+indexes support queries on all fields included in the index prefix.
+
+For example, consider this compound index:
+
+.. code-block:: javascript
+
+   { "item": 1, "location": 1, "stock": 1 }
+
+The index has these index prefixes:
+
+- ``{ item: 1 }``
+
+- ``{ item: 1, location: 1 }``
+
+MongoDB can use the compound index to support queries on these field
+combinations:
+
+- ``item``
+- ``item`` and ``location``
+- ``item``, ``location``, and ``stock``
+
+MongoDB can also use the index to support a query on the ``item`` and
+``stock`` fields, since the ``item`` field corresponds to a prefix.
+However, only the ``item`` field in the index can support this query.
+The query cannot use the ``stock`` field which follows ``location``.
+
+Index fields are parsed in order; if a query omits an index prefix, it
+is unable to use any index fields that follow that prefix.
+
+MongoDB **cannot** use the compound index to support queries on these
+field combinations:
+
+- ``location``
+- ``stock``
+- ``location`` and ``stock``
+
+Without the ``item`` field, none of the preceding field combinations
+correspond to a prefix index.
+
+.. tip:: Remove Redundant Indexes
+
+   If you have a collection that has both a compound index and an index on
+   its prefix (for example, ``{ a: 1, b: 1 }`` and ``{ a: 1 }``), if
+   neither index has a :ref:`sparse <index-type-sparse>` or :ref:`unique
+   <index-type-unique>` constraint, you can remove the index on the prefix
+   (``{ a: 1 }``). MongoDB uses the compound index in all of the situations
+   that it would have used the prefix index.
+
+Sparse Compound Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/indexes/sparse-compound-indexes.rst
+
+Learn More
+----------
+
+To learn how to create efficient compound indexes, see
+:ref:`esr-indexing-rule`.
+
+.. toctree::
+   :titlesonly: 
+   :hidden: 
+
+   Create </core/indexes/index-types/index-compound/create-compound-index>
+   Sort Order </core/indexes/index-types/index-compound/sort-order>

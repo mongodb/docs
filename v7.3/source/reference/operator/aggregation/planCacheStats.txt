@@ -1,0 +1,557 @@
+===============
+$planCacheStats
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $planCacheStats
+
+   Returns :ref:`plan cache <query-plans-query-optimization>` information for a
+   collection. The stage returns a document for each plan cache entry.
+
+   The ``$planCacheStats`` stage must be the first stage in the
+   pipeline. The stage  has the following syntax:
+
+   .. code-block:: javascript
+
+      { 
+         $planCacheStats: { 
+            allHosts: <boolean>
+         } 
+      }
+
+   The ``$planCacheStats`` aggregation stage has the following options: 
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 25 75
+
+      * - Option
+        - Description
+      * - ``allHosts``
+        - Configures how the ``$planCacheStats`` aggregation stage targets
+          nodes in a sharded cluster.
+
+          - If ``true``, :program:`mongos` broadcasts the ``$planCacheStats``
+            aggregation stage to all nodes (primary and secondaries) for each
+            affected shard that contains one or more chunks from the target
+            collection.
+
+          - If ``false``, the ``$planCacheStats`` aggregation stage follows the
+            :ref:`read-preference` and only retrieves the plan cache from the
+            targeted replica set primary.
+
+          .. note:: 
+
+             Replica sets and standalone servers return an error during pipeline
+             parsing if ``allHosts`` is set to ``true``. The option is only 
+             available to sharded clusters.
+
+          Default: ``false``
+
+          .. versionadded:: 7.1
+
+.. seealso::
+
+   :ref:`query-plans-query-optimization`
+
+Considerations
+--------------
+
+Pipeline
+~~~~~~~~
+
+``$planCacheStats`` must be the first stage in an aggregation pipeline.
+
+Restrictions
+~~~~~~~~~~~~
+
+- ``$planCacheStats`` is not allowed in:
+
+  - :ref:`transactions <transactions>`
+
+  - :pipeline:`$facet` aggregation stage
+
+- ``$planCacheStats`` requires read concern level
+  :readconcern:`"local"`.
+
+
+Access Control
+~~~~~~~~~~~~~~
+
+On systems running with :setting:`~security.authorization`, the user
+must have the :authaction:`planCacheRead` privilege for the collection.
+
+.. _plancachestats-read-pref:
+
+Redaction
+~~~~~~~~~
+
+When using :ref:`Queryable Encryption <qe-manual-feature-qe>`, the
+``$planCacheStats`` stage omits operations against encrypted collections, even
+though the operations are cached as normal.
+
+Read Preference
+~~~~~~~~~~~~~~~
+
+When the ``allHosts`` option is set to ``false``,
+:pipeline:`$planCacheStats` follows the :ref:`read preference
+<read-preference>` in selecting the host(s) from which to return
+the plan cache information.
+
+Applications may target different members of a replica set. As such,
+each replica set member might receive different read commands and have
+plan cache information that differs from other members. Nevertheless,
+running ``$planCacheStats`` on a replica set or a sharded
+cluster obeys the normal read preference rules. That is, on a replica
+set, the operation gathers plan cache information from just one member
+of replica set, and on a sharded cluster, the operation gathers plan
+cache information from just one member of each shard replica set.
+
+
+.. _planCacheStats-output:
+
+Output
+------
+
+.. versionchanged:: 7.0
+
+The output of ``$planCacheStats`` depends on the query engine used to
+complete the query. The value of the ``version`` field of the
+``$planCacheStats`` indicates which query engine was used:
+
+- ``1`` indicates that the classic engine was used.
+
+- ``2`` indicates that the :ref:`{+sbe+} <sbe-landing>` was used.
+
+.. tabs::
+
+   .. tab:: Classic Execution Engine
+      :tabid: classic-sample-output
+
+      For queries that use the classic execution engine,
+      ``$planCacheStats`` returns a document similar to the following:
+
+      .. code-block:: none
+
+         {
+            "version" : 1,
+            "createdFromQuery" : <document>,
+            "queryHash" : <hexadecimal string>,
+            "planCacheKey" : <hexadecimal string>,
+            "isActive" :  <boolean>,
+            "works" : <NumberLong>,
+            "cachedPlan" : {
+               "stage" : <STAGE1>,
+               "filter" : <document>,
+               "inputStage" : {
+                  "stage" : <STAGE2>,
+                  ...
+               }
+            },
+            "timeOfCreation" : <date>,
+            "creationExecStats" : [   // Exec Stats Document for each candidate plan
+               {
+                  "nReturned" : <num>,
+                  "executionTimeMillisEstimate" : <num>,
+                  "totalKeysExamined" : <num>,
+                  "totalDocsExamined" :<num>,
+                  "executionStages" : {
+                     "stage" : <STAGE A>,
+                     ...
+                     "inputStage" : {
+                        "stage" : <STAGE B>,
+                        ...
+                     }
+                  }
+               },
+               ...
+            ],
+            "candidatePlanScores" : [
+               <number>,
+               ...
+            ],
+            "indexFilterSet" : <boolean>,
+            "estimatedSizeBytes" : <num>,
+            "host" : <string>,
+            "shard" : <string>
+         }
+
+      Each document includes various query plan and execution stats,
+      including:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
+
+         * - Field
+           - Description
+
+         * - ``version``
+
+           - .. _planCacheStats-classic-version:
+
+             .. include:: /includes/planCacheStats/version.rst
+         
+         * - ``createdFromQuery``
+
+           - .. _plancachestats-createdFromQuery:
+
+             A document that contains the specific query that resulted in
+             this cache entry. For example:
+
+             .. code-block:: javascript
+                :copyable: false
+
+                {
+                  "query" : <document>,
+                  "sort" : <document>,
+                  "projection" : <document>
+                }
+
+         * - ``isActive``
+
+           - .. include:: /includes/planCacheStats/isActive.rst
+
+         * - ``queryHash``
+
+           - .. _plancachestats-queryHash:
+         
+             .. include:: /includes/planCacheStats/queryHash.rst
+
+         * - ``planCacheKey``
+
+           - .. _plancachestats-planCacheKey:
+
+             .. include:: /includes/planCacheStats/planCacheKey.rst
+
+         * - ``cachedPlan``
+
+           - .. _plancachestats-cachedPlan:
+
+             .. include:: /includes/planCacheStats/cachedPlan.rst
+
+         * - ``works``
+
+           - .. include:: /includes/planCacheStats/works.rst
+
+         * - ``timeOfCreation``
+           - Time of creation for the entry.
+
+         * - ``creationExecStats``
+
+           - .. _plancachestats-creationExecStats:
+
+             An array of execution stats documents. The array contains a
+             document for each candidate plan.
+
+             For details on the execution stats, see
+             :data:`explain.executionStats`.
+
+         * - ``candidatePlanScores``
+
+           - .. _plancachestats-candidatePlanScores:
+
+             An array of scores for the candidate plans listed in the
+             ``creationExecStats`` array.
+
+         * - ``indexFilterSet``
+
+           - .. include:: /includes/planCacheStats/indexFilterSet.rst
+
+         * - ``estimatedSizeBytes``
+
+           - .. include:: /includes/planCacheStats/estimatedSizeBytes.rst
+
+         * - ``host``
+
+           - .. _plancachestats-host:
+
+             .. include:: /includes/planCacheStats/host.rst
+
+         * - ``shard``
+
+           - .. _plancachestats-shard:
+
+             The name of the shard from which :pipeline:`$planCacheStats`
+             retrieved the cache entry.
+
+             Only available if run on a sharded cluster.
+
+   .. tab:: {+sbe-title+}
+      :tabid: sbe-sample-output
+      
+      For queries that use the {+sbe+}, ``$planCacheStats`` returns a
+      document similar to the following:
+
+      .. code-block:: none
+
+         {
+            "version" : 2,
+            "queryHash" : <hexadecimal string>,
+            "planCacheKey" : <hexadecimal string>,
+            "isActive" :  <boolean>,
+            "works" : <NumberLong>,
+            "cachedPlan" : {
+               "slots" : <string>,
+               "stages": <string>
+            },
+            "indexFilterSet" : <boolean>,
+            "estimatedSizeBytes" : <num>,
+            "host" : <string>
+         }
+
+      Each document includes various query plan and execution stats,
+      including:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
+
+         * - Field
+           - Description
+
+         * - ``version``
+
+           - .. _planCacheStats-sbe-version:
+
+             .. include:: /includes/planCacheStats/version.rst
+
+         * - ``queryHash``
+
+           - .. _plancachestats-sbe-queryHash:
+         
+             .. include:: /includes/planCacheStats/queryHash.rst
+
+         * - ``planCacheKey``
+
+           - .. _plancachestats-sbe-planCacheKey:
+
+             .. include:: /includes/planCacheStats/planCacheKey.rst
+
+         * - ``isActive``
+
+           - .. _plancachestats-sbe-isActive:
+           
+             .. include:: /includes/planCacheStats/isActive.rst
+
+         * - ``works``
+
+           - .. _plancachestats-sbe-works:
+           
+             .. include:: /includes/planCacheStats/works.rst
+
+         * - ``cachedPlan``
+
+           - .. _plancachestats-sbe-cachedPlan:
+
+             .. include:: /includes/planCacheStats/cachedPlan.rst
+         
+         * - ``indexFilterSet``
+
+           - .. _plancachestats-sbe-indexFilterSet:
+             
+             .. include:: /includes/planCacheStats/indexFilterSet.rst
+
+         * - ``estimatedSizeBytes``
+
+           - .. _plancachestats-sbe-estimatedSizeBytes:
+           
+             .. include:: /includes/planCacheStats/estimatedSizeBytes.rst
+
+         * - ``host``
+
+           - .. _plancachestats-sbe-host:
+
+             .. include:: /includes/planCacheStats/host.rst
+
+.. _planCacheStats-examples:
+
+Examples
+--------
+
+The examples in this section use the following ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.insertMany( [
+      { "_id" : 1, "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
+      { "_id" : 2, "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
+      { "_id" : 3, "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" },
+      { "_id" : 4, "item" : "abc", "price" : NumberDecimal("8"), "quantity" : 10, "type": "apparel" },
+      { "_id" : 5, "item" : "jkl", "price" : NumberDecimal("15"), "quantity" : 15, "type": "electronics" }
+   ] )
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.orders.createIndex( { item: 1 } );
+   db.orders.createIndex( { item: 1, quantity: 1 } );
+   db.orders.createIndex( { quantity: 1 } );
+   db.orders.createIndex( { quantity: 1, type: 1 } );
+   db.orders.createIndex(
+      { item: 1, price: 1 },
+      { partialFilterExpression: { price: { $gte: NumberDecimal("10")} } }
+   );
+
+.. note::
+
+   Index ``{ item: 1, price: 1 }`` is a :ref:`partial index
+   <index-type-partial>` and only indexes documents with ``price``
+   field greater than or equal to ``NumberDecimal("10")``.
+
+Run some queries against the collection:
+
+.. code-block:: javascript
+
+   db.orders.find( { item: "abc", price: { $gte: NumberDecimal("10") } } )
+   db.orders.find( { item: "abc", price: { $gte: NumberDecimal("5") } } )
+   db.orders.find( { quantity: { $gte: 20 } } )
+   db.orders.find( { quantity: { $gte: 5 }, type: "apparel" } )
+
+The preceding queries are completed using the {+sbe+}.
+
+Return Information for All Entries in the Query Cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation pipeline uses ``$planCacheStats`` to
+return information on the plan cache entries for the collection:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [ 
+      { $planCacheStats: { } }
+   ] )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {                                             // Plan Cache Entry 1
+       version: '2',
+       queryHash: '478AD696',
+       planCacheKey: '21AE23AD',
+       isActive: true,
+       works: Long("7"),
+       timeOfCreation: ISODate("2023-05-22T20:33:49.031Z"),
+       cachedPlan: {
+         ...
+       },
+       indexFilterSet: false,
+       isPinned: false,
+       estimatedSizeBytes: Long("8194"),
+       host: 'mongodb1.example.net:27018'
+     },
+     {                                             // Plan Cache Entry 2
+          version: '2',
+          queryHash: '3D8AFDC6',
+          planCacheKey: '1C2C4360',
+          isActive: true,
+          works: Long("6"),
+          timeOfCreation: ISODate("2023-05-22T20:33:50.584Z"),
+          cachedPlan: {
+            ...
+          },
+          indexFilterSet: false,
+          isPinned: false,
+          estimatedSizeBytes: Long("11547"),
+          host: 'mongodb1.example.net:27018'
+        },
+        {                                          // Plan Cache Entry 3
+          version: '2',
+          queryHash: '27285F9B',
+          planCacheKey: '20BB9404',
+          isActive: true,
+          works: Long("1"),
+          timeOfCreation: ISODate("2023-05-22T20:33:49.051Z"),
+          cachedPlan: {
+            ...
+          },
+          indexFilterSet: false,
+          isPinned: false,
+          estimatedSizeBytes: Long("7406"),
+          host: 'mongodb1.example.net:27018'
+        },
+        {                                          // Plan Cache Entry 4
+          version: '2',
+          queryHash: '478AD696',
+          planCacheKey: 'B1435201',
+          isActive: true,
+          works: Long("5"),
+          timeOfCreation: ISODate("2023-05-22T20:33:49.009Z"),
+          cachedPlan: {
+            ...
+          },
+          indexFilterSet: false,
+          isPinned: false,
+          estimatedSizeBytes: Long("7415"),
+          host: 'mongodb1.example.net:27018'
+        }
+      ],
+
+
+See also :ref:`plan-cache-key`. 
+
+.. _planCacheStats-cache-entry-for-query-hash:
+
+Find Cache Entry Details for a Query Hash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return plan cache information for a particular query hash, the
+:pipeline:`$planCacheStats` stage can be followed by a
+:pipeline:`$match` on the ``planCacheKey`` field.
+
+The following aggregation pipeline uses :pipeline:`$planCacheStats`
+followed by a :pipeline:`$match` stage to return specific information
+for a particular query hash:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [
+      { $planCacheStats: { } },
+      { $match: { planCacheKey: "B1435201"} }
+   ] )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       version: '2',
+       queryHash: '478AD696',
+       planCacheKey: 'B1435201',
+       isActive: true,
+       works: Long("5"),
+       timeOfCreation: ISODate("2023-05-22T20:33:49.009Z"),
+       cachedPlan: {
+         slots: '$$RESULT=s11 env: { s3 = 1684787629009 (NOW), s6 = Nothing, s5 = Nothing, s1 = TimeZoneDatabase(Asia/Kuwait...Etc/UCT) (timeZoneDB), s10 = {"item" : 1, "price" : 1}, s2 = Nothing (SEARCH_META) }',
+         stages: '[2] nlj inner [] [s4, s7, s8, s9, s10] \n' +
+           '    left \n' +
+           '        [1] cfilter {(exists(s5) && exists(s6))} \n' +
+           '        [1] ixseek s5 s6 s9 s4 s7 s8 [] @"358822b7-c129-47b7-ad7f-40017a51b03c" @"item_1_price_1" true \n' +
+           '    right \n' +
+           '        [2] limit 1 \n' +
+           '        [2] seek s4 s11 s12 s7 s8 s9 s10 none none [] @"358822b7-c129-47b7-ad7f-40017a51b03c" true false \n'
+       },
+       indexFilterSet: false,
+       isPinned: false,
+       estimatedSizeBytes: Long("7415"),
+       host: 'mongodb1.example.net:27018'
+     }
+   ]
+
+See also :ref:`plan-cache-key` and :ref:`query-hash`.

@@ -1,0 +1,135 @@
+===============
+cleanupOrphaned
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. important::
+
+   Starting in MongoDB 6.0.3, you should run an aggregation using the 
+   :pipeline:`$shardedDataDistribution` stage to confirm no orphaned 
+   documents remain. For details, 
+   see :ref:`shardedDataDistribution-no-orphaned-docs`.
+
+Definition
+----------
+
+.. dbcommand:: cleanupOrphaned
+
+   Use this command to wait for orphaned documents in a chunk
+   range from a shard key's :bsontype:`MinKey` to its
+   :bsontype:`MaxKey` for a specified namespace to be
+   cleaned up from a majority of a shard's members.
+
+   To run, issue :dbcommand:`cleanupOrphaned` in the ``admin`` database
+   directly on the :binary:`~bin.mongod` instance that is the primary
+   replica set member of the shard. You do not need to disable the
+   balancer before running :dbcommand:`cleanupOrphaned`.
+
+   .. note::
+
+      Do not run :dbcommand:`cleanupOrphaned` on a
+      :binary:`~bin.mongos` instance.
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+              
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+  db.runCommand( 
+     {
+       cleanupOrphaned: "<database>.<collection>",
+       startingFromKey: <minimumShardKeyValue>, // deprecated
+       secondaryThrottle: <boolean>, // deprecated
+       writeConcern: <document> // deprecated
+     } 
+  )
+
+Command Fields
+~~~~~~~~~~~~~~
+
+:dbcommand:`cleanupOrphaned` has the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+ 
+     - Type
+ 
+     - Description
+ 
+   * - ``cleanupOrphaned``
+ 
+     - string
+ 
+     - The namespace, i.e. both the database and the collection name,
+       of the sharded collection for which to wait for cleanup of the
+       orphaned data.
+ 
+Behavior
+--------
+
+.. _cleanupOrphaned-determine-range:
+
+Determine Range
+~~~~~~~~~~~~~~~
+
+The value of this field is not used to determine the bounds of the cleanup 
+range. The :dbcommand:`cleanupOrphaned` command waits until all orphaned 
+documents in all ranges in the namespace are cleaned up from the shard before
+completing, regardless of the presence of or value of
+``startingFromKey``. 
+
+Required Access
+---------------
+
+On systems running with :setting:`~security.authorization`, you must have
+:authrole:`clusterAdmin` privileges to run :dbcommand:`cleanupOrphaned`.
+
+.. _cleanupOrphaned-output:
+
+Output
+------
+
+Return Document
+~~~~~~~~~~~~~~~
+
+Each :dbcommand:`cleanupOrphaned` command returns a document containing
+a subset of the following fields:
+
+.. data:: cleanupOrphaned.ok
+
+   Equal to ``1`` on success.
+
+   A value of ``1`` indicates that either:
+
+   - No orphaned documents remain in the ``cleanupOrphaned`` namespace
+     on the shard, or
+   - The collection referenced in the ``cleanupOrphaned`` namespace is
+     not sharded.
+
+   A value of ``0`` indicates that an error has occurred.
+
+.. admin-only

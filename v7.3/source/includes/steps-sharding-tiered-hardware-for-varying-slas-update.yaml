@@ -1,0 +1,141 @@
+stepnum: 1
+title: Disable the Balancer
+level: 4
+ref: sharding_tiered_storage_stop_balancer
+pre: |
+  The balancer must be disabled on the collection
+  to ensure no migrations take place while configuring the new zones.
+action:
+  - pre: |
+      Use :method:`sh.disableBalancing()`, specifying the namespace of the
+      collection, to stop the balancer
+    language: javascript
+    code: |
+      sh.disableBalancing("photoshare.data")
+post: |
+  Use :method:`sh.isBalancerRunning()` to check if the balancer process 
+  is currently running. Wait until any current balancing rounds have completed
+  before proceeding.
+---
+stepnum: 2
+title: Remove the old shard zone ranges
+level: 4
+ref: sharding_tiered_storage_remove
+action:
+  - pre: |
+      Remove the old ``recent`` zone range using the 
+      :method:`sh.removeTagRange()` method. This method requires:
+      
+      * the full namespace of the target collection.
+      * the inclusive lower bound of the range. 
+      * the exclusive upper bound of the range. 
+      
+    language: javascript
+    code: |
+      sh.removeTagRange( 
+        "photoshare.data",
+        { "creation_date" : ISODate("2016-01-01") },
+        { "creation_date" : MaxKey }
+      )
+  - pre: |
+      Remove the old ``archive`` zone range using the 
+      :method:`sh.removeTagRange()` method. This method requires:
+      
+      * the full namespace of the target collection.
+      * the inclusive lower bound of the range. 
+      * the exclusive upper bound of the range. 
+      
+    language: javascript
+    code: |
+      sh.removeTagRange( 
+        "photoshare.data",
+        { "creation_date" : MinKey },
+        { "creation_date" : ISODate("2016-01-01") }
+      )
+post: |
+  :bsontype:`MinKey` and :bsontype:`MaxKey` are reserved special values for
+  comparisons. 
+---
+stepnum: 3
+title: Add the new zone range for each zone
+level: 4
+ref: sharding_tiered_storage_define_ranges
+action:
+  - pre: |
+      Define range for recent photos and associate it to the ``recent`` zone using
+      the :method:`sh.addTagRange()` method. This method requires:
+      
+      * the full namespace of the target collection.
+      * the inclusive lower bound of the range. 
+      * the exclusive upper bound of the range. 
+      * the zone.
+      
+    language: javascript
+    code: |
+      sh.addTagRange( 
+        "photoshare.data",
+        { "creation_date" : ISODate("2016-06-01") },
+        { "creation_date" : MaxKey }, 
+        "recent"
+      )
+  - pre: |
+      Define range for older photos and associate it to the 
+      ``archive`` zone using the :method:`sh.addTagRange()` method.
+      This method requires:
+      
+      * the full namespace of the target collection.
+      * the inclusive lower bound of the range. 
+      * the exclusive upper bound of the range. 
+      * the zone.
+            
+    language: javascript
+    code: |
+      sh.addTagRange( 
+        "photoshare.data",
+        { "creation_date" : MinKey },
+        { "creation_date" : ISODate("2016-06-01") }, 
+        "archive"
+      )
+post: |
+  :bsontype:`MinKey` and :bsontype:`MaxKey` are reserved special values for
+  comparisons. 
+---
+stepnum: 4
+title: Enable the Balancer
+level: 4
+ref: sharding_tiered_storage_start_balancer
+pre: |
+  Re-enable the balancer to rebalance the cluster.
+action:
+  - pre: |
+      Use :method:`sh.enableBalancing()`, specifying the namespace of the
+      collection, to start the balancer
+    language: javascript
+    code: |
+      sh.enableBalancing("photoshare.data")
+post: |
+  Use :method:`sh.isBalancerRunning()` to check if the balancer process 
+  is currently running. 
+---
+stepnum: 5
+title: Review the changes
+level: 4
+ref: sharding_tiered_storage_review
+pre: |
+  The next time the :ref:`balancer <sharding-balancing>` runs, it 
+  :ref:`migrates <sharding-chunk-migration>` data across the shards 
+  respecting the configured zones.
+  
+  Before balancing, the shards in the ``recent`` zone only contained documents
+  with ``creation_date`` greater than or equal to ``ISODate("2016-01-01")``,
+  while shards in the ``archive`` zone only contained documents with
+  ``creation_date`` less than ``ISODate("2016-01-01")``.
+  
+  Once balancing finishes, the shards in the ``recent`` zone should only
+  contain documents with ``creation_date`` greater than or equal to
+  ``ISODate("2016-06-01")``, while shards in the ``archive`` zone should
+  only contain documents with ``creation_date`` less than
+  ``ISODate("2016-06-01")``. 
+  
+  You can confirm the chunk distribution by running :method:`sh.status()`.
+...

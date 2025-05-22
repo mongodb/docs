@@ -1,0 +1,136 @@
+==================
+Bulk.find.update()
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-bulkwrite.rst
+
+Description
+-----------
+
+.. method:: Bulk.find.update(<update>)
+
+   Adds a ``multi`` update operation to a bulk operations list. The
+   method updates specific fields in existing documents.
+
+   Use the :method:`Bulk.find()` method to specify the condition that
+   determines which documents to update. The
+   :method:`Bulk.find.update()` method updates all matching documents.
+   To specify a single document update, see
+   :method:`Bulk.find.updateOne()`.
+
+   :method:`Bulk.find.update()` accepts the following parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - :ref:`update <bulk-find-update-parameter>`
+   
+        - document or pipeline
+   
+        - .. _bulk-find-update-parameter:
+        
+          The modifications to apply. Can be one of the following:
+
+          .. list-table::
+             :widths: 40 80
+             :class: border-table
+
+             * - Update document
+               
+               - Contains only :ref:`update operator expressions
+                 <update-operators>`.
+
+             * - Aggregation pipeline
+
+               - Contains only the following aggregation stages:
+
+                 .. include:: /includes/list-update-agg-stages.rst
+
+          For more information on the update modification parameter, see the
+          :method:`db.collection.updateMany` reference page.
+          
+          The sum of the associated ``<query>`` document from the
+          :method:`Bulk.find()` and the update document must be less than or
+          equal to the :limit:`maximum BSON document size <BSON Document Size>`.
+
+   - To specify an :term:`upsert: true <upsert>` for this operation,
+     use with :method:`Bulk.find.upsert()`. With
+     :method:`Bulk.find.upsert()`, if no documents match the
+     :method:`Bulk.find()` query condition, the update operation
+     inserts only a single document.
+
+   - To specify ``arrayFilters`` to update specific array
+     elements, use with :method:`Bulk.find.arrayFilters()`.
+
+   - To specify the index to use for the associated
+     :method:`Bulk.find()`, see :method:`Bulk.find.hint()`.
+
+   - To replace a document wholesale, see
+     :method:`Bulk.find.replaceOne()`.
+
+Example
+-------
+
+The following example initializes a :method:`Bulk()` operations builder
+for the ``items`` collection, and adds various ``multi`` update
+operations to the list of operations.
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { status: "D" } ).update( { $set: { status: "I", points: "0" } } );
+   bulk.find( { item: null } ).update( { $set: { item: "TBD" } } );
+   bulk.execute();
+
+.. _example-bulk-find-update-agg:
+
+Update with Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update methods can accept an aggregation pipeline. For
+example, the following uses:
+
+- the :pipeline:`$set` stage which can provide similar
+  behavior to the :update:`$set` update operator expression,
+
+- the aggregation variable :variable:`NOW`, which resolves to the
+  current datetime and can provide similar behavior to a
+  :update:`$currentDate` update operator expression. To access
+  aggregation variables, prefix the variable with double dollar signs
+  ``$$`` and enclose in quotes.
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { status: "P" } ).update(
+      [  
+         { $set: { points: 0, lastModified: "$$NOW" } }
+      ]
+   );
+   bulk.execute();
+
+
+.. seealso::
+
+   - :method:`db.collection.initializeUnorderedBulkOp()`
+   - :method:`db.collection.initializeOrderedBulkOp()`
+   - :method:`Bulk.find()`
+   - :method:`Bulk.find.updateOne()`
+   - :method:`Bulk.execute()`
+   - :ref:`All Bulk Methods <bulk-methods>`

@@ -1,0 +1,129 @@
+====================
+$count (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn how to use an aggregation stage to count documents input to the stage.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $count
+
+   Passes a document to the next stage that contains a count of the
+   number of documents input to the stage.
+
+   .. note:: Disambiguation
+
+      This page describes the ``$count`` aggregation pipeline stage.
+      For the ``$count`` aggregation accumulator, see :group:`$count
+      (aggregation accumulator) <$count>`.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$count``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+:pipeline:`$count` has the following prototype form:
+
+.. code-block:: javascript
+
+   { $count: <string> }
+
+``<string>`` is the name of the output field which has the count
+as its value. ``<string>`` must be a non-empty string, must not
+start with ``$`` and must not contain the ``.`` character.
+
+.. seealso::
+
+   - :method:`db.collection.countDocuments()`
+   - :pipeline:`$collStats`
+   - :method:`db.collection.estimatedDocumentCount()`
+   - :dbcommand:`count`
+   - :method:`db.collection.count()`
+
+Behavior
+--------
+
+The :pipeline:`$count` stage is equivalent to the following
+:pipeline:`$group` + :pipeline:`$project` sequence:
+
+.. code-block:: javascript
+
+   db.collection.aggregate( [
+      { $group: { _id: null, myCount: { $sum: 1 } } },
+      { $project: { _id: 0 } }
+   ] )
+
+where ``myCount`` would be the output field that contains the count.
+You can specify another name for the output field.
+
+.. seealso::
+
+   :method:`db.collection.countDocuments()` which wraps the
+   :pipeline:`$group` aggregation stage with a :group:`$sum` expression.
+
+Example
+-------
+
+A collection named ``scores`` has the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "subject" : "History", "score" : 88 }
+   { "_id" : 2, "subject" : "History", "score" : 92 }
+   { "_id" : 3, "subject" : "History", "score" : 97 }
+   { "_id" : 4, "subject" : "History", "score" : 71 }
+   { "_id" : 5, "subject" : "History", "score" : 79 }
+   { "_id" : 6, "subject" : "History", "score" : 83 }
+
+The following aggregation operation has two stages:
+
+#. The :pipeline:`$match` stage excludes documents that have a
+   ``score`` value of less than or equal to ``80`` to pass along the
+   documents with ``score`` greater than ``80`` to the next
+   stage.
+
+#. The ``$count`` stage returns a count of the remaining documents
+   in the aggregation pipeline and assigns the value to a field called
+   ``passing_scores``.
+
+.. code-block:: javascript
+
+   db.scores.aggregate(
+     [
+       {
+         $match: {
+           score: {
+             $gt: 80
+           }
+         }
+       },
+       {
+         $count: "passing_scores"
+       }
+     ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "passing_scores" : 4 }
