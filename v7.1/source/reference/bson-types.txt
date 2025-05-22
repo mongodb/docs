@@ -1,0 +1,224 @@
+.. _bson-types:
+
+==========
+BSON Types
+==========
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:term:`BSON` is a binary serialization format used to store documents
+and make remote procedure calls in MongoDB. The BSON specification is
+located at `bsonspec.org <http://bsonspec.org/>`_.
+
+Each BSON type has both integer and string identifiers as listed in the
+following table:
+
+.. include:: /includes/fact-bson-types.rst
+
+- The :query:`$type` operator supports using these values to query
+  fields by their BSON type. :query:`$type` also supports the 
+  ``number`` alias, which matches the integer, decimal, double, and
+  long BSON types.
+
+- The :expression:`$type` aggregation operator returns the BSON type of
+  its argument.
+  
+- The :expression:`$isNumber` aggregation operator
+  returns ``true`` if its argument is a BSON integer, decimal, double,
+  or long. *New in version 4.4* 
+
+To determine a field's type, see :ref:`check-types-in-shell`.
+
+If you convert BSON to JSON, see
+the :ref:`Extended JSON <mongodb-extended-json-v2>` reference.
+
+The following sections describe special considerations for particular
+BSON types.
+
+.. _document-bson-type-binary-data:
+
+Binary Data
+-----------
+
+A BSON binary ``binData`` value is a byte array. A ``binData`` value
+has a subtype that indicates how to interpret the binary data. The
+following table shows the subtypes:
+
+.. include:: /includes/binary-subtypes.rst
+
+.. _document-bson-type-object-id:
+.. _objectid:
+
+ObjectId
+--------
+
+ObjectIds are small, likely unique, fast to generate, and ordered.
+ObjectId values are 12 bytes in length, consisting of:
+
+.. include:: /includes/fact-ObjectId-construct.rst
+
+.. include:: /includes/fact-id-field.rst
+
+MongoDB clients should add an ``_id`` field with a unique ObjectId.
+Using ObjectIds for the ``_id`` field provides the following additional
+benefits:
+
+- in :binary:`~bin.mongosh`, you can access the creation time of
+  the ``ObjectId``, using the :method:`ObjectId.getTimestamp()` method.
+
+- sorting on an ``_id`` field that stores ``ObjectId`` values is
+  roughly equivalent to sorting by creation time.
+
+  .. important::
+
+     .. include:: /includes/fact-ObjectId-timestamp-order.rst
+
+Use the :method:`ObjectId()` methods to set and retrieve ObjectId
+values.
+
+.. include:: /includes/reference/fact-objectid-and-mongosh.rst
+
+
+.. _document-bson-type-string:
+
+String
+------
+
+BSON strings are UTF-8. In general, drivers for each programming
+language convert from the language's string format to UTF-8 when
+serializing and deserializing BSON. This makes it possible to store
+most international characters in BSON strings with ease.
+[#sort-string-internationalization]_ In addition, MongoDB
+:query:`$regex` queries support UTF-8 in the regex string.
+
+.. [#sort-string-internationalization] Given strings using UTF-8
+   character sets, using :method:`sort() <cursor.sort()>` on strings
+   will be reasonably correct. However, because internally
+   :method:`sort() <cursor.sort()>` uses the C++ ``strcmp`` api, the
+   sort order may handle some characters incorrectly.
+
+.. _document-bson-type-timestamp:
+
+Timestamps
+----------
+
+BSON has a special timestamp type for *internal* MongoDB use and is
+**not** associated with the regular :ref:`document-bson-type-date`
+type. This internal timestamp type is a 64 bit value where:
+
+- the most significant 32 bits are a ``time_t`` value (seconds since
+  the Unix epoch)
+
+- the least significant 32 bits are an incrementing ``ordinal`` for
+  operations within a given second.
+
+While the BSON format is little-endian, and therefore stores the least
+significant bits first, the :binary:`~bin.mongod` instance
+always compares the ``time_t`` value before
+the ``ordinal`` value on all platforms, regardless of
+endianness.
+
+Within a single :binary:`~bin.mongod` instance, timestamp values are
+always unique.
+
+In replication, the :term:`oplog` has a ``ts`` field. The values in
+this field reflect the operation time, which uses a BSON timestamp
+value.
+
+.. note::
+
+   The BSON timestamp type is for *internal* MongoDB use. For most
+   cases, in application development, you will want to use the BSON
+   date type. See :ref:`document-bson-type-date` for more
+   information.
+
+When inserting a document that contains top-level fields with empty
+timestamp values, MongoDB replaces the empty timestamp values with the
+current timestamp value, with the following exception. If the ``_id``
+field itself contains an empty timestamp value, it will always be
+inserted as is and not replaced.
+
+.. example:: Insert a document with an empty timestamp value:
+
+   .. code-block:: javascript
+
+      db.test.insertOne( { ts: new Timestamp() } );
+
+   Running :method:`db.test.find() <db.collection.find()>`  would then
+   return a document which resembles the following:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { "_id" : ObjectId("542c2b97bac0595474108b48"), "ts" : Timestamp(1412180887, 1) }
+
+   The server has replaced the empty timestamp value for ``ts`` with the
+   timestamp value at time of insert.
+
+.. _document-bson-type-date:
+
+Date
+----
+
+BSON Date is a 64-bit integer that represents the number of
+milliseconds since the Unix epoch (Jan 1, 1970). This results in a
+representable date range of about 290 million years into the past and
+future.
+
+The `official BSON specification <http://bsonspec.org/#/specification>`_
+refers to the BSON Date type as the *UTC datetime*.
+
+BSON Date type is signed. [#unsigned-date]_ Negative values represent
+dates before 1970.
+
+.. example:: Construct a Date using the ``new Date()`` constructor in
+   :binary:`~bin.mongosh`:
+
+   .. code-block:: javascript
+
+      var mydate1 = new Date()
+
+.. example:: Construct a Date using the ``ISODate()`` constructor in
+   :binary:`~bin.mongosh`:
+
+   .. code-block:: javascript
+
+      var mydate2 = ISODate()
+
+.. example:: Return the ``Date`` value as string:
+
+   .. code-block:: javascript
+
+      mydate1.toString()
+
+.. example:: Return the month portion of the Date value; months are zero-indexed,
+   so that January is month ``0``:
+
+   .. code-block:: javascript
+
+      mydate1.getMonth()
+
+.. [#unsigned-date] Prior to version 2.0, ``Date`` values were
+   incorrectly interpreted as *unsigned* integers, which affected
+   sorts, range queries, and indexes on ``Date`` fields. Because
+   indexes are not recreated when upgrading, please re-index if you
+   created an index on ``Date`` values with an earlier version, and
+   dates before 1970 are relevant to your application.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /reference/bson-type-comparison-order
+   /reference/mongodb-extended-json
+   /reference/mongodb-extended-json-v1

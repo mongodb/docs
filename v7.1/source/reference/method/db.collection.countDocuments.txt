@@ -1,0 +1,213 @@
+==============================
+db.collection.countDocuments()
+==============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.countDocuments(query, options)
+
+   .. |dbcommand| replace:: :pipeline:`$group` aggregation stage and 
+      the :group:`$sum` expression called by the :dbcommand:`aggregate`
+      command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   Returns an integer for the number of documents that match the query 
+   of the collection or view.  This method is available for use in 
+   :ref:`transactions`.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.countDocuments()``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :method:`~db.collection.countDocuments()` method has the following form:
+
+.. code-block:: javascript
+
+   db.collection.countDocuments( <query>, <options> )
+
+The :method:`~db.collection.countDocuments()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+  
+   * - Parameter
+     - Type
+     - Description
+    
+   * - query
+     - document
+
+     - The query selection criteria. To count all documents, specify
+       an empty document. See also :ref:`countDocuments-restrictions`.
+
+   * - options
+     - document
+     - Optional. Extra options that affects the count behavior.
+
+The ``options`` document can contain the following:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+  
+   * - Field
+     - Type
+     - Description
+
+   * - ``limit``
+     - integer
+     - Optional. The maximum number of documents to count.
+    
+   * - ``skip``
+     - integer
+     - Optional. The number of documents to skip before counting.
+    
+   * - ``hint``
+     - string or document
+     - Optional. An index name or the index specification to use for the query.
+
+   * - ``maxTimeMS``
+     - integer
+     - Optional. The maximum amount of time to allow the count to run.
+
+Behavior
+--------
+
+Mechanics
+~~~~~~~~~
+
+Unlike :method:`db.collection.count()`,
+:method:`db.collection.countDocuments()` does not use the metadata to
+return the count. Instead, it performs an aggregation of the document
+to return an accurate count, even after an unclean shutdown or in the
+presence of :term:`orphaned documents <orphaned document>` in a sharded
+cluster.
+
+:method:`db.collection.countDocuments()` wraps the following
+aggregation operation and returns just the value of ``n``:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $match: <query> },
+      { $group: { _id: null, n: { $sum: 1 } } }
+   ])
+
+Empty or Non-Existing Collections and Views
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2.1,
+:method:`db.collection.countDocuments()` returns ``0`` on an empty or
+non-existing collection or view.
+
+In earlier versions of MongoDB, :method:`db.collection.countDocuments()`
+errors on an empty or non-existing collection or view.
+
+.. _countDocuments-restrictions:
+
+Query Restrictions
+~~~~~~~~~~~~~~~~~~
+
+You cannot use the following query operators as part of the query
+expression for :method:`db.collection.countDocuments()`:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Restricted Operator
+     - Alternative
+
+   * - :query:`$where`
+
+     - As an alternative, use :query:`$expr` instead.
+
+   * - :query:`$near`
+
+     - As an alternative, use :query:`$geoWithin` with :query:`$center`; i.e.
+
+       .. code-block:: javascript
+          :copyable: false
+
+          { $geoWithin: { $center: [ [ <x>, <y> ], <radius> ] } }
+
+   * - :query:`$nearSphere`
+
+     - As an alternative, use :query:`$geoWithin` with :query:`$centerSphere`; i.e.
+
+       .. code-block:: javascript
+          :copyable: false
+
+          { $geoWithin: { $centerSphere: [ [ <x>, <y> ], <radius> ] } }
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/fact-uncommitted-transactions.rst
+
+.. |countMethod| replace:: :method:`db.collection.countDocuments()`
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`db.collection.countDocuments()`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+Examples
+--------
+
+Count all Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To count the number of all documents in the ``orders`` collection, use
+the following operation:
+
+.. code-block:: javascript
+
+   db.orders.countDocuments({})
+
+Count all Documents that Match a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Count the number of the documents in the ``orders``
+collection with the field ``ord_dt`` greater than ``new
+Date('01/01/2012')``:
+
+.. code-block:: javascript
+
+   db.orders.countDocuments( { ord_dt: { $gt: new Date('01/01/2012') } }, { limit: 100 } )
+
+.. seealso::
+
+   - :method:`db.collection.estimatedDocumentCount()`
+   - :pipeline:`$group` and :group:`$sum`
+   - :dbcommand:`count`
+   - :ref:`collStats pipeline stage with the count <collstat-count>`
+     option
+

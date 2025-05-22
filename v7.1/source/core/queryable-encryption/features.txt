@@ -1,0 +1,285 @@
+.. _qe-features:
+
+========
+Features
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+On this page, you can learn about the security benefits of {+qe+},
+how it works, and how it compares to other security mechanisms supported
+by MongoDB. You can also view a fictional scenario that demonstrates the
+value of {+qe+} in securing your data.
+
+.. _qe-features-csfle:
+
+{+qe+}
+--------------------
+
+{+qe+} enables a client application to
+encrypt data before transporting it over the network using fully
+randomized encryption, while maintaining queryability.
+Sensitive data is transparently encrypted and decrypted by the client
+and only communicated to and from the server in encrypted form.
+
+Unlike :ref:`Client-Side Field Level Encryption <manual-csfle-feature>`
+that can use :ref:`Deterministic Encryption <csfle-deterministic-encryption>`,
+{+qe+} uses fast, searchable encryption schemes based on `Structured Encryption <https://dl.acm.org/doi/abs/10.1007/978-3-030-77883-5_13>`__.
+These schemes produce different encrypted output values even when given
+the same cleartext input.
+
+How {+qe+} Works
+------------------------------
+
+The diagram below shows the process and architecture of how {+qe+} is
+used in a customer environment.
+
+.. image:: /images/QE-how-it-works.png
+    :alt: How Queryable Encryption works
+
+In this diagram, the user is able to query on fully randomly encrypted
+data such as SSN number.
+
+The process and mechanisms that make this possible within {+qe+} are as follows:
+
+1. When the application submits the query, MongoDB drivers first analyze
+   the query.
+
+2. The driver recognizes the query is against an encrypted field and
+   requests the encryption keys from the customer-provisioned key
+   provider such as:
+
+   - AWS Key Management Service (AWS KMS)
+   - Google Cloud KMS
+   - Azure Key Vault
+   - Any {+kmip-kms+}
+
+3. The driver submits the query to the MongoDB server with the encrypted
+   fields rendered as ciphertext.
+
+4. Queryable Encryption implements a fast, searchable scheme that allows
+   the server to process queries on fully encrypted data, without knowing
+   anything about the data. The data and the query itself remain encrypted
+   at all times on the server.
+
+5. The MongoDB server returns the encrypted results of the query to the
+   driver.
+
+6. The query results are decrypted with the keys held by the driver and
+   returned to the client and shown as plaintext.
+
+{+qe+} functions with the help of the following data structures. It is critical
+that these are not modified or deleted, or query results will be incorrect.
+
+- {+qe+} adds a ``__safeContent__`` field to documents in any collection where there's a {+qe+}
+  encrypted field.
+- {+qe+} creates two internal metadata collections in the same database as the collection where there's a
+  {+qe+} encrypted field. These are named as follows:
+
+  - ``enxcol_.<collectionName>.esc``
+  - ``enxcol_.<collectionName>.ecoc``
+
+.. warning::
+
+    Do not modify these data structures or query results will be incorrect
+    and security could be impacted.
+
+{+qe+} keeps encrypted fields secure in the following scenarios:
+
+- Direct access to encrypted fields by a database superuser
+- Access to encrypted fields by reading the server's memory
+- Capture of encrypted fields over an insecure network
+- Access to on-disk encrypted fields by reading database or backup files
+- Frequency analysis attacks by identifying patterns in {+in-use-docs+}
+
+While all clients have access to the non-sensitive data fields,
+only appropriately-configured {+qe+} clients are able to run
+read and write queries using the encrypted data fields.
+
+.. important:: Remote {+kms-long+}
+
+   When you use {+qe+} in production, you must use a remote
+   {+kms-long+} (KMS) to store your encryption key.
+
+   To view a step-by-step guide demonstrating how to use a remote KMS with
+   {+qe+}, see :ref:`<qe-tutorial-automatic-encryption>`.
+
+   To view a list of all supported KMS providers, see
+   :ref:`<qe-fundamentals-kms-providers>`.
+
+   To learn more about why you should use a remote KMS, see
+   :ref:`qe-reasons-to-use-remote-kms`.
+
+.. _qe-feature-comparison:
+
+Other Security Mechanisms
+-------------------------
+
+This section describes the following security mechanisms supported by
+MongoDB and explains their use cases and limitations:
+
+- :ref:`<qe-features-role-based-access-control>`
+- :ref:`<qe-features-encryption-at-rest>`
+- :ref:`<qe-features-transport-encryption>`
+
+.. _qe-features-role-based-access-control:
+
+Role-Based Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Role-Based Access Control is a security mechanism that
+allows administrators to grant and restrict collection-level permissions
+for users. With the appropriate role definition and assignment, this
+solution prevents accidental disclosure of data and access.
+
+Role-Based Access control cannot protect against the following scenarios:
+
+- Capture of the data over an insecure network
+- Access to on-disk data by reading database or backup files
+- Access to data by reading the server's memory
+- Direct access to data by a database superuser
+
+To learn more, see
+:manual:`Role-Based Access Control </core/authorization/>`.
+
+.. _qe-features-encryption-at-rest:
+
+Encryption at Rest
+~~~~~~~~~~~~~~~~~~
+
+Encryption at Rest is a mechanism that encrypts database files on disk.
+This mechanism prevents a person who lacks database credentials, but has
+access to the computer hosting your database, from viewing your data.
+
+This mechanism does not protect your data against the following scenarios:
+
+- Capture of the data over an insecure network
+- Access to data by reading the server's memory
+- Direct access to data by a database superuser
+
+To learn more, see
+:manual:`Encryption at Rest </core/security-encryption-at-rest/>`.
+
+.. _qe-features-transport-encryption:
+
+Transport Encryption (TLS/SSL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Transport Encryption using TLS/SSL encrypts your data over the network.
+TLS/SSL protects your data as it travels over an insecure network, but
+cannot protect your data from a privileged user or as it sits on disk.
+
+To learn more, see
+:manual:`Transport Encryption using TLS/SSL </core/security-transport-encryption/>`
+
+Comparison of Features
+----------------------
+
+The following diagram describes security features MongoDB supports and
+the potential security vulnerabilities that they address:
+
+.. image:: /images/QE_Security_Feature_Chart.png
+   :alt: Diagram that describes MongoDB security features and the potential vulnerabilities that they address
+
+.. important:: Use the Mechanisms Together
+
+   To secure a production deployment, use Role-Based Access
+   Control, Encryption at Rest, Transport Encryption, and optionally, the
+   In-Use Encryption security mechanisms together. Please note that you cannot
+   use both {+csfle+} and {+qe+} to encrypt different fields in the same
+   collection.
+
+   To learn more about {+csfle+}, see :ref:`{+csfle+} Features <csfle-features>`.
+
+Scenario
+--------
+
+The following fictional scenario demonstrates the value of {+qe+}
+in securing your application's data, and how
+{+qe+} interacts with the other security mechanism discussed
+in this guide.
+
+In this scenario, we secure sensitive data on a medical care management
+system that stores patients' personal information, billing
+information, and medical records for a fictional company, *MedcoMD*.
+None of the patient data is public, and specific data such as their
+social security number (SSN, a US government-issued ID number), patient ID number,
+billing information, and medication information are particularly sensitive and
+subject to privacy compliance. It is important for the company and the patient
+that the data is kept private and secure.
+
+MedcoMD needs this system to satisfy the following use cases:
+
+- Doctors use the system to access patients' medical records, billing
+  information, and update medications.
+
+- Receptionists use the system to verify patients' identities
+  using their contact information.
+
+- Receptionists can view a patient's billing information, but not
+  their patient ID number.
+
+- Receptionists cannot access a patient's medical records.
+
+MedcoMD is also concerned with the disclosure of sensitive data through any
+of the following methods:
+
+- Accidental disclosure of data on a receptionist's publicly-viewable
+  screen.
+
+- Direct access to the database by a superuser such as a database
+  administrator.
+
+- Capture of data over an insecure network.
+
+- Access to data by reading the database server's memory.
+
+- Access to data by reading database or backup files.
+
+What can MedcoMD do to balance the functionality and access restrictions
+of their medical care management system?
+
+Solution
+~~~~~~~~
+
+MedcoMD uses the following security mechanisms to satisfy their use cases
+and protect against the disclosure of sensitive medical data:
+
+- :ref:`Transport Encryption (TLS/SSL) <qe-features-transport-encryption>`
+  to secure data as it travels over the network.
+- :ref:`Encryption at Rest <qe-features-encryption-at-rest>`
+  to protect against disclosure of data by reading database
+  or backup files.
+- :ref:`Role-Based Access Control <qe-features-role-based-access-control>`
+  to limit the access of database users to the collections necessary for them
+  to perform their tasks.
+- Encrypting sensitive fields with {+qe+} to satisfy the following
+  use cases and constraints:
+
+  * Prevent reading data from server memory as the
+    {+qe+} encrypted data is never on the database server in
+    an unencrypted form.
+  * Allow receptionists to verify patients' identities and
+    prevent accidental disclosure of sensitive data on a receptionist's
+    publicly viewable screen by providing receptionists with a client
+    that is not {+qe+} enabled.
+  * Allow doctors to view sensitive data privately in their offices
+    by providing doctors with a {+qe+} enabled client.
+
+Learn More
+----------
+
+To view a list of security measures you should implement to protect
+your MongoDB deployment, see the
+:manual:`Security Checklist </administration/security-checklist/>`.
+
+To start using {+qe+}, see the :ref:`<qe-quick-start>`.

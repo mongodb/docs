@@ -1,0 +1,198 @@
+.. _migrate-data-into-a-timeseries-collection:
+
+==========================================
+Migrate Data into a Time Series Collection
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: Time series, IOT
+
+To migrate data from an existing collection into a :ref:`time series
+collection <manual-timeseries-collection>`, use an :pipeline:`$out`
+stage in your aggregation pipeline.
+
+Migrate Data to a Time Series Collection
+----------------------------------------
+
+.. procedure::
+
+   .. step:: (Optional) Transform your data to create a metadata field if one doesn't exist. This field is not required.
+    
+      If the original collection doesn't have a metadata field, use the :pipeline:`$addFields` aggregation stage to add it.
+
+      Consider a collection with weather data that uses the format:
+
+      .. code-block:: javascript
+
+         {
+            "_id" : ObjectId("5553a998e4b02cf7151190b8"),
+            "st" : "x+47600-047900",
+            "ts" : ISODate("1984-03-05T13:00:00Z"),
+            "position" : {
+              "type" : "Point",
+              "coordinates" : [ -47.9, 47.6 ]
+            },
+            "elevation" : 9999,
+            "callLetters" : "VCSZ",
+            "qualityControlProcess" : "V020",
+            "dataSource" : "4",
+            "type" : "FM-13",
+            "airTemperature" : { "value" : -3.1, "quality" : "1" },
+            "dewPoint" : { "value" : 999.9, "quality" : "9" },
+            "pressure" : { "value" : 1015.3, "quality" : "1" },
+            "wind" : {
+              "direction" : { "angle" : 999, "quality" : "9" },
+              "type" : "9",
+              "speed" : { "rate" : 999.9, "quality" : "9" }
+            },
+            "visibility" : {
+              "distance" : { "value" : 999999, "quality" : "9" },
+              "variability" : { "value" : "N", "quality" : "9" }
+            },
+            "skyCondition" : {
+              "ceilingHeight" : { "value" : 99999, "quality" : "9", "determination" : "9" },
+              "cavok" : "N"
+            },
+            "sections" : [ "AG1" ],
+            "precipitationEstimatedObservation" : { "discrepancy" : "2",
+            "estimatedWaterDepth" : 999 }
+        }
+
+      The following pipeline stages add a ``metaData`` field and use
+      :pipeline:`$project` to include or exclude the remaining fields in
+      the document:
+
+      .. code-block:: javascript
+
+         { $addFields: {
+             metaData: {
+               "st": "$st",
+               "position": "$position",
+               "elevation": "$elevation",
+               "callLetters": "$callLetters",
+               "qualityControlProcess": "$qualityControlProcess",
+               "type": "$type"
+             }
+           },
+         }, 
+         { $project: {
+             _id: 1,
+             ts: 1,
+             metaData: 1,
+             dataSource: 1,
+             airTemperature: 1,
+             dewPoint: 1,
+             pressure: 1,
+             wind: 1,
+             visibility: 1,
+             skyCondition: 1,
+             sections: 1,
+             precipitationEstimatedObservation: 1
+           }
+         }
+
+   .. step:: Use the timeseries option with the $out aggregation stage
+    
+      The example below uses the :method:`db.collection.aggregate` helper method. For the aggregation stage syntax, see :pipeline:`$out`. For a full explanation of the time series options, see the :ref:`Time Series Field Reference <time-series-fields>`.
+
+      .. code-block:: javascript
+
+         db.weather_data.aggregate([
+           {
+              $addFields: {
+                metaData: {
+                  "st": "$st",
+                  "position": "$position",
+                  "elevation": "$elevation",
+                  "callLetters": "$callLetters",
+                  "qualityControlProcess": "$qualityControlProcess",
+                  "type": "$type"
+                }
+              },
+           }, {
+              $project: {
+                 _id: 1,
+                 ts: 1,
+                 metaData: 1,
+                 dataSource: 1,
+                 airTemperature: 1,
+                 dewPoint: 1,
+                 pressure: 1,
+                 wind: 1,
+                 visibility: 1,
+                 skyCondition: 1,
+                 sections: 1,
+                 precipitationEstimatedObservation: 1
+              }
+           }, {
+              $out: {
+                db: "mydatabase",
+                coll: "weathernew",
+                timeseries: {
+                  timeField: "ts",
+                  metaField: "metaData"
+                }
+              }
+           }
+         ])
+
+After you run this command, you have the ``weathernew``
+collection below:
+
+.. code-block:: javascript
+
+   db.weathernew.findOne()
+   {
+      "_id" : ObjectId("5553a998e4b02cf7151190b8"),
+      "ts" : ISODate("1984-03-05T13:00:00Z"),
+      "metaData" : {
+        "st" : "x+47600-047900",
+        "position" : {
+          "type" : "Point",
+          "coordinates" : [ -47.9, 47.6 ]
+        },
+        "elevation" : 9999,
+        "callLetters" : "VCSZ",
+        "qualityControlProcess" : "V020",
+        "type" : "FM-13"
+      },
+      "dataSource" : "4",
+      "airTemperature" : { "value" : -3.1, "quality" : "1" },
+      "dewPoint" : { "value" : 999.9, "quality" : "9" },
+      "pressure" : { "value" : 1015.3, "quality" : "1" },
+      "wind" : {
+        "direction" : { "angle" : 999, "quality" : "9" },
+        "type" : "9",
+        "speed" : { "rate" : 999.9, "quality" : "9" }
+      },
+      "visibility" : {
+        "distance" : { "value" : 999999, "quality" : "9" },
+        "variability" : { "value" : "N", "quality" : "9" }
+      },
+      "skyCondition" : {
+        "ceilingHeight" : { "value" : 99999, "quality" : "9", "determination" : "9" },
+        "cavok" : "N"
+      },
+      "sections" : [ "AG1" ],
+      "precipitationEstimatedObservation" : { "discrepancy" : "2", "estimatedWaterDepth" : 999 }
+   }
+
+If your original collection had secondary indexes, manually recreate 
+them now. If your collection includes ``timeField`` values before 
+``1970-01-01T00:00:00.000Z`` or after ``2038-01-19T03:14:07.000Z``, 
+MongoDB logs a warning and disables some query optimizations that make 
+use of the :ref:`internal clustered index <manual-timeseries-internal-index>`. :ref:`Create a secondary index 
+<timeseries-add-secondary-index>` on the ``timeField`` to regain query 
+performance and resolve the log warning.
+
+.. seealso::
+
+   :ref:`timeseries-add-secondary-index`

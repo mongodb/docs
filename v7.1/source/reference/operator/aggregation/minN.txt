@@ -1,0 +1,310 @@
+===============================
+$minN (aggregation accumulator)
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+  :local:
+  :backlinks: none
+  :depth: 1
+  :class: singlecol
+
+Definition
+----------
+
+.. group:: $minN
+
+   .. versionadded:: 5.2
+
+   Returns an aggregation of the minimum value ``n`` elements within a 
+   group. If the group contains fewer than ``n`` elements, ``$minN`` 
+   returns all elements in the group.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $minN:
+         {
+            input: <expression>,
+            n: <expression>
+         }
+   }
+
+- ``input`` specifies an expression that is the input to ``$minN``. It 
+  is evaluated for each element in the group and ``$minN`` preserves the 
+  minimum ``n`` values.
+- ``n`` limits the number of results per group and ``n`` has to be a
+  positive integral expression that is either a constant or depends on 
+  the ``_id`` value for :pipeline:`$group`.
+
+Behavior
+--------
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``$minN`` filters out null and missing values.
+
+Consider the following aggregation that returns the minimum ``n`` 
+documents from a group:
+
+.. code-block:: javascript
+   :emphasize-lines: 7,8
+
+   db.aggregate( [
+      {
+         $documents: [
+            { playerId: "PlayerA", gameId: "G1", score: 1 },
+            { playerId: "PlayerB", gameId: "G1", score: 2 },
+            { playerId: "PlayerC", gameId: "G1", score: 3 },
+            { playerId: "PlayerD", gameId: "G1" },
+            { playerId: "PlayerE", gameId: "G1", score: null }
+         ]
+      },
+      {
+         $group:
+         {  
+            _id: "$gameId",
+            minimumThreeScores:
+               { 
+                  $minN:
+                     {    
+                        input: "$score",
+                        n: 4
+                     }
+               }
+         }
+      }
+   ] )
+
+In this example:
+
+- :pipeline:`$documents` creates the literal documents that contain
+  player scores.
+- :pipeline:`$group` groups the documents by ``gameId``. This
+  example has only one ``gameId``, ``G1``.
+- ``PlayerD`` has a missing score and ``PlayerE`` has a
+  null ``score``. These values are both ignored.
+- The ``minimumThreeScores`` field is specified as :group:`$minN` 
+  with ``input : "$score"`` and returned as an array.
+- Since there are only 3 documents with ``scores`` ``minN`` returns 
+  the minimum 3  ``score`` fields even though ``n = 4``.
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ 
+      { 
+      _id: 'G1',
+      minimumThreeScores: [ 1, 2, 3 ] 
+      } 
+   ]
+
+Comparison of ``$minN`` and ``$bottomN`` Accumulators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Both :group:`$minN` and :group:`$bottomN` accumulators can accomplish 
+similar results.
+
+In general:
+
+- :group:`$minN` has the advantage of finding minimum values 
+  in no particular sort order. If you want to know the 
+  minimum values for ``n`` documents use :group:`$minN`.
+
+- If guaranteing a particular sort order is a requirement 
+  use :group:`$bottomN`. 
+
+- Use :group:`$bottomN` if you don't intend on sorting on the output 
+  values.
+
+Restrictions
+------------
+
+Window Function and Aggregation Expression Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use :group:`$minN` as an accumulator.
+
+:group:`$minN` is supported as an
+:ref:`aggregation expression <aggregation-expressions>`.
+
+:group:`$minN` is supported as a 
+:pipeline:`window operator <$setWindowFields>`.
+
+Memory Limit Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aggregation pipelines which call ``$minN`` are subject to the
+:ref:`100 MB limit <agg-memory-restrictions>`. If this
+limit is exceeded for an individual group, the aggregation fails
+with an error.
+
+Examples
+--------
+
+Consider a ``gamescores`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.gamescores.insertMany([
+      { playerId: "PlayerA", gameId: "G1", score: 31 },
+      { playerId: "PlayerB", gameId: "G1", score: 33 },
+      { playerId: "PlayerC", gameId: "G1", score: 99 },
+      { playerId: "PlayerD", gameId: "G1", score: 1 },
+      { playerId: "PlayerA", gameId: "G2", score: 10 },
+      { playerId: "PlayerB", gameId: "G2", score: 14 },
+      { playerId: "PlayerC", gameId: "G2", score: 66 },
+      { playerId: "PlayerD", gameId: "G2", score: 80 }
+   ])
+
+Find the Minimum Three ``Scores`` for a Single Game
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``$minN`` accumulator to find the minimum three scores
+in a single game.
+
+.. code-block:: javascript
+
+   db.gamescores.aggregate( [
+      {
+         $match : { gameId : "G1" }
+      },
+      {
+         $group:
+            {
+               _id: "$gameId",
+               minScores:
+                  {
+                     $minN:
+                     {
+                        input: ["$score","$playerId"],
+                        n:3
+                     }
+                  }
+            }
+      }
+   ] )
+
+The example pipeline:
+
+- Uses :pipeline:`$match` to filter the results on a single ``gameId``. 
+  In this case, ``G1``.
+- Uses :pipeline:`$group` to group the results by ``gameId``. In this 
+  case, ``G1``.
+- Specifies the fields that are input for ``$minN`` with
+  ``input : ["$score","$playerId"]``.
+- Uses ``$minN`` to return the first three score elements
+  for the ``G1`` game with ``n : 3``.
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: 'G1',
+         minScores: [ [ 1, 'PlayerD' ], [ 31, 'PlayerA' ], [ 33, 'PlayerB' ] ]
+      }
+   ]
+
+Finding the Minimum Three Documents Across Multiple Games
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``$minN`` accumulator to find the minimum ``n``
+scores in each game.
+
+.. code-block:: javascript
+
+   db.gamescores.aggregate( [
+      {
+         $group:
+         { 
+            _id: "$gameId", 
+            minScores:
+               {
+                  $minN:
+                     {
+                        input: ["$score","$playerId"],
+                        n: 3
+                     }
+               }
+         }
+      }
+   ] )
+   
+The example pipeline:
+
+- Uses ``$group`` to group the results by ``gameId``.
+- Uses ``$minN`` to return the minimum three score elements
+  for each game with ``n: 3``.
+- Specifies the fields that are input for ``$minN`` with
+  ``input: ["$score","$playerId"]``.
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: 'G2',
+         minScores: [ [ 10, 'PlayerA' ], [ 14, 'PlayerB' ], [ 66, 'PlayerC' ] ]
+      },
+      {
+         _id: 'G1',
+         minScores: [ [ 1, 'PlayerD' ], [ 31, 'PlayerA' ], [ 33, 'PlayerB' ] ]
+      }
+   ]
+
+Computing ``n`` Based on the Group Key for ``$group``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also assign the value of ``n`` dynamically. In this example,
+the :expression:`$cond` expression is used on the ``gameId`` field.
+
+.. code-block:: javascript
+   :emphasize-lines: 11
+
+   db.gamescores.aggregate([
+      {
+         $group:
+         {
+            _id: {"gameId": "$gameId"},
+            gamescores:
+               {
+                  $minN:
+                     {
+                        input: ["$score","$playerId"],
+                        n: { $cond: { if: {$eq: ["$gameId","G2"] }, then: 1, else: 3 } }
+                     }
+               }
+         }
+      }
+   ] )
+
+The example pipeline:
+
+- Uses ``$group`` to group the results by ``gameId``.
+- Specifies the fields that input for ``$minN`` with
+  ``input : ["$score","$playerId"]``.
+- If the ``gameId`` is ``G2`` then ``n`` is 1, otherwise ``n`` is 3.
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: { gameId: 'G2' }, gamescores: [ [ 10, 'PlayerA' ] ] },
+      {
+         _id: { gameId: 'G1' },
+         gamescores: [ [ 1, 'PlayerD' ], [ 31, 'PlayerA' ], [ 33, 'PlayerB' ] ]
+      }
+   ]

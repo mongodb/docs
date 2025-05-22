@@ -1,0 +1,330 @@
+:orphan:
+
+====================================
+Compatibility Changes in MongoDB 3.4
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following 3.4 changes can affect the compatibility with older
+versions of MongoDB.
+
+See also :doc:`/release-notes/3.4`.
+
+Sharded Cluster Changes
+-----------------------
+
+.. COMMENT to docs:  this section can be singlesourced since we refer to it in both rel notes and compatibility page (figured these changes are significant enought to place in both places)
+
+``shardsvr`` Requirement
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a 3.4 sharded cluster, :binary:`~bin.mongod` instances for the
+shards **must** explicitly specify its role as a ``shardsvr``,
+either via the configuration file setting
+:setting:`sharding.clusterRole` or via the command line option
+:option:`--shardsvr <mongod --shardsvr>`.
+
+.. note::
+
+   Default port for :binary:`~bin.mongod` instances with the ``shardsvr``
+   role is ``27018``. To use a different port, specify
+   :setting:`net.port` setting or ``--port`` option.
+
+.. COMMENT To DOCS TEAM: Ensure that in all our sharding tutorials we specify shardsvr.
+
+3.4 ``mongos`` and Earlier Versions of ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Version 3.4 :binary:`~bin.mongos` instances cannot connect to earlier
+versions of :binary:`~bin.mongod` instances.
+
+Removal for Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.4 removes the following configuration options from
+the :binary:`~bin.mongos`:
+
+- ``sharding.chunkSize`` configuration file setting and
+  ``--chunkSize`` command-line option
+
+- ``sharding.autoSplit`` configuration file setting and
+  ``--noAutoSplit`` command-line option
+
+.. _3.4-compat-remove-sccc:
+
+Removal of Support for SCCC Config Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+3.4 sharded clusters no longer support the use of mirrored (SCCC)
+:binary:`~bin.mongod` instances as config servers. The use of SCCC config
+servers, deprecated in the 3.2 release, is no longer valid. Instead,
+deploy your config servers as a replica set (CSRS).
+
+To upgrade your sharded cluster to version 3.4, the config servers must
+be running as a replica set.
+
+To convert your existing config servers from SCCC to CSRS, see the
+MongoDB 3.4 manual :v3.4:`Upgrade Config Servers to Replica Set
+</tutorial/upgrade-config-servers-to-replica-set>`.
+
+.. seealso::
+
+   :ref:`Sharded Cluster Release Notes Section <3.4-rel-notes-sharded-cluster>`
+
+.. _3.4-compatibility-initial-sync:
+
+Initial Sync and ``renameCollection``
+-------------------------------------
+
+If a collection is renamed on the sync source while an :ref:`initial
+sync <replica-set-initial-sync>` is running, the initial sync process
+fails and restarts to avoid possible data corruption. See
+:issue:`SERVER-26117`.
+
+Operations that rename collections include:
+
+- :dbcommand:`renameCollection` command and
+  :method:`db.collection.renameCollection()` method.
+
+- Aggregation (:method:`db.collection.aggregate()` method or
+  :dbcommand:`aggregate` command) with the :pipeline:`$out` stage.
+
+- Map-reduce (:method:`db.collection.mapReduce()` method or
+  :dbcommand:`mapReduce` command) with the ``out`` option.
+
+- :dbcommand:`convertToCapped` command.
+
+As such, when upgrading from 3.2.11 or earlier versions to 3.4, initial
+syncs may start failing if they encounter ``renameCollection``
+operations.
+
+In MongoDB versions 3.2.11 or earlier versions, initial sync process
+would proceed when encountering ``renameCollection`` operations, which
+could potentially corrupt data. See :issue:`SERVER-4941`.
+
+.. _3.4-compatibility-deprecated:
+
+Deprecated Operations
+---------------------
+
+.. _group-deprecation:
+
+``group``
+~~~~~~~~~
+
+Mongodb 3.4 deprecates the following commands and ``mongo``
+shell methods:
+
+- :v3.4:`group </reference/command/group>` command and
+  :v3.4:`db.collection.group() </reference/method/db.collection.group>`.
+
+  Use :method:`db.collection.aggregate()` or
+  :method:`db.collection.mapReduce()` instead.
+
+.. _aggregate-wo-cursor-deprecation:
+
+``aggregate`` without ``cursor``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/deprecation-aggregate-wo-cursor.rst
+
+Stricter Validation of Collection and Index Specifications
+----------------------------------------------------------
+
+Stricter Validation of Collection Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.4 enforces a stricter validation of collection options during
+:dbcommand:`create` and :method:`db.createCollection()` operations;
+namely, the specified options must be valid options supported by
+:dbcommand:`create` and :method:`db.createCollection()`.
+
+For example, the following operation is no longer valid:
+
+.. code-block:: javascript
+
+   db.createCollection( "myCappedCollection", { cappedtypo: true, size: 5242880 } )
+
+.. _3.4-index-validation:
+
+Stricter Validation of Index Specifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.4 enforces a stricter validation of index specification
+during :dbcommand:`createIndexes` and
+:method:`db.collection.createIndex()` operations. The enforcement does
+not apply to existing indexes.
+
+Stricter validation include the following:
+
+- Ensuring that the value in the index key pattern ``key: value`` is
+  valid. Specifically, value can be:
+
+  .. list-table::
+     :header-rows: 1
+
+     * - Value
+       - Description
+
+     * - A number greater than 0
+       - For ascending index
+
+     * - A number less than 0 
+       - For descending index
+ 
+     * - String "text", "2dsphere", "2d", or "hashed"
+       - For special index types
+
+  For example, the following operations are no longer valid:
+
+  .. code-block:: javascript
+
+     db.collection.createIndex( { x: 0 } );
+     db.collection.createIndex( { y: "text2d" } );
+     db.collection.createIndex( { z: NaN } );
+     db.collection.createIndex( { x: 1, unique: true } )
+
+- Ensuring that the specified :ref:`index options <index-properties>`
+  are valid. Previous versions ignored invalid options. For example, the
+  following operations are no longer valid:
+
+  .. code-block:: javascript
+
+     db.collection.createIndex( { y: 1 }, { uniques2: true} ); 
+     db.collection.createIndex( { z: 1 }, { expireAfterSec: 350 } )
+
+.. _3.4-general-compatibility:
+
+General Compatibility Changes
+-----------------------------
+
+- Updates to namespace restrictions: in MongoDB 3.4, the ``$``
+  character is no longer supported in database names.
+
+  .. important::
+
+     You must drop any databases that contain a ``$`` in its name
+     before upgrading to MongoDB 3.4.
+
+- Removal of deprecated ``textSearchEnabled`` parameter. Starting from
+  version 2.6, MongoDB enables the text search feature by default.
+
+- Removal of ``mongosniff``. In MongoDB 3.4,
+  ``mongosniff`` is replaced by ``mongoreplay``, which
+  offers a more flexible superset of ``mongosniff``'s
+  functionality.
+
+- Updates to :pipeline:`$project` specification behavior: empty
+  documents in :pipeline:`$project` specifications produce an error.
+
+- .. include:: /includes/fact-sparse-index-hint-count.rst
+
+  Previous versions ignored the hint if the use of the sparse index
+  would result in an incomplete count.
+
+.. _3.4-user-roles-incompatible:
+
+User Roles Changes
+------------------
+
+.. include:: /includes/fact-3.4-built-in-roles-changes.rst
+
+.. _3.4-compatibility-enabled:
+
+Backwards Incompatible Features
+-------------------------------
+
+.. include:: /includes/3.4-backwards-incompatible-features.rst
+
+To set the ``featureCompatibilityVersion``, see
+:dbcommand:`setFeatureCompatibilityVersion` command.
+
+.. warning::
+
+   .. include:: /includes/3.4-featureCompatibility-caveat.rst
+
+3.4 deployments have the following default
+``featureCompatibilityVersion`` values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - 3.4 Deployments
+     - ``featureCompatibilityVersion``
+
+   * - For new deployments
+     - ``"3.4"``
+
+   * - For deployments :ref:`upgraded from 3.2 <3.4-upgrade>`
+   
+     - ``"3.2"`` until you :dbcommand:`setFeatureCompatibilityVersion`
+       to ``"3.4"``.
+
+Earlier versions of MongoDB will not start if the database contains
+views, collation specifications, or ``v:2`` indexes. If the data
+contains the decimal data type, operations against these documents may
+fail. See :doc:`/release-notes/3.4-downgrade` for details. If you need
+to downgrade, you must remove data related to these incompatible
+features from your database before downgrading the binaries.
+
+.. _3.4-driver-compatibility:
+ 
+Driver Compatibility Changes
+----------------------------
+
+To use the various new features such as the new :ref:`3.4-decimal` and
+:ref:`collation` with a MongoDB driver, an upgrade to a driver version
+that supports these features is necessary.
+
+Single Element ``$in`` With ``upsert``
+--------------------------------------
+
+When an ``upsert`` operation finds no matching documents, it creates a 
+document to insert based on the equality statements in the query and then 
+applies the update modifiers to this seeded document. For example:
+
+.. code-block:: javascript
+
+   db.c.drop()
+   db.c.update( { a : 3, b: "foo" }, { $set : { c : 15 } }, { upsert : true } )
+   db.c.find()
+   { "_id" : ObjectId("59c03009529946822d0afb8c"), "a" : 3, "b" : "foo", "c" : 15 }
+
+Prior to 3.4, a single-element $in query did not seed the ``upsert`` 
+document. In the example below, the :update:`$addToSet` update expression 
+is successful because of this behavior:
+
+.. code-block:: javascript
+
+   db.c.drop()
+   db.c.update( { a : { $in : [1] } }, { $addToSet : { a : 2 } }, { upsert : true } )
+   db.c.find()
+   { "_id" : ObjectId("58bdb00eb39e8f87607e9222"), "a" : [ 2 ] }
+
+In 3.4 and newer versions, however, a single-element :query:`$in` behaves
+like an equality statement for upserts. If the query includes this condition 
+on a field, the field value is set to the element. 
+
+As a result of this behavior, certain upsert operations may fail in 3.4. In 
+example above, the :update:`$addToSet` upsert would fail because the ``a`` 
+field would be seeded with a single value, and :update:`$addToSet` cannot be 
+applied to a scalar field. To avoid this error, you must wrap the :query:`$in` 
+expression in an :query:`$elemMatch` expression:
+
+.. code-block:: javascript
+
+   db.c.drop()
+   db.c.update( 
+      { a : { $elemMatch : { $in : [ 2 ] } } }, 
+      { $addToSet : { a: 3 } },
+      { upsert: true } )
+   db.c.find()
+   { "_id" : ObjectId("..."), "a" : [ 3 ] }

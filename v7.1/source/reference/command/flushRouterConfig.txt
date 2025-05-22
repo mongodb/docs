@@ -1,0 +1,113 @@
+=================
+flushRouterConfig
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: flushRouterConfig
+
+   :dbcommand:`flushRouterConfig` marks the cached routing table for a 
+   sharded cluster as stale, causing the next operation that requests
+   the routing table to refresh the cache. Management of the routing
+   table cache is generally handled automatically by the cluster. You
+   should only need to run the :dbcommand:`flushRouterConfig` command
+   manually in specific instances, as indicated under
+   :ref:`flushrouterconfig-considerations`.
+
+.. note::
+
+   **Starting in MongoDB 4.4,** running :dbcommand:`flushRouterConfig`
+   is no longer required after executing the :dbcommand:`movePrimary` or
+   :dbcommand:`dropDatabase` commands. These two commands now
+   automatically refresh a sharded cluster's routing table as needed
+   when run.
+
+Syntax
+------
+
+Starting in MongoDB 4.0.6 (and 3.6.11), the
+:dbcommand:`flushRouterConfig` is available on both
+:binary:`~bin.mongos` and :binary:`~bin.mongod` instances, and has the
+following syntax:  
+
+- Flush the cache for a specified collection when passed in a
+  collection namespace parameter:
+
+  .. code-block:: javascript
+
+     db.adminCommand(
+        { 
+          flushRouterConfig: "<db.collection>" 
+        } 
+     )
+
+- Flush the cache for a specified database and all of its collections
+  when passed in a database namespace parameter:
+
+  .. code-block:: javascript
+
+     db.adminCommand(
+        { 
+          flushRouterConfig: "<db>" 
+        } 
+     ) 
+
+- Flush the cache for all databases and their collections when run
+  without a parameter or passed in a non-string scalar value
+  (e.g. ``1``):
+
+  .. code-block:: javascript
+
+     db.adminCommand("flushRouterConfig")
+     db.adminCommand( 
+        { 
+          flushRouterConfig: 1 
+        } 
+     )
+
+.. note::
+
+   **In MongoDB 4.0.5 and earlier (and 3.6.10 and earlier)**,
+   :dbcommand:`flushRouterConfig` is only available for
+   :binary:`~bin.mongos` instances and can only flush the cache for all
+   databases and their collections:
+
+   .. code-block:: javascript
+
+      db.adminCommand("flushRouterConfig")
+      db.adminCommand( 
+         { 
+           flushRouterConfig: 1 
+         } 
+      )
+
+.. _flushrouterconfig-considerations:
+
+Considerations
+--------------
+
+Generally, a sharded cluster's routing table is automatically refreshed
+as needed as part of normal operation. However, you should manually
+issue the :dbcommand:`flushRouterConfig` command in the following
+instances:
+
+- If running MongoDB 4.2 or earlier, after executing the
+  :dbcommand:`movePrimary` or :dbcommand:`dropDatabase` commands.
+
+- If running MongoDB 4.2.2 or earlier (or 4.0.14 or earlier), after
+  manually clearing the ``jumbo`` flag from a chunk that could not be
+  split (i.e. an *indivisible chunk*). See
+  :doc:`/tutorial/clear-jumbo-flag` for more information.
+
+- Before running the :method:`db.collection.getShardDistribution()`
+  command. This ensures that the command returns the most up-to-date
+  information.

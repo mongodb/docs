@@ -1,0 +1,264 @@
+==========================================
+Best Practices for Time Series Collections
+==========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: Time series, Best practices
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes best practices to improve performance and data usage
+for time series collections.
+
+.. _tsc-best-practice-optimize-inserts:
+
+Optimize Inserts
+----------------
+
+To optimize insert performance for time series collections, perform the
+following actions.
+
+Batch Document Writes
+~~~~~~~~~~~~~~~~~~~~~
+
+When inserting multiple documents:
+
+- To avoid network roundtrips, use a single
+  :method:`~db.collection.insertMany()` statement as opposed to
+  multiple :method:`~db.collection.insertOne()` statements.
+
+- If possible, construct batches to contain multiple measurements per series 
+  (as defined by metadata).
+ 
+- To improve performance, set the ``ordered`` parameter to ``false``.
+
+For example, if you have two sensors, ``sensor A`` and ``sensor B``, a
+batch containing multiple measurements from a single sensor incurs the
+cost of one insert, rather than one insert per measurement.
+
+The following operation inserts six documents, but only incurs the cost
+of two inserts (one per batch), because the documents are ordered by
+sensor. The ``ordered`` parameter is set to ``false`` to improve performance:
+
+.. code-block:: javascript
+
+   db.temperatures.insertMany( [
+      {
+         "metadata": {
+            "sensor": "sensorA"
+         },
+         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
+         "temperature": 10
+      },
+      {
+         "metadata": {
+            "sensor": "sensorA"
+         },
+         "timestamp": ISODate("2021-05-19T00:00:00.000Z"),
+         "temperature": 12
+      },
+      {
+         "metadata": {
+            "sensor": "sensorA"
+         },
+         "timestamp": ISODate("2021-05-20T00:00:00.000Z"),
+         "temperature": 13
+      },
+      {
+         "metadata": {
+            "sensor": "sensorB"
+         },
+         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
+         "temperature": 20
+      },
+      {
+         "metadata": {
+            "sensor": "sensorB"
+         },
+         "timestamp": ISODate("2021-05-19T00:00:00.000Z"),
+         "temperature": 25
+      },
+      {
+         "metadata": {
+            "sensor": "sensorB"
+         },
+         "timestamp": ISODate("2021-05-20T00:00:00.000Z"),
+         "temperature": 26
+      }
+   ], {
+      "ordered": false
+   })
+
+Use Consistent Field Order in Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using a consistent field order in your documents improves insert
+performance. 
+
+For example, inserting these documents achieves optimal insert
+performance:
+
+.. code-block:: javascript
+
+   { 
+      "_id": ObjectId("6250a0ef02a1877734a9df57"),
+      "timestamp": ISODate("2020-01-23T00:00:00.441Z"),
+      "name": "sensor1",
+      "range": 1 
+   }, 
+   {
+      "_id": ObjectId("6560a0ef02a1877734a9df66"),
+      "timestamp": ISODate("2020-01-23T01:00:00.441Z"),
+      "name": "sensor1",
+      "range": 5
+   } 
+
+In contrast, these documents *do not* achieve optimal insert
+performance, because their field orders differ:
+
+.. code-block:: javascript
+
+   { 
+      "range": 1,
+      "_id": ObjectId("6250a0ef02a1877734a9df57"),
+      "name": "sensor1",
+      "timestamp": ISODate("2020-01-23T00:00:00.441Z")
+   }, 
+   {
+      "_id": ObjectId("6560a0ef02a1877734a9df66"),
+      "name": "sensor1",
+      "timestamp": ISODate("2020-01-23T01:00:00.441Z"),
+      "range": 5
+   } 
+
+Increase the Number of Clients
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Increasing the number of clients writing data to your collections can
+improve performance.
+
+.. important:: Disable Retryable Writes
+
+   To write data with multiple clients, you must disable retryable
+   writes. Retryable writes for time series collections do not combine
+   writes from multiple clients.
+
+   To learn more about retryable writes and how to disable them, see
+   :ref:`retryable writes <retryable-writes>`.
+
+.. _tsc-best-practice-optimize-compression:
+
+Optimize Compression
+--------------------
+
+To optimize data compression for time series collections, perform the
+following actions.
+
+Omit Fields Containing Empty Objects and Arrays from Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To optimize compression, if your data contains empty objects or arrays,
+omit the empty fields from your documents.
+
+For example, consider the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 7
+
+   {
+    "timestamp": ISODate("2020-01-23T00:00:00.441Z"),
+    "coordinates": [1.0, 2.0]
+   },
+   {
+      "timestamp": ISODate("2020-01-23T00:00:10.441Z"),
+      "coordinates": []
+   },
+   {
+      "timestamp": ISODate("2020-01-23T00:00:20.441Z"),
+      "coordinates": [3.0, 5.0]
+   }
+
+The alternation between ``coordinates`` fields with populated values and
+an empty array result in a schema change for the compressor. The schema
+change causes the second and third documents in the sequence remain
+uncompressed.
+
+In contrast, the following documents where the empty array is omitted
+receive the benefit of optimal compression:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "timestamp": ISODate("2020-01-23T00:00:00.441Z"),
+      "coordinates": [1.0, 2.0]
+   },
+   {
+      "timestamp": ISODate("2020-01-23T00:00:10.441Z")
+   },
+   {
+      "timestamp": ISODate("2020-01-23T00:00:20.441Z"),
+      "coordinates": [3.0, 5.0]
+   }
+
+Round Numeric Data to Few Decimal Places
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Round numeric data to the precision required for your application.
+Rounding numeric data to fewer decimal places improves the compression
+ratio.
+
+.. _tsc-best-practice-optimize-query-performance:
+
+Optimize Query Performance
+--------------------------
+
+Set Appropriate Bucket Granularity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When you create a time series collection, MongoDB groups incoming time
+series data into buckets. By accurately setting granularity, you control
+how frequently data is bucketed based on the ingestion rate of your data.
+
+Starting in MongoDB 6.3, you can use the custom bucketing parameters
+``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds`` to specify bucket
+boundaries and more precisely control how time series data is bucketed.
+
+You can improve performance by setting the ``granularity`` or custom
+bucketing parameters to the best match for the time span between
+incoming measurements from the same data source. For example, if you are
+recording weather data from thousands of sensors but only record data
+from each sensor once per 5 minutes, you can either set ``granularity``
+to ``"minutes"`` or set the custom bucketing parameters to ``300``
+(seconds).
+
+In this case, setting the ``granularity`` to ``hours`` groups up to a 
+month's worth of data ingest events into a single bucket, resulting in 
+longer traversal times and slower queries. Setting it to ``seconds`` 
+leads to multiple buckets per polling interval, many of which 
+might contain only a single document.
+
+The following table shows the maximum time interval included in one 
+bucket of data when using a given ``granularity`` value:
+
+.. include:: /includes/table-timeseries-granularity-intervals.rst
+
+.. seealso::
+
+   :ref:`Timing of Automatic Removal
+   <timeseries-collection-delete-operations-timing>`
+
+Create Secondary Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To improve query performance, :ref:`create one or more secondary indexes
+<timeseries-add-secondary-index>` on your ``timeField`` and
+``metaField`` to support common query  patterns. In versions 6.3 and
+higher, MongoDB creates a secondary index on the ``timeField`` and
+``metaField`` automatically.
