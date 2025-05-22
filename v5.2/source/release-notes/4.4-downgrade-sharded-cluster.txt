@@ -1,0 +1,261 @@
+======================================================
+Downgrade |newversion| Sharded Cluster to |oldversion|
+======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+
+.. include:: /includes/4.4-upgrade-replacements.rst
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade-path.rst
+
+.. include:: /includes/extracts/4.4-changes-downgrade-floor.rst
+
+.. |downgrading| replace:: downgrading
+
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+
+Prerequisites
+-------------
+
+To downgrade from |newversion| to |oldversion|, you must remove
+incompatible features that are persisted and/or update incompatible
+configuration settings. 
+
+.. |target| replace:: :binary:`~bin.mongos` instance
+
+1. Namespace Length
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4:
+
+.. include:: /includes/fact-collection-namespace-limit.rst
+
+Before downgrading, resolve any collections or views with namespaces
+that exceed the 120-byte :limit:`Namespace Length` limit for Feature
+Compatibility Version (fCV) 4.2.
+
+To determine if you have any collections or views with namespaces
+that exceed the 120-byte limit, connect :binary:`~bin.mongo` shell
+to a |target| and run:
+
+.. code-block:: javascript
+
+   db.adminCommand("listDatabases").databases.forEach(function(d){
+      let mdb = db.getSiblingDB(d.name);
+
+      mdb.getCollectionInfos( ).forEach(function(c){
+         namespace = d.name + "." + c.name
+         namespacelenBytes =  encodeURIComponent(namespace).length
+
+         if (namespacelenBytes > 120) {
+            print (c.type.toUpperCase() + " namespace exceeds 120 bytes:: " + namespace )
+         }
+      } )
+   })
+
+If any collection or view namespace exceeds 120 bytes, then :red:`prior` to
+downgrading the fCV:
+
+- For unsharded collections, rename the collections using the
+  :dbcommand:`renameCollection` command.
+
+- For sharded collections:
+
+  - Use :pipeline:`$merge` to a new sharded collection with a shorter
+    name, then drop the original collection.
+
+  - Use :binary:`~bin.mongoexport` and :binary:`~bin.mongoimport` into
+    a new collection with a shorter name, then drop the original collection.
+
+- For views, use :method:`db.createView()` to recreate the view
+  using a shorter name, then drop the original view.
+  
+.. _4.4-downgrade-feature-compatibility-sharded-cluster:
+
+2. Downgrade Feature Compatibility Version (fCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   - Downgrading to 
+     :ref:`featureCompatibilityVersion (fCV) : "4.2" <set-fcv>`
+     implicitly performs a :dbcommand:`replSetReconfig` on each shard to
+     remove the :rsconf:`term` field from the configuration document and
+     blocks until the new configuration propagates to a majority of
+     replica set members.
+
+To downgrade the ``featureCompatibilityVersion`` of your sharded
+cluster:
+
+#. Connect a :binary:`~bin.mongo` shell to the |target|.
+
+#. .. include:: /includes/4.4-downgrade-fcv.rst
+
+   .. note:: 
+
+      While :dbcommand:`setFeatureCompatibilityVersion` is running on
+      the sharded cluster, chunk migrations, splits, and merges
+      can fail with ``ConflictingOperationInProgress``.
+
+#. To ensure that all members of the sharded cluster reflect the
+   updated ``featureCompatibilityVersion``, connect to each shard replica
+   set member and each config server replica set member and check the
+   ``featureCompatibilityVersion``:
+
+   .. tip::
+
+      For a sharded cluster that has access control enabled, to run the
+      following command against a shard replica set member, you must
+      connect to the member as a :ref:`shard local user
+      <shard-local-users>`.
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+   All members should return a result that includes:
+
+   .. code-block:: javascript
+
+      "featureCompatibilityVersion" : { "version" : "4.2" }
+
+   If any member returns a ``featureCompatibilityVersion`` of |newfcv|,
+   wait for the member to reflect version |oldfcv| before proceeding.
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+3. Remove FCV |newversion| Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+|newfcv|.
+
+Remove all persisted |newversion| |features| that are incompatible with
+|oldversion|. These include:
+
+Compound Hashed Indexes
+  Remove all :ref:`compound hashed indexes 
+  <4.4-rel-notes-compound-hashed-index>`.
+
+  Use :method:`db.collection.getIndexes()` to identify 
+  any compound hashed indexes in a collection and use
+  :method:`db.collection.dropIndex()` to remove those indexes.
+
+  If any collection is sharded using the compound hashed index, 
+  use the guidance listed under ``Compound Hashed Shard Keys`` below.
+
+Compound Hashed Shard Keys
+  Remove any sharded collections which were sharded using a 
+  :ref:`compound hashed shard key
+  <4.4-rel-notes-sharding-compound-hashed>`.
+  
+  Use :method:`sh.status()` to identify sharded collections with a
+  compound hashed shard key and remove those collections. 
+
+  - If the collection is empty *or* if the collection does contain 
+    data that requires preservation, use :method:`db.collection.drop()`
+    to drop the collection.
+
+  - If the collection has data that requires preservation, back up the 
+    collection *first* before using :method:`db.collection.drop()` 
+    to drop the collection. After downgrading the cluster, restore 
+    the data into the cluster.
+
+4. Remove |newversion| Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Remove all persisted features that use |newversion| features. These
+include but are not limited to:
+
+- If any view definitions that include |newversion| operators, such as
+  :pipeline:`$unionWith` or :expression:`$function`. See also
+  :ref:`4.4-rel-notes-new-agg-operators`.
+
+- :method:`Unhide <db.collection.unhideIndex()>` or :method:`drop
+  <db.collection.dropIndex()>` hidden indexes.
+
+
+.. |binary| replace:: any :binary:`~bin.mongod`/:binary:`~bin.mongos` instance
+
+5. Update Missing Shard Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In MongoDB 4.4, shard key fields can be :ref:`missing from documents
+<shard-key-missing>` in a sharded collection. 
+
+If you downgrade to 4.2 and a sharded collection contains documents
+missing shard key fields, 4.2 :binary:`~bin.mongos` instances do not
+return documents that are missing the shard key fields. To avoid
+this situation, update the documents to includes the missing shard
+key fields before you downgrade.
+
+To find documents that are missing any part of the shard key, use the
+:query:`$exists` operator. 
+
+For example, if the collection ``contacts`` has the shard key ``{
+zipcode: 1 }``, to find documents without the ``zipcode`` field:
+
+.. code-block:: javascript
+
+   db.contacts.find( { zipcode: { $exists: false } } )
+
+To set the missing shard key field to ``null`` for these documents,
+you can use the :method:`db.collection.updateMany()` method:
+
+.. code-block:: javascript
+
+   db.contacts.updateMany( { zipcode: { $exists: false } }, { $set: { zipcode: null } } )
+
+If setting the missing shard key field to a non-``null`` value, you
+cannot use the :method:`db.collection.updateMany()` method and you
+must perform the update within a transaction or as a retryable
+write. For details, see :ref:`shard-key-missing-set`.
+
+6. Update Shard Keys That Exceed 512 bytes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.4   
+
+   In version 4.4, MongoDB removes the 512-byte limit on the shard key
+   size. However, for MongoDB 4.2 and earlier, a shard key cannot
+   exceed 512 bytes. Update any shard key value that exceed the
+   512-byte size limit to be within the 512 byte size limit. To update
+   a document's shard key value, see :ref:`update-shard-key`.
+
+Procedure
+---------
+
+Downgrade a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   members, including delayed replica set members in the sharded
+   cluster, reflect the prerequisite changes.  That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+.. include:: /includes/steps/4.4-downgrade-sharded-cluster.rst
+
+

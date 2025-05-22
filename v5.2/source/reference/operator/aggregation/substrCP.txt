@@ -1,0 +1,204 @@
+===========================
+$substrCP (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+   
+Definition
+----------
+
+.. expression:: $substrCP
+
+   Returns the substring of a string. The substring starts with the
+   character at the specified UTF-8 `code point (CP)
+   <http://www.unicode.org/glossary/#code_point>`_ index (zero-based)
+   in the string for the number of code points specified.
+
+   :expression:`$substrCP` has the following :ref:`operator
+   expression syntax <agg-quick-ref-operator-expressions>`:
+
+   .. code-block:: javascript
+
+      { $substrCP: [ <string expression>, <code point index>, <code point count> ] }
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``string expression``
+   
+        - string
+   
+        - The string from which the substring will be extracted. ``string expression``
+          can be any valid :ref:`expression <aggregation-expressions>` as
+          long as it resolves to a string. For more information on
+          expressions, see :ref:`aggregation-expressions`.
+          
+          .. include:: /includes/extracts/agg-expression-null-operand-substrCP.rst
+          
+          
+   
+      * - ``code point index``
+   
+        - number
+   
+        - Indicates the starting point of the substring. ``code point index``
+          can be any valid :ref:`expression <aggregation-expressions>` as long as
+          it resolves to a non-negative integer.
+          
+          
+   
+      * - ``code point count``
+   
+        - number
+   
+        - Can be any valid :ref:`expression <aggregation-expressions>`
+          as long as it resolves to a non-negative integer or number that can be
+          represented as an integer (such as 2.0).
+          
+          
+   
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 55 45
+   
+      * - Example
+        - Results
+   
+      * - ``{ $substrCP: [ "abcde", 1, 2 ] }``
+        - ``"bc"``
+        
+      * - ``{ $substrCP: [ "Hello World!", 6, 5 ] }``
+        - ``"World"``
+   
+      * - ``{ $substrCP: [ "cafétéria", 0, 5 ] }``
+        - ``"cafét"``
+   
+      * - ``{ $substrCP: [ "cafétéria", 5, 4 ] }``
+        - ``"tér"``
+   
+      * - ``{ $substrCP: [ "cafétéria", 7, 3 ] }``
+        - ``"ia"``
+        
+      * - ``{ $substrCP: [ "cafétéria", 3, 1 ] }``
+        - ``"é"``
+
+Behavior
+--------
+
+The :expression:`$substrCP` operator uses the code points to extract
+the substring. This behavior differs from the
+:expression:`$substrBytes` operator which extracts the substring
+by the number of bytes, where each character uses between one and four
+bytes.
+
+Example
+-------
+
+Single-Byte Character Set
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", quarter: "13Q1", "description" : "product 1" }
+   { "_id" : 2, "item" : "ABC2", quarter: "13Q4", "description" : "product 2" }
+   { "_id" : 3, "item" : "XYZ1", quarter: "14Q2", "description" : null }
+
+The following operation uses the :expression:`$substrCP` operator to
+separate the ``quarter`` value into a ``yearSubstring`` and a
+``quarterSubstring``. The ``quarterSubstring`` field represents the
+rest of the string from the specified ``byte index`` following the
+``yearSubstring``. It is calculated by subtracting the ``byte index``
+from the length of the string using :expression:`$strLenCP`.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+     [
+       {
+         $project: {
+           item: 1,
+           yearSubstring: { $substrCP: [ "$quarter", 0, 2 ] },
+           quarterSubtring: { 
+             $substrCP: [ 
+               "$quarter", 2, { $subtract: [ { $strLenCP: "$quarter" }, 2 ] } 
+             ]
+           }
+         }
+       }
+     ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", "yearSubstring" : "13", "quarterSubtring" : "Q1" }
+   { "_id" : 2, "item" : "ABC2", "yearSubstring" : "13", "quarterSubtring" : "Q4" }
+   { "_id" : 3, "item" : "XYZ1", "yearSubstring" : "14", "quarterSubtring" : "Q2" }
+
+Single-Byte and Multibyte Character Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``food`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "apple" }
+   { "_id" : 2, "name" : "banana" }
+   { "_id" : 3, "name" : "éclair" }
+   { "_id" : 4, "name" : "hamburger" }
+   { "_id" : 5, "name" : "jalapeño" }
+   { "_id" : 6, "name" : "pizza" }
+   { "_id" : 7, "name" : "tacos" }
+   { "_id" : 8, "name" : "寿司sushi" }
+
+The following example uses the ``$substrCP`` operator to create a three
+byte ``menuCode`` from the ``name`` value:
+
+.. code-block:: javascript
+
+   db.food.aggregate(
+     [
+       {
+         $project: {
+             "name": 1,
+             "menuCode": { $substrCP: [ "$name", 0, 3 ] }
+         }
+       }
+     ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "apple", "menuCode" : "app" }
+   { "_id" : 2, "name" : "banana", "menuCode" : "ban" }
+   { "_id" : 3, "name" : "éclair", "menuCode" : "écl" }
+   { "_id" : 4, "name" : "hamburger", "menuCode" : "ham" }
+   { "_id" : 5, "name" : "jalapeño", "menuCode" : "jal" }
+   { "_id" : 6, "name" : "pizza", "menuCode" : "piz" }
+   { "_id" : 7, "name" : "tacos", "menuCode" : "tac" }
+   { "_id" : 8, "name" : "寿司sushi", "menuCode" : "寿司s" }
+   
+.. seealso::
+
+   :expression:`$substrBytes`

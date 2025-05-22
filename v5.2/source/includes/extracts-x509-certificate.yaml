@@ -1,0 +1,156 @@
+ref: x509-certificate-client
+content: |
+
+   Client certificates must have the following properties:
+
+   - A single Certificate Authority (CA) must issue the certificates
+     for both the client and the server.
+
+   - Client certificates must contain the following fields:
+
+     .. code-block:: none
+
+        keyUsage = digitalSignature
+        extendedKeyUsage = clientAuth
+
+   - Each unique MongoDB user must have a unique certificate.
+
+   - A client x.509 certificate's subject, which contains the
+     Distinguished Name (``DN``), must **differ** from the subjects of
+     :ref:`member x.509 certificates <x509-member-certificate>`.
+
+     .. important::  
+    
+        If a client x.509 certificate's subject matches the ``O``, ``OU``, and 
+        ``DC`` attributes of the :ref:`x509-member-certificate` (or
+        :parameter:`tlsX509ClusterAuthDNOverride`, if set) exactly, the client 
+        connection is accepted, full permissions are granted, and a warning 
+        message appears in the log. 
+        
+        Only :ref:`cluster member x509 certificates <x509-member-certificate>` 
+        should use the same ``O``, ``OU``, and ``DC`` attribute combinations.
+
+
+     .. versionadded:: 4.2
+
+        If the MongoDB deployment has :parameter:`tlsX509ClusterAuthDNOverride` 
+        set, the client x.509 certificate's subject must not match that value.
+
+     If the MongoDB deployment has
+     :parameter:`tlsX509ClusterAuthDNOverride` set (*available starting
+     in MongoDB 4.2*), the client x.509 certificate's subject must also
+     differ from that value.
+
+   - The x.509 certificate must *not* be expired.
+
+     .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
+---
+ref: x509-certificate-member
+content: |
+
+   Member certificates which you use to verify membership to a sharded
+   cluster or a replica set (:setting:`net.tls.clusterFile`, if
+   specified, and :setting:`net.tls.certificateKeyFile`), must have the
+   following properties:
+
+   - A single Certificate Authority (CA) must issue all the x.509
+     certificates for the members of a sharded cluster or a replica set.
+
+   - The Distinguished Name (``DN``), found in the member certificate's
+     ``subject``, must specify a non-empty value for *at least one* of
+     the following attributes:
+
+     - the Organization (``O``)
+     - the Organizational Unit (``OU``)
+     - the Domain Component (``DC``)
+
+   - The Organization attributes (``O``\'s), the Organizational Unit
+     attributes (``OU``\'s), and the Domain Components (``DC``\'s) must
+     match those from both the :setting:`net.tls.clusterFile` and
+     :setting:`net.tls.certificateKeyFile` certificates for the other
+     cluster members (or the :parameter:`tlsX509ClusterAuthDNOverride`
+     value, if set).
+
+     To match, the certificate must match all specifications of these
+     attributes, even the non-specification of these attributes. The
+     order of the attributes does not matter.
+
+     In the following example, the two ``DN``\'s contain matching
+     specifications for ``O``, ``OU`` as well as the non-specification
+     of the ``DC`` attribute.
+
+     .. code-block:: none
+
+        CN=host1,OU=Dept1,O=MongoDB,ST=NY,C=US
+        C=US, ST=CA, O=MongoDB, OU=Dept1, CN=host2
+
+     However, the following two ``DN``\'s contain a mismatch for the
+     ``OU`` attribute since one contains two ``OU`` specifications and
+     the other, only one specification.
+
+     .. code-block:: none
+
+        CN=host1,OU=Dept1,OU=Sales,O=MongoDB
+        CN=host2,OU=Dept1,O=MongoDB
+
+   - Either the Common Name (``CN``) or one of the Subject Alternative
+     Name (``SAN``) entries must match the server hostname for other cluster
+     members. Starting in MongoDB 4.2, when comparing ``SAN``\s, MongoDB can 
+     compare either DNS names or IP addresses. In previous versions, MongoDB 
+     only compares DNS names.
+
+     For example, the certificates for a cluster could have the
+     following subjects:
+
+     .. code-block:: bash
+
+        subject= CN=<myhostname1>,OU=Dept1,O=MongoDB,ST=NY,C=US
+        subject= CN=<myhostname2>,OU=Dept1,O=MongoDB,ST=NY,C=US
+        subject= CN=<myhostname3>,OU=Dept1,O=MongoDB,ST=NY,C=US
+
+   - *If* the certificate includes the Extended Key Usage
+     (``extendedKeyUsage``) setting, the value must include
+     ``clientAuth`` ("TLS Web Client Authentication").
+
+     .. code-block:: none
+
+        extendedKeyUsage = clientAuth
+
+   - The x.509 certificate must *not* be expired.
+
+     .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
+---
+ref: x509-member-auth-configuration
+content: |
+
+   You can use TLS for internal authentication between each member of
+   your replica set (each :binary:`~bin.mongod` instance) or sharded
+   cluster (each :binary:`~bin.mongod` and :binary:`~bin.mongos`
+   instance).
+
+   To use TLS for internal authentication, use the following settings:
+
+   - :setting:`security.clusterAuthMode` or :option:`--clusterAuthMode
+     <mongod --clusterAuthMode>` set to ``x509``
+
+   - :setting:`net.tls.clusterFile` or :option:`--tlsClusterFile
+     <mongod --clusterAuthMode>` (*available starting in MongoDB 4.2*)
+
+   :binary:`~bin.mongod` and :option:`mongos <mongos
+   --tlsCertificateKeyFile>` instances use their certificate key file to
+   prove their identity to clients, but it can also be used for
+   membership authentication. If you do not specify a cluster file,
+   members use their certificate key file for membership authentication.
+   The certificate key file is the file you specify with
+   :setting:`net.tls.certificateKeyFile` or
+   :option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>`
+   (*available starting in MongoDB 4.2*).
+
+   To use the :setting:`certificate key file
+   <net.tls.certificateKeyFile>` for both client authentication and
+   membership authentication, the certificate must either:
+
+   - Omit ``extendedKeyUsage`` or
+   - Specify ``extendedKeyUsage = serverAuth, clientAuth``
+
+...

@@ -1,0 +1,129 @@
+.. _tutorial-change-oplog-size:
+
+============================
+Change the Size of the Oplog
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. warning::
+
+   In MongoDB versions 3.4 and earlier, the oplog was resized by
+   dropping and recreating the ``local.oplog.rs`` collection.
+   
+   In MongoDB versions 3.6 and later, use the
+   :dbcommand:`replSetResizeOplog` command to resize the oplog as shown
+   in this tutorial.
+   
+   Starting in MongoDB 4.0, MongoDB forbids dropping the
+   ``local.oplog.rs`` collection. For more information on this
+   restriction, see :ref:`oplog-coll-behavior`.
+
+This procedure changes the size of the oplog [#oplog]_ on each member of a
+replica set using the :dbcommand:`replSetResizeOplog` command, starting
+with the :term:`secondary` members before proceeding to the
+:term:`primary`.
+
+Perform these steps on each :term:`secondary` replica set member
+*first*. Once you have changed the oplog size for all secondary
+members, perform these steps on the :term:`primary`.
+
+A. Connect to the replica set member
+------------------------------------
+
+Connect to the replica set member using :binary:`~bin.mongosh`:
+
+.. code-block:: bash
+
+   mongosh --host <hostname>:<port>
+
+.. note::
+
+   If the replica set enforces :ref:`authentication <authentication>`,
+   you must authenticate as a user with privileges to modify the 
+   ``local`` database, such as the :authrole:`clusterManager` or
+   :authrole:`clusterAdmin` role.
+
+B. (Optional) Verify the current size of the oplog
+--------------------------------------------------
+
+To view the current size of the oplog, switch to the ``local``
+database and run :method:`db.collection.stats()` against the 
+``oplog.rs`` collection. :method:`~db.collection.stats()` displays the 
+oplog size as :data:`~collStats.maxSize`.
+
+
+.. code-block:: javascript
+
+   use local
+   db.oplog.rs.stats().maxSize
+
+The ``maxSize`` field displays the collection size in bytes.
+
+C. Change the oplog size of the replica set member
+--------------------------------------------------
+
+Resize the oplog with the :dbcommand:`replSetResizeOplog` command. The
+``size`` is a double and must be greater than ``990`` megabytes. To
+explicitly cast the oplog ``size`` in :binary:`~bin.mongosh`, use the
+``Double()`` constructor.
+
+The following operation changes the oplog size of the replica set
+member to 16 gigabytes, or 16000 megabytes.
+
+.. code-block:: javascript
+
+   db.adminCommand({replSetResizeOplog: 1, size: Double(16000)})
+
+.. [#oplog]
+
+   .. include:: /includes/fact-oplog-size.rst
+
+.. compact-oplog-rs:
+
+D. (Optional) Compact ``oplog.rs`` to reclaim disk space
+--------------------------------------------------------
+
+Reducing the size of the oplog does *not* automatically reclaim
+the disk space allocated to the original oplog size. You must run
+:dbcommand:`compact` against the ``oplog.rs`` collection in the
+``local`` database to reclaim disk space. There are no benefits to 
+running ``compact`` on the ``oplog.rs`` collection after increasing the 
+oplog size.
+
+.. important::
+
+   Starting in MongoDB v4.4, a replica set member can replicate oplog 
+   entries while the ``compact`` operation is ongoing. Previously, oplog 
+   replication would be paused during compaction. Because of this, it was 
+   recommended that oplog compaction only be performed during maintenance 
+   windows, where writes could be minimized or stopped. In MongoDB 4.4 and 
+   later, it is no longer necessary to limit compaction operations on the 
+   oplog to maintenance windows, as oplog replication can continue as normal 
+   during compaction.
+
+Do **not** run ``compact`` against the primary replica set member.
+Connect a :binary:`mongo <bin.mongo>` shell directly to the primary
+(not the replica set) and run :method:`rs.stepDown()`. If successful,
+the primary steps down. From the :binary:`mongo <bin.mongo>` shell, run
+the ``compact`` command on the now-secondary member.
+
+The following operation runs the ``compact`` command against the
+``oplog.rs`` collection:
+
+.. code-block:: javascript
+
+   use local
+   db.runCommand({ "compact" : "oplog.rs" } )
+
+For clusters enforcing :ref:`authentication <authentication>`, 
+authenticate as a user with the :authaction:`compact` privilege
+action on the ``local`` database and the ``oplog.rs`` collection.
+For complete documentation on :dbcommand:`compact` authentication
+requirements, see :ref:`compact-authentication`. 

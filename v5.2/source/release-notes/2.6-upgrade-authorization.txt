@@ -1,0 +1,90 @@
+.. _2.6-upgrade-authorization-model:
+
+=============================================
+Upgrade User Authorization Data to 2.6 Format
+=============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB 2.6 includes significant changes to the authorization model,
+which requires changes to the way that MongoDB stores users'
+credentials. As a result, in addition to upgrading MongoDB processes,
+if your deployment uses authentication and authorization, after
+upgrading all MongoDB process to 2.6 you **must** also upgrade the
+authorization model.
+
+Considerations
+~~~~~~~~~~~~~~
+
+Complete all other Upgrade Requirements
+```````````````````````````````````````
+
+.. include:: /includes/important-upgrade-auth-model-prerequisites.rst
+
+Timing
+``````
+
+.. include:: /includes/fact-auth-upgrade-recommendation.rst
+
+If you decide to upgrade the user authorization
+model immediately instead of waiting the recommended "burn in"
+period, then for sharded clusters, you must wait at least 10 seconds
+after upgrading the sharded clusters to run the authorization
+upgrade script.
+
+Replica Sets
+````````````
+
+For a replica set, it is only necessary to run the upgrade process on
+the :term:`primary` as the changes will automatically replicate to
+the secondaries.
+
+Sharded Clusters
+````````````````
+
+For a sharded cluster, connect to a :binary:`~bin.mongos` and run the
+upgrade procedure to upgrade the cluster's authorization data. By
+default, the procedure will upgrade the authorization data of the
+shards as well.
+
+To override this behavior, run the upgrade command with the
+additional parameter ``upgradeShards: false``. If you choose to
+override, you must run the upgrade procedure on the :binary:`~bin.mongos`
+first, and then run the procedure on the :term:`primary` members of
+each shard.
+
+For a sharded cluster, do **not** run the upgrade process directly
+against the :doc:`config servers
+</core/sharded-cluster-config-servers>`. Instead, perform the upgrade
+process using one :binary:`~bin.mongos` instance to interact with the
+config database.
+
+Requirements
+~~~~~~~~~~~~
+
+To upgrade the authorization model, you must have a user in the
+``admin`` database with the role :authrole:`userAdminAnyDatabase`.
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/2.6-upgrade-authorization.rst
+
+Result
+~~~~~~
+
+All users in a 2.6 system are stored in the :data:`admin.system.users`
+collection. To manipulate these users, use the :doc:`user management
+methods </reference/method/js-user-management>`.
+
+The upgrade procedure copies the version 2.4 ``admin.system.users``
+collection to ``admin.system.backup_users``.
+
+The upgrade procedure leaves the version 2.4
+``<database>.system.users`` collection(s) intact.

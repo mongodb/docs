@@ -1,0 +1,144 @@
+======================
+$isoWeek (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $isoWeek
+
+   .. versionadded:: 3.4
+
+   Returns the week number in ISO 8601 format, ranging from ``1`` to
+   ``53``. Week numbers start at ``1`` with the week (Monday through
+   Sunday) that contains the year's first Thursday.
+
+   The :expression:`$isoWeek` expression has the following
+   :ref:`operator expression syntax <aggregation-expressions>`:
+
+   .. code-block:: javascript
+
+      { $isoWeek: <dateExpression> }
+
+   .. include:: /includes/fact-iso-date-objects.rst
+
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+   :class: border-table
+
+   * - Example
+     - Result
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: { date: new Date("Jan 4, 2016") } }
+
+     - 1
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: new Date("2016-01-01") }
+
+     - 53
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: {
+              date: new Date("August 14, 2011"),
+              timezone: "America/Chicago"
+          } }
+
+     - 32
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: ISODate("1998-11-02T00:00:00Z") }
+
+     - 45
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: {
+              date: ISODate("1998-11-02T00:00:00Z"),
+              timezone: "-0500"
+          } }
+
+     - 44
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: "March 28, 1976" }
+
+     - ``error``
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: Date("2016-01-01") }
+
+     - ``error``
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $isoWeek: "2009-04-09" }
+
+     - ``error``
+
+.. note:: ``$isoWeek`` cannot take a string as an argument.
+
+Example
+-------
+
+A collection called ``deliveries`` contains the following documents:
+
+
+.. code-block:: javascript
+
+   { "_id" : 1, "date" : ISODate("2006-10-24T00:00:00Z"), "city" : "Boston" }
+   { "_id" : 2, "date" : ISODate("2011-08-18T00:00:00Z"), "city" : "Detroit" }
+
+The following operation returns the week number for each ``date`` field.
+
+
+.. code-block:: javascript
+
+   db.deliveries.aggregate( [
+     {
+       $project: {
+         _id: 0,
+         city: "$city",
+         weekNumber: { $isoWeek: "$date" }
+       }
+     }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "city" : "Boston", "weekNumber" : 43 }
+   { "city" : "Detroit", "weekNumber" : 33 }
+
+.. seealso::
+
+   - :doc:`/reference/operator/aggregation/isoDayOfWeek`
+   - :doc:`/reference/operator/aggregation/isoWeekYear`

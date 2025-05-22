@@ -1,0 +1,388 @@
+.. _manual-timeseries-collection:
+
+=======================
+Time Series Collections
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: Time series, IOT, time series analysis, time series data, time series db
+   :keywords: Time series, IOT, time series analysis, time series data, time series db
+
+.. versionadded:: 5.0
+
+:term:`Time series collections <time series collection>` efficiently
+store sequences of measurements over a period of time. Time series data
+is any data that is collected over time and is uniquely identified by
+one or more unchanging parameters. The unchanging parameters that
+identify your time series data is generally your data source's metadata.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30, 30, 40
+
+   * - **Example**
+     - **Measurement**
+     - **Metadata**
+   * - Weather data
+     - Temperature
+     - Sensor identifier, location
+   * - Stock data
+     - Stock price
+     - Stock ticker, exchange
+   * - Website visitors
+     - View count
+     - URL
+
+Compared to normal collections, storing time series data in time series
+collections improves query efficiency and reduces the disk usage for
+time series data and :term:`secondary indexes <secondary index>`.
+
+Procedures
+----------
+
+.. _manual-timeseries-collection-create:
+
+Create a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   You can only create time series collections on a system with
+   :ref:`featureCompatibilityVersion <view-fcv>` set to 5.0.
+
+Before you can insert data into a time series collection, you must
+explicitly create the collection using either the
+:method:`db.createCollection()` method or the :dbcommand:`create`
+command:
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "metadata",
+             granularity: "hours"
+          }
+       }
+   )
+
+.. _time-series-fields:
+
+When creating a time series collection, specify the following options:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 40 20 60
+
+  * - Field
+
+    - Type
+
+    - Description
+
+  * - ``timeseries.timeField``
+
+    - string
+
+    - .. include:: /includes/time-series/fact-time-field-description.rst
+
+  * - ``timeseries.metaField``
+
+    - string
+
+    - .. include:: /includes/time-series/fact-meta-field-description.rst
+
+  * - ``timeseries.granularity``
+
+    - string
+
+    - .. include:: /includes/time-series/fact-granularity-description.rst
+
+  * - ``expireAfterSeconds``
+
+    - number
+
+    - Optional. Enable the automatic deletion of documents in a
+      :term:`time series collection` by specifying the number of seconds
+      after which documents expire. MongoDB deletes expired documents
+      automatically. See :ref:`manual-timeseries-automatic-removal` for
+      more information.
+
+Other options allowed with the ``timeseries`` option are:
+
+- ``storageEngine``
+- ``indexOptionDefaults``
+- ``collation``
+- ``writeConcern``
+- ``comment``
+
+.. see::
+
+   :method:`db.createCollection()` and :dbcommand:`create`.
+
+Insert Measurements into a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each document you insert should contain a single measurement. To insert
+multiple documents at once, issue the following command:
+
+.. code-block:: javascript
+
+   db.weather.insertMany( [
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
+         "temp": 12
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T04:00:00.000Z"),
+         "temp": 11
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T08:00:00.000Z"),
+         "temp": 11
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T12:00:00.000Z"),
+         "temp": 12
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T16:00:00.000Z"),
+         "temp": 16
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T20:00:00.000Z"),
+         "temp": 15
+      }, {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-19T00:00:00.000Z"),
+         "temp": 13
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-19T04:00:00.000Z"),
+         "temp": 12
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-19T08:00:00.000Z"),
+         "temp": 11
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-19T12:00:00.000Z"),
+         "temp": 12
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-19T16:00:00.000Z"),
+         "temp": 17
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-19T20:00:00.000Z"),
+         "temp": 12
+      }
+   ] )
+
+To insert a single document, use the :method:`db.collection.insertOne()`
+method.
+
+Query a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve one document from a time series collection, issue the
+following command:
+
+.. code-block:: javascript
+
+   db.weather.findOne({
+      "timestamp": ISODate("2021-05-18T00:00:00.000Z")
+   })
+
+Run Aggregations on a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For additional query functionality, use an :ref:`aggregation pipeline
+<aggregation-pipeline>` such as:
+
+.. code-block:: javascript
+
+   db.weather.aggregate( [
+      {
+         $project: {
+            date: {
+               $dateToParts: { date: "$timestamp" }
+            },
+            temp: 1
+         }
+      },
+      {
+         $group: {
+            _id: {
+               date: {
+                  year: "$date.year",
+                  month: "$date.month",
+                  day: "$date.day"
+               }
+            },
+            avgTmp: { $avg: "$temp" }
+         }
+      }
+   ] )
+
+The example aggregation pipeline groups all documents by the date of the
+measurement and then returns the average of all temperature measurements
+that day:
+
+.. code-block:: javascript
+
+   {
+    "_id" : {
+      "date" : {
+        "year" : 2021,
+        "month" : 5,
+        "day" : 18
+      }
+    },
+    "avgTmp" : 12.714285714285714
+  }
+  {
+    "_id" : {
+      "date" : {
+        "year" : 2021,
+        "month" : 5,
+        "day" : 19
+      }
+    },
+    "avgTmp" : 13
+  }
+
+.. _set-up-automatic-removal:
+
+Check if a Collection is of Type Time Series
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To determine if a collection is of type time series, use the
+:manual:`listCollections </reference/command/listCollections>` command:
+
+.. code-block:: javascript
+
+   db.runCommand( { listCollections: 1.0 } )
+
+If the collection is a time series collection, it returns this:
+
+.. code-block:: none
+
+  {
+      cursor: {
+         id: <number>,
+         ns: 'test.$cmd.listCollections',
+         firstBatch: [
+           {
+              name: <string>,
+              type: 'timeseries',
+              options: {
+                 expireAfterSeconds: <number>,
+                 timeseries: { ... }
+              },
+              ...
+           },
+           ...
+         ]
+      }
+   }
+
+.. _timeseries-collections-behavior:
+
+Behavior
+--------
+
+Time series collections behave like normal collections. You can insert
+and query your data as you normally would. MongoDB treats time series
+collections as writable non-materialized views on internal collections
+that automatically organize time series data into an optimized storage
+format on insert.
+
+When you query time series collections, you operate on one document per
+measurement. Queries on time series collections take advantage of the
+optimized internal storage format and return results faster.
+
+Index
+~~~~~
+
+The implementation of time series collections uses internal collections
+that reduce disk usage and improve query efficiency. Time series
+collections automatically order and index data by time. The internal
+index for a time series collection is not displayed by
+:dbcommand:`listIndexes`.
+
+.. tip::
+
+   To improve query performance, you can manually :ref:`add secondary
+   indexes <timeseries-add-secondary-index>` on the fields specified as
+   the ``metaField`` and the ``timeField``.
+
+Default Compression Algorithm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Time series collections ignore the global default compression algorithm,
+:term:`snappy`, in favor of :term:`zstd`, unless a different compression
+algorithm is specified using the ``storageEngine`` option when the
+collection was created. For example, to change the compression algorithm
+to ``snappy`` for a new ``weather`` collection, add the following
+option:
+
+.. code-block:: javascript
+
+   db.createCollection(
+     "weather",
+     {
+        timeseries: {
+           timeField: "timestamp"
+        },
+        storageEngine: {
+           wiredTiger: {
+              configString: "block_compressor=snappy"
+           }
+        }
+     }
+   )
+
+Valid ``block_compressor`` options are:
+
+- ``snappy``
+- ``zlib``
+- ``zstd`` *(default)*
+- ``none``
+
+Compression Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/timeseries-compression.rst
+
+.. toctree::
+   :titlesonly:
+
+   /core/timeseries/timeseries-limitations
+   /core/timeseries/timeseries-automatic-removal
+   /core/timeseries/timeseries-granularity
+   /core/timeseries/timeseries-secondary-index
+   /core/timeseries/timeseries-migrate-data-into-timeseries-collection
+   /core/timeseries/timeseries-build-materialized-views
+   /core/timeseries/timeseries-shard-collection

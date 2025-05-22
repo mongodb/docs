@@ -1,0 +1,236 @@
+ref: views-behavior
+content: |
+
+   Views exhibit the following behavior:
+
+   Read Only
+   ~~~~~~~~~
+
+   Views are read-only; write operations on views will error.
+   
+   The following read operations can support views:
+      
+   - :method:`db.collection.find()`
+   - :method:`db.collection.findOne()`
+   - :method:`db.collection.aggregate()`
+   - :method:`db.collection.countDocuments()`
+   - :method:`db.collection.estimatedDocumentCount()`
+   - :method:`db.collection.count()`
+   - :method:`db.collection.distinct()`
+
+   Index Use and Sort Operations
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   - Views use the indexes of the underlying collection.
+
+   - As the indexes are on the underlying collection, you cannot
+     create, drop or re-build indexes on the view directly nor get a
+     list of indexes on the view.
+
+   - Starting in MongoDB 4.4, you can specify a :operator:`$natural`
+     sort when running a :dbcommand:`find` command on a view. Prior
+     versions of MongoDB do not support :operator:`$natural` sort on
+     views.
+
+   - The view's underlying aggregation pipeline is subject to the 100
+     megabyte memory limit for blocking sort and blocking group
+     operations. Starting in MongoDB 4.4, you can issue a
+     :dbcommand:`find` command with ``allowDiskUse: true`` on the view
+     to allow MongoDB to use temporary files for blocking sort and group
+     operations.
+
+     Prior to MongoDB 4.4, only the :dbcommand:`aggregate` command
+     accepted the ``allowDiskUse`` option.
+
+     .. seealso::
+        
+        For more information on blocking sort operation memory limits,
+        see :limit:`Sort Operations`.
+
+   Projection Restrictions
+   ~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/extracts/views-unsupported-projection-operators.rst
+
+   Immutable Name
+   ~~~~~~~~~~~~~~
+
+   .. include:: /includes/extracts/views-unsupported-rename.rst
+
+   View Creation
+   ~~~~~~~~~~~~~
+   
+   - Views are computed on demand during read operations, and MongoDB
+     executes read operations on views as part of the underlying
+     aggregation pipeline. As such, views do not support operations
+     such as:
+
+     - :method:`db.collection.mapReduce()`,
+
+     - :query:`$text` operator, since ``$text`` operation in
+       aggregation is valid only for the first stage,
+
+     - :pipeline:`$geoNear` pipeline stage.
+
+   - If the aggregation pipeline used to create the view suppresses the
+     ``_id`` field, documents in the view do not have the ``_id`` field.
+
+   When you query a view, the:
+
+   - Query ``filter``, ``projection``, ``sort``, ``skip``, ``limit``,
+     and other operations for :method:`db.collection.find()` are
+     converted to the equivalent :ref:`aggregation pipeline stages
+     <aggregation-pipeline-operator-reference>`.
+   
+   - Converted aggregation pipeline stages are added to the end of the
+     :ref:`aggregation pipeline <aggregation-pipeline>` for the view.
+     This does not modify the view's underlying pipeline, which is set
+     when you create the view.
+   
+   - :doc:`Aggregation pipeline optimizer
+     </core/aggregation-pipeline-optimization>` reshapes the view
+     aggregation pipeline stages to improve performance. This does not
+     change the query results.
+
+   Sharded View
+   ~~~~~~~~~~~~
+   
+   Views are considered sharded if their underlying collection is
+   sharded. As such, you cannot specify a sharded view for the ``from``
+   field in :pipeline:`$lookup` and :pipeline:`$graphLookup` operations.
+
+   Views and Collation
+   ~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/extracts/views-collation-behavior.rst
+
+---
+ref: views-unsupported-natural-sort
+content: |
+   You cannot specify a :operator:`$natural` sort on a view.
+---
+ref: views-unsupported-text-search
+content: |
+   :doc:`Views </core/views>` do not support text search.
+---
+ref: views-unsupported-mapReduce
+content: |
+   :doc:`Views </core/views>` do not support map-reduce operations.
+---
+ref: views-unsupported-rename
+content: |
+   You cannot rename :doc:`views </core/views>`.
+---
+ref: views-unsupported-geoNear
+content: |
+   :doc:`Views </core/views>` do not support geoNear operations (i.e.
+   :pipeline:`$geoNear` pipeline stage).
+---
+ref: views-unsupported-projection-operators
+content: |
+   :method:`~db.collection.find()` operations on views do not support
+   the following :doc:`projection </reference/operator/projection>`
+   operators:
+
+   - :projection:`$`
+   - :projection:`$elemMatch`
+   - :projection:`$slice`
+   - :expression:`$meta`
+---
+ref: _views-unsupported-projection
+content: |
+   :method:`db.collection.find()` operations on :doc:`views </core/views>` do not support {{projection}} projection operator.
+---
+ref: views-unsupported-projection-$
+inherit:
+   ref: _views-unsupported-projection
+   file: extracts-views.yaml
+replacement:
+   projection: ":projection:`$`"
+---
+ref: views-unsupported-projection-$elemMatch
+inherit:
+   ref: _views-unsupported-projection
+   file: extracts-views.yaml
+replacement:
+   projection: ":projection:`$elemMatch`"
+---
+ref: views-unsupported-projection-$slice
+inherit:
+   ref: _views-unsupported-projection
+   file: extracts-views.yaml
+replacement:
+   projection: ":projection:`$slice`"
+---
+ref: views-unsupported-projection-$meta
+inherit:
+   ref: _views-unsupported-projection
+   file: extracts-views.yaml
+replacement:
+   projection: ":expression:`$meta`"
+---
+ref: views-collation-behavior
+content: |
+
+   - You can specify a default :doc:`collation </reference/collation>`
+     for a view at creation time. If no collation is specified, the
+     view's default collation is the "simple" binary comparison
+     collator. That is, the view does not inherit the collection's
+     default collation.
+
+   - String comparisons on the view use the view's default collation.
+     An operation that attempts to change or override a view's default
+     collation will fail with an error.
+
+   - If creating a view from another view, you cannot specify a
+     collation that differs from the source view's collation.
+
+   - .. include:: /includes/extracts/views-collation-agg.rst
+---
+ref: views-collation-agg
+content: |
+
+   If performing an aggregation that involves multiple views, such as
+   with :pipeline:`$lookup` or :pipeline:`$graphLookup`, the views must
+   have the same :doc:`collation  </reference/collation>`.
+---
+ref: views-public-definition
+content: |
+   The view definition is public; i.e. :method:`db.getCollectionInfos()`
+   and ``explain`` operations on the view will include the pipeline that
+   defines the view. As such, avoid referring directly to sensitive fields
+   and values in view definitions.
+---
+ref: views-restriction-output-to-disk
+content: |
+
+   The view definition ``pipeline`` cannot
+   include the :pipeline:`$out` or the :pipeline:`$merge` stage. If the view definition includes
+   nested pipeline (e.g. the view definition includes
+   :pipeline:`$lookup` or :pipeline:`$facet` stage), this
+   restriction applies to the nested pipelines
+   as well.
+---
+ref: views-access-control
+content: |
+
+  If the deployment enforces :ref:`authentication <authentication>`,
+  :method:`db.createView()` requires that the authenticated user have
+  the :authaction:`createCollection` privilege on the database.
+
+  However, if the user has the :authaction:`createCollection` on the
+  database *and* :authaction:`find` on the view to create, the user must
+  *also* have the following additional permissions:
+
+  - :authaction:`find` on the source collection or view.
+
+  - :authaction:`find` on any other collections or views referenced in the
+    ``pipeline``, if any.
+
+  A user with the :authrole:`readWrite` built in role on the database
+  has the required privileges to run the listed operations. Either
+  :doc:`create a user </tutorial/create-users>` with the required role
+  or :ref:`grant the role to an existing user
+  <modify-existing-user-access>`
+
+...
