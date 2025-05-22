@@ -1,0 +1,139 @@
+.. _index-type-text:
+.. _index-feature-text:
+
+========================================
+Text Indexes on Self-Managed Deployments
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/extracts/fact-text-search-legacy-atlas.rst
+
+Text indexes support :ref:`text search queries <text-search>` on fields
+that contain string content. Text indexes improve performance when you search for
+specific words or strings within string content. 
+
+A collection can only have **one** text index, but that index
+may include multiple fields.
+
+To create a text index, use the following prototype:
+
+.. include:: /includes/indexes/code-examples/create-text-index.rst
+
+$text Support
+-------------
+
+Text indexes support :query:`$text` query operations on on-premises 
+deployments. To use ``$text``, you must create a text index.
+
+Use Cases
+---------
+
+Documents in an online shop's ``clothing`` collection include a
+``description`` field that contains a string of text describing each
+item. To find clothes made of ``silk``, create a text index on the
+``description`` field and run a ``$text`` query for documents with the
+keyword ``silk``. The search returns all documents that mention ``silk``
+in the ``description`` field.
+
+Get Started
+-----------
+
+To learn how to create text indexes and use text indexes in specific use
+cases, see:
+  
+- :ref:`<create-text-index>`
+- :ref:`<create-wildcard-text-index>`
+- :ref:`<specify-default-text-index-language>`
+- :ref:`limit-entries-scanned`
+
+Details
+-------
+
+This section describes details for text indexes.
+
+Compound Text Indexes 
+~~~~~~~~~~~~~~~~~~~~~
+
+For a compound index that includes a text index key along with keys of other 
+types, only the text index field determines whether the index references a 
+document. The other keys do not determine whether the index references the 
+documents.
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-text-index-covered-query.rst
+
+``sparse`` Property 
+~~~~~~~~~~~~~~~~~~~
+
+Text indexes are always :ref:`sparse <index-type-sparse>`. When you create a 
+text index, MongoDB ignores the ``sparse`` option. 
+
+If an existing or newly inserted document lacks a text index 
+field (or the field is null or an empty array), MongoDB does not add a text 
+index entry for the document.
+
+.. _text-index-storage-requirements:
+
+Storage Requirements and Performance Costs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Text indexes have the following storage requirements and performance costs:
+
+- Text indexes can take up a large amount of RAM. They contain one index entry 
+  for each unique post-stemmed word in each indexed field for each document
+  inserted.
+
+- Building a text index is similar to building a large
+  :ref:`multikey index <index-type-multi-key>` but takes longer than building 
+  a simple ordered (scalar) index on the same data.
+
+- When building a text index that takes up a large amount of RAM, ensure 
+  that you have a sufficiently high limit on open file descriptors. See the 
+  :ref:`recommended settings <ulimit>`.
+
+- Text indexes impact write performance because MongoDB must add an index 
+  entry for each unique post-stemmed word in each indexed field of each new 
+  source document.
+
+- Text indexes store individual words of a text string. They do not store 
+  multi-word strings or information about the proximity of words in the
+  documents. As a result, queries that specify multiple words run faster when
+  the entire collection fits in RAM.
+
+Learn More
+----------
+
+- To learn more about text indexes, see: 
+  
+  - :ref:`<control-text-search-results>`
+  - :ref:`<text-index-properties>`
+  - :ref:`<text-index-restrictions>`
+  - :ref:`<text-index-versions>`
+  
+- For text search examples, see the :query:`$text reference page <$text>`.
+  
+- For sample ``$text`` operations in aggregation pipelines, see
+  :ref:`<text-agg>`.
+
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Create </core/indexes/index-types/index-text/create-text-index>
+   Create a Wildcard </core/indexes/index-types/index-text/create-wildcard-text-index>
+   Specify Language </core/indexes/index-types/index-text/specify-text-index-language>
+   Assign Weights </core/indexes/index-types/index-text/control-text-search-results>
+   Limit Entries </core/indexes/index-types/index-text/limit-number-of-items-scanned-for-text-search>
+   Properties </core/indexes/index-types/index-text/text-index-properties>
+   Restrictions </core/indexes/index-types/index-text/text-index-restrictions>
+   Versions </core/indexes/index-types/index-text/text-index-versions>

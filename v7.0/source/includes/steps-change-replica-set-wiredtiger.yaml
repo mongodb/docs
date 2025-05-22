@@ -1,0 +1,73 @@
+title: "Shut down the secondary member."
+ref: change-wt-repl-sync-shutdown-secondary
+pre: |
+  In :binary:`~bin.mongosh`, shut down the secondary.
+action:
+  language: sh
+  code: |
+    use admin
+    db.shutdownServer()
+---
+title: "Prepare a data directory for the new ``mongod`` running with WiredTiger."
+ref: change-wt-repl-sync-wiredtiger-dir
+pre: |
+  Prepare a data directory for the new :binary:`~bin.mongod` instance that
+  will run with the WiredTiger storage engine. ``mongod`` must have read
+  and write permissions for this directory. You can either delete the
+  contents of the stopped secondary member's current data directory or
+  create a new directory entirely.
+
+  ``mongod`` with WiredTiger will not start with data files created with
+  a different storage engine.
+---
+title: "Update configuration for WiredTiger."
+ref: change-wt-repl-remove-mmapv1-config
+content: |
+  Remove any MMAPv1 configuration options from the :binary:`~bin.mongod`
+  instance configuration.
+---
+title: "Start ``mongod`` with WiredTiger."
+ref: change-wt-repl-sync-start-mongod-w-wiredtiger
+content: |
+   Start :binary:`~bin.mongod`, specifying ``wiredTiger`` as the
+   :option:`--storageEngine <mongod --storageEngine>` and the prepared data directory for
+   WiredTiger as the :option:`--dbpath <mongod --dbpath>`.
+
+   Specify additional options as appropriate, such as
+   :option:`--bind_ip <mongod --bind_ip>`.
+
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+    
+   .. tabs::
+      
+      tabs:
+         - id: general
+           name: General Use (For Most Architectures)
+           content: |
+             .. code-block:: bash
+
+                mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --replSet <replSetName> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+
+         - id: psa36
+           name: PSA Architecture
+           content: |
+
+             .. important::
+
+                If you are running a three-member PSA architecture, include
+                :option:`--enableMajorityReadConcern false <mongod --enableMajorityReadConcern>` 
+                to disable read concern ``majority``. |seemore|
+
+             .. code-block:: bash
+
+                mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --replSet <replSetName> --bind_ip localhost,<hostname(s)|ip address(es)> --enableMajorityReadConcern false
+
+post: |
+  Since no data exists in the ``--dbpath``, the ``mongod`` will perform an
+  :doc:`initial sync </tutorial/resync-replica-set-member>`. The length of the
+  initial sync process depends on the size of the database and network
+  connection between members of the replica set.
+
+  .. include:: /includes/fact-storage-engine-configuration-file-setting.rst
+...

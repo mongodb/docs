@@ -1,0 +1,176 @@
+.. _collection-hide-index:
+
+=========================
+db.collection.hideIndex()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.hideIndex()
+
+   .. |dbcommand| replace:: ``index.hidden`` collection option set
+      using the :dbcommand:`collMod` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   Hides an existing index from the query planner. An :ref:`index
+   hidden from the query planner <index-type-hidden>` is not evaluated
+   as part of query plan selection.
+   
+   By hiding an index from the planner, you can evaluate the
+   potential impact of dropping an index without actually dropping the
+   index. If the impact is negative, you can unhide the index
+   instead of having to recreate a dropped index. And because indexes
+   are fully maintained while hidden, the indexes are immediately
+   available for use once unhidden.
+   
+   For details, see :ref:`index-type-hidden`.
+
+Compatibility 
+-------------
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+.. code-block:: javascript
+
+   db.collection.hideIndex(<index>)
+
+Parameters
+~~~~~~~~~~
+
+The :method:`db.collection.hideIndex()` method takes the following
+parameter:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - ``index``
+
+     - string or document
+
+     - Specifies the index to hide from the query planner. You can
+       specify the index either by the index name or by the index
+       specification document.
+
+       .. include:: /includes/find-index.rst
+
+       To hide a :ref:`text <index-type-text>` index, specify the
+       index name.
+
+The :method:`db.collection.hideIndex()` is a :binary:`mongosh` shell
+wrapper for the :dbcommand:`collMod` command.
+
+Behavior
+--------
+
+Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To hide an index, you must have :ref:`featureCompatibilityVersion
+<view-fcv>` set to ``{+minimum-lts-version+}`` or greater. 
+
+Restrictions
+~~~~~~~~~~~~
+
+You cannot hide the ``_id`` index.
+
+Index Modifications Reset Statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Hiding an unhidden index resets its :pipeline:`$indexStats`.
+
+No-op
+~~~~~
+
+Hiding an already hidden index has no effect on the index. However, the
+operation will still generate an empty oplog entry.
+
+Access Control
+--------------
+
+If the deployment enforces authentication/authorization, you must have
+the :authaction:`collMod` privilege in the collection's database.
+
+The built-in role :authrole:`dbAdmin` provides the required privileges.
+
+Example
+-------
+
+The following example hides an existing index.
+
+First, use :method:`db.collection.createIndex()` to create an index
+without hiding:
+
+.. code-block:: javascript
+
+   db.restaurants.createIndex( { borough: 1, ratings: 1 } );
+
+To hide the index, you can specify either the index key specification
+document or the index name to the :method:`db.collection.hideIndex()`
+method. The following specifies the index name:
+
+.. code-block:: javascript
+
+   db.restaurants.hideIndex( "borough_1_ratings_1" ); 
+
+To verify, run :method:`db.collection.getIndexes()` on the
+``restaurants`` collection:
+
+.. code-block:: javascript
+
+   db.restaurants.getIndexes();
+
+The operation returns the following information:
+
+.. code-block:: javascript
+   :emphasize-lines: 16
+
+   [
+      {
+         "v" : 2,
+         "key" : {
+            "_id" : 1
+         },
+         "name" : "_id_"
+      },
+      {
+         "v" : 2,
+         "key" : {
+            "borough" : 1,
+            "ratings" : 1
+         },
+         "name" : "borough_1_ratings_1",
+         "hidden" : true
+      }
+   ]
+
+The ``hidden`` index option is only returned if the value is ``true``.
+
+.. seealso::
+
+   - :method:`db.collection.unhideIndex()`
+   - :ref:`db.collection.createIndex() <method-createIndex-hidden>`

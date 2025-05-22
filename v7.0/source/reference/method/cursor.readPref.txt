@@ -1,0 +1,193 @@
+=================
+cursor.readPref()
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: cursor.readPref(mode, tagSet, hedgeOptions)
+
+
+   .. include:: /includes/fact-mongosh-shell-method.rst
+
+
+   Append :method:`~cursor.readPref()` to a cursor to
+   control how the client routes the query to members
+   of the replica set.
+
+   .. note::
+
+      You must apply :method:`~cursor.readPref()` to the cursor before retrieving
+      any documents from the database.
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`mode <cursor-readpref-mode>`
+
+     - string
+
+     - .. _cursor-readpref-mode:
+     
+       One of the following :term:`read preference` modes: :readmode:`primary`,
+       :readmode:`primaryPreferred`, :readmode:`secondary`,
+       :readmode:`secondaryPreferred`, or :readmode:`nearest`
+
+   * - :ref:`tagSet <cursor-readpref-tagset>`
+
+     - array of documents
+
+     - .. _cursor-readpref-tagset:
+
+       Optional. A :ref:`tag set
+       <replica-set-read-preference-tag-sets>` used to target reads to
+       members with the specified tag(s). ``tagSet`` is not available
+       if using :readmode:`primary`.
+
+       For details, see :ref:`replica-set-read-preference-tag-sets`.
+
+   * - :ref:`hedgeOptions <cursor-readpref-hedge>`
+
+     - document
+
+     - .. _cursor-readpref-hedge:
+
+       Optional. A document that specifies whether to enable the use of
+       :ref:`hedged reads <mongos-hedged-reads>`.
+       
+       ``{ enabled: <boolean> }``
+
+       The ``enabled`` field defaults to true; i.e. specifying an empty
+       document ``{ }`` is equivalent to specifying ``{ enabled: true
+       }``.
+
+       Hedged reads are available for sharded clusters. To use hedged reads, 
+       the :binary:`~bin.mongos` must have 
+       :parameter:`enabled support <readHedgingMode>` for hedged
+       reads (the default) and the non-``primary`` :doc:`read
+       preferences </core/read-preference>` must enable the use of
+       hedged reads.
+
+       Read preference :readmode:`nearest` enables the use of hedged
+       reads on sharded clusters by default; i.e. by default, has ``{
+       enabled: true }``.
+
+:method:`~cursor.readPref()` does not support the
+:ref:`replica-set-read-preference-max-staleness` option for read
+preference.
+
+Compatibility
+-------------
+
+This method is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Examples
+--------
+
+Specify Read Preference Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the read preference :ref:`mode
+<cursor-readpref-mode>` to target the read to a secondary member.
+
+.. code-block:: javascript
+
+   db.collection.find({ }).readPref( "secondary")
+
+Specify Read Preference Tag Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To target secondaries with specific tags, include both the :ref:`mode
+<cursor-readpref-mode>` and the :ref:`tagSet <cursor-readpref-tagset>`
+array:
+
+.. code-block:: javascript
+
+   db.collection.find({ }).readPref( 
+      "secondary", 
+      [ 
+         { "datacenter": "B" },    // First, try matching by the datacenter tag
+         { "region": "West"},      // If not found, then try matching by the region tag
+         { }                       // If not found, then use the empty document to match all eligible members
+      ]
+   )
+
+During the secondary selection process, MongoDB tries to find secondary
+members with the ``datacenter: "B"`` tag first.
+
+- If found, MongoDB limits the eligible secondaries to those with the
+  ``datacenter: "B"`` tag and ignores the remaining tags. 
+  
+- If none are found, then, MongoDB tries to find secondary members with
+  the ``"region": "West"`` tag. 
+
+  - If found, MongoDB limits the eligible secondaries to those with the
+    ``"region": "West"`` tag.
+
+  - If none are found, MongoDB uses any eligible secondaries.
+
+
+See :ref:`read-pref-order-matching` for details.
+
+.. seealso::
+
+   :doc:`/tutorial/configure-replica-set-tag-sets`
+
+Specify Hedged Read
+~~~~~~~~~~~~~~~~~~~
+
+For sharded clusters, you can enable :ref:`hedged reads <mongos-hedged-reads>` 
+for non-primary :doc:`read preferences </core/read-preference>`. To use hedged 
+reads, the :binary:`~bin.mongos` must have :parameter:`enabled support
+<readHedgingMode>` for hedged reads (the default) and the
+non-``primary`` :ref:`read preferences <read-preference>` must
+enable the use of hedged reads.
+
+To target secondaries on sharded clusters using hedged reads,
+include both the :ref:`mode <cursor-readpref-mode>` and the
+:ref:`hedgeOptions <cursor-readpref-hedge>`, as in the following
+examples:
+
+- Without a tag set
+
+  .. code-block:: javascript
+     
+     db.collection.find({ }).readPref( 
+        "secondary",            // mode
+        null,                   // tag set
+        { enabled: true }       // hedge options
+     )
+
+- With a tag set
+
+  .. code-block:: javascript
+  
+     db.collection.find({ }).readPref( 
+        "secondary",                      // mode
+        [ { "datacenter": "B" },  { } ],  // tag set
+        { enabled: true }                 // hedge options
+     )

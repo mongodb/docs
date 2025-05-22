@@ -1,0 +1,249 @@
+.. _wildcard-index-compound:
+.. _create-wildcard-index-compound:
+
+=========================
+Compound Wildcard Indexes
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. versionadded:: 7.0
+ 
+MongoDB supports creating wildcard indexes on a field or a set of
+fields. A compound index has multiple index terms. A compound wildcard
+index has one wildcard term and one or more additional index terms.  
+
+.. important::
+
+   .. include:: /includes/indexes/wildcard-not-planning-replacement.rst
+
+Use Cases
+---------
+
+.. _wc-compound-index-attrib-pattern:
+
+Search Using the Attribute Pattern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `attribute pattern
+<https://www.mongodb.com/blog/post/building-with-patterns-the-attribute-pattern>`__
+is a useful technique for searching documents that share common
+characteristics.
+
+Unfortunately, it is expensive to create a lot of individual indexes to 
+cover all of the possible queries. A wildcard index is a good
+alternative to creating a large number of individual indexes because one
+wildcard index can efficiently cover many potential queries.  
+
+Consider a schema like: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      	tenantId: <Number>,     	
+      	tenantRegion: <Number>,
+      	customFields: {
+         		addr: <String>,
+         		name: <String>,
+         		blockId: <Number>,
+         		...	
+      	}
+       dateOpened: <Date>
+    }
+
+You might want to query aspects of the ``customFields`` field for
+tenants that have a particular ``tenantId``. You could create a series
+of individual indexes: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   { tenantId: 1, “customFields.addr": 1 }
+   { tenantId: 1, “customFields.name": 1 }
+   { tenantId: 1, “customFields.blockId": 1 }
+   ...
+
+This approach is difficult to maintain and you are likely to reach the 
+maximum number of indexes per collection (64). 
+
+Use a compound wildcard index instead. The compound wildcard index is
+easier to write, easier to maintain, and is unlikely to reach the 64
+index collection limit.
+
+This example creates a compound wildcard index on the ``salesData``
+collection: 
+
+.. _wc-ex-first:
+
+.. code-block:: javascript
+ 
+   db.runCommand(
+      {
+          createIndexes: "salesData",
+          indexes: [
+             {
+                key: {
+                   tenantId: 1,
+                   "customFields.$**": 1
+                },
+                name: "tenant_customFields"
+             }
+          ]
+      }
+   )
+
+The wildcard, ``"customFields.$**"``, specifies all of the sub-fields in 
+the ``customFields`` field. The other index term, ``tenantId``, is not a
+wildcard specification; it is a standard field specification. 
+
+Behavior
+--------
+
+.. include:: /includes/indexes/index-creation-methods.rst
+
+General Considerations for Wildcard Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/indexes/wildcard-indexes-considerations
+
+Compound Wildcard Index Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Compound wildcard indexes are sparse indexes.
+- Documents are included in the index if they are missing the wildcard
+  field but have one of the compound fields.
+- Index fields, including wildcard fields, can be sorted in ascending
+  (``1``) or descending (``-1``) order.
+
+Get Started
+-----------
+
+.. _wc-compound-index-wcProject:
+
+Filter Fields with a ``wildcardProjection``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use a ``wildcardProjection`` to specify individual sub-fields. 
+
+.. _wc-ex-second:
+
+.. code-block:: javascript
+
+    db.runCommand(
+       {
+           createIndexes: "salesData",
+           indexes: [
+              {
+                 key: {
+                    tenantId: 1,
+                    "$**": 1
+                 },
+                 name: "tenant_customFields_projection",
+                 wildcardProjection: {
+                    "customFields.addr": 1,
+                    "customFields.name": 1
+                 }
+              }
+           ]
+       }
+    )
+
+The wildcard index term, ``"$**"``, specifies every field in the
+collection. The ``wildcardProjection`` limits the index to the specified
+fields, ``"customFields.addr"`` and ``"customFields.name"``.
+
+You can only use a ``wildcardProjection`` when the wildcard term is
+``$**``.
+
+Use a Helper Method to Create a Wildcard Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides :ref:`shell helper methods <js-administrative-methods>`
+for most :ref:`database commands <database-commands>`. These shell
+methods offer a simplified syntax and are functionally equivalent to
+the database commands. 
+
+The shell helper for the :ref:`first example <wc-ex-first>` is:
+
+.. code-block:: javascript
+
+   db.salesData.createIndex(
+      { tenantId: 1, "customFields.$**": 1 },
+      {
+         name: "tenant_customFields_shellHelper"
+      }
+   )
+
+The shell helper for the :ref:`second example <wc-ex-second>` is:
+
+.. code-block:: javascript
+
+   db.salesData.createIndex(
+     { tenantId: 1, "$**": 1 },
+     { "wildcardProjection": {
+           "customFields.addr": 1,
+           "customFields.name": 1
+        },
+        name: "tenant_customFields_projection_helper"
+     }
+   )
+
+If you want to compare the shell commands and the database commands, you
+must drop the indexes between command invocations. You cannot create
+the same index twice, even with different names.
+
+To drop an index, insert the index name and run
+:ref:`db.collection.dropIndex() <collection-drop-index>`.
+
+.. code-block:: javascript
+
+   db.salesData.dropIndex( "tenant_customFields" )
+
+The preceding command removes the ``"tenant_customFields"`` index from
+the ``salesData`` database.
+
+Create a Partial Compound Wildcard Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a :ref:`partial <index-type-partial>` compound wildcard 
+index, you can use the ``partialFilterExpression`` option to 
+specify a filter expression so that the index only includes documents 
+that match the filter condition. ``partialFilterExpression`` can cover 
+fields included or not included in the index. 
+
+The following example creates a partial compound wildcard index on the 
+``tenantId`` field and on all the sub-fields in the ``customFields`` 
+field, only on documents with a ``tenantRegion`` of ``1``. 
+
+.. code-block:: javascript
+    
+   db.runCommand(
+      {
+         createIndexes: "salesData",
+         indexes: [
+            {
+               key: {
+                  tenantId: 1,
+                  "customFields.$**": 1
+               },
+               name: "tenant_customFields_partial",
+               partialFilterExpression: { tenantRegion: 1 }
+            }
+         ]
+      }
+   )
+
+Learn More
+----------
+
+- :ref:`Behavioral details for wildcard indexes
+  <wildcard-index-details>`
+- :ref:`Single wildcard indexes <wildcard-index-single>`
+- :ref:`Wildcard text indexes <create-wildcard-text-index>`

@@ -1,0 +1,175 @@
+====================
+sp.processor.stats()
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition 
+-----------
+
+.. method:: sp.processor.stats()
+
+   Returns a document containing statistics of a currently running
+   :atlas:`Stream Processor
+   </atlas-sp/overview/#mongodb-expression-exp.Stream-Processor>` on
+   the current :atlas:`Stream Processing Instance
+   </atlas-sp/overview/#mongodb-expression-exp.Stream-Processing-Instance>`.
+
+   .. include:: /includes/stream-processing-command-reqs.rst
+
+Compatibility
+-------------
+
+.. include:: /includes/fact-environments-atlas-support-stream-processing-only.rst
+
+Syntax
+-----------
+   
+The :method:`sp.processor.stats()` method has the following syntax:
+
+.. code-block:: json
+
+   sp.processor.stats( { options: { scale: <int>, verbose: <boolean> } } )
+
+Command Fields
+--------------
+
+``sp.processor.stats()`` takes these fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 20 40
+
+   * - Field
+     - Type
+     - Necessity	  
+     - Description
+
+   * - ``options``
+     - object
+     - Optional
+     - Object defining various optional settings for your
+       statistics report.
+
+   * - ``options.scale``
+     - integer
+     - Optional
+     - Unit to use for the size of items described in the
+       output. If set to ``1024``, the output document shows sizes in
+       kibibytes. Defaults to bytes.
+
+   * - ``options.verbose``
+     - boolean
+     - Optional
+     - Flag that specifies the verbosity level of the output
+       document. If set to ``true``, the output document contains a
+       subdocument that reports the statistics of each individual
+       operator in your pipeline. Defaults to ``false``.
+
+Behavior
+---------------
+
+``sp.processor.stats()`` returns a document containing statistics about
+the specified stream processor to ``STDOUT``. These statistics include
+but are not limited to:
+
+- The number of messages ingested and processed
+- The total size of all input and output
+- The amount of memory used to store processor state
+
+You can only invoke ``sp.processor.stats()`` on a currently running
+stream processor. If you try to invoke this command on a stopped stream
+processor, ``mongosh`` will return an error.
+
+Access Control
+------------------------
+
+The user running ``sp.processor.stats()`` must have the
+:atlasrole:`atlasAdmin` role.
+
+Example
+----------------
+
+The following example shows an expected response from calling
+``sp.solarDemo.stats()`` to get the statistics of a stream processor
+called ``solarDemo``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: sh
+
+      sp.solarDemo.stats()
+
+   .. output::
+      :language: json
+
+      {
+	ok: 1,
+	ns: '6500aa277fdbdb6e443a992e.63c1928d768e39423386aa16.solarDemo',
+	stats: {
+	  name: 'solarDemo',
+	  processorId: '65f9fea5c5154385174af71e',
+	  status: 'running',
+	  scaleFactor: Long('1'),
+	  inputMessageCount: Long('926'),
+	  inputMessageSize: 410310,
+	  outputMessageCount: Long('383'),
+	  outputMessageSize: 425513,
+	  dlqMessageCount: Long('0'),
+	  dlqMessageSize: Long('0'),
+	  stateSize: Long('4504'),
+	  watermark: ISODate('2024-03-19T22:16:49.523Z'),
+	  ok: 1
+	},
+	pipeline: [
+	  {
+	    '$source': {
+	      connectionName: 'sample_stream_solar',
+	      timeField: { '$dateFromString': { dateString: '$timestamp' } }
+	    }
+	  },
+	  {
+	    '$match': { '$expr': { '$ne': [ '$device_id', 'device_8' ] } }
+	  },
+	  {
+	    '$tumblingWindow': {
+	      interval: { size: 10, unit: 'second' },
+	      pipeline: [
+		{
+		  '$group': {
+		    _id: [Object],
+		    max_temp: [Object],
+		    max_watts: [Object],
+		    min_watts: [Object],
+		    avg_watts: [Object],
+		    median_watts: [Object]
+		  }
+		}
+	      ]
+	    }
+	  },
+	  {
+	    '$merge': {
+	      into: {
+		connectionName: 'mongodb1',
+		db: 'solar_db',
+		coll: 'solar_coll'
+	      },
+	      on: [ '_id' ]
+	    }
+	  }
+	]
+      }
+
+Learn More
+------------------
+
+- :atlas:`Manage Stream Processors </atlas-sp/manage-stream-processor>`
