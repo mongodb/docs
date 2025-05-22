@@ -1,0 +1,195 @@
+.. _appendix-client-certificate:
+
+====================================================
+Appendix C - OpenSSL Client Certificates for Testing
+====================================================
+
+.. default-domain:: mongodb
+
+.. warning:: Disclaimer 
+
+
+   This page is provided for :red:`testing purposes` only and the certificates
+   are for :red:`testing purposes only`.
+   
+   The following tutorial provides some basic steps for creating 
+   :red:`test` x.509 certificates.
+
+   - Do not use these certificates for production. Instead, follow your
+     security policies.
+
+   - For information on OpenSSL, refer to the official OpenSSL docs.
+     Although this tutorial uses OpenSSL, the material should not be
+     taken as an authoritative reference on OpenSSL.
+   
+
+
+Prerequisite
+------------
+
+The procedure outlined on this page uses the :red:`test` intermediate authority
+certificate and key :file:`mongodb-test-ia.crt` and
+:file:`mongodb-test-ia.key` created in
+:doc:`/appendix/security/appendixA-openssl-ca`.
+   
+Procedure
+---------
+
+The following procedure outlines the steps to create :red:`test` certificates
+for MongoDB clients. For steps to create :red:`test` certificates for MongoDB
+servers, see :doc:`/appendix/security/appendixB-openssl-server`.
+
+A. Create the OpenSSL Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Create a :red:`test` configuration file ``openssl-test-client.cnf`` for
+   your client with the following content:
+
+   .. code-block:: cfg
+      :emphasize-lines: 21,26,30,34,38
+
+      # NOT FOR PRODUCTION USE. OpenSSL configuration file for testing. 
+
+      [ req ]
+      default_bits = 4096
+      default_keyfile = myTestClientCertificateKey.pem    ## The default private key file name. 
+      default_md = sha256
+      distinguished_name = req_dn
+      req_extensions = v3_req
+
+
+      [ v3_req ]
+      subjectKeyIdentifier  = hash
+      basicConstraints = CA:FALSE
+      keyUsage = critical, digitalSignature, keyEncipherment
+      nsComment = "OpenSSL Generated Certificate for TESTING only.  NOT FOR PRODUCTION USE."
+      extendedKeyUsage  = serverAuth, clientAuth
+
+
+      [ req_dn ]
+      countryName = Country Name (2 letter code)
+      countryName_default = 
+      countryName_min = 2
+      countryName_max = 2
+
+      stateOrProvinceName = State or Province Name (full name)
+      stateOrProvinceName_default = TestClientCertificateState
+      stateOrProvinceName_max = 64
+
+      localityName = Locality Name (eg, city)
+      localityName_default = TestClientCertificateLocality
+      localityName_max = 64
+
+      organizationName = Organization Name (eg, company)
+      organizationName_default = TestClientCertificateOrg
+      organizationName_max = 64
+
+      organizationalUnitName = Organizational Unit Name (eg, section)
+      organizationalUnitName_default = TestClientCertificateOrgUnit
+      organizationalUnitName_max = 64
+      commonName = Common Name (eg, YOUR name)
+      commonName_max = 64
+
+#. *Optional*. You can update the default Distinguished Name (DN)
+   values. Ensure that client certificates differ from server certificates
+   with regards to at least one of the following attributes:
+   Organization (``O``), the Organizational Unit (``OU``) or the Domain
+   Component (``DC``).
+
+B. Generate the Test PEM File for Client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Create the :red:`test` key file :file:`mongodb-test-client.key`.
+
+   .. code-block:: bash
+
+      openssl genrsa -out mongodb-test-client.key 4096
+
+#. Create the :red:`test` certificate signing request
+   :file:`mongodb-test-client.csr`. When asked for Distinguished Name
+   values, enter the appropriate values for your :red:`test` certificate:
+
+   .. important::
+
+      The client certificate subject must differ to a server certificate
+      subject with regards to at least one of the following attributes:
+      Organization (O), the Organizational Unit (OU) or the Domain
+      Component (DC).
+
+   .. code-block:: bash
+
+      openssl req -new -key mongodb-test-client.key -out mongodb-test-client.csr -config openssl-test-client.cnf
+
+#. Create the :red:`test` client certificate :file:`mongodb-test-client.crt`.
+
+   .. code-block:: bash
+
+      openssl x509 -sha256 -req -days 365 -in mongodb-test-client.csr -CA mongodb-test-ia.crt -CAkey mongodb-test-ia.key -CAcreateserial -out mongodb-test-client.crt -extfile openssl-test-client.cnf -extensions v3_req
+
+#. Create the :red:`test` PEM file for the client.
+
+   .. code-block:: bash
+
+      cat mongodb-test-client.crt mongodb-test-client.key > test-client.pem
+
+   You can use the :red:`test` PEM file to configure
+   :binary:`~bin.mongosh` for TLS/SSL :red:`testing`. For example, to
+   connect to a :binary:`~bin.mongod` or a :binary:`~bin.mongos`:
+
+   .. example:: 
+
+      For MongoDB 4.2 or greater, include the following options for the client:
+
+      .. code-block:: javascript
+
+         mongosh --tls --host <serverHost> --tlsCertificateKeyFile test-client.pem  --tlsCAFile test-ca.pem
+
+
+   .. example:: 
+   
+      For MongoDB 4.0 and earlier**, include the following options for the client:
+
+      .. code-block:: javascript
+
+         mongosh --ssl --host <serverHost> --sslPEMKeyFile test-client.pem  --sslCAFile test-ca.pem
+
+   On macOS, 
+      If you are :red:`testing` with Keychain Access to manage certificates,
+      create a PKCS 12 file to add to Keychain Access instead of a PEM
+      file:
+
+      .. code-block:: bash
+
+         openssl pkcs12 -export -out test-client.pfx -inkey mongodb-test-client.key -in mongodb-test-client.crt -certfile mongodb-test-ia.crt
+
+      Once added to Keychain Access, instead of specifying the Certificate Key
+      file, you can use the :option:`--tlsCertificateSelector <mongosh
+      --tlsCertificateSelector>` to specify the certificate to use. If
+      the CA file is also in Keychain Access, you can omit
+      ``--tlsCAFile`` as well as in the following example:
+
+      **For MongoDB 4.2 or greater**
+
+      .. code-block:: javascript
+
+         mongosh --tls --tlsCertificateSelector subject="<TestClientCertificateCommonName>"
+
+      Although still available, ``--ssl`` and
+      ``--sslCertificateSelector`` are
+      :ref:`deprecated as of MongoDB 4.2 <4.2-tls>`.
+
+      **For MongoDB 4.0 and earlier**
+
+      .. code-block:: javascript
+
+         mongosh --ssl --sslCertificateSelector subject="<TestClientCertificateCommonName>"
+
+      For adding certificates to Keychain Access, refer to your
+      official documentation for Keychain Access.
+
+.. seealso::
+
+   - :ref:`appendix-ca-certificate`
+   - :ref:`appendix-server-certificate`
+   - :ref:`x509-client-authentication`
+

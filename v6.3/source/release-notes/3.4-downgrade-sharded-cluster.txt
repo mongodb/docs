@@ -1,0 +1,140 @@
+====================================
+Downgrade 3.4 Sharded Cluster to 3.2
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/3.4-downgrade-path.rst
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Prerequisites
+-------------
+
+Before downgrading the binaries, you must downgrade the feature
+compatibility version and remove any :ref:`3.4 features incompatible
+<3.4-compatibility-enabled>` with 3.2 or earlier versions as outlined
+below. These steps are necessary only if
+``featureCompatibilityVersion`` has ever been set to ``"3.4"``.
+
+.. |fcv| replace:: :ref:`feature compatibility version to "3.2" <3.4-downgrade-feature-compatibility-sharded-cluster>`
+
+.. |target| replace:: :binary:`~bin.mongos` instance
+
+.. _3.4-downgrade-feature-compatibility-sharded-cluster:
+
+1. Downgrade Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Connect a ``mongo`` shell to the :binary:`~bin.mongos` instance.
+
+#. .. include:: /includes/extracts/3.4-downgrade-feature-compatibility.rst
+
+2. Remove Views
+~~~~~~~~~~~~~~~
+
+If you have defined any views, drop the views before downgrading
+MongoDB 3.4 to 3.2.
+
+#. Connect a ``mongo`` shell to the :binary:`~bin.mongos` instance.
+
+#. .. include:: /includes/extracts/3.4-downgrade-views.rst
+
+3. Remove Collation Option from Collections and Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have defined any non-"simple" collation for a collection or an
+index, remove the collection or index before downgrading MongoDB 3.4 to
+3.2.
+
+#. Connect a ``mongo`` shell to the :binary:`~bin.mongos` instance.
+
+#. .. include:: /includes/extracts/3.4-downgrade-collation-collections.rst
+
+#. .. include:: /includes/extracts/3.4-downgrade-collation-indexes.rst
+
+4. Convert Data of Type Decimal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Connect a ``mongo`` shell to the :binary:`~bin.mongos` instance.
+
+#. .. include:: /includes/extracts/3.4-downgrade-decimal.rst
+
+5. Downgrade Index Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have ``v: 2`` indexes (i.e. the default version for indexes
+created in MongoDB 3.4 if ``featureCompatibilityVersion: "3.4"``),
+:method:`reindex the collection <db.collection.reIndex()>` to recreate
+all indexes on the collection as ``v: 1`` before downgrading MongoDB.
+
+You must perform this operation on both the shards and the config
+servers:
+
+#. Connect a ``mongo`` shell to the :binary:`~bin.mongos` instance.
+
+#. .. include:: /includes/extracts/3.4-downgrade-v2-indexes.rst
+
+#. If a shard is a replica set, repeat this procedure on each member of
+   the shard as the reindex operation does not propagate to the
+   secondaries.
+
+   .. tip::
+
+      If connecting a ``mongo`` shell to a secondary member,
+      use :method:`db.getMongo().setReadPref('secondary')` to allow
+      reads from secondaries.
+
+#. Repeat the process on each member of the config server replica set.
+
+Procedure
+---------
+
+Considerations
+~~~~~~~~~~~~~~
+
+While the downgrade is in progress, you cannot make changes to the
+collection metadata. For example, during the downgrade, do
+**not** do any of the following:
+
+- :method:`sh.enableSharding()`
+
+- :method:`sh.shardCollection()`
+
+- :method:`sh.addShard()`
+
+- :method:`db.createCollection()`
+
+- :method:`db.collection.drop()`
+
+- :method:`db.dropDatabase()`
+
+- any operation that creates a database
+
+- any other operation that modifies the cluster meta-data in any
+  way. See :doc:`/reference/sharding` for a complete list of
+  sharding commands. Note, however, that not all commands on the
+  :doc:`/reference/sharding` page modify the cluster meta-data.
+
+Downgrade a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |newversion| replace:: 3.4
+.. |oldversion| replace:: 3.2
+
+.. include:: /includes/steps/3.4-downgrade-sharded-cluster.rst

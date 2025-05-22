@@ -1,0 +1,193 @@
+===================
+Mongo.setReadPref()
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: Mongo.setReadPref(mode, tagSet, hedgeOptions)
+
+   Call the :method:`~Mongo.setReadPref()` method on a :method:`Mongo
+   <db.getMongo()>` connection object to control how the client will
+   route all queries to members of the replica set. [#specificqueries]_
+
+   .. note::
+
+      You must call :method:`Mongo.setReadPref()` on the connection object
+      before retrieving documents using that connection to use that read
+      preference.
+
+.. [#specificqueries]
+
+   To apply a read preference for a specific query or queries, you can
+   apply :method:`cursor.readPref()` to a cursor before iteration. See
+   :method:`cursor.readPref()` for details.
+   
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`mode <mongo-setReadPref-mode>`
+
+     - string
+
+     - .. _mongo-setReadPref-mode:
+
+       One of the following :term:`read preference` modes: :readmode:`primary`,
+       :readmode:`primaryPreferred`, :readmode:`secondary`,
+       :readmode:`secondaryPreferred`, or :readmode:`nearest`
+
+   * - :ref:`tagSet <mongo-readpref-tagset>`
+
+     - array of documents
+
+     - .. _mongo-readpref-tagset:
+
+       Optional. A :ref:`tag set
+       <replica-set-read-preference-tag-sets>` used to target reads to
+       members with the specified tag(s). ``tagSet`` is not available
+       if using read preference mode :readmode:`primary`.
+
+       For details, see :ref:`replica-set-read-preference-tag-sets`.
+
+   * - :ref:`hedgeOptions <mongo-readpref-hedge>`
+
+     - document
+
+     - .. _mongo-readpref-hedge:
+
+       Optional. A document that specifies whether to enable the use of
+       :ref:`hedged reads <mongos-hedged-reads>`:
+
+       ``{ enabled: <boolean> }``
+
+       The ``enabled`` field defaults to true; i.e. specifying an empty
+       document ``{ }`` is equivalent to specifying ``{ enabled: true
+       }``.
+
+       Hedged reads are available starting in MongoDB 4.4 for sharded
+       clusters. To use hedged reads, the :binary:`~bin.mongos` must
+       have :parameter:`enabled support <readHedgingMode>` for hedged
+       reads (the default) and the non-``primary`` :doc:`read
+       preferences </core/read-preference>` must enable the use of
+       hedged reads.
+
+       Read preference :readmode:`nearest` enables the use of hedged
+       reads on sharded clusters by default; i.e. by default, has ``{
+       enabled: true }``.
+
+       .. versionadded:: 4.4
+
+:method:`Mongo.setReadPref()` does not support the
+:ref:`replica-set-read-preference-max-staleness` option for read
+preference.
+      
+Examples
+--------
+
+.. _allow-reads-from-secondaries:
+
+Specify Read Preference Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation sets the read preference :ref:`mode
+<mongo-setReadPref-mode>` to target the read to a secondary member.
+This implicitly allows reads from secondaries.
+
+.. code-block:: javascript
+
+   db.getMongo().setReadPref('secondary')
+
+However, if called while connected to the primary using the mongo shell, the 
+above command does not route queries to a secondary. 
+
+Specify Read Preference Tag Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To target secondaries with specific tags, include both the :ref:`mode
+<mongo-setReadPref-mode>` and the :ref:`tagSet <mongo-readpref-tagset>`
+array:
+
+.. code-block:: javascript
+
+   db.getMongo().setReadPref(
+      "secondary",
+      [
+         { "datacenter": "B" },    // First, try matching by the datacenter tag
+         { "region": "West"},      // If not found, then try matching by the region tag
+         { }                       // If not found, then use the empty document to match all eligible members
+      ]
+   )
+
+During the secondary selection process, MongoDB tries to find secondary
+members with the ``datacenter: "B"`` tag first.
+
+- If found, MongoDB limits the eligible secondaries to those with the
+  ``datacenter: "B"`` tag and ignores the remaining tags. 
+  
+- If none are found, then, MongoDB tries to find secondary members with
+  the ``"region": "West"`` tag. 
+
+  - If found, MongoDB limits the eligible secondaries to those with the
+    ``"region": "West"`` tag.
+
+  - If none are found, MongoDB uses any eligible secondaries.
+
+See :ref:`read-pref-order-matching` for details.
+
+.. seealso::
+
+   :doc:`/tutorial/configure-replica-set-tag-sets`
+
+Specify Hedged Read
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4 for sharded clusters, you can enable
+:ref:`hedged reads <mongos-hedged-reads>` for non-primary :doc:`read
+preferences </core/read-preference>`. To use hedged reads, the
+:binary:`~bin.mongos` must have :parameter:`enabled support
+<readHedgingMode>` for hedged reads (the default) and the
+non-``primary`` :ref:`read preferences <read-preference>` must
+enable the use of hedged reads.
+
+To target secondaries on 4.4+ sharded cluster using hedged reads,
+include both the :ref:`mode <mongo-setReadPref-mode>` and the
+:ref:`hedgeOptions <mongo-readpref-hedge>`, as in the following
+examples:
+
+- Without a tag set
+
+  .. code-block:: javascript
+
+     db.getMongo().setReadPref(
+        "secondary",            // mode
+        null,                   // tag set
+        { enabled: true }       // hedge options
+     )
+
+- With a tag set
+
+  .. code-block:: javascript
+  
+     db.getMongo().setReadPref(
+        "secondary",                      // mode
+        [ { "datacenter": "B" },  { } ],  // tag set
+        { enabled: true }                 // hedge options
+     )

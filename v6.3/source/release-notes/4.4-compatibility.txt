@@ -1,0 +1,489 @@
+====================================
+Compatibility Changes in MongoDB 4.4
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following 4.4 changes can affect compatibility with older
+versions of MongoDB.
+
+
+Removed Commands
+----------------
+
+.. include:: /includes/extracts/4.4-changes-removed-commands.rst
+
+Removed Parameters
+------------------
+
+.. include:: /includes/extracts/4.4-changes-removed-parameters.rst
+
+.. _4.4-tools-compatibility:
+
+Tools Changes
+-------------
+
+.. include:: /includes/extracts/4.4-changes-tools.rst
+
+Replica Sets
+------------
+
+Rollback Directory
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-rollback-directory.rst
+
+``replSetGetStatus`` Output Field Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :dbcommand:`replSetGetStatus` command and its ``mongo``
+shell helper :method:`rs.status()` removes the following deprecated
+fields from its output:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Removed Field
+     - Alternative
+     
+   * - :data:`~replSetGetStatus.syncingTo`
+     - Use :data:`~replSetGetStatus.syncSourceHost` instead.
+     
+   * - :data:`members[n].syncingTo <replSetGetStatus.members[n].syncingTo>`
+
+     - Use :data:`members[n].syncSourceHost <replSetGetStatus.members[n].syncSourceHost>` instead.
+
+Replica Configuration Document Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-replSetGetConfig-term-field.rst
+
+Initial Sync Restrictions on Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions.rst
+
+Custom ``getLastErrorDefaults`` Values Deprecated
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+.. include:: /includes/extracts/4.4-changes-getLastErrorDefaults-deprecation.rst
+
+Projection Compatibility Changes
+--------------------------------
+
+Set Fields to New Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, |findoperation| projection can accept
+:ref:`aggregation expressions and aggregation syntax <4.4-projection>`.
+
+With the use of aggregation expressions and syntax, including the use
+of literals and aggregation variables, if you specify a literal (other
+than a number or a boolean) for the projection field value, the field
+is projected with the new value.
+
+For example, consider a collection inventory with documents that
+contain a ``status`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.inventory.insertOne( { _id: 1, item: "postcard", status: "A", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] })
+
+Starting in MongoDB, 4.4, the following operation projects the fields
+``status`` and ``instock`` with new values instead of their current
+value:
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+
+   db.inventory.find( 
+      { status: "A" }, 
+      { status: "Active", instock: ["blue", "crimson"] } 
+   )
+
+That is, the operation returns the following document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "status" : "Active", "instock" : [ "blue", "crimson" ] }
+
+In previous versions, any specification value (with the exception of
+zero/false value or the :ref:`previously unsupported document value
+<4.4-projection>`) is treated as ``true`` to indicate the inclusion of
+the field with its current value. That is, in earlier versions, the
+previous operation returns a document with the ``status`` and
+``instock`` fields with their current values:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "status" : "A", "instock" : [ { "warehouse" : "B", "qty" : 15 }, { "warehouse" : "C", "qty" : 35 } ] }
+   
+``$elemMatch`` Projection Field Order
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-elemMatch-projection-field-order.rst
+
+``$slice`` of Embedded Array 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-slice-operator-inclusion.rst
+
+.. _4.4-compatibility-projection-restrictions:
+
+Path Collision Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Path Collision: Embedded Documents and Its Fields
+`````````````````````````````````````````````````
+
+.. include:: /includes/extracts/projection-path-collision-embedded-document-full.rst
+
+Path Collision: ``$slice`` of an Array and Embedded Fields
+``````````````````````````````````````````````````````````
+
+.. include:: /includes/extracts/projection-path-collision-slice-embedded-field-full.rst
+
+``$``-Prefixed Field Path Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-dollar-prefixed-field-full.rst
+
+``$`` Positional Operator Placement Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-positional-operator-path.rst
+
+``$`` Positional Operator and ``$slice`` Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-positional-operator-slice-full.rst
+
+Empty Field Name Projection Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-empty-field-full.rst
+
+
+.. |findoperation| replace:: :ref:`find <find-projection>` and :method:`~db.collection.findAndModify`
+
+.. _4.4-compatibility-meta-textscore:
+
+Text Search Metadata { $meta: "textScore" } Query Requirement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-textscore-predicate.rst
+
+``$sort`` Changes
+-----------------
+
+Starting in MongoDB 4.4, the :method:`~cursor.sort()` method now uses
+the same sort algorithm as the :pipeline:`$sort` aggregation stage. With
+this change, queries which perform a :method:`~cursor.sort()` on
+fields that contain duplicate values are much more likely to result in
+inconsistent sort orders for those values.
+
+To guarantee sort consistency when using :method:`~cursor.sort()` on
+duplicate values, include an additional field in your sort that contains
+exclusively unique values.
+
+This can be accomplished easily by adding the ``_id`` field to your
+sort.
+
+See :ref:`sort-cursor-consistent-sorting` for more information.
+
+Map Reduce Changes
+------------------
+
+Reduce a Key Containing a Single Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, when you run the :dbcommand:`mapReduce`
+command, MongoDB calls the ``reduce`` function regardless of how many
+values are contained in the associated key.
+
+In earlier versions, MongoDB does not call the ``reduce`` function for a
+key that has a single value.
+
+For more information, see :ref:`map-reduce-usage`.
+
+Map-Reduce Output Change
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, :dbcommand:`mapReduce` removes the
+``counts`` field from its output.
+
+In earlier versions, the command includes a ``counts`` field in its
+output.  For example:
+
+.. code-block:: javascript
+
+   "counts" : {
+      "input" : 4,
+      "emit" : 4,
+      "reduce" : 1,
+      "output" : 2
+   },
+
+Map Function's Emit Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, the ``map`` function no longer restricts
+the size of each ``emit()`` output to a half of MongoDB's
+:ref:`maximum BSON document size <limit-bson-document-size>`.
+
+In earlier versions, a single emit can only hold half of MongoDB's
+:ref:`maximum BSON document size <limit-bson-document-size>`
+
+Remove support for BSON Type JavaScript code with scope
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`mapReduce` no longer supports the deprecated :ref:`BSON 
+type <bson-types>` JavaScript code with scope (BSON type 15) for its 
+functions. The ``map``, ``reduce``, and ``finalize`` functions must be 
+either BSON type String (BSON Type 2) or BSON type JavaScript 
+(BSON Type 13). To pass constant values which will be accessible in 
+the ``map``, ``reduce``, and ``finalize`` functions, use the ``scope`` 
+parameter.
+
+The use of JavaScript code with scope for the :dbcommand:`mapReduce`
+functions has been deprecated since version 4.2.1.
+
+.. seealso::
+
+   :ref:`4.4-compatibility-deprecations`
+
+Structured Logging
+------------------
+
+Starting in MongoDB 4.4, :binary:`~bin.mongod` / :binary:`~bin.mongos`
+instances now output all log messages in :ref:`structured JSON format
+<log-message-json-output-format>`. This includes log output sent to the
+*file*, *syslog*, and *stdout* (standard out)
+:ref:`log destinations <log-message-destinations>`, as well as the
+output of the :dbcommand:`getLog` command.
+
+Previously, log entries were output as plaintext.
+
+If you have existing log parsing utilities, or use a log ingestion
+service, you may need to reconfigure these tools for the new structured
+logging format with MongoDB 4.4.
+
+See :ref:`Log Messages <log-messages-ref>` for a detailed
+examination of the new structured logging format, including 
+:ref:`examples of log parsing<log-message-parsing>` using the new log
+structure.
+
+Removal of ``rs`` getLog value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, the :dbcommand:`getLog` command no longer
+accepts the ``rs`` value, as this categorization of message type has
+been deprecated. Instead, log messages are now always identified by
+their :ref:`component <log-message-components>`, including **REPL** for
+replication messages.
+
+See :ref:`log-message-parsing-example-filter-component` for log parsing
+examples that filter on the component field.
+
+Timestamp Format
+~~~~~~~~~~~~~~~~
+
+With the transition to structured JSON logging, the ``ctime`` timestamp
+format is no longer supported. The following configuration options no
+longer accept ``ctime`` as a valid parameter:
+
+- :setting:`systemLog.timeStampFormat`
+
+- :option:`mongod --timeStampFormat`
+
+- :option:`mongos --timeStampFormat`
+
+Use the ``iso8601-local`` (default) or ``iso8601-utc`` timestamp
+formats instead.
+
+maxLogSizeKB Parameter
+~~~~~~~~~~~~~~~~~~~~~~
+
+With the transition to structured JSON logging, the
+:parameter:`maxLogSizeKB` server parameter now truncates any individual
+attributes in a log entry that exceed the specified limit. Previously,
+this parameter would truncate the entire log entry.
+
+In addition: 
+
+- :parameter:`maxLogSizeKB` now accepts a value of ``0``, which disables
+  truncation entirely.
+
+- :parameter:`maxLogSizeKB` no longer accepts negative values.
+
+See :ref:`log message truncation <log-message-truncation>` for more
+information.
+
+General Changes
+---------------
+
+- MongoDB 4.4 removes support for gperftools cpu profiler. As part of
+  this change, the :authrole:`hostManager` no longer provides
+  :authaction:`cpuProfiler` privilege action on the cluster.
+
+- The parameter
+  :parameter:`ldapConnectionPoolMaximumConnectionsPerHost` now has a
+  default value of ``2``. In previous versions, the default is unset.
+
+- :dbcommand:`serverStatus` returns
+  :serverstatus:`flowControl.locksPerKiloOp` instead of
+  :serverstatus:`flowControl.locksPerOp`.
+
+- The :expression:`$dateFromParts` expression operator now supports
+  a value range of ``1-9999`` for the ``year`` and ``isoWeekYear``
+  fields. In previous versions, the supported value range for these
+  fields was ``0-9999``.
+  
+- The :dbcommand:`listIndexes` and the ``mongo`` shell
+  helper method :method:`db.collection.getIndexes()` no longer returns
+  the namespace ``ns`` field in the index specification documents.
+
+- MongoDB 4.4 removes the ``--noIndexBuildRetry`` command-line option and
+  the corresponding ``storage.indexBuildRetry`` option.
+
+- :binary:`~bin.mongos` now logs an error if you pass an empty
+  ``writeConcern`` value i.e. ``writeConcern: {}`` to a command
+  that does not support write concerns.  In earlier versions,
+  :binary:`~bin.mongos` ignores an empty ``writeConcern`` value for
+  these commands.
+
+- The ``force`` option with the :dbcommand:`compact` command is no 
+  no longer a boolean. ``force: true`` and ``force: false`` are 
+  deprecated, and will result in an error.
+
+.. _4.4-validate-method-signature:
+
+db.collection.validate() Parameter Change
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``mongo`` method
+:method:`db.collection.validate()` no longer accepts just a boolean
+parameter.
+
+That is, the method no longer accepts
+``db.collection.validate(<boolean>)`` as a shorthand for
+``db.collection.validate({full: <boolean>})``:
+
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Instead of
+     - Use
+
+   * - ``db.collection.validate(true)``
+   
+     - ``db.collection.validate({ full: true })``
+
+   * - ``db.collection.validate(false)``
+   
+     - | ``db.collection.validate()``  -or-
+       | ``db.collection.validate({ full: false })``
+
+Full Validation on ``oplog``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, :ref:`full <method-validate-full>` validation
+on the ``oplog`` for WiredTiger skips the more thorough check. The
+:data:`validate.warnings` includes a notice of the behavior.
+
+MMAPv1 Cleanup
+~~~~~~~~~~~~~~
+
+- :dbcommand:`dbStats` command no longer returns the obsolete MMAPv1
+  ``numExtents`` field.
+
+- :dbcommand:`replSetGetStatus` command no longer returns the obsolete
+  MMAPv1 field
+  ``replSetGetStatus.initialSyncStatus.fetchedMissingDocs`` in its
+  output.
+
+- :dbcommand:`fsync` command no longer accepts the obsolete MMAPv1
+  field ``async`` as an option.
+  
+.. _4.4-compatibility-deprecations:
+
+Deprecations
+~~~~~~~~~~~~
+
+Geospatial
+``````````
+
+.. include:: /includes/extracts/4.4-changes-geo-deprecation.rst
+
+BSON Type JavaScript code with scope
+````````````````````````````````````
+
+Starting in MongoDB 4.4:
+
+- :query:`$where` no longer supports the deprecated BSON type
+  JavaScript code with scope (BSON Type 15). The :query:`$where` 
+  operator only supports BSON type String (BSON Type 2) or BSON type 
+  JavaScript (BSON Type 13).
+
+- :dbcommand:`mapReduce` no longer supports the deprecated BSON type
+  JavaScript code with scope (BSON Type 15) for its functions. The 
+  ``map``, ``reduce``, and ``finalize`` functions must be BSON type
+  String (BSON Type 2) or BSON type JavaScript (BSON Type 13). To pass 
+  constant values which will be accessible in the ``map``, ``reduce``, 
+  and ``finalize`` functions, use the ``scope`` parameter.
+
+The use of BSON type JavaScript code with scope for :query:`$where` and
+the :dbcommand:`mapReduce` functions has been deprecated since MongoDB
+4.2.1.
+
+Sharding
+````````
+
+MongoDB 4.4 deprecates the following sharding commands:
+
+- :dbcommand:`shardConnPoolStats` (use :dbcommand:`connPoolStats`
+  instead)
+
+- :dbcommand:`unsetSharding`
+
+Lookaside Table Overflow File Size Limit
+````````````````````````````````````````
+
+The WiredTiger lookaside table (LAS) cache overflow file no longer
+exists starting in MongoDB 4.4. As such, MongoDB 4.4 deprecates the
+following options and parameter for the (LAS) cache overflow file
+limit; these options and parameter have no effect starting in MongoDB
+4.4:
+
+- :setting:`storage.wiredTiger.engineConfig.maxCacheOverflowFileSizeGB`
+  configuration file option
+
+- :option:`--wiredTigerMaxCacheOverflowFileSizeGB <mongod --wiredTigerMaxCacheOverflowFileSizeGB>`
+  command-line option
+
+- :parameter:`wiredTigerMaxCacheOverflowSizeGB` parameter
+
+.. _4.4-compatibility-enabled:
+
+4.4 Feature Compatibility
+-------------------------
+
+Some features in 4.4 require not just the 4.4 binaries but the
+:ref:`featureCompatibilityVersion <view-fcv>` (fCV) set to 4.4. These
+features include:
+
+- Raises the :limit:`Namespace Length` limit for MongoDB versions
+  with fCV set to 4.4+.
+
+- Creation of :ref:`4.4-rel-notes-compound-hashed-index` requires
+  fCV set to 4.4+.

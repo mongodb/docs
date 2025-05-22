@@ -1,0 +1,585 @@
+====================================
+Compatibility Changes in MongoDB 3.6
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+The following 3.6 changes can affect the compatibility with older
+versions of MongoDB.
+
+.. _3.6-bind_ip-compatibility:
+
+Localhost Binding Compatibility Changes
+---------------------------------------
+
+.. include:: /includes/fact-default-bind-ip.rst
+
+.. include:: /includes/fact-bind-to-all-ips.rst
+
+Shard Replica Set
+-----------------
+
+Starting in 3.6, shards must be replica sets. To upgrade your sharded
+cluster to version 3.6, the shard servers must be running as a replica
+set.
+
+
+HTTP Interface and REST API
+---------------------------
+
+MongoDB 3.6 removes the deprecated HTTP interface and REST API to
+MongoDB.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Configuration Settings
+     - ``mongod/mongos`` option
+
+   * - | ``net.http.enabled``
+       | ``net.http.JSONPEnabled``
+       | ``net.http.port``
+       | ``net.http.RESTInterfaceEnabled``
+
+     - | ``httpinterface``
+       | ``nohttpinterface``
+       | ``jsonp``
+       | ``rest``
+
+Tools Changes
+-------------
+
+MongoDB 3.6 removes the deprecated ``mongooplog`` tool.
+
+Array Operation Compatibility Changes
+-------------------------------------
+
+.. _3.6-type-array-compatibility:
+
+``$type: "array"`` Behavior Change
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6, :query:`$type: "array" <$type>` and :query:`$type: 4
+<$type>` expressions match array fields that contain any element type.
+
+In earlier versions, ``$type : "array"`` only matches array fields that
+contain nested arrays.
+
+For example, a collection named ``c`` contains two documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "a": [ 1, 2, 3 ] },
+   { "_id": 2, "a": [ 1, 2, [ 3, 4 ] ] }
+
+The following operation queries by type on field ``a``:
+
+.. code-block:: javascript
+
+   db.c.find( { "a": { $type : "array" } } )
+
+Starting in 3.6, the query returns both documents in the collection
+because the ``$type`` query can now detect that field ``a`` is itself
+an array.
+
+.. code-block:: javascript
+
+   { "_id": 1, "a": [ 1, 2, 3 ] },
+   { "_id": 2, "a": [ 1, 2, [ 3, 4 ] ] }
+
+In 3.4 and earlier versions of MongoDB, the query only returns those
+documents in which the array field ``a`` contains an element of
+:term:`BSON` type ``array``.
+
+.. code-block:: javascript
+
+   { "_id": 2, "a": [ 1, 2, [ 3, 4 ] ] }
+
+If upgrading from a MongoDB 3.4.x  deployment that has partial indexes whose
+``partialFilterExpression`` includes a ``$type : "array"`` or ``$type : 4``
+expression, you must rebuild these indexes after upgrading to avoid conflicting
+``$type : 'array'`` semantics.
+
+For more information on the ``$type: "array"`` expression, see
+:ref:`document-querying-by-array-type`.
+
+.. _3.6-sort-behavior-compatibility:
+
+Array Sort Behavior
+~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6, when sorting a field containing an array, MongoDB
+orders the field with the lowest-valued element of the array first for
+ascending sorts and the highest-valued element of the array first for
+descending sorts. A sort no longer takes the query predicate into
+account when choosing the array element which will act as the
+**sort key**. This behavior change applies to both the
+:dbcommand:`find` command and the
+:ref:`aggregation pipeline <aggregation-pipeline>`.
+
+As a result of this change, applications that currently sort by an
+array field may experience a different sort order.
+
+.. important::
+
+   .. include:: /includes/fact-multikey-index-sort-limitation.rst
+
+.. _3.6-find-method-sort:
+
+``find`` Method Sorting
+```````````````````````
+
+A **sort key** is the array element MongoDB uses during the sorting
+process to compare and ultimately order documents containing an array.
+In an ascending sort, documents containing arrays with the
+lowest-valued sort keys are ordered first. Likewise, in a descending
+sort, documents containing arrays with the highest-valued sort keys are
+ordered first.
+
+In MongoDB 3.4 and earlier, a sort by an array field took into account
+the query predicate when determining the sort key.
+
+For example, a collection ``coll`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 0, a: [-3, -2, 2, 3] }
+   { _id: 1, a: [ 5, -4 ] }
+
+Consider following sort operation on the array field ``a`` of the
+collection:
+
+.. code-block:: javascript
+
+   db.coll.find({a: {$gte: 0}}).sort({a: 1});
+
+In MongoDB 3.6, the sort operation no longer takes into account the
+query predicate when determining its sort key. As a result, the sort
+key is the lowest-valued element for each document:
+
+- ``-3`` for the document with ``_id: 0`` and
+- ``-4`` for the document with ``_id: 1``.
+
+The operation returns the documents in the following order:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "a" : [ 5, -4 ] }
+   { "_id" : 0, "a" : [ -3, -2, 2, 3 ] }
+
+Previous MongoDB versions use the lowest-valued array element that
+matches the query predicate of ``{$gte: 0}`` as the sort key:
+
+- ``2`` for the document with ``_id: 0`` and
+- ``5`` for the document with ``_id: 1``,
+
+and would return the documents in the following order:
+
+.. code-block:: javascript
+
+   { _id: 0, a: [-3, -2, 2, 3] }
+   { _id: 1, a: [ 5, -4 ] }
+
+.. _3.6-agg-method-sort:
+
+``aggregate`` Method Sorting
+````````````````````````````
+
+In MongoDB 3.6, when sorting array fields with the
+:method:`db.collection.aggregate()` method, only a single array element
+is used as the sort key.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   // Documents.
+   { "_id" : 1, "timestamps" : [ ISODate("2017-07-15T15:31:01Z"), ISODate("2017-07-21T18:31:01Z") ] }
+   { "_id" : 0, "timestamps" : [ ISODate("2017-07-21T15:31:01Z"), ISODate("2017-07-21T13:31:01Z") ] }
+
+   // Query.
+   db.c.aggregate([{$sort: {timestamps: -1}}])
+
+For a descending sort, the most recent time in the array is used as the
+sort key: ``3:31 PM on July 21`` for the document with ``_id: 0`` and
+``5:31 PM on July 21`` for the document with ``_id: 1``. Since the sort
+is descending, these keys are then ordered from most recent to least
+recent, resulting in the document with ``_id: 1`` sorting before the
+document with ``_id: 0``.
+
+Before 3.6, the *entire array* is used as the sort
+key for aggregation sorts. The array sort keys are compared
+element-wise to determine the sort order of the result set.
+
+.. example::
+
+   .. code-block:: javascript
+
+      // Documents.
+      {_id: 0, a: [3, 1, 5]}
+      {_id: 1, a: [3, 4, 0]}
+
+      // Query.
+      db.coll.aggregate([{$sort: {a: 1}}])
+
+Prior to 3.6, the sort keys are [3, 1, 5] and [3, 4, 0] respectively.
+Since the first array elements are equal, the second array element
+breaks the tie and the document with ``_id: 0`` sorts first.
+
+For more information on sorting with the
+:ref:`Aggregation Pipeline <aggregation-pipeline-operators>`, see
+:doc:`$sort </reference/operator/aggregation/sort/>`.
+
+Sorting with a Compound Sort Pattern on Multiple Array Fields with ``aggregate``
+````````````````````````````````````````````````````````````````````````````````
+
+In MongoDB 3.6, when sorting in an
+:ref:`aggregation pipeline <aggregation-pipeline>`, MongoDB can
+no longer sort documents which contain *parallel arrays* in the fields
+being sorted on. Arrays are considered parallel if they are sibling
+elements of the BSON object. Sort keys involving nested arrays are not
+considered parallel, nor are sort keys which share the same array as a
+prefix.
+
+.. note::
+
+   This behavior has always existed for sorting with
+   :method:`find <db.collection.find()>`, but now in 3.6
+   :method:`find <db.collection.find()>` and
+   :method:`aggregate <db.collection.aggregate()>` share the same
+   semantics.
+
+.. example::
+
+   A collection contains the following document:
+
+   .. code-block:: javascript
+
+      {a: [ {b: [1, 2]}, {b: [3, 4]} ]}
+
+   The following aggregation succeeds because the sort is performed on
+   a nested array:
+
+   .. code-block:: javascript
+
+      db.coll.aggregate([{$sort: {"a.b": 1}}])
+
+.. example::
+
+   Similarly, if a collection contains the following document:
+
+   .. code-block:: javascript
+
+      {a: [{b: 1, c: 1}, {b: 2, c: 2}]}
+
+   The following aggregation succeeds because the sort keys share the
+   same array as a prefix:
+
+   .. code-block:: javascript
+
+      db.coll.aggregate([{$sort: {"a.b": 1, "a.c": 1}}])
+
+.. example::
+
+   However, in a collection that contains the following documents:
+
+   .. code-block:: javascript
+
+      { _id: 1, a: [ 1, 2 ], b: [ 1, 2 ]}
+      { _id: 2, a: [ -3, 5 ], b: 0 }
+      { _id: 3, a: [ -6, 12 ], b: 100 }
+
+   The following sort operation fails:
+
+   .. code-block:: javascript
+
+      db.coll.aggregate([ { $sort: {a: 1, b: 1} } ])
+
+   MongoDB cannot sort on both the ``a`` and ``b`` fields because
+   in the document with ``_id : 1`` , the sibling fields ``a`` and
+   ``b`` are both arrays. As a result, MongoDB encounters a parallel
+   array during sort key generation and returns an error.
+
+Update Operation Changes
+------------------------
+
+New Fields in Updates
+~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, new fields added through :dbcommand:`update`
+operations are appended in lexicographic order.
+
+For example, a collection ``coll`` has the following document:
+
+.. code-block:: javascript
+
+   { _id: 0, x: 0 }
+
+The following update operation adds two new fields to the document:
+
+.. code-block:: javascript
+
+   db.coll.update({_id: 0}, {$set: {b: 0, a: 0}})
+
+Starting in 3.6, MongoDB appends the new fields in lexicographic order. The
+updated document would be ``{_id : 0, x: 0, a: 0, b: 0}``.
+
+Earlier versions of MongoDB append the new fields in order of appearance in
+the update document. The updated document would be ``{_id : 0, x: 0, b: 0, a:
+0}``.
+
+Fields Conflicting with ``arrayFilters`` Identifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, fields that conflict with ``arrayFilters``
+identifiers can no longer be updated.
+
+For example, a collection ``coll`` has the following document:
+
+.. code-block:: javascript
+
+   { _id: 0, x: { "$[]": 0 } }
+
+The following update succeeds in earlier versions of MongoDB:
+
+.. code-block:: javascript
+
+   db.coll.update({_id: 0}, {$set: {"x.$[]": 1}})
+
+In MongoDB 3.6 the update fails since the field name "$[]" conflicts with
+``arrayFilters`` identifier syntax. For more information on
+``arrayFilters`` see :ref:`update-command-arrayFilters`.
+
+.. note::
+
+   The new update behaviors apply only when ``featureCompatibilityVersion`` is
+   set to 3.6.
+
+Stricter Validation of ``$pop`` Arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6 [#upgraded]_, :update:`$pop` operator performs
+a stricter validation of its argument to require either:
+
+- ``-1`` to remove the first element of an array, or
+
+- ``1`` to remove the last element in an array.
+
+In earlier versions, :update:`$pop` allowed:
+
+- any value less than ``0`` to remove the first element of an array, and
+
+- any value greater than or equal to ``0`` as well as non-numeric value
+  to remove the last element in an array.
+
+.. [#upgraded]
+
+   Affects MongoDB deployments with ``featureCompatibilityVersion`` set
+   to ``3.6``; e.g. new 3.6 deployments, upgraded deployments that have
+   set ``featureCompatibilityVersion`` to ``3.6``.
+
+.. _3.6-pushall-compatibility:
+
+Remove ``$pushAll`` Update Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.6 removes the deprecated ``$pushAll`` operator. The operator
+has been deprecated since 2.4.
+
+Instead of ``$pushAll``, use the :update:`$push` operator with the
+:update:`$each` modifier. For example:
+
+.. code-block:: javascript
+
+   db.students.update(
+      { name: "joe" },
+      { $push: { scores: { $each: [ 90, 92, 85 ] } } }
+   )
+
+Platform Support
+----------------
+
+- MongoDB 3.6 discontinues support for versions of Windows prior to
+  Windows Server 2008 R2 and Windows 7.
+
+- .. include:: /includes/3.6-osx-platform.rst
+
+General Compatibility Changes
+-----------------------------
+
+``MONGODB-CR`` Deprecation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mongodb-cr-deprecated.rst
+
+.. _3.6-compatibility-arbiter-priority:
+
+Arbiter and Priority
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-arbiter-priority.rst
+
+Deprecate Master-Slave Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.6 deprecates master-slave replication.
+
+``--nojournal`` Option with WiredTiger
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In version 3.6, the ``--nojournal`` option is deprecated for
+:ref:`<replica-set-members>` using the 
+:ref:`WiredTiger storage engine <storage-wiredtiger>`.
+
+:ref:`Replica set members <replica-set-members>` that use the
+WiredTiger :ref:`storage engine <storage-engines>` should not
+use the ``--nojournal`` option. For more information about
+journaling, see :ref:`<manage-journaling>`.
+
+.. _aggregate-compatibility:
+
+``aggregate`` Command and Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.6 removes the option for the :dbcommand:`aggregate` command
+to return its results as a single document.
+
+If you run the :dbcommand:`aggregate` command, you must include either
+the ``cursor`` option or the ``explain`` option.
+
+Rather than run the :dbcommand:`aggregate` command directly, most users
+should use the :method:`db.collection.aggregate()` helper provided in
+the mongo shell or the equivalent helper in their driver. These helpers
+return a cursor unless using the ``explain`` option.
+
+Aggregation Date to String Coercion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6, a date coerced to a string in an aggregation expression will
+include milliseconds and is appended with the letter 'Z'.
+
+.. example::
+
+   .. code-block:: javascript
+
+      // Documents.
+      {_id: 0, d: ISODate("2017-10-18T20:04:27.978Z")}
+      {_id: 1, d: ISODate("2017-10-18T20:04:28.192Z")}
+
+      // Query.
+      db.coll.aggregate({$project: {d: {$toLower: "$d"}}})
+
+Prior to 3.6, this would return the dates as ``d: "2017-10-18t20:04:27"`` and
+``d: "2017-10-18t20:04:28"`` respectively. In 3.6, the results include the
+milliseconds and letter 'Z': ``d: "2017-10-18t20:04:27.978z"`` and ``d:
+"2017-10-18t20:04:28.192z"``.
+
+The change applies to the following aggregation operators:
+
+- :expression:`$concat`
+
+- :expression:`$substr`
+
+- :expression:`$substrBytes`
+
+- :expression:`$substrCP`
+
+- :expression:`$strcasecmp`
+
+- :expression:`$toLower`
+
+- :expression:`$toUpper`
+
+Remove Diagnostic Logging Command and Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.6 removes the deprecated ``diagLogging`` command and
+:binary:`~bin.mongod` ``--diaglog`` option. Instead, use
+``mongoreplay`` to capture, replay, and profile commands sent to
+your MongoDB deployment.
+
+.. _3.6-validate-compatibility:
+
+``validate`` Operation
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-validate-wiredtiger-full-option.rst
+
+For more information on the validate operation, see the
+:dbcommand:`validate` command and the
+:method:`db.collection.validate()` method.
+
+.. _3.6-index-asterisk:
+
+Indexes Named ``*``
+~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6, you cannot specify ``*`` as the index name during
+index creation nor can you delete indexes named ``*`` by specifying the
+index keys.
+
+To delete existing indexes named ``*``, delete the index before
+upgrading. To rename them, delete and recreate the index.
+
+.. _3.6-deprecated-options:
+
+Deprecated Options
+~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6.1
+
+- MongoDB 3.6.1 deprecates the ``snapshot`` query option. 
+
+  For MMAPv1, use :method:`~cursor.hint()` on the ``{ _id: 1}`` index
+  instead to prevent a cursor from returning a document more than once
+  if an intervening write operation results in a move of the document.
+  
+  For other storage engines, use :method:`~cursor.hint()` with ``{
+  $natural : 1 }`` instead.
+
+
+- MongoDB 3.6.1 deprecates the ``$isolated`` option. For more
+  information on read isolation, see
+  :doc:`/core/read-isolation-consistency-recency`. [#transactions]_ 
+ 
+.. [#transactions] 
+
+   Starting in version 4.0, MongoDB offers :ref:`transactions <transactions>`.
+
+.. _3.6-compatibility-enabled:
+
+Backwards Incompatible Features
+-------------------------------
+
+.. include:: /includes/3.6-backwards-incompatible-features.rst
+
+3.6 deployments have the following default
+``featureCompatibilityVersion`` values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 38 62
+
+   * - Deployments
+     - ``featureCompatibilityVersion``
+
+   * - For new 3.6 deployments
+     - ``"3.6"``
+
+   * - For deployments :ref:`upgraded from 3.4 <3.6-upgrade>`
+
+     - ``"3.4"`` until you :dbcommand:`setFeatureCompatibilityVersion`
+       to ``"3.6"``.
+
+To view the ``featureCompatibilityVersion``, see :ref:`view-fcv`.
+
+If you need to downgrade from 3.6, you must remove data related to all
+persisted incompatible features from your database before downgrading
+the binaries. See the 3.6 downgrade procedures.

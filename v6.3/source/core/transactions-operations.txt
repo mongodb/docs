@@ -1,0 +1,162 @@
+.. _transactions-operations-ref:
+
+===========================
+Transactions and Operations
+===========================
+
+.. default-domain:: mongodb
+
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+For transactions:
+
+.. include:: /includes/extracts/transactions-operations-crud.rst
+
+Operations that affect the database catalog, such as creating or
+dropping a collection or an index, are not allowed in multi-document
+transactions. For example, a multi-document transaction cannot include
+an insert operation that would result in the creation of a new
+collection. See :ref:`transactions-operations-ref-restricted`.
+
+Operations Supported in Multi-Document Transactions
+---------------------------------------------------
+
+.. _transactions-operations-crud:
+
+CRUD Operations
+~~~~~~~~~~~~~~~
+
+The following read/write operations are allowed in transactions:
+
+.. include:: /includes/table-transactions-operations.rst
+
+.. note:: Updates to Shard Key Values
+
+   Starting in MongoDB 4.2, you can update a document's shard key value
+   (unless the shard key field is the immutable ``_id`` field) by
+   issuing single-document update/findAndModify
+   operations either in a transaction or as a :doc:`retryable write
+   </core/retryable-writes>`. For details, see :ref:`update-shard-key`.
+
+.. _transactions-operations-count:
+
+Count Operation
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-count.rst
+
+.. _transactions-operations-distinct:
+
+Distinct Operation
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-distinct.rst
+
+.. _transactions-operations-ddl:
+
+DDL Operations
+~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4 with :ref:`feature compatibility version (fcv)
+<view-fcv>` ``"4.4"``, you can create collections and indexes inside a
+:ref:`multi-document transaction <transactions>` if the
+transaction is :red:`not` a cross-shard write transaction. 
+
+.. _transactions-operations-ddl-explicit:
+
+Explicit DDL Operations
+```````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 50
+
+   * - Command
+     - Method
+     - Notes
+
+   * - :dbcommand:`create`
+
+     - :method:`db.createCollection()`
+
+     - See also the :ref:`transactions-operations-ddl-implicit`.
+
+   * - :dbcommand:`createIndexes`
+
+     - | :method:`db.collection.createIndex()`
+       | :method:`db.collection.createIndexes()`
+
+     - The index to create must either be on a non-existing collection,
+       in which case, the collection is created as part of the
+       operation, or on a new empty collection created earlier in the
+       same transaction.
+
+.. note::
+
+   For explicit creation of a collection or an index inside a
+   transaction, the transaction read concern level must be
+   :readconcern:`"local"`.
+
+For more information on creating collections and indexes in a
+transaction, see :ref:`transactions-create-collections-indexes`.
+
+.. _transactions-operations-ddl-implicit:  
+
+Implicit DDL Operations
+```````````````````````
+
+You can also implicitly create a collection through the following write
+operations against a :red:`non-existing` collection:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 30
+
+   * - Method Run against Non-Existing Collection
+     - Command Run against Non-Existing Collection
+
+   * - | :method:`db.collection.findAndModify()` with ``upsert: true``
+       | :method:`db.collection.findOneAndReplace()` with ``upsert: true``
+       | :method:`db.collection.findOneAndUpdate()` with ``upsert: true``
+     - :dbcommand:`findAndModify` with ``upsert: true``
+
+   * - | :method:`db.collection.insertMany()`
+       | :method:`db.collection.insertOne()`
+     - :dbcommand:`insert`
+
+   * - | :method:`db.collection.updateOne()` with ``upsert: true``
+       | :method:`db.collection.updateMany()` with ``upsert: true``
+       | :method:`db.collection.replaceOne()` with ``upsert: true``
+     - :dbcommand:`update` with ``upsert: true``
+
+   * - | :method:`db.collection.bulkWrite()`  with insert or ``upsert:true`` operations
+       | Various :doc:`/reference/method/js-bulk` with insert or ``upsert:true`` operations
+     - 
+
+For other CRUD operations allowed in transactions, see
+:ref:`transactions-operations-crud`.
+
+For more information on creating collections and indexes in a
+transaction, see :ref:`transactions-create-collections-indexes`.
+
+Informational Operations
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-operations-restrictions-info.rst
+
+.. _transactions-operations-ref-restricted:
+
+Restricted Operations
+---------------------
+
+.. include:: /includes/extracts/transactions-operations-restrictions.rst
+
+.. seealso::
+
+   :ref:`txn-prod-considerations-ddl`

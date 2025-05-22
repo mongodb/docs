@@ -1,0 +1,353 @@
+.. _qe-fundamentals-encrypt-query:
+
+=================================
+Field Encryption and Queryability
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about the following {+qe+} topics:
+
+- How to specify fields for encryption.
+- How to specify whether an encrypted field is queryable when you create a collection.
+- Query types and which ones you can use on encrypted fields.
+- What to consider when deciding whether to enable queries on an encrypted field.
+
+.. _qe-specify-fields-for-encryption:
+
+Specify Fields for Encryption
+-----------------------------
+
+{+qe+} allows you to specify which fields you want to automatically
+encrypt in your MongoDB document.
+
+.. important::
+
+   You can specify any field in your document for encryption except the
+   ``_id`` field.
+
+To specify fields for encryption and querying, define a JSON
+schema that includes the following properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 40
+
+   * - Key Name
+     - Type
+     - Required?
+
+   * - ``path``
+     - String
+     - Required
+
+   * - ``bsonType``
+     - String
+     - Required
+
+   * - ``keyId``
+     - Binary
+     - Required
+
+   * - ``queries``
+     - Object
+     - Optional, omit unless you want to be able to query the field.
+
+Example
+~~~~~~~
+
+This example shows how to create a JSON schema that specifies which fields that
+the {+qe+} feature should automatically encrypt.
+
+Consider the following document that contains personally identifiable information
+(PII), credit card information, and sensitive medical information:
+
+.. code-block:: json
+
+   {
+      "firstName": "Jon",
+      "lastName": "Snow",
+      "patientId": 12345187,
+      "address": "123 Cherry Ave",
+      "medications": [
+         "Adderal",
+         "Lipitor"
+      ],
+      "patientInfo": {
+         "ssn": "921-12-1234",
+         "billing": {
+               "type": "visa",
+               "number": "1234-1234-1234-1234"
+         }
+      }
+   }
+
+To ensure the PII and sensitive medical information stays secure, create a JSON
+schema that configures {+qe+} to automatically encrypt those fields.
+The following sample JSON schema shows how you can specify which fields to encrypt:
+
+.. code-block:: javascript
+
+   const encryptedFieldsObject = {
+      fields: [
+         {
+            path: "patientId",
+            keyId: "<unique data encryption key>",
+            bsonType: "int"
+         },
+         {
+            path: "patientInfo.ssn",
+            keyId: "<unique data encryption key>",
+            bsonType: "string"
+         },
+         {
+            path: "medications",
+            keyId: "<unique data encryption key>",
+            bsonType: "array"
+         },
+         {
+            path: "patientInfo.billing",
+            keyId: "<unique data encryption key>",
+            bsonType: "object"
+         },
+      ]
+   }
+
+Note that the ``keyId`` field requires a unique {+dek-long+} (DEK) which {+qe+}
+uses to encrypt the fields. For more information on DEKs, see
+:ref:`qe-fundamentals-manage-keys`.
+
+Client and Server Schemas
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. content copied from source/core/csfle/fundamentals/automatic-encryption.txt
+
+MongoDB supports using
+:ref:`schema validation <schema-validation-overview>`
+to enforce encryption of specific fields
+in a collection. Clients performing automatic {+qe+} have
+specific behavior depending on the database connection
+configuration:
+
+- If the connection 
+  ``encryptedFieldsMap`` object contains a key for the specified collection, the 
+  client uses that object to perform automatic {+qe+}, 
+  rather than using the remote schema. At a minimum, the local rules **must** 
+  encrypt those fields that the remote schema marks as requiring 
+  encryption.
+
+- If the connection
+  ``encryptedFieldsMap`` object does *not* contain a key for the specified 
+  collection, the client downloads the server-side remote schema for 
+  the collection and uses it to perform automatic {+qe+}.
+
+  .. important:: Behavior Considerations
+
+     When a client does not have an encryption schema for the
+     specified collection, the following occurs:
+
+     - The client trusts that the server has a valid schema with respect
+       to automatic {+qe+}.
+     
+     - The client uses the remote schema to perform automatic
+       {+qe+} only. The client does not enforce any other
+       validation rules specified in the schema.
+
+To learn more about automatic {+qe+}, see the following resources:
+
+- :ref:`{+qe+} Introduction <manual-qe-mechanisms>`
+- :ref:`<qe-quick-start>`
+
+Specify Queryable Encrypted Fields
+----------------------------------
+
+Include the ``queries`` property on fields you want to make queryable in your JSON
+schema. This enables an authorized client to issue read and write queries using
+encrypted fields. You can omit the ``queries`` property unless you want to be able
+to query the field.
+
+
+Example
+~~~~~~~
+
+The following code snippet shows how to add the ``queries`` property to the
+JSON schema to make the ``patientId`` and ``patientInfo.ssn``
+fields queryable..
+
+.. code-block:: javascript
+   :emphasize-lines: 7, 13
+
+   const encryptedFieldsObject = {
+      fields: [
+         {
+            path: "patientId",
+            keyId: "<unique data encryption key>",
+            bsonType: "int",
+            queries: { queryType: "equality" }
+         },
+         {
+            path: "patientInfo.ssn",
+            keyId: "<unique data encryption key>",
+            bsonType: "string",
+            queries: { queryType: "equality" }
+         },
+         {
+            path: "medications",
+            keyId: "<unique data encryption key>",
+            bsonType: "array"
+         },
+         {
+            path: "patientInfo.billing",
+            keyId: "<unique data encryption key>",
+            bsonType: "object"
+         },
+      ]
+   }
+
+For more information on query types, see :ref:`qe-query-types`.
+
+Enable {+qe+}
+---------------------------
+
+You can enable {+qe+} on fields you specify in a JSON schema in the following ways:
+
+- Pass the JSON schema, represented by the ``encryptedFieldsObject`` constant,
+  to the client that the application uses to create the collection as shown in the
+  following code snippet:
+
+
+.. code-block:: javascript
+   :emphasize-lines: 8-10
+
+   const client = new MongoClient(uri, {
+      autoEncryption: {
+         keyVaultNameSpace: "<your keyvault namespace>",
+         kmsProviders: "<your kms provider>",
+         extraOptions: {
+            cryptSharedLibPath: "<path to FLE Shared Library>"
+         },
+         encryptedFieldsMap: {
+            "<databaseName.collectionName>": { encryptedFieldsObject }
+         }
+      }
+
+      ...
+
+      await client.db("<database name>").createCollection("<collection name>");
+   }
+
+.. note::
+
+   It's important to enable {+qe+} before creating the collection. Enabling
+   {+qe+} after creating the collection does not encrypt fields on documents
+   already in that collection.
+
+For more information on ``autoEncryption`` configuration options, see the
+section on :ref:`qe-reference-mongo-client`.
+
+- Pass the encrypted fields object to your call to create a new collection as
+  shown in the following code snippet:
+
+.. code-block:: javascript
+
+   await encryptedDB.createCollection("<collection name>", {
+      encryptedFields: encryptedFieldsObject
+   });
+
+.. tip::
+
+   For the highest level of security, specify the encrypted fields both when
+   creating the collection, and when creating a client to access the collection.
+   This ensures that if the server's security is compromised, the information
+   is still encrypted through the client.
+
+.. important::
+
+   MongoDB recommends explicitly creating your collection when using {+qe+}, rather
+   than implicitly creating the collection through an insert operation. When you
+   create a collection using ``createCollection()``, the operation creates an index
+   on the encrypted fields. Without an index, querying on encrypted fields could
+   run slowly.
+
+.. _qe-query-types:
+
+Query Types
+-----------
+
+{+qe+} allows you to specify on which fields you want to enable querying by passing
+a query type to the ``queries`` option in your encrypted fields object.
+
+{+qe+} currently supports ``none`` or ``equality`` query types.
+The new cryptography framework introduced as part of {+qe+} 
+in MongoDB 6.0 is designed to accommodate additional 
+expressive encrypted searches, such as range and string operators. 
+
+A query type of ``none`` indicates that the data will be encrypted but 
+is not intended to be queryable. Queries cannot be run on encrypted 
+data with a query type of ``none``. Encrypted data will be returned 
+if queries are run on:
+
+- non-encrypted fields 
+- fields with a query type of ``equality`` in the same collection 
+  and decrypted at the client.
+
+.. important:: None Specified Query Types
+
+  .. include:: /includes/fact-qe-no-query-type.rst
+
+The ``equality`` query type allows you to query encrypted fields 
+using the following expressions:
+
+- :manual:`$eq </reference/operator/query/eq/>`
+- :manual:`$ne </reference/operator/query/ne/>`
+- :manual:`$in </reference/operator/query/in/>`
+- :manual:`$nin </reference/operator/query/nin/>`
+- :manual:`$and </reference/operator/query/and/>`
+- :manual:`$or </reference/operator/query/or/>`
+- :manual:`$not </reference/operator/query/not/>`
+- :manual:`$nor </reference/operator/query/nor/>`
+- :manual:`$expr </reference/operator/query/expr/>`
+
+.. note::
+   Queries that compare an encrypted field to ``null`` or to a regular expression will
+   result in an error, even when using a supported query operator.
+
+.. _qe-query-unsupported:
+
+{+qe+} using the ``equality`` query type doesn't support read or write operations
+on a field when the operation compares the encrypted field to any of the following
+:term:`BSON` types:
+
+- ``double``
+- ``decimal128``
+- ``object``
+- ``array``
+- ``javascriptWithScope`` (Deprecated)
+
+Considerations when Enabling Querying
+-------------------------------------
+
+When you use {+qe+}, you can choose whether to make an encrypted field queryable.
+If you don't need to perform read operations, or write operations that require you
+to read an encrypted field, you may decide not to enable querying on that field.
+You can still retrieve the entire document by querying other fields that are queryable or not encrypted.
+
+When you make encrypted fields queryable, {+qe+} creates an index for each encrypted field, which
+can make write operations on that field take longer. When a write operation updates
+an indexed field, MongoDB also updates the related index.
+
+When you enable querying on an encrypted field, your collection requires more storage space.
+These collection names, which begin with ``enxcol_.``, contain important encryption metadata.
+
+.. warning::
+
+   Do not modify collections beginning with ``enxcol_.``.

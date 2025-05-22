@@ -1,0 +1,226 @@
+.. _release-notes-6.3:
+
+=============================
+Release Notes for MongoDB 6.3
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. include:: /includes/rapid-release.rst
+
+Patch Releases
+--------------
+
+.. _6.3.2-release-notes:
+
+6.3.2 - June 29, 2023
+~~~~~~~~~~~~~~~~~~~~~
+
+Issues fixed:
+
+- :issue:`SERVER-67105` $in queries do not use clustered index
+- :issue:`SERVER-69952` Filtering on dates outside of the 32 bit epoch range returns wrong results
+- :issue:`SERVER-74380` Router role retry loop should allow namespaces different from the one it was created for
+- :issue:`SERVER-76550` Balancer is unable to drain shards with big chunks
+- :issue:`SERVER-77018` Deadlock between dbStats and 2 index builds
+
+- `All JIRA issues closed in 6.3.2
+  <https://jira.mongodb.org/issues/?jql=project%20in%20(SERVER%2C%20TOOLS%2C%20WT)%20AND%20resolution%20%3D%20Fixed%20AND%20fixVersion%20%3D%206.3.2>`_
+
+- :ref:`6.3.2-changelog`
+
+.. _6.3.1-release-notes:
+
+6.3.1 - May 3, 2023
+~~~~~~~~~~~~~~~~~~~
+
+Issues fixed:
+
+- :issue:`SERVER-71636` Explain executionStats does not work for $lookup
+  on sharded collection
+- :issue:`SERVER-73229` Logical sessions cache refresh ignores write
+  errors from updating session document, leading to cursors being killed
+  early
+- :issue:`SERVER-73482` $natural hint overrides sort on clustered
+  collections
+- :issue:`SERVER-74131` Multiplanning together with subplanning causes
+  server crash in mapReduce queries
+- :issue:`SERVER-75277` TTL deleter attributes resource metrics across
+  multiple databases
+
+- `All JIRA issues closed in 6.3.1
+  <https://jira.mongodb.org/issues/?jql=project%20in%20(SERVER%2CTOOLS%2CWT)%20AND%20resolution%3D%27Fixed%27%20and%20fixversion%3D%276.3.1%27>`_
+
+- :ref:`6.3.1-changelog`
+
+Aggregation 
+-----------
+
+New Aggregation Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 6.3 introduces the following aggregation operators: 
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 80
+
+  * - Operator
+    - Description
+
+  * - :expression:`$bitAnd`
+    - Returns the result of a bitwise ``and`` operation on an array of 
+      ``int`` or ``long`` values. 
+          
+  * - :expression:`$bitNot`
+    - Returns the result of a bitwise ``not`` operation on a single argument 
+      or an array that contains a single ``int`` or ``long`` value. 
+
+  * - :expression:`$bitOr`
+    - Returns the result of a bitwise ``or`` operation on an array of 
+      ``int`` or ``long`` values. 
+
+  * - :expression:`$bitXor`
+    - Returns the result of a bitwise ``xor`` (exclusive or) operation on an 
+      array of ``int`` and ``long`` values.
+
+General Changes
+---------------
+
+``serverStatus`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.3, the :dbcommand:`serverStatus` command and the
+:method:`db.serverStatus()` method have these output changes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Document
+     - Field(s)
+
+   * - New :serverstatus:`network.listenerProcessingTime` document.
+     - :serverstatus:`network.listenerProcessingTime.durationMicros`
+
+   * - Addition to :serverstatus:`connections` document.
+     - :serverstatus:`connections.rejected`
+
+   * - New :serverstatus:`metrics.network` document.
+     - :serverstatus:`metrics.network.totalEgressConnectionEstablishmentTimeMillis`
+       :serverstatus:`metrics.network.totalIngressTLSConnections`
+       :serverstatus:`metrics.network.totalIngressTLSHandshakeTimeMillis`
+       :serverstatus:`metrics.network.totalTimeForEgressConnectionAcquiredToWireMicros`
+       :serverstatus:`metrics.network.totalTimeToFirstNonAuthCommandMillis`
+
+   * - Additions to :serverstatus:`metrics.operation` document.
+     - :serverstatus:`metrics.operation.numConnectionNetworkTimeouts`
+       :serverstatus:`metrics.operation.totalTimeWaitingBeforeConnectionTimeoutMillis`
+       
+   * - Addition to :serverstatus:`shardingStatistics` document.
+     - :serverstatus:`shardingStatistics.chunkMigrationConcurrency`
+
+   * - Additions to :serverstatus:`indexBulkBuilder` document.
+     - :serverstatus:`indexBulkBuilder.numSorted`
+       :serverstatus:`indexBulkBuilder.bytesSorted`
+       :serverstatus:`indexBulkBuilder.memUsage`
+
+``connPoolStats`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.3, the :dbcommand:`connPoolStats` command has
+these output changes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Document
+     - Field(s)
+
+   * - New :data:`connPoolStats.acquisitionWaitTimes` document. 
+     - Time ranges with the number of connection requests in each
+       range.
+       Total number of connection requests for all time ranges.
+
+Session Workflow Log Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.3, a message is added to the log if the time to
+send an operation response exceeds the :ref:`slowms threshold option
+<slowms-threshold-option>`. For details, see
+:ref:`log-messages-session-workflow-example`.
+
+``explain`` Output Includes Fields for Spilled Data File Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.3, the :dbcommand:`explain` output for the 
+:pipeline:`$group` stage includes new metrics on spill data when using the 
+classic execution engine:
+
+- ``spillFileSizeBytes``, the size of the spill file written to disk in the 
+  :pipeline:`$group` stage
+- ``numBytesSpilledEstimate``, estimate of the number of bytes written to disk 
+  in the :pipeline:`$group` stage before compression
+
+For details, see :ref:`sort-and-group-executionStats-and-above`.
+
+Connection Acquisition To Wire Log Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.3, a message is added to the log if the time that
+an operation waited between acquisition of a server connection and
+writing the bytes to send to the server over the network exceeds 1
+millisecond. For details, see
+:ref:`log-messages-connection-acquisition-to-wire`.
+
+Server Parameters
+-----------------
+
+Starting in MongoDB 6.3, these server parameters were added:
+
+- :parameter:`slowConnectionThresholdMillis` sets the time limit to log
+  the establishment of slow server connections. 
+- :parameter:`chunkMigrationConcurrency` sets the number of threads on
+  the source shard and the receiving shard for migrating chunks.
+- :parameter:`planCacheSize` sets the size of the :ref:`plan cache
+  <read-operations-query-optimization>` for the :ref:`slot-based query 
+  execution engine <5.1-rel-notes-sbe>`.
+
+Time Series Collection Custom Bucketing Parameters
+--------------------------------------------------
+
+MongoDB 6.3 adds the following :ref:`time series parameters 
+<time-series-fields>`:
+
+- ``bucketMaxSpanSeconds`` sets the maximum time span between measurements
+  in a bucket.
+- ``bucketRoundingSeconds`` sets the time interval that determines the 
+  starting timestamp for a new bucket.
+
+compact Command Support for Time Series Collections
+---------------------------------------------------
+
+Starting in MongoDB 6.3, the :dbcommand:`compact` command works with
+:ref:`time series collections <manual-timeseries-landing>`.
+
+Report an Issue
+---------------
+
+To report an issue, see
+https://github.com/mongodb/mongo/wiki/Submit-Bug-Reports for
+instructions on how to file a JIRA ticket for the MongoDB server or one
+of the related projects.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /release-notes/6.3-compatibility
+   /release-notes/6.3-changelog
