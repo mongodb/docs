@@ -91,8 +91,7 @@ operation:
 Update Pipelines
 ~~~~~~~~~~~~~~~~
 
-If your application connects to {+mdb-server+} 4.2 or later, you can join
-a sequence of update operations into a single
+You can join a sequence of update operations into a single
 :manual:`aggregation pipeline. </core/aggregation-pipeline/>`
 
 To create an update pipeline, call the ``Builders.Update.Pipeline()`` method. This method
