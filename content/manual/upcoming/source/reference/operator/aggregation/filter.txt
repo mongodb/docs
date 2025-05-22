@@ -1,0 +1,413 @@
+=====================
+$filter (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn how to use an aggregation operator to return a subset of an array based on a specified condition.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $filter
+
+   Selects a subset of an array to return based on the specified
+   condition. Returns an array with only those elements that match the
+   condition. The returned elements are in the original order.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$filter``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+:expression:`$filter` has the following syntax:
+
+.. code-block:: javascript
+
+   { 
+       $filter: 
+         { 
+            input: <array>, 
+            as: <string>,  
+            cond: <expression>,
+            limit: <number expression> 
+         } 
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Specification
+
+   * - ``input``
+
+     - An :ref:`expression <aggregation-expressions>` that resolves to
+       an array.
+
+       .. include:: /includes/aggregation/null-input-behavior.rst
+
+       .. include:: /includes/aggregation/non-array-input-error.rst
+
+   * - ``as``
+
+     - Optional. A name for the :doc:`variable
+       </reference/aggregation-variables>` that represents each
+       individual element of the ``input`` array. If no name is
+       specified, the variable name defaults to ``this``.
+   
+   * - ``cond``
+
+     - An :ref:`expression <aggregation-expressions>` that resolves
+       to a boolean value used to determine if an element should be
+       included in the output array. The expression references each
+       element of the ``input`` array individually with the variable
+       name specified in ``as``.
+
+   * - ``limit``
+     - Optional. A number expression that restricts the number of matching
+       array elements that :expression:`$filter` returns. You cannot
+       specify a limit less than ``1``. The matching array elements are 
+       returned in the order they appear in the input array. 
+          
+       If the specified ``limit`` is greater than the number of matching 
+       array elements, :expression:`$filter` returns all matching array 
+       elements. If the limit is ``null``, :expression:`$filter` returns 
+       all matching array elements.
+
+For more information on expressions, see
+:ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+            $filter: {
+               input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+               as: "num",
+               cond: { $isNumber: "$$num" }
+            }
+          }
+
+     - ``[ 1, 2, 3.1, NumberLong(4) ]``
+
+   * - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 6
+
+          {
+            $filter: {
+               input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+               as: "num",
+               cond: { $isNumber: "$$num" },
+               limit: 2
+            }
+          }
+
+     - ``[ 1, 2 ]``
+
+   * - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 6
+
+          {
+            $filter: {
+               input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+               as: "num",
+               cond: { $isNumber: "$$num" },
+               limit: { $add: [ 0, 1 ] }
+            }
+          }
+
+     - ``[ 1 ]``
+
+Examples
+--------
+
+A collection ``sales`` has the following documents:
+
+.. code-block:: javascript
+
+   db.sales.insertMany( [
+      {
+         _id: 0,
+         items: [
+            { item_id: 43, quantity: 2, price: 10, name: "pen" },
+            { item_id: 2, quantity: 1, price: 240, name: "briefcase" }
+         ]
+      },
+      {
+         _id: 1,
+         items: [
+            { item_id: 23, quantity: 3, price: 110, name: "notebook" },
+            { item_id: 103, quantity: 4, price: 5, name: "pen" },
+            { item_id: 38, quantity: 1, price: 300, name: "printer" }
+         ]
+      },
+      {
+         _id: 2,
+         items: [
+            { item_id: 4, quantity: 1, price: 23, name: "paper" }
+         ]
+      }
+   ] )
+
+Filter Based on Number Comparison
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example filters the ``items`` array to only include
+documents that have a ``price`` greater than or equal to ``100``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.sales.aggregate( [
+         {
+            $project: {
+               items: {
+                  $filter: {
+                     input: "$items", 
+                     as: "item", 
+                     cond: { $gte: [ "$$item.price", 100 ] } 
+                  }
+               }
+            }
+         }
+      ] )
+
+   .. output::
+      :language: javascript
+
+      [
+         {
+            _id: 0,
+            items: [ { item_id: 2, quantity: 1, price: 240, name: 'briefcase' } ]
+         },
+         {
+            _id: 1,
+            items: [
+               { item_id: 23, quantity: 3, price: 110, name: 'notebook' },
+               { item_id: 38, quantity: 1, price: 300, name: 'printer' }
+            ]
+         },
+         { _id: 2, items: [] }
+      ]
+
+Use the limit Field
+~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``sales`` collection from the previous example.
+
+The example uses the ``limit`` field to specify the number of matching
+elements returned in each ``items`` array. 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+      :emphasize-lines: 9
+
+      db.sales.aggregate( [
+         {
+            $project: {
+               items: {
+                  $filter: {
+                     input: "$items",
+                     as: "item", 
+                     cond: { $gte: [ "$$item.price", 100 ] }, 
+                     limit: 1 
+                  }
+               }
+            }
+         }
+      ] )
+
+   .. output::
+      :language: javascript
+
+      [
+         {
+            _id: 0,
+            items: [ { item_id: 2, quantity: 1, price: 240, name: 'briefcase' } ]
+         },
+         {
+            _id: 1,
+            items: [ { item_id: 23, quantity: 3, price: 110, name: 'notebook' } ]
+         },
+         { _id: 2, items: [] }
+      ]
+
+limit Greater than Possible Matches
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``sales`` collection from the previous example.
+
+The example uses a ``limit`` field value that is larger than the
+possible number of matching elements that can be returned. In this case,
+``limit`` does not affect the query results and returns all documents
+matching the ``$gte`` filter criteria.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+      :emphasize-lines: 9
+
+      db.sales.aggregate( [
+         {
+            $project: {
+               items: {
+                  $filter: {
+                     input: "$items",
+                     as: "item", 
+                     cond: { $gte: [ "$$item.price", 100] },
+                     limit: 5
+                  }
+               }
+            }
+         }
+      ] )
+
+   .. output::
+      :language: javascript
+
+      [
+         {
+            _id: 0,
+            items: [ { item_id: 2, quantity: 1, price: 240, name: 'briefcase' } ]
+         },
+         {
+            _id: 1,
+            items: [
+               { item_id: 23, quantity: 3, price: 110, name: 'notebook' },
+               { item_id: 38, quantity: 1, price: 300, name: 'printer' }
+            ]
+         },
+         { _id: 2, items: [] }
+      ]
+
+Filter Based on String Equality Match
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``sales`` collection from the previous example.
+
+The following aggregation filters for ``items`` that have a ``name``
+value of ``pen``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.sales.aggregate( [
+         {
+            $project: {
+               items: {
+                  $filter: {
+                     input: "$items",
+                     as: "item",
+                     cond: { $eq: [ "$$item.name", "pen"] }
+                  }
+               }
+            }
+         }
+      ] )
+
+   .. output::
+      :language: javascript
+
+      [
+         {
+            _id: 0,
+            items: [ { item_id: 43, quantity: 2, price: 10, name: 'pen' } ]
+         },
+         {
+            _id: 1,
+            items: [ { item_id: 103, quantity: 4, price: 5, name: 'pen' } ]
+         },
+         { _id: 2, items: [] }
+      ]
+
+Filter Based on Regular Expression Match
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``sales`` collection from the previous example.
+
+The following aggregation uses :expression:`$regexMatch` to filter for
+``items`` that have a ``name`` value that starts with ``p``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.sales.aggregate( [
+         {
+            $project: {
+               items: {
+                  $filter: {
+                     input: "$items",
+                     as: "item",
+                     cond: {
+                        $regexMatch: { input: "$$item.name", regex: /^p/ }
+                     } 
+                  }
+               }
+            }
+         }
+      ] )
+
+   .. output::
+      :language: javascript
+
+      [
+         {
+            _id: 0,
+            items: [ { item_id: 43, quantity: 2, price: 10, name: 'pen' } ]
+         },
+         {
+            _id: 1,
+            items: [
+               { item_id: 103, quantity: 4, price: 5, name: 'pen' },
+               { item_id: 38, quantity: 1, price: 300, name: 'printer' }
+            ]
+         },
+         {
+            _id: 2,
+            items: [ { item_id: 4, quantity: 1, price: 23, name: 'paper' } ]
+         }
+      ]

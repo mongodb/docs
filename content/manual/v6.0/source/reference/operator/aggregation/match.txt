@@ -114,15 +114,15 @@ Restrictions
 
   .. include:: /includes/text-search-legacy-atlas-section.rst
 
-Filter Data on Atlas by Using Atlas Search 
+Filter Data on Atlas by Using Atlas Search
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For data stored in :atlas:`{+atlas+} </>`, 
-you can use the :atlas:`Atlas Search </atlas-search>` 
-:ref:`compound-ref` operator ``filter`` option to match or filter 
-documents when running :pipeline:`$search` queries. Running 
-:pipeline:`$match` after :pipeline:`$search` is less performant 
-than running :pipeline:`$search` with the :ref:`compound-ref` 
+For data stored in :atlas:`{+atlas+} </>`,
+you can use the :atlas:`Atlas Search </atlas-search>`
+:ref:`compound-ref` operator ``filter`` option to match or filter
+documents when running :pipeline:`$search` queries. Running
+:pipeline:`$match` after :pipeline:`$search` is less performant
+than running :pipeline:`$search` with the :ref:`compound-ref`
 operator ``filter`` option.
 
 To learn more about the ``filter`` option, see :ref:`compound-ref`
@@ -131,70 +131,105 @@ in the Atlas documentation.
 Examples
 --------
 
-The examples use a collection named ``articles`` with the following
-documents:
+.. tabs-drivers::
 
-.. code-block:: javascript
+   .. tab::
+      :tabid: shell
 
-   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
-   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
-   { "_id" : ObjectId("55f5a192d4bede9ac365b257"), "author" : "ahn", "score" : 60, "views" : 1000 }
-   { "_id" : ObjectId("55f5a192d4bede9ac365b258"), "author" : "li", "score" : 55, "views" : 5000 }
-   { "_id" : ObjectId("55f5a1d3d4bede9ac365b259"), "author" : "annT", "score" : 60, "views" : 50 }
-   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25a"), "author" : "li", "score" : 94, "views" : 999 }
-   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25b"), "author" : "ty", "score" : 95, "views" : 1000 }
+      The examples use a collection named ``articles`` with the following
+      documents:
 
-Equality Match
-~~~~~~~~~~~~~~
+      .. code-block:: javascript
 
-The following operation uses :pipeline:`$match` to perform a
-simple equality match:
+         { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
+         { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
+         { "_id" : ObjectId("55f5a192d4bede9ac365b257"), "author" : "ahn", "score" : 60, "views" : 1000 }
+         { "_id" : ObjectId("55f5a192d4bede9ac365b258"), "author" : "li", "score" : 55, "views" : 5000 }
+         { "_id" : ObjectId("55f5a1d3d4bede9ac365b259"), "author" : "annT", "score" : 60, "views" : 50 }
+         { "_id" : ObjectId("55f5a1d3d4bede9ac365b25a"), "author" : "li", "score" : 94, "views" : 999 }
+         { "_id" : ObjectId("55f5a1d3d4bede9ac365b25b"), "author" : "ty", "score" : 95, "views" : 1000 }
 
-.. code-block:: javascript
+      Equality Match
+      ~~~~~~~~~~~~~~
 
-   db.articles.aggregate(
-       [ { $match : { author : "dave" } } ]
-   );
+      The following operation uses :pipeline:`$match` to perform a
+      simple equality match:
 
-The :pipeline:`$match` selects the documents where the ``author``
-field equals ``dave``, and the aggregation returns the following:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.articles.aggregate(
+             [ { $match : { author : "dave" } } ]
+         );
 
-   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
-   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
+      The :pipeline:`$match` selects the documents where the ``author``
+      field equals ``dave``, and the aggregation returns the following:
 
-.. _match-perform-a-count:
+      .. code-block:: javascript
 
-Perform a Count
-~~~~~~~~~~~~~~~
+         { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
+         { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
 
-The following example selects documents to process using the
-:pipeline:`$match` pipeline operator and then pipes the results
-to the :pipeline:`$group` pipeline operator to compute a count of
-the documents:
+      .. _match-perform-a-count:
 
-.. code-block:: javascript
+      Perform a Count
+      ~~~~~~~~~~~~~~~
 
-   db.articles.aggregate( [
-     { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
-     { $group: { _id: null, count: { $sum: 1 } } }
-   ] );
+      The following example selects documents to process using the
+      :pipeline:`$match` pipeline operator and then pipes the results
+      to the :pipeline:`$group` pipeline operator to compute a count of
+      the documents:
 
-In the aggregation pipeline, :pipeline:`$match` selects the documents
-where either the ``score`` is greater than ``70`` and less than ``90``
-or the ``views`` is greater than or equal to ``1000``. These documents
-are then piped to the :pipeline:`$group` to perform a count. The
-aggregation returns the following:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.articles.aggregate( [
+           { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
+           { $group: { _id: null, count: { $sum: 1 } } }
+         ] );
 
-   { "_id" : null, "count" : 5 }
+      In the aggregation pipeline, :pipeline:`$match` selects the documents
+      where either the ``score`` is greater than ``70`` and less than ``90``
+      or the ``views`` is greater than or equal to ``1000``. These documents
+      are then piped to the :pipeline:`$group` to perform a count. The
+      aggregation returns the following:
+
+      .. code-block:: javascript
+
+         { "_id" : null, "count" : 5 }
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/driver-examples/aggregation/sample-data-movie.rst
+      
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$match`` 
+        
+         .. replacement:: method-name-and-link 
+
+            `Match() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.Match.html>`__
+
+         .. replacement:: stage-specific-info
+
+         .. replacement:: method-description
+
+            matches all ``Movie`` documents where the ``Title`` field is equal to
+            ``"The Shawshank Redemption"``:
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start match
+         :end-before: // end match
+         :language: csharp
+         :dedent: 8
 
 Additional Information
 ----------------------
 
-Refer to the following pages for more information and use cases on 
+Refer to the following pages for more information and use cases on
 aggregation.
 
 - :doc:`/tutorial/aggregation-zip-code-data-set`

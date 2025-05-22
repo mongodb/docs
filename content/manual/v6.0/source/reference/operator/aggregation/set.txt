@@ -32,7 +32,7 @@ Definition
    added fields.
 
    The :pipeline:`$set` stage is an alias for :pipeline:`$addFields`.
-   
+
    Both stages are equivalent to a :pipeline:`$project` stage that
    explicitly specifies all existing fields in the input documents and
    adds the new fields.
@@ -80,243 +80,278 @@ with :expression:`$concatArrays`. See :ref:`example
 Examples
 --------
 
-Using Two ``$set`` Stages
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.. tabs-drivers::
 
-Create a sample ``scores`` collection with the following:
+   .. tab::
+      :tabid: shell
 
-.. code-block:: javascript
+      Using Two ``$set`` Stages
+      ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.scores.insertMany( [
-      { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
-      { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
-   ] )
+      Create a sample ``scores`` collection with the following:
 
-The following operation uses two :pipeline:`$set` stages to
-include three new fields in the output documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.scores.insertMany( [
+            { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
+            { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
+         ] )
 
-   db.scores.aggregate( [
-      {
-        $set: {
-           totalHomework: { $sum: "$homework" },
-           totalQuiz: { $sum: "$quiz" }
-        }
-      },
-      {
-        $set: { 
-           totalScore: { $add: [ "$totalHomework", "$totalQuiz", "$extraCredit" ] } }
-      }
-   ] )
+      The following operation uses two :pipeline:`$set` stages to
+      include three new fields in the output documents:
 
-The operation returns the following documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         db.scores.aggregate( [
+            {
+              $set: {
+                 totalHomework: { $sum: "$homework" },
+                 totalQuiz: { $sum: "$quiz" }
+              }
+            },
+            {
+              $set: {
+                 totalScore: { $add: [ "$totalHomework", "$totalQuiz", "$extraCredit" ] } }
+            }
+         ] )
 
-   [
-      { 
-         _id: 1,
-         student: "Maya",
-         homework: [ 10, 5, 10 ],
-         quiz: [ 10, 8 ],
-         extraCredit: 0, 
-         totalHomework: 25,
-         totalQuiz: 18,
-         totalScore: 43
-      },
-      { 
-         _id: 2,
-         student: "Ryan",
-         homework: [ 5, 6, 5 ],
-         quiz: [ 8, 8 ],
-         extraCredit: 8,
-         totalHomework: 16,
-         totalQuiz: 16,
-         totalScore: 40
-      }
-   ]
+      The operation returns the following documents:
 
-Adding Fields to an Embedded Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. code-block:: javascript
+         :copyable: false
 
-.. _set-add-field-to-embedded:
+         [
+            {
+               _id: 1,
+               student: "Maya",
+               homework: [ 10, 5, 10 ],
+               quiz: [ 10, 8 ],
+               extraCredit: 0,
+               totalHomework: 25,
+               totalQuiz: 18,
+               totalScore: 43
+            },
+            {
+               _id: 2,
+               student: "Ryan",
+               homework: [ 5, 6, 5 ],
+               quiz: [ 8, 8 ],
+               extraCredit: 8,
+               totalHomework: 16,
+               totalQuiz: 16,
+               totalScore: 40
+            }
+         ]
 
-Use dot notation to add new fields to embedded documents.
+      Adding Fields to an Embedded Document
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Create a sample collection ``vehicles`` with the following:
+      .. _set-add-field-to-embedded:
 
-.. code-block:: javascript
+      Use dot notation to add new fields to embedded documents.
 
-   db.vehicles.insertMany( [
-      { _id: 1, type: "car", specs: { doors: 4, wheels: 4 } },
-      { _id: 2, type: "motorcycle", specs: { doors: 0, wheels: 2 } },
-      { _id: 3, type: "jet ski" }
-   ] )
+      Create a sample collection ``vehicles`` with the following:
 
-The following aggregation operation adds a new field ``fuel_type`` to
-the embedded document ``specs``.
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.vehicles.insertMany( [
+            { _id: 1, type: "car", specs: { doors: 4, wheels: 4 } },
+            { _id: 2, type: "motorcycle", specs: { doors: 0, wheels: 2 } },
+            { _id: 3, type: "jet ski" }
+         ] )
 
-   db.vehicles.aggregate( [
-      { $set: { "specs.fuel_type": "unleaded" } }
-   ] )
+      The following aggregation operation adds a new field ``fuel_type`` to
+      the embedded document ``specs``.
 
-The operation returns the following results:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         db.vehicles.aggregate( [
+            { $set: { "specs.fuel_type": "unleaded" } }
+         ] )
 
-   [
-      { _id: 1, type: "car", specs: { doors: 4, wheels: 4, fuel_type: "unleaded" } },
-      { _id: 2, type: "motorcycle", specs: { doors: 0, wheels: 2, fuel_type: "unleaded" } },
-      { _id: 3, type: "jet ski", specs: { fuel_type: "unleaded" } }
-   ]
+      The operation returns the following results:
 
-Overwriting an existing field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. code-block:: javascript
+         :copyable: false
 
-Specifying an existing field name in a :pipeline:`$set` operation
-causes the original field to be replaced.
+         [
+            { _id: 1, type: "car", specs: { doors: 4, wheels: 4, fuel_type: "unleaded" } },
+            { _id: 2, type: "motorcycle", specs: { doors: 0, wheels: 2, fuel_type: "unleaded" } },
+            { _id: 3, type: "jet ski", specs: { fuel_type: "unleaded" } }
+         ]
 
-Create a sample collection called ``animals`` with the following:
+      Overwriting an existing field
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
+      Specifying an existing field name in a :pipeline:`$set` operation
+      causes the original field to be replaced.
 
-   db.animals.insertOne( { _id: 1, dogs: 10, cats: 15 } )
+      Create a sample collection called ``animals`` with the following:
 
-The following :pipeline:`$set` operation overrides the ``cats`` field:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.animals.insertOne( { _id: 1, dogs: 10, cats: 15 } )
 
-   db.animals.aggregate( [
-     { $set: { cats: 20 } }
-   ] )
+      The following :pipeline:`$set` operation overrides the ``cats`` field:
 
-The operation returns the following document:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         db.animals.aggregate( [
+           { $set: { cats: 20 } }
+         ] )
 
-   [ { _id: 1, dogs: 10, cats: 20 } ]
+      The operation returns the following document:
 
-It is possible to replace one field with another. In the following
-example the ``item`` field substitutes for the ``_id`` field.
+      .. code-block:: javascript
+         :copyable: false
 
-Create a sample collection called ``fruits`` contains the following
-documents:
+         [ { _id: 1, dogs: 10, cats: 20 } ]
 
-.. code-block:: javascript
+      It is possible to replace one field with another. In the following
+      example the ``item`` field substitutes for the ``_id`` field.
 
-   db.fruits.insertMany( [
-      { _id: 1, item: "tangerine", type: "citrus" },
-      { _id: 2, item: "lemon", type: "citrus" },
-      { _id: 3, item: "grapefruit", type: "citrus" }
-   ] )
+      Create a sample collection called ``fruits`` contains the following
+      documents:
 
-The following aggregration operation uses ``$set`` to replace the
-``_id`` field of each document with the value of the ``item`` field,
-and replaces the ``item`` field with a string ``"fruit"``.
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.fruits.insertMany( [
+            { _id: 1, item: "tangerine", type: "citrus" },
+            { _id: 2, item: "lemon", type: "citrus" },
+            { _id: 3, item: "grapefruit", type: "citrus" }
+         ] )
 
-   db.fruits.aggregate( [
-     { $set: { _id: "$item", item: "fruit" } }
-   ] )
+      The following aggregration operation uses ``$set`` to replace the
+      ``_id`` field of each document with the value of the ``item`` field,
+      and replaces the ``item`` field with a string ``"fruit"``.
 
-The operation returns the following:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         db.fruits.aggregate( [
+           { $set: { _id: "$item", item: "fruit" } }
+         ] )
 
-   [
-      { _id: "tangerine", item: "fruit", type: "citrus" },
-      { _id: "lemon", item: "fruit", type: "citrus" },
-      { _id: "grapefruit", item: "fruit", type: "citrus" }
-   ]
+      The operation returns the following:
 
-.. _set-add-element-to-array:
+      .. code-block:: javascript
+         :copyable: false
 
-Add Element to an Array
-~~~~~~~~~~~~~~~~~~~~~~~
+         [
+            { _id: "tangerine", item: "fruit", type: "citrus" },
+            { _id: "lemon", item: "fruit", type: "citrus" },
+            { _id: "grapefruit", item: "fruit", type: "citrus" }
+         ]
 
-Create a sample ``scores`` collection with the following:
+      .. _set-add-element-to-array:
 
-.. code-block:: javascript
+      Add Element to an Array
+      ~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.scores.insertMany( [
-      { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
-      { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
-   ] )
+      Create a sample ``scores`` collection with the following:
 
-You can use :pipeline:`$set` with a :expression:`$concatArrays`
-expression to add an element to an existing array field. For example,
-the following operation uses :pipeline:`$set` to replace the
-``homework`` field with a new array whose elements are the current
-``homework`` array concatenated with another array containing a new
-score ``[ 7 ]``.
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.scores.insertMany( [
+            { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
+            { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
+         ] )
 
-   db.scores.aggregate( [
-      { $match: { _id: 1 } },
-      { $set: { homework: { $concatArrays: [ "$homework", [ 7 ] ] } } }
-   ] )
+      You can use :pipeline:`$set` with a :expression:`$concatArrays`
+      expression to add an element to an existing array field. For example,
+      the following operation uses :pipeline:`$set` to replace the
+      ``homework`` field with a new array whose elements are the current
+      ``homework`` array concatenated with another array containing a new
+      score ``[ 7 ]``.
 
-The operation returns the following:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         db.scores.aggregate( [
+            { $match: { _id: 1 } },
+            { $set: { homework: { $concatArrays: [ "$homework", [ 7 ] ] } } }
+         ] )
 
-   [ { _id: 1, student: "Maya", homework: [ 10, 5, 10, 7 ], quiz: [ 10, 8 ], extraCredit: 0 } ]
+      The operation returns the following:
 
-Creating a New Field with Existing Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. code-block:: javascript
+         :copyable: false
 
-Create a sample ``scores`` collection with the following:
+         [ { _id: 1, student: "Maya", homework: [ 10, 5, 10, 7 ], quiz: [ 10, 8 ], extraCredit: 0 } ]
 
-.. code-block:: javascript
+      Creating a New Field with Existing Fields
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.scores.insertMany( [
-      { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
-      { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
-   ] )
+      Create a sample ``scores`` collection with the following:
 
-The following aggregation operation adds a new field ``quizAverage`` 
-to each document that contains the average of the ``quiz`` array.
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         db.scores.insertMany( [
+            { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
+            { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
+         ] )
 
-   db.scores.aggregate( [
-      {
-         $set: {
-            quizAverage: { $avg: "$quiz" } 
-         }
-      }
-   ] )
+      The following aggregation operation adds a new field ``quizAverage``
+      to each document that contains the average of the ``quiz`` array.
 
-The operation returns the following documents:
+      .. code-block:: javascript
 
-.. code-block:: javascript
-   :copyable: false
+         db.scores.aggregate( [
+            {
+               $set: {
+                  quizAverage: { $avg: "$quiz" }
+               }
+            }
+         ] )
 
-   [
-      {
-         _id: 1,
-         student: 'Maya',
-         homework: [ 10, 5, 10 ],
-         quiz: [ 10, 8 ],
-         extraCredit: 0,
-         quizAverage: 9
-      },
-      {
-         _id: 2,
-         student: 'Ryan',
-         homework: [ 5, 6, 5 ],
-         quiz: [ 8, 8 ],
-         extraCredit: 8,
-         quizAverage: 8
-      }
-   ]
+      The operation returns the following documents:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+            {
+               _id: 1,
+               student: 'Maya',
+               homework: [ 10, 5, 10 ],
+               quiz: [ 10, 8 ],
+               extraCredit: 0,
+               quizAverage: 9
+            },
+            {
+               _id: 2,
+               student: 'Ryan',
+               homework: [ 5, 6, 5 ],
+               quiz: [ 8, 8 ],
+               extraCredit: 8,
+               quizAverage: 8
+            }
+         ]
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/driver-examples/aggregation/sample-data-movie.rst
+
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$set`` 
+
+         .. replacement:: method-name-and-link 
+
+            `Set() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.Set.html>`__
+
+         .. replacement:: stage-specific-info
+         
+         .. replacement:: method-description
+
+            sets the value of the ``LastUpdated`` field in each ``Movie``
+            document to the value of ``DateTime.Now``:
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start set
+         :end-before: // end set
+         :language: csharp
+         :dedent: 8

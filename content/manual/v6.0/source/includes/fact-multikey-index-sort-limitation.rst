@@ -1,7 +1,6 @@
-As a result of changes to sorting behavior on array fields in MongoDB
-4.4, when you sort on an array indexed with a
-:ref:`multikey index <index-type-multikey>`, the query plan includes
-a :term:`blocking sort` stage, unless:
+When you sort based on an array field that is indexed with a :ref:`multikey index
+<index-type-multikey>`, the query plan includes an :term:`in-memory sort` stage unless
+both of the following are true:
 
 - The index :ref:`boundaries <multikey-index-bounds-intersecting>` for all sort 
   fields are ``[MinKey, MaxKey]``, *and*

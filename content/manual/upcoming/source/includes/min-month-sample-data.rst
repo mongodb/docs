@@ -1,0 +1,11 @@
+.. code-block:: javascript
+
+   db.sales.insertOne(
+      {
+        "_id" : 1,
+        "item" : "abc",
+        "price" : 10,
+        "quantity" : 2,
+        "date" : ISODate("2014-01-01T08:15:39.736Z")
+      }
+   )

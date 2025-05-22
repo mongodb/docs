@@ -17,9 +17,9 @@ Definition
    or an entire cluster. Must be used as the first stage in an aggregation pipeline.
 
    The :pipeline:`$changeStream` stage has the following syntax:
-   
+
    .. code-block:: text
-   
+
       {
         $changeStream: {
           allChangesForCluster: <boolean>,
@@ -31,10 +31,10 @@ Definition
           startAtOperationTime: <timestamp>
         }
       }
-   
+
    .. list-table::
       :header-rows: 1
-   
+
       * - Parameter
         - Description
 
@@ -49,29 +49,29 @@ Definition
           * ``default``: Change notifications do not include the full document
             for ``update`` operations.
 
-          * ``required``: Change notifications includes a copy of the modified 
-            document as it appeared immediately after the change. If the 
+          * ``required``: Change notifications includes a copy of the modified
+            document as it appeared immediately after the change. If the
             document cannot be found, the change stream throws an error.
 
-            To use this option, you must first use the :dbcommand:`collMod` 
+            To use this option, you must first use the :dbcommand:`collMod`
             command to enable the ``changeStreamPreAndPostImages`` option.
 
             .. versionadded:: 6.0
           * ``updateLookup``: Change notifications includes a copy of the
-            document modified by the change.  This document is the current 
+            document modified by the change.  This document is the current
             majority-committed document or ``null`` if it no longer exists.
-            
+
           * ``whenAvailable``: Change notification includes a copy of the
             modified document as it appeared immediately after the change or
-            ``null`` if the document is unavailable. 
+            ``null`` if the document is unavailable.
 
-            To use this option, you must first use the :dbcommand:`collMod` 
+            To use this option, you must first use the :dbcommand:`collMod`
             command to enable the ``changeStreamPreAndPostImages`` option.
 
             .. versionadded:: 6.0
 
           In the case of partial updates, the change notification also
-          provides a description of the change.  
+          provides a description of the change.
 
       * - ``fullDocumentBeforeChange``
         - Include the full document from before the change.
@@ -107,41 +107,96 @@ Stable API Support
 Examples
 --------
 
-To create a change stream cursor using the aggregation stage, run 
-the :dbcommand:`aggregate` command.
+.. tabs-drivers::
 
-.. code-block:: javascript
+   .. tab::
+      :tabid: shell
 
-   var cur = db.names.aggregate( [
-      { $changeStream: {} }
-   ] )
+      To create a change stream cursor using the aggregation stage, run
+      the :dbcommand:`aggregate` command.
 
-To open the cursor, run ``cur``. 
+      .. code-block:: javascript
 
-When the change stream detects a change, the ``next()`` method returns
-a change event notification. For example, after running ``cur.next()``, 
-MongoDB returns a document similar to the following:
+         var cur = db.names.aggregate( [
+            { $changeStream: {} }
+         ] )
 
-.. code-block:: json
-   :copyable: false
+      To open the cursor, run ``cur``.
 
-   {
-      "_id": {
-         _data: "8262E2EE54000000022B022C0100296E5A100448E5E3DD01364019AE8FE8C6859527E046645F6964006462E2EE54C8756C0D5CF6F0720004"
-      },
-      "operationType": "insert",
-      "clusterTime": Timestamp({ t: 1659039316, i: 2 }),
-      "wallTime": ISODate("2022-07-28T20:15:16.148Z"),
-      "fullDocument": { 
-         "_id": ObjectId("62e2ee54c8756c0d5cf6f072"), 
-         "name": "Walker Percy" 
-      },
-      "ns": { 
-         "db": "test", 
-         "coll": "names" 
-      },
-      "documentKey": { _id: ObjectId("62e2ee54c8756c0d5cf6f072") }
-   }
+      When the change stream detects a change, the ``next()`` method returns
+      a change event notification. For example, after running ``cur.next()``,
+      MongoDB returns a document similar to the following:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+            "_id": {
+               _data: "8262E2EE54000000022B022C0100296E5A100448E5E3DD01364019AE8FE8C6859527E046645F6964006462E2EE54C8756C0D5CF6F0720004"
+            },
+            "operationType": "insert",
+            "clusterTime": Timestamp({ t: 1659039316, i: 2 }),
+            "wallTime": ISODate("2022-07-28T20:15:16.148Z"),
+            "fullDocument": {
+               "_id": ObjectId("62e2ee54c8756c0d5cf6f072"),
+               "name": "Walker Percy"
+            },
+            "ns": {
+               "db": "test",
+               "coll": "names"
+            },
+            "documentKey": { _id: ObjectId("62e2ee54c8756c0d5cf6f072") }
+         }
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$changeStream`` 
+        
+         .. replacement:: method-name-and-link 
+
+            `ChangeStream() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.ChangeStream.html>`__
+
+         .. replacement:: stage-specific-info
+         
+         .. replacement:: method-description
+
+            returns a change stream cursor:
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start changeStream
+         :end-before: // end changeStream
+         :language: csharp
+         :dedent: 8
+      
+      You can use a `ChangeStreamStageOptions <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.ChangeStreamStageOptions.html>`__
+      object to customize the behavior of the change stream.
+      The following example performs the same ``$changeStream`` operation as the previous
+      example, but specifies the following options:
+
+      - The ``FullDocument`` option specifies that change notifications don't include a
+        copy of the full document when modified by update operations.
+      - The ``StartAtOperationTime`` option specifies the logical starting point for the
+        change stream.
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start changeStreamOptions
+         :end-before: // end changeStreamOptions
+         :language: csharp
+         :dedent: 8 
+
+      .. note:: Prefer the ``Watch()`` Method
+
+         Where possible, use the ``IMongoCollection<TDocument>.Watch()`` method instead
+         of this aggregation stage. Use the ``ChangeStream()`` method
+         only if subsequent stages project away the resume token (``_id``) or if you don't
+         want the resulting cursor to automatically resume.
 
 For more information on change stream notifications, see :ref:`Change Events
-<change-events>`. 
+<change-events>`.

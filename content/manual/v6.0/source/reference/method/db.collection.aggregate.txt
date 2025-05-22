@@ -28,7 +28,7 @@ Definition
 
    :returns:
 
-      - A :term:`cursor` for the documents produced by the final stage of
+      - A :ref:`cursor<cursors>` for the documents produced by the final stage of
         the aggregation pipeline.
 
       - If the pipeline includes the ``explain`` option, the query returns 
@@ -416,27 +416,46 @@ For example, the following aggregation operation specifies the
 Specify a Collation
 ~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/collation-versionadded.rst
+.. include:: /includes/extracts/collation-description.rst
 
-A collection ``restaurants`` has the following documents:
-
-.. code-block:: javascript
-
-   db.restaurants.insertMany( [
-      { _id: 1, category: "café", status: "A" },
-      { _id: 2, category: "cafe", status: "a" },
-      { _id: 3, category: "cafE", status: "a" }
-   ] )
+.. include:: /includes/collation-data-setup.rst
 
 The following aggregation operation includes the :ref:`collation
 <collation>` option:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.restaurants.aggregate(
-      [ { $match: { status: "A" } }, { $group: { _id: "$category", count: { $sum: 1 } } } ],
-      { collation: { locale: "fr", strength: 1 } }
-   );
+   .. input::
+      :language: javascript
+
+      db.restaurants.aggregate(
+         [
+            { $match: { status: "Open" } },
+            {
+               $group: {
+                  _id: "$category",
+                  count: { $sum: 1 }
+               }
+            }
+         ],
+         { collation: { locale: "fr", strength: 1 } }
+      )
+
+   .. output::
+      :language: javascript
+
+      [ { _id: 'café', count: 3 } ]
+
+The aggregation specifies a collation with ``strength: 1``, which
+means the collation ignores differences between case and letter
+variants. As a result:
+
+- The ``$match`` filter matches all documents in the collection and
+  passes those documents to the ``$group`` stage.
+  
+- The ``$group`` stage ignores differences in letter variants in the
+  ``category`` field and puts all documents in a single group.
 
 .. note::
 

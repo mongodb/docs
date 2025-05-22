@@ -1,0 +1,88 @@
+================================
+Self-Managed Chained Replication
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in version 2.0, MongoDB supports chained replication. A
+chained replication occurs when a :term:`secondary` member replicates
+from another secondary member instead of from the :term:`primary`. This
+might be the case, for example, if a secondary selects its replication
+source based on ping time and if the closest member is another
+secondary. The replication source for the operation is the
+member from which the data is read.
+
+Chained replication can reduce load on the primary. But chained
+replication can also result in increased replication lag, depending on
+the topology of the network.
+
+You can use the :rsconf:`settings.chainingAllowed`
+setting in :doc:`/reference/replica-configuration` to disable chained
+replication for situations where chained replication is causing lag.
+
+MongoDB enables chained replication by default. This procedure
+describes how to disable it and how to re-enable it.
+
+.. note::
+
+   If you disable chained replication, the :dbcommand:`replSetSyncFrom` command 
+   and :method:`rs.syncFrom()` method have no effect.
+
+Disable Chained Replication
+---------------------------
+
+To disable chained replication, set the
+:rsconf:`settings.chainingAllowed`
+field in :doc:`/reference/replica-configuration` to ``false``.
+
+You can use the following sequence of commands to set
+:rsconf:`settings.chainingAllowed` to
+``false``:
+
+1. Copy the configuration settings into the ``cfg`` object:
+
+   .. code-block:: javascript
+
+      cfg = rs.config()
+
+#. Take note of whether the current configuration settings contain the
+   ``settings`` embedded document. If they do, skip this step.
+
+   .. warning:: To avoid data loss, skip this step if the configuration
+      settings contain the ``settings`` embedded document.
+
+   If the current configuration settings **do not** contain the
+   ``settings`` embedded document, create the embedded document by issuing the
+   following command:
+
+   .. code-block:: javascript
+
+      cfg.settings = { }
+
+#. Issue the following sequence of commands to set
+   :rsconf:`settings.chainingAllowed` to
+   ``false``:
+
+   .. code-block:: javascript
+
+      cfg.settings.chainingAllowed = false
+      rs.reconfig(cfg)
+
+Re-enable Chained Replication
+-----------------------------
+
+To re-enable chained replication, set
+:rsconf:`settings.chainingAllowed` to ``true``.
+You can use the following sequence of commands:
+
+.. code-block:: javascript
+
+   cfg = rs.config()
+   cfg.settings.chainingAllowed = true
+   rs.reconfig(cfg)

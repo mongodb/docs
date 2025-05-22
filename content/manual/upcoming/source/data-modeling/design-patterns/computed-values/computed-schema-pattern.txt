@@ -1,0 +1,192 @@
+.. _model-computed-data:
+.. _computed-schema-pattern:
+
+===================
+Store Computed Data
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+An application might need to derive a value from source data stored in a
+database. Computing a new value can require significant CPU resources,
+especially in the case of large data sets or in cases where multiple
+documents must be examined.
+
+If a computed value is requested often, it can be more efficient to save
+that value in the database ahead of time. When the application requests
+data, only one read operation is required.
+
+About this Task
+---------------
+
+If reads are significantly more common than writes, the computed pattern
+reduces the frequency of data computation. Instead of computing values
+on every read, the application stores the computed value and
+recalculates it as needed. The application can either recompute the
+value with every write that changes the computed value's source data, or
+as part of a periodic job.
+
+.. note::
+
+   With periodic updates, the returned computed value is not guaranteed
+   to be exact. However, this approach may be worth the performance
+   improvement if exact accuracy isn't a requirement.
+
+Steps
+-----
+
+In this example, an application displays movie viewer and revenue
+information. Users can look up a particular movie and how much money
+that movie made.
+
+.. procedure::
+
+   .. step:: Insert sample data
+
+      Create the ``screenings`` collection:
+
+      .. code-block:: javascript
+         
+         db.screenings.insertMany( [
+            {
+               theater: "Alger Cinema",
+               location: "Lakeview, OR",
+               movie_title: "Lost in the Shadows",
+               movie_id: 1,
+               num_viewers: 344,
+               revenue: 3440
+            },
+            {
+               theater: "City Cinema",
+               location: "New York, NY",
+               movie_title: "Lost in the Shadows",
+               movie_id: 1,
+               num_viewers: 1496,
+               revenue: 22440
+            },
+            
+         ] )
+
+   .. step:: Insert computed data
+
+      Users often want to know how many people saw a certain movie and
+      how much money that movie made. In the current schema, to add
+      ``num_viewers`` and ``revenue``, you must perform a read for
+      theaters that screened a movie with the title "Lost in the Shadows" and
+      sum the values of those fields.
+      
+      To avoid performing that computation every time the information is
+      requested, you can compute the total values and store them in a
+      ``movies`` collection with the movie record itself:
+
+      .. code-block:: javascript
+         :emphasize-lines: 5-6
+
+         db.movies.insertOne(
+            {
+               _id: 1,
+               title: "Lost in the Shadows",
+               total_viewers: 1840,
+               total_revenue: 25880
+            }
+         )
+
+   .. step:: Updated computed data
+
+      Consider a new screening is added to the ``screenings``
+      collection:
+      
+      .. code-block:: javascript
+
+         db.screenings.insertOne(
+            {
+               theater: "Overland Park Cinema",
+               location: "Boise, ID",
+               movie_title: "Lost in the Shadows",
+               movie_id: 1,
+               num_viewers: 760,
+               revenue: 7600
+            }
+         )
+
+      The computed data in the ``movies`` collection no longer reflects
+      the current screening data. How often you update computed data
+      depends on your application:
+
+      - In a low write environment, the computation can occur in
+        conjunction with any update of the ``screenings`` data.
+
+      - In an environment with more regular writes, the computations can
+        be done at defined intervals (every hour for example). The
+        source data in ``screenings`` isn't affected by writes to the
+        ``movies`` collection, so you can run calculations at any time.
+
+      To update the computed data based on the screenings data, you can
+      run the following aggregation at a regular interval:
+
+      .. code-block:: javascript
+
+         db.screenings.aggregate( [
+            {
+               $group: {
+                  _id: "$movie_id",
+                  total_viewers: {
+                     $sum: "$num_viewers"
+                  },
+                  total_revenue: {
+                     $sum: "$revenue"
+                  }
+               }
+            },
+            {
+               $merge: {
+                  into: { db: "test", coll: "movies" },
+                  on: "_id",
+                  whenMatched: "merge"
+               }
+            }
+         ] )
+
+   .. step:: Confirm results
+
+      To confirm that the ``movies`` collection was updated, query the
+      collection:
+      
+      .. code-block:: javascript
+
+         db.movies.find()
+
+      Output:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 5-6
+
+         [
+            {
+               _id: 1,
+               title: 'Lost in the Shadows',
+               total_viewers: 2600,
+               total_revenue: 33480
+            }
+         ]
+
+Results
+-------
+
+The computed pattern reduces CPU workload and increases application
+performance. Consider the computed pattern your application performs the
+same calculations repeatedly and has a high read to write ratio.
+
+Learn More
+----------
+
+- :ref:`approximation-schema-pattern`
+- :ref:`schema-pattern-group-data`
+- :ref:`data-modeling-data-consistency`

@@ -101,159 +101,194 @@ The following table describes the fields.
 Example
 -------
 
-The example scenario in this section shows the use of
-``$changeStreamSplitLargeEvent`` with a new collection named
-``myCollection``.
+.. tabs-drivers::
 
-Create ``myCollection`` and insert one document with just under 16 MB of
-data:
+   .. tab::
+      :tabid: shell
 
-.. code-block:: javascript
+      The example scenario in this section shows the use of
+      ``$changeStreamSplitLargeEvent`` with a new collection named
+      ``myCollection``.
 
-   db.myCollection.insertOne(
-      { _id: 0, largeField: "a".repeat( 16 * 1024 * 1024 - 1024 ) }
-   )
+      Create ``myCollection`` and insert one document with just under 16 MB of
+      data:
 
-``largeField`` contains the repeated letter ``a``.
+      .. code-block:: javascript
+      
+         db.myCollection.insertOne(
+            { _id: 0, largeField: "a".repeat( 16 * 1024 * 1024 - 1024 ) }
+         )
 
-Enable :ref:`changeStreamPreAndPostImages
-<collMod-change-stream-pre-and-post-images>` for ``myCollection``, which
-allows a change stream to retrieve a document as it was before an update
-(pre-image) and after an update (post-image):
+      ``largeField`` contains the repeated letter ``a``.
 
-.. code-block:: javascript
+      Enable :ref:`changeStreamPreAndPostImages
+      <collMod-change-stream-pre-and-post-images>` for ``myCollection``, which
+      allows a change stream to retrieve a document as it was before an update
+      (pre-image) and after an update (post-image):
 
-   db.runCommand( {
-      collMod: "myCollection",
-      changeStreamPreAndPostImages: { enabled: true }
-   } )
+      .. code-block:: javascript
+      
+         db.runCommand( {
+            collMod: "myCollection",
+            changeStreamPreAndPostImages: { enabled: true }
+         } )
 
-Create a change stream cursor to monitor changes to ``myCollection``
-using :method:`db.collection.watch()`:
+      Create a change stream cursor to monitor changes to ``myCollection``
+      using :method:`db.collection.watch()`:
 
-.. code-block:: javascript
+      .. code-block:: javascript
+      
+         myChangeStreamCursor = db.myCollection.watch(
+            [ { $changeStreamSplitLargeEvent: {} } ],
+            { fullDocument: "required", fullDocumentBeforeChange: "required" }
+         )
 
-   myChangeStreamCursor = db.myCollection.watch(
-      [ { $changeStreamSplitLargeEvent: {} } ],
-      { fullDocument: "required", fullDocumentBeforeChange: "required" }
-   )
+      For the change stream event:
 
-For the change stream event:
+      - ``fullDocument: "required"`` includes the document post-image.
+      - ``fullDocumentBeforeChange: "required"`` includes the document
+        pre-image.
 
-- ``fullDocument: "required"`` includes the document post-image.
-- ``fullDocumentBeforeChange: "required"`` includes the document
-  pre-image.
+      For details, see :pipeline:`$changeStream`.
 
-For details, see :pipeline:`$changeStream`.
+      Update the document in ``myCollection``, which also produces a change
+      stream event with the document pre- and post-images:
 
-Update the document in ``myCollection``, which also produces a change
-stream event with the document pre- and post-images:
+      .. code-block:: javascript
+      
+         db.myCollection.updateOne(
+            { _id: 0 },
+            { $set: { largeField: "b".repeat( 16 * 1024 * 1024 - 1024 ) } }
+         )
 
-.. code-block:: javascript
+      ``largeField`` now contains the repeated letter ``b``.
 
-   db.myCollection.updateOne(
-      { _id: 0 },
-      { $set: { largeField: "b".repeat( 16 * 1024 * 1024 - 1024 ) } }
-   )
+      Retrieve the fragments from ``myChangeStreamCursor`` using the
+      :method:`~cursor.next()` method and store the fragments in objects named
+      ``firstFragment``, ``secondFragment``, and ``thirdFragment``:
 
-``largeField`` now contains the repeated letter ``b``.
+      .. code-block:: javascript
+      
+         const firstFragment = myChangeStreamCursor.next()
+         const secondFragment = myChangeStreamCursor.next()
+         const thirdFragment = myChangeStreamCursor.next()
 
-Retrieve the fragments from ``myChangeStreamCursor`` using the
-:method:`~cursor.next()` method and store the fragments in objects named
-``firstFragment``, ``secondFragment``, and ``thirdFragment``:
+      Show ``firstFragment.splitEvent``:
 
-.. code-block:: javascript
+      .. code-block:: javascript
+      
+         firstFragment.splitEvent
 
-   const firstFragment = myChangeStreamCursor.next()
-   const secondFragment = myChangeStreamCursor.next()
-   const thirdFragment = myChangeStreamCursor.next()
+      Output with the fragment details:
 
-Show ``firstFragment.splitEvent``:
+      .. code-block:: javascript
+         :copyable: false
 
-.. code-block:: javascript
+         splitEvent: { fragment: 1, of: 3 }
 
-   firstFragment.splitEvent
+      Similarly, ``secondFragment.splitEvent`` and
+      ``thirdFragment.splitEvent`` return:
 
-Output with the fragment details:
+      .. code-block:: javascript
+         :copyable: false
 
-.. code-block:: javascript
-   :copyable: false
+         splitEvent: { fragment: 2, of: 3 }
+         splitEvent: { fragment: 3, of: 3 }
 
-   splitEvent: { fragment: 1, of: 3 }
+      To examine the object keys for ``firstFragment``:
 
-Similarly, ``secondFragment.splitEvent`` and
-``thirdFragment.splitEvent`` return:
+      .. code-block:: javascript
+      
+         Object.keys( firstFragment )
 
-.. code-block:: javascript
-   :copyable: false
+      Output:
 
-   splitEvent: { fragment: 2, of: 3 }
-   splitEvent: { fragment: 3, of: 3 }
+      .. code-block:: javascript
+         :copyable: false
 
-To examine the object keys for ``firstFragment``:
+         [
+            '_id',
+            'splitEvent',
+            'wallTime',
+            'clusterTime',
+            'operationType',
+            'documentKey',
+            'ns',
+            'fullDocument'
+         ]
 
-.. code-block:: javascript
+      To examine the size in bytes for ``firstFragment.fullDocument``:
 
-   Object.keys( firstFragment )
+      .. code-block:: javascript
+      
+         bsonsize( firstFragment.fullDocument )
 
-Output:
+      Output:
 
-.. code-block:: javascript
-   :copyable: false
+      .. code-block:: javascript
+         :copyable: false
 
-   [
-      '_id',
-      'splitEvent',
-      'wallTime',
-      'clusterTime',
-      'operationType',
-      'documentKey',
-      'ns',
-      'fullDocument'
-   ]
+         16776223
 
-To examine the size in bytes for ``firstFragment.fullDocument``:
+      ``secondFragment`` contains the ``fullDocumentBeforeChange`` pre-image,
+      which is approximately 16 MB in size. The following example shows the
+      object keys for ``secondFragment``:
 
-.. code-block:: javascript
+      .. code-block:: javascript
+      
+         Object.keys( secondFragment )
 
-   bsonsize( firstFragment.fullDocument )
+      Output:
 
-Output:
+      .. code-block:: javascript
+         :copyable: false
 
-.. code-block:: javascript
-   :copyable: false
+         [ '_id', 'splitEvent', 'fullDocumentBeforeChange' ]
 
-   16776223
+      ``thirdFragment`` contains the ``updateDescription`` field, which is
+      approximately 16 MB in size. The following example shows the object keys
+      for ``thirdFragment``:
 
-``secondFragment`` contains the ``fullDocumentBeforeChange`` pre-image,
-which is approximately 16 MB in size. The following example shows the
-object keys for ``secondFragment``:
+      .. code-block:: javascript
+      
+         Object.keys( thirdFragment )
 
-.. code-block:: javascript
+      Output:
 
-   Object.keys( secondFragment )
+      .. code-block:: javascript
+         :copyable: false
 
-Output:
+         [ '_id', 'splitEvent', 'updateDescription' ]
 
-.. code-block:: javascript
-   :copyable: false
+   .. tab::
+      :tabid: csharp
 
-   [ '_id', 'splitEvent', 'fullDocumentBeforeChange' ]
+      .. include:: /includes/driver-examples/aggregation/sample-data-movie.rst
+      
+      .. include:: /includes/driver-examples/aggregation/method-intro.rst
 
-``thirdFragment`` contains the ``updateDescription`` field, which is
-approximately 16 MB in size. The following example shows the object keys
-for ``thirdFragment``:
+         .. replacement:: stage-name
 
-.. code-block:: javascript
+            ``$changeStreamSplitLargeEvent`` 
+        
+         .. replacement:: method-name-and-link 
 
-   Object.keys( thirdFragment )
+            `ChangeStreamSplitLargeEvent() <{+csharp-new-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.ChangeStreamSplitLargeEvent.html>`__
 
-Output:
+         .. replacement:: stage-specific-info
+         
+         .. replacement:: method-description
 
-.. code-block:: javascript
-   :copyable: false
+            splits events exceeding 16 MB into fragments and returns them sequentially in
+            a change stream cursor:
 
-   [ '_id', 'splitEvent', 'updateDescription' ]
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/aggregation/BuildersExamples.cs
+         :start-after: // start changeStreamSplitLargeEvent
+         :end-before: // end changeStreamSplitLargeEvent
+         :language: csharp
+         :dedent: 8
 
 For more information about change streams and events, see :ref:`Change
 Events <change-events>`.

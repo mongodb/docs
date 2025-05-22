@@ -62,10 +62,16 @@ A connection string includes the following components:
        connection string includes ``username:password@``
        authentication credentials but the :urioption:`authSource` option
        is unspecified.
-
+       
        If both :urioption:`authSource` and ``defaultauthdb`` are
        unspecified, the client will attempt to authenticate the
-       specified user to the ``admin`` database.
+       specified user to the ``admin`` database. For more information, 
+       see :urioption:`authSource`.
+
+       :gold:`IMPORTANT:` For Atlas deployments using the :ref:`<connections-dns-seedlist>`, 
+       ``authSource`` is automatically set to ``admin`` in the ``TXT`` DNS  
+       record. For more information about connecting to Atlas deployments, 
+       see :ref:`<atlas-connect-to-deployment>`.
 
    * - ``?<options>``
 

@@ -79,64 +79,34 @@ The operator returns a boolean:
 Behavior
 --------
 
-``$regexMatch`` and Collation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$regexMatch and Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:expression:`$regexMatch` ignores the collation specified for the
-collection, :method:`db.collection.aggregate()`, and the index, if used.
+.. |regex-operator| replace:: ``$regexMatch``
 
-For example, the create a sample collection with collation strength
-``1`` (i.e. compare base character only and ignore other differences
-such as case and diacritics):
+.. include:: /includes/regex-operator-collation.rst
 
 .. code-block:: javascript
 
-   db.createCollection( "myColl", { collation: { locale: "fr", strength: 1 } } )
+   db.restaurants.aggregate( [
+      {
+         $addFields: { 
+            resultObject: { $regexMatch: { input: "$category", regex: /cafe/ } }
+         }
+      }
+   ] )
 
-Insert the following documents:
-
-.. code-block:: javascript
-
-   db.myColl.insertMany([
-      { _id: 1, category: "café" },
-      { _id: 2, category: "cafe" },
-      { _id: 3, category: "cafE" }
-   ])
-
-Using the collection's collation, the following operation performs a
-case-insensitive and diacritic-insensitive match:
-
-.. code-block:: javascript
-
-   db.myColl.aggregate( [ { $match: { category: "cafe" } } ] )
-
-The operation returns the following 3 documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "category" : "café" }
-   { "_id" : 2, "category" : "cafe" }
-   { "_id" : 3, "category" : "cafE" }
-
-However, the aggregation expression :expression:`$regexMatch` ignores
-collation; that is, the following regular expression pattern matching examples
-are case-sensitive and diacritic sensitive:
-
-.. code-block:: javascript
-
-   db.myColl.aggregate( [ { $addFields: { results: { $regexMatch: { input: "$category", regex: /cafe/ }  } } } ] )
-   db.myColl.aggregate( 
-      [ { $addFields: { results: { $regexMatch: { input: "$category", regex: /cafe/ }  } } } ], 
-      { collation: { locale: "fr", strength: 1 } }       // Ignored in the $regexMatch
+   db.restaurants.aggregate( [
+      {
+         $addFields: {
+            resultObject: { $regexMatch: { input: "$category", regex: /cafe/ } }
+         }
+      }
+   ], 
+      { collation: { locale: "fr", strength: 1 } } // Ignored in the $regexMatch
    )
 
-Both operations return the following:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "category" : "café", "results" : false }
-   { "_id" : 2, "category" : "cafe", "results" : true }
-   { "_id" : 3, "category" : "cafE", "results" : false }
+.. include:: /includes/regex-collation-example-output.rst
 
 To perform a case-insensitive regex pattern matching, use the
 :ref:`regexMatch-example-i-options` instead. See
@@ -410,4 +380,3 @@ The operation returns the following documents:
    { "_id" : 2, "comment" : "I wanted to concatenate a string", "category" : "External" }
    { "_id" : 3, "comment" : "How do I convert a date to string? Contact me at either cam@mongodb.com or c.dia@mongodb.com", "category" : "Employee" }
    { "_id" : 4, "comment" : "It's just me. I'm testing.  fred@MongoDB.com", "category" : "Employee" }
-
