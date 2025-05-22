@@ -1,0 +1,474 @@
+.. ensure that the changes to this text are reflected in /reference/operator/aggregation.txt
+.. ensure that the changes to this text are reflected in /meta/aggregation-quick-reference.txt
+   with slight difference. Quick Reference contains information on different expressions,
+   such as field paths, expression objects, etc.
+
+.. _agg-pipeline-quick-ref:
+
+====================================
+Aggregation Pipeline Quick Reference
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/extracts/operators-toc-explanation.rst
+
+.. _agg-pipeline-stages:
+
+Stages
+------
+
+Stages (``db.collection.aggregate``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the :method:`db.collection.aggregate` method, pipeline stages appear
+in an array. Documents pass through the stages in sequence. All except
+the :pipeline:`$out`, :pipeline:`$merge`, and :pipeline:`$geoNear` stages can appear
+multiple times in a pipeline.
+
+.. code-block:: javascript
+
+   db.collection.aggregate( [ { <stage> }, ... ] )
+
+.. include:: /includes/extracts/agg-stages-db.collection.aggregate.rst
+
+Stages (``db.aggregate``)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 3.6, MongoDB also provides the 
+:method:`db.aggregate` method:
+
+.. code-block:: javascript
+
+   db.aggregate( [ { <stage> }, ... ] )
+
+.. include:: /includes/extracts/agg-stages-db.aggregate.rst
+
+Stages Available for Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, you can use the aggregation pipeline for
+updates in: 
+
+.. include:: /includes/table-update-with-aggregation-availability.rst
+
+For the updates, the pipeline can consist of the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+.. seealso::
+
+   :doc:`/tutorial/update-documents-with-aggregation-pipeline`
+
+.. _aggregation-expressions:
+
+Expressions
+-----------
+
+Expressions can include :ref:`field paths <agg-quick-ref-field-paths>`,
+:ref:`literals <agg-quick-ref-literals>`, :ref:`system variables
+<agg-quick-ref-variables>`, :ref:`expression objects
+<agg-quick-ref-expression-objects>`, and :ref:`expression operators
+<agg-quick-ref-operator-expressions>`. Expressions can be nested.
+
+.. _agg-quick-ref-field-paths:
+
+Field Paths
+~~~~~~~~~~~
+
+Aggregation expressions use :term:`field path` to access fields in the
+input documents. To specify a field path, prefix the field name or the
+:ref:`dotted field name <document-dot-notation>` (if the field is in
+the embedded document) with a dollar sign ``$``. For example,
+``"$user"`` to specify the field path for the ``user`` field or
+``"$user.name"`` to specify the field path to ``"user.name"`` field.
+
+``"$<field>"`` is equivalent to ``"$$CURRENT.<field>"`` where the
+:variable:`CURRENT` is a system variable that defaults to the root of
+the current object, unless stated otherwise in specific stages.
+
+.. _agg-quick-ref-variables:
+
+Aggregation Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides various aggregation :ref:`system variables
+<agg-system-variables>` for use in expressions. To access variables,
+prefix the variable name with ``$$``. For example:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 65
+
+   * - Variable
+   
+     - Access via ``$$``
+     
+     - Brief Description
+     
+   * - :variable:`NOW`
+   
+     - ``$$NOW``
+
+     - Returns the current datetime value, which is same across all
+       members of the deployment and remains constant throughout the
+       aggregation pipeline. (Available in 4.2+)
+
+   * - :variable:`CLUSTER_TIME`
+   
+     - ``$$CLUSTER_TIME``
+
+     - Returns the current timestamp value, which is same across all
+       members of the deployment and remains constant throughout the
+       aggregation pipeline. For replica sets and sharded clusters
+       only. (Available in 4.2+)
+     
+   * - :variable:`ROOT`
+
+     - ``$$ROOT``
+
+     - References the root document, i.e. the top-level document.
+
+   * - :variable:`CURRENT`
+   
+     - ``$$CURRENT``
+
+     - References the start of the field path, which by default is
+       :variable:`ROOT` but can be changed.
+
+   * - :variable:`REMOVE`
+   
+     - ``$$REMOVE``
+
+     - Allows for the conditional exclusion of fields. (Available in 3.6+)
+       
+   * - :variable:`DESCEND`
+   
+     - ``$$DESCEND``
+
+     - One of the allowed results of a :pipeline:`$redact` expression.
+     
+   * - :variable:`PRUNE`
+   
+     - ``$$PRUNE``
+
+     - One of the allowed results of a :pipeline:`$redact` expression.
+
+   * - :variable:`KEEP`
+   
+     - ``$$KEEP``
+     
+     - One of the allowed results of a :pipeline:`$redact` expression.
+
+For a more detailed description of these variables, see :ref:`system
+variables <agg-system-variables>`.
+
+.. _agg-quick-ref-literals:
+
+Literals
+~~~~~~~~
+
+Literals can be of any type. However, MongoDB parses string literals
+that start with a dollar sign ``$`` as a path to a field and
+numeric/boolean literals in :ref:`expression objects
+<agg-quick-ref-expression-objects>` as projection flags. To avoid
+parsing literals, use the :expression:`$literal` expression.
+
+.. _agg-quick-ref-expression-objects:
+
+Expression Objects
+~~~~~~~~~~~~~~~~~~
+
+Expression objects have the following form:
+
+.. code-block:: javascript
+
+   { <field1>: <expression1>, ... }
+
+If the expressions are numeric or boolean literals, MongoDB treats the
+literals as projection flags (e.g. ``1`` or ``true`` to include the
+field), valid only in the :pipeline:`$project` stage. To avoid treating
+numeric or boolean literals as projection flags, use the
+:expression:`$literal` expression to wrap the numeric or boolean
+literals.
+
+.. _agg-quick-ref-operator-expressions:
+
+Operator Expressions
+--------------------
+
+.. include:: /includes/intro-aggregation-operator-expressions.rst
+
+.. _agg-quick-ref-operator-arithmetic:
+
+Arithmetic Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-arithmetic.rst
+
+.. _agg-quick-ref-operator-array:
+
+Array Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-array.rst
+
+Boolean Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-boolean.rst
+
+Comparison Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-comparison.rst
+
+
+Conditional Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-conditional.rst
+
+Custom Aggregation Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-custom-aggregation.rst
+
+.. _aggr-qr-data-size-operators:
+
+Data Size Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-data-size.rst
+
+.. _agg-qr-date-operators:
+
+Date Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-date.rst
+
+Literal Expression Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-literal.rst
+
+Miscellaneous Operators
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-miscellaneous.rst
+
+Object Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-objects.rst
+
+.. _agg-qr-set-operators:
+
+Set Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-set.rst
+
+String Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-string.rst
+
+Text Expression Operator
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-text.rst
+
+.. _agg-quick-ref-operator-trigonometry:
+
+Trigonometry Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-trigonometry.rst
+
+Type Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-type.rst
+
+.. _aggregation-accumulator-operators:
+
+.. _agg-quick-reference-accumulators:
+
+Accumulators (``$group, $bucket, $bucketAuto, $setWindowFields``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/intro-aggregation-accumulator.rst
+
+.. include:: /includes/extracts/agg-operators-accumulators-group.rst
+
+Accumulators (in Other Stages)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some operators that are available as accumulators for the
+:pipeline:`$group` stage are also available for use in other stages but
+not as accumulators. When used in these other stages, these operators
+do not maintain their state and can take as input either a single
+argument or multiple arguments. For details, refer to the specific
+operator page.
+
+.. include:: /includes/extracts/agg-operators-accumulators-project.rst
+
+Variable Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-variable-project.rst
+
+Window Operators
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/agg-operators-window.rst
+
+Index of Expression Operators
+-----------------------------
+
+.. hlist::
+   :columns: 4
+   
+   - :expression:`$abs`
+   - :group:`$accumulator`
+   - :expression:`$acos`
+   - :expression:`$acosh`
+   - :expression:`$add`
+   - :group:`$addToSet`
+   - :expression:`$allElementsTrue`
+   - :expression:`$and`
+   - :expression:`$anyElementTrue`
+   - :expression:`$arrayElemAt`
+   - :expression:`$arrayToObject`
+   - :expression:`$asin`
+   - :expression:`$asinh`
+   - :expression:`$atan`
+   - :expression:`$atan2`
+   - :expression:`$atanh`
+   - :group:`$avg`
+   - :expression:`$binarySize`
+   - :expression:`$bsonSize`
+   - :expression:`$ceil`
+   - :expression:`$cmp`
+   - :expression:`$concat`
+   - :expression:`$concatArrays`
+   - :expression:`$cond`
+   - :expression:`$convert`
+   - :expression:`$cos`
+   - :expression:`$cosh`
+   - :expression:`$dateFromParts`
+   - :expression:`$dateFromString`
+   - :expression:`$dateToParts`
+   - :expression:`$dateToString`
+   - :expression:`$dayOfMonth`
+   - :expression:`$dayOfWeek`
+   - :expression:`$dayOfYear`
+   - :expression:`$degreesToRadians`
+   - :expression:`$divide`
+   - :expression:`$eq`
+   - :expression:`$exp`
+   - :expression:`$filter`
+   - :group:`$first`
+   - :expression:`$floor`
+   - :expression:`$function`
+   - :expression:`$getField`
+   - :expression:`$gt`
+   - :expression:`$gte`
+   - :expression:`$hour`
+   - :expression:`$ifNull`
+   - :expression:`$in`
+   - :expression:`$indexOfArray`
+   - :expression:`$indexOfBytes`
+   - :expression:`$indexOfCP`
+   - :expression:`$isArray`
+   - :expression:`$isNumber`
+   - :expression:`$isoDayOfWeek`
+   - :expression:`$isoWeek`
+   - :expression:`$isoWeekYear`
+   - :group:`$last`
+   - :expression:`$let`
+   - :expression:`$literal`
+   - :expression:`$ln`
+   - :expression:`$log`
+   - :expression:`$log10`
+   - :expression:`$lt`
+   - :expression:`$lte`
+   - :expression:`$ltrim`
+   - :expression:`$map`
+   - :group:`$max`
+   - :expression:`$mergeObjects`
+   - :expression:`$meta`
+   - :expression:`$millisecond`
+   - :group:`$min`
+   - :expression:`$minute`
+   - :expression:`$mod`
+   - :expression:`$month`
+   - :expression:`$multiply`
+   - :expression:`$ne`
+   - :expression:`$not`
+   - :expression:`$objectToArray`
+   - :expression:`$or`
+   - :expression:`$pow`
+   - :group:`$push`
+   - :expression:`$radiansToDegrees`
+   - :expression:`$rand`
+   - :expression:`$range`
+   - :expression:`$reduce`
+   - :expression:`$regexFind`
+   - :expression:`$regexFindAll`
+   - :expression:`$regexMatch`
+   - :expression:`$replaceOne`
+   - :expression:`$replaceAll`
+   - :expression:`$reverseArray`
+   - :expression:`$round`
+   - :expression:`$rtrim`
+   - :expression:`$second`
+   - :expression:`$setDifference`
+   - :expression:`$setEquals`
+   - :expression:`$setField`
+   - :expression:`$setIntersection`
+   - :expression:`$setIsSubset`
+   - :expression:`$setUnion`
+   - :expression:`$sin`
+   - :expression:`$sinh`
+   - :expression:`$size`
+   - :expression:`$slice`
+   - :expression:`$split`
+   - :expression:`$sqrt`
+   - :group:`$stdDevPop`
+   - :group:`$stdDevSamp`
+   - :expression:`$strLenBytes`
+   - :expression:`$strLenCP`
+   - :expression:`$strcasecmp`
+   - :expression:`$substr`
+   - :expression:`$substrBytes`
+   - :expression:`$substrCP`
+   - :expression:`$subtract`
+   - :group:`$sum`
+   - :expression:`$switch`
+   - :expression:`$tan`
+   - :expression:`$tanh`
+   - :expression:`$toBool`
+   - :expression:`$toDate`
+   - :expression:`$toDecimal`
+   - :expression:`$toDouble`
+   - :expression:`$toInt`
+   - :expression:`$toLong`
+   - :expression:`$toLower`
+   - :expression:`$toObjectId`
+   - :expression:`$toString`
+   - :expression:`$toUpper`
+   - :expression:`$trim`
+   - :expression:`$trunc`
+   - :expression:`$type`
+   - :expression:`$week`
+   - :expression:`$year`
+   - :expression:`$zip`

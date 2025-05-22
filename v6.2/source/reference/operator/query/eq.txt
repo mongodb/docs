@@ -1,0 +1,258 @@
+===
+$eq
+===
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $eq
+
+   Specifies equality condition. The :query:`$eq` operator matches
+   documents where the value of a field equals the specified value.
+
+   .. code-block:: javascript
+
+      { <field>: { $eq: <value> } }
+
+   Specifying the :query:`$eq` operator is equivalent to using the form
+   ``{ field: <value> }`` except when the ``<value>`` is a regular 
+   expression. See below for :ref:`examples <eq-usage-examples>`. 
+
+
+Behavior
+--------
+
+Comparison Order
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-comparison-order.rst
+
+Match a Document Value
+~~~~~~~~~~~~~~~~~~~~~~
+
+If the specified ``<value>`` is a document, the order of the fields in
+the document matters.
+
+Match an Array Value
+~~~~~~~~~~~~~~~~~~~~
+
+If the specified ``<value>`` is an array, MongoDB matches documents
+where the ``<field>`` matches the array exactly or the ``<field>``
+contains an element that matches the array exactly. The order of the
+elements matters. For an example, see :ref:`eq-match-array-value`.
+
+.. _match-regex:
+
+Match a Regular Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The expression ``{ field: <value> }`` implicitly specifies a match on 
+``<value>``. MongoDB translates the implicit match to a more explicit
+form. 
+
+When the ``<value>`` is fixed, like a particular string, the expression
+is equivalent to using the ``$eq`` operator ``{ field: { $eq: <value> } }``.
+
+If ``<value>`` is a regular expression, the statement is expanded
+using the ``$regex`` operator ``{ field: { $regex: <value> } }``.
+
+For examples illustrating this behaviour, see :ref:`eq-regex-matching`.
+
+Security Implications
+~~~~~~~~~~~~~~~~~~~~~
+
+Always use the explicit form ``{ field: { $eq: <value> } }`` with 
+user-supplied input to avoid problems with maliciously formed queries.
+
+.. _eq-usage-examples:
+
+Examples
+--------
+
+The following examples query against the ``inventory`` collection with
+the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: { name: "ab", code: "123" }, qty: 15, tags: [ "A", "B", "C" ] }
+   { _id: 2, item: { name: "cd", code: "123" }, qty: 20, tags: [ "B" ] }
+   { _id: 3, item: { name: "ij", code: "456" }, qty: 25, tags: [ "A", "B" ] }
+   { _id: 4, item: { name: "xy", code: "456" }, qty: 30, tags: [ "B", "A" ] }
+   { _id: 5, item: { name: "mn", code: "000" }, qty: 20, tags: [ [ "A", "B" ], "C" ] }
+
+Equals a Specified Value
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example queries the ``inventory`` collection to select
+all documents where the value of the ``qty`` field equals ``20``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { qty: { $eq: 20 } } )
+
+The query is equivalent to:
+
+.. code-block:: javascript
+
+   db.inventory.find( { qty: 20 } )
+
+Both queries match the following documents:
+
+.. code-block:: javascript
+
+   { _id: 2, item: { name: "cd", code: "123" }, qty: 20, tags: [ "B" ] }
+   { _id: 5, item: { name: "mn", code: "000" }, qty: 20, tags: [ [ "A", "B" ], "C" ] }
+
+Field in Embedded Document Equals a Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example queries the ``inventory`` collection to select
+all documents where the value of the ``name`` field in the ``item``
+document equals ``"ab"``. To specify a condition on a field in an
+embedded document, use the :term:`dot notation`.
+
+.. code-block:: javascript
+
+   db.inventory.find( { "item.name": { $eq: "ab" } } )
+
+The query is equivalent to:
+
+.. code-block:: javascript
+
+   db.inventory.find( { "item.name": "ab" } )
+
+Both queries match the following document:
+
+.. code-block:: javascript
+
+   { _id: 1, item: { name: "ab", code: "123" }, qty: 15, tags: [ "A", "B", "C" ] }
+
+.. seealso::
+
+   :ref:`Query Embedded Documents <read-operations-embedded-documents>`
+
+Array Element Equals a Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example queries the ``inventory`` collection to select
+all documents where the ``tags`` array contains an element with the
+value ``"B"`` [#match-string-value]_:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: { $eq: "B" } } )
+
+The query is equivalent to:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: "B" } )
+
+Both queries match the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: { name: "ab", code: "123" }, qty: 15, tags: [ "A", "B", "C" ] }
+   { _id: 2, item: { name: "cd", code: "123" }, qty: 20, tags: [ "B" ] }
+   { _id: 3, item: { name: "ij", code: "456" }, qty: 25, tags: [ "A", "B" ] }
+   { _id: 4, item: { name: "xy", code: "456" }, qty: 30, tags: [ "B", "A" ] }
+
+.. seealso::
+
+   - :query:`$elemMatch`
+   - :ref:`Query Arrays <read-operations-arrays>`
+
+.. [#match-string-value] The query will also match documents where the
+   value of the ``tags`` field is the string ``"B"``.
+
+.. _eq-match-array-value:
+
+Equals an Array Value
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example queries the ``inventory`` collection to select
+all documents where the ``tags`` array equals exactly the specified
+array or the ``tags`` array contains an element that equals the array
+``[ "A", "B" ]``.
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: { $eq: [ "A", "B" ] } } )
+
+The query is equivalent to:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: [ "A", "B" ] } )
+
+Both queries match the following documents:
+
+.. code-block:: javascript
+
+   { _id: 3, item: { name: "ij", code: "456" }, qty: 25, tags: [ "A", "B" ] }
+   { _id: 5, item: { name: "mn", code: "000" }, qty: 20, tags: [ [ "A", "B" ], "C" ] }
+
+
+.. _eq-regex-matching:
+
+Regex Match Behaviour
+~~~~~~~~~~~~~~~~~~~~~
+
+The following examples demonstrate the differences in behavior between
+implicit and explict regular expression matching. Consider a collection 
+with these documents: 
+
+.. code-block:: javascript
+
+   { _id: 001, company: "MongoDB" } 
+   { _id: 002, company: "MongoDB2" }
+
+$eq match on a string
+  A string expands to return the same values whether an implicit match
+  or an explicit use of ``$eq``. Both of these queries:
+
+  .. code-block:: javascript
+  
+     db.collection.find( { company: "MongoDB" }, {_id: 0 })
+     db.collection.find( { company: { $eq: "MongoDB" } }, {_id: 0 } )
+
+  return the following result: 
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "company" : "MongoDB" }
+
+$eq match on a regular expression
+   An explicit query using ``$eq`` and a regular expression will only 
+   match an object which is also a regular expresssion. The example 
+   query won't return anything since values in the ``company`` field 
+   are strings.
+   
+   .. code-block:: javascript
+  
+      db.collection.find( { company: { $eq: /MongoDB/ } }, {_id: 0 } )
+      
+Regular expression matches
+   A query with an implicit match against a regular expression is
+   equivalent to a making a query with the ``$regex`` operator. Both of
+   these queries:
+
+   .. code-block:: javascript
+   
+      db.collection.find( { company: /MongoDB/ }, {_id: 0 })
+      db.collection.find( { company: { $regex: /MongoDB/ } }, {_id: 0 } )
+
+   return the same results:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { "company" : "MongoDB" }
+      { "company" : "MongoDB2" }  
+

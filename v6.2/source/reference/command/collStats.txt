@@ -1,0 +1,579 @@
+=========
+collStats
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: collStats
+
+   .. deprecated:: 6.2
+
+   The :dbcommand:`collStats` command returns a variety of storage statistics
+   for a given collection.
+
+   .. |method| replace:: :method:`~db.collection.stats` helper method.  
+      Specific fields in the ``collStats`` output can be accessed using the
+      :method:`~db.collection.dataSize`,
+      :method:`~db.collection.estimatedDocumentCount`,
+      :method:`~db.collection.isCapped`,
+      :method:`~db.collection.latencyStats`,
+      :method:`~db.collection.storageSize`,
+      :method:`~db.collection.totalIndexSize`, and
+      :method:`~db.collection.totalSize`
+      helper methods
+   .. include:: /includes/fact-dbcommand-tip
+
+   .. |command| replace:: ``collStats``
+
+   .. include:: /includes/fact-dbcommand.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        collStats: <string>,
+        scale: <int>
+      }
+   )
+
+Command Fields
+~~~~~~~~~~~~~~
+
+The command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+ 
+     - Type
+ 
+     - Description
+ 
+   * - ``collStats``
+ 
+     - string
+ 
+     - The name of the target collection. 
+ 
+   * - ``scale``
+ 
+     - int
+ 
+     - Optional. The scale factor for the various size data (with the exception of
+       those sizes that specify the unit of measurement in the field name). The
+       value defaults to 1 to return size data in bytes. To display
+       kilobytes rather than bytes, specify a ``scale`` value of ``1024``.
+       
+       If you specify a non-integer scale factor, MongoDB uses the integer
+       part of the specified factor. For example, if you specify a scale
+       factor of ``1023.999``, MongoDB uses ``1023`` as the scale factor.
+       
+       The scale factor rounds the affected size values to whole numbers.
+       
+       .. include:: /includes/extracts/4.2-changes-stats-scaleFactor.rst
+ 
+.. note::
+
+  Starting in version 4.2, MongoDB removes the MMAPv1 storage
+  engine. In conjunction with this change, MongoDB removes the
+  MMAPv1 specific :dbcommand:`collStats` option ``verbose``.
+
+Behavior
+--------
+
+Scaled Sizes
+~~~~~~~~~~~~
+
+Unless otherwise specified by the metric name (such as ``"bytes
+currently in the cache"``), values related to size are displayed in
+bytes and can be overridden by ``scale``.
+
+The scale factor rounds the affected size values to whole numbers.
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :dbcommand:`collStats`
+.. |opt| replace:: size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+In-Progress Indexes
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :dbcommand:`collStats` includes
+information on indexes currently being built. For details, see:
+
+- :data:`collStats.nindexes`
+- :data:`collStats.indexDetails`
+- :data:`collStats.indexBuilds`
+- :data:`collStats.totalIndexSize`
+- :data:`collStats.indexSizes`
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`collStats`
+
+Non-Existent Collections
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you run :dbcommand:`collStats` for a non-existent collection, then
+depending on your database implementation, :dbcommand:`collStats` might
+return ``0`` values in the output fields instead of returning an error.
+
+For example:
+
+.. code-block:: javascript
+
+   db.runCommand( { collStats : "nonExistentCollection" } )
+
+Example output with ``0`` values in the fields:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      ns: 'test.nonExistentCollection',
+      size: 0,
+      count: 0,
+      ...
+   }
+
+Example
+-------
+
+The following operation runs the :dbcommand:`collStats` command on the
+``restaurants`` collection, specifying a scale of ``1024`` bytes:
+
+.. code-block:: javascript
+
+   db.runCommand( { collStats : "restaurants", scale: 1024 } )
+
+The following document provides a representation of the
+:dbcommand:`collStats` output. Depending on the configuration of your
+collection and the storage engine, the output fields may vary.
+
+.. code-block:: javascript
+
+   {
+     "ns" : <string>,
+     "size" : <number>,
+     "timeseries" : {
+        "bucketsNs" : <bucketName>,
+        "bucketCount" : <number>,
+        "avgBucketSize" : <number>,
+        "numBucketInserts" : <number>,
+        "numBucketUpdates" : <number>,
+        "numBucketsOpenedDueToMetadata" : <number>,
+        "numBucketsClosedDueToCount" : <number>,
+        "numBucketsClosedDueToSize" : <number>,
+        "numBucketsClosedDueToTimeForward" : <number>,
+        "numBucketsClosedDueToTimeBackward" : <number>,
+        "numBucketsClosedDueToMemoryThreshold" : <number>,
+        "numCommits" : <number>,
+        "numWaits" : <number>,
+        "numMeasurementsCommitted" : <number>,
+        "avgNumMeasurementsPerCommit": <number>
+     },
+     "count" : <number>,
+     "avgObjSize" : <number>,
+     "numOrphanDocs" : <number>,      // Available starting in MongoDB 6.0
+     "storageSize" : <number>,
+     "freeStorageSize" : <number>,
+     "capped" : <boolean>,
+     "max" : <number>,
+     "maxSize" :  <number>,
+     "wiredTiger" : {
+        "metadata" : {
+           "formatVersion" : <num>
+        },
+        "creationString" : <string>
+        "type" :  <string>,
+        "uri" :  <string>,
+        "LSM" : {
+           "bloom filter false positives" : <number>,
+           "bloom filter hits" : <number>,
+           "bloom filter misses" : <number>,
+           "bloom filter pages evicted from cache" : <number>,
+           "bloom filter pages read into cache" : <number>,
+           "bloom filters in the LSM tree" : <number>,
+           "total size of bloom filters" : <number>,
+           "chunks in the LSM tree" : <number>,
+           "highest merge generation in the LSM tree" : <number>,
+           "queries that could have benefited from a Bloom filter that did not exist" : <number>,
+           "sleep for LSM checkpoint throttle" : <number>,
+           "sleep for LSM merge throttle" : <number>
+           "total size of bloom filters" : <number>
+        },
+        "block-manager" : {
+            "allocations requiring file extension" : <number>,
+            "blocks allocated" : <number>,
+            "blocks freed" : <number>,
+            "checkpoint size" : <number>,
+            "file allocation unit size" : <number>,
+            "file bytes available for reuse" : <number>,
+            "file magic number" : <number>,
+            "file major version number" : <number>,
+            "file size in bytes" : <number>,
+            "minor version number" : <number>
+        },
+        "btree" : {
+            "btree checkpoint generation" : <number>,
+            "column-store fixed-size leaf pages" : <number>,
+            "column-store internal pages" : <number>,
+            "column-store variable-size RLE encoded values" : <number>,
+            "column-store variable-size deleted values" : <number>,
+            "column-store variable-size leaf pages" : <number>,
+            "fixed-record size" : <number>,
+            "maximum internal page key size" : <number>,
+            "maximum internal page size" : <number>,
+            "maximum leaf page key size" : <number>,
+            "maximum leaf page size" : <number>,
+            "maximum leaf page value size" : <number>,
+            "maximum tree depth" : <number>,
+            "number of key/value pairs" : <number>,
+            "overflow pages" : <number>,
+            "pages rewritten by compaction" : <number>,
+            "row-store empty values" : <number>,
+            "row-store internal pages" : <number>,
+            "row-store leaf pages" : <number>
+        },
+        "cache" : {
+           "bytes currently in the cache" : <number>,
+           "bytes dirty in the cache cumulative" : <number>,
+           "bytes read into cache" : <number>,
+           "bytes written from cache" : <number>,
+           "checkpoint blocked page eviction" : <number>,
+           "data source pages selected for eviction unable to be evicted" : <number>,
+           "eviction walk passes of a file" : <number>,
+           "eviction walk target pages histogram - 0-9" : <number>,
+           "eviction walk target pages histogram - 10-31" : <number>,
+           "eviction walk target pages histogram - 128 and higher" : <number>,
+           "eviction walk target pages histogram - 32-63" : <number>,
+           "eviction walk target pages histogram - 64-128" : <number>,
+           "eviction walks abandoned" : <number>,
+           "eviction walks gave up because they restarted their walk twice" : <number>,
+           "eviction walks gave up because they saw too many pages and found no candidates" : <number>,
+           "eviction walks gave up because they saw too many pages and found too few candidates" : <number>,
+           "eviction walks reached end of tree" : <number>,
+           "eviction walks started from root of tree" : <number>,
+           "eviction walks started from saved location in tree" : <number>,
+           "hazard pointer blocked page eviction" : <number>,
+           "in-memory page passed criteria to be split" : <number>,
+           "in-memory page splits" : <number>,
+           "internal pages evicted" : <number>,
+           "internal pages split during eviction" : <number>,
+           "leaf pages split during eviction" : <number>,
+           "modified pages evicted" : <number>,
+           "overflow pages read into cache" : <number>,
+           "page split during eviction deepened the tree" : <number>,
+           "page written requiring cache overflow records" : <number>,
+           "pages read into cache" : <number>,
+           "pages read into cache after truncate" : <number>,
+           "pages read into cache after truncate in prepare state" : <number>,
+           "pages read into cache requiring cache overflow entries" : <number>,
+           "pages requested from the cache" : <number>,
+           "pages seen by eviction walk" : <number>,
+           "pages written from cache" : <number>,
+           "pages written requiring in-memory restoration" : <number>,
+           "tracked dirty bytes in the cache" : <number>,
+           "unmodified pages evicted" : <number>
+        },
+        "cache_walk" : {
+           "Average difference between current eviction generation when the page was last considered" : <number>,
+           "Average on-disk page image size seen" : <number>,
+           "Average time in cache for pages that have been visited by the eviction server" : <number>,
+           "Average time in cache for pages that have not been visited by the eviction server" : <number>,
+           "Clean pages currently in cache" : <number>,
+           "Current eviction generation" : <number>,
+           "Dirty pages currently in cache" : <number>,
+           "Entries in the root page" : <number>,
+           "Internal pages currently in cache" : <number>,
+           "Leaf pages currently in cache" : <number>,
+           "Maximum difference between current eviction generation when the page was last considered" : <number>,
+           "Maximum page size seen" : <number>,
+           "Minimum on-disk page image size seen" : <number>,
+           "Number of pages never visited by eviction server" : <number>,
+           "On-disk page image sizes smaller than a single allocation unit" : <number>,
+           "Pages created in memory and never written" : <number>,
+           "Pages currently queued for eviction" : <number>,
+           "Pages that could not be queued for eviction" : <number>,
+           "Refs skipped during cache traversal" : <number>,
+           "Size of the root page" : <number>,
+           "Total number of pages currently in cache" : <number>
+        },
+        "compression" : {
+           "compressed page maximum internal page size prior to compression" : <number>,
+           "compressed page maximum leaf page size prior to compression " : <number>,
+           "compressed pages read" : <number>,
+           "compressed pages written" : <number>,
+           "page written failed to compress" : <number>,
+           "page written was too small to compress" : 1
+        },
+        "cursor" : {
+           "bulk loaded cursor insert calls" : <number>,
+           "cache cursors reuse count" : <number>,
+           "close calls that result in cache" : <number>,
+           "create calls" : <number>,
+           "insert calls" : <number>,
+           "insert key and value bytes" : <number>,
+           "modify" : <number>,
+           "modify key and value bytes affected" : <number>,
+           "modify value bytes modified" : <number>,
+           "next calls" : <number>,
+           "open cursor count" : <number>,
+           "operation restarted" : <number>,
+           "prev calls" : <number>,
+           "remove calls" : <number>,
+           "remove key bytes removed" : <number>,
+           "reserve calls" : <number>,
+           "reset calls" : <number>,
+           "search calls" : <number>,
+           "search near calls" : <number>,
+           "truncate calls" : <number>,
+           "update calls" : <number>,
+           "update key and value bytes" : <number>,
+           "update value size change" : <num>
+        },
+        "reconciliation" : {
+           "dictionary matches" : <number>,
+           "fast-path pages deleted" : <number>,
+           "internal page key bytes discarded using suffix compression" : <number>,
+           "internal page multi-block writes" : <number>,
+           "internal-page overflow keys" : <number>,
+           "leaf page key bytes discarded using prefix compression" : <number>,
+           "leaf page multi-block writes" : <number>,
+           "leaf-page overflow keys" : <number>,
+           "maximum blocks required for a page" : <number>,
+           "overflow values written" : <number>,
+           "page checksum matches" : <number>,
+           "page reconciliation calls" : <number>,
+           "page reconciliation calls for eviction" : <number>,
+           "pages deleted" : <number>
+        },
+        "session" : {
+           "object compaction" : <number>,
+        },
+        "transaction" : {
+           "update conflicts" : <number>
+        }
+     },
+     "nindexes" : <number>,
+     "indexDetails" : {
+        "_id_" : {
+           "metadata" : {
+              "formatVersion" : <number>
+           },
+           ...
+        },
+        ...
+     },
+     "indexBuilds" : [            // Available starting in MongoDB 4.2
+        <string>,
+     ],
+     "totalIndexSize" : <number>,
+     "totalSize" : <number>,      // Available starting in MongoDB 4.4
+     "indexSizes" : {
+             "_id_" : <number>,
+             "<indexName>" : <number>,
+             ...
+     },
+     "scaleFactor" : <number> // Available starting in MongoDB 4.2
+     "ok" : <number>
+   }
+
+.. _collStats-output:
+
+Output
+------
+
+.. data:: collStats.ns
+
+   The namespace of the current collection, which follows the format
+   ``[database].[collection]``.
+
+.. data:: collStats.size
+
+   The total uncompressed size in memory of all records in a
+   collection. The :data:`~collStats.size` does not
+   include the size of any indexes associated with the collection,
+   which the :data:`~collStats.totalIndexSize` field reports.
+
+   The ``scale`` argument affects this value. Data compression does not
+   affect this value.
+
+.. data:: collStats.timeseries
+
+   :data:`~collStats.timeseries` appears when you run the
+   :dbcommand:`collStats` command on a :ref:`time series collection
+   <manual-timeseries-collection>`.
+
+   This document contains data for internal diagnostic use.
+
+.. data:: collStats.count
+
+   The number of objects or documents in this collection.
+
+
+.. data:: collStats.avgObjSize
+
+   The average size of an object in the collection. The ``scale``
+   argument does not affect this value.
+
+.. data:: collStats.numOrphanDocs
+
+   The number of :term:`orphaned documents <orphaned document>` in the 
+   collection.
+
+   .. versionadded:: 6.0
+
+.. data:: collStats.storageSize
+
+   The total amount of storage allocated to this collection for
+   :term:`document` storage. The ``scale`` argument affects this
+   value.
+
+   If collection data is compressed (which is the :option:`default for
+   WiredTiger <mongod --wiredTigerCollectionBlockCompressor>`), the
+   storage size reflects the compressed size and may be smaller than
+   the value for :data:`collStats.size`.
+
+   :data:`~collStats.storageSize` does not include index size. See
+   :data:`~collStats.totalIndexSize` for index sizing.
+
+.. data:: collStats.freeStorageSize
+
+   *Unavailable for the In-Memory Storage Engine*
+
+   The amount of storage available for reuse. The ``scale`` argument
+   affects this value.
+
+   The field is only available if storage is available for reuse (i.e.
+   greater than zero).
+
+   .. versionadded:: 4.4
+
+.. data:: collStats.nindexes
+
+   The number of indexes on the collection. All collections have at
+   least one index on the :term:`_id` field.
+
+   Starting in MongoDB 4.2, :data:`~collStats.nindexes` includes in its
+   count those indexes currently being built.
+
+.. data:: collStats.indexDetails
+
+   A document that reports data from the :ref:`WiredTiger <storage-wiredTiger>`
+   storage engine for each index in the collection. Other storage engines will
+   return an empty document.
+
+   The fields in this document are the names of the indexes, while the
+   values themselves are documents that contain statistics for the
+   index provided by the storage engine. These statistics are for
+   internal diagnostic use.
+
+   Starting in MongoDB 4.2, :data:`~collStats.indexDetails` includes
+   details on indexes currently being built.
+
+.. data:: collStats.indexBuilds
+
+   An array that contains the names of the indexes that are currently
+   being built on the collection. Once an index build completes, the
+   index does not appear in the :data:`~collStats.indexBuilds`.
+
+   .. versionadded:: 4.2
+
+.. data:: collStats.totalIndexSize
+
+   The total size of all indexes. The ``scale`` argument affects this
+   value.
+
+   If an index uses prefix compression (which is the :option:`default
+   for WiredTiger <mongod --wiredTigerIndexPrefixCompression>`), the
+   returned size reflects the compressed size for any such indexes when
+   calculating the total.
+   
+   Starting in MongoDB 4.2, :data:`~collStats.totalIndexSize` includes
+   in its total the size of those indexes currently being built.
+
+.. data:: collStats.totalSize
+
+   The sum of the :data:`~collStats.storageSize` and
+   :data:`~collStats.totalIndexSize`. The ``scale`` argument affects
+   this value.
+
+   .. versionadded:: 4.4
+
+.. data:: collStats.indexSizes
+
+   This field specifies the key and size of every existing index on
+   the collection. The ``scale`` argument affects this value.
+
+   If an index uses prefix compression (which is the :option:`default
+   for WiredTiger <mongod --wiredTigerIndexPrefixCompression>`), the
+   returned size reflects the compressed size.
+
+   Starting in MongoDB 4.2, :data:`~collStats.indexSizes` includes
+   sizes of indexes currently being built.
+
+.. data:: collStats.scaleFactor
+
+   The ``scale`` value used by the command.
+
+   If you had specified a non-integer scale factor, MongoDB uses the
+   integer part of the specified factor. For example, if you specify a
+   scale factor of ``1023.999``, MongoDB uses ``1023`` as the scale
+   factor.
+
+   .. versionadded:: 4.2
+
+.. data:: collStats.capped
+
+   This field will be "true" if the collection is
+   :term:`capped <capped collection>`.
+
+.. data:: collStats.max
+
+   Shows the maximum number of documents that may be present in a
+   :term:`capped collection`.
+
+.. data:: collStats.maxSize
+
+   Shows the maximum size of a :term:`capped collection`.
+
+.. data:: collStats.wiredTiger
+
+   :data:`~collStats.wiredTiger` only appears when using the
+   WiredTiger storage engine.
+
+   This document contains data reported
+   directly by the WiredTiger engine and other data for internal
+   diagnostic use.
+
+.. data:: collStats.inMemory
+
+   :data:`~collStats.inMemory` only appears when using the in-memory
+   storage engine.
+
+   This document contains data reported
+   directly by the storage engine and other data for internal
+   diagnostic use.

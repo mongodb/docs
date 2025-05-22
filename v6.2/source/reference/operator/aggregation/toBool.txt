@@ -1,0 +1,192 @@
+======================
+$toBool (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+.. meta::
+   :description: type conversion, convert to boolean, boolean conversion, aggregation, convert to bool
+   :keywords: type conversion, convert to boolean, double conversion, aggregation, convert to bool
+
+
+Definition
+----------
+
+.. expression:: $toBool
+
+   Converts a value to a boolean.
+
+   :expression:`$toBool` has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $toBool: <expression>
+      }
+
+   The :expression:`$toBool` takes any valid :ref:`expression
+   <aggregation-expressions>`.
+
+   The :expression:`$toBool` is a shorthand for the following
+   :expression:`$convert` expression:
+
+   .. code-block:: javascript
+
+      { $convert: { input: <expression>, to: "bool" } }
+
+   .. seealso::
+
+      :expression:`$convert`
+
+
+Behavior
+--------
+
+The following table lists the input types that can be converted to a
+boolean:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 55 50
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+     -  No-op. Returns the boolean value.
+
+   * - Double
+     - | Returns true if not zero.
+       | Return false if zero.
+
+   * - Decimal
+     - | Returns true if not zero.
+       | Return false if zero.
+
+   * - Integer
+
+     - | Returns true if not zero.
+       | Return false if zero.
+
+   * - Long
+
+     - | Returns true if not zero.
+       | Return false if zero.
+
+   * - ObjectId
+
+     - | Returns true.
+
+   * - String
+     - | Returns true.
+
+   * - Date
+
+     - | Returns true.
+
+The following table lists some conversion to boolean examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+
+   * - Example
+     - Results
+
+   * - ``{$toBool: false}``
+     - false
+
+   * - ``{$toBool: 1.99999}``
+     - true
+
+   * - ``{$toBool: NumberDecimal("5")}``
+     - true
+
+   * - ``{$toBool: NumberDecimal("0")}``
+     - false
+
+   * - ``{$toBool: 100}``
+     - true
+
+   * - ``{$toBool: ISODate("2018-03-26T04:38:28.044Z")}``
+     - true
+
+   * - ``{$toBool: "false"}``
+     - true
+
+   * - ``{$toBool: ""}``
+     - true
+
+   * - ``{$toBool: null}``
+     - null
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insertMany( [
+      { _id: 1, item: "apple",  qty: 5, shipped: true },
+      { _id: 2, item: "pie",  qty: 10, shipped: 0  },
+      { _id: 3, item: "ice cream", shipped: 1 },
+      { _id: 4, item: "almonds", qty: 2, shipped: "true" },
+      { _id: 5, item: "pecans", shipped: "false" },  // Note: All strings convert to true
+      { _id: 6, item: "nougat", shipped: ""  }       // Note: All strings convert to true
+   ] )
+
+The following aggregation operation on the ``orders`` collection
+converts the ``shipped`` to a boolean value before finding the
+unshipped orders:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedShippedFlag field with the converted shipped value
+   // Because all strings convert to true, include specific handling for "false" and "" 
+
+   shippedConversionStage = {
+      $addFields: {
+         convertedShippedFlag: { 
+            $switch: { 
+               branches: [
+                 { case: { $eq: [ "$shipped", "false" ] }, then: false } , 
+                 { case: { $eq: [ "$shipped", "" ] }, then: false }
+               ],
+               default: { $toBool: "$shipped" }
+           }
+         }
+      }
+   };
+
+   // Define stage to filter documents and pass only the unshipped orders
+
+   unshippedMatchStage = {
+      $match: { "convertedShippedFlag": false }
+   };
+
+   db.orders.aggregate( [
+     shippedConversionStage,
+     unshippedMatchStage
+   ] )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "item" : "pie", "qty" : 10, "shipped" : 0, "convertedShippedFlag" : false }
+   { "_id" : 5, "item" : "pecans", "shipped" : "false", "convertedShippedFlag" : false }
+   { "_id" : 6, "item" : "nougat", "shipped" : "", "convertedShippedFlag" : false }
+
+.. note::
+
+   If the conversion operation encounters an error, the aggregation
+   operation stops and throws an error. To override this behavior, use
+   :expression:`$convert` instead.

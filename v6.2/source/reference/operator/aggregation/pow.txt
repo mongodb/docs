@@ -1,0 +1,125 @@
+==================
+$pow (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $pow 
+
+   Raises a number to the specified exponent and returns the result.
+   :expression:`$pow` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $pow: [ <number>, <exponent> ] }
+
+   The ``<number>`` expression can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolves to a number.
+
+   The ``<exponent>`` expression can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolves to a number.
+
+   You cannot raise ``0`` to a negative exponent.
+
+Behavior
+--------
+
+The result will have the same type as the input except when it
+cannot be represented accurately in that type. In these cases:
+
+- A 32-bit integer will be converted to a 64-bit integer if the
+  result is representable as a 64-bit integer.
+
+- A 32-bit integer will be converted to a double if the result is
+  not representable as a 64-bit integer.
+
+- A 64-bit integer will be converted to double if the result is not
+  representable as a 64-bit integer.
+
+.. include:: /includes/extracts/agg-expression-null-operand-pow.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $pow: [ 5, 0 ] }``
+     - ``1``
+
+   * - ``{ $pow: [ 5, 2 ] }``
+     - ``25``
+
+   * - ``{ $pow: [ 5, -2 ] }``
+     - ``0.04``
+
+   * - ``{ $pow: [ -5, 0.5 ] }``
+     - ``NaN``
+
+Example
+-------
+
+A collection named ``quizzes`` contains the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "scores" : [
+         {
+            "name" : "dave123",
+            "score" : 85
+         },
+         {
+            "name" : "dave2",
+            "score" : 90
+         },
+         {
+            "name" : "ahn",
+            "score" : 71
+         }
+      ]
+   }
+   {
+      "_id" : 2,
+      "scores" : [
+         {
+            "name" : "li",
+            "quiz" : 2,
+            "score" : 96
+         },
+         {
+            "name" : "annT",
+            "score" : 77
+         },
+         {
+            "name" : "ty",
+            "score" : 82
+         }
+      ]
+   }
+
+The following example calculates the variance for each quiz:
+
+.. code-block:: javascript
+
+   db.quizzes.aggregate([
+      { $project: { variance: { $pow: [ { $stdDevPop: "$scores.score" }, 2 ] } } }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "variance" : 64.66666666666667 }
+   { "_id" : 2, "variance" : 64.66666666666667 }

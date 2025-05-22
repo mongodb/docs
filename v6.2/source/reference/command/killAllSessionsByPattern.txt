@@ -1,0 +1,127 @@
+========================
+killAllSessionsByPattern
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: killAllSessionsByPattern
+
+   The :dbcommand:`killAllSessionsByPattern` command kills all sessions
+   that match any of the specified patterns. [#exception]_
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      { 
+        killAllSessionsByPattern: [ <pattern>, ... ] 
+      } 
+   )
+
+Command Fields
+--------------
+
+The command takes an array of documents that specify the patterns to
+match:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Pattern
+     - Description
+
+   * - ``{ lsid: { id : <UUID> } }``
+     - Specify the UUID portion of the session ID to kill.
+
+   * - ``{ uid: <BinData> }``
+     - Specifies the hash of the owner of the sessions to kill.
+
+   * - ``{ users: [ { user: <user>, db: <dbname> }, ... ] }``
+     - Specifies the owners of the sessions to kill. Requires
+       additional privileges. See
+       :ref:`killAllSessionsByPattern-auth`.
+
+   * - ``{ roles: [ { role: <role>, db: <dbname> }, ... ] }``
+     - Specifies the roles assigned to the owners of the sessions to
+       kill. Requires additional privileges. See
+       :ref:`killAllSessionsByPattern-auth`.
+
+Specify an empty array to kill all sessions. [#exception]_
+
+.. |command| replace:: :dbcommand:`killAllSessionsByPattern`
+
+To view existing sessions, see :pipeline:`$listSessions` operation or
+:pipeline:`$listLocalSessions`.
+
+.. seealso::
+
+   :dbcommand:`killAllSessions`
+
+.. [#exception]
+
+   The |command| operation ignores sessions that have
+   :ref:`transactions <transactions>` in prepared state.
+   See :ref:`killAllSessionsByPattern-behavior` for details.
+
+.. _killAllSessionsByPattern-behavior:
+
+Behavior
+--------
+
+.. include:: /includes/note-killSessions.rst
+
+.. _killAllSessionsByPattern-auth:
+
+Access Control
+--------------
+
+If the deployment enforces authentication/authorization, you must have
+the :authaction:`killAnySession` privilege action to run the
+:dbcommand:`killAllSessionsByPattern` command.
+
+For patterns that include ``users`` or ``roles``, you must also have
+privileges that grant :authaction:`impersonate` action on the cluster
+resource.
+
+.. note::
+
+   Users can kill their own sessions even without the
+   :authaction:`killAnySession` privilege action.
+
+Examples
+--------
+
+Kill All Sessions
+~~~~~~~~~~~~~~~~~
+
+The following operation kills all sessions:
+
+.. code-block:: javascript
+
+   db.runCommand( { killAllSessionsByPattern: [ ] } )
+
+Kill All Sessions for Specific Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation kills all sessions that have the specified
+``uid`` and whose owner has the specified role:
+
+.. code-block:: javascript
+
+   db.runCommand( { killAllSessionsByPattern: [ 
+      { "uid" : BinData(0,"oBRA45vMY78p1tv6kChjQPTdYsnCHi/kA/fFMZTIV1o=") },
+      { roles: [ { role: "readWrite", db: "test" } ] }
+   ] } )

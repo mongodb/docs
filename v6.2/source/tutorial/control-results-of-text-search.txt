@@ -1,0 +1,86 @@
+===================================
+Control Search Results with Weights
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Text search assigns a score to each document that contains the search
+term in the indexed fields. The score determines the relevance of a
+document to a given search query.
+
+.. include:: /includes/fact-text-index-weight.rst
+
+.. warning::
+
+   Choose the weights carefully in order to prevent the need to reindex.
+
+A collection ``blog`` has the following documents:
+
+.. code-block:: javascript
+
+   {
+     _id: 1,
+     content: "This morning I had a cup of coffee.",
+     about: "beverage",
+     keywords: [ "coffee" ]
+   }
+
+   {
+     _id: 2,
+     content: "Who doesn't like cake?",
+     about: "food",
+     keywords: [ "cake", "food", "dessert" ]
+   }
+
+To create a ``text`` index with different field weights for the
+``content`` field and the ``keywords`` field, include the ``weights``
+option to the :method:`~db.collection.createIndex()` method. For
+example, the following command creates an index on three fields and
+assigns weights to two of the fields:
+
+.. code-block:: javascript
+
+   db.blog.createIndex(
+      {
+        content: "text",
+        keywords: "text",
+        about: "text"
+      },
+      {
+        weights: {
+          content: 10,
+          keywords: 5
+        },
+        name: "TextIndex"
+      }
+    )
+
+The ``text`` index has the following fields and weights:
+
+- ``content`` has a weight of 10,
+
+- ``keywords`` has a weight of 5, and
+
+- ``about`` has the default weight of 1.
+
+These weights denote the relative significance of the indexed fields to
+each other. For instance, a term match in the ``content`` field has:
+
+- ``2`` times (i.e. ``10:5``) the impact as a term match in the
+  ``keywords`` field and
+
+- ``10`` times (i.e. ``10:1``) the impact as a term match in the
+  ``about`` field.
+
+.. note::
+
+   For data hosted on MongoDB Atlas,
+   :atlas:`Atlas Search </atlas-search>` provides more robust custom
+   scoring than ``text`` indexes. To learn more, see the Atlas Search
+   :atlas:`Scoring </reference/atlas-search/scoring/>` documentation.

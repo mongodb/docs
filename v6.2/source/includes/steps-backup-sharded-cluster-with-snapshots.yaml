@@ -1,0 +1,202 @@
+title: Disable the balancer.
+stepnum: 1
+ref: disable-balancer
+pre: |
+  
+  Connect :binary:`~bin.mongosh` to a cluster
+  :binary:`~bin.mongos` instance. Use the :method:`sh.stopBalancer()`
+  method to stop the balancer. If a balancing round is in progress, the
+  operation waits for balancing to complete before stopping the
+  balancer.
+
+  .. code-block:: javascript
+
+     use config
+     sh.stopBalancer()
+
+post: |
+  .. include:: /includes/extracts/4.2-changes-stop-balancer-autosplit.rst
+  
+  For more information, see the
+  :ref:`sharding-balancing-disable-temporarily` procedure.
+---
+title: "If necessary, lock one secondary member of each replica set."
+stepnum: 2
+ref: lock
+pre: |
+  If your secondary does not have journaling enabled *or* its
+  journal and data files are on different volumes, you **must** lock
+  the secondary's :binary:`~bin.mongod` instance before capturing a backup.
+
+  If your secondary has journaling enabled and its journal and data
+  files are on the same volume, you may skip this step.
+ 
+  .. important::
+
+     If your deployment requires this step, you must perform it on one
+     secondary of each shard and one secondary of the
+     :ref:`config server replica set (CSRS) <replset-config-servers>`.
+
+  Ensure that the :term:`oplog` has sufficient capacity to allow these
+  secondaries to catch up to the state of the primaries after finishing
+  the backup procedure. See :ref:`replica-set-oplog-sizing` for more
+  information.
+   
+action:
+  - heading: Lock shard replica set secondary.
+    pre: |
+      For each shard replica set in the sharded cluster, confirm that
+      the member has replicated data up to some control point. To
+      verify, first connect :binary:`~bin.mongosh` to the shard
+      primary and perform a write operation with
+      :writeconcern:`"majority"` write concern on a control
+      collection:
+    language: javascript
+    code: |
+      use config
+      db.BackupControl.findAndModify(
+         {
+           query: { _id: 'BackupControlDocument' },
+           update: { $inc: { counter : 1 } },
+           new: true,
+           upsert: true,
+           writeConcern: { w: 'majority', wtimeout: 15000 }
+         }
+      );
+  - pre: |
+      The operation should return the modified (or inserted) control
+      document:
+    language: javascript
+    code: |
+       { "_id" : "BackupControlDocument", "counter" : 1 }
+  - pre: |
+      Query the shard secondary member for the returned control
+      document. Connect :binary:`~bin.mongosh` to the shard 
+      secondary to lock and use :method:`db.collection.find()` to query 
+      for the control document:
+    language: javascript
+    code: |
+      rs.secondaryOk();
+
+      use config;
+
+      db.BackupControl.find(
+         { "_id" : "BackupControlDocument", "counter" : 1 }
+      ).readConcern('majority');
+  - post: |
+         If the secondary member contains the latest control document, 
+         it is safe to lock the member. Otherwise, wait until the member
+         contains the document or select a different secondary member
+         that contains the latest control document.
+  - pre: |
+       To lock the secondary member, run :method:`db.fsyncLock()` on
+       the member:
+    language: javascript
+    code: |
+       db.fsyncLock()
+
+  - heading: Lock config server replica set secondary.
+    pre: |
+      If locking a secondary of the CSRS, confirm that the member has
+      replicated data up to some control point. To verify, first connect
+      :binary:`~bin.mongosh` to the CSRS primary and perform a write
+      operation with :writeconcern:`"majority"` write concern on a
+      control collection:
+    language: javascript
+    code: |
+      use config
+      db.BackupControl.findAndModify(
+         {
+           query: { _id: 'BackupControlDocument' },
+           update: { $inc: { counter : 1 } },
+           new: true,
+           upsert: true,
+           writeConcern: { w: 'majority', wtimeout: 15000 }
+         }
+      );
+  - pre: |
+      The operation should return the modified (or inserted) control
+      document:
+    language: javascript
+    code: |
+       { "_id" : "BackupControlDocument", "counter" : 1 }
+  - pre: |
+      Query the CSRS secondary member for the returned control
+      document. Connect :binary:`~bin.mongosh` to the CSRS secondary
+      to lock and use :method:`db.collection.find()` to query for the
+      control document:
+    language: javascript
+    code: |
+      rs.secondaryOk();
+      
+      use config;
+
+      db.BackupControl.find(
+         { "_id" : "BackupControlDocument", "counter" : 1 }
+      ).readConcern('majority');
+  - post: |
+         If the secondary member contains the latest control document, it
+         is safe to lock the member. Otherwise, wait until the member
+         contains the document or select a different secondary member
+         that contains the latest control document.
+  - pre: |
+       To lock the secondary member, run :method:`db.fsyncLock()` on
+       the member:
+    language: javascript
+    code: |
+       db.fsyncLock()
+---
+title: Back up one of the config servers.
+stepnum: 3
+ref: backup-config-server
+content: |
+  
+  .. note::
+
+     Backing up a :ref:`config server <sharding-config-server>` backs
+     up the sharded cluster's metadata. You only need to back up one
+     config server, as they all hold the same data. Perform this step
+     against the locked CSRS secondary member.
+  
+  To create a file-system snapshot of the config server, follow the
+  procedure in :ref:`lvm-backup-operation`.
+---
+title: Back up a replica set member for each shard.
+stepnum: 4
+ref: backup-locked-shards
+content: |
+  If you locked a member of the replica set shards, perform this step
+  against the locked secondary.
+  
+  You may back up the shards in parallel. For each shard, create a
+  snapshot, using the procedure in
+  :doc:`/tutorial/backup-with-filesystem-snapshots`.
+---
+title: Unlock all locked replica set members.
+stepnum: 5
+ref: unlock
+pre: |
+  If you locked any :binary:`~bin.mongod` instances to capture the backup,
+  unlock them.
+
+  To unlock the replica set members, use :method:`db.fsyncUnlock()`
+  method in :binary:`~bin.mongosh`.
+action: 
+  language: javascript
+  code: |
+    db.fsyncUnlock()
+---
+title: Enable the balancer.
+stepnum: 6
+ref: enable-balancer
+pre: |
+  To re-enable to balancer, connect :binary:`~bin.mongosh` to a
+  :binary:`~bin.mongos` instance and run
+  :method:`sh.startBalancer()`.
+action:
+  language: javascript
+  code: |
+    sh.startBalancer()
+post: |
+   .. include:: /includes/extracts/4.2-changes-start-balancer-autosplit.rst
+...

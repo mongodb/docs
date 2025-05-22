@@ -1,0 +1,413 @@
+==========================
+db.collection.insertMany()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.insertMany()
+
+
+   .. |dbcommand| replace:: :dbcommand:`insert` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+   Inserts multiple documents into a collection.
+
+   The :method:`~db.collection.insertMany()` method has the following
+   syntax:
+
+   .. code-block:: javascript
+
+      db.collection.insertMany(
+         [ <document 1> , <document 2>, ... ],
+         {
+            writeConcern: <document>,
+            ordered: <boolean>
+         }
+      )
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``document``
+   
+        - document
+   
+        - An array of documents to insert into the collection.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :ref:`write concern
+          <write-concern>`. Omit to use the default write concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          
+   
+      * - ``ordered``
+   
+        - boolean
+   
+        - Optional. A boolean specifying whether the :binary:`~bin.mongod` instance should perform 
+          an ordered or unordered insert. Defaults to ``true``.
+          
+          
+   
+
+
+   :returns:
+
+      A document containing:
+
+      - An ``acknowledged`` boolean, set to ``true`` if the operation
+        ran with :term:`write concern` or ``false`` if write concern
+        was disabled
+
+      - An ``insertedIds`` array, containing ``_id`` values for each
+        successfully inserted document
+
+Behaviors
+---------
+
+Given an array of documents, :method:`~db.collection.insertMany()`
+inserts each document in the array into the collection.
+
+Execution of Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+By default documents are inserted in order.
+
+If ``ordered`` is set to false, documents are inserted in an unordered
+format and may be reordered by :binary:`~bin.mongod` to increase performance.
+Applications should not depend on ordering of inserts if using an unordered
+:method:`~db.collection.insertMany()`.
+
+.. include:: /includes/fact-bulkwrite-operation-batches.rst
+
+.. include:: /includes/fact-bulk-operation-sharded-cluster.rst
+
+
+Collection Creation
+~~~~~~~~~~~~~~~~~~~
+
+If the collection does not exist, then :method:`~db.collection.insertMany()`
+creates the collection on successful write.
+
+``_id`` Field
+~~~~~~~~~~~~~
+
+If the document does not specify an :term:`_id` field, then :binary:`~bin.mongod`
+adds the ``_id`` field and assign a unique
+:method:`ObjectId` for the document. Most
+drivers create an ObjectId and insert the ``_id`` field, but the
+:binary:`~bin.mongod` will create and populate the ``_id`` if the driver or
+application does not.
+
+If the document contains an ``_id`` field, the ``_id`` value must be
+unique within the collection to avoid duplicate key error.
+
+Explainability
+~~~~~~~~~~~~~~
+
+:method:`~db.collection.insertMany()` is not compatible with
+:method:`db.collection.explain()`.
+
+Error Handling
+~~~~~~~~~~~~~~
+
+Inserts throw a ``BulkWriteError`` exception.
+
+Excluding :ref:`write concern <write-concern>` errors, ordered 
+operations stop after an error, while unordered operations continue to 
+process any remaining write operations in the queue.
+
+Write concern errors are displayed in the ``writeConcernErrors`` field, while
+all other errors are displayed in the ``writeErrors`` field. If an error is
+encountered, the number of successful write operations are displayed instead
+of a list of inserted _ids. Ordered operations display the single error
+encountered while unordered operations display each error in an array.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Collection Creation in Transactions
+````````````````````````````````````
+
+.. include:: /includes/extracts/transactions-insert-implicit-collection-creation.rst
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. |operation| replace:: :method:`db.collection.insertMany()`
+
+
+.. _insertMany-examples:
+
+Examples
+--------
+
+The following examples insert documents into the ``products``
+collection.
+
+Insert Several Document without Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses :method:`db.collection.insertMany()` to insert
+documents that do not contain the ``_id`` field:
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertMany( [
+         { item: "card", qty: 15 },
+         { item: "envelope", qty: 20 },
+         { item: "stamps" , qty: 30 }
+      ] );
+   } catch (e) {
+      print (e);
+   }
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "insertedIds" : [
+         ObjectId("562a94d381cb9f1cd6eb0e1a"),
+         ObjectId("562a94d381cb9f1cd6eb0e1b"),
+         ObjectId("562a94d381cb9f1cd6eb0e1c")
+      ]
+   }
+
+Because the documents did not include ``_id``,
+:binary:`~bin.mongod` creates and adds the ``_id`` field for each document and
+assigns it a unique :method:`ObjectId` value.
+
+.. include:: /includes/fact-object-id-may-differ.rst
+
+Insert Several Document Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example/operation uses :method:`~db.collection.insertMany()` to
+insert documents that include the ``_id`` field. The value of ``_id`` must be
+unique within the collection to avoid a duplicate key error.
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertMany( [
+         { _id: 10, item: "large box", qty: 20 },
+         { _id: 11, item: "small box", qty: 55 },
+         { _id: 12, item: "medium box", qty: 30 }
+      ] );
+   } catch (e) {
+      print (e);
+   }
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "insertedIds" : [ 10, 11, 12 ] }
+
+Inserting a duplicate value for any key that is part of a :term:`unique
+index`, such as ``_id``, throws an exception. The following attempts to insert
+a document with a ``_id`` value that already exists:
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertMany( [
+         { _id: 13, item: "envelopes", qty: 60 },
+         { _id: 13, item: "stamps", qty: 110 },
+         { _id: 14, item: "packing tape", qty: 38 }
+      ] );
+   } catch (e) {
+      print (e);
+   }
+
+Since ``_id: 13`` already exists, the following exception is thrown:
+
+.. code-block:: javascript
+
+   BulkWriteError({
+      "writeErrors" : [
+         {
+            "index" : 0,
+            "code" : 11000,
+            "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 13.0 }",
+            "op" : {
+               "_id" : 13,
+               "item" : "stamps",
+               "qty" : 110
+            }
+         }
+      ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 1,
+      "nUpserted" : 0,
+      "nMatched" : 0,
+      "nModified" : 0,
+      "nRemoved" : 0,
+      "upserted" : [ ]
+   })
+
+Note that one document was inserted: The first document of ``_id: 13`` will
+insert successfully, but the second insert will fail. This will also stop
+additional documents left in the queue from being inserted.
+
+With ``ordered`` to ``false``, the insert operation would continue with any
+remaining documents.
+
+Unordered Inserts
+~~~~~~~~~~~~~~~~~
+
+The following attempts to insert multiple documents with ``_id`` field and
+``ordered: false``. The array of documents contains two documents with
+duplicate ``_id`` fields.
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertMany( [
+         { _id: 10, item: "large box", qty: 20 },
+         { _id: 11, item: "small box", qty: 55 },
+         { _id: 11, item: "medium box", qty: 30 },
+         { _id: 12, item: "envelope", qty: 100},
+         { _id: 13, item: "stamps", qty: 125 },
+         { _id: 13, item: "tape", qty: 20},
+         { _id: 14, item: "bubble wrap", qty: 30}
+      ], { ordered: false } );
+   } catch (e) {
+      print (e);
+   }
+
+The operation throws the following exception:
+
+.. code-block:: javascript
+
+   BulkWriteError({
+      "writeErrors" : [
+         {
+            "index" : 2,
+            "code" : 11000,
+            "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 11.0 }",
+            "op" : {
+               "_id" : 11,
+               "item" : "medium box",
+               "qty" : 30
+            }
+         },
+         {
+            "index" : 5,
+            "code" : 11000,
+            "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 13.0 }",
+            "op" : {
+               "_id" : 13,
+               "item" : "tape",
+               "qty" : 20
+            }
+         }
+      ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 5,
+      "nUpserted" : 0,
+      "nMatched" : 0,
+      "nModified" : 0,
+      "nRemoved" : 0,
+      "upserted" : [ ]
+   })
+
+While the document with ``item: "medium box"`` and ``item: "tape"``
+failed to insert due to duplicate ``_id`` values,
+``nInserted`` shows that the remaining 5 documents were inserted.
+
+.. _insertMany-using-write-concern:
+
+Using Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertMany(
+         [
+            { _id: 10, item: "large box", qty: 20 },
+            { _id: 11, item: "small box", qty: 55 },
+            { _id: 12, item: "medium box", qty: 30 }
+         ],
+         { w: "majority", wtimeout: 100 }
+      );
+   } catch (e) {
+      print (e);
+   }
+
+If the primary and at least one secondary acknowledge each write operation
+within 100 milliseconds, it returns:
+
+.. code-block:: javascript
+
+   {
+     "acknowledged" : true,
+     "insertedIds" : [
+        ObjectId("562a94d381cb9f1cd6eb0e1a"),
+        ObjectId("562a94d381cb9f1cd6eb0e1b"),
+        ObjectId("562a94d381cb9f1cd6eb0e1c")
+     ]
+   }
+
+If the total time required for all required nodes in the replica set to
+acknowledge the write operation is greater than ``wtimeout``,
+the following ``writeConcernError`` is displayed when the ``wtimeout`` period
+has passed.
+
+This operation returns:
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errmsg" : "waiting for replication timed out",
+      "errInfo" : {
+        "wtimeout" : true,
+        "writeConcern" : {    // Added in MongoDB 4.4
+          "w" : "majority",
+          "wtimeout" : 100,
+          "provenance" : "getLastErrorDefaults"
+        }
+      }
+   })
+
+.. seealso::
+
+   :data:`WriteResult.writeConcernError`
