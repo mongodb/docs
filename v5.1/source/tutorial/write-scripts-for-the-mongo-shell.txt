@@ -1,0 +1,251 @@
+=====================================
+Write Scripts for the ``mongo`` Shell
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-mongosh-callout.rst
+
+You can write scripts for the :binary:`~bin.mongo` shell in JavaScript
+that manipulate data in MongoDB or perform administrative operation.
+
+This tutorial provides an introduction to writing JavaScript that uses
+the :binary:`~bin.mongo` shell to access MongoDB.
+
+.. _mongo-shell-new-connections:
+
+Opening New Connections
+-----------------------
+
+From the :binary:`~bin.mongo` shell or from a JavaScript file, you can
+instantiate database connections using the :method:`Mongo()`
+constructor:
+
+.. code-block:: javascript
+
+   new Mongo()
+   new Mongo(<host>)
+   new Mongo(<host:port>)
+
+Consider the following example that instantiates a new connection to
+the MongoDB instance running on localhost on the default port and sets
+the global ``db`` variable to ``myDatabase`` using the
+:method:`~Mongo.getDB()` method:
+
+.. code-block:: javascript
+
+   conn = new Mongo();
+   db = conn.getDB("myDatabase");
+
+If connecting to a MongoDB instance that enforces access control,
+you can use the :method:`db.auth()` method to authenticate.
+
+Additionally, you can use the :method:`connect()` method
+to connect to the MongoDB instance. The following example connects to
+the MongoDB instance that is running on ``localhost`` with the
+non-default port ``27020`` and set the global ``db`` variable:
+
+.. code-block:: javascript
+
+   db = connect("localhost:27020/myDatabase");
+
+.. seealso::
+
+   :doc:`/reference/method/`
+
+Differences Between Interactive and Scripted ``mongo``
+------------------------------------------------------
+
+.. note::
+
+   Starting in version 4.2, the :binary:`~bin.mongo` shell provides the
+   method :method:`isInteractive()` that returns a boolean indicating
+   whether the :binary:`~bin.mongo` shell is running in interactive or
+   script mode.
+   
+When writing scripts for the :binary:`~bin.mongo` shell, consider the
+following:
+
+- To set the ``db`` global variable, use the :method:`~Mongo.getDB()`
+  method or the :method:`connect()` method. You can assign the database
+  reference to a variable other than ``db``.
+
+- Write operations in the :binary:`~bin.mongo` shell use a write concern of
+  :ref:`{ w: 1 } <wc-w>` by default. If performing bulk operations, use
+  the :method:`Bulk()` methods. See
+  :ref:`write-methods-incompatibility` for more information.
+
+- You **cannot** use any shell helper (e.g. ``use <dbname>``, ``show
+  dbs``, etc.) inside the JavaScript file because they are not valid
+  JavaScript.
+
+  The following table maps the most common :binary:`~bin.mongo` shell
+  helpers to their JavaScript equivalents.
+
+  .. list-table::
+     :header-rows: 1
+     :class: border-table
+
+     * - Shell Helpers
+
+       - JavaScript Equivalents
+
+     * - ``show dbs``, ``show databases``
+
+
+       - .. code-block:: javascript
+
+            db.adminCommand('listDatabases')
+
+
+     * - .. code-block:: javascript
+            :copyable: false
+
+            use <db>
+
+
+       - .. code-block:: javascript
+
+            db = db.getSiblingDB('<db>')
+
+
+     * - .. code-block:: javascript
+            :copyable: false
+
+            show collections
+
+
+       - .. code-block:: javascript
+
+            db.getCollectionNames()
+
+
+     * - .. code-block:: javascript
+            :copyable: false
+
+            show users
+
+
+       - .. code-block:: javascript
+
+            db.getUsers()
+
+
+     * - .. code-block:: javascript
+            :copyable: false
+
+            show roles
+
+
+       - .. code-block:: javascript
+
+            db.getRoles({showBuiltinRoles: true})
+
+
+     * - .. code-block:: javascript
+            :copyable: false
+
+            show log <logname>
+
+
+       - .. code-block:: javascript
+
+            db.adminCommand({ 'getLog' : '<logname>' })
+
+
+     * - .. code-block:: javascript
+            :copyable: false
+
+            show logs
+
+
+       - .. code-block:: javascript
+
+            db.adminCommand({ 'getLog' : '*' })
+
+
+     * - .. code-block:: javascript
+            :copyable: false
+
+            it
+
+
+       - .. code-block:: javascript
+
+            cursor = db.collection.find()
+            if ( cursor.hasNext() ){
+               cursor.next();
+            }
+
+
+
+- In interactive mode, the :binary:`~bin.mongo` shell prints the results
+  of operations including the content of all cursors. In scripts, either
+  use the JavaScript ``print()`` function or the :binary:`~bin.mongo`
+  specific ``printjson()`` function which returns formatted JSON.
+
+  .. example::
+
+     To print all items in a result cursor in :binary:`~bin.mongo` shell
+     scripts, use the following idiom:
+
+     .. code-block:: javascript
+
+        cursor = db.collection.find();
+        while ( cursor.hasNext() ) {
+           printjson( cursor.next() );
+        }
+
+.. _mongo-shell-scripting:
+
+Scripting
+---------
+
+From the system prompt, use the :binary:`~bin.mongo` shell to evaluate
+JavaScript.
+
+``--eval`` option
+~~~~~~~~~~~~~~~~~
+
+Use the :option:`--eval <mongo --eval>` option to the
+:binary:`~bin.mongo` shell to pass the shell a JavaScript fragment, as
+in the following:
+
+.. code-block:: bash
+
+   mongo test --eval "printjson(db.getCollectionNames())"
+
+This returns the output of :method:`db.getCollectionNames()` using the
+:binary:`~bin.mongo` shell connected to the :binary:`~bin.mongod` or
+:binary:`~bin.mongos` instance running on port ``27017`` on the
+``localhost`` interface.
+
+.. _mongo-shell-javascript-file:
+
+Execute a JavaScript file
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify a ``.js`` file to the :binary:`~bin.mongo` shell, and
+:binary:`~bin.mongo` will execute the JavaScript directly. Consider the
+following example:
+
+.. code-block:: bash
+
+   mongo localhost:27017/test myjsfile.js
+
+This operation executes the ``myjsfile.js`` script in a
+:binary:`~bin.mongo` shell that connects to the ``test`` :term:`database`
+on the :binary:`~bin.mongod` instance accessible via the ``localhost``
+interface on port ``27017``.
+
+Alternately, you can specify the mongodb connection parameters inside
+of the javascript file using the ``Mongo()`` constructor. See
+:ref:`mongo-shell-new-connections` for more information.
+
+.. include:: /includes/fact-execute-javascript-from-shell.rst

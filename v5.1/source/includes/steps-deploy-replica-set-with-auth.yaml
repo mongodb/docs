@@ -1,0 +1,270 @@
+stepnum: 1
+title: Create a keyfile.
+ref: deploy-repset-generate-keyfile
+level: 4
+pre: |
+
+  .. include:: /includes/extracts/keyfile-intro-replica-set.rst
+
+action:
+  language: sh
+  code: |
+    openssl rand -base64 756 > <path-to-keyfile>
+    chmod 400 <path-to-keyfile>
+post: |
+  See :ref:`internal-auth-keyfile` for additional details  and requirements
+  for using keyfiles.
+---
+stepnum: 2
+title: Copy the keyfile to each replica set member.
+ref: deploy-repset-copy-keyfile
+level: 4
+pre: |
+  .. include:: /includes/extracts/keyfile-distribution-replica-set.rst
+---
+stepnum: 3
+title: Start each member of the replica set with access control enabled.
+level: 4
+ref: deploy-repset-start-members
+pre: |
+
+   For each member in the replica set, start the :binary:`~bin.mongod` with
+   either the :setting:`security.keyFile` configuration file setting or
+   the ``--keyFile`` command-line option. Running :binary:`~bin.mongod`
+   with the ``--keyFile`` command-line option or the
+   :setting:`security.keyFile` configuration file setting enforces both
+   :doc:`/core/security-internal-authentication` and
+   :doc:`/core/authorization`.
+
+action:
+  - heading: Configuration File
+    pre: |
+      If using a configuration file, set
+
+      - :setting:`security.keyFile` to the keyfile's path, and
+
+      - :setting:`replication.replSetName` to the replica set name.
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      replication:
+        replSetName: <replicaSetName>
+      net:
+         bindIp: localhost,<hostname(s)|ip address(es)>
+  - pre: |
+      Start the :binary:`~bin.mongod` using the configuration file:
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+    post: |
+      For more information on the configuration file, see
+      :doc:`configuration options </reference/configuration-options>`.
+  - heading: Command Line
+    pre: |
+      If using the command line options, start the :binary:`~bin.mongod` with the following options:
+
+      - ``--keyFile`` set to  the keyfile's path, and
+
+      - ``--replSet`` set to the replica set name.
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+      
+    language: sh
+    code: |
+       mongod --keyFile <path-to-keyfile> --replSet <replicaSetName> --bind_ip localhost,<hostname(s)|ip address(es)>
+    post: |
+
+       .. include:: /includes/tip-hostnames.rst
+
+       For more information on command-line options, see the
+       :binary:`~bin.mongod` reference page.
+---
+stepnum: 4
+title: Connect to a member of the replica set over the localhost interface.
+level: 4
+ref: deploy-repset-connect-to-member
+pre: |
+  Connect :binary:`~bin.mongosh` to one of the 
+  {{program}} instances over the :ref:`localhost
+  interface<localhost-exception>`. You must run :binary:`~bin.mongosh`
+  on the same physical machine as the {{program}} instance.
+
+  The :ref:`localhost interface<localhost-exception>` is only available
+  since no users have been created for the deployment. The
+  :ref:`localhost interface<localhost-exception>` closes after the
+  creation of the first user.
+replacement:
+  program: :binary:`~bin.mongod`
+---
+stepnum: 5
+title: Initiate the replica set.
+level: 4
+ref: deploy-repset-initiate
+pre: |
+   .. include:: /includes/initiate-replica-set.rst
+
+action:
+  - pre: |
+      The following example initates a three member replica set.
+      
+      .. important::
+
+         .. include:: /includes/fact-rs-initiate-once-only.rst
+
+      .. include:: /includes/tip-hostnames.rst
+
+    language: javascript
+    code: |
+      rs.initiate(
+        {
+          _id : <replicaSetName>,
+          members: [
+            { _id : 0, host : "mongo1.example.net:27017" },
+            { _id : 1, host : "mongo2.example.net:27017" },
+            { _id : 2, host : "mongo3.example.net:27017" }
+          ]
+        }
+      )
+post: |
+  :method:`rs.initiate()` triggers an :term:`election` and
+  elects one of the members to be the :term:`primary`.
+
+  Connect to the primary before continuing. Use :method:`rs.status()` to
+  locate the primary member.
+---
+stepnum: 6
+title: Create the user administrator.
+level: 4
+ref: deploy-repset-user-admin
+pre: |
+
+  .. important::
+
+     After you create the first user, the :ref:`localhost exception
+     <localhost-exception>` is no longer available.
+
+     The first user must have privileges to create other users, such
+     as a user with the :authrole:`userAdminAnyDatabase`. This ensures
+     that you can create additional users after the :ref:`localhost-exception`
+     closes.
+
+     If at least one user does *not* have privileges to create users,
+     once the localhost exception closes you may be unable to create
+     or modify users with new privileges, and therefore unable to
+     access necessary operations.
+
+  Add a user using the :method:`db.createUser()` method. The user should
+  have at minimum the :authrole:`userAdminAnyDatabase` role on the
+  ``admin`` database.
+
+  You must be connected to the :term:`primary` to create users.
+
+  The following example creates the user ``fred`` with the
+  :authrole:`userAdminAnyDatabase` role on the ``admin`` database.
+
+  .. important::
+
+     Passwords should be random, long, and complex to ensure system security
+     and to prevent or delay malicious access.
+
+  .. tip::
+
+     .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+action:
+  language: javascript
+  code: |
+    admin = db.getSiblingDB("admin")
+    admin.createUser(
+      {
+        user: "fred",
+        pwd: passwordPrompt(), // or cleartext password
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+      }
+    )
+post: |
+
+  Enter the password when prompted.
+  See :ref:`database-user-roles` for a full list of built-in roles and
+  related to database administration operations.
+---
+stepnum: 7
+title: Authenticate as the user administrator.
+ref: deploy-repset-auth-user
+level: 4
+pre: |
+  Authenticate to the ``admin`` database.
+action:
+  - pre: |
+      In :binary:`~bin.mongosh`, use :method:`db.auth()` to
+      authenticate. For example, the following authenticate as the user
+      administrator ``fred``:
+
+      .. tip::
+
+         .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+    language: javascript
+    code: |
+      db.getSiblingDB("admin").auth("fred", passwordPrompt()) // or cleartext password
+  - pre: |
+      Alternatively, connect a new :binary:`~bin.mongosh` instance to
+      the primary replica set member using the ``-u <username>``,
+      ``-p <password>``, and the ``--authenticationDatabase``
+      parameters.
+    language: sh
+    code: |
+      mongosh -u "fred" -p  --authenticationDatabase "admin"
+    post: |
+      If you do not specify the password to the :option:`-p <mongosh -p>`
+      command-line option, :binary:`~bin.mongosh` prompts for the
+      password.
+---
+stepnum: 8
+title: Create the cluster administrator.
+level: 4
+ref: deploy-repset-add-user-cluster
+pre: |
+  The :authrole:`clusterAdmin` role grants access to replication
+  operations, such as configuring the replica set.
+action:
+  - pre: |
+      Create a cluster administrator user and assign the
+      :authrole:`clusterAdmin` role in the ``admin`` database:
+
+      .. tip::
+
+         .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+    language: sh
+    code: |
+      db.getSiblingDB("admin").createUser(
+        {
+          "user" : "ravi",
+          "pwd" : passwordPrompt(),     // or cleartext password
+          roles: [ { "role" : "clusterAdmin", "db" : "admin" } ]
+        }
+      )
+    post: |
+       Enter the password when prompted.
+post: |
+  See :ref:`cluster-admin-roles` for a full list of built-in roles related to
+  replica set and sharded cluster operations.
+---
+stepnum: 9
+title: Create additional users (Optional).
+ref: deploy-repset-add-addtl-users
+level: 4
+pre: |
+  Create users to allow clients to connect and interact with the replica set.
+  See :ref:`database-user-roles` for basic built-in roles to use in creating
+  read-only and read-write users.
+
+  You may also want additional administrative users.
+  For more information on users, see :doc:`/core/security-users`.
+...

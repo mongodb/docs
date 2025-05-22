@@ -1,0 +1,66 @@
+===========================================
+Calculate Distance Using Spherical Geometry
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. warning::
+
+   .. include::  /includes/extracts/geospatial-queries-longitude-values.rst
+
+The ``2d`` index supports queries that calculate distances on a
+Euclidean plane (flat surface). The index also supports the following
+query operators and command that calculate distances using spherical
+geometry:
+
+.. note:: While basic queries using spherical distance are supported by
+   the ``2d`` index, consider moving to a ``2dsphere`` index if your
+   data is primarily longitude and latitude.
+
+
+- :query:`$nearSphere`
+
+- :query:`$centerSphere`
+
+- :query:`$near`
+
+- :pipeline:`$geoNear` pipeline stage with the ``spherical: true`` option
+
+.. important:: The aforementioned operations use radians for distance. Other
+   spherical query operators do not, such as :query:`$geoWithin`.
+
+   For spherical query operators to function properly, you must convert
+   distances to radians, and convert from radians to the distances units
+   used by your application.
+
+   To convert:
+
+   - *distance to radians*: divide the distance by the radius of the
+     sphere (e.g. the Earth) in the same units as the distance
+     measurement.
+
+   - *radians to distance*: multiply the radian measure by the radius
+     of the sphere (e.g. the Earth) in the units system that you want to
+     convert the distance to.
+
+   The equatorial radius of the Earth is approximately ``3,963.2``
+   miles or ``6,378.1`` kilometers.
+
+The following query would return documents from the ``places``
+collection within the circle described by the center ``[ -74, 40.74 ]``
+with a radius of ``100`` miles:
+
+.. code-block:: javascript
+
+   db.places.find( { loc: { $geoWithin: { $centerSphere: [ [ -74, 40.74 ] ,
+                                                        100 / 3963.2 ] } } } )
+
+.. note::
+
+   .. include::  /includes/extracts/geospatial-long-lat-values.rst

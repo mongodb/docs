@@ -1,0 +1,207 @@
+==========================
+Downgrade MongoDB from 3.0
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document, particularly the :ref:`3.0-downgrade-considerations`
+and the procedure for :ref:`downgrading sharded clusters
+<3.0-downgrade-cluster>`.
+
+.. _3.0-downgrade-considerations:
+
+Downgrade Recommendations and Checklist
+---------------------------------------
+
+When downgrading, consider the following:
+
+Downgrade Path
+~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-3.0-downgrade-path.rst
+
+.. important::
+
+   If you upgrade to MongoDB 3.0 and have run
+   ``authSchemaUpgrade``, you **cannot** downgrade to the 2.6
+   series without disabling ``--auth``.
+
+Procedures
+~~~~~~~~~~
+
+Follow the downgrade procedures:
+
+- To downgrade sharded clusters, see :ref:`3.0-downgrade-cluster`.
+
+- To downgrade replica sets, see :ref:`3.0-downgrade-replica-set`.
+
+- To downgrade a standalone MongoDB instance, see :ref:`3.0-downgrade-standalone`.
+
+.. note::
+
+   *Optional*. Consider :dbcommand:`compacting <compact>` collections
+   after downgrading. Otherwise, older versions will not be able to
+   reuse free space regions larger than 2MB created while running 3.0.
+   This can result in wasted space but no data loss following the
+   downgrade.
+
+Downgrade MongoDB Processes
+---------------------------
+
+.. _3.0-downgrade-standalone:
+
+Downgrade a Standalone ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have changed the storage engine to ``WiredTiger``, change the
+storage engine to MMAPv1 before downgrading to 2.6.
+
+.. _3.0-downgrade-mmapv1-standalone:
+
+Change Storage Engine to MMAPv1
+```````````````````````````````
+
+To change storage engine to MMAPv1 for a standalone :binary:`~bin.mongod`
+instance, you will need to manually export and upload the data using
+:binary:`~bin.mongodump` and :binary:`~bin.mongorestore`.
+
+.. include:: /includes/steps/3.0-change-to-mmapv1.rst
+
+Downgrade Binaries
+``````````````````
+
+The following steps outline the procedure to downgrade a standalone
+:binary:`~bin.mongod` from version 3.0 to 2.6.
+
+.. include:: /includes/fact-3.0-downgrade-path.rst
+   
+.. include:: /includes/steps/3.0-downgrade-mongod.rst
+
+.. _`MongoDB Download Page`: http://www.mongodb.org/downloads
+
+.. _3.0-downgrade-replica-set:
+
+Downgrade a 3.0 Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-change-storage-engine-before-downgrade.rst
+
+.. _3.0-downgrade-repl-set-mmapv1:
+
+Change Storage Engine to MMAPv1
+```````````````````````````````
+
+You can update members to use the MMAPv1 storage engine in a rolling
+manner.
+
+.. note::
+
+   When running a replica set with mixed storage engines, performance
+   can vary according to workload.
+
+To change the storage engine to MMAPv1 for an existing secondary
+replica set member, remove the member's data and perform an
+:doc:`initial sync </tutorial/resync-replica-set-member>`:
+
+.. include:: /includes/steps/3.0-change-to-mmapv1-replica-set.rst
+
+Repeat for the remaining the secondary members. Once all the secondary
+members have switched to MMAPv1, step down the primary, and update the
+stepped-down member.
+
+Downgrade Binaries
+``````````````````
+
+.. include:: /includes/fact-3.0-downgrade-path.rst
+
+The following steps outline a "rolling" downgrade process for the
+replica set. The "rolling" downgrade process minimizes downtime by
+downgrading the members individually while the other members are
+available:
+
+.. include:: /includes/steps/3.0-downgrade-replica-set.rst
+
+Replica set failover is not instant but will render the set unavailable to
+writes and interrupt reads until the failover process
+completes. Typically this takes 10 seconds or more. You may wish to
+plan the downgrade during a predetermined maintenance window.
+
+.. _3.0-downgrade-cluster:
+
+Downgrade a 3.0 Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Requirements
+````````````
+
+While the downgrade is in progress, you cannot make changes to the
+collection meta-data. For example, during the downgrade, do
+**not** do any of the following:
+
+- :method:`sh.enableSharding()`
+
+- :method:`sh.shardCollection()`
+
+- :method:`sh.addShard()`
+
+- :method:`db.createCollection()`
+
+- :method:`db.collection.drop()`
+
+- :method:`db.dropDatabase()`
+
+- any operation that creates a database
+
+- any other operation that modifies the cluster meta-data in any
+  way. See :doc:`/reference/sharding` for a complete list of
+  sharding commands. Note, however, that not all commands on the
+  :doc:`/reference/sharding` page modifies the cluster meta-data.
+
+Change Storage Engine to MMAPv1
+```````````````````````````````
+
+.. include:: /includes/fact-change-storage-engine-before-downgrade.rst
+
+Change Shards to Use MMAPv1
++++++++++++++++++++++++++++
+
+To change the storage engine to MMAPv1, refer to the procedure in
+:ref:`Change Storage Engine to MMAPv1 for replica set members
+<3.0-downgrade-repl-set-mmapv1>` and :ref:`Change Storage Engine to
+MMAPv1 for standalone mongod <3.0-downgrade-mmapv1-standalone>` as
+appropriate for your shards.
+
+Change Config Servers to Use MMAPv1
++++++++++++++++++++++++++++++++++++
+
+.. note::
+
+   During this process, only two config servers will be running at any
+   given time to ensure that the sharded cluster's metadata is
+   *read only*.
+
+.. include:: /includes/steps/3.0-change-to-mmapv1-config-server.rst
+
+Downgrade Binaries
+``````````````````
+
+.. include:: /includes/fact-3.0-downgrade-path.rst
+
+The downgrade procedure for a sharded cluster reverses the order of the
+upgrade procedure. The version ``v6`` config database is backwards
+compatible with MongoDB 2.6.
+
+.. include:: /includes/steps/3.0-downgrade-sharded-cluster.rst
+
+.. |action| replace:: Downgrade
+.. |version-new| replace:: 2.6
+.. |version-stop| replace:: 3.0
+
+.. include:: /includes/2.6-3.0-upgrade-downgrade-procedure.rst

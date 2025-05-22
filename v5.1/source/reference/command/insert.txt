@@ -1,0 +1,364 @@
+======
+insert
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: insert
+
+   The :dbcommand:`insert` command inserts one or more documents and
+   returns a document containing the status of all inserts. The insert
+   methods provided by the MongoDB drivers use this command internally.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         insert: <collection>,
+         documents: [ <document>, <document>, <document>, ... ],
+         ordered: <boolean>,
+         writeConcern: { <write concern> },
+         bypassDocumentValidation: <boolean>,
+         comment: <any>
+      }
+
+   The :dbcommand:`insert` command takes the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``insert``
+   
+        - string
+   
+        - The name of the target collection.
+          
+          
+   
+      * - ``documents``
+   
+        - array
+   
+        - An array of one or more documents to insert into the named collection.
+          
+          
+   
+      * - ``ordered``
+   
+        - boolean
+   
+        - Optional. If ``true``, then when an insert of a document fails, return without
+          inserting any remaining documents listed in the ``inserts`` array. If
+          ``false``, then when an insert of a document fails, continue to insert the
+          remaining documents. Defaults to ``true``.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern </reference/write-concern>`
+          of the :dbcommand:`insert` command. Omit to use the default write
+          concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Enables :dbcommand:`insert` to bypass document validation
+          during the operation. This lets you insert documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+          
+          
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+       
+          .. versionadded:: 4.4
+
+
+   :returns:
+
+      A document that contains the status of the operation.
+      See :ref:`insert-command-output` for details.
+
+Behavior
+--------
+
+Size Limit
+~~~~~~~~~~
+
+The total size of all the ``documents`` array elements must be less
+than or equal to the :limit:`maximum BSON document size
+<BSON Document Size>`.
+
+The total number of documents in the ``documents`` array must be less
+than or equal to the :limit:`maximum bulk size
+<Write Command Batch Limit Size>`.
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/bypassDocumentValidation-insert.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Collection Creation in Transactions
+````````````````````````````````````
+
+.. include:: /includes/extracts/transactions-insert-implicit-collection-creation.rst
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. |operation| replace:: :dbcommand:`insert`
+
+Examples
+--------
+
+Insert a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Insert a document into the ``users`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         insert: "users",
+         documents: [ { _id: 1, user: "abc123", status: "A" } ]
+      }
+   )
+
+The returned document shows that the command successfully inserted a
+document. See :ref:`insert-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 1 }
+
+Bulk Insert
+~~~~~~~~~~~
+
+Insert three documents into the ``users`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         insert: "users",
+         documents: [
+            { _id: 2, user: "ijk123", status: "A" },
+            { _id: 3, user: "xyz123", status: "P" },
+            { _id: 4, user: "mop123", status: "P" }
+         ],
+         ordered: false,
+         writeConcern: { w: "majority", wtimeout: 5000 }
+      }
+   )
+
+The returned document shows that the command successfully inserted the
+three documents. See :ref:`insert-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 3 }
+
+
+Using Insert with ``bypassDocumentValidation``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :doc:`schema validation validationActions</core/schema-validation>` 
+are set to ``error``, inserts to a collection return errors for 
+documents that violate the schema validation rules. To insert documents
+which would violate these rules set ``bypassDocumentValidation: true``.
+
+Create the ``user`` collection with a validation rule on the ``status``
+fields.
+
+The validation rule validates that the status must be "Unknown"
+or "Incomplete":
+
+.. code-block:: javascript
+
+   db.createCollection("users", { 
+      validator:
+         { 
+            status: {
+               $in: [ "Unknown", "Incomplete" ]
+            }
+         }
+   })
+
+Attempt to insert a document which violates the validation rule:
+
+.. code-block:: javascript
+
+   db.runCommand({
+         insert: "users",
+         documents: [ {user: "123", status: "Active" } ]
+   })
+
+The insert returns a write error message:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8,12,16
+
+   {
+      n: 0,
+      writeErrors: [
+         {
+            index: 0,
+            code: 121,
+            errInfo: {
+               failingDocumentId: ObjectId('6197a7f2d84e85d1cc90d270'),
+               details: {
+                  operatorName: '$in',
+                  specifiedAs: { status: { '$in': [Array] } },
+                  reason: 'no matching value found in array',
+                  consideredValue: 'Active'
+               }
+            },
+            errmsg: 'Document failed validation'
+         }
+      ],
+      ok: 1
+   }
+
+
+Set ``bypassDocumentValidation : true`` and rerun the insert:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      insert: "users",
+      documents: [ {user: "123", status: "Active" } ], 
+      bypassDocumentValidation: true
+   })
+
+
+The operation succeeds.
+
+To check for documents that violate schema validation rules, use the 
+:dbcommand:`validate` command.
+
+.. _insert-command-output:
+
+Output
+------
+
+The returned document contains a subset of the following fields:
+
+.. data:: insert.ok
+
+   The status of the command.
+
+.. data:: insert.n
+
+   The number of documents inserted.
+
+.. data:: insert.writeErrors
+
+   An array of documents that contains information regarding any error
+   encountered during the insert operation. The
+   :data:`~insert.writeErrors` array contains an error document for
+   each insert that errors.
+
+   Each error document contains the following fields:
+
+   .. data:: insert.writeErrors.index
+
+      An integer that identifies the document in the
+      ``documents`` array, which uses a zero-based index.
+
+   .. data:: insert.writeErrors.code
+
+      An integer value identifying the error.
+
+   .. data:: insert.writeErrors.errmsg
+
+      A description of the error.
+
+.. data:: insert.writeConcernError
+
+   Document that describe error related to write concern and contains
+   the field:
+
+   .. data:: insert.writeConcernError.code
+
+      An integer value identifying the cause of the write concern error.
+
+   .. data:: insert.writeConcernError.errmsg
+
+      A description of the cause of the write concern error.
+
+   .. data:: insert.writeConcernError.errInfo.writeConcern
+
+      .. versionadded:: 4.4
+
+      .. include:: /includes/fact-errInfo-wc.rst
+
+      .. data:: insert.writeConcernError.errInfo.writeConcern.provenance
+
+         .. include:: /includes/fact-errInfo-wc-provenance.rst
+
+
+The following is an example document returned for a successful
+:dbcommand:`insert` of a single document:
+
+.. code-block:: javascript
+
+   { ok: 1, n: 1 }
+
+The following is an example document returned for an
+:dbcommand:`insert` of two documents that successfully inserted one
+document but encountered an error with the other document:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "n" : 1,
+      "writeErrors" : [
+         {
+            "index" : 1,
+            "code" : 11000,
+            "errmsg" : "insertDocument :: caused by :: 11000 E11000 duplicate key error index: test.users.$_id_  dup key: { : 1.0 }"
+         }
+      ]
+   }

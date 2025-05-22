@@ -1,0 +1,134 @@
+=============
+$listSessions
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $listSessions
+
+   .. versionadded:: 3.6
+
+   Lists all sessions stored in the :data:`system.sessions
+   <config.system.sessions>` collection in the ``config`` database.
+   These sessions are visible to all members of the MongoDB deployment.
+
+   .. important::
+
+      When a user creates a session on a :binary:`~bin.mongod` or
+      :binary:`~bin.mongos` instance, the record of the session initially
+      exists only in-memory on the instance; i.e. the record is local
+      to the instance. Periodically, the instance will sync its cached
+      sessions to the :data:`system.sessions <config.system.sessions>`
+      collection in the ``config`` database, at which time, they are
+      visible to :pipeline:`$listSessions` and all members of the
+      deployment. Until the session record exists in the
+      ``system.sessions`` collection, you can only list the session via
+      the :pipeline:`$listLocalSessions` operation.
+
+   To run :pipeline:`$listSessions`, it must be the first stage in the pipeline.
+
+   The stage has the following syntax:
+
+   .. code-block:: javascript
+
+      { $listSessions: <document> }
+
+
+   The :pipeline:`$listSessions` stage takes a document with one
+   of the following contents:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 70 30
+
+      * - Field
+
+        - Description
+
+      * - ``{ }``
+
+        - If running with access control, returns all sessions for the
+          current authenticated user.
+
+          If running without access control, returns all sessions.
+
+      * - ``{ users: [ { user: <user>, db: <db> }, ... ] }``
+
+        - Returns all sessions for the specified users. If running with
+          access control, the authenticated user must have privileges
+          with :authaction:`listSessions` action on the cluster to list
+          sessions for other users.
+
+      * - ``{ allUsers: true }``
+
+        - Returns all sessions for all users. If running with access
+          control, the authenticated user must have privileges with
+          :authaction:`listSessions` action on the cluster.
+
+Restrictions
+------------
+
+``$listSessions`` is not allowed in :doc:`transactions </core/transactions>`.
+
+Examples
+--------
+
+List All Sessions
+~~~~~~~~~~~~~~~~~
+
+From the :data:`system.sessions <config.system.sessions>` collection,
+the following aggregation operation lists all sessions:
+
+.. note::
+
+   If running with access control, the current user must have
+   privileges with :authaction:`listSessions` action on the cluster.
+
+.. code-block:: javascript
+
+   use config
+
+   db.system.sessions.aggregate( [  { $listSessions: { allUsers: true } } ] )
+
+List All Sessions for the Specified Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the :data:`system.sessions <config.system.sessions>` collection,
+the following aggregation operation lists all sessions for the
+specified user ``myAppReader@test``:
+
+.. note::
+
+   If running with access control and the current user is not the
+   specified user, the current user must
+   have privileges with :authaction:`listSessions` action on the cluster.
+
+.. code-block:: javascript
+
+   use config
+
+   db.system.sessions.aggregate( [ { $listSessions: { users: [ {user: "myAppReader", db: "test" } ] } } ] )
+
+List All Sessions for the Current User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the :data:`system.sessions <config.system.sessions>` collection,
+the following aggregation operation lists all sessions for the current
+user **if** run with access control:
+
+.. code-block:: javascript
+
+   use config
+
+   db.system.sessions.aggregate( [ { $listSessions: { } } ] )
+
+If run **without** access control, the operation lists all sessions.

@@ -1,0 +1,249 @@
+.. _data-modeling-example-one-to-many:
+
+=======================================================
+Model One-to-Many Relationships with Embedded Documents
+=======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This page describes a data model that uses :ref:`embedded
+<data-modeling-embedding>` documents to describe a one-to-many
+relationship between connected data. Embedding connected data
+in a single document can reduce the number of read operations required
+to obtain data. In general, you should structure your schema so
+your application receives all of its required information in a single
+read operation.
+
+.. _one-to-many-embedded-document-pattern:
+
+Embedded Document Pattern
+-------------------------
+
+Consider the following example that maps patron and multiple address
+relationships. The example illustrates the advantage of embedding over
+referencing if you need to view many data entities in context of
+another. In this one-to-many relationship between ``patron`` and
+``address`` data, the ``patron`` has multiple ``address`` entities.
+
+In the normalized data model, the ``address`` documents contain a
+reference to the ``patron`` document.
+
+.. code-block:: javascript
+
+   // patron document
+   {
+      _id: "joe",
+      name: "Joe Bookreader"
+   }
+
+   // address documents
+   {
+      patron_id: "joe", // reference to patron document
+      street: "123 Fake Street",
+      city: "Faketon",
+      state: "MA",
+      zip: "12345"
+   }
+
+   {
+      patron_id: "joe",
+      street: "1 Some Other Street",
+      city: "Boston",
+      state: "MA",
+      zip: "12345"
+   }
+
+If your application frequently retrieves the ``address`` data with the
+``name`` information, then your application needs to issue multiple
+queries to resolve the references. A more optimal schema would be to
+embed the ``address`` data entities in the ``patron`` data, as in the
+following document:
+
+.. code-block:: javascript
+
+   {
+      "_id": "joe",
+      "name": "Joe Bookreader",
+      "addresses": [
+                   {
+                     "street": "123 Fake Street",
+                     "city": "Faketon",
+                     "state": "MA",
+                     "zip": "12345"
+                   },
+                   {
+                     "street": "1 Some Other Street",
+                     "city": "Boston",
+                     "state": "MA",
+                     "zip": "12345"
+                   }
+                 ]
+    }
+
+With the embedded data model, your application can retrieve the
+complete patron information with one query.
+
+.. _one-to-many-subset:
+
+Subset Pattern
+--------------
+
+A potential problem with the :ref:`embedded document pattern
+<one-to-many-embedded-document-pattern>` is that it can lead to large
+documents, especially if the embedded field is unbounded. In this case,
+you can use the subset pattern to only access data which is required by
+the application, instead of the entire set of embedded data.
+
+Consider an e-commerce site that has a list of reviews for a product:
+
+.. code-block:: javascript
+
+   {
+     "_id": 1,
+     "name": "Super Widget",
+     "description": "This is the most useful item in your toolbox.",
+     "price": { "value": NumberDecimal("119.99"), "currency": "USD" },
+     "reviews": [
+       {
+         "review_id": 786,
+         "review_author": "Kristina",
+         "review_text": "This is indeed an amazing widget.",
+         "published_date": ISODate("2019-02-18")
+       },
+       {
+         "review_id": 785,
+         "review_author": "Trina",
+         "review_text": "Nice product. Slow shipping.",
+         "published_date": ISODate("2019-02-17")
+       },
+       ...
+       {
+         "review_id": 1,
+         "review_author": "Hans",
+         "review_text": "Meh, it's okay.",
+         "published_date": ISODate("2017-12-06")
+       } 
+     ]
+   }
+
+The reviews are sorted in reverse chronological order. When a user
+visits a product page, the application loads the ten most recent reviews.
+
+Instead of storing all of the reviews with the product, you can split
+the collection into two collections:
+
+- The ``product`` collection stores information on each product,
+  including the product's ten most recent reviews:
+
+  .. code-block:: javascript
+
+     {
+       "_id": 1,
+       "name": "Super Widget",
+       "description": "This is the most useful item in your toolbox.",
+       "price": { "value": NumberDecimal("119.99"), "currency": "USD" },
+       "reviews": [
+         {
+           "review_id": 786,
+           "review_author": "Kristina",
+           "review_text": "This is indeed an amazing widget.",
+           "published_date": ISODate("2019-02-18")
+         }
+         ...
+         {
+           "review_id": 777,
+           "review_author": "Pablo",
+           "review_text": "Amazing!",
+           "published_date": ISODate("2019-02-16")
+         }
+       ]
+     }
+
+- The ``review`` collection stores all reviews. Each review contains
+  a reference to the product for which it was written.
+
+  .. code-block:: javascript
+
+     {
+       "review_id": 786,
+       "product_id": 1,
+       "review_author": "Kristina",
+       "review_text": "This is indeed an amazing widget.",
+       "published_date": ISODate("2019-02-18")
+     }
+     {
+       "review_id": 785,
+       "product_id": 1,
+       "review_author": "Trina",
+       "review_text": "Nice product. Slow shipping.",
+       "published_date": ISODate("2019-02-17")
+     }
+     ...
+     {
+       "review_id": 1,
+       "product_id": 1,
+       "review_author": "Hans",
+       "review_text": "Meh, it's okay.",
+       "published_date": ISODate("2017-12-06")
+     }
+
+By storing the ten most recent reviews in the ``product``
+collection, only the required subset of the overall data is returned in
+the call to the ``product`` collection. If a user wants to see
+additional reviews, the application makes a call to the ``review``
+collection.
+
+.. tip::
+
+   When considering where to split your data, the most
+   frequently-accessed portion of the data should go in the collection
+   that the application loads first. In this example, the schema is
+   split at ten reviews because that is the number of reviews visible in
+   the application by default.
+
+.. seealso::
+
+   To learn how to use the subset pattern to model one-to-one
+   relationships between collections, see
+   :ref:`data-modeling-example-one-to-one`.
+
+Trade-Offs of the Subset Pattern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using smaller documents containing more frequently-accessed data reduces
+the overall size of the working set. These smaller documents result in
+improved read performance for the data that the application accesses
+most frequently.
+
+However, the subset pattern results in data duplication. In the example,
+reviews are maintained in both the ``product`` collection and the
+``reviews`` collection. Extra steps must be taken to ensure that the
+reviews are consistent between each collection. For example, when a
+customer edits their review, the application may need to make two write
+operations: one to update the ``product`` collection and one to update
+the ``reviews`` collection.
+
+You must also implement logic in your application to ensure that
+the reviews in the ``product`` collection are always the ten 
+most recent reviews for that product.
+
+Other Sample Use Cases
+~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to product reviews, the subset pattern can also be a good 
+fit to store:
+
+- Comments on a blog post, when you only want to show the most recent
+  or highest-rated comments by default.
+
+- Cast members in a movie, when you only want to show cast members with
+  the largest roles by default.

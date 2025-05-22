@@ -1,0 +1,133 @@
+.. _retryable-reads:
+
+===============
+Retryable Reads
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Retryable reads allow MongoDB drivers to automatically retry certain
+read operations a single time if they encounter certain network 
+or server errors.
+
+Prerequisites
+-------------
+
+Minimum Driver Version
+  Official MongoDB drivers compatible with MongoDB Server 4.2 and later
+  support retryable reads. 
+
+  For more information on official MongoDB drivers, see
+  `MongoDB Drivers <https://docs.mongodb.com/drivers/>`__.
+
+Minimum Server Version
+  Drivers can only retry read operations if connected to 
+  MongoDB Server 3.6 or later.
+
+Enabling Retryable Reads
+-------------------------
+
+Official MongoDB drivers compatible with MongoDB Server 4.2 and later
+enable retryable reads by default. To explicitly disable retryable
+reads, specify :urioption:`retryReads=false <retryReads>` in the
+:ref:`connection string <mongodb-uri>` for the deployment.
+
+:binary:`~bin.mongosh` does not support retryable reads.
+
+.. _retryable-read-ops:
+
+Retryable Read Operations
+-------------------------
+
+MongoDB drivers support retrying the following read operations. The 
+list references a generic description of each method. For specific 
+syntax and usage, defer to the driver documentation for that method.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Methods
+     - Descriptions
+
+   * - | ``Collection.aggregate``
+       | ``Collection.count``
+       | ``Collection.countDocuments``
+       | ``Collection.distinct``
+       | ``Collection.estimatedDocumentCount``
+       | ``Collection.find``
+       | ``Database.aggregate`` 
+       
+       For ``Collection.aggregate`` and ``Database.aggregate``, drivers
+       can only retry aggregation pipelines which do **not** include
+       write stages, such as :pipeline:`$out` or :pipeline:`$merge`.
+
+
+     - CRUD API Read Operations
+
+   * - | ``Collection.watch``
+       | ``Database.watch``
+       | ``MongoClient.watch``
+
+     - Change Stream Operations
+
+   * - | ``MongoClient.listDatabases``
+       | ``Database.listCollections``
+       | ``Collection.listIndexes``
+     
+     - Enumeration Operations
+
+   * - GridFS Operations backed by ``Collection.find``
+       (e.g. ``GridFSBucket.openDownloadStream``)
+
+     - GridFS File Download Operations
+
+MongoDB drivers *may* include retryable support for other operations, 
+such as helper methods or methods that wrap a retryable read operation.
+Defer to the `driver documentation <https://docs.mongodb.com/drivers/>`__
+to determine whether a method explicitly supports retryable reads.
+
+.. seealso::
+
+   Retryable Read Specification: `Supported Read Operations <https://github.com/mongodb/specifications/blob/master/source/retryable-reads/retryable-reads.rst#supported-read-operations>`__
+
+Unsupported Read Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operations do *not* support retryable reads:
+
+- :method:`db.collection.mapReduce()`
+- :dbcommand:`getMore`
+- Any read command passed to a generic ``Database.runCommand`` helper,
+  which is agnostic about read or write commands.
+
+Behavior
+--------
+
+Persistent Network Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB retryable reads make only **one** retry attempt. This helps
+address transient network errors or
+:ref:`replica set elections <replica-set-elections>`, but not persistent
+network errors.
+
+Failover Period
+~~~~~~~~~~~~~~~
+
+The driver performs :ref:`server selection
+<replica-set-read-preference-behavior>` using the read command's
+original :ref:`read preference <read-preference>` before retrying the
+read operation. If the driver cannot select a server 
+for the retry attempt using the original read preference, 
+the driver returns the original error.
+
+The drivers wait :urioption:`serverSelectionTimeoutMS` milliseconds
+before performing server selection. Retryable reads do not address
+instances where no eligible servers exist after waiting
+:urioption:`serverSelectionTimeoutMS`.

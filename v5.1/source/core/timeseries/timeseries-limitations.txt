@@ -1,0 +1,212 @@
+.. _manual-timeseries-collection-limitations:
+
+==================================
+Time Series Collection Limitations
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :description: Time Series, IOT
+   :keywords: Time Series, IOT
+
+Constraints
+~~~~~~~~~~~
+
+The maximum size of a measurement document is 4 MB.
+
+.. _timeseries-limitations-updates-deletes:
+
+Updates and Deletes
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.1 (and 5.0.5), you can perform some delete and
+update operations.
+
+Delete commands must meet the following requirements:
+
+- The query may only match on ``metaField`` field values.
+- The delete command may not limit the number of documents to be
+  deleted. You must use a delete command with ``justOne: false`` or the
+  :method:`~db.collection.deleteMany()` method.
+
+Update commands must meet the following requirements:
+
+- The query may only match on ``metaField`` field values.
+- The update command may only modify the ``metaField`` field value.
+- The update must be performed with an update document that contains
+  only :ref:`update operator <update-operators>` expressions.
+- The update command may not limit the number of documents to be
+  updated. You must use an update command with ``multi: true`` or the
+  :method:`~db.collection.updateMany()` method.
+- The update command may not set :ref:`upsert: true <update-upsert>`.
+
+To automatically delete old data, :ref:`set up automatic removal (TTL)
+<set-up-automatic-removal>`.
+
+To remove all documents from a collection, use the
+:method:`~db.collection.drop()` method to drop the collection.
+
+.. _timeseries-limitations-secondary-indexes:
+
+Secondary Indexes
+~~~~~~~~~~~~~~~~~
+
+You can add :term:`secondary indexes <secondary index>` on the fields
+specified as the ``timeField`` and the ``metaField``. If the field value
+for the ``metaField`` field is a document, you can also create secondary
+indexes on fields inside that document.
+
+In MongoDB 5.1, the ``metaField`` doesn't support :doc:`text
+</core/index-text>` indexes.
+
+In MongoDB 5.0, the ``metaField`` doesn't support the following index
+types:
+
+- :doc:`2d </core/2d>`
+- :doc:`2dsphere </core/2dsphere>`
+- :doc:`text </core/index-text>`
+
+Secondary indexes don't support the following index properties:
+
+- :doc:`TTL </core/index-ttl>`
+- :doc:`Unique </core/index-unique>`
+- :doc:`Partial </core/index-partial>`
+
+``reIndex``
+~~~~~~~~~~~
+
+The :dbcommand:`reIndex` command is not supported for :ref:`time series
+collections <manual-timeseries-collection>`.
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+A time series collection can't be created as a :ref:`capped collection
+<manual-capped-collection>`.
+
+Modification of Collection Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection's type can only be set when creating the collection:
+
+- An existing collection can't be converted into a :ref:`time series
+  collection <manual-capped-collection>`.
+- A :ref:`time series collection <manual-capped-collection>` can't be
+  converted into a different collection type.
+
+To move data from an existing collection to a time series collection,
+:ref:`migrate data into a time series collection
+<migrate-data-into-a-timeseries-collection>`.
+
+Modification of ``timeField`` and ``metaField``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can only set a collection's ``timeField`` and ``metaField``
+parameters when creating the collection. After creation these parameters
+can't be modified.
+
+.. _timeseries-limitations-granularity:
+
+Modification of ``granularity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the ``granularity`` is set it can only be increased by one level at
+a time. From ``"seconds"`` to ``"minutes"`` or from ``"minutes"`` to
+``"hours"``. Other changes are not allowed. If you need to change the
+``granularity`` from ``"seconds"`` to ``"hours"``, first increase the
+``granularity`` to ``"minutes"`` and then to ``"hours"``.
+
+Schema Validation
+~~~~~~~~~~~~~~~~~
+
+You cannot specify :doc:`validation rules </core/schema-validation>` for
+:ref:`time series collections <manual-timeseries-collection>`.
+
+Client-Side Field Level Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:doc:`Client-side field level encryption
+</core/security-client-side-encryption>` is not supported for
+:ref:`time series collections <manual-timeseries-collection>`.
+
+.. _time-series-limitations-sharding:
+
+Sharding
+~~~~~~~~
+
+Starting in MongoDB 5.1, sharded time series collections are supported.
+When using sharded time series collections, you cannot:
+
+- Modify the ``granularity`` of a sharded time series
+  collection.
+
+- Run sharding administration commands, including:
+
+  - :dbcommand:`moveChunk`
+  - :dbcommand:`splitChunk`
+
+Shard Zones
+```````````
+
+.. include:: /includes/time-series/fact-shard-zone-limitations.rst
+
+Shard Keys
+``````````
+
+.. include:: /includes/time-series/fact-shard-key-limitations.rst
+
+Aggregation $out and $merge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The aggregation pipeline stages :pipeline:`$out` and :pipeline:`$merge`
+can't output to :ref:`time series collections
+<manual-timeseries-collection>`.
+
+Transactions
+~~~~~~~~~~~~
+
+You can't write to :ref:`time series collections
+<manual-timeseries-collection>` in :doc:`transactions
+</core/transactions>`.
+
+.. note::
+
+  Reads from time series collections are supported in transactions.
+
+Change Streams
+~~~~~~~~~~~~~~
+
+:doc:`Change streams </changeStreams>` are not supported for
+:ref:`time series collections <manual-timeseries-collection>`.
+
+Database Triggers
+~~~~~~~~~~~~~~~~~
+
+:realm:`Database Triggers </triggers/database-triggers>` are not
+supported for :ref:`time series collections
+<manual-timeseries-collection>`.
+
+GraphQL API
+~~~~~~~~~~~
+
+:realm:`GraphQL API </graphql>` is not supported for :ref:`time series
+collections <manual-timeseries-collection>`.
+
+Atlas Search
+~~~~~~~~~~~~
+
+:atlas:`Atlas Search </atlas-search>` is not supported for :ref:`time
+series collections <manual-timeseries-collection>`.
+
+Realm Sync
+~~~~~~~~~~
+
+:realm:`Realm Sync </sync>` is not supported for :ref:`time series
+collections <manual-timeseries-collection>`.

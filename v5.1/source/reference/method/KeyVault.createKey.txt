@@ -1,0 +1,192 @@
+====================
+KeyVault.createKey()
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 4.2
+
+.. method:: KeyVault.createKey(keyManagementService, customerMasterKey, ["keyAltName"])
+
+   Adds a data encryption key to the key vault associated to the
+   database connection. :doc:`Client-side field level encryption
+   </core/security-client-side-encryption>` uses data encryption keys
+   for supporting encryption and decryption of field values.
+
+   :method:`~KeyVault.createKey()` has the following syntax:
+
+   .. code-block:: javascript
+
+      keyVault = db.getMongo().getKeyVault()
+      
+      keyVault.createKey(
+        keyManagementService,
+        customerMasterKey,
+        [ "keyAltName" ]
+      )
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+   
+        - Type
+   
+        - Description
+
+      * - ``keyManagementService``
+        
+        - string
+
+        - *Required* 
+          
+          The :ref:`Key Management Service (KMS)
+          <field-level-encryption-kms>` to use for retrieving the
+          Customer Master Key (CMK). Accepts the following parameters:
+
+          - ``aws`` for :ref:`Amazon Web Services KMS
+            <field-level-encryption-aws-kms>`. Requires specifying a
+            Customer Master Key (CMK) string for ``customerMasterKey``.
+
+          - ``azure`` for :ref:`Azure Key Vault
+            <field-level-encryption-azure-keyvault>`. Requires
+            specifying a Customer Master Key (CMK) document for
+            ``customerMasterKey``.
+
+            .. versionadded:: 5.0
+
+          - ``gcp`` for :ref:`Google Cloud Platform KMS
+            <field-level-encryption-gcp-kms>`. Requires specifying a
+            Customer Master Key (CMK) document for
+            ``customerMasterKey``.
+
+            .. versionadded:: 5.0
+
+          - ``local`` for a :ref:`locally managed key
+            <field-level-encryption-local-kms>`.
+
+          If the :method:`database connection <Mongo()>` was not 
+          configured with the specified KMS, data encryption key
+          creation fails.
+
+      * - ``customerMasterKey``
+        
+        - string or document
+
+        - The Customer Master Key (CMK) to use for encrypting the data
+          encryption key. Required if ``keyManagementService`` is
+          ``aws``, ``azure``, or ``gcp``.
+
+          Provide the CMK as follows depending on your KMS provider:
+
+          - For the :ref:`Amazon Web Services KMS
+            <field-level-encryption-aws-kms>`, specify the full
+            `Amazon Resource Name (ARN)
+            <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__
+            of the master key as a single string.
+
+          - For the :ref:`Azure Key Vault
+            <field-level-encryption-azure-keyvault>` KMS, specify a
+            document containing the following key value pairs:
+
+            - ``keyName`` - The `Azure Key Vault Name
+              <https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name>`__
+            - ``keyVaultEndpoint`` - The DNS name of the Azure Key Vault
+              to use
+            - ``keyVersion`` - Optional. The version of the key
+              specified in ``keyName``, if applicable
+
+            .. versionadded:: 5.0
+
+          - For the :ref:`Google Cloud Platform KMS
+            <field-level-encryption-gcp-kms>`, specify a
+            document containing the following key value pairs:
+
+            - ``projectId`` - The GCP project name
+            - ``location`` - The location of the KMS keyring
+            - ``keyRing`` - The name of the KMS keyring (often 'global')
+            - ``keyName`` - The name of the key to use
+            - ``keyVersion`` - Optional. The version of the key
+              specified in ``keyName``, if applicable
+
+            .. versionadded:: 5.0
+
+          :method:`~KeyVault.createKey()` requests
+          that the KMS encrypt the data encryption key material
+          using the specified CMK. If the CMK does not exist *or* if the
+          :ref:`ClientSideFieldLevelEncryptionOptions` configuration
+          does not have sufficient privileges to use the CMK,
+          :method:`~KeyVault.createKey()` returns an error.
+
+          .. versionchanged:: 4.2.3
+
+             This parameter has no effect if ``keyManagementService`` is
+             ``local`` and can be safely omitted. Prior to MongoDB
+             4.2.3, if ``keyManagementService`` is ``local`` this
+             parameter *must* be an empty string ``"``.
+
+      * - ``keyAltName``
+        - array of strings
+        - *Optional*
+        
+          The alternative name for the data encryption key. Use
+          ``keyAltName`` to improve findability of a specific data
+          encryption key, or as an analog to a comment. 
+          
+          The :method:`getKeyVault()` method automatically creates a
+          :ref:`unique index <index-type-unique>`  on the
+          ``keyAltNames`` field with a :ref:`partial index
+          <index-type-partial>` filter for only documents where
+          ``keyAltNames`` exists.
+
+   :returns:
+  
+     The ``UUID`` unique identifier of the created data encryption
+     key.
+
+Behavior
+--------
+
+Requires Configuring Client-Side Field Level Encryption on Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-requires-enabling-encryption.rst
+
+Example
+-------
+
+The following example is intended for rapid evaluation of
+client-side field level encryption. For specific examples of using
+:method:`KeyVault.createKey()` with each supported
+:abbr:`KMS (Key Management Service)` provider, see
+:ref:`field-level-encryption-data-key-create`.
+
+.. include:: /includes/extracts/csfle-connection-boilerplate.rst
+
+Retrieve the :method:`keyVault <getKeyVault()>` object and
+use the :method:`KeyVault.createKey()` method to 
+create a new data encryption key using the locally managed key:
+
+.. code-block:: javascript
+
+   keyVault = encryptedClient.getKeyVault()
+   keyVault.createKey("local", ["data-encryption-key"])
+
+If successful, :method:`~KeyVault.createKey()` returns the ``UUID`` of
+the new data encryption key. To retrieve the new data encryption
+key document from the key vault, either:
+
+- Use :method:`~KeyVault.getKey()` to retrieve the created key by
+  ``UUID``.
+
+  *-or-*
+
+- Use :method:`~KeyVault.getKeyByAltName()` to retrieve the key by its 
+  alternate name.

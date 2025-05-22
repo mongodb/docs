@@ -1,0 +1,166 @@
+.. _storage-wiredtiger:
+.. _storage-wiredTiger:
+
+=========================
+WiredTiger Storage Engine
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in MongoDB 3.2, the WiredTiger storage engine is the default
+storage engine. For existing deployments, if you do not specify the
+``--storageEngine`` or the :setting:`storage.engine` setting, the
+version 3.2+ :binary:`~bin.mongod` instance can automatically determine
+the storage engine used to create the data files in the ``--dbpath`` or
+:setting:`storage.dbPath`. See :ref:`3.2-storage-engine-compatibility`.
+
+Document Level Concurrency
+--------------------------
+
+WiredTiger uses *document-level* concurrency control for write
+operations. As a result, multiple clients can modify different
+documents of a collection at the same time.
+
+.. include:: /includes/fact-wiredtiger-locks.rst
+
+.. _storage-wiredtiger-checkpoints:
+
+Snapshots and Checkpoints
+-------------------------
+
+WiredTiger uses MultiVersion Concurrency Control (MVCC). At the start
+of an operation, WiredTiger provides a point-in-time snapshot of the
+data to the operation. A snapshot presents a consistent view of the
+in-memory data.
+
+When writing to disk, WiredTiger writes all the data in a snapshot to
+disk in a consistent way across all data files. The now-:term:`durable`
+data act as a *checkpoint* in the data files. The *checkpoint* ensures
+that the data files are consistent up to and including the last
+checkpoint; i.e. checkpoints can act as recovery points.
+
+.. include:: /includes/extracts/wt-snapshot-frequency.rst
+
+During the write of a new checkpoint, the previous checkpoint is still
+valid. As such, even if MongoDB terminates or encounters an error while
+writing a new checkpoint, upon restart, MongoDB can recover from the
+last valid checkpoint.
+
+The new checkpoint becomes accessible and permanent when WiredTiger's
+metadata table is atomically updated to reference the new checkpoint.
+Once the new checkpoint is accessible, WiredTiger frees pages from the
+old checkpoints.
+
+Starting in MongoDB 5.0, you can use the
+:parameter:`minSnapshotHistoryWindowInSeconds` parameter to control how
+long WiredTiger keeps the snapshot history.
+
+Using WiredTiger, even without :ref:`journaling
+<storage-wiredtiger-journal>`, MongoDB can recover from the last
+checkpoint; however, to recover changes made after the last checkpoint,
+run with :ref:`journaling <storage-wiredtiger-journal>`.
+
+.. note::
+
+   .. include:: /includes/wiredtiger-node-nojournal.rst
+
+.. _storage-wiredtiger-journal:
+
+Journal
+-------
+
+WiredTiger uses a write-ahead log (i.e. journal) in combination with
+:ref:`checkpoints <storage-wiredtiger-checkpoints>` to ensure data
+durability.
+
+The WiredTiger journal persists all data modifications between
+checkpoints. If MongoDB exits between checkpoints, it uses the journal
+to replay all data modified since the last checkpoint. For information
+on the frequency with which MongoDB writes the journal data to disk,
+see :ref:`journal-process`.
+
+WiredTiger journal is compressed using the :term:`snappy` compression
+library. To specify a different compression algorithm or no
+compression, use the
+:setting:`storage.wiredTiger.engineConfig.journalCompressor` setting.
+For details on changing the journal compressor, see
+:ref:`manage-journaling-change-wt-journal-compressor`.
+
+.. note::
+
+   .. include:: /includes/extracts/wt-log-compression-limit.rst
+
+You can disable journaling for standalone instances by setting
+:setting:`storage.journal.enabled` to ``false``, which can reduce the
+overhead of maintaining the journal. For :term:`standalone` instances,
+not using the journal means that, when MongoDB exits unexpectedly, you
+will lose all data modifications prior to the last checkpoint.
+
+.. note::
+
+   .. include:: /includes/wiredtiger-node-nojournal.rst
+
+.. seealso::
+
+   :ref:`Journaling with WiredTiger <journaling-wiredTiger>`
+
+.. _storage-wiredtiger-compression:
+
+Compression
+-----------
+
+With WiredTiger, MongoDB supports compression for all collections and
+indexes. Compression minimizes storage use at the expense of additional
+CPU.
+
+By default, WiredTiger uses block compression with the :term:`snappy`
+compression library for all collections and :term:`prefix compression`
+for all indexes.
+
+For collections, the following block compression libraries are also available:
+
+- :term:`zlib` 
+
+- :term:`zstd` (Available starting in MongoDB 4.2)
+
+To specify an alternate compression algorithm or no compression, use
+the :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
+setting.
+
+For indexes, to disable :term:`prefix compression`, use the
+:setting:`storage.wiredTiger.indexConfig.prefixCompression` setting.
+
+Compression settings are also configurable on a per-collection and
+per-index basis during collection and index creation. See
+:ref:`create-collection-storage-engine-options` and
+:ref:`db.collection.createIndex() storageEngine option
+<createIndex-options>`.
+
+For most workloads, the default compression settings balance storage
+efficiency and processing requirements.
+
+The WiredTiger journal is also compressed by default. For information
+on journal compression, see :ref:`storage-wiredtiger-journal`.
+
+.. _wiredtiger-RAM:
+
+Memory Use
+----------
+
+.. include:: /includes/extracts/wt-cache-utilization.rst
+
+.. include:: /includes/extracts/wt-cache-setting.rst
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/change-standalone-wiredtiger.txt
+   /tutorial/change-replica-set-wiredtiger.txt
+   /tutorial/change-sharded-cluster-wiredtiger.txt

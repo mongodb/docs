@@ -1,0 +1,820 @@
+==========================
+db.collection.updateMany()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.updateMany(filter, update, options)
+
+   .. include:: /includes/fact-mongosh-shell-method.rst
+   
+   Updates all documents that match the specified filter for a
+   collection.
+
+Syntax
+------
+
+The :method:`~db.collection.updateMany()` method has the following form:
+
+.. code-block:: javascript
+
+   db.collection.updateMany(
+      <filter>,
+      <update>,
+      {
+        upsert: <boolean>,
+        writeConcern: <document>,
+        collation: <document>,
+        arrayFilters: [ <filterdocument1>, ... ],
+        hint:  <document|string>        // Available starting in MongoDB 4.2.1
+      }
+   )
+
+Parameters
+~~~~~~~~~~
+
+The :method:`~db.collection.updateMany()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`filter <update-many-filter>`
+
+     - document
+
+     - .. _update-many-filter:
+     
+       The selection criteria for the update. The same :ref:`query
+       selectors <query-selectors>` as in the :method:`find()
+       <db.collection.find()>` method are available.
+       
+       Specify an empty document ``{ }`` to update all documents in 
+       the collection.
+
+   * - :ref:`update <update-many-update>`
+
+     - document or pipeline
+
+     - .. _update-many-update:
+     
+       The modifications to apply. Can be one of the following:
+
+       .. list-table::
+          :widths: 40 80
+          :class: border-table
+
+          * - :ref:`Update document <update-many-method-update-document>`
+
+            - .. _update-many-method-update-document:
+
+              Contains only :ref:`update operator expressions
+              <update-operators>`.
+              
+              For more information, see
+              :ref:`updateMany-behavior-update-expressions`
+
+          * - :ref:`Aggregation pipeline <update-many-method-agg-pipeline>`
+              (*Starting in MongoDB 4.2*)
+
+            - .. _update-many-method-agg-pipeline:
+
+              Contains only the following aggregation stages:
+
+              .. include:: /includes/list-update-agg-stages.rst
+       
+              For more information, see
+              :ref:`updateMany-behavior-aggregation-pipeline`.
+
+       To update with a replacement document, see
+       :method:`db.collection.replaceOne()`.
+
+   * - ``upsert``
+
+     - boolean
+
+     - .. include:: /includes/extracts/updateMany-behavior-method.rst
+
+   * - ``writeConcern``
+
+     - document
+
+     - Optional. A document expressing the :doc:`write concern
+       </reference/write-concern>`. Omit to use the default write concern.
+       
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+   * - ``collation``
+
+     - document
+
+     - Optional. 
+       
+       .. include:: /includes/extracts/collation-option.rst
+
+   * - ``arrayFilters``
+
+     - array
+
+     - Optional. An array of filter documents that determine which array elements to
+       modify for an update operation on an array field.
+       
+       .. include::  /includes/extracts/arrayFilters-details.rst
+
+       For examples, see :ref:`updateMany-arrayFilters`.
+       
+       .. versionadded:: 3.6
+
+   * - :ref:`hint <update-many-hint>` 
+
+     - Document or string
+
+     - .. _update-many-hint:
+
+       Optional. A document or string that specifies the :doc:`index
+       </indexes>` to use to support the :ref:`query predicate
+       <update-many-filter>`.
+
+       The option can take an index specification document or the index
+       name string.
+
+       If you specify an index that does not exist, the operation
+       errors.
+
+       For an example, see :ref:`ex-update-many-hint`.
+
+       .. versionadded:: 4.2.1
+
+Returns
+~~~~~~~
+
+The method returns a document that contains:
+      
+- A boolean ``acknowledged`` as ``true`` if the operation ran with 
+  :term:`write concern` or ``false`` if write concern was disabled
+ 
+- ``matchedCount`` containing the number of matched documents
+
+- ``modifiedCount`` containing the number of modified documents
+
+- ``upsertedId`` containing the ``_id`` for the upserted document
+
+Access Control
+--------------
+
+On deployments running with :setting:`~security.authorization`, the
+user must have access that includes the following privileges:
+
+- :authaction:`update` action on the specified collection(s).
+
+- :authaction:`find` action on the specified collection(s).
+
+- :authaction:`insert` action on the specified collection(s) if the
+  operation results in an upsert.
+
+The built-in role :authrole:`readWrite` provides the required
+privileges.
+
+Behavior
+--------
+
+:method:`~db.collection.updateMany()` updates all matching documents in 
+the collection that match the ``filter``, using the ``update`` criteria 
+to apply modifications.
+
+Upsert
+~~~~~~
+
+If ``upsert: true`` and no documents match the ``filter``, 
+:method:`db.collection.updateMany()` creates a new 
+document based on the ``filter`` and ``update`` parameters.
+
+If you specify ``upsert: true`` on a sharded collection, you must
+include the full shard key in the ``filter``. For additional
+:method:`db.collection.updateMany()` behavior, see
+:ref:`updateMany-sharded-collection`.
+
+See 
+:ref:`updateMany-example-update-multiple-documents-with-upsert`.
+
+.. _updateMany-behavior-update-expressions:
+
+Update with an Update Operator Expressions Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the modification specification, the
+:method:`db.collection.updateMany()` method can accept a document that
+only contains :ref:`update operator <update-operators>` expressions to
+perform.
+
+For example:
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+   :copyable: false
+
+   db.collection.updateMany( 
+      <query>,
+      { $set: { status: "D" }, $inc: { quantity: 2 } },
+      ...
+   )
+
+.. _updateMany-behavior-aggregation-pipeline:
+
+Update with an Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :method:`db.collection.updateMany()` method
+can accept an :doc:`aggregation pipeline
+</core/aggregation-pipeline>` ``[ <stage1>, <stage2>, ... ]`` that
+specifies the modifications to perform. The pipeline can consist of
+the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+For example:
+
+.. code-block:: javascript
+   :emphasize-lines: 3-6
+   :copyable: false
+
+   db.collection.updateMany( 
+      <query>,
+      [ 
+         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ] } }, 
+         { $unset: [ "misc1", "misc2" ] } 
+      ]
+      ...
+   )
+
+.. note::
+
+   The ``$set`` and ``$unset`` used in the pipeline refers to the
+   aggregation stages :pipeline:`$set` and :pipeline:`$unset`
+   respectively, and not the update operators :update:`$set` and :update:`$unset`.
+
+For examples, see :ref:`updateMany-example-agg`.
+
+
+.. _updateMany-capped-collections:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/capped-collection-immutable-document-size-update.rst
+
+.. _updateMany-timeseries-collection:
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use the :method:`~db.collection.updateMany()` method on a
+:term:`time series collection`.
+
+.. _updateMany-sharded-collection:
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+For a :method:`db.collection.updateMany()` operation that includes
+``upsert: true`` and is on a sharded collection, you must include the
+full shard key in the ``filter``.
+
+Explainability
+~~~~~~~~~~~~~~
+
+:method:`~db.collection.updateMany()` is not compatible with
+:method:`db.collection.explain()`.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Upsert within Transactions
+``````````````````````````
+
+.. include:: /includes/extracts/transactions-upsert-availability.rst
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+
+.. |operation| replace:: :method:`db.collection.updateMany()`
+
+.. _updateMany-method-examples:
+
+Examples
+--------
+
+.. _updateMany-example-update-multiple-documents:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``restaurant`` collection contains the  following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : 2 }
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : 5 }
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : 8 }
+
+The following operation updates all documents where ``violations`` are 
+greater than ``4`` and :update:`$set` a flag for review:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateMany( 
+         { violations: { $gt: 4 } }, 
+         { $set: { "Review" : true } } 
+      );
+   } catch (e) {
+      print(e);
+   }
+  
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
+   
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : 2 }
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : 5, "Review" : true }
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : 8, "Review" : true }
+
+If no matches were found, the operation instead returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
+
+Setting ``upsert: true`` would insert a document if no match was found.
+
+.. _updateMany-example-agg:
+
+Update with Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :method:`db.collection.updateMany()` can use
+an aggregation pipeline for the update. The pipeline can consist of the
+following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+Example 1
+`````````
+
+The following examples uses the aggregation pipeline to modify a field
+using the values of the other fields in the document.
+
+Create a ``members`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany( [
+      { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
+   ] )
+
+Assume that instead of separate ``misc1`` and ``misc2`` fields, you
+want to gather these into a new ``comments`` field. The following
+update operation uses an aggregation pipeline to:
+   
+- add the new ``comments`` field and set the ``lastUpdate`` field.
+
+- remove the ``misc1`` and ``misc2`` fields for all documents in the
+  collection.
+
+.. code-block:: javascript
+
+   db.members.updateMany(
+      { },
+      [
+         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ], lastUpdate: "$$NOW" } },
+         { $unset: [ "misc1", "misc2" ] }
+      ]
+   )
+
+.. note::
+
+   The ``$set`` and ``$unset`` used in the pipeline refers to the
+   aggregation stages :pipeline:`$set` and :pipeline:`$unset`
+   respectively, and not the update operators :update:`$set` and :update:`$unset`.
+
+First Stage
+   The :pipeline:`$set` stage:
+
+   - creates a new array field ``comments`` whose elements are the current
+     content of the ``misc1`` and ``misc2`` fields and 
+
+   - sets the field ``lastUpdate`` to the value of the aggregation
+     variable :variable:`NOW`. The aggregation variable
+     :variable:`NOW` resolves to the current datetime value and remains
+     the same throughout the pipeline. To access aggregation
+     variables, prefix the variable with double dollar signs ``$$``
+     and enclose in quotes.
+
+Second Stage
+   The :pipeline:`$unset` stage removes the ``misc1`` and ``misc2`` fields.
+
+After the command, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "member" : "abc123", "status" : "Modified", "points" : 2, "lastUpdate" : ISODate("2020-01-23T05:50:49.247Z"), "comments" : [ "note to self: confirm status", "Need to activate" ] }
+   { "_id" : 2, "member" : "xyz123", "status" : "Modified", "points" : 60, "lastUpdate" : ISODate("2020-01-23T05:50:49.247Z"), "comments" : [ "reminder: ping me at 100pts", "Some random comment" ] }
+   
+Example 2
+`````````
+
+The aggregation pipeline allows the update to perform conditional
+updates based on the current field values as well as use current field
+values to calculate a separate field value.
+
+For example, create a ``students3`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.students3.insertMany( [
+      { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
+   ] )
+
+Using an aggregation pipeline, you can update the documents with the
+calculated grade average and letter grade.
+
+.. code-block:: javascript
+
+   db.students3.updateMany(
+      { },
+      [
+        { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] } , lastUpdate: "$$NOW" } },
+        { $set: { grade: { $switch: {
+                              branches: [
+                                  { case: { $gte: [ "$average", 90 ] }, then: "A" },
+                                  { case: { $gte: [ "$average", 80 ] }, then: "B" },
+                                  { case: { $gte: [ "$average", 70 ] }, then: "C" },
+                                  { case: { $gte: [ "$average", 60 ] }, then: "D" }
+                              ],
+                              default: "F"
+        } } } }
+      ]
+   )
+
+.. note::
+
+   The ``$set`` used in the pipeline refers to the aggregation stage
+   :pipeline:`$set`, and not the update operators :update:`$set`.
+
+First Stage
+   The :pipeline:`$set` stage:
+
+   - calculates a new field ``average`` based on the average of the
+     ``tests`` field. See :group:`$avg` for more information on the
+     ``$avg`` aggregation operator and :expression:`$trunc` for more
+     information on the ``$trunc`` truncate aggregation operator.
+     
+   - sets the field ``lastUpdate`` to the value of the aggregation
+     variable :variable:`NOW`. The aggregation variable
+     :variable:`NOW` resolves to the current datetime value and remains
+     the same throughout the pipeline. To access aggregation
+     variables, prefix the variable with double dollar signs ``$$``
+     and enclose in quotes.
+   
+
+Second Stage
+   The :pipeline:`$set` stage calculates a new field ``grade`` based on
+   the ``average`` field calculated in the previous stage. See
+   :expression:`$switch` for more information on the ``$switch``
+   aggregation operator.
+
+After the command, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2020-01-24T17:31:01.670Z"), "average" : 92, "grade" : "A" }
+   { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2020-01-24T17:31:01.670Z"), "average" : 90, "grade" : "A" }
+   { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2020-01-24T17:31:01.670Z"), "average" : 75, "grade" : "C" }
+      
+.. seealso::
+
+   :doc:`/tutorial/update-documents-with-aggregation-pipeline`
+
+.. _updateMany-example-update-multiple-documents-with-upsert:
+
+Update Multiple Documents with Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``inspectors`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
+   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
+   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
+   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false }
+
+The following operation updates all documents with ``Sector`` greater
+than 4 and ``inspector`` equal to ``"R. Coltrane"``:
+
+.. code-block:: javascript
+
+   try {
+      db.inspectors.updateMany(
+         { "Sector" : { $gt : 4 }, "inspector" : "R. Coltrane" },
+         { $set: { "Patrolling" : false } },
+         { upsert: true }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "matchedCount" : 0,
+      "modifiedCount" : 0,
+      "upsertedId" : ObjectId("56fc5dcb39ee682bdc609b02")
+   }
+
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
+   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
+   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
+   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false },
+   { "_id" : ObjectId("56fc5dcb39ee682bdc609b02"), "inspector" : "R. Coltrane", "Patrolling" : false }
+
+Since no documents matched the filter, and ``upsert`` was ``true``,
+:method:`~db.collection.updateMany` inserted the document with a
+generated ``_id``, the equality conditions from the ``filter``, and the
+``update`` modifiers.
+
+.. _updateMany-example-update-with-write-concern:
+
+Update with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a 
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateMany(
+          { "name" : "Pizza Rat's Pizzaria" },
+          { $inc: { "violations" : 3}, $set: { "Closed" : true } },
+          { w: "majority", wtimeout: 100 }
+      );
+   } catch (e) {
+      print(e);
+   }
+
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+exception is thrown:
+
+.. versionchanged:: 4.4
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errmsg" : "waiting for replication timed out",
+      "errInfo" : {
+        "wtimeout" : true,
+        "writeConcern" : {
+          "w" : "majority",
+          "wtimeout" : 100,
+          "provenance" : "getLastErrorDefaults"
+        }
+      }
+   })
+
+The following table explains the possible values of
+``errInfo.writeConcern.provenance``:
+
+.. include:: /includes/fact-wc-provenance-table.rst
+
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.updateMany(
+      { category: "cafe" },
+      { $set: { status: "Updated" } },
+      { collation: { locale: "fr", strength: 1 } }
+   );
+
+.. _updateMany-arrayFilters:
+
+Specify ``arrayFilters`` for an Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+Create a collection ``students`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students.insertMany( [
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ] )
+
+To update all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option:
+
+.. code-block:: javascript
+
+   db.students.updateMany(
+      { grades: { $gte: 100 } },
+      { $set: { "grades.$[element]" : 100 } },
+      { arrayFilters: [ { "element": { $gte: 100 } } ] }
+   )
+
+After the operation, the collection contains the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 100, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+Create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insertMany( [
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ] )
+
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters``:
+
+.. code-block:: javascript
+
+   db.students2.updateMany(
+      { },
+      { $set: { "grades.$[elem].mean" : 100 } },
+      { arrayFilters: [ { "elem.grade": { $gte: 85 } } ] }
+   )
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 5-6,12-14
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+      ]
+   }
+   { 
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 100, "std" : 6 },
+         { "grade" : 87, "mean" : 100, "std" : 3 },
+         { "grade" : 85, "mean" : 100, "std" : 4 }
+      ]
+   }
+
+.. _ex-update-many-hint:
+
+Specify ``hint`` for Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2.1
+
+Create a sample ``members`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany( [
+      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
+      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
+      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   ] )
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { status: 1 } )
+   db.members.createIndex( { points: 1 } )
+
+The following update operation explicitly hints to use the index ``{
+status: 1 }``:
+
+.. note::
+
+   If you specify an index that does not exist, the operation errors.
+
+.. code-block:: javascript
+
+   db.members.updateMany(
+      { "points": { $lte: 20 }, "status": "P" }, 
+      { $set: { "misc1": "Need to activate" } },
+      { hint: { status: 1 } }
+   )
+
+The update command returns the following:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
+
+To view the indexes used, you can use the :pipeline:`$indexStats` pipeline:
+
+.. code-block:: javascript
+
+   db.members.aggregate( [ { $indexStats: { } }, { $sort: { name: 1 } } ] )

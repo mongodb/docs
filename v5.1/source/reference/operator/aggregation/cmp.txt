@@ -1,0 +1,76 @@
+==================
+$cmp (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $cmp
+
+   Compares two values and returns:
+
+   - ``-1`` if the first value is less than the second.
+
+   - ``1`` if the first value is greater than the second.
+
+   - ``0`` if the two values are equivalent.
+
+   .. include:: /includes/extracts/fact-agg-comparison-expression-cmp.rst
+
+   :expression:`$cmp` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $cmp: [ <expression1>, <expression2> ] }
+
+   For more information on expressions, see :ref:`aggregation-expressions`.
+
+Example
+-------
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc1", description: "product 1", qty: 300 }
+   { "_id" : 2, "item" : "abc2", description: "product 2", qty: 200 }
+   { "_id" : 3, "item" : "xyz1", description: "product 3", qty: 250 }
+   { "_id" : 4, "item" : "VWZ1", description: "product 4", qty: 300 }
+   { "_id" : 5, "item" : "VWZ2", description: "product 5", qty: 180 }
+
+The following operation uses the :expression:`$cmp` operator to compare
+the ``qty`` value with ``250``:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+        {
+          $project:
+             {
+               item: 1,
+               qty: 1,
+               cmpTo250: { $cmp: [ "$qty", 250 ] },
+               _id: 0
+             }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "item" : "abc1", "qty" : 300, "cmpTo250" : 1 }
+   { "item" : "abc2", "qty" : 200, "cmpTo250" : -1 }
+   { "item" : "xyz1", "qty" : 250, "cmpTo250" : 0 }
+   { "item" : "VWZ1", "qty" : 300, "cmpTo250" : 1 }
+   { "item" : "VWZ2", "qty" : 180, "cmpTo250" : -1 }

@@ -1,0 +1,57 @@
+title: 
+  text: Deploy the config servers as a three-member replica set.
+  character: "`"
+stepnum: 1
+ref: start-config-instances
+action:
+  - pre: |
+      Start a config server on ``mongodb7.example.net``,
+      ``mongodb8.example.net``, and ``mongodb9.example.net``. Specify the
+      same replica set name. The config servers use the default data
+      directory ``/data/configdb`` and the default port ``27019``.
+
+      .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+    language: sh
+    code: |
+      mongod --configsvr --replSet configReplSet --bind_ip localhost,<hostname(s)|ip address(es)>
+    post: |
+      To modify the default settings or to include additional options
+      specific to your deployment, see :doc:`/reference/program/mongod` or
+      :doc:`/reference/configuration-options`.
+  - pre: |
+      Connect :binary:`~bin.mongosh` to one of the config servers and
+      run :method:`rs.initiate()` to initiate the replica set.
+
+      .. important::
+
+         .. include:: /includes/fact-rs-initiate-once-only.rst
+
+      .. include:: /includes/tip-hostnames.rst
+    language: javascript
+    code: |
+          rs.initiate( {
+             _id: "configReplSet",
+             configsvr: true,
+             members: [
+                { _id: 0, host: "mongodb07.example.net:27019" },
+                { _id: 1, host: "mongodb08.example.net:27019" },
+                { _id: 2, host: "mongodb09.example.net:27019" }
+             ]
+          } )
+---
+title: 
+  text: Start a ``mongos`` instance.
+  character: "`"
+stepnum: 2
+ref: start-mongos-instance
+pre: |
+    On ``mongodb6.example.net``, start the :binary:`~bin.mongos` specifying
+    the config server replica set name followed by a slash ``/`` and at least
+    one of the config server hostnames and ports.
+
+action:
+  language: sh
+  code: |
+    mongos --configdb configReplSet/mongodb07.example.net:27019,mongodb08.example.net:27019,mongodb09.example.net:27019  --bind_ip localhost,<hostname(s)|ip address(es)>
+...

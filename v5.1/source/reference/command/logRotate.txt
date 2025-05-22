@@ -1,0 +1,121 @@
+=========
+logRotate
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: logRotate
+
+   The :dbcommand:`logRotate` command is an administrative command that
+   allows you to rotate the MongoDB server log and/or audit log to
+   prevent a single logfile from consuming too much disk space.
+
+   You must issue the :dbcommand:`logRotate` command against the
+   :term:`admin database` in the form:
+
+   .. code-block:: javascript
+
+      db.adminCommand({logRotate: <target>})
+
+   The :dbcommand:`logRotate` command takes the following parameters:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+
+      * - ``<target>``
+   
+        - string
+   
+        - The log or logs to rotate, according to the following:
+
+          - ``1``  -- Rotates both the server and audit logs
+          - ``server`` -- Rotates only the server log
+          - ``audit``  -- Rotates only the audit log
+
+      * - ``comment``
+   
+        - any
+   
+        - *optional* A message logged by the server to the log file and
+          audit file at time of log rotation.
+
+   You may also rotate the logs by sending a ``SIGUSR1`` signal to the
+   :binary:`~bin.mongod` process.
+
+   For example, if a running :binary:`~bin.mongod` instance has a
+   process ID (PID) of ``2200``, the following command rotates the log
+   file for that instance on Linux:
+
+   .. code-block:: bash
+
+      kill -SIGUSR1 2200
+
+Limitations
+-----------
+
+- Your :binary:`~bin.mongod` instance needs to be running with the
+  :option:`--logpath [file] <mongod --logpath>` option in order to use
+  :dbcommand:`logRotate`
+
+- :doc:`Auditing </core/auditing>` must be enabled in order to rotate
+  the audit log.
+
+Behavior
+--------
+
+The :setting:`systemLog.logRotate` setting or
+:option:`--logRotate <mongod --logRotate>` option specify
+:dbcommand:`logRotate`'s behavior.
+
+When :setting:`systemLog.logRotate` or :option:`--logRotate
+<mongod --logRotate>` are set to ``rename``, :dbcommand:`logRotate`
+renames the existing log file by appending the current timestamp to the
+filename. The appended timestamp has the following form:
+
+.. code-block:: none
+
+   <YYYY>-<mm>-<DD>T<HH>-<MM>-<SS>
+
+Then :dbcommand:`logRotate` creates a new log file with the same
+name as originally specified by the :setting:`systemLog.path` setting to
+:binary:`~bin.mongod` or :binary:`~bin.mongos`.
+
+When :setting:`systemLog.logRotate` or :option:`--logRotate
+<mongod --logRotate>` are set to ``reopen``, :dbcommand:`logRotate`
+follows the typical Linux/Unix behavior, and simply closes the log file
+then reopens a log file with the same name. With ``reopen``,
+:binary:`~bin.mongod` expects that another process renames the file
+prior to the rotation, and that the reopen results in the creation of a
+new file.
+
+Examples
+--------
+
+The following example rotates both the server log and the audit log:
+
+.. code-block:: javascript
+
+   db.adminCommand({logRotate: 1})
+
+The following example rotates only the audit log, and provides a custom
+message to the log file at time of rotation:
+
+.. code-block:: javascript
+
+   db.adminCommand({logRotate: audit, comment: "Rotating audit log"})

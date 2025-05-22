@@ -1,0 +1,66 @@
+title: "Downgrade the protocolVersion."
+level: 4
+ref: downgrade-protocolVersion
+pre: |
+   Connect a :binary:`~bin.mongo` shell to the current primary and
+   downgrade the replication protocol:
+action:
+   language: javascript
+   code: |
+      cfg = rs.conf();
+      cfg.protocolVersion=0;
+      rs.reconfig(cfg);
+---
+title: "Downgrade secondary members of the replica set."
+level: 4
+ref: downgrade-secondaries
+content: |
+
+  Downgrade each :term:`secondary` member of the replica set, one at a
+  time:
+
+  a. Shut down the :binary:`~bin.mongod`. See :ref:`terminate-mongod-processes` for instructions on safely terminating :binary:`~bin.mongod` processes.
+
+  #. Replace the 3.2 binary with the 3.0 binary and restart.
+
+     .. important::
+
+        If your :binary:`~bin.mongod` instance is using the :doc:`WiredTiger
+        </core/wiredtiger>` storage engine, you must include the
+        :option:`--storageEngine <mongod --storageEngine>` option (or :setting:`storage.engine` if
+        using the configuration file) with the 3.0 binary.
+
+  #. Wait for the member to recover to ``SECONDARY`` state before downgrading the next secondary. To check the member's state, use the :method:`rs.status()` method in the :binary:`~bin.mongo` shell.
+
+---
+title: Step down the primary.
+level: 4
+ref: step-down-primary
+pre: |
+  Use :method:`rs.stepDown()` in the :binary:`~bin.mongo` shell to
+  step down the :term:`primary` and force the normal :ref:`failover
+  <replica-set-failover>` procedure.
+action:
+  language: javascript
+  code:
+    rs.stepDown()
+post: |
+  :method:`rs.stepDown()` expedites the failover procedure and is
+  preferable to shutting down the primary directly.
+---
+title: "Replace and restart former primary ``mongod``."
+level: 4
+ref: downgrade-primary
+content: |
+  When :method:`rs.status()` shows that the primary has stepped down
+  and another member has assumed ``PRIMARY`` state, shut down the
+  previous primary and replace the :binary:`~bin.mongod` binary with
+  the 3.0 binary and start the new instance.
+
+  .. important::
+
+     If your :binary:`~bin.mongod` instance is using the :doc:`WiredTiger
+     </core/wiredtiger>` storage engine, you must include the
+     :option:`--storageEngine <mongod --storageEngine>` option (or :setting:`storage.engine` if
+     using the configuration file) with the 3.0 binary.
+...
