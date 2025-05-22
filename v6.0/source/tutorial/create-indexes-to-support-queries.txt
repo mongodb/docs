@@ -1,0 +1,99 @@
+.. _create-indexes-to-support-queries:
+
+======================================
+Create Indexes to Support Your Queries
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+An index supports a query when the index contains all the fields scanned
+by the query. The query scans the index and not the collection. Creating indexes
+that support queries results in greatly increased query performance.
+
+This document describes strategies for creating indexes that support queries.
+
+Create a Single-Key Index if All Queries Use the Same, Single Key
+-----------------------------------------------------------------
+
+If you only ever query on a single key in a given collection, then you need
+to create just one single-key index for that collection. For example, you
+might create an index on ``category`` in the ``product`` collection:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "category": 1 } )
+
+.. _compound-key-indexes:
+
+Create Compound Indexes to Support Several Different Queries
+------------------------------------------------------------
+
+If you sometimes query on only one key and at other times query on that
+key combined with a second key, then creating a compound index is more
+efficient than creating a single-key index. MongoDB will use the
+compound index for both queries. For example, you might create an index
+on both ``category`` and ``item``.
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "category": 1, "item": 1 } )
+
+This allows you both options. You can query on just ``category``, and
+you also can query on ``category`` combined with ``item``.
+A single :ref:`compound index <index-type-compound>` on multiple fields
+can support all the queries that search a "prefix" subset of those fields.
+
+.. example::
+
+   The following index on a collection:
+
+   .. code-block:: javascript
+
+      { x: 1, y: 1, z: 1 }
+
+   Can support queries that the following indexes support:
+
+   .. code-block:: javascript
+
+      { x: 1 }
+      { x: 1, y: 1 }
+
+   There are some situations where the prefix indexes may offer better
+   query performance: for example if ``z`` is a large array.
+
+   The ``{ x: 1, y: 1, z: 1 }`` index can also support many of the same
+   queries as the following index:
+
+   .. code-block:: javascript
+
+      { x: 1, z: 1 }
+
+   Also, ``{ x: 1, z: 1 }`` has an additional use. Given the following
+   query:
+
+   .. code-block:: javascript
+
+      db.collection.find( { x: 5 } ).sort( { z: 1} )
+
+   The ``{ x: 1, z: 1 }`` index supports both the query and the sort
+   operation, while the ``{ x: 1, y: 1, z: 1 }`` index only supports
+   the query. For more information on sorting, see
+   :ref:`sorting-with-indexes`.
+
+.. include:: /includes/fact-index-intersection-vs-compound-indexes.rst
+
+Create Indexes to Support Text Search
+-------------------------------------
+
+.. include:: /includes/indexes/text-search-indexes-overview.rst
+
+Index Use and Collation
+-----------------------
+
+.. include:: /includes/extracts/collation-index-use.rst

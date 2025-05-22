@@ -1,0 +1,116 @@
+============================
+$setDifference (aggregation)
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $setDifference
+
+   Takes two sets and returns an array containing the elements that
+   only exist in the first set; i.e. performs a `relative complement
+   <http://en.wikipedia.org/wiki/Complement_(set_theory)>`_ of the
+   second set relative to the first.
+
+   :expression:`$setDifference` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $setDifference: [ <expression1>, <expression2> ] }
+
+   The arguments can be any valid :ref:`expression
+   <aggregation-expressions>` as long as they each resolve to an array.
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. |set-operator-name| replace:: :expression:`$setDifference`
+
+.. include:: /includes/important-set-operator-semantics.rst
+
+.. include:: /includes/extracts/fact-agg-top-level-expressions-setDifference.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+   :class: border-table
+
+   * - Example
+
+     - Result
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setDifference: [ [ "a", "b", "a" ], [ "b", "a" ] ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setDifference: [ [ "a", "b" ], [ [ "a", "b" ] ] ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "a", "b" ]
+
+Example
+-------
+
+Consider an ``flowers`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.flowers.insertMany( [
+      { "_id" : 1, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid" ] },
+      { "_id" : 2, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "orchid", "rose", "orchid" ] },
+      { "_id" : 3, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid", "jasmine" ] },
+      { "_id" : 4, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "jasmine", "rose" ] },
+      { "_id" : 5, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ ] },
+      { "_id" : 6, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose" ], [ "orchid" ] ] },
+      { "_id" : 7, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose", "orchid" ] ] },
+      { "_id" : 8, "flowerFieldA" : [ ], "flowerFieldB" : [ ] },
+      { "_id" : 9, "flowerFieldA" : [ ], "flowerFieldB" : [ "rose" ] }
+   ] ) 
+
+The following operation uses the :expression:`$setDifference` operator
+to return an array of elements found in the ``flowerFieldB`` array but *not*
+in the ``flowerFieldA`` array:
+
+.. code-block:: javascript
+
+   db.flowers.aggregate(
+      [
+        { $project: { flowerFieldA: 1, flowerFieldB: 1, inBOnly: { $setDifference: [ "$flowerFieldB", "$flowerFieldA" ] }, _id: 0 } }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid" ], "inBOnly" : [ ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "orchid", "rose", "orchid" ], "inBOnly" : [ ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid", "jasmine" ], "inBOnly" : [ "jasmine" ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "jasmine", "rose" ], "inBOnly" : [ "jasmine" ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ ], "inBOnly" : [ ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose" ], [ "orchid" ] ], "inBOnly" : [ [ "rose" ], [ "orchid" ] ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose", "orchid" ] ], "inBOnly" : [ [ "rose", "orchid" ] ] }
+   { "flowerFieldA" : [ ], "flowerFieldB" : [ ], "inBOnly" : [ ] }
+   { "flowerFieldA" : [ ], "flowerFieldB" : [ "rose" ], "inBOnly" : [ "rose" ] }

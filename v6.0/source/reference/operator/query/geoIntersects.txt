@@ -1,0 +1,180 @@
+==============
+$geoIntersects
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $geoIntersects
+
+   Selects documents whose geospatial data intersects with a specified
+   :ref:`GeoJSON <geospatial-indexes-store-geojson>` object; i.e. where
+   the intersection of the data and the specified object is non-empty.
+
+   The :query:`$geoIntersects` operator uses the :query:`$geometry`
+   operator to specify the :ref:`GeoJSON
+   <geospatial-indexes-store-geojson>` object. To specify a GeoJSON
+   polygons or multipolygons using the default coordinate reference
+   system (CRS), use the following syntax:
+
+   .. code-block:: javascript
+
+      {
+        <location field>: {
+           $geoIntersects: {
+              $geometry: {
+                 type: "<GeoJSON object type>" ,
+                 coordinates: [ <coordinates> ]
+              }
+           }
+        }
+      }
+
+   For :query:`$geoIntersects` queries that specify GeoJSON geometries
+   with areas greater than a single hemisphere, the use of the default
+   CRS results in queries for the complementary geometries.
+
+   A complementary geometry is the smaller of two geometries. If a
+   specified geometry covers more than a hemisphere, the default CRS
+   query returns documents for the complementary geometry.
+
+   For example, if you define a geometry to be an area covering 75% of
+   Earth's surface, CRS uses the remaining 25% as the complementary
+   area. The query returns results from that smaller complementary 25%
+   area instead of the larger 75%.
+
+   The :ref:`geointersects-examples` section on this page shows how to
+   specify smaller and larger areas.
+
+   To specify a single-ringed GeoJSON :ref:`polygon
+   <geojson-polygon>` with a custom MongoDB CRS, use the following
+   prototype that specifies the custom MongoDB CRS in the
+   :query:`$geometry` expression:
+
+   .. code-block:: javascript
+
+      {
+        <location field>: {
+           $geoIntersects: {
+              $geometry: {
+                 type: "Polygon" ,
+                 coordinates: [ <coordinates> ],
+                 crs: {
+                    type: "name",
+                    properties: { name: "urn:x-mongodb:crs:strictwinding:EPSG:4326" }
+                 }
+              }
+           }
+        }
+      }
+
+   The custom MongoDB CRS uses a counter-clockwise winding order and
+   allows :query:`$geoIntersects` to support queries with a
+   single-ringed GeoJSON :ref:`polygon <geojson-polygon>` whose area is
+   greater than or equal to a single hemisphere. If the specified
+   polygon is smaller than a single hemisphere, the behavior of
+   :query:`$geoIntersects` with the MongoDB CRS is the same as with the
+   default CRS. See also :ref:`geointersects-big-poly`.
+
+
+   .. include::  /includes/extracts/geospatial-long-lat-values.rst
+
+Behavior
+--------
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+:query:`$geoIntersects` uses spherical geometry.
+:query:`$geoIntersects` does not require a geospatial index. However, a
+geospatial index will improve query performance. Only the
+:doc:`2dsphere </core/2dsphere>` geospatial index supports
+:query:`$geoIntersects`.
+
+Degenerate Geometry
+~~~~~~~~~~~~~~~~~~~
+
+:query:`$geoIntersects` does not guarantee that it will consider a
+polygon to intersect with its own edges; its own vertices; or another
+polygon sharing vertices or edges but no interior space.
+
+.. _geointersects-big-poly:
+
+"Big" Polygons
+~~~~~~~~~~~~~~
+
+.. |geo-operator-method| replace:: :query:`$geoIntersects`
+.. include:: /includes/fact-geometry-hemisphere-limitation.rst
+
+.. _geointersects-examples:
+
+Examples
+--------
+
+Intersects a Polygon
+~~~~~~~~~~~~~~~~~~~~
+
+The following example uses :query:`$geoIntersects` to select all
+``loc`` data that intersect with the :ref:`geojson-polygon` defined by
+the ``coordinates`` array. The area of the polygon is less than the
+area of a single hemisphere:
+
+.. code-block:: javascript
+
+   db.places.find(
+      {
+        loc: {
+          $geoIntersects: {
+             $geometry: {
+                type: "Polygon" ,
+                coordinates: [
+                  [ [ 0, 0 ], [ 3, 6 ], [ 6, 1 ], [ 0, 0 ] ]
+                ]
+             }
+          }
+        }
+      }
+   )
+
+For single-ringed polygons with areas greater than a single hemisphere,
+see :ref:`geointersects-big-polygon`.
+
+.. _geointersects-big-polygon:
+
+Intersects a "Big" Polygon
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To query with a single-ringed GeoJSON polygon whose area is greater
+than a single hemisphere, the :query:`$geometry` expression must
+specify the custom MongoDB coordinate reference system. For example:
+
+.. code-block:: javascript
+
+   db.places.find(
+      {
+        loc: {
+          $geoIntersects: {
+             $geometry: {
+                type : "Polygon",
+                coordinates: [
+                  [
+                    [ -100, 60 ], [ -100, 0 ], [ -100, -60 ], [ 100, -60 ], [ 100, 60 ], [ -100, 60 ]
+                  ]
+                ],
+                crs: {
+                   type: "name",
+                   properties: { name: "urn:x-mongodb:crs:strictwinding:EPSG:4326" }
+                }
+             }
+          }
+        }
+      }
+   )

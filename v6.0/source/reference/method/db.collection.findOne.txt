@@ -1,0 +1,333 @@
+=======================
+db.collection.findOne()
+=======================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Find a single document in a collection or view.
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: includes/wayfinding/mongosh-method-findOne.rst
+
+Definition
+----------
+
+.. method:: db.collection.findOne(query, projection, options)
+
+
+   .. |dbcommand| replace:: :dbcommand:`find` command
+
+   Returns one document that satisfies the specified query criteria on
+   the collection or :ref:`view <views-landing-page>`. 
+   
+   The returned document may vary depending on the number of documents 
+   that match the query criteria, and the 
+   :ref:`query plan<query-plans-query-optimization>` used:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 25, 25, 50
+
+      * - Number of matching documents
+        - Query plan
+        - Result
+
+      * - 0
+        - Any
+        - The method returns ``null``
+
+      * - 1
+        - Any
+        - The method returns the document that satisfies the specified 
+          query criteria.
+      
+      * - 2 or more
+        - Collection Scan
+        - The method returns the first document according to the 
+          :term:`natural order`. In :term:`capped collections 
+          <capped collection>`, natural order is the same as 
+          insertion order.
+
+      * - 2 or more
+        - Index Scan
+        - The method returns the first document retrieved from the 
+          index.
+
+   .. important:: 
+   
+      If the query plan changes to use a different index, the method 
+      may return a different document. If your use case requires that 
+      a particular record is chosen consistently, you must use the 
+      ``options`` document to specify a sort. For details on using 
+      ``findOne()`` with an ``options`` document, see the 
+      :ref:`example <findOne-with-options>`.
+
+   If you specify a ``projection`` parameter, 
+   :method:`~db.collection.findOne()` returns a document that only 
+   contains the ``projection`` fields. The ``_id`` field is always 
+   included unless you explicitly exclude it.
+
+   .. note:: 
+
+      Although similar to the :method:`~db.collection.find()` method,
+      the :method:`~db.collection.findOne()` method returns a document
+      rather than a cursor.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.findOne()``
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+The :method:`~db.collection.findOne()` method has the following
+form:
+
+.. code-block:: javascript
+
+   db.collection.findOne( <query>, <projection>, <options> )
+
+The :method:`~db.collection.findOne()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``query``
+     - document
+     - Optional. Specifies query selection criteria using 
+       :ref:`query operators <query-projection-operators-top>`.
+         
+   * - ``projection``
+     - document
+     - Optional. Specifies the fields to return using
+       :ref:`projection operators <query-projection-operators-top>`.
+       Omit this parameter to return all fields in the matching
+       document. For details, see :ref:`findOne-projection`.
+
+   * - ``options``
+     - document
+     - .. include:: /includes/find-options-description.rst
+
+Behavior
+--------
+
+.. |operation| replace:: :method:`db.collection.findOne()`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+.. _findOne-projection:
+
+Projection
+~~~~~~~~~~
+
+.. important:: Language Consistency
+
+
+   As part of making :method:`~db.collection.find` and
+   :method:`~db.collection.findAndModify` projection consistent with
+   aggregation's :pipeline:`$project` stage:
+   
+   - The :method:`~db.collection.find` and
+     :method:`~db.collection.findAndModify` projection can accept
+     :ref:`aggregation expressions and syntax
+     <aggregation-expressions>`.
+
+   - MongoDB enforces additional restrictions with regards to
+     projections. See :limit:`Projection Restrictions` for details.
+
+The ``projection`` parameter determines which fields are returned in
+the matching documents. The ``projection`` parameter takes a document
+of the following form:
+
+.. code-block:: javascript
+
+   { field1: <value>, field2: <value> ... }
+
+.. include:: /includes/extracts/projection-values-table.rst
+
+Embedded Field Specification
+````````````````````````````
+
+.. include:: /includes/extracts/projection-embedded-field-format.rst
+
+``_id`` Field Projection
+````````````````````````
+
+.. include:: /includes/extracts/projection-id-field.rst
+
+Inclusion or Exclusion
+``````````````````````
+
+.. include:: /includes/extracts/projection-inclusion-exclusion.rst
+
+For more information on projection, see also:
+
+- :ref:`find-projection`
+
+- :ref:`read-operations-projection`
+
+
+Examples
+--------
+
+With Empty Query Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns a single document from
+the :doc:`bios collection </reference/bios-example-collection>`:
+
+.. code-block:: javascript
+
+   db.bios.findOne()
+
+With a Query Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns the first matching document from the
+:doc:`bios collection </reference/bios-example-collection>` where either
+the field ``first`` in the embedded document ``name`` starts with the letter
+``G`` **or** where the field ``birth`` is less than ``new
+Date('01/01/1945')``:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      {
+        $or: [
+               { 'name.first' : /^G/ },
+               { birth: { $lt: new Date('01/01/1945') } }
+             ]
+      }
+   )
+
+With a Projection
+~~~~~~~~~~~~~~~~~
+
+The ``projection`` parameter specifies which fields to return. The
+parameter contains either include or exclude specifications, not both,
+unless the exclude is for the ``_id`` field.
+
+Specify the Fields to Return
+````````````````````````````
+
+The following operation finds a document in the :doc:`bios collection
+</reference/bios-example-collection>` and returns only the ``name``,
+``contribs`` and ``_id`` fields:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+       { },
+       { name: 1, contribs: 1 }
+   )
+
+Return All but the Excluded Fields
+``````````````````````````````````
+
+The following operation returns a document in the :doc:`bios collection
+</reference/bios-example-collection>` where the ``contribs`` field
+contains the element ``OOP`` and returns all fields *except* the ``_id``
+field, the ``first`` field in the ``name`` embedded document, and the
+``birth`` field:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      { contribs: 'OOP' },
+      { _id: 0, 'name.first': 0, birth: 0 }
+   )
+
+.. _findOne-with-options:
+
+With an Option
+~~~~~~~~~~~~~~
+
+The following operation uses the ``sort`` option to return the first 
+matching document from the *sorted* ``bios`` collection. In this example, 
+the collection is sorted by ``birth`` in ascending order.
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      { },
+      { },
+      { sort: { birth: 1 } }
+   )
+
+The ``findOne`` Result Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot apply cursor methods to the result of
+:method:`~db.collection.findOne()` because a single document is
+returned. You have access to the document directly:
+
+.. code-block:: javascript
+
+   var myDocument = db.bios.findOne();
+
+   if (myDocument) {
+      var myName = myDocument.name;
+
+      print (tojson(myName));
+   }
+
+Use Variables in ``let`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify query options to modify query behavior and indicate how
+results are returned.
+
+For example, to define variables that you can access elsewhere in the
+``findOne`` method, use the ``let`` option. To filter results using a
+variable, you must access the variable within the :query:`$expr`
+operator.
+
+.. include:: /includes/let-example-create-flavors.rst
+
+The following example defines a ``targetFlavor`` variable in ``let`` and
+uses the variable to retrieve the chocolate cake flavor:
+
+.. code-block:: javascript
+
+   db.cakeFlavors.findOne(
+      { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
+      { _id: 0 },
+      { let : { targetFlavor: "chocolate" }
+   } )
+
+Output:
+
+.. code-block:: javascript
+
+   { flavor: 'chocolate' }
+
+To see all available query options, see :node-api-4.0:`FindOptions
+</interfaces/findoptions.html>`.

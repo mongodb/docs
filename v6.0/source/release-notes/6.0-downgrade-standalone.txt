@@ -1,0 +1,127 @@
+.. _6.0-downgrade-standalone:
+
+=================================================
+Downgrade |newversion| Standalone to |oldversion|
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/6.0-upgrade-replacements.rst
+
+Before you attempt a downgrade, familiarize yourself with the content
+in this page.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade/latest-patch-release.rst
+
+.. include:: /includes/downgrade/single-version-support.rst
+
+.. |downgrading| replace:: downgrading
+
+Access Control
+--------------
+
+If your deployment has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required
+privileges.
+      
+Prerequisites
+-------------
+
+Before you begin the downgrade procedure, you must complete the following
+prerequisite steps.
+
+1. Create Backup
+~~~~~~~~~~~~~~~~
+
+*Optional but Recommended.*  Create a backup of your database.
+
+To learn how to create a backup, see :ref:`backup-methods`.
+
+2. Remove Backward-Incompatible Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To downgrade from |newversion| to |oldversion|, you must remove
+|newversion| features that are incompatible with |oldversion|. For a
+list of incompatible features and how to remove them, see
+:ref:`6.0-downgrade-considerations`.
+
+3. Downgrade Feature Compatibility Version (FCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |target| replace:: :binary:`~bin.mongod` instance
+
+To downgrade the ``featureCompatibilityVersion`` of your standalone
+instance:
+
+#. Use :binary:`mongosh` to connect to the |target|.
+
+#. .. include:: /includes/6.0-downgrade-fcv.rst
+
+Downgrade Procedure
+-------------------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that the
+   prerequisites have been completed.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the latest |oldversion| binaries.
+
+      Using either a package manager or a manual download, get the
+      latest patch release in the |oldversion| series. If using a
+      package manager, add a new repository for the |oldversion|
+      binaries, then perform the actual downgrade process.
+
+   .. step:: Replace the |newversion| binaries with the downloaded |oldversion| binaries.
+
+      Ensure that the |oldversion| binaries are in your System PATH. To
+      confirm your binary version, run the following command:
+
+      .. code-block:: shell
+
+         mongod --version
+
+      The command output should indicate a 5.0-series release.
+
+   .. step:: Shut down the ``mongod`` instance.
+
+      To shut down the :binary:`~bin.mongod` process, use
+      :binary:`~bin.mongosh` to connect to the deployment and run the
+      following command:
+         
+      .. code-block:: javascript
+
+         db.adminCommand( { shutdown: 1 } )
+
+   .. step:: Update configuration files.
+
+      Disable any configurable |newversion| features by updating the
+      :binary:`~bin.mongod` instance's configuration file before
+      restarting.
+
+      To see the list of configurable |newversion| features, review the
+      :ref:`6.0 Release Notes <release-notes-6.0>`.
+
+   .. step:: Restart with the latest |oldversion| ``mongod`` instance.
+
+      To start a ``mongod`` process, run the following command:
+
+      .. code-block:: javascript
+
+         mongod --dbpath </path-to-data-folder>
+
+      To learn more about starting a ``mongod`` process, see
+      :ref:`start-mongod-processes`.

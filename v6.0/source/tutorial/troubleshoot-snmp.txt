@@ -1,0 +1,122 @@
+=================
+Troubleshoot SNMP
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note:: Enterprise Feature (Deprecated)
+
+   .. include:: /includes/SNMP-deprecated.rst
+
+   SNMP is only available in MongoDB Enterprise.
+
+   .. include:: /includes/fact-macos-snmp.rst
+
+Overview
+--------
+
+MongoDB Enterprise can provide database metrics via SNMP, in
+support of centralized data collection and aggregation. This document
+identifies common problems you may encounter when deploying MongoDB
+Enterprise with SNMP as well as possible solutions for these issues.
+
+See :doc:`/tutorial/monitor-with-snmp`
+and :doc:`/tutorial/monitor-with-snmp-on-windows` for
+complete installation instructions.
+
+Issues
+------
+
+Failed Global Initialization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you receive the following error message when trying to monitor with
+SNMP:
+
+.. code-block:: none
+
+   <Timestamp> F CONTROL [main] Failed global initialization: Bad Value: snmp.subagent is not allowed when snmp.disabled is specified
+
+Ensure that you have not :option:`disabled SNMP access <mongod
+--snmp-disabled>` to :binary:`~bin.mongod`.
+
+By default, SNMP access to :binary:`~bin.mongod` instances is enabled.
+Starting in MongoDB 4.0.6, you can disable SNMP access using either
+command-line option :option:`--snmp-disabled <mongod --snmp-disabled>`
+or the configuration file option :setting:`snmp.disabled`.
+
+Failed to Connect
+~~~~~~~~~~~~~~~~~
+
+The following in the :binary:`~bin.mongod` logfile:
+
+.. code-block:: none
+
+   Warning: Failed to connect to the agentx master agent
+
+AgentX is the SNMP agent extensibility protocol defined in Internet
+`RFC 2741 <http://www.ietf.org/rfc/rfc2741.txt>`_. It explains how
+to define additional data to monitor over SNMP. When MongoDB fails
+to connect to the agentx master agent, use the following procedure to
+ensure that the SNMP subagent can connect properly to the SNMP master.
+
+#. Make sure the master agent is running.
+
+#. Compare the SNMP master's configuration file with the subagent
+   configuration file. Ensure that the agentx socket definition is
+   the same between the two.
+
+#. Check the SNMP configuration files to see if they specify using UNIX
+   Domain Sockets. If so, confirm that the :binary:`~bin.mongod` has
+   appropriate permissions to open a UNIX domain socket.
+
+Error Parsing Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One of the following errors at the command line:
+
+.. code-block:: none
+
+   Error parsing command line: unknown option snmp-master
+   try 'mongod --help' for more information
+
+.. code-block:: none
+
+   Error parsing command line: unknown option snmp-subagent
+   try 'mongod --help' for more information
+
+:binary:`~bin.mongod` binaries that are not part of the Enterprise
+Edition produce this error. :doc:`Install the Enterprise Edition
+</administration/install-enterprise>` and attempt to start
+:binary:`~bin.mongod` again.
+
+Other MongoDB binaries, including :binary:`~bin.mongos` will produce
+this error if you attempt to start them with
+:option:`snmp-master <mongod --snmp-master>` or
+:option:`snmp-subagent <mongod --snmp-subagent>`. Only
+:binary:`~bin.mongod` supports SNMP.
+
+.. include:: /includes/fact-macos-snmp.rst
+
+Error Starting ``SNMPAgent``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following line in the log file indicates
+that :binary:`~bin.mongod` cannot read the ``mongod.conf`` file:
+
+.. code-block:: none
+
+   [SNMPAgent] warning: error starting SNMPAgent as master err:1
+
+If running on Linux, ensure ``mongod.conf`` exists in the ``/etc/snmp``
+directory, and ensure that the :binary:`~bin.mongod` UNIX user has
+permission to read the ``mongod.conf`` file.
+
+If running on Windows, ensure ``mongod.conf`` exists in
+``C:\snmp\etc\config``.

@@ -1,0 +1,283 @@
+.. _csfle-reference-mongocryptd:
+.. _field-level-encryption-mongocryptd:
+.. _mongocryptd:
+
+===========================================
+Install and Configure mongocryptd for CSFLE
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. binary:: mongocryptd
+
+Overview
+--------
+
+.. include:: /includes/extracts/csfle-enterprise-atlas-only.rst
+
+``mongocryptd`` is installed with `MongoDB Enterprise 
+Server (version 4.2 and later) <{+enterprise-download-link+}>`__.
+
+When you create a CSFLE-enabled MongoDB client, the ``mongocryptd``
+process is automatically started by default and handles the following
+responsibilities:
+
+- Uses the specified automatic encryption rules to mark fields in 
+  read and write operations for encryption.
+
+- Prevents unsupported operations from being executed on encrypted 
+  fields.
+
+- Parses the :ref:`encryption schema <csfle-reference-encyption-schemas-encrypt-keyword>`
+  specified to the database connection. Automatic encryption rules use a
+  strict subset of JSON schema syntax. If the automatic encryption rules 
+  contain invalid automatic encryption syntax *or* any :query:`document validation
+  <$jsonSchema>` syntax, ``mongocryptd`` returns an error. 
+
+``mongocryptd`` is only responsible for the above functions, and does
+not perform any of the following:
+
+- ``mongocryptd`` *does not* perform encryption or decryption itself
+- ``mongocryptd`` *does not* access any encryption key material
+- ``mongocryptd`` *does not* listen over the network
+
+Drivers compatible with MongoDB 4.2 and later use the
+Apache-licensed `libmongocrypt
+<https://github.com/mongodb/libmongocrypt>`__ library for performing
+client-side field level encryption and automatic decryption.
+
+The official MongoDB drivers, :binary:`~bin.mongosh`, and the legacy 
+:binary:`~bin.mongo` shell require access to the ``mongocryptd`` process on the 
+client host machine. These clients search for the ``mongocryptd`` process in the 
+system PATH by default.
+
+.. _mongocryptd-installation:
+
+Installation
+------------
+
+For supported Linux Operating Systems, install the Server package by following the
+:ref:`install on Linux tutorial <install-enterprise-linux>`
+, follow the documented installation instructions and install the 
+``mongodb-enterprise`` server package. Alternatively, specify 
+``mongodb-enterprise-cryptd`` instead to install only the 
+``mongocryptd`` binary. The package manager installs
+the binaries to a location in the system PATH (e.g. ``/usr/bin/``)
+
+For OSX, install the Server package by following the
+:ref:`install on MacOS tutorial <install-enterprise-macos>`.
+The package manager installs binaries to a location in the system
+PATH.
+
+For Windows, install the Server package by following the
+:ref:`install on Windows tutorial <install-enterprise-windows>`.
+You must add the ``mongocryptd`` package to your system PATH after
+installation. Defer to documented best practices for your Windows
+installation for instructions on adding the ``mongocryptd`` binary to
+the system PATH.
+
+For installations via an official tarball or ZIP archive,
+follow the documented best practices for your operating system to add
+the ``mongocryptd`` binary to your system PATH.
+
+
+Configuration
+-------------
+
+If the 4.2+ compatible driver has access to the ``mongocryptd`` process,
+by default the driver manages the spawning of the ``mongocryptd``
+process.
+
+.. note:: mongocryptd Port In Use
+
+   If a ``mongocryptd`` process is already running on the port specified
+   by the driver, the driver may log a warning and continue to operate
+   without spawning a new process. Any settings specified by the driver
+   only apply once the existing process exits and a new encrypted client
+   attempts to connect.
+
+You can configure how your driver starts ``mongocryptd`` through the 
+following parameters:
+
+.. list-table::
+    :header-rows: 1
+    :stub-columns: 1
+    :widths: 30 70
+
+    * - Name
+      - Description
+
+    * - port
+      - | The port from which ``mongocryptd`` listens for messages.
+        | **Default**: ``27020``
+
+    * - idleShutdownTimeoutSecs
+      - | Number of idle seconds in which the ``mongocryptd`` process should wait before exiting.
+        | **Default**: ``60``
+
+    * - mongocryptdURI
+      - | The URI from which to run a ``mongocryptd`` process.
+        | **Default**: ``"mongodb://localhost:27020"``
+
+    * - mongocryptdBypassSpawn
+      - | Set to ``true`` to prevent the driver from automatically spawning ``mongocryptd``.
+        | **Default**: ``false``
+
+    * - monogocryptdSpawnPath
+      - | The full path to ``mongocryptd``.
+        | **Default**: Defaults to empty string and spawns from the system path.
+
+.. important:: Start on Boot
+
+  If possible, we recommend that ``mongocryptd`` be started on boot,
+  rather than launched on demand.
+
+Examples
+~~~~~~~~
+
+To view examples of how to configure your ``mongocryptd`` 
+process, click the tab corresponding to the driver you are using in 
+your application:
+
+.. tabs-selector:: drivers
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: java-sync
+
+      The following code-snippet sets the listening port configuration
+      of ``mongocryptd``:
+
+      .. code-block:: java
+
+          List<String> spawnArgs = new ArrayList<String>();
+          spawnArgs.add("--port=30000");
+
+          Map<String, Object> extraOpts = new HashMap<String, Object>();
+          extraOpts.put("mongocryptdSpawnArgs", spawnArgs);
+
+          AutoEncryptionSettings autoEncryptionSettings = AutoEncryptionSettings.builder()
+              ...
+              .extraOptions(extraOpts);
+
+      The following code-snippet sets the default timeout configuration
+      of ``mongocryptd``:
+
+      .. code-block:: java
+
+          List<String> spawnArgs = new ArrayList<String>();
+          spawnArgs.add("--idleShutdownTimeoutSecs")
+              .add("60");
+
+          Map<String, Object> extraOpts = new HashMap<String, Object>();
+          extraOpts.put("mongocryptdSpawnArgs", spawnArgs);
+
+          AutoEncryptionSettings autoEncryptionSettings = AutoEncryptionSettings.builder()
+              ...
+              .extraOptions(extraOpts);
+
+   .. tab::
+      :tabid: nodejs
+
+      The following code-snippet sets the listening port configuration
+      of ``mongocryptd``:
+
+      .. code-block:: javascript
+
+          autoEncryption: {
+            ...
+            extraOptions: {
+              mongocryptdSpawnArgs: ["--port", "30000"],
+              mongocryptdURI: 'mongodb://localhost:30000',
+            }
+      
+      .. note::
+
+        In the current version (3.3.4) of the NodeJS driver, you
+        must specify the ``mongocryptdURI`` to match the listening
+        port.
+
+      The following code-snippet sets the default timeout configuration
+      of ``mongocryptd``:
+
+      .. code-block:: javascript
+
+        autoEncryption: {
+          ...
+          extraOptions: {
+            mongocryptdSpawnArgs: ["--idleShutdownTimeoutSecs", "75"]
+          }
+
+   .. tab::
+      :tabid: python
+
+      The following code-snippet sets the listening port configuration
+      of ``mongocryptd``:
+
+      .. code-block:: python
+
+          auto_encryption_opts = AutoEncryptionOpts(mongocryptd_spawn_args=['--port=30000'])
+
+      The following code-snippet sets the default timeout configuration
+      of ``mongocryptd``:
+
+      .. code-block:: python
+
+          auto_encryption_opts = AutoEncryptionOpts(mongocryptd_spawn_args=['--idleShutdownTimeoutSecs=75'])
+
+   .. tab::
+      :tabid: csharp
+
+      The following code-snippet sets the listening port configuration
+      of ``mongocryptd``:
+
+      .. code-block:: csharp
+
+          var extraOptions = new Dictionary<string, object>()
+          {
+              { "mongocryptdSpawnArgs", new [] { "--port=30000" } },
+          };
+          autoEncryptionOptions.With(extraOptions: extraOptions);
+
+      The following code-snippet sets the default timeout configuration
+      of ``mongocryptd``:
+
+      .. code-block:: csharp
+
+          var extraOptions = new Dictionary<string, object>()
+          {
+              { "idleShutdownTimeoutSecs", 60 },
+          };
+          autoEncryptionOptions.With(extraOptions: extraOptions);
+
+   .. tab::
+      :tabid: go
+
+      The following code-snippet sets the listening port configuration
+      of ``mongocryptd``:
+
+      .. code-block:: go
+
+          extraOptions := map[string]interface{}{
+              "mongocryptdSpawnArgs": []string{
+                  "--port=30000",
+              },
+          }
+
+      The following code-snippet sets the default timeout configuration
+      of ``mongocryptd``:
+
+      .. code-block:: go
+
+          extraOptions := map[string]interface{}{
+              "mongocryptdSpawnArgs": []string{
+                  "--idleShutdownTimeoutSecs=75",
+              },
+          }

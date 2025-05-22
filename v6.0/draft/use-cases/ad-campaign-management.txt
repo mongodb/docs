@@ -1,0 +1,151 @@
+.. -*- rst -*-
+
+=======================================
+Online Advertising: Campaign Management
+=======================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+This document outlines the basic patterns and principles for using
+MongoDB as a persistent storage engine for an online advertising network. In
+particular, this document focuses on creating and maintaining an advertising
+campaign with a pre-set daily budget and cost per click (CPC) and cost per
+thousand impressions (CPM) limit.
+
+Problem
+~~~~~~~
+
+You want to create an advertising network that will serve ads to a variety of
+online media. As part of this ad serving, you want to track which ads are
+available to be served, based on both the daily budget and the CPC and CPM
+limits.
+
+As part of a campaign, a customer creates one or more *zones*, where
+each zone represents some location on a group of pages. Each zone in a campaign
+then has one or more ads assigned to it
+
+Solution
+~~~~~~~~
+
+In this solution, you will store each campaign's metadata in its own document,
+including budget, limits, targets, and ongoing statistics. This data can be
+modified before the campaign starts or during the campaign itself.
+
+Schema Design
+~~~~~~~~~~~~~
+
+The schema for campaign management consists of a two collections, one which
+stores campaign metadata, and another for campaign statistics. The campaign
+metadata collection ``campaign.metadata`` documents have the following
+format:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId(...),
+     customer_id: ObjectId(...),
+     title: "August Shoes Campaign",
+     begin: ISODate("2012-08-01T00:00:00Z"),
+     end: ISODate("2012-08-31T00:00:00Z"),
+     zones: {
+       z1: {
+         site: 'cnn.com',
+         page: 'stories/shoes/.*', zone: 'banner',
+         limit: { type: 'cpm', value: 2000 },
+         ad_ids: [ 'ad1', 'ad2' ] },
+       z2: {
+         site: 'cnn.com',
+         page: 'stories/shoes/.*', zone: 'tower-1a',
+         limit: { type: 'cpc', value: 45 },
+         ad_ids: [ 'ad3' ] } },
+     daily_budget: 25000
+   }
+
+The statistics are stored in their own collection ``campaign.stats``:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId(...), // same as campaign ID
+     zones: {
+       z1: {
+         daily_stats: {
+           '2012-08-01': {
+             total: { impressions: 10146, clicks: 198, conversions: 16 },
+             ad1: { impressions: ... },
+             ad2: { impressions: ... } },
+           '2012-08-02': {
+             total: { impressions: 9182, clicks: 183, conversions: 18 },
+             ad1: { impressions: ... },
+             ad2: { impressions: ... } },
+           '2012-08-03': {
+             total: { impressions: 9784, clicks: 202, conversions: 21 },
+             ad1: { impressions: ... },
+             ad2: { impressions: ... } },
+           ...
+           '2012-08-31': {
+             total: { impressions: 0, clicks: 0, conversions: 0 },
+             ad1: { impressions: 0, clicks: 0, conversions: 0 },
+             ad2: { impressions: 0, clicks: 0, conversions: 0 } } }
+       },
+       z2: {
+         daily_stats: {
+           '2012-08-01': {
+             total: { impressions: 10457, clicks: 79, conversions: 14 },
+             ad3: { impressions: ... } },
+           '2012-08-02': {
+             total: { impressions: 9283, clicks: 53, conversions: 8 },
+             ad3: { impressions: ... } },
+           '2012-08-03': {
+             total: { impressions: 9197, clicks: 72, conversions: 14 },
+             ad3: { impressions: ... } },
+           ...
+           '2012-08-31': {
+             total: { impressions: 0, clicks: 0, conversions: 0 },
+             ad1: { impressions: 0, clicks: 0, conversions: 0 },
+             ad2: { impressions: 0, clicks: 0, conversions: 0 } } }
+       }],
+     daily_spent: {
+       '2012-08-01': 23847,
+       '2012-08-02': 20749,
+       ...
+       '2012-08-12': 0,
+       '2012-08-13': 0,
+       ...
+       '2012-08-31': 0 }
+   }
+
+Operations
+----------
+
+TODO: summary of the operations section
+
+The examples that follow use the Python programming language and the
+:api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
+can implement this system using any language you choose.
+
+Operation 1
+~~~~~~~~~~~
+
+TODO: describe what the operation is (optional)
+
+Query
+`````
+
+TODO: describe query
+
+Indexing
+````````
+
+TODO: describe indexes to optimize this query
+
+Sharding
+--------
+
+.. seealso::
+
+   ":doc:`/faq/sharding`" and the ":wiki:`Sharding` wiki
+   page.

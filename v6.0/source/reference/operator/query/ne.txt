@@ -1,0 +1,296 @@
+===
+$ne
+===
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Use the $ne operator to select documents where the field value is not equal to (≠) the specified value, including those that lack the field.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $ne
+
+   ``$ne`` selects the documents where the value of the
+   specified field is not equal to the specified value.
+   This includes documents that do not contain the specified field. 
+
+   .. include:: /includes/fact-comparison-order.rst
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$ne``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The ``$ne`` operator has the following form:
+
+.. code-block:: javascript
+
+   { field: { $ne: value } }
+
+.. note::
+
+   If the value of the ``$ne`` operator is null, see
+   :ref:`non-equality-filter` for more information. 
+
+Examples
+--------
+
+The following examples use the ``inventory`` collection. To create the
+collection run the following :method:`insertMany() <db.collection.insertMany()>` 
+command in :binary:`~bin.mongosh`:
+
+.. include:: /includes/examples-create-inventory.rst
+
+Match Document Fields That Are Not Equal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Select all documents in the ``inventory`` collection where ``quantity``
+is not equal to ``20``. This query also selects documents that do not
+have the ``quantity`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.inventory.find( { quantity: { $ne: 20 } } )
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      {
+       _id: ObjectId("61ba667dfe687fce2f042420"),
+       item: 'nuts',
+       quantity: 30,
+       carrier: { name: 'Shipit', fee: 3 }
+      },
+      {
+       _id: ObjectId("61ba667dfe687fce2f042421"),
+       item: 'bolts',
+       quantity: 50,
+       carrier: { name: 'Shipit', fee: 4 }
+      },
+      {
+       _id: ObjectId("61ba667dfe687fce2f042422"),
+       item: 'washers',
+       quantity: 10,
+       carrier: { name: 'Shipit', fee: 1 }
+      }
+
+The SQL equivalent to this query is:
+
+.. code-block:: sql
+   :copyable: false
+
+   SELECT * FROM INVENTORY WHERE QUANTITIY != 20
+
+Update Based on Not Equal Embedded Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets the ``price`` field based on a ``$ne``
+comparison against a field in an embedded document. The 
+:method:`~db.collection.updateMany()` operation searches for an
+embedded document, ``carrier``, with a subfield named ``fee``. It uses 
+:update:`$set` to update the ``price`` field to ``9.99`` in each 
+document where ``fee`` has a value that does not equal ``1`` or 
+where the ``fee`` subfield does not exist:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.inventory.updateMany( 
+         { "carrier.fee" : { $ne: 1 } }, 
+         { $set: { "price": 9.99 } } 
+      )
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      {
+       _id: ObjectId("61ba66e2fe687fce2f042423"),
+       item: 'nuts',
+       quantity: 30,
+       carrier: { name: 'Shipit', fee: 3 },
+       price: 9.99
+      },
+      {
+       _id: ObjectId("61ba66e2fe687fce2f042424"),
+       item: 'bolts',
+       quantity: 50,
+       carrier: { name: 'Shipit', fee: 4 },
+       price: 9.99
+      },
+      {
+       _id: ObjectId("61ba66e2fe687fce2f042425"),
+       item: 'washers',
+       quantity: 10,
+       carrier: { name: 'Shipit', fee: 1 }
+      }
+
+The SQL equivalent to this query is:
+
+.. code-block:: sql
+   :copyable: false
+
+   UPDATE INVENTORY SET PRICE = '9.99' WHERE carrierfee != 1
+
+.. include:: /includes/extracts/ne_operators_selectivity.rst
+
+Arrays
+~~~~~~
+
+When comparing arrays, ``$ne`` matches documents where the document
+array differs from the array specified in ``$ne``. Specifically, ``$ne``
+matches any of these documents where the arrays:
+
+- have different element values or strings
+- have elements in a different order
+- have a different number of elements
+- are missing from a document
+
+For example, the following query returns  ``inventory`` documents where
+the ``type`` array differs from ``[ "hardware", "fasteners" ]``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: { $ne: [ "hardware", "fasteners" ] } } )
+
+The following complete example adds a ``type`` array to two
+``inventory`` documents and runs a query with ``$ne``:
+
+.. code-block:: javascript
+
+   // Update the nuts document to include a type array
+   db.inventory.updateOne(
+      { item: "nuts" },
+      { $set: { type: [ "hardware" ] } }
+   )
+
+   // Update the bolts document to include a type array
+   db.inventory.updateOne(
+      { item: "bolts" },
+      { $set: { type: [ "hardware", "fasteners" ] } }
+   )
+
+   // Find documents where the type array differs from [ "hardware", "fasteners" ]
+   db.inventory.find( { type: { $ne: [ "hardware", "fasteners" ] } } )
+
+Output shows the ``nuts`` document because the array differs from ``[
+"hardware", "fasteners" ]``, and the ``washers`` document because it
+doesn't have a ``type`` array:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: ObjectId('679d26907c5a58595234305c'),
+       item: 'nuts',
+       quantity: 30,
+       carrier: { name: 'Shipit', fee: 3 },
+       type: [ 'hardware' ]
+     },
+     {
+       _id: ObjectId('679d26907c5a58595234305e'),
+       item: 'washers',
+       quantity: 10,
+       carrier: { name: 'Shipit', fee: 1 }
+     }
+   ]
+
+The following query reverses the elements in the array:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: { $ne: [ "fasteners", "hardware" ] } } )
+
+Because the ``type`` array in the ``bolts`` document is ``[ "hardware",
+"fasteners" ]``, which differs from ``[ "fasteners", "hardware" ]``, the
+query returns the ``bolts`` document in addition to the ``nuts`` and
+``washers`` documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId('679d26907c5a58595234305c'),
+         item: 'nuts',
+         quantity: 30,
+         carrier: { name: 'Shipit', fee: 3 },
+         type: [ 'hardware' ]
+      },
+      {
+         _id: ObjectId('679d26907c5a58595234305d'),
+         item: 'bolts',
+         quantity: 50,
+         carrier: { name: 'Shipit', fee: 4 },
+         type: [ 'hardware', 'fasteners' ]
+      },
+      {
+         _id: ObjectId('679d26907c5a58595234305e'),
+         item: 'washers',
+         quantity: 10,
+         carrier: { name: 'Shipit', fee: 1 }
+      }
+   ]
+
+``$ne`` matches documents where the array doesn't contain the specified
+value and documents that don't have the array. For example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: { $ne: "fasteners" } } )
+
+The query returns the ``nuts`` document because the array ``[ "hardware"
+]`` differs from ``"fasteners"``. Also, the query returns the
+``washers`` document because the document doesn't have a ``type`` array.
+Query output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId('679d26907c5a58595234305c'),
+         item: 'nuts',
+         quantity: 30,
+         carrier: { name: 'Shipit', fee: 3 },
+         type: [ 'hardware' ]
+      },
+      {
+         _id: ObjectId('679d26907c5a58595234305e'),
+         item: 'washers',
+         quantity: 10,
+         carrier: { name: 'Shipit', fee: 1 }
+      }
+   ]
+
+Learn More
+----------
+
+- :ref:`sql-to-mongodb-mapping`
+- :ref:`read-operations-query-document`

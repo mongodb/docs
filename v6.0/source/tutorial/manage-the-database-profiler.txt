@@ -1,0 +1,525 @@
+.. _database-profiler:
+.. _database-profiling:
+
+=================
+Database Profiler
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The database profiler collects detailed information about
+:ref:`database-commands` executed against a running :binary:`~bin.mongod`
+instance. This includes CRUD operations as well as configuration and
+administration commands.
+
+The profiler writes all the data it collects to a
+:data:`system.profile <<database>.system.profile>` collection, a
+:doc:`capped collection </core/capped-collections>` in each profiled
+database. See :doc:`/reference/database-profiler` for an overview of the
+:data:`system.profile <<database>.system.profile>` documents created by
+the profiler.
+
+The profiler is ``off`` by default. You can enable the profiler on a
+per-database or per-instance basis at one of several :ref:`profiling
+levels <database-profiling-level>`.
+
+When enabled, profiling has an effect on database performance and
+disk use. See :ref:`Database Profiler Overhead<database-profiling-overhead>` for more information.
+
+This page shows important administration options for the
+database profiler. For additional information, see:
+
+- :doc:`/reference/database-profiler`
+- :doc:`Profile Command </reference/command/profile>`
+- :method:`db.currentOp()`
+
+.. include:: /includes/database-profiler-note.rst
+
+.. _database-profiling-levels:
+.. _database-profiling-level:
+
+Profiling Levels
+----------------
+
+The following profiling levels are available:
+
+.. include:: /includes/database-profiler-levels.rst
+
+.. _database-profiling-enable-profiling:
+
+Enable and Configure Database Profiling
+---------------------------------------
+
+You can enable database profiling for :binary:`~bin.mongod` instances.
+
+To enable profiling, use one of the following methods:
+
+- To enable profiling at startup, set :setting:`operationProfiling.mode` 
+  in your :ref:`configuration file <configuration-options>`.
+- To enable profiling during runtime, use the :binary:`~bin.mongosh` 
+  helper method :method:`db.setProfilingLevel()`.
+- To enable profiling with a driver, use a :driver:`driver method </>`.
+
+The profiler records data in the :data:`system.profile
+<<database>.system.profile>` collection. MongoDB creates the
+:data:`system.profile <<database>.system.profile>` collection in a
+database after you enable profiling for that database.
+
+To enable profiling for a :binary:`~bin.mongod` instance at
+startup, set :setting:`operationProfiling.mode` in your
+:ref:`configuration file <configuration-options>` to your 
+preferred logging level.
+
+To enable profiling and set the profiling level, pass the profiling
+level to the :method:`db.setProfilingLevel()` helper. For example, to
+enable profiling for all database operations for the currently connected
+database, run this operation in :binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(2)
+
+The shell returns the *previous* profiling level in the ``was`` field
+and sets the new level. In the following output, the ``"ok" :
+1`` key-value pair indicates the operation succeeded:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "was" : 0, "slowms" : 100, "sampleRate" : 1.0, "ok" : 1 }
+
+To verify the new setting, see the
+:ref:`database-profiling-view-status` section.
+
+.. include:: /includes/log-changes-to-database-profiler.rst
+
+Global and Per-Database Profiling Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`slowms <set-profiling-level-options-slowms>` and
+:ref:`sampleRate <set-profiling-level-options-sampleRate>` profiling
+settings are *global*. When set, these settings affect all databases in
+your process.
+
+When set through the :dbcommand:`profile` command or
+:method:`db.setProfilingLevel()` shell helper method, :ref:`profiling
+level <database-profiling-level>` and :ref:`filter
+<set-profiling-level-options-filter>` settings are set at the *database*
+level. When set as either command line or :ref:`configuration
+file <configuration-options>` options, profiling level and ``filter``
+settings affect the entire process.
+
+.. _database-profiling-specify-slowms-threshold:
+
+Specify the Threshold for Slow Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the slow operation threshold is 100 milliseconds. To change
+the slow operation threshold, specify the required threshold value in
+one of the following ways:
+
+- Set the value of ``slowms`` using the :dbcommand:`profile` command or
+  :method:`db.setProfilingLevel()` shell helper method.
+
+- Set the value of :option:`--slowms <mongod --slowms>` from the command line at startup.
+
+- Set the value of :setting:`~operationProfiling.slowOpThresholdMs` in a
+  :ref:`configuration file <configuration-options>`.
+
+The following example sets the profiling level for the
+currently connected database to ``1`` and sets the slow
+operation threshold for the :binary:`~bin.mongod` instance to ``20``
+milliseconds:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel( 1, { slowms: 20 } )
+
+A profiling level of ``1`` causes the profiler to record operations
+slower than the ``slowms`` threshold.
+
+.. important::
+
+   The slow operation threshold applies to all databases in a
+   :binary:`~bin.mongod` instance. It is used by both the database profiler
+   and the diagnostic log and should be set to the highest useful value to
+   avoid performance degradation.
+
+You can use :method:`db.setProfilingLevel()`
+to configure ``slowms`` and ``sampleRate`` for :binary:`~bin.mongos`.
+For the :binary:`~bin.mongos`, the ``slowms`` and ``sampleRate``
+configuration settings only affect the diagnostic log and not the
+profiler since profiling is not available on :binary:`~bin.mongos`.
+[#mongos-systemlog]_
+
+The following example sets a :binary:`~bin.mongos` instance's slow
+operation threshold for logging slow operations to ``20``:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel( 0, { slowms: 20 } )
+
+.. include:: /includes/extracts/4.2-changes-log-query-shapes-plan-cache-key.rst
+
+.. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst
+   
+Profile a Random Sample of Slow Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To profile only a randomly sampled subset of all *slow* operations,
+specify the desired sample rate in one of the following ways:
+[#slow-oplogs]_
+
+- Set the value of ``sampleRate`` using the :dbcommand:`profile` command
+  or :method:`db.setProfilingLevel()` shell helper method.
+
+- Set the value of :option:`--slowOpSampleRate <mongod --slowOpSampleRate>` 
+  for :binary:`~bin.mongod` or :option:`--slowOpSampleRate <mongos --slowOpSampleRate>`
+  for :binary:`~bin.mongos` from the command line at startup.
+
+- Set the value of :setting:`~operationProfiling.slowOpSampleRate` in a
+  :ref:`configuration file <configuration-options>`.
+
+By default, ``sampleRate`` is set to ``1.0``, meaning all *slow*
+operations are profiled. When ``sampleRate`` is set between ``0`` and ``1``,
+databases with a profiling level ``1`` only profile a randomly sampled
+percentage of *slow* operations based on ``sampleRate``.
+
+The following example sets the profiling level for the currently
+connected database to ``1`` and sets the profiler to sample 42% of all
+*slow* operations:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel( 1, { sampleRate: 0.42 } )
+
+The modified sample rate value also applies to the system log.
+
+You can use :method:`db.setProfilingLevel()`
+to configure ``slowms`` and ``sampleRate`` for :binary:`~bin.mongos`.
+For the :binary:`~bin.mongos`,  the ``slowms`` and
+``sampleRate`` configuration settings only affect the diagnostic log
+and not the profiler because profiling isn't available on
+:binary:`~bin.mongos`. [#mongos-systemlog]_
+
+For example, the following sets a :binary:`~bin.mongos` instance's
+sampling rate for logging slow operations:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel( 0, { sampleRate: 0.42 } )
+
+.. important::
+
+   .. include:: /includes/fact-log-slow-queries.rst
+
+.. [#mongos-systemlog]
+
+   See :ref:`db-profiling-sharding`.
+
+Set a Filter to Determine Profiled Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set a filter to control which operations are profiled and
+logged. You can set the profiling filter in one of the following ways:
+
+- Set the value of ``filter`` using the :dbcommand:`profile` command
+  or the :method:`db.setProfilingLevel()` shell helper method.
+
+- Set the value of :setting:`~operationProfiling.filter` in a
+  :ref:`configuration file <configuration-options>`.
+
+For :binary:`~bin.mongod` instances, the ``filter`` affects both the
+diagnostic log and, if enabled, the profiler.
+
+For :binary:`~bin.mongos` instances, the ``filter`` affects the
+diagnostic log only and not the profiler since profiling is not
+available on :binary:`~bin.mongos`.
+
+.. note::
+
+   When a profiling ``filter`` is set, the :ref:`slowms
+   <set-profiling-level-options-slowms>` and :ref:`sampleRate
+   <set-profiling-level-options-sampleRate>` options do not affect the
+   diagnostic log or the profiler.
+
+The following :method:`db.setProfilingLevel()` example sets
+the profile level for the currently connected database:
+
+- the :ref:`profiling level <set-profiling-level-level>` to ``2``,
+
+- the :ref:`filter <set-profiling-level-options-filter>` of
+  ``{ op: "query", millis: { $gt: 2000 } }``, which causes the profiler
+  to only log ``query`` operations that took longer than 2 seconds.
+
+.. code-block:: javascript
+  
+   db.setProfilingLevel( 2, { filter: { op: "query", millis: { $gt: 2000 } } } )
+
+.. _database-profiling-view-status:
+.. _database-profiling-check-level:
+
+Check Profiling Level
+~~~~~~~~~~~~~~~~~~~~~
+
+To view the :ref:`profiling level <database-profiling-levels>`, run
+the following example in :binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   db.getProfilingStatus()
+
+The shell returns a document similar to the following:
+
+.. code-block:: javascript
+
+   { "was" : 0, "slowms" : 100, "sampleRate" : 1.0, "ok" : 1 }
+
+The ``was`` field indicates the current profiling level.
+
+The ``slowms`` field indicates operation time threshold, in
+milliseconds, beyond which operations are considered *slow*.
+
+The ``sampleRate`` field indicates the percentage of *slow* operations
+that should be profiled.
+
+Disable Profiling
+~~~~~~~~~~~~~~~~~
+
+To disable profiling, run the following example in
+:binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(0)
+
+.. note::
+
+   Disabling profiling can improve database performance and lower disk
+   use. For more information, see :ref:`Database Profiler
+   Overhead<database-profiling-overhead>`  .
+
+Enable Profiling for an Entire ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For development and test environments, you can enable
+database profiling for an entire :binary:`~bin.mongod` instance. The
+profiling level applies to all databases provided by the
+:binary:`~bin.mongod` instance.
+
+To enable profiling for a :binary:`~bin.mongod` instance, pass the following
+options to :binary:`~bin.mongod` at startup.
+
+.. code-block:: bash
+
+   mongod --profile 1 --slowms 15 --slowOpSampleRate 0.5
+
+Alternatively, you can specify :ref:`operationProfiling
+<operation-profiling-configuration-options>` in the :ref:`configuration
+file <configuration-options>`.
+
+This sets the profiling level to ``1``, defines slow operations as those
+that last longer than ``15`` milliseconds, and specifies that only 50%
+of *slow* operations should be profiled. [#slow-oplogs]_
+
+The ``slowms`` and ``slowOpSampleRate`` also affect the operations that
+are recorded in the diagnostic log when :parameter:`logLevel` is set to
+``0``. The ``slowms`` and ``slowOpSampleRate`` are also available to
+configure diagnostic logging for :binary:`~bin.mongos`. [#slow-oplogs]_
+
+.. seealso::
+
+   - :setting:`~operationProfiling.mode`
+   - :setting:`~operationProfiling.slowOpThresholdMs`
+   - :setting:`~operationProfiling.slowOpSampleRate`
+
+.. _db-profiling-sharding:
+
+Database Profiling and Sharding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You *cannot* enable profiling on a :binary:`~bin.mongos` instance. To enable
+profiling in a sharded cluster, you must enable profiling for each
+:binary:`~bin.mongod` instance in the cluster.
+
+However, you can set the :option:`--slowms <mongos --slowms>` and 
+:option:`slowOpSampleRate <mongos --slowOpSampleRate>` on :binary:`~bin.mongos` 
+to configure the diagnostic log for slow operations.
+
+
+View Profiler Data
+------------------
+
+The database profiler logs information about database operations in the
+:data:`system.profile <<database>.system.profile>` collection.
+
+To view profiling information, query the :data:`system.profile
+<<database>.system.profile>` collection. To view example queries, see
+:ref:`database-profiling-example-queries`. For an explanation of the
+output data, see :doc:`/reference/database-profiler`.
+
+It is no longer possible to perform any operation, including reads, on the 
+:data:`system.profile <<database>.system.profile>` collection from within a
+:ref:`transaction <transactions>`.
+
+.. _database-profiling-example-queries:
+
+Example Profiler Data Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section shows example queries on the :data:`system.profile
+<<database>.system.profile>` collection. For query output details, see
+:doc:`/reference/database-profiler`.
+
+To return the most recent 10 log entries in the :data:`system.profile <<database>.system.profile>`
+collection, run a query similar to the following:
+
+.. code-block:: javascript
+
+   db.system.profile.find().limit(10).sort( { ts : -1 } ).pretty()
+
+To return all operations except command operations (:term:`$cmd`), run a query
+similar to the following:
+
+.. code-block:: javascript
+
+   db.system.profile.find( { op: { $ne : 'command' } } ).pretty()
+
+To return operations for a particular collection, run a query similar to
+the following. This example returns operations in the ``mydb`` database's
+``test`` collection:
+
+.. code-block:: javascript
+
+   db.system.profile.find( { ns : 'mydb.test' } ).pretty()
+
+To return operations that take longer than 5 milliseconds to complete,
+run:
+
+.. code-block:: javascript
+
+   db.system.profile.find( { millis : { $gt : 5 } } ).pretty()
+
+To return operations for a specific time range, run:
+
+.. code-block:: javascript
+
+   db.system.profile.find( {
+      ts : {
+         $gt: new ISODate("2012-12-09T03:00:00Z"),
+         $lt: new ISODate("2012-12-09T03:40:00Z")
+      }
+   } ).pretty()
+
+The following example looks at the time range, suppresses the ``user``
+field from the output to make it easier to read, and sorts the results
+by how long each operation took to run:
+
+.. code-block:: javascript
+
+   db.system.profile.find( {
+      ts : {
+         $gt: new ISODate("2011-07-12T03:00:00Z"),
+         $lt: new ISODate("2011-07-12T03:40:00Z")
+      }
+   }, { user: 0 } ).sort( { millis: -1 } )
+
+Show the Five Most Recent Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On a database that has profiling enabled, the ``show profile`` helper
+in :binary:`~bin.mongosh` displays the 5 most recent operations
+that took at least 1 millisecond to execute. Run ``show profile``
+from :binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   show profile
+
+.. _database-profiling-overhead:
+
+Profiler Overhead
+-----------------
+
+When enabled, profiling has an effect on database performance,
+especially when configured with a
+:ref:`profiling level<database-profiling-level>` of 2, or when using a
+low :ref:`threshold<database-profiling-specify-slowms-threshold>` value
+with a profiling level of 1.
+
+Profiling also uses disk space, because profiling
+writes logs to the :data:`system.profile <<database>.system.profile>`
+collection and the MongoDB :option:`logfile <mongod --logpath>`.
+
+.. warning::
+
+   Consider performance and storage implications before
+   you enable the profiler in a production deployment.
+
+The ``system.profile`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :data:`system.profile <<database>.system.profile>` collection is a
+:term:`capped collection` with a default size of 1 megabyte. A
+collection of this size can typically store several thousand profile
+documents, but some applications may use more or less profiling data per
+operation. If you need to change the size of the
+:data:`system.profile <<database>.system.profile>` collection, follow
+the steps below.
+
+Change Size of ``system.profile`` Collection on the Primary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To change the size of the :data:`system.profile
+<<database>.system.profile>` collection on the :term:`primary`, you
+must:
+
+1. Disable profiling.
+
+#. Drop the :data:`system.profile <<database>.system.profile>`
+   collection.
+
+#. Create a new :data:`system.profile <<database>.system.profile>`
+   collection.
+
+#. Re-enable profiling.
+
+For example, to create a new :data:`system.profile
+<<database>.system.profile>` collection that is ``4000000`` bytes
+(4 MB), use the following sequence of operations in
+:binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(0)
+
+   db.system.profile.drop()
+
+   db.createCollection( "system.profile", { capped: true, size:4000000 } )
+
+   db.setProfilingLevel(1)
+
+Change Size of ``system.profile`` Collection on a Secondary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To change the size of the :data:`system.profile
+<<database>.system.profile>` collection on a :term:`secondary`, you must
+stop the secondary, run it as a standalone, and then perform the steps
+above. When done, restart the standalone as a member of the replica set.
+For more information, see :doc:`/tutorial/perform-maintence-on-replica-set-members`.
+
+.. [#slow-oplogs]
+
+   .. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Output </reference/database-profiler>

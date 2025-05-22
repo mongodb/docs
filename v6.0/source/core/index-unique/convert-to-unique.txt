@@ -1,0 +1,191 @@
+.. _index-convert-to-unique:
+
+===========================================
+Convert an Existing Index to a Unique Index
+===========================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To convert a non-unique index to a :ref:`unique index
+<index-type-unique>`, use the :dbcommand:`collMod` command. The
+``collMod`` command provides options to verify that your indexed field
+contains unique values before you complete the conversion.
+
+Before you Begin
+----------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Populate sample data
+
+      Create the ``apples`` collection:
+
+      .. code-block:: javascript
+
+         db.apples.insertMany( [
+            { type: "Delicious", quantity: 12 },
+            { type: "Macintosh", quantity: 13 },
+            { type: "Delicious", quantity: 13 },
+            { type: "Fuji", quantity: 15 },
+            { type: "Washington", quantity: 10 }
+         ] )
+
+   .. step:: Create a single field index
+
+      Add a single field index on the ``type`` field:
+
+      .. code-block:: javascript
+
+         db.apples.createIndex( { type: 1 } )
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Prepare the index to be converted to a unique index
+
+      Run ``collMod`` on the ``type`` field index and set
+      ``prepareUnique`` to ``true``:
+
+      .. code-block:: javascript
+
+         db.runCommand( {
+            collMod: "apples",
+            index: {
+               keyPattern: { type: 1 },
+               prepareUnique: true
+            }
+         } )
+
+      After ``prepareUnique`` is set, you cannot insert new documents
+      that duplicate an index key entry. For example, the following
+      insert operation results in an error:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.apples.insertOne( { type: "Delicious", quantity: 20 } )
+
+         .. output::
+            :language: javascript
+
+            MongoServerError: E11000 duplicate key error collection:
+            test.apples index: type_1 dup key: { type: "Delicious" }
+
+   .. step:: Check for unique key violations
+
+      To see if there are any documents that violate the unique constraint on
+      the ``type`` field, run ``collMod`` with ``unique: true`` and ``dryRun:
+      true``:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.runCommand( {
+               collMod: "apples",
+               index: {
+                  keyPattern: { type: 1 },
+                  unique: true
+               },
+               dryRun: true
+            } )
+
+         .. output::
+            :language: javascript
+
+            MongoServerError: Cannot convert the index to unique. Please resolve conflicting documents before running collMod again.
+
+            Violations: [
+               {
+                  ids: [
+                     ObjectId("660489d24cabd75abebadbd0"),
+                     ObjectId("660489d24cabd75abebadbd2")
+                  ]
+               }
+            ]
+
+   .. step:: Resolve duplicate key conflicts
+
+      To complete the conversion, modify the duplicate entries to remove any
+      conflicts. For example:
+
+      .. code-block:: javascript
+         
+         db.apples.deleteOne(
+            { _id: ObjectId("660489d24cabd75abebadbd2") }
+         )
+
+   .. step:: Confirm that all conflicts are resolved
+
+      To confirm that the index can be converted, re-run the ``collMod()``
+      command with ``dryRun: true``:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.runCommand( {
+               collMod: "apples",
+               index: {
+                  keyPattern: { type: 1 },
+                  unique: true
+               },
+               dryRun: true
+            } )
+
+         .. output::
+            :language: javascript
+
+            { ok: 1 }
+
+   .. step:: Finalize the index conversion
+
+      To finalize the conversion to a unique index, run the ``collMod``
+      command with ``unique: true`` and remove the ``dryRun`` flag:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.runCommand( {
+               collMod: "apples",
+               index: {
+                  keyPattern: { type: 1 },
+                  unique: true
+               }
+            } )
+
+         .. output::
+            :language: javascript
+
+            { unique_new: true, ok: 1 }
+
+Learn More 
+----------
+
+- :ref:`manage-indexes`
+
+- :ref:`index-properties`
+
+- :ref:`indexing-strategies`

@@ -1,0 +1,182 @@
+===========================
+$indexOfBytes (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $indexOfBytes
+   
+   Searches a string for an occurrence of a substring and returns the
+   UTF-8 byte index (zero-based) of the first occurrence. If the
+   substring is not found, returns ``-1``.
+
+   :expression:`$indexOfBytes` has the following :ref:`operator
+   expression syntax <agg-quick-ref-operator-expressions>`:
+
+   .. code-block:: javascript
+
+      { $indexOfBytes: [ <string expression>, <substring expression>, <start>, <end> ] }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 65
+
+      * - Operand
+        - Description
+
+      * - ``<string expression>``
+
+        - Can be any valid :ref:`expression
+          <aggregation-expressions>` as long as it resolves to a
+          string. For more information on expressions, see
+          :ref:`aggregation-expressions`.
+
+          If the string expression resolves to a value of ``null`` or 
+          refers to a field that is missing, :expression:`$indexOfBytes` returns ``null``.
+
+          If the string expression does not resolve to a string or ``null`` nor 
+          refers to a missing field, :expression:`$indexOfBytes` returns an error.
+
+
+      * - ``<substring expression>``
+        - Can be any valid :ref:`expression
+          <aggregation-expressions>` as long as it resolves to a
+          string. For more information on expressions, see
+          :ref:`aggregation-expressions`.
+
+      * - ``<start>`` 
+
+        - *Optional* An integral number that specifies the starting index
+          position for the search. Can be any valid
+          :ref:`expression <aggregation-expressions>` that resolves to
+          a non-negative integral number.
+
+      * - ``<end>`` 
+
+        - *Optional* An integral number that specifies the ending index
+          position for the search. Can be any valid
+          :ref:`expression <aggregation-expressions>` that resolves to
+          a non-negative integral number. If you specify a ``<end>`` index
+          value, you should also specify a ``<start>`` index value;
+          otherwise, :expression:`$indexOfBytes` uses the ``<end>``
+          value as the ``<start>`` index value instead of the ``<end>``
+          value.
+
+Behavior
+--------
+
+- If ``<string expression>`` is null, :expression:`$indexOfBytes` returns ``null``.
+
+- If :expression:`$indexOfBytes` is called on a field that doesn't exist in the document, :expression:`$indexOfBytes` returns ``null``.
+
+- If ``<string expression>`` is not a string and not null, :expression:`$indexOfBytes` returns an error.
+
+- If ``<substring expression>`` is null, :expression:`$indexOfBytes` returns an error.
+
+- If ``<start>`` or ``<end>`` is a negative number, :expression:`$indexOfBytes` returns an error.
+
+- If ``<start>`` is a number greater than ``<end>``, :expression:`$indexOfBytes` returns ``-1``.
+
+- If ``<start>`` is a number greater than the byte length of the string, :expression:`$indexOfBytes` returns ``-1``.
+
+- If ``<start>`` or ``<end>`` is given a value that is not an integer, :expression:`$indexOfBytes` returns an error.
+
+- If the ``<substring expression>`` is found multiple times within the ``<string expression>``, then :expression:`$indexOfBytes` returns the index of the first ``<substring expression>`` found.
+
+Some short examples to highlight different behavior:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 95 5
+
+  * - Example
+    - Results
+
+  * - ``{ $indexOfBytes: [ "cafeteria", "e" ] }``
+    - ``3``
+
+  * - ``{ $indexOfBytes: [ "cafétéria", "é" ] }``
+    - ``3``
+
+  * - ``{ $indexOfBytes: [ "cafétéria", "e" ] }``
+    - ``-1``
+
+  * - ``{ $indexOfBytes: [ "cafétéria", "t" ] }``
+    - ``5``
+
+  * - ``{ $indexOfBytes: [ "foo.bar.fi", ".", 5 ] }``
+    - ``7``
+
+  * - ``{ $indexOfBytes: [ "vanilla", "ll", 0, 2 ] }``
+    - ``-1``
+
+  * - ``{ $indexOfBytes: [ "vanilla", "ll", -1 ] }``
+    - ``-1``
+
+  * - ``{ $indexOfBytes: [ "vanilla", "ll", 12 ] }``
+    - ``-1``
+
+  * - ``{ $indexOfBytes: [ "vanilla", "ll", 5, 2 ] }``
+    - ``-1``
+
+  * - ``{ $indexOfBytes: [ "vanilla", "nilla", 3 ] }``
+    - ``-1``
+
+  * - ``{ $indexOfBytes: [ null, "foo" ] }``
+    - ``null``
+
+Examples
+--------
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "foo" }
+   { "_id" : 2, "item" : "fóofoo" }
+   { "_id" : 3, "item" : "the foo bar" }
+   { "_id" : 4, "item" : "hello world fóo" }
+   { "_id" : 5, "item" : null }
+   { "_id" : 6, "amount" : 3 }
+
+The following operation uses the :expression:`$indexOfBytes` operator to
+retrieve the indexes at which the string ``foo`` is located in each item:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+        {
+          $project:
+             {
+               byteLocation: { $indexOfBytes: [ "$item", "foo" ] },
+             }
+         }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "byteLocation" : "0" }
+   { "_id" : 2, "byteLocation" : "4" }
+   { "_id" : 3, "byteLocation" : "4" }
+   { "_id" : 4, "byteLocation" : "-1" }
+   { "_id" : 5, "byteLocation" : null }
+   { "_id" : 6, "byteLocation" : null }
+
+
+.. seealso::
+
+   - :expression:`$indexOfCP`
+   - :expression:`$indexOfArray`

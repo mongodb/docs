@@ -1,0 +1,65 @@
+stepnum: 1
+ref: start-mongod
+title: "Start a :binary:`~bin.mongod` instance."
+action:
+  language: sh
+  code: |
+    mongod -v --logpath /var/log/mongodb/server1.log
+post: |
+  You can also explicitly specify :option:`--logRotate rename
+  <mongod --logRotate>`.
+---
+stepnum: 2
+title: List the log files
+ref: list-logfiles
+pre: |
+  In a separate terminal, list the matching files:
+action:
+  language: sh
+  code: |
+     ls /var/log/mongodb/server1.log*
+post: |
+  The results should include one log file, ``server1.log``.
+---
+stepnum: 3
+ref: rotate-log
+title: Rotate the log file.
+pre: |
+  Rotate the log file by issuing the :dbcommand:`logRotate` command
+  from the ``admin`` database in :binary:`~bin.mongosh`:
+action:
+  language: sh
+  code: |
+    db.adminCommand( { logRotate : "server" } )
+post: |
+  If :doc:`auditing </core/auditing>` is enabled, you can specify ``1``
+  to ``logRotate`` (instead of  ``server``) to rotate both the server
+  and audit logs at the same time, if desired. The audit log will be
+  rotated in the same fashion as the server log, according to the
+  :option:`--logRotate <mongod --logRotate>` setting.
+
+  .. note:: 
+  
+     You can't run this command on an arbiter for an authenticated
+     replica set.
+---
+stepnum: 4
+ref: list-new-logfiles
+title: 'View the new log files'
+pre: |
+  List the new log files to view the newly-created log:
+action:
+  language: sh
+  code: |
+    ls /var/log/mongodb/server1.log*
+post: |
+  There should be two log files listed: ``server1.log``, which is the
+  log file that :binary:`~bin.mongod` or :binary:`~bin.mongos` made when it 
+  reopened  the log file, and ``server1.log.<timestamp>``, the renamed
+  original log file.
+  
+  Rotating log files does not modify the "old" rotated log files. When
+  you rotate a log, you rename the ``server1.log`` file to include
+  the timestamp, and a new, empty ``server1.log`` file receives all
+  new log input.
+...

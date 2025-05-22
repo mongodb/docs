@@ -1,0 +1,237 @@
+.. _manual-views-create:
+
+=======================
+Create and Query a View
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To create a view, use one of the following methods:
+
+- Use :method:`db.createCollection()`
+- Use :method:`db.createView()`
+
+To create a view in the {+atlas+} UI, you must use a materialized
+view. To learn more, see :ref:`create-view-atlas`.
+
+.. important:: View Names are Included in Collection List Output
+
+   Operations that list collections, such as
+   :method:`db.getCollectionInfos()` and
+   :method:`db.getCollectionNames()`, include views in their outputs.
+
+   .. include:: /includes/extracts/views-public-definition.rst
+
+``db.createCollection()`` Syntax
+--------------------------------
+
+.. code-block:: javascript
+
+   db.createCollection( 
+     "<viewName>", 
+     {
+       "viewOn" : "<source>", 
+       "pipeline" : [<pipeline>],
+       "collation" : { <collation> }
+     }
+   )
+
+``db.createView()`` Syntax
+--------------------------
+
+.. code-block:: javascript
+
+   db.createView(
+     "<viewName>",
+     "<source>",
+     [<pipeline>],
+     {
+       "collation" : { <collation> }
+     }
+   )
+
+Restrictions
+------------
+
+- You must create views in the same database as the source collection.
+
+- .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+- You cannot rename a view once it is created.
+
+Unsupported Operations
+~~~~~~~~~~~~~~~~~~~~~~
+
+Some operations are not available with views:
+
+- :method:`db.collection.mapReduce()`.
+
+- :query:`$text` operator, since ``$text`` in
+  aggregation is valid only for the first stage.
+
+- Renaming a view.
+
+For more information, see :ref:`views-supported-operations`.
+
+Example
+-------
+
+This example populates a collection with student data and creates a view
+to query the data.
+
+Populate the Collection
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a ``students`` collection to use for this example:
+
+.. _ex-views-create-sample:
+
+.. code-block:: javascript
+
+   db.students.insertMany( [
+      { sID: 22001, name: "Alex", year: 1, score: 4.0 }, 
+      { sID: 21001, name: "bernie", year: 2, score: 3.7 }, 
+      { sID: 20010, name: "Chris", year: 3, score: 2.5 }, 
+      { sID: 22021, name: "Drew", year: 1, score: 3.2 }, 
+      { sID: 17301, name: "harley", year: 6, score: 3.1 }, 
+      { sID: 21022, name: "Farmer", year: 1, score: 2.2 }, 
+      { sID: 20020, name: "george", year: 3, score: 2.8 },
+      { sID: 18020, name: "Harley", year: 5, score: 2.8 }, 
+   ] )
+
+Use db.createView() to Create a View 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :method:`db.createView()` to create a view that is limited to first
+year students: 
+
+.. code-block:: javascript
+
+   db.createView(
+      "firstYears",
+      "students",
+      [ { $match: { year: 1 } } ]
+   )
+
+In the example:
+
+- ``firstYears`` is the name of the new view.
+- ``students`` is the collection the view is based on.
+- :pipeline:`$match` is an aggregation expression that matches first
+  year students in the ``students`` collection.
+
+Query the View
+``````````````
+
+This example queries the view:
+
+.. code-block:: javascript
+
+   db.firstYears.find({}, { _id: 0 } )
+
+The following output only contains the documents with data on first
+year students. The ``{ _id: 0 }`` :ref:`projection
+<method-find-projection>` suppresses the ``_id`` field in the output.
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { sID: 22001, name: 'Alex', year: 1, score: 4 },
+     { sID: 22021, name: 'Drew', year: 1, score: 3.2 },
+     { sID: 21022, name: 'Farmer', year: 1, score: 2.2 }
+   ]
+
+.. note:: Projection Restrictions
+
+   .. include:: /includes/extracts/views-unsupported-projection-operators.rst
+
+Use db.createCollection() to Create a View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.createCollection()` method allows you to create a
+collection or a view with specific options.
+
+The following example creates a ``graduateStudents`` view. The view
+only contains documents selected by the :pipeline:`$match` stage. The
+optional :ref:`collation <collation>` setting determines the sort
+order.
+
+.. code-block:: javascript
+
+   db.createCollection(
+      "graduateStudents",
+      { 
+         viewOn: "students",
+         pipeline: [ { $match: { $expr: { $gt: [ "$year", 4 ] } } } ],
+         collation: { locale: "en", caseFirst: "upper" }
+      }
+   )
+
+.. note:: Collation Behavior
+
+   .. include:: /includes/extracts/views-collation-behavior.rst
+
+Query the View
+``````````````
+
+The following example queries the view. The :pipeline:`$unset` stage
+removes the ``_id`` field from the output for clarity.
+
+.. code-block:: javascript
+
+   db.graduateStudents.aggregate(
+      [
+         { $sort: { name: 1 } },
+         { $unset: [ "_id" ] }
+      ]
+   )
+
+When the output is sorted, the :pipeline:`$sort` stage uses the 
+:ref:`collation <collation>` ordering to sort uppercase letters before
+lowercase letters.
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { sID: 18020, name: 'Harley', year: 5, score: 2.8 },
+     { sID: 17301, name: 'harley', year: 6, score: 3.1 }
+   ]
+
+Behavior
+--------
+
+The following sections describe the behaviors of view creation and
+queries.
+
+Aggregation Optimizations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you query a view:
+
+- Query ``filter``, ``projection``, ``sort``, ``skip``, ``limit``,
+  and other operations for :method:`db.collection.find()` are
+  converted to the equivalent :ref:`aggregation pipeline stages
+  <aggregation-pipeline-operator-reference>`.
+
+- MongoDB appends the client query to the underlying pipeline and
+  returns the results of that combined pipeline to the client. MongoDB
+  may apply :doc:`aggregation pipeline optimizations
+  </core/aggregation-pipeline-optimization>` to the combined pipeline.
+
+- The :doc:`aggregation pipeline optimizer
+  </core/aggregation-pipeline-optimization>` reshapes the view
+  aggregation pipeline stages to improve performance. The optimization
+  does not change the query results.
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/createView-resource-lock.rst

@@ -1,0 +1,244 @@
+===========
+db.killOp()
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+.. method:: db.killOp(opid)
+
+   Terminates an operation as specified by the operation ID. To find
+   operations and their corresponding IDs, see :pipeline:`$currentOp`
+   or :method:`db.currentOp()`.
+
+   The :method:`db.killOp()` method has the following parameter:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``op``
+   
+        - number
+   
+        - An operation ID.
+          
+          
+   
+
+
+   .. |command| replace:: :method:`db.killOp()`
+
+   .. include:: /includes/extracts/warning-terminating-ops-method.rst
+
+
+Compatibility
+-------------
+
+This method is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. important::
+
+   {+atlas+} limits the use of this method to the MongoDB user who ran the 
+   operation. For information on Atlas support for all commands,
+   see :atlas:`Unsupported Commands </unsupported-commands>`.
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+
+Sharded Cluster
+---------------
+
+.. _kill-read-ops-sharded-cluster:
+
+Kill Read Operations
+~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.killOp()` method can be run on a
+:binary:`~bin.mongos` and can kill queries (read operations) that are running 
+on more than one shard in a cluster.
+
+For example, to kill a query operation on a sharded cluster:
+
+.. tabs::
+
+   tabs:
+
+      - id: mongos
+        name: From the mongos Instance
+        content: |
+
+            #. On the **same** :binary:`~bin.mongos` where the client issued the
+               query, find the opid of the query operation to kill by running the
+               aggregation pipeline :pipeline:`$currentOp` with the ``localOps:
+               true``:
+
+               .. code-block:: javascript
+
+                  use admin
+                  db.aggregate( [
+                     { $currentOp : { allUsers: true, localOps: true } },
+                     { $match : <filter condition> } // Optional.  Specify the condition to find the op.
+                                                     // e.g. { op: "getmore", "command.collection": "someCollection" }
+                  ] )
+
+               .. important::
+
+                  You must issue this aggregation operation on the **same**
+                  :binary:`~bin.mongos` where the client issued the query.
+
+            #. Once you find the query operation to kill, issue
+               :method:`db.killOp()` with the opid on the :binary:`~bin.mongos`:
+
+               .. code-block:: javascript
+
+                  db.killOp(<opid of the query to kill>)
+
+            .. seealso::
+
+               The ``localOps`` parameter in :pipeline:`$currentOp`.
+
+
+      - id: mongod
+        name: From a shard member
+        content: |
+
+            Alternatively, you can find and kill the read operation from a
+            shard member where the operation is running. MongoDB
+            propagates the kill operation to the other shards and
+            :binary:`~bin.mongos` instances:
+
+            #. On one of the shards where the operation is running, find the opid
+               of the query operation to kill:
+
+               .. code-block:: javascript
+
+                  use admin
+                  db.aggregate( [
+                     { $currentOp : { allUsers: true } },
+                     { $match : <filter condition> } // Optional.  Specify the condition to find the op.
+                                                      // e.g. { op: "getmore", "command.collection": "someCollection" }
+                  ] )
+
+            #. Once you find the query operation to kill, issue
+               :method:`db.killOp()` with the opid on the shard member:
+
+               .. code-block:: javascript
+
+                  db.killOp(<opid of the query to kill>)
+
+               MongoDB propagates the kill operation to the
+               other shards and :binary:`~bin.mongos` instances.
+
+
+.. _kill-write-ops-sharded-cluster:
+
+Kill Write Operations
+~~~~~~~~~~~~~~~~~~~~~
+
+Within a Session
+   MongoDB drivers associate all operations with a 
+   :doc:`server session </reference/server-sessions>`, with the
+   exception of unacknowledged writes.
+
+   If the write operation is associated with a session, you can use the
+   :dbcommand:`killSessions` command on the :binary:`~bin.mongos` to
+   kill the write operation across shards.
+
+   #. Run the aggregation pipeline :pipeline:`$currentOp` on
+      the :binary:`~bin.mongos` to find the
+      ``lsid`` (logical session id).
+
+      .. code-block:: javascript
+
+         use admin
+         db.aggregate( [
+            { $currentOp : { allUsers: true, localOps: true } },
+            { $match : <filter condition> } // Optional.  Specify the condition to find the op.
+                                            // e.g. { "op" : "update", "ns": "mydb.someCollection" }
+         ] )
+
+      #. Using the returned ``lsid`` information, issue the
+         :dbcommand:`killSessions` command on the
+         :binary:`~bin.mongos` to kill the operation on the shards.
+              
+         .. code-block:: javascript
+              
+            db.adminCommand( { killSessions: [
+               { "id" : UUID("80e48c5a-f7fb-4541-8ac0-9e3a1ed224a4"), "uid" : BinData(0,"47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=") }
+            ] } )
+
+Without a Session
+   If the write operation is **not** associated with a session, you must find and kill the
+   operation on all the shards associated with the write.
+
+
+   #. From a :binary:`~bin.mongos`, run the aggregation pipeline
+      :pipeline:`$currentOp` to find the opid(s) of the query operation on
+      the shards:
+
+      .. code-block:: javascript
+
+         use admin
+         db.aggregate( [
+            { $currentOp : { allUsers: true } },
+            { $match : <filter condition> } // Optional.  Specify the condition to find the op.
+         ] )
+
+      When run on a :binary:`~bin.mongos`, :pipeline:`$currentOp`
+      returns the opids in the format of ``"<shardName>:<opid on that
+      shard>"``; e.g.
+
+      .. code-block:: javascript
+
+         {
+            "shard" : "shardB",
+            ..
+            "opid" : "shardB:79214",
+            ...
+         },
+         {
+            "shard" : "shardA",
+            ..
+            "opid" : "shardA:100913",
+            ...
+         },
+
+   #. Using the opid information, issue :method:`db.killOp()` on the
+      :binary:`~bin.mongos` to kill the operation on the shards.
+
+      .. code-block:: javascript
+
+         db.killOp("shardB:79014");
+         db.killOp("shardA:100813");
+
+
+Access Control
+--------------
+
+On systems running with :setting:`~security.authorization`, to kill
+operations not owned by the user, the user must have access that
+includes the :authaction:`killop` privilege action.
+
+On :binary:`~bin.mongod` instances, users can kill their own operations
+even without the :authaction:`killop` privilege action.
+
+.. seealso::
+
+   :pipeline:`$currentOp`

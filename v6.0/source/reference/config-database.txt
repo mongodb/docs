@@ -1,0 +1,496 @@
+.. _config-database:
+
+===============
+Config Database
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The collections in the ``config`` database support:
+
+- :doc:`Sharded cluster operations </sharding>`
+
+- :ref:`Causally consistent sessions <sessions>` for standalones,
+  replica sets, and sharded clusters and retryable writes for replica
+  sets and sharded clusters.
+
+.. note::
+   
+   Sharded clusters may show different collections in the
+   ``config`` database, depending on whether you connect to
+   :program:`mongos` or :program:`mongod`:
+
+   - On ``mongos``, the ``config`` database shows collections
+     located on the config servers, such as
+     :data:`~config.collections` or :data:`~config.chunks`.
+
+   - On ``mongod``, the ``config`` database shows
+     collections specific to the given shard, such as
+     :data:`~config.migrationCoordinators` or
+     :data:`~config.rangeDeletions`.
+
+   When a config server and a shard are hosted on the same node,
+   :program:`mongos` may have access to some shard-local
+   collections in the ``config`` database.
+
+
+Restrictions
+------------
+
+.. include:: /includes/fact-5.0-non-transactional-config-reads.rst
+
+.. important:: The schema of the ``config`` database is
+   *internal* and may change between releases of MongoDB. The
+   ``config`` database is not a dependable API, and users should not
+   write data to the ``config`` database in the course of normal
+   operation or maintenance.
+
+.. note::
+
+   You cannot perform read/write operations to the collections in the
+   ``config`` database inside a :doc:`multi-document transaction
+   </core/transactions>`.
+
+Collections to Support Sharded Cluster Operations
+-------------------------------------------------
+
+.. if we add a collection to the config database here, also update the
+   list on the sharding-internals page.
+
+To access the ``config`` database and view the list of collections that
+support sharding operations, connect :binary:`~bin.mongosh` to a
+:binary:`~bin.mongos` instance in a sharded cluster and issue the following:
+
+.. code-block:: javascript
+
+   use config
+
+   show collections
+
+.. note::
+
+   If running with access control, ensure you have privileges that
+   grant :authaction:`listCollections` action on the database.
+
+The config database is mainly for internal use, and during normal
+operations you should never manually insert or store data in it.
+However, if you need to verify the write availability of the config
+server for a sharded cluster, you can insert a document into a test
+collection (after making sure that no collection of that name already
+exists):
+
+.. warning:: Modification of the ``config`` database on a functioning
+   system may lead to instability or inconsistent data sets. If you
+   must modify the ``config`` database, use :binary:`~bin.mongodump` to
+   create a full backup of the ``config`` database.
+
+.. code-block:: javascript
+
+   db.testConfigServerWriteAvail.insertOne( { a : 1 } )
+
+If the operation succeeds, the config server is available to process
+writes.
+
+Future releases of the server may include different collections in
+the config database, so be careful when selecting a name for your
+test collection.
+
+MongoDB uses the following collections in the ``config`` database
+to support sharding:
+
+.. data:: config.changelog
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.changelog` collection stores a document for each change to
+   the metadata of a sharded collection.
+
+   .. example::
+
+      The following example displays a single record of a chunk split
+      from a :data:`~config.changelog` collection:
+
+      .. code-block:: javascript
+
+         {
+          "_id" : "<hostname>-<timestamp>-<increment>",
+          "server" : "<hostname><:port>",
+          "clientAddr" : "127.0.0.1:63381",
+          "time" : ISODate("2012-12-11T14:09:21.039Z"),
+          "what" : "split",
+          "ns" : "<database>.<collection>",
+          "details" : {
+             "before" : {
+                "min" : {
+                   "<database>" : { $minKey : 1 }
+                },
+                "max" : {
+                   "<database>" : { $maxKey : 1 }
+                },
+                "lastmod" : Timestamp(1000, 0),
+                "lastmodEpoch" : ObjectId("000000000000000000000000")
+             },
+             "left" : {
+                "min" : {
+                   "<database>" : { $minKey : 1 }
+                },
+                "max" : {
+                   "<database>" : "<value>"
+                },
+                "lastmod" : Timestamp(1000, 1),
+                "lastmodEpoch" : ObjectId(<...>)
+             },
+             "right" : {
+                "min" : {
+                   "<database>" : "<value>"
+                },
+                "max" : {
+                   "<database>" : { $maxKey : 1 }
+                },
+                "lastmod" : Timestamp(1000, 2),
+                "lastmodEpoch" : ObjectId("<...>")
+             },
+             "owningShard" : "<value>"
+          }
+         }
+
+   Each document in the :data:`~config.changelog` collection contains the
+   following fields:
+
+   .. data:: config.changelog._id
+
+      The value of ``changelog._id`` is:
+      ``<hostname>-<timestamp>-<increment>``.
+
+   .. data:: config.changelog.server
+
+      The hostname of the server that holds this data.
+
+   .. data:: config.changelog.clientAddr
+
+      A string that holds the address of the client, a
+      :binary:`~bin.mongos` instance that initiates this change.
+
+   .. data:: config.changelog.time
+
+      A :term:`ISODate` timestamp that reflects when the change
+      occurred.
+
+   .. data:: config.changelog.what
+
+      The type of change recorded. Possible values include:
+
+      - ``dropCollection``
+      - ``dropCollection.start``
+      - ``dropDatabase``
+      - ``dropDatabase.start``
+      - ``moveChunk.start``
+      - ``moveChunk.commit``
+      - ``split``
+      - ``multi-split``
+
+   .. data:: config.changelog.ns
+
+      Namespace where the change occurred.
+
+   .. data:: config.changelog.details
+
+      A :term:`document` that contains additional details for
+      the change. The structure of the :data:`~config.changelog.details`
+      document depends on the type of change.
+
+.. data:: config.chunks
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`config.chunks` collection stores a document for each
+   chunk in the cluster. The following example shows a document:
+
+   .. code-block:: javascript
+
+      {
+         _id: ObjectId('65a954c0de11596e08e7c1dc'),
+         uuid: UUID('a4479215-a38d-478f-a82b-e5e95d455e55'),
+         min: { a: Long('121204345') },
+         max: { a: Long('993849349') },
+         shard: 'shard01',
+         lastmod: Timestamp({ t: 1, i: 0 }),
+         history: [
+            {
+               validAfter: Timestamp({ t: 1705596095, i: 14 }),
+               shard: 'shard01'
+            }
+         ]
+      }
+
+   In the document:
+
+   - ``_id`` is the chunk identifier.
+   - ``min`` and ``max`` are the range of values for the chunk's shard
+     key.
+   - ``shard`` is the name of the shard that stores the chunk in the
+     cluster.
+
+   .. tip::
+
+      To find the chunks in a collection, retrieve the collection's
+      ``uuid`` identifier from the :data:`config.collections`
+      collection. Then, use ``uuid`` to retrieve the matching document
+      with the same ``uuid`` from the ``config.chunks`` collection.
+
+.. data:: config.collections
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.collections` collection stores a document for each sharded collection
+   in the cluster. Given a collection named ``pets``
+   in the ``records`` database, a document in the :data:`~config.collections`
+   collection would resemble the following:
+
+   .. code-block:: javascript
+
+      {
+         "_id" : "records.pets",
+         "lastmod" : ISODate("2021-07-21T15:48:15.193Z"),
+         "timestamp": Timestamp(1626882495, 1),
+         "key" : {
+               "a" : 1
+         },
+         "unique" : false,
+         "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc"),
+         "uuid" :  UUID("f8669e52-5c1b-4ea2-bbdc-a00189b341da")
+      }
+
+.. data:: config.databases
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.databases` collection stores a document for each
+   database in the cluster.
+   
+   For each database, the corresponding document displays the name, the
+   database's :ref:`primary shard <primary-shard>` , the database's
+   sharding enabled status, and a version.
+
+   .. code-block:: javascript
+
+      { "_id" : "test", "primary" : "shardA", "partitioned" : true, "version" : { "uuid" : UUID("516a5f79-5eb9-4844-8ee9-b8e9de91b760"), "timestamp" : Timestamp(1626894204, 1), "lastMod" : 1 } }
+      { "_id" : "hr", "primary" : "shardA", "partitioned" : false, "version" : { "uuid" : UUID("8e39d61d-6259-4c33-a5ed-bcd2ae317b6f"), "timestamp" : Timestamp(1626895015, 1), "lastMod" : 1 } }
+      { "_id" : "reporting", "primary" : "shardB", "partitioned" : false, "version" : { "uuid" : UUID("07c63242-51b3-460c-865f-a67b3372d792"), "timestamp" : Timestamp(1626895826, 1), "lastMod" : 1 } }
+
+   The method :method:`sh.status()` returns this information in the
+   :ref:`sharding-status-databases-fields` section.
+
+.. data:: config.migrationCoordinators
+
+   The :data:`~config.migrationCoordinators` collection exists on each
+   shard and stores a document for each in-progress :term:`chunk`
+   migration from this shard to another shard. The chunk migration fails
+   if the document cannot be written to a majority of the members of the
+   shard's replica set.
+
+   When a migration is complete, the document describing the migration
+   is deleted from the collection.
+
+.. data:: config.mongos
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.mongos` collection stores a document for each
+   :binary:`~bin.mongos` instance affiliated with the cluster. The
+   cluster maintains this collection for reporting purposes.
+   
+   Each document in the :data:`~config.mongos` collection contains these
+   fields:
+
+   .. include:: /includes/table-mongos-output-fields.rst
+
+   The following document shows the status of the :binary:`~bin.mongos`
+   running on ``example.com:27017``.
+
+   .. code-block:: javascript
+
+      [
+         {
+           _id: 'example.com:27017',
+           advisoryHostFQDNs: [ "example.com" ],
+           created: ISODate("2021-11-22T16:32:13.708Z"),
+           mongoVersion: "5.2.0",
+           ping: ISODate("2021-12-15T22:09:23.161Z"),
+           up: Long("2007429"),
+           waiting: true
+         }
+      ]
+
+.. data:: config.rangeDeletions
+
+   The :data:`~config.rangeDeletions` collection exists on each shard
+   and stores a document for each chunk range that contains orphaned
+   documents. The chunk migration fails if the document cannot be
+   written to a majority of the members of the shard's replica set.
+
+   When the orphaned chunk range is cleaned up, the document
+   describing the range is deleted from the collection.
+
+.. data:: config.settings
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.settings` collection holds the following
+   sharding configuration settings:
+
+   - Range size. To change range size,
+     see :ref:`Modify Range Size in a Sharded Cluster 
+     <tutorial-modifying-range-size>`. The specified ``chunksize`` value 
+     is in megabytes.
+
+   - Balancer settings. To change the balancer settings, including
+     balancer status, see
+     :doc:`/tutorial/manage-sharded-cluster-balancer`.
+
+   - Autosplit:
+     
+     .. include:: /includes/autosplit-no-operation.rst
+     
+     In MongoDB versions earlier than 6.0:
+
+     - :dbcommand:`balancerStart` also enables auto-splitting for the
+       sharded cluster.
+
+     - :dbcommand:`balancerStop` also disables auto-splitting for the
+       sharded cluster.
+      
+     - To enable or disable the autosplit flag, use the corresponding
+       :method:`sh.enableAutoSplit()` method or
+       :method:`sh.disableAutoSplit()` method.
+
+   Example documents in the ``settings`` collection:
+
+   .. code-block:: javascript
+
+      { "_id" : "chunksize", "value" : 64 }
+      { "_id" : "balancer", "mode" : "full", "stopped" : false }
+
+.. data:: config.shards
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.shards` collection represents each shard in the cluster
+   in a separate document, as in the following:
+
+   .. code-block:: javascript
+
+      { "_id" : "shard0000", "host" : "localhost:30000", "state" : 1 }
+
+   If the shard is a replica set, the
+   ``host`` field displays the name of the replica set, then a slash, then
+   a comma-separated list of the hostnames of each member of the replica set,
+   as in the following example:
+
+   .. code-block:: javascript
+
+      { "_id" : "shard0001", "host" : "shard0001/localhost:27018,localhost:27019,localhost:27020", "state" : 1 }
+
+   If the shard has :ref:`zones <zone-sharding>` assigned, this
+   document has a ``tags`` field, that holds an array of the zones
+   to which it is assigned, as in the following example:
+
+   .. code-block:: javascript
+
+      { "_id" : "shard0002", "host" : "localhost:30002", "state" : 1, "tags": [ "NYC" ] }
+
+.. data:: config.tags
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.tags` collection holds documents for each zone
+   range in the cluster. The documents in the
+   :data:`~config.tags` collection resemble the following:
+
+   .. code-block:: javascript
+
+      {
+          "_id" : { "ns" : "records.users", "min" : { "zipcode" : "10001" } },
+          "ns" : "records.users",
+          "min" : { "zipcode" : "10001" },
+          "max" : { "zipcode" : "10281" },
+          "tag" : "NYC"
+      }
+
+.. data:: config.version
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.version` collection holds the current metadata version number. This
+   collection contains only one document. For example:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "minCompatibleVersion" : 5, "currentVersion" : 6, "clusterId" : ObjectId("5d8bc01a690d8abbd2014ddd") }
+
+   To access the :data:`~config.version` collection, you must use the
+   :method:`db.getCollection()` method. For example, to retrieve the
+   collection's document:
+
+   .. code-block:: javascript
+
+      db.getCollection("version").find()
+   
+
+Collections to Support Sessions
+-------------------------------
+
+The ``config`` database contains the
+*internal* collections to support :ref:`causally consistent sessions
+<sessions>` for standalones, replica sets, and sharded clusters and
+retryable writes and :doc:`transactions </core/transactions>` for
+replica sets and sharded clusters.
+
+.. warning::
+
+   Do not manually modify or drop these collections.
+
+To access these collections for a :binary:`~bin.mongod` or
+:binary:`~bin.mongos` instance, connect :binary:`~bin.mongosh` to the
+instance.
+
+.. data:: config.system.sessions
+
+   The ``system.sessions`` collection stores session records that are
+   available to all members of the deployment.
+
+   When a user creates a session on a :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance, the record of the session initially
+   exists only in-memory on the instance. Periodically, the instance
+   will sync its cached sessions to the ``system.sessions`` collection;
+   at which time, they are visible to all members of the deployment.
+
+   To view records in the ``system.sessions`` collection, use
+   :pipeline:`$listSessions`.
+
+   .. warning::
+
+      Do not manually modify or drop the ``system.sessions`` collection.
+
+   In a sharded cluster, the ``system.sessions`` collection is sharded.
+
+   When adding a shard to the sharded cluster, if the shard to add
+   already contains its own ``system.sessions`` collection, MongoDB
+   drops the new shard's ``system.sessions`` collection during the
+   add process.
+
+.. data:: config.transactions
+
+   The ``transactions`` collection stores records used to support
+   :ref:`retryable writes <retryable-writes>` and :doc:`transactions
+   </core/transactions>` for replica sets and sharded clusters.
+
+   .. warning::
+
+      Do not manually modify or drop the ``transactions`` collection.
