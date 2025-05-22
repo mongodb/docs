@@ -1,0 +1,215 @@
+.. _5.0-downgrade-replica-set:
+
+==================================================
+Downgrade |newversion| Replica Set to |oldversion|
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/5.0-upgrade-replacements.rst
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+.. |downgrading| replace:: downgrading
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade-path.rst
+
+.. include:: /includes/downgrade/single-version-support.rst
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+If your replica set has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required
+privileges.
+
+Prerequisites
+-------------
+
+To downgrade from |newversion| to |oldversion|, you must remove
+incompatible features that are persisted and/or update incompatible
+configuration settings. These include:
+
+1. Cluster Default Read and Write Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 changed the default value for cluster-wide read and write
+concerns, and downgrading to MongoDB 4.4 might change those defaults
+back. Consider manually configuring your cluster's default read and
+write concern before downgrading:
+
+- To manually configure a default value for a cluster's read or write
+  concern, use the :dbcommand:`setDefaultRWConcern` command.
+
+- If your cluster includes an :doc:`arbiter
+  </core/replica-set-arbiter>`, and you had previously disabled
+  ``"Majority"`` read concern to prevent cache pressure in certain
+  situations, you may want to configure
+  :option:`--enableMajorityReadConcern false
+  <mongod --enableMajorityReadConcern>` or
+  :setting:`replication.enableMajorityReadConcern: false
+  <replication.enableMajorityReadConcern>` once you downgrade.
+
+2. Document Fields with ``.`` or ``$`` Characters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 adds support for including the ``.`` or ``$`` characters in
+document field names. You must delete any documents containing field
+names that include the ``.`` or ``$`` characters before downgrading
+to MongoDB 4.4.
+
+3. Slim-format Timezone Data Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 enables support for slim-format timezone data files. If
+using slim-format timezone data files in your deployment, as provided
+to MongoDB with the :option:`--timeZoneInfo <mongod --timeZoneInfo>`
+command line option or :setting:`processManagement.timeZoneInfo`
+configuration file setting, you must downgrade to MongoDB 4.4.7 or
+later, or else revert your timezone data files to use the previous
+non-slim-format data files.
+
+.. |target| replace:: primary
+
+.. _5.0-downgrade-feature-compatibility-rs:
+
+4. Downgrade Feature Compatibility Version (FCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First, verify the following:
+
+- Ensure that no initial sync is in progress. Running
+  :dbcommand:`setFeatureCompatibilityVersion` command while an
+  initial sync is in progress will cause the initial sync to restart.
+
+- Ensure that no nodes have a ``newlyAdded`` field in their
+  :doc:`replica set configuration </reference/replica-configuration>`.
+  Run the following command on each node in your replica set to
+  verify this:
+
+  .. code-block:: javascript
+
+     use local
+     db.system.replset.find( { "members.newlyAdded" : { $exists : true } } );
+  
+  The ``newlyAdded`` field only appears in a node's replica set
+  configuration document during and shortly after an initial sync.
+
+- Ensure that no replica set member is in :replstate:`ROLLBACK` or
+  :replstate:`RECOVERING` state.
+
+Next, to downgrade the ``featureCompatibilityVersion`` of your replica
+set:
+
+#. Connect a ``mongo`` shell to the |target|.
+
+#. .. include:: /includes/5.0-downgrade-fcv.rst
+
+#. To ensure that all members of the replica set reflect the updated
+   ``featureCompatibilityVersion``, connect to each replica set member and
+   check the ``featureCompatibilityVersion``:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+   All members should return a result that includes:
+
+   .. code-block:: javascript
+
+      "featureCompatibilityVersion" : { "version" : "4.4" }
+
+   If any member returns a ``featureCompatibilityVersion`` of |newfcv|,
+   wait for the member to reflect version |oldfcv| before proceeding.
+
+.. note::
+
+  .. include:: /includes/arbiter-fcv.rst
+
+  .. include:: /includes/arbiter-fcv-version.rst
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+5. Remove FCV |newversion| Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if FCV has ever been set to
+|newfcv|.
+
+Remove all persisted |newversion| |features| that are incompatible with
+|oldversion|. These include:
+
+Time-series Collections
+  Remove all :ref:`time series collections
+  <manual-timeseries-collection>`.
+
+Runtime Audit Filter Management
+
+- Reset the defaults on the :term:`primary` server in the group with
+  ``db.admin.runCommand``. The primary should be the last
+  configuration server in the group to be updated.
+
+  .. code-block:: javascript
+
+     db.admin.runCommand(
+        {
+           setAuditConfig: 1, 
+           filter: {},
+           auditAuthorizationSuccess: false
+        }
+     )
+
+  The configuration document can also be removed after downgrade:
+
+  .. code-block:: javascript
+
+     config.settings.remove({_id: 'audit'});
+
+- Disable Runtime Audit Filter Management on each node by setting
+  ``auditLog.runtimeConfiguration`` to ``false`` in the node's
+  configuration file.
+
+- Update the audit filters for this instance in the local
+  configuration file.
+
+.. |binary| replace:: any replica set member
+
+6. Remove |newversion| Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Remove all persisted features that use |newversion| features. These
+include but are not limited to:
+
+- If any view definitions include 5.0 operators, such as
+  :expression:`$dateAdd` or :expression:`$sampleRate`, they must be
+  removed. See :ref:`5.0-rel-notes-new-agg-operators` for the full list.
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   replica set members, including delayed replica set members, reflect
+   the prerequisite changes. That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+.. include:: /includes/steps/5.0-downgrade-replica-set.rst
