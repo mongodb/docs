@@ -172,9 +172,9 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/src/libmongoc/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
 
 # c++
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/transactions.cpp -o ${DRIVERS_PATH}/cpp-transactions.cpp
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/transactions_examples.cpp -o ${DRIVERS_PATH}/cpp-transactions.cpp
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/with_transaction.cpp -o ${DRIVERS_PATH}/cpp-with-transaction.cpp
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/versioned_api.cpp -o ${DRIVERS_PATH}/cpp-versioned_api.cpp
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/versioned_api_examples.cpp -o ${DRIVERS_PATH}/cpp-versioned_api.cpp
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/documentation_examples.cpp -o ${DRIVERS_PATH}/cpp-documentation-examples.cpp
 
 # go
