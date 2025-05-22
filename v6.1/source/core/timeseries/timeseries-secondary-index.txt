@@ -1,0 +1,307 @@
+.. _timeseries-add-secondary-index:
+
+================================================
+Add Secondary Indexes to Time Series Collections
+================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :description: Time series, IOT
+   :keywords: Time series, IOT
+
+To improve query performance for :term:`time series collections <time
+series collection>`, add one or more :term:`secondary indexes <secondary
+index>` to support common time series query patterns. Specifically, we
+recommend that you create one or more :ref:`compound indexes
+<index-type-compound>` on the fields specified as the ``timeField`` and
+the ``metaField``. If the field value for the ``metaField`` field is a
+document, you can create secondary indexes on fields inside that
+document.
+
+.. note::
+
+   Not all index types are supported. For a list of unsupported index
+   types, see :ref:`Limitations for Secondary Indexes on Time Series
+   Collections <timeseries-limitations-secondary-indexes>`.
+
+For example, this command creates a :ref:`compound index
+<index-type-compound>` on the ``metadata.sensorId`` and ``timestamp``
+fields:
+
+.. code-block:: javascript
+
+   db.weather24h.createIndex( { "metadata.sensorId": 1, "timestamp": 1 } )
+
+.. see::
+
+   :method:`db.collection.createIndex()`
+
+.. _timeseries-secondary-index-sort-performance:
+
+Use Secondary Indexes to Improve Sort Performance
+-------------------------------------------------
+
+Time Series collections can use indexes to improve sort performance on 
+the ``timeField`` and the ``metaField``. 
+ 
+For example, the following ``sensorData`` collection contains 
+measurements from weather sensors:
+
+.. code-block:: javascript
+
+   db.sensorData.insertMany( [ {
+        "metadata": {
+            "sensorId": 5578,
+            "location": {
+                type: "Point",
+                coordinates: [-77.40711, 39.03335]
+            }
+        },
+        "timestamp": ISODate("2022-01-15T00:00:00.000Z"),
+        "currentConditions": {
+            "windDirecton": 127.0,
+            "tempF": 71.0,
+            "windSpeed": 2.0,
+            "cloudCover": null,
+            "precip": 0.1,
+            "humidity": 94.0,
+        }
+      },
+      {
+        "metadata": {
+            "sensorId": 5578,
+            "location": {
+                type: "Point",
+                coordinates: [-77.40711, 39.03335]
+            }
+        },
+        "timestamp": ISODate("2022-01-15T00:01:00.000Z"),
+        "currentConditions": {
+            "windDirecton": 128.0,
+            "tempF": 69.8,
+            "windSpeed": 2.2,
+            "cloudCover": null,
+            "precip": 0.1,
+            "humidity": 94.3,
+        }
+      },
+      {
+        "metadata": {
+            "sensorId": 5579,
+            "location": {
+                type: "Point",
+                coordinates: [-80.19773, 25.77481]
+            }
+        },
+        "timestamp": ISODate("2022-01-15T00:01:00.000Z"),
+        "currentConditions": {
+            "windDirecton": 115.0,
+            "tempF": 88.0,
+            "windSpeed": 1.0,
+            "cloudCover": null,
+            "precip": 0.0,
+            "humidity": 99.0,
+        }
+       } 
+     ] 
+   )
+
+Time Series collections :ref:automatically create an internal 
+:ref:`clustered index <db.createCollection.clusteredIndex>`. The query 
+planner uses this index to improve sort performance. 
+
+.. note::
+   If you insert a document into a collection with a ``timeField`` 
+   value before ``1970-01-01T00:00:00.000Z`` or after 
+   ``2038-01-19T03:14:07.000Z``, 
+   MongoDB logs a warning and prevents some query optimizations from 
+   using the internal index. :ref:`Create a secondary index <timeseries-add-secondary-index>` 
+   on the ``timeField`` to regain query performance and resolve the log 
+   warning.
+
+The following sort operation on the ``timestamp`` field uses the 
+clustered index to improve performance:
+
+.. code-block:: javascript
+  
+   db.sensorData.find().sort( { "timestamp": 1 } )
+
+To confirm that the sort operation used the clustered index, run the 
+operation again with the ``.explain( "executionStats" )`` option:
+
+.. code-block:: javascript
+
+   db.sensorData.find().sort( { "timestamp": 1 } ).explain( "executionStats" )
+
+The ``winningPlan.queryPlan.inputStage.stage`` is ``COLLSCAN`` and an 
+``_internalBoundedSort`` stage is present in the explain plan output.
+The ``interalBoundedSort`` field indicates that the clustered index was 
+used. For more information on explain plan output, see :ref:`explain 
+results <explain-results>`.
+
+Secondary indexes on Time Series collections can improve 
+performance for sort operations and increase the number of scenarios 
+where indexes can be used. 
+
+Sort operations on Time Series collections can use secondary indexes 
+on the ``timeField``. Under certain conditions, sort operations can 
+also use compound secondary indexes on the ``metaField`` and 
+``timeField``.
+
+The Aggregation Pipeline Stages :pipeline:`$match` and 
+:pipeline:`$sort` determine which indexes a Time Series collection can
+use. The following list describes scenarios where an index can be used: 
+
+- Sort on ``{ <timeField:> ±1 }`` uses the clustered index
+- Sort on ``{ <timeField>: ±1 }`` uses a secondary index on 
+  ``<timeField>``
+- Sort on ``{ <metaField>: ±1, timeField: ±1 }`` uses a secondary 
+  index on ``{ <metaField>: ±1, timeField: ±1 }``
+- Sort on ``{ <timeField>: ±1 }`` uses a secondary index on 
+  ``{ metaField: ±1, timeField: ±1 }`` when there is a point predicate 
+  on ``<metaField>``
+
+Create a secondary index on the ``timestamp`` field:
+
+.. code-block:: javascript
+
+   db.sensorData.createIndex( { "timestamp": 1 } ) 
+
+The following sort operation on the ``timestamp`` field uses the 
+Secondary Index to improve performance:
+
+.. code-block:: javascript 
+
+   db.sensorData.aggregate( [
+     { $match: { "timestamp" : { $gte: ISODate("2022-01-15T00:00:00.000Z") } } },
+     { $sort: { "timestamp": 1 } } 
+   ] )
+
+To confirm that the sort operation used the Secondary Index, run the 
+operation again with the ``.explain( "executionStats" )`` option:
+
+.. code-block:: javascript
+
+   db.sensorData.explain( "executionStats" ).aggregate( [
+     { $match: { "timestamp": { $gte: ISODate("2022-01-15T00:00:00.000Z") } } },
+     { $sort: { "timestamp": 1 } } 
+   ] )
+
+
+"Last Point" Queries on Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A "last point" query fetches the latest measurement for each unique metadata 
+value. For example, you may want to get the latest temperature reading from all
+sensors. Improve performance on last point queries by creating any of the 
+following indexes:
+
+.. code-block:: javascript
+
+   { "metadata.sensorId": 1,  "timestamp": 1 }
+   { "metadata.sensorId": 1,  "timestamp": -1 }
+   { "metadata.sensorId": -1, "timestamp": 1 }
+   { "metadata.sensorId": -1, "timestamp": -1 }  
+
+.. note::
+
+   Last point queries are most performant when they use the :ref:`DISTINCT_SCAN 
+   optimization <explain-results>`. This optimization is only available when an 
+   index on ``timeField`` is descending.
+
+The following command creates a compound secondary index on ``metaField``
+(ascending) and ``timeField`` (descending): 
+
+.. code-block:: javascript
+
+   db.sensorData.createIndex( { "metadata.sensorId": 1,  "timestamp": -1 } ) 
+
+The following last point query example uses the descending ``timeField`` 
+compound secondary index created above:
+
+.. code-block:: javascript
+
+   db.sensorData.aggregate( [
+      { 
+         $sort: { "metadata.sensorId": 1, "timestamp": -1 } 
+      },
+      { 
+         $group: {
+            _id: "$metadata.sensorId",
+            ts: { $first: "$timestamp" },
+            temperatureF: { $first: "$currentConditions.tempF" }
+         }  
+      }
+   ] )
+
+To confirm that the last point query used the secondary index, run the operation
+again using ``.explain( "executionStats" )``:
+
+.. code-block:: javascript
+
+   db.getCollection( 'sensorData' ).explain( "executionStats" ).aggregate( [
+      {
+         $sort: { "metadata.sensorId": 1, "timestamp": -1 }
+      },
+      {
+         $group: {
+            _id: "$metadata.sensorId",
+            ts: { $first: "$timestamp" },
+            temperatureF: { $first: "$currentConditions.tempF" }
+         }
+      }
+   ] )
+
+The ``winningPlan.queryPlan.inputStage.stage`` is ``DISTINCT_SCAN``, which 
+indicates that the index was used. For more information on the explain plan 
+output, see :ref:`explain-results`.
+
+Specify Index Hints for Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Index hints cause MongoDB to use a specific index for a query. Some
+operations on time series collections can only take advantage of an
+index if that index is specified in a hint.
+
+For example, the following query causes MongoDB to use the
+``timestamp_1_metadata.sensorId_1`` index:
+
+.. code-block:: javascript
+
+   db.sensorData.find( { "metadata.sensorId": 5578 } ).hint( "timestamp_1_metadata.sensorId_1" )
+
+On a time series collection, you can specify hints using either the
+index name or the index key pattern. To get the names of the indexes on
+a collection, use the :method:`db.collection.getIndexes()` method.
+
+.. _timeseries-add-secondary-index-mongodb-6.0:
+
+Time Series Secondary Indexes in MongoDB 6.0
+--------------------------------------------
+
+Starting in MongoDB 6.0, you can:
+
+- Add a :doc:`compound index </core/index-compound>` on the
+  ``timeField``, ``metaField``, or measurement fields.
+
+- Use the :query:`$or`, :query:`$in`, and :query:`$geoWithin` operators
+  with :doc:`partial indexes </core/index-partial>` on a time series
+  collection.
+
+- Add :doc:`partial </core/index-partial>` on the ``metaField``.
+
+- Add a :term:`secondary index <secondary index>` to any field or
+  subfield.
+
+- Use the ``metaField`` with :ref:`2dsphere <2dsphere-index>` indexes.
+
+.. note::
+
+   .. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst

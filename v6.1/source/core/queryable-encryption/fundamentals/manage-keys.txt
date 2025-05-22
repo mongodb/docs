@@ -1,0 +1,139 @@
+.. _qe-fundamentals-manage-keys:
+
+=========================
+Encryption Key Management
+=========================
+
+
+.. DOCSP-22176: Move the data key delete ref to the location
+                of this content once the content is added.
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In this guide, you can learn how to manage your encryption keys with a
+{+kms-long+} ({+kms-abbr+}) in your {+qe+} enabled
+application.
+
+Encryption Components
+---------------------
+
+MongoDB uses the following components to perform {+qe+}:
+
+- {+dek-long+}s (DEKs)
+- {+key-vault-long+}s
+- {+cmk-long+}s (CMKs)
+- {+kms-long+} (KMS)
+
+Your {+dek-long+} is the key you use to encrypt the fields in your
+MongoDB documents. Your {+dek-abbr+} is stored in a document in a
+MongoDB collection called the {+key-vault-long+}.
+
+Your {+cmk-long+} is the key you use to encrypt your {+dek-long+}s.
+MongoDB automatically encrypts {+dek-long+}s using the specified
+{+cmk-abbr+} during {+dek-long+} creation.
+
+The {+cmk-abbr+} is the most sensitive key in {+qe+}. If your
+{+cmk-abbr+} is compromised, all of your encrypted data can be
+decrypted.
+
+Use a {+kms-long+} to store your {+cmk-long+}.
+
+To learn more about the relationship between keys, see
+:ref:`qe-reference-keys-key-vaults`.
+
+.. include:: /includes/queryable-encryption/qe-warning-remote-kms.rst
+
+.. _qe-fundamentals-rotate-keys:
+
+Rotate Encryption Keys Using ``mongosh``
+----------------------------------------
+
+You can rotate encryption keys using the 
+:method:`KeyVault.rewrapManyDataKey()` method. The ``rewrapManyDataKey`` 
+method automatically decrypts multiple data keys and re-encrypts them 
+using a specified {+cmk-long+} (CMK). It then updates the rotated keys 
+in the key vault collection. This method allows you to rotate encryption 
+keys based on two optional arguments:
+
+- A :ref:`query filter document <document-query-filter>` used to specify 
+  which keys to rotate. If no data key matches the given filter, no keys 
+  will be rotated. Omit the filter to rotate all keys in your key vault 
+  collection.
+
+- An object that represents a new CMK. Omit this object to rotate
+  the data keys using their current CMKs.
+
+The ``rewrapManyDataKey`` method has the following syntax:
+
+.. code-block:: json
+
+   let keyVault = db.getMongo().getKeyVault()
+
+   keyVault.rewrapManyDataKey(
+      { 
+         "<Your custom filter>" 
+      },
+      {
+         provider: "<KMS provider>",
+         masterKey: {
+            "<dataKeyOpts Key>" : "<dataKeyOpts Value>"
+         }
+      }
+   )
+
+Supported Key Management Services
+---------------------------------
+
+{+qe+} supports the following {+kms-long+} ({+kms-abbr+}) providers:
+
+- {+aws-long+} KMS
+- Azure Key Vault
+- Google Cloud Platform KMS
+- Any KMIP Compliant {+kms-long+}
+- Local Key Provider
+
+To learn more about these providers, including diagrams that show how
+your application uses them to perform {+qe+}, see
+:ref:`qe-fundamentals-kms-providers`.
+
+.. _qe-reasons-to-use-remote-kms:
+
+Reasons to Use a Remote KMS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using a remote {+kms-abbr+} to manage your {+cmk-long+} ({+cmk-abbr+})
+has the following advantages over using your local filesystem to host
+the {+cmk-abbr+}:
+
+- Secure storage of the key with access auditing
+- Reduced risk of access permission issues
+- Availability and distribution of the key to remote clients
+- Automated key backup and recovery
+- Centralized encryption key lifecycle management
+
+Additionally, for the following {+kms-abbr+} providers, your
+{+kms-abbr+} remotely encrypts and decrypts your {+dek-long+}, ensuring
+your {+cmk-long+} is never exposed to your {+qe+} enabled
+application:
+
+- {+aws-long+} KMS
+- Azure Key Vault
+- Google Cloud Platform KMS
+
+Learn More
+----------
+
+For tutorials detailing how to set up a {+qe+} enabled
+application with each of the supported {+kms-abbr+} providers, see the
+following pages:
+
+- :ref:`qe-tutorial-automatic-aws`
+- :ref:`qe-tutorial-automatic-azure`
+- :ref:`qe-tutorial-automatic-gcp`

@@ -1,0 +1,458 @@
+.. _release-notes-6.1:
+
+=============================
+Release Notes for MongoDB 6.1 
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: twocols
+
+.. include:: /includes/rapid-release.rst
+
+.. note::
+
+   MongoDB 6.1 Released October 11, 2022
+
+Patch Releases
+--------------
+
+.. warning:: Past Release Limitations
+
+   .. include:: /includes/release-notes/critical-warning-text.rst
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Issue
+        - Affected Versions
+
+      * - :issue:`WT-10461` 
+        - 6.1.0 - 6.1.1 (ARM64 or POWER system architectures)
+
+
+.. _6.1.1-release-notes:
+
+6.1.1 - Jan 3, 2022
+~~~~~~~~~~~~~~~~~~~
+
+Issues fixed:
+
+- :issue:`SERVER-70436` Restrict cases where isCoveredNullQuery can
+  apply
+- :issue:`SERVER-70381` _internalSearchIdLookup stage violates a 5.0
+  precondition of the getOwnershipFilter function
+- :issue:`SERVER-70793` Make database metadata refresh first check new
+  metadata under the IS lock before taking X lock
+- :issue:`SERVER-69877` Remove untimestamped writes to the catalog when
+  restarting unfinished index builds during startup recovery
+- :issue:`WT-10030` Internal pages with fast truncated children are not
+  actively freed
+
+- `All JIRA issues closed in 6.1.1
+  <https://jira.mongodb.org/issues/?jql=project%20in%20(SERVER%2CTOOLS%2CWT)%20AND%20resolution%3D%27Fixed%27%20and%20fixversion%3D%276.1.1%27>`_
+
+- :ref:`6.1.1-changelog`
+
+Regular Expressions
+-------------------
+
+The following sections describe changes to regular expressions in
+MongoDB 6.1.
+
+PCRE Library Upgrade
+~~~~~~~~~~~~~~~~~~~~
+
+{+pcre+} ({+pcre-abbr+}) is the library used by MongoDB to implement
+regular expression pattern matching. Starting in version 6.1, MongoDB
+upgrades the {+pcre-abbr+} library to PCRE2. PCRE2 is the current
+{+pcre-abbr+} library and is actively maintained and updated.
+
+To learn how to perform regex matches in MongoDB, see the following
+pages:
+
+- :query:`$regex` (query operator)
+- :expression:`$regexFind` (aggregation operator)
+- :expression:`$regexFindAll` (aggregation operator)
+- :expression:`$regexMatch` (aggregation operator)
+
+``*UCP`` Regex Option to Match Non-ASCII Characters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, you can use the ``*UCP`` option for regex
+queries. The ``*UCP`` option matches non-ASCII characters (specifically,
+the option can match UTF-8 characters). However, the ``*UCP`` option
+results in a slower query than one without the option specified.
+
+For an example that uses the ``*UCP`` option, see
+:ref:`regex-example-pcre2-ucp`.
+
+.. _release-notes-6.1-replication:
+
+Replication
+-----------
+
+.. _release-notes-6.1-retry-writes-errors:
+
+Retryable Writes Error Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/6.1-retry-writes-error-handling.rst
+
+General Changes
+---------------
+
+.. _release-notes-6.1-balancing-policy-changes:
+
+Balancing Policy Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, data in sharded clusters is distributed based on data 
+size rather than number of chunks. As a result, you should be aware of the
+following significant changes in sharded cluster data distribution behavior:
+
+- The balancer distributes ranges of data rather than chunks. The balancing 
+  policy looks for evenness of data distribution rather than chunk distribution.
+
+- Chunks are not subject to auto-splitting. Instead, chunks are split only when
+  moved across shards. 
+
+- A chunk is now referred to as a range. 
+
+- ``moveRange`` has replaced ``moveChunk``. 
+
+Changes to Journaling
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/journal-option-removed.rst
+
+Improved Efficiency for Multiple Document Deletions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/multi-deletes.rst
+
+.. _6.1-rel-notes-reshard:
+
+Resharding
+~~~~~~~~~~
+
+Starting in MongoDB 6.1, there are new metrics available 
+:ref:`resharding <sharding-resharding>`. The output of the following
+commands has changed:
+
+- :dbcommand:`currentOp`
+- :method:`db.currentOp()`
+- :dbcommand:`serverStatus`
+- :method:`db.serverStatus()`
+
+For details, see the release notes for :ref:`currentOp
+<6.1-rel-notes-currentOp>` and :ref:`serverStatus
+<6.1-rel-notes-serverStatus>`.
+
+.. _6.1-rel-notes-currentOp:
+
+``currentOp`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, the :dbcommand:`currentOp` command and the
+:method:`db.currentOp()` method have expanded output for resharding.
+
+Resharding operations can involve multiple MongoDB instances, and
+MongoDB instances can play different roles in the resharding operation.
+The particular operation and the role the host instance plays in the 
+:ref:`resharding <sharding-resharding>` process determine when each
+metric updates. 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Metric
+     - Role Tracked
+     - Description
+
+   * - ``opStatus``
+     -  
+     -  Removed.
+
+   * - ``desc`` 
+     - All
+     - Describes the action taken. The value is one of:
+
+       - ReshardingDonorService<operationUUID>
+       - ReshardingRecipientService<operationUUID>
+       - ReshardingCoordinatorService<operationUUID>
+        
+       For ``$currentOp``, the command UUID is added to each role's
+       state document.
+
+   * - ``op``
+     - All
+     - This metric has a constant value: "command".
+
+   * - ``ns``
+     - All
+     - The namespace for the resharded index. The value is a string in
+       the form: ``<database>.<collection>``.
+
+   * - ``originatingCommand``
+     - All
+     - A document that lists the command options for the operation.
+
+   * - ``donorState``
+     - Donor
+     - The current state of the role's state machine.
+
+   * - ``coordinatorState``
+     - Coordinator
+     - The current state of the role's state machine.
+
+   * - ``recipientState``
+     - Recipient
+     - The current state of the role's state machine.
+
+   * - approxDocumentsToCopy
+     - Recipient
+     - The number of documents in the source collection.
+
+   * - documentsCopied
+     - Recipient
+     - The number of documents already copied.
+
+   * - approxBytesToCopy
+     - Recipient
+     - The total size, in bytes, of the documents in the source
+       collection.
+
+   * - bytesCopied
+     - Recipient
+     - The number of bytes copied. When resharding completes, this value
+       is similar to the value of ``approxBytesToCopy``. 
+
+   * - oplogEntriesFetched
+     - Recipient
+     - The number of oplog entries written to the oplog buffer
+       collection.
+
+   * - oplogEntriesApplied
+     - Recipient
+     - The number of oplog entries applied from the oplog buffer
+       collection.
+
+   * - insertsApplied
+     - Recipient
+     - The number of inserts applied to the temporary resharding
+       collection. Each oplog entry that involves an insert increments
+       the counter by 1.
+
+   * - updatesApplied
+     - Recipient
+     - The number of updates applied to the temporary resharding
+       collection. Each oplog entry that involves an update increments
+       the counter by 1.
+
+   * - deletesApplied
+     - Recipient
+     - The number of deletes applied to the temporary resharding
+       collection. Each oplog entry that involves a delete increments the
+       counter by 1.
+
+   * - totalOperationTimeElapsedSecs
+     - All
+     - The number of seconds since the operation began.
+
+   * - totalCopyTimeElapsedSecs
+     - Recipient
+     - The number of seconds spent cloning.
+
+   * - totalCopyTimeElapsedSecs
+     - Coordinator
+     - The maximum number of seconds a Recipient could have spent
+       cloning.
+
+   * - totalApplyTimeElapsedSecs
+     - Recipient
+     - The number of seconds spent applying changes.
+
+   * - totalApplyTimeElapsedSecs
+     - Coordinator
+     - The approximate maximum number of seconds a Recipient could have
+       spent applying changes.
+
+   * - totalCriticalSectionTimeElapsedSecs
+     - Recipient
+     - The number of seconds spent in the critical section.
+
+   * - totalCriticalSectionTimeElapsedSecs
+     - Coordinator
+     - The number of seconds the critical section could have been held.
+
+   * - remainingOperationTimeEstimatedSecs
+     - Recipient
+     - The estimated number of seconds until the operation completes.
+
+   * - allShardsLowestRemainingOperationTimeEstimatedSecs
+     - Coordinator
+     - Calculated across all shards, the lowest estimate of the number of
+       seconds remaining. 
+
+   * - allShardsHighestRemainingOperationTimeEstimatedSecs
+     - Coordinator
+     - Calculated across all shards, the highest estimate of the number
+       of seconds remaining.
+
+   * - countWritesToStashCollections
+     - Recipient
+     - The number of writes to the recipient stash collections.
+
+   * - countWritesDuringCriticalSection
+     - Donor
+     - The number of writes attempted during the donor's critical
+       section. 
+
+   * - countReadsDuringCriticalSection
+     - Donor
+     - The number of reads attempted during the donor's critical section.
+
+.. _6.1-rel-notes-serverStatus:
+
+``serverStatus`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, the :dbcommand:`serverStatus` command and the
+:method:`db.serverStatus()` method have these output changes:
+
+New Metrics
+```````````
+
+- :serverstatus:`~shardingStatistics.resharding.active.countWritesToStashCollections`
+  The number of writes to the recipient stash collection.
+- :serverstatus:`~shardingStatistics.resharding.latencies` Timing
+  metrics for resharding operations. 
+
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalRemoteBatchRetrievalTimeMillis`
+    Total time recipients spent retrieving batches of documents from
+    donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalRemoteBatchesRetrieved`
+    Total number of batches of documents recipients retrieved from
+    donors.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalLocalInsertTimeMillis`
+    Total time recipients spent inserting batches of document from
+    donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalLocalInserts`
+    Total number of batches of documents from donors that recipients
+    inserted.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalRemoteBatchRetrievalTimeMillis`
+    Total time recipients spent retrieving batches of oplog entries
+    from donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalRemoteBatchesRetrieved`
+    Total number of batches of oplog entries recipients retrieved from
+    donors.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalLocalInsertTimeMillis`
+    Total time recipients spent inserting batches of oplog entries
+    from donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalLocalInserts`
+    Total number of batches of oplog entries from donors that
+    recipients inserted.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchRetrievalTimeMillis`
+    Total time recipients spent retrieving batches of oplog entries
+    that were inserted during fetching, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchesRetrieved`
+    Total number of batches of oplog entries that were inserted during
+    fetching that recipients retrieved.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchApplyTimeMillis`
+    Total time recipients spent applying batches of oplog entries, in
+    milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchesApplied`
+    Total number of batches of oplog entries that recipients applied.
+
+Replaced Metrics
+````````````````
+
+``resharding.remainingOperationTimeEstimatedMillis`` is replaced by:
+
+- :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsHighestRemainingOperationTimeEstimatedMillis`
+- :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsLowestRemainingOperationTimeEstimatedMillis`
+- :serverstatus:`~shardingStatistics.resharding.oldestActive.recipientRemainingOperationTimeEstimatedMillis`
+
+Renamed Metrics
+```````````````
+
+- ``countReshardingSuccessful`` is now :serverstatus:`~shardingStatistics.resharding.countSucceeded`
+- ``countReshardingFailures`` is now :serverstatus:`~shardingStatistics.resharding.countFailed`
+- ``countReshardingOperations`` is now :serverstatus:`~shardingStatistics.resharding.countStarted`
+- ``countReshardingCanceled`` is now :serverstatus:`~shardingStatistics.resharding.countCanceled`
+- ``minShardRemainingOperationTimeEstimatedMillis`` is now :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsLowestRemainingOperationTimeEstimatedMillis`
+- ``maxShardRemainingOperationTimeEstimatedMillis`` is now :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsHighestRemainingOperationTimeEstimatedMillis`
+- ``resharding.opcounters.insert`` is now :serverstatus:`~shardingStatistics.resharding.active.insertsApplied`
+- ``resharding.opcounters.update`` is now :serverstatus:`~shardingStatistics.resharding.active.updatesApplied`
+- ``resharding.opcounters.delete`` is now :serverstatus:`~shardingStatistics.resharding.active.deletesApplied`
+
+Removed Metrics
+```````````````
+
+- ``oplogApplierApplyBatchLatencyMillis``
+- ``collClonerFillBatchForInsertLatencyMillis``
+
+
+
+Storage Engine
+~~~~~~~~~~~~~~
+
+.. include:: /includes/reference/fact-parameters-cache-pressure.rst
+
+$addFields and $set Allow Empty Objects as Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, the aggregation stages :pipeline:`$addFields` and 
+:pipeline:`$set` allow you to set paths to empty objects without using the 
+:expression:`$literal` expression.
+
+
+Auditing
+~~~~~~~~
+
+MongoDB 6.1 adds the following cluster audit events:
+
+- :ref:`getClusterParameter <audit-message-getClusterParameter>`
+- :ref:`setClusterParameter <audit-message-setClusterParameter>`
+- :ref:`updateCachedClusterServerParameter 
+  <audit-message-updateCachedClusterServerParameter>`
+
+Starting in MongoDB 6.1, the :ref:`startup <audit-message-startup>` 
+audit event has this structure:
+
+.. include:: /includes/fact-audit-message-setClusterParameter-form.rst 
+
+For additional details, see :ref:`audit-action-details-results`.  
+
+Server Parameters
+-----------------
+
+Starting in MongoDB 6.1, MongoDB adds the following new parameters:
+
+- :parameter:`temporarilyUnavailableBackoffBaseMs` adjusts the time
+  between retries after a write failure. 
+- :parameter:`temporarilyUnavailableMaxRetries` limits the number of
+  retries after a write failure.
+- :parameter:`ldapRetryCount` sets the number of operation retries by
+  the server LDAP manager after a network error.
+
+Report an Issue
+---------------
+
+To report an issue, see
+https://github.com/mongodb/mongo/wiki/Submit-Bug-Reports for
+instructions on how to file a JIRA ticket for the MongoDB server or one
+of the related projects.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /release-notes/6.1-compatibility
+   /release-notes/6.1-changelog

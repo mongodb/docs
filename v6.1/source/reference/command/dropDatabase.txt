@@ -1,0 +1,154 @@
+============
+dropDatabase
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: dropDatabase
+
+   The :dbcommand:`dropDatabase` command drops the current database, deleting
+   the associated data files.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+   
+   db.runCommand(
+      {   
+        dropDatabase: 1, 
+        writeConcern: <document>, 
+        comment: <any> 
+      }
+   )
+
+Command Fields
+--------------
+
+The command takes the following optional fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+ 
+   * - Field
+     - Description
+ 
+   * - ``writeConcern``
+     - Optional. A document expressing the :doc:`write concern
+       </reference/write-concern>` to use if greater than
+       :writeconcern:`"majority"`
+ 
+       .. code-block:: javascript
+ 
+          { w: <value>, j: <boolean>, wtimeout: <number> }
+ 
+       Omit to use the default/minimum write concern of
+       :writeconcern:`"majority"`.
+ 
+       When issued on a replica set, if the specified write concern
+       results in fewer member acknowledgements than write concern
+       :writeconcern:`"majority"`, the operation uses
+       :writeconcern:`"majority"`. Otherwise, the specified write
+       concern is used.
+ 
+       .. include:: /includes/extracts/mongos-operations-wc-drop-database.rst
+ 
+       See also :ref:`Behavior <dropDatabase-wc>`.
+ 
+   * - ``comment``
+     - .. include:: /includes/extracts/comment-content.rst
+    
+       .. versionadded:: 4.4
+ 
+:binary:`~bin.mongosh` also provides the helper method
+:method:`db.dropDatabase()`.
+
+Behavior
+--------
+
+Locks
+~~~~~
+
+Starting in version 4.2.2, the operation takes an exclusive (X)
+database lock only.
+
+In versions 3.6-4.2.1, the operation takes an exclusive (X) database
+lock while dropping the collections in the database but a global lock
+when dropping the now-empty database.
+
+User Management
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-drop-database-users.rst
+
+Indexes
+~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-drop-database-in-progress-indexes.rst
+
+.. include:: /includes/fact-abort-index-build-replica-sets.rst
+
+.. _dropDatabase-wc:
+
+Replica Set and Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.4
+
+Replica Sets
+   At minimum, :dbcommand:`dropDatabase` waits until all collections
+   drops in the database have propagated to a majority of the replica
+   set members (i.e. uses the write concern :writeconcern:`"majority"`).
+
+   If you specify a write concern that requires acknowledgement from
+   fewer than the majority, the command uses write concern
+   :writeconcern:`"majority"`.
+
+   If you specify a write concern that requires acknowledgement from
+   more than the majority, the command uses the specified write concern.
+
+Sharded Clusters
+   .. include:: /includes/extracts/mongos-operations-wc-drop-database.rst
+
+   .. include:: /includes/warning-dropDatabase-shardedCluster.rst
+
+   .. include:: /includes/extracts/5.0-changes-dropdatabase-sharding.rst
+
+Change Streams
+~~~~~~~~~~~~~~
+
+The :method:`db.dropDatabase()` method and :dbcommand:`dropDatabase`
+create an :ref:`change-event-invalidate` for any :doc:`/changeStreams`
+opened on the dropped database or opened on the collections in the
+dropped database.
+
+Example
+-------
+
+The following example in :binary:`~bin.mongosh` uses the ``use
+<database>`` operation to switch the current database to the ``temp``
+database and then uses the :dbcommand:`dropDatabase` command to drop
+the ``temp`` database:
+
+.. code-block:: javascript
+
+   use temp
+   db.runCommand( { dropDatabase: 1 } )
+
+.. write-lock
+
+.. seealso::
+
+   :dbcommand:`dropAllUsersFromDatabase`

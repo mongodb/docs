@@ -1,0 +1,203 @@
+=======
+$exists
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $exists
+
+   *Syntax*: ``{ field: { $exists: <boolean> } }``
+
+   When ``<boolean>`` is true, :query:`$exists` matches the documents that
+   contain the field, including documents where the field value is
+   ``null``. If ``<boolean>`` is false, the query returns only the
+   documents that do not contain the field. [#type0]_
+
+   MongoDB ``$exists`` does **not** correspond to SQL operator
+   ``exists``. For SQL ``exists``, refer to the :query:`$in`
+   operator.
+
+.. seealso::
+
+   - :query:`$nin`
+   - :query:`$in`
+   - :ref:`faq-developers-query-for-nulls`
+
+.. [#type0]
+
+   .. include:: /includes/extracts/4.2-changes-type-0.rst
+
+Examples
+--------
+
+Exists and Not Equal To
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { qty: { $exists: true, $nin: [ 5, 15 ] } } )
+
+This query will select all documents in the ``inventory`` collection
+where the ``qty`` field exists *and* its value does not equal ``5`` or
+``15``.
+
+Null Values
+~~~~~~~~~~~
+
+The following examples uses a collection named ``records`` with the
+following documents:
+
+.. code-block:: javascript
+
+   { a: 5, b: 5, c: null }
+   { a: 3, b: null, c: 8 }
+   { a: null, b: 3, c: 9 }
+   { a: 1, b: 2, c: 3 }
+   { a: 2, c: 5 }
+   { a: 3, b: 2 }
+   { a: 4 }
+   { b: 2, c: 4 }
+   { b: 2 }
+   { c: 6 }
+
+``$exists: true``
+^^^^^^^^^^^^^^^^^
+
+The following query specifies the query predicate ``a: { $exists: true }``:
+
+.. code-block:: javascript
+
+   db.records.find( { a: { $exists: true } } )
+
+The results consist of those documents that contain the field ``a``,
+including the document whose field ``a`` contains a null value:
+
+.. code-block:: javascript
+
+   { a: 5, b: 5, c: null }
+   { a: 3, b: null, c: 8 }
+   { a: null, b: 3, c: 9 }
+   { a: 1, b: 2, c: 3 }
+   { a: 2, c: 5 }
+   { a: 3, b: 2 }
+   { a: 4 }
+
+``$exists: false``
+^^^^^^^^^^^^^^^^^^
+
+The following query specifies the query predicate ``b: { $exists: false }``:
+
+.. code-block:: javascript
+
+   db.records.find( { b: { $exists: false } } )
+
+The results consist of those documents that do not contain the field
+``b``:
+
+.. code-block:: javascript
+
+   { a: 2, c: 5 }
+   { a: 4 }
+   { c: 6 }
+
+.. include:: /includes/extracts/4.2-changes-type-0.rst
+
+Use a Sparse Index to Improve ``$exists`` Performance 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table compares ``$exists`` query performance using sparse 
+and non-sparse indexes:
+
+.. list-table::
+   :widths: 20,30,30
+   :header-rows: 1
+
+   * - ``$exists`` Query
+     - Using a Sparse Index
+     - Using a Non-Sparse Index
+   * - ``{ $exists: true }``
+     - Most efficient. MongoDB can make an exact match and does not
+       require a ``FETCH``.
+     - More efficient than queries without an index, but still requires 
+       a ``FETCH``.
+   * - ``{ $exists: false }``
+     - Cannot use the index and requires a ``COLLSCAN``.
+     - Requires a ``FETCH``.
+
+Queries that use ``{ $exists: true }`` on fields that use a non-sparse 
+index or that use ``{ $exists: true }`` on fields that are not indexed
+examine all documents in a collection. To improve performance, create 
+a :ref:`sparse index <index-type-sparse>` on the ``field`` as shown in 
+the following scenario:
+
+#. Create a ``stockSales`` collection:
+
+   .. code-block:: javascript
+
+      db.stockSales.insertMany( [
+         { _id: 0, symbol: "ABC", auditDate: new Date( "2021-05-18T16:12:23Z" ) },
+         { _id: 1, symbol: "ABC", auditDate: new Date( "2021-04-21T11:34:45Z" ) },
+         { _id: 2, symbol: "DEF", auditDate: new Date( "2021-02-24T15:11:32Z" ) },
+         { _id: 3, symbol: "DEF", auditDate: null },
+         { _id: 4, symbol: "DEF", auditDate: new Date( "2021-07-13T18:32:54Z" ) },
+         { _id: 5, symbol: "XYZ" }
+      ] )
+
+   The document with an ``_id`` of:
+
+   - ``3`` has a null ``auditDate`` value.
+   - ``5`` is missing the ``auditDate`` value.
+
+#. Create a :ref:`sparse index <index-type-sparse>` on the
+   ``auditDate`` field:
+
+   .. code-block:: javascript
+
+      db.getCollection( "stockSales" ).createIndex( 
+         { auditDate: 1 },
+         { name: "auditDateSparseIndex", sparse: true }
+      )
+
+#. The following example counts the documents where the ``auditDate``
+   field has a value (including null) and uses the :ref:`sparse index
+   <index-type-sparse>`:
+
+   .. code-block:: javascript
+
+      db.stockSales.countDocuments( { auditDate: { $exists: true } } )
+
+   The example returns 5. The document that is missing the ``auditDate``
+   value is not counted.
+
+.. tip::
+
+   If you only need documents where the ``field`` has a non-null value,
+   you:
+   
+   - Can use ``$ne: null`` instead of ``$exists: true``.
+   - Do not need a :ref:`sparse index <index-type-sparse>` on the
+     ``field``.
+   
+   For example, using the ``stockSales`` collection:
+
+   .. code-block:: javascript
+
+      db.stockSales.countDocuments( { auditDate: { $ne: null } } )
+
+   The example returns 4. Documents that are missing the ``auditDate``
+   value or have a null ``auditDate`` value are not counted.
+
+.. seealso::
+
+   :doc:`/tutorial/query-for-null-fields`

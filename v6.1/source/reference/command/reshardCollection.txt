@@ -1,0 +1,233 @@
+=================
+reshardCollection
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: reshardCollection
+
+   .. versionadded:: 5.0
+
+   The :dbcommand:`reshardCollection` command changes the shard key for
+   a collection and changes the distribution of your data.
+
+   .. |method| replace:: :method:`sh.reshardCollection` 
+      helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        reshardCollection: "<database>.<collection>",
+        key: <shardkey>,
+        unique: <boolean>,
+        numInitialChunks: <integer>,
+        collation: { locale: "simple" },
+        zones: [
+            {
+                min: <document with same shape as shardkey>,
+                max: <document with same shape as shardkey>,
+                zone: <string> | null
+            },
+            ...
+        ]
+      }
+   )
+
+Command Fields
+--------------
+
+The command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 75
+ 
+   * - Field
+     - Type
+     - Description
+ 
+   * - ``reshardCollection``
+     - string
+     - The :term:`namespace` of the collection to be resharded. Takes
+       the form ``<database>.<collection>``.
+ 
+   * - ``key``
+     - document
+     - The document that specifies the new field or fields to use as the
+       :ref:`shard key <sharding-shard-key>`.
+ 
+       ``{ <field1>: <1|"hashed">, ... }``
+ 
+       Set the field values to either:
+ 
+       - ``1`` for :doc:`ranged based sharding </core/ranged-sharding>`
+ 
+       - ``"hashed"`` to specify a
+         :ref:`hashed shard key <hashed-shard-keys>`.
+ 
+         See also :ref:`sharding-shard-key-indexes`
+ 
+   * - ``unique``
+     - boolean
+     - Optional. Specify whether there is a :doc:`uniqueness
+       </core/index-unique>` constraint on the shard key. Only
+       ``false`` is supported. Defaults to ``false``.
+ 
+   * - ``numInitialChunks``
+     - integer
+     - Optional. Specifies the initial number of chunks to create
+       across all shards in the cluster when resharding a collection.
+       The default is the number of chunks that exist for the
+       collection under the current shard key pattern. MongoDB will
+       then create and balance chunks across the cluster. The
+       ``numInitialChunks`` must result in less than ``8192`` per shard.
+ 
+   * - ``collation``
+     - document
+     - Optional. If the collection specified to ``reshardCollection``
+       has a default :ref:`collation <collation>`, you *must* include a 
+       collation document with ``{ locale : "simple" }``, or the 
+       ``reshardCollection`` command fails.
+ 
+   * - ``zones``
+     - array
+     - Optional. To maintain or add :ref:`zones <zone-sharding>`,
+       specify the zones for your collection in an array.
+ 
+The :binary:`~bin.mongosh` provides a wrapper method
+:method:`sh.reshardCollection()`.
+
+Resharding Process
+------------------
+
+During the resharding process, there are two roles a shard may play:
+
+- **Donors** are shards which currently own chunks of the sharded
+  collection.
+- **Recipients** are shards which would own chunks of the sharded
+  collection according to the new shard key and zones.
+
+A shard may play both the role of a donor and a recipient concurrently.
+Unless zones are being used, the set of donor shards is the same as the
+set of recipient shards.
+
+The config server primary is always chosen as the resharding
+coordinator, responsible for initiating each phase of the process.
+
+Initialization Phase
+~~~~~~~~~~~~~~~~~~~~
+
+During the initialization phase:
+
+- The balancer determines the new data distribution for the sharded
+  collection.
+
+Index Phase
+~~~~~~~~~~~
+
+During the index phase:
+
+- Each shard recipient creates a new, empty sharded collection with the
+  same collection options as the existing sharded collection. This new
+  sharded collection is the target for where recipient shards write the
+  new data.
+- Each shard recipient builds the necessary new indexes. These include
+  all existing indexes on the sharded collection and an index compatible
+  with the new shard key pattern if such an index doesn’t already exist on
+  the sharded collection.
+
+Clone, Apply, and Catch-up Phase
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+During the clone, apply, and catch-up phase:
+
+- Each shard recipient clones an initial copy of the documents it would
+  own under the new shard key.
+- Each shard recipient begins applying oplog entries from operations
+  that happened after the recipient cloned the data.
+- When the estimate for the time remaining to complete the resharding
+  operation is under **two seconds**, the resharding coordinator blocks
+  writes for the collection.
+
+  .. note::
+
+     If desired, you can manually force the resharding operation to
+     complete by issuing the :dbcommand:`commitReshardCollection`
+     command. This is useful if the current time estimate to complete
+     the resharding operation is an acceptable duration for your
+     collection to block writes. The
+     :dbcommand:`commitReshardCollection` command blocks writes early
+     and forces the resharding operation to complete. During the time
+     period where writes are blocked your application experiences an
+     increase in latency.
+
+.. _resharding-commit-phase-command:
+
+Commit Phase
+~~~~~~~~~~~~
+
+- Once the resharding process reaches the commit phase, it may no longer
+  be aborted with :dbcommand:`abortReshardCollection`.
+- When all shards have reached strict consistency, the resharding
+  coordinator commits the resharding operation and installs the new
+  routing table.
+- The resharding coordinator instructs each donor and recipient shard
+  primary, independently, to rename the temporary sharded collection.
+  The temporary collection becomes the new resharded collection.
+- Each donor shard drops the old sharded collection.
+
+  .. seealso::
+
+     :ref:`sharding-resharding`
+
+Example
+-------
+
+Reshard a Collection
+~~~~~~~~~~~~~~~~~~~~
+
+The following example reshards the ``sales.orders`` collection with the
+new shard key ``{ order_id: 1 }``:
+
+.. code-block:: javascript
+
+   db.adminCommand({
+     reshardCollection: "sales.orders",
+     key: { order_id: 1 }
+   })
+
+MongoDB returns the following:
+
+.. code-block:: javascript
+
+   {
+     ok: 1,
+     '$clusterTime': {
+       clusterTime: Timestamp(1, 1624887954),
+       signature: {
+         hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+         keyId: 0
+       }
+     },
+     operationTime: Timestamp(1, 1624887947)
+   }
+
+.. seealso::
+
+   :ref:`sharding-resharding`

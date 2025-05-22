@@ -1,0 +1,92 @@
+====================
+$limit (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $limit
+
+   Limits the number of documents passed to the next stage in the
+   :term:`pipeline`.
+
+   The :pipeline:`$limit` stage has the following prototype form:
+
+   .. code-block:: javascript
+
+      { $limit: <positive 64-bit integer> }
+
+   :pipeline:`$limit` takes a positive integer that specifies the
+   maximum number of documents to pass along.
+
+   .. note::
+
+      Starting in MongoDB 5.0, the :pipeline:`$limit` pipeline aggregation 
+      has a 64-bit integer limit. Values passed to the pipeline which 
+      exceed this limit will return a invalid argument error.
+
+Behavior
+--------
+
+Using $limit with Sorted Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If using the :pipeline:`$limit` stage with any of:
+
+- the :pipeline:`$sort` aggregation stage,
+- the :method:`~cursor.sort()` method, or
+- the ``sort`` field to the :dbcommand:`findAndModify` command or the
+  :method:`~db.collection.findAndModify()` shell method,
+
+be sure to include at least one field in your sort that contains
+unique values, before passing results to the :pipeline:`$limit` stage.
+
+Sorting on fields that contain duplicate values may return an
+inconsistent sort order for those duplicate fields over multiple
+executions, especially when the collection is actively receiving writes.
+
+The easiest way to guarantee sort consistency is to include the
+``_id`` field in your sort query.
+
+See the following for more information on each:
+
+- :ref:`Consistent sorting with $sort (aggregation)
+  <sort-aggregation-consistent-sorting>`
+- :ref:`Consistent sorting with the sort() shell method
+  <sort-cursor-consistent-sorting>`
+- :ref:`Consistent sorting with the findAndModify command
+  <findandmodify-command-consistent-sorting>`
+- :ref:`Consistent sorting with the findAndModify() shell method
+  <findandmodify-method-consistent-sorting>`
+
+Example
+-------
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.article.aggregate([
+      { $limit : 5 }
+   ]);
+
+This operation returns only the first 5 documents passed to it
+by the pipeline. :pipeline:`$limit` has no effect on the content
+of the documents it passes.
+
+.. note::
+
+   .. include:: /includes/fact-agg-sort-limit.rst
+
+.. seealso::
+
+   - :doc:`/tutorial/aggregation-zip-code-data-set`,
+   - :doc:`/tutorial/aggregation-with-user-preference-data`

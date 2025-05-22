@@ -1,0 +1,271 @@
+.. _schema-validation-handle-invalid-docs:
+
+======================================
+Choose How to Handle Invalid Documents
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can specify how MongoDB handles documents that violate violation
+rules. When an operation would result in an invalid document, MongoDB
+can either:
+
+- Reject any insert or update that violates the validation criteria.
+  This is the default behavior.
+
+- Allow the operation to proceed, but record the violation in the
+  MongoDB log.
+
+Rejecting invalid documents ensures that your schema stays consistent.
+However, in certain scenarios you may want to allow invalid documents,
+such as a data migration containing documents from before a schema was
+established. 
+
+Context
+-------
+
+Your schema's ``validationAction`` option determines how MongoDB handles
+invalid documents:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 20
+
+   * - Validation Action
+     - Behavior
+
+   * - ``error``
+     - (*Default*) MongoDB rejects any insert or update that violates
+       the validation criteria.
+
+   * - ``warn``
+     -  MongoDB allows the operation to proceed, but records the
+        violation in the MongoDB log.
+
+Option 1: Reject Invalid Documents
+----------------------------------
+
+The following procedure shows how to create a schema validation that
+rejects invalid documents.
+
+.. procedure:: 
+   
+   .. step:: Create a collection with ``validationAction: "error"``.
+      
+      Create a ``contacts`` collection with a JSON schema validator that has
+      ``validationAction: "error"``:
+
+      .. code-block:: javascript
+
+         db.createCollection( "contacts", {
+            validator: { $jsonSchema: {
+               bsonType: "object",
+               required: [ "phone" ],
+               properties: {
+                  phone: {
+                     bsonType: "string",
+                     description: "must be a string and is required"
+                  },
+                  email: {
+                     bsonType : "string",
+                     pattern : "@mongodb\\.com$",
+                     description: "must be a string and end with '@mongodb.com'"
+                  }
+               }
+            } },
+            validationAction: "error" 
+         } )
+
+      The ``error`` ``validationAction`` causes MongoDB to reject any
+      invalid documents and prevent them from being inserted into the
+      collection.
+
+   .. step:: Attempt to insert an invalid document.
+      
+      Attempt to insert the following document:
+
+      .. code-block:: javascript
+
+         db.contacts.insertOne(
+            { name: "Amanda", email: "amanda@xyz.com" }
+         )
+
+      The document violates the validation rule because:
+      
+      - The ``email`` field does not match the regular expression
+        pattern. The ``email`` field must end in ``@mongodb.com``.
+
+      - It is missing the required ``phone`` field.
+
+      The operation fails with the following error:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         MongoServerError: Document failed validation
+         Additional information: {
+           failingDocumentId: ObjectId("6377cca4aac957f2b77ea955"),
+           details: {
+             operatorName: '$jsonSchema',
+             schemaRulesNotSatisfied: [
+               {
+                 operatorName: 'properties',
+                 propertiesNotSatisfied: [
+                   {
+                     propertyName: 'email',
+                     description: "must be a string and end with '@mongodb.com'",
+                     details: [
+                       {
+                         operatorName: 'pattern',
+                         specifiedAs: { pattern: '@mongodb\\.com$' },
+                         reason: 'regular expression did not match',
+                         consideredValue: 'amanda@xyz.com'
+                       }
+                     ]
+                   }
+                 ]
+               },
+               {
+                 operatorName: 'required',
+                 specifiedAs: { required: [ 'phone' ] },
+                 missingProperties: [ 'phone' ]
+               }
+             ]
+           }
+         }
+
+Option 2: Allow Invalid Documents, but Record Them in the Log 
+-------------------------------------------------------------
+
+The following procedure shows how to create a schema validation that
+allows invalid documents, but records invalid documents in the MongoDB
+log.
+
+.. procedure::
+
+   .. step:: Create a collection with ``validationAction: "warn"``.
+
+      Create a ``contacts2`` collection with a JSON schema validator that has
+      ``validationAction: "warn"``:
+
+      .. code-block:: javascript
+
+         db.createCollection( "contacts2", {
+            validator: { $jsonSchema: {
+               bsonType: "object",
+               required: [ "phone" ],
+               properties: {
+                  phone: {
+                     bsonType: "string",
+                     description: "must be a string and is required"
+                  },
+                  email: {
+                     bsonType : "string",
+                     pattern : "@mongodb\\.com$",
+                     description: "must be a string and end with '@mongodb.com'"
+                  }
+               }
+            } },
+            validationAction: "warn" 
+         } )
+
+      The ``warn`` ``validationAction`` allows invalid documents to be
+      inserted into the collection. Invalid documents are recorded in
+      the MongoDB log.
+
+   .. step:: Attempt to insert an invalid document.
+
+      Attempt to insert the following document:
+
+      .. code-block:: javascript
+
+         db.contacts2.insertOne(
+            { name: "Amanda", email: "amanda@xyz.com" }
+         )
+
+      The document violates the validation rule because:
+      
+      - The ``email`` field does not match the regular expression
+        pattern. The ``email`` field must end in ``@mongodb.com``.
+
+      - It is missing the required ``phone`` field.
+
+   .. step:: Check the logs for the invalid document.
+
+      To view the MongoDB logs in a readable format, run the following
+      command:
+
+      .. code-block:: javascript
+
+         db.adminCommand(
+            { getLog:'global'} ).log.forEach(x => { print(x) }
+         )
+
+      The MongoDB log includes an entry similar to the following object:
+
+      .. code-block:: bash
+         :copyable: false
+
+         {
+            "t": {
+               "$date": "2022-11-18T13:30:43.607-05:00"
+            },
+            "s": "W",
+            "c": "STORAGE",
+            "id": 20294,
+            "ctx": "conn2",
+            "msg": "Document would fail validation",
+            "attr": {
+               "namespace": "test.contacts2",
+               "document": {
+                  "_id": {
+                     "$oid": "6377cf53d59841355cac1cd0"
+                  },
+                  "name": "Amanda",
+                  "email": "amanda@xyz.com"
+               },
+               "errInfo": {
+                  "failingDocumentId": {
+                     "$oid": "6377cf53d59841355cac1cd0"
+                  },
+                  "details": {
+                     "operatorName": "$jsonSchema",
+                     "schemaRulesNotSatisfied": [{
+                        "operatorName": "properties",
+                        "propertiesNotSatisfied": [{
+                           "propertyName": "email",
+                           "description": "must be a string and end with '@mongodb.com'",
+                           "details": [{
+                              "operatorName": "pattern",
+                              "specifiedAs": {
+                                 "pattern": "@mongodb\\.com$"
+                              },
+                              "reason": "regular expression did not match",
+                              "consideredValue": "amanda@xyz.com"
+                           }]
+                        }]
+                     }, {
+                        "operatorName": "required",
+                        "specifiedAs": {
+                           "required": ["phone"]
+                        },
+                        "missingProperties": ["phone"]
+                     }]
+                  }
+               }
+            }
+         }
+
+Learn More
+----------
+
+- :ref:`log-messages-ref`
+
+- :ref:`schema-specify-validation-level`

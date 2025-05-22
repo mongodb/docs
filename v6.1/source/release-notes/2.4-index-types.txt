@@ -1,0 +1,76 @@
+===================================================
+Compatibility and Index Type Changes in MongoDB 2.4
+===================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In 2.4 MongoDB includes two new features related to indexes that users
+upgrading to version 2.4 must consider, particularly with regard to
+possible downgrade paths. For more information on downgrades, see
+:ref:`2.4-downgrade`.
+
+New Index Types
+---------------
+
+In 2.4 MongoDB adds two new index types: ``2dsphere`` and
+``text``. These index types do not exist in 2.2, and for each
+database, creating a ``2dsphere`` or ``text`` index, will upgrade the
+data-file version and make that database incompatible with 2.2.
+
+If you intend to downgrade, you should always drop all ``2dsphere``
+and ``text`` indexes before moving to 2.2.
+
+You can use the :ref:`downgrade procedure <2.4-downgrade>` to downgrade these
+databases and run 2.2 if needed, however this will run a full database
+repair (as with ``repairDatabase``) for all affected
+databases.
+
+.. _2.4-index-type-validation:
+
+Index Type Validation
+---------------------
+
+In MongoDB 2.2 and earlier you could specify invalid index types that
+did not exist. In these situations, MongoDB would create an ascending
+(e.g. ``1``) index. Invalid indexes include index types specified by
+strings that do not refer to an existing index type, and all numbers
+other than ``1`` and ``-1``. [#grandfathered-indexes]_
+
+In 2.4, creating any invalid index will result in an error.
+Furthermore, you cannot create a ``2dsphere`` or ``text`` index on a
+collection if its containing database has any invalid index types.
+[#grandfathered-indexes]_
+
+.. example::
+
+   If you attempt to add an invalid index in MongoDB 2.4, as in the
+   following:
+
+   .. code-block:: javascript
+
+      db.coll.ensureIndex( { field: "1" } )
+
+   MongoDB will return the following error document:
+
+   .. code-block:: javascript
+
+      {
+        "err" : "Unknown index plugin '1' in index { field: \"1\" }"
+        "code": 16734,
+        "n": <number>,
+        "connectionId": <number>,
+        "ok": 1
+      }
+
+.. [#grandfathered-indexes] In 2.4, indexes that specify a type of
+   ``"1"`` or ``"-1"`` (the strings ``"1"`` and ``"-1"``) will continue
+   to exist, despite a warning on start-up. **However**, a
+   :term:`secondary` in a replica set cannot complete an initial sync
+   from a primary that has a ``"1"`` or ``"-1"`` index. Avoid all
+   indexes with invalid types.

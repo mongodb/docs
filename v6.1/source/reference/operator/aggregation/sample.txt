@@ -1,0 +1,78 @@
+=====================
+$sample (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $sample
+
+   Randomly selects the specified number of documents from the
+   input documents.
+
+   The :pipeline:`$sample` stage has the following syntax: 
+
+   .. code-block:: javascript
+
+      { $sample: { size: <positive integer N> } }
+
+   ``N`` is the number of documents to randomly select.
+
+Behavior
+--------
+
+If all of the following conditions are true, :pipeline:`$sample` uses a
+pseudo-random cursor to select the ``N`` documents:
+
+- :pipeline:`$sample` is the first stage of the pipeline.
+- ``N`` is less than 5% of the total documents in the collection.
+- The collection contains more than 100 documents.
+
+If any of the previous conditions are false, :pipeline:`$sample`:
+
+- Reads all documents that are output from a preceding aggregation
+  stage or a collection scan.
+- Performs a random sort to select ``N`` documents.
+
+.. note::
+
+   Random sorts are subject to the :ref:`sort memory restrictions
+   <sort-memory-limit>`.
+
+Example
+--------
+
+Given a collection named ``users`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "dave123", "q1" : true, "q2" : true }
+   { "_id" : 2, "name" : "dave2", "q1" : false, "q2" : false  }
+   { "_id" : 3, "name" : "ahn", "q1" : true, "q2" : true  }
+   { "_id" : 4, "name" : "li", "q1" : true, "q2" : false  }
+   { "_id" : 5, "name" : "annT", "q1" : false, "q2" : true  }
+   { "_id" : 6, "name" : "li", "q1" : true, "q2" : true  }
+   { "_id" : 7, "name" : "ty", "q1" : false, "q2" : true  }
+
+The following aggregation operation randomly selects ``3`` documents from the
+collection:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [ { $sample: { size: 3 } } ]
+   )
+
+The operation returns three random documents.
+
+.. seealso::
+
+   :expression:`$rand (aggregation) <$rand>`

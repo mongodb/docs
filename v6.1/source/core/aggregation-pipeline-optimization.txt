@@ -1,0 +1,606 @@
+.. _agg-pipeline-optimization:
+
+=================================
+Aggregation Pipeline Optimization
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Aggregation pipeline operations have an optimization phase which
+attempts to reshape the pipeline for improved performance.
+
+To see how the optimizer transforms a particular aggregation pipeline,
+include the :method:`explain <db.collection.aggregate()>` option in the
+:method:`db.collection.aggregate()` method.
+
+.. include:: /includes/fact-optimizations-subject-to-change.rst
+
+In addition to learning about the aggregation pipeline optimizations
+performed during the optimization phase, you will also see how to
+improve aggregation pipeline performance using :ref:`indexes and
+document filters <aggregation-pipeline-optimization-indexes-and-filters>`.
+
+.. _aggregation-pipeline-projection-optimization:
+
+Projection Optimization
+-----------------------
+
+The aggregation pipeline can determine if it requires only a subset of
+the fields in the documents to obtain the results. If so, the pipeline
+only uses those fields, reducing the amount of data passing through the
+pipeline.
+
+``$project`` Stage Placement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |$project| replace:: :pipeline:`$project`
+
+.. include:: /includes/aggregation/fact-project-stage-placement.rst
+
+.. _aggregation-pipeline-sequence-optimization:
+
+Pipeline Sequence Optimization
+------------------------------
+
+.. _agg-project-addFields-match-optimization:
+
+(``$project`` or ``$unset`` or ``$addFields`` or ``$set``) + ``$match`` Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For an aggregation pipeline that contains a projection stage
+(:pipeline:`$project` or :pipeline:`$unset` or
+:pipeline:`$addFields` or  :pipeline:`$set`) followed by a
+:pipeline:`$match` stage, MongoDB moves any filters in the
+:pipeline:`$match` stage that do not require values computed in the
+projection stage to a new :pipeline:`$match` stage before the
+projection.
+
+If an aggregation pipeline contains multiple projection and/or
+:pipeline:`$match` stages, MongoDB performs this optimization for each
+:pipeline:`$match` stage, moving each :pipeline:`$match` filter before
+all projection stages that the filter does not depend on.
+
+Consider a pipeline of the following stages:
+
+.. code-block:: javascript
+   :emphasize-lines: 9-14
+
+   { $addFields: {
+       maxTime: { $max: "$times" },
+       minTime: { $min: "$times" }
+   } },
+   { $project: {
+       _id: 1, name: 1, times: 1, maxTime: 1, minTime: 1,
+       avgTime: { $avg: ["$maxTime", "$minTime"] }
+   } },
+   { $match: {
+       name: "Joe Schmoe",
+       maxTime: { $lt: 20 },
+       minTime: { $gt: 5 },
+       avgTime: { $gt: 7 }
+   } }
+
+The optimizer breaks up the :pipeline:`$match` stage into four
+individual filters, one for each key in the :pipeline:`$match` query
+document. The optimizer then moves each filter before as many projection
+stages as possible, creating new :pipeline:`$match` stages as needed.
+Given this example, the optimizer produces the following *optimized*
+pipeline:
+
+.. code-block:: javascript
+   :emphasize-lines: 1, 6, 11
+
+   { $match: { name: "Joe Schmoe" } },
+   { $addFields: {
+       maxTime: { $max: "$times" },
+       minTime: { $min: "$times" }
+   } },
+   { $match: { maxTime: { $lt: 20 }, minTime: { $gt: 5 } } },
+   { $project: {
+       _id: 1, name: 1, times: 1, maxTime: 1, minTime: 1,
+       avgTime: { $avg: ["$maxTime", "$minTime"] }
+   } },
+   { $match: { avgTime: { $gt: 7 } } }
+
+The :pipeline:`$match` filter ``{ avgTime: { $gt: 7 } }`` depends on the
+:pipeline:`$project` stage to compute the ``avgTime`` field. The
+:pipeline:`$project` stage is the last projection stage in this
+pipeline, so the :pipeline:`$match` filter on ``avgTime`` could not be
+moved.
+
+The ``maxTime`` and ``minTime`` fields are computed in the
+:pipeline:`$addFields` stage but have no dependency on the
+:pipeline:`$project` stage. The optimizer created a new
+:pipeline:`$match` stage for the filters on these fields and placed it
+before the :pipeline:`$project` stage.
+
+The :pipeline:`$match` filter ``{ name: "Joe Schmoe" }`` does not
+use any values computed in either the :pipeline:`$project` or
+:pipeline:`$addFields` stages so it was moved to a new
+:pipeline:`$match` stage before both of the projection stages.
+
+.. note::
+
+   After optimization, the filter ``{ name: "Joe Schmoe" }`` is in a
+   :pipeline:`$match` stage at the beginning of the pipeline. This has
+   the added benefit of allowing the aggregation to use an index on the
+   ``name`` field when initially querying the collection. See
+   :ref:`aggregation-pipeline-optimization-indexes-and-filters` for more
+   information.
+
+.. _agg-sort-match-optimization:
+
+``$sort`` + ``$match`` Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you have a sequence with :pipeline:`$sort` followed by a
+:pipeline:`$match`, the :pipeline:`$match` moves before the
+:pipeline:`$sort` to minimize the number of objects to sort. For
+example, if the pipeline consists of the following stages:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $match: { status: 'A' } }
+
+During the optimization phase, the optimizer transforms the sequence to
+the following:
+
+.. code-block:: javascript
+
+   { $match: { status: 'A' } },
+   { $sort: { age : -1 } }
+
+``$redact`` + ``$match`` Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When possible, when the pipeline has the :pipeline:`$redact` stage
+immediately followed by the :pipeline:`$match` stage, the aggregation
+can sometimes add a portion of the :pipeline:`$match` stage before the
+:pipeline:`$redact` stage. If the added :pipeline:`$match` stage is at
+the start of a pipeline, the aggregation can use an index as well as
+query the collection to limit the number of documents that enter the
+pipeline. See
+:ref:`aggregation-pipeline-optimization-indexes-and-filters` for more
+information.
+
+For example, if the pipeline consists of the following stages:
+
+.. code-block:: javascript
+
+   { $redact: { $cond: { if: { $eq: [ "$level", 5 ] }, then: "$$PRUNE", else: "$$DESCEND" } } },
+   { $match: { year: 2014, category: { $ne: "Z" } } }
+
+The optimizer can add the same :pipeline:`$match` stage before the
+:pipeline:`$redact` stage:
+
+.. code-block:: javascript
+
+   { $match: { year: 2014 } },
+   { $redact: { $cond: { if: { $eq: [ "$level", 5 ] }, then: "$$PRUNE", else: "$$DESCEND" } } },
+   { $match: { year: 2014, category: { $ne: "Z" } } }
+
+.. _agg-project-skip-optimization:
+
+``$project``/``$unset`` + ``$skip`` Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you have a sequence with :pipeline:`$project` or :pipeline:`$unset` followed by 
+:pipeline:`$skip`, the :pipeline:`$skip` 
+moves before :pipeline:`$project`. For example, if
+the pipeline consists of the following stages:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $project: { status: 1, name: 1 } },
+   { $skip: 5 }
+
+During the optimization phase, the optimizer transforms the sequence to
+the following:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $skip: 5 },
+   { $project: { status: 1, name: 1 } }
+
+.. _aggregation-pipeline-coalescence-optimization:
+
+Pipeline Coalescence Optimization
+---------------------------------
+
+When possible, the optimization phase coalesces a pipeline stage into
+its predecessor. Generally, coalescence occurs *after* any sequence
+reordering optimization.
+
+.. _agg-sort-limit-coalescence:
+
+``$sort`` + ``$limit`` Coalescence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.0
+
+When a :pipeline:`$sort` precedes a :pipeline:`$limit`, the optimizer
+can coalesce the :pipeline:`$limit` into the :pipeline:`$sort` if no
+intervening stages modify the number of documents 
+(e.g. :pipeline:`$unwind`, :pipeline:`$group`).
+MongoDB will not coalesce the :pipeline:`$limit` into the
+:pipeline:`$sort` if there are pipeline stages that change the number of
+documents between the :pipeline:`$sort` and :pipeline:`$limit` stages..
+
+For example, if the pipeline consists of the following stages:
+
+.. code-block:: javascript
+
+   { $sort : { age : -1 } },
+   { $project : { age : 1, status : 1, name : 1 } },
+   { $limit: 5 }
+
+During the optimization phase, the optimizer coalesces the sequence
+to the following:
+
+.. code-block:: javascript
+
+   {
+       "$sort" : {
+          "sortKey" : {
+             "age" : -1
+          },
+          "limit" : NumberLong(5)
+       }
+   },
+   { "$project" : { 
+            "age" : 1, 
+            "status" : 1, 
+            "name" : 1 
+     } 
+   }
+
+This allows the sort operation to only maintain the
+top ``n`` results as it progresses, where ``n`` is the specified limit,
+and MongoDB only needs to store ``n`` items in memory
+[#coalescence-allowDiskUse]_. See :ref:`sort-and-memory` for more
+information.
+
+.. note:: Sequence Optimization with $skip
+
+   If there is a :pipeline:`$skip` stage between the :pipeline:`$sort`
+   and :pipeline:`$limit` stages, MongoDB will coalesce the
+   :pipeline:`$limit` into the :pipeline:`$sort` stage and increase the
+   :pipeline:`$limit` value by the :pipeline:`$skip` amount. See
+   :ref:`agg-sort-skip-limit-sequence` for an example.
+
+.. [#coalescence-allowDiskUse] The optimization will still apply when
+   ``allowDiskUse`` is ``true`` and the ``n`` items exceed the
+   :ref:`aggregation memory limit <agg-memory-restrictions>`.
+
+.. _agg-limit-limit-coalescence:
+
+``$limit`` + ``$limit`` Coalescence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a :pipeline:`$limit` immediately follows another
+:pipeline:`$limit`, the two stages can coalesce into a single
+:pipeline:`$limit` where the limit amount is the *smaller* of the two
+initial limit amounts. For example, a pipeline contains the following
+sequence:
+
+.. code-block:: javascript
+
+   { $limit: 100 },
+   { $limit: 10 }
+
+Then the second :pipeline:`$limit` stage can coalesce into the first
+:pipeline:`$limit` stage and result in a single :pipeline:`$limit`
+stage where the limit amount ``10`` is the minimum of the two initial
+limits ``100`` and ``10``.
+
+.. code-block:: javascript
+
+   { $limit: 10 }
+
+.. _agg-skip-skip-coalescence:
+
+``$skip`` + ``$skip`` Coalescence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a :pipeline:`$skip` immediately follows another :pipeline:`$skip`,
+the two stages can coalesce into a single :pipeline:`$skip` where the
+skip amount is the *sum* of the two initial skip amounts. For example, a
+pipeline contains the following sequence:
+
+.. code-block:: javascript
+
+   { $skip: 5 },
+   { $skip: 2 }
+
+Then the second :pipeline:`$skip` stage can coalesce into the first
+:pipeline:`$skip` stage and result in a single :pipeline:`$skip`
+stage where the skip amount ``7`` is the sum of the two initial
+limits ``5`` and ``2``.
+
+.. code-block:: javascript
+
+   { $skip: 7 }
+
+.. _agg-match-match-coalescence:
+
+``$match`` + ``$match`` Coalescence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a :pipeline:`$match` immediately follows another
+:pipeline:`$match`, the two stages can coalesce into a single
+:pipeline:`$match` combining the conditions with an
+:expression:`$and`. For example, a pipeline contains the following
+sequence:
+
+.. code-block:: javascript
+
+   { $match: { year: 2014 } },
+   { $match: { status: "A" } }
+
+Then the second :pipeline:`$match` stage can coalesce into the first
+:pipeline:`$match` stage and result in a single :pipeline:`$match`
+stage 
+
+.. code-block:: javascript
+
+   { $match: { $and: [ { "year" : 2014 }, { "status" : "A" } ] } }
+
+.. _agg-lookup-unwind-coalescence:
+
+``$lookup`` + ``$unwind`` Coalescence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a :pipeline:`$unwind` immediately follows another
+:pipeline:`$lookup`, and the :pipeline:`$unwind` operates on the ``as``
+field of the :pipeline:`$lookup`, the optimizer can coalesce the
+:pipeline:`$unwind` into the :pipeline:`$lookup` stage. This avoids
+creating large intermediate documents.
+
+For example, a pipeline contains the following sequence:
+
+.. code-block:: javascript
+
+   {
+     $lookup: {
+       from: "otherCollection",
+       as: "resultingArray",
+       localField: "x",
+       foreignField: "y"
+     }
+   },
+   { $unwind: "$resultingArray"}
+
+The optimizer can coalesce the :pipeline:`$unwind` stage into the
+:pipeline:`$lookup` stage. If you run the aggregation with ``explain``
+option, the ``explain`` output shows the coalesced stage:
+
+.. code-block:: javascript
+
+   {
+     $lookup: {
+       from: "otherCollection",
+       as: "resultingArray",
+       localField: "x",
+       foreignField: "y",
+       unwinding: { preserveNullAndEmptyArrays: false }
+     }
+   }
+
+.. _sbe-pipeline-optimizations:
+
+|sbe-title| Pipeline Optimizations
+----------------------------------
+
+MongoDB can use the :ref:`slot-based query execution engine 
+<5.1-rel-notes-sbe>` to execute certain pipeline stages when specific 
+conditions are met. In most cases, the |sbe-short| provides improved 
+performance and lower CPU and memory costs compared to the classic query
+engine.
+
+To verify that the |sbe-short| is used, run the aggregation with the
+``explain`` option. This option outputs information on the
+aggregation's query plan. For more information on using ``explain``
+with aggregations, see :ref:`example-aggregate-method-explain-option`.
+
+The following sections describe:
+
+- The conditions when the |sbe-short| is used for aggregation.
+
+- How to verify if the |sbe-short| was used.
+
+.. _agg-group-optimization-sbe:
+
+``$group`` Optimization 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.2
+
+.. include:: /includes/fact-sbe-group-overview.rst
+
+When the |sbe| is used for :pipeline:`$group`, the :ref:`explain results
+<explain-results>` include:
+
+- ``explain.explainVersion: '2'``
+- ``queryPlanner.winningPlan.queryPlan.stage: "GROUP"``
+
+  The location of the ``queryPlanner`` object depends on whether the
+  pipeline contains stages after the ``$group`` stage which cannot be
+  executed using the |sbe-short|.
+
+  - If ``$group`` is the last stage or all stages after ``$group`` can
+    be executed using the |sbe-short|, the ``queryPlanner`` object is in
+    the top-level ``explain`` output object (``explain.queryPlanner``).
+
+  - If the pipeline contains stages after ``$group`` which cannot be
+    executed using the |sbe-short|, the ``queryPlanner`` object is in
+    ``explain.stages[0].$cursor.queryPlanner``.
+
+.. _agg-lookup-optimization-sbe:
+
+``$lookup`` Optimization 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 6.0
+
+.. include:: /includes/fact-sbe-lookup-overview.rst
+
+When the |sbe| is used for :pipeline:`$lookup`, the :ref:`explain
+results <explain-results>` include:
+
+- ``explain.explainVersion: '2'``
+- ``queryPlanner.winningPlan.queryPlan.stage: "EQ_LOOKUP"``.
+  ``EQ_LOOKUP`` means "equality lookup".
+
+  The location of the ``queryPlanner`` object depends on whether the
+  pipeline contains stages after the ``$lookup`` stage which cannot be
+  executed using the |sbe-short|.
+
+  - If ``$lookup`` is the last stage or all stages after ``$lookup`` can
+    be executed using the |sbe-short|, the ``queryPlanner`` object is in
+    the top-level ``explain`` output object (``explain.queryPlanner``).
+
+  - If the pipeline contains stages after ``$lookup`` which cannot be
+    executed using the |sbe-short|, the ``queryPlanner`` object is in
+    ``explain.stages[0].$cursor.queryPlanner``.
+
+.. _aggregation-pipeline-optimization-indexes-and-filters:
+
+Improve Performance with Indexes and Document Filters
+-----------------------------------------------------
+
+The following sections show how you can improve aggregation performance
+using indexes and document filters.
+
+Indexes
+~~~~~~~
+
+An aggregation pipeline can use :ref:`indexes <indexes>` from the input 
+collection to improve performance. Using an index limits the amount of 
+documents a stage processes. Ideally, an index can :ref:`cover 
+<read-operations-covered-query>` the stage query. A covered query has 
+especiallly high performance, since the index returns all matching 
+documents.
+
+For example, a pipeline that consists of :pipeline:`$match`, 
+:pipeline:`$sort`, :pipeline:`$group` can benefit from indexes at 
+every stage:
+
+- An index on the ``$match`` query field efficiently 
+  identifies the relevant data
+
+- An index on the sorting field returns data in sorted order for the 
+  ``$sort`` stage
+
+- An index on the grouping field that matches the ``$sort`` 
+  order returns all of the field values needed for the
+  ``$group`` stage, making it a covered query.
+
+To determine whether a pipeline uses indexes, review the query plan and 
+look for ``IXSCAN`` or ``DISTINCT_SCAN`` plans.
+
+.. note::
+   In some cases, the query planner uses a ``DISTINCT_SCAN`` index plan 
+   that returns one document per index key value. ``DISTINCT_SCAN`` 
+   executes faster than ``IXSCAN`` if there are multiple documents per 
+   key value. However, index scan parameters might affect the time 
+   comparison of ``DISTINCT_SCAN`` and ``IXSCAN``.
+
+For early stages in your aggregation pipeline, consider indexing the 
+query fields. Stages that can benefit from indexes are:
+
+:pipeline:`$match` stage
+  During the ``$match`` stage, the server can use an index if ``$match`` is the first stage in the pipeline, after any optimizations from the :ref:`query planner <query-plans-query-optimization>`.
+
+:pipeline:`$sort` stage
+   During the ``$sort`` stage, the server can use an index if the stage is not preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or 
+   :pipeline:`$group` stage.
+
+:pipeline:`$group` stage
+  During the ``$group`` stage, the server can use an index to quickly
+  find the :group:`$first <$first>` or :group:`$last <$last>` document
+  in each group if the stage meets both of these conditions:
+
+  - The pipeline :pipeline:`sorts <$sort>` and :pipeline:`groups
+    <$group>` by the same field.
+
+  - The ``$group`` stage only uses the :group:`$first` or 
+    :group:`$last` accumulator operator.
+
+  See :ref:`$group Performance Optimizations <group-pipeline-optimization>` for an example.
+
+:pipeline:`$geoNear` stage 
+  The server always uses an index for the ``$geoNear`` stage, since it 
+  requires a :ref:`geospatial index <index-feature-geospatial>`.
+
+Additionally, stages later in the pipeline that retrieve data from 
+other, unmodified collections can use indexes on those collections 
+for optimization. These stages include:
+
+- :pipeline:`$lookup`
+- :pipeline:`$graphLookup`
+- :pipeline:`$unionWith`
+
+Document Filters
+~~~~~~~~~~~~~~~~
+
+If your aggregation operation requires only a subset of the documents in
+a collection, filter the documents first:
+
+- Use the :pipeline:`$match`, :pipeline:`$limit`, and :pipeline:`$skip`
+  stages to restrict the documents that enter the pipeline.
+  
+- When possible, put :pipeline:`$match` at the beginning of the pipeline
+  to use indexes that scan the matching documents in a collection.
+
+- :pipeline:`$match` followed by :pipeline:`$sort` at the start of the
+  pipeline is equivalent to a single query with a sort, and can use an
+  index.
+
+Example
+-------
+.. _agg-sort-skip-limit-sequence:
+
+``$sort`` + ``$skip`` + ``$limit`` Sequence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A pipeline contains a sequence of :pipeline:`$sort` followed by a
+:pipeline:`$skip` followed by a :pipeline:`$limit`:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $skip: 10 },
+   { $limit: 5 }
+
+The optimizer performs :ref:`agg-sort-limit-coalescence` to
+transforms the sequence to the following:
+
+.. code-block:: javascript
+
+   {
+      "$sort" : {
+         "sortKey" : {
+            "age" : -1
+         },
+         "limit" : NumberLong(15)
+      }
+   },
+   {
+      "$skip" : NumberLong(10)
+   }
+
+MongoDB increases the :pipeline:`$limit` amount with the reordering.
+
+.. seealso::
+
+   :method:`explain <db.collection.aggregate()>` option in the
+   :method:`db.collection.aggregate()`

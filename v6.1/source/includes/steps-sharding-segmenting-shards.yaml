@@ -1,0 +1,134 @@
+title: Disable the Balancer
+stepnum: 1
+level: 4
+ref: sharding_tiered_storage_stop_balancer
+pre: |
+  The balancer must be disabled on the collection
+  to ensure no migrations take place while configuring the new zones.
+action:
+  - pre: |
+      Use :method:`sh.disableBalancing()`, specifying the namespace of the
+      collection, to stop the balancer.
+    language: javascript
+    code: |
+      sh.disableBalancing("chat.message")
+post: |
+  Use :method:`sh.isBalancerRunning()` to check if the balancer process 
+  is currently running. Wait until any current balancing rounds have completed
+  before proceeding.
+---
+stepnum: 2
+title: Add each shard to the appropriate zone
+level: 4
+ref: sharding_pinning-applications-tag-shards
+action:
+  - pre: |
+      Add ``shard0000`` to the ``robot`` zone.
+    language: javascript
+    code: |
+      sh.addShardTag("shard0000", "robot")
+  - pre: |
+      Add ``shard0001`` to the ``robot`` zone.
+    language: javascript
+    code: |
+      sh.addShardTag("shard0001", "robot")
+  - pre: |
+      Add ``shard0002`` to the ``fruitos`` zone.
+    language: javascript
+    code: |
+      sh.addShardTag("shard0002", "fruitos")
+  - pre: |
+      Add ``shard0003`` to the ``fruitos`` zone.
+    language: javascript
+    code: |
+      sh.addShardTag("shard0003", "fruitos")
+post: |
+  Run :method:`sh.status()` to review the zone configured for the sharded
+  cluster.
+---
+stepnum: 3
+title: Define ranges for each zone
+level: 4
+ref: sharding_pinning-applications-define-ranges
+action:
+  - pre: |
+      Define range for the ``robot`` client and associate it to the ``robot`` 
+      zone using the :method:`sh.addTagRange()` method. 
+      
+      This method requires: 
+        
+      * The full namespace of the target collection
+      
+      * The inclusive lower bound of the range
+      
+      * The exclusive upper bound of the range 
+      
+      * The name of the zone
+      
+    language: javascript
+    code: |
+      sh.addTagRange( 
+        "gamify.users",
+        { "client" : "robot", "userid" : MinKey },
+        { "client" : "robot", "userid" : MaxKey }, 
+        "robot"
+      )
+  - pre: |
+      Define range for the ``fruitos`` client and associate it to the 
+      ``fruitos`` zone using the :method:`sh.addTagRange()` method.
+      
+      This method requires: 
+      
+      * The full namespace of the target collection
+      * The inclusive lower bound of the range
+      * The exclusive upper bound of the range 
+      * The name of the zone
+    language: javascript
+    code: |
+      sh.addTagRange( 
+        "gamify.users",
+        { "client" : "fruitos", "userid" : MinKey },
+        { "client" : "fruitos", "userid" : MaxKey }, 
+        "fruitos"
+      )
+post: |
+
+  The :bsontype:`MinKey` and :bsontype:`MaxKey` values are reserved special
+  values for comparisons. :bsontype:`MinKey` always compares as lower than
+  every other possible value, while :bsontype:`MaxKey` always compares as
+  higher than every other possible value. The configured ranges captures every
+  user for each ``client``.
+   
+---
+stepnum: 4
+title: Enable the Balancer
+level: 4
+ref: sharding_tiered_storage_start_balancer
+pre: |
+  Re-enable the balancer to rebalance the cluster.
+action:
+  - pre: |
+      Use :method:`sh.enableBalancing()`, specifying the namespace of the
+      collection, to start the balancer.
+    language: javascript
+    code: |
+      sh.enableBalancing("chat.message")
+post: |
+  Use :method:`sh.isBalancerRunning()` to check if the balancer process 
+  is currently running. 
+---
+stepnum: 5
+title: Review the changes
+level: 4
+ref: sharding_tiered_storage_review
+pre: |
+  The next time the :ref:`balancer <sharding-balancing>` runs, it 
+  :ref:`migrates <sharding-chunk-migration>` data across the shards 
+  respecting the configured zones. 
+  
+  Once balancing finishes, the shards in the ``robot`` zone only contain
+  documents with ``client : robot``, while shards in the ``fruitos`` zone only
+  contain documents with ``client : fruitos``.
+  
+  You can confirm the chunk distribution by running :method:`sh.status()`.
+...

@@ -1,0 +1,339 @@
+==================
+Geospatial Queries
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB supports query operations on geospatial data. This section
+introduces MongoDB's geospatial features.
+
+.. _geo-overview-location-data:
+
+Geospatial Data
+---------------
+
+In MongoDB, you can store geospatial data as :ref:`GeoJSON
+<geospatial-geojson>` objects or as :ref:`legacy coordinate pairs
+<geospatial-legacy>`.
+
+.. _geospatial-geojson:
+
+GeoJSON Objects
+~~~~~~~~~~~~~~~
+
+To calculate geometry over an Earth-like sphere, store your location
+data as :ref:`GeoJSON objects <geospatial-indexes-store-geojson>`.
+
+.. include:: /includes/extracts/geojson-specification-geospatial.rst
+
+.. _geospatial-legacy:
+
+Legacy Coordinate Pairs
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To calculate distances on a Euclidean plane, store your location data
+as legacy coordinate pairs and use a :ref:`geo-2d` index. MongoDB
+supports spherical surface calculations on legacy coordinate pairs via
+a :ref:`geo-2dsphere` index by converting the data to the GeoJSON Point
+type.
+
+.. include:: /includes/fact-legacy-coordinates-specification.rst
+
+.. _index-feature-geospatial:
+
+Geospatial Indexes
+------------------
+
+MongoDB provides the following geospatial index types to support the
+geospatial queries.
+
+.. _geo-2dsphere:
+
+``2dsphere``
+~~~~~~~~~~~~
+
+:ref:`2dsphere <2dsphere-index>` indexes support queries that calculate
+:ref:`geometries on an earth-like sphere <geospatial-geometry>`.
+
+.. include:: /includes/create-2dsphere-index.rst
+
+For more information on the ``2dsphere`` index, see
+:ref:`<2dsphere-index>`.
+
+.. _geo-2d:
+
+``2d``
+~~~~~~
+
+:ref:`2d <2d-index>` indexes support queries that calculate
+:ref:`geometries on a two-dimensional plane <geospatial-geometry>`.
+Although the index can support :query:`$nearSphere` queries that
+calculate on a sphere, if possible, use the :ref:`geo-2dsphere` index
+for spherical queries.
+
+.. include:: /includes/create-2d-index.rst
+
+For more information on the ``2d`` index, see :doc:`/core/2d`.
+
+Geospatial Indexes and Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/geospatial-index-shard-key-restriction-general.rst
+
+The following geospatial operations are supported on sharded
+collections:
+
+- :pipeline:`$geoNear` aggregation stage
+
+- |geo-operation| query operators (starting in MongoDB 4.0)
+
+.. include:: /includes/fact-near-sharded-cluster.rst
+
+.. |geo-operation| replace:: :query:`$near` and :query:`$nearSphere`
+
+You can also query for geospatial data for a sharded cluster using
+:query:`$geoWithin` and :query:`$geoIntersects`.
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-geospatial-index-covered-query.rst
+
+Geospatial Queries
+------------------
+
+.. note::
+
+   .. include::  /includes/extracts/geospatial-queries-longitude-values.rst
+
+Geospatial Query Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides the following geospatial query operators:
+
+.. list-table::
+   :widths: 30,70
+   :header-rows: 1
+
+   * - Name
+
+     - Description
+
+   * - :query:`$geoIntersects`
+
+     - Selects geometries that intersect with a :term:`GeoJSON` geometry.
+       The ``2dsphere`` index supports :query:`$geoIntersects`.
+   
+
+   * - :query:`$geoWithin`
+
+     - Selects geometries within a bounding :ref:`GeoJSON geometry
+       <geospatial-indexes-store-geojson>`. The ``2dsphere`` and 
+       ``2d`` indexes support :query:`$geoWithin`.
+   
+
+   * - :query:`$near`
+
+     - Returns geospatial objects in proximity to a point.
+       Requires a geospatial index.  The ``2dsphere`` and ``2d`` indexes 
+       support :query:`$near`.
+   
+
+   * - :query:`$nearSphere`
+
+     - Returns geospatial objects in proximity to a point on a sphere.
+       Requires a geospatial index.  The ``2dsphere`` and ``2d`` indexes 
+       support :query:`$nearSphere`.
+   
+
+
+For more details, including examples, see the individual reference page.
+
+Geospatial Aggregation Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides the following geospatial :ref:`aggregation pipeline
+stage <aggregation-pipeline>`:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 38 72
+
+   * - Stage
+
+     - Description
+
+   * - :pipeline:`$geoNear`
+
+     - .. include:: /includes/extracts/geoNear-stage-toc-description.rst
+
+       .. include:: /includes/extracts/geoNear-stage-index-requirement.rst
+
+For more details, including examples, see :pipeline:`$geoNear`
+reference page.
+
+.. _geospatial-geometry:
+
+Geospatial Models
+-----------------
+
+MongoDB geospatial queries can interpret geometry on a flat surface or
+a sphere.
+
+``2dsphere`` indexes support only spherical queries (i.e. queries that
+interpret geometries on a spherical surface).
+
+``2d`` indexes support flat queries (i.e. queries that interpret
+geometries on a flat surface) and some spherical queries. While ``2d``
+indexes support some spherical queries, the use of ``2d`` indexes for
+these spherical queries can result in error. If possible, use
+``2dsphere`` indexes for spherical queries.
+
+The following table lists the geospatial query operators, supported
+query, used by each geospatial operations:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 48, 12, 40
+
+   * - Operation
+
+     - Spherical/Flat Query
+
+     - Notes
+
+   * - :query:`$near` (:ref:`GeoJSON <geospatial-geojson>` centroid
+       point in this line and the following line, :ref:`2dsphere
+       <geo-2dsphere>` index)
+
+     - Spherical
+
+     - See also the :query:`$nearSphere` operator, which provides the
+       same functionality when used with :ref:`GeoJSON
+       <geospatial-geojson>` and a :ref:`2dsphere <geo-2dsphere>` index.
+
+   * - :query:`$near` (:ref:`legacy coordinates <geospatial-legacy>`, :ref:`2d <geo-2d>` index)
+
+     - Flat
+
+     -
+
+   * - :query:`$nearSphere` (:ref:`GeoJSON <geospatial-geojson>` point, :ref:`2dsphere <geo-2dsphere>` index)
+
+     - Spherical
+
+     - Provides the same functionality as :query:`$near` operation that
+       uses :ref:`GeoJSON <geospatial-geojson>` point and a
+       :ref:`2dsphere <geo-2dsphere>` index.
+
+       For spherical queries, it may be preferable to use
+       :query:`$nearSphere` which explicitly specifies the spherical
+       queries in the name rather than :query:`$near` operator.
+
+   * - :query:`$nearSphere` (:ref:`legacy coordinates <geospatial-legacy>`, :ref:`2d <geo-2d>` index)
+
+     - Spherical
+
+     - Use :term:`GeoJSON` points instead.
+
+   * - :query:`$geoWithin` : { :query:`$geometry`: ... }
+
+     - Spherical
+
+     -
+
+   * - :query:`$geoWithin` : { :query:`$box`: ... }
+
+     - Flat
+
+     -
+
+   * - :query:`$geoWithin` : { :query:`$polygon`: ... }
+
+     - Flat
+
+     -
+
+   * - :query:`$geoWithin` : { :query:`$center`: ... }
+
+     - Flat
+
+     -
+
+   * - :query:`$geoWithin` : { :query:`$centerSphere`: ... }
+
+     - Spherical
+
+     -
+
+   * - :query:`$geoIntersects`
+
+     - Spherical
+
+     -
+
+
+   * - :pipeline:`$geoNear` aggregation stage (:ref:`2dsphere <geo-2dsphere>` index)
+     - Spherical
+     -
+
+   * - :pipeline:`$geoNear` aggregation stage (:ref:`2d <geo-2d>` index)
+     - Flat
+     -
+
+Examples
+--------
+
+.. include:: /includes/geospatial-places-data-setup.rst
+
+The ``places`` collection above has a ``2dsphere`` index.
+The following query uses the :query:`$near` operator to return
+documents that are at least 1000 meters from and at most 5000 meters
+from the specified GeoJSON point, sorted in order from nearest to
+farthest:
+
+.. code-block:: javascript
+
+   db.places.find(
+      {
+        location:
+          { $near:
+             {
+               $geometry: { type: "Point",  coordinates: [ -73.9667, 40.78 ] },
+               $minDistance: 1000,
+               $maxDistance: 5000
+             }
+          }
+      }
+   )
+
+The following operation uses the :pipeline:`$geoNear` aggregation
+operation to return documents that match the query filter ``{ category:
+"Parks" }``, sorted in order of nearest to farthest to the specified
+GeoJSON point:
+
+.. code-block:: javascript
+
+   db.places.aggregate( [
+      {
+         $geoNear: {
+            near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+            spherical: true,
+            query: { category: "Parks" },
+            distanceField: "calcDistance"
+         }
+      }
+   ] )
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/geospatial-tutorial
+   /reference/geojson

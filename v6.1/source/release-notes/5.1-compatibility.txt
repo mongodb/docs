@@ -1,0 +1,212 @@
+====================================
+Compatibility Changes in MongoDB 5.1
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |version| replace:: 5.1
+  
+.. include:: /includes/rapid-release-short.rst
+
+.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise-advanced?tck=docs_server
+
+The following 5.1 changes can affect compatibility with older
+versions of MongoDB.
+
+Removed Operators
+-----------------
+
+Starting in MongoDB 5.1, these operators are removed:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Removed Operator
+     - Alternative
+   * - $comment
+     - :method:`cursor.comment()`
+   * - $explain
+     - :method:`cursor.explain()`
+   * - $hint
+     - :method:`cursor.hint()`
+   * - $max
+     - :method:`cursor.max()`
+   * - $maxTimeMS
+     - :method:`cursor.maxTimeMS()`
+   * - $min
+     - :method:`cursor.min()`
+   * - $orderby
+     - :method:`cursor.sort()`
+   * - $query
+     - See :ref:`doc-cursor-methods`
+   * - $returnKey
+     - :method:`cursor.returnKey()`
+   * - $showDiskLoc
+     - :method:`cursor.showRecordId()`
+   * - ``db.getLastError()``
+     - See :ref:`legacy-op-codes-removed`
+   * - ``db.getLastErrorObj()``
+     - See :ref:`legacy-op-codes-removed`
+   * - ``getLastError``
+     - See :ref:`legacy-op-codes-removed`
+
+Removed Parameters
+------------------
+
+MongoDB 5.1 removes the following server parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Removed Parameters
+     - Description
+
+   * - :option:`--tlsFIPSMode <mongod --tlsFIPSMode>`
+     - This option is removed from the MongoDB Community Edition. It
+       is available in `MongoDB Enterprise`_ edition.
+
+       FIPS was not a supported feature in MongoDB Community Edition.
+       If your installation made use of FIPS anyway, you will need to
+       :ref:`reconfigure your TLS/SSL connections
+       <configure-mongod-mongos-for-tls-ssl>` before upgrading.
+
+.. include:: /includes/5.1/removed-shell-parameters.rst
+
+``$setWindowFields`` Stage with Transactions and Snapshot Read Concern
+----------------------------------------------------------------------
+
+.. include:: /includes/fact-setWindowFields-snapshot-restriction.rst
+
+Replica Sets
+------------
+
+Assert Cluster Wide Write Concern is Set When Starting or Adding Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-fassert-shard-restart-add-CWWC.rst
+
+``rs.reconfig`` Cluster Wide Write Concern Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-reconfig-CWWC-validation.rst
+
+Arbiters
+~~~~~~~~
+
+.. include:: /includes/5.1/fact-do-not-use-with-quarterlies.rst
+
+Time Series Collections
+-----------------------
+
+.. warning::
+
+  If you create a sharded :ref:`time series collection
+  <manual-timeseries-collection>` in MongoDB 5.1 or greater, downgrading
+  to a version older than MongoDB 5.0.4 will result in data loss.
+
+  Before downgrading to a version older than 5.0.4, drop all sharded
+  time series collections.
+
+General Changes
+---------------
+
+``$regex`` Find Queries No Longer Ignore Invalid Regex
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-regex-find-functionality.rst
+
+``$regex`` Schema Validation Error Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-regex-document-schema-validation.rst
+
+FIPS Mode Defaults SCRAM-SHA-1 Authentication to Off
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-scram-sha-1-fips-default.rst
+
+``$mod`` Error Behavior
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.1 (and 5.0.4 and 4.4.10), the :query:`$mod`
+operator returns an error if the ``divisor`` or ``remainder`` values
+evaluate to certain values. See :ref:`$mod behavior <mod-behavior>`.
+
+.. _legacy-op-codes-removed:
+
+Legacy Opcodes Removed
+~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB drivers have used :ref:`OP_MSG <wire-op-msg>` instead of
+:ref:`OP_QUERY <wire-op-query>` and the other legacy opcodes since
+MongoDB v3.6. 
+
+This release removes support for the following legacy opcodes:
+
+- :ref:`OP_INSERT <wire-op-insert>`
+- :ref:`OP_DELETE <wire-op-delete>`
+- :ref:`OP_UPDATE <wire-op-update>`
+- :ref:`OP_KILL_CURSORS <wire-op-kill-cursors>`
+- :ref:`OP_GET_MORE <wire-op-get-more>`
+- :ref:`OP_QUERY <wire-op-query>`
+
+To avoid disruption due to the removal of these op codes, please
+upgrade your driver to the latest version.
+
+:binary:`mongod` will close the connection and will not respond to:
+
+- :ref:`OP_INSERT <wire-op-insert>`
+- :ref:`OP_DELETE <wire-op-delete>`
+- :ref:`OP_UPDATE <wire-op-update>`
+- :ref:`OP_KILL_CURSORS <wire-op-kill-cursors>`
+
+:binary:`mongod` will return an error for:
+
+- :ref:`OP_GET_MORE <wire-op-get-more>`
+- :ref:`OP_QUERY <wire-op-query>` legacy find 
+
+The :ref:`OP_QUERY <wire-op-query>` RPC protocol may be used with the
+following commands:
+
+- ``_isSelf``
+- ``authenticate``
+- ``buildinfo``
+- ``buildInfo``
+- ``hello``
+- ``ismaster``
+- ``isMaster``
+- ``saslContinue``
+- ``saslStart``
+
+:ref:`OP_QUERY <wire-op-query>` will return an error if it is used for
+a find operation. All other commands will be rejected if issued as
+:ref:`OP_QUERY <wire-op-query>`.
+
+If you attempt to connect to a MongoDB 3.4, or older, :binary:`mongod`
+instance with a MongoDB 5.1, or newer, ``mongo`` shell, you
+will receive an error message like the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   Connection handshake failed. Is your mongod 3.4 or older? 
+   :: caused by :: network error while attempting to run command
+   'isMaster' on host '127.0.0.1:27017'
+
+Platform Support
+----------------
+
+Starting in MongoDB 5.1.2 the following platforms are no longer 
+supported.
+
+Community Edition
+~~~~~~~~~~~~~~~~~
+
+- :abbr:`RHEL (Red Hat Enterprise Linux)`-72-s390x
