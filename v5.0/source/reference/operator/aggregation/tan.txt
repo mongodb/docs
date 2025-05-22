@@ -1,0 +1,190 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+==================
+$tan (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. expression:: $tan 
+
+   Returns the tangent of a value that is measured in radians.
+
+   :expression:`$tan` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $tan: <expression> }
+
+   :expression:`$tan` takes any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a number. If the
+   expression returns a value in degrees, use the
+   :expression:`$degreesToRadians` operator to convert the
+   result to radians.
+
+   By default :expression:`$tan` returns values as a ``double``. 
+   :expression:`$tan` can also return values as a
+   :ref:`128-bit decimal <shell-type-decimal>`
+   as long as the ``<expression>`` resolves to a 128-bit decimal value. 
+
+   For more information on expressions, see 
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+``null``, ``NaN``, and ``+/- Infinity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the argument resolves to a value of ``null`` or refers to a field
+that is missing, :expression:`$tan` returns ``null``. If the
+argument resolves to ``NaN``, :expression:`$tan` returns ``NaN``.
+If the argument resolves to negative or positive infinity, 
+:expression:`$tan` throws an error.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $tan: NaN }``
+     - ``NaN``
+
+   * - ``{ $tan: null }``
+     - ``null``
+
+   * - ``{ $tan : Infinity}`` 
+
+       *or* 
+
+       ``{ $tan : -Infinity }``
+     - Throws an error message resembling the following formatted 
+       output:
+
+       .. code-block:: bash
+          :copyable: false
+
+          "errmsg" : 
+            "Failed to optimize pipeline :: caused by :: cannot 
+            apply $tan to -inf, value must in (-inf,inf)"
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+     - id: degrees
+       name: Tangent of Value in Degrees
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores one side and one angle in a right-angle triangle:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("53.13010235415597870314438744090659"),
+              "side_a" : NumberDecimal("3")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$tan` expression to calculate the side opposite
+         to ``angle_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              {
+                $addFields : {
+                  "side_b" : {
+                    $multiply : [
+                      { $tan : {$degreesToRadians : "$angle_a"} },
+                      "$side_a"
+                    ]
+                  }
+                }
+              }
+            ])
+
+         The :expression:`$degreesToRadians` expression converts the
+         degree value of ``angle_a`` to the equivalent value in radians.
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("53.13010235415597870314438744090659"),
+              "side_a" : NumberDecimal("3")
+              "side_b" : NumberDecimal(4.000000000000000000000000000000000")
+            }
+
+         Since ``angle_a`` and ``side_a`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$tan` is a 128-bit decimal. 
+
+     - id: radians
+       name: Tangent of Value in Radians
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores the hypotenuse and one angle in a right-angle triangle:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("0.9272952180016122324285124629224288"),
+              "side_a" : NumberDecimal("3")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$tan` expression to calculate the side adjacent
+         to ``angle_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              {
+                $addFields : {
+                  "side_b" : {
+                    $multiply : [
+                      { $tan : "$angle_a" },
+                      "$side_a"
+                    ]
+                  }
+                }
+              }
+            ])
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("0.9272952180016122324285124629224288"),
+              "side_a" : NumberDecimal("3")
+              "side_b" : NumberDecimal("3.999999999999999999999999999999999")
+            }
+
+         Since ``angle_a`` and ``side_a`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$tan` is a 128-bit decimal.

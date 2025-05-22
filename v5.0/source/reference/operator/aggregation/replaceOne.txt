@@ -1,0 +1,279 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+===========================
+$replaceOne (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+   
+Definition
+----------
+
+.. expression:: $replaceOne
+
+   Replaces the first instance of a search string in an input string
+   with a replacement string.
+
+   If no occurrences are found, :expression:`$replaceOne` evaluates to
+   the input string.
+
+   :expression:`$replaceOne` is both case-sensitive and
+   diacritic-sensitive, and ignores any collation present on a
+   collection.
+
+Syntax
+------
+
+The :expression:`$replaceOne` operator has the following
+:ref:`operator expression syntax <agg-quick-ref-operator-expressions>`:
+
+.. code-block:: javascript
+
+   { $replaceOne: { input: <expression>, find: <expression>, replacement: <expression> } }
+
+Operator Fields
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - :ref:`input <replaceOne-input>`
+
+     - .. _replaceOne-input:
+
+       The string on which you wish to apply the
+       :ref:`find<replaceOne-find>`. Can be any valid
+       :ref:`expression<aggregation-expressions>` that resolves to a
+       string or a ``null``. If ``input`` refers to a field that is
+       missing, ``$replaceOne`` returns ``null``.
+
+   * - :ref:`find <replaceOne-find>`
+
+     - .. _replaceOne-find:
+
+       The string to search for within the given
+       :ref:`input <replaceOne-input>`. Can be any valid
+       :ref:`expression<aggregation-expressions>` that resolves to a
+       string or a ``null``. If ``find`` refers to a field that is
+       missing, ``$replaceOne`` returns ``null``.
+
+   * - :ref:`replacement <replaceOne-replacement>`
+
+     - .. _replaceOne-replacement:
+
+       The string to use to replace the first matched instance of
+       :ref:`find<replaceOne-find>` in :ref:`input <replaceOne-input>`.
+       Can be any valid :ref:`expression<aggregation-expressions>` that
+       resolves to a string or a ``null``.
+
+Behavior
+--------
+
+If no occurrences of :ref:`find <replaceOne-find>` are found in
+:ref:`input <replaceOne-input>`, :expression:`$replaceOne` evaluates to
+the input string.
+
+The :ref:`input <replaceOne-input>`, :ref:`find <replaceOne-find>`, and
+:ref:`replacement <replaceOne-replacement>` expressions must evaluate to
+a string or a ``null``, or :expression:`$replaceOne` fails with an
+error.
+
+.. _replaceone-and-null-values:
+
+``$replaceOne`` and Null Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :ref:`input <replaceOne-input>` or :ref:`find <replaceOne-find>`
+refer to a field that is missing, they return ``null``.
+
+If *any one* of :ref:`input <replaceOne-input>`,
+:ref:`find <replaceOne-find>`, or
+:ref:`replacement <replaceOne-replacement>` evaluates to a ``null``, the
+entire :expression:`$replaceOne` expression evaluates to ``null``:
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+   :widths: 90 10
+
+   * - Example
+     - Result
+
+   * - ``{ $replaceOne: { input: null, find: "abc", replacement: "ABC" } }``
+     - ``null``
+
+   * - ``{ $replaceOne: { input: "abc", find: null, replacement: "ABC" } }``
+     - ``null``
+
+   * - ``{ $replaceOne: { input: "abc", find: "abc", replacement: null } }``
+     - ``null``
+
+.. _replaceone-and-collation:
+
+``$replaceOne`` and Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+String matching for all :expression:`$replaceOne` expressions is always
+case-sensitive and diacritic-sensitive. Any :ref:`collation <collation>`
+configured is ignored when performing string comparisons with
+``$replaceOne``.
+
+For example, create a sample collection with collation strength ``1``:
+
+.. code-block:: javascript
+
+   db.createCollection( "myColl", { collation: { locale: "fr", strength: 1 } } )
+
+A collation strength of ``1`` compares base character only and ignores
+other differences such as case and diacritics.
+
+Next, insert three example documents:
+
+.. code-block:: javascript
+
+   db.myColl.insertMany([
+      { _id: 1, name: "cafe" },
+      { _id: 2, name: "Cafe" },
+      { _id: 3, name: "café" }
+   ])
+
+The following :expression:`$replaceOne` operation tries to find and
+replace the first instance of "Cafe" in the ``name`` field:
+
+.. code-block:: javascript
+
+   db.myColl.aggregate([
+     {
+       $addFields:
+         {
+           resultObject: { $replaceOne: { input: "$name", find: "Cafe", replacement: "CAFE" } }
+         }
+     }
+   ])
+
+Because :expression:`$replaceOne` ignores the collation configured for
+this collection, the operation only matches the instance of "Cafe" in
+document ``2``:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+   :copyable: false
+
+   { "_id" : 1, "name" : "cafe", "resultObject" : "cafe" }
+   { "_id" : 2, "name" : "Cafe", "resultObject" : "CAFE" }
+   { "_id" : 3, "name" : "café", "resultObject" : "café" }
+
+Operators which respect collation, such as :pipeline:`$match`, would
+match all three documents when performing a string comparison against
+"Cafe" due to this collection's collation strength of ``1``.
+
+.. _replaceone-and-unicode-normalization:
+
+``$replaceOne`` and Unicode Normalization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :expression:`$replaceOne` aggregation expression does not perform
+any unicode normalization. This means that string matching for all
+``$replaceOne`` expressions will consider the number of code points used
+to represent a character in unicode when attempting a match.
+
+For example, the character ``é`` can be represented in unicode using
+either one code point or two:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
+
+   * - Unicode
+     - Displays as
+     - Code points
+
+   * - ``\xe9``
+     - ``é``
+     - 1 ( ``\xe9`` )
+
+   * - ``e\u0301``
+     - ``é``
+     - 2 ( ``e`` + ``\u0301`` )
+
+Using :expression:`$replaceOne` with a :ref:`find <replaceOne-find>`
+string where the character ``é`` is represented in unicode with one code
+point will not match any instance of ``é`` that uses two code points in
+the :ref:`input <replaceOne-input>` string.
+
+The following table shows whether a match occurs for a
+:ref:`find <replaceOne-find>` string of "café" when compared to
+:ref:`input <replaceOne-input>` strings where ``é`` is represented
+by either one code point or two. The :ref:`find <replaceOne-find>`
+string in this example uses one code point to represent the ``é``
+character:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Match
+
+   * - ``{ $replaceOne: { input: "caf\xe9", find: "café", replacement: "CAFE" } }``
+     - yes
+
+   * - ``{ $replaceOne: { input: "cafe\u0301", find: "café", replacement: "CAFE" } }``
+     - no
+
+Because :expression:`$replaceOne` does not perform any unicode
+normalization, only the first string comparison matches, where both the
+:ref:`find <replaceOne-find>` and :ref:`input <replaceOne-input>`
+strings use one code point to represent ``é``.
+
+Example
+-------
+
+Create an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany([
+      { "_id" : 1, "item" : "blue paint" },
+      { "_id" : 2, "item" : "blue and green paint" },
+      { "_id" : 3, "item" : "blue paint with blue paintbrush" },
+      { "_id" : 4, "item" : "blue paint with green paintbrush" },
+   ])
+
+The following example replaces the first instance of "blue paint" in the
+``item`` field with "red paint":
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+      {
+        $project:
+         {
+            item: { $replaceOne: { input: "$item", find: "blue paint", replacement: "red paint" } }
+         }
+      }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "item" : "red paint" }
+   { "_id" : 2, "item" : "blue and green paint" }
+   { "_id" : 3, "item" : "red paint with blue paintbrush" }
+   { "_id" : 4, "item" : "red paint with green paintbrush" }
+
+Note that with document ``3``, only the first matched instance of 
+"blue paint" is replaced.

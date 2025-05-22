@@ -1,0 +1,159 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=======================
+$elemMatch (projection)
+=======================
+
+.. seealso::
+
+   :doc:`/reference/operator/query/elemMatch`
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. projection:: $elemMatch
+
+  The :projection:`$elemMatch` operator limits the contents of an
+  ``<array>`` field from the query results to contain only the **first**
+  element matching the :projection:`$elemMatch` condition.
+
+Usage Considerations
+--------------------
+
+Returned Element
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-positional-projection-vs-elemmatch.rst
+
+Field Order
+~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-elemMatch-projection-field-order.rst
+
+Restrictions
+~~~~~~~~~~~~
+
+- .. include:: /includes/extracts/views-unsupported-projection-$elemMatch.rst
+
+- You cannot specify a :query:`$text` query expression in an
+  :projection:`$elemMatch`.
+
+
+Examples
+--------
+
+The examples on the :projection:`$elemMatch` projection operator
+assumes a collection ``schools`` with the following documents:
+
+.. code-block:: javascript
+
+   {
+    _id: 1,
+    zipcode: "63109",
+    students: [
+                 { name: "john", school: 102, age: 10 },
+                 { name: "jess", school: 102, age: 11 },
+                 { name: "jeff", school: 108, age: 15 }
+              ]
+   }
+   {
+    _id: 2,
+    zipcode: "63110",
+    students: [
+                 { name: "ajax", school: 100, age: 7 },
+                 { name: "achilles", school: 100, age: 8 },
+              ]
+   }
+   {
+    _id: 3,
+    zipcode: "63109",
+    students: [
+                 { name: "ajax", school: 100, age: 7 },
+                 { name: "achilles", school: 100, age: 8 },
+              ]
+   }
+   {
+    _id: 4,
+    zipcode: "63109",
+    students: [
+                 { name: "barney", school: 102, age: 7 },
+                 { name: "ruth", school: 102, age: 16 },
+              ]
+   }
+
+Zipcode Search
+~~~~~~~~~~~~~~
+
+The following :method:`~db.collection.find()` operation
+queries for all documents where the value of the ``zipcode``
+field is ``63109``. The :projection:`$elemMatch` projection
+returns only the **first** matching element of the ``students``
+array where the ``school`` field has a value of ``102``:
+
+.. code-block:: javascript
+
+   db.schools.find( { zipcode: "63109" },
+                    { students: { $elemMatch: { school: 102 } } } )
+
+The operation returns the following documents that have ``zipcode``
+equal to ``63109`` and projects the ``students`` array using
+:projection:`$elemMatch`:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "students" : [ { "name" : "john", "school" : 102, "age" : 10 } ] }
+   { "_id" : 3 }
+   { "_id" : 4, "students" : [ { "name" : "barney", "school" : 102, "age" : 7 } ] }
+
+- For the document with ``_id`` equal to ``1``, the ``students``
+  array contains multiple elements with the ``school`` field
+  equal to ``102``. However, the :projection:`$elemMatch`
+  projection returns only the first matching element from the
+  array.
+
+- The document with ``_id`` equal to ``3`` does not contain the
+  ``students`` field in the result since no element in its
+  ``students`` array matched the :projection:`$elemMatch`
+  condition.
+
+:projection:`$elemMatch` with Multiple Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :projection:`$elemMatch` projection can specify criteria on multiple
+fields:
+
+The following :method:`~db.collection.find()` operation
+queries for all documents where the value of the ``zipcode``
+field is ``63109``. The projection includes the **first**
+matching element of the ``students`` array where the ``school``
+field has a value of ``102`` **and** the ``age`` field is greater
+than ``10``:
+
+.. code-block:: javascript
+
+   db.schools.find( { zipcode: "63109" },
+                    { students: { $elemMatch: { school: 102, age: { $gt: 10} } } } )
+
+The operation returns the three documents that have ``zipcode`` equal to ``63109``:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "students" : [ { "name" : "jess", "school" : 102, "age" : 11 } ] }
+   { "_id" : 3 }
+   { "_id" : 4, "students" : [ { "name" : "ruth", "school" : 102, "age" : 16 } ] }
+
+The document with ``_id`` equal to ``3`` does not contain the ``students`` field
+since no array element matched the :projection:`$elemMatch` criteria.
+
+.. seealso::
+
+   :projection:`$ (projection) <$>` operator

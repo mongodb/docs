@@ -1,0 +1,283 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+============================
+On-Demand Materialized Views
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: MongoDB on-demand materialized view
+
+.. note::
+
+   The following page discusses on-demand materialized views. For
+   discussion of views, see :doc:`/core/views` instead.
+
+Starting in version 4.2, MongoDB adds the :pipeline:`$merge` stage for
+the :doc:`aggregation pipeline </core/aggregation-pipeline>`. This
+stage can merge the pipeline results to an existing collection instead
+of completely replacing the collection. This functionality allows users
+to create on-demand materialized views, where the content of the output
+collection can be updated each time the pipeline is run.
+
+
+.. _create-view-atlas:
+
+Create a Materialized View in the {+atlas+} UI 
+-------------------------------------------------------
+
+The example in this section uses the :atlas:`sample training dataset 
+</sample-data/sample-training/>`. To learn how to load the sample dataset 
+into your {+atlas+} deployment, see :atlas:`Load Sample Data 
+</sample-data/#std-label-load-sample-data>`.
+
+To create a materialized view in the {+atlas+} UI, follow these
+steps:
+
+.. procedure:: 
+   :style: normal
+
+   .. include:: /includes/atlas-nav/steps-db-deployments-page.rst
+
+   .. step:: Navigate to the collection
+
+      a. For the cluster that contains the sample data,
+         click :guilabel:`Browse Collections`.
+      #. In the left navigation pane, select the
+         :guilabel:`sample_training` database.
+      #. Select the :guilabel:`grades` collection.
+
+   .. step:: Click the :guilabel:`Aggregation` tab
+
+   .. step:: Click :guilabel:`Add Stage`
+
+   .. step:: Select an aggregation stage from the :guilabel:`Select` drop-down menu
+
+      The aggregation stage transforms the data that you want to save as
+      a view. To learn more about available aggregation stages, see 
+      :ref:`agg-pipeline-quick-ref`.
+
+      For this example, add a new field with the :pipeline:`$set` stage:
+
+      a. Select :pipeline:`$set` from the :guilabel:`Select` drop-down
+         menu.
+      #. Add the following syntax to the aggregation pipeline 
+         editor to create an average score across all ``score``
+         values in the ``scores`` array within the ``grades``
+         collection:
+
+         .. code-block::
+
+            {
+              averageScore: { $avg: "$scores.score" }
+            }
+
+         {+atlas+} adds the ``averageScore`` value to each document.
+
+   .. step:: Click :guilabel:`Add Stage`
+
+   .. step:: Add the ``$out`` stage
+      
+      a. Select the :pipeline:`$out` stage from the :guilabel:`Select` 
+         drop-down menu.
+      #. Add the following syntax to the aggregation pipeline
+         to write the results of the pipeline to the ``myView``
+         collection in the ``sample_training`` database:
+
+         .. code-block::
+
+            'myView'
+
+      #. Click :guilabel:`Save Documents`.
+
+      The :pipeline:`$out` stage writes the results of the
+      aggregation pipeline to the specified collection, which creates
+      the view. To learn more, see :pipeline:`$out`.
+
+      Refresh the list of collections to see the ``myView`` collection.
+
+      To learn how to query the ``myView`` collection in the {+atlas+}
+      UI, see :atlas:`View, Filter, and Sort Documents 
+      </atlas-ui/documents/#view--filter--and-sort-documents>` in the
+      {+atlas+} documentation.
+
+Example
+-------
+
+Assume near the end of January 2019, the collection ``bakesales``
+contains the sales information by items:
+
+.. code-block:: javascript
+
+   db.bakesales.insertMany( [
+      { date: new ISODate("2018-12-01"), item: "Cake - Chocolate", quantity: 2, amount: new NumberDecimal("60") },
+      { date: new ISODate("2018-12-02"), item: "Cake - Peanut Butter", quantity: 5, amount: new NumberDecimal("90") },
+      { date: new ISODate("2018-12-02"), item: "Cake - Red Velvet", quantity: 10, amount: new NumberDecimal("200") },
+      { date: new ISODate("2018-12-04"), item: "Cookies - Chocolate Chip", quantity: 20, amount: new NumberDecimal("80") },
+      { date: new ISODate("2018-12-04"), item: "Cake - Peanut Butter", quantity: 1, amount: new NumberDecimal("16") },
+      { date: new ISODate("2018-12-05"), item: "Pie - Key Lime", quantity: 3, amount: new NumberDecimal("60") },
+      { date: new ISODate("2019-01-25"), item: "Cake - Chocolate", quantity: 2, amount: new NumberDecimal("60") },
+      { date: new ISODate("2019-01-25"), item: "Cake - Peanut Butter", quantity: 1, amount: new NumberDecimal("16") },
+      { date: new ISODate("2019-01-26"), item: "Cake - Red Velvet", quantity: 5, amount: new NumberDecimal("100") },
+      { date: new ISODate("2019-01-26"), item: "Cookies - Chocolate Chip", quantity: 12, amount: new NumberDecimal("48") },
+      { date: new ISODate("2019-01-26"), item: "Cake - Carrot", quantity: 2, amount: new NumberDecimal("36") },
+      { date: new ISODate("2019-01-26"), item: "Cake - Red Velvet", quantity: 5, amount: new NumberDecimal("100") },
+      { date: new ISODate("2019-01-27"), item: "Pie - Chocolate Cream", quantity: 1, amount: new NumberDecimal("20") },
+      { date: new ISODate("2019-01-27"), item: "Cake - Peanut Butter", quantity: 5, amount: new NumberDecimal("80") },
+      { date: new ISODate("2019-01-27"), item: "Tarts - Apple", quantity: 3, amount: new NumberDecimal("12") },
+      { date: new ISODate("2019-01-27"), item: "Cookies - Chocolate Chip", quantity: 12, amount: new NumberDecimal("48") },
+      { date: new ISODate("2019-01-27"), item: "Cake - Carrot", quantity: 5, amount: new NumberDecimal("36") },
+      { date: new ISODate("2019-01-27"), item: "Cake - Red Velvet", quantity: 5, amount: new NumberDecimal("100") },
+      { date: new ISODate("2019-01-28"), item: "Cookies - Chocolate Chip", quantity: 20, amount: new NumberDecimal("80") },
+      { date: new ISODate("2019-01-28"), item: "Pie - Key Lime", quantity: 3, amount: new NumberDecimal("60") },
+      { date: new ISODate("2019-01-28"), item: "Cake - Red Velvet", quantity: 5, amount: new NumberDecimal("100") },
+   ] );
+
+1. Define the On-Demand Materialized View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following ``updateMonthlySales`` function defines a
+``monthlybakesales`` materialized view that contains the cumulative
+monthly sales information. In the example, the function takes a date
+parameter to only update monthly sales information starting from a
+particular date.
+
+.. code-block:: javascript
+
+   updateMonthlySales = function(startDate) {
+      db.bakesales.aggregate( [
+         { $match: { date: { $gte: startDate } } },
+         { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$date" } }, sales_quantity: { $sum: "$quantity"}, sales_amount: { $sum: "$amount" } } },
+         { $merge: { into: "monthlybakesales", whenMatched: "replace" } } 
+      ] );   
+   };
+ 
+- The :pipeline:`$match` stage filters the data to process only those
+  sales greater than or equal to the ``startDate``.
+
+- The :pipeline:`$group` stage groups the sales information by the
+  year-month. The documents output by this stage have the form:
+ 
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : "<YYYY-mm>", "sales_quantity" : <num>, "sales_amount" : <NumberDecimal> }
+
+- The :pipeline:`$merge` stage writes the output to the
+  ``monthlybakesales`` collection.
+  
+  Based :ref:`on <merge-on>` the ``_id`` field (the default for
+  unsharded output collections), the stage checks if the document in
+  the aggregation results :ref:`matches <merge-whenMatched>` an
+  existing document in the collection:
+
+  - :ref:`When there is a match <merge-whenMatched>` (i.e. a document
+    with the same year-month already exists in the collection), the
+    stage :ref:`replaces the existing document
+    <merge-whenMatched-replace>` with the document from the
+    aggregation results.
+  
+  - :ref:`When there is not a match <merge-whenNotMatched>`, the stage
+    inserts the document from the aggregation results into the
+    collection (the default behavior when not matched).
+
+
+2. Perform Initial Run
+~~~~~~~~~~~~~~~~~~~~~~
+
+For the initial run, you can pass in a date of ``new
+ISODate("1970-01-01")``:
+
+.. code-block:: javascript
+
+   updateMonthlySales(new ISODate("1970-01-01"));
+
+After the initial run, the ``monthlybakesales`` contains the following
+documents; i.e. ``db.monthlybakesales.find().sort( { _id: 1 } )``
+returns the following:
+
+.. code-block:: javascript
+
+   { "_id" : "2018-12", "sales_quantity" : 41, "sales_amount" : NumberDecimal("506") }
+   { "_id" : "2019-01", "sales_quantity" : 86, "sales_amount" : NumberDecimal("896") }
+
+3. Refresh Materialized View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Assume that by the first week in February 2019, the ``bakesales``
+collection is updated with newer sales information; specifically,
+additional January and February sales.
+
+.. code-block:: javascript
+
+   db.bakesales.insertMany( [
+      { date: new ISODate("2019-01-28"), item: "Cake - Chocolate", quantity: 3, amount: new NumberDecimal("90") },
+      { date: new ISODate("2019-01-28"), item: "Cake - Peanut Butter", quantity: 2, amount: new NumberDecimal("32") },
+      { date: new ISODate("2019-01-30"), item: "Cake - Red Velvet", quantity: 1, amount: new NumberDecimal("20") },
+      { date: new ISODate("2019-01-30"), item: "Cookies - Chocolate Chip", quantity: 6, amount: new NumberDecimal("24") },
+      { date: new ISODate("2019-01-31"), item: "Pie - Key Lime", quantity: 2, amount: new NumberDecimal("40") },
+      { date: new ISODate("2019-01-31"), item: "Pie - Banana Cream", quantity: 2, amount: new NumberDecimal("40") },
+      { date: new ISODate("2019-02-01"), item: "Cake - Red Velvet", quantity: 5, amount: new NumberDecimal("100") },
+      { date: new ISODate("2019-02-01"), item: "Tarts - Apple", quantity: 2, amount: new NumberDecimal("8") },
+      { date: new ISODate("2019-02-02"), item: "Cake - Chocolate", quantity: 2, amount: new NumberDecimal("60") },
+      { date: new ISODate("2019-02-02"), item: "Cake - Peanut Butter", quantity: 1, amount: new NumberDecimal("16") },
+      { date: new ISODate("2019-02-03"), item: "Cake - Red Velvet", quantity: 5, amount: new NumberDecimal("100") }
+   ] )
+
+To refresh the ``monthlybakesales`` data for January and February, run
+the function again to rerun the aggregation pipeline, starting with
+``new ISODate("2019-01-01")``.
+
+.. code-block:: javascript
+
+   updateMonthlySales(new ISODate("2019-01-01"));
+
+The content of ``monthlybakesales`` has been updated to reflect the
+most recent data in the ``bakesales`` collection; i.e.
+``db.monthlybakesales.find().sort( { _id: 1 } )`` returns the following:
+
+.. code-block:: javascript
+   :emphasize-lines: 2,3
+
+   { "_id" : "2018-12", "sales_quantity" : 41, "sales_amount" : NumberDecimal("506") }
+   { "_id" : "2019-01", "sales_quantity" : 102, "sales_amount" : NumberDecimal("1142") }
+   { "_id" : "2019-02", "sales_quantity" : 15, "sales_amount" : NumberDecimal("284") }
+
+Additional Information
+----------------------
+
+The :pipeline:`$merge` stage:
+
+- Can output to a collection in the same or different database.
+
+- Creates a new collection if the output collection does not already
+  exist.
+
+- Can incorporate results (insert new documents, merge documents,
+  replace documents, keep existing documents, fail the operation,
+  process documents with a custom update pipeline) into an existing
+  collection.
+
+- Can output to a sharded collection. Input collection can
+  also be sharded.
+
+See :pipeline:`$merge` for:
+
+- More information on :pipeline:`$merge` and available options
+
+- Example: :ref:`merge-mat-view-init-creation`
+
+- Example: :ref:`merge-mat-view-refresh`
+
+- Example: :ref:`merge-mat-view-insert-only`
+
+
+

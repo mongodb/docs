@@ -1,0 +1,186 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+====================
+$acosh (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. expression:: $acosh 
+
+   Returns the inverse hyperbolic cosine (hyperbolic arc cosine) of
+   a value.
+
+   :expression:`$acosh` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $acosh: <expression> }
+
+   :expression:`$acosh` takes any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a number  between ``1`` 
+   and ``+Infinity``, e.g. ``1 <= value <= +Infinity``.
+
+   :expression:`$acosh` returns values in radians. Use
+   :expression:`$radiansToDegrees` operator to convert the output value
+   from radians to degrees.
+
+   By default :expression:`$acosh` returns values as a ``double``. 
+   :expression:`$acosh` can also return values as a
+   :ref:`128-bit decimal <shell-type-decimal>`
+   as long as the ``<expression>`` resolves to a 128-bit decimal value. 
+
+   For more information on expressions, see 
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+``null``, ``NaN``, and ``+/- Infinity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the argument resolves to a value of ``null`` or refers to a field
+that is missing, :expression:`$acosh` returns ``null``. If the argument
+resolves to ``NaN``, :expression:`$acosh` returns ``NaN``. If the
+argument resolves to negative infinity,  :expression:`$acosh` throws an
+error. If the argument resolves to ``Infinity``, :expression:`$acosh`
+returns ``Infinity``.  If the argument resolves to a value outside the
+bounds of  ``[-1, Infinity]`` inclusive, :expression:`$acosh` throws an error.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $acosh: NaN }``
+     - ``NaN``
+
+   * - ``{ $acosh: null }``
+     - ``null``
+
+   * - ``{ $acosh : Infinity}``
+     - ``Infinity``
+
+   * - ``{ $acosh : 0 }``
+
+     - Throws an error message resembling the following formatted 
+       output:
+
+       .. code-block:: bash
+          :copyable: false
+
+          "errmsg" : 
+            "Failed to optimize pipeline :: caused by :: cannot 
+            apply $acosh to -inf, value must in (1,inf)"
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+     - id: degrees
+       name: Inverse Hyperbolic Cosine in Degrees
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores a value along the ``x`` axis of a 2-D graph:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "x-coordinate" : NumberDecimal("3")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$acosh` expression to calculate inverse hyperbolic
+         cosine of ``x-coordinate`` and add it to the input document using 
+         the :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "y-coordinate" : {
+                    $radiansToDegrees : { $acosh : "$x-coordinate" }
+                  }
+                }
+              }
+            ])
+
+         The :expression:`$radiansToDegrees` expression converts the
+         radian value returned by :expression:`$acosh` to the equivalent
+         value in degrees.
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "x-coordinate" : NumberDecimal("3"),
+              "y-coordinate" : NumberDecimal("100.9979734210524228844295260083432")
+            }
+
+         Since ``x-coordinate`` is stored as a
+         :ref:`128-bit decimal <shell-type-decimal>`, the output of 
+         :expression:`$acosh` is a 128-bit decimal. 
+
+     - id: radians
+       name: Inverse Hyperbolic Cosine in Radians
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores a value along the ``x`` axis of a 2-D graph:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "x-coordinate" : NumberDecimal("3")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$acosh` expression to calculate inverse hyperbolic
+         cosine of ``x-coordinate`` and add it to the input document using 
+         the :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "y-coordinate" : {
+                    $acosh : "$x-coordinate"
+                  }
+                }
+              }
+            ])
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "x-coordinate" : NumberDecimal("3"),
+              "y-coordinate" : NumberDecimal("1.762747174039086050465218649959585")
+            }
+
+         Since ``x-coordinate`` is stored as a
+         :ref:`128-bit decimal <shell-type-decimal>`, the output of 
+         :expression:`$acosh` is a 128-bit decimal. 

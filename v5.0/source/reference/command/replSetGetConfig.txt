@@ -1,0 +1,239 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+================
+replSetGetConfig
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: replSetGetConfig
+
+   Returns a document that describes the current :ref:`configuration
+   <replica-set-configuration-document>` of the :term:`replica set`. 
+
+   .. |method| replace:: :method:`rs.conf` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+                
+Syntax
+------
+
+To run, :dbcommand:`replSetGetConfig` must be issued against the
+``admin`` database and has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      replSetGetConfig: 1,
+      commitmentStatus: <boolean>,
+      comment: <any>
+   } );
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 65
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``replSetGetConfig``
+     - any
+     - Any value
+
+   * - :ref:`commitmentStatus <replSetGetConfig-commitmentStatus>`
+
+     - boolean
+
+     - .. _replSetGetConfig-commitmentStatus:
+
+       Optional. Specify ``true`` to include a :ref:`commitmentStatus
+       <replSetGetConfig-output-commitmentStatus>` field in the output.
+       The :ref:`commitmentStatus
+       <replSetGetConfig-output-commitmentStatus>` output field
+       indicates whether the replica set's previous reconfig has been
+       committed, so that the replica set is ready to be reconfigured
+       again. For details, see :ref:`commitmentStatus Output Field
+       <replSetGetConfig-output-commitmentStatus>`.
+
+       You can only specify ``commitmentStatus: true`` option when
+       running the command on the primary. The command errors if run
+       with ``commitmentStatus: true`` on a secondary.
+
+   * - ``comment``
+
+     - any
+
+     - .. include:: /includes/extracts/comment-content.rst
+
+:binary:`~bin.mongosh` provides the :method:`rs.conf()` method
+that wraps the :dbcommand:`replSetGetConfig` command:
+
+.. code-block:: javascript
+
+   rs.conf();
+
+.. _replSetGetConfig-example:
+
+Output Example
+--------------
+
+The following is an example output of the :dbcommand:`replSetGetConfig`
+command run with :ref:`commitmentStatus: true
+<replSetGetConfig-commitmentStatus>` on the primary:
+
+.. code-block:: javascript
+
+   {
+      "config" : {
+         "_id" : "myRepl",
+         "version" : 180294,
+         "term" : 1,
+         "protocolVersion" : NumberLong(1),
+         "writeConcernMajorityJournalDefault" : true,
+         "members" : [
+            {
+               "_id" : 0,
+               "host" : "m1.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+               
+               },
+               "secondaryDelaySecs" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 1,
+               "host" : "m2.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+               
+               },
+               "secondaryDelaySecs" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 2,
+               "host" : "m3.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+               
+               },
+               "secondaryDelaySecs" : NumberLong(0),
+               "votes" : 1
+            }
+         ],
+         "settings" : {
+            "chainingAllowed" : true,
+            "heartbeatIntervalMillis" : 2000,
+            "heartbeatTimeoutSecs" : 10,
+            "electionTimeoutMillis" : 10000,
+            "catchUpTimeoutMillis" : -1,
+            "catchUpTakeoverDelayMillis" : 30000,
+            "getLastErrorModes" : {
+            
+            },
+            "getLastErrorDefaults" : {
+               "w" : 1,
+               "wtimeout" : 0
+            },
+            "replicaSetId" : ObjectId("5eaa1e9ac4d650aa7817623d")
+         }
+      },
+      "commitmentStatus" : true, 
+      "ok" : 1,
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1588212091, 1),
+         "signature" : {
+            "hash" : BinData(0,"veOHa2mOeRTzuR0LKqnzGxWV77k="),
+            "keyId" : NumberLong("6821298283919441923")
+         }
+      },
+      "operationTime" : Timestamp(1588212091, 1)
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+
+     - Description
+
+   * - ``config``
+
+     - The replica set configuration. For description of each
+       configuration settings, see
+       :doc:`/reference/replica-configuration`.
+
+   * - :ref:`commitmentStatus <replSetGetConfig-output-commitmentStatus>`
+
+     - .. _replSetGetConfig-output-commitmentStatus:
+       
+       A boolean that indicates whether the most recent replica set
+       configuration has been committed; i.e.
+       
+       - The most recent replica set configuration for the primary has
+         propagated to a majority of members, and 
+         
+       - The last write operation to the replica set with the previous
+         configuration has been :data:`majority-commited
+         <replSetGetStatus.writeMajorityCount>` in the new
+         configuration.
+
+       If ``true``, then the configuration has been committed, and the
+       replica set can be reconfigured. To reconfigure the replica set,
+       see :dbcommand:`replSetReconfig` command or the
+       :binary:`~bin.mongosh` method :method:`rs.reconfig()`.
+       
+       If ``false``, then the configuration has not been committed, and
+       the replica set cannot be reconfigured.
+       
+   * - ``ok``
+
+     - A number that indicates whether the command has succeeded (``1``) or
+       failed (``0``).
+
+   * - | ``operationTime`` 
+       | ``$clusterTime``
+
+     - Returned with every command for a replica set. See
+       :ref:`db.adminCommand Response <db-adminCommand-response>` for
+       details.
+
+
+.. seealso::
+
+   - :method:`rs.conf()`
+   - :method:`rs.reconfig()`
+

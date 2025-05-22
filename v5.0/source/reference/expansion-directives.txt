@@ -1,0 +1,596 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _externally-sourced-values:
+
+=========================================================================
+Externally Sourced Configuration File Values for Self-Managed Deployments
+=========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |mongods| replace:: :binary:`mongod <bin.mongod>`/:binary:`mongos <bin.mongos>`
+
+MongoDB supports using expansion directives in configuration files
+to load externally sourced values. Expansion directives can
+load values for specific 
+:ref:`configuration file options <configuration-options>` *or* load the 
+entire configuration file. Expansion directives help obscure
+confidential information like security certificates and passwords.
+
+.. code-block:: yaml
+   :emphasize-lines: 7-12, 16-20
+
+   storage: 
+     dbPath: "/var/lib/mongo"
+   systemLog:
+     destination: file
+     path: "/var/log/mongodb/mongod.log"
+   net:
+     bindIp:
+       __exec: "python /home/user/getIPAddresses.py"
+       type: "string"
+       trim: "whitespace"
+       digest: 85fed8997aac3f558e779625f2e51b4d142dff11184308dc6aca06cff26ee9ad
+       digest_key: 68656c6c30303030307365637265746d796f6c64667269656e64
+     tls:
+       mode: requireTLS
+       certificateKeyFile: "/etc/tls/mongod.pem"
+       certificateKeyFilePassword:
+         __rest: "https://myrestserver.example.net/api/config/myCertKeyFilePassword"
+         type: "string"
+         digest: b08519162ba332985ac18204851949611ef73835ec99067b85723e10113f5c26
+         digest_key: 6d795365637265744b65795374756666
+
+- .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-rest.rst
+
+- .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-exec.rst
+
+To use expansion directives, you must specify the
+:option:`--configExpand <mongod --configExpand>` command-line option
+with the complete list of expansion directives used:
+
+.. code-block:: bash
+
+   mongod --config "/path/to/config/mongod.conf" --configExpand "rest,exec"
+
+If you omit the 
+:option:`--configExpand <mongod --configExpand>` option *or* if
+you do not specify the complete list of expansion directives used in
+the configuration file, the |mongods| returns
+an error and terminates. You can only specify the
+:option:`--configExpand <mongod --configExpand>` option on the
+command line.
+
+.. _expansion-directive-rest:
+
+Use the ``__rest`` Expansion Directive
+--------------------------------------
+
+The :configexpansion:`__rest` expansion directive loads configuration
+file values from a ``REST`` endpoint. ``__rest`` supports loading
+specific values  in the configuration file *or* loading the entire
+configuration file.
+
+.. tabs::
+
+   tabs:
+
+     - id: single-val-rest
+       name: Specific Value
+       content: |
+
+         The following configuration file uses the
+         :configexpansion:`__rest` expansion directive to load the
+         setting :setting:`net.tls.certificateKeyFilePassword` value from an
+         external ``REST`` endpoint:
+
+         .. code-block:: yaml
+            :emphasize-lines: 11-13
+
+            storage:
+              dbPath: "/var/lib/mongo"
+            systemLog:
+              destination: file
+              path: "/var/log/mongodb/mongod.log"
+            net:
+              bindIp: 192.51.100.24,127.0.0.1
+              tls:
+                mode: requireTLS
+                certificateKeyFile: "/etc/tls/mongod.pem"
+                certificateKeyFilePassword:
+                  __rest: "https://myrestserver.example.net/api/config/myCertKeyFilePassword"
+                  type: "string"
+
+         File Permission
+           .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-rest.rst
+
+         Expansion Parsing
+            To parse the ``__rest`` blocks, start the |mongods| with
+            the :option:`--configExpand "rest" <mongod --configExpand>`
+            option.
+
+            The |mongods| issues a ``GET`` request against specified
+            URL. If successful, the |mongods| replaces the value of
+            ``certificateKeyFilePassword`` with the returned value. If
+            the URL fails to resolve or if the ``REST`` endpoint
+            returns an invalid value, the |mongods| throws an error and
+            terminates.
+
+     - id: full-file-rest
+       name: Full Configuration File
+       content: |
+
+         The following configuration file uses the
+         :configexpansion:`__rest` expansion directive to load the
+         configuration file from an external ``REST`` endpoint. The
+         expansion directive and its options **must** be the only values
+         specified in the configuration file.
+
+         .. code-block:: yaml
+
+            __rest: "https://myrestserver.example.net/api/config/fullConfig"
+            type: "yaml"
+
+         File Permission
+           .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-rest.rst
+            
+         Expansion Parsing
+            To parse the ``__rest`` blocks, start the |mongods| with
+            the :option:`--configExpand "rest" <mongod --configExpand>`
+            option.
+
+            The |mongods| issues a ``GET`` request against the
+            specified URL. If successful, the |mongods| parses the
+            returned configuration ``yaml`` file and uses it during
+            startup. If the URL fails to resolve or return a properly
+            formatted ``yaml`` file, the |mongods| throws an error and
+            terminates.
+
+.. important::
+
+   The value returned by the specified ``REST`` endpoint
+   **cannot** include any additional expansion directives. The
+   |mongods| does **not** perform additional
+   processing on the returned data and will terminate with an
+   error code if the returned data includes additional
+   expansion directives.
+
+.. _expansion-directive-exec:
+
+Use the ``__exec`` Expansion Directive
+--------------------------------------
+
+The :configexpansion:`__exec` expansion directive loads configuration
+file values from a shell or terminal command. ``__exec`` supports
+loading specific values in the configuration file *or* loading the
+entire configuration file.
+
+.. tabs::
+
+   tabs:
+
+     - id: single-val-yaml
+       name: Specific Value
+       content: |
+
+         The following example configuration file uses the
+         :configexpansion:`__exec` expansion directive to to load the
+         setting :setting:`net.tls.certificateKeyFilePassword` value from the output
+         of a shell or terminal command:
+
+         .. code-block:: yaml
+            :emphasize-lines: 11-13
+
+            storage:
+              dbPath: "/var/lib/mongo"
+            systemLog:
+              destination: file
+              path: "/var/log/mongodb/mongod.log"
+            net:
+              bindIp: 192.51.100.24,127.0.0.1
+              tls:
+                mode: requireTLS
+                certificateKeyFile: "/etc/tls/mongod.pem"
+                certificateKeyFilePassword:
+                  __exec: "python /home/myUserName/getPEMPassword.py"
+                  type: "string"
+
+         File Permission
+           .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-exec.rst
+
+         Expansion Parsing
+            To parse the ``__exec`` blocks, start the |mongods| with
+            the :option:`--configExpand "exec" <mongod --configExpand>`
+            option.
+
+            The |mongods| attempts to execute the specified operation.
+            If the command executes successfully, the |mongods|
+            replaces the value of ``certificateKeyFilePassword`` with
+            the returned value. If the command fails or returns an
+            invalid value for the configuration file setting, the
+            |mongods| throws an error and terminates.
+
+     - id: full-file-yaml
+       name: Full Configuration File
+       content: |
+
+         The following example configuration file uses the
+         :configexpansion:`__exec` expansion directive to load the
+         configuration file from the output of a shell or terminal
+         command. The ``__exec`` expansion directive 
+         and its options **must** be the only values specified in the 
+         configuration file.  
+
+         .. code-block:: yaml
+
+            __exec: "python /home/myUserName/getFullConfig.py"
+            type: "yaml"
+
+         File Permission
+           .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-exec.rst
+
+         Expansion Parsing
+            To parse the ``__exec`` blocks, start the |mongods| with
+            the :option:`--configExpand "rest" <mongod --configExpand>`
+            option.
+
+            If the command executes successfully, the |mongods| parses
+            the returned configuration ``yaml`` file and uses it during
+            startup. If the command fails or returns an invalid
+            ``yaml`` file, the |mongods| throws an error and terminates.
+
+.. important::
+
+   The data returned by executing the specified  ``__exec``
+   string **cannot** include any additional expansion
+   directives. The |mongods| does **not**
+   perform additional processing on the returned data and
+   will terminate with an error code if the returned data
+   includes additional expansion directives.
+
+.. _expansion-directives:
+
+Expansion Directives Reference
+------------------------------
+
+.. configexpansion:: __rest
+
+   The :configexpansion:`__rest` expansion directive loads configuration
+   file values from a ``REST`` endpoint. :configexpansion:`__rest`
+   supports loading specific values in the configuration file *or*
+   loading the entire configuration file. The |mongods| then starts
+   using the externally sourced values as part of its configuration.
+
+   The :configexpansion:`__rest` expansion directive has the following
+   syntax:
+
+   - To specify a ``REST`` endpoint for a specific configuration file
+     setting or settings:
+
+     .. code-block:: yaml
+
+        <some configuration file setting>:
+          __rest: "<string>"
+          type: "string"
+          trim: "none|whitespace"
+          digest: "<string>"
+          digest_key: "<string>"
+
+   - To specify a ``REST`` endpoint for the entire configuration file: 
+
+     .. code-block:: yaml
+
+        __rest: "<string>"
+        type: "yaml"
+        trim: "none|whitespace"
+
+     If specifying the entire configuration file via ``REST`` endpoint,
+     the expansion directive and its options **must** be the only values
+     specified in the configuration file.
+
+
+   :configexpansion:`__rest` takes the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 15 70
+
+      * - Field
+        - Type
+        - Description
+
+      * - :ref:`__rest <expansion-rest>`
+        - string
+        - .. _expansion-rest:
+
+          *Required* The URL against which the |mongods|
+          issues a ``GET`` request
+          to retrieve the externally sourced value.
+
+          For non-localhost ``REST`` endpoints (e.g. a ``REST`` endpoint
+          hosted on a remote server), :configexpansion:`__rest`
+          requires encrypted (``https://``) URLs where both the host
+          machine and the remote server support TLS 1.1 or later.
+
+          If the ``REST`` endpoint specified in the URL requires
+          authentication, encode credentials into the URL with the
+          standard  
+          `RFC 3986 User Information <https://tools.ietf.org/html/rfc3986#section-3.2.1>`_
+          format.
+
+          For localhost ``REST`` endpoints (e.g. a ``REST`` endpoint
+          listening on the host machine), :configexpansion:`__rest` 
+          allows unencrypted (``http://``) URLs.
+
+          :gold:`IMPORTANT:` The value returned by the specified ``REST`` endpoint
+          **cannot** include any additional expansion directives. The
+          |mongods| does **not** perform additional
+          processing on the returned data and will terminate with an
+          error code if the returned data includes additional
+          expansion directives.
+
+      * - ``type``
+        - string
+        - *Optional* Controls how :configexpansion:`__rest` 
+          parses the returned value from the specified URL.
+
+          Possible values are:
+
+          - ``string`` (*Default*) 
+
+            Directs :configexpansion:`__rest` to parse the returned data
+            as a literal string. If specifying ``string``, the entire
+            :configexpansion:`__rest` block and supporting options must
+            be nested under the field for which you are loading
+            externally sourced values.
+
+          - ``yaml``
+
+            Directs :configexpansion:`__rest` to parse the returned data
+            as a ``yaml`` formatted file. If specifying ``yaml``, the
+            :configexpansion:`__rest` block must be the only content in
+            the configuration file. The |mongods| replaces the
+            configuration file contents with the ``yaml`` retrieved from
+            the REST resource.
+
+      * - ``trim``
+        - string
+        - *Optional* Specify ``whitespace`` to direct 
+          :configexpansion:`__rest` 
+          to trim any leading or trailing whitespace, specifically 
+          occurrences of
+          ``" "``, ``"\r"``, ``"\n"``, ``"\t"``, ``"\v"``, and
+          ``"\f"``. Defaults to ``none``, or no trimming. 
+   
+      * - :ref:`digest <expansion-rest-digest>`
+        - string
+        
+        - .. _expansion-rest-digest:
+
+          *Optional*. The SHA-256 digest of the expansion result.
+
+          If specified, you must also specify the :ref:`digest_key
+          <expansion-rest-digest-key>`.
+        
+      * - :ref:`digest_key <expansion-rest-digest-key>`
+        - string
+
+        - .. _expansion-rest-digest-key:
+
+          *Optional*. The hexadecimal string representation of the
+          secret used to calculate the SHA-256 :ref:`digest
+          <expansion-rest-digest>`.
+
+          If specified, you must also specify the :ref:`digest
+          <expansion-rest-digest>`.
+
+   .. note::
+
+      - .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-rest.rst
+
+      - To enable parsing of the ``__rest`` expansion directive, start
+        the |mongods| with the :option:`--configExpand "rest" <mongod
+        --configExpand>` option.
+   
+   For examples, see :ref:`expansion-directive-rest`.
+
+.. configexpansion:: __exec
+
+   The :configexpansion:`__exec` expansion directive loads configuration
+   file values from the output of a shell or terminal command.
+   :configexpansion:`__exec` supports loading specific values in the
+   configuration file *or* loading the entire configuration file. The
+   |mongods| then starts using the externally sourced values as part of
+   its configuration.
+   
+   The :configexpansion:`__exec` expansion directive has the following
+   syntax:
+
+   - To specify a shell or terminal command for a specific configuration
+     file
+     setting or settings:
+
+     .. code-block:: yaml
+
+        <some configuration file setting>:
+          __exec: "<string>"
+          type: "string"
+          trim: "none|whitespace"
+
+   - To specify a  a shell or terminal command for the entire 
+     configuration file: 
+
+     .. code-block:: yaml
+
+        __exec: "<string>"
+        type: "yaml"
+        trim: "none|whitespace"
+
+     If specifying the entire configuration file via a terminal or shell
+     command, the expansion directive and its options **must** be the
+     only values specified in the configuration file.
+
+   :configexpansion:`__exec` takes the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 15 70
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``__exec``
+        - string
+        - *Required* The string which the |mongods| executes on the 
+          terminal or shell to retrieve the externally sourced value. 
+
+          On Linux and OSX hosts, execution is handled via
+          POSIX ``popen()``. On Windows hosts, execution is handled via
+          the process control API. ``__exec`` opens a read-only
+          pipe as the same user that started the ``mongod`` or
+          ``mongos``. 
+
+          :gold:`IMPORTANT:` The data returned by executing the specified 
+          command **cannot** include any additional expansion
+          directives. The |mongods| does **not**
+          perform additional processing on the returned data and
+          will terminate with an error code if the returned data
+          includes additional expansion directives.
+
+      * - ``type``
+        - string
+        - *Optional* Controls how :configexpansion:`__exec` 
+          parses the value returned by the executed command.
+
+          Possible values are:
+
+          - ``string`` (*Default* )
+
+            Directs :configexpansion:`__exec` to parse the returned data
+            as a literal string. If specifying ``string``, the entire
+            :configexpansion:`__exec` block and supporting options must
+            be nested under the field for which you are loading
+            externally sourced values.
+
+          - ``yaml``
+
+            Directs :configexpansion:`__exec` to parse the returned data
+            as a ``yaml`` formatted file. If specifying ``yaml``, the
+            :configexpansion:`__exec` block must be the only content in
+            the configuration file. The |mongods| replaces the
+            configuration file contents with the ``yaml`` retrieved from
+            the executed command.
+
+      * - ``trim``
+        - string
+        - *Optional* Specify ``whitespace`` to direct 
+          :configexpansion:`__exec` 
+          to trim any leading or trailing whitespace, specifically 
+          occurrences of
+          ``" "``, ``"\r"``, ``"\n"``, ``"\t"``, ``"\v"``, and
+          ``"\f"``. Defaults to ``none``, or no trimming. 
+
+      * - :ref:`digest <expansion-exec-digest>`
+        - string
+        
+        - .. _expansion-exec-digest:
+
+          *Optional*. The SHA-256 digest of the expansion result.
+
+          If specified, you must also specify the :ref:`digest_key
+          <expansion-exec-digest-key>`
+        
+      * - :ref:`digest_key <expansion-exec-digest-key>`
+        - string
+
+        - .. _expansion-exec-digest-key:
+
+          *Optional*. The hexadecimal string representation of the
+          secret used to calculate the SHA-256 :ref:`digest
+          <expansion-exec-digest>`.
+
+          If specified, you must also specify the :ref:`digest
+          <expansion-exec-digest>`
+
+   .. note::
+   
+      - .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-exec.rst
+
+      - To enable parsing of the ``__exec`` expansion directives, start
+        the |mongods| with the :option:`--configExpand "exec" <mongod
+        --configExpand>` option.
+   
+   For examples, see :ref:`expansion-directive-exec`.
+
+.. _expansion-directive-output:
+
+Output the Configuration File with Resolved Expansion Directive Values
+----------------------------------------------------------------------
+
+You can test the final output of a configuration file that specifies one
+or more expansion directives by starting the |mongods| with the
+:option:`--outputConfig <mongod --outputConfig>` option. A |mongods|
+started with :option:`--outputConfig <mongod --outputConfig>` outputs
+the resolved YAML configuration document to ``stdout`` and halts. If any
+expansion directive specified in the configuration file returns
+additional expansion directives, the |mongods| throws an error and
+terminates.
+
+.. warning::
+   
+   The :option:`--outputConfig <mongod --outputConfig>` option returns
+   the resolved values for any field using an expansion directive. This
+   includes any private or sensitive information previously obscured by
+   using an external source for the configuration option.
+
+For example, the following configuration file 
+``mongod.conf`` contains a :configexpansion:`__rest` expansion 
+directive:
+
+.. code-block:: yaml
+   :emphasize-lines: 7-9
+   
+   storage:
+     dbPath: "/var/lib/mongo"
+   systemLog:
+     destination: file
+     path: "/var/log/mongodb/mongod.log"
+   net:
+     port:
+       __rest: "https://mongoconf.example.net:8080/record/1"
+       type: string
+
+The string recorded at the specified URL is ``20128``
+
+.. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-rest.rst
+
+Start the :binary:`mongod <bin.mongod>` with the
+:option:`--configExpand "rest" <mongod --configExpand>` and
+:option:`--outputConfig <mongod --outputConfig>` options:
+
+.. code-block:: yaml
+
+   mongod -f mongod.conf --configExpand rest --outputConfig
+
+The :binary:`mongod <bin.mongod>` outputs the following to ``stdout`` 
+before terminating:
+
+.. code-block:: yaml
+
+   config: mongod.conf
+   storage:
+     dbPath: "/var/lib/mongo"
+   systemLog:
+     destination: file
+     path: "/var/log/mongodb/mongod.log"
+   net:
+     port: 20128
+   outputConfig: true

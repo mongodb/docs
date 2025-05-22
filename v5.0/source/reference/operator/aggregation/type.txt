@@ -1,0 +1,142 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+===================
+$type (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $type
+
+   .. versionadded:: 3.4
+
+   Returns a string that specifies the :doc:`BSON type
+   </reference/bson-types/>` of the argument.
+
+   :expression:`$type` has the following :ref:`operator expression
+   syntax <agg-quick-ref-operator-expressions>`:
+
+   .. code-block:: javascript
+
+      { $type: <expression> }
+
+   The argument can be any valid :ref:`expression
+   <aggregation-expressions>`.
+
+.. seealso::
+
+   - :expression:`$isNumber` - checks if the argument is a number.
+   - :query:`$type (Query) <$type>` - filters fields based on BSON type.
+
+Behavior
+--------
+
+``$type``
+~~~~~~~~~
+
+Unlike the :query:`$type` query operator, which matches array
+elements based on their BSON type, the :expression:`$type`
+aggregation operator does not examine array elements. Instead,
+when passed an array as its argument, the ``$type`` aggregation
+operator returns the type of the argument, i.e. ``"array"``.
+
+If the argument is a field that is missing in the input document,
+:expression:`$type` returns the string ``"missing"``.
+
+The following table shows the :expression:`$type` output for several
+common types of expressions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+
+   * - Example
+     - Results
+
+   * - ``{ $type: "a" }``
+     - ``"string"``
+
+   * - ``{ $type: /a/ }``
+     - ``"regex"``
+
+   * - ``{ $type: 1 }``
+     - ``"double"``
+
+   * - ``{ $type: NumberLong(627) }``
+     - ``"long"``
+
+   * - ``{ $type: { x: 1 } }``
+     - ``"object"``
+
+   * - ``{ $type: [ [ 1, 2, 3 ] ] }``
+     - ``"array"``
+
+.. note::
+
+   In the case of a literal array such as ``[ 1, 2, 3 ]``,
+   enclose the expression in an outer set
+   of array brackets to prevent MongoDB from parsing
+   ``[ 1, 2, 3 ]`` as an
+   :ref:`argument list <agg-quick-ref-operator-expressions>`
+   with three arguments (``1, 2, 3``). Wrapping the array
+   ``[ 1, 2, 3 ]`` in a :expression:`$literal` expression
+   achieves the same result.
+
+   See :ref:`operator expression syntax forms
+   <agg-quick-ref-operator-expressions>` for more information.
+
+Available Types
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-bson-types.rst
+
+If the argument is a field that is missing in the input document,
+:expression:`$type` returns the string ``"missing"``.
+
+Example
+-------
+
+This example uses a :term:`collection <collection>` named ``coll`` with
+the following :term:`documents <document>`:
+
+.. code-block:: javascript
+
+   { _id: 0, a : 8 }
+   { _id: 1, a : [ 41.63, 88.19 ] }
+   { _id: 2, a : { a : "apple", b : "banana", c: "carrot" } }
+   { _id: 3, a :  "caribou" }
+   { _id: 4, a : NumberLong(71) }
+   { _id: 5 }
+
+The following aggregation operation uses the ``$type``
+operator to display the type of field ``a`` for all documents
+as part of the :pipeline:`$project` stage.
+
+.. code-block:: javascript
+
+   db.coll.aggregate([{
+       $project: {
+          a : { $type: "$a" }
+       }
+   }])
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+  { _id: 0, "a" : "double" }
+  { _id: 1, "a" : "array" }
+  { _id: 2, "a" : "object" }
+  { _id: 3, "a" : "string" }
+  { _id: 4, "a" : "long" }
+  { _id: 5, "a" : "missing" }

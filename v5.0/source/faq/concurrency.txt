@@ -1,0 +1,412 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+================
+FAQ: Concurrency
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+MongoDB allows multiple clients to read and write the same data. To
+ensure consistency, MongoDB uses locking and :term:`concurrency control`
+to prevent clients from modifying the same data simultaneously. Writes
+to a single document occur either in full or not at all, and clients
+always see consistent data.
+
+.. _faq-dev-concurrency:
+.. _faq-concurrency-locking:
+
+What type of locking does MongoDB use?
+--------------------------------------
+
+.. include:: /includes/extracts/lock-general.rst
+
+In addition to a shared (S) locking mode for reads and an exclusive
+(X) locking mode for write operations, intent shared (IS) and intent
+exclusive (IX) modes indicate an intent to read or write a resource
+using a finer granularity lock. When locking at a certain granularity,
+all higher levels are locked using an :term:`intent lock`.
+
+For example, when locking a collection for writing (using mode X),
+both the corresponding database lock and the global lock must be
+locked in intent exclusive (IX) mode. A single database can
+simultaneously be locked in IS and IX mode, but an exclusive (X)
+lock cannot coexist with any other modes, and a shared (S) lock can
+only coexist with intent shared (IS) locks.
+
+.. |rarr| unicode:: 0x2192 .. right arrow
+
+Locks are fair, with lock requests for reads and writes queued in order.
+However, to optimize throughput, when one lock request is granted, all
+other compatible lock requests are granted at the same time, potentially
+releasing the locks before a conflicting lock request is performed. For
+example, consider a situation where an X lock was just released and the
+conflict queue contains these locks:
+
+IS |rarr| IS |rarr| X |rarr| X |rarr| S |rarr| IS
+
+In strict first-in, first-out (FIFO) ordering, only the first two
+IS modes would be granted. Instead MongoDB will actually grant all
+IS and S modes, and once they all drain, it will grant X, even if
+new IS or S requests have been queued in the meantime. As a grant
+will always move all other requests ahead in the queue, no starvation
+of any request is possible.
+
+In :method:`db.serverStatus()` and :method:`db.currentOp()` output, the
+lock modes are represented as follows:
+
+.. include:: /includes/fact-lock-modes.rst
+
+.. [#mgl-ref] See the Wikipedia page on
+   `Multiple granularity locking
+   <http://en.wikipedia.org/wiki/Multiple_granularity_locking>`_ for
+   more information.
+
+How granular are locks in MongoDB?
+----------------------------------
+
+.. include:: /includes/fact-wiredtiger-locks.rst
+
+How do I see the status of locks on my :binary:`~bin.mongod` instances?
+-----------------------------------------------------------------------
+
+For reporting on lock utilization information on locks, use any of these
+methods:
+
+- :method:`db.serverStatus()`,
+- :method:`db.currentOp()`,
+- :binary:`~bin.mongotop`,
+- :binary:`~bin.mongostat`, and/or
+- the |mms-home| or
+  :products:`Ops Manager, an on-premises solution available in
+  MongoDB Enterprise Advanced
+  </mongodb-enterprise-advanced?tck=docs_server>`
+
+Specifically, the :serverstatus:`locks` document in the :doc:`output of
+serverStatus </reference/command/serverStatus>`, or the :data:`~currentOp.locks` field
+in the :doc:`current operation reporting </reference/method/db.currentOp>`
+provides insight into the type of locks and amount of lock
+contention in your :binary:`~bin.mongod` instance.
+
+In :method:`db.serverStatus()` and :method:`db.currentOp()` output, the
+lock modes are represented as follows:
+
+.. include:: /includes/fact-lock-modes.rst
+
+To terminate an operation, use :method:`db.killOp()`.
+
+.. include:: /includes/replacement-mms.rst
+
+.. _faq-concurrency-yielding:
+
+Does a read or write operation ever yield the lock?
+---------------------------------------------------
+
+In some situations, read and write operations can yield their locks.
+
+Long running read and write operations, such as queries, updates,
+and deletes, yield locks under many conditions. MongoDB operations can
+also yield locks between individual document modifications in write
+operations that affect multiple documents.
+
+For storage engines supporting document level :term:`concurrency
+control`, such as :doc:`WiredTiger </core/wiredtiger>`, yielding is not
+necessary when accessing storage as the :term:`intent locks <intent
+lock>`, held at the global, database and collection level, do not block
+other readers and writers. However, operations will periodically yield,
+such as:
+
+- to avoid long-lived storage transactions because these can
+  potentially require holding a large amount of data in memory;
+
+- to serve as interruption points so that you can kill long running
+  operations;
+
+- to allow operations that require exclusive access to a collection
+  such as index/collection drops and creations.
+
+.. _faq-concurrency-operations-locks:
+
+What locks are taken by some common client operations?
+------------------------------------------------------
+
+The following table lists some operations and the types of locks they
+use for document level locking storage engines:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operation
+
+     - Database
+
+     - Collection
+
+   * - Issue a query
+
+     - ``r`` (Intent Shared)
+
+     - ``r`` (Intent Shared)
+
+   * - Insert data
+
+     - ``w`` (Intent Exclusive)
+
+     - ``w`` (Intent Exclusive)
+
+   * - Remove data
+
+     - ``w`` (Intent Exclusive)
+
+     - ``w`` (Intent Exclusive)
+
+   * - Update data
+
+     - ``w`` (Intent Exclusive)
+
+     - ``w`` (Intent Exclusive)
+
+   * - Perform Aggregation
+
+     - ``r`` (Intent Shared)
+
+     - ``r`` (Intent Shared)
+
+   * - Create an index
+
+     - 
+
+     - ``W`` (Exclusive)
+
+   * - List collections
+
+     - ``r`` (Intent Shared)
+
+     - 
+
+   * - Map-reduce
+
+     - ``W`` (Exclusive) and ``R`` (Shared)
+
+     - ``w`` (Intent Exclusive) and ``r`` (Intent Shared)
+
+.. note::
+   Creating an index requires an exclusive (W) lock on a collection. 
+   However, the lock is not retained for the full duration of the index 
+   build process.
+
+   For more information, see :ref:`<index-operations>`.
+
+.. _faq-concurrency-database-lock:
+
+Which administrative commands lock a database?
+----------------------------------------------
+
+Some administrative commands can exclusively lock a database for
+extended time periods. For large clusters, consider
+taking the :binary:`~bin.mongod` instance offline so that clients are
+not affected. For example, if a :binary:`~bin.mongod` is part of a
+:term:`replica set`, take the :binary:`~bin.mongod` offline and let
+other members of the replica set process requests while maintenance is
+performed.
+
+Administrative Commands Taking Extended Locks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These administrative operations require an exclusive lock at the
+database level for extended periods:
+
+- :dbcommand:`cloneCollectionAsCapped` command
+- :dbcommand:`convertToCapped` command
+
+In addition, the :dbcommand:`renameCollection` command and corresponding
+:method:`db.collection.renameCollection()` shell method take the
+following locks:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Command
+
+     - Lock behavior
+
+
+   * - :dbcommand:`renameCollection` database command
+
+     - If renaming a collection within the same database, the
+       :dbcommand:`renameCollection` command takes an exclusive (W) lock
+       on the source and target collections.
+
+       If the target namespace is in a different database as the source
+       collection, The :dbcommand:`renameCollection` command takes an
+       exclusive (W) lock on the target database when renaming a
+       collection across databases and blocks other operations on that
+       database until it finishes.
+
+   * - :method:`~db.collection.renameCollection()` shell helper method
+
+     - The :method:`~db.collection.renameCollection()` method takes an
+       exclusive (W) lock on the source and target collections, and 
+       cannot move a collection between databases.
+
+.. _faq-concurrency-collection-lock:
+
+Which administrative commands lock a collection?
+------------------------------------------------
+
+These administrative operations require an exclusive lock at the
+collection level:
+
+- The :dbcommand:`create` command and corresponding
+  :method:`db.createCollection()` and :method:`db.createView()` shell
+  methods.
+
+- The :dbcommand:`createIndexes` command and corresponding
+  :method:`db.collection.createIndex()` and
+  :method:`db.collection.createIndexes()` shell methods. The build process 
+  only holds an exclusive lock on the collection at the beginning and end of 
+  the index build.
+
+- The :dbcommand:`drop` command and corresponding
+  :method:`db.collection.drop()` shell methods.
+
+- The :dbcommand:`dropIndexes` command and corresponding
+  :method:`db.collection.dropIndex()` and
+  :method:`db.collection.dropIndexes()` shell methods.
+
+- The :dbcommand:`renameCollection` command and corresponding
+  :method:`db.collection.renameCollection()` shell method take the
+  following locks, depending on version:
+  
+  - For :dbcommand:`renameCollection` and
+    :method:`db.collection.renameCollection()`: If renaming a
+    collection within the same database, the operation takes an
+    exclusive (W) lock on the source and target collections.
+
+  - For :dbcommand:`renameCollection` *only*: If the target namespace
+    is in a different database as the source collection, the operation takes an 
+    exclusive (W) lock on the target database when renaming a collection
+    across databases and blocks other operations on that database
+    until it finishes.
+
+- The :dbcommand:`reIndex` command and corresponding
+  :method:`db.collection.reIndex()` shell method obtain an exclusive
+  (W) lock on the collection and block other operations on the collection until 
+  finished.
+
+- The :dbcommand:`replSetResizeOplog` command takes an exclusive 
+  (W) lock on the :data:`oplog <local.oplog.rs>` collection and 
+  blocks other operations on the collection until it finishes.
+
+.. _faq-concurrency-lock-multiple-dbs:
+
+Does a MongoDB operation ever lock more than one database?
+----------------------------------------------------------
+
+These MongoDB operations may obtain and hold a lock on more than one
+database:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Operation
+     - Behavior
+
+   * - | :dbcommand:`reIndex`
+       | :method:`db.collection.reIndex()` 
+     - These operations only obtain an exclusive (W) collection lock instead of 
+       a global exclusive lock.
+
+   * - :dbcommand:`renameCollection`
+     - This operation obtains an exclusive (W) lock on the target database, 
+       an intent shared (r) lock on the source database, and a shared (S) lock 
+       on the source collection when renaming a collection across databases. 
+       
+       When renaming a collection in the same database, the operation only 
+       requires exclusive (W) locks on the source and target collections.
+
+   * - | :dbcommand:`replSetResizeOplog`
+     - This operation only obtains an exclusive (W) lock on the 
+       :data:`oplog <local.oplog.rs>` collection instead of a global exclusive 
+       lock.
+
+How does sharding affect concurrency?
+-------------------------------------
+
+:term:`Sharding <sharding>` improves concurrency by distributing
+collections over multiple :binary:`~bin.mongod` instances, allowing
+shard servers (specifically, :binary:`~bin.mongos` processes) to run
+concurrently with the downstream :binary:`~bin.mongod` instances.
+
+.. include:: /includes/extracts/lock-sharding.rst
+
+.. _faq-concurrency-replication:
+
+How does concurrency affect a replica set primary?
+--------------------------------------------------
+
+With replica sets, when MongoDB writes to a collection on the
+:term:`primary`, MongoDB also writes to the primary's :term:`oplog`,
+which is a special collection in the ``local`` database. Therefore,
+MongoDB must lock both the collection's database and the ``local``
+database. The :binary:`~bin.mongod` must lock both databases at the same
+time to keep the database consistent and ensure that write operations,
+even with replication, are all or nothing operations.
+
+.. include:: /includes/extracts/lock-replica-set-primary.rst
+
+How does concurrency affect secondaries?
+----------------------------------------
+
+In :term:`replication`, MongoDB does not apply writes serially to
+:term:`secondaries <secondary>`. Secondaries collect oplog entries in
+batches and then apply those batches in parallel. Writes are applied
+in the order that they appear in the oplog.
+
+Reads that :ref:`target secondaries <replica-set-read-preference>` read from
+a :ref:`WiredTiger<storage-wiredtiger>` snapshot of the data if the
+secondary is undergoing replication. This allows the read to occur
+simultaneously with replication, while still guaranteeing a
+consistent view of the data.
+
+Does MongoDB support transactions?
+----------------------------------
+
+.. include:: /includes/extracts/transactions-faq.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+What isolation guarantees does MongoDB provide?
+-----------------------------------------------
+
+Depending on the read concern, clients can see the results of writes
+before the writes are :term:`durable`. To control whether the data read
+may be rolled back or not, clients can use the ``readConcern`` option.
+
+.. _faq-concurrency-lock-free-read-operations:
+
+What are lock-free read operations?
+-----------------------------------
+
+.. versionadded:: 5.0
+
+A lock-free read operation runs immediately: it is not blocked when
+another operation has an exclusive (X) write lock on the collection.
+
+.. include:: /includes/lock-free-commands.rst
+
+For information, see:
+
+- :doc:`/core/read-isolation-consistency-recency`
+
+- :doc:`/core/write-operations-atomicity`
+
+- :doc:`/reference/read-concern`
+

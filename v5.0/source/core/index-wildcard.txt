@@ -1,0 +1,634 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _wildcard-index-core:
+
+================
+Wildcard Indexes
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB supports creating indexes on a field or set of fields to 
+support queries. Since MongoDB supports dynamic schemas, applications
+can query against fields whose names cannot be known in advance or are
+arbitrary. 
+
+.. versionadded:: MongoDB 4.2 
+   
+   MongoDB 4.2 introduces wildcard indexes for supporting queries
+   against unknown or arbitrary fields.
+
+.. include:: /includes/extracts/wildcard-index-summary.rst
+
+.. include:: /includes/extracts/wildcard-index-planning.rst
+
+Create Wildcard Index
+---------------------
+
+.. important::
+
+   .. include:: /includes/extracts/wildcard-index-fcv.rst
+
+You can create wildcard indexes using the 
+:dbcommand:`createIndexes` database command or its shell helpers,
+:method:`~db.collection.createIndex()` or 
+:method:`~db.collection.createIndexes()`.
+
+Create a Wildcard Index on a Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the value of a specific field:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "fieldA.$**" : 1 } )
+
+With this wildcard index, MongoDB indexes all values of
+``fieldA``. If the field is a nested document or array, the wildcard
+index recurses into the document/array and stores the value for all 
+fields in the document/array.
+
+For example, documents in the ``product_catalog`` collection may contain
+a  ``product_attributes`` field. The ``product_attributes`` field can
+contain arbitrary nested fields, including embedded documents and
+arrays:
+
+.. code-block:: json
+
+   {
+     "product_name" : "Spy Coat",
+     "product_attributes" : {
+       "material" : [ "Tweed", "Wool", "Leather" ]
+       "size" : {
+         "length" : 72,
+         "units" : "inches"
+       }
+     } 
+   }
+
+   {
+     "product_name" : "Spy Pen",
+     "product_attributes" : {
+        "colors" : [ "Blue", "Black" ],
+        "secret_feature" : {
+          "name" : "laser",
+          "power" : "1000",
+          "units" : "watts", 
+        }
+     }
+   }
+
+The following operation creates a wildcard index on the
+``product_attributes`` field:
+
+.. code-block:: javascript
+
+   db.products_catalog.createIndex( { "product_attributes.$**" : 1 } )
+
+The wildcard index can support arbitrary single-field queries on
+``product_attributes`` or its embedded fields:
+
+.. code-block:: bash
+   :copyable: false
+ 
+   db.products_catalog.find( { "product_attributes.size.length" : { $gt : 60 } } )
+   db.products_catalog.find( { "product_attributes.material" : "Leather" } )
+   db.products_catalog.find( { "product_attributes.secret_feature.name" : "laser" } )
+
+.. |projection-ref| replace:: :ref:`createIndex-method-wildcard-option`
+
+.. note::
+
+   The path-specific wildcard index syntax is incompatible with the
+   ``wildcardProjection`` option. See the |projection-ref| for more
+   information.
+
+For an example, see :ref:`createIndex-method-wildcard-onepath`.
+
+Create a Wildcard Index on All Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the value of all fields in a document
+(excluding ``_id``), specify ``"$**"`` as the index key:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "$**" : 1 } )
+
+With this wildcard index, MongoDB indexes all fields for each document
+in the collection. If a given field is a nested document or array, the
+wildcard index recurses into the document/array and stores the value for
+all fields in the document/array.
+
+For an example, see :ref:`createIndex-method-wildcard-allpaths`.
+
+.. note::
+
+   Wildcard indexes omit the ``_id`` field by default. To include the
+   ``_id`` field in the wildcard index, you must explicitly include it
+   in the ``wildcardProjection`` document. See |projection-ref| for
+   more information.
+
+Create a Wildcard Index on Multiple Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the values of multiple specific fields in a document:
+
+.. code-block:: javascript
+
+   db.collection.createIndex(
+     { "$**" : 1 },
+     { "wildcardProjection" : 
+       { "fieldA" : 1, "fieldB.fieldC" : 1 }
+     }
+   )
+
+With this wildcard index, MongoDB indexes all values for the specified
+fields for each document in the collection. If a given field is a nested
+document or array, the wildcard index recurses into the document/array
+and stores the value for all fields in the document/array. 
+
+.. note::
+
+   .. include:: /includes/extracts/wildcard-index-inclusion-exclusion.rst
+
+For an example, see :ref:`createIndex-method-wildcard-inclusion`.
+
+Create a Wildcard Index that Excludes Multiple Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the fields of all fields in a document
+*excluding* specific field paths:
+
+.. code-block:: javascript
+
+   db.collection.createIndex(
+     { "$**" : 1 },
+     { "wildcardProjection" : 
+       { "fieldA" : 0, "fieldB.fieldC" : 0 }
+     }
+   )
+
+With this wildcard index, MongoDB indexes all fields for each 
+document in the collection *excluding* the specified field paths. If a
+given field is a nested document or array, the wildcard index recurses
+into the document/array and stores the values for all fields in the
+document/array.
+
+For an example, see :ref:`createIndex-method-wildcard-exclusion`.
+
+.. note::
+
+   .. include:: /includes/extracts/wildcard-index-inclusion-exclusion.rst
+
+.. _normalized_wildcard_indexes:
+
+Viewing Normalized wildcard Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, wildcard indexes are normalized after 
+creation, multiple wildcard indexes can be created using 
+the same :ref:`key pattern<key_patterns>` as long as the 
+wildcardProjection fields do not express equivalent filters.
+
+For example, create a wildcard index:
+
+.. code-block:: javascript
+
+  db.books.createIndex( { "$**" : 1 }, { wildcardProjection : {a: 1, "b.c": 1 } } )
+  
+View the index with the :method:`db.collection.getIndexes()` method:
+
+.. code-block:: javascript
+
+  db.books.getIndexes()
+
+The results are displayed in a normalized format:
+
+.. code-block:: javascript
+   :copyable: false
+
+      { v: 2, key: { _id: 1 }, name: '_id_' },
+      {
+        v: 2,
+        key: { '$**': 1 },
+        name: '$**_1',
+        wildcardProjection: { a: true, b: { c: true }, _id: false }
+      }
+
+Considerations
+--------------
+
+- Wildcard indexes can support at most *one* field in any given query 
+  predicate. For more information on wildcard index query
+  support, see :ref:`wildcard-index-query-sort-support`.
+
+- .. include:: /includes/extracts/wildcard-index-fcv.rst
+
+- Wildcard indexes omit the _id field by default. To include the ``_id``
+  field in the wildcard index, you must explicitly include it in the
+  wildcardProjection document (i.e. ``{ "_id" : 1 }``).
+
+- You can create multiple wildcard indexes in a collection.
+
+- A wildcard index may cover the same fields as other indexes in the 
+  collection.
+
+- Wildcard indexes are :doc:`/core/index-sparse` and only contain 
+  entries for documents that have the indexed field, even if the index 
+  field contains a null value.
+
+Behavior
+--------
+
+Wildcard indexes have specific behavior when indexing fields which
+are an object (i.e. an embedded document) or an array:
+
+- If the field is an object, the wildcard index descends into
+  the object and indexes its contents. The wildcard index continues
+  descending into any additional embedded documents it encounters.
+
+- If the field is an array, then the wildcard index traverses the array
+  and indexes each element:
+
+  - If an element in the array is an object, the wildcard index
+    descends into the object to index its contents as described above.
+    
+  - If the element is an array - that is, an array which is embedded
+    directly within the parent array - then the wildcard index does
+    *not* traverse the embedded array, but indexes the *entire* array
+    as a single value.
+
+- For all other fields, record the primitive (non-object/array) value
+  into the index.
+
+The wildcard index continues traversing any additional nested objects or
+arrays until it reaches a primitive value (i.e. a field that is not an
+object or array). It then indexes this primitive value, along with the
+full path to that field.
+
+For example, consider the following document:
+
+.. code-block:: json
+
+   {
+     "parentField" : {
+       "nestedField" : "nestedValue",
+       "nestedObject" : {
+         "deeplyNestedField" : "deeplyNestedValue" 
+       },
+       "nestedArray" : [
+         "nestedArrayElementOne",
+         [ "nestedArrayElementTwo" ]
+       ]
+     }
+   }
+
+A wildcard index which includes ``parentField`` records the following
+entries:
+
+- ``"parentField.nestedField" : "nestedValue"``
+- ``"parentField.nestedObject.deeplyNestedField" : "deeplyNestedValue"``
+- ``"parentField.nestedArray" : "nestedArrayElementOne"``
+- ``"parentField.nestedArray" : ["nestedArrayElementTwo"]``
+
+Note that the records for ``parentField.nestedArray`` do not include the
+array position for each element. Wildcard indexes ignore array element
+positions when recording the element into the index. Wildcard indexes
+can still support queries that include explicit array indices. See
+:ref:`wildcard-query-support-explicit-array-indices` for more
+information.
+
+For more information on wildcard index behavior with nested objects,
+see :ref:`wildcard-index-nested-objects`. 
+
+For more information on wildcard index behavior with nested arrays,
+see :ref:`wildcard-index-nested-arrays`.
+
+.. _wildcard-index-nested-objects:
+
+Nested Objects
+~~~~~~~~~~~~~~
+
+When a wildcard index encounters a nested object, it descends into
+the object and indexes its contents. For example:
+
+.. code-block:: json
+
+   {
+     "parentField" : {
+       "nestedField" : "nestedValue",
+       "nestedArray" : ["nestedElement"]
+       "nestedObject" : {
+         "deeplyNestedField" : "deeplyNestedValue"
+       }
+     }
+   }
+
+A wildcard index which includes ``parentField`` descends into the
+object to traverse and index its contents:
+
+- For each field which is itself an object (i.e. an embedded document),
+  descend into the object to index its contents. 
+
+- For each field which is an array, traverse the array and index 
+  its contents.
+
+- For all other fields, record the primitive (non-object/array) value
+  into the index.
+
+The wildcard index continues traversing any additional nested objects or
+arrays until it reaches a primitive value (i.e. a field that is not an
+object or array). It then indexes this primitive value, along with the
+full path to that field.
+
+Given the sample document, the wildcard index adds the following records
+to the index:
+
+- ``"parentField.nestedField" : "nestedValue"`` 
+- ``"parentField.nestedObject.deeplyNestedField" : "deeplyNestedValue"``
+- ``"parentField.nestedArray" : "nestedElement"``
+
+For more information on wildcard index behavior with nested arrays,
+see :ref:`wildcard-index-nested-arrays`.
+
+.. _wildcard-index-nested-arrays:
+
+Nested Arrays
+~~~~~~~~~~~~~
+
+When a wildcard index encounters a nested array, it attempts to traverse
+the array to index its elements. If the array is itself an element in a
+parent array (i.e. an embedded array), the wildcard index instead
+records the entire array as a value instead of traversing its contents.
+For example:
+
+.. code-block:: json
+
+   {
+     "parentArray" : [
+       "arrayElementOne",
+       [ "embeddedArrayElement" ],
+       "nestedObject" : {
+         "nestedArray" : [
+           "nestedArrayElementOne",
+           "nestedArrayElementTwo"
+         ]
+       }
+     ]
+   }
+
+A wildcard index which includes ``parentArray`` descends into the
+array to traverse and index its contents:
+
+- For each element which is an array (i.e. an embedded array), 
+  index the *entire* array as a value.
+
+- For each element which is an object, descend into the object to 
+  traverse and index its contents. 
+
+- For all other fields, record the primitive (non-object/array) value
+  into the index.
+
+The wildcard index continues traversing any additional nested objects or
+arrays until it reaches a primitive value (i.e. a field that is not an
+object or array). It then indexes this primitive value, along with the
+full path to that field.
+
+Given the sample document, the wildcard index adds the following records
+to the index:
+
+- ``"parentArray" : "arrayElementOne"`` 
+- ``"parentArray" : ["embeddedArrayElement"]``
+- ``"parentArray.nestedObject.nestedArray" : "nestedArrayElementOne"``
+- ``"parentArray.nestedObject.nestedArray" : "nestedArrayElementTwo"``
+
+Note that the records for ``parentField.nestedArray`` do not include the
+array position for each element. Wildcard indexes ignore array element
+positions when recording the element into the index. Wildcard indexes
+can still support queries that include explicit array indices. See
+:ref:`wildcard-query-support-explicit-array-indices` for more
+information.
+
+.. seealso::
+
+   :limit:`Nested Depth for BSON Documents`
+
+Index Display
+~~~~~~~~~~~~~
+
+.. include:: /includes/indexes/fact-wildcard-index-ordering.rst
+
+Restrictions
+------------
+
+- You cannot shard a collection using a wildcard index. Create a
+  non-wildcard index on the field or fields you want to shard on.
+  For more information on shard key selection, see
+  :ref:`sharding-shard-key`.
+
+- You cannot create a :doc:`compound </core/index-compound>` index.
+
+- You cannot specify the following properties for a wildcard index:
+
+  - :doc:`TTL </core/index-ttl>`
+  - :doc:`Unique </core/index-unique>`
+
+- You cannot create the following index types using wildcard syntax:
+
+  - :doc:`2d (Geospatial) </core/geospatial-indexes>`
+  - :doc:`2dsphere (Geospatial) </core/2dsphere>`
+  - :doc:`Hashed </core/index-hashed>`
+
+.. important::
+
+   Wildcard Indexes are distinct from and incompatible with
+   :ref:`text-index-wildcard`. Wildcard indexes cannot support
+   queries using the :query:`$text` operator. 
+
+For complete documentation on wildcard index creation restrictions, see 
+:ref:`wildcard-index-restrictions-create`.
+
+.. _wildcard-index-query-sort-support:
+
+Wildcard Index Query/Sort Support
+---------------------------------
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+Wildcard indexes can support a :ref:`covered query <covered-queries>` 
+**only if** all of the following are true:
+
+- The query planner selects the wildcard index for satisfying the
+  query predicate.
+
+- The query predicate specifies *exactly* one field covered by the wildcard
+  index.
+
+- The projection explicitly excludes ``_id`` and includes *only* the query
+  field.
+
+- The specified query field is never an array.
+
+Consider the following wildcard index on the ``employees`` collection:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "$**" : 1 } )
+
+The following operation queries for a single field 
+``lastName`` and projects out all other fields from the
+resulting document:
+
+.. code-block:: javascript
+
+   db.products.find(
+     { "lastName" : "Doe" },
+     { "_id" : 0, "lastName" : 1 }
+   )
+
+Assuming that the specified ``lastName`` is never an array, MongoDB
+can use the ``$**`` wildcard index for supporting a covered query.
+
+Multi-Field Query Predicates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wildcard indexes can support at most *one* query predicate field. That 
+is:
+
+- MongoDB cannot use a non-wildcard index to satisfy one part of a 
+  query predicate and a wildcard index to satisfy another.
+
+- MongoDB cannot use one wildcard index to satisfy one part of a query 
+  predicate and another wildcard index to satisfy another.
+
+- Even if a single wildcard index could support multiple query fields, 
+  MongoDB can use the wildcard index to support only one of the query 
+  fields. All remaining fields are resolved without an index.
+
+However, MongoDB may use the same wildcard index for satisfying each 
+independent argument of the query :query:`$or` or aggregation 
+:expression:`$or` operators.
+
+Queries with Sort
+~~~~~~~~~~~~~~~~~
+
+MongoDB can use a wildcard index for satisfying the 
+:method:`~cursor.sort()` **only if** all of the following are true:
+
+- The query planner selects the wildcard index for satisfying the
+  query predicate.
+
+- The :method:`~cursor.sort()` specifies **only** the query predicate
+  field.
+
+- The specified field is never an array.
+
+If the above conditions are not met, MongoDB cannot use the wildcard 
+index for the sort. MongoDB does not support :method:`~cursor.sort`
+operations that require a different index from that of the query
+predicate. For more information, see :ref:`index-intersection-sort`.
+
+Consider the following wildcard index on the ``products`` collection:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "product_attributes.$**" : 1 } )
+
+The following operation queries for a single field 
+``product_attributes.price`` and sorts on that same field:
+
+.. code-block:: javascript
+
+   db.products.find(
+     { "product_attributes.price" : { $gt : 10.00 } },
+   ).sort(
+     { "product_attributes.price" : 1 }
+   )
+
+Assuming that the specified ``price`` is never an array, MongoDB
+can use the ``product_attributes.$**`` wildcard index for satisfying 
+both the :method:`~db.collection.find()` and :method:`~cursor.sort()`.
+
+Unsupported Query Patterns
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wildcard indexes **cannot** support the following query patterns:
+
+- Queries that check if a field does not exist
+
+- Queries that check if a field is or is not equal to a document or an
+  array
+
+- Queries that check if a field is equal to null
+
+For details, see :ref:`wildcard-index-restrictions-query-aggregation`.
+
+.. _wildcard-query-support-explicit-array-indices:
+
+Queries with Explicit Array Indices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB wildcard indexes do not record the array position of any given
+element in an array during indexing. However, MongoDB may still select
+the wildcard index to answer a query which includes a field path with
+one or more explicit array indices (for example,
+``parentArray.0.nestedArray.0``). Due to the increasing complexity of
+defining index bounds for each consecutive nested array, MongoDB does
+not consider the wildcard index to answer a given field path in the
+query if that path contains more than ``8`` explicit array indices.
+MongoDB can still consider the wildcard index to answer other field
+paths in the query.
+
+For example:
+
+.. code-block:: json
+
+   {
+     "parentObject" : {
+       "nestedArray" : [ 
+          "elementOne",
+          {
+            "deeplyNestedArray" : [ "elementTwo" ]
+          }
+        ]
+     }
+   }
+
+MongoDB can select a wildcard index which includes ``parentObject`` to
+satisfy the following queries:
+
+- ``"parentObject.nestedArray.0" : "elementOne"``
+- ``"parentObject.nestedArray.1.deeplyNestedArray.0" : "elementTwo"``
+
+If a given field path in the query predicate specifies more than 8
+explicit array indices, MongoDB does not consider the wildcard index for
+answering that field path. MongoDB instead either selects another
+eligible index to answer the query, *or* performs a collection scan.
+
+Note that wildcard indexes themselves do not have any limits on the
+depth to which they traverse a document while indexing it; the
+limitation only applies to queries which explicitly specify exact array
+indices. By issuing the same queries without the explicit array indices,
+MongoDB may select the wildcard index to answer the query:
+
+- ``"parentObject.nestedArray" : "elementOne"``
+- ``"parentObject.nestedArray.deeplyNestedArray" : "elementTwo"``
+
+.. seealso::
+
+   :limit:`Nested Depth for BSON Documents`
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /reference/index-wildcard-restrictions

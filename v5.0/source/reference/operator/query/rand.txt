@@ -1,0 +1,149 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=====
+$rand
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $rand
+
+Returns a pseudo-random floating point number in the interval [0, 1).
+0 included, 1 is excluded.
+
+Syntax
+------
+
+``$rand`` has the following syntax:
+
+.. code-block:: javascript 
+
+   { $rand: {} }
+
+Examples
+--------
+
+Generate Random Data Points
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The examples in this section illustrate charitable donations. The
+following collection contains a list of donors:
+
+.. code-block:: javascript
+
+   db.donors.insertMany(
+      [
+        { donorId: 1000, amount: 0, frequency: 1 },
+        { donorId: 1001, amount: 0, frequency: 2 },
+        { donorId: 1002, amount: 0, frequency: 1 },
+        { donorId: 1003, amount: 0, frequency: 2 },
+        { donorId: 1004, amount: 0, frequency: 1 }
+      ]
+   )
+
+The following example updates each document in the ``donors`` collection
+with a random donation amount:
+
+.. code-block:: javascript
+
+   db.donors.updateMany(
+      {},
+      [
+         { $set:
+            { amount:
+               { $floor:
+                  { $multiply: [ { $rand: {} }, 100 ] }
+               }
+            }
+         }
+       ]
+   )
+
+The empty update filter matches every document in the collection.
+
+For each document we generate a value between 0 and 1 using ``$rand``
+then scale the value with :expression:`$multiply`.
+
+The :expression:`$floor` operator removes the decimal portion so the
+updated ``amount`` is an integer value.
+
+After updating the collection, the documents look like this:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "donorId" : 1000, "amount" : 2, "frequency" : 1 }
+   { "donorId" : 1001, "amount" : 58, "frequency" : 2 }
+   { "donorId" : 1002, "amount" : 27, "frequency" : 1 }
+   { "donorId" : 1003, "amount" : 26, "frequency" : 2 }
+   { "donorId" : 1004, "amount" : 42, "frequency" : 1 }
+
+Select Random Items From a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$rand`` operator can be used to select random documents from a
+collection. Given a collection of voter records:
+
+.. code-block:: javascript
+
+   db.voters.insertMany(
+      [
+        { name: "Archibald", voterId: 4321, district: 3, registered: true },
+        { name: "Beckham", voterId: 4331, district: 3, registered: true },
+        { name: "Carolin", voterId: 5321, district: 4, registered: true },
+        { name: "Debarge", voterId: 4343, district: 3, registered: false },
+        { name: "Eckhard", voterId: 4161, district: 3, registered: false },
+        { name: "Faberge", voterId: 4300, district: 1, registered: true },
+        { name: "Grimwald", voterId: 4111, district: 3, registered: true },
+        { name: "Humphrey", voterId: 2021, district: 3, registered: true },
+        { name: "Idelfon", voterId: 1021, district: 4, registered: true },
+        { name: "Justo", voterId: 9891, district: 3, registered: false }
+      ]
+   )
+
+The following query retrieves a random selection of approximately half
+of the voters in district 3:
+
+.. code-block:: javascript
+
+   db.voters.find(
+      {  district: 3,
+         $expr: { $lt: [0.5, {$rand: {} } ] }
+      },
+      { _id: 0, name: 1, registered: 1 }
+   )
+
+The intial match on the ``district`` field selects documents where the
+voter is from district 3.
+
+The :query:`$expr` operator uses ``$rand`` to further refine the
+:dbcommand:`find` operation. For each document, ``$rand`` generates a
+value between 0 and 1. The threshold of ``0.5`` means the less than
+:expression:`($lt)<$lt>` comparison will be true for about half the
+documents in the set.
+
+There are 7 voters in District 3, running the code selects about half
+of them.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "name" : "Beckham", "registered" : true }
+   { "name" : "Eckhard", "registered" : false }
+   { "name" : "Grimwald", "registered" : true }
+   { "name" : "Humphrey", "registered" : true }
+
+Learn More
+----------
+
+:expression:`$rand (aggregation) <$rand>`

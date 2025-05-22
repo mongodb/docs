@@ -1,0 +1,269 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=====================
+db.collection.count()
+=====================
+
+.. default-domain:: mongodb
+
+.. meta:: 
+   :keywords: deprecated
+   :description: The count method is deprecated and should be replaced by the countDocuments or estimatedDocumentCount method
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.count(query, options)
+
+   .. |dbcommand| replace:: :dbcommand:`count` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   .. note::
+
+      MongoDB drivers compatible with the 4.0 features deprecate their
+      respective cursor and collection ``count()`` APIs in favor of new
+      APIs for ``countDocuments()`` and ``estimatedDocumentCount()``.
+      For the specific API names for a given driver, see the driver
+      documentation.
+
+   Returns the count of documents that would match a
+   :method:`~db.collection.find()` query for the collection or view. The
+   :method:`db.collection.count()` method does not perform the
+   :method:`~db.collection.find()` operation but instead counts and
+   returns the number of results that match a query.
+
+   .. important::
+
+      - Avoid using the :method:`db.collection.count()` method without
+        a query predicate since without the query predicate, the method
+        returns results based on the collection's metadata, which may
+        result in an approximate count. In particular,
+
+        - On a sharded cluster, the resulting count will not correctly
+          filter out :term:`orphaned documents <orphaned document>`.
+
+        - :ref:`After an unclean shutdown
+          <collection-count-accuracy-shutdown>`, the count may be
+          incorrect.
+
+      - For counts based on collection metadata, see also
+        :ref:`collStats pipeline stage with the count <collstat-count>`
+        option.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.count()``
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+This method takes the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Parameter
+   
+     - Type
+   
+     - Description
+   
+   * - ``query``
+   
+     - document
+   
+     - The query selection criteria.
+          
+          
+   
+   * - ``options``
+   
+     - document
+   
+     - Optional. Extra options for modifying the count.
+          
+          
+   
+
+
+The ``options`` document contains the following fields:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Field
+   
+     - Type
+   
+     - Description
+   
+   * - ``limit``
+   
+     - integer
+   
+     - Optional. The maximum number of documents to count.
+          
+          
+   
+   * - ``skip``
+   
+     - integer
+   
+     - Optional. The number of documents to skip before counting.
+          
+          
+   
+   * - ``hint``
+   
+     - string or document
+   
+     - Optional. An index name hint or specification for the query.
+
+
+   
+   * - ``maxTimeMS``
+   
+     - integer
+   
+     - Optional. The maximum amount of time to allow the query to run.
+          
+          
+   
+   * - ``readConcern``
+   
+     - string
+   
+     - Optional. Specifies the :term:`read concern`. The default level is
+       :readconcern:`"local"`.
+          
+       .. include:: /includes/usage-read-concern-majority.rst
+          
+       .. include:: /includes/fact-count-readConcern.rst
+          
+          .. versionadded:: 3.2
+          
+          
+   
+   * - ``collation``
+   
+     - document
+   
+     - Optional. 
+          
+       .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+
+
+:method:`~db.collection.count()` is equivalent to the
+``db.collection.find(query).count()`` construct.
+
+.. seealso::
+
+   - :method:`cursor.count()`
+   - :method:`db.collection.estimatedDocumentCount()`
+   - :method:`db.collection.countDocuments()`
+
+Behavior
+--------
+
+Count and Transactions
+~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use :dbcommand:`count` and shell helpers
+:method:`~cursor.count()` and :method:`db.collection.count()` in
+:ref:`transactions <transactions-ops-count>`.
+
+For details, see :ref:`Transactions and Count Operations
+<transactions-ops-count>`.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-count-on-sharded-clusters-method-db.collection.count.rst
+
+Index Use
+~~~~~~~~~
+
+.. include:: /includes/fact-count-index-use.rst
+
+.. _collection-count-accuracy-shutdown:
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :method:`~db.collection.count()`
+.. |opt| replace:: count
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+.. note:: 
+   This loss of accuracy only applies to :method:`~db.collection.count()`
+   operations that do *not* include a query predicate.
+
+.. |operation| replace:: :method:`db.collection.count()`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+Examples
+--------
+
+Count all Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To count the number of all documents in the ``orders`` collection, use
+the following operation:
+
+.. code-block:: javascript
+
+   db.orders.count()
+
+This operation is equivalent to the following:
+
+.. code-block:: javascript
+
+   db.orders.find().count()
+
+Count all Documents that Match a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Count the number of the documents in the ``orders``
+collection with the field ``ord_dt`` greater than ``new
+Date('01/01/2012')``:
+
+.. code-block:: javascript
+
+   db.orders.count( { ord_dt: { $gt: new Date('01/01/2012') } } )
+
+The query is equivalent to the following:
+
+.. code-block:: javascript
+
+   db.orders.find( { ord_dt: { $gt: new Date('01/01/2012') } } ).count()

@@ -1,0 +1,372 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+========
+validate
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: validate
+
+   The :dbcommand:`validate` command checks a collection's data and
+   indexes for correctness and returns the results.
+
+   .. |method| replace:: :method:`~db.collection.validate` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+   .. versionchanged:: 5.0
+
+   Starting in version 5.0, the :dbcommand:`validate` command can also
+   find inconsistencies in the collection and fix them if possible.
+
+   .. include:: /includes/fact-validate-standalone-inconsistencies.rst
+
+   .. note::
+
+      The :dbcommand:`validate` command does not support :doc:`views
+      </core/views>` and raises an error when run against a view.
+
+   The :method:`db.collection.validate()` method in
+   :binary:`~bin.mongosh` provides a wrapper around
+   :dbcommand:`validate`.
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free-or-serverless.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+.. versionchanged:: 5.0
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( { 
+      validate: <string>,          // Collection name
+      full: <boolean>,             // Optional
+      repair: <boolean>,           // Optional, added in MongoDB 5.0
+      metadata: <boolean>          // Optional, added in MongoDB 5.0.4
+   } )
+
+
+Command Fields
+~~~~~~~~~~~~~~
+
+The command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 50
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``validate``
+     - string
+     - The name of the collection to validate.
+     
+   * - :ref:`full <cmd-validate-full>`
+     - boolean
+
+     - .. _cmd-validate-full:
+     
+       *Optional*. A flag that determines whether the command
+       performs a slower but more thorough check or a faster but less thorough check.
+
+       - If ``true``, performs a more thorough check with the following
+         exception:
+
+         - Full validation on the ``oplog`` for WiredTiger skips the more 
+           thorough check. The :data:`validate.warnings` includes a notice of 
+           the behavior.
+
+       - If ``false``, omits some checks for a faster but less
+         thorough check.
+
+       The default is ``false``.
+
+       .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+
+   * - :ref:`repair <cmd-validate-repair>`
+     - boolean
+
+     - .. _cmd-validate-repair:
+
+       .. include:: /includes/fact-validate-repair-option.rst
+
+   * - :ref:`metadata <cmd-validate-metadata>`
+     - boolean
+
+     - .. _cmd-validate-metadata:
+
+       .. include:: /includes/fact-validate-metadata.rst
+
+Behavior
+--------
+
+Performance
+~~~~~~~~~~~
+
+The :dbcommand:`validate` command can be slow, particularly on
+larger data sets.
+
+The :dbcommand:`validate` command obtains an exclusive lock ``W`` on
+the collection. This will block all reads and writes on the collection
+until the operation finishes. When run on a secondary, the
+:dbcommand:`validate` operation can block all other operations on that
+secondary until it finishes.
+
+.. warning::
+
+   Due to the performance impact of validation, consider running
+   :dbcommand:`validate` only on :term:`secondary` replica set nodes.
+   You can use :method:`rs.stepDown()` to instruct the current
+   :term:`primary` node to become a secondary to avoid impacting a live
+   primary node.
+
+Data Throughput Metrics
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-validate-data-throughput.rst
+
+Restrictions
+~~~~~~~~~~~~~
+
+The :dbcommand:`validate` command no longer supports :ref:`afterClusterTime
+<afterClusterTime>`. As such, :dbcommand:`validate` cannot be
+associated with :ref:`causally consistent sessions
+<causal-consistency>`.
+
+Examples
+--------
+
+- To validate a collection ``myCollection`` using the default validation
+  setting (specifically, :ref:`full: false <cmd-validate-full>`):
+
+  .. code-block:: javascript
+
+     db.runCommand( { validate: "myCollection" } )
+
+- To perform a full validation of collection ``myCollection``, specify
+  :ref:`full: true <cmd-validate-full>`:
+
+  .. code-block:: javascript
+
+     db.runCommand( { validate: "myCollection", full: true } )
+    
+- To repair collection ``myCollection``, specify
+  :ref:`repair: true <cmd-validate-repair>`:
+
+  .. code-block:: javascript
+
+    db.runCommand( { validate: "myCollection", repair: true } )
+
+- To validate the metadata in the ``myCollection`` collection, 
+  specify :ref:`metadata: true <cmd-validate-metadata>`:
+
+  .. code-block:: javascript
+
+    db.runCommand( { validate: "myCollection", metadata: true } )
+
+.. _validate-output:
+
+Validate Output
+---------------
+
+.. include:: /includes/note-output-may-vary.rst
+
+Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
+
+.. data:: validate.nInvalidDocuments
+
+   The number of invalid documents in the collection. Invalid documents
+   are those that are not readable, which means the :term:`BSON`
+   document is corrupt and has an error or a size mismatch.
+
+   Non-compliant documents are those that do not conform to the
+   collection's schema. Non-compliant documents are not counted as
+   invalid in :data:`~validate.nInvalidDocuments`.
+
+.. data:: validate.nrecords
+
+   The number of :term:`documents <document>` in the collection.
+
+.. data:: validate.nIndexes
+
+   The number of indexes on the collection that were validated.
+
+.. data:: validate.keysPerIndex
+
+   A document that contains the name and index entry count for each
+   index on the collection.
+
+   .. code-block:: javascript
+      :copyable: false
+      
+      "keysPerIndex" : {
+         "_id_" : <num>,
+         "<index2_name>" : <num>,
+         ...
+      }
+
+   :data:`~validate.keysPerIndex` identifies the index by its name only. 
+
+.. data:: validate.indexDetails
+   
+   A document that contains the status of the index validation for each
+   index.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "indexDetails" : {
+         "_id_" : {
+            "valid" : <boolean>
+         },
+         "<index2_name>" : {
+            "valid" : <boolean>  
+         },
+         ...
+      }
+
+   - :data:`~validate.indexDetails` identifies the specific index (or
+     indexes) that is invalid. Earlier versions of MongoDB would mark
+     all indexes as invalid, if any of the indexes were invalid.
+
+   - :data:`~validate.indexDetails` identifies the index by its name
+     only. Earlier versions of MongoDB displayed the full namespace of
+     the index; i.e. ``<db>.<collection>.$<index_name>``.
+
+.. data:: validate.ns
+
+   The full namespace name of the collection. Namespaces include the
+   database name and the collection name in the form
+   ``database.collection``.
+
+.. data:: validate.valid
+
+   A boolean that is ``true`` if :dbcommand:`validate` determines that
+   all aspects of the collection are valid. When ``false``, see the
+   :data:`~validate.errors` field for more information.
+
+.. data:: validate.repaired
+
+   A boolean that is ``true`` if :dbcommand:`validate` repaired the
+   collection.
+
+.. data:: validate.warnings
+
+   An array that contains warning messages, if any, regarding the
+   validate operation itself. The warning messages do not indicate that
+   the collection is itself invalid. For example:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "warnings" : [
+         "Could not complete validation of table:collection-28-6471619540207520785. This is a transient issue as the collection was actively in use by other operations."
+      ],
+
+.. data:: validate.errors
+
+   If the collection is not valid (i.e
+   :data:`~validate.valid` is false), this field will contain a message
+   describing the validation error.
+
+.. data:: validate.extraIndexEntries
+
+   An array that contains information for each index entry that points
+   to a document that does not exist in the collection.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "extraIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,  // for the non-existent document
+            "indexKey" : {
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+      ]
+
+   .. note::
+
+      For the :data:`~validate.extraIndexEntries` array, the sum of all
+      the ``indexKey`` field sizes has a limit of 1MB where the sizes
+      include both the keys and values for the ``indexKey``. If
+      the sum exceeds this size, the warning field displays a message.
+
+.. data:: validate.missingIndexEntries
+
+   An array that contains information for each document that is missing
+   the corresponding index entry.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "missingIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,
+            "idKey" : <_id key value>,     // The _id value of the document. Only present if an ``_id`` index exists.
+            "indexKey" : {                 // The missing index entry
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+       ]
+
+   .. note::
+
+      For the :data:`~validate.missingIndexEntries` array, the sum of
+      the ``idKey`` field size and all its ``indexKey`` field sizes has
+      a limit of 1MB where the field sizes include both the keys and
+      values for the ``idKey`` and ``indexKey``. If the sum
+      exceeds this size, the warning field displays a message.
+
+.. data:: validate.corruptRecords
+
+   An array of ``RecordId`` values for documents that are unreadable,
+   possibly because the data is damaged. These documents are reported as
+   corrupt during validation. A ``RecordId`` is a 64-bit integer
+   internal key that uniquely identifies a document in a collection.
+
+   .. code-block:: javascript
+      :copyable: false
+      
+      "corruptRecords" : [
+         NumberLong(1),  // RecordId 1
+         NumberLong(2)   // RecordId 2
+      ]
+  
+   .. versionadded:: 5.0
+
+.. data:: validate.ok
+
+   An integer with the value ``1`` when the command succeeds. If the
+   command fails the :data:`~validate.ok` field has a value of ``0``.

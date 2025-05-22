@@ -1,0 +1,432 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+========================================================
+Read/Write Support with Automatic Field Level Encryption
+========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/extracts/csfle-enterprise-atlas-only.rst
+
+.. versionadded:: 4.2
+
+This page documents the specific commands, query operators, update
+operators, aggregation stages, and aggregation expressions supported by
+4.2+ compatible drivers configured for automatic client-side field level
+encryption.
+
+MongoDB stores client-side field level encrypted fields as a
+:bsontype:`BinData <data_binary>` blob. Read and write operations issued
+against the encrypted ``BinData`` value may have unexpected or incorrect
+behavior as compared to issuing that same operation against the 
+decrypted value. Certain operations have strict BSON type support
+where issuing them against a ``BinData`` value returns an error.
+
+- Official 4.2+ compatible drivers using automatic client-side field
+  level encryption parse read/write operations for operators or 
+  expressions that do not support ``BinData`` values *or* that have
+  abnormal behavior when issued against ``BinData`` values.
+
+- Applications using explicit (manual) client-side
+  field level encryption *may* use this page as guidance for issuing
+  read/write operations against encrypted fields.
+
+.. _csfle-commands-supported-automatic-encryption:
+
+Supported Read and Write Commands
+---------------------------------
+
+Official MongoDB 4.2+ compatible drivers support
+:ref:`automatic client-side field level encryption
+<field-level-encryption-json-schema>` with the following commands:
+
+- :dbcommand:`aggregate`
+- :dbcommand:`count`
+- :dbcommand:`delete`
+- :dbcommand:`distinct`
+- :dbcommand:`explain`
+- :dbcommand:`find`
+- :dbcommand:`findAndModify`
+- :dbcommand:`insert`
+- :dbcommand:`update`
+
+For any supported command, 4.2+ compatible drivers return an error
+if the command uses an unsupported operator, aggregation stage, or
+aggregation expression:
+
+- :ref:`Supported Query Operators <csfle-supported-query-operators>`
+- :ref:`Supported Update Operators <csfle-supported-update-operators>`
+- :ref:`Supported Aggregation Expressions <csfle-supported-aggregation-expressions>`
+- :ref:`Supported Aggregation Stages <csfle-supported-aggregation-stages>`
+
+The following commands do not require automatic encryption. Official
+MongoDB 4.2+ compatible drivers configured for automatic client-side
+field level encryption pass these commands directly to the
+:binary:`~bin.mongod`:
+
+- :dbcommand:`getMore` [#]_
+- :dbcommand:`authenticate`
+- :dbcommand:`getnonce`
+- :dbcommand:`hello`
+- :dbcommand:`logout`
+- :dbcommand:`abortTransaction`
+- :dbcommand:`commitTransaction`
+- :dbcommand:`endSessions`
+- :dbcommand:`startSession`
+- :dbcommand:`create`
+- :dbcommand:`createIndexes`
+- :dbcommand:`drop`
+- :dbcommand:`dropDatabase`
+- :dbcommand:`dropIndexes`
+- :dbcommand:`killCursors`
+- :dbcommand:`listCollections`
+- :dbcommand:`listDatabases`
+- :dbcommand:`listIndexes`
+- :dbcommand:`renameCollection`
+- :dbcommand:`ping`
+
+Issuing any other :ref:`command <database-commands>` through a
+4.2+ compatible driver configured for automatic client-side field level
+encryption returns an error.
+
+.. [#]
+
+   While automatic client-side field level encryption does not encrypt
+   the :dbcommand:`getMore` command, the response to the command may
+   contain encrypted field values. Applications configured with the
+   correct client-side field level encryption options
+   :ref:`automatically decrypt
+   <field-level-encryption-automatic-decryption>` those values.
+   Applications without the correct encryption options only see the
+   encrypted values.
+
+.. _csfle-supported-query-operators:
+
+Supported Query Operators
+-------------------------
+
+Official 4.2+ compatible drivers configured for automatic client-side
+field level encryption allow the following query operators when issued
+against :ref:`deterministically <field-level-encryption-deterministic>`
+encrypted fields:
+
+- :query:`$eq` 
+- :query:`$ne` 
+- :query:`$in` 
+- :query:`$nin`
+- :query:`$and`
+- :query:`$or`
+- :query:`$not`
+- :query:`$nor`
+
+Queries that compare an encrypted field to ``null`` *or* a regular
+expression always throw an error *even if* using a supported query
+operator. Queries issuing these operators against a :ref:`randomly
+<field-level-encryption-random>` encrypted field throw an error.
+
+The :query:`$exists` operator has normal behavior when issued
+against both deterministically and
+:ref:`randomly <field-level-encryption-random>` encrypted fields.
+
+Queries specifying any other query operator against an encrypted field
+return an error.
+
+The following query operators throw an error *even if* not issued
+against an encrypted field:
+
+- :query:`$text`
+- :query:`$where`
+- :query:`$jsonSchema`
+
+.. _csfle-supported-update-operators:
+
+Supported Update Operators
+--------------------------
+
+Official 4.2+ compatible drivers configured for automatic client-side
+field level encryption allow the following update operators when
+issued against :ref:`deterministically
+<field-level-encryption-deterministic>` encrypted fields:
+
+- :update:`$set`
+- :update:`$unset`
+- :update:`$rename`
+
+For update operations using the :update:`$rename` operator on encrypted
+fields, ensure that  the automatic JSON schema specifies the same
+encryption metadata for the source and target field names.
+
+Updates specifying any other update operator against an encrypted field
+return an error.
+
+Update operations with the following behavior throw an error
+*even if* using a supported operator:
+
+- The update operation produces an array inside of an encrypted path. 
+
+- The update operation uses aggregation expression syntax.
+
+For update operations specifying a :ref:`query filter
+<update-command-q>` on :ref:`deterministically
+<field-level-encryption-deterministic>` encrypted fields, the query
+filter must use only :ref:`supported operators
+<csfle-supported-query-operators>` on those fields.
+
+.. _csfle-supported-insert-operation:
+
+Unsupported Insert Operations
+-----------------------------
+
+Official MongoDB 4.2+ compatible drivers configured for :ref:`automatic
+client-side field level encryption <field-level-encryption-json-schema>`
+do *not* support insert commands with the following behavior: 
+
+- Inserting a document with ``Timestamp(0,0)`` associated to an
+  encrypted field. The ``(0,0)`` value indicates that the 
+  :binary:`~bin.mongod` should generate the Timestamp. Since the
+  :binary:`~bin.mongod` cannot generated encrypted fields, the
+  resulting timestamp would be unencrypted.
+
+- Inserting a document without an encrypted ``_id`` *if* the configured 
+  automatic schema specifies an encrypted ``_id`` field. Since
+  the :binary:`~bin.mongod` autogenerates an unencrypted 
+  :ref:`ObjectId <objectid>`, omitting ``_id`` from documents results 
+  in documents that do not conform to the automatic encryption rules.
+
+- Inserting a document with an array associated to a 
+  :ref:`deterministically <field-level-encryption-deterministic>`
+  encrypted field. Automatic client-side field level encryption does not
+  support deterministically encrypting arrays.
+
+.. _csfle-supported-aggregation-stages:
+
+Supported Aggregation Stages
+----------------------------
+
+Official MongoDB 4.2+ compatible drivers configured for 
+:ref:`automatic client-side field level encryption 
+<field-level-encryption-json-schema>` support the following
+aggregation pipeline stages:
+
+- :pipeline:`$limit`
+- :pipeline:`$match`
+- :pipeline:`$group` (*see*  :ref:`csfle-group-behavior` *for usage
+  requirements*.)
+- :pipeline:`$sample`
+- :pipeline:`$skip`
+- :pipeline:`$sort`
+- :pipeline:`$project`
+- :pipeline:`$addFields`
+- :pipeline:`$geoNear`
+- :pipeline:`$collStats`
+- :pipeline:`$indexStats`
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$unwind`
+- :pipeline:`$sortByCount`
+- :pipeline:`$count`
+- :pipeline:`$replaceRoot`
+- :pipeline:`$redact`
+- :pipeline:`$lookup` and :pipeline:`$graphLookup` (*See* 
+  :ref:`csfle-lookup-graphLookup-behavior` *for usage requirements*)
+
+Aggregation pipelines operating on collections configured for automatic
+encryption that specify any other stage return an error.
+
+For each supported pipeline stage, MongoDB tracks fields that
+*must* be encrypted as they pass through the supported pipelines and
+marks them for encryption. 
+
+Each supported stage must specify only supported
+:ref:`query operators <csfle-supported-query-operators>` and
+:ref:`aggregation expressions
+<csfle-supported-aggregation-expressions>`.
+
+.. _csfle-group-behavior:
+
+``$group`` Behavior
+~~~~~~~~~~~~~~~~~~~
+
+:pipeline:`$group` has the following behaviors specific to client-side 
+field level encryption:
+
+- Supports grouping on deterministically encrypted fields.
+- Does *not* support arithmetic accumulators on encrypted fields.
+- Supports :group:`$addToSet` and :group:`$push` accumulators on
+  encrypted fields. Does *not* support matching on the resulting array.
+
+.. _csfle-lookup-graphLookup-behavior:
+
+``$lookup`` and ``$graphLookup`` Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Automatic client-side field level encryption supports the
+:pipeline:`$lookup` and :pipeline:`$graphLookup` *only if* the
+``from`` collection matches the collection on which the aggregation
+runs against (i.e. self-lookup operations).
+
+:pipeline:`$lookup` and :pipeline:`$graphLookup` stages that
+reference a different ``from`` collection return an error.
+
+.. _csfle-supported-aggregation-expressions:
+
+Supported Aggregation Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Official 4.2+ compatible drivers configured for automatic client-side
+field level encryption allow aggregation stages using the following
+expressions against :ref:`deterministically
+<field-level-encryption-deterministic>` encrypted fields:
+
+- :expression:`$eq`
+- :expression:`$ne`
+- :expression:`$in`
+- :expression:`$switch`
+- :expression:`$cond`
+- :expression:`$ifNull`
+- :expression:`$let`
+- :expression:`$literal`
+
+All other aggregation expressions return an error if issued against
+encrypted fields.
+
+Aggregation stages with the following behavior throw an error
+*even if* using a supported aggregation expression:
+
+.. list-table::
+   :widths: 10 50 40
+   :header-rows: 1
+
+   * - Expressions
+     - Rejected Behavior
+     - Example
+
+   * - :expression:`$cond`
+       
+       :expression:`$switch`
+     - The expression specifies a field whose encryption properties
+       cannot be known until runtime *and* a subsequent aggregation
+       stage includes an expression referencing that field.
+     - .. code-block:: javascript
+          :copyable: false
+
+          $addFields : {
+            "valueWithUnknownEncryption" : {
+              $cond : {
+                if : { "$encryptedField" : "value" },
+                then : "$encryptedField",
+                else: "unencryptedValue"
+              }
+            }
+          },
+          {
+            $match : {
+              "valueWithUnknownEncryption" : "someNewValue"
+            }
+          }
+
+   * - :expression:`$eq`
+
+       :expression:`$ne`
+     - The expression creates a new field that references an
+       encrypted field *and* operates on that new field in the same
+       expression.
+     - .. code-block:: javascript
+          :copyable: false
+
+          {
+            $eq : [
+              {"newField" : "$encryptedField"},
+              {"newField" : "value"
+            ]
+          }
+
+   * - :expression:`$eq`
+       
+       :expression:`$ne`
+     - The expression references the prefix of an encrypted field
+       within the comparison expression.
+     - .. code-block:: javascript
+          :copyable: false
+
+          { $eq : [ "$prefixOfEncryptedField" , "value"] }
+
+   * - :expression:`$eq`
+       
+       :expression:`$ne`
+     - The result of the expression is compared an encrypted field.
+     - .. code-block:: javascript
+          :copyable: false
+
+          { 
+            $eq : [ 
+                "$encryptedField" , 
+                { $ne : [ "field", "value" ] } 
+            ] 
+          }
+
+   * - :expression:`$let`
+     - The expression binds a variable to an encrypted 
+       field *or* attempts to rebind :variable:`$$CURRENT <CURRENT>`.
+     - .. code-block:: javascript
+          :copyable: false
+
+          { 
+            $let: {
+              "vars" : {
+                "newVariable" : "$encryptedField"
+              }
+            }
+          }
+
+   * - :expression:`$in`
+     - The first argument to the expression *is* an encrypted field, 
+       *and*
+       
+       - The second argument to the expression is *not* an array literal
+      
+         *-OR-* 
+
+       - The second argument to the expression is an encrypted field.
+     - .. code-block:: javascript
+          :copyable: false
+
+          { 
+            $in : [ 
+              "$encryptedField" , 
+              "$otherEncryptedField" 
+            ] 
+          }
+
+Unsupported Field Types
+-----------------------
+
+Official MongoDB 4.2+ compatible drivers configured for 
+:ref:`automatic client-side field level encryption
+<field-level-encryption-json-schema>` do *not* support any read or write 
+operation that requires encrypting the following value types:
+
+- :bsontype:`MaxKey`
+- :bsontype:`MinKey`
+- ``null``
+- ``undefined``
+
+Encryption does not adequately hide the type information for these
+values.
+
+Automatic field level encryption *also* does not support read or write
+operations on a :ref:`deterministically
+<field-level-encryption-deterministic>` field where the operation
+compares the encrypted field to the following value types:
+
+- ``double``
+- ``decimal128``
+- ``bool``
+- ``object``

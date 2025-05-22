@@ -1,0 +1,1208 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+======================
+$convert (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+  :description: Learn how to use an aggregation operator to convert a value to a specified data type.
+  :keywords: data type
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $convert
+
+   Converts a value to a specified type.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$convert``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+:expression:`$convert` has the following syntax:
+
+.. code-block:: javascript
+
+   {
+    $convert:
+        {
+           input: <expression>,
+           to: <type expression>,
+           onError: <expression>,  // Optional.
+           onNull: <expression>    // Optional.
+         }
+   }
+
+The :expression:`$convert` takes a document with the following fields:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``input``
+     - The argument can be any valid :ref:`expression
+       <aggregation-expressions>`. For more information on
+       expressions, see :ref:`aggregation-expressions`.
+
+   * - ``to``
+     - The argument can be any valid :ref:`expression
+       <aggregation-expressions>` that resolves to one of the following
+       numeric or string identifiers:
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 20 20 60
+
+          * - String Identifier
+            - Numeric Identifier
+            - Notes
+
+          * - "double"
+            - 1
+            - For more information on the conversion to double, see
+              :ref:`convert-to-double`.
+
+          * - "string"
+            - 2
+            - For more information on the conversion to string, see
+              :ref:`convert-to-string`.
+
+          * - "objectId"
+            - 7
+            - For more information on the conversion to objectId, see
+              :ref:`convert-to-objectId`.
+
+          * - "bool"
+            - 8
+
+            - For more information on the conversion to boolean, see
+              :ref:`convert-to-bool`.
+
+          * - "date"
+            - 9
+            - For more information on the conversion to date, see
+              :ref:`convert-to-date`.
+
+          * - "int"
+            - 16
+
+            - For more information on the conversion to integer, see
+              :ref:`convert-to-int`.
+
+          * - "long"
+            - 18
+
+            - For more information on the conversion to long, see
+              :ref:`convert-to-long`.
+
+          * - "decimal"
+            - 19
+            - For more information on the conversion to decimal, see
+              :ref:`convert-to-decimal`.
+
+   * - ``onError``
+     - Optional. The value to return on encountering an error during
+       conversion, including unsupported type conversions. The
+       arguments can be any valid :ref:`expression
+       <aggregation-expressions>`.
+
+       If unspecified, the operation throws an error upon
+       encountering an error and stops.
+
+   * - ``onNull``
+     - Optional. The value to return if the ``input`` is null or
+       missing. The arguments can be any valid :ref:`expression
+       <aggregation-expressions>`.
+
+       If unspecified, :expression:`$convert` returns null if the
+       ``input`` is null or missing.
+
+In addition to :expression:`$convert`, MongoDB provides the
+following aggregation operators as shorthand when the default
+"onError" and "onNull" behavior is acceptable:
+
+- :expression:`$toBool`
+- :expression:`$toDate`
+- :expression:`$toDecimal`
+- :expression:`$toDouble`
+- :expression:`$toInt`
+- :expression:`$toLong`
+- :expression:`$toObjectId`
+- :expression:`$toString`
+
+Behavior
+--------
+
+.. _convert-to-bool:
+
+Converting to a Boolean
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to a
+boolean:
+
+.. |null-description| replace:: Returns the value specified for the ``onNull`` option. By default, returns null.
+
+.. include:: /includes/aggregation/convert-to-bool-table.rst
+
+The following table lists some conversion to boolean examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 30
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: true, to: "bool" }
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: false, to: "bool" }
+     - false
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 1.99999, to: "bool" }
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Decimal128( "5" ), to: "bool" }
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Decimal128( "0" ), to: "bool" }
+     - false
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 100, to: "bool" }
+
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: ISODate( "2018-03-26T04:38:28.044Z" ),
+             to: "bool"
+          }
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "hello", to: "bool" }
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "false", to: "bool" }
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "", to: "bool" }
+     - true
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "bool" }
+     - null
+
+.. seealso::
+
+   :expression:`$toBool`
+
+.. _convert-to-int:
+
+Converting to an Integer
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to an
+integer:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+     - | Returns ``0`` for  ``false``.
+       | Returns ``1`` for ``true``.
+
+   * - Double
+     - Returns truncated value.
+
+       The truncated double value must fall within the minimum and
+       maximum value for an integer.
+
+       You cannot convert a double value whose truncated value is less
+       than the minimum integer value or is greater than the maximum
+       integer value.
+
+   * - Decimal
+     - Returns truncated value.
+
+       The truncated decimal value must fall within the minimum and
+       maximum value for an integer.
+
+       You cannot convert a decimal value whose truncated value is less
+       than the minimum integer value or is greater than the maximum
+       integer value.
+
+   * - Integer
+     - No-op. Returns the integer value.
+
+   * - Long
+     - Returns the long value as an integer.
+
+       The long value must fall within the minimum and maximum value
+       for an integer.
+
+       You cannot convert a long value that is less than the minimum
+       integer value or is greater than the maximum integer value.
+
+   * - String
+     - Returns the numerical value of the string as an integer.
+
+       The string value must be a base\ :sub:`10` integer (e.g.
+       ``"-5"``, ``"123456"``) and fall within the minimum and maximum
+       value for an integer.
+
+       You cannot convert a string value of a float or decimal or
+       non-base\ :sub:`10` number (e.g. ``"-5.0"``, ``"0x6400"``) or a
+       value that falls outside the minimum and maximum value for an
+       integer.
+
+The following table lists some conversion to integer examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: true, to: "int" }
+
+     - 1
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: false, to: "int" }
+     - 0
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 1.99999, to: "int" }
+
+     - 1
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Decimal128( "5.5000" ), to: "int" }
+
+     - 5
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Decimal128( "9223372036000.000" ),
+             to: "int"
+          }
+
+     - Error
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Long( "5000" ), to: "int" }
+
+     - 5000
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Long( "922337203600" ), to: "int" }
+ 
+     - Error
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "-2", to: "int" }
+
+     - -2
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "2.5", to: "int" }
+
+     - Error
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "int" }
+
+     - null
+
+.. seealso::
+
+   :expression:`$toInt` operator.
+
+.. _convert-to-decimal:
+
+Converting to a Decimal
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to a
+decimal:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+     - | Returns ``Decimal128( "0" )`` for  ``false``.
+       | Returns ``Decimal128( "1" )`` for ``true``.
+
+
+   * - Double
+     - Returns double value as a decimal.
+
+   * - Decimal
+     - No-op. Returns the decimal.
+
+   * - Integer
+
+     - Returns the int value as a decimal.
+
+   * - Long
+
+     - Returns the long value as a decimal.
+
+   * - String
+     - Returns the numerical value of the string as a decimal.
+
+       The string value must be of a base\ :sub:`10` numeric value (e.g.
+       ``"-5.5"``, ``"123456"``).
+
+       You cannot convert a string value of a non-base\ :sub:`10`
+       number (e.g. ``"0x6400"``)
+
+   * - Date
+
+     - Returns the number of milliseconds since the epoch that
+       corresponds to the date value.
+
+The following table lists some conversion to decimal examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: true, to: "decimal" }
+
+     - Decimal128("1")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: false, to: "decimal" }
+
+     - Decimal128("0")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 2.5, to: "decimal" }
+
+     -  Decimal128( "2.50000000000000" )
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Int32( 5 ), to: "decimal" }
+
+     - Decimal128("5")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Long( 10000 ), to: "decimal" }
+
+     -  Decimal128("10000")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "-5.5", to: "decimal" }
+
+     - Decimal128("-5.5") 
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: ISODate( "2018-03-26T04:38:28.044Z" ),
+             to: "decimal"
+          }
+
+     -  Decimal128("1522039108044")
+
+.. seealso::
+
+   :expression:`$toDecimal`
+
+.. _convert-to-double:
+
+Converting to a Double
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to a
+double:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+
+     - | Returns NumberLong(0) for  ``false``.
+       | Returns NumberLong(1) for ``true``.
+
+   * - Double
+     - No-op. Returns the double.
+
+   * - Decimal
+     - Returns the decimal value as a double.
+
+       The decimal value must fall within the minimum and
+       maximum value for a double.
+
+       You cannot convert a decimal value whose value is less
+       than the minimum double value or is greater than the maximum
+       double value.
+
+   * - Integer
+     - Returns the int value as a double.
+
+   * - Long
+     - Returns the long value as a double.
+
+   * - String
+     - Returns the numerical value of the string as a double.
+
+       The string value must be of a base\ :sub:`10` numeric value (e.g.
+       ``"-5.5"``, ``"123456"``) and fall within the minimum and
+       maximum value for a double.
+
+       You cannot convert a string value of a non-base\ :sub:`10`
+       number (e.g. ``"0x6400"``) or a value that falls
+       outside the minimum and maximum value for a double.
+
+   * - Date
+     - Returns the number of milliseconds since the epoch that
+       corresponds to the date value.
+
+The following table lists some conversion to double examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: true, to: "double" }
+
+     - 1
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: false, to: "double" }
+ 
+     - 0
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 2.5, to: "double" }
+
+     -  2.5
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Int32( 5 ), to: "double" }
+
+     - 5
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Long( "10000" ), to: "double" }
+
+     - 10000
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "-5.5", to: "double" }
+
+     - -5.5 
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "5e10", to: "double" }
+
+     - 50000000000
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: ISODate( "2018-03-26T04:38:28.044Z" ), 
+             to: "double"
+          }
+
+     -  1522039108044
+
+.. seealso::
+
+   :expression:`$toDouble`
+
+.. _convert-to-long:
+
+Converting to a Long
+~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to a
+long:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+
+     - | Returns ``0`` for  ``false``.
+       | Returns ``1`` for ``true``.
+
+
+   * - Double
+     - Returns truncated value.
+
+       The truncated double value must fall within the minimum and
+       maximum value for a long.
+
+       You cannot convert a double value whose truncated value is less
+       than the minimum long value or is greater than the maximum
+       long value.
+
+   * - Decimal
+     - Returns truncated value.
+
+       The truncated decimal value must fall within the minimum and
+       maximum value for a long.
+
+       You cannot convert a decimal value whose truncated value is less
+       than the minimum long value or is greater than the maximum
+       long value.
+
+   * - Integer
+     - Returns the int value as a long.
+
+   * - Long
+     - No-op. Returns the long value.
+
+   * - String
+     - Returns the numerical value of the string.
+
+       The string value must be of a base\ :sub:`10` long (e.g.
+       ``"-5"``, ``"123456"``) and fall within the minimum and maximum
+       value for a long.
+
+       You cannot convert a string value of a float or decimal or
+       non-base\ :sub:`10` number (e.g. ``"-5.0"``, ``"0x6400"``) or a
+       value that falls outside the minimum and maximum value
+       for a long.
+
+   * - Date
+     - Converts the Date into the number of milliseconds since the
+       epoch.
+
+The following table lists some conversion to long examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: true, to: "long" }
+
+     - Long("1")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: false, to: "long"  }
+
+     - Long("0")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 2.5, to: "long"  }
+
+     -  Long("2")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Decimal128( "5.5000" ), to: "long" }
+
+     - Long("5")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Decimal128( "9223372036854775808.0" ),
+             to: "long"
+          }
+
+     - Error
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Int32( 8 ), to: "long" }
+
+     - Long("8")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: ISODate( "2018-03-26T04:38:28.044Z" ), 
+             to: "long"
+          }
+
+     -  Long("1522039108044")
+
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "-2", to: "long" }
+
+     - Long("-2")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "2.5", to: "long" }
+
+     - Error
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "long" }
+
+     - null
+
+.. seealso::
+
+   :expression:`$toLong`
+
+.. _convert-to-date:
+
+Converting to a Date
+~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to a
+date:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Double
+     - Returns a date that corresponds to the number of milliseconds
+       represented by the truncated double value.
+
+       Positive number corresponds to the number of milliseconds since
+       Jan 1, 1970.
+
+       Negative number corresponds to the number of milliseconds before
+       Jan 1, 1970.
+
+   * - Decimal
+     - Returns a date that corresponds to the number of milliseconds
+       represented by the truncated decimal value.
+
+       Positive number corresponds to the number of milliseconds since
+       Jan 1, 1970.
+
+       Negative number corresponds to the number of milliseconds before
+       Jan 1, 1970.
+
+   * - Long
+     - Returns a date that corresponds to the number of milliseconds
+       represented by the long value.
+
+       Positive number corresponds to the number of milliseconds since
+       Jan 1, 1970.
+
+       Negative number corresponds to the number of milliseconds before
+       Jan 1, 1970.
+
+   * - String
+     - Returns a date that corresponds to the date string.
+
+       The string must be a valid date string, such as:
+
+       - "2018-03-03"
+       - "2018-03-03T12:00:00Z"
+       - "2018-03-03T12:00:00+0500"
+
+   * - ObjectId
+     - Returns a date that corresponds to the timestamp of the
+       ObjectId.
+
+The following table lists some conversion to date examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: 120000000000.5,
+             to: "date"
+          }
+ 
+     - ISODate("1973-10-20T21:20:00.000Z")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Decimal128( "1253372036000.50" ),
+             to: "date"
+          }
+
+     - ISODate("2009-09-19T14:53:56.000Z")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Long( "1100000000000" ),
+             to: "date
+          }
+
+     - ISODate("2004-11-09T11:33:20.000Z")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input:  Long( "-1100000000000" ),
+             to: "date"
+          }
+
+     - ISODate("1935-02-22T12:26:40.000Z")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: ObjectId( "5ab9c3da31c2ab715d421285" ),
+             to: "date"
+          }
+
+     - ISODate("2018-03-27T04:08:58.000Z")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input:  "2018-03-03", to: "date" }
+
+     - ISODate("2018-03-03T00:00:00.000Z")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "2018-03-20 11:00:06 +0500",
+             to: "date"
+          }
+
+     - ISODate("2018-03-20T06:00:06.000Z")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "Friday", to: "date" }
+
+     - Error
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Timestamp( { t: 1637688118, i: 1 } ),
+             to: "date"
+          }
+     - "Could not convert to type date."
+
+
+.. seealso::
+
+   - :expression:`$toDate` operator
+   - :expression:`$dateFromString`
+
+.. _convert-to-objectId:
+
+Converting to an ObjectId
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to an
+ObjectId:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - String
+     - Returns an ObjectId for the hexadecimal string of length 24.
+
+       You cannot convert a string value that is not a hexadecimal
+       string of length 24.
+
+The following table lists some conversion to date examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "5ab9cbfa31c2ab715d42129e",
+             to: "objectId"
+          }
+
+     - ObjectId("5ab9cbfa31c2ab715d42129e")
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "5ab9cbfa31c2ab715d42129",
+             to: "objectId"
+          }
+
+     - Error
+
+.. seealso::
+
+   :expression:`$toObjectId` operator.
+
+.. _convert-to-string:
+
+Converting to a String
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the input types that can be converted to a
+string:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 55 50
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+     - Returns the boolean value as a string.
+
+   * - Double
+     - Returns the double value as a string.
+
+   * - Decimal
+     - Returns the decimal value as a string.
+
+   * - Integer
+     - Returns the integer value as a string.
+
+   * - Long
+     - Returns the long value as a string.
+
+   * - ObjectId
+     - Returns the ObjectId value as a hexadecimal string..
+
+   * - String
+     - No-op. Returns the string value.
+
+   * - Date
+     - Returns the date as a string.
+
+The following table lists some conversion to string examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: true, to: "string" }
+
+     - "true"
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: false, to: "string" }
+
+     - "false"
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 2.5, to: "string" }
+
+     - "2.5"
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: Int32( 2 ), to: "string" }
+
+     - "2"
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input:  Long( 1000 ), to: "string" }
+
+     - "1000"
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: ObjectId( "5ab9c3da31c2ab715d421285" ),
+             to: "string"
+          }
+
+     - "5ab9c3da31c2ab715d421285"
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input:  ISODate( "2018-03-27T16:58:51.538Z" ),
+             to: "string"
+          }
+
+     - "2018-03-27T16:58:51.538Z"
+
+.. seealso::
+
+   - :expression:`$toString` operator
+   - :expression:`$dateToString`
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insertMany( [
+      { _id: 1, item: "apple", qty: 5, price: 10 },
+      { _id: 2, item: "pie", qty: 10, price: Decimal128("20.0") },
+      { _id: 3, item: "ice cream", qty: 2, price: "4.99" },
+      { _id: 4, item: "almonds" },
+      { _id: 5, item: "bananas", qty: 5000000000, price: Decimal128("1.25") }
+   ] )
+
+The following aggregation operation on the ``orders`` collection
+converts the ``price`` to a decimal:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedPrice and convertedQty fields with
+   //    the converted price and qty values.
+   // If price or qty values are missing, the conversion returns a
+   //    value of decimal value or int value of 0.
+   // If price or qty values cannot be converted, the conversion returns
+   //    a string
+
+   priceQtyConversionStage = { 
+      $addFields: { 
+         convertedPrice: { $convert:
+            {
+               input: "$price",
+               to: "decimal",
+               onError: "Error",
+               onNull: Decimal128("0")
+            } },
+         convertedQty: { $convert:
+            { 
+               input: "$qty",
+               to: "int", 
+               onError:{ $concat:
+                  [
+                     "Could not convert ",
+                     { $toString:"$qty" },
+                     " to type integer."
+                  ]
+               },
+            onNull: Int32("0") 
+         } },
+      }
+   };
+
+   totalPriceCalculationStage = { 
+      $project: { totalPrice: {
+        $switch: {
+           branches: [
+             { case:
+                { $eq: [ { $type: "$convertedPrice" }, "string" ] },
+                then: "NaN"
+             },
+             { case:
+                { $eq: [ { $type: "$convertedQty" }, "string" ] },
+                then: "NaN"
+             },
+           ],
+           default: { $multiply: [ "$convertedPrice", "$convertedQty" ] }
+        }
+   } } };
+
+   db.orders.aggregate( [
+      priceQtyConversionStage,
+      totalPriceCalculationStage
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+  { _id: 1, totalPrice: Decimal128("50") },
+  { _id: 2, totalPrice: Decimal128("200.0") },
+  { _id: 3, totalPrice: Decimal128("9.98") },
+  { _id: 4, totalPrice: Decimal128("0") },
+  { _id: 5, totalPrice: 'NaN' }
+
+.. note::
+
+   These examples use :binary:`mongosh`. The default types are
+   different in the legacy :binary:`mongo` shell.

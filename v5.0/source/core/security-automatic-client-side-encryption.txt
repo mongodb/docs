@@ -1,0 +1,149 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _field-level-encryption-automatic:
+
+============================================
+Automatic Client-Side Field Level Encryption
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/extracts/csfle-enterprise-atlas-only.rst
+
+Overview
+--------
+
+Official MongoDB 4.2+ compatible drivers, :binary:`~bin.mongosh`, and
+the MongoDB 4.2 or later legacy :binary:`~bin.mongo` shell support
+automatically encrypting fields in read and write operations. For a
+complete list of official 4.2+ compatible drivers with support for
+client-side field level encryption, see
+:ref:`field-level-encryption-drivers`. 
+
+Applications must create a database connection object (e.g.
+``MongoClient``) with the automatic encryption configuration settings.
+The configuration settings must include automatic encryption
+rules using a strict subset of the `JSON Schema Draft 4 standard syntax
+<https://tools.ietf.org/html/draft-zyp-json-schema-04>`_ and
+encryption-specific schema keywords. Applications do not have to modify
+code associated with constructing the read/write operation. See
+:ref:`field-level-encryption-json-schema` for complete documentation on
+automatic encryption rules.
+
+The official MongoDB 4.2+ compatible drivers, :binary:`~bin.mongosh`,
+and the MongoDB 4.2 or later legacy :binary:`~bin.mongo` shell use the
+{+shared-library+} to
+parse the automatic encryption rules and apply the encryption rules when
+reading or writing documents:
+
+- For write operations, the driver/shell encrypts field values *prior*
+  to writing to the MongoDB database. 
+
+- For read operations, the driver/shell encrypts field values in the
+  query *prior* to issuing the read operation.
+
+- For read operations that returns encrypted fields, the driver/shell
+  :ref:`automatically decrypts
+  <field-level-encryption-automatic-decryption>` the encrypted values
+  *only if* the driver/shell was configured with access to the keys used
+  to protect those values.
+
+The {+shared-library+} is a preferred
+alternative to :ref:`mongocryptd <mongocryptd>` and does not require spawning a new process.
+``mongocryptd`` is still supported. To learn more about the
+{+shared-library+}, see :ref:`csfle-reference-shared-library`.
+
+Enabling Automatic Client-Side Field Level Encryption
+-----------------------------------------------------
+
+Each official MongoDB 4.2+ compatible driver introduces new
+functionality for supporting automatic encryption and data encryption
+key management. Defer to your preferred :ref:`driver's documentation
+<field-level-encryption-drivers>` for language-specific instructions on
+implementing automatic client-side field level encryption.
+
+:binary:`~bin.mongosh` adds an additional option
+to the :method:`Mongo()` method for instantiating a database
+connection with automatic client-side field level encryption. 
+For a complete example, see 
+:ref:`mongo-connection-automatic-client-side-encryption-enabled`.
+
+Automatic client-side field level encryption requires access to the
+{+shared-library+} on the client host machine. The
+official MongoDB 4.2+ compatible drivers have additional options for
+managing the {+shared-library+}. Generally, the 4.2+ compatible
+drivers and :binary:`~bin.mongosh` can access the
+shared library if it is in the system ``PATH``.
+
+Applications must specify the following components when instantiating
+the database connection to enable automatic client-side field level
+encryption:
+
+- A :ref:`key vault <field-level-encryption-keyvault>` of data
+  encryption keys. The key vault can reside on either a remote MongoDB
+  cluster *or* the MongoDB cluster storing client-side encrypted data.  
+
+- A supported :ref:`Key Management Service (KMS) 
+  <field-level-encryption-kms>` provider used to manage Customer Master
+  Keys (CMK). MongoDB encrypts all data encryption keys using the
+  specified CMK *prior* to storing them in the key vault, leaving only
+  metadata unencrypted.
+  
+  4.2+ compatible drivers, :binary:`~bin.mongosh`, and the MongoDB 4.2
+  or later legacy :binary:`~bin.mongo` shell need access to the KMS to
+  encrypt and decrypt protected fields *or* to create new data
+  encryption keys.
+
+- Per-field automatic encryption rules using 
+  :ref:`JSON schema syntax <field-level-encryption-json-schema>`. 
+
+.. _field-level-encryption-automatic-remote-schema:
+
+Server-Side Field Level Encryption Enforcement
+----------------------------------------------
+
+Starting in MongoDB 4.2, the server supports using
+:doc:`schema validation </core/schema-validation>` to enforce encryption
+of specific fields in a collection. Clients performing
+:ref:`automatic client-side field level
+encryption <field-level-encryption-json-schema>` have specific behavior
+depending on the :ref:`database connection configuration
+<mongo-connection-automatic-client-side-encryption-enabled>`:
+
+- If the connection :ref:`ClientSideFieldLevelEncryptionOptions`
+  ``schemaMap`` object contains a key for the specified collection, the
+  client uses that object to perform automatic field level encryption
+  and ignores the remote schema. At minimum, the local rules **must**
+  encrypt those fields that the remote schema marks as requiring
+  encryption.
+
+- If the connection :ref:`ClientSideFieldLevelEncryptionOptions`
+  ``schemaMap`` object does *not* contain a key for the specified
+  collection, the client downloads the server-side remote schema for the
+  collection and uses it to perform automatic field level encryption.
+  
+  This configuration requires the client to trust the server has a valid
+  schema with respect to automatic field level encryption. The client
+  only uses the remote schema to perform automatic field level
+  encryption and does not enforce any other validation rules specified
+  in the schema.
+
+For complete documentation on server-side client-side field level
+encryption enforcement, see
+:ref:`field-level-encryption-enforce-schema`.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /reference/security-client-side-automatic-json-schema.txt
+   /reference/security-client-side-query-aggregation-support.txt
+   /reference/security-client-side-encryption-shared-library.txt
+   /reference/security-client-side-encryption-appendix.txt

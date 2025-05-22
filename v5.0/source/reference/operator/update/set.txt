@@ -1,0 +1,225 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+====
+$set
+====
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Use the $set operator to replace the value of a field with the specified value. $set supports updating or creating fields at the top level, in embedded documents, or within arrays.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. note:: Disambiguation
+
+   The following page refers to the update operator :update:`$set`.
+   For the aggregation stage, see :pipeline:`$set`.
+
+.. update:: $set
+
+   The :update:`$set` operator replaces the value of a field with the
+   specified value.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$set``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :update:`$set` operator expression has the following form:
+
+.. code-block:: javascript
+
+   { $set: { <field1>: <value1>, ... } }
+
+.. include:: /includes/use-dot-notation.rst
+
+Behavior
+--------
+
+.. include:: /includes/fact-update-operator-processing-order.rst
+
+If the field does not exist, :update:`$set` will add a new field with the
+specified value, provided that the new field does not violate a type
+constraint.
+If you specify a dotted path for a non-existent field,
+:update:`$set` will create the embedded documents *as needed* to
+fulfill the dotted path to the field.
+
+If you specify multiple field-value pairs, :update:`$set` will update
+or create each field.
+
+.. include:: /includes/extracts/update-operation-empty-operand-expressions-set.rst
+
+Examples
+--------
+
+Create the ``products`` collection:
+
+.. code-block:: javascript
+
+   db.products.insertOne(
+      {
+        _id: 100,
+        quantity: 250,
+        instock: true,
+        reorder: false,
+        details: { model: "14QQ", make: "Clothes Corp" },
+        tags: [ "apparel", "clothing" ],
+        ratings: [ { by: "Customer007", rating: 4 } ]
+      }
+   )
+
+Set Top-Level Fields
+~~~~~~~~~~~~~~~~~~~~
+
+For the document matching the criteria ``_id`` equal to ``100``, the
+following operation uses the :update:`$set` operator to update the
+value of the ``quantity`` field, ``details`` field, and the ``tags``
+field.
+
+.. code-block:: javascript
+
+   db.products.updateOne(
+      { _id: 100 },
+      { $set:
+         {
+           quantity: 500,
+           details: { model: "2600", make: "Fashionaires" },
+           tags: [ "coats", "outerwear", "clothing" ]
+         }
+      }
+   )
+
+The operation updates the:
+
+- value of ``quantity`` to ``500``
+- ``details`` field with new embedded document
+- ``tags`` field with new array
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: 100,
+     quantity: 500,
+     instock: true,
+     reorder: false,
+     details: { model: '2600', make: 'Fashionaires' },
+     tags: [ 'coats', 'outerwear', 'clothing' ],
+     ratings: [ { by: 'Customer007', rating: 4 } ]
+   }
+
+Set Fields in Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/use-dot-notation.rst
+
+For the document matching the criteria ``_id`` equal to ``100``, the
+following operation updates the ``make`` field in the ``details``
+document:
+
+.. code-block:: javascript
+
+   db.products.updateOne(
+      { _id: 100 },
+      { $set: { "details.make": "Kustom Kidz" } }
+   )
+
+After updating, the document has the following values:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: 100,
+      quantity: 500,
+      instock: true,
+      reorder: false,
+      details: { model: '2600', make: 'Kustom Kidz' },
+      tags: [ 'coats', 'outerwear', 'clothing' ],
+      ratings: [ { by: 'Customer007', rating: 4 } ]
+   }
+
+.. important::
+
+   The above code uses ``dot notation`` to update the ``make`` field of the 
+   embedded ``details`` document. The code format looks similar to the following 
+   code example, which instead *replaces the entire embedded document*, removing 
+   all other fields in the embedded ``details`` document:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.products.updateOne(
+         { _id: 100 },
+         { $set: { details:
+            {make: "Kustom Kidz"}
+            }
+         })
+
+
+Set Elements in Arrays
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/use-dot-notation.rst
+
+For the document matching the criteria ``_id`` equal to ``100``, the
+following operation updates the value second element (array index of
+``1``) in the ``tags`` field and the ``rating`` field in the first
+element (array index of ``0``) of the ``ratings`` array.
+
+.. code-block:: javascript
+
+   db.products.updateOne(
+      { _id: 100 },
+      { $set:
+         {
+           "tags.1": "rain gear",
+           "ratings.0.rating": 2
+         }
+      }
+   )
+
+
+After updating, the document has the following values:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: 100,
+     quantity: 500,
+     instock: true,
+     reorder: false,
+     details: { model: '2600', make: 'Kustom Kidz' },
+     tags: [ 'coats', 'rain gear', 'clothing' ],
+     ratings: [ { by: 'Customer007', rating: 2 } ]
+   }
+
+
+For additional update operators for arrays, see
+:doc:`/reference/operator/update-array`.
+
+.. seealso::
+
+   - :method:`db.collection.updateMany()`
+   - :method:`db.collection.findAndModify()`
+

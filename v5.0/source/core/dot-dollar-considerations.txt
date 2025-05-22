@@ -1,0 +1,233 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=========================================================
+Field Names with Periods (``.``) and Dollar Signs (``$``) 
+=========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _crud-concepts-dot-dollar-considerations:
+
+Overview 
+--------
+
+MongoDB 5.0 adds improved support for field names that are dollar
+(``$``) prefixed or that contain periods (``.``). The validation rules
+for storing data have been updated to make it easier to work with data
+sources that use these characters. 
+
+In most cases data that has been stored using field names like these
+is not directly accessible. You need to use helper methods like
+:expression:`$getField`, :expression:`$setField`, and
+:expression:`$literal` in queries that access those fields. 
+
+The field name validation rules are not the same for all types of
+storage operations. This page summarizes how different insert and
+update operations handle dollar (``$``) prefixed field names.
+
+Insert operations
+-----------------
+
+Dollar (``$``) prefixed fields are permitted as top level and nested
+field names for inserts.
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+
+   db.sales.insertOne( {
+      "$price": 50.00,
+      "quantity": 30
+   } )
+
+Dollar (``$``) prefixed fields are permitted on inserts using otherwise
+reserved words. Operator names like :update:`$inc` can be used as
+field names as well as words like ``id``, ``db``, and ``ref``.
+
+.. code-block:: javascript
+   :emphasize-lines: 2, 4-6
+
+   db.books.insertOne( {
+      "$id": "h1961-01",
+      "location": {
+         "$db": "novels",
+         "$ref": "2007042768",
+         "$inc": true
+   } } )
+
+An update which creates a new document during an :term:`upsert` is
+treated as an ``insert`` rather than an ``update`` for field name
+validation. :term:`Upserts <upsert>` can accept dollar (``$``) prefixed
+fields. However, :term:`upserts <upsert>` are a special case and
+similar update operations may cause an error if the ``match`` portion
+of the update selects an existing document.
+
+This code sample has ``upsert: true`` so it will insert a new document
+if the collection doesn't already contain a document that matches the
+query term, ``{ "date": "2021-07-07" }``. If this sample code matches
+an existing document, the update will fail since ``$hotel`` is dollar
+(``$``) prefixed.
+
+.. code-block:: javascript
+   :emphasize-lines: 5
+
+   db.expenses.updateOne(
+      { "date": "2021-07-07" },
+      { $set: {
+         "phone": 25.17,
+         "$hotel": 320.10
+      } },
+      { upsert: true }
+   )
+
+Document Replacing Updates
+--------------------------
+
+Update operators either replace existing fields with new documents
+or else modify those fields. In cases where the update performs a
+replacement, dollar (``$``) prefixed fields are not permitted as top
+level field names. 
+
+Consider a document like
+
+.. code-block:: javascript::
+
+   {
+      "_id": "E123",
+      "address": {
+         "$number": 123,
+         "$street": "Elm Road"
+      },
+      "$rooms": {
+         "br": 2,
+         "bath": 1
+      }
+   }
+
+You could use an update operator that replaces an existing document to
+modify the ``address.$street`` field but you could not update the
+``$rooms`` field that way. 
+
+.. code-block::
+
+   db.housing.updateOne(
+      { "_id": "E123" },
+      { $set: { "address.$street": "Elm Ave" } }
+   )
+
+Use :expression:`$setField` as part of an aggregation pipeline to
+:ref:`update top level <dotDollar-aggregate-update>` dollar (``$``)
+prefixed fields like ``$rooms``.
+
+Document Modifying Updates
+--------------------------
+
+When an update modifies, rather than replaces, existing document
+fields, dollar (``$``) prefixed fields can be top level field names.
+Subfields can be accessed directly, but you need a helper method to
+access the top level fields. 
+
+.. seealso::
+
+   :expression:`$getField`, :expression:`$setField`,
+   :expression:`$literal`, :pipeline:`$replaceWith`
+
+Consider a collection with documents like this inventory record:
+
+.. code-block::
+   :copyable: false
+
+   {
+      _id: ObjectId("610023ad7d58ecda39b8d161"),
+      "part": "AB305",
+      "$bin": 200,
+      "quantity": 100,
+      "pricing": { sale: true, "$discount": 60 }
+   }
+
+The ``pricing.$discount`` subfield can be queried directly.
+
+.. code-block::
+
+   db.inventory.findAndModify( {
+       query: { "part": { $eq: "AB305" } },
+       update: { $inc: { "pricing.$discount": 10 } }
+   } )
+
+
+Use :expression:`$getField` and :expression:`$literal` to access the
+value of the top level ``$bin`` field.
+
+.. code-block::
+   :emphasize-lines: 3
+
+   db.inventory.findAndModify( {
+      query: { $expr: {
+         $eq: [ { $getField: { $literal: "$bin" } }, 200 ]
+      } }, 
+      update: { $inc: { "quantity": 10 } }
+   } )
+
+.. _dotDollar-aggregate-update:
+
+Updates Using Aggregation Pipelines
+-----------------------------------
+
+Use :expression:`$setField`, :expression:`$getField`, and
+:expression:`$literal` in the :pipeline:`$replaceWith` stage to modify
+dollar (``$``) prefixed fields in an aggregation :term:`pipeline`.
+
+Consider a collection of school records like:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id": 100001,
+      "$term": "fall",
+      "registered": true,
+      "grade": 4
+   }
+
+Create a new collection for the spring semester using a 
+:term:`pipeline` to update the dollar (``$``) prefixed ``$term`` field.
+
+.. code-block:: javascript
+   :emphasize-lines: 3-5
+
+   db.school.aggregate( [
+      { $match: { "registered": true } }, 
+      { $replaceWith: {
+         $setField: {
+            field: { $literal: "$term" }, 
+            input: "$$ROOT",
+            value: "spring"
+      } } },
+      { $out: "spring2022" }
+   ] )
+
+General Restrictions
+--------------------
+
+In addition to the storage validation rules above, there are some
+general restrictions on using dollar (``$``) prefixed field names.
+These fields cannot: 
+
+- Be indexed
+- Be used as part of a shard key
+- Be validated using :query:`$jsonSchema`
+- Be be modified with an escape sequence
+- Be used with
+  :driver:`Field Level Encryption </security/client-side-field-level-encryption-guide>`
+- Be used as a subfield in an ``_id`` document
+
+.. include:: /includes/warning-possible-data-loss.rst
+
+.. include:: /includes/warning-dot-dollar-import-export.rst
+

@@ -1,0 +1,94 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+==========================
+ClientEncryption.decrypt()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: ClientEncryption.decrypt(encryptedValue)
+
+   :method:`ClientEncryption.decrypt` decrypts the ``encryptionValue`` *if*
+   the current database connection was configured with access to the Key
+   Management Service (KMS) and key vault used to encrypt ``encryptionValue``.
+
+   :returns: The decrypted value.
+
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following
+environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+
+Syntax
+------
+
+:method:`~ClientEncryption.decrypt` has the following syntax:
+
+.. code-block:: bash
+
+   clientEncryption = db.getMongo().getClientEncryption()
+   
+   clientEncryption.decrypt(encryptedValue)
+
+The ``encryptedValue`` *must* be a :bsontype:`binary data <Binary>` object 
+with `subtype 6 
+<https://github.com/mongodb/specifications/blob/master/source/client-side-encryption/subtype6.rst>`_
+created using client-side field level encryption.
+
+Behavior
+--------
+
+Read operations issued from a database connection :method:`configured <Mongo()>`
+with access to the correct Key Management Service (KMS) and Key Vault can
+automatically decrypt field values encrypted using
+:method:`ClientEncryption.encrypt()`. Clients only need to use
+:method:`~ClientEncryption.decrypt()` to decrypt :bsontype:`Binary` subtype 6 
+values not stored within a document field.
+
+Enable Client-Side Field Level Encryption on Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-requires-enabling-encryption.rst
+
+Example
+-------
+
+The following example uses a locally managed KMS for the client-side
+field level encryption configuration.
+
+.. include:: /includes/extracts/csfle-connection-boilerplate.rst
+
+Retrieve the :method:`ClientEncryption <getClientEncryption()>` object
+and use the :method:`ClientEncryption.decrypt()` method to decrypt
+a value encrypted by :method:`ClientEncryption.encrypt()`.
+
+.. code-block:: javascript
+
+   clientEncryption = encryptedClient.getClientEncryption();
+
+   clientEncryption.decrypt(BinData(6,"AmTi2H3xaEk8u9+jlFNaLLkC3Q/+kmwDbbWrq+h9nuv9W+u7A5a0UnpULBNZH+Q21fAztPpU09wpKPrju9dKfpN1Afpj1/ZhFcH6LYZOWSBBOAuUNjPLxMNSYOOuITuuYWo="))
+
+If successful, :method:`~ClientEncryption.decrypt()` returns the
+decrypted value:
+
+.. code-block:: javascript
+   :copyable: false
+
+   "123-45-6789" 
+
+For complete documentation on initiating MongoDB connections with
+client-side field level encryption enabled, see :method:`Mongo()`.

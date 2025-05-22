@@ -1,0 +1,248 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+================================
+$first (aggregation)
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $first
+   
+.. versionchanged:: 5.0
+
+Returns the result of an :ref:`expression <aggregation-expressions>` for
+the first document in a group of documents. Only meaningful when
+documents are in a defined order.
+
+.. include:: /includes/extracts/fact-aggregation-accumulator-first.rst
+
+Syntax
+------
+
+``$first`` syntax:
+
+.. code-block:: javascript
+
+   { $first: <expression> }
+
+Behaviors
+---------
+
+Defining Document Order
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- To define the document order for ``$first`` in a
+  ``$setWindowFields``, set the :ref:`sortBy 
+  <setWindowFields-sortBy>` field.
+
+- To define the document order for ``$first`` in other pipeline stages, 
+  add a preceding :pipeline:`$sort` stage.
+
+Array Operator
+~~~~~~~~~~~~~~
+
+If the expression resolves to an array:
+
+- For a group of documents, ``$first`` returns the entire array 
+  from the first document. It does not traverse array elements. This is
+  the case with stages like :pipeline:`$group` and :pipeline:`$setWindowFields`.
+
+- For an individual document, ``$first`` returns the first element of
+  the array. This is the case with stages like :pipeline:`$addFields`.
+
+Missing Values
+~~~~~~~~~~~~~~
+
+Documents in a group may be missing fields or may have fields with
+missing values.
+
+- If there are no documents from the prior pipeline stage, the 
+  :pipeline:`$group` stage returns nothing.
+
+- If the field that the ``$first`` accumulator is processing is
+  missing, ``$first`` returns ``null``.
+
+- When used with :pipeline:`$setWindowFields`, ``$first`` returns 
+  ``null`` for empty windows. For example, when you have a ``{ documents:[ -1, -1] }`` ``documents`` window on the first document 
+  of a partition.
+
+For more information, see the :ref:`Missing Data
+<first-missing-values-example>` example later in this topic.
+
+Examples
+--------
+
+.. _first-accumulator-group-example:
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the ``sales`` collection:
+
+.. code-block:: javascript
+
+   db.sales.insertMany( [
+      { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-01-01T08:00:00Z") },
+      { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-02-03T09:00:00Z") },
+      { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 5, "date" : ISODate("2014-02-03T09:05:00Z") },
+      { "_id" : 4, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-02-15T08:00:00Z") },
+      { "_id" : 5, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-02-15T09:05:00Z") },
+      { "_id" : 6, "item" : "xyz", "price" : 5, "quantity" : 5, "date" : ISODate("2014-02-15T12:05:10Z") },
+      { "_id" : 7, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-02-15T14:12:12Z") }
+   ] )
+
+Grouping the documents by the ``item`` field, the following operation
+uses the ``$first`` accumulator to return the first sales date for
+each item:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        { $sort: { item: 1, date: 1 } },
+        {
+          $group:
+            {
+              _id: "$item",
+              firstSale: { $first: "$date" }
+            }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   [
+      { _id: 'jkl', firstSale: ISODate("2014-02-03T09:00:00.000Z") },
+      { _id: 'xyz', firstSale: ISODate("2014-02-03T09:05:00.000Z") },
+      { _id: 'abc', firstSale: ISODate("2014-01-01T08:00:00.000Z") }
+   ]
+
+.. _first-missing-values-example:
+
+Missing Data
+~~~~~~~~~~~~
+
+Some documents in the ``badData`` collection are missing fields, other
+documents are missing values. 
+
+Create the ``badData`` collection:
+
+.. code-block:: javascript
+
+   db.badData.insertMany( [
+      { "_id": 1, "price": 6, "quantity": 6 },
+      { "_id": 2, "item": "album", "price": 5 , "quantity": 5  },
+      { "_id": 7, "item": "tape", "price": 6, "quantity": 6 },
+      { "_id": 8, "price": 5, "quantity": 5  },
+      { "_id": 9, "item": "album", "price": 3, "quantity": '' },
+      { "_id": 10, "item": "tape", "price": 3, "quantity":  4 },
+      { "_id": 12, "item": "cd", "price": 7  }
+   ] )
+
+Query the ``badData`` collection, grouping the output on the ``item``
+field:
+
+.. code-block:: javascript
+
+   db.badData.aggregate( [
+      { $sort: { item: 1, price: 1 } },
+      { $group: 
+         { 
+            _id: "$item",
+            inStock: { $first: "$quantity" }
+         }
+      }
+   ] )
+
+The ``$sort`` stage orders the documents and passes them to the
+``$group`` stage.
+
+.. code-block:: javascript
+
+   [
+     { _id: null, inStock: 5 },
+     { _id: 'album', inStock: '' },
+     { _id: 'cd', inStock: null },
+     { _id: 'tape', inStock: 4 }
+   ]
+
+``$first`` selects the first document from each output group:
+
+- The ``_id: null`` group is included.
+- When the accumulator field, ``$quantity`` in this example, is 
+  missing, ``$first`` returns ``null``.
+
+.. _first-accumulator-window-example:
+
+Use in ``$setWindowFields`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses ``$first`` in the :pipeline:`$setWindowFields`
+stage to output the first cake sales order ``type`` for each ``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               firstOrderTypeForState: {
+                  $first: "$type",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }         
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the ``firstOrderTypeForState`` field to the first
+  order ``type`` from the ``documents`` window.
+  
+  The ``window`` contains documents between an ``unbounded`` lower limit
+  and the ``current`` document in the output. This means ``$first``
+  returns the first order ``type`` for the documents between the
+  beginning of the partition and the current document.
+
+In this output, the first order ``type`` value for ``CA`` and ``WA`` is
+shown in the ``firstOrderTypeForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "firstOrderTypeForState" : "strawberry" }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "firstOrderTypeForState" : "strawberry" }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "firstOrderTypeForState" : "strawberry" }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "firstOrderTypeForState" : "strawberry" }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "firstOrderTypeForState" : "strawberry" }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "firstOrderTypeForState" : "strawberry" }

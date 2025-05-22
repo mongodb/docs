@@ -1,0 +1,76 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _geospatial-indexes-haystack-index:
+
+=======================
+Create a Haystack Index
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. important:: Removed in MongoDB 5.0
+
+   .. include:: /includes/fact-5.0-geohaystack-removed.rst
+
+A haystack index must reference two fields: the location field and a
+second field. The second field is used for exact matches. Haystack
+indexes return documents based on location and an exact match on a
+single additional criterion. These indexes are not necessarily suited
+to returning the closest documents to a particular location.
+
+To build a haystack index, use the following syntax:
+
+.. code-block:: javascript
+
+   db.coll.createIndex( { <location field> : "geoHaystack" ,
+                          <additional field> : 1 } ,
+                        { bucketSize : <bucket value> } )
+
+To build a haystack index, you must specify the ``bucketSize`` option
+when creating the index. A ``bucketSize`` of ``5`` creates an index
+that groups location values that are within 5 units of the specified
+longitude and latitude. The ``bucketSize`` also determines the
+granularity of the index. You can tune the parameter to the
+distribution of your data so that in general you search only very small
+regions. The areas defined by buckets can overlap. A document can exist
+in multiple buckets.
+
+.. example::
+
+   If you have a collection with documents that contain fields similar to
+   the following:
+
+   .. code-block:: javascript
+
+      { _id : 100, pos: { lng : 126.9, lat : 35.2 } , type : "restaurant"}
+      { _id : 200, pos: { lng : 127.5, lat : 36.1 } , type : "restaurant"}
+      { _id : 300, pos: { lng : 128.0, lat : 36.7 } , type : "national park"}
+
+   The following operations create a haystack index with buckets that
+   store keys within 1 unit of longitude or latitude.
+
+   .. code-block:: javascript
+
+      db.places.createIndex( { pos : "geoHaystack", type : 1 } ,
+                             { bucketSize : 1 } )
+
+   This index stores the document with an ``_id`` field that has the
+   value ``200`` in two different buckets:
+
+   - In a bucket that includes the document where the ``_id`` field has
+     a value of ``100``
+
+   - In a bucket that includes the document where the ``_id`` field has
+     a value of ``300``
+
+To query using a haystack index you use the :dbcommand:`geoSearch`
+command. See :ref:`geospatial-indexes-haystack-queries`.
+
+By default, queries that use a haystack index return 50 documents.
