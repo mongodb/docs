@@ -1,0 +1,285 @@
+.. _compact:
+
+=======
+compact
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: compact
+
+   Rewrites and defragments all data and indexes in a collection. On
+   :ref:`WiredTiger <storage-wiredtiger>` databases, this command
+   releases unneeded disk space to the operating system.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { 
+        compact: <collection name> 
+      }
+   )
+
+Command Fields
+--------------
+
+The command takes the following fields:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``compact``
+     - string
+     - The name of the collection.
+
+   * - ``force``
+     - flag
+     - .. _compact-force-option:
+
+       Optional. If specified, forces 
+       ``compact`` to run on the :term:`primary` in 
+       a :term:`replica set`. ``compact`` does not block 
+       :ref:`crud` on the database it is compacting. 
+      
+   * - ``comment``
+     - any
+     - .. include:: /includes/extracts/comment-content.rst
+
+.. warning:: Always have an up-to-date backup before performing server
+   maintenance such as the ``compact`` operation.
+
+.. _compact-authentication:
+
+``compact`` Required Privileges
+-------------------------------
+
+For clusters enforcing :ref:`authentication <authentication>`,
+you must authenticate as a user with the :authaction:`compact` privilege
+action on the target collection. The :authrole:`dbAdmin` role provides 
+the required privileges for running ``compact`` against
+non-system collections. 
+
+For :ref:`system collections <metadata-system-collections>`, you must: 
+
+1. Create a custom role that grants the ``compact`` action on 
+   the system collection.
+2. Grant that role to a new or existing user. 
+3. Authenticate as that user to perform the ``compact`` 
+   command.
+
+For example, the following operations create a custom role that grants
+the ``compact`` action against the specified database and
+collection:
+
+.. code-block:: javascript
+
+   use admin
+   db.createRole(
+     {
+       role: "myCustomCompactRole",
+       privileges: [
+         {
+           resource: { "db" : "<database>" , "collection" : "<collection>" },
+           actions: [ "compact" ]
+         }
+       ],
+       roles: []
+     }
+   )
+
+For more information on configuring the ``resource`` document, see 
+:ref:`resource-document`.
+
+To add the :authrole:`dbAdmin` or the custom role to an existing
+user, use :method:`db.grantRolesToUser` or :method:`db.updateUser()`.
+The following operation grants the custom ``compact`` role to the 
+``myCompactUser`` on the ``admin`` database:
+
+.. code-block:: javascript
+
+   use admin
+   db.grantRolesToUser("myCompactUser", [ "dbAdmin" | "myCustomCompactRole" ] )
+
+To add the :authrole:`dbAdmin` or the custom role to a new user,
+specify the role to the ``roles`` array of the
+:method:`db.createUser()` method when creating the user.
+
+.. code-block:: javascript
+
+   use admin
+   db.createUser(
+     { 
+        user: "myCompactUser",
+        pwd: "myCompactUserPassword",
+        roles: [
+          { role: "dbAdmin", db: "<database>" } | "myCustomCompactRole"
+        ]
+      }
+   )
+
+Behavior
+--------
+
+Blocking
+~~~~~~~~
+
+- .. include:: /includes/reference/compact-methods-list.rst
+
+- All other operations are permitted.
+       
+- The :ref:`locking order <faq-concurrency-locking>` changes.
+
+To run ``compact`` in a replica set, see
+:ref:`compact-cmd-replica-sets` for additional considerations.
+
+Monitoring Progress
+~~~~~~~~~~~~~~~~~~~
+
+To check the ``compact`` operation's progress, monitor the
+:binary:`~bin.mongod` log file or run :method:`db.currentOp()`
+from another shell instance.
+
+Operation Termination
+~~~~~~~~~~~~~~~~~~~~~
+
+If you terminate the operation with the :method:`db.killOp()
+<db.killOp()>` method or restart the server before the
+``compact`` operation has finished, be aware of the following:
+
+- If you have journaling enabled, the data remains valid and
+  usable, regardless of the state of the ``compact`` operation.
+  You may have to manually rebuild the indexes.
+
+- If you do not have journaling enabled and the :binary:`~bin.mongod` or
+  ``compact`` terminates during the operation, it is impossible
+  to guarantee that the data is in a valid state.
+
+- In either case, much of the existing free space in the collection may
+  become un-reusable. In this scenario, you should rerun the compaction
+  to completion to restore the use of this free space.
+
+Disk Space
+~~~~~~~~~~
+
+To see how the storage space changes for the collection, run the
+:dbcommand:`collStats` command before and after compaction.
+
+On :ref:`WiredTiger <storage-wiredtiger>`, ``compact`` attempts
+to reduce the required storage space for data and indexes in a
+collection, releasing unneeded disk space to the operating system. The
+effectiveness of this operation is workload dependent and no disk space
+may be recovered. This command is useful if you have removed a large
+amount of data from the collection, and do not plan to replace it.
+
+``compact`` may require additional disk space to run on
+WiredTiger databases.
+
+.. _compact-cmd-replica-sets:
+
+Replica Sets
+~~~~~~~~~~~~
+
+You can use ``compact`` on collections and indexes that are stored in a
+replica set, however there are some important considerations:
+
+- The primary node does not replicate the ``compact`` command to the
+  secondaries.
+- You should run ``compact`` on secondary nodes whenever possible. If
+  you cannot run ``compact`` on secondaries, see the :ref:`force 
+  <compact-force-option>` option.
+- Starting in MongoDB 6.1.0 (and 6.0.2 and 5.0.12):
+
+  - A secondary node can replicate while ``compact`` is running.
+  - Reads are permitted.
+
+
+To run ``compact`` on a cluster
+
+.. procedure::
+   :style: connected
+
+   .. step:: Compact the secondary nodes.
+
+      Run ``compact`` on one of the secondary nodes. When ``compact``
+      finishes, repeat the operation on each of the remaining
+      secondaries in turn.
+
+   .. step:: Reassign the primary node.
+    
+      To step down the current primary and trigger an election, use the
+      :method:`rs.stepDown()` method. To nominate a particular secondary
+      node, :ref:`adjust the member priority
+      <replica-set-adjust-priority>`.
+
+   .. step:: Compact the old primary.
+
+      After stepping down, the old primary node becomes a secondary
+      node. Run ``compact`` on the old primary node.
+
+Version Specific Considerations for Secondary Nodes
+```````````````````````````````````````````````````
+
+- A secondary node can replicate while ``compact`` is running.
+
+- Reads are permitted.  
+
+While the ``compact`` command is running, the replica set remains in a 
+:replstate:`SECONDARY` status.
+
+For more information about replica set member states, see
+See :ref:`replica-set-member-states`.
+
+For replica set maintenance and availability, see
+:ref:`perform-maint-on-replica-set`.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+``compact`` only applies to :binary:`~bin.mongod` instances. In a
+sharded environment, run ``compact`` on each shard separately
+as a maintenance operation.
+
+You cannot issue ``compact`` against a :binary:`~bin.mongos` instance.
+
+Index Building
+~~~~~~~~~~~~~~
+
+:binary:`~bin.mongod` rebuilds all indexes in parallel following the
+``compact`` operation.
+
+Example
+-------
+
+The following operation runs the ``compact`` command on the
+``movies`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand( { compact: "movies" } )
+
+Running ``compact`` returns output similar to the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { bytesFreed: 27859, ok: 1 }

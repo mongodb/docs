@@ -1,0 +1,234 @@
+===============
+replSetReconfig
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: replSetReconfig
+
+   The :dbcommand:`replSetReconfig` administrative command modifies the
+   configuration of an existing replica set. You can use this command to
+   add and remove members, and to alter the options set on existing
+   members. You must run this command on the ``admin``
+   database of the :term:`primary` replica set member.
+
+   .. |method| replace:: :method:`rs.reconfig` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      { 
+        replSetReconfig: <new_config_document>, 
+        force: <boolean>,
+        maxTimeMS: <int>
+       }
+    )
+
+Command Fields
+--------------
+
+The command takes the following optional field:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+ 
+   * - Field
+     - Description
+ 
+   * - .. _replSetReconfig-cmd-force:
+       
+       :ref:`force <replSetReconfig-cmd-force>`
+ 
+     - Defaults to ``false``. Specify ``true`` to force the
+       available replica set members to accept the new configuration.
+ 
+       Force reconfiguration can result in unexpected or
+       undesired behavior, including :ref:`rollback
+       <replica-set-rollbacks>` of :writeconcern:`"majority"`
+       committed writes.
+ 
+   * - .. _replSetReconfig-cmd-maxTimeMS:
+ 
+       :ref:`maxTimeMS <replSetReconfig-cmd-maxTimeMS>`
+ 
+     - Optional. Specifies a cumulative time limit in milliseconds
+       for processing the :dbcommand:`replSetReconfig`. By default,
+       :dbcommand:`replSetReconfig` waits indefinitely for the
+       replica configuration to propagate to a majority of replica
+       set members. Setting ``maxTimeMS`` may result 
+       in the operation failing *before* it can apply the new 
+       configuration. See :ref:`replSetReconfig-cmd-majority-install` 
+       for more information.
+
+You may also run :dbcommand:`replSetReconfig` with the shell's
+:method:`rs.reconfig()` method.
+
+.. slave-ok, admin-only
+
+Behavior
+--------
+
+Global Write Concern
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-set-global-write-concern-before-reconfig.rst
+
+``term`` Replica Configuration Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :rsconf:`term` field is set by the :term:`primary` replica set member. 
+The primary ignores the :rsconf:`term` field if set explicitly in the
+:dbcommand:`replSetReconfig` operation.
+
+.. |reconfig| replace:: :dbcommand:`replSetReconfig`
+.. |reconfig-force| replace:: :ref:`force <replSetReconfig-cmd-force>`
+.. |reconfig-maxTimeMS| replace:: :ref:`maxTimeMS <replSetReconfig-cmd-maxTimeMS>`
+
+.. _replSetReconfig-cmd-single-node:
+
+Reconfiguration Can Add or Remove No More than One Voting Member at a Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/replSetReconfig-single-node.rst
+
+.. _replSetReconfig-cmd-majority-install:
+
+Reconfiguration Waits Until a Majority of Members Install the Replica Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/replSetReconfig-majority.rst
+
+Automatic Reconfiguration for New Voting Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/initial-sync-semantics.rst
+
+Access Control
+~~~~~~~~~~~~~~
+
+To run the command on deployments that enforce :doc:`access
+control</core/authorization>`, the user must have
+:authaction:`replSetConfigure` privilege action on the cluster
+resource. The :authrole:`clusterManager` built-in role, available in
+the ``admin`` database, provides the required privileges for this
+command.
+
+Locking Behavior
+~~~~~~~~~~~~~~~~
+
+:dbcommand:`replSetReconfig` obtains a special mutually
+exclusive lock to prevent more than one
+:dbcommand:`replSetReconfig` operation from occurring at the same
+time.
+
+Mixed Version Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning:: 
+
+   .. include:: /includes/warning-mixed-version-rs-config.rst
+
+Availability
+~~~~~~~~~~~~
+
+A majority of the set's members must be operational for the changes to 
+propagate properly.
+
+:dbcommand:`replSetReconfig` can trigger the current 
+primary to step down in some situations. Primary step-down triggers 
+an :ref:`election <replica-set-elections>` to select a new 
+:term:`primary`:
+
+- When the new primary steps up, it increments the :rsconf:`term` field to 
+  distinguish configuration changes made on the new primary from changes made 
+  on the previous primary.
+
+- Starting in MongoDB 4.2, when the primary steps down, it no longer
+  closes all client connections; however, writes that were in progress
+  are killed. For details, see :ref:`replSetStepDown-behavior`.
+
+- In MongoDB 4.0 and earlier, when the primary steps down, it closes
+  all client connections.
+
+.. include:: /includes/fact-election-latency.rst
+
+During the election process, the cluster cannot
+accept write operations until it elects the new primary.
+
+.. include:: /includes/fact-retryable-writes-failover-election.rst
+
+To further reduce potential impact to a production cluster,
+reconfigure only during scheduled maintenance periods.
+
+``{ force: true }``
+~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Forcing the :dbcommand:`replSetReconfig` command can lead to a
+   :term:`rollback` situation. Use with caution.
+
+Drop Outgoing Connections After Removing a Member
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using :dbcommand:`replSetReconfig` to remove a replica set member does
+not automatically drop open outgoing connections from other replica
+set members to the removed member.
+
+By default, replica set members wait for 5 minutes before dropping
+connections to the removed member. In sharded replica sets, you can
+modify this timeout using the
+:parameter:`ShardingTaskExecutorPoolHostTimeoutMS` server parameter.
+
+.. versionadded:: 4.2
+
+   To immediately drop all outgoing connections from the replica set to
+   the removed member, run the :dbcommand:`dropConnections`
+   administrative command on each remaining member on the replica set:
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+     {
+       "dropConnections" : 1,
+       "hostAndPort" : [
+         "<hostname>:<port>"
+       ] 
+     } 
+   )
+
+Replace ``<hostname>`` and ``<port>`` with those of the removed 
+member.
+
+.. include:: /includes/warning-no-ip-addresses-in-split-horizons.rst
+
+Member Priority and Votes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+   
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+Additional Information
+----------------------
+
+:ref:`replSetGetConfig-output`,
+:doc:`/reference/replica-configuration`, :method:`rs.reconfig()`, and
+:method:`rs.conf()`.

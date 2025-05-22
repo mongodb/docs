@@ -1,0 +1,149 @@
+====================
+cursor.isExhausted()
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: cursor.isExhausted()
+
+   .. include:: /includes/fact-mongosh-shell-method.rst
+
+   :returns: Boolean
+
+   :method:`cursor.isExhausted()` returns ``false`` if documents remain
+   in the current document batch read by the cursor. Otherwise,
+   returns ``true``.
+
+Behavior
+--------
+
+Tailable Cursors
+~~~~~~~~~~~~~~~~
+
+You can use ``isExhausted()`` with a :ref:`tailable cursor
+<tailable-cursors-landing-page>`. A tailable cursor stays open even if
+no documents remain in the current batch. Other cursors are
+automatically closed when no documents remain.
+
+Change Streams
+~~~~~~~~~~~~~~
+
+You cannot use ``isExhausted()`` with :ref:`change streams
+<changeStreams>`. Instead, to examine if:
+
+- documents remain in a change stream cursor, use
+  :method:`cursor.tryNext()`.
+- a change stream cursor is closed, use :method:`cursor.isClosed()`.
+
+For change stream examples, see :ref:`Watch Example <db.watch-example>`
+and :ref:`Change Stream Images Example
+<db.collection.watch-change-streams-pre-and-post-images-example>`.
+
+Examples
+--------
+
+This section contains examples that use a cursor to read documents from
+a collection with temperature readings from a weather sensor. You'll see
+examples of ``isExhausted()``.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the collection
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.sensor.insertMany( [
+            { _id: 0, temperature: 12 },
+            { _id: 1, temperature: 23 }
+         ] )
+
+   .. step:: Create a cursor variable
+
+      Create a cursor variable named ``sensorCursor`` that reads the
+      documents from the ``sensor`` collection:
+
+      .. code-block:: javascript
+
+         var sensorCursor = db.sensor.find()
+
+   .. step:: Count the number of documents in the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.count()
+
+      The output is ``2`` because there are two documents in the
+      collection.
+
+   .. step:: Return the first document from the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.next()
+
+      Output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { _id: 0, temperature: 12 }
+
+   .. step:: Examine the ``isExhausted()`` value
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.isExhausted()
+
+      The output is ``false`` because there is a remaining document
+      in ``sensorCursor``.
+
+   .. step:: Return the next document from the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.next()
+
+      Output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { _id: 1, temperature: 23 }
+
+   .. step:: Attempt to return the next document from the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.next()
+
+      There are no more documents and the example returns ``null``.
+
+   .. step:: Examine the ``isExhausted()`` value
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.isExhausted()
+
+      There are no more documents and ``isExhausted()`` returns
+      ``true``.

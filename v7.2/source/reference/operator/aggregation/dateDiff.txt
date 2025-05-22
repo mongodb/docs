@@ -1,0 +1,446 @@
+=======================
+$dateDiff (aggregation)
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $dateDiff
+
+   .. versionadded:: 5.0
+
+   Returns the difference between two dates. 
+
+   The :expression:`$dateDiff` expression has this syntax:
+
+   .. code-block:: javascript
+
+      { 
+         $dateDiff: { 
+            startDate: <Expression>, 
+            endDate: <Expression>, 
+            unit: <Expression>, 
+            timezone: <tzExpression>,
+            startOfWeek: <String> 
+         }
+      } 
+
+   Subtracts ``startDate`` from ``endDate``. Returns an integer in the
+   specified ``unit``. 
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 60
+
+      * - Field
+        - Required/Optional
+        - Description
+
+      * - ``startDate``
+        - Required
+        - The start of the time period. The ``startDate`` can be any
+          :ref:`expression <aggregation-expressions>` that resolves to
+          a :ref:`Date <document-bson-type-date>`, a
+          :ref:`Timestamp <document-bson-type-timestamp>`,
+          or an :ref:`ObjectID <document-bson-type-object-id>`.
+
+      * - ``endDate``
+        - Required
+        - The end of the time period. The ``endDate`` can be any
+          :ref:`expression <aggregation-expressions>` that resolves to
+          a :ref:`Date <document-bson-type-date>`, a
+          :ref:`Timestamp <document-bson-type-timestamp>`,
+          or an :ref:`ObjectID <document-bson-type-object-id>`.
+
+      * - ``unit``
+        - Required
+        - The time measurement ``unit`` between the ``startDate`` and
+          ``endDate``. It is an 
+          :ref:`expression <aggregation-expressions>` that resolves to
+          a string:
+
+          - ``year`` 
+          - ``quarter``
+          - ``week``
+          - ``month``
+          - ``day``
+          - ``hour``
+          - ``minute``
+          - ``second``
+          - ``millisecond``
+
+      * - ``timezone``
+        - Optional
+        - .. include:: /includes/fact-timezone-description-no-option.rst
+
+      * - ``startOfWeek``
+        - Optional
+        - Used when the unit is equal to ``week``. Defaults to
+          ``Sunday``. The ``startOfWeek`` parameter is an
+          :ref:`expression <aggregation-expressions>` that resolves
+          to a case insensitive string:
+
+          - ``monday`` (or ``mon``)
+          - ``tuesday`` (or ``tue``)
+          - ``wednesday`` (or ``wed``)
+          - ``thursday`` (or ``thu``)
+          - ``friday`` (or ``fri``)
+          - ``saturday`` (or ``sat``)
+          - ``sunday`` (or ``sun``)
+
+.. seealso::
+
+   :ref:`aggregation-expressions`, :ref:`bson-types`.
+
+Behavior
+--------
+
+No Fractional Units
+~~~~~~~~~~~~~~~~~~~
+
+The ``$dateDiff`` expression returns the integer difference between the
+``startDate`` and ``endDate`` measured in the specified ``units``.
+Durations are measured by counting the number of times a unit boundary
+is passed. For example, two dates that are 18 months apart would
+return 1 ``year`` difference instead of 1.5 ``years``.
+
+Start Of Week
+~~~~~~~~~~~~~
+
+The start of the ``week`` is ``Sunday`` unless modified by the
+``startOfWeek`` parameter. Any week that begins between the 
+``startDate`` and ``endDate`` on the specified day will be counted. The
+week count is not bounded by calendar ``month`` or calendar ``year``.
+
+Time Zone
+~~~~~~~~~
+
+.. include:: /includes/fact-olson-tz-behavior.rst
+
+Additional Details
+~~~~~~~~~~~~~~~~~~
+
+The algorithm calculates the date difference using the Gregorian
+calendar. 
+
+Leap years and daylight savings time are accounted for but not leap
+seconds.
+
+The difference returned can be negative.   
+
+Examples
+--------
+
+Elapsed Time
+~~~~~~~~~~~~
+
+Create a collection of customer orders:
+
+.. code-block:: javascript
+
+   db.orders.insertMany(
+      [
+         { 
+            custId: 456, 
+            purchased: ISODate("2020-12-31"), 
+            delivered: ISODate("2021-01-05")
+         },
+         { 
+            custId: 457, 
+            purchased: ISODate("2021-02-28"), 
+            delivered: ISODate("2021-03-07")
+         },
+         { 
+            custId: 458, 
+            purchased: ISODate("2021-02-16"), 
+            delivered: ISODate("2021-02-18")
+         }
+      ]
+   )
+ 
+
+The following example:
+
+- Returns the average number of days for a delivery.
+- Uses ``dateDiff`` to calculate the difference between the
+  ``purchased`` date and the ``delivered`` date.
+
+.. code-block:: javascript
+   :emphasize-lines: 11-16
+
+    db.orders.aggregate(
+       [
+          { 
+             $group: 
+                { 
+                    _id: null, 
+                    averageTime: 
+                       { 
+                          $avg:
+                             { 
+                                $dateDiff: 
+                                   { 
+                                       startDate: "$purchased",
+                                       endDate: "$delivered",
+                                       unit: "day"
+                                   } 
+                              }
+                       }
+                }
+          },
+          {
+             $project:
+                { 
+                   _id: 0,
+                   numDays: 
+                      { 
+                         $trunc: 
+                            [ "$averageTime", 1 ]
+                      }
+                }
+           }
+       ]
+   )
+
+The :group:`$avg` accumulator in the :pipeline:`$group` stage uses
+``$dateDiff`` on each document to get the time between the
+``purchased`` and ``delivered`` dates. The resulting value is returned
+as ``averageTime``.
+
+The decimal portion of the ``averageTime`` is truncated
+(:expression:`$trunc`) in the :pipeline:`$project` stage to produce
+output like this:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "numDays" : 4.6 }
+
+Result Precision
+~~~~~~~~~~~~~~~~
+
+Create this collection with starting and ending dates for a
+subscription. 
+
+.. code-block:: javascript
+
+   db.subscriptions.insertMany(
+      [
+         { 
+            custId: 456,
+            start: ISODate("2010-01-01"),
+            end: ISODate("2011-01-01")
+         },
+         {
+            custId: 457,
+            start: ISODate("2010-01-01"),
+            end: ISODate("2011-06-31")
+         },
+         {
+            custId: 458, 
+            start: ISODate("2010-03-01"),
+            end: ISODate("2010-04-30")
+         }
+      ]
+   )
+
+The ``$dateDiff`` expression returns a time difference expressed in
+integer ``units``. There are no fractional parts of a unit. For
+example, when counting in ``years`` there are no half years. 
+
+In this example, note how changing the ``unit`` changes the returned
+precision: 
+
+.. code-block:: javascript
+   :emphasize-lines: 10-14, 19-23, 28-33
+
+   db.subscriptions.aggregate(
+      [
+         {
+            $project:
+               { 
+                  Start: "$start",
+                  End: "$end", 
+                  years:
+                     {
+                        $dateDiff:
+                           {
+                              startDate: "$start",
+                              endDate: "$end",
+                              unit: "year"
+                           }
+                     }, 
+                  months:
+                     {
+                        $dateDiff:
+                           {
+                              startDate: "$start",
+                              endDate: "$end",
+                              unit: "month"
+                           }
+                     },
+                  days:
+                     {
+                        $dateDiff:
+                           {
+                              startDate: "$start",
+                              endDate: "$end",
+                              unit: "day"
+                           }
+                     },
+                  _id: 0 
+               }
+          }
+      ]
+    )
+
+The results are summarized in this table:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 23 23 18 18 18
+
+   * - Start
+     - End
+     - Years
+     - Months
+     - Days 
+
+   * - 2010-01-01
+     - 2011-01-01
+     - 1
+     - 12
+     - 365
+
+   * - 2010-01-01
+     - 2011-07-01
+     - 1
+     - 18
+     - 546
+
+   * - 2010-03-01
+     - 2010-04-30
+     - 0
+     - 1
+     - 60
+ 
+The count only increments when a new ``unit`` starts, so 18 months are
+reported as 1 year in the second row and 60 days are reported as one
+month in the third row.
+
+Weeks Per Month
+~~~~~~~~~~~~~~~
+
+Create a collection of months:
+
+.. code-block:: javascript
+
+   db.months.insertMany(
+        [
+           { 
+              month: "January",
+              start: ISODate("2021-01-01"),
+              end: ISODate("2021-01-31")
+           },
+           { 
+              month: "February",
+              start: ISODate("2021-02-01"),
+              end: ISODate("2021-02-28")
+           },
+           {
+              month: "March",
+              start: ISODate("2021-03-01"),
+              end: ISODate("2021-03-31")
+           },
+        ]
+      )
+
+You can change the start of each week, and count the resulting number of
+weeks in each month with the following code:
+
+.. code-block:: javascript
+   :emphasize-lines: 8-13, 17-23, 27-33
+
+   db.months.aggregate(
+      [
+         {
+            $project:
+               { 
+                  wks_default:
+                     {
+                        $dateDiff:
+                           { 
+                              startDate: "$start",  
+                              endDate: "$end", 
+                              unit: "week"
+                           }
+                     }, 
+                  wks_monday:
+                     {
+                        $dateDiff:
+                           { 
+                              startDate: "$start",
+                              endDate: "$end", 
+                              unit: "week", 
+                              startOfWeek: "Monday"
+                           }
+                     },
+                  wks_friday:
+                     {
+                        $dateDiff:
+                           { 
+                              startDate: "$start",
+                              endDate: "$end",
+                              unit: "week",
+                              startOfWeek: "fri" 
+                           }
+                     },
+                  _id: 0 
+               }
+          }
+      ]
+    )
+
+The results are summarized in this table:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 20 20 20 
+
+   * - Month
+     - Sunday
+     - Monday
+     - Friday
+
+   * - January
+     - 5
+     - 4
+     - 4
+
+   * - February
+     - 4
+     - 3
+     - 4
+
+   * - March
+     - 4
+     - 4
+     - 4
+
+From the results:
+
+- When the ``startOfWeek`` is Sunday, the 5th ``week`` in January, 2021
+  begins on the 31st.
+- Because the 31st is a Sunday and it is between ``startDate`` and
+  ``endDate``, one ``week`` is added to the count.
+- The ``week`` count is incremented even when a calendar week finishes
+  after ``endDate`` or in the next calendar period.
+

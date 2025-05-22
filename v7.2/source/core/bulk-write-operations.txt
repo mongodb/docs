@@ -1,0 +1,157 @@
+.. _bulk-write-operations:
+
+=====================
+Bulk Write Operations
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+MongoDB provides clients the ability to perform write operations in
+bulk. Bulk write operations affect a *single* collection. MongoDB
+allows applications to determine the acceptable level of
+acknowledgment required for bulk write operations.
+
+The :method:`db.collection.bulkWrite()` method provides the ability to 
+perform bulk insert, update, and delete operations.
+
+MongoDB also supports bulk insert through the 
+:method:`db.collection.insertMany()` method.
+
+.. _bulk-write-operations-ordered-vs-unordered:
+
+Ordered vs Unordered Operations
+-------------------------------
+
+Bulk write operations can be either *ordered* or *unordered*. 
+
+With an ordered list of operations, MongoDB executes the operations serially.
+If an error occurs during the processing of one of the write
+operations, MongoDB will return without processing any remaining write
+operations in the list. 
+See :ref:`ordered Bulk Write<bulkwrite-example-bulk-write-operation>`
+
+With an unordered list of operations, MongoDB can execute the
+operations in parallel, but this behavior is not guaranteed. 
+If an error occurs during the processing of one
+of the write operations, MongoDB will continue to process remaining
+write operations in the list. 
+See :ref:`bulkwrite-example-unordered-bulk-write`.
+
+Executing an ordered list of operations on a sharded collection will
+generally be slower than executing an unordered list since with an
+ordered list, each operation must wait for the previous operation to
+finish.
+
+By default, :method:`~db.collection.bulkWrite()` performs ``ordered`` 
+operations. To specify ``unordered`` write operations, set 
+``ordered : false`` in the options document.
+
+See :ref:`bulkwrite-write-operations-executionofoperations`
+
+bulkWrite() Methods
+-------------------
+
+:method:`~db.collection.bulkWrite()` supports the following write operations: 
+
+- :ref:`bulkwrite-write-operations-insertOne`
+- :ref:`updateOne <bulkwrite-write-operations-updateOneMany>`
+- :ref:`updateMany <bulkwrite-write-operations-updateOneMany>`
+- :ref:`bulkwrite-write-operations-replaceOne`
+- :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
+- :ref:`deleteMany <bulkwrite-write-operations-deleteOneMany>`
+
+Each write operation is passed to :method:`~db.collection.bulkWrite()` as a 
+document in an array.
+
+Example
+-------
+
+The example in this section uses the ``pizzas`` collection:
+
+.. include:: /includes/pizza-example-collection.rst
+
+.. include:: /includes/pizza-bulk-write-example.rst
+
+For more examples, see :ref:`bulkWrite() Examples
+<bulkwrite-example-bulk-write-operation>`.
+
+Strategies for Bulk Inserts to a Sharded Collection
+---------------------------------------------------
+
+Large bulk insert operations, including initial data inserts or routine
+data import, can affect :term:`sharded cluster` performance. For
+bulk inserts, consider the following strategies:
+
+Pre-Split the Collection
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the sharded collection is empty, then the collection has only
+one initial :term:`chunk`, which resides on a single shard.
+MongoDB must then take time to receive data, create splits, and
+distribute the split chunks to the available shards. To avoid this
+performance cost, you can pre-split the collection, as described in
+:doc:`/tutorial/split-chunks-in-sharded-cluster`.
+
+Unordered Writes to ``mongos``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To improve write performance to sharded clusters, use 
+:method:`~db.collection.bulkWrite()` with the optional parameter ``ordered`` 
+set to ``false``. :binary:`~bin.mongos` can attempt to send the writes to 
+multiple shards simultaneously. For *empty* collections,
+first pre-split the collection as described in
+:doc:`/tutorial/split-chunks-in-sharded-cluster`.
+
+Avoid Monotonic Throttling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your shard key increases monotonically during an insert, then all
+inserted data goes to the last chunk in the collection, which will
+always end up on a single shard. Therefore, the insert capacity of the
+cluster will never exceed the insert capacity of that single shard.
+
+If your insert volume is larger than what a single shard can process,
+and if you cannot avoid a monotonically increasing shard key, then
+consider the following modifications to your application:
+
+- Reverse the binary bits of the shard key. This preserves the
+  information and avoids correlating insertion order with increasing
+  sequence of values.
+
+- Swap the first and last 16-bit words to "shuffle" the inserts.
+
+.. example:: The following example, in C++, swaps the leading and
+   trailing 16-bit word of :term:`BSON` :term:`ObjectIds <ObjectId>`
+   generated so they are no longer monotonically increasing.
+
+   .. code-block:: cpp
+
+      using namespace mongo;
+      OID make_an_id() {
+        OID x = OID::gen();
+        const unsigned char *p = x.getData();
+        swap( (unsigned short&) p[0], (unsigned short&) p[10] );
+        return x;
+      }
+
+      void foo() {
+        // create an object
+        BSONObj o = BSON( "_id" << make_an_id() << "x" << 3 << "name" << "jane" );
+        // now we may insert o into a sharded collection
+      }
+
+.. seealso::
+
+   :ref:`sharding-shard-key` for information
+   on choosing a sharded key. Also see :ref:`Shard Key
+   Internals <sharding-internals-shard-keys>` (in particular,
+   :ref:`sharding-internals-operations-and-reliability`).

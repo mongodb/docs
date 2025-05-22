@@ -1,0 +1,270 @@
+========================
+db.collection.distinct()
+========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Find distinct values that occur in a field within a collection.
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.distinct(field, query, options)
+
+
+   .. |dbcommand| replace:: :dbcommand:`distinct` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+
+   Finds the distinct
+   values for a specified field across a single collection or view and returns
+   the results in an array.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.distinct()``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+This method takes the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Parameter
+   
+     - Type
+   
+     - Description
+   
+   * - ``field``
+   
+     - string
+   
+     - The field for which to return distinct values.
+          
+          
+   
+   * - ``query``
+   
+     - document
+   
+     - A query that specifies the documents from which to retrieve the distinct values.
+          
+          
+   
+   * - ``options``
+   
+     - document
+   
+     - Optional. A document that specifies the options.  See :ref:`distinct-method-options`.
+          
+          
+
+.. include:: /includes/note-distinct-bson-limit-agg-alternative.rst
+
+The following diagram shows an example
+:method:`db.collection.distinct()` call.
+
+.. include:: /images/distinct.rst
+
+.. _distinct-method-options:
+
+Options
+-------
+
+.. code-block:: javascript
+
+   { collation: <document> }
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``collation``
+
+     - document
+
+     - Optional. 
+       
+       .. include:: /includes/extracts/collation-option.rst
+       
+       
+
+
+
+Behavior
+--------
+
+In a :term:`sharded cluster`, the :dbcommand:`distinct` command may return
+:term:`orphaned documents <orphaned document>`.
+
+.. _distinct-method-behavior-array:
+
+Array Fields
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-distinct-method-array-field.rst
+
+For an example, see :ref:`distinct-method-array`.
+
+Index Use
+~~~~~~~~~
+
+.. include:: /includes/extracts/fact-distinct-method-index-use.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-distinct-support.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`db.collection.distinct()`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`distinct`
+
+Examples
+--------
+
+The examples use the ``inventory`` collection that contains the
+following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "dept": "A", "item": { "sku": "111", "color": "red" }, "sizes": [ "S", "M" ] }
+   { "_id": 2, "dept": "A", "item": { "sku": "111", "color": "blue" }, "sizes": [ "M", "L" ] }
+   { "_id": 3, "dept": "B", "item": { "sku": "222", "color": "blue" }, "sizes": "S" }
+   { "_id": 4, "dept": "A", "item": { "sku": "333", "color": "black" }, "sizes": [ "S" ] }
+
+Return Distinct Values for a Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``dept`` from all documents in the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.distinct( "dept" )
+
+The method returns the following array of distinct ``dept`` values:
+
+.. code-block:: javascript
+
+   [ "A", "B" ]
+
+Return Distinct Values for an Embedded Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sku``, embedded in the ``item`` field, from all documents in the
+``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.distinct( "item.sku" )
+
+The method returns the following array of distinct ``sku`` values:
+
+.. code-block:: javascript
+
+   [ "111", "222", "333" ]
+
+.. seealso::
+
+   :ref:`document-dot-notation` for information on accessing fields
+   within embedded documents
+
+.. _distinct-method-array:
+
+Return Distinct Values for an Array Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sizes`` from all documents in the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.distinct( "sizes" )
+
+The method returns the following array of distinct ``sizes`` values:
+
+.. code-block:: javascript
+
+   [ "M", "S", "L" ]
+
+For information on :method:`~db.collection.distinct()` and array
+fields, see the :ref:`Behavior <distinct-method-behavior-array>` section.
+
+Specify Query with ``distinct``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sku``, embedded in the ``item`` field, from the documents whose
+``dept`` is equal to ``"A"``:
+
+.. code-block:: javascript
+
+   db.inventory.distinct( "item.sku", { dept: "A" } )
+
+The method returns the following array of distinct ``sku`` values:
+
+.. code-block:: javascript
+
+   [ "111", "333" ]
+
+Specify a Collation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following aggregation operation includes the :ref:`collation`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.distinct( "category", {}, { collation: { locale: "fr", strength: 1 } } )
+
+For descriptions on the collation fields, see
+:ref:`collation-document-fields`.

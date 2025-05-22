@@ -1,0 +1,181 @@
+.. This page is hidden from the TOC and search indexing. 
+ 
+:orphan: 
+ 
+.. meta:: 
+   :robots: noindex, nosnippet
+
+.. _4.2-upgrade-replica-set:
+
+============================
+Upgrade a Replica Set to 4.2
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/4.2-upgrade-replacements.rst
+
+.. include:: /includes/upgrade-copy.rst
+
+.. |downgrading| replace:: :doc:`downgrading </release-notes/4.2-downgrade-replica-set>`
+
+Read Concern Majority (3-Member Primary-Secondary-Arbiter Architecture)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, MongoDB enables support for
+:readconcern:`"majority"` read concern by default.
+
+You can disable read concern :readconcern:`"majority"` to prevent the
+storage cache pressure from immobilizing a three-member replica set
+with a primary-secondary-arbiter (PSA) architecture or a sharded
+cluster with a three-member PSA shards.
+
+.. note::
+
+   .. include:: /includes/extracts/transactions-read-concern-majority.rst
+
+   .. include:: /includes/fact-disable-majority-rc-rollbacks.rst
+
+   .. include:: /includes/extracts/changestream-disable-rc-majority.rst
+   
+   When upgraded to 4.2 with read concern "majority" disabled, you can
+   use change streams for your deployment.
+
+For more information, see :ref:`disable-read-concern-majority`.
+
+Change Stream Resume Tokens
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 uses the version 1 (i.e. ``v1``) change streams
+:ref:`resume tokens <change-stream-resume-token>`, introduced in
+version 4.0.7.
+
+.. include:: /includes/extracts/changestream-resume-token-versions-4.2-greater.rst
+
+.. important:: When upgrading from MongoDB 4.0.6 or earlier to MongoDB |newversion|
+
+
+   During the upgrade process, a client may try to resume change
+   streams using the new ``v1`` resume token when connected to a member
+   that has not been updated (i.e. only accepts ``v0`` token) and
+   fail. In such cases, the client must wait for the |newversion|
+   upgrade to complete before resuming change streams.
+
+Prerequisites
+-------------
+
+All Members Version
+~~~~~~~~~~~~~~~~~~~
+
+All replica set members must be running version |oldversion|. To
+upgrade a replica set from an |olderseries| and earlier, *first*
+:doc:`upgrade all members of the replica set to the latest
+4.0-series release </release-notes/4.0-upgrade-replica-set>`, and
+then follow the procedure to upgrade from MongoDB |oldversion| to
+|newversion|.
+
+MMAPv1 to WiredTiger Storage Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 removes support for the deprecated MMAPv1 storage engine.
+
+If your 4.0 deployment uses MMAPv1, you must change the 4.0 deployment
+to :doc:`/core/wiredtiger` before upgrading to MongoDB 4.2. For details,
+see :doc:`/tutorial/change-replica-set-wiredtiger`.
+
+Increase Open Files ``ulimit`` Setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |ulimit| replace:: :ref:`ulimit <ulimit>`
+
+.. include:: /includes/4.2-changes/open-file-connection-increase.rst
+
+Review Current Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With MongoDB 4.2, the :binary:`mongod <bin.mongod>` and
+:binary:`mongos <bin.mongos>` processes will not start with
+:ref:`4.2-mmapv1-conf-options`. Previous versions of MongoDB running
+WiredTiger ignored MMAPv1 configurations options if they were specified.
+With MongoDB 4.2, you must remove these from your configuration.
+
+Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |oldversion| replica set must have
+``featureCompatibilityVersion`` set to ``4.0``.
+
+To ensure that all members of the replica set have
+``featureCompatibilityVersion`` set to ``4.0``, connect to each
+replica set member and check the ``featureCompatibilityVersion``:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+All members should return a result that includes
+``"featureCompatibilityVersion" : { "version" : "4.0" }``.
+
+To set or update ``featureCompatibilityVersion``, run the
+following command on the primary. A majority of the data-bearing
+members must be available:
+
+.. code-block:: javascript
+
+   db.adminCommand( { setFeatureCompatibilityVersion: "4.0" } )
+
+For more information, see
+:dbcommand:`setFeatureCompatibilityVersion`.
+
+Replica Set Member State
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure that no replica set member is in :replstate:`ROLLBACK` or
+:replstate:`RECOVERING` state.
+
+Download |newversion| Binaries
+------------------------------
+
+Via Package Manager
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-upgrade-with-package-mgr.rst
+
+Manually
+~~~~~~~~
+
+If you have not installed MongoDB using a package manager, you can
+manually download the MongoDB binaries from the `MongoDB Download
+Center <https://www.mongodb.com/download-center?tck=docs_server>`_.
+
+See |installationdoc| for more information.
+
+Upgrade Process
+---------------
+
+You can upgrade from MongoDB |oldversion| to |newversion| using a
+"rolling" upgrade to minimize downtime by upgrading the members
+individually while the other members are available.
+
+.. include:: /includes/steps/4.2-upgrade-replica-set.rst
+
+Post Upgrade
+------------
+
+``TLS`` Options Replace Deprecated ``SSL`` Options
+  .. include:: /includes/extracts/4.2-changes-options-tls-ssl-upgrade.rst
+
+4.2+ compatible Drivers Retry Writes by Default
+  .. include:: /includes/extracts/4.2-changes-drivers-retryWrites-default.rst
+
+Additional Upgrade Procedures
+-----------------------------
+
+- To upgrade a standalone, see :ref:`4.2-upgrade-standalone`.
+- To upgrade a sharded cluster, see :ref:`4.2-upgrade-sharded-cluster`.

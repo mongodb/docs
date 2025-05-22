@@ -1,0 +1,202 @@
+======================
+$toInt (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: type conversion, convert to integer, integer conversion, aggregation, convert to int
+   :keywords: type conversion, convert to integer, integer conversion, aggregation, convert to int
+
+Definition
+----------
+
+.. expression:: $toInt
+
+   Converts a value to an integer. If the value cannot be converted
+   to an integer, :expression:`$toInt` errors. If the value is null or
+   missing, :expression:`$toInt` returns null.
+
+   :expression:`$toInt` has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $toInt: <expression>
+      }
+
+   The :expression:`$toInt` takes any valid :ref:`expression
+   <aggregation-expressions>`.
+
+   The :expression:`$toInt` is a shorthand for the following
+   :expression:`$convert` expression:
+
+   .. code-block:: javascript
+
+      { $convert: { input: <expression>, to: "int" } }
+
+   .. seealso::
+
+      :expression:`$convert`
+
+Behavior
+--------
+
+The following table lists the input types that can be converted to an
+integer:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+     - | Returns ``0`` for  ``false``.
+       | Returns ``1`` for ``true``.
+
+   * - Double
+     - Returns truncated value.
+
+       The truncated double value must fall within the minimum and
+       maximum value for an integer.
+
+       You cannot convert a double value whose truncated value is less
+       than the minimum integer value or is greater than the maximum
+       integer value.
+
+   * - Decimal
+     - Returns truncated value.
+
+       The truncated decimal value must fall within the minimum and
+       maximum value for an integer.
+
+       You cannot convert a decimal value whose truncated value is less
+       than the minimum integer value or is greater than the maximum
+       integer value.
+
+   * - Integer
+     - No-op. Returns the integer value.
+
+   * - Long
+
+     - Returns the long value as an integer.
+
+       The long value must fall within the minimum and maximum value
+       for an integer.
+
+       You cannot convert a long value that is less than the minimum
+       integer value or is greater than the maximum integer value.
+
+   * - String
+     - Returns the numerical value of the string as an integer.
+
+       The string value must be a base\ :sub:`10` integer; e.g.
+       ``"-5"``, ``"123456"``).
+
+       You cannot convert a string value of a float or decimal or
+       non-base\ :sub:`10` number (e.g. ``"-5.0"``, ``"0x6400"``)
+
+The following table lists some conversion to integer examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+
+   * - Example
+     - Results
+
+   * - ``$toInt: true``
+     - 1
+
+   * - ``$toInt: false``
+     - 0
+
+   * - ``$toInt: 1.99999``
+     - 1
+
+   * - ``$toInt: NumberDecimal("5.5000")``
+     - 5
+
+   * - ``$toInt: NumberDecimal("9223372036000.000")``
+     - Error
+
+   * - ``$toInt: NumberLong("5000")``
+     - 5000
+
+   * - ``$toInt: NumberLong("922337203600")``
+     - Error
+
+   * - ``$toInt: "-2"``
+     - -2
+
+   * - ``$toInt: "2.5"``
+     - Error
+
+   * - ``$toInt: null``
+     - null
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insertMany( [
+      { _id: 1, item: "apple", qty: "5", price: 10 },
+      { _id: 2, item: "pie", qty: "10", price: NumberDecimal("20.0") },
+      { _id: 3, item: "ice cream", qty: "2", price: "4.99" },
+      { _id: 4, item: "almonds" ,  qty: "5", price: 5 }
+   ] )
+
+The following aggregation operation:
+
+- converts ``qty`` to an integer,
+- converts ``price`` to a decimal,
+- calculates the total price:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedPrice and convertedQty fields with the converted price and qty values
+
+   priceQtyConversionStage = { 
+      $addFields: { 
+         convertedPrice: { $toDecimal: "$price" },
+         convertedQty: { $toInt: "$qty" },
+      }
+   };
+
+   // Define stage to calculate total price by multiplying convertedPrice and convertedQty fields 
+
+
+   totalPriceCalculationStage = { 
+      $project: { item: 1, totalPrice: { $multiply: [ "$convertedPrice", "$convertedQty" ] } }
+   };
+
+   db.orders.aggregate( [
+      priceQtyConversionStage,
+      totalPriceCalculationStage
+   ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: 'apple', totalPrice: Decimal128("50") },
+   { _id: 2, item: 'pie', totalPrice: Decimal128("200.0") },
+   { _id: 3, item: 'ice cream', totalPrice: Decimal128("9.98") },
+   { _id: 4, item: 'almonds', totalPrice: Decimal128("25") }
+
+.. note::
+
+   If the conversion operation encounters an error, the aggregation
+   operation stops and throws an error. To override this behavior, use
+   :expression:`$convert` instead.

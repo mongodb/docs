@@ -1,0 +1,172 @@
+.. _schema-bypass-document-validation:
+
+========================
+Bypass Schema Validation
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In some situations, you may need to bypass a collection's schema
+validation rules. For example, if you are restoring potentially invalid
+data from a backup to a collection that has validation rules. In this
+scenario, older documents may not meet new validation requirements.
+
+Context
+-------
+
+Bypassing schema validation is done on a per-operation basis. If you
+bypass schema validation to insert an invalid document, any future
+updates to the invalid document must either:
+
+- Also bypass schema validation
+
+- Result in a valid document
+
+Supported Operations
+--------------------
+
+You can use the following commands and methods to bypass validation on a
+per-operation basis:
+
+- :dbcommand:`applyOps` command
+
+- :dbcommand:`findAndModify` command and
+  :method:`db.collection.findAndModify()` method
+
+- :dbcommand:`mapReduce` command and
+  :method:`db.collection.mapReduce()` method
+
+- :dbcommand:`insert` command
+
+- :dbcommand:`update` command
+
+- :pipeline:`$out` and :pipeline:`$merge` stages for the
+  :dbcommand:`aggregate` command and
+  :method:`db.collection.aggregate()` method
+
+Prerequisite
+------------
+
+For deployments that have enabled access control, to bypass document
+validation, the authenticated user must have
+:authaction:`bypassDocumentValidation` action. The built-in roles
+:authrole:`dbAdmin` and :authrole:`restore` provide this action.
+
+Steps
+-----
+
+The following example creates a collection with schema validation, and
+then inserts an invalid document by bypassing the validation rules.
+
+.. procedure::
+
+   .. step:: Create a collection with validation rules
+
+      Create a ``students`` collection and use the :query:`$jsonSchema`
+      operator to set schema validation rules:
+
+      .. code-block:: javascript
+
+         db.createCollection("students", {
+            validator: {
+               $jsonSchema: {
+                  bsonType: "object",
+                  required: [ "name", "year", "major", "address" ],
+                  properties: {
+                     name: {
+                        bsonType: "string",
+                        description: "must be a string and is required"
+                     },
+                     year: {
+                        bsonType: "int",
+                        minimum: 2017,
+                        maximum: 3017,
+                        description: "must be an integer in [ 2017, 3017 ] and is required"
+                     }
+                  }
+               }
+            }
+         } )
+
+   .. step:: Bypass the validation to insert an invalid document
+
+      The following document is invalid because the ``year``
+      field is outside of the allowed bounds (``2017``-``3017``):
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 3
+
+         {
+            name: "Alice",
+            year: Int32( 2016 ),
+            major: "History",
+            gpa: Double(3.0),
+            address: {
+               city: "NYC",
+               street: "33rd Street"
+            }
+         }
+
+      To bypass the validation rules and insert the invalid document,
+      run the following ``insert`` command, which sets the
+      ``bypassDocumentValidation`` option to ``true``:
+
+      .. code-block:: javascript
+         :emphasize-lines: 15
+
+         db.runCommand( {
+            insert: "students",
+            documents: [
+               {
+                  name: "Alice",
+                  year: Int32( 2016 ),
+                  major: "History",
+                  gpa: Double(3.0),
+                  address: {
+                     city: "NYC",
+                     street: "33rd Street"
+                  }
+               }
+            ],
+            bypassDocumentValidation: true
+         } )
+
+Results
+-------
+
+To confirm that the document was successfully inserted, query the
+``students`` collection:
+
+.. code-block:: javascript
+
+   db.students.find()
+
+MongoDB returns the inserted document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("62bcb4db3f7991ea4fc6830e"),
+         name: 'Alice',
+         year: 2016,
+         major: 'History',
+         gpa: 3,
+         address: { city: 'NYC', street: '33rd Street' }
+      }
+   ]
+
+Learn More
+----------
+
+- :ref:`use-json-schema-query-conditions`
+
+- :ref:`schema-specify-validation-level`

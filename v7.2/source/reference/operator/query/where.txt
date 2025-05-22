@@ -1,0 +1,193 @@
+======
+$where
+======
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $where
+
+   Use the :query:`$where` operator to pass either a string
+   containing a JavaScript expression or a full JavaScript function to
+   the query system. The :query:`$where` provides greater
+   flexibility, but requires that the database processes the
+   JavaScript expression or function for *each* document in the
+   collection. Reference the document in the JavaScript expression or
+   function using either ``this`` or ``obj`` .
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$where``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :query:`$where` operator has the following form:
+
+.. code-block:: javascript
+
+   { $where: <string|JavaScript Code> }
+
+.. note::
+
+   :query:`$where` no longer supports the deprecated 
+   :ref:`BSON type <bson-types>` JavaScript code with scope (BSON Type 15). 
+   The :query:`$where` operator only supports BSON type String (BSON Type 2) or 
+   BSON type JavaScript (BSON Type 13). The use of BSON type JavaScript with 
+   scope for :query:`$where` has been deprecated since MongoDB 4.2.1.
+
+.. note:: Aggregation Alternatives Preferred
+
+   The :query:`$expr` operator allows the use of 
+   :ref:`aggregation expressions <aggregation-expressions>` within
+   the query language. The :expression:`$function` and 
+   :group:`$accumulator` allows users to define custom aggregation expressions 
+   in JavaScript if the provided
+   :ref:`pipeline operators <aggregation-pipeline-operator-reference>` 
+   cannot fulfill your application's needs.
+   
+   Given the available aggregation operators:
+
+   - The use of :query:`$expr` with aggregation operators that do not
+     use JavaScript (i.e. non-:expression:`$function` and
+     non-:group:`$accumulator` operators) is faster than
+     :query:`$where` because it does not execute JavaScript and should
+     be preferred if possible.
+
+   - However, if you must create custom expressions,
+     :expression:`$function` is preferred over :query:`$where`.
+
+Behavior
+--------
+
+Available JavaScript Properties and Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-group-map-reduce-where-limitations-in-24.rst
+
+``elemMatch``
+~~~~~~~~~~~~~
+
+Only apply the :query:`$where` query operator to top-level
+documents. The :query:`$where` query operator will not work inside a
+nested document, for instance, in an :query:`$elemMatch` query.
+
+Considerations
+~~~~~~~~~~~~~~
+
+- Do not use global variables.
+
+- :query:`$where` evaluates JavaScript and cannot take
+  advantage of indexes. Therefore, query performance improves
+  when you express your query using the standard MongoDB
+  operators (e.g., :query:`$gt`, :query:`$in`).
+
+- In general, you should use :query:`$where` only when you
+  cannot express your query using another operator. If you must
+  use :query:`$where`, try to include at least one other
+  standard query operator to filter the result set. Using
+  :query:`$where` alone requires a collection scan.
+
+Using normal non\-:query:`$where` query statements provides the
+following performance advantages:
+
+- MongoDB will evaluate non\-:query:`$where` components of query
+  before :query:`$where` statements. If the
+  non\-:query:`$where` statements match no documents, MongoDB
+  will not perform any query evaluation using :query:`$where`.
+
+- The non\-:query:`$where` query statements may use an
+  :term:`index`.
+
+JavaScript Enablement
+~~~~~~~~~~~~~~~~~~~~~
+
+To use :query:`$where` (or :expression:`$function`,
+:group:`$accumulator`, or :dbcommand:`mapReduce`), you must have
+server-side scripting enabled (default).
+
+However, if you do not use these operations, disable server-side
+scripting: 
+
+- For a :binary:`~bin.mongod` instance, see
+  :setting:`security.javascriptEnabled` configuration option or
+  :option:`--noscripting <mongod --noscripting>` command-line option.
+
+- For a :binary:`~bin.mongos` instance, see
+  :setting:`security.javascriptEnabled` configuration option or the
+  :option:`--noscripting <mongos --noscripting>` command-line option.
+
+See also :ref:`security-checklist-javascript`.
+
+Unsupported Array and String Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-6.0-js-engine-change.rst
+
+.. include:: /includes/fact-mozjs-list-lead-in.rst
+
+Example
+-------
+
+Consider the following documents in the ``players`` collection:
+
+.. code-block:: javascript
+
+   db.players.insertMany([
+      { _id: 12378, name: "Steve", username: "steveisawesome", first_login: "2017-01-01" },
+      { _id: 2, name: "Anya", username: "anya", first_login: "2001-02-02" }
+   ])
+
+
+The following example uses :query:`$where` and the ``hex_md5()``
+JavaScript function to compare the value of the ``name`` field to an
+MD5 hash and returns any matching document.
+
+.. code-block:: bash
+
+   db.players.find( { $where: function() { 
+      return (hex_md5(this.name) == "9b53e667f30cd329dca1ec9e6a83e994") 
+   } } );
+
+The operation returns the following result:
+
+.. code-block:: bash
+
+   {
+      "_id" : 2,
+      "name" : "Anya",
+      "username" : "anya",
+      "first_login" : "2001-02-02"
+   }
+
+As an alternative, the previous example can be rewritten using
+:query:`$expr` and :expression:`$function`. You can define custom aggregation 
+expression in JavaScript with the aggregation operator :expression:`$function`. 
+To access :expression:`$function` and other aggregation operators in
+:method:`db.collection.find()`, use with :query:`$expr`:
+
+.. code-block:: javascript
+
+   db.players.find( {$expr: { $function: {
+         body: function(name) { return hex_md5(name) == "9b53e667f30cd329dca1ec9e6a83e994"; },
+         args: [ "$name" ],
+         lang: "js"
+   } } } )
+
+If you must create custom expressions, :expression:`$function` is
+preferred over :query:`$where`.

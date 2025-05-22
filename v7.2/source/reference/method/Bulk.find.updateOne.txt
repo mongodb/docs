@@ -1,0 +1,161 @@
+=====================
+Bulk.find.updateOne()
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-bulkwrite.rst
+
+Description
+-----------
+
+.. method:: Bulk.find.updateOne(<update>)
+
+   Adds a single document update operation to a bulk operations list.
+
+   Use the :method:`Bulk.find()` method to specify the condition that
+   determines which document to update. The
+   :method:`Bulk.find.updateOne()` method limits the update to a single
+   document. To update multiple documents, see
+   :method:`Bulk.find.update()`.
+
+   :method:`Bulk.find.updateOne()` accepts the following parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+
+      * - :ref:`update <bulk-find-updateOne-parameter>`
+
+        - document or pipeline
+
+        - .. _bulk-find-updateOne-parameter:
+
+          The modifications to apply. Can be one of the following:
+
+          .. list-table::
+             :widths: 40 80
+             :class: border-table
+
+             * - A replacement document
+             
+               - Contains only field and value pairs.
+
+                 See also :method:`Bulk.find.replaceOne()`.
+            
+             * - Update document
+               
+               - Contains only :ref:`update operator expressions
+                 <update-operators>`.
+
+             * - Aggregation pipeline
+              
+                 | *Starting in MongoDB 4.2*
+
+               - Contains only the following aggregation stages:
+
+                 .. include:: /includes/list-update-agg-stages.rst
+
+          For more information on the update modification parameter, see the
+          :method:`db.collection.updateOne` reference page.
+          
+          The sum of the associated ``<query>`` document from the
+          :method:`Bulk.find()` and the update document must be
+          less than or equal to the :limit:`maximum BSON document size <BSON
+          Document Size>`.
+          
+          
+   
+
+
+   - To specify an :term:`upsert: true <upsert>` for this operation,
+     use with :method:`Bulk.find.upsert()`.
+
+   - To specify :ref:`3.6-arrayFilters` to update specific array
+     elements, use with :method:`Bulk.find.arrayFilters()`.
+
+   - To specify the index to use for the associated
+     :method:`Bulk.find()`, see :method:`Bulk.find.hint()`.
+
+   - To replace a document wholesale, see also
+     :method:`Bulk.find.replaceOne()`.
+
+Behavior
+--------
+
+If the ``<update>`` document contains only :ref:`update operator
+<update-operators>` expressions, as in:
+
+.. code-block:: javascript
+
+   {
+     $set: { status: "D" },
+     $inc: { points: 2 }
+   }
+
+Then, :method:`Bulk.find.updateOne()` updates only the corresponding
+fields, ``status`` and ``points``, in the document.
+
+Example
+-------
+
+The following example initializes a :method:`Bulk()` operations builder
+for the ``items`` collection, and adds various
+:method:`~Bulk.find.updateOne` operations to the list of operations.
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { status: "D" } ).updateOne( { $set: { status: "I", points: "0" } } );
+   bulk.execute();
+
+.. _example-bulk-find-update-one-agg:
+
+Update with Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, :ref:`update methods
+<4.2-update-using-aggregation>` can accept an aggregation pipeline. For
+example, the following uses:
+
+- the :pipeline:`$set` stage which can provide similar
+  behavior to the :update:`$set` update operator expression,
+
+- the aggregation variable :variable:`NOW`, which resolves to the
+  current datetime and can provide similar behavior to a
+  :update:`$currentDate` update operator expression. To access
+  aggregation variables, prefix the variable with double dollar signs
+  ``$$`` and enclose in quotes.
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( {  status: "P" } ).updateOne(
+      [  
+         { $set: { points: 0, lastModified: "$$NOW" } }
+      ]
+   );
+   bulk.execute();
+
+.. seealso::
+
+   - :method:`db.collection.initializeUnorderedBulkOp()`
+   - :method:`db.collection.initializeOrderedBulkOp()`
+   - :method:`Bulk.find()`
+   - :method:`Bulk.find.update()`
+   - :method:`Bulk.find.replaceOne()`
+   - :method:`Bulk.execute()`
+   - :ref:`All Bulk Methods <bulk-methods>`

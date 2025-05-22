@@ -1,0 +1,344 @@
+===================
+Model Monetary Data
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Applications that handle monetary data often require the ability to
+capture fractional units of currency and need to emulate decimal
+rounding with exact precision when performing arithmetic.
+The binary-based floating-point arithmetic used by many modern systems
+(i.e., float, double) is unable to represent exact decimal fractions
+and requires some degree of approximation making it unsuitable for
+monetary arithmetic. This constraint is an important consideration when
+modeling monetary data.
+
+There are several approaches to modeling monetary data in MongoDB using
+the numeric and non-numeric models.
+
+.. _numeric-model-use-case:
+
+Numeric Model
+~~~~~~~~~~~~~
+
+The numeric model may be appropriate if you need to query the
+database for exact, mathematically valid matches or need to perform
+server-side arithmetic, e.g., :update:`$inc`, :update:`$mul`, and
+:ref:`aggregation pipeline arithmetic <agg-quick-ref-operator-arithmetic>`.
+  
+**The following approaches follow the numeric model:**
+
+- :ref:`numeric-decimal` which is a decimal-based
+  floating-point format capable of providing exact precision. Available
+  in MongoDB version 3.4 and later.
+  
+- :ref:`numeric-scale-factor` to convert the monetary value
+  to a 64-bit integer (``long`` BSON type) by multiplying by a power of
+  10 scale factor.
+
+.. _non-numeric-model-use-case:
+
+Non-Numeric Model
+~~~~~~~~~~~~~~~~~
+
+If there is no need to perform server-side arithmetic on monetary data
+or if server-side approximations are sufficient, modeling monetary data
+using the non-numeric model may be suitable.
+
+**The following approach follows the non-numeric model:**
+
+- :ref:`Using two fields for the monetary value <monetary-value-non-numeric>`:
+  One field stores the exact monetary value as a
+  non-numeric ``string`` and another field stores a binary-based
+  floating-point (``double`` BSON type) approximation of the value.
+
+.. note::
+
+   Arithmetic mentioned on this page refers to server-side
+   arithmetic performed by :binary:`~bin.mongod` or :binary:`~bin.mongos`, and
+   not to client-side arithmetic.
+
+.. _monetary-value-numeric:
+
+Numeric Model
+-------------
+
+.. _numeric-decimal:
+
+Using the Decimal BSON Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``decimal128`` :ref:`BSON type <bson-types>` uses the IEEE 754
+``decimal128`` decimal-based floating-point numbering format. Unlike
+binary-based floating-point formats such as the ``double`` BSON type,
+``decimal128`` does not approximate decimal values and is able to
+provide the exact precision required for working with monetary data.
+
+In :binary:`~bin.mongosh`, ``decimal`` values are assigned and queried
+using the ``Decimal128()`` constructor.  The following example adds a
+document containing gas prices to a ``gasprices`` collection:
+
+.. code-block:: javascript
+
+   db.gasprices.insertOne(
+      {
+         "date" : ISODate(), 
+         "price" : Decimal128("2.099"), 
+         "station" : "Quikstop", 
+         "grade" : "regular" 
+      }
+   )
+
+The following query matches the document above:
+
+.. code-block:: javascript
+
+   db.gasprices.find( { price: Decimal128("2.099") } )
+   
+For more information on the ``decimal`` type, see
+:ref:`shell-type-decimal`.
+
+Converting Values to Decimal
+````````````````````````````
+
+A collection's values can be transformed to the ``decimal`` type by
+performing a one-time transformation or by modifying application logic
+to perform the transformation as it accesses records.
+
+.. tip::
+
+   Alternative to the procedure outlined below, starting in version
+   4.0, you can use the :expression:`$convert` and its helper
+   :expression:`$toDecimal` operator to convert values to ``Decimal128()``.
+
+One-Time Collection Transformation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A collection can be transformed by iterating over all documents in the
+collection, converting the monetary value to the ``decimal`` type, and
+writing the document back to the collection. 
+
+.. note:: It is strongly advised to add the ``decimal`` value to the
+   document as a new field and remove the old field later once the
+   new field's values have been verified. 
+
+.. warning:: Be sure to  test ``decimal`` conversions in an
+   isolated test environment. Once datafiles are created or modified
+   with MongoDB version 3.4 they will no longer be compatible with
+   previous versions and there is no support for downgrading datafiles
+   containing decimals.
+
+**Scale Factor Transformation:**
+   
+Consider the following collection which used the
+:ref:`Scale Factor <numeric-scale-factor>` approach and saved
+the monetary value as a 64-bit integer representing the number of cents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "description" : "T-Shirt", "size" : "M", "price" : NumberLong("1999") },
+   { "_id" : 2, "description" : "Jeans", "size" : "36", "price" : NumberLong("3999") },
+   { "_id" : 3, "description" : "Shorts", "size" : "32", "price" : NumberLong("2999") },
+   { "_id" : 4, "description" : "Cool T-Shirt", "size" : "L", "price" : NumberLong("2495") },
+   { "_id" : 5, "description" : "Designer Jeans", "size" : "30", "price" : NumberLong("8000") }
+
+The ``long`` value can be converted to an appropriately formatted
+``decimal`` value by multiplying ``price`` and
+``NumberDecimal("0.01")`` using the :expression:`$multiply` operator.
+The following aggregation pipeline assigns the converted value to the
+new ``priceDec`` field in the :pipeline:`$addFields` stage:
+
+.. code-block:: javascript
+
+   db.clothes.aggregate(
+     [
+       { $match: { price: { $type: "long" }, priceDec: { $exists: 0 } } }, 
+       {
+         $addFields: {
+           priceDec: {
+             $multiply: [ "$price", NumberDecimal( "0.01" ) ]
+           }
+         }
+       }
+     ]
+   ).forEach( ( function( doc ) {
+     db.clothes.replaceOne( doc );
+   } ) )
+   
+The results of the aggregation pipeline can be verified using the
+``db.clothes.find()`` query:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "description" : "T-Shirt", "size" : "M", "price" : NumberLong(1999), "priceDec" : NumberDecimal("19.99") }
+   { "_id" : 2, "description" : "Jeans", "size" : "36", "price" : NumberLong(3999), "priceDec" : NumberDecimal("39.99") }
+   { "_id" : 3, "description" : "Shorts", "size" : "32", "price" : NumberLong(2999), "priceDec" : NumberDecimal("29.99") }
+   { "_id" : 4, "description" : "Cool T-Shirt", "size" : "L", "price" : NumberLong(2495), "priceDec" : NumberDecimal("24.95") }
+   { "_id" : 5, "description" : "Designer Jeans", "size" : "30", "price" : NumberLong(8000), "priceDec" : NumberDecimal("80.00") }
+
+If you do not want to add a new field with the ``decimal`` value, the
+original field can be overwritten. The following
+:method:`~db.collection.updateMany()` method first checks that ``price``
+exists and that it is a ``long``, then transforms the ``long`` value to
+``decimal`` and stores it in the ``price`` field:
+
+.. code-block:: javascript
+
+   db.clothes.updateMany( 
+     { price: { $type: "long" } },
+     { $mul: { price: NumberDecimal( "0.01" ) } }
+   )
+
+The results can be verified using the ``db.clothes.find()`` query:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "description" : "T-Shirt", "size" : "M", "price" : NumberDecimal("19.99") }
+   { "_id" : 2, "description" : "Jeans", "size" : "36", "price" : NumberDecimal("39.99") }
+   { "_id" : 3, "description" : "Shorts", "size" : "32", "price" : NumberDecimal("29.99") }
+   { "_id" : 4, "description" : "Cool T-Shirt", "size" : "L", "price" : NumberDecimal("24.95") }
+   { "_id" : 5, "description" : "Designer Jeans", "size" : "30", "price" : NumberDecimal("80.00") }
+
+**Non-Numeric Transformation:**
+  
+Consider the following collection which used the
+:ref:`non-numeric <monetary-value-non-numeric>`
+model and saved the monetary value as a ``string`` with the exact
+representation of the value:  
+
+.. code-block:: javascript
+   
+   { "_id" : 1, "description" : "T-Shirt", "size" : "M", "price" : "19.99" }
+   { "_id" : 2, "description" : "Jeans", "size" : "36", "price" : "39.99" }
+   { "_id" : 3, "description" : "Shorts", "size" : "32", "price" : "29.99" }
+   { "_id" : 4, "description" : "Cool T-Shirt", "size" : "L", "price" : "24.95" }
+   { "_id" : 5, "description" : "Designer Jeans", "size" : "30", "price" : "80.00" }
+  
+The following function first checks that ``price`` exists and that it
+is a ``string``, then transforms the ``string`` value to a ``decimal``
+value and stores it in the ``priceDec`` field:
+
+.. code-block:: javascript
+
+   db.clothes.find( { $and : [ { price: { $exists: true } }, { price: { $type: "string" } } ] } ).forEach( function( doc ) {
+     doc.priceDec = NumberDecimal( doc.price );
+     db.clothes.replaceOne( doc );
+   } );
+   
+The function does not output anything to the command line. The results
+can be verified using the ``db.clothes.find()`` query:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "description" : "T-Shirt", "size" : "M", "price" : "19.99", "priceDec" : NumberDecimal("19.99") }
+   { "_id" : 2, "description" : "Jeans", "size" : "36", "price" : "39.99", "priceDec" : NumberDecimal("39.99") }
+   { "_id" : 3, "description" : "Shorts", "size" : "32", "price" : "29.99", "priceDec" : NumberDecimal("29.99") }
+   { "_id" : 4, "description" : "Cool T-Shirt", "size" : "L", "price" : "24.95", "priceDec" : NumberDecimal("24.95") }
+   { "_id" : 5, "description" : "Designer Jeans", "size" : "30", "price" : "80.00", "priceDec" : NumberDecimal("80.00") }
+   
+Application Logic Transformation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is possible to perform the transformation to the ``decimal``
+type from within the application logic. In this scenario the
+application modified to perform the transformation as it accesses
+records.
+
+The typical application logic is as follows: 
+
+- Test that the new field exists and that it is of ``decimal`` type
+
+- If the new ``decimal`` field does not exist:
+  
+  - Create it by properly converting old field values
+  
+  - Remove the old field 
+  
+  - Persist the transformed record  
+
+.. _numeric-scale-factor:
+
+Using a Scale Factor
+~~~~~~~~~~~~~~~~~~~~
+
+.. note:: If you are using MongoDB version 3.4 or higher, using the
+   :ref:`decimal <numeric-decimal>` type for modeling
+   monetary data is preferable to the
+   :ref:`Scale Factor <numeric-scale-factor>` method.
+
+To model monetary data using the scale factor approach:
+
+1. Determine the maximum precision needed for the monetary value. For
+   example, your application may require precision down to the tenth of
+   one cent for monetary values in ``USD`` currency.
+
+#. Convert the monetary value into an integer by multiplying the value
+   by a power of 10 that ensures the maximum precision needed becomes the
+   least significant digit of the integer. For example, if the required
+   maximum precision is the tenth of one cent, multiply the monetary value
+   by 1000.
+
+#. Store the converted monetary value.
+
+For example, the following scales ``9.99 USD`` by 1000 to preserve
+precision up to one tenth of a cent.
+
+.. code-block:: bash
+
+   { price: 9990, currency: "USD" }
+
+The model assumes that for a given currency value:
+
+- The scale factor is consistent for a currency; i.e. same scaling
+  factor for a given currency.
+
+- The scale factor is a constant and known property of the currency;
+  i.e applications can determine the scale factor from the currency.
+
+When using this model, applications must be consistent in performing
+the appropriate scaling of the values.
+
+For use cases of this model, see :ref:`numeric-model-use-case`.
+
+.. _monetary-value-non-numeric:
+
+Non-Numeric Model
+-----------------
+   
+To model monetary data using the non-numeric model, store the
+value in two fields:
+
+1. In one field, encode the exact monetary value as a non-numeric data
+   type; e.g., ``BinData`` or a ``string``.
+
+#. In the second field, store a double-precision floating point
+   approximation of the exact value.
+
+The following example uses the non-numeric model to store
+``9.99 USD`` for the price and ``0.25 USD`` for the fee:
+
+.. code-block:: bash
+
+   {
+     price: { display: "9.99", approx: 9.9900000000000002, currency: "USD" },
+     fee: { display: "0.25", approx: 0.2499999999999999, currency: "USD" }
+   }
+
+With some care, applications can perform range and sort queries on the
+field with the numeric approximation. However, the use of the approximation
+field for the query and sort operations requires that applications
+perform client-side post-processing to decode the non-numeric
+representation of the exact value and then filter out the returned
+documents based on the exact monetary value.
+
+For use cases of this model, see
+:ref:`non-numeric-model-use-case`.

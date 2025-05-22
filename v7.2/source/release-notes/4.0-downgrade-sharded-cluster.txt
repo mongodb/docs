@@ -1,0 +1,135 @@
+.. This page is hidden from the TOC and search indexing. 
+ 
+:orphan: 
+ 
+.. meta:: 
+   :robots: noindex, nosnippet
+
+====================================
+Downgrade 4.0 Sharded Cluster to 3.6
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/4.0-downgrade-path.rst
+
+.. |downgrading| replace:: downgrading
+
+Change Stream Consideration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.0 introduces new hex-encoded string change stream
+:ref:`resume tokens <change-stream-resume-token>`:
+
+.. include:: /includes/extracts/changestream-resume-token-versions-4.0.rst
+
+- When downgrading from MongoDB 4.0.7 or greater, clients cannot use
+  the resume tokens returned from the 4.0.7+ deployment. To resume a
+  change stream, clients will need to use a pre-4.0.7 upgrade resume
+  token (if available). Otherwise, clients will need to start a new change stream.
+
+- When downgrading from MongoDB 4.0.6 or earlier, clients can use
+  BinData resume tokens returned from the 4.0 deployment, but not the
+  ``v0`` tokens.  
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Prerequisites
+-------------
+
+Before downgrading the binaries, you must downgrade the feature
+compatibility version and remove any |newversion| features :ref:`incompatible
+<4.0-compatibility-enabled>` with |oldversion| or earlier versions as outlined
+below. These steps are necessary only if
+``featureCompatibilityVersion`` has ever been set to ``"4.0"``.
+
+.. |target| replace:: :binary:`~bin.mongos` instance
+
+.. _4.0-downgrade-feature-compatibility-sharded-cluster:
+
+1. Downgrade Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Connect a ``mongo`` shell to the |target|.
+
+#. .. include:: /includes/4.0-downgrade-fcv.rst
+
+To ensure that all members of the sharded cluster reflect the updated
+``featureCompatibilityVersion``, connect to each shard replica set
+member and each config server replica set member and check the
+``featureCompatibilityVersion``:
+
+.. tip::
+
+   For a sharded cluster that has access control enabled, to run the
+   following command against a shard replica set member, you must
+   connect to the member as a :ref:`shard local user
+   <shard-local-users>`.
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+All members should return a result that includes:
+
+.. code-block:: javascript
+
+   "featureCompatibilityVersion" : { "version" : "3.6" }
+
+
+If any member returns a ``featureCompatibilityVersion`` that includes
+either a ``version`` value of ``"4.0"`` or a ``targetVersion`` field,
+wait for the member to reflect version ``"3.6"`` before proceeding.
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+2. Remove Backwards Incompatible Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/remove-4.0-fcv-features.rst
+
+Procedure
+---------
+
+Downgrade a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   members, including delayed replica set members in the sharded
+   cluster, reflect the prerequisite changes.  That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+.. note:: 
+
+   If you ran MongoDB 4.0 with :parameter:`authenticationMechanisms`
+   that included ``SCRAM-SHA-256``, omit ``SCRAM-SHA-256`` when
+   restarting with the |oldversion| binary.
+
+.. include:: /includes/steps/4.0-downgrade-sharded-cluster.rst
+
+.. include:: /includes/4.0-upgrade-replacements.rst
+
+.. note::
+
+   The MongoDB 3.6 deployment can use the BinData resume tokens
+   returned from a change stream opened against the 4.0 deployment, but
+   not the ``v0`` or the ``v1`` hex-encoded string resume tokens.

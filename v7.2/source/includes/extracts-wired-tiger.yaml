@@ -1,0 +1,251 @@
+ref: wt-fsync-lock-compatibility
+source:
+  file: extracts-wired-tiger-base.yaml
+  ref: _wt-fsync-lock-compatibility
+replacement:
+  operation: ":method:`db.fsyncLock()`"
+---
+ref: wt-fsync-lock-compatibility-command
+source:
+  file: extracts-wired-tiger-base.yaml
+  ref: _wt-fsync-lock-compatibility
+replacement:
+  operation: ":dbcommand:`fsync` command with the ``lock`` option"
+---
+ref: wt-snapshot-compatibility
+content: |
+   If the ``dbpath`` is on a single volume, filesystem snapshots are
+   sufficient for the purpose of volume-level backup of WiredTiger. If
+   you do use journaling, the journal **must** reside on the same volume
+   as the data.
+---
+ref: wt-snapshot-tutorial-single-volume-assumption
+content: |
+   With WiredTiger, the ``dbpath``, including the journal files if
+   enabled, must be on a single volume to backup with snapshots.
+---
+ref: wt-journal-sync-list
+content: |
+   - WiredTiger sets checkpoints for journal data at intervals of 60
+     seconds or 2 GB of data, depending on which occurs first.
+
+   - Because MongoDB uses a log file size limit of 100 MB, WiredTiger
+     creates a new journal file approximately every 100 MB of data. When
+     WiredTiger creates a new journal file, WiredTiger syncs the previous
+     journal file.
+
+   - If the write operation includes a :doc:`write concern
+     </reference/write-concern>` of ``j:true``, WiredTiger forces a
+     sync on commit of that operation as well as anything that has
+     happened before.
+---
+ref: wt-cache-setting
+content: |
+   To adjust the size of the WiredTiger internal cache, see
+   :setting:`storage.wiredTiger.engineConfig.cacheSizeGB` and
+   :option:`--wiredTigerCacheSizeGB <mongod --wiredTigerCacheSizeGB>`. Avoid increasing the WiredTiger
+   internal cache size above its default value.
+---
+ref: wt-cache-eviction
+content: |
+   If the cache does not have enough space to load additional data,
+   WiredTiger evicts pages from the cache to free up space.
+
+   .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-config.rst
+---
+ref: wt-cache-size
+content: |
+
+   .. include:: /includes/extracts/wt-cache-eviction.rst
+
+   To see statistics on the cache and eviction, use the
+   :dbcommand:`serverStatus` command. The
+   :serverstatus:`wiredTiger.cache` field holds the information on
+   the cache and eviction.
+
+   .. code-block:: none
+
+      ...
+      "wiredTiger" : {
+         ...
+         "cache" : {
+            "tracked dirty bytes in the cache" : <num>,
+            "bytes currently in the cache" : <num>,
+            "maximum bytes configured" : <num>,
+            "bytes read into cache" :<num>,
+            "bytes written from cache" : <num>,
+            "pages evicted by application threads" : <num>,
+            "checkpoint blocked page eviction" : <num>,
+            "unmodified pages evicted" : <num>,
+            "page split during eviction deepened the tree" : <num>,
+            "modified pages evicted" : <num>,
+            "pages selected for eviction unable to be evicted" : <num>,
+            "pages evicted because they exceeded the in-memory maximum" : <num>,,
+            "pages evicted because they had chains of deleted items" : <num>,
+            "failed eviction of pages that exceeded the in-memory maximum" : <num>,
+            "hazard pointer blocked page eviction" : <num>,
+            "internal pages evicted" : <num>,
+            "maximum page size at eviction" : <num>,
+            "eviction server candidate queue empty when topping up" : <num>,
+            "eviction server candidate queue not empty when topping up" : <num>,
+            "eviction server evicting pages" : <num>,
+            "eviction server populating queue, but not evicting pages" : <num>,
+            "eviction server unable to reach eviction goal" : <num>,
+            "pages split during eviction" : <num>,
+            "pages walked for eviction" : <num>,
+            "eviction worker thread evicting pages" : <num>,
+            "in-memory page splits" : <num>,
+            "percentage overhead" : <num>,
+            "tracked dirty pages in the cache" : <num>,
+            "pages currently held in the cache" : <num>,
+            "pages read into cache" : <num>,
+            "pages written from cache" : <num>,
+         },
+         ...
+
+   For an explanation of some key cache and eviction statistics, such
+   as :serverstatus:`wiredTiger.cache.bytes currently in the
+   cache` and :serverstatus:`wiredTiger.cache.tracked dirty bytes
+   in the cache`, see :serverstatus:`wiredTiger.cache`.
+
+   .. include:: /includes/extracts/wt-cache-setting.rst
+---
+ref: wt-configure-cache
+content: |
+   .. include:: /includes/extracts/wt-cache-utilization.rst
+
+   .. include:: /includes/extracts/wt-cache-setting.rst
+
+   .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-config.rst
+
+   To view statistics on the cache and eviction rate, see the
+   :serverstatus:`wiredTiger.cache` field
+   returned from the :dbcommand:`serverStatus` command.
+
+---
+ref: wt-cache-additional-constraints-mongod-config
+source:
+  file: extracts-wired-tiger-base.yaml
+  ref: _wt-cache-additional-constraints
+replacement:
+  cachesetting: ":setting:`storage.wiredTiger.engineConfig.cacheSizeGB`"
+---
+ref: wt-cache-additional-constraints-mongod-cmdline-option
+source:
+  file: extracts-wired-tiger-base.yaml
+  ref: _wt-cache-additional-constraints
+replacement:
+  cachesetting: ":option:`--wiredTigerCacheSizeGB`"
+---
+ref: wt-cache-utilization
+content: |
+   With WiredTiger, MongoDB utilizes both the WiredTiger internal cache
+   and the filesystem cache.
+
+   .. include:: /includes/extracts/wt-cache-default-setting.rst
+
+   By default, WiredTiger uses Snappy block compression for all collections
+   and prefix compression for all indexes. Compression defaults are configurable
+   at a global level and can also be set on a per-collection and per-index
+   basis during collection and index creation.
+
+   Different representations are used for data in the WiredTiger internal cache
+   versus the on-disk format:
+
+   - Data in the filesystem cache is the same as the on-disk format, including
+     benefits of any compression for data files. The filesystem cache is used
+     by the operating system to reduce disk I/O.
+   - Indexes loaded in the WiredTiger internal cache have a different data
+     representation to the on-disk format, but can still take advantage of
+     index prefix compression to reduce RAM usage. Index prefix compression
+     deduplicates common prefixes from indexed fields.
+   - Collection data in the WiredTiger internal cache is uncompressed
+     and uses a different representation from the on-disk format. Block
+     compression can provide significant on-disk storage savings, but
+     data must be uncompressed to be manipulated by the server.
+
+   .. include:: /includes/extracts/wt-filesystem-cache.rst
+---
+ref: wt-cache-default-setting
+content: |
+
+   Starting in MongoDB 3.4, the default WiredTiger internal cache size is
+   the larger of either:
+
+   - 50% of (RAM - 1 GB), or
+
+   - 256 MB.
+
+   For example, on a system with a total of 4GB of RAM the
+   WiredTiger cache uses 1.5GB of RAM (``0.5 * (4 GB - 1 GB) =
+   1.5 GB``). Conversely, on a system with a total of 1.25 GB of
+   RAM WiredTiger allocates 256 MB to the WiredTiger cache
+   because that is more than half of the total RAM minus one
+   gigabyte (``0.5 * (1.25 GB - 1 GB) = 128 MB < 256 MB``).
+   
+   .. note::
+
+      In some instances, such as when running in a container, the database
+      can have memory constraints that are lower than the total system
+      memory. In such instances, this memory limit, rather than the total
+      system memory, is used as the maximum RAM available.
+   
+      To see the memory limit, see :data:`hostInfo.system.memLimitMB`.
+   
+---
+ref: wt-filesystem-cache
+content: |
+  With the filesystem cache, MongoDB automatically uses all free memory
+  that is not used by the WiredTiger cache or by other processes.
+---
+ref: wt-snapshot-frequency
+content: |
+
+      Starting in version 3.6, MongoDB configures WiredTiger to create
+      checkpoints (i.e. write the snapshot data to disk) at intervals
+      of 60 seconds. In earlier versions, MongoDB sets checkpoints to
+      occur in WiredTiger on user data at an interval of 60 seconds or
+      when 2 GB of journal data has been written, whichever occurs
+      first.
+
+---
+ref: wt-journal-frequency
+content: |
+
+   WiredTiger syncs the buffered journal records to disk upon any of
+   the following conditions:
+
+   - For replica set members (primary and secondary members),
+   
+     - If there are operations waiting for oplog entries. Operations
+       that can wait for oplog entries include:
+        
+       - forward scanning queries against the oplog
+
+       - read operations performed as part of :ref:`causally consistent
+         sessions <causal-consistency>`
+
+     - Additionally for secondary members, after every batch
+       application of the oplog entries.
+
+   - If a write operation includes or implies a write concern of
+     :writeconcern:`j: true <j>`.
+     
+     .. note::
+
+        Write concern :writeconcern:`"majority"` implies ``j: true`` if
+        the :rsconf:`writeConcernMajorityJournalDefault` is true.
+
+   - At every 100 milliseconds (See :setting:`storage.journal.commitIntervalMs`).
+
+   - When WiredTiger creates a new journal file. Because MongoDB uses a
+     journal file size limit of 100 MB, WiredTiger creates a new
+     journal file approximately every 100 MB of data.
+---
+ref: wt-log-compression-limit
+content: |
+
+   If a log record less than or equal to 128 bytes (the mininum
+   :ref:`log record size for WiredTiger <wt-jouraling-record>`),
+   WiredTiger does not compress that record.
+...

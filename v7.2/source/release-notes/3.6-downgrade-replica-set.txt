@@ -1,0 +1,104 @@
+.. This page is hidden from the TOC and search indexing. 
+ 
+:orphan: 
+ 
+.. meta:: 
+   :robots: noindex, nosnippet
+
+================================
+Downgrade 3.6 Replica Set to 3.4
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+.. |downgrading| replace:: downgrading
+
+Downgrade Path
+--------------
+
+.. include:: /includes/3.6-downgrade-path.rst
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Prerequisites
+-------------
+
+Before downgrading the binaries, you must downgrade the feature
+compatibility version and remove any |newversion| features
+:ref:`incompatible <3.6-compatibility-enabled>` with |oldversion| or earlier
+versions as generally outlined below. These steps are necessary only if
+``featureCompatibilityVersion`` has ever been set to ``"3.6"``.
+
+.. |target| replace:: primary
+
+.. _3.6-downgrade-feature-compatibility-rs:
+
+1. Downgrade Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   - Ensure that no initial sync is in progress. Running
+     :dbcommand:`setFeatureCompatibilityVersion` command while an
+     initial sync is in progress will cause the initial sync to restart.
+
+   - Ensure that no replica set member is in :replstate:`ROLLBACK` or
+     :replstate:`RECOVERING` state.
+
+#. Connect a ``mongo`` shell to the |target|.
+
+#. .. include:: /includes/3.6-downgrade-fcv.rst
+
+To ensure that all members of the replica set reflect the updated
+``featureCompatibilityVersion``, connect to each replica set member and
+check the ``featureCompatibilityVersion``:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+All members should return a result that includes:
+
+.. code-block:: javascript
+
+   "featureCompatibilityVersion" : { "version" : "3.4" }
+
+If any member returns a ``featureCompatibilityVersion`` that includes
+either a ``version`` value of ``"3.6"`` or a ``targetVersion`` field,
+wait for the member to reflect version ``"3.4"`` before proceeding.
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+2. Remove Backwards Incompatible Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/remove-3.6-fcv-features.rst
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   replica set members, including delayed replica set members, reflect
+   the prerequisite changes. That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+
+.. include:: /includes/steps/3.6-downgrade-replica-set.rst
+
+.. include:: /includes/3.6-upgrade-replacements.rst

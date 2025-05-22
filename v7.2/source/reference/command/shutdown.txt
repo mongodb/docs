@@ -1,0 +1,151 @@
+========
+shutdown
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionchanged:: 5.0
+
+.. dbcommand:: shutdown
+
+   The :dbcommand:`shutdown` command cleans up all database resources
+   and then terminates the process.  You must issue
+   the :dbcommand:`shutdown` command against the :term:`admin database`.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      { 
+        shutdown: 1,
+        force: <boolean>
+        timeoutSecs: <int>,
+        comment: <any>
+      }
+   )
+
+Command Fields
+--------------
+
+The command takes these fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+ 
+   * - Field
+     - Description
+ 
+   * - :ref:`shutdown <shutdown-cmd-shutdown>`
+ 
+     - .. _shutdown-cmd-shutdown:
+       
+       Specify ``1``.
+ 
+   * - :ref:`force <shutdown-cmd-force>`
+     - .. _shutdown-cmd-force:
+     
+       Optional. Specify ``true`` to force the :binary:`~bin.mongod`
+       or :binary:`~bin.mongos` to shut down. Force shutdown
+       interrupts any ongoing operations on the :binary:`~bin.mongod`
+       or :binary:`~bin.mongos` and may result in unexpected
+       behavior.
+ 
+   * - :ref:`timeoutSecs <shutdown-cmd-timeoutSecs>`
+     - .. _shutdown-cmd-timeoutSecs:
+     
+       Optional.
+       
+       .. _shutdown-cmd-quiesce-period:
+ 
+       .. |force| replace:: :ref:`force <shutdown-cmd-force>`
+       .. |timeout| replace:: :ref:`timeoutSecs <shutdown-cmd-timeoutSecs>`
+ 
+       .. include:: /includes/quiesce-period.rst
+ 
+   * - ``comment``
+     - .. include:: /includes/extracts/comment-content.rst
+
+.. seealso::
+
+   :method:`db.shutdownServer()`
+
+
+Behavior
+--------
+
+For a :binary:`~bin.mongod` started *with* :ref:`authentication`, 
+you must run :dbcommand:`shutdown` over an authenticated connection. 
+See :ref:`cmd-shutdown-access-control` for more information.
+
+For a :binary:`~bin.mongod` started *without* :ref:`authentication`,
+you must run :dbcommand:`shutdown` from a client connected to the 
+localhost interface. For example, run :binary:`~bin.mongosh` with 
+the :option:`--host "127.0.0.1" <mongosh --host>` option on the
+same host machine as the :binary:`~bin.mongod`.
+
+.. _cmd-shutdown-replica-set:
+
+``shutdown`` on Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`shutdown` fails if the replica set member is running
+certain operations such as :ref:`index builds
+<index-operations-replicated-build>`. You can specify 
+:ref:`force: true <shutdown-cmd-force>` to force the member 
+to interrupt those operations and shut down.
+
+Shutting Down the Replica Set Primary, Secondary, or ``mongos``
+```````````````````````````````````````````````````````````````
+
+.. include:: /includes/quiesce-period.rst
+
+.. warning::
+
+   Force shutdown of the primary can result in the 
+   :ref:`rollback <replica-set-rollback>` of any writes not 
+   yet replicated to a secondary. 
+
+.. _cmd-shutdown-access-control:
+
+Access Control
+--------------
+
+To run :dbcommand:`shutdown` on a :binary:`~bin.mongod` enforcing 
+:ref:`authentication`, the authenticated user *must* have the 
+:authaction:`shutdown` privilege. For example, a user with the 
+built-in role :authrole:`hostManager` has the appropriate permissions.
+
+Examples
+--------
+
+Shut down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.adminCommand({ "shutdown" : 1 })
+
+Force Shut Down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.adminCommand({ "shutdown" : 1, "force" : true })
+
+Shut Down a Primary ``mongod`` With Longer Timeout
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.adminCommand({ "shutdown" : 1, timeoutSecs: 60 })

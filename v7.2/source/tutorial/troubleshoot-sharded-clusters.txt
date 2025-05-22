@@ -1,0 +1,230 @@
+.. _sharding-high-availability:
+
+=============================
+Troubleshoot Sharded Clusters
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page describes common strategies for troubleshooting
+:term:`sharded cluster` deployments.
+
+Application Servers or :binary:`~bin.mongos` Instances Become Unavailable
+-------------------------------------------------------------------------
+
+If each application server has its own :binary:`~bin.mongos` instance, other
+application servers can continue to access the database. Furthermore,
+:binary:`~bin.mongos` instances do not maintain persistent state, and they
+can restart and become unavailable without losing any state or data.
+When a :binary:`~bin.mongos` instance starts, it retrieves a copy of the
+:term:`config database` and can begin routing queries.
+
+A Single Member Becomes Unavailable in a Shard Replica Set
+----------------------------------------------------------
+
+:ref:`Replica sets <replication>` provide :term:`high availability` for
+shards. If the unavailable :binary:`~bin.mongod` is a :term:`primary`,
+then the replica set will :ref:`elect <replica-set-elections>` a new
+primary. If the unavailable :binary:`~bin.mongod` is a
+:term:`secondary`, and it disconnects the primary and secondary will
+continue to hold all data. In a three member replica set, even if a
+single member of the set experiences catastrophic failure, two other
+members have full copies of the data. [#recovery-window]_
+
+Always investigate availability interruptions and failures. If a system
+is unrecoverable, replace it and create a new member of the replica set
+as soon as possible to replace the lost redundancy.
+
+.. [#recovery-window] If an unavailable secondary becomes available
+   while it still has current oplog entries, it can catch up to the
+   latest state of the set using the normal :term:`replication process
+   <sync>`; otherwise, it must perform an :term:`initial sync`.
+
+All Members of a Shard Become Unavailable
+-----------------------------------------
+
+In a sharded cluster, :binary:`~bin.mongod` and :binary:`~bin.mongos` instances
+monitor the replica sets in the sharded cluster (e.g. shard replica
+sets, config server replica set).
+
+If all members of a replica set shard are unavailable, all data held in
+that shard is unavailable. However, the data on all other shards will
+remain available, and it is possible to read and write data to the
+other shards. However, your application must be able to deal with
+partial results, and you should investigate the cause of the
+interruption and attempt to recover the shard as soon as possible.
+
+.. _sharding-config-servers-and-availability:
+
+A Config Server Replica Set Member Become Unavailable
+-----------------------------------------------------
+
+Replica sets provide :term:`high availability` for
+the config servers. If an unavailable config server is a
+:term:`primary`, then the replica set will 
+:ref:`elect <replica-set-elections>` a new primary.
+
+If the replica set config server loses its primary and cannot elect a
+primary, the cluster's metadata becomes *read only*. You can still read
+and write data from the shards, but no :ref:`chunk migration
+<sharding-balancing>` or :doc:`chunk splits
+</tutorial/split-chunks-in-sharded-cluster>` will occur until a primary
+is available.
+
+.. include:: /includes/note-csrs-distribution.rst
+
+.. include:: /includes/note-config-server-startup.rst
+
+Cursor Fails Because of Stale Config Data
+-----------------------------------------
+
+.. DOCS-425
+
+A query returns the following warning when one or more of the
+:binary:`~bin.mongos` instances has not yet updated its cache of the
+cluster's metadata from the :term:`config database`:
+
+.. code-block:: none
+
+   could not initialize cursor across all shards because : stale config detected
+
+This warning *should* not propagate back to your application. The
+warning will repeat until all the :binary:`~bin.mongos` instances refresh
+their caches. To force an instance to refresh its cache, run the
+:dbcommand:`flushRouterConfig` command.
+
+Shard Keys
+----------
+
+To troubleshoot a shard key, see
+:ref:`shardkey-troubleshoot-shard-keys`.
+
+Cluster Availability
+--------------------
+
+To ensure cluster availability:
+
+- Each shard should be a :term:`replica set`, if a specific
+  :binary:`~bin.mongod` instance fails, the replica set members will elect
+  another to be :term:`primary` and continue operation. However, if an
+  entire shard is unreachable or fails for some reason, that data will
+  be unavailable.
+
+- The shard key should allow the :binary:`~bin.mongos` to isolate most
+  operations to a single shard. If operations can be processed by a
+  single shard, the failure of a single shard will only render *some*
+  data unavailable. If operations need to access all shards for queries,
+  the failure of a single shard will render the entire cluster
+  unavailable.
+
+.. _config-database-string-error:
+
+Config Database String Error
+----------------------------
+
+Config servers must be deployed as replica
+sets. The :binary:`~bin.mongos` instances for the sharded cluster must
+specify the same config server replica set name but can specify
+hostname and port of different members of the replica set.
+
+With earlier versions of MongoDB sharded clusters that use the topology
+of three mirrored :binary:`~bin.mongod` instances for config servers,
+:binary:`~bin.mongos` instances in a sharded cluster must specify identical
+:setting:`~sharding.configDB` string.
+
+
+Avoid Downtime when Moving Config Servers
+-----------------------------------------
+
+.. include:: /includes/fact-use-cnames-for-config-servers.rst
+
+``moveChunk commit failed`` Error
+---------------------------------
+
+At the end of a :ref:`chunk migration <sharding-chunk-migration>`, the
+:term:`shard` must connect to the :term:`config database` to update the
+chunk's record in the cluster metadata. If the :term:`shard` fails to
+connect to the :term:`config database`, MongoDB reports the following
+error:
+
+.. code-block:: none
+
+   ERROR: moveChunk commit failed: version is at <n>|<nn> instead of
+   <N>|<NN>" and "ERROR: TERMINATING"
+
+When this happens, the :term:`primary` member of the shard's replica
+set then terminates to protect data consistency. If a :term:`secondary`
+member can access the config database, data on the shard becomes
+accessible again after an election.
+
+The user will need to resolve the chunk migration failure
+independently. If you encounter this issue, ask the `MongoDB
+Community <https://community.mongodb.com/?tck=docs_server>`_ or
+:ref:`MongoDB Support <technical-support>` to address this issue.
+
+
+Inconsistent Sharding Metadata
+------------------------------
+
+Starting in MongoDB 7.0, the :dbcommand:`checkMetadataConsistency` command
+is available to check sharding metadata for inconsistencies and corruptions
+due to bugs in previous releases of MongoDB.
+
+Inconsistencies in sharding metadata can originate in cases such as:
+
+- Clusters upgraded from a pre-5.0 release of MongoDB that may have
+  corrupted data from past DDL operations.
+
+- Manual interventions, such as manipulating the :ref:`config-database`
+  or bypassing :program:`mongos` to write directly to a shard.
+
+- Maintenance operations, such as upgrade or downgrade procedures.
+
+These inconsistencies can result in incorrect query results
+or data loss.
+
+To check sharding metadata for inconsistencies, run the 
+:dbcommand:`checkMetadataConsistency` command:
+
+.. io-code-block::
+
+   .. input::
+      :language: javascript
+
+      db.runCommand( { checkMetadataConsistency: 1 } )
+
+   .. output::
+      :language: json
+
+      {
+         cursor: {
+            id: Long("0"),
+            ns: "test.$cmd.aggregate",
+            firstBatch: [
+               {
+                  type: "MisplacedCollection",
+                  description: "Unsharded collection found on shard different from database primary shard",
+                  details: {
+                     namespace: "test.authors",
+                     shard: "shard02",
+                     localUUID: new UUID("1ad56770-61e2-48e9-83c6-8ecefe73cfc4")
+                  }
+               }
+            ],
+         },
+         ok: 1
+      }
+
+Documents returned by the :dbcommand:`checkMetadataConsistency` command indicate 
+the inconsistencies identified by MongoDB in the sharding metadata of the
+cluster.
+
+For information on inconsistency documents returned by the
+:dbcommand:`checkMetadataConsistency` command, see :ref:`inconsistency-types`.
+

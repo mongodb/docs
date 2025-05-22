@@ -1,0 +1,169 @@
+=========
+geoSearch
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: geoSearch
+
+   .. important:: Removed in MongoDB 5.0
+
+      .. include:: /includes/fact-5.0-geohaystack-removed.rst
+
+   The :dbcommand:`geoSearch` command provides an interface to
+   MongoDB's haystack index functionality. These indexes are
+   useful for returning results based on location coordinates *after*
+   collecting results based on some other query (i.e. a "haystack.")
+
+   The :dbcommand:`geoSearch` command accepts a :term:`document` that
+   contains the following fields.
+   
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``geoSearch``
+   
+        - string
+   
+        - The collection to query.
+          
+          
+   
+      * - ``search``
+   
+        - document
+   
+        - Query to filter documents.
+          
+          
+   
+      * - ``near``
+   
+        - array
+   
+        - Coordinates of a point.
+          
+          
+   
+      * - ``maxDistance``
+   
+        - number
+   
+        - Optional. Maximum distance from the specified point.
+          
+          
+   
+      * - ``limit``
+   
+        - number
+   
+        - Optional. Maximum number of documents to return.
+          
+          
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          For more information on the read concern levels, see
+          :ref:`read-concern-levels`.
+          
+          
+      * - ``comment``
+
+        - any
+
+        - .. include:: /includes/extracts/comment-content.rst
+
+Behavior
+--------
+
+Limit
+~~~~~
+
+Unless specified otherwise, the :dbcommand:`geoSearch` command
+limits results to 50 documents.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+:dbcommand:`geoSearch` is not supported for sharded clusters.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :dbcommand:`geoSearch`
+
+Examples
+--------
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      geoSearch : "places", 
+      near: [ -73.9667, 40.78 ],
+      maxDistance : 6,
+      search : { type : "restaurant" },
+      limit : 30
+   })
+
+The above command returns all documents with a ``type`` of
+``restaurant`` having a maximum distance of 6 units from the
+coordinates ``[ -73.9667, 40.78 ]`` in the collection ``places`` up to a
+maximum of 30 results.
+
+Override Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the default read concern level of :readconcern:`"local"`,
+use the ``readConcern`` option.
+
+The following operation on a replica set specifies a
+:doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         geoSearch: "places",
+         near: [ -73.9667, 40.78 ],
+         search : { type : "restaurant" },
+         readConcern: { level: "majority" }
+       }
+   )
+
+.. include:: /includes/usage-read-concern-majority.rst
+
+.. read-lock, slave-ok
