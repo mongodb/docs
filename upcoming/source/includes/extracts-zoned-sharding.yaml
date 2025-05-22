@@ -1,0 +1,127 @@
+## Summary emphasizes defining zones/ranges before sharding
+
+ref: zoned-sharding-pre-define-zone
+content: |
+
+   By defining the zones and the zone ranges *before* sharding an empty
+   or a non-existing collection, the shard collection operation creates
+   chunks for the defined zone ranges as well as any additional chunks
+   to cover the entire range of the shard key values and performs an
+   initial chunk distribution based on the zone ranges. This initial
+   creation and distribution of chunks allows for faster setup of zoned
+   sharding. After the initial distribution, the balancer manages the
+   chunk distribution going forward.
+   
+   See :ref:`pre-define-zone-range-example` for an example.
+---
+ref: zoned-sharding-pre-define-zone-without-example-link
+content: |
+
+   By defining the zones and the zone ranges *before* sharding an empty
+   or a non-existing collection, the shard collection operation creates
+   chunks for the defined zone ranges as well as any additional chunks
+   to cover the entire range of the shard key values and performs an
+   initial chunk distribution based on the zone ranges. This initial
+   creation and distribution of chunks allows for faster setup of zoned
+   sharding. After the initial distribution, the balancer manages the
+   chunk distribution going forward.
+
+---
+## Summary emphasizes sharding operation can distribute chunks
+
+ref: zoned-sharding-shard-operation-chunk-distribution
+content: |
+
+   The shard collection operation can perform an initial chunk creation and 
+   distribution for empty or non-existing collections if :doc:`zones and zone 
+   ranges </core/zone-sharding>` have been defined for the collection. Initial
+   creation and distribution of chunk allows for faster setup of zoned
+   sharding. After the initial distribution, the balancer manages the
+   chunk distribution going forward per usual.
+   
+---
+ref: zoned-sharding-shard-operation-chunk-distribution-with-links
+content: |
+
+   The shard collection operation (i.e. :dbcommand:`shardCollection`
+   command and the :method:`sh.shardCollection()` helper) can perform
+   initial chunk creation and distribution for an empty or a
+   non-existing collection if :doc:`zones and zone ranges
+   </core/zone-sharding>` have been defined for the collection. Initial
+   chunk distribution allows for a faster setup of zoned sharding.
+   After the initial distribution, the balancer manages the chunk
+   distribution going forward per usual.
+
+---
+ref: zoned-sharding-shard-operation-chunk-distribution-hashed-short
+content: |
+
+   MongoDB supports sharding collections on
+   :ref:`compound hashed indexes <index-type-compound-hashed>`. When
+   sharding an empty or non-existing collection using a compound hashed
+   shard key, additional requirements apply in order for MongoDB to
+   perform initial chunk creation and distribution.
+
+---
+ref: zoned-sharding-chunk-distribution-compound-hashed-prefix
+content: |
+
+   If the hashed field is the prefix of the shard key (i.e. the first
+   field in the shard key), all of the following must be true for
+   MongoDB to perform initial chunk creation and distribution:
+
+   - The collection has a single zone range with ``MinKey`` for 
+     all lower-bound fields and ``MaxKey`` for all upper-bound
+     fields.
+
+   - :method:`sh.shardCollection()` specifies the 
+     :ref:`presplitHashedZones: true
+     <method-shard-collection-presplitHashedZones>` option.
+
+---
+ref: zoned-sharding-chunk-distribution-compound-hashed-not-prefix
+content: |
+
+   If the hashed field is *not* the prefix of the shard key (i.e. 
+   the shard key has one or more non-hashed leading fields), all of
+   the following must be true for MongoDB to perform initial chunk
+   creation and distribution:
+
+   - The collection has one zone range for each combination of distinct 
+     prefix field values (i.e. all fields preceding the hashed field).
+
+   - For the lower-bound of each zone range, specify ``MinKey`` for
+     the hashed field and all subsequent fields.
+
+   - For each zone range, at least one upper-bound prefix field *must*
+     differ from its lower-bound counterpart.
+
+   - :method:`sh.shardCollection()`
+     specifies the :ref:`presplitHashedZones: true
+     <method-shard-collection-presplitHashedZones>` option.
+
+---
+ref: zoned-sharding-updateZoneKeyRange-change
+content: |
+
+   You can run :dbcommand:`updateZoneKeyRange` database command and its helpers
+   :method:`sh.updateZoneKeyRange()` and :method:`sh.addTagRange()` on
+   an unsharded collection or a non-existing collection.
+
+---
+ref: zoned-sharding-drop-collection-change
+content: |
+
+   Dropping a collection deletes its associated zone/tag ranges.
+
+---
+ref: zoned-sharding-compound-hashed-downgrade
+content: |
+
+   .. important::
+
+      Compound hashed indexes block downgrading to MongoDB 4.2. Sharding
+      a collection on a compound hashed index significantly increases
+      the complexity of the downgrade process. 
+...
+

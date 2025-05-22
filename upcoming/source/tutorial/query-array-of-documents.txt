@@ -1,0 +1,189 @@
+.. include:: /includes/java-sync-links.rst
+.. include:: /includes/java-async-links.rst
+
+.. _array-match-embedded-documents:
+
+====================================
+Query an Array of Embedded Documents
+====================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell, csharp, go, java, python, php, ruby, rust, scala, javascript/typescript, kotlin
+   
+.. meta::
+   :description: MongoDB Manual code examples for how to query an array of documents, including nested or embedded documents.
+   :keywords: motor, java sync, java async, reactive streams, code example, node.js, compass, kotlin coroutine
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+You can query documents in MongoDB by using the following
+methods:
+
+.. |atlas-ref| replace:: :ref:`query-array-documents-atlas-ui`
+
+.. include:: /includes/fact-methods.rst
+
+.. include:: /includes/language-selector-instructions.rst
+
+.. tabs-selector:: drivers
+
+.. |query_operations| replace:: query operations on an array of nested documents
+
+.. include:: /includes/driver-examples/driver-example-query-intro.rst
+
+.. include:: /includes/driver-examples/driver-example-query-29.rst
+
+Query for a Document Nested in an Array
+---------------------------------------
+
+The following example selects all documents where an element in the
+``instock`` array matches the specified document:
+
+.. include:: /includes/driver-examples/driver-example-query-30.rst
+
+Equality matches on the whole embedded/nested document require an
+*exact* match of the specified document, including the field order. For
+example, the following query does not match any documents in the
+``inventory`` collection:
+
+.. include:: /includes/driver-examples/driver-example-query-31.rst
+
+Specify a Query Condition on a Field in an Array of Documents
+-------------------------------------------------------------
+
+Specify a Query Condition on a Field Embedded in an Array of Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you do not know the index position of the document nested in the
+array, concatenate the name of the array field, with a dot (``.``) and
+the name of the field in the nested document.
+
+The following example selects all documents where the ``instock`` array
+has at least one embedded document that contains the field ``qty``
+whose value is less than or equal to ``20``:
+
+.. include:: /includes/driver-examples/driver-example-query-33.rst
+
+Use the Array Index to Query for a Field in the Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using :term:`dot notation`, you can specify query conditions for
+field in a document at a particular index or position of the array. The
+array uses zero-based indexing.
+
+.. note::
+
+   When querying using dot notation, the field and index must be
+   inside quotation marks.
+
+The following example selects all documents where the ``instock`` array
+has as its first element a document that contains the field ``qty``
+whose value is less than or equal to ``20``:
+
+.. include:: /includes/driver-examples/driver-example-query-32.rst
+
+Specify Multiple Conditions for Array of Documents
+--------------------------------------------------
+
+When specifying conditions on more than one field nested in an array of
+documents, you can specify the query such that either a single document
+meets these condition or any combination of documents (including a
+single document) in the array meets the conditions.
+
+A Single Nested Document Meets Multiple Query Conditions on Nested Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :query:`$elemMatch` operator to specify multiple criteria on an
+array of embedded documents such that at least one embedded document
+satisfies all the specified criteria.
+
+The following example queries for documents where the ``instock`` array
+has at least one embedded document that contains both the field
+``qty`` equal to ``5`` and the field ``warehouse`` equal
+to ``A``:
+
+.. include:: /includes/driver-examples/driver-example-query-34.rst
+
+The following example queries for documents where the ``instock`` array
+has at least one embedded document that contains the field ``qty`` that
+is greater than ``10`` and less than or equal to ``20``:
+
+.. include:: /includes/driver-examples/driver-example-query-35.rst
+
+Combination of Elements Satisfies the Criteria
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the compound query conditions on an array field do not use the
+:query:`$elemMatch` operator, the query selects those documents whose
+array contains any combination of elements that satisfies the
+conditions.
+
+For example, the following query matches documents where any document
+nested in the ``instock`` array has the ``qty`` field greater than
+``10`` and any document (but not necessarily the same embedded
+document) in the array has the ``qty`` field less than or equal to
+``20``:
+
+.. include:: /includes/driver-examples/driver-example-query-36.rst
+
+The following example queries for documents where the ``instock`` array
+has at least one embedded document that contains the field ``qty``
+equal to ``5`` and at least one embedded document (but not necessarily
+the same embedded document) that contains the field ``warehouse`` equal
+to ``A``:
+
+.. include:: /includes/driver-examples/driver-example-query-37.rst
+
+.. _query-array-documents-atlas-ui:
+
+Query an Array of Documents with {+atlas+}
+---------------------------------------------------
+
+The example in this section uses the :atlas:`sample training dataset 
+</sample-data/sample-training/>`. To learn how to load the sample
+dataset into your {+atlas+} deployment, see :atlas:`Load Sample Data 
+</sample-data/#std-label-load-sample-data>`.
+
+To query an array of documents in {+atlas+}, follow these steps:
+
+.. procedure:: 
+   :style: normal
+
+   .. include:: /includes/atlas-nav/steps-db-deployments-page.rst
+
+   .. step:: Navigate to the collection
+
+      .. include:: /includes/steps-nav-atlas-sample-grades.rst
+
+   .. step:: Specify the Filter field
+
+      .. include:: /includes/steps-specify-query-filter.rst
+
+      .. code-block:: javascript
+
+         {"scores.type": "exam"}
+
+   .. step:: Click :guilabel:`Apply`
+      
+      This query filter returns all documents in the ``sample_training.grades`` 
+      collection that contain a subdocument in the ``scores`` array where 
+      ``type`` is set to ``exam``. The full document, including the entire 
+      ``scores`` array, is returned. For more information on modifying the 
+      returned array, see :ref:`project-array-elements-in-returned-array`. 
+
+Additional Query Tutorials
+--------------------------
+
+For additional query examples, see:
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-documents`
+
+- :doc:`/tutorial/query-embedded-documents`

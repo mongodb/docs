@@ -1,0 +1,481 @@
+=================
+Mongo.bulkWrite()
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: Mongo.bulkWrite(operations, options)
+
+``bulkWrite()`` performs multiple write operations
+across multiple databases and collections in a single call.
+This method replaces :method:`db.collection.bulkWrite()`, which
+performs multiple write operations to a specific collection in 
+a single call.
+
+.. note::
+   
+   You can only use ``Mongo.bulkWrite()`` with MongoDB 8.0 or later.
+
+Syntax
+------
+
+You can call ``bulkWrite()`` on the current :method:`Mongo` instance
+by using the following syntax:
+
+.. code-block:: javascript
+
+   db.getMongo().bulkWrite( 
+     [
+       { 
+         namespace: "<db1.collection1>",
+         name: "insertOne",
+         document: { ... }
+       },
+       {
+         namespace: "<db2.collection2>",
+         name: "replaceOne",
+         filter: { ... }
+       }
+     ],
+     {
+       ordered: boolean,
+       verboseResults: boolean,
+       bypassDocumentValidation: boolean,
+       let: Document
+     }
+   )
+
+You can also call it on a different ``Mongo`` instance, like in the following
+example:
+
+.. code-block:: javascript
+
+   const otherMongo = Mongo("<other connection string>");
+
+   otherMongo.bulkWrite([{ namespace: "<db.collection>", ... }]);
+
+``bulkWrite()`` accepts two parameters: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``operations``
+     - Array of documents
+     - Defines an array of write operations. Each document in the 
+       array represents a write operation that
+       you want to execute.
+  
+   * - ``options``
+     - Document
+     - Defines :ref:`options <mongo-bulk-write-options>` for the operation. 
+
+A document in ``operations`` can represent one of six operations:
+
+- insert one
+- replace one
+- update one
+- update many
+- delete one
+- delete many
+
+The following sections describe the syntax you must use for
+documents that represent each operation.
+
+Insert One
+~~~~~~~~~~
+
+.. code-block:: javascript
+
+   {
+      namespace: '<db.collection>',
+      name: 'insertOne',
+      document: Document
+   }
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``namespace``
+     - String
+     - The database and collection
+       that you want to insert the document into.
+
+   * - ``name``
+     - String
+     - The operation. Set to ``"insertOne"`` for an insert one
+       operation.
+  
+   * - ``document``
+     - Document
+     - The document that you want to insert.
+
+.. note::
+   
+   If you do not specify an ``_id`` field in the document to insert,
+   ``mongosh`` automatically generates an ``_id``.
+
+     
+Update One or Many
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   {
+      namespace: '<db>.<collection>',
+      name: 'updateOne' | 'updateMany',
+      filter: Document,
+      update: Document | Document[],
+      arrayFilters?: Document[],
+      hint?: Document | string,
+      collation?: Document,
+      upsert?: boolean
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``namespace``
+     - String
+     - The database and collection
+       that you want to update documents in.
+
+   * - ``name``
+     - String
+     - The operation. Set to ``"updateOne"`` for an update one
+       operation. Set to ``"updateMany"`` for an update many operation.
+
+   * - ``filter``
+     - Document
+     - The filter that matches one or more documents you want to update.
+       During an update one operation, ``mongosh`` only updates the first 
+       matching document. During an update many operation, ``mongosh`` updates
+       all documents that match the filter.
+
+   * - ``update``
+     - Document
+     - The update to perform.
+
+   * - ``arrayFilters``
+     - Array of documents
+     - (Optional) If you update an array-valued field, ``arrayFilters`` is 
+       a set of filters that specify which array 
+       elements an update applies to.
+   
+   * - ``hint``
+     - Document or string
+     - (Optional) The :ref:`index <indexes>` to use for the operation.
+
+   * - ``collation``
+     - Document
+     - (Optional) The :ref:`collation <collation>` to use when
+       sorting results.
+
+   * - ``upsert``
+     - Boolean
+     - Specifies whether MongoDB creates a new document if no document
+       matches the filter. Defaults to ``false``.
+
+Replace One
+~~~~~~~~~~~
+
+.. code-block:: javascript
+   
+   {
+      namespace: '<db>.<collection>',
+      name: 'replaceOne',
+      filter: Document,
+      replacement: Document,
+      hint?: Document | string,
+      collation?: Document
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``namespace``
+     - String
+     - The database and collection
+       that you want to replace documents in.
+
+   * - ``name``
+     - String
+     - The operation. Set to ``"replaceOne"`` for a replace one
+       operation.
+
+   * - ``filter``
+     - Document
+     - The filter that matches the document you want to update.
+       During a replace one operation, ``mongosh`` only replaces the first 
+       matching document.
+
+   * - ``replacement``
+     - Document
+     - The replacement document.
+   
+   * - ``hint``
+     - Document or string
+     - (Optional) The :ref:`index <indexes>` to use for the operation.
+
+   * - ``collation``
+     - Document
+     - (Optional) The :ref:`collation <collation>` to use when
+       sorting results.
+
+Delete One or Many
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   {
+      namespace: '<db>.<collection>',
+      name: 'deleteOne' | 'deleteMany',
+      filter: Document,
+      hint?: Document | string,
+      collation?: Document
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``namespace``
+     - String
+     - The database and collection
+       that you want to delete documents in.
+
+   * - ``name``
+     - String
+     - The operation. Set to ``"deleteOne"`` for a delete one
+       operation. Set to ``"deleteMany"`` for a delete many operation.
+
+   * - ``filter``
+     - Document
+     - The filter that matches the document you want to delete.
+       During a delete one operation, ``mongosh`` only deletes the first 
+       matching document. During a delete many operation, ``mongosh``
+       deletes all matching documents.
+   
+   * - ``hint``
+     - Document or string
+     - (Optional) The :ref:`index <indexes>` to use for the operation.
+
+   * - ``collation``
+     - Document
+     - (Optional) The :ref:`collation <collation>` to use when
+       sorting results.
+
+.. _mongo-bulk-write-options:
+
+Options
+~~~~~~~
+
+You can use the following options with ``bulkWrite()``.
+You can pass a document to ``bulkWrite()`` 
+that contains the options that you want to use. This document is optional.
+
+.. code-block:: javascript
+
+   {
+      ordered?: boolean,
+      verboseResults?: boolean,
+      bypassDocumentValidation?: boolean,
+      let?: Document
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 55
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``ordered``
+     - Boolean
+     - (Optional) Indicates that MongoDB performs the bulk write in order
+       of the documents that you provide.
+       Defaults to ``true``.
+
+   * - ``verboseResults``
+     - Boolean
+     - (Optional) Specifies if ``bulkWrite()`` outputs verbose results.
+       Defaults to ``false``.
+
+   * - ``bypassDocumentValidation``
+     - Boolean
+     - (Optional) Specifies if the write operation bypasses document 
+       validation rules. Defaults to ``false``.
+
+   * - ``let``
+     - Document
+     - (Optional) Document of parameter names and values that you can
+       access with :ref:`aggregation variables <aggregation-variables>`.
+
+Output
+------
+
+``bulkWrite()`` returns an object with the following fields:
+
+.. code-block:: javascript
+
+   {
+      acknowledged: boolean,
+      insertedCount: int,
+      matchedCount: int,
+      modifiedCount: int,
+      deletedCount: int,
+      upsertedCount: int,
+      insertResults?: map(int, document),
+      updateResults?: map(int, document),
+      deleteResults?: map(int, document)
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``acknowledged``
+     - boolean
+     - ``true`` if the server returns an acknowledgment, ``false``
+       otherwise.
+
+   * - ``insertedCount``
+     - integer
+     - Number of documents inserted.
+
+   * - ``matchedCount``
+     - integer
+     - Number of documents matched by filter.
+
+   * - ``modifiedCount``
+     - integer
+     - Number of documents modified.
+
+   * - ``deletedCount``
+     - integer
+     - Number of documents deleted.
+
+   * - ``upsertedCount``
+     - integer
+     - Number of documents upserted.
+
+   * - ``insertResults``
+     - Map of integers to documents
+     - Optional. Represents the results of each successful insert operation.
+       Each operation is represented by an integer key, which contains a document with
+       information corresponding to the operation.
+       Document includes the following field:
+
+       - ``insertedId``: ObjectID. Represents the ``_id`` of the inserted document.
+
+   * - ``updateResults``
+     - Map of integers to documents
+     - Optional. Represents the results of each successful update operation.
+       Each operation is represented by an integer key, which contains a document with
+       information corresponding to the operation.
+       Document includes the following fields:
+
+       - ``matchedCount``: integer. Represents the number of documents
+         matched.
+       - ``modifiedCount``: integer. Represents the number of documents
+         modified.
+       - ``upsertedId``: ObjectID. Represents the ``_id`` of any upserted
+         documents. Optional.
+       - ``didUpsert``: boolean. ``true`` if a document was upserted,
+         ``false`` otherwise.
+    
+   * - ``deleteResults``
+     - Map of integers to documents
+     - Optional. Represents the results of each successful delete
+       operation. Each operation is represented by an integer key, which contains a document with
+       information corresponding to the operation. Document includes the following field:
+
+       - ``deletedCount``: integer. Represents the number of documents
+         deleted.
+
+Examples
+--------
+
+This ``mongosh`` command performs the following operations in order:
+
+- inserts a document into the ``db.authors`` collection
+- inserts a document into the ``db.books`` collection
+- updates the previous document
+
+.. code-block:: javascript
+   
+   db.getMongo().bulkWrite( 
+      [
+         {
+            namespace: 'db.authors',
+            name: 'insertOne',
+            document: { name: 'Stephen King' }
+         },
+         {
+            namespace: 'db.books',
+            name: 'insertOne',
+            document: { name: 'It' }
+         },
+         {
+            namespace: 'db.books',
+            name: 'updateOne',
+            filter: { name: 'it' },
+            update: { $set: { year: 1986 } }
+         }
+      ],
+      {
+         ordered: true,
+         bypassDocumentValidation: true
+      }
+   )
+
+``mongosh`` performs the bulk write in order and returns the following
+document:
+
+.. code-block:: javascript
+   
+   {
+      acknowledged: true,
+      insertedCount: 2,
+      matchedCount: 1,
+      modifiedCount: 1,
+      deletedCount: 0,
+      upsertedCount: 0,
+      insertResults: { '1': { insertedId: ObjectId('67ed8ce8efd926c84cab7945') },
+                       '2': { insertedId: ObjectId('67ed8ce8efd926c84cab7946') } }
+      updateResults: { '1': { matchedCount: 1, modifiedCount: 1, didUpsert: false } }
+   }

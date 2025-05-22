@@ -1,0 +1,132 @@
+.. _reduce-collections:
+
+================================
+Reduce the Number of Collections
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1 
+   :class: singlecol
+
+Creating too many collections can decrease performance. With every 
+collection, MongoDB creates a default :ref:`_id index <indexes>`, which 
+uses additional storage. If you create excessive collections, those 
+collections and indexes can strain replica set resources and decrease 
+performance.
+
+About this Task
+---------------
+
+Consider the following schema that stores daily temperature readings that 
+are taken every hour. The ``temperature`` database stores each day's 
+readings in separate collections.
+
+.. code-block:: javascript 
+
+   // Temperatures for May 10, 2024
+   {
+      _id: 1,
+      timestamp: "2024-05-10T010:00:00Z",
+      temperature: 60
+   },
+   {
+      _id: 2
+      timestamp: "2024-05-10T011:00:00Z",
+      temperature: 61
+   },
+   {
+      _id: 3
+      timestamp: "2024-05-10T012:00:00Z",
+      temperature: 64
+   }
+   ...
+
+.. code-block:: javascript
+
+   // Temperatures for May 11, 2024
+   {
+      _id: 1,
+      timestamp: "2024-05-11T010:00:00Z",
+      temperature: 68
+   },
+   {
+      _id: 2
+      timestamp: "2024-05-11T011:00:00Z",
+      temperature: 72
+   },
+   {
+      _id: 3
+      timestamp: "2024-05-11T012:00:00Z",
+      temperature: 72
+   }
+   ...
+
+With an unbound number of collections, the number of default ``_id`` 
+indexes can grow to degrade performance. 
+
+Additionally, this approach requires a :pipeline:`$lookup` operation to 
+query across multiple collections. ``$lookup`` operations add query 
+complexity and can strain resources.
+
+To reduce the number of collections, drop or archive unused collections, 
+or remodel your data schema by consolidating related collections, 
+denormalizing data, or leveraging embedded documents where appropriate.
+
+Example
+-------
+
+You can modify the schema to store each day's temperature readings in a 
+single collection. For example:
+
+.. code-block:: javascript
+
+   db.dailyTemperatures.insertMany( [
+      {
+         _id: ISODate("2024-05-10T00:00:00Z"),
+         readings: [
+            {
+               timestamp: "2024-05-10T10:00:00Z",
+               temperature: 60
+            },
+            {
+               timestamp: "2024-05-10T11:00:00Z",
+               temperature: 61
+            },
+            {
+               timestamp: "2024-05-10T12:00:00Z",
+               temperature: 64
+            }
+         ]
+      },
+      {
+         _id: ISODate("2024-05-11T00:00:00Z"),
+         readings: [
+            {
+               timestamp: "2024-05-11T10:00:00Z",
+               temperature: 68
+            },
+            {
+               timestamp: "2024-05-11T11:00:00Z",
+               temperature: 72
+            },
+            {
+               timestamp: "2024-05-11T12:00:00Z",
+               temperature: 72
+            }
+         ]
+      }
+   ] )
+
+The updated schema requires fewer resources than the original. Instead 
+of needing a separate index for each day, the default ``_id`` index now 
+facilitates queries by date.
+
+Learn More
+----------
+
+- :ref:`schema-design-antipatterns`
+- :ref:`schema-design-patterns`

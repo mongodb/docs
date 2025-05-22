@@ -1,0 +1,519 @@
+.. _event-audit-messages-ocsf:
+
+==========================
+OCSF Schema Audit Messages
+==========================
+
+.. meta::
+   :keywords: on-prem
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In the {+ocsf+} schema, recorded log messages have this syntax:
+
+.. code-block:: none
+
+   {
+      "activity_id" : <int>,
+      "category_uid" : <int>,
+      "class_uid" : <int>,
+      "time" : <int>,
+      "severity_id" : <int>,
+      "type_uid" : <int>,
+      "metadata" : <document>
+      "actor" : {
+         "user" : {
+            "type_id" : <int>,
+            "name" : <string>,
+            "groups" : <array of documents>
+         }
+      },
+      "src_endpoint" : {
+         "ip": <string>,   // IP address for origin client computer
+         "port": <int>,    // Port for origin client computer
+         "intermediate_ips": [ {
+            // IP address and port for mongos or load balancer
+            "ip": <string>,
+            "port": <int>
+         }, {
+            // IP address and port for mongos or load balancer
+            "ip": <string>,
+            "port": <int>
+         } ]
+      },
+      "dst_endpoint" : {
+         // IP address and port for local MongoDB server
+         "ip": <string>,
+         "port": <int>
+      }
+   }
+
+The following table describes the fields in the log message.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``activity_id``
+     - Integer
+     - Activity type. See :ref:`ocsf-type-mapping`.
+
+   * - ``category_uid``
+     - Integer
+     - Audit event category. See :ref:`ocsf-category-mapping`.
+
+   * - ``class_uid``
+     - Integer
+     - Audit event class. See :ref:`ocsf-class-mapping`.
+
+   * - ``time``
+     - Integer
+     - Number of milliseconds after the Unix epoch that the event
+       occurred.
+
+   * - ``severity_id``
+     - Integer
+     - Severity of the audited event.
+   
+   * - ``type_uid``
+     - Integer
+     - Combination of the audited event's class, activity, and category.
+       See :ref:`ocsf-type-mapping`.
+
+   * - ``metadata``
+     - Document
+     - Metadata about the event such as product and schema version.
+
+   * - ``actor``
+     - Document
+     - Information about the user who performed the action.
+
+   * - ``src_endpoint``
+     - Document
+     - .. include:: /includes/client-id-audit-logs.rst
+
+       ``src_endpoint`` stores information about IP addresses and ports.
+       Each element in the ``intermediate_ips`` array is a document with
+       an IP address and port for a load balancer or ``mongos`` that the
+       origin client computer request passed through.
+
+       If the request passes through a load balancer:
+
+       - ``src_endpoint`` stores the origin client computer IP address
+         and port read from the proxy protocol header.
+       - ``src_endpoint.intermediate_ips`` stores the load balancer IP
+         address and port.
+
+       If the audit event occurs on a shard:
+
+       - ``src_endpoint`` stores the origin client computer IP address
+         and port. The address and port are read from the proxy protocol
+         header or, if the origin client computer connects to
+         ``mongos``, the address and port are read from the client
+         computer connection.
+       - ``src_endpoint.intermediate_ips`` stores the ``mongos`` IP
+         address and port. And, if a load balancer is used, there is an
+         additional ``src_endpoint.intermediate_ips`` that stores the IP
+         address and port of the load balancer.
+
+       .. versionchanged:: 8.1
+
+   * - ``dst_endpoint``
+     - Document
+     - IP address and port of the local MongoDB server.
+
+       .. versionchanged:: 8.1
+
+.. note::
+
+   Log messages may contain additional fields depending on the event
+   that was logged.
+
+.. _ocsf-category-mapping:
+
+OCSF Category Mapping
+---------------------
+
+This table describes the ``category_uid`` values: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - ``category_uid``
+     - Category
+
+   * - ``1``
+     - System Activity
+
+   * - ``2``
+     - Findings
+
+   * - ``3``
+     - :abbr:`IAM (Identity and Access Management)`
+
+   * - ``4``
+     - Network Activity
+
+   * - ``5``
+     - Discovery
+
+   * - ``6``
+     - Application Activity
+
+.. _ocsf-class-mapping:
+
+OCSF Class Mapping
+------------------
+
+For a complete list of {+ocsf+} ``class_uids`` and how they map to
+different classes, see the `OCSF Documentation
+<https://schema.ocsf.io/1.2.0/classes>`__.
+
+.. _ocsf-type-mapping:
+
+OCSF Type Mapping
+-----------------
+
+The ``type_uid`` field represents a combination of the audited event's
+class, activity, and category. The resulting UUID indicates the type of
+activity that occurred.
+
+Specifically, ``type_uid`` is ``( class_uid * 100 ) + (activity_id)``,
+with ``category_id`` being the thousands place in a ``class_id``.
+
+This table describes how audited actions map to ``type_uid``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10 10 10
+
+   * - Action Type
+     - ``type_uid``
+     - Category
+     - Class
+     - Activity
+
+   * - ``addShard``
+     - ``500101``
+     - Configuration
+     - Device Config State
+     - Log
+
+   * - ``applicationMessage``
+     - ``100799``
+     - System
+     - Process Activity
+     - Other
+
+   * - ``auditConfigure``
+     - ``500201`` or ``500203``
+     - Discovery
+     - Device Config State
+     - - ``1`` is Create
+       - ``3`` is Update
+     
+   * - ``authzCheck``
+     - ``600301`` - ``600304``
+     - Application
+     - API Activity
+     - - ``1`` is Create
+       - ``2`` is Read
+       - ``3`` is Update
+       - ``4`` is Delete
+
+   * - ``authenticate``
+     - ``300201``
+     - IAM 
+     - Authentication
+     - Logon
+
+   * - ``clientMetadata`` 	
+     - ``400101`` 
+     - Network 
+     - Network Activity
+     - Open
+
+   * - ``createCollection`` 	
+     - ``300401`` 
+     - IAM 
+     - Entity Management
+     - Create
+
+   * - ``createDatabase`` 	
+     - ``300401`` 
+     - IAM 
+     - Entity Management
+     - Create
+
+   * - ``createIndex`` 	
+     - ``300401`` 
+     - IAM 
+     - Entity Management
+     - Create
+
+   * - ``createRole`` 	
+     - ``300101`` 
+     - IAM 
+     - Account Change
+     - Create
+
+   * - ``createUser`` 	
+     - ``300101`` 
+     - IAM 
+     - Account Change
+     - Create
+
+   * - ``directAuthMutation`` 	
+     - ``300100`` 
+     - IAM 
+     - Account Change
+     - Unknown
+
+   * - ``dropAllRolesFromDatabase`` 	
+     - ``300106`` 
+     - IAM 
+     - Account Change
+     - Delete
+
+   * - ``dropAllUsersFromDatabase`` 	
+     - ``300106`` 
+     - IAM 
+     - Account Change
+     - Delete
+
+   * - ``dropCollection`` 	
+     - ``300404`` 
+     - IAM 
+     - Entity Management
+     - Delete
+
+   * - ``dropDatabase`` 	
+     - ``300404`` 
+     - IAM 
+     - Entity Management
+     - Delete
+
+   * - ``dropIndex`` 	
+     - ``300404`` 
+     - IAM 
+     - Entity Management
+     - Delete
+
+   * - ``dropPrivilegesToRole`` 	
+     - ``300107`` 
+     - IAM 
+     - Account Change
+     - Attach Policy
+
+   * - ``dropRole`` 	
+     - ``300106`` 
+     - IAM 
+     - Account Change
+     - Delete
+
+   * - ``dropUser`` 	
+     - ``300106`` 
+     - IAM 
+     - Account Change
+     - Delete
+
+   * - ``enableSharding`` 	
+     - ``500201`` 
+     - Configuration 
+     - Device Config State
+     - Log
+
+   * - ``getClusterParameter`` 	
+     - ``600302`` 
+     - Application 
+     - API Activity
+     - Read
+
+   * - ``grantRolesToRole`` 	
+     - ``300107`` 
+     - IAM 
+     - Account Change
+     - Attach Policy
+ 
+   * - ``grantRolesToUser`` 	
+     - ``300107`` 
+     - IAM 
+     - Account Change
+     - Attach Policy
+ 
+   * - ``importCollection`` 	
+     - ``300401`` 
+     - IAM 
+     - Entity Management
+     - Create
+
+   * - ``logout`` 	
+     - ``300202`` 
+     - IAM 
+     - Authentication
+     - Logoff
+ 
+   * - ``refineCollectionShardKey`` 	
+     - ``500201`` 
+     - Configuration 
+     - Device Config State
+     - Log
+
+   * - ``removeShard`` 	
+     - ``500201`` 
+     - Configuration 
+     - Device Config State
+     - Log
+
+   * - ``renameCollection`` 	
+     - ``300403`` 
+     - IAM 
+     - Entity Management
+     - Update
+
+   * - ``replSetReconfig`` 	
+     - ``500201`` 
+     - Configuration 
+     - Device Config State
+     - Log
+
+   * - ``revokePrivilegesFromRole`` 	
+     - ``300108`` 
+     - IAM 
+     - Account Change
+     - Detach Policy
+ 
+   * - ``revokeRolesFromRole`` 	
+     - ``300108`` 
+     - IAM 
+     - Account Change
+     - Detach Policy
+ 
+   * - ``revokeRolesFromUser`` 	
+     - ``300108`` 
+     - IAM 
+     - Account Change
+     - Detach Policy
+ 
+   * - ``rotateLog`` 	
+     - ``100799`` 
+     - System 
+     - Process
+     - Other
+ 
+   * - ``setClusterParameter`` 	
+     - ``500201`` 
+     - Configuration 
+     - Device Config State
+     - Log
+
+   * - ``shardCollection`` 	
+     - ``500201`` 
+     - Configuration 
+     - Device Config State
+     - Log
+
+   * - ``shutdown`` 	
+     - ``100702`` 
+     - System 
+     - Process
+     - Terminate
+ 
+   * - ``startup`` 	
+     - ``100701`` 
+     - System 
+     - Process
+     - Launch
+ 
+   * - ``updateCachedClusterServerParameter`` 	
+     - ``500201`` 
+     - Configuration 
+     - Device Config State
+     - Log
+
+   * - ``updateRole`` 	
+     - ``300199`` 
+     - IAM 
+     - Account Change
+     - Other
+
+   * - ``updateUser`` 	
+     - ``300199`` 
+     - IAM 
+     - Account Change
+     - Other
+
+Examples
+--------
+
+The following examples show {+ocsf+} schema log messages for different
+action types.
+
+Authenticate Action
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "activity_id" : 1,
+      "category_uid" : 3,
+      "class_uid" : 3002,
+      "time" : 1710715316123,
+      "severity_id" : 1,
+      "type_uid" : 300201,
+      "metadata" : {
+         "correlation_uid" : "20ec4769-984d-445c-aea7-da0429da9122",
+         "product" : "MongoDB Server",
+         "version" : "1.0.0"
+      },
+      "actor" : {
+         "user" : {
+            "type_id" : 1,
+            "name" : "admin.admin",
+            "groups" : [ { "name" : "admin.root" } ]
+         }
+      },
+      "src_endpoint" : { "ip" : "127.0.0.1", "port" : 56692 },
+      "dst_endpoint" : { "ip" : "127.0.0.1", "port" : 20040 },
+      "user" : { "type_id" : 1, "name" : "admin.admin" },
+      "auth_protocol" : "SCRAM-SHA-256",
+      "unmapped" : { "atype" : "authenticate" }
+   }
+
+AuthCheck Action
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "activity_id" : 0,
+      "category_uid" : 6,
+      "class_uid" : 6003,
+      "time" : 1710715315002,
+      "severity_id" : 1,
+      "type_uid" : 600300,
+      "metadata" : {
+         "correlation_uid" : "af4510fb-0a9f-49aa-b988-06259a7a861d",
+         "product" : "MongoDB Server",
+         "version" : "1.0.0"
+      },
+      "actor" : {},
+      "src_endpoint" : { "ip" : "127.0.0.1", "port" : 45836 },
+      "dst_endpoint" : { "ip" : "127.0.0.1", "port" : 20040 },
+      "api" : {
+         "operation" : "getParameter",
+         "request" : { "uid" : "admin" },
+         "response" : { "code" : 13, "error" : "Unauthorized" }
+      }
+   }
