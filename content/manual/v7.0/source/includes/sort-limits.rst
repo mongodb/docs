@@ -1,2 +1,0 @@
-- You can sort on a maximum of 32 keys.
-- Providing a sort pattern with duplicate fields causes an error. 

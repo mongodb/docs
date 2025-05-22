@@ -1,2 +1,0 @@
-- :ref:`sharded-cluster-config-server-config-shards`
-- :ref:`modify-existing-user-access`

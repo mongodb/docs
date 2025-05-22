@@ -1,3 +1,0 @@
-- ``field: "timestamp"``, ``partitionByFields: ["timestamp"]`` 
-- ``field: "timestamp"``, ``partitionByFields: ["timestamp.hours"]`` 
-- ``field: "timestamp.hours"``, ``partitionByFields: ["timestamp"]`` 

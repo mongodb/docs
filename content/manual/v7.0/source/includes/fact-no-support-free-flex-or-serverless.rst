@@ -1,2 +1,0 @@
-No support for :atlas:`M0, M2, M5, and {+flex-clusters+} </unsupported-commands/#unsupported-commands>`
-and :atlas:`serverless instances </unsupported-commands/#unsupported-commands-in-serverless-instances>`.

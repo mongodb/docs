@@ -1,1 +1,0 @@
-Limited support for :atlas:`M0, M2, M5, and {+flex-clusters+} </unsupported-commands/#limited-commands>`.
