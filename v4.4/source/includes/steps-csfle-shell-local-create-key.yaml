@@ -1,0 +1,165 @@
+---
+title: "Generate an Encryption Key."
+ref: generate-encryption-key
+level: 4
+content: |
+
+  Configuring client-side field level encryption for a locally-managed
+  key requires specifying a base64-encoded 96-byte string with no line
+  breaks.
+  
+  To mitigate the risk of these credentials leaking into logs, the
+  following procedure passes the values into the :binary:`~bin.mongo`
+  shell using environment variables.
+
+  The following operation generates a key that meets the stated
+  requirements and adds it to the user's ``~/.profile``. If the key
+  ``DEV_LOCAL_KEY`` already exists, skip this operation.
+
+  .. code-block:: bash
+
+      echo "export DEV_LOCAL_KEY=\"$(head -c 96 /dev/urandom | base64 | tr -d '\n')\"" >> ~/.profile
+
+  The host operating system may require logging out and back in to
+  refresh the loaded environment variables. Alternatively, you can use
+  the command ``source ~/.profile`` to manually refresh the shell.
+
+  .. note::
+
+      Your specific host operating system or shell may have different
+      procedures for setting persistent environment variables. Defer to
+      the documentation for your host OS or shell for a more specific
+      procedure as appropriate.
+
+---
+title: "Launch the ``mongo`` Shell."
+ref: launch-mongo-shell
+level: 4
+content: |
+
+  Create a :binary:`~bin.mongo` shell session using the :option:`--eval
+  <mongo --eval>`, :option:`--shell <mongo --shell>`, and
+  :option:`--nodb <mongo --nodb>` options:
+
+  .. code-block:: bash
+
+      mongo --eval "var LOCAL_KEY = '$DEV_LOCAL_KEY' " \
+        --shell --nodb
+
+  The example automatically opens a :binary:`~bin.mongo` shell
+  without a connection to a MongoDB database. The ``--eval``
+  option sets the ``LOCAL_KEY`` variable in the :binary:`~bin.mongo`
+  shell to the value of the corresponding environment variable.
+
+---
+title: "Create the Encryption Configuration."
+ref: create-encryption-configuration
+level: 4
+content: |
+
+  In the :binary:`~bin.mongo` shell, create a new
+  :ref:`ClientSideFieldLevelEncryptionOptions` variable for storing the
+  client-side field level encryption configuration document:
+
+  .. code-block:: javascript
+
+      var ClientSideFieldLevelEncryptionOptions = {
+        "keyVaultNamespace" : "encryption.__dataKeys",
+        "kmsProviders" : {
+          "local" : {
+            "key" : BinData(0, LOCAL_KEY)
+          }
+        }
+      }
+
+---
+title: "Connect with Encryption Support."
+ref: connect-with-encryption
+level: 4
+content: |
+
+  In the :binary:`~bin.mongo` shell, use the :method:`Mongo()<Mongo()>`
+  constructor to establish a database connection to the target cluster.
+  Specify the :ref:`ClientSideFieldLevelEncryptionOptions` document as
+  the second parameter to the :method:`Mongo()<Mongo()>` constructor to
+  configure the connection for client-side field level encryption:
+
+  .. code-block:: javascript
+
+     csfleDatabaseConnection = Mongo(
+       "mongodb://replaceMe.example.net:27017/?replicaSet=myMongoCluster",
+       ClientSideFieldLevelEncryptionOptions
+     )
+
+  Replace the ``replaceMe.example.net`` :ref:`URI <mongodb-uri>` with
+  the connection string for the target cluster.
+
+  Use the ``csfleDatabaseConnection`` object to access 
+  :doc:`client-side field level encryption
+  </reference/method/js-client-side-field-level-encryption>` shell
+  methods.
+
+  For complete documentation on establishing database connections 
+  configured for client-side field level encryption, see the 
+  :method:`Mongo()` constructor reference.
+
+---
+title: "Create the Key Vault Object."
+ref: create-keyvault-object
+level: 4
+content: |
+
+  Use the :method:`getKeyVault()` method on the
+  ``csfleDatabaseConnection`` database connection object to create the 
+  ``keyVault`` object:
+
+  .. code-block:: javascript
+
+     keyVault = csfleDatabaseConnection.getKeyVault();
+
+  .. important::
+
+     Client-side field level encryption depends on server-enforced
+     uniqueness of key alternate names. :method:`getKeyVault()`
+     creates a :ref:`unique index <index-type-unique>` on 
+     ``keyAltNames`` if one does not exist. Do **not** drop the
+     :ref:`unique index <index-type-unique>` created by
+     :method:`getKeyVault()`.
+
+---
+title: "Create the Data Encryption Key."
+ref: create-encryption-key
+level: 4
+content: |
+
+  Use the :method:`KeyVault.createKey()` method on the ``keyVault`` 
+  object to create a new data encryption key in the key vault:
+
+  .. code-block:: javascript
+      
+     keyVault.createKey(
+       "local",
+       [ "keyAlternateName" ]
+     )
+
+  Where:
+
+  - The first parameter *must* be ``local`` to specify the configured
+    locally managed key.
+
+  - The second parameter *may* be an array of one or more
+    ``keyAltNames`` for the data encryption key. Each key alternate
+    name *must* be unique. :method:`getKeyVault()` creates a unique
+    index on ``keyAltNames`` to enforce uniqueness on the field if
+    one does not already exist. Key alternate names facilitate data
+    encryption key findability.
+
+  .. note::
+
+     Prior to MongoDB 4.2.3, creating a local key required
+     specifying an empty string ``""`` as the second parameter and
+     the optional array of ``keyAltNames`` as the third parameter.
+
+  .. include:: /includes/fact-createkey-returns-uuid.rst
+
+...

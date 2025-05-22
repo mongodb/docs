@@ -1,0 +1,158 @@
+title: Disable the balancer process.
+stepnum: 1
+ref: disable-balancer
+pre: |
+   To disable the :ref:`balancer <sharding-internals-balancing>`,
+   connect the :binary:`~bin.mongo` shell to a :binary:`~bin.mongos` instance and run
+   :method:`sh.stopBalancer()` in the ``config`` database.
+action:
+   language: javascript
+   code: |
+      use config
+      sh.stopBalancer()
+post: |
+   For more information, see the
+   :ref:`sharding-balancing-disable-temporarily` procedure.
+
+   .. warning:: If you do not stop the balancer, the backup could have
+      duplicate data or omit data as :term:`chunks <chunk>` migrate while
+      recording backups.
+---
+title: Lock one secondary member of each replica set.
+stepnum: 2
+ref: lock-replica-set-members
+pre: |
+   Lock a secondary member of each replica set in the sharded cluster,
+   and one secondary of the :ref:`config server replica set (CSRS)
+   <replset-config-servers>`.
+
+   Ensure that the :term:`oplog` has sufficient capacity to allow these
+   secondaries to catch up to the state of the primaries after
+   finishing the backup procedure. See :ref:`replica-set-oplog-sizing`
+   for more information.
+action:
+  - heading: Lock shard replica set secondary.
+    pre: |
+      For each shard replica set in the sharded cluster, connect a
+      :binary:`~bin.mongo` shell to the secondary member's
+      :binary:`~bin.mongod` instance and run :method:`db.fsyncLock()`. 
+    language: javascript
+    code: |
+      db.fsyncLock()
+
+  - heading: Lock config server replica set secondary.
+    pre: |
+      If locking a secondary of the CSRS, confirm that the member has
+      replicated data up to some control point. To verify, first connect a
+      :binary:`~bin.mongo` shell to the CSRS primary and perform a write
+      operation with :writeconcern:`"majority"` write concern on a
+      control collection:
+    language: javascript
+    code: |
+      use config
+      db.BackupControl.findAndModify(
+         {
+           query: { _id: 'BackupControlDocument' },
+           update: { $inc: { counter : 1 } },
+           new: true,
+           upsert: true,
+           writeConcern: { w: 'majority', wtimeout: 15000 }
+         }
+      );
+  - pre: |
+      The operation should return either the newly inserted document or the
+      updated document:
+    language: javascript
+    code: |
+       { "_id" : "BackupControlDocument", "counter" : 1 }
+  - pre: |
+      Query the CSRS secondary member for the returned control
+      document. Connect a :binary:`~bin.mongo` shell to the CSRS secondary
+      to lock and use :method:`db.collection.find()` to query for the
+      control document:
+    language: javascript
+    code: |
+      rs.secondaryOk();
+
+      use config;
+
+      db.BackupControl.find(
+         { "_id" : "BackupControlDocument", "counter" : 1 }
+      ).readConcern('majority');
+  - post: |
+       If the secondary member contains the latest control document, it
+       is safe to lock the member. Otherwise, wait until the member
+       contains the document or select a different secondary member
+       that contains the latest control document.
+  - pre: |
+       To lock the secondary member, run :method:`db.fsyncLock()` on
+       the member:
+    language: javascript
+    code: |
+       db.fsyncLock()
+
+---
+title: Backup one config server.
+stepnum: 3
+ref: backup-config-server
+pre: |
+   Run :binary:`~bin.mongodump` against a config server :binary:`~bin.mongod`
+   instance to back up the cluster's metadata. You only need to back up
+   one config server. Perform this step
+   against the locked config server.
+action:
+  - pre: |
+      Use :binary:`~bin.mongodump` with the :option:`--oplog <mongodump.--oplog>` option to
+      backup one of the :ref:`config servers
+      <sharding-config-server>`.
+    language: sh
+    code: |
+      mongodump --oplog
+  - pre: |
+      If your deployment uses CSRS config servers, unlock the config server
+      node before proceeding to the next step.
+      To unlock the CSRS member, use :method:`db.fsyncUnlock()` method in
+      the :binary:`~bin.mongo` shell.
+    language: javascript
+    code: |
+      db.fsyncUnlock()
+---
+title: Back up a replica set member for each shard.
+stepnum: 4
+ref: backup-replica-set-members
+pre: |
+   Back up the locked replica set members of the shards using
+   :binary:`~bin.mongodump` with the
+   :option:`--oplog <mongodump.--oplog>` option. You may back up the
+   shards in parallel.
+action:
+   language: sh
+   code: |
+      mongodump --oplog
+---
+title: Unlock replica set members for each shard.
+stepnum: 5
+ref: restart-replica-set-members
+pre: |
+  To unlock the replica set members, use :method:`db.fsyncUnlock()`
+  method in the :binary:`~bin.mongo` shell.
+action: 
+  language: javascript
+  code: |
+    db.fsyncUnlock()
+post: |
+  Allow these members to catch up with the state of the primary.
+---
+title: Re-enable the balancer process.
+stepnum: 6
+ref: reenable-balancer-process
+pre: |
+  To re-enable to balancer, connect the :binary:`~bin.mongo` shell to a
+  :binary:`~bin.mongos` instance and run
+  :method:`sh.setBalancerState()`.
+action:
+   language: javascript
+   code: |
+      use config
+      sh.setBalancerState(true)
+...
