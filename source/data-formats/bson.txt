@@ -294,6 +294,8 @@ In addition to the core {+language+} objects, BSON also provides some special ty
 specific to the specification. The following sections describe other
 types that are supported in the driver.
 
+.. _ruby-bson-binary:
+
 BSON::Binary
 ~~~~~~~~~~~~
 
@@ -314,8 +316,19 @@ the bytes encode a particular type of data:
    BSON::Binary.new("binary_string", :user)
    # => <BSON::Binary:0x47113101225420 type=user data=0x62696e6172795f73...>
 
-The valid subtype specifications are ``:generic``, ``:function``,
-``:old``, ``:uuid_old``, ``:uuid``, ``:md5``, and ``:user``.
+The following list provides the valid subtype specifications:
+
+- ``:generic``
+- ``:function``
+- ``:old``
+- ``:uuid_old``
+- ``:uuid``
+- ``:md5``
+- ``:ciphertext``
+- ``:column``
+- ``:sensitive``
+- ``:vector``
+- ``:user``
 
 You can use the ``data`` and ``type`` attributes to retrieve a
 ``Binary`` object's data and the subtype, as shown in the following code:
@@ -446,6 +459,57 @@ You can use these methods to convert from one representation to another:
 
    BSON::Binary.from_uuid('77665544-3322-1100-ffeeddccbbaa9988',:java_legacy).to_uuid(:csharp_legacy)
    # => "33221100-5544-7766-8899aabbccddeeff"
+
+.. _ruby-bson-vector:
+
+BSON::Vector
+~~~~~~~~~~~~
+
+Starting in ``bson`` v5.1, you can use the
+``BSON::Vector`` type to represent vectors of numeric values.
+
+You can create a ``BSON::Vector`` object to store values of the following
+types:
+
+- ``int8``
+- ``float32``
+- ``packed_bit``
+
+You can use the optional ``dtype`` and ``padding`` attributes to specify
+the data type of the vector and the bit padding, respectively.
+``BSON::Vector`` itself is a container to hold your array values, type
+information, and padding specification. ``BSON::Vector`` objects are
+serialized as normal arrays in MongoDB.
+
+The following example demonstrates how to create a ``BSON::Vector`` object:
+
+.. code-block:: ruby
+
+   BSON::Vector.new([ -0.0016261312, -0.028070757, -0.011342932 ], :float32)
+
+Convert Vectors to Binary
+`````````````````````````
+
+You can convert ``BSON::Vector`` and array objects to
+:ref:`ruby-bson-binary` objects so they are serialized as BSON binary
+vector (subtype 9) instances. Use the ``BSON::Binary.from_vector``
+method, as shown in the following code:
+
+.. code-block:: ruby
+   
+   vector = BSON::Vector.new([ -0.0016261312, -0.028070757, -0.011342932 ], :float32)
+   BSON::Binary.from_vector(vector)
+
+Using the ``BSON::Binary`` type improves storage efficiency. To learn
+more, see the `BSON specification <https://bsonspec.org/spec.html>`__.
+
+You can convert a ``BSON::Binary`` to a ``BSON::Vector`` by using the
+``BSON::Binary.as_vector`` method.
+
+.. tip:: {+avs+}
+
+   To view an example that leverages the ``BSON::Binary`` type
+   to perform efficient {+avs+} queries, see the :ref:`ruby-avs-examples`.
 
 BSON::Code
 ~~~~~~~~~~
