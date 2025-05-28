@@ -18,8 +18,8 @@
    .. step:: Run an |fts| query with the compound operator to search the ``users`` collection.
 
       The following query uses the :pipeline:`$search` pipeline stage to query 
-      the collection. The query uses the following :ref:`compound-ref` operator 
-      clauses:
+      the collection. The query uses the following :ref:`compound <compound-ref>`
+      operator clauses:
       
       .. include:: /includes/fts/extracts/fts-isnull-stages
       

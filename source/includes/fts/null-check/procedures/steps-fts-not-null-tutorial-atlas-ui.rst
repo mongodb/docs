@@ -25,7 +25,7 @@
         ``password`` field using the :ref:`wildcard-ref` operator.
         
       - Find documents that don't have the ``password`` field using the 
-        :ref:`compound-ref` operator ``mustNot`` clause and replace their ``score`` 
+        :ref:`compound <compound-ref>` operator ``mustNot`` clause and replace their ``score`` 
         with ``2`` using the :ref:`scoring-constant` option.
       
         .. note:: 
