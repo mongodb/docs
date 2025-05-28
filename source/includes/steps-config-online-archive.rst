@@ -219,7 +219,7 @@
                         .. note:: 
       
                            ``$NOW`` is only supported on |service| 
-                           clusters running MongoDB 4.2 or later.
+                           clusters running MongoDB 6.0 or later.
       
             .. tab:: Time-Series Collection 
                :tabid: timeseries

@@ -1,6 +1,6 @@
 To complete the tutorials, you must have: 
 
-- An |service| {+cluster+} with MongoDB version 4.2 or higher.
+- An |service| {+cluster+} with MongoDB version 6.0 or higher.
 
 - The :ref:`sample data <sample-data>` loaded into your |service| 
   {+cluster+}.
