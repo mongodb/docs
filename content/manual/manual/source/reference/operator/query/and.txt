@@ -69,8 +69,8 @@ help satisfy clauses of the :query:`$and` expression when
 Examples
 --------
 
-``AND`` Queries With Multiple Expressions Specifying the Same Field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$and Queries With Multiple Expressions Specifying the Same Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider this query:
 
@@ -90,8 +90,8 @@ combines the operator expressions for the ``price`` field:
 
    db.inventory.find( { price: { $ne: 1.99, $exists: true } } )
 
-``AND`` Queries With Multiple Expressions Specifying the Same Operator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$and Queries With Multiple Expressions Specifying the Same Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider this query:
 
@@ -112,6 +112,73 @@ The query selects all documents where:
 
 The query cannot use an implicit ``AND`` operation because it uses the
 :query:`$or` operator more than once.
+
+$and Queries With Multiple Conditions on the Same Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following sample document stored in the ``inventory`` collection:
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.inventory.insertOne(
+      {
+         "tags": [ "home" ]
+      } 
+   )
+
+When you specify multiple conditions on the same field at the
+same level of the query object, only the last condition is considered.
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+        :language: javascript
+
+        db.inventory.find( {
+           tags: { $in: [ "electronics" ] },
+           tags: { $in: [ "home" ] }
+        } );
+
+    .. output::
+        :language: javascript
+
+        [
+           {
+              "_id": ObjectId( "..." ),
+              "tags": [ "home" ]
+           }
+        ]
+
+In the above query:
+
+- The condition ``{ tags: { $in: [ "electronics" ] } }`` is ignored.
+- The condition ``{ tags: { $in: [ "home" ] } }`` is applied and executed.
+
+To check for both ``home`` and ``electronics`` simultaneously, use an
+explicit ``$and`` operation:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+        :language: javascript
+
+        db.inventory.find( {
+           $and: [
+              { tags: { $in: [ "home" ] } },
+              { tags: { $in: [ "electronics" ] } }
+           ]
+        } );
+
+    .. output::
+        :language: javascript
+
+        []
+
+Because the ``$and`` operator requires both conditions to be true,
+no documents match and the query doesn't return any results.
 
 .. seealso::
 
