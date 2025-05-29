@@ -1,9 +1,10 @@
 <?php
-require 'vendor/autoload.php'; 
+require 'vendor/autoload.php';
 
 $uri = getenv('MONGODB_URI') ?: throw new RuntimeException('Set the MONGODB_URI variable to your Atlas URI that connects to the sample dataset');
 $client = new MongoDB\Client($uri);
 $collection = $client->db->coll;
+$anotherCollection = $client->db->collection;
 
 // Inserts one document that stores the specified values
 // start-insert-one
@@ -63,48 +64,29 @@ $result = $collection->deleteOne(['<field name>' => '<value>']);
 $result = $collection->deleteMany(['<field name>' => '<value>']);
 // end-delete-multiple
 
-// Runs a bulk operation based on the instructions in each array entry
+// Runs a bulk operation based on the operations in the ClientBulkWrite object
 // start-bulk-write
-$result = $collection->bulkWrite(
-    [
-        [
-            'insertOne' => [
-                ['<field name>' => '<value>'], 
-            ],
-        ],
-        [
-            'replaceOne' => [
-                ['<field to match>' => '<value to match>'],
-                [
-                    '<first new field>' => '<value>',
-                    '<second new field>' => '<value>',
-                ],
-            ],
-        ],
-        [
-            'updateOne' => [
-                ['<field to match>' => '<value to match>'],
-                ['$set' => ['<field to update>' => '<value to update>']],
-            ],
-        ],
-        [
-            'updateMany' => [
-                ['<field to match>' => '<value to match>'],
-                ['$set' => ['<field to update>' => '<value to update>']],
-            ],
-        ],
-        [
-            'deleteOne' => [
-                ['<field name>' => '<value>'],
-            ],
-        ],
-        [
-            'deleteMany' => [
-                ['<field name>' => '<value>'],
-            ],
-        ],
-    ]
+$bulkWrite = MongoDB\ClientBulkWrite::createWithCollection($collection);
+
+$bulkWrite->insertOne(['<field name 1>' => '<value 1>', '<field name 2>' => '<value 2>']);
+
+$bulkWrite->updateOne(
+    ['<field to match>' => '<value to match>'],
+    ['$set' => ['<field to update>' => '<updated value>']],
 );
+
+$bulkWrite = $bulkWrite->withCollection($anotherCollection);
+
+$bulkWrite->deleteMany(
+    ['<field name>' => '<value>'],
+);
+
+$bulkWrite->replaceOne(
+    ['<field to match>' => '<value to match>'],
+    ['<replacement field 1>' => '<replacement value 1>', '<replacement field 2>' => '<replacement value 2>'],
+);
+
+$result = $client->bulkWrite($bulkWrite);
 // end-bulk-write
 
 // Stores a file in a GridFS bucket and writes data to the file
