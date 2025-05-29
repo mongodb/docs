@@ -288,6 +288,273 @@ The ``$emit`` stage takes a document with the following fields:
    The maximum size for documents within a time series collection is 4 MB. 
    To learn more, see :ref:`manual-timeseries-collection-limitations`.
 
+.. _sp-emit-s3:
+
+{+aws+} S3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To write processed data to an {+aws+} |s3| bucket sink connection, use
+the ``$emit`` pipeline stage with the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$emit": {
+       "connectionName": "<registered-connection>",
+       "bucket": "<target-bucket>",
+       "region": "<target-region>",
+       "path": "<key-prefix>" | <expression>,
+       "config": {
+	 "writeOptions": {
+	   "count": <doc-count>,
+	   "bytes": <threshold>,
+	   "interval": {
+	     "size": <unit-count>,
+	     "unit": "<time-denomination>"
+	   }
+	 },
+	 "delimiter": "<delimiter>",
+	 "outputFormat": "basicJson" | "canonicalJson" | "relaxedJson",
+	 "dateFormat": "default" | "ISO8601",
+	 "compression": "gzip" | "snappy",
+	 "compressionLevel": <level>
+       }
+     }  
+   }
+
+The ``$emit`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - Name, as it appears in the 
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, of the
+       connection to write data to.
+
+   * - ``bucket``
+     - string
+     - Required 
+     - Name of the |s3| bucket to which to write data.
+
+   * - ``region``
+     - string
+     - Optional 
+     - Name of the {+aws+} region in which the target bucket resides.
+       If you host your {+spi+} in an {+aws+} region, this parameter
+       defaults to that region. Otherwise, it defaults to the {+aws+}
+       region nearest your {+spi+} host region.
+
+   * - ``path``
+     - string | expression
+     - Required 
+     - Prefix of the key of objects written to the |s3| bucket. Must
+       either be a literal :aws:`prefix
+       </AmazonS3/latest/userguide/using-prefixes.html>` string or an
+       expression that evaluates to a string.
+
+   * - ``config``
+     - document
+     - Optional 
+     - Document containing additional parameters that override various
+       default values.
+
+   * - ``config.writeOptions``
+     - document
+     - Optional 
+     - Document containing additional parameters governing write behavior.
+       These parameters trigger write behavior according to which threshold is
+       met first.
+
+       For example, if the ingested documents reach the ``config.writeOptions.count``
+       threshold without reaching the ``config.writeOptions.interval`` threshold,
+       the stream processor still emits these documents to |s3| according to the
+       ``config.writeOptions.count`` threshold.
+
+   * - ``config.writeOptions.count``
+     - integer
+     - Optional 
+     - Number of documents to group into each file written to |s3|.
+
+   * - ``config.writeOptions.bytes``
+     - integer
+     - Optional
+     - Specifies the minimum number of bytes that must accumulate
+       before a file is written to |s3|. The byte count is determined by
+       the size of the BSON documents ingested by the pipeline, not the size
+       of the final output file.
+
+   * - ``config.writeOptions.interval``
+     - document
+     - Optional
+     - Specifies a timer for bulk writing documents as a combination of
+       ``size`` and ``units``.
+
+       Defaults to 1 minute. You can't set the ``size`` to 0 for any
+       ``unit``. The maximum interval is 7 days.
+
+   * - ``config.writeOptions.interval.size``
+     - integer
+     - Conditional
+     - The number of units specified by
+       ``writeOptions.interval.units`` after which the stream
+       processor bulk writes documents to |s3|.
+
+       Defaults to ``1``. You can't set a ``size`` of 0. If you define
+       ``writeOptions.interval``, you must also define this parameter.
+
+   * - ``config.writeOptions.interval.units``
+     - string
+     - Conditional
+     - The denomination of time in which to count the bulk write
+       timer. This parameter supports the following values:
+
+       - ``ms``
+       - ``second``
+       - ``minute``
+       - ``hour``
+       - ``day``
+
+       Defaults to ``minute``. If you define
+       ``writeOptions.interval``, you must also define this parameter.
+
+   * - ``config.delimiter``
+     - string
+     - Optional 
+     - Delimiter between each entry in the emitted file.
+
+       Defaults to ``\n``.
+
+   * - ``config.outputFormat``
+     - string
+     - Optional
+     - Specifies the output format of the JSON written to |s3|.
+       Must be one of the following values:
+
+       - ``"basicJson"``
+       - ``"canonicalJson"``
+       - ``"relaxedJson"``
+
+       Defaults to "``relaxedJson``".
+
+       To learn more, see :ref:`Basic JSON
+       <atlas-sp-agg-emit-basic-json>`.
+
+   * - ``config.dateFormat``
+     - string
+     - Optional
+     - Date format for the date value. Valid values are:
+
+       - ``default`` - to use the default of the ``outputFormat``.
+       - ``ISO8601`` - to convert dates to strings in the ``ISO8601``
+         format, which includes millisecond precision
+         (``YYYY-MM-DDTHH:mm:ss.sssZ``).  
+
+       For example, if you add the following record to the pipeline:
+     
+       .. code-block:: json 
+
+          { "flightTime" :  ISODate('2025-01-10T20:17:38.387Z') }
+
+       then if ``$emit.config.defaultFormat`` is set to ``default``,
+       output looks similar to the following:
+
+       .. code-block:: shell 
+          :copyable: false 
+
+          { "flightTime" :  {$date :"2025-01-10T20:17:38.387Z"}}
+
+       If ``$emit.config.defaultFormat`` is set to ``ISO8601``,
+       output looks similar to the following:
+
+       .. code-block:: shell 
+          :copyable: false 
+
+          { "flightTime" :  "2025-01-10T20:17:38.387Z" }
+
+   * - ``config.compression``
+     - string
+     - Optional 
+     - Name of the compression algorithm to use.
+       Must be one of the following values:
+
+       - "gzip"
+       - "snappy"
+
+   * - ``config.compressionLevel``
+     - string
+     - Conditional
+     - Level of compression to apply to the emitted message. Supports
+       values ``1-9`` inclusive; higher values mean more compression.
+
+       Defaults to ``6``.
+
+       This parameter is required for and limited to ``gzip``. If you
+       set ``config.compression`` to ``snappy``, setting this parameter
+       has no effect.
+
+.. _atlas-sp-agg-emit-basic-json:
+
+Basic JSON
+~~~~~~~~~~
+
+To ease ingestion of messages, {+atlas-sp+} supports the :ref:`Basic
+JSON <atlas-sp-agg-emit-basic-json>`, which simplifies the RelaxedJSON
+format. The following table provides examples of these simplifications
+for all affected fields.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Field Type
+     - relaxedJson 
+     - basicJson 
+
+   * - Binary
+     - { "binary": { "$binary": { "base64": "gf1UcxdHTJ2HQ/EGQrO7mQ==", "subType": "00" }}} 
+     - { "binary": "gf1UcxdHTJ2HQ/EGQrO7mQ=="}
+
+   * - Date
+     - { "date": { "$date": "2024-10-24T18:07:29.636Z"}}
+     - { "date": 1729625275856}
+
+   * - Decimal
+     - { "decimal": { "$numberDecimal": "9.9" }} 
+     - { "decimal": "9.9" }
+
+   * - Timestamp
+     - { "timestamp": { "$timestamp": { "t": 1729793249, "i": 1 }}}
+     - { "timestamp": 1729793249000} 
+
+   * - ObjectId
+     - { "_id": { "$oid": "671a8ce1497407eff0e17cba" }}
+     - { "_id": "6717fcbba18c8a8f74b6d977" }
+
+   * - Negative Infinity
+     - { "negInf": { "$numberDouble": "-Infinity" }}
+     - { "negInf": "-Infinity" }
+
+   * - Positive Infinity
+     - { "posInf": { "$numberDouble": "Infinity" }}
+     - { "posInf": "Infinity" }
+
+   * - Regular Expressions
+     - { "regex": { "$regularExpression": { "pattern": "ab+c", "options": "i" }}} 
+     - { "regex": { "pattern": "ab+c", "options": "i" }}
+
+   * - UUID
+     - { "uuid": { "$binary": { "base64": "Kat+fHk6RkuAmotUmsU7gA==", "subType": "04" }}} 
+     - { "uuid": "420b7ade-811a-4698-aa64-c8347c719cf1”}
+
 .. _atlas-sp-agg-emit-behavior:
 
 Behavior
