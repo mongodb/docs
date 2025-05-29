@@ -25,7 +25,7 @@
             :language: python
 
             retriever = vector_store_index.as_retriever(similarity_top_k=3)
-            nodes = retriever.retrieve("MongoDB Atlas security")  
+            nodes = retriever.retrieve("MongoDB acquisition")  
 
             for node in nodes:
                 print(node)
@@ -33,30 +33,31 @@
          .. output:: 
             :language: JSON
 
-            Node ID: 8a743e7c-4d28-4f7c-9c64-1033523a767d
-            Text: MongoD B Atlas provides: •Security f eatures to protect access
-            to your data •Built in replication for always-on availability ,
-            tolerating complete data center failure •Backups and point in time
-            recovery to protect against data corruption •Fine-grained monitoring
-            to let you know when to scale.
-            Score:  0.935
+            Node ID: 479446ef-8a32-410d-a5e0-8650bd10d78d
+            Text: MongoDB  completed the redemption of 2026 Convertible Notes,
+            eliminating all debt from the balance sheet. Additionally, in
+            conjunction with the acquisition of Voyage, MongoDB  is announcing a
+            stock buyback program of $200 million, to offset the dilutive impact
+            of the acquisition consideration.
+            Score:  0.914
 
-            Node ID: 5904c51b-ac96-4a2f-818e-35c85af4b624
-            Text: MongoD B Atlas f eatures e xtensive capabilities to def end,
-            detect, and control access to MongoD B, off ering among the most
-            complete security controls of any modern database: •User Rights
-            Management.User Rights Management. Control access to sensitive data
-            using industry standard mec hanisms for authentication and
-            authorization at the database ...
-            Score:  0.932
+            Node ID: 453137d9-8902-4fae-8d81-5f5d9b0836eb
+            Text: "Looking ahead, we remain incredibly excited about our long-term
+            growth opportunity. MongoDB  removes the constraints of legacy
+            databases, enabling businesses to innovate at AI speed with our
+            flexible document model and seamless scalability. Following the Voyage
+            AI acquisition, we combine real-time data, sophisticated embedding and
+            retrieval mod...
+            Score:  0.914
 
-            Node ID: cb71a615-2f69-47b3-87e7-3373ff476fd6
-            Text: Protect data in motion over the network and at rest in
-            persistent storage To ensure a secure system right out of the b ox,
-            authentication and I P Address whitelisting are automatically enabled.
-            Review the security section of the MongoD B Atlas documentation to
-            learn more ab out eac h of the security features discussed below .
-            Score:  0.930
+            Node ID: f3c35db6-43e5-4da7-a297-d9b009b9d300
+            Text: Lombard Odier, a Swiss private bank, partnered with MongoDB  to
+            migrate and modernize its legacy banking technology systems on MongoDB
+            with generative AI. The initiative enabled the bank to migrate code
+            50-60 times quicker and move applications from a legacy relational
+            database to MongoDB  20 times faster than previous migrations.
+            Score:  0.912
+
 
    .. tab:: Semantic Search with Filtering
       :tabid: semantic-search-filter
@@ -85,7 +86,7 @@
       - The  ``similarity_top_k`` parameter to return 
         only the three most relevant documents.
       - A filter on the ``metadata.page_label`` field 
-        so that {+avs+} searches for documents appearing on page 17 only.
+        so that {+avs+} searches for documents appearing on page two only.
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
@@ -99,10 +100,10 @@
 
             # Specify metadata filters
             metadata_filters = MetadataFilters(
-               filters=[ExactMatchFilter(key="metadata.page_label", value="17")]
+               filters=[ExactMatchFilter(key="metadata.page_label", value="2")]
             )
             retriever = vector_store_index.as_retriever(similarity_top_k=3, filters=metadata_filters)
-            nodes = retriever.retrieve("MongoDB Atlas security")
+            nodes = retriever.retrieve("MongoDB acquisition")
 
             for node in nodes:
                 print(node)
@@ -110,27 +111,31 @@
          .. output:: 
             :language: JSON
 
-            Node ID: bd82d311-e70b-4d00-aab9-56b84ad16e3d
-            Text: Integrating MongoD B with External Monitoring S olutions The
-            MongoD B Atlas AP I provides integration with e xternal management
-            frameworks through programmatic access to automation f eatures and
-            alerts. APM Integration Many operations teams use Application P
-            erformance Monitoring (AP M) platforms to gain global oversight of 15
+            Node ID: 479446ef-8a32-410d-a5e0-8650bd10d78d
+            Text: MongoDB  completed the redemption of 2026 Convertible Notes,
+            eliminating all debt from the balance sheet. Additionally, in
+            conjunction with the acquisition of Voyage, MongoDB  is announcing a
+            stock buyback program of $200 million, to offset the dilutive impact
+            of the acquisition consideration.
+            Score:  0.914
+
+            Node ID: f3c35db6-43e5-4da7-a297-d9b009b9d300
+            Text: Lombard Odier, a Swiss private bank, partnered with MongoDB  to
+            migrate and modernize its legacy banking technology systems on MongoDB
+            with generative AI. The initiative enabled the bank to migrate code
+            50-60 times quicker and move applications from a legacy relational
+            database to MongoDB  20 times faster than previous migrations.
+            Score:  0.912
+
+            Node ID: 82a2a0c0-80b9-4a9e-a848-529b4ff8f301
+            Text: Fourth Quarter Fiscal 2025 and Recent Business Highlights
+            MongoDB  acquired Voyage AI, a pioneer in state-of-the-art embedding
+            and reranking models that power next-generation AI applications.
+            Integrating Voyage AI's technology with MongoDB  will enable
+            organizations to easily build trustworthy, AI-powered applications by
+            offering highly accurate...
             Score:  0.911
 
-            Node ID: c24f0bdd-d84e-4214-aceb-aa2cbd362819
-            Text: If the MongoD B cluster e xperiences a failure, the most
-            recentbackup is only moments behind, minimizing e xposure to data
-            loss. In additional, MongoD B Atlas includes queryable bac kups, which
-            allows you to perform queries against e xisting snapshots to more
-            easily restore data at the document/ object level. Queryable bac kups
-            allow you to acco...
-            Score:  0.911
 
-            Node ID: 642f08a3-f9b7-427b-81ce-00c1574eea01
-            Text: In the vast majority of cases, MongoD B Atlas bac kups delivers
-            the simplest, saf est, and most efficient bac kup solution. mongodump
-            is useful when data needs to be exported to another system, when a
-            local bac kup is needed, or when just a subset of the data needs to be
-            backed up.
-            Score:  0.909
+
+
