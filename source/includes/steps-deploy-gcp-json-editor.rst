@@ -1,7 +1,7 @@
 a. Define your AWS S3 data store.
 
    Edit the |json| configuration settings shown in the UI for 
-   ``stores``. Your ``stores`` cofiguration setting should resemble the 
+   ``stores``. Your ``stores`` configuration setting should resemble the 
    following:
 
    .. literalinclude:: /includes/data-federation/s3-stores-config-format.json
@@ -13,7 +13,7 @@ a. Define your AWS S3 data store.
 #. Define your {+fdi+} virtual databases, collections, and views.
 
    Edit the |json| configuration settings shown in the UI for 
-   ``databases``. Your ``databases`` cofiguration setting should 
+   ``databases``. Your ``databases`` configuration setting should 
    resemble the following:
 
    .. literalinclude:: /includes/data-federation/s3-databases-config-format.json

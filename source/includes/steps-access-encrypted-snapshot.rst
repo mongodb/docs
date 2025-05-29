@@ -188,6 +188,6 @@
    .. step:: Connect to the ``mongod`` process.
       
       Access your data files by connecting to the ``mongod`` through the
-      {+mongosh+}, :compass:`MongoDB Compass`, or through standard 
+      {+mongosh+}, :compass:`MongoDB Compass </>`, or through standard 
       utilities such as :ref:`mongodump <command-line-tools-mongodump>` 
       or :ref:`mongorestore <command-line-tools-mongorestore>`.
