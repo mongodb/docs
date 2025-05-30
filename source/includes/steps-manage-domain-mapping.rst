@@ -27,7 +27,7 @@
               - Name to easily identify the domain.
       
             * - Domain Name
-              - :wikipedia:`Domain name </Domain_name&oldid=919136520>` to
+              - :wikipedia:`Domain name <Domain_name>` to
                 map.
       
       #. Click :guilabel:`Next`.
