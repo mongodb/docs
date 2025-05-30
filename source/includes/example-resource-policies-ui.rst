@@ -248,7 +248,7 @@ details for your cloud provider and replace them in the example:
       action == ResourcePolicy::Action::"project.vpcPeering.modify", 
       resource
     ) 
-    when {context.project.peeringConnections == ["aws:000123456789:us-east-1:vpc-0316c47cc923ce313:10.0.0.0/16", "azure:fd01aafc-b3re-2193-8497-83lp3m83a1a5:rg-name:vnet", "gcp:inductive-cocoa-108200:default"]};
+    when {context.project.peeringConnections == ["aws:000123456789:vpc-0316c47cc923ce313:10.0.0.0/16", "azure:fd01aafc-b3re-2193-8497-83lp3m83a1a5:rg-name:vnet", "gcp:inductive-cocoa-108200:default"]};
 
 .. _prevent-private-endpoint-modifications-ui:
 
