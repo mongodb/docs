@@ -129,7 +129,7 @@
      - Additional meta information about the event. This field only
        appears when the ``includeRaw`` query parameter is ``true``.
 
-       :gold:`IMPORTANT:` The values in the ``raw`` document are subject to change. Do not rely on ``raw`` values for formal monitoring.
+       .. include:: /includes/api/facts/raw-document-differs.rst
 
    * - remoteAddress
      - string
