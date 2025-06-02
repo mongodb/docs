@@ -1,0 +1,548 @@
+.. _mdb-shell-write-scripts:
+
+=============
+Write Scripts
+=============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta:: 
+   :description: Write scripts for the MongoDB Shell that modify data in MongoDB or perform administrative operations.
+   :keywords: server
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can write scripts for the |mdb-shell| that modify data in MongoDB or
+perform administrative operations. You may also want to package your
+scripts as :ref:`snippets <snip-overview>` for easier distribution and
+management.
+
+This tutorial introduces using the |mdb-shell| with JavaScript to
+access MongoDB.
+
+Compatibility
+-------------
+
+.. |mongosh-action| replace:: write scripts for the |mdb-shell|
+
+.. include:: /includes/fact-compatibility.rst
+
+To learn more about using the |mdb-shell| for deployments
+hosted in MongoDB Atlas, see :atlas:`Connect via mongosh 
+</mongo-shell-connection/>`.
+
+.. _mdb-shell-execute-file:
+
+Execute a JavaScript File
+-------------------------
+
+Execute a Script from Within mongosh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can execute a ``.js`` file from within the |mdb-shell|
+using the :ref:`load() <mongosh-native-method-load>` method.
+
+File Paths
+``````````
+
+The :ref:`load() <mongosh-native-method-load>` method accepts relative 
+and absolute paths. If the current working directory of the |mdb-shell| 
+is ``/data/db``, and ``connect-and-insert.js`` is in the 
+``/data/db/scripts`` directory, then the following calls within the 
+|mdb-shell| are equivalent: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   load( "scripts/connect-and-insert.js" )
+   load( "/data/db/scripts/connect-and-insert.js" )
+
+.. _mongosh-ex-run-script:
+
+Example
+```````
+
+The following example creates and executes a script that:
+
+- Connects to a local instance running on the default port.
+- Connects to the ``myDatabase`` database.
+- Populates the ``movies`` collection with sample documents.
+
+1. Create a file named ``connect-and-insert.js`` with the following
+   contents:
+
+   .. code-block:: javascript
+
+      db = connect( 'mongodb://localhost/myDatabase' );
+
+      db.movies.insertMany( [
+         {
+            title: 'Titanic',
+            year: 1997,
+            genres: [ 'Drama', 'Romance' ]
+         },
+         {
+            title: 'Spirited Away',
+            year: 2001,
+            genres: [ 'Animation', 'Adventure', 'Family' ]
+         },
+         {
+            title: 'Casablanca',
+            genres: [ 'Drama', 'Romance', 'War' ]
+         }
+      ] )
+
+#. To load and execute the ``connect-and-insert.js`` file, use
+   ``mongosh`` to connect to your deployment and run the following
+   command:
+
+   .. code-block:: javascript
+
+      load( "connect-and-insert.js" )
+
+#. To confirm that the documents loaded correctly, use the
+   ``myDatabase`` collection and query the ``movies`` collection.
+
+   .. code-block:: javascript
+
+      use myDatabase
+      db.movies.find()
+
+.. note::
+
+   There is no search path for the :ref:`load() 
+   <mongosh-native-method-load>` method. If the target
+   script is not in the current working directory or the full specified
+   path, the |mdb-shell| cannot access the file.
+
+.. _mdb-shell-write-scripts-command-line:
+
+Execute a Script From the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use :binary:`~bin.mongosh` to execute a script from the command
+line without entering the :binary:`~bin.mongosh` console. 
+
+To specify the filename, use the ``--file`` or ``-f`` parameter to
+specify the filename. You may also need to specify connection
+information in addition to the ``--file`` or ``-f`` parameters. 
+
+.. tip::
+
+   If you pass a filename to :binary:`~bin.mongosh` without using the
+   parameter flags the connection may fail if there are other command
+   line arguments.
+   
+   To pass filenames always use ``--file`` or ``-f``.
+
+Example
+```````
+
+The following example creates scripts and runs them from the command
+line. 
+
+- ``loadMovies.js``, uses :method:`~db.collection.insertMany()` to a
+  update a local MongodDB instance.
+- ``queryMovies.js`` uses :method:`db.collection.find()` to verify
+  the update.
+
+#. Copy this script and save it as ``loadMovies.js``.
+
+   .. code-block:: javascript
+      :emphasize-lines: 1
+
+      db = connect( 'mongodb://localhost/films' );
+
+      db.movies.insertMany( [
+         {
+            title: 'Titanic',
+            year: 1997,
+            genres: [ 'Drama', 'Romance' ]
+         },
+         {
+            title: 'Spirited Away',
+            year: 2001,
+            genres: [ 'Animation', 'Adventure', 'Family' ]
+         },
+         {
+            title: 'Casablanca',
+            genres: [ 'Drama', 'Romance', 'War' ]
+         }
+      ] )
+
+   .. tip::
+
+      Verify the connection string in the highlighted line. If your
+      MongoDB instance is not running on ``localhost:27017``, you
+      must edit the connection string.
+      
+      For example, the following connection string connects to
+      ``localhost`` port ``27500``: 
+
+      .. code-block:: javascript
+
+         db = connect( 'mongodb://localhost:27500/films' );
+
+#. Copy this script and save it as ``queryMovies.js``.
+
+   .. code-block:: javascript
+
+      db = connect( 'mongodb://localhost/films' );
+      printjson( db.movies.find( {} ) ); 
+
+#. Run the scripts from the command line.
+
+   .. code-block:: javascript
+
+      mongosh --file loadMovies.js --file queryMovies.js
+
+#. Verify the output.
+
+   .. code-block:: javascript
+      :emphasize-lines: 1-2
+      
+      Loading file: loadMovies.js
+      Loading file: queryMovies.js
+      [
+         {
+            _id: ObjectId("616f1b8092dbee425b661117"),
+            title: 'Titanic',
+            year: 1997,
+            genres: [ 'Drama', 'Romance' ]
+         },
+         {
+            _id: ObjectId("616f1b8092dbee425b661118"),
+            title: 'Spirited Away',
+            year: 2001,
+            genres: [ 'Animation', 'Adventure', 'Family' ]
+         },
+         {
+            _id: ObjectId("616f1b8092dbee425b661119"),
+            title: 'Casablanca',
+            genres: [ 'Drama', 'Romance', 'War' ]
+         }
+      ]
+
+   The output of the :method:`db.collection.find()` command shows
+   that the ``movies`` collection was updated.
+
+   .. tip::
+
+      To make the output visible, use ``printjson()`` to call
+      :method:`db.collection.find()`.
+
+      .. code-block:: javascript
+
+         printjson( db.movies.find( {} ) ) ; 
+
+
+Execute a Script From the Command Line with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To execute a script against a remote :binary:`mongod` instance that
+requires authentication, specify the connection and authentication
+details in addition to the filename. 
+
+For example:
+
+.. code-block:: javascript
+
+   mongosh --host 172.17.0.3 --port 27500 --username filmFan --password superSecret --file loadMovies.js 
+   
+You can also specify the shortened form of the options:
+
+.. code-block:: javascript
+
+   mongosh --host 172.17.0.3 --port 27500 -u filmFan -p superSecret -f loadMovies.js 
+
+.. tip::
+
+   In shells like ``bash`` and ``zsh``, if you begin a command with a
+   space it will not be saved in your command history. This minimizes
+   exposure if you enter passwords on the command line.
+
+
+.. _mongosh-terminate-script:
+
+Terminate a Script on Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is often useful to terminate a running script if an exception is thrown, or 
+in the case of unexpected results. Exiting at a specific point in the script 
+prevents the execution of unnecessary code and potentially unexpected results.
+
+To terminate a script, you can call the ``exit(<code>)`` method, where the 
+``<code>`` is any user-specified value. 
+
+As a best practice, wrap code in a ``try - catch``, calling the 
+``exit`` method in the ``catch`` block. Likewise, to check the results of a query or any command, 
+you can add an ``if - else`` statement and call the ``exit`` method if the 
+results are not what is expected.
+
+.. _mongosh-write-scripts-config-file:
+
+Execute Code From a Configuration File
+--------------------------------------
+
+On startup, :binary:`mongosh` checks your ``HOME`` directory for a
+JavaScript file named ``.mongoshrc.js``. If this file is found,
+:binary:`mongosh` reads the content of ``.mongoshrc.js`` before
+displaying the prompt for the first time.
+
+.. seealso::
+
+   - :ref:`customize-the-mongosh-prompt`
+   - :ref:`mongoshrc-js`
+
+Execute JavaScript Code
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To update the :binary:`~bin.mongosh` prompt to display line numbers, add
+the following code to ``<your-home-directory>/.mongoshrc.js``
+
+.. code-block:: javascript
+
+   let cmdCount = 1;
+   prompt = function() {
+                return (cmdCount++) + "> ";
+            }
+
+The prompt will look like this:
+
+.. code-block:: javascript
+
+   1> show collections
+   2> use test
+   3>
+
+Execute MongoDB Code
+~~~~~~~~~~~~~~~~~~~~
+
+To create a log of when your :binary:`mongosh` client connects to a
+database, add the following code to
+``<your-home-directory>/.mongoshrc.js``:
+
+.. code-block:: javascript
+
+   db.clientConnections.insertOne( { connectTime: ISODate() } )
+
+Each time you connect to a database, the MongoDB server adds a
+document like the following to the ``clientConnections`` collection.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: ObjectId("61d4bbf0fa4c85f53418070f"),
+     connectTime: ISODate("2022-01-04T21:28:16.367Z")
+   }
+
+Execute JavaScript and MongoDB Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/examples/ex-display-dbname-and-hostname.rst
+
+.. _mdb-shell-open-new-connections-in-shell:
+
+Open a New Connection
+---------------------
+
+From the |mdb-shell| or from a JavaScript file, you can instantiate
+database connections using the :method:`Mongo()` method:
+
+.. code-block:: javascript
+   :copyable: false
+
+   new Mongo()
+   new Mongo(<host>)
+   new Mongo(<host:port>)
+
+.. note::
+
+   The |mdb-shell| does not support the
+   :manual:`ClientSideFieldLevelEncryptionOptions
+   </reference/method/Mongo/#clientsidefieldlevelencryptionoptions>`
+   document with the :method:`Mongo()` method.
+
+Connect to a Local MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a MongoDB instance running on localhost on the default port.
+
+The following example:
+
+- Instantiates a new connection to the instance, and
+- Sets the global ``db`` variable to ``myDatabase`` using the
+  :method:`Mongo.getDB()` method. 
+
+.. code-block:: javascript
+
+   conn = Mongo();
+   db = conn.getDB("myDatabase");
+
+Connect to an Atlas Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To :ref:`connect to a deployment <mdb-shell-connect>` 
+hosted in {+atlas+}, run the ``mongosh`` command with your 
+Atlas connection string. For example:
+
+.. code-block:: sh
+
+   mongosh "mongodb+srv://YOUR_CLUSTER_NAME.YOUR_HASH.mongodb.net/" --apiVersion YOUR_API_VERSION --username YOUR_USERNAME
+
+Once you've established a connection to your deployment, you can
+instantiate database connections directly from the |mdb-shell|.
+The following example:
+
+- Instantiates a connection to the current deployment by using the 
+  :method:`db.getMongo()` method.
+- Sets the global ``db`` variable to ``myDatabase`` by using the
+  :method:`Mongo.getDB()` method.
+
+.. code-block:: javascript
+
+   conn = db.getMongo()
+   db = conn.getDB("myDatabase");
+
+Connect to a MongoDB Instance that Enforces Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a MongoDB instance that enforces access control, you
+must include the credentials in the :manual:`connection string
+</reference/connection-string/>`. 
+
+The following command connects to a MongoDB instance that is:
+
+- Running on ``localhost`` on the default port, and
+- Secured using :manual:`SCRAM </core/security-scram/>`.
+
+.. code-block:: javascript
+
+   conn = Mongo("mongodb://<username>:<password>@localhost:27017/<authDB>");
+
+.. the manual page says to use db.auth(), which isn't implemented yet.
+   this is the only way I could get it to work.
+   https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#opening-new-connections
+
+.. note::
+   
+   .. include:: /includes/admonitions/note-redact-credentials-command-history.rst
+
+Use ``connect()`` to Connect to a MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also use the :manual:`connect()
+</reference/method/connect/>` method to connect to the MongoDB instance.
+
+The following command:
+
+- Connects to the MongoDB instance that is running on ``localhost`` with
+  the non-default port ``27020``, and 
+- Sets the global ``db`` variable.
+
+.. code-block:: javascript
+
+   db = connect("localhost:27020/myDatabase");
+
+.. skipping the Differences Between Interactive and Scripted mongo
+   section as most of the javascript equivalents to the shell helpers
+   have not yet been implemented in mongosh -- revisit later
+   https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#differences-between-interactive-and-scripted-mongo
+
+.. also skippping --eval section as I'm having issues getting it to work
+   https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#eval-option
+
+Connection Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider portability and the operating environment when you write
+scripts. 
+
+Script Includes Connection Detail
+`````````````````````````````````
+
+If the connection details are included in the script:
+
+- You do not need to specify connection information on the command
+  line.
+- You should use the ``--nodb`` parameter.
+
+Consider a :binary:`~bin.mongod` instance running on
+``localhost:27500``.
+
+The following script prints the number of users. Copy the code and save
+it as ``getUserCount.js``.
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+
+   db = connect( "localhost:27500/admin" );˘
+   printjson( db.system.users.countDocuments() );
+
+Run ``getUserCount.js``:
+
+.. code-block:: javascript
+
+   mongosh --nodb --file getUserCount.js
+
+- :binary:`~bin.mongosh` defaults to port 27170.
+- :binary:`~bin.mongod` is running on port 27500.
+- The ``--nodb`` parameter instructs :binary:`~bin.mongosh` to run a
+  script without first connecting to a :binary:`~bin.mongod` instance.
+
+The highlighted line is correct, but ``getUserCount.js`` will not run
+without ``--nodb`` because :binary:`~bin.mongosh` cannot connect to the
+local instance. With ``--nodb``, :binary:`~bin.mongosh` runs
+``getUserCount.js`` and uses the highlighted information to connect.
+
+Script Does Not Include Connection Details
+``````````````````````````````````````````
+
+It is convenient to specify connection information in your script, but
+that also makes it less portable. The ``getUserCount.js`` script would
+have to be updated to run on a remote instance or one running on a
+different port.
+
+To increase portability, use :method:`db.getSiblingDB()` and specify
+the connection information on the command line. 
+
+The following script is more portable than ``getUserCount.js`` because
+it does not have specific connection details. Copy the code and save it
+as ``portableGetUserCount.js``.
+
+.. code-block:: javascript
+
+   db = db.getSiblingDB( "admin" );
+   printjson( db.system.users.countDocuments() );
+
+To run ``portableGetUserCount.js``, specify the host and port on the
+command line:
+
+.. code-block:: javascript
+
+   mongosh --host 172.17.0.3 --port 27500 --file portableGetUserCount.js 
+
+To run ``portableGetUserCount.js`` on a different host or port, change
+the connection details on the command line. Unlike ``getUserCount.js``,
+you do not have to edit the script to run ``portableGetUserCount.js``.
+
+.. toctree::
+   :titlesonly:
+
+   Include Files & Modules </write-scripts/require-external-modules>
+   require() versus load() </write-scripts/require-load-differences>
+   Code Scoping </write-scripts/scoping>
+   Considerations </write-scripts/considerations>

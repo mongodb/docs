@@ -1,0 +1,321 @@
+.. _compatibility:
+
+=================================================
+Compatibility Changes with Legacy ``mongo`` Shell
+=================================================
+
+.. meta::
+   :description: Explore the differences between `mongosh` and the legacy `mongo` shell, including deprecated methods, read and write preference behaviors, and data type handling.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page describes differences between ``mongosh`` and the legacy
+``mongo`` shell. In addition to the alternatives listed here, you can
+use the `mongocompat
+<https://github.com/mongodb-labs/mongosh-snippets/blob/main/snippets/mongocompat/>`__
+snippet to access to legacy :binary:`mongo` shell APIs. Snippets are an
+experimental feature, for more information, see :ref:`snip-overview`.
+
+.. code-block:: shell
+
+   snippet install mongocompat
+
+Deprecated Methods
+------------------
+
+The following shell methods are deprecated in ``mongosh``. Instead, use
+the methods listed in the :guilabel:`Alternative Resources` column.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 10
+
+   * - Deprecated Method
+     - Alternative Resources
+   * - ``db.collection.copyTo()``
+     -   Aggregation stage: :pipeline:`$out`
+   * - ``db.collection.count()``
+     - - :method:`db.collection.countDocuments()`
+       - :method:`db.collection.estimatedDocumentCount()`
+   * - ``db.collection.insert()``
+     - - :method:`db.collection.insertOne()`
+       - :method:`db.collection.insertMany()`
+       - :method:`db.collection.bulkWrite()`
+   * - ``db.collection.remove()``
+     - - :method:`db.collection.deleteOne()`
+       - :method:`db.collection.deleteMany()`
+       - :method:`db.collection.findOneAndDelete()`
+       - :method:`db.collection.bulkWrite()`
+   * - ``db.collection.save()``
+     - - :method:`db.collection.insertOne()`
+       - :method:`db.collection.insertMany()`
+       - :method:`db.collection.updateOne()`
+       - :method:`db.collection.updateMany()`
+       - :method:`db.collection.findOneAndUpdate()`
+   * - ``db.collection.update()``
+     - - :method:`db.collection.updateOne()`
+       - :method:`db.collection.updateMany()`
+       - :method:`db.collection.findOneAndUpdate()`
+       - :method:`db.collection.bulkWrite()`
+   * - ``DBQuery.shellBatchSize``
+     - - :ref:`config.set("displayBatchSize", "\<value\>") <mongosh-config-set>`
+       - :ref:`cursor.batchSize() <mongosh-cursor-methods>`
+   * - ``Mongo.getSecondaryOk``
+     - :method:`Mongo.getReadPrefMode`
+   * - ``Mongo.isCausalConsistency``
+     - :method:`Session.getOptions()`
+   * - ``Mongo.setSecondaryOk``
+     - :method:`Mongo.setReadPref`
+   * - ``rs.secondaryOk``
+     - No longer required. See 
+       :ref:`Read Operations on a Secondary Node <read-on-secondary-nodes>`.
+
+Read Preference Behavior
+------------------------
+
+.. _read-on-secondary-nodes:
+
+Read Operations on a Secondary Node
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using the legacy mongo shell to connect directly to 
+:term:`secondary` replica set member, you must run 
+``mongo.setReadPref()`` to enable secondary reads.
+
+When using ``mongosh`` to connect directly to a :term:`secondary` 
+replica set member, you can read from that member if you specify a 
+:manual:`read preference </core/read-preference/>` of either:
+
+- :readmode:`primaryPreferred`
+- :readmode:`secondary`
+- :readmode:`secondaryPreferred`
+
+To specify a read preference, you can use either:
+
+- The :urioption:`readPreference` connection string option when
+  connecting to the node.
+
+- The :method:`Mongo.setReadPref()` method.
+
+When using ``mongosh`` to connect directly to a :term:`secondary` 
+replica set member, if your read preference is set to 
+:readmode:`primaryPreferred`, :readmode:`secondary` or 
+:readmode:`secondaryPreferred` it is *not* required to run
+``rs.secondaryOk()``.
+
+``show`` Helper Methods
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following ``show`` helper methods always use a read preference of
+``primaryPreferred``, even when a different read preference has been
+specified for the operation:
+
+- ``show dbs``
+- ``show databases``
+- ``show collections``
+- ``show tables``
+
+In the legacy ``mongo`` shell, these operations use the specified read
+preference.
+
+Write Preference Behavior
+-------------------------
+
+:ref:`Retryable writes <retryable-writes>` are enabled by default in
+:binary:`mongosh`. Retryable writes were disabled by default in the
+legacy :binary:`mongo` shell. To disable retryable writes, use 
+:option:`--retryWrites=false <mongosh --retryWrites>`.
+
+
+ObjectId Methods and Attributes
+-------------------------------
+
+These :ref:`ObjectId() <core-object-id-class>` methods work differently
+in ``mongosh`` than in the legacy ``mongo`` shell.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Method or Attribute
+     - ``mongo`` Behavior
+     - ``mongosh`` Behavior
+
+   * - ``ObjectId.str``
+     - | Returns a hexadecimal string:
+       | ``6419ccfce40afaf9317567b7``
+     - | Undefined
+       | (Not available)
+
+   * - ``ObjectId.valueOf()``
+     - | Returns the value of ``ObjectId.str``:
+       | ``6419ccfce40afaf9317567b7``
+     - | Returns a formatted string:
+       | ``ObjectId("6419ccfce40afaf9317567b7")``
+
+   * - ``ObjectId.toString()``
+     - | Returns a formatted string:
+       | ``ObjectId("6419ccfce40afaf9317567b7")``
+     - | Returns a hexadecimal formatted string:
+       | ``6419ccfce40afaf9317567b7``
+
+Numeric Values
+--------------
+
+The legacy ``mongo`` shell stored numerical values as ``doubles`` by
+default. In ``mongosh`` numbers are stored as 32 bit integers,
+``Int32``, or else as ``Double`` if the value cannot be stored as an
+``Int32``. 
+
+MongoDB Shell continues to support the numeric types that are supported
+in ``mongo`` shell. However, the preferred types have been updated to
+better align with the MongoDB :ecosystem:`drivers </drivers>`. See
+:ref:`mongosh Data Types <mongo-shell-data-type>` for more information.
+
+The preferred types for numeric variables are different in MongoDB 
+Shell than the types suggested in the legacy ``mongo`` shell. The types
+in ``mongosh`` better align with the types used by the MongoDB Drivers.
+
+.. list-table::
+   :header-rows: 1
+
+   * - ``mongo`` type
+     - ``mongosh`` type
+
+   * - ``NumberInt``
+     - ``Int32``
+
+   * - ``NumberLong``
+     - ``Long``
+
+   * - ``NumberDecimal``
+     - ``Decimal128``
+
+.. warning::
+
+   Data types may be stored inconsistently if you connect to the same
+   collection using both ``mongosh`` and the legacy ``mongo`` shell. 
+
+.. seealso::
+
+   For more information on managing types, refer to the
+   :manual:`schema validation overview </core/schema-validation>`.
+
+Undefined Values
+----------------
+
+The undefined BSON type is `deprecated <https://bsonspec.org/spec.html>`__. 
+If you try to insert a document with the undefined JS type in
+``mongosh``, your deployment replaces the undefined value in your 
+document with the BSON null value. There is no supported way of inserting undefined
+values into your database using ``mongosh``.
+
+For example, consider running the following code to insert a document in
+``mongosh``:
+
+.. code-block:: javascript
+
+   db.people.insertOne( { name : "Sally", age : undefined } )
+
+When you run this code in ``mongosh``, the shell inserts 
+the following document: 
+
+.. code-block:: javascript
+   "copyable: false
+
+   { name : "Sally", age : null }
+
+``mongosh`` represents any BSON undefined values stored using other tools, such as 
+the `Go Driver <https://www.mongodb.com/docs/drivers/go/current/>`__ or the 
+legacy ``mongo`` shell, as null.
+
+Object Quoting Behavior
+-----------------------
+
+``mongosh`` does not quote object keys in its output, and places single 
+quotes on values. To reproduce the output of the legacy
+``mongo`` shell, which wraps both the keys and string values in double quotes, 
+use ``mongosh --eval`` with :ref:`EJSON.stringify() <mongosh-ejson-stringify>`.
+
+For example, the following command returns the items in the ``sales``
+collection on the ``test`` database with double quotes and indentation:
+
+.. code-block:: shell
+
+   mongosh --eval "EJSON.stringify(db.sales.findOne().toArray(), null, 2)"
+
+The output looks like the following:
+
+.. code-block:: javascript
+
+   {
+        "_id": {
+             "$oid": "64da90c1175f5091debcab26"
+        },
+        "custId": 345,
+        "purchaseDate": {
+             "$date": "2023-07-04T00:00:00Z"
+        },
+        "quantity": 4,
+        "cost": {
+             "$numberDecimal": "100.60"
+        }
+   }
+
+Limitations on Database Calls
+-----------------------------
+
+.. include:: /includes/fact-call-limitations.rst
+
+Command Exceptions
+------------------
+
+.. include:: /includes/legacy/legacy-command-exceptions.rst
+
+For details, see :ref:`run-commands`.
+
+Shell Configuration
+-------------------
+
+.. include:: /includes/legacy/legacy-shell-configuration.rst
+
+For details, see :ref:`mongoshrc-js`.
+
+Data Types
+----------
+
+.. include:: /includes/legacy/legacy-data-types.rst
+
+For details, see :ref:`mongo-shell-data-types`.
+
+Methods
+-------
+
+.. include:: /includes/legacy/legacy-load-method.rst
+
+For details, see :ref:`load() <mongosh-native-method-load>`.
+
+Retryable Writes
+----------------
+
+.. include:: /includes/legacy/legacy-retryable-writes.rst
+
+For details, see :option:`--retryWrites`.
+
+Legacy Output
+-------------
+
+.. include:: /includes/legacy/legacy-output.rst
+
+For details, see :ref:`mongosh-ejson-stringify-legacy-output`.
+
+Code Snippets
+-------------
+
+Working with code snippets is different for the legacy ``mongo`` shell.
+
+For details, see :ref:`snip-get-help`.
