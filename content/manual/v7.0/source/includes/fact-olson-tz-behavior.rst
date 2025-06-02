@@ -5,14 +5,17 @@ if applicable for the specified timezone.
 For example, consider a ``sales`` collection with the following document:
 
 .. code-block:: javascript
+   :copyable: true
 
-   {
-      "_id" : 1,
-      "item" : "abc",
-      "price" : 20,
-      "quantity" : 5,
-      "date" : ISODate("2017-05-20T10:24:51.303Z")
-   }
+   db.sales.insertOne(
+    {
+     "_id" : 1,
+     "item" : "abc",
+     "price" : 10,
+     "quantity" : 2,
+     "date" : ISODate("2014-01-01T08:15:39.736Z")
+    } 
+  )
 
 The following aggregation illustrates how MongoDB handles the DST
 offset for the Olson Timezone Identifier. The example uses the
