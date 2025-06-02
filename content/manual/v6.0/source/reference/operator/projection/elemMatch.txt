@@ -52,32 +52,36 @@ The examples on the :projection:`$elemMatch` projection operator
 assumes a collection ``schools`` with the following documents:
 
 .. code-block:: javascript
+   :copyable: true
 
-   {
-    _id: 1,
+   db.school.insertMany( [
+      {
+    _id: 1, 
     zipcode: "63109",
     students: [
                  { name: "john", school: 102, age: 10 },
                  { name: "jess", school: 102, age: 11 },
                  { name: "jeff", school: 108, age: 15 }
               ]
-   }
+   },
    {
     _id: 2,
     zipcode: "63110",
     students: [
                  { name: "ajax", school: 100, age: 7 },
                  { name: "achilles", school: 100, age: 8 },
-              ]
-   }
+              ],
+    athletics: [ "swimming", "basketball", "football" ]
+   },
    {
     _id: 3,
     zipcode: "63109",
     students: [
                  { name: "ajax", school: 100, age: 7 },
                  { name: "achilles", school: 100, age: 8 },
-              ]
-   }
+              ],
+    athletics: [ "baseball", "basketball", "soccer" ]
+   },
    {
     _id: 4,
     zipcode: "63109",
@@ -86,6 +90,9 @@ assumes a collection ``schools`` with the following documents:
                  { name: "ruth", school: 102, age: 16 },
               ]
    }
+   ] )
+
+
 
 Zipcode Search
 ~~~~~~~~~~~~~~
@@ -97,6 +104,7 @@ returns only the **first** matching element of the ``students``
 array where the ``school`` field has a value of ``102``:
 
 .. code-block:: javascript
+   :copyable: true
 
    db.schools.find( { zipcode: "63109" },
                     { students: { $elemMatch: { school: 102 } } } )
@@ -136,6 +144,7 @@ field has a value of ``102`` **and** the ``age`` field is greater
 than ``10``:
 
 .. code-block:: javascript
+   :copyable: true
 
    db.schools.find( { zipcode: "63109" },
                     { students: { $elemMatch: { school: 102, age: { $gt: 10} } } } )
@@ -150,6 +159,45 @@ The operation returns the three documents that have ``zipcode`` equal to ``63109
 
 The document with ``_id`` equal to ``3`` does not contain the ``students`` field
 since no array element matched the :projection:`$elemMatch` criteria.
+
+The argument to :projection:`$elemMatch` matches elements of the array that
+``$elemMatch`` is projecting. If you specify an equality with a field 
+name to ``$elemMatch``, it attempts to match objects within the array.
+For example, ``$elemMatch`` attempts to match objects, instead of scalar
+values, within the array for the following in the projection:
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.schools.find( { zipcode: "63109" },
+                    { athletics: { $elemMatch: { athletics: "basketball" } } })
+
+To match scalar values, use the equality operator along with the scalar 
+value that you want to match (``{$eq: <scalar value>}``). For example,
+the following :method:`~db.collection.find()` operation queries for all
+documents where the value of the ``zipcode`` field is ``63109``. The
+projection includes the matching element of the ``athletics`` array
+where the value is ``basketball``:
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.schools.find( { zipcode: "63109" },
+                    { athletics: { $elemMatch: { $eq: "basketball" } } })
+
+The operation returns the three documents that have ``zipcode`` equal to
+``63109``:
+
+.. code-block:: javascript
+
+   [
+      { _id : 1 },
+      { _id: 3, athletics: [ 'basketball' ] },
+      { _id : 4 }
+   ]
+
+The document with ``_id`` equal to ``3`` is the only document that
+matched the :projection:`$elemMatch` criteria. 
 
 .. seealso::
 
