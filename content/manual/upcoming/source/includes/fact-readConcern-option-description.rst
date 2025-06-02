@@ -15,8 +15,8 @@ Possible read concern levels are:
   :replstate:`primary <PRIMARY>` only.
 
 - :readconcern:`"snapshot"`. Available for :ref:`multi-document
-  transactions <transactions>`, and starting in MongoDB 5.0, certain
-  read operations outside of multi-document transactions.
+  transactions <transactions>` and certain read operations outside of 
+  multi-document transactions.
 
 For more formation on the read concern levels, see
 :ref:`read-concern-levels`.
