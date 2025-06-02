@@ -39,8 +39,3 @@
 - If there are any indexes with inconsistent specs or that are missing 
   ``mongosync`` returns an error. To check for index inconsistencies, see 
   :ref:`manage-indexes-find-inconsistent-indexes`.
-
-- For source clusters running MongoDB 4.4, :ref:`SRV connection strings 
-  <connections-dns-seedlist>` are not supported. You must use a 
-  :ref:`standard connection string 
-  <connections-standard-connection-string-format>`.
