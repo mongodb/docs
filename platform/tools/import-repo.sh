@@ -116,4 +116,4 @@ git remote rm "$remoteName"
 rm -rf "$pathToRepo"
 
 echo -e "${GRN}Merged to monorepo.${RST}"
-echo -e "${YEL}⚠️  Now be sure to add the netlify.toml to content/$PROJECT_NAME/${RST}"
+echo -e "${YEL}⚠️  Now be sure to add the netlify.toml to content/$PROJECT_NAME/${RST} by copying and making the appropriate changes from the template.toml"
