@@ -82,4 +82,4 @@ for a KMIP compliant {+kms-long+}:
         directly accesses and transports your {+cmk-long+} from the KMIP provider.
 
         :gold:`IMPORTANT:` The ``delegated`` option is not available in the
-        Ruby, Go, or C++ drivers.
+        Ruby or Go drivers.
