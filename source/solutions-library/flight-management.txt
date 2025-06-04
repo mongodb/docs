@@ -1,0 +1,334 @@
+.. _arch-center-real-time-flight-management:  
+
+==================================================  
+Elevate Flight Operations with Real-Time Analytics  
+==================================================  
+  
+.. facet::  
+   :name: genre  
+   :values: tutorial  
+  
+.. contents:: On this page  
+   :local:  
+   :backlinks: none  
+   :depth: 1  
+   :class: singlecol  
+  
+Transform flight operations with powerful real-time analytics. Cut  
+costs, minimize delays, and boost efficiency through intelligent data  
+monitoring.  
+  
+**Use cases:** `Analytics <https://www.mongodb.com/solutions/use-cases/analytics>`__,  
+`IoT <https://www.mongodb.com/solutions/use-cases/internet-of-things>`__,  
+`Modernization <https://www.mongodb.com/resources/solutions/use-cases/application-modernization>`__,  
+`Single View <https://www.mongodb.com/solutions/use-cases/single-view>`__  
+  
+**Industries:** `Manufacturing & Mobility <https://www.mongodb.com/solutions/industries/manufacturing>`__  
+  
+**Products and tools:** `MongoDB Atlas <https://www.mongodb.com/atlas/database>`__,  
+`Aggregation Pipeline <https://www.mongodb.com/docs/manual/core/aggregation-pipeline/>`__,  
+`Time Series Collections <https://www.mongodb.com/products/capabilities/time-series>`__,  
+`Change Streams <https://www.mongodb.com/docs/manual/changeStreams/>`__  
+  
+**Partners:** `Google Cloud <https://cloud.google.com/>`__,  
+`Vercel <https://vercel.com/>`__  
+  
+Solution Overview  
+-----------------  
+  
+MongoDB's Real-Time Flight Management solution enables airlines to  
+proactively manage and mitigate costly flight delays. To put the impact  
+into perspective, in 2019 alone, flight delays cost European airlines an  
+average of €4,320 per hour per flight. By leveraging intelligent data  
+handling and immediate response, the solution provides real-time  
+monitoring, predictive insights, and optimized resource allocation.  
+Built on MongoDB's flexible document model and time series collections,  
+and utilizing an event-driven architecture with FastAPI for simulation,  
+GCP PubSub for messaging, Vertex AI for advanced analytics, and Google  
+Cloud Functions for serverless event-driven processing, the solution  
+offers a comprehensive approach to minimizing operational disruptions.  
+  
+.. figure:: /includes/images/industry-solutions/Airline Fig4.svg  
+   :figwidth: 1200px  
+   :alt: Components of an Event-Driven Architecture  
+  
+   Figure 1. Components of an event-driven architecture  
+  
+The solution delivers:  
+  
+- **Reduced delay propagation:** Real-time monitoring and immediate  
+  response capabilities help prevent delays from cascading through  
+  flight schedules.  
+- **Optimized resource allocation:** Intelligent data analysis enables  
+  efficient reallocation of resources during disruptions.  
+- **Enhanced customer experience:** Better disruption management leads  
+  to improved passenger satisfaction and loyalty.  
+- **Scalable operations:** Flexible architecture supports growing data  
+  volumes and operational demands.  
+- **Real-time decision making:** Immediate access to flight data  
+  enables quick and informed operational decisions.  
+  
+.. video:: https://youtu.be/RgreCE1eMkU  
+  
+Reference Architectures  
+-----------------------  
+  
+MongoDB's Real-Time Flight Management solution implements an  
+event-driven architecture that consists of several key components:  
+  
+.. procedure::  
+   :style: normal  
+  
+   .. step:: Data generation and processing  
+  
+      - FastAPI microservice housing Real-Time Data Simulator and Path Finder.  
+      - PubSub topics handling both static and real-time data streams.  
+      - Cloud Functions for processing application and telemetry data.  
+  
+   .. step:: Analytics and cost management  
+  
+      - Vertex AI Cost Calculator for financial impact analysis.  
+      - Analytical data creator Cloud Function for data transformation.  
+      - Aggregation pipeline for complex data processing.  
+  
+   .. step:: Database structure  
+  
+      - MongoDB database as the central data store.  
+
+      - Specialized collections:  
+
+        - **flight_costs** collection to track and analyze flight-related expenses.  
+        
+        - **flight_plane** simulation collection for predictive modeling and scenario planning.  
+        
+        - **flight_realtimeCF** collection designed for  
+          real-time data tracking and historical analysis (`Time  
+          Series Collection <https://www.mongodb.com/docs/manual/core/timeseries-collections/>`__).  
+        
+        - **flights** collection for comprehensive general flight information management.  
+  
+   .. step:: Integration components  
+  
+      - Change Streams for real-time data changes.  
+      - Google Maps API for visualizing geographical data.  
+      - Next.js for front-end interface and visualization.  
+  
+**This architecture enables three distinct data flows:**  
+  
+- **Operational data flow (blue lines):** Handles real-time flight operations.  
+- **Analytical data flow (green lines):** Manages business intelligence.  
+- **Internal connections (black lines):** Maintains system integration.  
+  
+.. figure:: /includes/images/industry-solutions/Airline Fig5.svg  
+   :figwidth: 1200px  
+   :alt: Event-Driven Architecture  
+  
+   Figure 2. Event-driven architecture  
+  
+The solution specifically addresses delay management by providing  
+real-time monitoring, predictive insights, and resource optimization  
+capabilities through this integrated event-driven architecture.  
+  
+Building the Solution  
+---------------------  
+  
+`Prerequisites <https://github.com/mongodb-industry-solutions/leafy-airline/blob/main/README.md#prerequisites>`__  
+  
+- Node.js (v14 or later)  
+- MongoDB (local or cloud)  
+- Next.js (v12 or later)  
+- Google Cloud SDK  
+  
+.. procedure::  
+   :style: normal  
+  
+   .. step:: `Set up MongoDB <https://github.com/mongodb-industry-solutions/leafy-airline/blob/main/README.md#prerequisites>`__  
+  
+      - Store flight data in flexible schema.  
+      - Support for real-time updates.  
+      - Handle time series data for analytics.  
+      - Maintain operational flight information, ensuring you  
+        obtain the MongoDB connection string for subsequent  
+        configuration and integration steps.  
+      - Example model.  
+  
+   .. step:: Configure `GCP services <https://github.com/mongodb-industry-solutions/leafy-airline/blob/main/README.md#prerequisites>`__  
+  
+      - Deploy application as a containerized service using Google Cloud’s Cloud Run.  
+      - Configure Google Cloud’s Cloud Build for automated deployments.  
+      - Set up Google Cloud’s Cloud Storage for assets.  
+      - Use Google Cloud Pub/Sub for real-time data distribution.  
+      - Implement Google Cloud’s Cloud Functions for data.  
+        processing. The following code snippet runs in a cloud  
+        function to update the new path obtained from the path  
+        finder algorithm once a disruption has been identified,  
+        ensuring optimal rerouting to minimize fuel consumption and  
+        costs.  
+  
+      **Python**  
+  
+      .. code-block:: python  
+  
+         import base64  
+         import json  
+         from bson import ObjectId  
+         import os  
+         from pymongo import MongoClient  
+         import functions_framework  
+  
+         # Triggered from a message on a Cloud Pub/Sub topic.  
+         @functions_framework.cloud_event  
+         def postPath(cloud_event):  
+  
+             # Access URI in secrets  
+             MONGO_URI = os.environ.get('MONGO_URI', "MONGO_URI is not set.")  
+             MONGO_DATABASE = os.environ.get('MONGO_DATABASE', "MONGO_DATABASE is not set.")  
+             MONGO_COLLECTION = os.environ.get('MONGO_COLLECTION', "MONGO_COLLECTION is not set.")  
+  
+             if not all([MONGO_URI, MONGO_DATABASE, MONGO_COLLECTION]):  
+                 print("Error: One or more environment variables are not set.")  
+                 return  
+  
+             client = MongoClient(MONGO_URI)  
+             db = client[MONGO_DATABASE]  
+             collection = db[MONGO_COLLECTION]  
+  
+             try:  
+                 # Parse the data in the message  
+                 byte_message = base64.b64decode(cloud_event.data["message"]["data"])  
+                 json_str = byte_message.decode('utf-8')  
+                 data_dict = json.loads(json_str)  
+                 print(data_dict)  
+  
+                 # Work with the dictionary fields  
+                 flight_id = data_dict.get("flight_id")  
+                 initial_path = data_dict.get("initial_path_airps")  
+                 new_path = data_dict.get("new_path_airps")  
+                 disruption_coords = data_dict.get("disruption_coords")  
+  
+                 # Check if all required fields are present  
+                 if not flight_id:  
+                     print("Error: flight_id is missing.")  
+                     return  
+                 if initial_path is None or new_path is None:  
+                     print("Error: One or more path fields are missing.")  
+                     return  
+  
+                 # Find the document in the MongoDB collection and update the path field  
+                 result = collection.update_one(  
+                     {"_id": ObjectId(flight_id)},  
+                     {"$set": {  
+                         "initial_path": initial_path,  
+                         "new_path": new_path,  
+                         "disruption_coords": {  
+                             "lat": disruption_coords[0],  
+                             "long": disruption_coords[1]  
+                         }  
+                     }}  
+                 )  
+  
+                 if result.matched_count > 0:  
+                     print("Document successfully updated.")  
+                 else:  
+                     print("No document found with the specified flight_number.")  
+  
+             except Exception as e:  
+                 print(f"Error updating document: {e}")  
+  
+             finally:  
+                 client.close()
+      
+      - Deploy Google Cloud’s Vertex AI for analytics, ensuring to
+        obtain a Google Maps API Key for enhanced geospatial analysis and
+        visualization.
+  
+   .. step:: `Install your demo application to run locally <https://github.com/mongodb-industry-solutions/leafy-airline/blob/main/README.md#prerequisites>`__  
+  
+      - Clone the repository and install dependencies.  
+      - Configure environment variables.  
+      - Set up MongoDB connection.  
+      - Run development server.  
+  
+   .. step:: `(Optional) Deploy the solution <https://github.com/mongodb-industry-solutions/leafy-airline/blob/main/README.md#deployment>`__  
+  
+      - Containerize application using Docker.  
+      - Deploy to Google Cloud’s Cloud Run for automatic scaling.  
+      - Configure continuous deployment with Cloud Build.  
+      - Set up environment variables and secrets.  
+  
+**In the end your app should look like this:**  
+  
+.. figure:: /includes/images/industry-solutions/Airline Fig1.svg  
+   :figwidth: 1200px  
+   :alt: Flight management dashboard with filters  
+  
+   Figure 3. Flight management dashboard with filters  
+  
+.. figure:: /includes/images/industry-solutions/Airline Fig2.svg  
+   :figwidth: 1200px  
+   :alt: Flight route and cost monitoring  
+  
+   Figure 4. Flight route and cost monitoring  
+  
+This solution provides a scalable, event-driven architecture that  
+enables airlines to manage flight operations efficiently while  
+minimizing the impact of delays and disruptions.  
+  
+For a detailed, step-by-step guide on implementing this  
+solution, including code samples and specific configuration  
+instructions, visit our `GitHub repository  
+<https://github.com/mongodb-industry-solutions/leafy-airline>`__.  
+  
+Key Learnings  
+-------------  
+  
+- MongoDB's flexible schema and time series collections provide a  
+  powerful foundation for flight operations—enabling airlines to handle  
+  both pre-flight planning data and real-time telemetry efficiently while  
+  adapting to evolving needs through flexible document models.  
+  
+- Event-driven architecture powered by MongoDB's integration with Google  
+  Cloud services (Pub/Sub, Cloud Functions) enables immediate response to  
+  flight disruptions by processing real-time data streams, helping  
+  airlines minimize delays that can `cost an average of €4,320 per hour  
+  <https://www.cell.com/heliyon/fulltext/S2405-84402402402511-8>`__.  
+  
+- MongoDB's aggregation pipelines transform operational flight data into  
+  actionable insights, allowing airlines to optimize routes and resources  
+  while Google Cloud Vertex AI provides predictive analytics for cost and  
+  delay management.  
+  
+- The solution demonstrates MongoDB's versatility in handling diverse  
+  data types and workloads—from real-time telemetry collection to  
+  analytical processing—while maintaining performance at scale through its  
+  distributed architecture and change streams capabilities.  
+  
+Technologies and Products Used  
+------------------------------  
+  
+MongoDB Developer Data Platform  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+  
+- `MongoDB Atlas <https://www.mongodb.com/atlas>`__  
+- `Time Series Collections <https://www.mongodb.com/products/capabilities/time-series>`__  
+- `Aggregation Pipeline <https://www.mongodb.com/docs/manual/core/aggregation-pipeline/>`__  
+- `Change Streams <https://www.mongodb.com/docs/manual/changeStreams/>`__  
+  
+Partner Technologies  
+~~~~~~~~~~~~~~~~~~~~  
+  
+- `Google Cloud Platform <https://cloud.google.com/>`__  
+- `PubSub <https://cloud.google.com/pubsub>`__  
+- `Vertex AI <https://cloud.google.com/vertex-ai>`__  
+- `Next.js <https://nextjs.org/>`__  
+- `FastAPI <https://fastapi.tiangolo.com/>`__  
+- `Cloud Functions <https://cloud.google.com/functions>`__  
+- `TensorFlow <https://www.tensorflow.org/>`__  
+- `Scikit-learn <https://scikit-learn.org/stable/>`__  
+  
+Authors  
+-------  
+  
+- Dr. Humza Akhtar, MongoDB  
+- Rami Pinto, MongoDB  
+- Sebastian Rojas Arbulu, MongoDB  

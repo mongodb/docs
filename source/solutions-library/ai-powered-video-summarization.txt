@@ -1,0 +1,285 @@
+.. _arch-center-is-Gen-AI-powered-video-summarization-solution:
+
+================================== 
+Gen AI-Powered Video Summarization
+==================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Build a YouTube transcription and summarization service that leverages a
+large language model (LLM) and semantic search.
+
+**Use cases:** `Gen AI <https://www.mongodb.com/use-cases/artificial-intelligence>`__
+
+**Industries:** `Media <https://www.mongodb.com/industries/media-and-entertainment>`__
+
+**Products:**  `MongoDB Atlas <https://www.mongodb.com/atlas>`__, 
+`Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+**Partners:** `LangChain <https://python.langchain.com/docs/integrations/vectorstores/mongodb_atlas>`__
+
+Solution Overview
+-----------------
+
+In today's instant-gratification world, it's essential to distill vast
+amounts of information quickly. With the amount of informational content
+available on platforms like YouTube, the ability to quickly find
+relevant videos, transcribe them, and most importantly, summarize them
+can increase the speed of knowledge gathering. In this article, you'll
+learn about a generative AI-powered solution that does all of the above.
+
+YouTube is the leading free and open video platform, and content
+relevant to a specific service, product, or application could range from
+proprietary company videos to influencer-produced explainers and
+reviews. Regardless, a company can help their internal and external
+audiences find relevant content and decipher important takeaways much
+quicker with a Generative AI-powered video summarization app.
+
+With this solution, you’ll build a GenAI service that pairs OpenAI’s GPT
+and text-embedding-ada-002 with Atlas Vector Search for sophisticated
+video-to-text generation and searching across semantically similar
+videos.
+
+Other Applicable Industries and Use Cases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Software development and IT:** Stack Overflow’s developer report
+states 60% of developers leverage online videos for learning.As such,
+developers, architects, and other IT professionals can improve
+productivity and learn new technologies faster with a GenAI video
+summarization solution.
+
+**Retail:** Telecommunications is at the heart of edge and
+IoT as more people around the world conduct their lives and businesses
+through mobile and connected devices.
+
+**Companies in any industry with B2B sales:** The healthcare industry
+is proving to be one of the largest industries affected by IoT. Wearable
+and connected devices are critical for providing care both within
+medical institutions and increasingly in other areas, such as within a
+patient’s own home and on their personal devices.
+
+Reference Architectures
+-----------------------
+
+- **Data source**: YouTube links that are processed for video metadata and transcripts.
+
+  - Leveraging OCR and AI for real-time code analysis
+    
+    - To this end, the application integrates Optical Character
+      Recognition (OCR) and Artificial Intelligence (AI) to perform
+      real-time code analysis directly from the video frames. This
+      sophisticated feature transcends traditional metadata and
+      transcripts, offering actionable insights into the code displayed in
+      the video. Whether the code is part of a tutorial, a recorded
+      meeting, or any form of technical presentation, this layer offers a
+      text-based, searchable version along with an AI-powered explanation,
+      making your video resources more comprehensive and insightful than
+      ever.
+
+- **Processing layer**: Python script utilizing the OpenAI API and other
+  libraries to fetch and summarize the transcript.
+
+- **Orchestration layer**: In any software system, there is often a need to
+  coordinate between various services, modules, or components to
+  accomplish more complex tasks. The orchestration layer serves this
+  purpose, acting as a middleman that handles the logic required to manage
+  several operations that are part of a bigger application flow. This is
+  particularly beneficial in microservices architecture, but also has its
+  use in monolithic or modular architectures. In our intelligent video
+  processing system, the orchestration layer takes on a crucial role.
+  Here, we've conceptualized a VideoServiceFacade class that serves as the
+  central orchestrator, mediating between different services such as
+  OpenAIService, VideoService, SearchService, and MongoDbRepository.
+
+- **Processing layer**: Python script utilizing the OpenAI API and other
+  libraries to fetch and summarize the transcript.
+
+- **Output**: JSON files with video metadata, full transcript, and its AI-generated summary.
+
+Without MongoDB
+~~~~~~~~~~~~~~~
+
+.. figure:: /includes/images/industry-solutions/VideoSummarization Figure1.svg
+   :figwidth: 1200px
+   :alt: Reference Architecture Without MongoDB
+
+   Figure 1. Reference architecture without MongoDB
+
+
+With MongoDB
+~~~~~~~~~~~~
+
+.. figure:: /includes/images/industry-solutions/VideoSummarization_Figure2.svg
+   :figwidth: 1200px
+   :alt: Reference Architecture With MongoDB
+
+   Figure 2. Reference architecture with MongoDB
+
+Data Model Approach
+-------------------
+
+.. code-block:: sh
+
+  {
+    "videoURL": "https://youtu.be/exampleID",
+    "metadata":{
+    "Title": "How to use GO with MongoDB",
+    "Author": "MongoDB",
+    "PublishDate": "2023-01-24",
+    "ViewCount": 1449,
+    "Length": "1533s",
+    "Thumbnail": "https://exmpl.com/thumb.jpg"
+  },
+    "transcript": "Full transcript…",
+    "summary": "Tutorial on using Go with MongoDB.",
+    "code_analysis": [
+    "Main function in Go initializes the MongoDB client.",
+    "Imports AWS Lambda package for serverless architecture."
+    ]
+  }
+
+The data extracted from each YouTube video consists of the following:
+
+- **Video URL**: A direct link to the YouTube video.
+- **Metadata**: Video details such as title, uploader, date, etc.
+- **Transcript**: A textual representation of the content spoken in the video.
+- **Summary**: A concise version of the transcript, distilled using AI.
+- **Code analyzed list**: A list of programming language code extracted from the video and analyzed by AI.
+
+The data is finally stored in JSON format, which provides flexibility in
+terms of utilization in various applications.
+
+Building the Solution
+---------------------
+
+The code for the following steps can be found in this `GitHub repo
+<https://github.com/fabiofalavinha/mongodb-ai-video-transcript>`__.
+
+- **Setting up the environment:** Start by ensuring you have all required
+  libraries installed. This includes langchain, json, pymongo, and any
+  other domain or service-specific libraries.
+
+- **Configuration:** Use the ApplicationConfiguration to load configurations
+  such as the OpenAI API key and MongoDB connection details.
+
+- **Loading YouTube videos:** For each video link in
+  MONGODB_YOUTUBE_VIDEO_LINKS, the YoutubeLoader fetches metadata and the
+  transcript.
+
+- **Summarizing the transcript:** OpenAI's GPT model, specified by the
+  engine gpt-35-turbo (or any variety of the model like 16K for large
+  video transcriptions) is used to condense the content. The summarization
+  process involves setting up a conversation prompt that helps the model
+  generate a context-rich summary.
+
+- **Handling errors:** If the summarization process encounters an error,
+  it's caught and stored in the summary field for that particular video.
+
+- **Storing data locally:** The compiled data, including the video summary,
+  is serialized into a JSON format and saved to individual files, named
+  video_transcript_<index>.json.
+
+- **Storing data in MongoDB Atlas with Vector Search:**
+
+  - Convert the summarized transcript into embeddings suitable for
+    vector search using the model "text-embedding-ada-002".
+
+  - Store these embeddings in MongoDB Atlas. Using MongoDB Atlas Vector
+    Search, you can index these embeddings to make the summarized content
+    easily searchable with sophisticated approximate nearest neighbor
+    (ANN) algorithms.
+
+  - You’ll need to create a vector search index to make your embedding
+    searchable. You have the ability to choose from a few parameters, such
+    as number of dimensions (max in Atlas Vector Search is 4096), type of
+    similarity search, and number (K) of nearest neighbors. The screenshot
+    below shows the setup for this example. You can also reference our
+    docs.
+
+  - With the power of vector search, users can now quickly retrieve
+    relevant video summaries by querying with a phrase or sentence,
+    enhancing content discoverability.
+
+  - You can find more information accessing the `MongoDB Atlas Vector Search
+    <https://www.mongodb.com/docs/atlas/atlas-search/field-types/knn-vector/#try-an-example-for-the-fts-field-type-type>`__
+    documentation. Visit the `Atlas Vector Search Quick Start guide
+    <https://www.mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/?tck=ai_as_web>`__
+    and create your first index in minutes.
+
+.. figure:: /includes/images/industry-solutions/VideoSummarization Figure3.png
+   :figwidth: 1200px
+   :alt: Reference Architecture With MongoDB
+
+   Figure 3. Storing data in MongoDB Atlas with Vector Search
+
+- **Create an orchestration layer at the center of the
+  application:** Its role is to coordinate the services, manage complex
+  workflows, and deliver a seamless experience. The VideoServiceFacade
+  class within this layer acts as the orchestrator, effectively tying all
+  the loose ends.
+
+  - VideoServiceFacade: Acts as the coordinator for OpenAIService,
+    VideoService, SearchService, and MongoDbRepository.
+
+  - VideoProcessResult: An encapsulation of the processed video results,
+    including metadata, possible actions, and optional search query terms.
+
+  - When the system is triggered, usually from a main function or API
+    endpoint, it's the VideoServiceFacade that takes over. Based on user
+    prompts and AI-generated suggestions, it triggers various processes.
+    These could range from transcript generation and summarization to
+    text-based searching within the stored video summaries.
+
+Here's how it all comes together:
+
+.. procedure::
+   :style: normal
+
+   .. step:: The VideoServiceFacade's processVideo method is called with a user prompt
+
+   .. step:: The AI interprets this and determines what actions to take, encapsulated within a VideoProcessResult
+
+   .. step:: If actions include summarization, VideoService is called to perform it
+
+   .. step:: If there's a search query, SearchService is invoked to perform a search in MongoDB Atlas
+
+Technologies and Products Used
+------------------------------
+
+MongoDB Developer Data Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `Atlas Database <https://www.mongodb.com/atlas/database>`__
+- `Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+- `Python driver <https://www.mongodb.com/docs/drivers/python/>`__, `PyMongo <https://www.mongodb.com/docs/drivers/pymongo/>`__
+
+Partner Technologies
+~~~~~~~~~~~~~~~~~~~~
+
+- LangChain (`Python <https://python.langchain.com/docs/integrations/vectorstores/mongodb_atlas>`__, `JavaScript <https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/mongodb_atlas>`__)
+- `Microsoft OpenAI LLM GPT 3.5 or (16k version from OpenAI) <https://learn.microsoft.com/en-us/azure/iot-edge/about-iot-edge?view=iotedge-1.4>`__
+- `ADA Text Embedding 002 <https://platform.openai.com/docs/guides/embeddings/what-are-embeddings>`__
+
+Key Considerations
+------------------
+
+- Creating and storing vector indexes in Atlas Vector Search.
+- How to generate embeddings and outputs from an LLM, and store them in MongoDB Atlas.
+- Leveraging the popular AI framework, Langchain, to facilitate building a Gen-AI powered application.
+- Conducting semantic search to retrieve relevant data that may not have exact keyword matches.
+- Orchestrating various AI-powered services in an application.
+
+Author
+------
+
+- Fabio Falavinha, MongoDB
+- David Macias, MongoDB
