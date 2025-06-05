@@ -21,7 +21,7 @@
 
    With one non-delayed secondary unavailable, the degraded configuration
    of Primary-Delayed must wait at least 10 minutes to acknowledge a write
-   operation with :writeconcern:`"majority"`.The majority commit point 
+   operation with :writeconcern:`"majority"`. The majority commit point 
    will take longer to advance, leading to cache pressure similar 
    performance issues with a
    :ref:`Primary with a Secondary and an Arbiter<rs-architecture-psa>`
