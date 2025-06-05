@@ -14,7 +14,10 @@ atlas api serviceAccounts
 
 `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Endpoints for managing Service Accounts and secrets.
 
-Service Accounts are used for programmatic access to the Atlas Admin API through the OAuth 2.0 Client Credentials flow. This feature is available as a Preview feature.
+Service Accounts are used for programmatic access to the Atlas Admin API
+through the OAuth 2.0 Client Credentials flow. This feature is available
+as a Preview feature. To learn more, see `Preview Features
+<https://www.mongodb.com/docs/preview-features/>`__. 
 
 Options
 -------
