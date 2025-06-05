@@ -272,16 +272,6 @@
       - :icon:`check-circle`
       -
       -
-    * - 
-      - RHEL 9
-      - :icon:`check-circle`
-      - :icon:`check-circle`
-      - 
-      - 
-      - 
-      - 
-      -
-      -
     * - zSeries/ 390x
       - RHEL 7 
       - 
