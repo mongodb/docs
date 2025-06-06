@@ -451,28 +451,28 @@
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Rocky/Alma 9
+   * - RHEL/Rocky/Alma 9
      - arm64
      - Enterprise
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Rocky/Alma 9
+   * - RHEL/Rocky/Alma 9
      - arm64
      - Community
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Rocky/Alma 8
+   * - RHEL/Rocky/Alma 8
      - arm64
      - Enterprise
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Rocky/Alma 8
+   * - RHEL/Rocky/Alma 8
      - arm64
      - Community
      - |checkmark|
@@ -535,6 +535,14 @@
      -
      - |checkmark|
 
+   * - RHEL/Rocky/Alma 9 [#RHEL9-tcmalloc-support]_
+     - ppc64le
+     - Enterprise
+     - 8.0.7+
+     - 
+     - 
+     - 
+   
    * - RHEL/Rocky/Alma 8 [#RHEL8-tcmalloc-support]_
      - ppc64le
      - Enterprise
@@ -552,8 +560,8 @@
    * - RHEL/Rocky/Alma 9
      - s390x
      - Enterprise
-     - |checkmark|
-     - |checkmark|
+     - 8.0.7+
+     - 7.0.20+
      - 
 
    * - RHEL/Rocky/Alma 8 [#RHEL8-tcmalloc-support]_
