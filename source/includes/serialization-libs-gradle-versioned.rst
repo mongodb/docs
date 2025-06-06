@@ -2,7 +2,7 @@
    :caption: build.gradle.kts
    :copyable: true
 
-   implementation("org.mongodb:bson-kotlinx:{+full-version+}")
+   implementation("org.mongodb:bson-kotlinx")
    // OR
-   implementation("org.mongodb:bson-kotlin:{+full-version+}")
+   implementation("org.mongodb:bson-kotlin")
    
