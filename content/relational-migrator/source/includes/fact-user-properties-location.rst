@@ -1,0 +1,3 @@
+- **MacOS:** ``~/Library/Application Support/MongoDB/Relational Migrator/user.properties``
+- **Windows:** ``C:\Users\%USERNAME%\AppData\Local\MongoDB\Relational Migrator\Data\user.properties``
+- **Linux:** ``~/Migrator/user.properties``
