@@ -3,7 +3,7 @@
 10 December 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports ``M0`` {+Free-clusters+} and ``M2/M5`` {+Shared-clusters+} in
+- Supports ``M0`` {+Free-clusters+} and ``M2/M5`` Shared clusters in
   the |gcp| Japan (Tokyo) and |azure| Canada Central (Toronto) regions.
 
 - Introduces
@@ -70,7 +70,7 @@
   - Germany West Central
   - Switzerland North
 
-- Supports ``M0`` {+Free-clusters+} and ``M2``/``M5`` {+Shared-clusters+}
+- Supports ``M0`` {+Free-clusters+} and ``M2``/``M5`` Shared clusters
   in the |gcp| Brazil (São Paulo) region.
 - Supports ``M0`` {+Free-clusters+} in the |aws| Syndey region.
 - Enables faster
@@ -265,7 +265,7 @@
 - UX improvements to the cluster :guilabel:`Connect` modal.
 - Most server replacements get initial data from a disk snapshot of the
   primary instead of an initial sync.
-- Support for new {+Shared-cluster+} regions:
+- Support for new Shared cluster regions:
 
   - AWS
 

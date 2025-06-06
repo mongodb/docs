@@ -17,16 +17,6 @@
      - 5 GB
      - Flex
 
-   * - M2
-     - 2 GB
-     - 2 GB
-     - Shared
-
-   * - M5
-     - 5 GB 
-     - 5 GB
-     - Shared
-
    * - M10 :icon-fa5:`star`
      - 8 GB to 128 GB 
      - 8 GB

@@ -32,9 +32,8 @@
 4 December 2024 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports :ref:`Shared and Flex clusters <shared-tier-cluster>`.
-- Allows you to :ref:`verify your data during live migrations to Atlas
-  <verify-migrations>`.
+- Supports :ref:`Flex clusters <flex-migration>`.
+- Allows you to :ref:`verify your data during live migrations to Atlas <verify-migrations>`.
 - Updates the :oas-atlas-op:`createThirdPartyIntegration </createThirdPartyIntegration>`
   API resource for the :ref:`Datadog integration <datadog-integration>` with
   ``sendCollectionLatencyMetrics`` and ``sendDatabaseMetrics`` options

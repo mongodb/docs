@@ -26,3 +26,4 @@ choose a instance size of **M30** or greater.
 
      .. include:: /includes/list-tables/instance-types/azure.rst
      .. include:: /includes/cluster-settings/multi-tenant.rst
+	

@@ -240,4 +240,4 @@
 25 January 2023 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Supports converting {+Shared-clusters+} (``M0``, ``M2``, ``M5``) to {+Serverless-instances+}.
+Supports converting Shared clusters (``M0``, ``M2``, ``M5``) to {+Serverless-instances+}.

@@ -55,7 +55,7 @@
 18 October 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports ``M0`` {+Free-clusters+} and ``M2/M5`` {+Shared-clusters+}
+- Supports ``M0`` {+Free-clusters+} and ``M2/M5`` Shared clusters
   in the following regions:
 
   - AWS Tokyo (``ap-northeast-1``)
@@ -319,7 +319,7 @@
 
 - Introduces private network access for :ref:`multi-cloud clusters
   <create-cluster-multi-region>`.
-- |service| {+Free-clusters+} (**M0**) and {+Shared-clusters+} (**M2**/**M5**)
+- |service| {+Free-clusters+} (**M0**) and Shared clusters (**M2**/**M5**)
   upgraded to MongoDB 4.4.
 - Defaults new clusters to MongoDB 4.4.
 - Introduces custom archiving rules for |service| :ref:`Online Archive

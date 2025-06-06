@@ -1,4 +1,4 @@
-|service| supports deploying **M0**, **M2** and **M5** tiers
+|service| supports deploying **M0** and **Flex** tiers
 into a subset of available regions. 
 Select your cloud provider's tab for example cluster region names
 and available regions:

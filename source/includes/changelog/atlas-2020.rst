@@ -257,7 +257,7 @@ Introduces easier authorization management for S3 access:
     |aws|\'s built in split horizon |dns| cannot be used) and a special
     connection string for private IP.
 
-- Supports M0 {+Free-clusters+} and M2/M5 {+Shared-clusters+} in the |gcp|
+- Supports M0 {+Free-clusters+} and M2/M5 clusters in the |gcp|
   Mumbai region.
 
 .. _atlas_20200319:
@@ -343,7 +343,7 @@ Introduces easier authorization management for S3 access:
   continue storage scaling when the cluster:
 
   - Has enabled storage auto-scaling, and
-  - Approaches the cluster tier’s maximum storage level
+  - Approaches the cluster tier's maximum storage level
 
 .. _atlas_20200204:
 

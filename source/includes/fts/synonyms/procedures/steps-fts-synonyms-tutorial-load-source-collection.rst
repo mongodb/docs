@@ -7,11 +7,11 @@
       
    .. step:: Create one or more sample synonyms collections in the ``sample_mflix`` database.
 
-      If you are running a free or shared tier {+cluster+}, follow the 
-      steps in the *Transportation Synonyms* tab to create the collection 
-      for a single synonym mapping definition in your index. If you have a 
-      ``M10`` or higher cluster and wish to create multiple synonym 
-      mappings in your index, follow the steps in both the tabs to create 
+      If you are running a free tier {+cluster+} or a {+Flex-cluster+},
+      follow the steps in the *Transportation Synonyms* tab to create the collection
+      for a single synonym mapping definition in your index. If you have a
+      ``M10`` or higher cluster and wish to create multiple synonym
+      mappings in your index, follow the steps in both the tabs to create
       both the *Transportation Synonyms* and *Attire Synonyms* collections.
       
       .. tabs::

@@ -1,5 +1,5 @@
-M0 {+Free-clusters+}, {+Flex-clusters+}, and M2/M5 {+Shared-clusters+} don't
-support the following command line tool options:
+M0 {+Free-clusters+} and {+Flex-clusters+} don't support the following
+command line tool options:
 
 .. list-table::
    :widths: 40 60

@@ -11,5 +11,5 @@
 - |service| doesn't support on-demand snapshots for
   {+Serverless-instances+}.
 
-- You can't restore snapshots from {+Shared-clusters+}, 
+- You can't restore snapshots from {+Flex-clusters+}, 
   {+dedicated-clusters+}, or from |mms| to {+Serverless-instances+}. 

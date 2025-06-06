@@ -3,9 +3,9 @@ The :guilabel:`Cluster Tier` section of the
 |service| cluster tiers. |service| categorizes the cluster tiers
 into tiers as follows:
 
-:guilabel:`{+Shared-Clusters+}`
+:guilabel:`{+Free-Clusters+} and {+Flex-Clusters+}`
   Sandbox cluster tiers for getting started with MongoDB, such as the 
-  ``M0`` {+Free-cluster+}.
+  ``M0`` {+Free-cluster+} or a {+Flex-Cluster+}.
 
   These clusters support replica set deployments in a shared 
   environment with access to a subset of |service| features and
@@ -38,4 +38,3 @@ server [#data-bearing]_ in the cluster.
 .. include:: /includes/fact-free-tier-paid-tier.rst
 
 .. include:: /includes/fact-analytics-nodes-tier.rst
-  
