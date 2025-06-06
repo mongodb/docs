@@ -10,7 +10,7 @@ options = { server_api: { version: "1" }}
 client = Mongo::Client.new(uri, options)
 
 database = client.use('sample_mflix')
-collection = database[:movies]
+collection = database[:embedded_movies]
 
 # start-create-search-index
 # Creates indexes on all dynamically indexable fields with a default index name
@@ -23,35 +23,39 @@ index_definition = {
   mappings: {
     dynamic: false,  
     fields: { 
-      <field name>: { type: '<field type>' }
+      fullplot: { type: 'string' }
     }
   }
 }
-collection.search_indexes.create_one(index_definition, name: '<index name>')
+collection.search_indexes.create_one(index_definition, name: 'mySearchIndex')
 # end-create-search-index
 
 # start-create-multiple-search-indexes
 index_spec_1 = {
-  name: '<index 1 name>',
+  name: 'searchIndex_plot',
+  type: 'search',
   definition: {
     mappings: {
       dynamic: false,  
       fields: { 
-        <field name>: { type: '<field type>' }
+        plot: { type: 'string' }
       }
     }
   }
 }
 
 index_spec_2 = {
-  name: '<index 2 name>',
+  name: 'vsIndex_plot_embedding',
+  type: 'vectorSearch',
   definition: {
-    mappings: {
-      dynamic: false,  
-      fields: { 
-        <field name>: { type: '<field type>' }
+    fields: [
+      {
+        type: "vector",
+        path: "plot_embedding",
+        numDimensions: 1536,
+        similarity: "dotProduct"
       }
-    }
+    ]
   }
 }
 
@@ -62,12 +66,12 @@ collection.search_indexes.create_many([index_spec_1, index_spec_2])
 updated_definition = {
   mappings: {
     dynamic: false,  
-    fields: { <updated field name>: { type: '<updated field type>' } }
+    fields: { fullplot: { type: 'string' } }
     }
 }
 
 # Specifies the index to update by using the index name
-collection.search_indexes.update_one(updated_definition, name: '<index name>')
+collection.search_indexes.update_one(updated_definition, name: 'searchIndex_plot')
 
 # Specifies the index to update by using the index id
 collection.search_indexes.update_one(updated_definition, id: <index id>)
@@ -75,7 +79,7 @@ collection.search_indexes.update_one(updated_definition, id: <index id>)
 
 # start-drop-search-index
 # Specifies the index to delete by using the index name
-collection.search_indexes.drop_one(name: '<index name>')
+collection.search_indexes.drop_one(name: 'searchIndex_plot')
 
 # Specifies the index to delete by using the index id
 collection.search_indexes.drop_one(id: <index id>)

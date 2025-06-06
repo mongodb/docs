@@ -15,14 +15,21 @@ Atlas Search Indexes
    :values: reference
 
 .. meta::
-   :keywords: index, query, optimization, efficiency
+   :keywords: index, query, optimization, efficiency, code example
 
 Overview
 --------
 
-:atlas:`Atlas Search </atlas-search>` enables you to perform full-text searches on
-collections hosted on MongoDB Atlas. With Atlas Search indexes, you can specify the 
-behavior of the search and which fields to index.
+In this guide, you can learn how to programmatically manage your Atlas
+Search and Atlas Vector Search indexes by using the {+driver-short+}.
+
+The Atlas Search feature enables you to perform full-text searches on
+collections hosted on MongoDB Atlas. To learn more about Atlas Search,
+see the :atlas:`Atlas Search Overview </atlas-search/atlas-search-overview/>`.
+
+Atlas Vector Search enables you to perform semantic searches on vector
+embeddings stored in MongoDB Atlas. To learn more about Atlas Vector Search,
+see the :atlas:`Atlas Vector Search Overview </atlas-vector-search/vector-search-overview/>`.
 
 You can call the following methods to manage you Atlas Search indexes:
 
@@ -30,6 +37,14 @@ You can call the following methods to manage you Atlas Search indexes:
 - ``search_indexes#create_many``
 - ``search_indexes#update_one``
 - ``search_indexes#drop_one``
+
+.. note:: Atlas Search and Vector Search Index Management is Asynchronous
+
+   The {+driver-short+} manages Atlas Search and Vector Search indexes
+   asynchronously. The methods described in the following
+   sections return the server response immediately, but the changes to
+   your Search indexes take place in the background and might not
+   complete until some time later.
 
 The following sections provide code examples that demonstrate how to use
 each of the preceding commands.
@@ -39,12 +54,13 @@ each of the preceding commands.
 Create a Search Index
 ---------------------
 
-To create one or more Atlas Search indexes, use the ``search_indexes#create_one`` 
-or the ``search_indexes#create_many`` method. Both methods return immediately,
+To create a single Atlas Search or Vector Search index, use the
+``search_indexes#create_one`` method. To create multiple indexes, use the
+``search_indexes#create_many`` method. Both methods return immediately,
 while the indexes are asynchronously created in the background.
 
-The following code example shows how to create an Atlas Search index by providing
-an index definition and an optional name for the index:
+The following code example shows how to create an Atlas Search index by
+providing an index definition and an optional name for the index:
 
 .. literalinclude:: /includes/indexes/atlas-search-index.rb
    :language: ruby
@@ -52,16 +68,30 @@ an index definition and an optional name for the index:
    :end-before: end-create-search-index
    :emphasize-lines: 15
 
-You can use ``search_indexes#create_many`` to create multiple Atlas Search indexes by 
-providing an array of index specifications. Each index specification should include a definition 
-key, which defines the index, and a name key to specify the index name. The following 
-code example shows how to create multiple search indexes:
+.. note::
+
+   By default, the driver creates an Atlas Search index if you do not
+   pass a ``type`` parameter. To create a Vector Search index, you must
+   set the ``type`` parameter to ``'vectorSearch'`` when calling
+   ``create_one``.
+
+You can use ``search_indexes#create_many`` to create multiple Atlas
+Search or Vector Search indexes by providing an array of index
+specifications. Each index specification should include the following
+components:
+
+- ``definition`` parameter: Defines the index
+- ``name`` parameter: Specifies the index name
+- ``type`` parameter: Specifies the type of index (``'search'`` or ``'vectorSearch'``)
+
+The following code example shows how to create Atlas Search and Vector
+Search indexes in one call:
 
 .. literalinclude:: /includes/indexes/atlas-search-index.rb
    :language: ruby
    :start-after: start-create-multiple-search-indexes
    :end-before: end-create-multiple-search-indexes
-   :emphasize-lines: 25
+   :emphasize-lines: 29
 
 For longer index definitions, it is helpful to define the index definitions outside 
 of the method call. To learn more about the syntax of index definitions, see the 
@@ -71,11 +101,12 @@ guide in the Atlas manual.
 Update a Search Index
 ---------------------
 
-To update an Atlas Search index, use the ``search_indexes#update_one`` method.
+To update an Atlas Search or Vector Search index, use the
+``search_indexes#update_one`` method.
 
 To update an index, you must provide a new index definition. You must specify
 the index you want to update by using either the ``name`` or ``id`` of the index. 
-The following code shows how to update a search index:
+The following code shows how to update an Atlas Search index:
 
 .. literalinclude:: /includes/indexes/atlas-search-index.rb
    :language: ruby
@@ -85,10 +116,12 @@ The following code shows how to update a search index:
 Delete a Search Index
 ---------------------
 
-To delete an Atlas Search index, use the ``search_indexes#drop_one`` method.
+To delete an Atlas Search or Vector Search index, use the
+``search_indexes#drop_one`` method.
 
-To delete an index, you must provide the ``id`` or ``name`` of the index. The following 
-code shows how to delete a search index from a collection:
+To delete an index, you must provide the ``id`` or ``name`` of the
+index. The following code shows how to delete a search index from a
+collection:
 
 .. literalinclude:: /includes/indexes/atlas-search-index.rb
    :language: ruby
@@ -98,8 +131,9 @@ code shows how to delete a search index from a collection:
 List Search Indexes
 -------------------
 
-You can use the ``search_indexes`` object to list the entire index specification 
-of each index:
+You can use the ``search_indexes`` object to list the entire index
+specification of each Atlas Search and Vector Search index on a
+collection:
 
 .. literalinclude:: /includes/indexes/atlas-search-index.rb
    :language: ruby
