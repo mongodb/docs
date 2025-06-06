@@ -1,5 +1,12 @@
 - :guilabel:`Start with a MongoDB schema that matches your relational schema`
-   Creates your initial project with a new document mapping rule for each table.
+   Creates your initial project with a new document mapping rule for each table. 
+   This option displays a table of imported relational tables, which are grouped 
+   by database and schema, and listed in alphabetical order. Each collection 
+   is represented as a :guilabel:`top-level` collection. You can view the 
+   corresponding collection name in each table. For collection names, 
+   {+rel-mig+} applies global casing to the original table name.
+
+
 
 - :guilabel:`Start with a recommended MongoDB schema`
    {+rel-mig+} creates mapping rules for a suggested MongoDB schema. 
