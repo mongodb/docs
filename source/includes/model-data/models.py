@@ -80,3 +80,28 @@ class Movie(models.Model):
     def __str__(self):
         return self.title
 # end-embedded-field
+
+# start-embedded-array-field
+from django.db import models
+from django_mongodb_backend.models import EmbeddedModel
+from django_mongodb_backend.fields import EmbeddedModelArrayField
+
+class Actor(EmbeddedModel):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    role = models.CharField(max_length=100)
+
+class Movie(models.Model):
+    title = models.CharField(max_length=200)
+    plot = models.TextField(blank=True)
+    runtime = models.IntegerField(default=0)
+    released = models.DateTimeField("release date", null=True, blank=True)
+    cast = EmbeddedModelArrayField(Actor, null=True, blank=True)
+
+    class Meta:
+        db_table = "movies"
+        managed = False
+    
+    def __str__(self):
+        return self.title
+# end-embedded-array-field
