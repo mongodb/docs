@@ -541,7 +541,6 @@
      - 8.0.7+
      - 
      - 
-     - 
    
    * - RHEL/Rocky/Alma 8 [#RHEL8-tcmalloc-support]_
      - ppc64le
