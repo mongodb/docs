@@ -1,6 +1,6 @@
 .. code-block:: kotlin
 
    dependencies {
-      implementation("org.mongodb:bson")
+      implementation("org.mongodb:bson:{+full-version+}")
    }
 
