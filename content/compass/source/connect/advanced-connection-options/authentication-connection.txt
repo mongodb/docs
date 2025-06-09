@@ -1,0 +1,323 @@
+.. _authentication-connection-tab:
+
+=============================
+Authentication Connection Tab
+=============================
+
+.. meta::
+   :description: Connect to deployments requiring authentication by selecting from various methods like Username/Password, OIDC, X.509, Kerberos, LDAP, or AWS IAM.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+The :guilabel:`Authentication` tab allows you to connect to deployments that 
+require authentication. To learn about authentication mechanisms within MongoDB,
+see :manual:`Authentication Mechanisms </core/authentication/#authentication-mechanisms>`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the :guilabel:`New Connection` modal.
+
+      .. include:: /includes/open-new-connection.rst
+
+   .. step:: Click :guilabel:`Advanced Connection Options`.
+
+      .. figure:: /images/compass/advanced-connection-options.png
+         :figwidth: 690px
+         :alt: New Advanced Connection Options
+
+   .. step:: Click the :guilabel:`Authentication` tab.
+
+      Select your authentication method from the following options: 
+      
+      - :ref:`Username / Password <username-password>`
+
+      - :ref:`OIDC <oidc>`
+      
+      - :ref:`X.509 <x509>`
+      
+      - :ref:`Kerberos <kerberos-authentication>`
+      
+      - :ref:`LDAP <ldap-authentication>`
+      
+      - :ref:`AWS IAM <aws-iam-authentication>`
+
+      .. _username-password:
+
+      Username / Password 
+      ~~~~~~~~~~~~~~~~~~~
+
+      
+      Provide the following information:
+
+      - Username
+
+      - Password
+
+      - (Optional) :manual:`Authentication Database </core/security-users/#authentication-database>`
+
+      - Authentication Mechancism:
+         
+        - Default
+
+          |
+
+          The ``Default`` setting selects the first authentication mechanism 
+          supported by the server according to an order of preference. 
+          
+          |
+
+          With the ``Default`` setting, MongoDB tries to authenticate using
+          the following mechanisms in the order they are listed:
+
+          1. ``SCRAM-SHA-256``
+          
+          #. ``SCRAM-SHA-1``
+
+          #. ``MONGODB-CR``
+          
+          |
+
+        - :manual:`SCRAM-SHA-1 </core/security-scram/>`
+
+        - :manual:`SCRAM-SHA-256 </core/security-scram/>`
+
+      .. _oidc:
+
+      OIDC
+      ~~~~
+
+      Select :guilabel:`OIDC` if the deployment uses :manual:`OpenID Connect </core/security-oidc/>` 
+      as its authentication mechanism.
+      
+      Provide the following information:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 50 50
+
+         * - Field
+           - Description
+
+         * - Username
+           - Optional. OpenID Connect username.
+
+         * - Auth Code Flow Redirect URI
+           - Optional. Specify a URI where the identity provider redirects you after authentication.
+             The URI must match the configuration of the Identity Provider.
+             The default is ``http://localhost:27097/redirect``.
+
+         * - Consider Target Endpoint Trusted
+           - Optional. Allows connecting to a target endpoint that is not in the 
+             list of endpoints that are considered trusted by default. Use to ensure that
+             access tokens are sent to trusted servers. Only use 
+             this option when connecting to servers that you trust.
+
+         * - Enable Device Authentication Flow
+           - Optional. When the :ref:`Show Device Auth Flow Checkbox <compass-settings-reference>` 
+             setting is enabled, |compass-short| can provide you with a URL and code 
+             to finish authentication. 
+             
+             This is a less secure authentication flow that can be used as a 
+             fallback when browser-based authentication is unavailable.
+
+         * - Use Application-Level Proxy Settings 
+           - Optional. Use the application-level proxy settings specified in the 
+             :ref:`Compass Settings panel <compass-interface-settings>`. 
+             Enabled by default. If you don't enable application-level proxy 
+             settings, |compass-short| uses the same proxy to connect to both 
+             the cluster and identity provider.
+
+         * - Send a nonce in the Auth Code Request
+           - Optional. Includes a random nonce as a part of the auth code 
+             request to prevent replay attacks. Enabled by default.
+
+             The nonce is an important security component. Only disable this
+             setting if it is not supported by your OIDC provider.
+
+      .. _x509:
+
+      X.509
+      ~~~~~
+
+      Select :guilabel:`X.509` if the deployment uses :manual:`X.509 
+      </core/security-x.509/>` as its authentication mechanism.
+
+      .. note:: 
+
+         X.509 Authentication requires a client certificate. To enable 
+         TLS and add a client certificate, see the :ref:`TLS / SSL tab <tls-ssl-tab>`
+         in |compass-short|.
+
+      .. _kerberos-authentication:
+
+      Kerberos
+      ~~~~~~~~
+
+      Select :guilabel:`Kerberos` if the deployment uses :manual:`Kerberos 
+      </core/kerberos/>` as its authentication mechanism. 
+
+      Provide the following information:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 50, 50
+
+         * - Field
+           - Description
+
+         * - Principal
+           - Every participant in the authenticated communication is known as a 
+             "principal", and every principal must have a unique name. 
+
+         * - (Optional) Service Name
+           - Every MongoDB :binary:`mongod` and :binary:`mongos` instance 
+             (or ``mongod.exe`` and ``mongos.exe`` on Windows) must have an associated service name. The 
+             default is ``mongodb``. 
+
+         * - (Optional) Canonicalize Host Name
+           - Kerberos uses the canonicalized form of the host name ``(cname)`` 
+             when constructing the principal for |compass|. 
+
+         * - (Optional) Service Realm 
+           - The service realm is the domain over which a Kerberos authentication 
+             server has the authority to authenticate a user.
+
+             If you choose to :guilabel:`Canonicalize Host Name`, you can specify 
+             one of the following options:
+
+             .. list-table::
+                :header-rows: 1
+                :widths: 50 50
+
+                * - Option
+                  - Description 
+
+                * - Forward
+                  - The driver does a ``cname`` lookup on the kerberos hostname.
+
+                * - Forward and Reverse
+                  - Performs a forward DNS lookup and then a reverse lookup on that 
+                    value to canonicalize the hostname.
+                    
+             For more information on principal name canonicalization in Kerberos, see 
+             this `RFC document <https://tools.ietf.org/html/rfc6806.html>`__.
+      
+         * - (Optional) Provide password directly
+           - Used to verify your identity. To show the Kerberos password field, 
+             you must enable the :ref:`showKerberosPasswordField 
+             <compass-kerberos-password>` option.
+
+      Authenticate as a Different Kerberos User on Windows
+      ````````````````````````````````````````````````````
+
+      When you authenticate with Kerberos on Windows, the
+      :guilabel:`Principal` you specify must match the principal of the
+      security context that |compass-short| is running. Normally, this
+      is the logged-in user who is running |compass-short|.
+
+      To authenticate as a different Kerberos user, run |compass| as the
+      chosen user and specify the :guilabel:`Principal` for that user.
+      To run |compass| as a different user, either:
+      
+      - Hold :guilabel:`Shift` and right-click the |compass| program
+        icon to select :guilabel:`Run as a different user`.
+      
+      - Use the ``runas`` command-line tool. For example, the following
+        command runs |compass| as a user named ``admin``:
+
+        .. code-block:: sh
+              
+           runas /profile /user:mymachine\admin <path to MongoDB Compass>
+
+      After you start |compass| as the chosen user, to authenticate
+      against your Kerberos-enabled MongoDB deployment, specify the
+      :guilabel:`Principal` for the corresponding user.
+
+      .. _ldap-authentication:
+
+      LDAP
+      ~~~~
+
+      .. note::
+
+         See the :ref:`Examples
+         <authentication-username-password-example>` section on this
+         page for an example of the authentication tab configured for
+         username and password authentication. 
+
+      Select :guilabel:`LDAP` if the deployment uses :manual:`LDAP 
+      </core/security-ldap-external/>` as its authentication mechanism. 
+
+      Provide the following information:
+
+      - Username
+
+      - Password
+
+      .. _aws-iam-authentication:
+
+      AWS IAM  
+      ~~~~~~~
+
+      Select :guilabel:`AWS IAM` if the deployment uses `AWS IAM 
+      <https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html>`__ as 
+      its authentication mechanism. 
+      
+      The following fields are optional as they can be defined on your platform 
+      using their respective AWS IAM environment variables. |compass| will 
+      use these environment variable values to authenticate; you do not 
+      need to specify them in the connection string.
+
+      - (Optional) AWS Access Key Id
+      
+      - (Optional) AWS Secret Access Key 
+
+      - (Optional) AWS Session Token
+
+   .. step:: (Optional) For advanced connection configuration options, click the :ref:`Advanced <advanced-connection-tab>` tab.
+
+   .. step:: Click Connect.
+
+.. seealso::
+
+   To disconnect from your deployment, see :ref:`<disconnect-tab>`.
+
+Examples
+--------
+
+.. _authentication-username-password-example:
+
+Username and Password Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example specifies a connection with username and
+password authentication with :manual:`SCRAM-SHA-256
+</core/security-scram/>` in the :guilabel:`Authentication` tab.
+
+.. figure:: /images/authentication/authentication-configuration.png
+   :figwidth: 662px
+   :alt: Screenshot of Compass configured to authenticate with username and password
+   
+.. _authentication-ldap-example:
+
+LDAP Authentication
+~~~~~~~~~~~~~~~~~~~
+
+Alternatively, the following example specifies a connection with
+:manual:`LDAP </core/security-ldap-external/>` authentication in the
+:guilabel:`Authentication` tab.  
+
+.. figure:: /images/authentication/ldap-configuration.png
+   :figwidth: 662px
+   :alt: Screenshot of Compass configured to authenticate with LDAP

@@ -1,0 +1,214 @@
+.. _compass-validation:
+
+====================================
+Set Validation Rules for Your Schema
+====================================
+
+.. meta::
+   :description: Manage schema validation rules for a collection using JSON Schema or query expressions to ensure documents conform to specified rules.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Validation Tab
+--------------
+
+The :guilabel:`Validation` tab allows you to manage
+:manual:`schema validation rules </core/document-validation>`
+for a collection.
+
+Schema validation ensures that all documents in a
+collection follow a defined set of rules, such as conforming to a
+specific shape or only allowing a specified range of values in fields.
+
+.. figure:: /images/compass/validation-tab.png
+  :figwidth: 720px
+  :alt: Validation view
+
+.. _compass-update-validation:
+.. _compass-validation-rules:
+
+Validation Rules
+----------------
+
+The validation editor supports :ref:`JSON Schema validation
+<json-schema-validation>`, and validation with query expressions using
+:ref:`<query-operator-validation>`.
+
+.. _json-schema-validation:
+
+JSON Schema Validation
+~~~~~~~~~~~~~~~~~~~~~~
+
+The :manual:`$jsonSchema </reference/operator/query/jsonSchema>` 
+operator supports various keywords to specify validation rules. For 
+example:
+
+- The ``required`` array defines required fields in your document.
+- The ``properties`` object defines rules for specific document
+  fields.
+
+To generate a JSON schema by analyzing existing sample data, see 
+:ref:`<compass-generate-validation-rules>`.
+
+Example
+```````
+
+Consider the following example validation:
+
+.. code-block:: javascript
+
+   {
+      $jsonSchema: {
+         bsonType: "object",
+         required: [ "address", "borough", "name" ],
+         properties: {
+            address: {
+               bsonType: "object",
+               properties: {
+                  coord: {
+                     bsonType: "array",
+                     items: [
+                        {
+                           bsonType: "double",
+                           minimum: -180,
+                           maximum: 180,
+                           exclusiveMaximum: false,
+                           description: "must be a number in [ -180, 180 ]"
+                        },
+                        {
+                           bsonType: "double",
+                           minimum: -90,
+                           maximum: 90,
+                           exclusiveMaximum: false,
+                           description: "must be a number in [ -90, 90 ]"
+                        }
+                     ]
+                  }
+               },
+               description: "must be an object"
+            },
+            borough: {
+               bsonType: "string",
+               enum: [ "Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island" ],
+               description: "must be one of the enum strings"
+            }
+         }
+      }
+   }
+
+
+This validation specifies:
+
+- The list of
+  :manual:`required </reference/operator/query/jsonSchema/#available-keywords>`
+  fields.
+
+- The :manual:`bsonType </reference/operator/query/jsonSchema/#available-keywords>` for
+  all required fields.
+
+- The :manual:`minimum </reference/operator/query/jsonSchema/#available-keywords>`
+  and :manual:`maximum </reference/operator/query/jsonSchema/#available-keywords>`
+  values in the ``address.coord`` array.
+
+- The acceptable values for the  ``borough`` field, using
+  :manual:`enum </reference/operator/query/jsonSchema/#available-keywords>`.
+
+For all available ``$jsonSchema`` keywords, refer to the
+:manual:`$jsonSchema </reference/operator/query/jsonSchema>` page in
+the MongoDB manual.
+
+.. _query-operator-validation:
+
+Validation using Query Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also specify validation using
+:manual:`query operators </reference/operator/query>`, with the
+exception of the following query operators: :query:`$near`,
+:query:`$nearSphere`, :query:`$text`, and :query:`$where`.
+
+.. code-block:: javascript
+
+   { 
+      $or: [
+         { name: { $type: "string" } },
+         { borough: {
+               bsonType: "string",
+               enum: [ "Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island" ],
+               description: "must be one of the enum strings"
+         } }
+      ]
+   }
+
+Using this validation, *one* of the following must be true:
+
+- The ``name`` field must be BSON type string.
+- The ``borough`` field must be one of the enum strings.
+
+Validation Actions and Levels
+-----------------------------
+
+At the top, specify a :guilabel:`Validation Action` and
+:guilabel:`Validation Level`:
+
+- The validation action determines whether to ``warn`` but accept
+  invalid documents, or ``error`` and reject invalid documents.
+
+- The validation level determines how strictly MongoDB applies
+  validation rules to existing documents.
+
+  - ``Strict`` validation applies your rules to all document inserts
+    and updates.
+
+  - ``Moderate`` validation only applies your rules to new documents
+    and existing valid documents. Existing invalid documents are not
+    affected.
+
+For details on validation actions and levels, see
+:manual:`Specify Validation Rules
+</core/schema-validation/#specify-validation-rules>` in the MongoDB
+manual.
+
+Get Started
+-----------
+
+- :ref:`<compass-generate-validation-rules>`
+- :ref:`<compass-add-validation-rules>`
+- :ref:`<compass-edit-validation-rules>`
+
+Limitations
+-----------
+
+The :guilabel:`Validation` tab is not available if you are connected to
+:atlas:`Atlas Data Federation </data-federation>`.
+
+|compass-short| cannot validate a schema that has more than 1000 
+distinct fields. If you try to validate a schema with more than 1000 
+distinct fields, |compass-short| returns an error.
+
+.. BEGIN-COMPASS-ONLY
+
+In :guilabel:`MongoDB Compass Readonly Edition`, you can
+only view validation rules. Creating and editing validation rules
+is not permitted.
+
+.. END-COMPASS-ONLY
+
+Learn More
+----------
+
+- :manual:`$jsonSchema </reference/operator/query/jsonSchema>`
+- :manual:`Schema Validation </core/schema-validation/>`
+
+.. toctree::
+   :titlesonly:
+
+   Generate Validation Rules </generate-validation-rules>
+   Add Validation Rules </add-validation-rules>
+   Edit Validation Rules </edit-validation-rules>
