@@ -89,10 +89,6 @@ instances. Using this array, you can:
 
        - |mms| accepts **3** and **5** for this parameter.
        - MongoDB 3.x and 4.x clusters default to **5**.
-       - MongoDB 2.6 clusters default to  **3**.
-
-       To learn more, see :manual:`Upgrade to SCRAM-SHA-1 
-       </release-notes/3.0-scram/>` in the MongoDB 3.0 release notes.
 
    * - processes[n].backupRestoreUrl
      - string
