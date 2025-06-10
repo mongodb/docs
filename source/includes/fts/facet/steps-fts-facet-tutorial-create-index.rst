@@ -15,7 +15,7 @@
       mappings, see :ref:`static-dynamic-mappings`.
       
       The following index definition statically indexes the ``genres`` field as 
-      ``stringFacet`` type and dynamically indexes the other fields of 
+      ``token`` type and dynamically indexes the other fields of 
       :ref:`supported types <bson-data-chart>` in each document in the ``movies``
       collection. You can use the |fts| :guilabel:`Visual Editor` or the 
       |fts| :guilabel:`JSON Editor` in the |service| user interface to create the 
@@ -38,7 +38,7 @@
                     - ``genres`` 
       
                   * - :guilabel:`Data Type`
-                    - ``StringFacet`` 
+                    - ``token`` 
 
             #. Click :guilabel:`Add`, then click :guilabel:`Save
                Changes`.
@@ -58,7 +58,7 @@
                       "dynamic": true,
                       "fields": {
                         "genres": {
-                          "type": "stringFacet"
+                          "type": "token"
                         }
                       }
                     }

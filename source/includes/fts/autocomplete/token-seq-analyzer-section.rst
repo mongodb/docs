@@ -24,7 +24,7 @@ document for |fts| to return any results.
        "fields": {
          "title": [
          {
-           "type": "stringFacet"
+           "type": "token"
          },
          {
             "type": "string"

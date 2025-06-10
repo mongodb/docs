@@ -270,7 +270,7 @@ Procedure
                     - On
                     
                   * - ``teachers.classes.grade``
-                    - :guilabel:`StringFacet` 
+                    - :guilabel:`Token` 
                     - N/A
 
                   * - ``clubs.sports``
@@ -329,7 +329,7 @@ Procedure
                                 "dynamic": true,
                                 "fields": {
                                   "grade": {
-                                    "type": "stringFacet"
+                                    "type": "token"
                                   }
                                 },
                                 "type": "document"

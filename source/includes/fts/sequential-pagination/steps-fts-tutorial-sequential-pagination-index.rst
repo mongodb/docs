@@ -14,8 +14,8 @@
           
       - ``title`` field as the :ref:`string <bson-data-types-string>`
         type for full-text search against the field
-      - ``genres`` field as the :ref:`stringFacet
-        <bson-data-types-string-facet>` type for faceted search against
+      - ``genres`` field as the :ref:`token
+        <bson-data-types-token>` type for faceted search against
         the field
       - ``released`` field as the :ref:`date <bson-data-types-date>` type
         for sorting the results using the field 
@@ -48,7 +48,7 @@
                     - :guilabel:`String` 
              
                   * - ``genres`` 
-                    - :guilabel:`stringFacet` 
+                    - :guilabel:`Token` 
 
                   * - ``released`` 
                     - :guilabel:`Date`
@@ -72,7 +72,7 @@
                           "type": "string"
                         },
                         "genres": {
-                          "type": "stringFacet"
+                          "type": "token"
                         },
                         "released": {
                           "type": "date"

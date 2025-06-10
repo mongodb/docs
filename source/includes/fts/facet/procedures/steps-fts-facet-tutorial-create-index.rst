@@ -58,7 +58,7 @@
                       "dynamic": true,
                       "fields": {
                         "genres": {
-                          "type": "stringFacet"
+                          "type": "token"
                         }
                       }
                     }
