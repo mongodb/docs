@@ -17,8 +17,3 @@ a. Define the options for the new mapping rule. When defining the
 
    - Include or exclude a field from your migration job by clicking the
      :icon-fa5:`check-square` icon next to the field name.
-
-   - Change the key handling strategy.
-     
-     Modify the key handling strategy by clicking the :icon-fa5:`key` icon in 
-     the field panel.
