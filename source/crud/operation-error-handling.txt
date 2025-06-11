@@ -52,11 +52,11 @@ The ``WriteError`` type contains the following methods:
 The `BulkWriteError <{+core-api+}/bulk/BulkWriteError.html>`__ type extends
 ``WriteError`` and inherits the above methods. This type is used for bulk
 operations and includes an ``index`` field that identifies the item in the bulk
-operation that led to the error. 
+operation that caused the error. 
 
 The `WriteConcernError <{+core-api+}/bulk/WriteConcernError.html>`__ is not
-related to the ``WriteError`` type and details errors relating to the write
-concern. In addition to the ``getCode``, ``getMessage``, and ``getDetails``
+related to the ``WriteError`` type and details errors relating to the :ref:`write
+concern </reference/write-concern/>`. In addition to the ``getCode``, ``getMessage``, and ``getDetails``
 methods, ``WriteConcernError`` has the ``getCodeName`` method, which returns the
 name associated with the error code. This type does not have the ``getCategory``
 method.
@@ -65,35 +65,40 @@ Write Error
 ~~~~~~~~~~~
 
 The driver raises a ``WriteError`` error for any errors that it
-encounters when performing a write operation that are not related to
-satisfying the write concern. Because there are many causes for this
-error, the ``WriteError`` type contains fields that describe the type of
-write error and reason for the error.
+encounters when performing single write operations that are not related to
+satisfying the write concern.
 
-For example, the driver raises a ``WriteError`` error if you attempt to
-insert a document into a collection that violates the collection's
-schema validation rules. Suppose the collection has a rule where the
-value of the ``quantity`` field must be an ``int`` type. If you
-attempt to insert a document where the value of ``quantity`` is
-``"three"``, the driver prints the following error message:
+For example, the driver raises a ``WriteError`` error if you attempt to insert a
+document into a collection with an ObjectId value that already exists in the
+collection. Suppose the collection has an existing document with an ``ObjectId`` of `1`. If you attempt to insert a document
+where the value of ``ObjectId`` is ``1``, the driver prints the following
+error message:
 
 .. code-block:: none
    :copyable: false
-   :emphasize-lines: 2-3
 
-   Error: Error { kind: Write(WriteError(WriteError { code: 121, code_name:
-   None, message: "Document failed validation", details:
-   Some(Document({"failingDocumentId": Int32(1), "details":
-   Document({"operatorName": String("$jsonSchema"), "title":
-   String("Numerical Validation"), "schemaRulesNotSatisfied":
-   Array(...)})})) })), labels: {},
-   wire_version: None, source: None }
+   WriteError: { code: 11000, message: "E11000 duplicate key error collection:
+   testDB.testCollection index: _id_ dup key: { _id: 1 }", details: {} } 
 
-In the preceding error message, the ``message`` field describes the
-reason for the error, and the ``details`` field provides specific
-details about the failing operation. To address this error, you must
-either revise the document to adhere to the schema validation rules or
-bypass validation.
+In the preceding error message, the ``message`` field describes the reason for
+the error, and the ``details`` field provides specific details about the failing
+operation. To address this error, you must revise the document to have a unique
+``ObjectId``.
+
+Bulk Write Error
+----------------
+
+If this same example was run in during bulk write operation, an additional field
+would be added to the error detailing the index of the item with the duplicate
+``ObjectId``
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 1
+
+   BulkWriteError{index=2, code=11000, message='E11000 duplicate key error
+   collection: testDB.testCollection index: _id_ dup key: { _id: 1 }',
+   details=Document{{}}}
 
 Write Concern Error
 ~~~~~~~~~~~~~~~~~~~
