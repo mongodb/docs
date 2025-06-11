@@ -51,31 +51,26 @@ The ``WriteError`` type contains the following fields:
 Write Exception Types
 ---------------------
 
-The driver creates write exceptions when a ``WriteError`` object is created.
+The driver creates write exceptions when a ``WriteError`` object is created. The
+driver raises a `MongoWriteException <{+core-api+}/MongoWriteException.html>`__
+for any write errors that occur when performing single write operations. If an
+error is detected during a bulk write operation, a `MongoBulkWriteException
+<{+core-api+}/MongoBulkWriteException.html>`__ is thrown.
 
-The write exception object contains the following fields:
-
-  - ``error``: the ``WriteError`` object that triggered the exception
-  - ``serverAddress``: the address of the server where the exception occurred
-  - ``errorLabels``: the server error labels, such as ``RetryableWriteError`` and ``TransientTransactionError``
-
-Details on the different types of write exceptions and the error messages that
-are thrown when one is created can be found below.
+A ``MongoWriteException`` object contains an ``error`` field containing the
+``WriteError`` object that caused it. A ``MongoBulkWriteException`` contains a
+``writeErrors`` field containing a list of one or more ``WriteError`` objects
+associated with the same bulk write operation. 
 
 Write Exception
 ~~~~~~~~~~~~~~~
 
-The driver raises a `MongoWriteException <{+core-api+}/MongoWriteException.html>`__ for
-any errors that it encounters when performing single write operations that are
-not related to satisfying the write concern. The ``MongoWriteException`` type
-contains the ``WriteError`` object. 
-
-For example, the driver raises a ``MongoWriteException`` if you attempt to
-insert a document into a collection that violates the collection's
-schema validation rules. Suppose the collection has a rule where the
-value of the ``quantity`` field must be an ``int`` type. If you
-attempt to insert a document where the value of ``quantity`` is
-``"three"``, the driver prints the following error message:
+For example, the driver raises a ``MongoWriteException`` if you
+attempt to insert a document into a collection that violates the collection's
+schema validation rules. Suppose the collection has a rule where the value of
+the ``quantity`` field must be an ``int`` type. If you attempt to insert a
+document where the value of ``quantity`` is ``"three"``, the driver prints the
+following error message:
 
 .. code-block:: none
    :copyable: false
@@ -90,21 +85,18 @@ attempt to insert a document where the value of ``quantity`` is
    offendingDocument: {"name":"Apple","quantity":"three"} } } at
    com.mongodb.internal.connection.WriteResultHelper.createWriteException(WriteResultHelper.java:50)
 
-In the preceding error message, the ``MongoWriteException`` object describes the
-reason for the error, and the ``Caused by`` field provides details from the
-``WriteError`` object about the failing operation. To address this error, you must
-either revise the document to adhere to the schema validation rules or bypass
-validation.
+In the preceding error message, the ``MongoWriteException`` object provides a
+high-level description of the error. The ``WriteError`` object provides details
+on the failed operation, such as the schema rules and the offending document. To
+address this error, you must either revise the document to adhere to the schema
+validation rules or bypass validation.
 
 Bulk Write Exception
 ~~~~~~~~~~~~~~~~~~~~
 
-If the same example were run as a bulk write operation, a
-`MongoBulkWriteException <{+core-api+}/MongoBulkWriteException.html>`__ would be
-thrown. A ``MongoBulkWriteException`` contains a list of errors associated with
-the same bulk write operation if more than one item caused an error. For
-example, if you attempt to insert two documents that violate the collection's
-schema, the driver prints the following error message:
+Using the previous example, if you now attempt to insert two documents that
+violate the collection's schema, one with a ``quantity`` of ``three`` and another
+with a ``quantity`` of ``ten``, the driver prints the following error message:
 
 .. code-block:: none
    :copyable: false
@@ -130,3 +122,9 @@ schema, the driver prints the following error message:
    at
    com.mongodb.internal.connection.ProtocolHelper.getBulkWriteException(ProtocolHelper.java:254)
    ... 19 more    
+
+This exception message contains a list of the two ``WriteError`` objects. The
+description in the ``MongoBulkWriteException`` object is vague as
+documents associated with the same bulk operation could produce different error
+types. Refer to the individual ``WriteError`` objects' ``message`` fields to
+determine the cause of each error.
