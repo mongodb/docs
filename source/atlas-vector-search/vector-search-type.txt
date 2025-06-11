@@ -94,7 +94,11 @@ The following syntax defines the ``vectorSearch`` index type:
          "path": "<field-to-index>",
          "numDimensions": <number-of-dimensions>,
          "similarity": "euclidean | cosine | dotProduct",
-         "quantization": "none | scalar | binary"
+         "quantization": "none | scalar | binary",
+         "hnswOptions": {
+           "maxEdges": <number-of-connected-neighbors>,
+           "numEdgeCandidates": <number-of-nearest-neighbors>
+         }
        },
        {
          "type": "filter",
@@ -121,7 +125,7 @@ The {+avs+} index definition takes the following fields:
      - Purpose
 
    * - ``fields``
-     - array of field definition documents 
+     - Array of field definition documents 
      - Required 
      - Definitions for the vector and filter fields to index, one definition per document.
        Each field definition document specifies the ``type``, ``path``, and other configuration options for the field to index. 
@@ -130,7 +134,7 @@ The {+avs+} index definition takes the following fields:
        ``filter``-type field definitions to your array to pre-filter your data. 
        
    * - ``fields.type``
-     - string 
+     - String 
      - Required 
      - Field type to use to index fields for :pipeline:`$vectorSearch`.
        You can specify one of the following values:  
@@ -142,13 +146,13 @@ The {+avs+} index definition takes the following fields:
        To learn more, see :ref:`avs-types-vector` and :ref:`avs-types-filter`.
 
    * - ``fields.path``
-     - string 
+     - String 
      - Required 
      - Name of the field to index. For nested fields, use dot notation
        to specify path to embedded fields.
 
    * - ``fields.numDimensions``
-     - int
+     - Int
      - Required
      - Number of vector dimensions that {+avs+} enforces at index-time and
        query-time. You can set this field only for ``vector``-type fields.
@@ -169,7 +173,7 @@ The {+avs+} index definition takes the following fields:
        for how many dimensions are output. To learn more, see :ref:`choose-embedding-method`. 
 
    * - ``fields.similarity``
-     - string
+     - String
      - Required
      - .. _fields-similarity:
       
@@ -187,7 +191,7 @@ The {+avs+} index definition takes the following fields:
        To learn more, see :ref:`avs-similarity-functions`.
 
    * - ``fields.quantization``
-     - string
+     - String
      - Optional
      - .. _fields-quantization:
 
@@ -210,6 +214,48 @@ The {+avs+} index definition takes the following fields:
          of ``binary``. 
 
        To learn more, see :ref:`avs-quantization`.
+
+   * - ``fields.hnswOptions`` 
+     - Object 
+     - Optional 
+     - Parameters to use for |hnsw| graph construction. If omitted, uses
+       the default values for the ``maxEdges`` and ``numEdgeCandidates``
+       parameters. 
+
+       .. important:: 
+
+          This is available as a Preview feature. Modifying the default
+          values might negatively impact your {+avs+} index and queries.
+
+   * - ``fields.hnswOptions.maxEdges``
+     - Int
+     - Optional 
+     - Maximum number of edges (or connections) that a node can have in
+       the |hnsw| graph. Value can be between ``16`` and ``64``, both 
+       inclusive. If omitted, defaults to ``16``. For example, for a
+       value of ``16``, each node can have a maximum of sixteen outgoing
+       edges at each layer of the |hnsw| graph.
+
+       A higher number improves :term:`recall` (accuracy of search
+       results) because the graph is better connected. However, this
+       slows down query speed because of the number of neighbors to
+       evaluate per graph node, increases the memory for the |hnsw| graph because each
+       node stores more connections, and slows down indexing because
+       {+avs+} evaluates more neighbors and adjusts for every new node
+       added to the graph. 
+
+   * - ``fields.hnswOptions.numEdgeCandidates``
+     - Int
+     - Optional
+     - Analogous to ``numCandidates`` at query-time, this parameter
+       controls the maximum number of nodes to evaluate to find the
+       closest neighbors to connect to a new node. Value can be between
+       ``100`` and ``3200``, both inclusive. If omitted, defaults to
+       ``100``. 
+
+       A higher number provides a graph with high-quality connections,
+       which can improve search quality (recall), but it can also
+       negatively affect query latency. 
 
 .. _avs-types-vector:
 
@@ -242,7 +288,7 @@ The following syntax defines the ``vector`` field type:
 .. code-block:: json
    :copyable: true 
    :linenos:
-   :emphasize-lines: 4-8
+   :emphasize-lines: 4-12
 
    {
      "fields":[ 
@@ -251,7 +297,11 @@ The following syntax defines the ``vector`` field type:
          "path": <field-to-index>,
          "numDimensions": <number-of-dimensions>,
          "similarity": "euclidean | cosine | dotProduct",
-         "quantization": "none | scalar | binary"
+         "quantization": "none | scalar | binary",
+         "hnswOptions": {
+           "maxEdges": <number-of-connected-neighbors>,
+           "numEdgeCandidates": <number-of-nearest-neighbors>
+         }
        },
        ...
      ]
