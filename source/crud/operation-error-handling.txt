@@ -1,8 +1,8 @@
 .. _java-operation-errors:
 
-==============================
-Write Operation Error Handling
-==============================
+=============================
+Troubleshooting Write Errors
+=============================
 
 .. meta::
     :description: Understand how to handle operation errors in the MongoDB Java Sync Driver, including error types like WriteErrror and ConnectionPoolCleared.
@@ -54,12 +54,11 @@ The `BulkWriteError <{+core-api+}/bulk/BulkWriteError.html>`__ type extends
 operations and includes an ``index`` field that identifies the item in the bulk
 operation that caused the error. 
 
-The `WriteConcernError <{+core-api+}/bulk/WriteConcernError.html>`__ is not
-related to the ``WriteError`` type and details errors relating to the :ref:`write
-concern </reference/write-concern/>`. In addition to the ``getCode``, ``getMessage``, and ``getDetails``
-methods, ``WriteConcernError`` has the ``getCodeName`` method, which returns the
-name associated with the error code. This type does not have the ``getCategory``
-method.
+The `WriteConcernError <{+core-api+}/bulk/WriteConcernError.html>`__ details
+errors related to the :manual:`write concern </reference/write-concern/>`. It
+does not extend the ``WriteError`` type, but has the same methods, except for
+`getCategory`. In addition, ``WriteConcernError`` has the ``getCodeName``
+method, which returns the name associated with the error code.
 
 .. _java_error_write_errors:
 
@@ -70,42 +69,44 @@ The driver raises a ``WriteError`` error for any errors that it
 encounters when performing single write operations that are not related to
 satisfying the write concern.
 
-For example, the driver raises a ``WriteError`` error if you attempt to insert a
-document into a collection with an ObjectId value that already exists in the
-collection. Suppose the collection has an existing document with an ``ObjectId`` of `1`. If you attempt to insert another document
-where the value of ``ObjectId`` is ``1``, the driver prints the following
-error message:
+For example, the driver raises a ``WriteError`` error if you attempt to
+insert a document into a collection that violates the collection's
+schema validation rules. Suppose the collection has a rule where the
+value of the ``quantity`` field must be an ``int`` type. If you
+attempt to insert a document where the value of ``quantity`` is
+``"three"``, the driver prints the following error message:
 
 .. code-block:: none
    :copyable: false
 
-   WriteError{code=11000, message='E11000 duplicate key error
-   collection: testDB.testCollection index: _id_ dup key: { _id: 1 }',
-   details=Document{{}}}  
+   WriteError{ code=121, message='Document failed validation',
+   details=Document{{operator=$jsonSchema, schema={type=object,
+   required=["name", "age"], properties={name={type=string}, age={type=int,
+   minimum=18}}}} }  
+  }    
 
 In the preceding error message, the ``message`` field describes the reason for
 the error, and the ``details`` field provides specific details about the failing
-operation. To address this error, you must revise the document to have a unique
-``ObjectId``.
-
-If you run the ``getCategory`` method on this ``WriteError`` object, it would
-return an ``ErrorCategory`` of ``DUPLICATE_KEY``.
+operation, in this case it provides the schema rules. To address this error, you
+must either revise the document to adhere to the schema validation rules or
+bypass validation.
 
 Bulk Write Error
 ----------------
 
-If the same example were run as a bulk write operation, the `index` field
-containing the index of the item with the duplicate ``ObjectId`` would be added
-to the message. For example, if the index of the item that produced the error is
-`2`, the driver would print the following error message:
+If the same example were run as a bulk write operation, the ``index`` field
+containing the index of the erring item would be added to the message. For
+example, if the ``index`` of the item that violated the schema is ``2``, the driver
+would print the following error message:
 
 .. code-block:: none
    :copyable: false
    :emphasize-lines: 1
 
-   BulkWriteError{index=2, code=11000, message='E11000 duplicate key error
-   collection: testDB.testCollection index: _id_ dup key: { _id: 1 }',
-   details=Document{{}}}  
+   BulkWriteError{ index=2, code=121, message='Document failed validation',
+   details=Document{{operator=$jsonSchema, schema={type=object,
+   required=["name", "age"], properties={name={type=string}, age={type=int,
+   minimum=18}}}} }   
 
 Write Concern Error
 ~~~~~~~~~~~~~~~~~~~
