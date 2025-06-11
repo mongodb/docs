@@ -23,6 +23,19 @@
          The values you must enter differ based on the provider you 
          selected:
       
-         .. include:: /includes/list-table-auth-provider-options.rst
+         - **Google**
+         
+           In the :guilabel:`Client ID` field, enter your application's 
+           Google API Client ID, in the following format:
+  
+           .. code-block:: none
+  
+              <prefix>.apps.googleusercontent.com
+
+         - **Custom JWT**
+      
+           Provide the following values:
+  
+           .. include:: /includes/list-table-jwt-auth-provider-options.rst
       
       #. Click :guilabel:`Save`.

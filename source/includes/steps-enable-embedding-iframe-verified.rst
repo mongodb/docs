@@ -72,6 +72,4 @@
         </mongodb/charts-embedding-examples/tree/master/java>`
       - :github:`Python 
         </mongodb/charts-embedding-examples/tree/master/python>`
-      - :github:`MongoDB Stitch 
-        </mongodb/charts-embedding-examples/tree/master/stitch>`
  
