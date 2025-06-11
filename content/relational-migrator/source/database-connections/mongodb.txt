@@ -1,0 +1,209 @@
+.. _rm-connect-to-mongo:
+
+=====================
+Connect to MongoDB
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page shows how to save a new MongoDB connection from the :guilabel:`Connections` 
+tab. You can use a saved connection for any task that requires connecting 
+to a database.
+
+.. note::
+
+   {+rel-mig+} does not support MongoDB to MongoDB migrations. For information 
+   on supported databases, see :ref:`<supported-databases>`.
+
+   For information on migrating between MongoDB clusters, see 
+   `MongoDB Cluster-to-Cluster Sync <https://www.mongodb.com/docs/cluster-to-cluster-sync/>`_.
+
+About this Task
+---------------
+
+To save a MongoDB connection in {+rel-mig+}, you must:
+
+- Identify your database connection string or database information.
+
+- Connect to MongoDB.
+
+.. important::
+
+   To plan your migration and map your relational schema to a 
+   MongoDB schema, you must connect using an account with the correct 
+   ``read`` permissions.
+   
+   To migrate data, you must connect to MongoDB using a service account with 
+   the ``readWrite`` role. For information about creating a MongoDB user with 
+   the required permisions, see :ref:`<rm-mongodb-service-user>`.
+
+Before you Begin
+----------------
+
+To save a connection to a MongoDB Atlas cluster, you must be 
+:ref:`logged in <rm-atlas-log-in>` with MongoDB Atlas.
+
+Steps
+-----
+
+.. _rm-mongo-connection-string:
+.. _rm-mongodb-database-connection-strings:
+
+Database Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+rel-mig+} supports all :manual:`MongoDB connection string options
+</reference/connection-string-options/>` except :urioption:`appName`. It
+overrides ``appName`` when connecting to your MongoDB deployment.
+
+Atlas Connection URI
+''''''''''''''''''''
+
+.. code-block::
+
+   mongodb+srv://username:password@clusterurl.mongodb.net/database
+
+For example, to use an account named ``migrator-service`` with password
+``hunter2`` to connect to the ``MongoEnterprises`` database:
+
+.. code-block::
+
+   mongodb+srv://migrator-service:hunter2@cluster1.abc123.mongodb.net/MongoEnterprises
+
+On-Premises Connection URI
+''''''''''''''''''''''''''
+
+.. code-block::
+
+   mongodb://username:password@host:port/database
+
+For example, to use an account named ``migrator-service`` with password
+``hunter2`` to connect to the ``MongoEnterprises`` database:
+
+.. code-block::
+
+   mongodb://migrator-service:hunter2@localhost:27017/MongoEnterprises
+
+.. _rm-x509-auth:
+
+Using X.509 Authentication
+''''''''''''''''''''''''''
+
+To connect to MongoDB using X.509 authentication, omit a username and password.
+Instead, specify the on-premises host and port or the Atlas cluster URL and set 
+the following options:
+
+.. code-block::
+
+   <on-premises host:port or clusterurl.mongodb.net>?authSource=$external&authMechanism=MONGODB-X509&tlsCertificateKeyFile=</path/to/cert/client.p12>&tlsCertificateKeyFilePassword=<certpassword>
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Option
+     - Value
+
+   * - :urioption:`authSource`
+     - ``$external``
+
+   * - :urioption:`authMechanism`
+     - ``MONGODB-X509``
+
+   * - :urioption:`tlsCertificateKeyFile`
+     - Path to the ``.p12`` file that contains the certificate and key to 
+       present to the ``mongod`` or ``mongos`` instance.
+
+       :gold:`IMPORTANT:` Unlike other MongoDB products, {+rel-mig+}
+       requires a path to a ``.p12`` file, not a ``.pem`` file. If your 
+       certificate is saved as a ``.pem`` file, you can convert it using a tool 
+       like OpenSSL's `PKCS12 command <https://docs.openssl.org/master/man1/openssl-pkcs12/>`__:
+
+       .. code-block:: bash
+          :copyable: true
+
+          openssl pkcs12 -export -inkey cert_key_pem.txt -in cert_key.pem -out
+          cert_key.p12
+
+   * - :urioption:`tlsCertificateKeyFilePassword`
+     - Password to decrypt the ``.p12`` file. 
+
+   * - :urioption:`tlsCAFile`
+     - Path to the local ``.pem`` file that contains the root certificate chain from the Certificate Authority.
+       Required only if the MongoDB instance has a TLS/SSL setup with its own public
+       key infrastructure. 
+
+For example, to connect to the ``MongoEnterprises`` database on 
+``cluster1.abc123.mongodb.net``, using the certificate file 
+``/etc/ssl/caToValidateServerCertificates.p12`` with the password ``verysecure``:
+
+.. code-block::
+
+   mongodb+srv://cluster1.abc123.mongodb.net/MongoEnterprises?authSource=$external&authMechanism=MONGODB-X509&tlsCertificateKeyFile=/etc/ssl/caToValidateServerCertificates.p12&tlsCertificateKeyFilePassword=verysecure
+
+.. _rm-save-mongodb-connection:
+
+Connect to MongoDB
+~~~~~~~~~~~~~~~~~~
+
+To save a new connection from the :guilabel:`Connections` page:
+
+.. procedure::
+
+   .. step:: Add a new connection
+      
+      In the list of :guilabel:`MongoDB` connections, click :guilabel:`+ Add connection`.
+
+   .. step:: Enter the MongoDB connection string
+
+      a. In :guilabel:`MongoDB connection string (URI)`, enter
+         your :manual:`MongoDB URI </reference/connection-string>`.
+
+         If you're using :ref:`X.509 authentication <rm-x509-auth>`, Relational
+         Migrator verifies the connection string syntax and the certificate file format.
+
+      #. If it isn't included in the connection string, enter the
+         :guilabel:`Database` to connect to.
+      
+      #. If they aren't included in the connection string and you aren't using
+         X.509 authentication, enter the :guilabel:`Username` and
+         :guilabel:`Password` of your :ref:`{+rel-mig+} MongoDB user
+         <rm-mongodb-service-user>`.
+         
+         Checking :guilabel:`Save password` saves the password securely
+         on your machine, so you don't have to enter the :guilabel:`Username`
+         and :guilabel:`Password` again when using the saved connection.
+      
+      If you leave the :guilabel:`Database`, :guilabel:`Username`, 
+      or :guilabel:`Password` blank, {+rel-mig+} uses the
+      values from the URI.
+
+   .. step: Identify the connection
+
+      Enter a :guilabel:`Connection name` and optional :guilabel:`Environment tag`.
+         
+      Environment tags color code and organize connections for 
+      convenience. Leaving the drop-down empty is the same as selecting 
+      the "None" tag.
+
+   .. step:: (Optional) Click :guilabel:`Test connection`
+
+      {+rel-mig+} attempts to authenticate and connect to the
+      database.
+         
+   .. step:: Click :guilabel:`Save`
+      
+      The saved connection is available for use in all jobs and projects.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Create MongoDB User </jobs/prerequisites/create-mongodb-user>
