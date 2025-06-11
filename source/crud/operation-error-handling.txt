@@ -1,11 +1,11 @@
 .. _java-operation-errors:
 
-=============================
+============================
 Troubleshooting Write Errors
-=============================
+============================
 
 .. meta::
-    :description: Understand how to handle operation errors in the MongoDB Java Sync Driver, including error types like WriteErrror and ConnectionPoolCleared.
+    :description: Understand how to handle write exceptions in the MongoDB Java Sync Driver, including error types like WriteError and BulkWriteError.
 
 .. contents::
     :local:
@@ -16,14 +16,14 @@ Troubleshooting Write Errors
 Overview
 --------
 
-This page describes write errors you might encounter when
+This page describes write exceptions you might encounter when
 using the {+driver-long+} to perform MongoDB write operations. Once you
-understand the types of write operation errors that the driver raises, you can take
+understand the types of write exceptions that the driver raises, you can take
 appropriate actions to either handle them or correct the error-causing code.
 
 .. note::
 
-   This page addresses only write operation error handling. If you encounter
+   This page addresses only write exception handling. If you encounter
    any other issues with MongoDB or the driver, visit the following
    resources:
  
@@ -34,42 +34,29 @@ appropriate actions to either handle them or correct the error-causing code.
     - :community-forum:`MongoDB Community Forums </tag/java>` for questions,
       discussions, or general technical support
 
-Write Error Types
------------------
+Write Error
+-----------
 
 If the driver encounters an error while performing a write operation, it
-returns an error of the `WriteError <{+core-api+}/WriteError.html>`__ type.
+creates an error of the `WriteError <{+core-api+}/WriteError.html>`__ type.
 
-The ``WriteError`` type contains the following methods: 
+The ``WriteError`` type contains the following fields: 
 
-    - ``getCode``: returns the code associated with this error
-    - ``getMessage``: returns the message associated with this error
-    - ``getDetails``: returns a BSON Document with details associated with this
-      error, which may be empty
-    - ``getCategory``: returns the category of the write error as an
-      `ErrorCategory <{+core-api+}/ErrorCategory.html>`__ object
+    - ``code``: the code associated with the error
+    - ``message``: a message explaining the error
+    - ``details``: an optional field containing details associated with the error
 
-The `BulkWriteError <{+core-api+}/bulk/BulkWriteError.html>`__ type extends
-``WriteError`` and inherits the above methods. This type is used for bulk
-operations and includes an ``index`` field that identifies the item in the bulk
-operation that caused the error. 
+.. _java_error_write_exceptions:
 
-The `WriteConcernError <{+core-api+}/bulk/WriteConcernError.html>`__ details
-errors related to the :manual:`write concern </reference/write-concern/>`. It
-does not extend the ``WriteError`` type, but has the same methods, except for
-`getCategory`. In addition, ``WriteConcernError`` has the ``getCodeName``
-method, which returns the name associated with the error code.
+Write Exception
+---------------
 
-.. _java_error_write_errors:
+The driver raises a `MongoWriteException <{+core-api+}/MongoWriteException.html>` for
+any errors that it encounters when performing single write operations that are
+not related to satisfying the write concern. The ``WriteException`` type
+contains the ``WriteError`` object and a ``ServerAddress`` object. 
 
-Write Error
-~~~~~~~~~~~
-
-The driver raises a ``WriteError`` error for any errors that it
-encounters when performing single write operations that are not related to
-satisfying the write concern.
-
-For example, the driver raises a ``WriteError`` error if you attempt to
+For example, the driver raises a ``MongoWriteException`` if you attempt to
 insert a document into a collection that violates the collection's
 schema validation rules. Suppose the collection has a rule where the
 value of the ``quantity`` field must be an ``int`` type. If you
@@ -78,44 +65,46 @@ attempt to insert a document where the value of ``quantity`` is
 
 .. code-block:: none
    :copyable: false
+   :emphasize-lines: 1, 4-6
 
-   WriteError{ code=121, message='Document failed validation',
-   details=Document{{operator=$jsonSchema, schema={type=object,
-   required=["name", "age"], properties={name={type=string}, age={type=int,
-   minimum=18}}}} }  
-  }    
+   Exception in thread "main" com.mongodb.MongoWriteException: Document failed validation at
+   com.mongodb.internal.connection.ProtocolHelper.getWriteException(ProtocolHelper.java:228)
+   ... 
+   Caused by: com.mongodb.MongoWriteException: WriteError{code=121,
+   message='Document failed validation', details={ operator: "$jsonSchema",
+   schemaRules: { bsonType: "int", description: "must be an integer" },
+   offendingDocument: {"name":"Apple","quantity":"three"} } } at
+   com.mongodb.internal.connection.WriteResultHelper.createWriteException(WriteResultHelper.java:50)
 
-In the preceding error message, the ``message`` field describes the reason for
-the error, and the ``details`` field provides specific details about the failing
-operation, in this case it provides the schema rules. To address this error, you
-must either revise the document to adhere to the schema validation rules or
-bypass validation.
+In the preceding error message, the ``MongoWriteException`` object describes the
+reason for the error, and the ``Caused by`` field provides details from the
+``WriteError`` object about the failing operation. To address this error, you must
+either revise the document to adhere to the schema validation rules or bypass
+validation.
 
-Bulk Write Error
-----------------
+Bulk Write Exception
+--------------------
 
-If the same example were run as a bulk write operation, the ``index`` field
-containing the index of the erring item would be added to the message. For
-example, if the ``index`` of the item that violated the schema is ``2``, the driver
-would print the following error message:
+If the same example were run as a bulk write operation, a
+`MongoBulkWriteException <{+core-api+}/MongoBulkWriteException.html>`__ would be
+thrown. A ``MongoBulkWriteException`` can contain a list of errors associated
+with the same bulk write operation. For example, if you attempt to insert two
+documents that violate the collection's schema, the error message would appear
+as follows:
 
 .. code-block:: none
    :copyable: false
-   :emphasize-lines: 1
+   :emphasize-lines: 1, 5, 9
 
-   BulkWriteError{ index=2, code=121, message='Document failed validation',
-   details=Document{{operator=$jsonSchema, schema={type=object,
-   required=["name", "age"], properties={name={type=string}, age={type=int,
-   minimum=18}}}} }   
-
-Write Concern Error
-~~~~~~~~~~~~~~~~~~~
-
-The driver raises a ``WriteConcernError`` error when you perform a write
-operation and the driver cannot satisfy the specified write concern. For
-example, if you specify a write concern of ``majority`` for
-operations on a replica set with three nodes, the driver returns
-this error if the write operation propagates only to one node.
-
-To learn more about write concerns, see :manual:`Write Concern
-</reference/write-concern/>` in the Server manual.
+   Exception in thread "main" com.mongodb.MongoBulkWriteException: Bulk write operation result had errors  
+   at com.mongodb.internal.connection.ProtocolHelper.getBulkWriteException(ProtocolHelper.java:258)  
+   ... 
+   at BulkWriteMultipleValidationErrorsExample.main(BulkWriteMultipleValidationErrorsExample.java:30)  
+   Caused by: com.mongodb.MongoWriteException: WriteError{code=121, message='Document failed validation', details={ operator: "$jsonSchema", schemaRules: { bsonType: "int", description: "must be an integer" }, offendingDocument: {"name":"Apple","quantity":"three"} }}  
+   at com.mongodb.internal.connection.WriteResultHelper.createWriteException(WriteResultHelper.java:50)
+   at com.mongodb.internal.connection.ProtocolHelper.getBulkWriteException(ProtocolHelper.java:254)
+   ... 19 more  
+   Caused by: com.mongodb.MongoWriteException: WriteError{code=121, message='Document failed validation', details={ operator: "$jsonSchema", schemaRules: { bsonType: "int", description: "must be an integer" }, offendingDocument: {"name":"Banana","quantity":"ten"} }}  
+   at com.mongodb.internal.connection.WriteResultHelper.createWriteException(WriteResultHelper.java:50)  
+   at com.mongodb.internal.connection.ProtocolHelper.getBulkWriteException(ProtocolHelper.java:254)  
+   ... 19 more    
