@@ -1,0 +1,105 @@
+.. _java-operation-errors:
+
+==============================
+Write Operation Error Handling
+==============================
+
+.. meta::
+    :description: Understand how to handle operation errors in the MongoDB Java Sync Driver, including error types like WriteErrror and ConnectionPoolCleared.
+
+.. contents::
+    :local:
+    :backlinks: none
+    :depth: 2
+    :class: singlecol
+
+Overview
+--------
+
+This page describes write errors you might encounter when
+using the {+driver-long+} to perform MongoDB write operations. Once you
+understand the types of write operation errors that the driver raises, you can take
+appropriate actions to either handle them or correct the error-causing code.
+
+.. note::
+
+   This page addresses only write operation error handling. If you encounter
+   any other issues with MongoDB or the driver, visit the following
+   resources:
+ 
+    - :ref:`java-connection-troubleshooting` for potential solutions to
+     issues you might encounter when connecting to a MongoDB deployment
+    - :ref:`java-issues-and-help` page for information about reporting bugs,
+      contributing to the driver, and finding more resources
+    - :community-forum:`MongoDB Community Forums </tag/java>` for questions,
+      discussions, or general technical support
+
+Write Error Types
+-----------------
+
+If the driver encounters an error while performing an write operation, it
+returns an error of the `WriteError <{+core-api+}/WriteError.html>`__ type.
+
+The ``WriteError`` type contains the following methods: 
+
+    - ``getCode``: returns the code associated with this error.
+    - ``getMessage``: returns the message associated with this error.
+    - ``getDetails``: returns a BSON Document with details associated with this
+      error, which may be empty.
+    - ``getCategory``: returns the category of the write error as an
+      `ErrorCategory<{+core-api+}/ErrorCategory.html>`__ object. The
+      enum ``ErrorCategory`` can be one of the following options:
+
+      - ``DUPLICATE_KEY``: you provided duplicate key to a method
+      - ``EXECUTION_TIMEOUT``: the driver timed out
+      - ``UNCATEGORIZED``: the error has no category
+
+The `BulkWriteError<{+core-api+}/bulk/BulkWriteError.html>`__ type extends
+``WriteError`` and inherits the above methods. The `WriteConcernError
+<{+core-api+}/bulk/WriteConcernError.html>`__ is not related to the ``WriteError`` type.
+
+Write Error
+~~~~~~~~~~~
+
+The driver raises a ``WriteError`` error for any errors that it
+encounters when performing a write operation that are not related to
+satisfying the write concern. Because there are many causes for this
+error, the ``WriteError`` type contains fields that describe the type of
+write error and reason for the error.
+
+For example, the driver raises a ``WriteError`` error if you attempt to
+insert a document into a collection that violates the collection's
+schema validation rules. Suppose the collection has a rule where the
+value of the ``quantity`` field must be an ``int`` type. If you
+attempt to insert a document where the value of ``quantity`` is
+``"three"``, the driver prints the following error message:
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 2-3
+
+   Error: Error { kind: Write(WriteError(WriteError { code: 121, code_name:
+   None, message: "Document failed validation", details:
+   Some(Document({"failingDocumentId": Int32(1), "details":
+   Document({"operatorName": String("$jsonSchema"), "title":
+   String("Numerical Validation"), "schemaRulesNotSatisfied":
+   Array(...)})})) })), labels: {},
+   wire_version: None, source: None }
+
+In the preceding error message, the ``message`` field describes the
+reason for the error, and the ``details`` field provides specific
+details about the failing operation. To address this error, you must
+either revise the document to adhere to the schema validation rules or
+bypass validation.
+
+Write Concern Error
+~~~~~~~~~~~~~~~~~~~
+
+The driver raises a ``WriteConcernError`` error when you perform a write
+operation and the driver cannot satisfy the specified write concern. For
+example, if you specify a write concern of ``majority`` for
+operations on a replica set with three nodes, the driver returns
+this error if the write operation propagates only to one node.
+
+To learn more about write concerns, see :manual:`Write Concern
+</reference/write-concern/>` in the Server manual.
