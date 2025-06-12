@@ -189,6 +189,52 @@ operation and an insert many operation:
       insertOne() document id: BsonObjectId{value=...}
       insertMany() document ids: {0=BsonObjectId{value=...}, 1=BsonObjectId{value=...}}
 
+Troubleshooting
+---------------
+
+.. include:: /includes/crud/write-error.rst
+
+Write Exception
+~~~~~~~~~~~~~~~
+
+The driver creates write exceptions when a ``WriteError`` object is created. The
+driver raises a `MongoWriteException <{+core-api+}/MongoWriteException.html>`__
+for any write errors that occur when performing single write operations.
+
+A ``MongoWriteException`` object contains an ``error`` field containing the
+``WriteError`` object that caused it.
+
+Example
+'''''''
+
+For example, the driver raises a ``MongoWriteException`` if you
+attempt to insert a document into a collection that violates the collection's
+schema validation rules. Suppose the collection has a rule where the value of
+the ``quantity`` field must be an ``int`` type. If you attempt to insert a
+document where the value of ``quantity`` is ``"three"``, the driver prints the
+following error message:
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 1, 4-7
+
+   Exception in thread "main" com.mongodb.MongoWriteException: Document failed validation at
+   com.mongodb.internal.connection.ProtocolHelper.getWriteException(ProtocolHelper.java:228)
+   ... 
+   Caused by: com.mongodb.MongoWriteException: WriteError{code=121,
+   message='Document failed validation', details={ operator: "$jsonSchema",
+   schemaRules: { bsonType: "int", description: "must be an integer" },
+   offendingDocument: {"name":"Apple","quantity":"three"} } } at
+   com.mongodb.internal.connection.WriteResultHelper.createWriteException(WriteResultHelper.java:50)
+
+In the preceding error message, the ``MongoWriteException`` object provides a
+high-level description of the error. The ``WriteError`` object provides details
+on the failed operation, such as the schema rules and the offending document. To
+address this error, you must either revise the document to adhere to the schema
+validation rules or bypass validation.
+
+To learn more about schema validation, see :manual:`Schema Validation </core/schema-validation/>` in the Server Manual.
+
 Additional Information
 ----------------------
 
