@@ -1,1 +1,1 @@
-Creates an |fts-index| on a specified collection.
+Creates an |fts-index| on a specified collection or view.
