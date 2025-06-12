@@ -18,7 +18,7 @@
 
       1. Navigate to :guilabel:`App registrations`.
 
-         a. In your `Azure portal <https://portal.azure.com/>`__ account, search and click :guilabel:`Microsoft Entra ID`.
+         1. In your `Azure portal <https://portal.azure.com/>`__ account, search and click :guilabel:`Microsoft Entra ID`.
 
          #. In the :guilabel:`Manage` section of the left navigation, click :guilabel:`App registrations`.
 
@@ -52,7 +52,7 @@
 
    .. step:: Add a group claim
 
-      2. Navigate to :guilabel:`Token Configuration`.
+      1. Navigate to :guilabel:`Token Configuration`.
 
          In the :guilabel:`Manage` section of the left navigation,
          click :guilabel:`Token Configuration`.
@@ -74,7 +74,7 @@
 
    .. step:: Add a user identifier claim to the access token
 
-      3. Click :guilabel:`Add optional claim`.
+      1. Click :guilabel:`Add optional claim`.
 
       #. In the :guilabel:`Add optional claim` modal, select :guilabel:`Access`.
 
@@ -91,7 +91,7 @@
 
    .. step:: Update the manifest
 
-      4. In the :guilabel:`Manage` section of the left navigation, click :guilabel:`Manifest`.
+      1. In the :guilabel:`Manage` section of the left navigation, click :guilabel:`Manifest`.
 
       #. Update the :guilabel:`requestedAccessTokenVersion` from ``null`` to ``2``.
 
@@ -108,7 +108,7 @@
 
    .. step:: Remember metadata
 
-      5. In the left navigation, click :guilabel:`Overview`.
+      1. In the left navigation, click :guilabel:`Overview`.
 
          Copy the :guilabel:`Application (client) ID` value.
 
