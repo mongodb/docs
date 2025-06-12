@@ -56,20 +56,32 @@ the MongoDB Database Tools.
 Syntax
 ------
 
-``mongorestore`` syntax:
+Use the following command syntax when you run ``mongorestore``:
 
 .. code-block:: sh
 
    mongorestore <options> <connection-string> <directory or file to restore>
 
-For example, to restore from a ``dump`` directory to a local
-:binary:`~bin.mongod` instance running on port ``27017``:
+See :ref:`mongorestore-options` for what options you can use when you run
+``mongorestore``.
+
+When you run ``mongorestore`` with no arguments, the default setting is to
+restore data from a local ``./dump`` directory to a local :binary:`~bin.mongod`
+instance running on port ``27027``:
 
 .. code-block:: sh
 
-   mongorestore  dump/
+   mongorestore
 
-As ``mongorestore`` restores from the ``dump/`` directory,
+You can also specify a ``dump`` directory at a different path. For example, 
+the following command restores data from a directory at ``./downloads/dump``
+to an Atlas cluster specified by a connection string:
+
+.. code-block:: sh
+
+   mongorestore --uri="<my-connection-string>" ./downloads/dump
+
+As ``mongorestore`` restores from the provided directory,
 it creates the database and collections as needed and logs its progress:
 
 .. code-block:: sh
@@ -89,24 +101,24 @@ it creates the database and collections as needed and logs its progress:
    2019-07-08T14:37:39.249-0400	31 document(s) restored successfully. 0 document(s) failed to restore.
 
 You can also restore a specific collection or collections from the
-``dump/`` directory. For example, the following operation restores a
-single collection from corresponding data files in the ``dump/``
+``dump`` directory. For example, the following operation restores the
+``test.purchaseorders`` collection from corresponding data files in the ``dump``
 directory:
 
 .. code-block:: sh
 
-   mongorestore --nsInclude=test.purchaseorders dump/
+   mongorestore --nsInclude=test.purchaseorders ./dump
 
-If the ``dump/`` directory does not contain the corresponding data file
-for the specified namespace, no data will be restored. For example, the
-following specifies a collection namespace that does not have a
-corresponding data in the ``dump/`` directory:
+If the ``dump`` directory does not contain the corresponding data file
+for the specified namespace, ``mongorestore`` does not restore any data.
+For example, the following command specifies a collection namespace 
+that does not have corresponding data in the ``dump`` directory:
 
 .. code-block:: sh
 
    mongorestore --nsInclude=foo.bar dump/
 
-The ``mongorestore`` outputs the following messages:
+``mongorestore`` outputs the following messages:
 
 .. code-block:: sh
    :copyable: false
@@ -114,13 +126,15 @@ The ``mongorestore`` outputs the following messages:
    2019-07-08T14:38:15.142-0400	preparing collections to restore from
    2019-07-08T14:38:15.142-0400	0 document(s) restored successfully. 0 document(s) failed to restore.
 
-For more examples, see :ref:`mongorestore-examples`.
+For more ``mongorestore`` examples, see :ref:`mongorestore-examples`.
 
-   
 .. _mongorestore-options:
 
 Options
 -------
+
+This section includes information about all available options for 
+``mongorestore``.
 
 .. option:: --help
 
@@ -141,6 +155,8 @@ Options
    of output.
 
    This option suppresses:
+
+   - errors
    
    - output from :term:`database commands <database command>`
    
@@ -404,7 +420,13 @@ Options
 
 .. option:: --db=<database>, -d=<database>
 
-   
+   .. important::
+
+      The use of :option:`--db` and :option:`--collection` options are
+      deprecated when restoring from a directory or an archive file.
+      To restore from an archive or a directory, see
+      :option:`--nsInclude`.
+
    Specifies the destination database for ``mongorestore`` to restore data
    *into* when restoring from a BSON file. If the database does not
    exist, ``mongorestore`` creates the database. For example, the following
@@ -418,17 +440,17 @@ Options
    If you do not specify :option:`--db`, ``mongorestore`` reads the database name
    from the data files.
    
-   The use of :option:`--db` and :option:`--collection` options are
-   deprecated when restoring from a directory or an archive file.
-   Instead, to restore from an archive or a directory, see
-   :option:`--nsInclude` instead.
-   
    .. include:: /includes/extracts/uri-used-with-db.rst
-
 
 .. option:: --collection=<collection>, -c=<collection>
 
-   
+   .. important::
+
+      The use of :option:`--db` and :option:`--collection` options are
+      deprecated when restoring from a directory or an archive file.
+      To restore from an archive or a directory, see
+      :option:`--nsInclude`.
+  
    Specifies the name of the destination collection for ``mongorestore`` to
    restore data *into* when restoring from a BSON file. If
    you do not specify :option:`--collection`, ``mongorestore`` takes
@@ -440,12 +462,6 @@ Options
       :copyable: false
    
       mongorestore --db=reporting --collection=employeesalaries dump/test/salaries.bson 
-   
-   The use of :option:`--db` and :option:`--collection` options are
-   deprecated when restoring from a directory or an archive file.
-   Instead, to restore from an archive or a directory, see
-   :option:`--nsInclude` instead.
-
 
 .. option:: --nsExclude=<namespace pattern>
    
