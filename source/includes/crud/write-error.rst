@@ -1,13 +1,13 @@
 .. _java_write_error:
 
-This section describes write exceptions you might encounter when
-using the {+driver-long+} to perform MongoDB write operations. Once you
-understand the types of write exceptions that the driver raises, you can take
-appropriate actions to either handle them or correct the error-causing code.
+This section explains write exceptions you might encounter when using the
+{+driver-long+} to perform MongoDB write operations. Once you learn how to
+understand the write exceptions that the driver raises, you can take appropriate
+actions to either handle them or correct the error-causing code.
 
 .. note::
 
-   This page addresses only write exception handling. If you encounter
+   This section addresses only write exception handling. If you encounter
    any other issues with MongoDB or the driver, visit the following
    resources:
  
