@@ -22,7 +22,7 @@ Write Error
 ~~~~~~~~~~~
 
 If the driver encounters an error while performing a write operation, it
-creates an error of the `WriteError <{+core-api+}/WriteError.html>`__ type.
+creates an error object of the `WriteError <{+core-api+}/WriteError.html>`__ type.
 
 The ``WriteError`` type contains the following fields: 
 
