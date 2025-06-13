@@ -1,0 +1,937 @@
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. _voyage-ai-tech-guide:
+
+===============================================================
+How to Perform Automatic Quantization with Voyage AI Embeddings 
+===============================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas vector search, vector search, $vectorSearch, $vectorSearch pipeline stage, atlas vector search pipeline stage, atlas vector search query, atlas vector search index, knnVector field type, atlas search knnVector type, $vectorSearch filter examples, $vectorSearch query examples, $vectorSearch pipeline stage examples, approximate nearest neighbor search, sematic search, code example, node.js, java sync, atlas ui, go, csharp, .NET
+   :description: Learn how to search vector embeddings in your data on the Atlas cluster.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+AI applications can often start small in terms of compute, data, and
+monetary costs. As production applications scale due to increased user
+engagement, key factors such as the cost associated with storing and
+retrieving large volumes of data become critical optimization
+opportunities. These challenges can be addressed by focusing on: 
+
+- Efficient Vector Search Algorithms
+- Automated Quantization Processes
+- Optimized Embedding Strategies
+
+Both Retrieval-Augmented Generation (RAG) and agent-based systems rely
+on vector data—numerical representations of data objects like images,
+videos, and text—to perform semantic similarity searches. Systems that
+use RAG or agent-driven workflows must efficiently handle massive,
+high-dimensional data sets to maintain fast response times, minimize
+retrieval latency, and control infrastructure costs. 
+
+About the Tutorial 
+------------------
+
+This tutorial equips you with the techniques needed to design,
+deploy, and manage advanced AI workloads at scale, ensuring optimal
+performance and cost efficiency. 
+
+Specifically, in this tutorial, you'll learn how to: 
+
+- Generate embeddings using Voyage AI's ``voyage-3-large``, a general
+  purpose, multilingual embedding model that is also quantization aware,
+  and ingest them into a MongoDB database. 
+- Automatically quantize the embeddings to lower precision data types,
+  optimizing both memory usage and query latency. 
+- Run a query that compares float32, int8, and binary embeddings,
+  weighing data type precision against efficiency and retrieval
+  accuracy. 
+- Measure the recall (also referred to as retention) of the quantized
+  embeddings, which evaluates how effectively the quantized |ann| search
+  retrieves the same documents as a full-precision |enn| search. 
+
+.. note:: 
+
+   - *Binary quantization* is optimal for scenarios demanding reduced
+     resource consumption, though it may require a rescoring pass to
+     address any loss in accuracy.  
+   - *Scalar quantization* offers a practical middle ground, suitable
+     for most use cases that need to balance performance and precision. 
+   - *Float32* ensures maximum fidelity but has the steepest performance
+     and memory overhead, making it less ideal for large-scale or
+     latency-sensitive systems. 
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following: 
+
+- An ``M20`` or higher |service| {+cluster+} with 2 or more search nodes
+  using :guilabel:`High-CPU` ``S20`` or higher search tier.
+- An environment to run interactive Python notebooks such as `VS Code
+  <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__
+  or `Colab <https://colab.research.google.com>`__. 
+
+Procedure
+---------
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Import required libraries and set the environment variables.
+
+      a. Create an interactive Python notebook by saving a file with the
+         ``.ipynb`` extension. 
+      #. Install the libraries.
+
+         For this tutorial, you must import the following libraries: 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - pymongo
+              - :driver:`MongoDB Python driver </pymongo/>` to connect
+                to the |service| cluster, create indexes, and run queries.
+
+            * - voyageai
+              - `Voyage AI Python client
+                <https://docs.voyageai.com/docs/api-key-and-installation>`__
+                to generate the embeddings for the data. 
+
+            * - pandas
+              - `Data manipulation and analysis tool
+                <https://pandas.pydata.org/>`__ to load the data and
+                prepare it for the vector search. 
+
+            * - datasets
+              - `Hugging Face library <https://pypi.org/project/datasets/>`__ that
+                provides access to ready-made datasets.
+
+            * - matplotlib
+              - `Plotting and visualizing library
+                <https://matplotlib.org/stable/install/index.html>`__ to
+                visualize the data. 
+
+         To install the libraries, run the following:
+
+         .. code-block:: 
+
+            pip install --quiet -U pymongo voyageai pandas datasets matplotlib
+            
+      #. Securely get and set environment variables.
+
+         The following ``set_env_securely`` helper function gets and
+         sets environment variables securely. Copy, paste, and run the
+         following code and when prompted, set secret values such as
+         your Voyage AI |api| key and |service| {+cluster+} connection
+         string.  
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/environment-variables.py
+            :language: python 
+            :linenos:
+            :copyable: true
+
+   .. step:: Ingest the data into your |service| cluster.
+       
+      In this step, you load up to ``250000`` documents from the following datasets:
+
+      .. collapsible:: 
+         :heading: wikipedia-22-12-en-voyage-embed
+         :sub_heading: Contains the wikipedia data with the embeddings for each  document. 
+         :expanded: false
+
+         The `wikipedia-22-12-en-voyage-embed
+         <https://huggingface.co/datasets/MongoDB/wikipedia-22-12-en-voyage-embed>`__ 
+         dataset contains Wikipedia article fragments with pre-generated
+         1024-dimensional float32 embeddings from Voyage AI's
+         ``voyage-3-large`` model. This is the primary document
+         collection with metadata. This dataset serves as a diverse
+         vector corpus for testing vector quantization effects in
+         semantic search. Each document in this dataset contains the
+         following fields:   
+
+         .. list-table:: 
+            :stub-columns: 1 
+
+            * - ``_id``
+              - The ObjectId (``$oid``) of the document.
+
+            * - ``id``
+              - The unique identifier for the document.
+
+            * - ``title``
+              - The title of the document.
+
+            * - ``text``
+              - The text of the document.
+
+            * - ``url``
+              - The |url| of the document.
+
+            * - ``wiki_id``
+              - The wikipedia ID of the document.
+
+            * - ``views``
+              - The number of views of the document.
+
+            * - ``paragraph_id``
+              - The paragraph ID in the document.
+
+            * - ``langs``
+              - The number of languages in the document.
+
+            * - ``embedding``
+              - The 1024 dimensional vector embeddings for the document.
+
+      .. collapsible:: 
+         :heading: wikipedia-22-12-en-annotation
+         :sub_heading: Contains the annotation data for the wikipedia data. 
+         :expanded: false
+
+         The `wikipedia-22-12-en-annotation
+         <https://huggingface.co/datasets/MongoDB/wikipedia-22-12-en-annotation>`__
+         dataset contains the annotated reference data for recall
+         measurement function. This data is used as benchmark dataset
+         for accuracy validation and to evaluate quantization impact on
+         retrieval quality. Each document in this dataset contains the
+         following fields, which are the ground truth used to evaluate
+         the performance of the vector search: 
+                
+         .. list-table:: 
+            :stub-columns: 1 
+
+            * - ``_id``
+              - The ObjectId (``$oid``) of the document.
+
+            * - ``id``
+              - The unique identifier for the document.
+
+            * - ``wiki_id``
+              - The wikipedia ID of the document.
+
+            * - ``queries``
+              - The queries that contain the key phrases, questions,
+                partial information, and sentences for the document.
+
+            * - ``queries.key_phrases``
+              - The array of key phrases that are used to evaluate the performance
+                of the vector search for the document. 
+
+            * - ``queries.partial_info``
+              - The array of partial information that is used to evaluate the
+                performance of the vector search for the document.
+
+            * - ``queries.questions``
+              - The array of questions that are used to evaluate the performance of
+                the vector search for the document.  
+
+            * - ``sentences``
+              - The array of sentences that are used to evaluate the performance of
+                the vector search for the document.
+
+      a. Define the functions to load the data into your cluster.
+
+         Copy, paste, and run the following code in your notebook. The
+         sample code defines the following functions:
+        
+         - ``generate_bson_vector`` to convert the embeddings in the
+           dataset to |bson| binary vectors for efficient storage and
+           processing of your vectors. 
+         - ``get_mongo_client`` to get your |service| cluster
+           connection string. 
+         - ``insert_dataframe_into_collection`` to ingest data into
+           the |service| cluster. 
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/data-functions.py 
+            :language: python
+            :linenos:
+            :copyable: true
+
+      #. Load the data into your cluster.
+      
+         Copy, paste, and run the following code in your notebook to
+         load the dataset into your |service| cluster. This code
+         performs the following actions:
+
+         - Fetches the datasets.
+         - Converts the embeddings to |bson| format.
+         - Creates collections in your |service| cluster and inserts the
+           data. 
+
+         .. io-code-block:: 
+            :copyable: true 
+          
+            .. input:: /includes/avs/auto-quantization-voyage-ai-tutorial/ingest-data.py 
+               :language: python 
+               :linenos:
+
+            .. output:: 
+               :language: shell
+               :visible: false
+
+               Connected to MongoDB successfully.
+               Collection 'wikipedia-22-12-en' created successfully.
+               Inserted 250000 records into 'wikipedia-22-12-en' collection.
+               Collection 'wikipedia-22-12-en-annotation' created successfully.
+               Inserted 87200 records into 'wikipedia-22-12-en-annotation' collection.
+
+         .. note:: 
+
+            It might take some time to convert embeddings to |bson| vectors
+            and ingest the datasets into your |service| cluster. 
+
+      #. Verify that the datasets loaded successfully by logging into your
+         |service| cluster and visually inspecting the collections in
+         :ref:`Data Explorer <atlas-ui>`. 
+
+   .. step:: Create {+avs+} indexes on the collection.
+
+      In this step, you create the following three indexes on the ``embedding``
+      field: 
+
+      .. list-table:: 
+         :stub-columns: 1 
+
+         * - Scalar quantized Index 
+           - To use the scalar quantization method to quantize the embeddings.
+
+         * - Binary quantized Index 
+           - To use the binary quantization method to quantize the embeddings.
+
+         * - Float32 |ann| Index 
+           - To use the float32 |ann| method to quantize the embeddings.
+
+      a. Define the function to create {+avs+} index. 
+
+         Copy, paste, and run the following in your notebook:
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/index-function.py
+            :language: python 
+            :linenos:
+            :copyable: true
+
+      #. Define the indexes. 
+
+         The following index configurations implement a different
+         quantization strategy: 
+
+         .. list-table:: 
+            :stub-columns: 1 
+
+            * - ``vector_index_definition_scalar_quantized``
+              - This configuration uses scalar quantization (int8), which:
+               
+                - Reduces each vector dimension from 32-bit float to 8-bit integer
+                - Maintains a good balance between precision and memory efficiency
+                - Is suitable for most production use cases where memory optimization is needed
+
+            * - ``vector_index_definition_binary_quantized``
+              - This configuration uses binary quantization (int1), which:
+
+                - Reduces each vector dimension to a single bit
+                - Provides maximum memory efficiency
+                - Is ideal for extremely large-scale deployments where memory constraints are critical
+
+         The automatic quantization happens transparently when these
+         indexes are created, with {+avs+} handling the conversion from
+         float32 to the specified quantized format during index creation
+         and search operations.
+         
+         The ``vector_index_definition_float32_ann`` index configuration
+         indexes full fidelity vectors of ``1024`` dimensions by using
+         the ``cosine`` similarity function. 
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/index-definition.py
+            :language: python
+            :linenos:
+            :copyable: true 
+
+      #. Create the scalar, binary, and float32 indexes by using the
+         ``setup_vector_search_index`` function. 
+
+         i. Set the collection and index names for the indexes.
+
+            .. code-block:: python 
+
+               wiki_data_collection = db["wikipedia-22-12-en"] 
+               wiki_annotation_data_collection = db["wikipedia-22-12-en-annotation"]
+               vector_search_scalar_quantized_index_name = "vector_index_scalar_quantized"
+               vector_search_binary_quantized_index_name = "vector_index_binary_quantized"
+               vector_search_float32_ann_index_name = "vector_index_float32_ann"
+
+         #. Create the {+avs+} indexes. 
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/avs/auto-quantization-voyage-ai-tutorial/create-index.py
+                  :language: python 
+                  :linenos:
+
+               .. output:: 
+                  :language: shell
+                  :visible: false
+
+                  Creating index 'vector_index_scalar_quantized'...
+                  Polling to check if the index is ready. This may take a couple of minutes.
+                  Index 'vector_index_scalar_quantized' is ready for querying.
+                  Creating index 'vector_index_binary_quantized'...
+                  Polling to check if the index is ready. This may take a couple of minutes.
+                  Index 'vector_index_binary_quantized' is ready for querying.
+                  Creating index 'vector_index_float32_ann'...
+                  Polling to check if the index is ready. This may take a couple of minutes.
+                  Index 'vector_index_float32_ann' is ready for querying.
+                  vector_index_float32_ann'
+
+            .. note:: 
+
+                The operation might take a few minutes to complete.
+                Indexes must be in :guilabel:`Ready` state to use them in
+                queries. 
+ 
+         #. Verify that the index creation succeeded by logging into your
+            |service| cluster and visually inspecting the indexes in
+            :guilabel:`Atlas Search`.
+
+   .. step:: Define the functions to generate embeddings and query a collection using the {+avs+} indexes.
+
+      This code defines the following functions:
+
+      - The ``get_embedding`` function generates 1024 dimension
+        embeddings for the given text by using Voyage AI's
+        ``voyage-3-large`` embedding model.
+
+      - The ``custom_vector_search`` function takes the following input
+        parameters and returns the results of the vector search operation. 
+
+        .. list-table:: 
+           :stub-columns: 1 
+           :widths: 20 80 
+
+           * - ``user_query``
+             - Query text string for which to generate embeddings.
+
+           * - ``collection``
+             - MongoDB collection to search.
+
+           * - ``embedding_path``
+             - Field in the collection that contains the embeddings.
+
+           * - ``vector_search_index_name``
+             - Name of index to use in the query.
+
+           * - ``top_k`` 
+             - Number of top documents in the results to return.
+
+           * - ``num_candidates``
+             - Number of candidates to consider.
+
+           * - ``use_full_precision`` 
+             - Flag to perform |ann|, if ``False``, or |enn|, if
+               ``True``, search.
+
+               .. note:: 
+
+                  The ``use_full_precision`` value is set to ``False`` by
+                  default for an |ann| search. Set the ``use_full_precision``
+                  value to ``True`` to perform an |enn| search.
+
+               Specifically, this function performs the following actions: 
+
+               - Generates the embeddings for the query text
+               - Constructs the :pipeline:`$vectorSearch` stage 
+               - Configures the type of search
+               - Specifies the fields in the collection to return
+               - Executes the pipeline after gathering performance statistics
+               - Returns the results
+
+      .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/query-functions.py
+         :language: python
+         :linenos:
+         :copyable: true
+
+   .. step:: Run an {+avs+} query to evaluate the search performance. 
+
+      The following query performs the vector searches across
+      different quantization strategies, measuring performance metrics
+      for scalar quantized, binary quantized, and full precision
+      (float32) vectors while capturing latency measurements at each
+      precision level and standardizing the result format for analytical
+      comparison. It uses embeddings generated using Voyage AI for the query
+      string "How do I increase my productivity for maximum output". 
+
+      The query stores key essential performance indicators in the
+      ``results`` variable including precision level (Scalar, Binary,
+      Float32), result set size (``top_k``), query latency in
+      milliseconds, and retrieved document content, providing
+      comprehensive metrics for evaluating search performance across
+      different quantization strategies.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/avs/auto-quantization-voyage-ai-tutorial/measure-performance.py
+            :language: python 
+            :linenos: 
+
+         .. output:: 
+            :language: python
+            :visible: false
+
+                precision 	  top_k 	num_candidates 	latency_ms 	results
+            0 	_float32_ann 	5 	    25 	            1659.498601 {'title': 'Henry Ford', 'text': 'Ford had deci...
+            1 	_scalar_    	5 	    25 	            951.537687 	{'title': 'Gross domestic product', 'text': 'F...
+            2 	_binary_ 	    5 	    25 	            344.585193 	{'title': 'Great Depression', 'text': 'The fir...
+            3 	Float32_ENN 	5 	    25 	            0.231693 	  {'title': 'Great Depression', 'text': 'The fir...
+
+      The performance metrics in the results show latency differences
+      across precision levels. This demonstrates that while quantization
+      provides substantial performance improvements, there's a clear
+      trade-off between precision and retrieval speed, with
+      full-precision float32 operations requiring notably more
+      computational time compared to their quantized counterparts. 
+
+   .. step:: Measure latency with varying ``top-k`` and ``num_candidates`` values.
+
+      The following query introduces a systematic latency measurement
+      framewwork that evaluates vector search performance across
+      different precision levels and retrieval scales. The parameter
+      ``top-k`` not only determines the number of results to return but
+      also sets the ``numCandidates`` parameter in MongoDB's :abbr:`HNSW
+      (Hierarchical Navigable Small World)` graph search. 
+
+      The ``numCandidates`` value influences how many nodes in the
+      :abbr:`HNSW (Hierarchical Navigable Small World)` graph {+avs+}
+      explores during the |ann| search. Here, a higher value increases
+      the likelihood of finding the true nearest neighbors but requires
+      more computation time. 
+
+      a. Define the function to format the ``latency_ms`` to a
+         human-readable format.
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/latency-format.py
+            :linenos:
+            :language: python
+            :copyable: true
+            
+      #. Define the function to measure the latency of the vector search
+         query.
+      
+         The following function takes a ``user_query``, a
+         ``collection``, a ``vector_search_index_name``, a
+         ``use_full_precision`` value, a ``top_k_values`` value, and a
+         ``num_candidates_values`` value as input and returns the
+         results of the vector search. Here, make a note of the
+         following: 
+         
+         - The latency increases as the ``top_k`` and
+           ``num_candidates`` values increase because the vector search
+           operation uses a larger number of documents and causes the
+           search to take longer. 
+         - The latency is higher for full fidelity search 
+           (``use_full_precision=True``) than for approximate search
+           (``use_full_precision=False``) because full fidelity search
+           takes longer than approximate search as it searches the
+           entire dataset, using the full precision float32 vectors.
+         - The latency of quantized search is lower than full
+           fidelity search because the quantized search uses the
+           approximate search and the quantized vectors. 
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/latency-function.py 
+            :linenos:
+            :copyable: true 
+            :language: python
+
+      #. Run the {+avs+} query to measure the latency.
+
+         The latency evaluation operation conducts a comprehensive
+         performance analysis by executing searches across all
+         quantization strategies, testing multiple result set sizes,
+         capturing standardized performance metrics, and aggregating
+         results for comparative analysis, enabling detailed evaluation
+         of vector search behavior under different configurations and
+         retrieval loads. 
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/avs/auto-quantization-voyage-ai-tutorial/measure-latency.py
+               :language: python 
+               :linenos:
+
+            .. output:: 
+               :language: python 
+               :visible: false
+
+               Top-K: 5, NumCandidates: 25, Latency: 1672.855906 ms, Precision: _float32_ann
+               ...
+               Top-K: 100, NumCandidates: 10000, Latency: 184.905389 ms, Precision: _float32_ann
+               Top-K: 5, NumCandidates: 25, Latency: 828.45855 ms, Precision: _scalar_
+               ...
+               Top-K: 100, NumCandidates: 10000, Latency: 214.199836 ms, Precision: _scalar_
+               Top-K: 5, NumCandidates: 25, Latency: 400.160243 ms, Precision: _binary_
+               ...
+               Top-K: 100, NumCandidates: 10000, Latency: 360.908558 ms, Precision: _binary_
+               Top-K: 5, NumCandidates: 25, Latency: 0.239107 ms, Precision: _float32_ENN 
+               ...
+               Top-K: 100, NumCandidates: 10000, Latency: 0.179203 ms, Precision: _float32_ENN
+               
+         The latency measurements reveal a clear performance hierarchy
+         across precision types, where binary quantization demonstrates
+         the fastest retrieval times, followed by scalar quantization.
+         The full precision float32 |ann| operations show significantly
+         higher latencies. The performance gap between quantized and
+         full precision searches become more pronounced as Top-K 
+         values increase. The float32 |enn| operations are the slowest,
+         but they provide the highest precision results.
+
+      #. Plot the search latency against various top-k values.
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/plot-latency.py 
+            :linenos:
+            :copyable: true
+            :language: python
+
+         The code returns the following latency charts, which illustrate
+         how vector search document retrieval performs with different
+         embedding precision types, binary, scalar, and float32, as the
+         ``top-k`` (the number of results retrieved) increases:
+
+         .. collapsible::  
+            :heading: Search Latency vs Num Candidates for Top-K = 5
+            :sub_heading: The search latency for each precision type with the measurements for the top 5 results.
+            :expanded: false
+
+            .. figure:: /images/avs/search-latency-vs-num-candidates-for-top-k-value-of-5.png
+               :alt: Screenshot of chart showing Search Latency vs Num Candidates for Top-K = 5 
+               :figwidth: 550px
+
+         .. collapsible::  
+            :heading: Search Latency vs Num Candidates for Top-K = 10
+            :sub_heading: The search latency for each precision type with the measurements for the top 10 results.
+            :expanded: false
+
+            .. figure:: /images/avs/search-latency-vs-num-candidates-for-top-k-value-of-10.png
+               :alt: Screenshot of chart showing Search Latency vs Num Candidates for Top-K = 10 
+               :figwidth: 550px
+
+         .. collapsible::  
+            :heading: Search Latency vs Num Candidates for Top-K = 50
+            :sub_heading: The search latency for each precision type with the measurements for the top 50 results.
+            :expanded: false
+
+            .. figure:: /images/avs/search-latency-vs-num-candidates-for-top-k-value-of-50.png
+               :alt: Screenshot of chart showing Search Latency vs Num Candidates for Top-K = 50 
+               :figwidth: 550px
+
+         .. collapsible::  
+            :heading: Search Latency vs Num Candidates for Top-K = 100
+            :sub_heading: The search latency for each precision type with the measurements for the top 100 results.
+            :expanded: false
+
+            .. figure:: /images/avs/search-latency-vs-num-candidates-for-top-k-value-of-100.png
+               :alt: Screenshot of chart showing Search Latency vs Num Candidates for Top-K = 100 
+               :figwidth: 550px
+
+   .. step:: Measure the representation capacity and retention. 
+
+      The following query measures how effectively {+avs+} retrieves
+      relevant documents from the ground truth dataset. It is calculated
+      as the ratio of correctly found relevant documents to the total
+      number of relevant documents in the ground truth (Found/Total).
+      For example, if a query has 5 relevant documents in the ground
+      truth and {+avs+} finds 4 of them, the recall would be 0.8 or
+      80%. 
+
+      a. Define a function to measure the representational capacity and
+         retention of the vector search operation. This function does
+         the following: 
+
+         i. Creates the baseline search using the full precision float32
+            vectors and |enn| search. 
+         #. Creates the quantized search using the quantized vectors and
+            |ann| search.
+         #. Computes the retention of the quantized search compared to
+            the baseline search. 
+        
+         The retention must be maintained within a reasonable range for
+         the quantized search. If the representational capacity is low,
+         it means that the vector search operation is not able to
+         capture the semantic meaning of the query and the results might
+         not be accurate. This indicates that the quantization is not
+         effective and the initial embedding model used is not effective
+         for the quantization process. We recommend utilizing embedding
+         models that are quantization aware, meaning that during the
+         training process, the model is specifically optimized to
+         produce embeddings that maintain their semantic properties even
+         after quantization. 
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/representational-capacity-retention.py 
+            :linenos:
+            :copyable: true
+            :language: python
+
+      #. Evaluate and compare the performance of your {+avs+} indexes.
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/avs/auto-quantization-voyage-ai-tutorial/evaluate-index-performance.py
+               :language: python 
+               :linenos: 
+
+            .. output:: 
+               :language: python 
+               :visible: false
+
+               Loaded 1 ground truth annotations
+                 Query: 'What happened in 2022?' | top_k: 5, num_candidates: 25
+                 Ground Truth wiki_id: 69407798
+                 Baseline IDs (Float32): [52251217, 60254944, 64483771, 69094871]
+                 Quantized IDs: _float32_ann: [60254944, 64483771, 69094871]
+                 Retention: 0.7500
+
+                 ...
+
+                 Query: 'What happened in 2022?' | top_k: 5, num_candidates: 5000
+                   Ground Truth wiki_id: 69407798
+                   Baseline IDs (Float32): [52251217, 60254944, 64483771, 69094871]
+                   Quantized IDs: _float32_ann: [52251217, 60254944, 64483771, 69094871]
+                   Retention: 1.0000
+
+                 Query: 'What happened in 2022?' | top_k: 10, num_candidates: 25
+                   Ground Truth wiki_id: 69407798
+                   Baseline IDs (Float32): [52251217, 60254944, 64483771, 69094871, 69265870]
+                   Quantized IDs: _float32_ann: [60254944, 64483771, 65225795, 69094871, 70149799]
+                   Retention: 1.0000
+
+                 ...
+
+                 Query: 'What happened in 2022?' | top_k: 10, num_candidates: 5000
+                   Ground Truth wiki_id: 69407798
+                   Baseline IDs (Float32): [52251217, 60254944, 64483771, 69094871, 69265870]
+                   Quantized IDs: _float32_ann: [52251217, 60254944, 64483771, 69094871, 69265870]
+                   Retention: 1.0000
+
+                 Query: 'What happened in 2022?' | top_k: 50, num_candidates: 50
+                   Ground Truth wiki_id: 69407798
+                   Baseline IDs (Float32): [25391, 832774, 8351234, 18426568, 29868391, 52241897, 52251217, 60254944, 63422045, 64483771, 65225795, 69094871, 69265859,  69265870, 70149799, 70157964]
+                   Quantized IDs: _float32_ann: [25391, 8351234, 29868391, 40365067, 52241897, 52251217, 60254944, 64483771, 65225795, 69094871, 69265859, 69265870, 70149799, 70157964]
+                   Retention: 0.8125
+
+                  ...
+
+                  Query: 'What happened in 2022?' | top_k: 50, num_candidates: 5000
+                   Ground Truth wiki_id: 69407798
+                   Baseline IDs (Float32): [25391, 832774, 8351234, 18426568, 29868391, 52241897, 52251217, 60254944, 63422045, 64483771, 65225795, 69094871, 69265859,  69265870, 70149799, 70157964]
+                   Quantized IDs: _float32_ann: [25391, 832774, 8351234, 18426568, 29868391, 52241897, 52251217, 60254944, 63422045, 64483771, 65225795, 69094871, 69265859, 69265870, 70149799, 70157964]
+                   Retention: 1.0000
+
+                 Query: 'What happened in 2022?' | top_k: 100, num_candidates: 100
+                   Ground Truth wiki_id: 69407798
+                   Baseline IDs (Float32): [16642, 22576, 25391, 547384, 737930, 751099, 832774, 8351234, 17742072, 18426568, 29868391, 40365067, 52241897, 52251217, 52851695, 53992315, 57798792, 60163783, 60254944, 62750956, 63422045, 64483771, 65225795, 65593860, 69094871, 69265859, 69265870, 70149799, 70157964]
+                   Quantized IDs: _float32_ann: [22576, 25391, 243401, 547384, 751099, 8351234, 17742072, 18426568, 29868391, 40365067, 47747350, 52241897, 52251217, 52851695, 53992315, 57798792, 60254944, 64483771, 65225795, 69094871, 69265859, 69265870, 70149799, 70157964]
+                   Retention: 0.7586
+
+                 ... 
+
+                 Query: 'What happened in 2022?' | top_k: 100, num_candidates: 5000
+                   Ground Truth wiki_id: 69407798
+                   Baseline IDs (Float32): [16642, 22576, 25391, 547384, 737930, 751099, 832774, 8351234, 17742072, 18426568, 29868391, 40365067, 52241897, 52251217, 52851695, 53992315, 57798792, 60163783, 60254944, 62750956, 63422045, 64483771, 65225795, 65593860, 69094871, 69265859, 69265870, 70149799, 70157964]
+                   Quantized IDs: _float32_ann: [16642, 22576, 25391, 547384, 737930, 751099, 832774, 8351234, 17742072, 18426568, 29868391, 40365067, 52241897, 52251217, 52851695, 53992315, 57798792, 60163783, 60254944, 62750956, 63422045, 64483771, 65225795, 65593860, 69094871, 69265859, 69265870, 70149799, 70157964]
+                   Retention: 1.0000
+
+               Overall Average Retention for top_k 5, num_candidates 25: 0.7500
+               ... 
+               
+         The output shows the retention results for each query in the
+         ground truth dataset. The retention is expressed as a decimal
+         between 0 and 1 where 1.0 means that the ground truth IDs are
+         retained and 0.25 means only 25% of the ground truth IDs are
+         retained.            
+
+      #. Plot the retention capability of the different precision types. 
+
+         .. literalinclude:: /includes/avs/auto-quantization-voyage-ai-tutorial/plot-retention.py
+            :language: python
+            :linenos:
+            :copyable: true
+
+         The code returns the retention charts for the following: 
+
+         .. collapsible::  
+            :heading: Retention vs Num Candidates for Top-K = 5
+            :sub_heading: The retention for each precision type with the measurements for the top 5 results.
+            :expanded: false
+
+            .. figure:: /images/avs/retention-vs-num-candidates-for-top-k-value-of-5.png 
+               :alt: Screenshot of chart showing Retention vs Num Candidates for Top-K = 5 
+               :figwidth: 550px
+
+         .. collapsible::  
+            :heading: Retention vs Num Candidates for Top-K = 10
+            :sub_heading: The retention for each precision type with the measurements for the top 10 results.
+            :expanded: false
+
+            .. figure:: /images/avs/retention-vs-num-candidates-for-top-k-value-10.png
+               :alt: Screenshot of chart showing Retention vs Num Candidates for Top-K = 10
+               :figwidth: 550px
+
+         .. collapsible::  
+            :heading: Retention vs Num Candidates for Top-K = 50
+            :sub_heading: The retention for each precision type with the measurements for the top 50 results.
+            :expanded: false
+
+            .. figure:: /images/avs/retention-vs-num-candidates-for-top-k-value-of-50.png
+               :alt: Screenshot of chart showing Retention vs Num Candidates for Top-K = 50
+               :figwidth: 550px
+
+         .. collapsible::  
+            :heading: Retention vs Num Candidates for Top-K = 100
+            :sub_heading: The retention for each precision type with the measurements for the top 100 results.
+            :expanded: false
+
+            .. figure:: /images/avs/retention-vs-num-candidates-for-top-k-value-100.png
+               :alt: Screenshot of chart showing Retention vs Num Candidates for Top-K = 100 
+               :figwidth: 550px
+
+         For ``float32_ann``, ``scalar``, and ``binary`` embeddings, the
+         code also returns detailed average retention results similar to
+         the following: 
+
+         .. code-block:: 
+            :copyable: false 
+
+            Detailed Average Retention Results:
+
+            _float32_ann Embedding:
+
+            Top-K: 5
+              NumCandidates: 25, Retention: 1.0000
+              NumCandidates: 50, Retention: 1.0000
+              NumCandidates: 100, Retention: 1.0000
+              NumCandidates: 200, Retention: 1.0000
+              NumCandidates: 500, Retention: 1.0000
+              NumCandidates: 1000, Retention: 1.0000
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 10
+              NumCandidates: 25, Retention: 1.0000
+              NumCandidates: 50, Retention: 1.0000
+              NumCandidates: 100, Retention: 1.0000
+              NumCandidates: 200, Retention: 1.0000
+              NumCandidates: 500, Retention: 1.0000
+              NumCandidates: 1000, Retention: 1.0000
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 50
+              NumCandidates: 50, Retention: 0.8125
+              NumCandidates: 100, Retention: 0.8750
+              NumCandidates: 200, Retention: 0.8750
+              NumCandidates: 500, Retention: 1.0000
+              NumCandidates: 1000, Retention: 1.0000
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 100
+              NumCandidates: 100, Retention: 0.7586
+              NumCandidates: 200, Retention: 0.7241
+              NumCandidates: 500, Retention: 0.9655
+              NumCandidates: 1000, Retention: 0.9655
+              NumCandidates: 5000, Retention: 1.0000
+
+            _scalar_ Embedding:
+
+            Top-K: 5
+              NumCandidates: 25, Retention: 0.2500
+              NumCandidates: 50, Retention: 0.5000
+              NumCandidates: 100, Retention: 0.7500
+              NumCandidates: 200, Retention: 1.0000
+              NumCandidates: 500, Retention: 1.0000
+              NumCandidates: 1000, Retention: 1.0000
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 10
+              NumCandidates: 25, Retention: 0.4000
+              NumCandidates: 50, Retention: 0.6000
+              NumCandidates: 100, Retention: 0.8000
+              NumCandidates: 200, Retention: 1.0000
+              NumCandidates: 500, Retention: 1.0000
+              NumCandidates: 1000, Retention: 1.0000
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 50
+              NumCandidates: 50, Retention: 0.7500
+              NumCandidates: 100, Retention: 0.8125
+              NumCandidates: 200, Retention: 0.8750
+              NumCandidates: 500, Retention: 0.9375
+              NumCandidates: 1000, Retention: 0.9375
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 100
+              NumCandidates: 100, Retention: 0.8276
+              NumCandidates: 200, Retention: 0.8276
+              NumCandidates: 500, Retention: 0.8621
+              NumCandidates: 1000, Retention: 0.8966
+              NumCandidates: 5000, Retention: 0.9310
+
+            _binary_ Embedding:
+
+            Top-K: 5
+              NumCandidates: 25, Retention: 0.2500
+              NumCandidates: 50, Retention: 0.2500
+              NumCandidates: 100, Retention: 0.7500
+              NumCandidates: 200, Retention: 0.7500
+              NumCandidates: 500, Retention: 1.0000
+              NumCandidates: 1000, Retention: 1.0000
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 10
+              NumCandidates: 25, Retention: 0.2000
+              NumCandidates: 50, Retention: 0.2000
+              NumCandidates: 100, Retention: 0.8000
+              NumCandidates: 200, Retention: 0.8000
+              NumCandidates: 500, Retention: 1.0000
+              NumCandidates: 1000, Retention: 1.0000
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 50
+              NumCandidates: 50, Retention: 0.2500
+              NumCandidates: 100, Retention: 0.5625
+              NumCandidates: 200, Retention: 0.6250
+              NumCandidates: 500, Retention: 0.7500
+              NumCandidates: 1000, Retention: 0.8125
+              NumCandidates: 5000, Retention: 1.0000
+
+            Top-K: 100
+              NumCandidates: 100, Retention: 0.4483
+              NumCandidates: 200, Retention: 0.5517
+              NumCandidates: 500, Retention: 0.7586
+              NumCandidates: 1000, Retention: 0.8621
+              NumCandidates: 5000, Retention: 1.0000
+
+         The recall results demonstrate distinct performance patterns
+         across the three embedding types. 
+
+         Scalar quantization shows a steady improvement indicating
+         strong retrieval accuracy at higher K values. Binary
+         quantization, while starting lower, improves at Top-K 50 and
+         100, suggesting a trade-off between computational efficiency
+         and recall performance. Float32 embeddings demonstrate the
+         strongest initial performance and reaching the same maximum
+         recall as scalar quantization at Top-K 50 and 100.
+
+         This suggests that while float32 provides better recall at
+         lower Top-K values, scalar quantization can achieve equivalent
+         performance at higher Top-K values while offering improved
+         computational efficiency. The binary quantization, despite its
+         lower recall ceiling, might still be valuable in scenarios
+         where memory and computational constraints outweigh the need
+         for maximum recall accuracy. 
