@@ -1,0 +1,182 @@
+title: Check the location of your ``.so`` files
+ref: check-location
+level: 4
+content: |
+  The |odbc-driver-name| files are named ``libmdbodbca.so`` and
+  ``libmdbodbcw.so``. After downloading the |odbc-driver-name|,
+  move them to your ``/usr/local/lib`` directory.
+---
+title: Create an ``odbc.ini`` file
+ref: create-odbc-ini
+level: 4
+content: |
+  The file ``/etc/odbc.ini`` defines your Data Source Names. Below is
+  an example ``odbc.ini`` file which is configured to use the
+  |odbc-driver-name| with a DSN called ``MongoDBODBC``. Replace all
+  necessary placeholder values with values for your system.
+
+  The file named ``libmdbodbca.so`` is the ANSI driver, and the
+  file named ``libmdbodbcw.so`` is the Unicode driver. Specify the
+  desired driver by setting the ``Driver`` parameter in your
+  ``odbc.ini`` file.
+
+  .. include:: /includes/fact-ansi-unicode-driver.rst
+
+  .. code-block:: none
+
+     [MongoDBODBC]
+     DESCRIPTION = ODBC for MongoDB BI Connector
+     DRIVER      = /usr/local/lib/libmdbodbcw.so
+     TRACE       = Off
+     TRACEFILE   = stderr
+     READONLY    = yes
+     SERVER      = <server address>
+     PORT        = <port number>
+     USER        = <username>
+     PASSWORD    = <password>
+     DATABASE    = <dbname>
+
+     ; optional SSL configuration
+
+     SSLKEY      = </path/to/.pem-key-file>
+     SSLCERT     = </path/to/ssl-certificate>
+     SSLMODE     = DISABLED|PREFERRED|REQUIRED
+     SSLCA       = </path/to/ssl-ca-list-file>
+     SSLCAPATH   = </path/to/ssl-ca-file-directory>
+     SSLCIPHER   = </path/to/ssl-cipher-file>
+     RSAKEY      = </path/to/rsa-public-key-file>
+
+  .. note::
+
+     All ``odbc.ini`` parameters are case-insensitive.
+
+  The previous example contains only one DSN, but it is possible to
+  include multiple DSNs in an ``odbc.ini`` file.
+
+  The following table describes the parameters used in the previous
+  example.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 30 70
+
+     * - Parameter
+       - Description
+
+     * - ``DESCRIPTION``
+       - Optional. Text description of the DSN.
+
+     * - ``DRIVER``
+       - Path to |odbc| driver file.
+
+     * - ``TRACE``
+       - ``On`` or ``Off``. Enable ODBC tracing.
+
+     * - ``TRACEFILE``
+       - If ODBC tracing is enabled, the path to the file in which to
+         store the trace output.
+
+     * - ``READONLY``
+       - ``yes`` or ``no``. Enforce a read-only ODBC session.
+
+     * - ``SERVER``
+       - Address of the server where a |bi-short|
+         :binary:`~bin.mongosqld` instance is running.
+
+     * - ``PORT``
+       - Port number of the :binary:`~bin.mongosqld` instance.
+
+     * - ``USER``
+       - Username of the MongoDB user with permission to connect to
+         the :binary:`~bin.mongosqld` instance.
+
+     * - ``PASSWORD``
+       - Password of the MongoDB user with permission to connect to
+         the :binary:`~bin.mongosqld` instance.
+
+     * - ``DATABASE``
+       - Name of the MongoDB database to use.
+
+     * - ``SSLKEY``
+       - Full path to an SSL key file to use for establishing a secure
+         connection. 
+
+     * - ``SSLCERT``
+       - Name of the SSL certificate file to use for establishing a
+         secure connection. 
+
+     * - ``SSLMODE``
+       - Accepted values are:
+
+         - ``DISABLED``
+         - ``PREFERRED``
+         - ``REQUIRED``
+
+     * - ``SSLCA``
+       - Full path to a file with a list of trust SSL Certificate
+         Authorities.
+
+     * - ``SSLCAPATH``
+       - Full path to a directory that contains trusted SSL CA
+         certificates in PEM format. 
+
+     * - ``SSLCIPHER``
+       - Full path to the file containing a list of permitted
+         ciphers.
+
+     * - ``RSAKEY``
+       - Full path to the PEM file containing the RSA public key.
+
+     * - ``ENABLE_CLEARTEXT_PLUGIN``
+       - Set to ``1`` to enable cleartext authentication.
+
+  .. include:: /includes/fact-odbc-parameters.rst
+
+  .. include:: /includes/fact-ssl-atlas-bic.rst
+
+  Your DSN is now ready to use. If you wish to test your DSN,
+  proceed to step 3.
+---
+title: Install unixODBC
+ref: install-unixodbc
+level: 4
+content: |
+  Install ``unixODBC`` with your preferred package manager.
+
+  On Ubuntu:
+
+  .. code-block:: shell
+
+     sudo apt-get install unixodbc
+
+  On RHEL:
+
+  .. code-block:: shell
+
+     sudo yum install unixODBC  
+
+  Alternatively, you can download binaries from the `unixODBC website
+  <http://www.unixodbc.org>`_.
+---
+title: Test with iusql
+ref: test-with-iusql
+level: 4
+content: |
+  The ``unixODBC`` package includes an SQL client called ``iusql``. You
+  can use it to test your DSN.
+
+  The following example uses ``iusql`` to connect to the
+  ``MongoDBODBC`` DSN, then looks for tables in a database named
+  ``test``:
+
+  .. code-block:: shell
+
+     iusql -v MongoDBODBC
+
+  .. code-block:: shell
+     :copyable: false
+
+     SQL> use test;
+
+     SQL> show tables;
+...

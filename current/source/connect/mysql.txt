@@ -1,0 +1,224 @@
+:noprevnext:
+
+=============================
+Connect from the MySQL Client
+=============================
+
+.. meta::
+   :description: Connect to the MongoDB Connector for BI using the MySQL client with options for authentication and TLS/SSL.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _connect-with-mysql:
+
+You can use the command-line MySQL client to connect to the |bi|.
+
+Connect from MySQL without Authentication or TLS/SSL
+----------------------------------------------------
+
+To connect to a :binary:`~bin.mongosqld` instance listening on the MySQL
+default port ``3307``, run the following command:
+
+.. tabs-platforms::
+
+   tabs:
+     - id: windows
+       content: |
+         32-bit Windows
+         ~~~~~~~~~~~~~~
+
+         .. code-block:: bat
+
+            "C:\Program Files (x86)\MySQL\MySQL Server 5.7\bin\mysql.exe" ^
+              --protocol tcp --port 3307
+
+         64-bit Windows
+         ~~~~~~~~~~~~~~
+
+         .. code-block:: ps1
+
+            "C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe" ^
+              --protocol tcp --port 3307
+
+     - id: macos
+       content: |
+         .. code-block:: sh
+
+            mysql --protocol tcp --port 3307
+
+     - id: linux
+       content: |
+         .. code-block:: sh
+
+            mysql --protocol tcp --port 3307
+
+.. _connect-mysql-auth:
+
+Connect from MySQL with Authentication
+--------------------------------------
+
+Install the C Authentication Plugin as described in
+:doc:`/reference/auth-plugin-c`.
+
+.. important::
+
+   .. include:: /includes/fact-c-auth-compatibility.rst
+
+The following example uses the C authentication plugin to
+connect to a :binary:`~bin.mongosqld` instance listening on port
+``3307`` as user ``reportsUser``. The MySQL shell prompts for the
+password after the command has been entered.
+
+.. tabs-platforms::
+
+   tabs:
+     - id: windows
+       content: |
+         32-bit Windows
+         ~~~~~~~~~~~~~~
+
+         .. code-block:: ps1
+
+            "C:\Program Files (x86)\MySQL\MySQL Server 5.7\bin\mysql.exe" ^
+              --user='reportsUser?source=admin' ^
+              --default-auth=mongosql_auth -p
+
+         64-bit Windows
+         ~~~~~~~~~~~~~~
+
+         .. code-block:: ps1
+
+            "C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe" ^
+              --user='reportsUser?source=admin' ^
+              --default-auth=mongosql_auth -p
+
+         .. note::
+
+            This example assumes that the authentication plugin file
+            ``mongosql_auth.so`` is located in the default MySQL plugin
+            folder:
+
+         .. include:: /includes/fact-plugin-directory-windows.rst
+
+     - id: macos
+       content: |
+         .. code-block:: sh
+
+            mysql --user='reportsUser?source=admin' --default-auth=mongosql_auth -p
+
+         .. include:: /includes/fact-mysql-config-mac-linux-only.rst
+
+
+     - id: linux
+       content: |
+         .. code-block:: sh
+
+            mysql --user='reportsUser?source=admin' --default-auth=mongosql_auth -p
+
+         .. include:: /includes/fact-mysql-config-mac-linux-only.rst
+
+For additional options, see the
+:ref:`MySQL Commands <mysql-command-options>`.
+
+.. _connect-with-tls-ssl:
+
+Connect from MySQL with Authentication and TLS/SSL
+--------------------------------------------------
+
+.. important::
+
+   The `binary distribution of MySQL Community
+   <https://dev.mysql.com/doc/refman/5.7/en/openssl-versus-yassl.html>`_
+   uses the `yaSSL <https://www.wolfssl.com/products/yassl/>`_
+   :abbr:`SSL (Secure Sockets Layer)` library to encrypt connections.
+   MySQL Enterprise uses `OpenSSL <https://www.openssl.org/>`_ which is
+   compatible with |bi|. Use MySQL Enterprise to connect to |bi-short|
+   over :abbr:`TLS (Transport Layer Security)` /
+   :abbr:`SSL (Secure Sockets Layer)`.
+
+To connect to a :binary:`~bin.mongosqld` instance listening on port ``3307``,
+as user ``grace`` using authentication mechanism ``PLAIN``, and using
+specific TLS/SSL CA and x.509 certificates, run the following command:
+
+
+.. tabs-platforms::
+
+   tabs:
+     - id: windows
+       content: |
+         32-bit Windows
+         ~~~~~~~~~~~~~~
+
+         .. code-block:: bat
+
+            "C:\Program Files (x86)\MySQL\MySQL Server 5.7\bin\mysql.exe" ^
+              --enable-cleartext-plugin --protocol tcp --port 3307 ^
+              --user='grace?mechanism=PLAIN&source=$external' ^
+              --ssl-ca=X:\path_to_the_CAcert\ca.crt ^
+              --ssl-key=X:\path_to_my_certificate_key\mysql.key ^
+              --ssl-cert=X:\path_to_my_client_certificate\mysql.crt ^
+              -p
+
+         64-bit Windows
+         ~~~~~~~~~~~~~~
+
+         .. code-block:: ps1
+
+            "C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe" ^
+              --enable-cleartext-plugin --protocol tcp --port 3307 ^
+              --user='grace?mechanism=PLAIN&source=$external' ^
+              --ssl-ca=X:\path_to_the_CAcert\ca.crt ^
+              --ssl-key=X:\path_to_my_certificate_key\mysql.key ^
+              --ssl-cert=X:\path_to_my_client_certificate\mysql.crt ^
+              -p
+
+     - id: macos
+       content: |
+         .. code-block:: sh
+
+            mysql --enable-cleartext-plugin --protocol tcp --port 3307 \
+              --user='grace?mechanism=PLAIN&source=$external' \
+              --ssl-ca=/path_to_the_CAcert/ca.crt \
+              --ssl-key=/path_to_my_certificate_key/mysql.key \
+              --ssl-cert=/path_to_my_client_certificate/mysql.crt \
+              -p
+
+     - id: linux
+       content: |
+         .. code-block:: sh
+
+            mysql --enable-cleartext-plugin --protocol tcp --port 3307 \
+              --user='grace?mechanism=PLAIN&source=$external' \
+              --ssl-ca=/path_to_the_CAcert/ca.crt \
+              --ssl-key=/path_to_my_certificate_key/mysql.key \
+              --ssl-cert=/path_to_my_client_certificate/mysql.crt \
+              -p
+
+If using the ``$external`` authentication source, wrap your username in
+single quotes or escape the ``$`` character with a backslash to prevent
+your shell from performing interpolation.
+
+Authentication requires your client to send your password in plain
+text. To send the password in plain text, either:
+
+- Use the ``--enable-cleartext-plugin`` option shown in the
+  previous example, or
+- Set the environment variable ``LIBMYSQL_ENABLE_CLEARTEXT_PLUGIN=1``.
+
+For additional options, see the
+:ref:`MySQL Commands <mysql-command-options>`.
+
+See the
+`MySQL documentation <https://dev.mysql.com/doc/mysql-security-excerpt/en/cleartext-pluggable-authentication.html>`_
+for additional details on enabling the MySQL cleartext plugin.
+
+.. toctree::
+   :titlesonly:
+
+   /reference/auth-plugin-c-mysql-options
