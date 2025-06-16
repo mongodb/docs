@@ -1,0 +1,69 @@
+.. _atlas-organizations-apiKeys:
+
+===========================
+atlas organizations apiKeys
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Organization API Keys operations.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for apiKeys
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-organizations-apiKeys-accessLists` - Manage the IP access list for your API Key.
+* :ref:`atlas-organizations-apiKeys-assign` - Modify the roles or description for the specified organization API key.
+* :ref:`atlas-organizations-apiKeys-create` - Create an API Key for your organization.
+* :ref:`atlas-organizations-apiKeys-delete` - Remove the specified API key for your organization.
+* :ref:`atlas-organizations-apiKeys-describe` - Return the details for the specified API key for your organization.
+* :ref:`atlas-organizations-apiKeys-list` - Return all API keys for your organization.
+
+
+.. toctree::
+   :titlesonly:
+
+   accessLists </command/atlas-organizations-apiKeys-accessLists>
+   assign </command/atlas-organizations-apiKeys-assign>
+   create </command/atlas-organizations-apiKeys-create>
+   delete </command/atlas-organizations-apiKeys-delete>
+   describe </command/atlas-organizations-apiKeys-describe>
+   list </command/atlas-organizations-apiKeys-list>
+
