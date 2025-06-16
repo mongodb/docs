@@ -1,0 +1,107 @@
+.. _atlas-federatedAuthentication-federationSettings-identityProvider-delete:
+
+========================================================================
+atlas federatedAuthentication federationSettings identityProvider delete
+========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Remove the specified identity provider from your federation settings.
+
+To use this command, you must authenticate with a user account or an API key with the Org Owner role.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas federatedAuthentication federationSettings identityProvider delete <identityProviderId> [options]
+
+.. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - identityProviderId
+     - string
+     - true
+     - ID of the identityProvider.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --federationSettingsId
+     - string
+     - true
+     - Unique 24-hexadecimal digit string that identifies the federation settings.
+   * - --force
+     - 
+     - false
+     - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
+   * - -h, --help
+     - 
+     - false
+     - help for delete
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   Identity provider '<Name>' deleted
+   
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # elete the identity provider with ID aa2223b25a115342acc1f108 from your federation settings with federationSettingsId 5d1113b25a115342acc2d1aa.
+ 	atlas federatedAuthentication federationSettings identityProvider delete aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa
+
