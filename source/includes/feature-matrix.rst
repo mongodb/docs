@@ -66,7 +66,7 @@
      - :icon-fa5:`check`
      - :icon-fa5:`check` [#cross-region]_
 
-   * - Free, Flex, and Shared clusters
+   * - Free and Flex clusters
      - :icon-fa5:`check`
      -
 
@@ -109,10 +109,6 @@
    * - ``SCRAM-SHA256`` database authentication
      - 
      - :icon-fa5:`check`
-
-   * - Serverless instances
-     - :icon-fa5:`check`
-     -
 
    * - VPC Peering for GovCloud
      -
