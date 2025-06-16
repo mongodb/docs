@@ -40,7 +40,8 @@ if [ ! -z "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-branch2dir="$(dirname "$0")/branch2dir.sh"
+# Ensure absolute path to branch2dir script
+branch2dir="$(cd "$(dirname "$0")" && pwd)/branch2dir.sh"
 pathToRepo="/private/var/tmp/$PROJECT_NAME"
 workingBranchName="tmp-import-repo-working-branch"
 
