@@ -5,8 +5,12 @@
   - the Organizational Unit (``OU``)
   - the Domain Component (``DC``)
 
-  You can specify alternative attributes to use for authentication by
-  setting :setting:`net.tls.clusterAuthX509.extensionValue`.
+  MongoDB verifies that entries match exactly across all member certificates.
+  If you list multiple ``OU`` values, all certificates must use an identical
+  list.
+  
+  You can specify alternative attributes to use for authentication by setting 
+  :setting:`net.tls.clusterAuthX509.extensionValue`.
 
 - Cluster member configuration must include the same
   :setting:`net.tls.clusterAuthX509.attributes` and use matching values.

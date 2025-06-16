@@ -5,6 +5,10 @@
   - the Organizational Unit (``OU``)
   - the Domain Component (``DC``)
 
+  MongoDB verifies that entries match exactly across all member certificates.
+  If you list multiple ``OU`` values, all certificates must use an identical
+  list.
+
   You can specify alternative attributes to use for authentication by
   setting :setting:`net.tls.clusterAuthX509.extensionValue`.
 
