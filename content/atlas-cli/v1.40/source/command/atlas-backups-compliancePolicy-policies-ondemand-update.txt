@@ -1,0 +1,86 @@
+.. _atlas-backups-compliancePolicy-policies-ondemand-update:
+
+=======================================================
+atlas backups compliancePolicy policies ondemand update
+=======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Update the on-demand policy of the backup compliance for your project.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas backups compliancePolicy policies ondemand update [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for update
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+   * - --retentionUnit
+     - string
+     - true
+     - Unit of time in which Atlas measures snapshot retention: 'days' 'weeks' 'months'. 
+   * - --retentionValue
+     - int
+     - true
+     - Duration in days, weeks, or months that Atlas retains the snapshot. For less frequent policy items, Atlas requires that you specify a value greater than or equal to the value specified for more frequent policy items.
+   * - -w, --watch
+     - 
+     - false
+     - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Update a backup compliance on-demand policy and set it's retention to one week:
+   atlas backups compliancepolicy policies ondemand update --retentionUnit weeks --retentionValue 1
