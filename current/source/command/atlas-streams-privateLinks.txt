@@ -1,0 +1,67 @@
+.. _atlas-streams-privateLinks:
+
+==========================
+atlas streams privateLinks
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage Atlas Stream Processing PrivateLink endpoints.
+
+Create your Atlas Stream Processing PrivateLink endpoints
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for privateLinks
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-streams-privateLinks-create` - Creates a PrivateLink endpoint that can be used as an Atlas Stream Processor connection.
+* :ref:`atlas-streams-privateLinks-delete` - Deletes an Atlas Stream Processing PrivateLink endpoint.
+* :ref:`atlas-streams-privateLinks-describe` - Describes a PrivateLink endpoint that can be used as an Atlas Stream Processor connection.
+* :ref:`atlas-streams-privateLinks-list` - Lists the PrivateLink endpoints in the project that can be used as Atlas Stream Processor connections.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-streams-privateLinks-create>
+   delete </command/atlas-streams-privateLinks-delete>
+   describe </command/atlas-streams-privateLinks-describe>
+   list </command/atlas-streams-privateLinks-list>
+
