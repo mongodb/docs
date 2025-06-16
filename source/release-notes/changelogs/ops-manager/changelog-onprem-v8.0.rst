@@ -1,3 +1,58 @@
+.. _opsmgr-server-8.0.8:
+
+|onprem| Server 8.0.8
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-06-05*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the MongoDB Agent to :ref:`108.0.8.8817-1 
+  <mongodb-108.0.8.8817-1>`.
+- Supports :bic:`MongoDB Connector for BI </>`` 2.14.23.
+- Supports :dbtools:`MongoDB Database Tools 100.12.1 </release-notes/database-tools-changelog>`.
+- Updates {+mongosh+} to 2.5.2.
+- Ubuntu 24.04 Agent binaries are now included in Ops Manager 8.0.
+- Improves indication and reporting when Feature Compatibility Version 
+  (FCV) is undergoing a transition.
+- Removes unsupported ``ctime`` option from the ``timeStampFormat`` 
+  parameter in Advanced Configuration Options.
+- When starting backup, if automation config is available, it is now 
+  validated to ensure the ``hostCluster`` contains all shards.
+- Updates ``lastTopology`` for third party backup if cluster topology 
+  changes after management but before preferred nodes are set.
+- Handles deduplication of third party backup oplog metadata.
+- Switches S3 custom keystore creation logging from info to debug and 
+  improves cache handling.
+- Improves reliability of E2E test automation for local ATM deployments 
+  and incremental backup tests.
+- Sets ``readAndWriteBlocks`` as the default for file system snapshot 
+  stores for higher reliability.
+- Increases default ``queryableMongodStartTimeoutMs`` timeout to at 
+  least 4 hours.
+- Fixes excessive logging and logging errors for ``fileDiffs`` and null 
+  ``StreamingOutput`` entities.
+
+Bug Fixes
+~~~~~~~~~
+
+- The ``Connect to this instance`` shell command in the UI now 
+  defaults to ``mongosh`` for MongoDB 6.0 and above deployments.
+- Resolves failure when verifying TLS connections with stand-alone 
+  deployments.
+- Fixes a backup resource usage CSV download failure due to malformed 
+  S3 blockstore JSON structures.
+- Fixes an issue where user login would fail after resetting the 
+  password post-upgrade, by ensuring password version consistency.
+- Deprecated MongoDB version verification is now performed during 
+  migration instead of at pre-flight, improving upgrade experience.
+- Fixes the following CVEs:
+ 
+  - `CVE-2025-27789 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-27789>`__
+  - `CVE-2025-32996 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-32996>`__
+  - `CVE-2025-32997 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-32997>`__
+
 .. _opsmgr-server-8.0.7:
 
 |onprem| Server 8.0.7
@@ -8,7 +63,8 @@
 Improvements
 `````````````
 
-- Updates the {+mdbagent+} to 108.0.7.8810.
+- Updates the {+mdbagent+} to :ref:`108.0.7.8810 
+  <mongodb-108.0.7.8810>`.
 - Supports MongoDB Database Tools 100.12.0.
 - Updates JDK to ``jdk-21.0.7+6``. 
 - Supports copying file blocks for incremental snapshot using the
@@ -43,7 +99,8 @@ Bug Fixes
 
 *Released 2025-04-03*
 
-- Updates the {+mdbagent+} to 108.0.6.8796-1.
+- Updates the {+mdbagent+} to :ref:`108.0.6.8796-1 
+  <mongodb-108.0.6.8796-1>`.
 - Upgrades Jetty library to 11.0.25.
 - Reduces the maximum session length (:setting:`mms.session.maxHours`)
   from two months to one week to improve security.
