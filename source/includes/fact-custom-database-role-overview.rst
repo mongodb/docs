@@ -16,5 +16,5 @@ You can assign multiple custom roles to each database user.
 
    Changes to :atlas:`custom roles </security-add-mongodb-roles>`
    might take up to 30 seconds to deploy in ``M0`` {+Free-clusters+},
-   ``M2/M5`` {+Shared-clusters+}, {+Flex-clusters+}, and {+Serverless-instances+}.
+   {+Flex-clusters+}, and {+Serverless-instances+}.
    
