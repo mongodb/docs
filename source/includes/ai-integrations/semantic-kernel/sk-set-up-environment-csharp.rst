@@ -22,8 +22,11 @@
          dotnet add package Microsoft.SemanticKernel
          dotnet add package Microsoft.SemanticKernel.Connectors.MongoDB --prerelease
          dotnet add package Microsoft.SemanticKernel.Connectors.OpenAI
-         dotnet add package Microsoft.SemanticKernel.Memory
-         dotnet add package Microsoft.SemanticKernel.Plugins.Memory --prerelease
+         dotnet add package Microsoft.Extensions.AI
+         dotnet add package Microsoft.Extensions.AI.OpenAI
+         dotnet add package Microsoft.Extensions.AI.Abstractions
+         dotnet add package Microsoft.Extensions.VectorData.Abstractions
+         dotnet add package SemanticKernelPooling.Connectors.OpenAI
 
    .. step:: Define environment variables.
 

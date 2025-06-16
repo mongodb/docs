@@ -1,42 +1,33 @@
 This code performs the following actions:
 
-- Imports the ``TextMemoryPlugin`` class's functions into the kernel's ``textMemory``. 
+- Creates a new kernel using OpenAI's ``gpt-4o`` as the chat model to generate responses.
 
-- Builds a prompt template that uses the ``recall`` function from the ``TextMemoryPlugin`` 
-  class to perform a semantic search over the kernel's ``textMemory`` for the string ``When did I start using MongoDB?``.
+- Creates a new text search instance using the vector store.
 
-- Creates a function named ``settings`` from the chat prompt using the kernel's ``CreateFunctionFromPrompt`` function.
+- Defines a question to ask the chat model and initializes the variable
+  ``retrievedContext`` to hold context from the vector store.
+
+- Performs a semantic search in the ``recordCollection`` for the question ``When did I
+  start using MongoDB?`` and returns the most relevant search result.
+
+- Builds a prompt template that instructs the AI model to answer the question based only
+  on the retrieved context.
+
+- Creates a function named ``ragFunction`` from the chat prompt using the kernel's
+  ``CreateFunctionFromPrompt`` function.
+
+- Prepares arguments for the RAG prompt by creating a new object to hold the question and context.
 
 - Calls the kernel's ``InvokeAsync`` function to generate a response from the chat model using the following parameters:
 
-  - The ``settings`` function that configures the prompt template and ``OpenAIPromptExecutionSettings``.
-  - The question ``When did I start using MongoDB?`` as the value for the ``{{$input}}`` variable in the prompt template.
-  - ``semantic_kernel_db.test`` as the collection to retrieve information from.
+  - The ``ragFunction`` that configures the prompt template.
+  - The ``ragArguments`` that contains the question and context.
 
 - Prints the question and generated response.
 
-.. code-block:: csharp
-   :copyable: true 
-   :linenos: 
-   
-    kernel.ImportPluginFromObject(new TextMemoryPlugin(textMemory));
-    const string promptTemplate = @"
-    Answer the following question based on the given context.
-    Question: {{$input}}
-    Context: {{recall 'When did I start using MongoDB?'}}
-    ";
-
-    // Create and Invoke function from the prompt template
-    var settings = kernel.CreateFunctionFromPrompt(promptTemplate, new OpenAIPromptExecutionSettings());
-    var ragResults = await kernel.InvokeAsync(settings, new()
-    {
-        [TextMemoryPlugin.InputParam] = "When did I start using MongoDB?",
-        [TextMemoryPlugin.CollectionParam] = "test"
-    });
-
-    // Print RAG Search Results
-    Console.WriteLine("Question: When did I start using MongoDB?");
-    Console.WriteLine($"Answer: {ragResults.GetValue<string>()}");
+.. literalinclude:: /includes/ai-integrations/semantic-kernel/sk-perform-qa-code.cs
+      :language: csharp
+      :copyable:
 
 Save the file, then run the following command to generate a response:
 
@@ -51,13 +42,12 @@ Save the file, then run the following command to generate a response:
    .. output:: 
 
       Question: When did I start using MongoDB?
-      Answer: You started using MongoDB two years ago.
+      Retrieved Context: I started using MongoDB two years ago
+      Answer: Two years ago.
 
 .. tip:: 
 
-      You can add your own data and replace the following parts of the code 
+      You can add your own data and replace the following part of the code 
       to generate responses on a different question:
 
-      - ``{{recall '<question>'}}`` ,
-      - ``[TextMemory.InputParam] = "<question>"`` ,
-      - ``Console.WriteLine("Question: <question>")`` .
+      - ``var userQuestion = "When did I start using MongoDB?"``

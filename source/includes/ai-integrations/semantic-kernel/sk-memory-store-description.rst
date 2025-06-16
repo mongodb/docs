@@ -8,17 +8,22 @@ This code performs the following actions:
 - Retrieves your OpenAI API key from the environment
   and creates an instance of OpenAI's ``text-embedding-ada-002`` embedding model.
 
-- Initializes the Kernel then adds the following AI service to the Kernel:
-   
-  - OpenAI's ``gpt-3.5-turbo`` as the chat model used to generate responses for the :ref:`answer-questions` section.
-
 - Instantiates |service| as a memory store and specifies the following parameters:
 
-  - ``semantic_kernel_db.test`` as the collection to store the documents.
+  - ``semantic_kernel_db.records`` as the collection to store the documents.
   - ``vector_index`` as the index to use for querying the memory store.
 
-- Initializes a class called ``SemanticTextMemory``, which provides a group of native methods
-  to help you store and retrieve text in memory.
+- Populates the ``semantic_kernel_db.records`` collection with sample documents by calling the
+  ``CreateCollectionFromListAsync`` method.
 
-- Populates the ``semantic_kernel_db.test`` collection with sample documents by calling the 
-  ``PopulateMemoryAsync`` method. 
+- Defines a variable ``recordCollection`` containing the ``semantic_kernel_db.records`` collection.
+
+- Creates two helper methods to help store and retrieve text in memory:
+
+  - ``CreateRecord``: A factory to create a new ``DataModel`` object.
+  - ``CreateCollectionFromListAsync``: A method to take string entries, generate
+    embeddings for the strings, create corresponding records, and then upsert those
+    records into a collection in your |service| {+cluster+}.
+
+- Creates a ``DataModel`` class that defines the structure of documents stored in the
+  MongoDB collection.
