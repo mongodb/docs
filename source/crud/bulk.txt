@@ -623,6 +623,54 @@ Even though the write operation inserting a document with a duplicate key result
 in an error, the other operations are executed because the write operation is
 unordered.
 
+.. _java-bulk-insert-troubleshooting:
+
+Troubleshooting
+---------------
+
+Bulk Write Exception
+~~~~~~~~~~~~~~~~~~~~
+
+If the driver encounters an error during a bulk write operation, the driver
+throws a `MongoBulkWriteException.
+<{+core-api+}/MongoBulkWriteException.html>`__ A ``MongoBulkWriteException``
+contains a ``writeErrors`` field consisting of a list of one or more
+``WriteError`` objects associated with the same bulk write operation. 
+
+Consider a collection that has a schema validation rule where the value of the
+``quantity`` field must be an ``int`` type. In the following example, the driver
+throws a ``MongoBulkWriteException`` when you attempt to insert a document with
+a ``quantity`` field value of ``"three"`` and another with a ``quantity`` field
+value of ``"ten"``.
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 1-2, 6-9, 13-16
+
+   Exception in thread "main" com.mongodb.MongoBulkWriteException: Bulk write
+   operation result had errors at
+   com.mongodb.internal.connection.ProtocolHelper.getBulkWriteException(ProtocolHelper.java:258)
+   ... at
+   BulkWriteMultipleValidationErrorsExample.main(BulkWriteMultipleValidationErrorsExample.java:30)
+   Caused by: com.mongodb.MongoWriteException: WriteError{code=121,
+   message='Document failed validation', details={ operator: "$jsonSchema",
+   schemaRules: { bsonType: "int", description: "must be an integer" },
+   offendingDocument: {"name":"Apple","quantity":"three"} }} at
+   com.mongodb.internal.connection.WriteResultHelper.createWriteException(WriteResultHelper.java:50)
+   at com.mongodb.internal.connection.ProtocolHelper.getBulkWriteException(ProtocolHelper.java:254)
+   ... 19 more 
+   Caused by: com.mongodb.MongoWriteException: WriteError{code=121,
+   message='Document failed validation', details={ operator: "$jsonSchema",
+   schemaRules: { bsonType: "int", description: "must be an integer" },
+   offendingDocument: {"name":"Banana","quantity":"ten"} }} at
+   com.mongodb.internal.connection.WriteResultHelper.createWriteException(WriteResultHelper.java:50)
+   at
+   com.mongodb.internal.connection.ProtocolHelper.getBulkWriteException(ProtocolHelper.java:254)
+   ... 19 more    
+
+To learn more about schema validation, see Schema Validation in the Server
+Manual Entries section.
+
 Additional Information
 ----------------------
 
@@ -637,6 +685,7 @@ MongoCollection
 
 - `bulkWrite() <{+driver-api+}/MongoCollection.html#bulkWrite(com.mongodb.client.ClientSession,java.util.List)>`__
 - `BulkWriteOptions <{+core-api+}/client/model/BulkWriteOptions.html>`__
+- `WriteError <{+core-api+}/WriteError.html>`__
 - `MongoBulkWriteException <{+core-api+}/MongoBulkWriteException.html>`__
 
 MongoClient
@@ -651,3 +700,4 @@ Server Manual Entries
 
 - :manual:`MongoCollection.bulkWrite() </reference/method/db.collection.bulkWrite/>`
 - :manual:`MongoClient.bulkWrite() </reference/command/bulkWrite/>`
+- :manual:`Schema Validation </core/schema-validation/>`
