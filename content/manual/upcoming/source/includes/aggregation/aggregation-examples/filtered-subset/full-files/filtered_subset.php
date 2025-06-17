@@ -29,7 +29,7 @@ $persons->insertMany(
             'person_id' => '1723338115',
             'firstname' => 'Olive',
             'lastname' => 'Ranieri',
-            'gender' => "FEMALE",
+            'gender' => 'FEMALE',
             'dateofbirth' => new UTCDateTime(new DateTimeImmutable('1985-05-12T23:14:30')),
             'vocation' => 'ENGINEER',
             'address' => ['number' => 9303, 'street' => 'Mele Circle', 'city' => 'Tobihbo'],
