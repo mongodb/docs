@@ -292,15 +292,5 @@
       -
       -
       -
-    * - 
-      - RHEL 9
-      - :icon:`check-circle`
-      - :icon:`check-circle`
-      - 
-      - 
-      - 
-      - 
-      -
-      -
 
 :sup:`1` |bic-full| isn't supported on Ubuntu 22.04.
