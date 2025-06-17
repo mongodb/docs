@@ -1,0 +1,138 @@
+.. _atlas-security-ldap-save:
+
+========================
+atlas security ldap save
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Save an LDAP configuration for your project.
+
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas security ldap save [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --authenticationEnabled
+     - 
+     - false
+     - Flag that indicates whether to enable LDAP user authentication.
+   * - --authorizationEnabled
+     - 
+     - false
+     - Flag that indicates whether to enable LDAP user authorization.
+   * - --authzQueryTemplate
+     - string
+     - false
+     - RFC 4515-formatted or RFC 4516-formatted LDAP query template that Atlas executes to obtain the LDAP authorization groups to which the authenticated user belongs. Use the {USER} placeholder in the URL to substitute the username. The query is relative to the host specified with the hostname.
+   * - --bindPassword
+     - string
+     - false
+     - Password used to authenticate the bindUsername.
+   * - --bindUsername
+     - string
+     - true
+     - User distinguished name (DN) that Atlas uses to connect to the LDAP server. You must format LDAP distinguished names according to RFC 2253.
+   * - --caCertificate
+     - string
+     - false
+     - Certificate Authority (CA) used to verify the identity of the LDAP server. To delete an assigned value, pass an empty string.
+   * - -h, --help
+     - 
+     - false
+     - help for save
+   * - --hostname
+     - string
+     - true
+     - Hostname or IP address of the LDAP server.
+   * - --mappingLdapQuery
+     - string
+     - false
+     - RFC 4515-formatted or RFC 4516-formatted LDAP query template that inserts the LDAP name that the regex matches into an LDAP query URI.
+
+       Mutually exclusive with --mappingSubstitution, --mappingSubstitution.
+   * - --mappingMatch
+     - string
+     - false
+     - ECMAScript-formatted regular expression (regex) to match against a provided username.
+   * - --mappingSubstitution
+     - string
+     - false
+     - LDAP distinguished name (DN) template that converts the LDAP username that matches the regex specified in the match option into an LDAP DN.
+
+       Mutually exclusive with --mappingLdapQuery, --mappingLdapQuery.
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --port
+     - int
+     - false
+     - Port that the LDAP server listens to for client connections. This value defaults to 636.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   HOSTNAME          PORT          AUTHENTICATION                 AUTHORIZATION
+   <Ldap.Hostname>   <Ldap.Port>   <Ldap.AuthenticationEnabled>   <Ldap.AuthorizationEnabled>
+   
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Save an LDAP server configuration to authenticate and authorize MongoDB users for the host atlas-ldaps-01.ldap.myteam.com: 
+   atlas security ldap save --authenticationEnabled --authorizationEnabled 
+   --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername 
+   "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com" 
+   --bindPassword changeMe
