@@ -25,10 +25,10 @@ Definition
 
    .. include:: /includes/fact-meta-syntax.rst
 
-   .. important:: 
+   .. important::
 
-      The following ``$meta`` keywords are not supported in :ref:`Stable API 
-      <stable-api>` V1: 
+      The following ``$meta`` keywords are not supported in :ref:`Stable API
+      <stable-api>` V1:
 
       - ``"textScore"``
       - ``"indexKey"``
@@ -58,11 +58,11 @@ Requires $text Search
     :pipeline:`$match` stage, the operation fails.
 
   - In find, you must specify the ``$text`` operator in the
-    query predicate to use ``{ $meta: "textScore" }``. If you do not specify 
+    query predicate to use ``{ $meta: "textScore" }``. If you do not specify
     the ``$text`` operator in the query predicate, the operation fails.
 
   .. include:: /includes/text-search-legacy-atlas-section.rst
-     
+
 Availability
 ````````````
 
@@ -122,8 +122,8 @@ Sort without Projection
 - In aggregation, you can sort the resulting documents by ``{
   $meta: "textScore" }`` without also having to project the
   ``textScore``.
-  
-- In find, you can sort the resulting documents by ``{ $meta: "textScore" }`` 
+
+- In find, you can sort the resulting documents by ``{ $meta: "textScore" }``
   without also having to project the ``textScore``.
 
 Sort with Projection
@@ -135,7 +135,7 @@ Sort with Projection
   expression. The field name in the sort is disregarded by the query
   system.
 
-- In find, if you include the :expression:`{ $meta: "textScore" } <$meta>` 
+- In find, if you include the :expression:`{ $meta: "textScore" } <$meta>`
   expression in both the projection and sort, the projection and sort can have
   different field names for the expression. The field name in the
   sort is disregarded by the query system.
@@ -172,7 +172,7 @@ Return Value
 
 - The value returned depends on how the database decides to
   represent values in an index and may change across versions. The
-  represented value may not be the actual value for the field. 
+  represented value may not be the actual value for the field.
 
 - The value returned depends on the execution plan chosen by the
   system. For example, if there are two possible indexes which can
@@ -189,230 +189,277 @@ Examples
 .. TODO when $meta returns other data that requires documentation,
    subsection Examples section by keywords.
 
-``$meta: "textScore"``
-~~~~~~~~~~~~~~~~~~~~~~
+.. tabs-drivers::
 
-Create an ``articles`` collection with the following documents:
+   .. tab::
+      :tabid: shell
 
-.. code-block:: javascript
+      ``$meta: "textScore"``
+      ~~~~~~~~~~~~~~~~~~~~~~
 
-   db.articles.insertMany([
-      { "_id" : 1, "title" : "cakes and ale" },
-      { "_id" : 2, "title" : "more cakes" },
-      { "_id" : 3, "title" : "bread" },
-      { "_id" : 4, "title" : "some cakes" },
-      { "_id" : 5, "title" : "two cakes to go" },
-      { "_id" : 6, "title" : "pie" }
-   ])
-
-Create a :ref:`text index <create-text-index>` on the ``title`` field:
-
-.. code-block:: javascript
-
-   db.articles.createIndex( { title: "text"} )
-
-.. tabs::
-
-   .. tab:: Aggregation
-      :tabid: aggregation
-
-      The following aggregation operation performs a text search and uses the
-      :expression:`$meta` operator to group by the text search score:
+      Create an ``articles`` collection with the following documents:
 
       .. code-block:: javascript
 
-         db.articles.aggregate(
-            [
-              { $match: { $text: { $search: "cake" } } },
-              { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
-            ]
-         )
+         db.articles.insertMany([
+            { "_id" : 1, "title" : "cakes and ale" },
+            { "_id" : 2, "title" : "more cakes" },
+            { "_id" : 3, "title" : "bread" },
+            { "_id" : 4, "title" : "some cakes" },
+            { "_id" : 5, "title" : "two cakes to go" },
+            { "_id" : 6, "title" : "pie" }
+         ])
 
-      The operation returns the following results:
+      Create a :ref:`text index <create-text-index>` on the ``title`` field:
+
+      .. code-block:: javascript
+
+         db.articles.createIndex( { title: "text"} )
+
+      .. tabs::
+
+         .. tab:: Aggregation
+            :tabid: aggregation
+
+            The following aggregation operation performs a text search and uses the
+            :expression:`$meta` operator to group by the text search score:
+
+            .. code-block:: javascript
+
+               db.articles.aggregate(
+                  [
+                    { $match: { $text: { $search: "cake" } } },
+                    { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
+                  ]
+               )
+
+            The operation returns the following results:
+
+            .. code-block:: javascript
+               :copyable: false
+
+               { "_id" : 0.75, "count" : 1 }
+               { "_id" : 0.6666666666666666, "count" : 1 }
+               { "_id" : 1, "count" : 2 }
+
+            For more examples, see :doc:`/tutorial/text-search-in-aggregation`.
+
+         .. tab:: Find and Project
+            :tabid: find
+
+            The following query performs a text search for the term ``cake`` and
+            uses the :expression:`$meta` operator in the projection document to
+            include the score assigned to each matching document:
+
+            .. code-block:: javascript
+
+               db.articles.find(
+                  { $text: { $search: "cake" } },
+                  { score: { $meta: "textScore" } }
+               )
+
+            The operation returns the following documents with the text score:
+
+            .. code-block:: javascript
+               :copyable: false
+
+               { "_id" : 4, "title" : "some cakes", "score" : 1 }
+               { "_id" : 1, "title" : "cakes and ale", "score" : 0.75 }
+               { "_id" : 5, "title" : "two cakes to go", "score" : 0.6666666666666666 }
+               { "_id" : 2, "title" : "more cakes", "score" : 1 }
+
+            For additional examples of ``"textScore"`` projections and sorts,
+            see :ref:`ex-text-search-score`.
+
+      ``$meta: "indexKey"``
+      ~~~~~~~~~~~~~~~~~~~~~
+
+      .. note::
+
+         The ``{ $meta: "indexKey" }`` expression is for debugging
+         purposes only and not for application logic. MongoDB returns the
+         value associated with the index chosen by the query system. The
+         system can choose a different index upon subsequent execution.
+
+         For the selected index, the value returned depends on how the
+         database decides to represent values in an index and may change
+         across versions. The represented value may not be the actual
+         value for the field.
+
+
+      Create an ``orders`` collection with the following documents:
+
+      .. code-block:: javascript
+
+         db.orders.insertMany([
+            { "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
+            { "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
+            { "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" }
+         ])
+
+      Create the following compound index on the ``type`` and ``item`` fields:
+
+      .. code-block:: javascript
+
+         db.orders.createIndex( { type: 1, item: 1 } )
+
+      .. tabs::
+
+         .. tab:: Aggregation
+            :tabid: aggregation
+
+            The following aggregation operation finds all documents with ``type``
+            equal to ``apparel`` and uses the :expression:`$meta` operator to
+            include the index key value for the matching document if an index was
+            used:
+
+            .. code-block:: javascript
+
+               db.orders.aggregate(
+                  [
+                    { $match: { type: "apparel" } },
+                    { $addFields: { idxKey: { $meta: "indexKey" } } }
+                  ]
+               )
+
+         .. tab:: Find and Project
+            :tabid: find
+
+            The following operation finds all documents with ``type``
+            equal to ``apparel`` and uses the :expression:`$meta` operator to
+            include the index key value for the matching document if an index was
+            used:
+
+            .. code-block:: javascript
+
+               db.orders.find( { type: "apparel" }, { idxKey: { $meta: "indexKey" } } )
+
+      The operation returns the matching documents with their
+      corresponding index key:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 7,15
+
+         {
+            "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
+            "item" : "abc",
+            "price" : NumberDecimal("12"),
+            "quantity" : 2,
+            "type" : "apparel",
+            "idxKey" : { "type" : "apparel", "item" : "abc" }
+         }
+         {
+            "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
+            "item" : "abc",
+            "price" : NumberDecimal("10"),
+            "quantity" : 5,
+            "type" : "apparel",
+            "idxKey" : { "type" : "apparel", "item" : "abc" }
+         }
+
+
+      If :red:`no` index is used, the ``{ $meta: "indexKey" }`` does not
+      return anything.
+
+      .. tabs::
+
+         .. tab:: Aggregation
+            :tabid: aggregation
+
+            For example, the following operation does not use
+            an index since no index exists on the ``price`` field to support the
+            match condition:
+
+            .. code-block:: javascript
+
+               db.orders.aggregate(
+                  [
+                    { $match: { price: { $gte: NumberDecimal("10") } } },
+                    { $addFields: { idxKey: { $meta: "indexKey" } } }
+                  ]
+               )
+
+         .. tab:: Find and Project
+            :tabid: find
+
+            For example, the following operation does not use an index
+            since no index exists on the ``price`` field to support the
+            match condition:
+
+            .. code-block:: javascript
+
+               db.orders.find(
+                  { price: { $gte: NumberDecimal("10") } },
+                  { idxKey: { $meta: "indexKey" } }
+               )
+
+      The operation returns the matching documents without the ``idxKey``
+      field:
 
       .. code-block:: javascript
          :copyable: false
 
-         { "_id" : 0.75, "count" : 1 }
-         { "_id" : 0.6666666666666666, "count" : 1 }
-         { "_id" : 1, "count" : 2 }
+         {
+            "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
+            "item" : "abc",
+            "price" : NumberDecimal("12"),
+            "quantity" : 2,
+            "type" : "apparel"
+         }
+         {
+            "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcdf"),
+            "item" : "jkl",
+            "price" : NumberDecimal("20"),
+            "quantity" : 1,
+            "type" : "electronics"
+         }
+         {
+            "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
+            "item" : "abc",
+            "price" : NumberDecimal("10"),
+            "quantity" : 5,
+            "type" : "apparel"
+         }
 
-      For more examples, see :doc:`/tutorial/text-search-in-aggregation`.
+   .. tab::
+      :tabid: csharp
 
-   .. tab:: Find and Project
-      :tabid: find
+      .. include:: /includes/driver-examples/meta/sample-data-movie.rst
 
-      The following query performs a text search for the term ``cake`` and
-      uses the :expression:`$meta` operator in the projection document to
-      include the score assigned to each matching document:
+      To include the text search score by using the .NET/C# driver, call the
+      `MetaTextScore() <{+csharp-api-docs+}/MongoDB.Driver/MongoDB.Driver.ProjectionDefinitionBuilder-1.MetaTextScore.html>`__
+      method on the projection builder.
 
-      .. code-block:: javascript
+      First, run the following code to create a text index on the ``Title`` field:
 
-         db.articles.find(
-            { $text: { $search: "cake" } },
-            { score: { $meta: "textScore" } }
-         )
+      .. literalinclude:: /includes/driver-examples/meta/MetaExamples.cs
+         :start-after: // start createIndex
+         :end-before: // end createIndex
+         :language: csharp
+         :dedent: 8
 
-      The operation returns the following documents with the text score:
+      Then, add the following code to your application. The code performs a text search
+      for the term ``"future"`` and uses the ``MetaTextScore()`` method to include the
+      score assigned to each matching document. The code then sorts the results in
+      descending order by their text score and returns the document with the highest score.
 
-      .. code-block:: javascript
-         :copyable: false
+      .. literalinclude:: /includes/driver-examples/meta/MetaExamples.cs
+         :start-after: // start metaTextScore
+         :end-before: // end metaTextScore
+         :language: csharp
+         :dedent: 8
 
-         { "_id" : 4, "title" : "some cakes", "score" : 1 }
-         { "_id" : 1, "title" : "cakes and ale", "score" : 0.75 }
-         { "_id" : 5, "title" : "two cakes to go", "score" : 0.6666666666666666 }
-         { "_id" : 2, "title" : "more cakes", "score" : 1 }
+      The preceding operation returns the following document:
 
-      For additional examples of ``"textScore"`` projections and sorts,
-      see :ref:`ex-text-search-score`.
+      .. code-block:: json
 
-``$meta: "indexKey"``
-~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-
-   The ``{ $meta: "indexKey" }`` expression is for debugging
-   purposes only and not for application logic. MongoDB returns the
-   value associated with the index chosen by the query system. The
-   system can choose a different index upon subsequent execution.
-
-   For the selected index, the value returned depends on how the
-   database decides to represent values in an index and may change
-   across versions. The represented value may not be the actual
-   value for the field.
-
-
-Create an ``orders`` collection with the following documents:
-
-.. code-block:: javascript
-
-   db.orders.insertMany([
-      { "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
-      { "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
-      { "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" }
-   ])
-
-Create the following compound index on the ``type`` and ``item`` fields:
-
-.. code-block:: javascript
-
-   db.orders.createIndex( { type: 1, item: 1 } )
-
-.. tabs::
-
-   .. tab:: Aggregation
-      :tabid: aggregation
-
-      The following aggregation operation finds all documents with ``type``
-      equal to ``apparel`` and uses the :expression:`$meta` operator to
-      include the index key value for the matching document if an index was
-      used:
-
-      .. code-block:: javascript
-
-         db.orders.aggregate(
-            [
-              { $match: { type: "apparel" } },
-              { $addFields: { idxKey: { $meta: "indexKey" } } }
-            ]
-         )
-
-   .. tab:: Find and Project
-      :tabid: find
-
-      The following operation finds all documents with ``type``
-      equal to ``apparel`` and uses the :expression:`$meta` operator to
-      include the index key value for the matching document if an index was
-      used:
-
-      .. code-block:: javascript
-
-         db.orders.find( { type: "apparel" }, { idxKey: { $meta: "indexKey" } } )
-
-The operation returns the matching documents with their
-corresponding index key:
-
-.. code-block:: javascript
-   :copyable: false
-   :emphasize-lines: 7,15
-
-   {
-      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
-      "item" : "abc",
-      "price" : NumberDecimal("12"),
-      "quantity" : 2,
-      "type" : "apparel",        
-      "idxKey" : { "type" : "apparel", "item" : "abc" }
-   }
-   {
-      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
-      "item" : "abc",
-      "price" : NumberDecimal("10"),
-      "quantity" : 5,
-      "type" : "apparel",
-      "idxKey" : { "type" : "apparel", "item" : "abc" }
-   }
-
-
-If :red:`no` index is used, the ``{ $meta: "indexKey" }`` does not
-return anything. 
-
-.. tabs::
-
-   .. tab:: Aggregation
-      :tabid: aggregation
-
-      For example, the following operation does not use
-      an index since no index exists on the ``price`` field to support the
-      match condition:
-
-      .. code-block:: javascript
-
-         db.orders.aggregate(
-            [
-              { $match: { price: { $gte: NumberDecimal("10") } } },
-              { $addFields: { idxKey: { $meta: "indexKey" } } }
-            ]
-         )
-
-   .. tab:: Find and Project
-      :tabid: find
-
-      For example, the following operation does not use an index
-      since no index exists on the ``price`` field to support the
-      match condition:
-
-      .. code-block:: javascript
-
-         db.orders.find( 
-            { price: { $gte: NumberDecimal("10") } }, 
-            { idxKey: { $meta: "indexKey" } }
-         )
-
-The operation returns the matching documents without the ``idxKey``
-field:
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
-      "item" : "abc",
-      "price" : NumberDecimal("12"),
-      "quantity" : 2,
-      "type" : "apparel"
-   }
-   {
-      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcdf"),
-      "item" : "jkl",
-      "price" : NumberDecimal("20"),
-      "quantity" : 1,
-      "type" : "electronics"
-   }
-   {
-      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
-      "item" : "abc",
-      "price" : NumberDecimal("10"),
-      "quantity" : 5,
-      "type" : "apparel"
-   }
+         {
+           "_id": {
+             "$oid": "573a1398f29313caabceb500"
+           },
+           "plot": "After visiting 2015, Marty McFly must repeat his visit to 1955 to
+            prevent disastrous changes to 1985... without interfering with his first trip.",
+           "title": "Back to the Future Part II",
+           "score": 1.59375
+         }
