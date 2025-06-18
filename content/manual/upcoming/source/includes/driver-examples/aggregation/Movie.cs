@@ -1,6 +1,6 @@
 public class Movie
 {
-    public string Id { get; set; }
+    public ObjectId Id { get; set; }
 
     public int Runtime { get; set; }
     
