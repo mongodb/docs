@@ -1,3 +1,595 @@
 .. _mcp-server-configuration:
 
-<<Stub>>
+================================
+MongoDB MCP Server Configuration
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: MCP Server configuration, MCP, Model Context Protocol, AI, natural language, MCP Server, AI agents, Claude, Windsurf, Cursor, Visual Studio Code
+   :description: How to configure the MongoDB MCP Server
+
+.. facet::
+   :name: genre
+   :values: reference
+
+Model Context Protocol (MCP) is a standard for connecting large language
+models to external software, services, and data sources.
+
+The MongoDB MCP Server allows you to interact with MongoDB clusters from
+AI clients that support MCP.
+
+You must configure the MCP Server to connect an AI client to the
+cluster. You can then use AI clients to perform cluster operations.
+
+This page describes how to configure the MCP Server and contains other
+reference information.
+
+Definition
+----------
+
+To configure the MCP Server, use any of these methods:
+
+- JSON configuration file with MCP Server fields
+- Command line parameters
+- Operating system environment variables
+
+The MCP Server uses Atlas API credentials or a connection string to
+access a cluster.
+
+Compatibility
+-------------
+
+The MCP Server is compatible with any AI client that supports MCP. For
+example, you can use these AI clients:
+
+- `Windsurf <https://docs.windsurf.com/windsurf/mcp>`__
+- `VSCode <https://code.visualstudio.com/docs/copilot/chat/mcp-servers>`__
+- `Claude Desktop <https://modelcontextprotocol.io/quickstart/user>`__
+- `Cursor <https://docs.cursor.com/context/model-context-protocol>`__
+
+The JSON configuration file structure can vary for each AI client. Read
+the AI client documentation for details.
+
+.. _mcp-server-command-fields:
+
+Command Fields
+--------------
+
+The following table shows the fields for the MCP Server:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``apiClientId``
+     - string
+     - Atlas API client ID for authentication.
+
+   * - ``apiClientSecret``
+     - string
+     - Atlas API client secret for authentication.
+
+   * - ``connectionString``
+     - string
+     - Connection string for a direct database connection.
+
+       You can provide the connection string at runtime by asking the
+       client to connect to a cluster, if the client has never connected
+       before, or to switch the connection to a new cluster if the
+       client was previously connected. We recommend using the
+       configuration to set up your connection string instead of
+       providing it at runtime, because you will be exposing your
+       connection credentials to the large language model.
+
+       After the client calls the connect or switch connection tool, it
+       reuses the same connection for subsequent operations. Therefore,
+       you only need to call it once, or whenever you want to switch to
+       a different connection.
+
+   * - ``logPath``
+     - string
+     - Directory that stores the MCP Server logs.
+
+   * - ``disabledTools``
+     - array
+     - An array of MCP tool names, operation types, or tool
+       categories to disable.
+
+   * - ``readOnly``
+     - boolean
+     - If ``true``, the MCP Server allows only read and metadata
+       operation types, and disables create, update, and delete
+       operations. Default is ``false``.
+
+   * - ``telemetry``
+     - string
+     - If ``disabled``, MCP Server usage data collection is stopped.
+       Default is ``enabled``.
+
+Examples
+--------
+
+This section shows MCP Server configuration examples.
+
+.. _mcp-server-configuration-prerequisites:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+The MCP Server can run Atlas tools that perform various Atlas
+operations. To run those tools, your Atlas cluster requires a service
+account with the appropriate permissions.
+
+In the following sections, you will select the permissions needed to run
+the MCP Server Atlas tools and create a service account with those
+permissions.
+
+Select Service Account Permissions
+``````````````````````````````````
+
+Select the minimum permissions for the service account.
+
+.. note::
+
+   Granting the :atlas:`Organization Owner
+   </reference/user-roles/#mongodb-authrole-Organization-Owner>` role is
+   rarely necessary and can be a security risk.
+
+The following table shows the operations you can perform with the MCP
+Server and the required roles for those operations:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operation
+     - Safest Role to Assign
+     - Level
+  
+   * - List organizations and projects
+     - ``Org Member`` or ``Org Read Only``
+     - Organization
+
+   * - Create new projects
+     - ``Org Project Creator``
+     - Organization
+
+   * - View clusters and databases in a project
+     - ``Project Read Only``
+     - Project
+
+   * - Create and manage clusters in a project
+     - ``Project Cluster Manager``
+     - Project
+
+   * - Manage project access lists
+     - ``Project IP Access List Admin``
+     - Project
+
+   * - Manage database users
+     - ``Project Database Access Admin``
+     - Project
+
+You should typically use ``Project`` level roles for most operations,
+and assign those roles to the specific projects you need to manage or
+view. Avoid ``Organization Owner`` unless you require full
+administrative control over all projects and settings in the
+organization.
+
+For a full list of roles and privileges, see :atlas:`Atlas User
+Roles </atlas/reference/user-roles/#service-user-roles>`.
+
+.. note::
+
+   The MCP Server doesn't disable or hide tools based on the service
+   account permissions. If the service account doesn't have the
+   permission to access a tool, trying to call the tool may result in an
+   error.
+
+Create Atlas Service Account
+````````````````````````````
+
+To create an Atlas service account and allow access to your cluster,
+perform these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create Atlas service account
+
+      a. Log in to Atlas at `cloud.mongodb.com
+         <https://cloud.mongodb.com>`__.
+      #. To access your organization, navigate to **Access Manager** >
+         **Organization Access**. The instructions assume you have an
+         organization already created.
+      #. Click **Add new** > **Application** > **Service Account**.
+      #. Enter a name, description, and set an expiration period.
+      #. Select the appropriate permissions you selected in the previous
+         section.
+      #. Click **Create**.
+
+      .. note::
+
+         The Atlas user interface is subject to change and the steps may
+         vary.
+
+   .. step:: Save client credentials
+
+      After you create your Atlas service account, you'll see a client
+      ID and client secret. Copy and save the client secret because it
+      won't be displayed again.
+      
+      You'll use the client ID and client secret to set the
+      ``apiClientId`` and ``apiClientSecret`` in the
+      :ref:`mcp-server-configuration-atlas-api-credentials` section
+      later.
+
+   .. step:: Add access list entry
+
+      To allow the MCP Server to connect to your Atlas cluster, add an
+      access list entry for the IP address of the computer on which the
+      MCP Server runs. If you run the MCP Server on your local machine,
+      add your local IP address.
+
+      a. Navigate to **Network Access**.
+      #. Click **Add IP Address**.
+      #. Enter your IP address.
+
+Setting MCP Server Cluster Connection Methods and Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure the MCP Server to connect to a cluster and set other MCP
+Server fields, use a method described in this section.
+
+.. _mcp-server-configuration-atlas-api-credentials:
+
+Connecting with Atlas API Credentials
+`````````````````````````````````````
+
+You can use the Atlas API credentials obtained in
+:ref:`mcp-server-configuration-prerequisites` to connect to an Atlas
+cluster.
+
+.. note::
+
+   As you'll see in the next section, you can also connect to an
+   Atlas cluster using a MongoDB connection string if you don't want
+   to use Atlas API credentials for security or another reason.
+
+To connect with Atlas API credentials, set the ``apiClientId`` and
+``apiClientSecret`` fields in the JSON configuration file for the AI
+client:
+
+.. code-block:: json
+   :emphasize-lines: 7, 8
+
+   {
+      "mcpServers": {
+         "MongoDB": {
+            "command": "npx",
+            "args": [
+               "-y", "mongodb-mcp-server",
+               "--apiClientId", "<atlas-service-accounts-client-id>",
+               "--apiClientSecret", "<atlas-service-accounts-client-secret>"
+            ]
+         }
+      }
+   }
+
+Connecting with Cluster Connection String
+`````````````````````````````````````````
+
+If you don't want to use Atlas API credentials for security or another
+reason, you can connect to a cluster using a MongoDB connection string.
+
+The following example shows a ``connectionString`` to connect to an
+Atlas cluster:
+
+.. code-block:: json
+   :emphasize-lines: 7, 8
+
+   {
+      "mcpServers": {
+         "MongoDB": {
+            "command": "npx",
+            "args": [
+               "-y", "mongodb-mcp-server",
+               "--connectionString",
+               "mongodb+srv://testUser:testPassword@testCluster.mongodb.net/"
+            ]
+         }
+      }
+   }
+
+You can also connect to a local cluster with a connection string. For
+example:
+
+.. code-block:: json
+   :emphasize-lines: 7, 8
+
+   {
+      "mcpServers": {
+         "MongoDB": {
+            "command": "npx",
+            "args": [
+               "-y", "mongodb-mcp-server",
+               "--connectionString",
+               "mongodb://127.0.0.1:27019/?directConnection=true"
+            ]
+         }
+      }
+   }
+
+Defining MCP Server Environment Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define environment variables to set various configuration fields
+for the MCP Server.
+
+To define operating system environment variables for the MCP Server, use
+the prefix ``MDB_MCP_`` followed by the variable name in uppercase with
+underscores. For example, use ``MDB_MCP_CONNECTION_STRING`` to set the
+``connectionString`` field.
+
+For a list of fields, see :ref:`mcp-server-command-fields`.
+
+.. _mcp-server-configuration-operating-system-environment-variables:
+
+Defining Environment Variables in Operating System 
+``````````````````````````````````````````````````
+
+The following examples show how to set the MCP Server environment
+variables in a Unix-based operating system:
+
+.. code-block:: bash
+
+   # Set Atlas API credentials for a service account
+   export MDB_MCP_API_CLIENT_ID="<atlas-service-accounts-client-id>"
+   export MDB_MCP_API_CLIENT_SECRET="<atlas-service-accounts-client-secret>"
+
+   # Set a MongoDB connection string
+   export MDB_MCP_CONNECTION_STRING="mongodb+srv://testUsername:testPassword@testCluster.mongodb.net/testDatabase"
+
+   # Change the MCP Server log path from the default
+   export MDB_MCP_LOG_PATH="/mcp/logs"
+
+The following examples set the same variables using in a Windows command
+line:
+
+.. code-block:: cmd
+
+   :: Set Atlas API credentials for a service account
+   set MDB_MCP_API_CLIENT_ID=<atlas-service-accounts-client-id>
+   set MDB_MCP_API_CLIENT_SECRET=<atlas-service-accounts-client-secret>
+
+   :: Set a MongoDB connection string
+   set MDB_MCP_CONNECTION_STRING="mongodb+srv://testUsername::testPassword@testCluster.mongodb.net/testDatabase"
+
+   :: Change the MCP Server log path from the default
+   set MDB_MCP_LOG_PATH="C:\mcp\logs"
+
+The following examples set the same variables in a Windows PowerShell
+session:
+
+.. code-block:: powershell
+
+   # Set Atlas API credentials for a service account
+   $env:MDB_MCP_API_CLIENT_ID="<atlas-service-accounts-client-id>"
+   $env:MDB_MCP_API_CLIENT_SECRET="<atlas-service-accounts-client-secret>"
+
+   # Set a MongoDB connection string
+   $env:MDB_MCP_CONNECTION_STRING="mongodb+srv://testUsername::testPassword@testCluster.mongodb.net/testDatabase"
+
+   # Change the MCP Server log path from the default
+   $env:MDB_MCP_LOG_PATH="C:\mcp\logs"
+
+.. _mcp-server-configuration-connection-string-environment-variable:
+
+Defining Connection String Environment Variable in Configuration File
+`````````````````````````````````````````````````````````````````````
+
+The following example shows how to set the connection string environment
+variable in a JSON configuration file:
+
+.. code-block:: json
+   :emphasize-lines: 7, 8
+
+   {
+      "mcpServers": {
+         "MongoDB": {
+            "command": "npx",
+            "args": ["-y", "mongodb-mcp-server"],
+            "env": {
+               "MDB_MCP_CONNECTION_STRING":
+               "mongodb+srv://testUsername:testPassword@testCluster.mongodb.net/testDatabase"
+            }
+         }
+      }
+   }
+
+.. _mcp-server-configuration-connection-string-atlas-api-environment-variables:
+
+Defining Atlas API Environment Variables in Configuration File
+``````````````````````````````````````````````````````````````
+
+The following example shows how to set Atlas API environment variables
+in a JSON configuration file:
+
+.. code-block:: json
+   :emphasize-lines: 7, 8
+
+   {
+      "mcpServers": {
+         "MongoDB": {
+            "command": "npx",
+            "args": ["-y", "mongodb-mcp-server"],
+            "env": {
+               "MDB_MCP_API_CLIENT_ID": "<atlas-service-accounts-client-id>",
+               "MDB_MCP_API_CLIENT_SECRET": "<atlas-service-accounts-client-secret>"
+            }
+         }
+      }
+   }
+
+Enabling MCP Server Read-Only Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can restrict the MCP Server to read operations.
+
+To enable read-only mode using a command line parameter, use:
+
+.. code-block:: bash
+
+   --readOnly
+
+To enable read-only mode using an environment variable, set the
+``MDB_MCP_READ_ONLY`` environment variable to ``true``:
+
+.. code-block:: bash
+
+   export MDB_MCP_READ_ONLY=true
+
+When you enable read-only mode, a message is added to the MCP Server log
+that indicates the tools that perform write operations are prevented
+from running.
+
+Learn More
+----------
+
+This section shows how to troubleshoot the MCP Server, disable tools,
+enable read-only mode, and disable telemetry.
+
+Troubleshooting MCP Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have issues with the MCP Server, examine the log files for
+information.
+
+The following table shows the default directories where the MCP
+Server stores the log files:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operating System
+     - Default Log Directory
+
+   * - Windows
+     - ``%LOCALAPPDATA%\mongodb\mongodb-mcp\.app-logs``
+
+   * - macOS and Linux
+     - ``~/.mongodb/mongodb-mcp/.app-logs``
+
+To change the log path, set one of these:
+
+- ``logPath`` field in a JSON configuration file or command line
+- ``MDB_MCP_LOG_PATH`` environment variable
+
+Disabling Tools
+~~~~~~~~~~~~~~~
+
+To restrict access to Atlas and database operations, you can disable
+specific MCP Server tools or categories of tools.
+
+To disable tools, set the ``disabledTools`` MCP Server configuration
+field, which is an array of strings. Each string can be a tool name or
+tool category.
+
+The following table shows the tool names that you can disable:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Tool Name
+     - Description
+     - Example Operations Disabled
+
+   * - ``create``
+     - Create resources
+     - - Create cluster
+       - Insert document
+
+   * - ``update``
+     - Update resources
+     - - Update document
+       - Rename collection
+
+   * - ``delete``
+     - Delete resources
+     - - Delete document
+       - Drop collection
+
+   * - ``read``
+     - Read resources
+     - - Find
+       - Aggregate
+       - List clusters
+
+   * - ``metadata``
+     - Read metadata
+     - - List databases
+       - List collections
+       - Read collection schema
+
+The following table shows the tool categories that you can disable:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Tool Category
+     - Description
+     - Example Operations Disabled
+
+   * - ``atlas``
+     - Atlas tools
+     - - List clusters
+       - Create cluster
+
+   * - ``mongodb``
+     - Database tools
+     - - Find
+       - Aggregate
+
+To disable tools with the ``disabledTools`` command line parameter, use
+a space-separated list. For example:
+
+.. code-block:: bash
+
+   --disabledTools create update delete atlas
+
+To disable tools with the ``MDB_MCP_DISABLED_TOOLS`` environment
+variable, use a comma-separated string. For example:
+
+.. code-block:: bash
+
+   export MDB_MCP_DISABLED_TOOLS="create,update,delete,atlas"
+
+Disabling MCP Server Telemetry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To prevent the MCP Server from collecting data about usage, you can
+disable telemetry.
+
+To disable telemetry using an environment variable, set either of these:
+
+.. code-block:: bash
+
+   export MDB_MCP_TELEMETRY=disabled
+   export DO_NOT_TRACK=1
+
+To disable telemetry using a command line parameter, use:
+
+.. code-block:: bash
+
+   --telemetry disabled
