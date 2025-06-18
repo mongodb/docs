@@ -304,19 +304,43 @@ the ``startTransaction()`` method:
 Transaction Errors
 ------------------
 
-If you are using the Core API to perform a transaction, you must incorporate
-error-handling logic into your application for the following errors:
+Because MongoDB transactions are :website:`ACID compliant
+</basics/acid-transactions>`, the driver might produce errors during operation
+to ensure your data maintains consistent. If the following errors occur, your
+application must retry the transaction:
 
-- ``TransientTransactionError``: Raised if a write operation errors
-  before the driver commits the transaction. To learn more about this error, see the
-  :manual:`TransientTransactionError description
-  </core/transactions-in-applications/#transienttransactionerror>` on
-  the Driver API page in the Server manual.
-- ``UnknownTransactionCommitResult``: Raised if the commit operation
-  encounters an error. To learn more about this error, see the
-  :manual:`UnknownTransactionCommitResult description
-  </core/transactions-in-applications/#unknowntransactioncommitresult>` on
-  the Driver API page in the Server manual.
+- ``TransientTransactionError``: Raised if a write operation encounters an error
+  before the driver commits the transaction. To learn more about this error
+  type, see the :manual:`TransientTransactionError
+  description </core/transactions-in-applications/#transienttransactionerror>` on
+  the Drivers API page in the Server manual.
+- ``UnknownTransactionCommitResult``: Raised if the commit operation encounters
+  an error. To learn more about this error type, see the
+  :manual:`UnknownTransactionCommitResult
+  description </core/transactions-in-applications/#unknowntransactioncommitresult>`
+  on the Drivers API page in the Server manual.
 
-The Convenient Transaction API incorporates retry logic for these error
-types, so the driver retries the transaction until there is a successful commit.
+The following sections describe how to handle these errors when using different APIs.
+
+Convenient Transaction API Error Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Convenient Transaction API incorporates retry logic for these error types.
+The driver automatically retries the transaction until there is a successful
+commit.
+
+Core API Error Handling
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are using the Core API to perform a transaction, you must add the following
+error-handling functions to your application:
+
+- A function that retries the entire transaction when the driver encounters a
+  ``TransientTransactionError`` 
+- A function that retries the commit operation when the driver encounters an
+  ``UnknownTransactionCommitResult``
+
+These functions must run until there is a successful commit or a different
+error. For an example of this retry logic, see the :manual:`Core API section
+</core/transactions-in-applications/#core-api>` on the Drivers API page in the
+Server manual.
