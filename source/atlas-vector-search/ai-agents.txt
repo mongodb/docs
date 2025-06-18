@@ -1,0 +1,592 @@
+.. _ai-agents:
+
+==================================
+Build AI Agents with MongoDB Atlas
+==================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Learn how to build AI agents with MongoDB Atlas, including agentic RAG and memory.
+   :keywords: AI agents, MongoDB Atlas, AI, agentic, agentic systems, agentic RAG, agent frameworks, memory, short-term memory, long-term memory, knowledge base
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|service-fullname| provides several features for building AI agents.
+As both a vector and document database, |service| supports various
+search methods for agentic RAG, as well as storing agent interactions 
+in the same database for short and long-term agent memory.
+
+.. button:: Get Started
+   :uri: https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-agents/#get-started
+
+What is an AI agent?
+--------------------
+
+In the context of generative AI, an AI agent 
+typically refers to a system that can complete a task 
+autonomously or semi-autonomously by combining 
+AI models such as |llm|\s with a set of 
+pre-defined tools.
+
+AI agents can use tools to gather context, 
+interact with external systems, and perform actions.
+They can define their own execution flow (planning) 
+and remember previous interactions to inform their responses 
+(memory). Therefore, AI agents are best suited for complex
+tasks that require reasoning, planning, and decision-making.
+
+.. figure:: /images/avs/ai-agent-diagram.svg
+   :alt: Diagram showing a single-agent architecture with MongoDB Atlas
+   :figwidth: 100%
+
+Architecture
+~~~~~~~~~~~~
+
+An AI agent typically includes a combination 
+of the following components:
+
+.. list-table::
+   :widths: 20 80
+
+   * - **Perception**
+     - Your input for the agent.
+       Text inputs are the most common perception 
+       mechanism for AI agents, but inputs can also be audio, 
+       images, or multimodal data.
+
+   * - **Planning**
+     - How the agent determines what to do next.
+       This component typically includes LLMs and prompts, using 
+       feedback loops and various `prompt engineering techniques 
+       <https://www.promptingguide.ai/techniques>`__ such as chain-of-thought and 
+       reAct, to help the LLM reason through complex tasks.
+
+       AI agents can consist of a single LLM as the decision maker, 
+       LLM with multiple prompts, multiple LLMs working together,
+       or any combination of these approaches.
+
+   * - **Tools**
+     - How the agent gathers context for a task. Tools allow
+       agents to interact with external systems and perform actions
+       such as vector search, web search, or calling APIs
+       from other services.
+
+   * - **Memory**
+     - A system for storing agent interactions, so
+       the agent can learn from past experiences to inform its responses.
+       Memory can be *short-term* (for the current session) or *long-term*
+       (persisted across sessions).
+
+.. note::
+
+   AI agents vary in design pattern, function, and complexity.
+   To learn about other agent architectures, including multi-agent systems, 
+   see :website:`Agentic Design Patterns 
+   </resources/basics/artificial-intelligence/agentic-systems>`.
+
+Build AI Agents with MongoDB
+----------------------------
+
+|service-fullname| supports the following components
+for building AI agents:
+
+- :ref:`Tools <avs-agent-tools>`: Leverage MongoDB search features as 
+  tools for your agent to retrieve relevant information and implement agentic RAG.
+- :ref:`Memory <avs-agent-memory>`: Store agent interactions in MongoDB collections
+  for both short and long-term memory.
+
+.. _avs-agent-tools:
+
+Agent Tools
+~~~~~~~~~~~
+
+.. collapsible::
+   :heading: What is a tool?
+   :expanded: false
+
+   In the context of AI agents, a tool is anything that can be programmatically defined 
+   and invoked by the agent. Tools extend the agent's capabilities beyond generating text, 
+   allowing it to interact with external systems, retrieve information, and take actions.
+   Tools are typically defined with a specific interface that includes:
+
+   - A name and description that help the agent understand when to use the tool.
+   - Required parameters and their expected formats.
+   - A function that performs the actual operation when invoked.
+
+   The agent uses its reasoning capabilities to determine which tool to use, when to use it, 
+   and what parameters to provide, based on the user's input and the task at hand.
+
+In addition to standard MongoDB queries, |service| provides several 
+search capabilities that you can implement as tools for your agent.
+
+- **{+avs+}**: Perform vector search to retrieve
+  relevant context based on semantic meaning and similarity. 
+  To learn more, see :ref:`avs-overview`.
+- **{+fts+}**: Perform full-text search to retrieve relevant context 
+  based on keyword matching and relevance scoring. To learn more, see :ref:`atlas-search`.
+- **Hybrid Search**: Combine {+avs+} with |fts|
+  to leverage the strengths of both approaches. 
+  To learn more, see :ref:`as_hybrid-search`.
+
+You can define tools manually or by using :ref:`frameworks <ai-integrations>`
+such as LangChain and LangGraph, which provide built-in abstractions for 
+tool creation and calling.
+
+.. tabs::
+
+   .. tab:: Tool definition
+      :tabid: tool-def
+
+      Tools are defined as functions that the agent can call to perform specific tasks.
+      For example, the following syntax illustrates how you might define a 
+      tool that runs a :ref:`vector search query <return-vector-search-results>`:
+
+      .. code-block:: python
+
+         def vector_search_tool(query: str) -> str:
+             pipeline = [
+                 {
+                       "$vectorSearch": {
+                         # Vector search query pipeline...
+                       }
+                 }
+             ]
+             results = collection.aggregate(pipeline)
+
+             array_of_results = []
+             for doc in results:
+                 array_of_results.append(doc)
+             return array_of_results
+
+   .. tab:: Tool call
+      :tabid: tool-call
+
+      Tool calls are what the agent uses to execute the tools. You can define
+      how to process tool calls in your agent, or 
+      use a framework to handle this for you. These are typically defined 
+      as JSON objects that include the tool name and other arguments to pass to the 
+      tool, so the agent can call the tool with the appropriate parameters. 
+      For example, the following syntax illustrates how an agent might call the 
+      ``vector_search_tool``:
+      
+      .. code-block:: json
+
+         {
+           "tool": "vector_search_tool",
+           "args": { "query": "What is MongoDB?" },
+           "id": "call_H5TttXb423JfoulF1qVfPN3m"
+         }
+         
+Agentic RAG
+```````````
+
+By using |service| as a vector database, you can create retrieval tools that 
+implement agentic RAG, which is an advanced form of :ref:`RAG <avs-rag>` that 
+allows you to dynamically orchestrate the retrieval and 
+generation process through an AI agent.
+
+.. figure:: /images/avs/agentic-rag-diagram.svg
+   :alt: Diagram showing an agentic RAG architecture with MongoDB Atlas
+   :figwidth: 100%
+
+This approach enables more complex workflows and user interactions.
+For example, you can configure your AI agent to determine the optimal retrieval 
+tool based on the task, such as using {+avs+} for semantic search and 
+{+fts+} for full-text search. You can also define different retrieval tools 
+for different collections to further customize the agent's
+retrieval capabilities.
+
+.. _avs-agent-memory:
+
+Agent Memory
+~~~~~~~~~~~~
+
+.. collapsible::
+   :heading: What is memory?
+   :expanded: false
+
+   Memory for agents involves storing information about previous interactions,
+   so that the agent can learn from past experiences and provide 
+   more relevant and personalized responses. This is particularly
+   important for tasks that require context, such as
+   conversational agents, where the agent needs to remember
+   previous turns in the conversation to provide coherent and
+   contextually relevant responses. There are two primary types of agent memory:
+
+   - **Short-term Memory**: Stores information for the current session, 
+     like recent conversation turns and active task context.
+   - **Long-term Memory**: Persists information across sessions, 
+     which can include past conversations and personalized preferences
+     over time.
+
+Since |service| is also a document database, you can
+implement memory for agents by storing its interactions 
+in a MongoDB collection. The agent can then query or update
+this collection as needed. There are several ways to implement 
+agent memory with MongoDB:
+
+- For short-term memory, you might include a ``session_id`` field
+  to identify a specific session when storing interactions, and then 
+  query for interactions with the same ID to pass to the agent as context.
+
+- For long-term memory, you might process several interactions with an LLM
+  to extract relevant information such as user preferences or
+  important context, and then store this information in a separate
+  collection that the agent can query when needed.
+
+- To build robust memory management systems that enable 
+  more efficient and complex retrieval of conversation histories, 
+  leverage :ref:`{+fts+} <atlas-search>` to index and query 
+  your stored interactions.
+
+.. tabs::
+
+   .. tab:: Short-term memory
+      :tabid: short-term
+
+      A document in a collection that stores short-term memory might 
+      resemble the following:
+       
+      .. code-block:: json
+
+         {
+           "session_id": "123",
+           "user_id": "jane_doe",
+           "interactions": 
+           [ 
+             {
+               "role": "user",
+               "content": "What is MongoDB?",
+               "timestamp": "2025-01-01T12:00:00Z"
+             },
+             {
+               "role": "assistant",
+               "content": "MongoDB is the world's leading modern database.",
+               "timestamp": "2025-01-01T12:00:05Z"
+             }
+          ]
+         }
+
+   .. tab:: Long-term memory
+      :tabid: long-term
+
+      A document in a collection that stores long-term memory might 
+      resemble the following:
+          
+      .. code-block:: json
+
+         {
+           "user_id": "jane_doe",
+           "last_updated": "2025-05-22T09:15:00Z",
+           "preferences": {
+             "conversation_tone": "casual",
+             "custom_instructions": [
+               "I prefer concise answers."
+             ],
+           },
+           "facts": [
+             {
+               "interests": ["AI", "MongoDB"],
+             }
+           ]
+         }
+
+The following :ref:`frameworks <ai-integrations>` also provide
+direct abstractions for agent memory with MongoDB:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Framework
+     - Features
+   * - LangChain
+     - - ``MongoDBChatMessageHistory``: chat message history component
+       - ``MongoDBAtlasSemanticCache``: semantic cache component
+
+       To learn more, see the :ref:`tutorial <langchain-memory>`.
+   * - LangGraph
+     - - ``MongoDBSaver``: checkpointer that can be used for persistence
+
+       To learn more, see :ref:`LangGraph <langgraph>` and :ref:`LangGraph.js <langgraph-js>`.
+
+Get Started
+-----------
+
+The following tutorial demonstrates how to build an AI agent using 
+|service| for agentic RAG and memory, without an agent framework.
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebooks/blob/main/use-cases/ai-agent.ipynb?tck=docs
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/use-cases/ai-agent.ipynb?tck=docs>`.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To complete this tutorial, you must have the following:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+- A Voyage AI API key.
+- An OpenAI API key.
+
+.. note::
+ 
+   This tutorial uses models from Voyage AI and OpenAI, but 
+   you can modify the code to use your models of choice.
+
+Procedure
+~~~~~~~~~
+
+This AI agent can be used to answer questions about a custom data source
+and perform calculations. It can also remember previous interactions
+to inform its responses. It uses the following components:
+
+- **Perception**: Text inputs.
+- **Planning**: An LLM and various prompts to reason through the task.
+- **Tools**: A vector search tool and calculator tool.
+- **Memory**: Stores the interactions in a MongoDB collection.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up the environment.
+
+      a. Initialize the project and install dependencies.
+
+         Create a new project directory, then install the required dependencies:
+
+         .. code-block:: bash
+
+            mkdir mongodb-ai-agent
+            cd mongodb-ai-agent
+            pip install --quiet --upgrade pymongo voyageai openai langchain langchain_mongodb langchain_community
+
+         .. note::
+
+            Your project will use the following structure:
+
+            .. code-block:: text
+
+               mongodb-ai-agent
+               ├── config.py
+               ├── ingest-data.py
+               ├── tools.py
+               ├── memory.py
+               ├── planning.py
+               ├── main.py
+
+      #. Configure the environment.
+
+         Create a file named ``config.py`` in your project. This file will contain
+         your API keys for the agent, |service| connection string,
+         and MongoDB database and collection names.
+
+         .. collapsible::
+            :heading: config.py
+            :sub_heading: Copy and paste the following code into your config.py file.
+            :expanded: false
+
+            Replace the placeholder values with your |service| connection string
+            and your Voyage AI and OpenAI API keys.
+           
+            .. literalinclude:: /includes/avs/ai-agent/config.py
+               :language: python
+               :copyable:
+
+            .. note::
+
+               .. include:: /includes/fact-connection-string-format-drivers.rst
+
+   .. step:: Use |service| as a vector database.
+
+      Create a file named ``ingest-data.py`` in your project. This script
+      ingests a sample PDF that contains a recent `MongoDB earnings report
+      <https://investors.mongodb.com/node/12881/pdf>`__ into a collection in 
+      |service| by using the ``voyage-3-large`` embedding model.
+
+      To learn more, see :ref:`rag-ingestion`.
+
+      .. collapsible::
+         :heading: ingest-data.py
+         :sub_heading: Copy and paste the following code into your ingest-data.py file.
+         :expanded: false
+
+         .. literalinclude:: /includes/avs/ai-agent/ingest-data.py
+            :language: python
+            :copyable:        
+
+   .. step:: Define tools for the agent.
+
+      Create a file named ``tools.py`` in your project. This file defines
+      the tools that the agent can use to answer questions. In this example, 
+      you define the following tools:
+      
+      - ``vector_search_tool``: Runs a :ref:`vector search query 
+        <return-vector-search-results>` to retrieve relevant 
+        documents from your collection.
+      - ``calculator_tool``: Uses the ``eval()`` function for 
+        basic math operations.
+
+      .. collapsible::
+         :heading: tools.py
+         :sub_heading: Copy and paste the following code into your tools.py file.
+         :expanded: false
+
+         .. literalinclude:: /includes/avs/ai-agent/tools.py
+            :language: python
+            :copyable:        
+
+   .. step:: Add memory to the agent.
+
+      Create a file named ``memory.py`` in your project. This file defines
+      the system that the agent uses to store its interactions. In this example,
+      you implement short-term memory by defining the following functions:
+
+      - ``store_chat_message``: to store information about an interaction in a MongoDB collection.
+      - ``retrieve_session_history``: to get all interactions for a specific session 
+        by using the ``session_id`` field.
+      
+      .. collapsible::
+         :heading: memory.py
+         :sub_heading: Copy and paste the following code into your memory.py file.
+         :expanded: false
+
+         .. literalinclude:: /includes/avs/ai-agent/memory.py
+            :language: python
+            :copyable:        
+
+   .. step:: Define the agent's planning.
+
+      Create a file named ``planning.py`` in your project. This file will include 
+      various prompts and LLM calls to determine the agent's execution flow.
+      In this example, you define the following functions:
+
+      - ``tool_selector``: Determines how the LLM selects the appropriate tool for a task.
+      - ``generate_answer``: Orchestrates the agent's execution flow by using tools, 
+        calling the LLM, and processing the results.
+      - ``get_llm_response``: Helper function for LLM response generation.
+
+      .. collapsible::
+         :heading: planning.py
+         :sub_heading: Copy and paste the following code into your planning.py file.
+         :expanded: false
+
+         .. literalinclude:: /includes/avs/ai-agent/planning.py
+            :language: python
+            :copyable:      
+            
+   .. step:: Test the agent.
+
+      Finally, create a file named ``main.py`` in your project. This file
+      runs the agent and allows you to interact with it. 
+      
+      .. collapsible::
+         :heading: main.py
+         :sub_heading: Copy and paste the following code into your main.py file.
+         :expanded: false
+
+         .. literalinclude:: /includes/avs/ai-agent/main.py
+            :language: python
+            :copyable:      
+
+      Save your project, then run the following command. When you run the agent:
+
+      - If you haven't already, instruct the agent to ingest the sample data.
+      - Enter a session ID to start a new session or continue an existing session.
+      - Ask questions. The agent generates a response based on your tools, 
+        the previous interactions, and the prompts defined in the planning phase.
+        Refer to the example output for a sample interaction:
+
+      .. io-code-block::
+
+         .. input:: 
+            :language: shell
+
+            python main.py
+
+         .. output::
+            :language: none
+            :visible: true
+
+            Ingest sample data? (y/n): y
+            Successfully split PDF into 104 chunks.
+            Generating embeddings and ingesting documents...
+            Inserted 104 documents into the collection.
+            Search index 'vector_index' creation initiated.
+            Polling to check if the index is ready. This may take up to a minute.
+            vector_index is ready for querying.
+            Enter a session ID: 123
+
+            Enter your query (or type 'quit' to exit): What was MongoDB's latest acquisition?
+            Tool selected:  vector_search_tool
+
+            Answer:
+            MongoDB's latest acquisition was Voyage AI.
+
+            Enter your query (or type 'quit' to exit): What do they do?
+            Tool selected:  vector_search_tool
+
+            Answer:
+            Voyage AI is a company that specializes in state-of-the-art embedding and reranking models designed to power next-generation AI applications. These technologies help organizations build more advanced and trustworthy AI capabilities.
+
+            Enter your query (or type 'quit' to exit): What is 123+456?
+            Tool selected:  calculator_tool
+
+            Answer:
+            579
+
+      .. tip::
+
+        You can view your embeddings and interactions :ref:`in the {+atlas-ui+} 
+        <atlas-ui-view-collections>` by navigating to the ``ai_agent_db`` database 
+        in your {+cluster+} and selecting the ``embeddings`` or ``chat_history`` 
+        collections.
+
+   .. step:: Continue building.
+
+      Now that you have a basic AI agent, you can continue developing it by: 
+
+      - Improving the :ref:`performance <avs-performance-tuning>` of your vector search tools
+        and :ref:`fine tuning <rag-fine-tuning>` your RAG pipelines.
+      - Adding more tools to the agent, such as :ref:`hybrid <as_hybrid-search>` or
+        :ref:`full-text search <atlas-search>` tools.
+      - Refining the planning phase by using more advanced prompts and LLM calls.
+      - Implement long-term memory and more advanced memory systems by using 
+        :ref:`{+fts+} <atlas-search>`.
+
+Tutorials
+---------
+
+For more tutorials on building AI agents with MongoDB, 
+refer to the following table:
+
+.. list-table::
+   :widths: 30 70
+
+   * - Frameworks
+     - - :ref:`langgraph-build-agents`
+       - :ref:`langgraph-js-build-agents`
+       - :ref:`Natural Language to MQL Agent with LangChain and LangGraph <langchain-natural-language-to-mql>`
+       - :ref:`Other AI framework integrations <ai-integrations>`
+
+   * - Enterprise platforms
+     - - :ref:`amazon-bedrock`
+       - :ref:`vertex-ai-agent-engine`
+   * - Additional resources
+     - - :github:`Docs Notebooks Repository </mongodb/docs-notebooks>`
+       - :github:`Generative AI Python Notebooks Repository </mongodb-developer/GenAI-Showcase>`
