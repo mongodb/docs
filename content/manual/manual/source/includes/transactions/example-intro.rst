@@ -20,5 +20,3 @@ driver tries to rerun the transaction after a :ref:`TransientTransactionError
 Starting in MongoDB 6.2, the server does not retry the transaction if
 it receives a :ref:`TransactionTooLargeForCache
 <transactionTooLargeForCache-error>` error.
-
-

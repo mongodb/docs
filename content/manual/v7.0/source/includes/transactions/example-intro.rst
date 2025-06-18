@@ -21,4 +21,4 @@ Starting in MongoDB 6.2, the server does not retry the transaction if
 it receives a :ref:`TransactionTooLargeForCache
 <transactionTooLargeForCache-error>` error.
 
-
+.. include :: /includes/fact-no-upsert-retry-multidocument-transaction.rst
