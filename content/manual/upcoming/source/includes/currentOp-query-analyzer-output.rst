@@ -14,10 +14,10 @@
             "collUuid" : UUID("ed9dfb1d-5b7c-4c6b-82e9-b0f537335795"),
             "samplesPerSecond" : 5,
             "startTime" : ISODate("2023-08-08T16:23:22.846Z"),
-            "sampledReadsCount" : NumberLong(2),
-            "sampledReadsBytes" : NumberLong(346),
-            "sampledWritesCount" : NumberLong(3),
-            "sampledWritesBytes" : NumberLong(904)
+            "sampledReadsCount" : Long(2),
+            "sampledReadsBytes" : Long(346),
+            "sampledWritesCount" : Long(3),
+            "sampledWritesBytes" : Long(904)
          }
 
    .. tab:: Sharded Cluster: mongos
@@ -34,8 +34,8 @@
             "collUuid" : UUID("5130b4df-5966-434f-85f0-f8956b5ca74e"),
             "samplesPerSecond" : 5,
             "startTime" : ISODate("2023-08-08T16:15:07.427Z"),
-            "sampledReadsCount" : NumberLong(2),
-            "sampledWritesCount" : NumberLong(3)
+            "sampledReadsCount" : Long(2),
+            "sampledWritesCount" : Long(3)
          }
 
 
@@ -53,8 +53,8 @@
             "ns" : "testDb.testColl",
             "collUuid" : UUID("5130b4df-5966-434f-85f0-f8956b5ca74e"),
             "startTime" : ISODate("2023-08-08T16:15:07.427Z"),
-            "sampledReadsCount" : NumberLong(2),
-            "sampledReadsBytes" : NumberLong(346),
-            "sampledWritesCount" : NumberLong(3),
-            "sampledWritesBytes" : NumberLong(904)
+            "sampledReadsCount" : Long(2),
+            "sampledReadsBytes" : Long(346),
+            "sampledWritesCount" : Long(3),
+            "sampledWritesBytes" : Long(904)
          }    

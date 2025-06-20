@@ -69,11 +69,11 @@ following fields:
         .. code-block:: javascript
 
            histogram: [
-             { micros: NumberLong(0), count: NumberLong(10) },
-             { micros: NumberLong(2), count: NumberLong(1) },
-             { micros: NumberLong(4096), count: NumberLong(1) },
-             { micros: NumberLong(16384), count: NumberLong(1000) },
-             { micros: NumberLong(49152), count: NumberLong(100) }
+             { micros: Long(0), count: Long(10) },
+             { micros: Long(2), count: Long(1) },
+             { micros: Long(4096), count: Long(1) },
+             { micros: Long(16384), count: Long(1000) },
+             { micros: Long(49152), count: Long(100) }
            ]
 
         This indicates that there were [#inclusive_symbols]_:
