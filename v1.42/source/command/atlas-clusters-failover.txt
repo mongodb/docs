@@ -1,0 +1,102 @@
+.. _atlas-clusters-failover:
+
+=======================
+atlas clusters failover
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starts a failover test for the specified cluster in the specified project.
+
+Clusters contain a group of hosts that maintain the same data set. A failover test checks how MongoDB Cloud handles the failure of the cluster's primary node. During the test, MongoDB Cloud shuts down the primary node and elects a new primary.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas clusters failover <clusterName> [options]
+
+.. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - clusterName
+     - string
+     - true
+     - Human-readable label that identifies the cluster to start a failover test for.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --force
+     - 
+     - false
+     - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
+   * - -h, --help
+     - 
+     - false
+     - help for failover
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   Failover test for '<Name>' started
+   
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Test failover for a cluster named myCluster:
+   atlas clusters failover myCluster

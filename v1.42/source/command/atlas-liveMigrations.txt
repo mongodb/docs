@@ -1,0 +1,67 @@
+.. _atlas-liveMigrations:
+
+====================
+atlas liveMigrations
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage a Live Migration to Atlas for your organization.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for liveMigrations
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-liveMigrations-create` - Create a new push live migration.
+* :ref:`atlas-liveMigrations-cutover` - Start the cutover for a push live migration and confirm when the cutover completes. When the cutover completes, the application completes the live migration process and stops synchronizing with the source cluster.
+* :ref:`atlas-liveMigrations-describe` - Return a push live migration job.
+* :ref:`atlas-liveMigrations-link` - Manage the link-token for your organization.
+* :ref:`atlas-liveMigrations-validation` - Manage a Live Migration validation job for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-liveMigrations-create>
+   cutover </command/atlas-liveMigrations-cutover>
+   describe </command/atlas-liveMigrations-describe>
+   link </command/atlas-liveMigrations-link>
+   validation </command/atlas-liveMigrations-validation>
+

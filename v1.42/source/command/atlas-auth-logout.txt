@@ -1,0 +1,71 @@
+.. _atlas-auth-logout:
+
+=================
+atlas auth logout
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Log out of the CLI.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas auth logout [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --force
+     - 
+     - false
+     - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
+   * - -h, --help
+     - 
+     - false
+     - help for logout
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # To log out from the CLI:
+   atlas auth logout
+

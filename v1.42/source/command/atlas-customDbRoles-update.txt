@@ -1,0 +1,106 @@
+.. _atlas-customDbRoles-update:
+
+==========================
+atlas customDbRoles update
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Update a custom database role for your project.
+
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas customDbRoles update <roleName> [options]
+
+.. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - roleName
+     - string
+     - true
+     - Name of the custom role to update.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --append
+     - 
+     - false
+     - Input action and inheritedRoles to append to the existing role.
+   * - -h, --help
+     - 
+     - false
+     - help for update
+   * - --inheritedRole
+     - strings
+     - false
+     - List of inherited roles and the database on which the role is granted. Passing this flag replaces preexisting data.
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --privilege
+     - strings
+     - false
+     - List of actions per database and collection. If no database or collections are provided, cluster scope is assumed. For details on actions specific to clusters, databases, or collections, see https://dochub.mongodb.org/core/privilege-actions. Passing this flag replaces preexisting data.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   Custom database role '<RoleName>' successfully updated.
+   
+

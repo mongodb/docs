@@ -1,0 +1,73 @@
+.. _atlas-organizations:
+
+===================
+atlas organizations
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage your Atlas organizations.
+
+Create, list and manage your MongoDB organizations.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for organizations
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-organizations-apiKeys` - Organization API Keys operations.
+* :ref:`atlas-organizations-create` - Create an organization.
+* :ref:`atlas-organizations-delete` - Remove the specified organization.
+* :ref:`atlas-organizations-describe` - Return the details for the specified organizations.
+* :ref:`atlas-organizations-invitations` - Invitation operations.
+* :ref:`atlas-organizations-list` - Return all organizations.
+* :ref:`atlas-organizations-users` - Manage your Atlas users.
+
+
+.. toctree::
+   :titlesonly:
+
+   apiKeys </command/atlas-organizations-apiKeys>
+   create </command/atlas-organizations-create>
+   delete </command/atlas-organizations-delete>
+   describe </command/atlas-organizations-describe>
+   invitations </command/atlas-organizations-invitations>
+   list </command/atlas-organizations-list>
+   users </command/atlas-organizations-users>
+
