@@ -21,7 +21,6 @@
    Starting in MongoDB version 4.0, MongoDB disables the use of |tls| 1.0 if |tls| 1.1+ 
    is available on the system. To enable the disabled |tls| 1.0, specify ``none`` as the value for  
    :setting:`spec.additionalMongodConfig.net.tls.disabledProtocols`. 
-   To learn more about this setting, see :manual:`Disable TLS 1.0 </release-notes/4.0/#disable-tls-1.0>`.
    
    Members of replica sets and sharded clusters must speak at least one protocol in common.
    
