@@ -1,5 +1,5 @@
 - You cannot run |CQA| on Atlas 
-  :ref:`shared clusters <shared-tier-cluster>` and
+  :ref:`flex clusters <flex--cluster>` and
   serverless instances.
 - You cannot run |CQA| on 
   standalone deployments.
