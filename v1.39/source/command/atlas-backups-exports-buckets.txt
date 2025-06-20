@@ -1,0 +1,65 @@
+.. _atlas-backups-exports-buckets:
+
+=============================
+atlas backups exports buckets
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage cloud backup export buckets for your project.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for buckets
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-backups-exports-buckets-create` - Create an export destination for Atlas backups using an existing AWS S3 bucket.
+* :ref:`atlas-backups-exports-buckets-delete` - Delete a snapshot export bucket.
+* :ref:`atlas-backups-exports-buckets-describe` - Return one snapshot export bucket.
+* :ref:`atlas-backups-exports-buckets-list` - List cloud backup restore buckets for your project and cluster.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-backups-exports-buckets-create>
+   delete </command/atlas-backups-exports-buckets-delete>
+   describe </command/atlas-backups-exports-buckets-describe>
+   list </command/atlas-backups-exports-buckets-list>
+
