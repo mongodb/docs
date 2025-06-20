@@ -1,0 +1,65 @@
+.. _atlas-dataFederation-queryLimits:
+
+================================
+atlas dataFederation queryLimits
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Data federation query limits.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for queryLimits
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-dataFederation-queryLimits-create` - Creates a new Data Federation query limit.
+* :ref:`atlas-dataFederation-queryLimits-delete` - Remove the specified data federation query limit from your project.
+* :ref:`atlas-dataFederation-queryLimits-describe` - Return the details for the specified data federation query limit for your project.
+* :ref:`atlas-dataFederation-queryLimits-list` - Returns all data federation query limits for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-dataFederation-queryLimits-create>
+   delete </command/atlas-dataFederation-queryLimits-delete>
+   describe </command/atlas-dataFederation-queryLimits-describe>
+   list </command/atlas-dataFederation-queryLimits-list>
+

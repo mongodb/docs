@@ -1,0 +1,114 @@
+.. _atlas-auditing-update:
+
+=====================
+atlas auditing update
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Updates the auditing configuration for the specified project
+
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas auditing update [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --auditAuthorizationSuccess
+     - 
+     - false
+     - Flag that indicates whether someone set auditing to track successful authentications. This only applies to the "atype" : "authCheck" audit filter. Setting this parameter to true degrades cluster performance.
+   * - --auditFilter
+     - string
+     - false
+     - JSON document that specifies which events to record. Escape any characters that may prevent parsing, such as single or double quotes, using a backslash (\).
+
+       Mutually exclusive with --file.
+   * - --enabled
+     - 
+     - false
+     - Flag that indicates whether someone enabled database auditing for the specified project.
+   * - -f, --file
+     - string
+     - false
+     - Path to an optional JSON configuration file that defines auditing filters. To learn more about auditing configuration files for the Atlas CLI, see https://www.mongodb.com/docs/atlas/database-auditing/#example-auditing-filters
+
+       Mutually exclusive with --auditFilter.
+   * - -h, --help
+     - 
+     - false
+     - help for update
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   Auditing configuration successfully updated.
+   
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Audit all authentication events for known users:
+   atlas auditing update --auditFilter '{"atype": "authenticate"}'
+
+   
+.. code-block::
+   :copyable: false
+
+   # Audit all authentication events for known user via a configuration file:
+   atlas auditing update -f filter.json
+
