@@ -1,0 +1,694 @@
+.. _pymongo-flask-celery:
+.. original URL: https://www.mongodb.com/developer/products/mongodb/python-flask-celery-newsletter/
+
+======================================
+Tutorial: Flask and Celery Integration
+======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+ 
+.. meta::
+   :keywords: code example, batch, framework
+
+Overview
+--------
+
+In this tutorial, you can learn how to use MongoDB, Flask, and Celery to build a
+newsletter platform. This application allows users to subscribe to newsletters,
+and administrators to manage and send batch emails asynchronously. 
+
+Flask
+~~~~~
+
+Flask is a lightweight web application framework with built-in configuration and
+convention defaults that provide consistency to developers across projects. For
+more information, see the `Flask webpage
+<https://flask.palletsprojects.com/en/stable/>`__.  
+
+Celery
+~~~~~~
+
+Celery is an open-source distributed task queue that handles large volumes of
+messages efficiently. It supports asynchronous processing and task scheduling.
+For more information, see the `Celery webpage
+<https://docs.celeryq.dev/en/main/index.html>`__. 
+
+Tutorial
+--------
+
+This tutorial recreates the sample application in the :github:`Newsletter
+Platform with JavaScript, Flask, and MongoDB sample project
+</mongodb-developer/newsletter-javascript-flask-mongodb>` GitHub repository. 
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Ensure that you have the following components installed and set up before you
+start this tutorial: 
+
+- A MongoDB cluster. We recommend that you use Atlas. To learn how
+  to create an Atlas cluster, see the
+  :atlas:`Get Started with Atlas </getting-started?tck=docs_driver_python>` page
+  in the Atlas documentation.
+- A database named ``newsletter`` in your cluster. For more information, see
+  the :atlas:`Create a Database </atlas-ui/databases/#create-a-database>` page
+  in the Atlas guide.
+- `RabbitMQ <https://www.rabbitmq.com/docs/download>`__ to use as a message
+  broker for Celery. 
+- `Gmail <www.gmail.com>`__ to use as an SMTP server. For more information about
+  SMTP servers, see the :wikipedia:`Simple Mail Transfer Protocol
+  <Simple_Mail_Transfer_Protocol>` Wikipedia page. 
+- `Python 3.9 or later <https://www.python.org/downloads/>`__
+
+Setup
+~~~~~
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create your project directory and structure
+
+      The name of your project directory is ``newsletter``. Create your
+      directory and navigate to it by running the following commands in
+      terminal:  
+
+      .. code-block:: bash
+
+         mkdir newsletter
+         cd newsletter
+      
+      The following files will hold the code for your application:
+
+      - ``app.py``: The main entry point for your Flask application
+      - ``config.py``: Configuration settings for your application, including
+        the MongoDB connection URI, mail server configuration, Celery broker
+        connection, and any other environment-specific variables
+      - ``tasks.py``: Defines background tasks to send emails asynchronously
+      - ``routes.py``: Defines the routes (URLs) that your application responds
+        to 
+
+      We recommend structuring your application to separate concerns, which can
+      make the application modular and more maintainable. 
+      
+      In your project directory, create the following structure:
+
+      .. code-block:: none
+
+         newsletter/
+         ├── app.py
+         ├── config.py
+         ├── routes.py
+         ├── tasks.py
+         ├── templates/
+         │   ├── admin.html
+         │   └── subscribe.html
+         └── static/
+             └── styles.css
+
+   .. step:: Install the required Python packages
+
+      Your application uses the following libraries:
+
+      - `Flask <https://flask.palletsprojects.com/en/stable/>`__ for handling
+        the web server and routing 
+      - `Flask-Mail <https://pypi.org/project/Flask-Mail/>`__ for sending emails
+        from your application 
+      - :ref:`{+driver-short+} <pymongo-get-started-download-and-install>`
+      - `Celery <https://docs.celeryq.dev/en/stable/>`__ to manage tasks, such
+        as sending batch emails
+
+      .. tip:: Use a Virtual Environment
+
+         Python `virtual environments
+         <https://docs.python.org/3/tutorial/venv.html>`__ allow you to install
+         different versions of libraries for different projects. Before running
+         any ``pip`` commands, ensure that your ``virtualenv`` is active. 
+    
+      Run the following ``pip`` command in your terminal to install the
+      dependencies: 
+
+      .. code-block:: bash
+
+         pip install flask-pymongo Flask-Mail celery
+
+Configure Your Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``config.py`` file contains settings and credentials to perform the
+following actions: 
+
+- Connect Celery to RabbitMQ as its message broker
+- Configure Flask-Mail to use Gmail as its SMTP server
+- Connect your application to your MongoDB deployment
+
+Define the necessary configurations by adding the following code to your
+``config.py`` file: 
+
+.. code-block:: python
+
+   import os
+
+   class Config:
+      MAIL_USERNAME = '<username>' # Your email address without '@gmail.com'
+      MAIL_PASSWORD = '<app password>'
+      MAIL_DEFAULT_SENDER = '<email address>'
+      MONGO_URI = '<mongodb connection string>'
+      DATABASE_NAME = "newsletter"
+      ALLOWED_IPS = ['127.0.0.1']
+      MAIL_SERVER = 'smtp.gmail.com'
+      MAIL_PORT = 587
+      MAIL_USE_TLS = True
+      CELERY_BROKER_URL = 'amqp://guest:guest@localhost//'
+      RESULT_BACKEND = MONGO_URI + '/celery_results'
+
+You must provide your Gmail credentials and email (``MAIL_USERNAME``,
+``MAIL_PASSWORD``, and ``MAIL_DEFAULT_SENDER``) to enable your application to
+send emails. For security purposes, we recommend that you generate an app
+password to use, rather than using your primary password. For more information,
+see the `App Password settings <https://myaccount.google.com/apppasswords>`__ in
+your Google Account. 
+ 
+You must also provide a connection string to set as the ``MONGO_URI``
+environment variable. For more information, see the :ref:`Create a Connection
+String <pymongo-get-started-connection-string>` section of this guide. 
+
+The provided Celery broker URL (``CELERY_BROKER_URL``) specifies RabbitMQ as its
+broker, but you can customize this URL to support other implementations. For
+more information, see the `Broker Settings
+<https://docs.celeryq.dev/en/stable/userguide/configuration.html#broker-settings>`__
+section of the Celery documentation. 
+
+The ``ALLOWED_IPS`` list is used to control access to the :guilabel:`Send
+Newsletter` page. The rest of the variables configure the Flask and Celery
+components. 
+
+Initialize Flask, MongoDB, and Celery
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``app.py`` file initializes and configures the core components of your
+application. It performs the following tasks: 
+
+- Creates a Flask application and loads configuration constants
+- Initializes a Flask-Mail instance with the app's mail server settings
+- Connects to the ``newsletter`` MongoDB database by using the {+driver-short+}
+  driver 
+- Creates a Celery instance configured with the Flask app and your chosen broker
+
+Initialize Flask, MongoDB, and Celery by adding the following code to your
+``app.py`` file:
+
+.. code-block:: python
+
+   from flask import Flask
+   from flask_mail import Mail
+   from flask_pymongo import PyMongo
+   from celery import Celery
+
+   # Create a Flask application
+   app = Flask(__name__)
+   app.config.from_object('config.Config')
+
+   # Create a Flask-Mail instance
+   mail = Mail(app)
+
+   # Connect to MongoDB
+   client = PyMongo(app).cx
+   db = client[app.config['DATABASE_NAME']]
+
+   # Create a Celery instance
+   celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+   celery.conf.update(app.config)
+
+   from routes import *
+   from tasks import *
+
+   if __name__ == '__main__':
+      app.run(debug=True)
+
+Create a Celery Task
+~~~~~~~~~~~~~~~~~~~~
+
+The Celery task uses the components instantiated in your ``app.py`` file to send
+a newsletter email to subscribers.  
+
+The ``@celery.task()`` decorator registers the function as a Celery task.
+Setting ``bind=True`` means the function receives the task instance as the
+``self`` argument, which allows it to access Celery task methods and metadata.
+For more information about tasks, see the `celery.app.task
+<https://docs.celeryq.dev/en/stable/reference/celery.app.task.html>`__ API
+documentation. 
+
+Since this task runs outside of Flask's HTTP request cycle, you must manually
+provide application context by wrapping the email logic in a ``with
+app.app_context()`` block. This gives Flask access to other components like the
+Flask-Mail ``mail`` instance and the {+driver-short+} connection to your
+``newsletter`` MongoDB database. 
+
+This function loops through the list of ``subscribers``, creates an email using
+the Flask-Mail ``Message`` class, and then sends it to each user by using the
+``mail`` object. After each email is sent, it logs the delivery by inserting a
+document into your MongoDB ``deliveries`` collection to record that the message
+was sent.  Each email operation is wrapped in a ``try`` block to ensure that, in
+the case of an error, the failure is logged and the database is not updated with
+a false delivery record. 
+
+Define your ``send_emails()`` function by adding the following code to your
+``tasks.py`` file: 
+
+.. code-block:: python
+
+   from flask_mail import Message
+   from app import app, mail, db, celery
+   from datetime import datetime
+
+   @celery.task(bind=True)
+   def send_emails(self, subscribers, title, body):
+      with app.app_context():
+         for subscriber in subscribers:
+               try:
+                  print(f"Sending email to {subscriber['email']}")
+                  msg = Message(title, recipients=[subscriber['email']])
+                  msg.body = body
+                  mail.send(msg)
+                  db.deliveries.insert_one({
+                     'email': subscriber['email'],
+                     'title': title,
+                     'body': body,
+                     'delivered_at': datetime.utcnow()
+                  })
+                  print("Email sent")
+
+               except Exception as e:
+                  print(f"Failed to send email to {subscriber['email']}: {str(e)}") 
+
+         return {'result': 'All emails sent'}
+
+
+Define Your Routes
+~~~~~~~~~~~~~~~~~~
+
+In Flask, the ``@app.route()`` decorator assigns a URL path to a specific
+function. In the following code, it is used to define the root (``/``),
+``/admin``, ``/subscribe``, and ``/send-newsletters`` routes. The optional
+``methods`` parameter is used in some instances to define a list of allowable
+HTTP methods. 
+
+The ``@app.before_request()`` decorator sets a function to run before every
+request. In this case, the function provides some basic security by limiting
+access to the ``admin`` page to IP addresses listed in the ``ALLOWED_IPS``
+parameter defined in the ``config.py`` file. Specifically, access is only
+allowed for the ``localhost``. 
+
+The root and ``/admin`` routes render pages using the ``render_template()``
+method. The ``/subscribe`` and ``/send-newsletters`` routes access request
+parameters in ``request.form[]`` to execute commands, and then return HTTP
+responses. 
+
+Define your routes by adding the following code to your ``routes.py`` file:
+
+.. code-block:: python
+
+   from flask import render_template, request, abort, jsonify
+   from app import app, db
+   from tasks import send_emails
+
+   @app.before_request
+   def limit_remote_addr():
+      if 'X-Forwarded-For' in request.headers:
+         remote_addr = request.headers['X-Forwarded-For'].split(',')[0]
+      else:
+         remote_addr = request.remote_addr
+      
+      if request.endpoint == 'admin' and remote_addr not in app.config['ALLOWED_IPS']:
+         abort(403)
+
+   @app.route('/')
+   def home():
+      return render_template('subscribe.html')
+
+   @app.route('/admin')
+   def admin():
+      return render_template('admin.html')
+
+   @app.route('/subscribe', methods=['POST'])
+   def subscribe():
+      first_name = request.form['firstname']
+      last_name = request.form['lastname']
+      email = request.form['email']
+
+      if db.users.find_one({'email': email}):
+         return """
+         <div class="response error">
+               <span class="icon">&#x2716;</span> This email is already subscribed!
+         </div>
+         """, 409
+
+      db.users.insert_one({'firstname': first_name, 'lastname': last_name, 'email': email, 'subscribed': True})
+      return """
+      <div class="response success">
+         <span class="icon">&#x2714;</span> Subscribed successfully!
+      </div>
+      """, 200
+
+   @app.route('/send-newsletters', methods=['POST'])
+   def send_newsletters():
+      title = request.form['title']
+      body = request.form['body']
+      subscribers = list(db.users.find({'subscribed': True}))
+
+      for subscriber in subscribers:
+         subscriber['_id'] = str(subscriber['_id'])
+
+      send_emails.apply_async(args=[subscribers, title, body])
+      return jsonify({'message': 'Emails are being sent!'}), 202
+
+You can add more security protections or customize user-facing alerts for your
+application in this file.
+
+Create Your Page Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The HTML files in the ``templates`` directory define the user interface, and are
+written using standard HTML. Because this application uses asynchronous HTTP
+requests, the scripts in these files use `Fetch API calls
+<https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API>`__. These scripts
+also handle timeouts and errors.   
+
+Subscribe Page
+```````````````
+
+Copy the following code into your ``subscribe.html`` file to create your
+:guilabel:`Subscribe to Newsletter` page. 
+
+.. code-block:: html 
+
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Subscribe to Newsletter</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+   </head>
+   <body>
+      <h1>Subscribe to our Newsletter</h1>
+      <form id="subscribe-form">
+         <label for="firstname">First Name:</label>
+         <input type="text" id="firstname" name="firstname" required>
+         <br>
+         <label for="lastname">Last Name:</label>
+         <input type="text" id="lastname" name="lastname" required>
+         <br>
+         <label for="email">Email:</label>
+         <input type="email" id="email" name="email" required>
+         <br>
+         <button type="submit">Subscribe</button>
+      </form>
+      <div id="response"></div>
+      <script>
+         document.getElementById('subscribe-form').addEventListener('submit', function(event) {
+               event.preventDefault();
+               var formData = new FormData(event.target);
+               fetch('/subscribe', {
+                  method: 'POST',
+                  body: formData
+               }).then(response => {
+                  if (!response.ok) {
+                     throw response;
+                  }
+                  return response.text();
+               }).then(data => {
+                  document.getElementById('response').innerHTML = data;
+                  document.getElementById('subscribe-form').reset();
+                  setTimeout(() => {
+                     document.getElementById('response').innerHTML = '';
+                  }, 3000);
+               }).catch(error => {
+                  error.text().then(errorMessage => {
+                     document.getElementById('response').innerHTML = errorMessage;
+                     setTimeout(() => {
+                           document.getElementById('response').innerHTML = '';
+                     }, 3000);
+                  });
+               });
+         });
+      </script>
+   </body>
+   </html>
+
+Admin Page
+```````````
+
+The admin page script displays an alert to the user that indicates the
+success of the ``send_newsletter`` call. 
+
+Copy the following code into your ``admin.html`` file to create your
+:guilabel:`Send Newsletter` page:
+
+.. code-block:: html 
+
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Admin - Send Newsletter</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+   </head>
+   <body>
+      <h1>Send Newsletter</h1>
+      <form id="admin-form">
+         <label for="title">Title:</label>
+         <input type="text" id="title" name="title" required>
+         <br>
+         <label for="body">Body:</label>
+         <textarea id="body" name="body" required></textarea>
+         <br>
+         <button type="submit">Send</button>
+      </form>
+      <div id="response"></div> 
+      <script>
+         document.getElementById('admin-form').addEventListener('submit', function(event) {
+               event.preventDefault();
+               var formData = new FormData(event.target);
+               fetch('/send-newsletters', {
+                  method: 'POST',
+                  body: formData
+               })
+               .then(response => response.json())
+               .then(() => {
+                  document.getElementById('response').innerText = 'Emails are being sent!';
+                  setTimeout(() => {
+                     document.getElementById('response').innerText = '';
+                  }, 3000);
+                  document.getElementById('admin-form').reset();
+               })
+               .catch(error => {
+                  document.getElementById('response').innerText = 'Error sending emails.';
+                  setTimeout(() => {
+                     document.getElementById('response').innerText = '';
+                  }, 3000);
+                  console.error('Error:', error);
+               });
+         });
+      </script>
+   </body>
+   </html>
+
+Format Your Pages
+~~~~~~~~~~~~~~~~~
+
+You can apply a style sheet to your templates by adding the following code to
+the ``styles.css`` file: 
+
+.. code-block:: css 
+
+   body {
+      font-family: system-ui;
+      font-optical-sizing: auto;
+      font-weight: 300;
+      font-style: normal;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #040100;
+   }
+
+   h1 {
+      color: white;
+   }
+
+   form {
+      background: #023430;
+      padding: 30px 40px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      margin: 20px 0;
+   }
+
+   label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: white;
+   }
+
+   input[type="text"],
+   input[type="email"],
+   textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+   }
+
+   button {
+      background: #00ED64;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: "Nunito", sans-serif;
+   }
+
+   button:hover {
+      background: #00684A;
+   }
+
+   #response {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #28a745;
+   }
+
+   footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #666;
+   }
+
+Test the Application
+~~~~~~~~~~~~~~~~~~~~
+
+After you complete the previous steps, you have a working application that uses
+MongoDB, Flask, and Celery to manage a newsletter platform. 
+
+You can use the following steps to test your application:
+
+.. procedure::
+   :style: connected
+
+   .. step::  Start your background services
+
+      Start your RabbitMQ node. For instructions, see the `RabbitMQ
+      documentation <https://www.rabbitmq.com/docs/platforms>`__ for your
+      operating system.
+
+      On MacOS:
+
+      .. code-block:: bash
+
+         brew services start rabbitmq
+
+      On Windows:
+
+      .. code-block:: bash
+
+         rabbitmq-service start
+
+      On Linux/Unix:
+
+      .. code-block:: bash
+
+         sudo systemctl start rabbitmq-server
+
+   .. step::  Start your application
+
+      Use the following code to start your application:
+
+      .. code-block:: bash
+
+         flask --app app run
+
+      In another terminal, start the Celery worker:
+
+      .. code-block:: bash
+
+         celery -A app.celery worker --loglevel=info
+
+   .. step::  Create a subscriber
+
+      Navigate to `<localhost:5000>`__ in your browser to open the
+      :guilabel:`Subscribe to our Newsletter` page.
+
+      Enter the subscriber information and click :guilabel:`Subscribe`.
+
+      To confirm that you created a new subscriber, open `Atlas
+      <https://account.mongodb.com/account/login>`__ and navigate to the
+      ``users`` collection in your ``newsletter`` database. 
+
+   .. step::  Dispatch a newsletter
+
+      Navigate to `<localhost:5000/admin>`__ in your browser to open the
+      :guilabel:`Send Newsletter` page. Enter the newsletter details and click
+      :guilabel:`Send`. 
+
+      Your Celery worker log will display an ``Email sent`` log entry similar to
+      the following image:
+
+      .. code-block:: bash
+
+         [2025-05-27 09:54:43,873: INFO/ForkPoolWorker-7] Task tasks.send_emails[7d7f9616-7b9b-4508-a889-95c35f54fe43] succeeded in 3.93334774998948s: {'result': 'All emails sent'}
+         [2025-05-27 10:04:52,043: INFO/MainProcess] Task tasks.send_emails[ac2ec70f-2d3e-444a-95bb-185ac659f460] received
+         [2025-05-27 10:04:52,046: WARNING/ForkPoolWorker-7] Sending email to <subscriber_email>
+         [2025-05-27 10:04:53,474: WARNING/ForkPoolWorker-7] Email sent
+
+      You can also confirm that you sent an email by navigating to the
+      ``deliveries`` collection in your ``newsletter`` database. 
+
+Next Steps
+~~~~~~~~~~
+
+This application demonstrates how to integrate a Flask application with the
+Celery task queue to manage subscriber data and send batch emails. You can
+build on this application to experiment with Flask or Celery. Some possible
+improvements include the following changes:
+
+- Add `retries <https://docs.celeryq.dev/en/stable/userguide/calling
+  html#message-sending-retry>`__ to your ``send_emails`` function
+- `Format your newsletter <https://flask-mail.readthedocs.io/en/latest/#sending-messages>`__ 
+- Implement more rigorous `security features <https://docs.celeryq.dev/en/stable/userguide/security.html>`__
+
+More Resources
+--------------
+
+For more information about the components used in this tutorial, see the
+following resources: 
+
+- `Flask <https://flask.palletsprojects.com>`__
+- `Flask-Mail <https://pypi.org/project/Flask-Mail/#files>`__
+- `Celery <https://docs.celeryq.dev/en/stable/>`__
+- `RabbitMQ <https://www.rabbitmq.com/docs/download>`__
+
+To find support or to contribute to the MongoDB community, see the `MongoDB
+Developer Community <https://www.mongodb.com/community/>`__ page. 
