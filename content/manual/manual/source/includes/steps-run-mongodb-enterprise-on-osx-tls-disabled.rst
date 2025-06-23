@@ -1,6 +1,6 @@
 To run MongoDB Enterprise Edition without
 :ref:`TLS connections <transport-encryption>` enabled,
-use :ref:`GNU Screen <https://www.gnu.org/software/screen/>`, and follow 
+use `GNU Screen <https://www.gnu.org/software/screen/>`__, and follow 
 these steps:
 
 
