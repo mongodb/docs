@@ -49,8 +49,8 @@ A ``$merge`` pipeline stage has the following prototype form:
         …, 
         <var_n>: <expression> 
       },
-      "whenMatched": "replace | keepExisting | merge | pipeline",
-      "whenNotMatched": "insert | discard",
+      "whenMatched": "replace | keepExisting | merge |  delete | <pipeline> | <expression>",
+      "whenNotMatched": "insert | discard | expression",
       "parallelism": <integer>
     }  
   }
@@ -82,6 +82,34 @@ shared with {+adf+} ``$merge``, see :manual:`$merge syntax
       
        To learn more, see :ref:`this description <adf-merge-fields>`
        of the {+adf+} ``$merge`` fields.
+
+   * - ``whenMatched``
+     - Optional
+     - Extends functionality compared to the {+adf+} ``$merge`` stage
+       with support for ``"delete"`` and dynamic expressions.
+
+       When set to ``"delete"``, {+service+} deletes all messages
+       matching the condition from the target collection.
+
+       If you use a dynamic expression value, it must resolve to one
+       of the following strings:
+
+       - ``"merge"``
+       - ``"replace"``
+       - ``"keepExisting"``
+       - ``"delete"``
+
+   * - ``whenNotMatched``
+     - Optional
+     - Extends functionality compared to the {+adf+} ``$merge`` stage
+       with support for dynamic expressions.
+
+       If you use a dynamic expression value, it must resolve to one
+       of the following strings:
+
+       - ``"insert"``
+       - ``"discard"``
+       - ``"expression"``
         
    * - ``parallelism``
      - Conditional
@@ -226,6 +254,9 @@ Use the following syntax:
 Examples
 ~~~~~~~~
 
+Basic Example
+`````````````
+
 A streaming data source generates detailed weather reports from
 various locations, conformant to the schema of the :ref:`Sample
 Weather Dataset <sample-weather>`. The following aggregation has three
@@ -352,3 +383,90 @@ collection, connect to your {+service+} cluster and run the following command:
 
    The preceding is a representative example. Streaming data are
    not static, and each user sees distinct documents.
+
+Replicate Change Stream Events
+``````````````````````````````
+
+You can use the ``$merge.whenMatched`` and ``$merge.whenNotMatched``
+parameters to replicate the effects of Change Stream events according
+to their :manual:`operation type <change-event-operation-types>`.
+
+The following aggregation has four stages:
+
+1. The :pipeline:`$source` stage establishes a connection to the
+   ``db1.coll1`` collection on an {+service+} cluster over the ``atlas1``
+   connection.
+2. The :pipeline:`$addFields` stage enriches the ingested documents with
+   a ``fullDocument._isDelete`` field set to the value of an equality
+   check between the ``"$operationType`` value of each document and
+   ``"delete"``. This equality evaluates to a boolean.
+3. The :pipeline:`$replaceRoot` stage replaces the document with the
+   value of the enriched ``$fullDocument`` field.
+4. The ``$merge`` stage writes to ``db1.coll1`` over the ``atlas2``
+   connection, performing two checks on each document:
+
+   - First, the ``whenMatched`` field checks if the document matches
+     an existing document in ``db1.coll1`` collection by ``_id``, the
+     default match field since ``on`` is not explicitly set. If it
+     does and ``fullDocument._isDelete`` is set to ``true``, then
+     {+service+} deletes the matching document. If it does match and
+     ``fullDocument._isDelete`` is set to ``false``, then {+service+}
+     replaces the matching document with the new one from the
+     streaming data source.
+
+   - Second, if {+atlas-sp+} finds no such matching document and
+     ``fullDocument._isDelete`` is true, {+service+} discards the
+     document instead of writing it to the collection. If there is no
+     such matching document and ``fullDocument._isDelete`` is false,
+     {+service+} inserts the document from the streaming data source
+     into the collection.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     $source: {
+       connectionName: “atlas1”,
+       db: “db1”,
+       coll: “coll1”,
+       fullDocument: “required”
+     }
+   },
+   {
+     $addFields: {
+       “fullDocument._isDelete”: {
+         $eq: [
+	   “$operationType”,
+	   “delete”
+	 ]
+       }
+     }
+   },
+   {
+     $replaceRoot: {
+       newRoot: “$fullDocument”
+     }
+   },
+   {
+     $merge: {
+       into: {
+         connectionName: “atlas2”,
+	 db: “db1”,
+	 coll: “coll1”
+       },
+       whenMatched: {
+         $cond: {
+	   if: “$_isDelete”,
+	   then: “delete”,
+	   else: “replace”
+	 }
+       },
+       whenNotMatched: {
+         $cond: {
+	   if: “$_isDelete”,
+	   then: “discard”,
+	   else: “insert”
+	 }
+       },
+     }
+   }
