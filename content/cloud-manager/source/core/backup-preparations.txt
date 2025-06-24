@@ -1,0 +1,304 @@
+.. _backup-preparations:
+
+===================
+Backup Preparations
+===================
+
+.. meta::
+   :description: Prepare for backups in Cloud Manager by considering data size, snapshot frequency, retention policies, and ensuring compatibility with MongoDB versions and storage engines.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before backing up your cluster or replica set, decide how to back up
+the data and what data to back up. This page describes items you must
+consider before starting a backup.
+
+.. seealso::
+
+   To learn how Backup works, see
+   :ref:`mms-backup-functional-overview`.
+
+.. _limits-of-backup:
+
+Backup Sizing Recommendation
+----------------------------
+
+When sizing the backup of your data, keep the :manual:`replica set </reference/glossary/#std-term-replica-set>` 
+size to 2 TB or less of :manual:`uncompressed data 
+</reference/command/dbStats/#mongodb-data-dbStats.dataSize>`. If 
+your database increases beyond 2 TB of uncompressed data:
+
+- Shard the database
+- Keep each shard to 2 TB or less of uncompressed data
+
+.. include:: /includes/fact-backup-sizing-recommendation.rst
+
+.. _snapshot-frequency-and-retention:
+
+Snapshot Frequency and Retention Policy
+---------------------------------------
+
+By default, |mms| takes a base snapshot of your data every 6 hours.
+
+If desired, administrators can change the frequency of base snapshots
+to 6, 8, 12, or 24 hours. |mms| creates snapshots automatically on a
+schedule; you cannot take snapshots on demand.
+
+|mms| retains snapshots for the time periods listed in the following
+table. 
+
+If you :ref:`terminate a deployment's backup <terminate-backup>`,
+|mms| immediately deletes the snapshots that are within the dates
+of the current retention policy.
+
+If you :ref:`stop a deployment's backup <stop-backup>`, |mms| stops
+taking new snapshots but retains existing snapshots until their listed
+expiration date.
+
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+
+   * - Snapshot
+     - Default Retention Policy
+     - Maximum Retention Policy
+   * - Base snapshot
+     - 2 days
+     - 5 days (30 days if frequency is 24 hours)
+   * - Daily snapshot
+     - 7 days
+     - 1 year
+   * - Weekly snapshot
+     - 4 weeks
+     - 1 year
+   * - Monthly snapshot
+     - 13 months
+     - 7 years
+
+.. include:: /includes/extracts/backup-preparations-pricing.rst
+
+You can change a backed-up deployment's schedule through its
+:guilabel:`Edit Snapshot Schedule` menu option, available through the
+:guilabel:`Backup` page. Administrators can change snapshot frequency
+and retention through the
+:doc:`snapshotSchedule resource in the API </reference/api/snapshot-schedule>`.
+
+.. _changing-reference-time:
+
+You can't change the reference time for a snapshot in |mms|.
+
+
+Limits
+~~~~~~
+
+- |mms| does not backup deployments where the total number of
+  collections on the deployment meets or exceeds ``100,000``.
+
+- |mms| does not replicate index collection options.
+
+Encryption
+~~~~~~~~~~
+
+You can't store backups using WiredTiger encryption.
+You can store backups using the WiredTiger storage
+engine if you don't enable encryption. If you restore
+from a backup, you restore unencrypted files.
+
+.. _4.2-backup-considerations:
+
+Backup Considerations
+---------------------
+
+Consistency and Snapshots
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For clusters running MongoDB version 4.2 or and later: 
+
+- |mms| maintains
+  :manual:`causal consistency </core/read-isolation-consistency-recency/#std-label-sessions>` 
+  when taking snapshots except for size statistics reported by :manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>`
+  and ``db.[collection].count()``. Size statistics reported
+  by :manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>` and ``db.[collection].count()`` may be inccurate.
+- |mms| coordinates the time across all
+  shards for sharded clusters. This ensures that snapshots include all documents written to every
+  shard and node as of the scheduled snapshot time.
+
+For clusters running MongoDB version 4.0 and earlier:
+
+- |mms| maintains crash-consistent snapshots.
+- |mms| takes snapshots from each of the shards for sharded clusters
+  and the Config Server Replica Sets at approximately the same time.
+
+Databases Running FCV 4.2 and Later
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst
+
+Databases Running FCV 4.0 and Earlier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   .. include:: /includes/fact-backup-standalone-restriction.rst
+
+The following considerations apply when your databases run any version
+of MongoDB 4.0 or earlier or when they run MongoDB 4.2 with
+``"featureCompatibilityVersion" : 4.0``
+
+Garbage Collection of Expired Snapshots
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| manages expired snapshots using groom jobs. These groom jobs act
+differently depending upon which snapshot store contains the snapshots:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Snapshot Store
+     - How Groom Jobs Work
+
+   * - MongoDB Blockstore
+     - Uses additional disk space up to the amount of living blocks for
+       each job.
+
+   * - Filesystem Snapshot stores
+     - Deletes expired snapshots
+
+   * - S3 snapshot stores
+     - May use additional disk space if |mms| creates a snapshot while
+       the groom job runs. |mms| can run concurrent groom jobs on S3
+       snapshot stores.
+
+.. note::
+
+   Snapshot jobs and groom jobs can't run concurrently. If you
+   initiate a groom job while a snapshot job is running, the groom job
+   fails, and |onprem| logs an error and automatically retries the
+   groom job after the snapshot job completes. If you initiate a
+   snapshot job while a groom job is running, the snapshot job fails,
+   and |onprem| logs an error and retries the snapshot job after the
+   groom job completes.
+
+.. _namespaces-filter:
+
+Namespaces Filter
+~~~~~~~~~~~~~~~~~
+
+The namespaces filter lets you specify which databases and collections
+to back up. You create either a :guilabel:`Deny List` of those to
+exclude or a :guilabel:`Whitelist` of those to include. You make your
+selections when starting a backup and can later edit them as needed. If
+you change the filter in a way that adds data to your backup, a resync
+is required.
+
+Use the deny list to prevent backup of collections that contain logging
+data, caches, or other ephemeral data. Excluding these kinds of
+databases and collections will allow you to reduce backup time and
+costs. Using a deny list is often preferable to using a whitelist as a
+whitelist requires you to intentionally opt in to every namespace you
+want backed up.
+
+.. include:: /includes/facts/namespace-filter-version.rst
+
+.. _considerations-backup-storage-engine:
+
+Storage Engine
+~~~~~~~~~~~~~~
+
+To back up MongoDB clusters, use the
+:ref:`WiredTiger storage engine <storage-wiredtiger>` storage engine.
+
+If your current backing databases use MMAPv1, upgrade to WiredTiger:
+
+- :manual:`Change Sharded Cluster to WiredTiger </tutorial/change-sharded-cluster-wiredtiger>`
+
+- :manual:`Change Replica Set to WiredTiger </tutorial/change-replica-set-wiredtiger>`
+
+With WiredTiger, |mms| limits backups to deployments with fewer than
+100,000 files. Files includes collections and indexes.
+
+MongoDB 4.2 removes MMAPv1 storage. To learn more about storage
+engines, see :manual:`Storage </core/storage>` in the MongoDB manual.
+
+Resyncing Production Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For production deployments, :doc:`resync </tutorial/resync-backup>` all
+backed up replica sets periodically, such as once a year. When you resync,
+data is read from a secondary in each replica set. During resync,
+no new snapshots are generated.
+
+You may also want to resync your backup if you:
+
+- Reduce the size of the data, such that the size of |mms|'s copy of the
+  data on disk is also reduced.
+
+- Create a :manual:`TTL index </core/index-ttl>`, which periodically
+  deletes documents.
+
+- :manual:`Drop a collection </reference/method/db.collection.drop>`
+  (MMAPv1 only).
+
+- Run a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`, and move chunks
+  from a particular shard.
+
+- Switch storage engines, if you want |mms| to provide snapshots
+  in the new storage engine format.
+
+- :manual:`Build an Index on a replica set in a rolling fashion
+  </tutorial/build-indexes-on-replica-sets>`.
+
+.. _checkpoint:
+
+Checkpoints
+~~~~~~~~~~~
+
+.. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
+
+For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, checkpoints provide
+additional restore points between snapshots. With checkpoints enabled,
+|mms| creates restoration points at configurable intervals of every 15,
+30 or 60 minutes between snapshots. To enable checkpoints, see
+:ref:`enable checkpoints <enable-cluster-checkpoints>`.
+
+To create a checkpoint, |mms| stops the :term:`balancer` and inserts a
+token into the :manual:`oplog </reference/glossary/#std-term-oplog>` of each :manual:`shard </reference/glossary/#std-term-shard>` and :term:`config
+server` in the cluster. These checkpoint tokens are lightweight and don't
+affect performance or disk use.
+
+Backup doesn't require checkpoints, and they are disabled by default.
+
+Restoring from a checkpoint requires |mms| to apply the :manual:`oplog </reference/glossary/#std-term-oplog>`
+of each shard and config server to the last snapshot captured before
+the checkpoint. Restoration from a checkpoint takes longer than
+restoration from a snapshot.
+
+.. _snapshot-while-balancer-enabled:
+
+Snapshots when Agent Can't Stop Balancer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>` running with FCV 4.0 or
+earlier, |mms| disables the :term:`balancer` before taking a cluster
+snapshot. In certain situations, such as a long migration or no running
+:manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>`, |mms| tries to disable the balancer but cannot. In
+such cases, |mms| continues to take cluster snapshots but flags the
+snapshots that may have incomplete or inconsistent data. Cluster
+snapshots taken during an active balancing operation run the risk of
+data loss or orphaned data.
+
+Snapshots when Agent Can't Contact a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, if the {+bagent+} can't
+reach a :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` process, whether a shard or config server, then
+the agent can't insert a synchronization :manual:`oplog </reference/glossary/#std-term-oplog>` token. In these
+cases, |mms| doesn't create the snapshot and displays a warning message.

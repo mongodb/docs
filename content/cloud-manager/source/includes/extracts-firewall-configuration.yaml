@@ -1,0 +1,198 @@
+ref: firewall-configuration
+content: |
+
+  |mms| requires access on the following ports and
+  |ipaddr| addresses.
+
+  Fetch Required IP Addresses
+  ---------------------------
+  
+  Send a GET request to the ``controlPlaneIPAddresses`` endpoint 
+  for the {+atlas-admin-api+} to fetch the current control
+  plane IP addresses that |mms| requires. The 
+  :oas-atlas-op:`API endpoint 
+  </returnAllControlPlaneIpAddresses>` 
+  returns a list of inbound and outbound control plane IP
+  addresses in |cidr| notation categorized by cloud provider and region,
+  similar to the following: 
+  
+  .. code-block:: json
+  
+     {
+       "controlPlane": {
+         "inbound": {
+           "aws": { // cloud provider
+             "us-east-1": [ // region
+               "3.92.113.229/32",
+               "3.208.110.31/32",
+               "107.22.44.69/32"
+               ...,
+             ],
+             ...
+            }
+          },
+          "outbound": {
+            "aws": { // cloud provider
+              "us-east-1": [ // region
+                "3.92.113.229/32",
+                "3.208.110.31/32",
+                "107.22.44.69/32"
+                ...,
+              ],
+              ...
+             }
+           }
+       },
+       "data_federation": {
+         "inbound": {},
+         "outbound" {}
+       },
+       "app_services": {
+         "inbound": {},
+         "outbound" {}
+       },
+       ...
+     }
+
+  .. important::
+
+     The {+atlas-admin-api+} uses the terms ``inbound`` and ``outbound``
+     in relation to the control plane, not your network. As a result:
+     
+     - Your network's **inbound** rules must match the ``outbound``
+       CIDRs listed in the {+atlas-admin-api+}.
+     - Your network's **outbound** rules must match the ``inbound``
+       CIDRs listed in the {+atlas-admin-api+}.
+  
+  The following diagram shows the relationship between ``inbound`` and
+  ``outbound`` for the control plane and your network:
+
+  .. figure:: /images/ControlPlaneInboundVsOutbound.svg
+     :figwidth: 650px
+     :alt: A diagram showing that inbound traffic for the control plane reflects outbound traffic from your network, and outbound traffic for the control plane reflects inbound traffic to your network.
+
+  .. _alerts-webhook-ips:
+
+  Required Access: ``controlPlane.inbound`` IP Addresses
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ``controlPlane.inbound`` lists the |ipaddr| addresses traffic coming into
+  the control plane. If
+  your network allows **outbound** HTTP requests only to specific IP
+  addresses, you must allow access to the IP addresses listed in
+  ``controlPlane.inbound`` so that
+  MongoDB can communicate with your webhooks.
+  
+  :oas-atlas-op:`Use the {+atlas-admin-api+} 
+  </returnAllControlPlaneIpAddresses>`
+  to fetch the current IP addresses that |mms| requires.
+
+  You have the option to configure alerts to be delivered via webhook.
+  This sends an |http| ``POST`` request to an endpoint for
+  programmatic processing. If you want to successfully deliver a
+  webhook to the specified endpoint, you must allow access to the
+  IP addresses listed in ``controlPlane.inbound``.
+
+  Required Access: ``controlPlane.outbound`` IP Addresses
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ``controlPlane.outbound`` lists the |ipaddr| addresses traffic coming from the control plane. Your network's **inbound** HTTP IP
+  address list must allow access from the IP addresses listed in
+  ``controlPlane.outbound``. 
+  
+  :oas-atlas-op:`Use the {+atlas-admin-api+} 
+  </returnAllControlPlaneIpAddresses>`
+  to fetch the current IP addresses that |mms| requires.
+
+  This allows the {+mdbagent+}s to ``GET`` and ``POST`` to the
+  following hosts:
+
+  - ``api-agents.mongodb.com``
+  - ``api-backup.mongodb.com``
+  - ``api-backup.us-east-1.mongodb.com``
+  - ``queryable-backup.us-east-1.mongodb.com``
+  - ``restore-backup.us-east-1.mongodb.com``
+  - ``real-time-api-agents.mongodb.com``
+
+  The {+mdbagent+}s connect to |mms| on port ``443``. Whether you
+  provision your hosts on a cloud service provider or on your own
+  network, configure your network infrastructure to allow outbound
+  connections on port ``443``.
+
+  Domain for Download of MongoDB Binaries
+  ---------------------------------------
+
+  The {+mdbagent+}s require outbound access to the following
+  domains, depending on your MongoDB edition, for downloading MongoDB
+  binaries:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 10,20,30,40
+
+     * - MongoDB Edition
+       - Access List Domain
+       - |ipaddr| Ranges
+       - Service Provider
+
+     * - Community
+       - ``fastdl.mongodb.org``
+       - `IP ranges for CloudFront <http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html>`_.
+
+         The |ipaddr| ranges for CloudFront change frequently.
+       - Amazon CloudFront
+
+     * - `Enterprise <http://www.mongodb.com/products/mongodb-enterprise>`_
+       - ``downloads.mongodb.com``
+       -
+       -
+
+     * - Custom Build of MongoDB
+       - URL accessible to the {+mdbagent+}s
+       -
+       -
+
+  .. note:
+
+     The custom build's ``Git Version`` field must be set to the
+     target binary's ``mongod --version``.
+
+  Domain for {+mdbagent+} Downloads and Updates
+  ------------------------------------------------------------
+
+  If you restrict outbound access, you must grant your {+mdbagent+}s 
+  access to the following domain to download and update the 
+  {+mdbagent+}.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 30,30,40
+
+     * - Access List Domain
+       - |ipaddr| Ranges
+       - Service Provider
+
+     * - ``s3.amazonaws.com``
+       - `IP ranges for AWS <https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-ranges.html#aws-ip-download>`_.
+
+         The |ipaddr| ranges for AWS change frequently.
+       - |aws|
+
+
+  .. _backup-scp-restores-inbound-access:
+
+  Required Ports within Your Network
+  ----------------------------------
+
+  All MongoDB processes in a deployment must be accessible to all
+  {+mdbagent+}s managing processes in that deployment. Therefore, all
+  MongoDB ports must be open to every host within your network that
+  serve a {+mdbagent+}.
+
+  .. example::
+
+     If you are running MongoDB processes on ``27000``, ``27017`` and
+     ``27020``, then those three ports must be open from all hosts
+     that are serving a {+mdbagent+}.
+
+...

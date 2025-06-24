@@ -1,0 +1,90 @@
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-deployment.rst   
+      
+   .. step:: Open the :guilabel:`MongoDB Log Settings`.
+      
+      In the :guilabel:`More` drop-down list, click
+      :guilabel:`MongoDB Log Settings`.
+      
+   .. step:: Enable log rotation.
+      
+      Toggle :guilabel:`System Log Rotation` to :guilabel:`ON` to rotate server
+      logs.
+      
+      MongoDB Enterprise users running MongoDB Enterprise version 5.0 or later and 
+      {+mdbagent+} 11.11.0.7355 and later can also toggle :guilabel:`Audit
+      Log Rotation` to :guilabel:`ON` to rotate audit logs and configure
+      audit log rotation separately. 
+      
+      If you're running earlier versions of MongoDB Enterprise or the {+mdbagent+},
+      setting :guilabel:`System Log Rotation` to :guilabel:`ON` also rotates audit logs.
+      
+      Set log rotation to :guilabel:`OFF` if you don't want |mms| to rotate its
+      logs. Log rotation is :guilabel:`OFF` by default. 
+      
+      After you enable log rotation, |mms| displays additional log rotation settings.
+      
+   .. step:: Configure the log rotation settings.
+      
+      |mms| rotates the logs on your MongoDB hosts per the following
+      settings:
+      
+      .. list-table::
+         :widths: 20 10 50 10
+         :stub-columns: 1
+         :header-rows: 1
+      
+         * - Field
+           - Necessity
+           - Action
+           - Default
+      
+         * - :guilabel:`Size Threshold (MB)`
+           - Required
+           - |mms| rotates log files that exceed this maximum log file
+             size.
+           - ``1000``
+      
+         * - :guilabel:`Time Threshold (Hours)`
+           - Required
+           - |mms| rotates logs that exceed this duration.
+           - ``24``
+      
+         * - :guilabel:`Max Uncompressed Files`
+           - Optional
+           - Log files can remain uncompressed until they exceed this
+             number of files. |mms| compresses the oldest log files first.
+      
+             If you leave this setting empty, |mms| will use the default 
+             of ``5``.
+      
+           - ``5``
+      
+         * - :guilabel:`Max Percent of Disk`
+           - Optional
+           - Log files can take up to this percent of disk space on your
+             MongoDB host's log volume. |mms| deletes the oldest log files
+             once they exceed this disk threshold.
+      
+             If you leave this setting empty, |mms| will use the default of
+             ``2%``.
+      
+           - ``2%``
+      
+         * - :guilabel:`Total Number of Files`
+           - Optional
+           - Total number of log files. If a number is not specified, the
+             total number of log files defaults to ``0`` and is determined
+             by other :guilabel:`Rotate Logs` settings.
+           - ``0``
+      
+      
+      When you are done, click :guilabel:`Save` to review your changes.
+      
+   .. step:: Click :guilabel:`Confirm & Deploy` to deploy your changes.
+      
+      Otherwise, click :guilabel:`Cancel` and you can make
+      additional changes.
+      

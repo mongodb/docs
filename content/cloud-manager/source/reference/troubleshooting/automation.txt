@@ -1,0 +1,381 @@
+==========
+Automation
+==========
+
+.. meta::
+   :description: Troubleshoot Cloud Manager Automation issues, including connectivity, permissions, and deployment problems, and learn how to manage MongoDB Agents and configurations.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _automation-checklist:
+
+|mms| Automation allows you to deploy, configure, and manage MongoDB
+deployments with the |mms| UI. |mms| Automation relies on an
+{+mdbagent+}, which must be installed on every server in the
+deployment. The {+mdbagent+}s periodically poll the |mms| service
+to determine the current goal, and continually report their status to
+|mms|.
+
+Automation Runs Only on 64-bit Architectures
+--------------------------------------------
+
+|mms| provides only 64-bit downloads of the {+mdbagent+}.
+
+Using Own Hardware
+------------------
+
+- If you deploy Automation manually, ensure that you have one
+  {+mdbagent+} on every server.
+
+- If you deploy the agent manually, you must create MongoDB's
+  ``dbPath`` and the directory for the MongoDB binaries and
+  ensure that the user running the agent owns these
+  directories.
+
+  If you install using the ``rpm`` package, the agent runs as the
+  ``mongod`` user; if using the ``deb`` package, the agent runs as the
+  ``mongodb`` user. If you install using the ``tar.gz`` archive file,
+  you can run the agent as any user.
+
+.. _automation-networking:
+
+Networking
+----------
+
+Connectivity to MongoDB Ports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All hosts must be able to allow communication between MongoDB
+ports. The default is ``27017``, but you can configure alternate port
+ranges in the |mms| interface.
+
+The {+mdbagent+} *must* be able to connect to
+``cloud.mongodb.com`` on port ``443`` (|https|).
+For more information on access to ports and IP addresses, see
+:doc:`/core/security`.
+
+Intra-cluster Connectivity Issue
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When performing a rolling update, the {+mdbagent+} tries to avoid
+downtime. It needs to collect state from other members of the cluster.
+A connectivity issue (between |mongod|\s and |mongos|\es), such as
+hostname resolution or misconfigured firewall, may prevent the
+{+mdbagent+} from determining the remote processes state and
+completing the change. 
+
+To ensure all members of the cluster can communicate with each other:
+
+1. For a non-sharded cluster:
+
+   a. Log into each |mongod|.
+   b. From that |mongod| host, log into all the other members of the
+      replica set.
+
+2. For a sharded cluster:
+
+   a. Log into each |mongod|.
+   b. From that |mongod| host, log into all the other members of the
+      shard.
+   c. Log into each |mongos|. 
+   d. From that the |mongos| host:
+
+      i.  Log into the other |mongos| hosts.
+      ii. Log into all the other members of each shard.
+
+Frequent Automation Connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+mdbagent+} gathers the state from each member of the cluster every 10
+seconds to ensure that the environment is in the expected state. As
+part of this assessment, {+mdbagent+} creates a connection, checks
+certain files to determine state, and then closes the connection. These
+frequent, short-lived connections are part of {+mdbagent+}'s routine
+activity and should not impact performance.
+
+Automation Configuration
+------------------------
+
+After completing the automation configuration, ensure that the
+deployment plan satisfies the needs of your deployment. Check
+hostnames and ports before confirming the deployment.
+
+Sizing
+------
+
+- Ensure that you provision hosts with enough space to run MongoDB
+  and support the requirements of your data set.
+
+- Ensure that you provision a sufficient number of hosts to run your
+  deployment. Each :binary:`~bin.mongod` should run on its own host.
+
+Frequent Connection Timeouts
+----------------------------
+
+The {+mdbagent+} may frequently time out of connections for one or
+more of the following reasons:
+
+- Connection timeouts
+
+- High network latency
+
+- High server load
+
+- Large SSL keys
+
+- Insufficient CPU speed
+
+By default, connections time out after 40 seconds. MongoDB recommends
+gradually increasing the value of the :setting:`dialTimeoutSeconds`
+{+mdbagent+} configuration setting to prevent frequent premature
+connection timeouts. However, increasing this value also increases the
+time required to deploy future configuration changes. Experiment with
+small, incremental increases until you determine the optimum value for
+your deployment.
+
+To learn more, see :setting:`dialTimeoutSeconds` in {+mdbagent+}
+Connection Settings.
+
+Deployments
+-----------
+
+A banner that displays
+:guilabel:`We have detected a potential problem while deploying...`
+appears when certain conditions apply. These are some examples.
+
+Deployment Change Unable to Complete / Not Proceeding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have added or restarted a deployment and the deployment remains
+in the ``In Progress`` state for several minutes, the banner displays.
+
+At this point, you have four options:
+
+1. Click :guilabel:`View Diagnostics`.
+
+   The :guilabel:`View Diagnostics` modal displays any errors that may
+   have happened during deployment.
+
+2. Click :guilabel:`View Status`.
+
+   The :guilabel:`Automation Status` modal displays the deployment
+   processes, when they last reported their deployment status, what
+   task they are trying to complete, and the deployment status. You can
+   filter the results in the following ways:
+   
+   - Type a hostname in the :guilabel:`Filter processes` search bar.
+   - Select one or more process types from the :guilabel:`Process Type`
+     dropdown.
+   - Select one or more automation states from the
+     :guilabel:`Automation State` dropdown.
+
+   To learn more about the status of any of the individual processes,
+   you can click the ellipsis icon and select either
+   :guilabel:`View Details` or :guilabel:`View Agent Logs`.
+
+   - :guilabel:`View Details` shows what the deployment plan for the
+     process is and which stage of that plan the {+mdbagent+}
+     currently is.
+
+   - :guilabel:`View Agent Logs` opens a new browser window with the
+     :guilabel:`Deployment` > :guilabel:`Agents` >
+     :guilabel:`Agent Logs` screen shown and the contents of the
+     {+mdbagent+} log displayed by default. Click the
+     :guilabel:`View` menu to select a different agent log.
+
+3. Click :guilabel:`View Agent Logs`.
+
+   A new browser window opens with the :guilabel:`Deployment` >
+   :guilabel:`Agents` > :guilabel:`Agent Logs` screen shown and the
+   contents of the {+mdbagent+} log displayed by default. Click
+   the :guilabel:`View` menu to select a different agent log.
+
+4. Click :guilabel:`Allow Override & Edit Configuration`.
+
+   If you diagnose an error and need to correct the deployment
+   configuration, follow the procedure to
+   :doc:`edit the deployment </tutorial/edit-deployment>`.
+
+If you shut down the deployment and still cannot find a solution,
+:doc:`remove the deployment </tutorial/unmanage-deployment>` from 
+|mms|.
+
+.. _troubleshooting-automation-agents-down:
+
+{+mdbagent+}s Are Down or Not Communicating
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If Automation Module of {+mdbagent+} can't communicate with the
+|application| :setting:`API endpoint <mmsBaseUrl>` or the MongoDB
+Server processes, |mms| displays a warning banner in the Project. You
+can resolve this in one of two ways depending upon whether or not you
+expect the {+mdbagent+}s to be communicating:
+
+{+mdbagent+}s need to communicate
+`````````````````````````````````````
+
+If the {+mdbagent+}(s) should be communicating with the |mms|
+host or MongoDB instances, confirm the following for each {+mdbagent+}:
+
+a. The Agent is up and running on each host.
+
+#. The Agent and the |application| :ref:`API endpoint <mmsBaseUrl>`
+   can :ref:`communicate <automation-networking>`.
+
+{+mdbagent+}s Do Not Need to Communicate
+````````````````````````````````````````````
+
+If Automation Module of {+mdbagent+}(s) should be communicating with
+the |application| :setting:`API endpoint <mmsBaseUrl>` or MongoDB
+Server processes, confirm the following for each automated MongoDB
+Server deployment:
+
+a. Click the :guilabel:`Allow Editing & Override Current Configuration`
+   link in the warning banner.
+
+#. :doc:`Remove all processes </tutorial/unmanage-deployment>`
+   (|mongod| *and* |mongos|) running on the hosts that serve the
+   unneeded {+mdbagent+}s.
+
+{+mdbagent+} Permissions
+----------------------------
+
+A permissions issue may prevent automation from completing a change. If
+:guilabel:`View Status` or :guilabel:`View Diagnostics` report an
+permissions-related error (such as ``open /data/db/mongod.lock:
+permission denied``), ensure that the {+mdbagent+} user owns and has
+read and write permissions to the ``dbpath`` and ``logpath`` files.
+
+.. _remove-bad-mongodb-hosts:
+
+Remove Problematic MongoDB Hosts
+--------------------------------
+
+You can use the console or the |api| to remove stale, broken, or
+problematic hosts from automation. This may include the circumstance
+when the MongoDB Agent can't be reached.
+
+To remove a problematic host using the console:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-deployment.rst
+
+   .. include:: /includes/nav/steps-processes.rst
+
+   .. step:: Remove the host.
+
+      a. Find your problematic host.
+
+      #. Click :icon-mms:`ellipsis`, then :guilabel:`Remove Server`.
+
+         |mms| displays the
+         :guilabel:`Are you sure you want to remove this server>` modal.
+
+      #. Enter the provided hostname into the
+         :guilabel:`Enter the host name` field an click 
+         :guilabel:`Remove` if you want to remove this server.
+
+         .. warning::
+
+            |mms| removes all monitoring data for this host when you 
+            click :guilabel:`Remove`. |mms| provides no confirmation or
+            cancellation for this action.
+
+         If you don't want to remove the server, click 
+         :guilabel:`Cancel`.
+
+      #. Click :guilabel:`Review & Deploy` to review your changes.
+
+         |mms| displays your proposed changes.
+
+         - If you are satisfied, click :guilabel:`Confirm & Deploy`.
+
+           |mms| removes all processes and agents at this time.
+
+         - If you want to make further configuration changes,
+           click :guilabel:`Cancel`.
+
+To remove a problematic host using the |api|:
+
+1. :doc:`Get the current automation config </reference/api/automation-config/get-automation-config>`.
+
+2. Edit the automation configuration |json| file.
+
+3. Remove the stale node from
+   :ref:`processes <autoconfig-mongodb-processes>` and
+   :ref:`replica sets <autoconfig-mongodb-replicasets>`.
+
+4. :doc:`Update the automation config file </reference/api/automation-config/update-automation-config>`.
+
+5. Wait for a few minutes.
+
+6. .. include:: /includes/nav/list-deployment.rst
+
+7. .. include:: /includes/nav/list-agents.rst
+
+8. Confirm the host no longer appears on the list of Agents.
+
+.. _tls-cert-no-san:
+
+Ensure TLS Certificates Contain a Subject Alternative Name
+----------------------------------------------------------
+
+.. warning:: 
+
+   The {+mdbagent+} from
+   :ref:`version 11.11.0.7349-1 <11.11.0.7355>` requires
+   |tls| certificates to include a value in the Subject Alternative
+   Name field. Before upgrading to :ref:`11.11.0.7355` or
+   later, make sure that all |tls| certificates used in your MongoDB
+   deployment contain a |san-dns|. [#cnchange]_
+
+.. include:: /includes/troubleshooting/automation/footnote-on-cn-to-san.rst
+
+.. _store-conf-in-memory:
+
+Store Configuration Files in Memory for Existing Clusters
+---------------------------------------------------------
+
+If you use |mms| version 4.2 or versions 4.4.0 - 4.4.6, you may encounter
+errors when setting :setting:`enableLocalConfigurationServer` to ``true``
+and restarting your {+mdbagent+}. 
+
+This issue only affects existing clusters where 
+:setting:`enableLocalConfigurationServer` is set to ``true`` after the cluster 
+is created. Setting this value before creating the cluster does not trigger 
+this issue.
+
+To safely change this setting for existing clusters:
+
+#. At the end of your {+mdbagent+} 
+   :ref:`configuration file <mongodb-agent-config-file-location>`, add:
+
+   .. code-block:: ini
+
+      enableLocalConfigurationServer=true
+
+#. :doc:`Shut down </tutorial/shut-down-deployment>` each process managed 
+   by the {+mdbagent+}.
+
+#. Restart the {+mdbagent+} by running the following command:
+
+   .. code-block:: ini
+      
+      service mongodb-mms-automation-agent restart
+
+#. :doc:`Restart </tutorial/restart-processes>` the MongoDB processes that you 
+   shut down.
+
+#. Verify that the ``automation-mongod.conf`` file has the
+   :configexpansion:`__rest` expansion directive.
+
+For more information on storing configuration files in memory, 
+see :doc:`/reference/mongodb-agent-external-configuration`.

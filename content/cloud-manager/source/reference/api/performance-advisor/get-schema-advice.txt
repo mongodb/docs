@@ -1,0 +1,228 @@
+=================
+Get Schema Advice
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Provides schema improvement recommendations for your cluster by analyzing your 
+20 most active collections.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   GET /groups/{PROJECT-ID}/performanceAdvisor/schemaAdvice
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - *(Required.)* Unique identifier of the project that owns this MongoDB deployment.
+       Groups and projects are synonymous terms. Your group ID is the same as your project ID.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+Either ``clusterId`` or ``hostId`` is required.
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - pretty
+     - boolean
+     - Indicates whether the response body should be in a
+       `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+
+   * - envelope
+     - boolean
+     - Indicates whether or not to wrap the response in an
+       envelope.
+
+   * - clusterId
+     - string
+     - Unique identifier of a replica set or sharded cluster. Set this parameter 
+       to ``null`` if you want schema advice for a standalone instance using the ``hostId``.
+
+   * - hostId
+     - string
+     - Unique identifier of the standalone instance for which you want schema advice. 
+       Required if ``clusterId`` is ``null``.
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30 60
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``content``
+     - list of objects
+     - Contains suggested actions for schema improvement per namespace. 
+
+   * - ``content.recommendations``
+     - object
+     - Namespaces with :doc:`Performance Advisor </tutorial/performance-advisor>`
+       schema improvement suggestions.
+
+   * - ``content.recommendations``
+       ``.affectedNamespaces``
+     - array
+     - List of namespaces and information on why those namespaces
+       triggered a recommendation.
+
+   * - ``content.recommendations``
+       ``.affectedNamespaces.namespace``
+     - string
+     - Namespace of the affected collection. This is ``null`` for   
+       the ``REDUCE_NUMBER_OF_NAMESPACES`` recommendation.
+
+   * - ``content.recommendations``
+       ``.affectedNamespaces.triggers``
+     - object
+     - Details about the trigger that activated the recommendation.
+   
+   * - ``content.recommendations``
+       ``.affectedNamespaces.triggers``
+       ``.description``
+     - string
+     - Description of the trigger type.
+
+   * - ``content.recommendations``
+       ``.affectedNamespaces.triggers``
+       ``.triggerType``
+     - string
+     - Type of trigger. Options include:
+       
+       - ``PERCENT_QUERIES_USE_LOOKUP``
+       - ``NUMBER_OF_QUERIES_USE_LOOKUP``
+       - ``DOCS_CONTAIN_UNBOUNDED_ARRAY``
+       - ``NUMBER_OF_NAMESPACES``
+       - ``DOC_SIZE_TOO_LARGE``
+       - ``NUM_INDEXES``
+       - ``QUERIES_CONTAIN_CASE_INSENSITIVE_REGEX``
+
+   * - ``content.recommendations``
+       ``.description``
+     - string
+     - Description of the specified recommendation.
+
+   * - ``content.recommendations``
+       ``.recommendation``
+     - string
+     - Type of recommendation. Options include:
+       
+       - ``REDUCE_LOOKUP_OPS``
+       - ``AVOID_UNBOUNDED_ARRAY``
+       - ``REDUCE_DOCUMENT_SIZE``
+       - ``REMOVE_UNNECESSARY_INDEXES``
+       - ``REDUCE_NUMBER_OF_NAMESPACES``
+       - ``OPTIMIZE_CASE_INSENSITIVE_REGEX_QUERIES``
+       - ``OPTIMIZE_TEXT_QUERIES``
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+    --header 'Accept: application/json' \
+    --include \
+    --request GET 'https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/performanceAdvisor/schemaAdvice?clusterId={clusterId}&pretty=true'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "content" : {
+       "recommendations" : [ {
+         "affectedNamespaces" : [ {
+           "namespace" : "someDb.someCollection",
+           "triggers" : [ {
+             "description" : "Documents larger than 2 MB found in the collection(s)    scanned",
+             "triggerType" : "DOC_SIZE_TOO_LARGE"
+           } ]
+         }, {
+           "namespace" : "someDb1.someCollection1",
+           "triggers" : [ {
+             "description" : "Documents larger than 2 MB found in the collection(s)    scanned",
+             "triggerType" : "DOC_SIZE_TOO_LARGE"
+           } ]
+         } ],
+         "description" : "Reduce the size of documents",
+         "recommendation" : "REDUCE_DOCUMENT_SIZE"
+       }, {
+         "affectedNamespaces" : [ {
+          "namespace" : "someDb2.someCollection2",
+           "triggers" : [ {
+             "description" : "More than 30 indexes detected in the collection(s) scanned",
+             "triggerType" : "NUM_INDEXES"
+           } ]
+         }, {
+           "namespace" : "someDb3.someCollection3",
+           "triggers" : [ {
+             "description" : "More than 30 indexes detected in the collection(s) scanned",
+             "triggerType" : "NUM_INDEXES"
+           } ]
+         } ],
+         "description" : "Remove unnecessary indexes",
+         "recommendation" : "REMOVE_UNNECESSARY_INDEXES"
+       }, {
+         "affectedNamespaces" : [ {
+           "namespace" : "someDb4.someCollection4",
+           "triggers" : [ {
+             "description" : "Arrays with over 10000 entries detected in the collection(s)    scanned",
+             "triggerType" : "DOCS_CONTAIN_UNBOUNDED_ARRAY"
+           } ]
+         } ],
+         "description" : "Avoid using unbounded arrays in documents",
+         "recommendation" : "AVOID_UNBOUNDED_ARRAY"
+       } ]
+     },
+     "status" : 200
+   }

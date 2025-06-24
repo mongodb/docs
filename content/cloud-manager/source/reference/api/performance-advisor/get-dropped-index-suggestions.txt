@@ -1,0 +1,186 @@
+=============================
+Get Index Removal Suggestions
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Retrieves index removal suggestions as determined by the
+:doc:`Performance Advisor </tutorial/performance-advisor>`.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   GET /groups/{PROJECT-ID}/performanceAdvisor/dropIndexSuggestions
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - *(Required)* Unique identifier of the project that owns this MongoDB deployment.
+       Groups and projects are synonymous terms. Your group ID is the same as your project ID.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+Either ``clusterId`` or ``hostId`` is required.
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - pretty
+     - boolean
+     - Indicates whether the response body should be in a
+       `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+
+   * - envelope
+     - boolean
+     - Indicates whether or not to wrap the response in an
+       envelope.
+
+   * - clusterId
+     - string
+     - Unique identifier of a replica set or sharded cluster. Set this parameter 
+       to ``null`` if you want index removal suggestions for a standalone instance using ``hostId``.
+
+   * - hostId
+     - string
+     - Unique identifier of the standalone instance for which you want index removal suggestions. 
+       Required if ``clusterId`` is ``null``.
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``unusedIndexes``
+     - array of documents
+     - Information about unused indexes considered candidates for removal.
+
+   * - ``hiddenIndexes``
+     - array of documents
+     - Information about hidden indexes that are candidates for removal.
+
+   * - ``redundantIndexes``
+     - array of documents
+     - Information about redundant indexes that might overlap with existing ones 
+       and are considered for removal.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+    --header 'Accept: application/json' \
+    --include \
+    --request GET 'https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/performanceAdvisor/dropIndexSuggestions?clusterId={clusterId}&pretty=true'
+
+Example Response
+----------------
+
+.. code-block:: json
+   :copyable: false
+
+   {
+       "hiddenIndexes": [
+           {
+               "shardIds": ["shard-0"],
+               "accessCount": 0,
+               "index": [
+                   {
+                       "_fts": "text"
+                   },
+                   {
+                       "_ftsx": 1
+                   }
+               ],
+               "name": "product_description_reviews_text",
+               "namespace": "inventory.products",
+               "since": "2024-10-02T18:02:22Z",
+               "sizeBytes": 4096
+           },
+           {
+               "shardIds": ["shard-0"],
+               "accessCount": 0,
+               "index": [
+                   {
+                       "unseenFeature": 1
+                   }
+               ],
+               "name": "unseenFeature_1",
+               "namespace": "inventory.products",
+               "since": "2024-10-02T18:02:22Z",
+               "sizeBytes": 4096
+           }
+       ],
+       "redundantIndexes": [
+           {
+               "shardIds": ["shard-0"],
+               "accessCount": 0,
+               "index": [
+                   {
+                       "category": 1
+                   }
+               ],
+               "name": "category_1",
+               "namespace": "inventory.products",
+               "relatedIndexes": [
+                   {
+                       "accessCount": 1,
+                       "index": [
+                           {
+                               "category": 1
+                           },
+                           {
+                               "price": -1
+                           }
+                       ],
+                       "name": "category_1_price_-1",
+                       "namespace": "inventory.products",
+                       "since": "2024-10-02T18:02:22Z",
+                       "sizeBytes": 4096
+                   }
+               ],
+               "since": "2024-10-02T18:02:22Z",
+               "sizeBytes": 4096
+           }
+       ],
+       "unusedIndexes": []
+   }
+
+

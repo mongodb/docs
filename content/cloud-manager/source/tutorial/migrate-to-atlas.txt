@@ -1,0 +1,158 @@
+.. _migrate-to-atlas:
+.. _migrate-to-atlas-cm:
+
+===========================
+Migrate from |mms| to Atlas
+===========================
+
+.. meta::
+   :description: Migrate data from Cloud Manager to Atlas by preparing a cluster, provisioning a migration host, and using the live migration wizard in Atlas.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+To live migrate data from the |mms|-monitored deployments to
+clusters in |service-short|, you:
+
+1. Add your deployment to |mms| if you haven't already done so.
+#. Add credentials to Monitoring.
+#. Prepare a cluster in |service|.
+#. Provision a migration host in |mms| and connect |mms| to |service-short|.
+#. Start the live migration process in |service-short|.
+
+You begin the process in |service-short|, by running the live migration wizard.
+Depending on the stage in the process, you perform the live migration steps either
+in |service-short| or in |mms|. See :ref:`lm-workflow`. 
+
+To live migrate your MongoDB Community deployments to 
+|service-short| using |mms|, see :ref:`migrate-community-to-atlas`.
+
+Restrictions
+------------
+
+.. include:: /includes/migrate-to-atlas-restrictions.rst
+
+Supported Platforms
+-------------------
+
+The list of supported platforms depends on which type of live migration
+you are using:
+
+- For live migrations of MongoDB {+c2c-version+}+ or {+c2c-version-7+}+
+  clusters monitored by |cloud-short| to |service-short|, see `mongosync platforms <https://www.mongodb.com/docs/cluster-to-cluster-sync/current/installation>`__ to review
+  the list of supported platforms for the migration host.
+
+- For live migrations of source clusters running MongoDB versions before
+  {+c2c-version+}, the legacy live migration to |service-short|
+  :ref:`is supported <live-migration-host-supported-platforms>` for all
+  platforms on which you can provision a migration host.
+
+  Provisioning of the migration host is not supported on Windows or macOS.
+  You can still live migrate your data from a Windows-based deployment
+  to |service-short| if you provision your migration host on one of its
+  supported platforms. You can't live migrate your data from a macOS-based
+  deployment to |service-short|.
+
+.. _lm-prereqs:
+
+Prerequisites
+-------------
+
+Before you begin the live migration process, follow these prerequisites.
+
+Add Your Deployment to |mms|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Follow the procedure to :ref:`add-existing-mongodb-hosts`. 
+
+Add Credentials for Monitoring
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you add your  deployment to |mms|, you need to add credentials for Monitoring only,  not for Automation or Backup. Adding your deployment for
+Monitoring  imports your deployment's metadata into |mms| to help with the live migration process. It doesn't import your deployment's actual data. To
+learn more about authentication credentials, see :ref:`add-existing-mongodb-processes-auth`.
+
+To add credentials for :ref:`Monitoring <monitoring-functional-overview>`:
+
+1. Create the credentials to the deployment. See 
+   :ref:`Required Access for Monitoring <mms-req-cred-monitoring>`.
+#. Add the credentials based on your project's authentication mechanism. 
+   See :ref:`add-auth-credentials-imported-deployment`. 
+
+.. note::
+
+   If you're adding your MongoDB deployment to monitoring so that you can live migrate it to |service-short|, you don't need to add credentials for 
+   Automation and Backup. To learn more, see :ref:`add-existing-mongodb-processes-auth`.
+
+Consider Configuring a VPC Peering Connection or Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For information about support for VPC peering connections and private endpoints,
+see the |service| documentation for your type of live migration:
+
+- :atlas:`Live Migrate Your MongoDB {+c2c-version+} or Later Cluster Monitored by Cloud Manager to Atlas </import/c2c-push-live-migration/>`
+- :atlas:`Live Migrate Your Data from Cloud Manager </migration-from-com>`
+
+.. important::
+
+   Sharded clusters, multi-region clusters, and multi-cloud
+   clusters don't support live migration through private endpoints.
+   Private endpoints are supported ONLY for live migration of replica sets
+   deployed within a single cloud provider and single region.
+
+.. _lm-create-atlas-cluster:
+
+Create a Cluster in Atlas
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Perform these tasks in |service-short|:
+
+- :atlas:`Create an Atlas account </tutorial/create-atlas-account>`.
+- :atlas:`Create an Atlas organization </tutorial/manage-organizations/#std-label-create-organization>`.
+- :atlas:`Create a project </tutorial/manage-projects/#std-label-create-project>`
+  in this organization.
+- :atlas:`Create a new cluster </tutorial/create-new-cluster>`
+  in your project.
+
+.. _lm-workflow:
+
+Workflow for Live Migration
+---------------------------
+
+The stages in the live migration workflow are:
+
+- **Stage 1: Link with Atlas**. Perform this step in |service-short|,
+  after :ref:`provisioning a cluster <lm-create-atlas-cluster>`.
+
+  a. In the left-side panel of your organization's page in |service|,
+     click :guilabel:`Live Migration`.
+  #. Select :guilabel:`Migrate from Ops Manager or Cloud Manager` and start
+     the live migration wizard. Even though the UI mentions |onprem|,
+     depending on the type of the source cluster you are migrating to |service-short|,
+     only |cloud-short| is supported with that source cluster. Specifically,
+     for source clusters running {+c2c-version+}+ or {+c2c-version-7+}+,
+     you can monitor them in |cloud-short| only but not in |onprem|.
+  #. In the :guilabel:`Generate Link-Token` step of the wizard, create
+     the link-token. You will use this link-token in the next stage.
+
+- **Stage 2: Provision Migration Host**.
+  
+  - In |mms|, :doc:`provision a Migration Host </tutorial/provision-migration-host>`.
+    A migration host is a dedicated {+mdbagent+} that orchestrates the
+    live migration process from |mms| to |service-short|.
+
+  - .. include:: /includes/nav/list-org-settings.rst
+    
+    #. Select :ref:`Connect to Atlas <connect-to-atlas-lm>` and enter 
+       the link-token that you created in |service-short|.
+
+- **Stage 3: Start the Migration**. In |service-short|, follow the
+  steps in the wizard to start the live migration process.
