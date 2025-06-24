@@ -1,0 +1,343 @@
+.. _kafka-quick-start:
+
+===========================
+{+connector-short+} Quick Start
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: get started, tutorial, code example
+
+Overview
+--------
+
+This guide shows you how to configure the {+connector+} to send data between MongoDB
+and {+kafka+}.
+
+After completing this guide, you should understand how to use the {+kafka-connect+}
+REST API to configure {+connector+}s to read data from MongoDB and write it to a
+Kafka topic, and to read data from a Kafka topic and write it to MongoDB.
+
+To complete the steps in this guide, you must download and work in a
+**sandbox**, a containerized development environment that includes services
+required to build a sample *data pipeline*.
+
+Read the following sections to set up your sandbox and sample data pipeline.
+
+.. note::
+
+   After you complete this guide, you can remove the environment by
+   following the instructions in the :ref:`<kafka-quickstart-remove-the-sandbox>`
+   section.
+
+Install the Required Packages
+-----------------------------
+
+.. include:: /includes/tutorials/pipeline-requirements.rst
+
+Download the Sandbox
+--------------------
+
+We created a sandbox that includes the services you need in this tutorial
+to build your sample data pipeline.
+
+To download the sandbox, clone the tutorial repository to your development
+environment. Then navigate to the directory that corresponds to the quickstart
+tutorial. If you use bash or a similar shell, use the following commands:
+
+.. code-block:: bash
+
+   git clone https://github.com/mongodb-university/kafka-edu.git
+   cd {+sandbox-directory+}
+
+Start the Sandbox
+-----------------
+
+The sandbox starts the following services in Docker containers:
+
+- MongoDB, configured as a replica set
+- {+kafka+}
+- {+kafka-connect+} with the {+connector+} installed
+- Apache Zookeeper which manages the configuration for {+kafka+}
+
+To start the sandbox run the following command from the tutorial directory:
+
+.. code-block:: shell
+
+   docker compose -p mongo-kafka up -d --force-recreate
+
+When you start the sandbox, Docker downloads any images it needs to run.
+
+.. include:: /includes/tutorials/download-note.rst
+
+After Docker downloads and builds the images, you should see the following
+output in your development environment:
+
+.. include:: /includes/tutorials/docker-success.rst
+
+.. include:: /includes/tutorials/port-mapping-note.rst
+
+Add Connectors
+--------------
+
+To complete the sample data pipeline, you must add connectors to {+kafka-connect+}
+to transfer data between {+kafka-connect+} and MongoDB. Add a **source connector** to
+transfer data from MongoDB to {+kafka+}. Add a **sink connector** to transfer
+data from {+kafka+} to MongoDB.
+
+To add connectors in the sandbox, first start an interactive bash shell in
+your Docker container using the following command:
+
+.. code-block:: shell
+
+   docker exec -it mongo1 /bin/bash
+
+After your shell session starts, you should see the following prompt:
+
+.. code-block:: none
+   :copyable: false
+
+   MongoDB Kafka Connector Sandbox $ 
+
+.. _kafka-quick-start-source-connector-section:
+
+Add a Source Connector
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use the shell in your Docker container to add a source connector using the
+{+kafka-connect+} REST API.
+
+The following API request adds a source connector configured with the
+following properties:
+
+- The class {+kafka-connect+} uses to instantiate the connector
+- The connection URI, database, and collection of the MongoDB replica set from
+  which the connector reads data
+- An aggregation pipeline that adds a field ``travel`` with the value
+  ``"MongoDB Kafka Connector"`` to inserted documents the connector reads from MongoDB
+
+.. code-block:: bash
+
+   curl -X POST \
+        -H "Content-Type: application/json" \
+        --data '
+        {"name": "mongo-source",
+         "config": {
+            "connector.class":"com.mongodb.kafka.connect.MongoSourceConnector",
+            "connection.uri":"mongodb://mongo1:27017/?replicaSet=rs0",
+            "database":"quickstart",
+            "collection":"sampleData",
+            "pipeline":"[{\"$match\": {\"operationType\": \"insert\"}}, {$addFields : {\"fullDocument.travel\":\"MongoDB Kafka Connector\"}}]"
+            }
+        }
+        ' \
+        http://connect:8083/connectors -w "\n"
+
+.. note:: Why do I see the message 'Failed to connect'?
+
+   It takes up to three minutes for the {+kafka-connect+} REST API to start. If
+   you receive the following error, wait three minutes and run the preceding
+   command again:
+
+   .. code-block:: none
+      :copyable: false
+
+      ...
+      curl: (7) Failed to connect to connect port 8083: Connection refused
+
+To confirm that you added the source connector, run the following command:
+
+.. code-block:: shell
+
+   curl -X GET http://connect:8083/connectors
+
+The preceding command should output the names of the running connectors:
+
+.. code-block:: none
+   :copyable: false
+
+   ["mongo-source"]
+
+To learn more about source connector properties, see the page on
+:ref:`<source-configuration-index>`.
+
+To learn more about aggregation pipelines, see the MongoDB manual page on
+:manual:`Aggregation Pipelines </core/aggregation-pipeline/>`.
+
+.. _kafka-quick-start-sink-connector-section:
+
+Add a Sink Connector
+~~~~~~~~~~~~~~~~~~~~
+
+Use the shell in your Docker container to add a sink connector using the
+{+kafka-connect+} REST API.
+
+The following API request adds a sink connector configured with the
+following properties:
+
+- The class {+kafka-connect+} uses to instantiate the connector
+- The connection URI, database, and collection of the MongoDB replica set to
+  which the connector writes data
+- The {+kafka+} topic from which the connector reads data
+- A change data capture handler for MongoDB change event documents
+
+.. code-block:: bash
+
+   curl -X POST \
+        -H "Content-Type: application/json" \
+        --data '
+        {"name": "mongo-sink",
+         "config": {
+            "connector.class":"com.mongodb.kafka.connect.MongoSinkConnector",
+            "connection.uri":"mongodb://mongo1:27017/?replicaSet=rs0",
+            "database":"quickstart",
+            "collection":"topicData",
+            "topics":"quickstart.sampleData",
+            "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler"
+            }
+        }
+        ' \
+        http://connect:8083/connectors -w "\n"
+
+To confirm that you added both source and sink connector, run the following
+command:
+
+.. code-block:: shell
+
+    curl -X GET http://connect:8083/connectors
+
+The preceding command should output the names of the running connectors:
+
+.. code-block:: none
+    :copyable: false
+
+    ["mongo-source", "mongo-sink"]
+
+To learn more about sink connector properties, see the page on
+:ref:`<kafka-sink-configuration-properties>`.
+
+To learn more about change data capture events, see the
+:ref:`<sink-fundamentals-cdc-handler>` guide.
+
+.. _kafka-quick-start-send-a-document:
+
+Send the Contents of a Document through Your Connectors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To send the contents of a document through your connectors, insert a
+document into the MongoDB collection from which your source connector reads
+data.
+
+To insert a new document into your collection, enter the MongoDB shell from
+the shell in your Docker container using the following command:
+
+.. code-block:: shell
+
+   mongosh mongodb://mongo1:27017/?replicaSet=rs0
+
+After you run the preceding command, you should see the following prompt:
+
+.. code-block:: shell
+   :copyable: false
+
+   rs0 [primary] test>
+
+From the MongoDB shell, insert a document into the ``sampleData``
+collection of the ``quickstart`` database using the following commands:
+
+.. code-block:: javascript
+
+   use quickstart
+   db.sampleData.insertOne({"hello":"world"})
+
+After you insert a document into the ``sampleData`` collection, confirm that
+your connectors processed the change. Check the contents of the ``topicData``
+collection using the following command:
+
+.. code-block:: javascript
+
+   db.topicData.find()
+
+You should see output that resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   [
+       {
+         _id: ObjectId(...),
+         hello: 'world',
+         travel: 'MongoDB Kafka Connector'
+       }
+   ]
+
+Exit the MongoDB shell with the following command:
+
+.. code-block:: shell
+
+   exit
+
+.. _kafka-quickstart-remove-the-sandbox:
+
+Remove the Sandbox
+------------------
+
+To conserve resources in your development environment, remove the sandbox.
+
+Before you remove the sandbox, exit from the shell session in your Docker
+container by running the following command:
+
+.. code-block:: shell
+
+   exit
+
+You can choose to remove both the Docker containers and images, or exclusively
+the containers. If you remove the containers and images, you must download
+them again to restart your sandbox which is approximately {+pipeline-size+}
+in size. If you exclusively remove the containers, you can reuse the
+images and avoid downloading most of the large files in the sample data
+pipeline.
+
+Select the tab that corresponds to the removal task you want to run.
+
+.. tabs::
+
+   .. tab:: Remove Containers and Images
+      :tabid: remove-containers-and-images
+
+      Run the following shell command to remove the Docker containers and
+      images from the sandbox:
+
+      .. code-block:: shell
+
+         docker-compose -p mongo-kafka down --rmi all
+
+   .. tab:: Remove Containers
+      :tabid: remove-containers
+
+      Run the following shell command to remove the Docker containers but
+      keep the images for the sandbox:
+
+      .. code-block:: shell
+
+         docker-compose -p mongo-kafka down
+
+Next Steps
+----------
+
+To learn how to install the {+connector+}, see the :ref:`<kafka-installation>` guide.
+
+To learn more about how to process and move data from {+kafka+} to MongoDB, see
+the :ref:`<kafka-sink-overview>` guide.
+
+To learn more about how to process and move data from MongoDB to {+kafka+}, see
+the :ref:`<kafka-source-overview>` guide.
