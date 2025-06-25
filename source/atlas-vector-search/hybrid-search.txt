@@ -1,0 +1,222 @@
+.. _avs-hybrid-search:
+
+==================================
+How to Perform Hybrid Search
+==================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: Atlas Vector Search
+   :description: Follow step-by-step Atlas Vector Search tutorials to configure a vector search index, perform semantic search against indexed data, and implement RAG locally.
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A hybrid search is an aggregation of different search methods or search
+queries for the same or similar query criteria. This technique utilizes
+algorithms to rank results and return unified results from the different
+methods of search. You can use the ``$rankFusion`` to perform a
+hybrid search.
+
+What is Reciprocal Rank Fusion?
+-------------------------------
+
+Reciprocal rank fusion is a technique to combine results from different
+search methods into a single result set by performing the following
+actions: 
+
+1. Calculate the reciprocal rank of the documents in the results.
+
+   .. _calculate-reciprocal-rank: 
+
+   For each ranked document in each search result, first add the rank
+   (``r``) of the document with a constant number, ``60``, to smooth
+   the score (``rank_constant``), and then divide ``1`` by the sum of
+   ``r`` and ``rank_constant`` for the reciprocal rank of the document 
+   in the results. You can't set the value of ``rank_constant`` and it
+   defaults to ``60``. 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      reciprocal_rank = 1 / ( r + rank_constant )
+
+   For each method of search, apply different weights (``w``) to give more
+   importance to that method of search. For each document, the weighted
+   reciprocal rank is calculated by multiplying the weight by the
+   reciprocal rank of the document. 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      weighted_reciprocal_rank = w x reciprocal_rank   
+  
+#. Combine the rank-derived and weighted scores of the documents in the
+   results. 
+  
+   .. _combine-reciprocal-ranks:
+     
+   For each document across all search results, add the calculated
+   reciprocal ranks for a single score for the document. 
+
+#. Sort the results by the combined score of the documents in the
+   results. 
+
+   Sort the documents in the results based on the combined score across
+   the results for a single, combined ranked list of documents in the
+   results. 
+
+About the Different Hybrid Search Use Cases  
+-------------------------------------------
+
+You can leverage {+avs+} to perform several types of hybrid search.
+Specifically, {+avs+} supports the following use cases: 
+
+- Full-text and vector search in a single query: You can combine results
+  from different search methods, such as a semantic and a full-text
+  search. You can use the :pipeline:`$vectorSearch` for the semantic
+  search and the :pipeline:`$search` for the full-text search results
+  and combine the results by using the reciprocal rank fusion technique.
+  To learn more, see the :ref:`avs-reciprocal-rank-fusion` tutorial,
+  which demonstrates how to perform a semantic search and full-text
+  search against the ``sample_mflix.embedded_movies`` namespace and
+  retrieve combined results by using reciprocal rank fusion.
+
+- Multiple vector search queries in a single query: The MongoDB
+  ``$rankFusion`` pipeline supports multiple sub-pipelines that contain
+  vector search queries executed against the same collection and
+  combining their results using the reciprocal rank fusion technique.
+  The :ref:`avs-with-unionwith` tutorial demonstrates the following
+  types of vector search:  
+
+  - Perform a comprehensive search of your dataset for semantically
+    similar terms in the same query. 
+
+  - Search multiple fields in your dataset to determine which fields
+    return the best results for the query. 
+
+  - Search using embeddings from different embedding models to determine
+    the semantic interpretation differences between the different
+    models.
+
+Considerations 
+--------------
+
+When using the ``$rankFusion`` pipeline stage for hybrid search,
+consider the following.
+
+Disjoint Result Sets 
+~~~~~~~~~~~~~~~~~~~~
+
+If you want to capture false negatives that one search methodology
+couldn't catch, having disjoint results from individual sub-pipelines
+might be acceptable. When you have disjoint results, most or all of the
+results might appear to be returned from one of the pipelines and not
+the other. However, if you want all the sub-pipelines to return similar 
+results, try increasing the number of results per sub-pipeline.
+
+Weights
+~~~~~~~
+
+We recommend weighing lexical and vector queries on a per-query basis
+rather than having static weights for all queries to improve the
+relevance of the results for each query. This also improves computation
+resource utilization by allocating resources on the query that needs it
+most. 
+
+Multiple Pipelines 
+~~~~~~~~~~~~~~~~~~
+
+You can combine an arbitrary number of sub-pipelines together in the
+``$rankFusion`` stage, but they must all execute against the
+same collection. You can't use the ``$rankFusion`` stage to
+search across collections. Use the :pipeline:`$unionWith` stage with
+:pipeline:`$vectorSearch` for cross-collection search. 
+
+Non-Search Pipelines
+~~~~~~~~~~~~~~~~~~~~
+
+We recommend using :pipeline:`$match`, :pipeline:`$sort`, and so on in
+your pipeline to boost on specific fields within your collection
+without requiring a search pipeline.
+
+Geospatial Relevance
+~~~~~~~~~~~~~~~~~~~~
+
+You can use the :pipeline:`$geoNear` and the :ref:`near-ref` operator
+inside :pipeline:`$search` for a geographic location search within the
+``$rankFusion`` stage. However, the :pipeline:`$geoNear` and the
+:ref:`near-ref` operator use different coordinate reference frames.
+Therefore, the result ordinals and scores might not be identical. 
+
+Limit the Results 
+~~~~~~~~~~~~~~~~~
+
+We recommend setting limits for the number of results to return for each
+sub-pipeline.
+
+Limitations 
+-----------
+
+The following limitations apply to hybrid search using
+``$rankFusion``: 
+
+- ``$rankFusion`` is only supported on MongoDB 8.1+.
+- ``$rankFusion`` sub-pipeline can contain only the following 
+  stages in the sub-pipelines:  
+
+  - :pipeline:`$search`
+  - :pipeline:`$vectorSearch`
+  - :pipeline:`$match`
+  - :pipeline:`$sort`
+  - :pipeline:`$geoNear`
+
+- ``$rankFusion`` preserves a traceable link back to the
+  original input document for each sub-pipeline. Therefore, it
+  doesn't support the following: 
+  
+  - :pipeline:`$project` stage 
+  - :ref:`storedSource <fts-stored-source-definition>` fields
+
+- ``$rankFusion`` sub-pipelines run serially, not in parallel.
+- ``$rankFusion`` doesn't support pagination.
+
+.. _avs-hybrid-search-prereqs:
+
+Prerequisites 
+-------------
+
+.. |query-type| replace:: {+avs+}
+.. |search-stage| replace:: :pipeline:`$vectorSearch`
+.. |tutorial| replace:: These tutorials
+
+To try these tutorials, you must have the following: 
+
+- An |service| cluster with MongoDB version v8.0.1 or later. 
+
+- The :doc:`sample_mflix </sample-data>` database loaded into your
+  |service| {+cluster+}.
+  
+- {+mongosh+} to try the queries on your |service| {+cluster+}.
+
+  .. note::
+
+     You can also try these hybrid search use cases with local |service|
+     deployments that you create with the {+atlas-cli+}. To learn more,
+     see :atlascli:`Create a Local Atlas Deployment
+     </atlas-cli-deploy-local>`. 
+
+.. toctree::
+   :titlesonly:
+
+  Combined Vector Search and Full-Text Search </atlas-vector-search/hybrid-search/vector-search-with-full-text-search>
+  Combined Vector Search </atlas-vector-search/hybrid-search/vector-search-with-rankfusion>
+  

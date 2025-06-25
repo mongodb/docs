@@ -1,0 +1,188 @@
+.. facet::
+   :name: programming_language
+   :values: shell, python
+
+.. _avs-with-unionwith:
+
+=================================================
+How to Combine Multiple ``$vectorSearch`` Queries
+=================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: cross-field search, queries across fields, queries across different embeddings
+   :description: Run $vectorSearch queries inside $unionWith pipeline to perform different types of search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in v8.1, the MongoDB ``$rankFusion`` aggregation stage 
+supports :pipeline:`$vectorSearch` inside the input pipeline. You can
+use ``$rankFusion`` to  combine multiple
+:pipeline:`$vectorSearch` queries against the same collection in the
+same pipeline. ``$rankFusion`` first executes all input pipelines
+independently, and then de-duplicates and combines the input pipeline
+results into a final ranked results set. To run multiple 
+:pipeline:`$vectorSearch` queries against multiple collections in a
+single pipeline, use :pipeline:`$unionWith`.
+
+.. _avs-unionwith-use-cases:
+
+Use Cases and Benefits 
+----------------------
+
+You can run the following types of :pipeline:`$vectorSearch` queries by
+using the ``$rankFusion`` pipeline: 
+
+- Run multiple :pipeline:`$vectorSearch` queries for **similar terms
+  against the same field**.
+
+  This allows you to perform a comprehensive search of your dataset for
+  similar terms in the same query.
+
+- Run multiple :pipeline:`$vectorSearch` queries for the **same term
+  against multiple fields**.
+
+  This allows you to search multiple fields in your dataset to determine
+  which fields return the best results for the query.
+
+- Run multiple :pipeline:`$vectorSearch` queries for the **same term
+  against embeddings from different embedding models**.
+
+  This allows you to search embeddings from different embedding models
+  to determine the semantic interpretation differences between the
+  different models.
+
+About the Tutorial 
+------------------
+
+This tutorial demonstrates how to run different :pipeline:`$vectorSearch`
+queries against the ``embedded_movies`` collection in the
+``sample_mflix`` database. This collection includes a field named
+``plot_embedding``, which contains embeddings created by using OpenAI's
+``text-embedding-ada-002`` embedding model. You use this field for all
+sample queries in this tutorial. 
+
+For the second and third query types listed in
+:ref:`avs-unionwith-use-cases`, you must generate embeddings for another
+field and from another embedding model, respectively. To run the sample
+queries for these use cases, complete the steps in
+:ref:`avs-unionwith-generate-embeddings`. 
+
+This tutorial walks you through the following steps:
+
+1. Set up an {+avs+} index on the ``sample_mflix.embedded_movies``
+   collection. 
+#. Run :pipeline:`$vectorSearch` query with ``$rankFusion`` to
+   perform the following searches:
+
+   - Search the ``plot_embedding`` field for movie plots that contain
+     movies with plots similar to ``light-hearted comedy with ghosts``
+     and ``slapstick humor with paranormal events``.  
+   - Search the ``plot_embedding`` and ``title_embedding`` fields for
+     movies with plots similar to ``battle between good and evil`` using 
+     embeddings from OpenAI. 
+   - Search the ``plot_embedding`` and ``plot_voyageai_embedding``
+     fields for movies with plots similar to ``journey across lands``
+     using embeddings from OpenAI and Voyage AI respectively.  
+
+Before you begin, ensure that your |service| {+cluster+} meets the 
+requirements described in the :ref:`avs-hybrid-search-prereqs`.
+
+.. note:: 
+
+   To run a :pipeline:`$vectorSearch` query with ``$rankFusion``,
+   your {+cluster+} must run MongoDB v8.1 or higher.
+
+.. _avs-unionwith-generate-embeddings:
+
+Generate the Embeddings 
+-----------------------
+
+To query for the same term against multiple fields and to query for the
+same term against embeddings from different embedding models, you must
+prepare the dataset to include embeddings for different fields and from
+different embedding models. This section demonstrates how to generate
+embeddings for the following:
+
+.. list-table:: 
+   :widths: 25 25 50 
+   :header-rows: 1 
+
+   * - Field Name 
+     - Embedding Model
+     - Query Type
+
+   * - ``title``
+     - OpenAI's ``text-embedding-3-small``
+     - Run a comprehensive query for the same term against the ``title``
+       field and the ``plot_embedding`` field embeddings
+
+   * - ``plot``
+     - VoyageAI's ``voyage-3-large``
+     - Run a query for the same term against VoyageAI's
+       ``voyage-3-large`` embedding model and OpenAI's
+       ``text-embedding-ada-002`` embedding model 
+
+You can skip this section if you want to run
+:pipeline:`$vectorSearch` queries against only the ``plot_embedding`` field. 
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- An environment to run interactive Python notebooks such as `VS Code
+  <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__
+  or `Colab <https://colab.research.google.com>`__. 
+- API key for: 
+
+  - OpenAI models. You must have an OpenAI API Key.
+  - VoyageAI models. You must have a VoyageAI API Key. 
+
+Procedure 
+~~~~~~~~~
+
+In this section, you generate embeddings by using OpenAI and Voyage AI
+models so you can run the following example queries:
+
+- **Same Query Term Against Different Fields**: For this query, you
+  generate embeddings for the ``title`` field in the ``embedded_movies``
+  collection by using OpenAI's ``text-embedding-3-large`` embedding
+  model. 
+- **Same Query Term Against Different Embedding Models**: For this query,
+  you generate embeddings for the ``plot`` field in the ``embedded_movies``
+  collection by using Voyage AI's ``voyage-3-large`` embedding model.
+
+.. tabs:: 
+
+   .. tab:: OpenAI 
+      :tabid: openai
+
+      .. include:: /includes/avs/unionwith-rankfusion/steps-create-embeddings-openai.rst
+
+   .. tab:: Voyage AI 
+      :tabid: voyageai 
+
+      .. include:: /includes/avs/unionwith-rankfusion/steps-create-embeddings-voyageai.rst
+
+Create the {+avs+} Index  
+--------------------------------------
+
+In this section, you create an {+avs+} index on the
+``sample_mflix.embedded_movies`` namespace. The section demonstrates
+an index definition that can be used for running various queries. Before
+creating the index, complete the procedure to generate the embeddings.
+
+.. include:: /includes/avs/unionwith-rankfusion/steps-create-index.rst 
+
+Run the {+avs+} Queries 
+-----------------------------------
+
+In this section, you query the ``embedded_movies`` collection in the
+``sample_mflix`` database by using the index named
+``multiple-vector-search`` that you created on the collection.
+
+.. include:: /includes/avs/unionwith-rankfusion/steps-run-queries-shell.rst 
