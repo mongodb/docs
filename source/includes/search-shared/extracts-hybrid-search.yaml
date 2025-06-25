@@ -192,43 +192,54 @@ content: |
   following formula:  
 
   .. code-block:: 
-    :copyable: false 
+     :copyable: false 
 
-    1.0/{document position in the results + constant value} 
+     1.0/{document position in the results + constant value} 
 
   The query then adds the scores from both the searches for each document,
   ranks the documents based on the combined score, and sorts the documents
-  to return a single result. 
+  to return a single result. The value for constant is always ``60``.
   
 ---
 ref: rrf-query-variables 
 content: | 
-  The sample query defines the following variables to add weight to the
-  score, with a lower number providing higher weight:
+  The sample query defines the following weights to the pipelines to
+  influence that pipeline's rank contribution to the final score: 
 
-  - ``vector_weight`` 
-  - ``full_text_weight``
+  - ``vectorPipeline`` = 0.5
+  - ``fullTextPipeline`` = 0.5
+
+  You can adjust the weights to give more importance to one method of
+  search. Note that a lower number provides higher weight. 
 
   The weighted reciprocal rank score is calculated by using the
   following formula:
 
   .. code-block:: 
-    :copyable: false 
+     :copyable: false 
 
-    weight x reciprocal rank 
+     weight x reciprocal rank 
+
+  The ``scoreDetails.value`` shows the raw score from that pipeline
+  before it is weighted and combined by using reciprocal rank fusion. The
+  ``scoreDetails.details.value`` shows the weighted reciprocal rank score. 
 
 ---
 ref: rrf-query-stages
 content: | 
-  The sample query uses the following pipeline stages to perform a
-  semantic search on the collection and retrieve the reciprocal rank of
-  the documents in the results: 
+  The sample query uses the ``$rankFusion`` stage to execute the
+  semantic and full text queries independently and then de-duplicate and
+  combine the input query results into a final ranked results set. It
+  returns a ranked set of documents based on the ranks that appear in
+  their input pipelines and the pipeline weights. Specifically, this stage
+  takes the following input pipelines:
 
   .. list-table:: 
      :widths: 30 70 
 
-     * - :pipeline:`$vectorSearch` 
-       - Searches the ``plot_embedding`` field for the string *star
+     * - ``vectorPipeline``  
+       - This pipeline contains the :pipeline:`$vectorSearch` query. It
+         searches the ``plot_embedding`` field for the string *star 
          wars* specified as vector embeddings in the ``queryVector``
          field of the query. The query uses ``ada-002-text`` embedding,
          which is the same as the vector embedding in the ``plot_embedding``
@@ -236,60 +247,15 @@ content: |
          nearest neighbors and limit the results to ``20`` documents
          only. This stage returns the sorted documents from the semantic
          search in the results.
-     * - :pipeline:`$group`  
-       - Groups all the documents in the results from the semantic search
-         in a field named ``docs``. 
-     * - :pipeline:`$unwind` 
-       - Unwinds the array of documents in the ``docs`` field and store
-         the position of the document in the results array in a field
-         named ``rank``.  
-     * - :pipeline:`$addFields` 
-       - Adds a new field named ``vs_score`` that contains the reciprocal
-         rank score for each document in the results. Here, reciprocal
-         rank score is calculated by dividing ``1.0`` by the sum of
-         ``rank`` and a rank constant value of ``60``. Then, the weighted
-         reciprocal rank is calculated by multiplying ``vector_weight``
-         weight by the reciprocal rank score.
-     * - :pipeline:`$project`  
-       - Includes only the following fields in the results:  
 
-         - ``vs_score``
-         - ``_id`` 
-         - ``title`` 
-
-  The sample query uses the :pipeline:`$unionWith` stage to perform a text
-  search on the collection and retrieve the reciprocal rank of the
-  documents in the results:   
-
-  .. list-table:: 
-     :widths: 30 70 
-
-     * - :pipeline:`$search` 
-       - Searches for movies that contain the term ``star wars`` in the
-         ``title`` field. This stage returns the sorted documents from
-         the full-text search in the results. 
-     * - :pipeline:`$limit` 
-       - Limits the output to ``20`` results only.
-     * - :pipeline:`$group`  
-       - Groups all the documents from the full-text search in a field
-         named ``docs``. 
-     * - :pipeline:`$unwind` 
-       - Unwinds the array of documents in the ``docs`` field and store
-         the position of the document in the results array in a field
-         named ``rank``.  
-     * - :pipeline:`$addFields`  
-       - Adds a new field named ``fts_score`` that contains the reciprocal
-         rank score for each document in the results. Here, reciprocal
-         rank score is calculated by dividing ``1.0`` by the sum of
-         ``rank`` and a rank constant value of ``60``. Then, the weighted
-         reciprocal rank is calculated by multiplying ``full_text_weight``
-         weight by the reciprocal rank score.  
-     * - :pipeline:`$project` 
-       - Includes only the following fields in the results:  
-
-         - ``fts_score``
-         - ``_id`` 
-         - ``title``
+     * - ``fullTextPipeline``  
+       - This pipeline contains the following stages: 
+        
+         - :pipeline:`$search` to search for movies that contain the term
+           ``star wars`` in the ``title`` field. This stage returns the
+           sorted documents from the full-text search in the results. 
+         - :pipeline:`$limit` to limit the output of :pipeline:`$search`
+           stage to ``20`` results only. 
 
   The sample query uses the following stages to combine the results of the
   semantic and text search and return a single ranked list of documents in
@@ -298,27 +264,16 @@ content: |
   .. list-table:: 
      :widths: 30 70 
 
-     * - :pipeline:`$group` 
-       - Groups the documents in the results from the preceding stages by
-         ``title``, ``vs_score``, and ``fts_score``. 
-
      * - :pipeline:`$project` 
        - Includes only the following fields in the results:  
 
-         - ``vs_score``
-         - ``fts_score``
          - ``_id`` 
          - ``title`` 
-
-     * - :pipeline:`$project` 
-       - Adds a field named ``score`` that contains the sum of
-         ``vs_score`` and ``fts_score`` to the results.   
-
-     * - :pipeline:`$sort` 
-       - Sorts the results by ``score`` in descending order. 
-        
+         - ``plot``
+         - ``scoreDetails``
+      
      * - :pipeline:`$limit` 
-       - Limits the output to ``10`` results only.
+       - Limits the output to ``20`` results only.
 
 ---
 ref: hybrid-search-learn
