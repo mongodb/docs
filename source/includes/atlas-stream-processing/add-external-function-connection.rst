@@ -1,7 +1,7 @@
 You can add your AWS Lambda resource as a connection through the |service| UI, 
-the MongoDB Terraform provider, the |service| CLI, or the |service| API, as 
-shown in the following example. You can update the ``roleArn`` placeholder in 
-the example with the ``arn`` from your `AWS IAM configuration <https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns>`__.
+the |service| CLI, or the |service| API, as shown in the following example. 
+You can update the ``roleArn`` placeholder in the example with the ``arn`` 
+from your `AWS IAM configuration <https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns>`__.
 
 .. code-block:: bash 
 
