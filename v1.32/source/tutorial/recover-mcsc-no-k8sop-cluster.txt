@@ -1,0 +1,75 @@
+.. _recover-mcsc-no-k8sop-cluster:
+
+===========================================================
+Recover the |sharded-cluster| if the Operator Cluster Fails
+===========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In the event that the |k8s| cluster on which your |k8s-op-short| is deployed fails, 
+you first need to recover the |k8s-op-short|. To do so, deploy and configure the 
+|k8s-op-short| on a separate, healthy |k8s| cluster as described in the 
+steps below. Then, once you've redeployed the |k8s-op-short| to a healthy |k8s| 
+cluster, you can follow :ref:`these recovery steps <recover-mcsc-yes-k8sop-cluster>`. 
+
+If your Ops Manager instance is also deployed to your operator |k8s| cluster, 
+follow :ref:`these steps <recover-om-no-k8sop-cluster>` to redeploy to a healthy 
+|k8s| cluster.
+
+Procedure
+---------
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Redeploy the |k8s-op-short|.
+      
+      You can follow :ref:`this guide <install-k8s>` to install the 
+      |k8s-op-short| on a separate, healthy |k8s| cluster as you did originally. 
+        
+
+   .. step:: Configure the |k8s-op-short| and the |k8s| cluster for multi-cluster deployments.
+
+      Use the ``kubectl mongodb multicluster setup`` command to set up credentials, roles 
+      and permissions and create mongodb-enterprise-operator-member-list config 
+      map for the operator. 
+      
+      See :ref:`Understand Kubernetes Roles and Role Bindings <multi-cluster-rbac-manual>` to learn more.
+
+   .. step:: Restore the |k8s-op-short| deployment state.
+
+      MongoDB resources: apply yaml files from backup or Git repository if 
+      following GitOps. 
+      
+      1. Restore the following config maps and secrets referenced by 
+         the MongoDB resource: 
+      
+         - ``spec.credentials`` (secret)
+         - ``spec.opsManager.configMapRef.name``
+
+      2. Restore the deployment state config map named ``<resource-name>-state``. 
+      
+         This config map is required for the |k8s-op-short| to 
+         correctly reconcile your MongoDB database. It is created 
+         dynamically at runtime by the |k8s-op-short|. In order to restore it, 
+         you must have previously set up a separate process that periodically 
+         backs this config map up.
+         
+         If this config map cannot be restored from backup, please contact 
+         MongoDB Support before proceeding with the recovery steps.
+         
+      3. Recreate TLS certificates, and related TLS secrets. You can either 
+         create them manually or with Cert-Manager. Note that if the restored 
+         TLS certificates are changed (re-issued) then the replicaset automation 
+         might perform the TLS certificate rotation procedure. 
+
+   .. step:: Continue the restoration process with a working |k8s-op-short| deployment.
+
+      After performing the above steps, continue the restoration process
+      by following :ref:`the steps in this guide <recover-mcsc-yes-k8sop-cluster>`.
