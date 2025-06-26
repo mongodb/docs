@@ -118,7 +118,7 @@
 - Fixes an issue with ``$match`` queries that resulted in documents not being returned
   when querying on nested documents within an array where any nested document was missing
   the target field.
-- Improves performance and stability when writing to Parquet using :ref:`adf-out-stage` to |s3|.
+- Improves performance and stability when writing to Parquet using :ref:`$out <adf-out-stage>` to |s3|.
 - Adds the ability to use any BSON type with the ``$comment`` operator and query in
   ``$queryHistory``. (Starting in MongoDB 5.1, the ``$comment`` operator
   :manual:`was removed </release-notes/6.0-compatibility/#removed-operators>`).

@@ -1,5 +1,5 @@
 The |fts| :ref:`embeddedDocuments <bson-data-types-embedded-documents>`
-type, :ref:`embedded-document-ref` operator, and :ref:`scoring-embedded`
+type, :ref:`embeddedDocument <embedded-document-ref>` operator, and :ref:`scoring-embedded`
 scoring option are in preview. When an |fts| index on a replica set or
 single MongoDB shard reaches 2,100,000,000 index objects,
 |fts| transitions the index to a stale, queryable state. If you would

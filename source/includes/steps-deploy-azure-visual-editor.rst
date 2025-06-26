@@ -65,7 +65,7 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources` section
       choose :guilabel:`Read and write`.
 
       {+adf+} doesn't support writes to your {+az-bs+} container using
-      :ref:`adf-out-stage`. 
+      :ref:`$out <adf-out-stage>`. 
 
    #. Enter your Storage Container name.
   

@@ -56,7 +56,7 @@
                         the dropdown.
                      #. Select :guilabel:`String` from the
                         :guilabel:`Data Type` dropdown to run the query
-                        using the :ref:`wildcard-ref` operator.
+                        using the :ref:`wildcard <wildcard-ref>` operator.
 
                      #. Modify the default settings for the data type as shown
                         below:
@@ -96,7 +96,7 @@
                         the dropdown.
                      #. Select :guilabel:`String` from the
                         :guilabel:`Data Type` dropdown to run the query
-                        using the :ref:`wildcard-ref` operator.
+                        using the :ref:`wildcard <wildcard-ref>` operator.
 
                      #. Modify the default settings for the data type as shown
                         below:

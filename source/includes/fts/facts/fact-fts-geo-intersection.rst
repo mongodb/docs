@@ -1,5 +1,5 @@
-When calculating geospatial results, |fts| :ref:`geoshape-ref` and 
-:ref:`geowithin-ref` operators and MongoDB :manual:`$geoIntersects 
+When calculating geospatial results, |fts| :ref:`geoShape <geoshape-ref>` and 
+:ref:`geoWithin <geowithin-ref>` operators and MongoDB :manual:`$geoIntersects 
 </reference/operator/query/geoIntersects/>` operator use different 
 geometries. This difference can be seen in how |fts| and MongoDB draw 
 polygonal edges. 

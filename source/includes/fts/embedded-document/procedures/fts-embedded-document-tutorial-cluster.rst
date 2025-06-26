@@ -350,7 +350,7 @@ Run ``$search`` Queries Against Embedded Document Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can run queries against the embedded document fields. This 
-tutorial uses :ref:`embedded-document-ref` and :ref:`text-ref` 
+tutorial uses :ref:`embeddedDocument <embedded-document-ref>` and :ref:`text <text-ref>` 
 operators inside the :ref:`compound <compound-ref>` operator in the queries. 
 
 In this section, you will connect to your |service| {+cluster+} and run 

@@ -44,7 +44,7 @@
 
          The ``k`` parameter in this example refers to the 
          ``similarity_search_with_score`` method option, not the 
-         :ref:`knn-beta-ref` operator option of the same name.
+         :ref:`knnBeta <knn-beta-ref>` operator option of the same name.
          
       It returns the three most relevant documents 
       and a :ref:`relevance score <scoring-ref>` between 

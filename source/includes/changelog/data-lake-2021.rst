@@ -35,10 +35,10 @@
 - Updates ``EstimateRowGroupSize`` to report ``UncompressedSize`` for
   documents stored in Parquet.
 - Adjusts the minimum value for ``maxRowGroupSize`` when using
-  :ref:`adf-out-stage` to Parquet to 16MB.
-- Removes support for using :ref:`adf-out-stage` to write documents
+  :ref:`$out <adf-out-stage>` to Parquet to 16MB.
+- Removes support for using :ref:`$out <adf-out-stage>` to write documents
   that contain duplicate fields to Parquet.
-- Improves error messages for :ref:`adf-out-stage`. 
+- Improves error messages for :ref:`$out <adf-out-stage>`. 
 
 .. _data-lake-v20211027:
 
@@ -201,7 +201,7 @@
 26 January 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds a new :ref:`adf-sql-stage` ``formatVersion`` to reduce the data
+- Adds a new :ref:`$sql <adf-sql-stage>` ``formatVersion`` to reduce the data
   size of the result set.
 - Improves performance of :ref:`adf-lookup-stage`.
 - Adds ``"verbosity": "queryPlannerExtended"`` support to the

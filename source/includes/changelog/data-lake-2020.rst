@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Adds ``{background: true}`` option, which allows queries to 
-  run in the background for :ref:`adf-out-stage` to |s3| stage.
+  run in the background for :ref:`$out <adf-out-stage>` to |s3| stage.
 - Introduces ``$queryHistory`` aggregation stage to view past 
   queries.
 - Includes various performance and stability improvements.
@@ -94,7 +94,7 @@
 28 July 2020 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Relaxes :ref:`adf-out-stage` |s3| region requirement.
+- Relaxes :ref:`$out <adf-out-stage>` |s3| region requirement.
 - Includes improved :ref:`storage configuration <config-adf>`  
   error messages.
 - Includes general performance and stability improvements.
@@ -143,11 +143,11 @@
 - Improves performance for the :ref:`adf-lookup-stage` aggregation pipeline stage.
 - Adds support for evaluating string :manual:`$convert
   </reference/operator/aggregation/convert/>` expressions in the ``filename``
-  for :ref:`adf-out-stage` to |s3|.
+  for :ref:`$out <adf-out-stage>` to |s3|.
 - Updates `Parquet <https://parquet.apache.org/docs/>`__
   support for `MAP types
   <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__.
-- Improves error messaging for :ref:`adf-out-stage` to |s3|.
+- Improves error messaging for :ref:`$out <adf-out-stage>` to |s3|.
 - Adds a command to generate a storage configuration.
 
 .. _data-lake-v20200512:

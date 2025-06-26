@@ -22,7 +22,7 @@
       following: 
       
       - Find all documents that don't have a ``null`` value in the 
-        ``password`` field using the :ref:`wildcard-ref` operator.
+        ``password`` field using the :ref:`wildcard <wildcard-ref>` operator.
         
       - Find documents that don't have the ``password`` field using the 
         :ref:`compound <compound-ref>` operator ``mustNot`` clause and replace their ``score`` 

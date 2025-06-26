@@ -32,7 +32,7 @@
 - Fixes an issue that caused {+adf+} to fail to read a Parquet file 
   when the top-level or root schema was marked as ``REPEATED`` or 
   ``OPTIONAL``.
-- Improves stability when writing to Parquet using :ref:`adf-out-stage`
+- Improves stability when writing to Parquet using :ref:`$out <adf-out-stage>`
   to |s3|. 
 
 .. _adf-v20220913:
