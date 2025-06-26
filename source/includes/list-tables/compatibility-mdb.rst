@@ -25,6 +25,3 @@
 
    * - 1.27.x
      - Red Hat UBI 8 Base Image
-
-   * - 1.26.x
-     - Red Hat UBI 8 Base Image
