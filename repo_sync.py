@@ -38,6 +38,7 @@ def run_git_command(args: List[str], cwd: Path = None):
         print(f"Output: {result.stdout.strip()}")
     return result
 
+
 def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
     """Configure sparse checkout to exclude specified patterns."""
     print(f"Configuring sparse checkout in {repo_path}")
@@ -51,7 +52,6 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
         lines.append(f"!{pattern}")  # exclude specific files or dirs
 
     sparse_content = "\n".join(lines) + "\n"
-
     print(f"Sparse checkout content:\n{sparse_content}")
     sparse_file.write_text(sparse_content)
 
@@ -64,6 +64,7 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
     for file in files:
         if file.is_file():
             print(f"  {file.relative_to(repo_path)}")
+
 
 def main(
     branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
@@ -105,14 +106,6 @@ def main(
     print("Git status before push:")
     run_git_command(["status"], cwd=temp_dir)
 
-    # Change the remote to point to the destination repository
-    print(f"Changing remote to destination: {dest_repo_url}")
-    run_git_command(["remote", "set-url", "origin", dest_repo_url], cwd=local_repo_path)
-
-    # Check git status before pushing
-    print("Git status before push:")
-    run_git_command(["status"], cwd=local_repo_path)
-
     # Push to the destination repository
     print("Pushing to destination repository")
     run_git_command(["push", "origin", branch], cwd=temp_dir)
@@ -121,9 +114,6 @@ def main(
     print("Cleaning up temporary directory")
     shutil.rmtree(temp_dir)
 
-    # Push to the destination repository
-    print("Pushing to destination repository")
-    run_git_command(["push", "origin", branch], cwd=local_repo_path)
 
 if __name__ == "__main__":
     typer.run(main)
