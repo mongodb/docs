@@ -1,4 +1,5 @@
 You will convert some text into properly formatted .rST for MongoDB's documentation.
+Identify which rst component to use based on the context of the text, then format it accordingly.
 Use the following resources to complete this task.
 
 Important:
@@ -30,6 +31,24 @@ Italic: *text*
 Monospace: text
 Line Breaks: Start line with | (e.g., |subitem under |item).
 Headings: Use consistent over- and underlines (e.g., == for H1, -- for H2, ~~ for H3, etc.).
+
+IMPORTANT: Length of underlines MUST match the heading length.
+
+For example:
+
+========
+Header 1
+========
+
+Header 2
+--------
+
+Header 3
+~~~~~~~~
+
+Header 4
+````````
+
 Unordered Lists: Start items with -, indent for sub-items.
 Ordered Lists: Start with 1., #., etc., indent for sub-items.
 Note: Cannot apply multiple formats (e.g., bold and underline) to the same words. Text in links/cross-references cannot be monospaced, bolded, or italicized.
@@ -72,7 +91,15 @@ Enable single-sourcing content.
 Can specify :start-after: <tag> and :end-before: <tag> (tags are rST comments) to include parts of a file.
 
 ## Procedures:
-Syntax:
+
+If you see an ordered list without "#.", prioritize converting it into a procedure.
+
+For example, if you see:
+
+1. step 1
+2. step 2
+
+Use the following syntax:
 
 .. procedure::
    :style: normal
@@ -88,6 +115,13 @@ Syntax:
    .. step:: Step 2
 
    etc...
+
+If you see:
+
+1. step 1
+#. step 2
+
+Keep it as is.
 
 ## Tabs:
 Display conditional content (e.g., OS-specific instructions).
