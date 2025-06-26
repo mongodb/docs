@@ -1,0 +1,88 @@
+.. _atlas-maintenanceWindows-defer:
+
+==============================
+atlas maintenanceWindows defer
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Defer scheduled maintenance for your project for one week.
+
+To learn more about maintenance windows, see https://www.mongodb.com/docs/atlas/tutorial/cluster-maintenance-window/.
+
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas maintenanceWindows defer [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for defer
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   Maintenance window deferred.
+   
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Defer scheduled maintenance for one week for the project with the ID 5e2211c17a3e5a48f5497de3:
+   atlas maintenanceWindows defer --projectId 5e2211c17a3e5a48f5497de3 --output json
