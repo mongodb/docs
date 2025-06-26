@@ -4,6 +4,7 @@ import typer
 import github
 from pathlib import Path
 from typing import List
+import shutil
 
 # Define exclude patterns here
 EXCLUDE_PATTERNS = [
@@ -75,30 +76,34 @@ def main(
     
     access_token = get_installation_access_token(app_id, server_docs_private_key, installation_id)
 
-    # Get the current repository URL and add authentication
-    current_repo_url = subprocess.run(["git", "config", "--get", "remote.origin.url"], 
-                                     capture_output=True, text=True, check=True).stdout.strip()
-    
-    # Add authentication to the source repo URL using the same access token
-    if current_repo_url.startswith("https://github.com/"):
-        current_repo_url = current_repo_url.replace("https://github.com/", f"https://x-access-token:{access_token}@github.com/")
-    
-    # Destination repository URL (test repo for easier testing)
-
+    # Destination repository URL (production)
     dest_repo_url = f"https://x-access-token:{access_token}@github.com/mongodb/docs.git"
     
-    local_repo_path = Path("cloned_docs")
-
-    # Clone the CURRENT repository (docs-mongodb-internal) without checking out
-    print(f"Cloning current repo {current_repo_url} to {local_repo_path}")
-    run_git_command(["clone", "--no-checkout", current_repo_url, str(local_repo_path)])
+    # Create a temporary working directory
+    temp_dir = Path("temp_sync")
+    if temp_dir.exists():
+        shutil.rmtree(temp_dir)
+    temp_dir.mkdir()
+    
+    # Copy the current repository to temp directory
+    print(f"Copying current repository to {temp_dir}")
+    shutil.copytree(".", temp_dir, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+    
+    # Initialize git in temp directory
+    run_git_command(["init"], cwd=temp_dir)
+    run_git_command(["add", "."], cwd=temp_dir)
+    run_git_command(["commit", "-m", "Initial commit for sync"], cwd=temp_dir)
 
     # Configure sparse checkout with predefined exclude patterns
-    configure_sparse_checkout(local_repo_path, EXCLUDE_PATTERNS)
+    configure_sparse_checkout(temp_dir, EXCLUDE_PATTERNS)
 
-    # Checkout the desired branch
-    print(f"Checking out branch: {branch}")
-    run_git_command(["checkout", branch], cwd=local_repo_path)
+    # Add the destination remote
+    print(f"Adding destination remote: {dest_repo_url}")
+    run_git_command(["remote", "add", "origin", dest_repo_url], cwd=temp_dir)
+
+    # Check git status before pushing
+    print("Git status before push:")
+    run_git_command(["status"], cwd=temp_dir)
 
     # Change the remote to point to the destination repository
     print(f"Changing remote to destination: {dest_repo_url}")
@@ -110,11 +115,11 @@ def main(
 
     # Push to the destination repository
     print("Pushing to destination repository")
-    run_git_command(["push", "origin", branch], cwd=local_repo_path)
-
-    # Check git status before pushing
-    print("Git status before push:")
-    run_git_command(["status"], cwd=local_repo_path)
+    run_git_command(["push", "origin", branch], cwd=temp_dir)
+    
+    # Clean up
+    print("Cleaning up temporary directory")
+    shutil.rmtree(temp_dir)
 
     # Push to the destination repository
     print("Pushing to destination repository")
