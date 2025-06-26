@@ -1,0 +1,99 @@
+.. _atlas-plugin-install:
+
+====================
+atlas plugin install
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Install Atlas CLI plugin from a GitHub repository.
+
+Install an Atlas CLI plugin from a GitHub repository.
+You can specify a GitHub repository using either the "<github-owner>/<github-repository-name>" format or a full URL.
+When you install the plugin, its latest release on GitHub is used by default.
+To install a specific version of the plugin, append the version number directly to the plugin name using the @ symbol.
+
+MongoDB provides an example plugin: https://github.com/mongodb/atlas-cli-plugin-example
+
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas plugin install [<github-owner>/<github-repository-name>] [options]
+
+.. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - <github-owner>/<github-repository-name>
+     - string
+     - false
+     - Repository identifier.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for install
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Install the latest version of the plugin:
+   atlas plugin install mongodb/atlas-cli-plugin-example
+   atlas plugin install https://github.com/mongodb/atlas-cli-plugin-example
+   
+   
+.. code-block::
+   :copyable: false
+
+   # Install a specific version of the plugin:
+   atlas plugin install mongodb/atlas-cli-plugin-example@1.0.4
+   atlas plugin install https://github.com/mongodb/atlas-cli-plugin-example/@v1.2.3

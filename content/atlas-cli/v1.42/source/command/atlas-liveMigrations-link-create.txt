@@ -1,0 +1,82 @@
+.. _atlas-liveMigrations-link-create:
+
+================================
+atlas liveMigrations link create
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Create a new link-token for a push live migration.
+
+To migrate using scripts, use mongomirror instead of the Atlas CLI. To learn more about mongomirror, see https://www.mongodb.com/docs/atlas/reference/mongomirror/.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas liveMigrations link create [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --accessListIp
+     - strings
+     - false
+     - IP address access list entries that are associated with the link-token.
+   * - -h, --help
+     - 
+     - false
+     - help for create
+   * - --orgId
+     - string
+     - false
+     - Organization ID to use. This option overrides the settings in the configuration file or environment variable.
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   Link-token '<LinkToken>' successfully created.
+   
+

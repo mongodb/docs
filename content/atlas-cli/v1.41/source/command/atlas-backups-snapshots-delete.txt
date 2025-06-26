@@ -1,0 +1,107 @@
+.. _atlas-backups-snapshots-delete:
+
+==============================
+atlas backups snapshots delete
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Remove the specified backup snapshot.
+
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+Atlas supports this command only for M10+ clusters.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas backups snapshots delete <snapshotId> [options]
+
+.. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - snapshotId
+     - string
+     - true
+     - Unique identifier of the snapshot you want to delete.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --clusterName
+     - string
+     - true
+     - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
+   * - --force
+     - 
+     - false
+     - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
+   * - -h, --help
+     - 
+     - false
+     - help for delete
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   Snapshot '<Name>' deleted
+   
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Remove the backup snapshot with the ID 5f4007f327a3bd7b6f4103c5 for the cluster named myDemo:
+   atlas backups snapshots delete 5f4007f327a3bd7b6f4103c5 --clusterName myDemo

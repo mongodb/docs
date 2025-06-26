@@ -1,0 +1,65 @@
+.. _atlas-accessLists:
+
+=================
+atlas accessLists
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage the list of IP addresses that can access your Atlas project.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for accessLists
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-accessLists-create` - Create an IP access list entry for your project.
+* :ref:`atlas-accessLists-delete` - Remove the specified IP access list entry from your project.
+* :ref:`atlas-accessLists-describe` - Return the details for the specified IP access list entry.
+* :ref:`atlas-accessLists-list` - Return all IP access list entries for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-accessLists-create>
+   delete </command/atlas-accessLists-delete>
+   describe </command/atlas-accessLists-describe>
+   list </command/atlas-accessLists-list>
+

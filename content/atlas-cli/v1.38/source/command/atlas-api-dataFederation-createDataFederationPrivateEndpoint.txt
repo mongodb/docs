@@ -1,0 +1,88 @@
+.. _atlas-api-dataFederation-createDataFederationPrivateEndpoint:
+
+============================================================
+atlas api dataFederation createDataFederationPrivateEndpoint
+============================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Adds one private endpoint for Federated Database Instances and Online Archives to the specified projects.
+
+If the endpoint ID already exists and the associated comment is unchanged, Atlas Data Federation makes no change to the endpoint ID list. If the endpoint ID already exists and the associated comment is changed, Atlas Data Federation updates the comment value only in the endpoint ID list. If the endpoint ID doesn't exist, Atlas Data Federation appends the new endpoint to the list of endpoints in the endpoint ID list. Each region has an associated service name for the various endpoints in each region. us-east-1 is com.amazonaws.vpce.us-east-1.vpce-svc-00e311695874992b4. us-west-1 is com.amazonaws.vpce.us-west-2.vpce-svc-09d86b19e59d1b4bb. eu-west-1 is com.amazonaws.vpce.eu-west-1.vpce-svc-0824460b72e1a420e. eu-west-2 is com.amazonaws.vpce.eu-west-2.vpce-svc-052f1840aa0c4f1f9. eu-central-1 is com.amazonaws.vpce.eu-central-1.vpce-svc-0ac8ce91871138c0d. sa-east-1 is com.amazonaws.vpce.sa-east-1.vpce-svc-0b56e75e8cdf50044. ap-southeast-2 is com.amazonaws.vpce.ap-southeast-2.vpce-svc-036f1de74d761706e. ap-south-1 is com.amazonaws.vpce.ap-south-1.vpce-svc-03eb8a541f96d356d. To use this resource, the requesting API Key must have the Project Owner or Project Charts Admin roles. This command is invoking the endpoint with OperationID: 'createDataFederationPrivateEndpoint'. For more information about flags, format of --file and examples, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas api dataFederation createDataFederationPrivateEndpoint [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --envelope
+     - 
+     - false
+     - flag that indicates whether Application wraps the response in an envelope JSON object
+   * - --file
+     - string
+     - false
+     - path to the file which contains the api request contents
+   * - --groupId
+     - string
+     - true
+     - unique 24-hexadecimal digit string that identifies your project
+   * - -h, --help
+     - 
+     - false
+     - help for createDataFederationPrivateEndpoint
+   * - --output
+     - string
+     - false
+     - preferred api format, can be ["json", go-template] This value defaults to "json".
+   * - --output-file
+     - string
+     - false
+     - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
+   * - --pretty
+     - 
+     - false
+     - flag that indicates whether the response body should be in the prettyprint format
+   * - --version
+     - string
+     - false
+     - api version to use when calling the api call [options: "2023-01-01"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-01-01".
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

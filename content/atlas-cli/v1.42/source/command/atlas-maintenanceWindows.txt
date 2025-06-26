@@ -1,0 +1,65 @@
+.. _atlas-maintenanceWindows:
+
+========================
+atlas maintenanceWindows
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage Atlas maintenance windows.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for maintenanceWindows
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-maintenanceWindows-clear` - Clear the current maintenance window setting for your project.
+* :ref:`atlas-maintenanceWindows-defer` - Defer scheduled maintenance for your project for one week.
+* :ref:`atlas-maintenanceWindows-describe` - Return the maintenance window details for your project.
+* :ref:`atlas-maintenanceWindows-update` - Modify the maintenance window for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   clear </command/atlas-maintenanceWindows-clear>
+   defer </command/atlas-maintenanceWindows-defer>
+   describe </command/atlas-maintenanceWindows-describe>
+   update </command/atlas-maintenanceWindows-update>
+
