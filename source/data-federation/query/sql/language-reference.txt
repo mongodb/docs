@@ -330,11 +330,24 @@ To include a single quote character in a string literal, double it (``'o''clock'
 Literal integers are typed as ``INT`` when within the 32-bit signed integer range and ``LONG`` otherwise.
 Literal floating point numbers or scientific notation numbers have type ``DOUBLE``.
 
-{+asql+} does not support literals for every type.
-For example ``OBJECTID``, ``BSON_DATE``, and ``DECIMAL`` have no literal syntax.
-For such types, pseudo-literal values can be obtained by using the ``CAST`` operator
-to get from a string or numeric representation of those types to their respective type.
-Some types may also have "constructor" functions which alias the relevant ``CAST`` invocations.
+.. note::
+
+   {+asql+} supports implicit type conversions of extended JSON-encoded strings 
+   into their corresponding type. As {+asql+} supports all BSON types, and all 
+   BSON types can be represented as extended JSON, you can include 
+   literal values of any type in a query. That is, you can include an extended 
+   JSON string value anywhere an expression is expected and {+asql+} automatically 
+   converts to the corresponding literal type. For example, ``SELECT 
+   '{"$numberInt": "1"}' + 2 FROM foo`` interprets as ``SELECT 1 + 2 FROM foo``.
+   This is particularly useful for datetime literals. For example, ``SELECT * FROM 
+   foo WHERE myDate > '{"$date": "1995-06-28T03:05:00.000Z"}'``.
+   We recommend that you use this syntax instead of the ``CAST()`` 
+   function (or its shorthand operator, ``::``) for literal values. For example, 
+   we don't recommend ``CAST('1995-06-28T03:05:00.000Z' AS TIMESTAMP)``
+   to include a literal datetime value in a query. Using ``CAST()`` or ``::`` is valid and 
+   works, but might have negative performance implications, especially when used 
+   in a ``WHERE`` clause. Extended JSON implicit conversion doesn't have any negative 
+   performance impact.
 
 Parenthesized Expressions
 ~~~~~~~~~~~~~~~~~~~~~~~~~
