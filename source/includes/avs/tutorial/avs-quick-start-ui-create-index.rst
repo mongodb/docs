@@ -34,7 +34,7 @@ a. When the sample data finishes loading, click :guilabel:`Create Search Index`.
                 "type": "vector",
                 "path": "plot_embedding",
                 "numDimensions": 1536,
-                "similarity": "dotProduct"
+                "similarity": "dotProduct",
                 "quantization": "scalar"
                 }]
             }

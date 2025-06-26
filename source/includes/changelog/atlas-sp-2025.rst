@@ -18,15 +18,6 @@
   that triggers processes in a specific AWS Lambda resource. To learn more,
   see :ref:`$externalFunction <streams-agg-pipeline-external-function>`.
 
-.. _atlas-sp-20250323:
-
-23 March 2025 Release
----------------------
-
-- Supports using the :aws:`AWS Transit Gateway </vpc/latest/tgw/tgw-getting-started.html>`
-  to connect to AWS Confluent Cloud clusters. To learn more,
-  see :ref:`Add a Kafka Transit Gateway Connection <atlas-sp-kafka-transit-gateway>`.
-
 .. _atlas-sp-20250312:
 
 12 March 2025 Release
