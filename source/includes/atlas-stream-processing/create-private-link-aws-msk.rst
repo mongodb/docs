@@ -60,6 +60,13 @@
       :oas-atlas-tag:`Create One Private Link
       </Streams/operation/createPrivateLinkConnection>`
 
+      .. tip::
+
+         Alternatively, you can use the Atlas CLI to request a Private
+         Link connection.
+
+         .. include:: /includes/extracts/atlas-streams-privateLinks-create.rst
+
       For an {+aws-msk+} Private Link connection, you must set
       the following key-value pairs:
 
