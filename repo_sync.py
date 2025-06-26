@@ -31,11 +31,17 @@ def get_installation_access_token(app_id: int, private_key: str,
 
 
 def run_git_command(args: List[str], cwd: Path = None):
-    subprocess.run(["git"] + args, check=True, cwd=cwd)
-
+    result = subprocess.run(["git"] + args, capture_output=True, text=True, check=True, cwd=cwd)
+    print(f"Git command: git {' '.join(args)}")
+    if result.stdout.strip():
+        print(f"Output: {result.stdout.strip()}")
+    return result
 
 def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
     """Configure sparse checkout to exclude specified patterns."""
+    print(f"Configuring sparse checkout in {repo_path}")
+    print(f"Exclude patterns: {exclude}")
+    
     run_git_command(["sparse-checkout", "init", "--no-cone"], cwd=repo_path)
 
     sparse_file = repo_path / ".git/info/sparse-checkout"
@@ -43,11 +49,19 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
     for pattern in exclude:
         lines.append(f"!{pattern}")  # exclude specific files or dirs
 
-    sparse_file.write_text("\n".join(lines) + "\n")
+        sparse_content = "\n".join(lines) + "\n"
+    print(f"Sparse checkout content:\n{sparse_content}")
+    sparse_file.write_text(sparse_content)
 
     # Re-checkout to apply sparse rules
     run_git_command(["checkout"], cwd=repo_path)
-
+    
+    # Show what files are actually present
+    files = list(repo_path.rglob("*"))
+    print(f"Files in repository after sparse checkout:")
+    for file in files:
+        if file.is_file():
+            print(f"  {file.relative_to(repo_path)}")
 
 def main(
     branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
@@ -55,23 +69,42 @@ def main(
     installation_id: Annotated[int, typer.Option(envvar="INSTALLATION_ID")],
     server_docs_private_key: Annotated[str, typer.Option(envvar="SERVER_DOCS_PRIVATE_KEY")],
 ):
+    print(f"Starting repo sync to branch: {branch}")
+    print(f"Exclude patterns: {EXCLUDE_PATTERNS}")
+    
     access_token = get_installation_access_token(app_id, server_docs_private_key, installation_id)
 
-    repo_url = f"https://x-access-token:{access_token}@github.com/mongodb/docs.git"
+    # Get the current repository URL (docs-mongodb-internal)
+    current_repo_url = subprocess.run(["git", "config", "--get", "remote.origin.url"], 
+                                     capture_output=True, text=True, check=True).stdout.strip()
+    
+    # Destination repository URL (mongodb/docs)
+    dest_repo_url = f"https://x-access-token:{access_token}@github.com/mongodb/docs.git"
+    
     local_repo_path = Path("cloned_docs")
 
-    # Clone without checking out to set up sparse checkout
-    run_git_command(["clone", "--no-checkout", repo_url, str(local_repo_path)])
+    # Clone the CURRENT repository (docs-mongodb-internal) without checking out
+    print(f"Cloning current repo {current_repo_url} to {local_repo_path}")
+    run_git_command(["clone", "--no-checkout", current_repo_url, str(local_repo_path)])
 
     # Configure sparse checkout with predefined exclude patterns
     configure_sparse_checkout(local_repo_path, EXCLUDE_PATTERNS)
 
     # Checkout the desired branch
+    print(f"Checking out branch: {branch}")
     run_git_command(["checkout", branch], cwd=local_repo_path)
 
-    # Push to the destination repository
-    run_git_command(["push", repo_url, branch], cwd=local_repo_path)
+    # Change the remote to point to the destination repository
+    print(f"Changing remote to destination: {dest_repo_url}")
+    run_git_command(["remote", "set-url", "origin", dest_repo_url], cwd=local_repo_path)
 
+    # Check git status before pushing
+    print("Git status before push:")
+    run_git_command(["status"], cwd=local_repo_path)
+
+    # Push to the destination repository
+    print("Pushing to destination repository")
+    run_git_command(["push", "origin", branch], cwd=local_repo_path)
 
 if __name__ == "__main__":
     typer.run(main)
