@@ -1,0 +1,256 @@
+.. _modify-resource-image:
+
+=========================================================
+Modify |onprem| or MongoDB Kubernetes Resource Containers
+=========================================================
+
+.. meta::
+   :description: Learn how to modify Ops Manager or MongoDB Kubernetes resource containers using templates, define volume mounts, and build custom images with Dockerfile templates.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can modify the containers in the |k8s-pods| in which |onprem| and
+MongoDB database resources run using the ``template`` or
+``podTemplate`` setting that applies to your deployment:
+
+- MongoDB database: :setting:`spec.podSpec.podTemplate`
+- |onprem|: :opsmgrkube:`spec.statefulSet.spec.template`
+- :ref:`backup-daemon`: :opsmgrkube:`spec.backup.statefulSet.spec.template`
+
+To review which fields you can add to a ``template`` or a
+``podTemplate``, see the :k8sdocs:`Kubernetes documentation </reference/generated/kubernetes-api/{+k8s-api-version+}/#podspec-v1-core>`.
+
+When you create containers with a ``template`` or ``podTemplate``, the
+|k8s-op-short| handles container creation differently based on the
+``name`` you provide for each container in the ``containers`` array:
+
+- If the ``name`` field *matches* the name of the applicable resource
+  image, the |k8s-op-short| updates the |onprem| or MongoDB database
+  container in the |k8s-pod| to which the ``template`` or
+  ``podTemplate`` applies:
+
+  - |onprem|: ``mongodb-kubernetes-ops-manager``
+  - :ref:`backup-daemon`: ``mongodb-backup-daemon``
+  - MongoDB database: ``mongodb-enterprise-database``
+  - {+appdb+}: ``mongodb-kubernetes-appdb``
+
+- If the ``name`` field *does not match* the name of the applicable
+  resource image, the |k8s-op-short| creates a new container in each
+  |k8s-pod| to which the ``template`` or ``podTemplate`` applies.
+
+Define a Volume Mount for a MongoDB Kubernetes Resource
+-------------------------------------------------------
+
+On-disk files in containers in |k8s-pods| don't survive container
+crashes or restarts. Using the :setting:`spec.podSpec.podTemplate`
+setting, you can add a :k8sdocs:`volume mount </concepts/storage/volumes/>`
+to persist data in a MongoDB database resource for the life of the
+|k8s-pod|.
+
+To create a volume mount for a MongoDB database resource:
+
+1. Update the MongoDB database resource definition to include a volume
+   mount for containers in the database pods that the |k8s-op-short|
+   creates.
+
+   .. example::
+
+      Use :setting:`spec.podSpec.podTemplate` to define a volume mount:
+
+      .. code-block:: yaml
+
+         podSpec:
+           podTemplate:
+             spec:
+               containers:
+               - name: mongodb-enterprise-database
+                 volumeMounts:
+                 - mountPath: </new/mount/path>
+                   name: survives-restart
+               volumes:
+               - name: survives-restart
+                 emptyDir: {}
+
+#. Apply the updated resource definition:
+
+   .. code-block:: sh
+
+      kubectl apply -f <database-resource-conf>.yaml -n <metadata.namespace>
+
+Tune MongoDB Kubernetes Resource Docker Images with an InitContainer
+--------------------------------------------------------------------
+
+|k8s-mdbrsc| Docker images run on RHEL and use RHEL's default
+system configuration. To tune the underlying RHEL system
+configuration in the |k8s-mdbrsc| containers, add a privileged
+InitContainer
+:k8sdocs:`init container </concepts/workloads/pods/init-containers/>`
+using one of the following settings:
+
+- :setting:`spec.podSpec.podTemplate`: add a privileged InitContainer
+  to a MongoDB database resource container.
+
+- :opsmgrkube:`spec.statefulSet.spec.template`: add a privileged
+  InitContainer to an |onprem| resource container.
+
+.. example::
+
+   MongoDB database resource Docker images use the RHEL default
+   ``keepalive`` time of ``7200``. MongoDB recommends a shorter
+   ``keepalive`` time of ``120`` for database deployments.
+
+   You can tune the ``keepalive`` time in the database resource Docker
+   images if you experience network timeouts or socket errors in
+   communication between clients and the database resources.
+
+   .. seealso::
+
+      :manual:`Does TCP keepalive time affect MongoDB Deployments? 
+      </faq/diagnostics/#does-tcp-keepalive-time-affect-mongodb-deployments>` in the
+      MongoDB Manual
+
+To tune Docker images for a MongoDB database resource container:
+
+1. Update the MongoDB database resource definition to append a
+   privileged InitContainer to the database pods that the
+   |k8s-op-short| creates.
+
+   .. example::
+
+      Change :setting:`spec.podSpec.podTemplate` the ``keepalive``
+      value to the recommended value of ``120``:
+
+      .. code-block:: yaml
+
+         spec:
+           podSpec:
+             podTemplate:
+               spec:
+                 initContainers:
+                 - name: "adjust-tcp-keepalive"
+                   image: "busybox:latest"
+                   securityContext:
+                     privileged: true
+                   command: ["sysctl", "-w", "net.ipv4.tcp_keepalive_time=120"]
+
+#. Apply the updated resource definition:
+
+   .. code-block:: sh
+
+      kubectl apply -f <database-resource-conf>.yaml -n <metadata.namespace>
+
+|k8s| adds a privileged InitContainer to each |k8s-pod| that the
+|k8s-op-short| creates using the |k8s-mdbrsc| definition.
+
+Open a shell session to a running container in your database resource
+|k8s-pod| and verify your changes.
+
+.. example::
+
+   To follow the previous ``keepalive`` example, invoke the following
+   command to get the current ``keepalive`` value:
+
+   .. code-block:: sh
+      :copyable: false
+
+      > kubectl exec -n <metadata.namespace> -it <pod-name> -- cat /proc/sys/net/ipv4/tcp_keepalive_time
+
+
+      > 120
+
+.. seealso::
+
+   :manual:`Operating System Configuration 
+   </administration/production-checklist-operations/#linux>` in the
+   MongoDB Manual.
+
+Build Custom Images with Dockerfile Templates
+---------------------------------------------
+
+You can modify MongoDB Dockerfile templates to create custom 
+|k8s-op-short| images that suit your use case. To build a 
+custom image, you need:
+
+- Your custom Dockerfile, modified from a MongoDB template.
+
+- The MongoDB-provided context image for your template.
+
+MongoDB Dockerfile Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Dockerfiles used to build container images are publicly 
+available from the 
+`MongoDB Kubernetes GitHub repository <https://github.com/mongodb/mongodb-kubernetes/tree/master/public/dockerfiles>`__.
+
+The Dockerfile directory is organized by resource name, version and 
+distribution:
+
+.. code-block:: sh
+   :copyable: false
+
+   ├── <resource name>
+   │   └── <image version>
+   │       └── <base distribution>
+   │           └── Dockerfile template
+
+Copy the template you want to use to your own Dockerfile and modify as 
+desired.
+
+Context Images
+~~~~~~~~~~~~~~
+
+To build an image from any MongoDB Dockerfile template, you must supply 
+its context image. 
+
+Each Dockerfile template has one associated context image, retrievable 
+from the same |quay| registry as the original images. Context image are
+always tagged in the format ``quay.io/mongodb/<resource-name>:<image-version>-context``.
+
+To supply a context image to ``docker build``, include the 
+``--build-arg`` option with the ``imagebase`` variable set to a 
+Quay.io tag, where ``<resource-name>`` and ``<image-version>`` match 
+your Dockerfile template.
+
+.. example::
+   
+   If you want to build the ``mongodb-enterprise-database`` version 
+   2.0.0 image for any distribution, include:
+   
+   .. code-block:: sh
+      :copyable: false
+
+      --build-arg imagebase=quay.io/mongodb/mongodb-kubernetes-database:2.0.0-context
+
+``docker build`` Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Ubuntu distribution for ``mongodb-kubernetes-operator`` version 
+1.9.1 is based on ``ubuntu:1604`` by default. In this example, that 
+base Dockerfile template is modified to use ``ubuntu:1804`` and 
+saved as ``myDockerfile``.
+
+The following command builds the custom image and gives it the tag 
+``1.9.1-ubuntu-1804``:
+ 
+.. code-block:: sh
+   :copyable: false
+ 
+   cat myDockerfile | docker build --build-arg imagebase=quay.io/mongodb/mongodb-kubernetes-operator:1.9.1-context \
+   --tag mongodb-kubernetes-operator:1.9.1-ubuntu-1804 -
+
+.. note::
+
+   Include a hyphen (``-``) at the end of ``docker build`` to read 
+   the output of ``cat myDockerfile`` instead of providing a 
+   local directory as build context.
+      
+.. seealso::
+   
+   To learn more about ``docker build``, see the 
+   `Docker documentation <https://docs.docker.com/engine/reference/commandline/build/>`__.
