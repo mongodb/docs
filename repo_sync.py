@@ -86,15 +86,10 @@ def main(
         shutil.rmtree(temp_dir)
     temp_dir.mkdir()
     
-    # Copy the current repository to temp directory
-    print(f"Copying current repository to {temp_dir}")
-    shutil.copytree(".", temp_dir, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+    # Use git to create a clean copy (handles symlinks properly)
+    print(f"Creating clean copy using git")
+    run_git_command(["clone", "--no-checkout", ".", str(temp_dir)])
     
-    # Initialize git in temp directory
-    run_git_command(["init"], cwd=temp_dir)
-    run_git_command(["add", "."], cwd=temp_dir)
-    run_git_command(["commit", "-m", "Initial commit for sync"], cwd=temp_dir)
-
     # Configure sparse checkout with predefined exclude patterns
     configure_sparse_checkout(temp_dir, EXCLUDE_PATTERNS)
 
