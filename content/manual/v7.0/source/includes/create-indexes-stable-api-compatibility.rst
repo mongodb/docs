@@ -7,8 +7,7 @@ When using :ref:`Stable API <stable-api>` V1:
   - ``sparse``
   - ``storageEngine``
 
-- You cannot create :ref:`geoHaystack <index-geohaystack-index>` or
-  :ref:`text <index-type-text>` indexes.
+- You cannot create :ref:`text <index-type-text>` indexes.
 
 - The above unsupported index types are ignored by the 
   :ref:`query planner<query-plans-query-optimization>` in 
