@@ -1,0 +1,87 @@
+.. _atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-list:
+
+=========================================================================
+atlas federatedAuthentication federationSettings connectedOrgConfigs list
+=========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Describe a Connected Org Config.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas federatedAuthentication federationSettings connectedOrgConfigs list [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --federationSettingsId
+     - string
+     - true
+     - Unique 24-hexadecimal digit string that identifies the federation settings.
+   * - -h, --help
+     - 
+     - false
+     - help for list
+   * - --limit
+     - int
+     - false
+     - Number of items per results page, up to a maximum of 500. If you have more than 500 results, specify the --page option to change the results page. This value defaults to 100.
+   * - --orgId
+     - string
+     - false
+     - Organization ID to use. This option overrides the settings in the configuration file or environment variable.
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --page
+     - int
+     - false
+     - Page number that specifies a page of results. This value defaults to 1.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # List all connected org config with federationSettingsId 5d1113b25a115342acc2d1aa 
+   atlas federatedAuthentication federationSettings connectedOrgsConfig list --federationSettingsId 5d1113b25a115342acc2d1aa 
+

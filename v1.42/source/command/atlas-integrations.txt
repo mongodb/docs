@@ -1,0 +1,65 @@
+.. _atlas-integrations:
+
+==================
+atlas integrations
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Configure third-party integrations for your Atlas project.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for integrations
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-integrations-create` - Create operations.
+* :ref:`atlas-integrations-delete` - Remove the specified third-party integration from your project.
+* :ref:`atlas-integrations-describe` - Return the details for the specified third-party integration for your project.
+* :ref:`atlas-integrations-list` - Return all active third-party integrations for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-integrations-create>
+   delete </command/atlas-integrations-delete>
+   describe </command/atlas-integrations-describe>
+   list </command/atlas-integrations-list>
+
