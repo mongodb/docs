@@ -1,0 +1,92 @@
+---
+buildvariants:
+  - display_name: "Ubuntu 18.04"
+    expansions:
+      venv: venv/bin
+    name: ubuntu1804
+    run_on:
+      - ubuntu1804-test
+    tasks:
+      - name: build-k8s-ops-docs
+tasks:
+  - commands:
+      - command: git.get_project
+        params:
+          directory: docs-k8s-ops
+        type: setup
+      - command: shell.exec
+        params:
+          script: |
+
+            # Remove existing Virtual Environment Directory
+
+            rm -rf venv
+
+            # Set new Virtual Environment with Python 3
+
+            virtualenv -p python3 venv
+
+            # Set Build Directory
+
+            BUILDHOME=$PWD
+
+            # Add Virtual Environment Path to Path
+
+            PATH=$PATH:$PWD/${venv}
+
+            # Activate Virtual Environment
+
+            source ${venv}/activate
+
+            cd venv
+            mkdir dev
+            cd dev
+
+            # Install Current Version of mut
+
+            $BUILDHOME/${venv}/python3 -m pip install mut
+
+          shell: bash
+          working_dir: docs-k8s-ops
+      - command: shell.exec
+        params:
+          script: |
+            # remember that this script should be silent if it
+            # manipulates keys.
+
+            echo "export AWS_ACCESS_KEY_ID=${aws_key}" > aws-config.sh
+            echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> aws-config.sh
+            echo "export STAGING_USERNAME=${github_author}" >> aws-config.sh
+            chmod 755 aws-config.sh
+
+          shell: bash
+          silent: true
+          working_dir: docs-k8s-ops
+      -
+        command: shell.exec
+        loggers:
+          task:
+            - type: evergreen
+            - type: file
+        params:
+          script: |
+
+            # Get AWS Variables
+
+            source aws-config.sh
+
+            export GIT_BRANCH="${github_pr_number}"
+
+            # Activate Virtual Environment
+
+            source ${venv}/activate
+
+            if [ "${is_patch}" != "true" ]; then
+              make html
+            else
+              make html
+              make stage
+            fi
+          shell: bash
+          working_dir: docs-k8s-ops
+    name: build-k8s-ops-docs
