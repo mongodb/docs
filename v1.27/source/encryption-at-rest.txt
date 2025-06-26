@@ -1,0 +1,125 @@
+.. _k8s-encryption-at-rest:
+
+===================================
+Configure |kmip| Encryption at Rest
+===================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can configure :manual:`encryption at rest
+</core/security-encryption-at-rest/>` 
+for a MongoDB deployment managed by the |k8s-op-short|
+by using a |kmip| server.
+
+Considerations
+--------------
+
+Before configuring encryption at rest, consider the following:
+
+- You must have a running |kmip| server.
+- You can't transition your deployment that uses keyfile-based encryption 
+  at rest to |kmip|-based encryption at rest.
+- If you want to enable |kmip| encryption at rest for an already deployed MongoDB 
+  resource, contact `MongoDB Support <https://support.mongodb.com/welcome>`_.
+
+Procedure
+---------
+
+The following procedure describes how to configure
+a sample |kmip| configuration for a MongoDB replica set.
+Adjust the file names and paths, |k8s| namespace, resource names,
+and MongoDB version as necessary for your deployment.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the ConfigMap of the |certauth|.
+
+      Run the following command to create a |k8s-configmap|
+      to hold the |certauth| that signed the |kmip| server's certificate:
+
+      .. code-block::
+
+         kubectl -n mongodb create configmap mongodb-kmip-certificate-authority-pem --from-file=ca.pem
+
+   .. step:: Create the Secret for the Client Certificate and Private Key PEM.
+
+      Run the following command to create a |k8s-secret| to hold the 
+      concatenated client certificate and private key for checking out 
+      the master key from the |kmip| server:
+
+      .. code-block::
+
+         kubectl -n mongodb create secret generic mongodb-kmip-client-pem --from-file=cert.pem
+
+   .. step:: Configure the deployment to use the |kmip| server.
+
+      Configure the ``additionalMongodConfig`` settings
+      in your |k8s-custom-resource| specification to use the |kmip| 
+      server. For example:
+
+      .. code-block:: yaml
+
+         apiVersion: mongodb.com/v1
+         kind: MongoDB
+         metadata:
+           name: kmip
+           namespace: mongodb
+         spec:
+           type: ReplicaSet
+           members: 3
+           backup:
+             encryption:
+               kmip:
+                 client:
+                   clientCertificatePrefix: "mdb"
+           additionalMongodConfig:
+             security:
+               enableEncryption: true
+               kmip:
+                 clientCertificateFile: /kmip/cert/cert.pem
+                 serverCAFile: /kmip/ca/ca.pem
+                 serverName: pykmip-server.pymongo
+                 port: 5696
+           featureCompatibilityVersion: '6.0'
+           version: 6.0.14-ent
+           opsManager:
+             configMapRef:
+               name: my-project
+           credentials: my-credentials
+           podSpec:
+             podTemplate:
+               spec:
+                 containers:
+                   - name: mongodb-enterprise-database
+                     volumeMounts:
+                       - name: mongodb-kmip-client-pem
+                         mountPath: /kmip/cert
+                       - name: mongodb-kmip-certificate-authority-pem
+                         mountPath: /kmip/ca
+                 volumes:
+                   - name: mongodb-kmip-client-pem
+                     secret:
+                       secretName: mongodb-kmip-client-pem
+                   - name: mongodb-kmip-certificate-authority-pem
+                     configMap:
+                       name: mongodb-kmip-certificate-authority-pem
+                       items:
+                         - key: ca.pem
+                           path: ca.pem
+
+      .. important:: 
+
+         If you set the :opsmgrkube:`spec.backup.encryption.kmip` setting
+         in your resource, the |api| keys linked with 
+         the value of :setting:`spec.credentials` must have the :authrole:`Global Owner` role.
