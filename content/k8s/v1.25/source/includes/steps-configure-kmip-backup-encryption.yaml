@@ -1,0 +1,176 @@
+title: "Create the ConfigMap of the |certauth|."
+stepnum: 1
+level: 4
+ref: config-map-ca-kmip
+content: |
+
+  Run the following command:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create configmap mongodb-kmip-certificate-authority-pem --from-file=ca-pem
+
+---
+title: "Configure the |onprem| custom resource to use |kmip| backup encryption."
+stepnum: 2
+level: 4
+ref: config-om-kmip
+content: |
+
+  Configure the :opsmgrkube:`spec.backup.encryption.kmip` settings.
+
+  .. code-block:: yaml
+     :linenos:
+     :emphasize-lines: 11-14
+
+       apiVersion: mongodb.com/v1
+       kind: MongoDBOpsManager
+       metadata:
+         name: om-backup-kmip
+       spec:
+         replicas: 1
+         version: 6.0.0
+         adminCredentials: ops-manager-admin-secret
+         backup:
+           encryption: 
+             kmip:
+               server:
+                 url: kmip.corp.mongodb.com:5696
+                 ca: mongodb-kmip-certificate-authority-pem
+
+---
+title: "Save your |onprem| config file."
+stepnum: 3
+level: 4
+ref: save-config-file-kmip
+
+---
+title: "Apply changes to your |onprem| deployment."
+stepnum: 4
+level: 4
+ref: apply-kmip-changes-om-k8s
+content: |
+
+  Invoke the following ``kubectl`` command on the filename of the
+  |onprem| resource definition:
+
+  .. code-block:: sh
+
+     kubectl apply -f <opsmgr-resource>.yaml
+
+---
+stepnum: 5
+title: "Check the status of your |onprem| resources."
+level: 4
+ref: track-k8s-deployment-om-kmip-config
+content: |
+
+  Run the following command:
+    
+  .. code-block:: sh
+         
+     kubectl get om <resource-name> -o yaml -w
+
+---
+title: "Create the |k8s-secret| of the client certificate and private key."
+stepnum: 6
+level: 4
+ref: client-cert-kmip
+content: |
+
+  Run the following command:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls mongodb-kmip-client-pem-my-replica-set-client-kmip \ 
+     --cert=<path-to-cert-file> \
+     --key=<path-to-key-file>
+
+  The client certificate |k8s-secret| name has the following naming 
+  convention inferred from the ``MongoDB`` |k8s-crd|:
+
+  .. code-block:: sh
+
+     <clientCertificatePrefix>-<objectMeta.name>-client-kmip
+
+  .. list-table::
+     :widths: 40 60
+
+     * - ``clientCertificatePrefix``
+       - Human-readable label specified in the 
+         :setting:`spec.backup.encryption.kmip.client.clientCertificatePrefix` field of the ``MongoDB`` |k8s-crd|.
+
+     * - ``objectMeta.name``
+       - Human-readable label specified in the :setting:`metadata.name` 
+         field of the ``MongoDB`` |k8s-crd|.
+
+     * - ``client-kmip``
+       - Fixed suffix that the |k8s-op-short| assumes.
+
+  To learn more, see :k8sdocs:`kubernetes.io/tls 
+  </concepts/configuration/secret/#tls-secrets>`.
+
+---
+title: "Configure your MongoDB database deployment."
+stepnum: 7
+level: 4
+ref: config-mdb-deployment-kmip
+content: |
+
+  Configure the :setting:`spec.backup.encryption.kmip` settings.
+
+  .. code-block:: yaml
+     :linenos:
+     :emphasize-lines: 11-13
+
+       apiVersion: mongodb.com/v1
+       kind: MongoDB
+       metadata:
+         name: my-replica-set
+       spec:
+         members: 3
+         version: 4.0.20
+         type: ReplicaSet
+         backup:
+           encryption: 
+             kmip:
+               client:
+                 clientCertificatePrefix: mongodb-kmip-client-pem
+
+  To learn more, see :ref:`deploy a replica set <deploy-replica-set>` 
+  or :ref:`deploy a sharded cluster <deploy-sharded-cluster>`.
+
+---
+title: "Save your MongoDB database deployment config file."
+stepnum: 8
+level: 4
+ref: save-deployment-config-file-kmip
+
+---
+title: "Apply changes to your MongoDB database deployment."
+stepnum: 9
+level: 4
+ref: apply-kmip-changes-mdb-database-deployment
+content: |
+
+  Invoke the following ``kubectl`` command on the filename of the
+  |onprem| resource definition:
+
+  .. code-block:: sh
+
+     kubectl apply -f <mdb-database-deployment>.yaml
+
+---
+stepnum: 10
+title: "Check the status of your MongoDB database deployment."
+level: 4
+ref: track-mdb-deployment-kmip-config
+content: |
+
+  Run the following command:
+    
+  .. code-block:: sh
+         
+     kubectl get mdb <resource-name> -o yaml -w
+
+...

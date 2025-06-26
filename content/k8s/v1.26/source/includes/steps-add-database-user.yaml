@@ -1,0 +1,154 @@
+---
+ref: configure-kubectl-user
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+title: "Copy the following example |k8s-crd|."
+level: 4
+stepnum: 2
+ref: copy-k8s-user-crd
+content: |
+
+  .. literalinclude:: /reference/k8s/example-x509-user.yaml
+     :language: yaml
+
+---
+title: "Open your preferred text editor and paste the example |k8s-crd| into a new text file."
+stepnum: 3
+level: 4
+ref: paste-k8s-crd
+---
+title: "Change the lines for the following parameters, as needed."
+level: 4
+stepnum: 4
+ref: change-k8s-user-crd
+content: |
+
+  Use the following table to guide you through changing the relevant
+  lines in the :ref:`mongodbuser-specification`:
+
+  .. list-table::
+   :widths: 20 20 40 20
+   :header-rows: 1
+
+   * - Key
+     - Type
+     - Description
+     - Example
+
+   * - ``metadata.name``
+     - string
+     - The name of the database user resource.
+
+       .. include:: /includes/fact-resource-name-char-limit.rst
+       
+     - ``mms-user-1``
+
+   * - ``spec.username``
+     - string
+     - The subject line of the x509 client certificate signed
+       by the |k8s| |certauth| (Kube CA).
+
+       :gold:`IMPORTANT:` The username must comply with the
+       `RFC 2253 <https://tools.ietf.org/html/rfc2253>`__
+       LDAPv3 Distinguished Name standard.
+
+       To get the subject line of the X.509 certificate, run the
+       following command:
+
+       .. code-block:: sh
+
+          openssl x509 -noout \
+            -subject -in <my-cert.pem> \
+            -nameopt RFC2253
+
+     - ``CN=mms-user,U=My Organizational Unit,O=My Org,L=New York,ST=New York,C=US``
+
+   * - ``spec.opsManager.configMapRef.name``
+     - string
+     - The name of the project containing the MongoDB database
+       where user will be added. The
+       :setting:`spec.cloudManager.configMapRef.name` setting is an
+       alias for this setting and can be used in its place.
+     - ``my-project``
+
+   * - ``spec.roles.db``
+     - string
+     - The database the :ref:`role <roles>` can act on.
+     - ``admin``
+
+   * - ``spec.mongodbResourceRef.name``
+     - string
+     - The name of the :ref:`MongoDB resource <k8s-deploy-mdb-resources>` to
+       which this user is associated.
+     - ``my-resource``
+
+   * - ``spec.roles.name``
+     - string
+     - The name of the :ref:`role <roles>` to grant the database
+       user. The role name can be any
+       :ref:`built-in MongoDB role <built-in-roles>` or
+       :opsmgr:`custom role </tutorial/manage-mongodb-roles>` that exists
+       in |com|.
+     - ``readWriteAnyDatabase``
+---
+title: "Add any additional roles for the user to the |k8s-crd|."
+level: 4
+stepnum: 5
+ref: add-additional-roles-k8s-user
+content: |
+  You may grant additional roles to this user using the format defined
+  in the following example:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     ---
+     apiVersion: mongodb.com/v1
+     kind: MongoDBUser
+     metadata:
+       name: mms-user-1
+     spec:
+       username: CN=mms-user,U=My Organizational Unit,O=My Org,L=New York,ST=New York,C=US
+       project: my-project
+       db: "$external"
+       roles:
+         - db: admin
+           name: backup
+         - db: admin
+           name: restore
+     ...
+
+---
+title: "Create the user."
+level: 4
+stepnum: 6
+ref: create-k8s-user
+content: |
+
+  Invoke the following |k8s| command to create your database user:
+
+  .. code-block:: sh
+
+     kubectl apply -f <database-user-conf>.yaml
+
+  .. include:: /includes/facts/fact-if-create-user-creates-secret.rst
+
+  You can use these credentials to :ref:`Connect to a MongoDB Database Resource from Inside Kubernetes <connect-from-inside-k8s>`.
+---
+title: "View the newly created user in |com|."
+level: 4
+stepnum: 7
+ref: view-k8s-user
+content: |
+
+  You can view the newly-created user in |com|:
+
+  1. From the Project's :guilabel:`Deployment` view, click
+     the :guilabel:`Security` tab.
+
+  #. Click the :guilabel:`MongoDB Users` nested tab.
+
+...

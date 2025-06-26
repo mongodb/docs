@@ -1,0 +1,56 @@
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: my-standalone
+spec:
+  version: "8.0.0"
+  service: my-service
+  opsManager: # Alias of cloudManager
+    configMapRef:
+      name: my-project
+  credentials: my-credentials
+  persistent: true
+  type: Standalone
+  additionalMongodConfig:
+    systemLog:
+      logAppend: true
+      verbosity: 4
+    operationProfiling:
+      mode: slowOp
+  podSpec:
+    persistence:
+      single:
+        storage: "12Gi"
+        storageClass: standard
+        labelSelector:
+          matchExpressions:
+          - {key: environment, operator: In, values: [dev]}
+    podTemplate:
+      metadata:
+        labels:
+          label1: mycustomlabel
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: security
+                operator: In
+                values:
+                - S1
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/e2e-az-name
+                operator: In
+                values:
+                - e2e-az1
+                - e2e-az2
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: "mykey"
+              weight: 50
+...
