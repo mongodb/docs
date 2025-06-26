@@ -1,0 +1,72 @@
+title: "Create a directory for your code review toolchain."
+ref: create-cr-download
+action:
+  language: sh
+  code: |
+    mkdir codereview
+---
+title: "Download ``upload.py``."
+ref: download-upload-py
+content: |
+  https://gist.github.com/i80and/2ae8361d455cc6c70d269a5131cd05f2
+---
+title: "Create a wrapper for the code review tool in your preferred text editor."
+ref: create-wrapper
+content: |
+  Save the following script template as ``codereview.sh``:
+
+  .. code-block:: sh
+     :copyable: true
+
+     #!/bin/bash
+     set -e
+
+     jiraUsername='<yourJiraName>'
+     emailAddress='<first.last@mongodb.com>'
+     codereviewdir='<pathToCodeReviewTool>'
+
+     # get the commit message
+     msg=`git log -1 --oneline | cut -d' ' -f2-`
+     hash=`git rev-parse HEAD`
+     hash=$hash~..$hash
+
+     if [[ $# -eq 0 ]]; then
+        # just last commit
+        "$codereviewdir/codereview.sh" -y \
+            --jira_user $jiraUsername --email $emailAddress -m "$msg" $hash
+     else
+        # issue given
+        issue=$1
+
+        "$codereviewdir/codereview.sh" -y \
+            --jira_user $jiraUsername --email $emailAddress -m "$msg" -i $issue $hash
+     fi
+---
+title: "Personalize your wrapper script."
+ref: personalize-wrapper
+pre: |
+  Change these lines in the wrapper (removing the '<>'):
+action:
+  language: sh
+  code: |
+    jiraUsername='<yourJiraName>'
+    emailAddress='<first.last@mongodb.com>'
+    codereviewdir='<pathToCodeReviewTool>'
+---
+title: "Save your wrapper script into your code review directory."
+ref: save-wrapper
+---
+title: "Install the code review toolchain."
+ref: install-cr-toolchain
+action:
+  language: sh
+  code: |
+    sudo install -m755 upload.py $codereviewdir/upload.py
+    sudo install -m755 codereview.sh $codereviewdir/codereview.sh
+---
+title: "Add appropriate directory to your ``$PATH`` environment variable to run the ``codereview`` command."
+ref: add-to-path
+content: |
+  Add the ``codereview`` directory created above or your ``/Users/`` directory
+  to your ``$PATH`` environment variable to run the ``codereview`` command.
+...
