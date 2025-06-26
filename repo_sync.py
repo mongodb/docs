@@ -31,11 +31,12 @@ def get_installation_access_token(app_id: int, private_key: str,
     return auth.token
 
 
-def run_git_command(args: List[str], cwd: Path = None):
+def run_git_command(args: List[str], cwd: Path = None, verbose: bool = True):
     result = subprocess.run(["git"] + args, capture_output=True, text=True, check=True, cwd=cwd)
-    print(f"Git command: git {' '.join(args)}")
-    if result.stdout.strip():
-        print(f"Output: {result.stdout.strip()}")
+    if verbose:
+        print(f"Git command: git {' '.join(args)}")
+        if result.stdout.strip():
+            print(f"Output: {result.stdout.strip()}")
     return result
 
 
@@ -88,14 +89,14 @@ def main(
     
     # Use git to create a clean copy (handles symlinks properly)
     print(f"Creating clean copy using git")
-    run_git_command(["clone", "--no-checkout", ".", str(temp_dir)])
-    
+    run_git_command(["clone", "--no-checkout", ".", str(temp_dir)], verbose=False)
+
     # Configure sparse checkout with predefined exclude patterns
     configure_sparse_checkout(temp_dir, EXCLUDE_PATTERNS)
 
     # Add the destination remote
-    print(f"Adding destination remote: {dest_repo_url}")
-    run_git_command(["remote", "add", "origin", dest_repo_url], cwd=temp_dir)
+    print(f"Setting destination remote: {dest_repo_url}")
+    run_git_command(["remote", "set-url", "origin", dest_repo_url], cwd=temp_dir)
 
     # Check git status before pushing
     print("Git status before push:")
