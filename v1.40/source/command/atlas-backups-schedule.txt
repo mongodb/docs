@@ -1,0 +1,63 @@
+.. _atlas-backups-schedule:
+
+======================
+atlas backups schedule
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Return a cloud backup schedule for the cluster you specify.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for schedule
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-backups-schedule-delete` - Delete all backup schedules of a cluster.
+* :ref:`atlas-backups-schedule-describe` - Describe a cloud backup schedule for the cluster you specify.
+* :ref:`atlas-backups-schedule-update` - Modify the backup schedule for the specified cluster for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   delete </command/atlas-backups-schedule-delete>
+   describe </command/atlas-backups-schedule-describe>
+   update </command/atlas-backups-schedule-update>
+
