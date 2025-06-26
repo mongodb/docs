@@ -21,9 +21,9 @@ auditing filters, see :manual:`Configure Audit Filter
 
 .. important::
 
-   |service| uses a :ref:`rolling upgrade <high-availability>` strategy 
+   |service| uses a :ref:`rolling update <high-availability>` strategy 
    for enabling or updating audit configuration settings across all 
-   clusters in the |service| project. Rolling upgrades require at least 
+   clusters in the |service| project. Rolling updates require at least 
    one election per replica set. 
 
    To learn more about testing application resilience to replica set
