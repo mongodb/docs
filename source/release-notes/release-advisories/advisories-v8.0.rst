@@ -17,7 +17,7 @@ when you upgrade |onprem|.
 If you run |onprem| 8.0.x in :doc:`local mode
 </tutorial/configure-local-mode>`, you must download and
 install the latest version of ``mongosh
-<https://www.mongodb.com/docs/mongodb-shell/install/>``__ and the
+<https://www.mongodb.com/docs/mongodb-shell/install/>`__ and the
 :dl:`MongoDB Tools TGZ package <database-tools>` to the ``versions``
 directory. 
 
