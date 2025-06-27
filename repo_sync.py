@@ -9,6 +9,7 @@ import shutil
 # Define exclude patterns here
 EXCLUDE_PATTERNS = [
     "platform/README.md",
+    "platform/test.txt",
 ]
 
 def get_installation_access_token(app_id: int, private_key: str,
@@ -76,7 +77,6 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
                 elif excluded_path.is_dir():
                     shutil.rmtree(excluded_path)
                     print(f"  Successfully removed directory: {pattern}")
-
         except Exception as e:
             print(f"Warning: Could not remove {pattern}: {e}")
 
@@ -89,6 +89,17 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
         print(f"After checkout - {pattern} exists: {excluded_path.exists()}")
         if excluded_path.exists():
             print(f"  WARNING: {pattern} still exists after exclusion!")
+
+    # Stage deletions (if any)
+    run_git_command(["add", "-u"], cwd=repo_path)
+
+    # Commit if there are staged changes
+    status = run_git_command(["status", "--porcelain"], cwd=repo_path, verbose=False)
+    if status.stdout.strip():
+        print("Committing deletions of excluded files")
+        run_git_command(["commit", "-m", "Remove excluded files from sync"], cwd=repo_path)
+    else:
+        print("No changes to commit after sparse checkout")
 
 def main(
     branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
