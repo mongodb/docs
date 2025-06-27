@@ -56,6 +56,14 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
     print(f"Sparse checkout content:\n{sparse_content}")
     sparse_file.write_text(sparse_content)
 
+    # Debug: Check if the file exists before removal
+    for pattern in exclude:
+        excluded_path = repo_path / pattern
+        print(f"Checking if {pattern} exists: {excluded_path.exists()}")
+        if excluded_path.exists():
+            print(f"  File type: {'directory' if excluded_path.is_dir() else 'file'}")
+            print(f"  Full path: {excluded_path.absolute()}")
+
     # Remove any existing files that should be excluded
     for pattern in exclude:
         try:
@@ -64,14 +72,23 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
                 print(f"Removing excluded file: {pattern}")
                 if excluded_path.is_file():
                     excluded_path.unlink()
+                    print(f"  Successfully removed file: {pattern}")
                 elif excluded_path.is_dir():
                     shutil.rmtree(excluded_path)
+                    print(f"  Successfully removed directory: {pattern}")
+
         except Exception as e:
             print(f"Warning: Could not remove {pattern}: {e}")
 
     # Apply sparse checkout rules
     run_git_command(["checkout"], cwd=repo_path)
-
+    
+    # Debug: Check if the file still exists after checkout
+    for pattern in exclude:
+        excluded_path = repo_path / pattern
+        print(f"After checkout - {pattern} exists: {excluded_path.exists()}")
+        if excluded_path.exists():
+            print(f"  WARNING: {pattern} still exists after exclusion!")
 
 def main(
     branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
@@ -96,7 +113,7 @@ def main(
     # Use git to create a clean copy (handles symlinks properly)
     print(f"Creating clean copy using git")
     run_git_command(["clone", "--no-checkout", ".", str(temp_dir)], verbose=False)
-
+    
     # Configure sparse checkout with predefined exclude patterns
     configure_sparse_checkout(temp_dir, EXCLUDE_PATTERNS)
 
