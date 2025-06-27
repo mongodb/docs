@@ -12,20 +12,8 @@ EXCLUDE_PATTERNS = [
     "platform/test.txt",
 ]
 
-def get_installation_access_token(app_id: int, private_key: str,
-                                  installation_id: int) -> str:
-    """
-    Obtain an installation access token using JWT.
 
-    Args:
-    - app_id (int): The application ID for GitHub App.
-    - private_key (str): The private key associated with the GitHub App.
-    - installation_id (int): The installation ID of the GitHub App for a particular account.
-
-    Returns
-    - Optional[str]: The installation access token. Returns `None` if there's an error obtaining the token.
-
-    """
+def get_installation_access_token(app_id: int, private_key: str, installation_id: int) -> str:
     integration = github.GithubIntegration(app_id, private_key)
     auth = integration.get_access_token(installation_id)
     assert auth and auth.token
@@ -37,69 +25,46 @@ def run_git_command(args: List[str], cwd: Path = None, verbose: bool = True):
     if verbose:
         print(f"Git command: git {' '.join(args)}")
         if result.stdout.strip():
-            print(f"Output: {result.stdout.strip()}")
+            print(result.stdout.strip())
+        if result.stderr.strip():
+            print(result.stderr.strip())
     return result
 
 
 def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
-    """Configure sparse checkout to exclude specified patterns."""
-    print(f"Configuring sparse checkout in {repo_path}")
-    print(f"Exclude patterns: {exclude}")
-    
+    print(f"\n🔧 Configuring sparse checkout in: {repo_path}")
     run_git_command(["sparse-checkout", "init", "--no-cone"], cwd=repo_path)
 
     sparse_file = repo_path / ".git/info/sparse-checkout"
-    lines = ["/*"]  # include everything first
+    lines = ["/*"]  # include everything
     for pattern in exclude:
-        lines.append(f"!{pattern}")  # exclude specific files or dirs
+        lines.append(f"!/{pattern}")  # explicitly exclude files
 
-    sparse_content = "\n".join(lines) + "\n"
-    print(f"Sparse checkout content:\n{sparse_content}")
-    sparse_file.write_text(sparse_content)
+    sparse_file.write_text("\n".join(lines) + "\n")
+    print(f"📄 Sparse checkout file:\n{''.join(lines)}")
 
-    # Debug: Check if the file exists before removal
+    # Apply sparse rules and remove excluded files
+    run_git_command(["read-tree", "-mu", "HEAD"], cwd=repo_path)
+
+    # Confirm excluded files are gone
     for pattern in exclude:
-        excluded_path = repo_path / pattern
-        print(f"Checking if {pattern} exists: {excluded_path.exists()}")
-        if excluded_path.exists():
-            print(f"  File type: {'directory' if excluded_path.is_dir() else 'file'}")
-            print(f"  Full path: {excluded_path.absolute()}")
+        path = repo_path / pattern
+        if path.exists():
+            print(f"⚠️  WARNING: {pattern} still exists after sparse checkout")
+        else:
+            print(f"✅ Removed: {pattern}")
 
-    # Remove any existing files that should be excluded
-    for pattern in exclude:
-        try:
-            excluded_path = repo_path / pattern
-            if excluded_path.exists():
-                print(f"Removing excluded file: {pattern}")
-                if excluded_path.is_file():
-                    excluded_path.unlink()
-                    print(f"  Successfully removed file: {pattern}")
-                elif excluded_path.is_dir():
-                    shutil.rmtree(excluded_path)
-                    print(f"  Successfully removed directory: {pattern}")
-        except Exception as e:
-            print(f"Warning: Could not remove {pattern}: {e}")
-
-    # Apply sparse checkout rules
-    run_git_command(["checkout"], cwd=repo_path)
-    
-    # Debug: Check if the file still exists after checkout
-    for pattern in exclude:
-        excluded_path = repo_path / pattern
-        print(f"After checkout - {pattern} exists: {excluded_path.exists()}")
-        if excluded_path.exists():
-            print(f"  WARNING: {pattern} still exists after exclusion!")
-
-    # Stage deletions (if any)
+    # Stage deletions
     run_git_command(["add", "-u"], cwd=repo_path)
 
-    # Commit if there are staged changes
+    # Commit if needed
     status = run_git_command(["status", "--porcelain"], cwd=repo_path, verbose=False)
     if status.stdout.strip():
-        print("Committing deletions of excluded files")
+        print("✅ Committing deletions of excluded files")
         run_git_command(["commit", "-m", "Remove excluded files from sync"], cwd=repo_path)
     else:
-        print("No changes to commit after sparse checkout")
+        print("ℹ️  No changes to commit after sparse checkout")
+
 
 def main(
     branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
@@ -107,42 +72,33 @@ def main(
     installation_id: Annotated[int, typer.Option(envvar="INSTALLATION_ID")],
     server_docs_private_key: Annotated[str, typer.Option(envvar="SERVER_DOCS_PRIVATE_KEY")],
 ):
-    print(f"Starting repo sync to branch: {branch}")
-    print(f"Exclude patterns: {EXCLUDE_PATTERNS}")
-    
+    print(f"🚀 Starting repo sync to branch: {branch}")
+    print(f"❌ Files to exclude: {EXCLUDE_PATTERNS}")
+
     access_token = get_installation_access_token(app_id, server_docs_private_key, installation_id)
 
-    # Destination repository URL (production)
     dest_repo_url = f"https://x-access-token:{access_token}@github.com/mongodb/docs.git"
-    
-    # Create a temporary working directory
+
     temp_dir = Path("temp_sync")
     if temp_dir.exists():
         shutil.rmtree(temp_dir)
     temp_dir.mkdir()
-    
-    # Use git to create a clean copy (handles symlinks properly)
-    print(f"Creating clean copy using git")
-    run_git_command(["clone", "--no-checkout", ".", str(temp_dir)], verbose=False)
-    
-    # Configure sparse checkout with predefined exclude patterns
+
+    print(f"📥 Cloning source repo into temp directory")
+    run_git_command(["clone", "--no-checkout", f"https://x-access-token:{access_token}@github.com/10gen/docs-mongodb-internal.git", str(temp_dir)])
+
+    print(f"\n🧹 Applying sparse-checkout to filter excluded files")
     configure_sparse_checkout(temp_dir, EXCLUDE_PATTERNS)
 
-    # Add the destination remote
-    print(f"Setting destination remote: {dest_repo_url}")
+    print(f"\n🔗 Setting destination remote to {dest_repo_url}")
     run_git_command(["remote", "set-url", "origin", dest_repo_url], cwd=temp_dir)
 
-    # Check git status before pushing
-    print("Git status before push:")
-    run_git_command(["status"], cwd=temp_dir)
-
-    # Push to the destination repository
-    print("Pushing to destination repository")
+    print(f"📤 Pushing to destination repo on branch '{branch}'")
     run_git_command(["push", "origin", branch], cwd=temp_dir)
-    
-    # Clean up
-    print("Cleaning up temporary directory")
+
+    print(f"🧼 Cleaning up")
     shutil.rmtree(temp_dir)
+    print("✅ Done.")
 
 
 if __name__ == "__main__":
