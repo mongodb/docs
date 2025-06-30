@@ -28,58 +28,43 @@ def run_git_command(args: List[str], cwd: Path = None, verbose: bool = True):
             print(result.stderr.strip())
     return result
 
-def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
-    print(f"\n🔧 Configuring sparse checkout in: {repo_path}")
+def remove_excluded_files(repo_path: Path, exclude: List[str]):
+    print(f"\n🔧 Removing excluded files from: {repo_path}")
     
-    # First check if excluded files exist
-    existing_excluded = []
+    # Check if excluded files exist and remove them
+    files_to_remove = []
     for pattern in exclude:
         path = repo_path / pattern
         if path.exists():
-            existing_excluded.append(pattern)
+            files_to_remove.append(pattern)
             print(f"📁 Found file to exclude: {pattern}")
     
-    if not existing_excluded:
+    if not files_to_remove:
         print("ℹ️  No excluded files found - nothing to remove")
         return
     
-    run_git_command(["sparse-checkout", "init", "--no-cone"], cwd=repo_path)
-
-    sparse_file = repo_path / ".git/info/sparse-checkout"
-    lines = ["/*"]  # include everything
-    for pattern in exclude:
-        lines.append(f"!/{pattern}")  # explicitly exclude files
-
-    sparse_file.write_text("\n".join(lines) + "\n")
-    print(f"📄 Sparse checkout file:\n{''.join(lines)}")
-
-    # Apply sparse rules and remove excluded files from working tree
-    run_git_command(["read-tree", "-mu", "HEAD"], cwd=repo_path)
-
-    # Debug: show what's in the index
-    print(f"\n🔍 Checking Git status after sparse checkout:")
+    # Manually remove the files
+    for pattern in files_to_remove:
+        path = repo_path / pattern
+        path.unlink()  # Remove the file
+        print(f"🗑️  Removed: {pattern}")
+    
+    # Check Git status to see if changes are detected
+    print(f"\n🔍 Checking Git status after file removal:")
     status_debug = run_git_command(["status", "--porcelain"], cwd=repo_path, verbose=False)
     if status_debug.stdout.strip():
         print(f"Changes detected: {status_debug.stdout.strip()}")
     else:
         print("No changes detected")
 
-    # Confirm excluded files are gone
-    for pattern in exclude:
-        path = repo_path / pattern
-        if path.exists():
-            print(f"⚠️  WARNING: {pattern} still exists after sparse checkout")
-        else:
-            print(f"✅ Removed: {pattern}")
-
-    # Check if we need to commit changes
+    # Commit the changes if any
     status = run_git_command(["status", "--porcelain"], cwd=repo_path, verbose=False)
     if status.stdout.strip():
         print("✅ Committing removal of excluded files")
         run_git_command(["add", "-A"], cwd=repo_path)  # Stage all changes including deletions
         run_git_command(["commit", "-m", "Remove excluded files from sync"], cwd=repo_path)
     else:
-        print("ℹ️  No changes to commit after sparse checkout")
+        print("ℹ️  No changes to commit after file removal")
 
 def main(
     branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
@@ -109,8 +94,8 @@ def main(
         str(temp_dir)
     ])
 
-    print(f"\n🧹 Applying sparse-checkout to filter excluded files")
-    configure_sparse_checkout(temp_dir, EXCLUDE_PATTERNS)
+    print(f"\n🧹 Removing excluded files")
+    remove_excluded_files(temp_dir, EXCLUDE_PATTERNS)
 
     print(f"\n🔗 Adding public-facing remote: {dest_repo_url}")
     run_git_command(["remote", "add", "public-facing", dest_repo_url], cwd=temp_dir)
