@@ -9,7 +9,7 @@
 
       .. code-block:: bash
 
-         sudo apt-get install -y {+package-name-enterprise+}
+         sudo apt-get install --only-upgrade {+package-name-enterprise+}
 
    .. tab:: Specific Release
       :tabid: specific
