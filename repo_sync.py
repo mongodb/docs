@@ -68,7 +68,6 @@ def remove_excluded_files(repo_path: Path, exclude: List[str]):
         run_git_command(["config", "user.email", "repo-sync@mongodb.com"], cwd=repo_path, verbose=False)
         
         run_git_command(["commit", "-m", "Remove excluded files from sync"], cwd=repo_path)
-
     else:
         print("ℹ️  No changes to commit after file removal")
 
