@@ -2,7 +2,7 @@
 
    For this tutorial, you use a publicly accessible PDF document 
    titled `MongoDB Atlas Best Practices 
-   <https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP>`_
+   <https://webassets.mongodb.com/MongoDB_Best_Practices_Guide.pdf>`_
    as the data source for your vector store. This document describes
    various recommendations and core concepts for 
    managing your |service| deployments. 
