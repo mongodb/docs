@@ -7,5 +7,5 @@ Driver documentation.
 The following ``Weather`` and ``Point`` classes model the documents in the
 ``sample_weatherdata.data`` collection:
 
-.. literalinclude:: /includes/driver-examples/aggregation/Weather.cs
+.. literalinclude:: /includes/driver-examples/csharp/aggregation/Weather.cs
    :language: csharp

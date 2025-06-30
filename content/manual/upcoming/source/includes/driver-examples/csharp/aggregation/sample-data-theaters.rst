@@ -7,5 +7,5 @@ Driver documentation.
 The following ``Theater``, ``Location``, and ``Address`` classes model
 the documents in the ``sample_mflix.theaters`` collection:
 
-.. literalinclude:: /includes/driver-examples/aggregation/Theater.cs
+.. literalinclude:: /includes/driver-examples/csharp/aggregation/Theater.cs
    :language: csharp
