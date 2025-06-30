@@ -71,17 +71,6 @@ def remove_excluded_files(repo_path: Path, exclude: List[str]):
     else:
         print("ℹ️  No changes to commit after file removal")
 
-    # Stage deletions (if any)
-    run_git_command(["add", "-u"], cwd=repo_path)
-
-    # Commit if there are staged changes
-    status = run_git_command(["status", "--porcelain"], cwd=repo_path, verbose=False)
-    if status.stdout.strip():
-        print("Committing deletions of excluded files")
-        run_git_command(["commit", "-m", "Remove excluded files from sync"], cwd=repo_path)
-    else:
-        print("No changes to commit after sparse checkout")
-
 def main(
     branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
     app_id: Annotated[int, typer.Option(envvar="APP_ID")],
