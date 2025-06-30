@@ -221,12 +221,12 @@
                            ``$NOW`` is only supported on |service| 
                            clusters running MongoDB 6.0 or later.
       
-            .. tab:: Time-Series Collection 
+            .. tab:: Time Series Collection 
                :tabid: timeseries
       
                To archive documents in a :manual:`time series 
                </core/timeseries-collections/>` collection, select the 
-               :guilabel:`This is a Time-Series Collection` checkbox and 
+               :guilabel:`This is a Time Series Collection` checkbox and 
                specify the following: 
       
                - Name of the field which contains the date in each time 
@@ -357,7 +357,7 @@
                   |service| can't use the partitions to support queries on 
                   fields not specified here. 
       
-         .. tab:: Time-Series Collection 
+         .. tab:: Time Series Collection 
             :tabid: timeseries
       
             .. include:: /includes/fact-oa-partitions-date-criteria-timeseries-collection.rst

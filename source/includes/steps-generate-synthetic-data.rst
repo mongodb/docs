@@ -66,7 +66,7 @@
 
           const collection = client.db("synthetic-data-db").collection("synthetic-data-collection");
 
-      This code creates a time-series collection about cats, adds the
+      This code creates a time series collection about cats, adds the
       following fields to each document, and populates the fields with
       synthetic data from `faker.js 
       <https://github.com/faker-js/faker>`__:

@@ -31,7 +31,7 @@
   via the console.
 - Introduces the ability to :doc:`export backup snapshots </backup/cloud-backup/export/>`
   to their own Amazon |s3| buckets on-demand via the |api|.
-- Adds support for time-series collections for Atlas Online Archive.
+- Adds support for  collections for Atlas Online Archive.
 
 .. _atlas_20211111:
 
