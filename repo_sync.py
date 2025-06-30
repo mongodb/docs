@@ -43,6 +43,14 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
     # Apply sparse rules and remove excluded files from working tree
     run_git_command(["read-tree", "-mu", "HEAD"], cwd=repo_path)
 
+    # Debug: show what's in the index
+    print(f"\n🔍 Checking Git status after sparse checkout:")
+    status_debug = run_git_command(["status", "--porcelain"], cwd=repo_path, verbose=False)
+    if status_debug.stdout.strip():
+        print(f"Changes detected: {status_debug.stdout.strip()}")
+    else:
+        print("No changes detected")
+
     # Confirm excluded files are gone
     for pattern in exclude:
         path = repo_path / pattern
@@ -51,13 +59,11 @@ def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
         else:
             print(f"✅ Removed: {pattern}")
 
-    # Stage deletions
-    run_git_command(["add", "-u"], cwd=repo_path)
-
-    # Commit if needed
+    # Check if we need to commit changes
     status = run_git_command(["status", "--porcelain"], cwd=repo_path, verbose=False)
     if status.stdout.strip():
-        print("✅ Committing deletions of excluded files")
+        print("✅ Committing removal of excluded files")
+        run_git_command(["add", "-A"], cwd=repo_path)  # Stage all changes including deletions
         run_git_command(["commit", "-m", "Remove excluded files from sync"], cwd=repo_path)
     else:
         print("ℹ️  No changes to commit after sparse checkout")
