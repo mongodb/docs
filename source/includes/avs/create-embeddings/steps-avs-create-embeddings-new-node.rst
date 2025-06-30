@@ -5,7 +5,7 @@
             
       Use the following code to generate embeddings from an existing
       collection in |service|. This code uses the ``getEmbedding`` 
-      function that you defined and the :driver:`Node.js Driver </nodejs/>` 
+      function that you defined and the :driver:`Node.js Driver </node/current/>` 
       to generate embeddings from an array of sample texts and ingest them 
       into the ``sample_db.embeddings`` collection in |service|.
 

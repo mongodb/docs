@@ -17,7 +17,7 @@
 
       - Updates each document with a new ``embedding`` field 
         that contains the embedding value by using the MongoDB 
-        :driver:`Node.js Driver </nodejs/>`.
+        :driver:`Node.js Driver </node/current/>` 
 
       .. collapsible::
          :heading: (Advanced) Compress your embeddings.

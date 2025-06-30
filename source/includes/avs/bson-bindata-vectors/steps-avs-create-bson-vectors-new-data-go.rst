@@ -152,7 +152,7 @@
       ``int8``, and ``int1`` embeddings for your query text. The
       following sample code uses Cohere's ``embed`` |api| to generate
       full-precision vectors. After generating the embeddings, use the
-      :driver:`MongoDB Go driver </drivers/go/current/>` to convert your
+      :driver:`MongoDB Go driver </go/current/>` to convert your
       native vector embedding to |bson| binary vectors and run
       :pipeline:`$vectorSearch` query against the collection.
 
@@ -171,7 +171,7 @@
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
            embeddings by using Cohere's ``embed`` |api|.
          - Converts the embeddings to |bson| ``binData`` vectors by using
-           :driver:`MongoDB Go driver </drivers/go/current/>`. 
+           :driver:`MongoDB Go driver </go/current/>`. 
          - Runs the query against your collection and returns the
            results. 
 

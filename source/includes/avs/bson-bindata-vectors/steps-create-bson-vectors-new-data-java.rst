@@ -7,7 +7,7 @@
 
       You can use an embedding model provider to generate ``float``,
       ``int8``, and ``int1`` embeddings for your data and then use the
-      :driver:`MongoDB Java driver </drivers/java/sync/current/>` to
+      :driver:`MongoDB Java driver </java/sync/current/>` to
       convert your native vector embedding to |bson| vectors. The
       following sample code uses Cohere's ``embed`` |api| to generate
       full-precision vectors.  
@@ -27,7 +27,7 @@
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
            embeddings by using Cohere's ``embed`` |api|.
          - Converts the embeddings to |bson| ``binData`` vectors by using
-           :driver:`MongoDB Java driver </drivers/java/sync/current/>`. 
+           :driver:`MongoDB Java driver </java/sync/current/>`. 
          - Creates a file named ``embeddings.json`` and saves the data
            with embeddings in the file to upload to |service|.  
 
@@ -150,7 +150,7 @@
       ``int8``, and ``int1`` embeddings for your query text. The
       following sample code uses Cohere's ``embed`` |api| to generate
       full-precision vectors. After generating the embeddings, use the
-      :driver:`MongoDB Java driver </drivers/java/sync/current/>` to
+      :driver:`MongoDB Java driver </java/sync/current/>` to
       convert your native vector embedding to |bson| vectors and run
       :pipeline:`$vectorSearch` query against the collection.
 
@@ -169,7 +169,7 @@
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
            embeddings by using Cohere's ``embed`` |api|.
          - Converts the embeddings to |bson| ``binData`` vectors by using
-           :driver:`MongoDB Java driver </drivers/java/sync/current/>`. 
+           :driver:`MongoDB Java driver </java/sync/current/>`. 
          - Runs the query against your collection.
 
          .. literalinclude:: /includes/avs/bson-bindata-vectors/create-embeddings-run-query.java 
