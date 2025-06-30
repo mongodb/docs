@@ -30,6 +30,19 @@ def run_git_command(args: List[str], cwd: Path = None, verbose: bool = True):
 
 def configure_sparse_checkout(repo_path: Path, exclude: List[str]):
     print(f"\n🔧 Configuring sparse checkout in: {repo_path}")
+    
+    # First check if excluded files exist
+    existing_excluded = []
+    for pattern in exclude:
+        path = repo_path / pattern
+        if path.exists():
+            existing_excluded.append(pattern)
+            print(f"📁 Found file to exclude: {pattern}")
+    
+    if not existing_excluded:
+        print("ℹ️  No excluded files found - nothing to remove")
+        return
+    
     run_git_command(["sparse-checkout", "init", "--no-cone"], cwd=repo_path)
 
     sparse_file = repo_path / ".git/info/sparse-checkout"
@@ -92,7 +105,6 @@ def main(
     print(f"📥 Cloning source repo into temp directory")
     run_git_command([
         "clone",
-        "--no-checkout",
         f"https://x-access-token:{internal_access_token}@github.com/10gen/docs-mongodb-internal.git",
         str(temp_dir)
     ])
