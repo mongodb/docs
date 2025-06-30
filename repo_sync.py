@@ -67,7 +67,7 @@ def main(
     app_id: Annotated[int, typer.Option(envvar="APP_ID")],
     installation_id: Annotated[int, typer.Option(envvar="INSTALLATION_ID")],
     server_docs_private_key: Annotated[str, typer.Option(envvar="SERVER_DOCS_PRIVATE_KEY")],
-    internal_access_token: Annotated[str, typer.Option(envvar="INTERNAL_ACCESS_TOKEN")],
+    internal_access_token: Annotated[str, typer.Option(envvar="GH_ACCESS_TOKEN")],
 ):
     print(f"🚀 Starting repo sync to branch: {branch}")
     print(f"❌ Files to exclude: {EXCLUDE_PATTERNS}")
