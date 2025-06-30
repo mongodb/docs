@@ -38,7 +38,6 @@ Terraform will perform the following actions:
       + provider_disk_iops           = (known after apply)
       + provider_disk_type_name      = (known after apply)
       + provider_encrypt_ebs_volume  = (known after apply)
-      + provider_instance_size_name  = "M2"
       + provider_name                = "TENANT"
       + provider_region_name         = "providerRegionName"
       + provider_volume_type         = (known after apply)
