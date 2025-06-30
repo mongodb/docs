@@ -67,7 +67,9 @@ def remove_excluded_files(repo_path: Path, exclude: List[str]):
         run_git_command(["config", "user.name", "Repo Sync Bot"], cwd=repo_path, verbose=False)
         run_git_command(["config", "user.email", "repo-sync@mongodb.com"], cwd=repo_path, verbose=False)
         
-        run_git_command(["commit", "-m", "Remove excluded files from sync"], cwd=repo_path)
+        # Amend the last commit instead of creating a new one
+        run_git_command(["commit", "--amend", "--no-edit"], cwd=repo_path)
+
     else:
         print("ℹ️  No changes to commit after file removal")
 
@@ -117,7 +119,7 @@ def main(
     run_git_command(["remote", "add", "public-facing", dest_repo_url], cwd=temp_dir)
 
     print(f"📤 Pushing to destination repo on branch '{branch}'")
-    run_git_command(["push", "public-facing", branch], cwd=temp_dir)
+    run_git_command(["push", "--force-with-lease", "public-facing", branch], cwd=temp_dir)
 
     print(f"🧼 Cleaning up")
     shutil.rmtree(temp_dir)
