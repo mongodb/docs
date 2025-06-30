@@ -34,7 +34,7 @@
                             "id" : <UUID>,
                             "uid" : <BinData>
                          },
-                         "secs_running" : <NumberLong()>,
+                         "secs_running" : <Long()>,
                          "microsecs_running" : <number>,
                          "op" : <string>,
                          "ns" : <string>,
@@ -42,17 +42,17 @@
                          "queryFramework" : <string>,
                          "planSummary": <string>,
                          "cursor" : {                              // only for getMore operations
-                            "cursorId" : <NumberLong()>,
+                            "cursorId" : <Long()>,
                             "createdDate" : <ISODate()>,
                             "lastAccessDate" : <ISODate()>,
-                            "nDocsReturned" : <NumberLong()>,
-                            "nBatchesReturned" : <NumberLong()>,
+                            "nDocsReturned" : <Long()>,
+                            "nBatchesReturned" : <Long()>,
                             "noCursorTimeout" : <boolean>,
                             "tailable" : <boolean>,
                             "awaitData" : <boolean>,
                             "originatingCommand" : <document>,
                             "planSummary" : <string>,
-                            "operationUsingCursorId" : <NumberLong()>
+                            "operationUsingCursorId" : <Long()>
                          },
                          "msg": <string>,
                          "progress" : {
@@ -92,16 +92,16 @@
                                    "W": <NumberLong>
                                 },
                                 "timeAcquiringMicros" : {
-                                   "r" : NumberLong(0),
-                                   "w" : NumberLong(0),
-                                   "R" : NumberLong(0),
-                                   "W" : NumberLong(0)
+                                   "r" : Long(0),
+                                   "w" : Long(0),
+                                   "R" : Long(0),
+                                   "W" : Long(0)
                                 },
                                 "deadlockCount" : {
-                                   "r" : NumberLong(0),
-                                   "w" : NumberLong(0),
-                                   "R" : NumberLong(0),
-                                   "W" : NumberLong(0)
+                                   "r" : Long(0),
+                                   "w" : Long(0),
+                                   "R" : Long(0),
+                                   "W" : Long(0)
                                 }
                              },
                              "ReplicationStateTransition" : {
@@ -147,7 +147,7 @@
                         },
                         "transaction" : {
                            "parameters" : {
-                              "txnNumber" : <NumberLong()>,
+                              "txnNumber" : <Long()>,
                               "autocommit" : <boolean>,
                               "readConcern" : {
                                  "level" : <string>
@@ -155,9 +155,9 @@
                            },
                            "readTimestamp" : <Timestamp>,
                            "startWallClockTime" : <string>,
-                           "timeOpenMicros" : <NumberLong()>,
-                           "timeActiveMicros" : <NumberLong()>,
-                           "timeInactiveMicros" : <NumberLong()>,
+                           "timeOpenMicros" : <Long()>,
+                           "timeActiveMicros" : <Long()>,
+                           "timeInactiveMicros" : <Long()>,
                            "expiryTime" : <string>,
                         },
                         "active" : <boolean>,
@@ -169,7 +169,7 @@
                            }
                         ],
                         "opid" : <number>,
-                        "secs_running" : <NumberLong()>,
+                        "secs_running" : <Long()>,
                         "microsecs_running" : <number>,
                         "op" : <string>,
                         "ns" : <string>,
@@ -177,20 +177,20 @@
                         "originatingCommand" : <document>,
                         "queryFramework" : <string>,
                         "planSummary": <string>,
-                        "prepareReadConflicts" : <NumberLong()>,
-                        "writeConflicts" : <NumberLong()>,
+                        "prepareReadConflicts" : <Long()>,
+                        "writeConflicts" : <Long()>,
                         "cursor" : {                              // only for getMore operations
-                           "cursorId" : <NumberLong()>,
+                           "cursorId" : <Long()>,
                            "createdDate" : <ISODate()>,
                            "lastAccessDate" : <ISODate()>,
-                           "nDocsReturned" : <NumberLong()>,
-                           "nBatchesReturned" : <NumberLong()>,
+                           "nDocsReturned" : <Long()>,
+                           "nBatchesReturned" : <Long()>,
                            "noCursorTimeout" : <boolean>,
                            "tailable" : <boolean>,
                            "awaitData" : <boolean>,
                            "originatingCommand" : <document>,
                            "planSummary" : <string>,
-                           "operationUsingCursorId" : <NumberLong()>
+                           "operationUsingCursorId" : <Long()>
                         },
                         "msg": <string>,
                         "progress" : {
@@ -230,16 +230,16 @@
                                   "W": <NumberLong>
                                },
                                "timeAcquiringMicros" : {
-                                  "r" : NumberLong(0),
-                                  "w" : NumberLong(0),
-                                  "R" : NumberLong(0),
-                                  "W" : NumberLong(0)
+                                  "r" : Long(0),
+                                  "w" : Long(0),
+                                  "R" : Long(0),
+                                  "W" : Long(0)
                                },
                                "deadlockCount" : {
-                                  "r" : NumberLong(0),
-                                  "w" : NumberLong(0),
-                                  "R" : NumberLong(0),
-                                  "W" : NumberLong(0)
+                                  "r" : Long(0),
+                                  "w" : Long(0),
+                                  "R" : Long(0),
+                                  "W" : Long(0)
                                }
                             },
                             "ReplicationStateTransition" : { 
@@ -291,7 +291,7 @@
                          },
                          "transaction" : {
                             "parameters" : {
-                               "txnNumber" : <NumberLong()>,
+                               "txnNumber" : <Long()>,
                                "autocommit" : <boolean>,
                                "readConcern" : {
                                   "level" : <string>
@@ -299,9 +299,9 @@
                             },
                             "readTimestamp" : <Timestamp>,
                             "startWallClockTime" : <string>,
-                            "timeOpenMicros" : <NumberLong()>,
-                            "timeActiveMicros" : <NumberLong()>,
-                            "timeInactiveMicros" : <NumberLong()>,
+                            "timeOpenMicros" : <Long()>,
+                            "timeActiveMicros" : <Long()>,
+                            "timeInactiveMicros" : <Long()>,
                             "expiryTime" : <string>,
                          },
                          "active" : <boolean>,
@@ -333,7 +333,7 @@
                             "deadline" : <ISODate>
                          }
                          "opid" : <string>,
-                         "secs_running" : <NumberLong()>,
+                         "secs_running" : <Long()>,
                          "microsecs_running" : <number>,
                          "op" : <string>,
                          "ns" : <string>,
@@ -342,20 +342,20 @@
                          "topologyTime" : <Timestamp>,           // Starting in 5.0
                          "queryFramework" : <string>,            // Starting in 6.2       
                          "planSummary": <string>,
-                         "prepareReadConflicts" : <NumberLong()>,
-                         "writeConflicts" : <NumberLong()>,
+                         "prepareReadConflicts" : <Long()>,
+                         "writeConflicts" : <Long()>,
                          "cursor" : {                              // only for getMore operations
-                            "cursorId" : <NumberLong()>,
+                            "cursorId" : <Long()>,
                             "createdDate" : <ISODate()>,
                             "lastAccessDate" : <ISODate()>,
-                            "nDocsReturned" : <NumberLong()>,
-                            "nBatchesReturned" : <NumberLong()>,
+                            "nDocsReturned" : <Long()>,
+                            "nBatchesReturned" : <Long()>,
                             "noCursorTimeout" : <boolean>,
                             "tailable" : <boolean>,
                             "awaitData" : <boolean>,
                             "originatingCommand" : <document>,
                             "planSummary" : <string>,
-                            "operationUsingCursorId" : <NumberLong()>
+                            "operationUsingCursorId" : <Long()>
                          },
                          "msg": <string>,
                          "progress" : {
@@ -395,16 +395,16 @@
                                    "W": <NumberLong>
                                 },
                                 "timeAcquiringMicros" : {
-                                   "r" : NumberLong(0),
-                                   "w" : NumberLong(0),
-                                   "R" : NumberLong(0),
-                                   "W" : NumberLong(0)
+                                   "r" : Long(0),
+                                   "w" : Long(0),
+                                   "R" : Long(0),
+                                   "W" : Long(0)
                                 },
                                 "deadlockCount" : {
-                                   "r" : NumberLong(0),
-                                   "w" : NumberLong(0),
-                                   "R" : NumberLong(0),
-                                   "W" : NumberLong(0)
+                                   "r" : Long(0),
+                                   "w" : Long(0),
+                                   "R" : Long(0),
+                                   "W" : Long(0)
                                 }
                              },
                              "ReplicationStateTransition" : {
