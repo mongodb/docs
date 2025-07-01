@@ -1,1 +1,0 @@
-Private part of your |api| key.

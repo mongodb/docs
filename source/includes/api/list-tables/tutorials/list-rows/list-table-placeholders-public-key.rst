@@ -1,1 +1,0 @@
-Public part of your |api| key.

@@ -1,7 +1,0 @@
-- ``EQUALS``
-- ``NOT_EQUALS``
-- ``CONTAINS``
-- ``NOT_CONTAINS``
-- ``STARTS_WITH``
-- ``ENDS_WITH``
-- ``REGEX``
