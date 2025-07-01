@@ -1,0 +1,757 @@
+.. _mongodb-agent-settings:
+.. _automation-agent-config-file-location:
+
+======================
+{+mdbagent+} Settings
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes possible settings for the {+mdbagent+}. These
+values are set after first launching |mms| and not through manual
+editing of these files.
+
+To learn about the |mms| settings and their values, see
+:doc:`/reference/configuration/`.
+
+.. warning::
+
+   If you edit authentication or |tls| settings through
+   :guilabel:`Settings` or :guilabel:`Deployments` in the |mms|
+   interface, those changes overwrite any manual changes in this
+   configuration file.
+
+.. _mongodb-agent-config-file-location:
+
+Configuration File & Settings Locations
+---------------------------------------
+
+.. include:: /includes/list-table-mongodb-agent-conf-file-locations.rst
+
+You can configure additional
+:ref:`{+magent+} settings <mongodb-agent-monitoring-settings>` and
+:ref:`{+bagent+} settings <mongodb-agent-backup-settings>` through the
+|mms| Console.
+
+.. _mongodb-agent-settings-main:
+
+{+mdbagent+} Settings
+----------------------
+
+.. setting:: mmsGroupId
+
+   *Type*: string
+
+   Specifies the ID of your |mms| project. Find the project ID on the
+   :guilabel:`Project Settings` page (:guilabel:`Settings` >
+   :guilabel:`Project Settings`).
+
+   |mms| configures this setting when you install the {+mdbagent+}. If
+   you need to configure {+magent+} separately, include this setting to
+   bind the server to a project.
+
+   .. code-block:: ini
+
+      mmsGroupId=8zvbo2s2asigxvmpnkq5yexf
+
+.. setting:: mmsApiKey
+
+   *Type*: string
+
+   Specifies the {+mdbagent+} |api| key of your |mms| project.
+
+   .. include:: /includes/extracts/agent-api-key-specify.rst
+
+   |mms| configures this setting when you install the {+mdbagent+}. If
+   you need to configure {+magent+} separately, include this setting.
+
+   .. code-block:: ini
+
+      mmsApiKey=rgdte4w7wwbnds9nceuodx9mcte2zqem
+
+.. _mmsBaseUrl:
+
+.. setting:: mmsBaseUrl
+
+   *Type*: string
+
+   .. include:: /includes/extracts/automation-agent-configuration-mmsbaseurl.rst
+
+.. _mongodb-agent-logging-settings:
+
+Logging Settings
+~~~~~~~~~~~~~~~~
+
+.. setting:: logFile
+
+   *Type*: string
+
+   Specifies the path to which |mms| should write the {+mdbagent+}'s
+   log.
+
+   The default path depends on your platform. The {+mdbagent+} uses the
+   default filename ``automation-agent.log`` whether or not the
+   deployment uses {+aagent+}.
+
+   .. important::
+
+      Automatic rotation of your {+mdbagent+} logs only occurs when an update to the log file is made.
+      To manually rotate your {+mdbagent+} logs, 
+      see :ref:`Manually Rotate the MongoDB Agent Logs <manually-rotate-agent-logs>` for more information.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Platform
+        - Default Path
+
+      * - Linux
+        - ``/var/log/mongodb-mms-automation/automation-agent.log``
+
+      * - Windows
+        - ``C:\MMSAutomation\log\mongodb-mms-automation\automation-agent.log``
+
+   .. code-block:: ini
+
+      logFile=/path/to/mongodb-mms-automation/automation-agent.log
+
+.. setting:: logLevel
+
+   *Type*: string
+
+   Specifies the level of logging granularity.
+
+   .. warning::
+
+      The :ref:`Admin Project Settings <admin-only-group-settings>` 
+      for :guilabel:`Monitoring Agent Log Level` and 
+      :guilabel:`Automation Agent Log Level` override this 
+      parameter.
+
+   Choose from the following severity levels, from most to least
+   amount of information:
+
+   - ``DEBUG``
+   - ``INFO``
+   - ``WARN``
+   - ``ERROR``
+   - ``FATAL``
+
+   By default, :setting:`logLevel` is ``INFO``.
+
+   .. code-block:: ini
+
+      logLevel=ROUTINE
+
+   Each level includes the log items included in the succeeding levels.
+
+   .. example::
+
+      - If you choose ``DEBUG``, the {+mdbagent+} logs all
+        messages, including ``INFO``, ``WARN``, ``ERROR``
+        and ``FATAL``.
+
+      - If you choose ``FATAL``, the {+mdbagent+} only logs
+        ``FATAL`` messages.
+
+.. setting:: maxLogFiles
+
+   *Type*: integer
+
+   Specifies the maximum number of rotated log files to retain.
+
+   By default, the value of :setting:`maxLogFiles` is set to ``10``. You
+   can change the value to retain a different number of rotated log files.
+
+   .. code-block:: ini
+
+      maxLogFiles=15
+
+.. setting:: maxLogFileDurationHrs
+
+   *Type*: float
+
+   Specifies the number of hours after which the logs are rotated.
+
+   .. _manually-rotate-agent-logs: 
+
+   .. note:: Manually Rotate the {+mdbagent+} Logs
+
+      On UNIX- and Linux-based systems you can manually rotate the
+      {+mdbagent+} logs. Issue a ``kill`` command with the
+      ``SIGUSR1`` signal for the Agent process:
+
+      .. code-block:: sh
+
+         kill -SIGUSR1 <AgentID>
+
+      On Windows-based systems, you can manually restart the
+      {+mdbagent+} with a Service restart:
+
+      1. Click the :guilabel:`Start` menu.
+      #. Search for ``services``.
+      #. Find the {+mdbagent+}.
+      #. Right-click on the Agent and click :guilabel:`Restart`.
+
+      This rotates the {+mdbagent+} logs.
+
+.. setting:: maxLogFileSize
+
+   *Type*: integer
+
+   Specifies the maximum size, in bytes, of a log file before the logs
+   are rotated. If unspecified, the {+mdbagent+} does not rotate
+   logs based on file size.
+
+   By default, the value of :setting:`maxLogFileSize` is set to ``268435456`` bytes. You
+   can change the value to assign a different maximum size for a log file. 
+
+   .. code-block:: ini
+
+      maxLogFileSize=536870912
+
+.. setting:: maxUncompressedLogFiles
+
+   *Type*: integer
+
+   Specifies the maximum number of rotated log files to keep
+   uncompressed. {+mdbagent+} automatically compresses any additional
+   retained log files up to the :setting:`maxLogFiles` value.
+
+   By default, the value of :setting:`maxUncompressedLogFiles` is set
+   to ``2``. You can change the value to compress a different number of
+   rotated log files.
+
+   .. code-block:: ini
+
+      maxUncompressedLogFiles=10
+
+.. _mongodb-agent-connection-settings:
+
+Connection Settings
+~~~~~~~~~~~~~~~~~~~
+
+.. setting:: dialTimeoutSeconds
+
+   *Type*: integer
+
+   Specifies the number of seconds to wait before a connection times
+   out. By default, connections time out after 40 seconds. However, The
+   {+mdbagent+} may frequently time out of connections for one or more
+   of the following reasons:
+
+   - High network latency
+
+   - High server load
+
+   - Large |tls| keys
+
+   - Lack of |tls| accelerator
+
+   - Insufficient CPU speed
+
+   MongoDB recommends gradually increasing the value of the
+   :setting:`dialTimeoutSeconds` {+mdbagent+} configuration setting
+   to prevent frequent premature connection timeouts.
+
+   .. code-block:: ini
+
+      dialTimeoutSeconds=40
+
+   .. note::
+      
+      Increasing this value also increases the time required to deploy
+      configuration changes to the {+mdbagent+}. Experiment with
+      small, incremental increases until you determine the optimum
+      value for your deployment.
+
+.. setting:: serverSelectionTimeoutSeconds
+
+   *Type*: integer
+
+   Specifies the number of seconds the {+mdbagent+} waits before it
+   stops trying to establish a connection to a MongoDB process. By
+   default, the {+mdbagent+} abandons attempts to establish a
+   connection after 10 seconds.
+
+   .. code-block:: ini
+
+      serverSelectionTimeoutSeconds=10
+
+HTTP Proxy Settings
+~~~~~~~~~~~~~~~~~~~
+
+.. setting:: httpProxy
+
+   *Type*: string
+
+   Specifies the |url| of an |http| proxy server the {+mdbagent+} can
+   use.
+
+   .. code-block:: ini
+
+      httpProxy=http://proxy.example.com:8080
+
+Configuration Backup Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: mmsConfigBackup
+
+   *Type*: string
+
+   Specifies the path to the |mms| :ref:`configuration
+   <automation-configuration-sample-entity>` backup file. This file
+   describes the desired state of the deployment.
+
+   If you don't specify the :setting:`mmsConfigBackup` setting, the 
+   {+mdbagent+} writes the 
+   ``mongodb-mms-automation-cluster-backup.json`` file to a temporary 
+   folder on the operating system.
+
+   If you set :setting:`enableLocalConfigurationServer` to ``true``, 
+   the {+mdbagent+} doesn't write the :setting:`mmsConfigBackup` file.
+
+   .. code-block:: ini
+
+      mmsConfigBackup=/path/to/mms-cluster-config-backup.json
+
+   .. note::
+
+      When |onprem| is installed, it stores the configuration backup
+      file is stored in one of the following places, depending on
+      your platform:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 80
+
+         * - Platform
+           - Configuration Backup File Path
+
+         * - Linux
+           - ``/var/lib/mongodb-mms-automation/``
+
+         * - Windows
+           - ``%SystemDrive%\MMSAutomation``
+
+.. _mongodb-agent-ssl-settings:
+.. _mongodb-agent-tls-settings:
+
+|mms| |tls| Settings
+~~~~~~~~~~~~~~~~~~~~
+
+Specify the settings that the {+mdbagent+} uses when communicating
+with |mms| using |tls|.
+
+.. setting:: httpsCAFile
+
+   *Type*: string
+
+   Specifies the *absolute* path that contains the trusted |certauth|
+   certificates in ``PEM`` format. This certificate verifies that the
+   {+mdbagent+} is talking to the designated |mms| instance.
+
+   .. code-block:: ini
+
+      httpsCAFile=/path/to/ca.pem
+
+   .. note::
+
+      Add the |certauth| for the ``downloads.mongodb.com`` certificate
+      to this ``.pem`` file if you:
+
+      1. Need your {+mdbagent+}s to download their MongoDB installers
+         from the Internet,
+
+      #. Use TLS to encrypt connections, and
+
+      #. Signed your certificates with a private |certauth|. (You set
+         the ``httpsCAFile`` option.)
+
+      To learn how to download |tls| certificates from another web
+      site, see the
+      `OpenSSL Cookbook entry <https://www.feistyduck.com/library/openssl-cookbook/online/ch-testing-with-openssl.html#extracting-remote-certificates>`__.
+
+   .. important::
+
+      When |mms| starts, it caches the |certauth| you provided. If you
+      change your |certauth| certificate, restart |mms|.
+
+.. setting:: sslRequireValidMMSServerCertificates
+
+   *Type*: boolean
+
+   .. important::
+
+      Deprecated. Use :setting:`tlsRequireValidMMSServerCertificates`
+      instead.
+
+.. setting:: tlsRequireValidMMSServerCertificates
+
+   *Type*: boolean
+
+   Specifies if the {+mdbagent+} should validate |tls| certificates
+   presented by |mms|.
+
+   .. warning::
+
+      Setting this option to ``false`` disables certificate
+      verification and makes connections between the {+mdbagent+}
+      and |mms| susceptible to *man-in-the-middle*
+      attacks. Setting this option to ``false`` is only recommended for
+      testing purposes.
+
+   .. code-block:: ini
+
+      tlsRequireValidMMSServerCertificates=true
+
+.. additional settings are in the following extracts file:
+
+.. include:: /includes/extracts/mongodb-agent-configuration-ssl.rst
+
+.. _mongodb-agent-push-live-migration-settings:
+
+Push Live Migration Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: agentFeatureCloudMigrationEnabled
+
+   *Type*: boolean
+
+   *Optional*.
+
+   Specifies whether the {+mdbagent+} on the :term:`migration host`
+   is configured to run the :doc:`Live Migration
+   </tutorial/migrate-to-atlas>` process from a source |mms| deployment
+   to a target cluster in |service-short|.
+
+   This option defaults to ``false``, which prevents using the {+mdbagent+}
+   on this host for Live Migration to |service-short|.
+   
+   To enable the Live Migration process, :doc:`provision a migration host
+   </tutorial/provision-migration-host>` and set
+   ``agentFeatureCloudMigrationEnabled`` to ``true``.
+
+.. setting:: cloudMigrationOplogPath
+
+   *Type*: string
+
+   *Optional*.
+
+   Path to the :manual:`oplog </reference/glossary/#std-term-oplog>` files. If specified, this setting
+   buffers the initial sync :manual:`oplog </reference/glossary/#std-term-oplog>` window to disk.
+   Provision enough storage in the specified directory for
+   the :manual:`oplog </reference/glossary/#std-term-oplog>` buffering.
+
+.. _mongodb-agent-external-config-settings:
+
+Externally Sourced Configuration Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: enableLocalConfigurationServer
+
+   *Type*: boolean
+
+   Specifies whether the {+mdbagent+} stores MongoDB process
+   configuration files on disk or cached in memory.
+
+   This option defaults to ``false``, which stores the
+   configuration files on disk. Setting this option to ``true`` caches
+   the configuration in memory.
+
+   If you set this option to ``true``, the {+mdbagent+} doesn't write
+   the :setting:`mmsConfigBackup` file.
+
+   Don't set this option to ``true`` if your MongoDB databases are running
+   :manual:`FCV </reference/command/setFeatureCompatibilityVersion>` 4.2 or earlier.
+
+   .. warning::
+
+      Setting this option to ``true`` impacts the availability of your
+      deployment.
+
+      .. include:: /includes/consideration-external-config-impacts-availability.rst
+
+   .. code-block:: ini
+
+      enableLocalConfigurationServer=false
+
+   .. seealso::
+
+      :doc:`/reference/mongodb-agent-external-configuration`
+      
+.. setting:: keepUnusedMongodbVersions
+
+   *Type*: boolean
+
+   Flag that indicates whether the {+mdbagent+} retains unused MongoDB
+   version binaries that it downloads. By default,
+   :setting:`keepUnusedMongodbVersions` is false.
+
+   .. code-block:: ini
+
+      keepUnusedMongodbVersions=false
+
+.. setting:: localConfigurationServerPort
+
+   *Type*: integer
+
+   Specifies the port to serve the MongoDB process configuration to
+   when using the local configuration server. To set this option,
+   :setting:`enableLocalConfigurationServer` must be ``true``.
+
+   If unspecified, the {+mdbagent+} chooses an available port
+   automatically.
+
+   .. code-block:: ini
+
+      localConfigurationServerPort=20128
+
+.. setting:: mmsApiKeyExec
+
+   *Type*: string
+
+   Specifies a shell command to call the |mms| agent |api| key of your
+   |mms| project.
+
+   .. code-block:: ini
+
+      mmsApiKeyExec=echo $myKey
+
+.. setting:: sslMMSServerClientCertificatePasswordExec
+
+   *Type*: string
+
+   .. important::
+
+      Deprecated. Use :setting:`tlsMMSServerClientCertificatePasswordExec`
+      instead.
+
+.. setting:: tlsMMSServerClientCertificatePasswordExec
+
+   *Type*: string
+
+   Specifies a shell command to call the password needed to decrypt
+   the private key in the ``MMSServerClientCertificate`` file.
+   Either this setting or
+   :setting:`tlsMMSServerClientCertificatePassword` is required when
+   the client certificate ``PEM`` file is encrypted.
+
+   .. code-block:: ini
+
+      tlsMMSServerClientCertificatePasswordExec=python /path/to/PEMPassword.py
+
+.. _thp-settings:
+
+Transparent Huge Page (THP) Settings
+------------------------------------
+
+.. setting:: enableAgentManagingTHPSettings
+
+   *Type*: boolean
+
+   Specifies whether the {+mdbagent+} manages disabling Transparent 
+   Huge Pages (THP) for MongoDB processes. See :manual:`Disable Transparent Huge Pages (THP) </tutorial/transparent-huge-pages>` 
+   to learn more.
+
+   This option defaults to ``false``.
+
+   When set to ``true``, the {+mdbagent+} disables THP on a per-process basis, overriding any OS-level THP settings. 
+   This option will only affect deployed |mongod| and |mongos| processes on Linux systems using a MongoDB version 
+   earlier than 8.0.
+
+   .. code-block:: ini
+
+      enableAgentManagingTHPSettings=false
+
+.. _mongodb-agent-automation-settings:
+
+{+aagent+} Settings
+-------------------
+
+The following configuration settings are used for authentication in
+automated clusters.
+
+.. _mongodb-mongodb-kerberos-settings:
+
+MongoDB Kerberos Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify these settings if {+aagent+} authenticates to hosts
+using Kerberos. To configure Kerberos, see
+:doc:`/tutorial/configure-mongodb-agent-for-kerberos`.
+
+.. setting:: krb5ConfigLocation
+
+   *Type*: string
+
+   Specifies an *absolute* path to an non-system-standard location for
+   the Kerberos configuration file.
+
+   .. code-block:: ini
+
+      krb5ConfigLocation=/path/to/krb_custom.conf
+
+   .. include:: /includes/fact-set-krb5ccname.rst
+
+.. _mongodb-agent-monitoring-settings:
+
+{+magent+} Settings
+-------------------
+
+Use the |mms| interface to configure {+magent+} settings.
+
+Log Settings
+~~~~~~~~~~~~
+
+1. In the navigation, click :guilabel:`Deployment`.
+#. Click the :guilabel:`Agents` tab.
+#. Click :guilabel:`Downloads & Settings`.
+#. In the :guilabel:`Agent Log Settings` section, click
+   :icon-mms:`edit` next to :guilabel:`Monitoring Log Settings`.
+#. Edit the {+magent+} log settings:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 60 20
+
+      * - Setting
+        - Default Value
+        - Console Suggested Value
+
+      * - Linux Log File Path
+        - ``/var/log/mongodb-mms-automation/monitoring-agent.log``
+        -
+
+      * - Windows Log File Path
+        - ``%SystemDrive%\MMSAutomation\log\mongodb-mms-automation\monitoring-agent.log``
+        -
+
+      * - Rotate Logs
+        - YES
+        -
+
+      * - Size Threshold (MB)
+        - 1000
+        -
+
+      * - Time Threshold (Hours)
+        - 24
+        -
+
+      * - Max Uncompressed Files
+        -
+        - 5
+
+      * - Max Percent of Disk
+        -
+        - 2
+
+      * - Total Number of Log Files
+        - 0
+        -
+
+
+#. Click :guilabel:`Save`.
+
+.. _monitoring-agent-connection-settings:
+.. _monitoring-agent-logging-settings:
+.. _mongodb-kerberos-settings:
+.. _monitoring-agent-ssl-settings:
+.. _server-monitoring-ssl:
+
+Custom Settings
+~~~~~~~~~~~~~~~
+
+1. In the navigation, click :guilabel:`Deployment`.
+#. Click the :guilabel:`Agents` tab.
+#. Click :guilabel:`Downloads & Settings`.
+#. In the :guilabel:`Custom Configuration` section, next to
+   :guilabel:`Edit Custom Configurations`, click :icon-mms:`edit`.
+#. Enter the {+magent+} configuration setting and value.
+#. Click :guilabel:`Save and Close`.
+
+You can configure the following {+magent+} settings:
+
+.. include:: /includes/agents/monitoring-settings-onprem.rst
+
+.. _mongodb-agent-backup-settings:
+
+{+bagent+} Settings
+-------------------
+
+Use the |mms| interface to configure {+bagent+} settings.
+
+Log Settings
+~~~~~~~~~~~~
+
+1. In the navigation, click :guilabel:`Deployment`.
+#. Click the :guilabel:`Agents` tab.
+#. Click :guilabel:`Downloads & Settings`.
+#. In the :guilabel:`Agent Log Settings` section, click
+   :icon-mms:`edit` next to :guilabel:`Backup Log Settings`.
+#. Edit the {+bagent+} log settings:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 60 20
+
+      * - Setting
+        - Default Value
+        - Console Suggested Value
+
+      * - Linux Log File Path
+        - ``/var/log/mongodb-mms-automation/backup-agent.log``
+        -
+
+      * - Windows Log File Path
+        - ``%SystemDrive%\MMSAutomation\log\mongodb-mms-automation\backup-agent.log``
+        -
+
+      * - Rotate Logs
+        - YES
+        -
+
+      * - Size Threshold (MB)
+        - 1000
+        -
+
+      * - Time Threshold (Hours)
+        - 24
+        -
+
+      * - Max Uncompressed Files
+        -
+        - 5
+
+      * - Max Percent of Disk
+        -
+        - 2
+
+      * - Total Number of Log Files
+        - 0
+        -
+
+#. Click :guilabel:`Save`.
+
+Custom Settings
+~~~~~~~~~~~~~~~
+
+1. In the navigation, click :guilabel:`Deployment`.
+#. Click the :guilabel:`Agents` tab.
+#. Click :guilabel:`Downloads & Settings`.
+#. In the :guilabel:`Custom Configuration` section, next to
+   :guilabel:`Edit Custom Configurations`, click :icon-mms:`edit`.
+#. Enter a {+bagent+} configuration setting and value.
+#. Click :guilabel:`Save and Close`.
+
+You can configure the following {+bagent+} settings:
+
+.. include:: /includes/agents/backup-settings-onprem.rst

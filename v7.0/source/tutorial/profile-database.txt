@@ -1,0 +1,205 @@
+.. _profile-databases:
+
+=================
+Profile Databases
+=================
+
+.. default-domain:: mongodb
+
+.. note:: **Available only with the {+mdbagent-wa+}**
+
+   This feature is available only with the {+mdbagent-wa+}. To learn 
+   more about the {+mdbagent-wa+}, see
+   :ref:`add-mdb-processes`.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A :manual:`database profiler </tutorial/manage-the-database-profiler>`
+gathers statistics about writes, cursors, and commands on one running
+|mongod| instance.
+
+|mms| can collect and display statistics from any of your |mongod|
+instances that have profiling enabled. |mms| displays this data in the
+:guilabel:`Profiler` section of an instance's :guilabel:`Metrics` page.
+To access an instance's metrics, click the :guilabel:`Metrics` button
+for that instance.
+
+The :guilabel:`Profiler` displays one aspect, like *Operation Execution
+Time*, that could slow database operations over a set time frame. It
+displays this data in both a chart and a table that each can filter on
+aspect and time frame. The Profiler suggests indexes for your databases
+to improve the performance of slow operations.
+
+.. _considerations-profile-database:
+
+Considerations
+--------------
+
+.. important:: Please read the following considerations before you enable profiling.
+
+Security
+~~~~~~~~
+
+Profile data may include sensitive information including the content of
+database queries. Ensure that exposing this data to |mms| is consistent
+with your information security practices.
+
+``system.profile`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB profiler stores data in the
+``system.profile <<database>.system.profile>`` collection. |mms|
+caps this :term:`collection <capped collection>` to 1 MB as a default.
+You may increase the size of this collection up to 4 MB.
+
+When collecting data from the profiler, |mms| ignores operations on
+the ``system.profile <<database>.system.profile>`` collection,
+such as {+magent+} queries of the
+``system.profile <<database>.system.profile>`` collection.
+
+Resource Consumption Impact
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The profiler consumes resources which may slow MongoDB performance.
+Consider the resource impact before enabling profiling.
+
+Data Collection
+```````````````
+
+Every minute, the agent queries the
+``system.profile <<database>.system.profile>`` collection for the
+last 20 documents created. Monitoring sends
+:manual:`those documents </reference/database-profiler>` to |mms|.
+
+.. seealso::
+
+   :manual:`Database Profiler </tutorial/manage-the-database-profiler>`
+   in the MongoDB Manual.
+
+|mms| samples profile documents until it samples either all documents
+returned or 4 MB of returned document data. This 4 MB limit may be
+reached if you increase the collection's size to 4 MB *and* your
+database creates large
+:manual:`profiler documents </reference/database-profiler>`.
+
+Monitoring tries to minimize its effect on the monitored systems.
+If polling profile data slows database performance, |mms| throttles how
+often it collects data.
+
+Data Display
+````````````
+
+|mms| displays no more than 10,000 data points in the
+:guilabel:`Profiler` charts.
+
+Time to Propagate Changes to the {+mdbagent+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With profiling enabled, configuration changes made in |mms| can
+take up to 2 minutes to propagate to the agent and 1 more minute before
+profiling data appears in the |mms| interface.
+
+Rolling Restart of ``mongod`` Processes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-profiling-restart-mongods.rst
+
+.. _enable-profiling-through-automation:
+.. _enable-profiling-manually:
+
+Enable Profiling
+----------------
+
+As of |mms| version 4.4, |mms| always enables profiling. Your
+|mongod| instance collects profile data for operations longer than
+the :ref:`slow operation threshold <slow-queries>` and
+reports them to |mms|. The threshold for slow operations applies to the entire |mongod| instance. |mms| defaults this threshold to 100 ms.
+
+.. _profiler-interface:
+
+Profiler Interface
+------------------
+
+The Profiler has two sections to the page that display database profile
+information: a chart and a table. Each can display different data.
+
+.. _profiler-chart:
+
+Profiling Chart
+~~~~~~~~~~~~~~~
+
+.. _profiler-chart-set-filter:
+
+Set Chart Filters
+`````````````````
+
+Above the chart, select the metric and time period you want to see.
+
+1. Select the metric from the :guilabel:`Display` menu. Accepted
+   options are:
+
+   - Operation Execution Time (default)
+   - Keys Examined
+   - Docs Returned
+   - Examined:Returned Ratio
+   - Num Yields
+   - Response Length
+
+#. Select the time period from the :guilabel:`View Last` menu.
+   Accepted options are:
+
+   - 24 hr (default)
+   - 12 hr
+   - 6 hr
+   - 1 hr
+   - 15 min
+
+.. _profiler-chart-suggest-indexes:
+
+Request Index Suggestions
+`````````````````````````
+
+Based on the Profiler data, you may want to improve the performance of
+slow queries.
+
+1. Click :guilabel:`Calculate Suggested Indexes` to direct |mms| to
+   analyze your databases.
+
+#. After the analysis completes, the
+   :guilabel:`Suggested Indexes for Improving Query Performance` modal
+   displays.
+
+   This modal offers suggested indexes with the appropriate database
+   commands to created those indexes.
+
+#. After you have finished using the suggested indexes, click
+   :guilabel:`OK` to close the modal.
+
+.. _profiler-table:
+.. _profiler-table-set-filter:
+
+Profiling Table
+~~~~~~~~~~~~~~~
+
+Above the table, select the namespace, operation type, and metric you
+wish to profile:
+
+1. Click :guilabel:`All Namespaces` to change which combination of
+   databases and collections to profile.
+
+#. Click :guilabel:`All Operations` to change which operations you want
+   to profile.
+
+#. Click :guilabel:`Operation Execution Time` to change which metric
+   you want to profile. Accepted options are:
+
+   - Operation Execution Time (default)
+   - Keys Examined
+   - Docs Returned
+   - Examined:Returned Ratio
+   - Num Yields
+   - Response Length
