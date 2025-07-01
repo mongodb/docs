@@ -17,7 +17,7 @@
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. _query-operators-and-complexity:
@@ -254,24 +254,28 @@ For a demonstration, see the following examples:
 - :ref:`Metadata and Search Results Example <fts-facet-egs>` 
 - :ref:`Facet Example <fts-count-aggregation-variable>`
 
+Minimize Additional MQL Aggregation Stages
+------------------------------------------
+
+Try to encapsulate the entire search logic within the ``$search`` 
+stage itself and minimize using additional blocking stages, such as 
+:pipeline:`$group`, :pipeline:`$count`, :pipeline:`$match`, or 
+:pipeline:`$sort`. This optimizes the |fts| index usage, and 
+reduces the need for additional database operations in ``mongod``.
+
 .. _query-match-agg-stage:
 
-Avoid ``$match`` After ``$search`` 
-----------------------------------
+Use ``compound.filter`` Instead of ``$match``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a :manual:`$match </reference/operator/aggregation/match/>`
-aggregation pipeline stage after a :pipeline:`$search`
-stage can drastically slow down query results. If possible, design
-your ``$search`` query so that all necessary filtering occurs in the
-``$search`` stage to remove the need for a ``$match`` stage. 
-
-The |fts| :ref:`compound <compound-ref>` operator helps with queries that
-require multiple filtering operations. If you must use the
-:pipeline:`$match` stage in your aggregation pipeline, consider using
-the :ref:`storedSource <fts-stored-source-definition>` option to store 
-only the fields that your :pipeline:`$match` condition needs. You can 
-then use the :ref:`returnStoredSource <fts-return-stored-source-option>`
-option to retrieve stored fields.
+For queries that require multiple filtering operations, use the 
+:ref:`compound-ref` operator with ``filter`` clauses. If you must use 
+the :pipeline:`$match` stage in your aggregation pipeline, consider 
+using the :ref:`storedSource <fts-stored-source-definition>` option to 
+store only the fields that your :pipeline:`$match` condition needs. You 
+can then use the :pipeline:`$search` :ref:`returnStoredSource 
+<fts-return-stored-source-option>` option to retrieve stored fields  
+and avoid the ``mongod`` full document lookup.
 
 .. seealso:: 
 
@@ -280,37 +284,32 @@ option to retrieve stored fields.
 
 .. _query-group-agg-stage:
 
-Avoid ``$group`` After ``$search``  
-----------------------------------
+Use ``facet`` Instead of ``$group``  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a :pipeline:`$group` aggregation pipeline stage after a
-:pipeline:`$search` stage can slow down query results. If
-you use :pipeline:`$group` to get basic counts for field aggregations,
-we recommend that you use :ref:`fts-facet-ref` inside the
-:pipeline:`$searchMeta` stage instead.  
+If you use :pipeline:`$group` to get basic counts for field 
+aggregations, you can use :ref:`fts-facet-ref` inside the
+:pipeline:`$search` stage. If you need only metadata results, you can 
+use :ref:`fts-facet-ref` inside inside the :pipeline:`$searchMeta` 
+stage instead.  
 
 .. _query-count-agg-stage:
 
-Avoid ``$count`` After ``$search`` 
-----------------------------------
+Use ``count`` Instead of ``$count``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a :pipeline:`$count` aggregation pipeline stage after a
-:pipeline:`$search` stage can slow down query results. If 
-you use :pipeline:`$count` to get a count of the number of documents, 
-we recommend that you use :ref:`count <count-ref>` inside the
+If you use :pipeline:`$count` to get a count of the number of 
+documents, we recommend that you use :ref:`count <count-ref>` inside the
 :pipeline:`$search` or :pipeline:`$searchMeta` stage instead.  
 
 .. _query-sort-agg-stage:
 
-Avoid ``$sort`` After ``$search`` 
----------------------------------
+Use ``sort``, ``near``, or ``returnStoredSource`` Instead of  ``$sort``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a :manual:`$sort </reference/operator/aggregation/sort/>` 
-aggregation pipeline stage after a :pipeline:`$search` 
-stage can drastically slow down query results. 
-
-- For sorting numeric, date, or string fields,  use the ``sort`` option with
-  the :pipeline:`$search` stage. To learn more, see :ref:`sort-ref`.  
+- For sorting numeric, date, string, boolean, UUID, and objectID 
+  fields, use the ``sort`` option with the :pipeline:`$search` stage. 
+  To learn more, see :ref:`sort-ref`.  
 - For sorting geo fields, use the :ref:`near <near-ref>` operator. 
 - To sort other fields, use ``$sort`` and :ref:`returnStoredSource
   <fts-return-stored-source-option>` fields.  
