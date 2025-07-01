@@ -1,0 +1,131 @@
+.. _provision-migration-host:
+
+=============================================
+Provision a Migration Host for MongoDB Agent
+=============================================
+
+.. meta::
+   :description: Provision a migration host to facilitate live migration of MongoDB deployments from Ops Manager to Atlas by installing a dedicated MongoDB Agent.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/note-push-pull-migration-deprecation-for-om.rst
+   
+To live migrate your source MongoDB deployment monitored in |mms| to
+|service-short|, provision a server for the migration host.
+
+Overview
+--------
+
+The migration host is a server on which you install a dedicated {+mdbagent+}.
+This {+mdbagent+} automates live migration operations. It requires that
+you set its configuration option ``agentFeatureCloudMigrationEnabled`` to ``true``.
+
+You use the migration host to manage the live migration process of your
+deployment from |mms| to |service-short|. You can't use the migration host
+for any other purposes.
+
+After you provision the migration host, its server appears under the
+:guilabel:`Servers` tab. A {+mdbagent+} on the migration host runs a
+one-time migration of data from |mms| to |service-short| and reports the
+live migration status back to |mms|.
+
+To learn about starting a live migration from |mms|, see
+:ref:`Migrate a Deployment to Atlas <migrate-to-atlas>` and review the
+:ref:`workflow for live migration to Atlas <lm-workflow>`.
+
+Considerations
+--------------
+
+If you plan to migrate more than one deployment at a time, create a
+dedicated migration host for each of the deployments that you want
+to migrate to |service-short|.
+
+.. note::
+
+   Using an HTTP proxy, which intercepts and replaces TLS certificates
+   for the relayed HTTPS requests is not supported by |onprem| when you
+   use it in hybrid mode.
+
+.. _live-migration-host-supported-platforms:
+
+Prerequisites
+-------------
+
+The migration host must use a 64-bit CPU architecture and one of the
+following supported platforms. The platforms depend on the migration tool
+that the migration host will be running to facilitate the migration.
+
+- Migration host for live migrations (push) of source deployments of MongoDB
+  earlier than {+c2c-version+} that you add to monitoring in |cloud-short|,
+  where the migration host runs ``mongomirror``:
+
+  .. include:: /includes/list-tables/only-v5-agent-platform-support-table.rst
+
+  .. note::
+    
+     The configuration of a migration host for live migration is not
+     supported on Windows or macOS. You can still live migrate (push) your data
+     from a Windows-based deployment to |service-short| if you
+     provision your migration host on one of the platforms it supports. 
+     You can't live migrate your data from a macOS-based deployment to 
+     |service-short|.
+
+  If |mms| is running in local mode, you must have outgoing 
+  access to the following server to download :atlas:`mongomirror 
+  </reference/mongomirror/>`.
+
+  .. code-block:: none
+     :copyable: false
+
+     translators-connectors-releases.s3.amazonaws.com
+
+- Migration host for live migrations (push) of MongoDB {+c2c-version+}+ or
+  {+c2c-version-7+}+ source
+  deployments monitored in |cloud-short|, where the migration host runs `mongosync <https://www.mongodb.com/docs/cluster-to-cluster-sync/current/reference/mongosync/>`__:
+  
+  The migration host must use a 64-bit CPU architecture and one of the
+  `mongosync platforms <https://www.mongodb.com/docs/cluster-to-cluster-sync/current/installation>`__.
+
+.. _live-migration-host-resource-requirements:
+
+Migration Host Resource Requirements
+-------------------------------------
+
+The live migration process is CPU-intensive and requires sufficient
+network bandwidth. Use a cloud instance with enough resources to help
+ensure a successful migration.
+
+Avoid host environments that have been characterized as having
+low network bandwidth.
+
+You may also need to provision additional storage for the
+:setting:`cloudMigrationOplogPath` option described in the following
+procedure.
+
+- MongoDB {+c2c-version+}+ or {+c2c-version-7+}+. For the migration host that runs ``mongosync`` to
+  facilitate push live migrations, use an instance
+  with a minimum of 8 CPUs and 24 GB of RAM.
+
+- MongoDB versions earlier than {+c2c-version+}. For the migration host that runs
+  ``mongomirror`` to facilitate push live migrations, use a host
+  with 2-4 CPU cores and 4-8 GB of RAM to migrate a replica set.
+  Use an instance with 2-4 CPU cores per shard to migrate a sharded cluster.
+
+Procedure
+---------
+
+.. include:: /includes/steps/install-agent-live-migration.rst
+
+Next Steps
+----------
+
+Once you have provisioned the migration host, you can switch to
+|service-short| and follow the steps in the wizard to
+start the live migration process.

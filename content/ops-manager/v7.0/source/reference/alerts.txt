@@ -1,0 +1,1413 @@
+.. _alert-conditions:
+
+=======================
+Review Alert Conditions
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. include:: /includes/extracts/alert-overview.rst
+
+To set a condition:
+
+#. Select a :guilabel:`Target` from the list.
+#. Select a condition in the :guilabel:`condition/metric` list.
+
+|mms| triggers an alert when the condition is ``true`` on the
+specified target MongoDB instance.
+
+To set a metric:
+
+#. Select a :guilabel:`Target` type from the list.
+#. Filter the :guilabel:`Target` type or select :guilabel:`Any`.
+#. Select on a metric in the :guilabel:`condition/metric` list.
+#. Select if this metric should be :guilabel:`Below` or
+   :guilabel:`Above` the threshold.
+#. Type a threshold value. All thresholds are numbers.
+#. Select the unit of measure for the threshold.
+
+|mms| triggers an alert when the metric threshold is met on the
+specified target MongoDB instance.
+
+Host Alerts
+-----------
+
+When setting an alert for a host, select the :guilabel:`host type` that
+applies to this alert and the :guilabel:`condition` that triggers this
+alert.
+
+Host Types
+~~~~~~~~~~
+
+For :guilabel:`host type`, set an alert for all or one of the
+following types of MongoDB processes:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Set Host Type to:
+
+     - Alert Includes
+
+   * - Any type
+
+     - All the types described in this table.
+
+   * - Standalone
+
+     - Any :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instance that is *neither* part of a replica
+       set or sharded cluster *nor* used as a config server.
+
+   * - Primary
+
+     - All replica set :manual:`primaries </reference/glossary/#std-term-primary>`.
+
+   * - Secondary
+
+     - All replica set :manual:`secondaries </reference/glossary/#std-term-secondary>`.
+
+   * - Arbiter
+
+     - All replica set :term:`arbiters <arbiter>`.
+
+   * - Mongos
+
+     - All :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` instances.
+
+   * - Conf
+
+     - All :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instances used as :term:`config servers
+       <config server>`.
+
+.. _host-alert-conditions:
+
+Host Alert Conditions
+~~~~~~~~~~~~~~~~~~~~~
+
+Change in Host Status
+`````````````````````
+You can set an alert for when MongoDB instance changes. Host status
+conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - Host added
+     - |mms| starts monitoring or managing a :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` or
+       :binary:`~bin.mongos` process for the first time.
+
+   * - Host removed
+     - |mms| stops monitoring or managing a :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` or
+       :binary:`~bin.mongos` process for the first time.
+
+   * - Host added to replica set
+     - Specified type of :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` process is added to a
+       :manual:`replica set </reference/glossary/#std-term-replica-set>`.
+
+   * - Host removed from replica set
+     - Specified type of :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` process is removed from
+       a :manual:`replica set </reference/glossary/#std-term-replica-set>`.
+
+   * - Host has restarted
+     - |mms| detects that a host has been restarted.
+
+   * - Restarts in Last Hour is
+     - |mms| detects that the number of times a host restarted within
+       the previous hour exceeds the specified threshold.
+
+   * - Host experienced a rollback
+     - |mms| detects that a :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` on a host triggered a
+       rollback.
+
+       The following host types can't experience rollbacks:
+
+       - :term:`arbiters <arbiter>`
+       - :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>`
+
+       To learn more, see :manual:`Rollbacks During Replica Set Failover </core/replica-set-rollbacks>`.
+
+   * - Host is recovering
+     - A :manual:`secondary </reference/glossary/#std-term-secondary>` enters the :replstate:`RECOVERING` state. To
+       learn more about the :replstate:`RECOVERING` state, see
+       :manual:`Replica Set Member States </reference/replica-states>`.
+
+   * - Host does not have the latest version
+     - Revision of MongoDB running on a host is two or more
+       revisions behind the current stable release of MongoDB.
+
+       For example, if the current stable release is MongoDB 4.0.9, a host
+       running MongoDB 4.0.8 would not trigger an alert but a host
+       running MongoDB version 4.0.7 would trigger an alert.
+
+       To learn more about MongoDB version numbering, see
+       :ref:`MongoDB Version Numbers <release-version-numbers>`
+       in the MongoDB manual.
+
+   * - Host's SSL certificate will expire after 21 days
+     - SSL certificate for a MongoDB instance is 21 days from
+       expiration. |mms| resends the alert every 24 hours until
+       resolved or acknowledged. If you do not resolve or acknowledge
+       the alert and the certificate expires, |mms| continues to send
+       the alert. If the certificate expires, the {+magent+} can
+       no longer connect to the MongoDB instance.
+
+.. include:: /includes/extracts/alert-host-down.rst
+
+.. _advisor-alerts:
+
+Advisor
+```````
+
+You may set the :guilabel:`Host Has Index Suggestions` alert to receive
+an alert if :ref:`Performance Advisor <performance-advisor>` has index
+suggestions for the host.
+
+If the :ref:`query targeting ratio <query-targeting-resolution>` for
+a host consistently exceeds 10,000 for a period of 10 minutes,
+Performance Advisor checks the host for inefficient queries and
+possible indexes to improve performance. If Performance Advisor
+determines that the host would benefit from one or more indexes,
+this alert triggers and directs you to create the suggested indexes.
+
+This alert does not trigger for projects where Performance Advisor is
+disabled.
+
+Asserts
+```````
+
+You may set alerts for how many assertion errors per second the
+instance has created.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on opscounters using the ``asserts`` document that
+   the
+   :manual:`serverStatus </reference/command/serverStatus>`
+   command returns.
+
+Assert metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Asserts: Regular is
+     - Rate of regular asserts meets your specified threshold.
+
+   * - Asserts: Warning is
+     - Rate of warnings meets your specified threshold.
+
+   * - Asserts: Msg is
+     - Rate of message asserts meets your specified threshold.
+       Message asserts are internal server errors. Stack traces are
+       logged for these.
+
+   * - Asserts: User is
+     - Rate of asserts users create meets your specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Average Execution Time
+``````````````````````
+
+.. important:: Applies to MongoDB 3.4 or later only
+
+   The following metrics apply only to deployments running MongoDB
+   version 3.4 or later.
+
+You may set alerts for how long operations take to complete. Execution
+time metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Average Execution Time: Commands is
+     - Average execution time for command operations meets your
+       specified threshold.
+
+   * - Average Execution Time: Reads is
+     - Average execution time for read operations meets your
+       specified threshold.
+
+   * - Average Execution Time: Writes is
+     - Average execution time for write operations meets your
+       specified threshold.
+
+Document Metrics
+````````````````
+
+You may set alerts for how many MongoDB documents are processed per
+second. Document processing metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Document Metrics: Deleted is
+     - Average rate per second of documents deleted meets your
+       specified threshold.
+
+   * - Document Metrics: Inserted is
+     - Average rate per second of documents inserted meets your
+       specified threshold.
+
+   * - Document Metrics: Returned is
+     - Average rate per second of documents returned meets your
+       specified threshold.
+
+   * - Document Metrics: Update is
+     - Average rate per second of documents updated meets your
+       specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+.. _query-targeting:
+
+Query Targeting
+```````````````
+
+You may set alerts for how fast MongoDB scans items during queries and
+how many items are scanned compared to documents returned. Query
+execution time metrics include:
+
+.. note:: How It Is Measured
+
+   MongoDB measures query performance based on the :manual:`explain
+   </reference/command/explain>` command.
+
+.. alert:: Query Targeting: Scanned is
+  
+   Average rate per second to scan index items during queries
+   and query-plan evaluations meets your specified threshold.
+
+.. alert:: Query Targeting: Scanned Objects is
+  
+   Average rate per second to scan documents meets your
+   specified threshold.
+
+.. alert:: Query Targeting: Scanned / Returned is
+  
+   Ratio of index items scanned to documents returned meets the
+   specified threshold.
+
+.. alert:: Query Targeting: Scanned Objects / Returned is
+     
+   Ratio of documents scanned to documents returned meets the
+   specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Opcounter
+`````````
+
+You may set alerts for how many database operations are completed per
+second.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on opscounters using the ``opscounters`` document that the
+   :manual:`serverStatus </reference/command/serverStatus>` command returns.
+
+Operation metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - Opcounter: Cmd is
+     - Average rate of commands performed per second meets your
+       specified threshold.
+
+   * - Opcounter: Delete is
+     - Average rate of deletes performed per second meets your
+       specified threshold.
+
+   * - Opcounter: Getmores is
+     - Average rate of getMores performed per second meets your
+       specified threshold. On a primary, this number can be high even
+       if the query count is low. The secondaries "getMore" from the
+       primary as part of replication.
+
+   * - Opcounter: Insert is
+     - Average rate of inserts performed per second meets your
+       specified threshold.
+
+   * - Opcounter: Query is
+     - Average rate of queries performed per second meets your
+       specified threshold.
+
+   * - Opcounter: Update is
+     - Average rate of updates performed per second meets your
+       specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Opcounter - Repl
+````````````````
+
+You may set alerts for how many database operations per second are
+replicated to a MongoDB :manual:`secondaries </reference/glossary/#std-term-secondary>`.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on opscounters using the ``opscountersRepl``
+   document of that the :manual:`serverStatus
+   </reference/command/serverStatus>` command returns.
+
+Replication operation metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Opcounter: Repl Cmd is
+     - Average rate of replicated commands applied per second meets
+       your threshold.
+
+   * - Opcounter: Repl Delete is
+     - Average rate of replicated deletes applied per second meets your
+       threshold.
+
+   * - Opcounter: Repl Insert is
+     - Average rate of replicated inserts applied per second meets your
+       threshold.
+
+   * - Opcounter: Repl Update is
+     - Average rate of replicated updates applied per second meets your
+       threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Memory
+``````
+
+You may set alerts for how much memory a MongoDB instance uses. Set
+this threshold in bits, kilobits, megabits, gigabits, bytes, kilobytes,
+megabytes, gigabytes, terabytes or petabytes.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on memory using the ``mem`` document that the
+   :manual:`serverStatus </reference/command/serverStatus>` command returns.
+
+Memory metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Memory: Resident is
+     - Resident memory size for the :binary:`~bin.mongod` process
+       meets your specified threshold. Over time on a dedicated
+       database host, the resident memory may approach the amount of
+       RAM on the host.
+
+   * - Memory: Virtual is
+     - Virtual memory size for the :binary:`~bin.mongod` process
+       meets your specified threshold. You can use this alert to flag
+       excessive memory outside of memory mapping.
+
+   * - Memory: Mapped is
+     - Mapped memory size for the :binary:`~bin.mongod` process
+       meets your specified threshold. As MongoDB memory-maps all the
+       data files, the size of mapped memory should approach total
+       database size.
+
+   * - Memory: Computed is
+     - Virtual memory size for the :binary:`~bin.mongod` process
+       that is not accounted for by memory-mapping meets your specified
+       threshold. If this number is very high (multiple gigabytes), it
+       indicates that excessive memory is being used outside of memory
+       mapping.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Security
+````````
+
+Security metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Host has security recommendations
+     - Authentication or |tls| is disabled.
+
+Swap
+````
+Swap metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Swap Usage: Used is
+     - The total amount swap space in use has reached the specified
+       threshold.
+
+   * - Swap Usage: Max Used is
+     - Maximum total amount of swap space in use 
+       reaches the specified threshold.
+  
+   * - Swap Usage: Free is
+     - The amount of available swap space has dropped below the 
+       specified threshold.
+
+   * - Swap Usage: Max Free is
+     - Maximum amount of available swap space 
+       drops below the specified threshold.
+
+WiredTiger Cache
+````````````````
+
+You may set alerts for how much WiredTiger cache a MongoDB instance
+uses. Set this threshold in bits, kilobits, megabits, gigabits, bytes,
+kilobytes, megabytes, gigabytes, terabytes or petabytes.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on memory using the ``cache`` document that the
+   :manual:`serverStatus </reference/command/serverStatus>` command returns.
+
+WiredTiger cache metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Cache: Bytes Read Into Cache is
+     - Average rate of bytes per second read into WiredTiger's
+       cache meets your specified threshold.
+
+   * - Cache: Bytes Written From Cache is
+     - Average rate of bytes per second written from WiredTiger's
+       cache meets your specified threshold.
+
+   * - Cache: Dirty Bytes is
+     - Number of tracked :term:`dirty bytes` currently in the
+       WiredTiger cache.
+
+   * - Cache: Used Bytes is
+     - Number of bytes currently in the WiredTiger cache.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+B-tree
+``````
+
+.. important:: Applies to MongoDB 2.2 to 2.6 only
+
+   These metrics only triggers alerts on deployments running MongoDB
+   versions 2.2 through 2.6.
+
+You may set alerts for how many btree operations on the MongoDB
+instance are completed per second. B-Tree metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - B-tree: accesses is
+     - Number of accesses to B-tree indexes meets your specified
+       threshold.
+
+   * - B-tree: hits is
+     - Number of times a B-tree page was in memory meets your
+       specified threshold.
+
+   * - B-tree: misses is
+     - Number of times a B-tree page was *not* in memory meets your
+       specified threshold.
+
+   * - B-tree: miss ratio is
+     - Ratio of misses to hits meets your specified threshold.
+
+Effective Lock %
+````````````````
+
+.. important:: Applies to MongoDB 2.2 to 2.6 only
+
+   This metric only triggers alerts on deployments running MongoDB
+   versions 2.2 through 2.6.
+
+You may set alerts for what percentage of time the MongoDB instance is
+:term:`write locked <write lock>`. Effective Lock percentage metrics
+include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Effective Lock % is
+     - If the percent of total time the instance is :term:`write locked
+       <write lock>` meets your specified threshold.
+
+Background Flush Average
+````````````````````````
+
+.. important:: Applies to databases running MMAPv1 only
+
+   This metric only triggers alerts on deployments running MMAPv1
+   storage engines for their MongoDB databases.
+
+You may set an alert for how long in milliseconds the average flush on
+the MongoDB instance take to complete. A flush is the writing of data
+to disk from memory.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on average background flush time using the
+   ``backgroundFlushing.average_ms`` value that the
+   :manual:`serverStatus </reference/command/serverStatus>` command
+   returns.
+
+Background flush average metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Background Flush Average is
+     - Average time for background flushes meets your specified
+       threshold.
+
+Connections
+```````````
+
+You may set alerts for the active connections to the MongoDB instance.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on memory using the ``connections`` document that
+   the :manual:`serverStatus </reference/command/serverStatus>` command
+   returns.
+
+Connection metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Connections is
+     - Number of active host connections meets your specified
+       threshold.
+
+   * - Connections % of configured limit is
+     - Percentage of active host connections to the total number of
+       possible connections meets your specified threshold. The
+       default value for MongoDB versions 2.6.0 and 3.0.0 is ``65536``
+       and the default value for MongoDB versions greater than (``>``)
+       3.0.0,  is ``1000000``. You can override the default value two
+       ways: 
+
+       - Use the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` ``--maxConnns`` to set
+         the maximum number of simultaneous connections for ``mongod``.
+         To learn more, see :manual:`mongod Core Options
+         </reference/program/mongod/#std-option-mongod.--maxConns>`. 
+
+       - Update the ``net.maxIncomingConnections`` field in the
+         MongoDB configuration file. To learn more, see :manual:`net
+         Options </reference/configuration-options/#mongodb-setting-net.maxIncomingConnections>`.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Queues
+``````
+
+You may set alerts for the operations waiting on locks.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on memory using the ``globalLock.currentQueue``
+   document that the
+   :manual:`serverStatus </reference/command/serverStatus>`
+   command returns.
+
+Queue metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Queues: Total is
+     - Number of operations waiting on a :term:`lock` of any type
+       meets your specified threshold.
+
+   * - Queues: Readers is
+     - Number of reader operations waiting on a :term:`lock` of any
+       type meets your specified threshold.
+
+   * - Queues: Writers is
+     - Number of writer operations waiting on a :term:`lock` of any
+       type meets your specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Page Faults
+```````````
+
+.. important:: Applies to MongoDB 2.2 to 2.6 only
+
+   The :guilabel:`Accesses Not In Memory: Total is` and
+   :guilabel:`Page Fault Exceptions Thrown: Total is` metrics only
+   trigger alerts on deployments running MongoDB versions 2.2 through
+   2.6.
+
+You may set alerts for page faults.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on memory using the ``extra_info.page_faults``
+   document that the
+   :manual:`serverStatus </reference/command/serverStatus>` command
+   returns.
+
+   MongoDB 2.2 through 2.6 reported on the
+   :guilabel:`Accesses Not In Memory: Total is` and
+   :guilabel:`Page Fault Exceptions Thrown: Total is` metrics using
+   the ``recordStats`` document that the
+   :manual:`serverStatus </reference/command/serverStatus>` command
+   returned.
+
+Page Fault metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Accesses Not In Memory: Total is
+     - Rate of disk accesses meets your specified threshold.
+       MongoDB must access data on disk if your :term:`working set`
+       does not fit in memory. This metric is found on the host's
+       ``Record Stats`` chart.
+
+   * - Page Fault Exceptions Thrown: Total is
+     - Rate of page fault exceptions thrown meets your specified
+       threshold. This metric is found on the host's ``Record Stats``
+       chart.
+
+   * - Page Faults is
+     - Rate of page faults (whether or not an exception is thrown)
+       meets your specified threshold. This metric is found on the
+       host's ``Page Faults`` chart.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Cursors
+```````
+
+You may set alerts for the number of open and timed-out
+:manual:`cursors </core/cursors>` for a MongoDB process.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on memory using the ``metrics.cursor`` document that
+   the :manual:`serverStatus </reference/command/serverStatus>` command
+   returns.
+
+Cursor metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Cursors: Client Cursors Size is
+     - Amount of memory the host uses to maintain cursors meets
+       your specified threshold.
+
+   * - Cursors: Open is
+     - Number of cursors the host is maintaining for clients meets
+       the specified threshold.
+
+   * - Cursors: Timed Out is
+     - Number of timed-out cursors the host is maintaining for
+       clients meets your specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Network
+```````
+
+You may set alerts for the network throughput for a MongoDB process.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on memory using the ``network`` document that the
+   :manual:`serverStatus </reference/command/serverStatus>` command returns.
+
+Network metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Network: Bytes In is
+     - Number of bytes sent *to* the database host meets your
+       specified threshold.
+
+   * - Network: Bytes Out is
+     - Number of bytes sent *from* the database host meets your
+       specified threshold.
+
+   * - Network: Num Requests is
+     - Number of requests sent *to* the database host meets your
+       specified threshold.
+
+       .. Verify this.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+.. _replication-oplog:
+
+Replication Oplog
+`````````````````
+
+You may set alerts for the replication oplogs for a MongoDB process.
+
+.. Need help.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on the Replication Oplog using the ``oplog``
+   document that the
+   :manual:`serverStatus </reference/command/serverStatus>` command
+   returns combined with results from
+   :manual:`rs.status() </reference/method/rs.status>` and
+   :manual:`rs.conf() </reference/method/rs.conf>`.
+
+Replication oplog metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Replication Headroom is
+     - Difference between the sync source's replication :manual:`oplog </reference/glossary/#std-term-oplog>`
+       window and the :manual:`secondary's </reference/glossary/#std-term-secondary>` :doc:`replication
+       lag </reference/alerts/replication-lag>` meets your specified
+       threshold. A secondary can go into ``RECOVERING`` if this value
+       goes to ``0``.
+
+   * - Replica Time is
+     - Approximate amount of time in milliseconds available in the
+       primary's replication :manual:`oplog </reference/glossary/#std-term-oplog>` meets your specified
+       threshold.
+
+   * - Oplog Data Per Hour is
+     - Average rate of gigabytes of oplog the primary generates per
+       hour meets your specified threshold.
+
+   * - Replication Lag is
+     - Approximate number of seconds the :manual:`secondary </reference/glossary/#std-term-secondary>` is
+       behind the :manual:`primary </reference/glossary/#std-term-primary>` in write application. Only accurate
+       if the lag is larger than 1-2 seconds, as the precision of this
+       statistic is limited.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Operations Scan and Order
+`````````````````````````
+
+You may set alerts for the scan and order operations for a MongoDB
+process.
+
+.. Need help.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on the Replication Oplog using the
+   ``metrics.operation.scanAndOrder`` document that the
+   :manual:`serverStatus </reference/command/serverStatus>`
+   command returns.
+
+Operations metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Operations: Scan and Order is
+     - Average rate per second over your specified threshold of
+       queries that return sorted results that cannot perform the sort
+       operation using an index.
+
+DB Storage
+``````````
+
+You may set alerts for the amount of data storage used. Database
+storage metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - DB Storage is
+     - Amount of on-disk storage space used by extents meets your
+       specified threshold.
+
+   * - DB Data Size is
+     - Actual data size in the database meets your specified
+       threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+Journaling
+``````````
+
+You may set alerts for the amount of journaling storage used.
+Journaling metrics include:
+
+.. Does #1 apply only to MongoDB versions 2.2 through 2.6?
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Journaling Commits in Write Lock is
+     - Rate of commits that occurred while the database was in
+       :term:`write lock` meets your specified threshold.
+
+   * - Journaling MB is
+     - Average amount of data in megabytes |mms| writes to the
+       recovery log per second meets your specified threshold.
+
+   * - Journaling Write Data Files MB is
+     - Average rate of data in megabytes |mms| writes to the
+       databases datafiles per second meets your specified threshold.
+       As these writes are already journaled, they can occur lazily,
+       and thus the number indicated here may be lower than the amount
+       physically written to disk.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+WiredTiger Storage Engine
+`````````````````````````
+
+You may set alerts for WiredTiger tickets.
+
+.. note:: How It Is Measured
+
+   MongoDB reports on WiredTiger using the
+   ``wiredTiger.cache`` and
+   ``wiredTiger.concurrentTransactions`` documents that the
+   :manual:`serverStatus </reference/command/serverStatus>` command returns.
+
+WiredTiger storage engine conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Tickets Available: Reads is
+     - Number of read tickets available to the WiredTiger storage
+       engine meet your specified threshold.
+
+   * - Tickets Available: Writes is
+     - Number of write tickets available to the WiredTiger storage
+       engine meet your specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+.. _system-disk-alerts:
+
+System and Disk Alerts
+``````````````````````
+
+You may set alerts for compute and disk utilization. System resource
+conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - System: CPU (Steal) % is
+     - *Applicable when the EC2 instance credit balance is exhausted.*
+
+       The percentage of time the CPU is in a state of "involuntary
+       wait". CPU steal percentage is the percentage by which the CPU
+       usage exceeds the guaranteed baseline CPU credit accumulation
+       rate.
+
+       This alert typically triggers when all credits have been
+       consumed on an `AWS burstable performance instance
+       <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html>`__.
+
+   * - System: Max CPU (Steal) % is
+     - Maximum percentage of time that the CPU is in a state of 
+       "involuntary wait" exceeds the specified threshold.
+
+   * - System: CPU (User) % is
+     - CPU usage of the MongoDB process, scaled to a range of 0-100% by 
+       dividing by the number of CPUs.
+
+   * - System: Max CPU (User) % is
+     - Maximum CPU usage of the MongoDB process, 
+       scaled to a range of 0-100% by dividing by the number of CPUs 
+       exceeds the specified threshold.
+
+   * - System Memory: Used is
+     - Total system memory used for the :binary:`~bin.mongod` minus 
+       buffers, cached, and free memory meets the specified threshold.
+
+   * - System Memory: Max Used is
+     - Maximum system memory usage value meets 
+       the specified threshold.
+
+   * - System Memory: Available is
+     - Available system memory usage for the :binary:`~bin.mongod` has 
+       dropped below the specified threshold.
+
+   * - System Memory: Max Available is
+     - Maximum amount of available system memory 
+       drops below the specified threshold.
+
+   * - Disk space % used on Data Partition is
+     - Percentage of disk space used on any partition that contains
+       the MongoDB collection's data.
+
+   * -  Max disk space % used on Data Partition is
+     - Maximum percentage of disk space used on 
+       any partition that contains the MongoDB collection's data 
+       exceeds the specified threshold.
+
+   * - Disk space % used on Index Partition is
+     - Percentage of disk space used on any partition that contains
+       the MongoDB index data.
+
+   * - Max disk space % used on Index Partition is
+     - Maximum percentage of disk space used on 
+       any partition that contains the MongoDB index data exceeds the 
+       specified threshold.
+
+   * - Disk space % used on Journal Partition is
+     - Percentage of disk space used on the partition that contains
+       the MongoDB journal, if journaling is enabled.
+
+   * - Max disk space % used on Journal Partition is
+     - Maximum percentage of disk space used on 
+       the partition that contains the MongoDB journal exceeds the 
+       specified threshold.
+
+   * - System Network In is
+     - Number of bytes per second sent *to* the database host meets the
+       specified threshold.
+
+   * - Max System Network In is
+     - Maximum number of bytes sent *to* MongoDB 
+       meets the specified threshold.
+  
+   * - System Network Out is
+     - Number of bytes per second sent *from* the database host meets 
+       your specified threshold.
+
+   * - Max System Network Out is
+     - Maximum number of bytes sent *from* 
+       MongoDB meets the specified threshold.
+
+.. include:: /includes/fact-alerts-charting-metrics.rst
+
+.. _replica-set-alerts:
+
+Replica Set Alerts
+------------------
+
+You may set alerts about the status of the :manual:`primary </reference/glossary/#std-term-primary>` and the
+number of healthy members in a :manual:`replica set </reference/glossary/#std-term-replica-set>`. Replica set
+conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - Replica set elected a new primary
+     - A set elects a new :manual:`primary </reference/glossary/#std-term-primary>`. Each time |mms| receives a
+       ping, it inspects the output of the replica set's
+       :manual:`rs.status() </reference/method/rs.status>` method for
+       the status of each replica set member. From this output, |mms|
+       determines which replica set member is the primary. If the
+       primary found in the ping data is different than the current
+       primary known to |mms|, this alert triggers.
+
+       Receiving this alert does not always mean that the set elected a
+       *new* primary. This alert may also trigger when the same primary
+       is re- elected. This can happen when |mms| processes a ping in
+       the midst of an election.
+
+   * - Replica set has no primary
+     - A replica set does not have a :manual:`primary </reference/glossary/#std-term-primary>`. Specifically,
+       when none of the members of a replica set have a status of
+       ``PRIMARY``, the alert triggers. For example, this condition may
+       arise when a set has an even number of voting members resulting
+       in a tie.
+
+       If the {+magent+} collects data during an
+       :manual:`election for primary </core/replica-set-elections>`,
+       this alert might send a false positive. To prevent such false
+       positives, set the alert configuration's :guilabel:`after
+       waiting` interval (in the configuration's :guilabel:`Send to`
+       section).
+
+       For resolutions, see :doc:`/reference/alerts/no-primary`.
+
+Replica set metrics include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Metric
+     - Alert Trigger
+
+   * - Number of healthy members is
+     - A replica set has fewer healthy members than your specified
+       threshold.
+
+   * - Number of unhealthy members is
+     - A replica set has more unhealthy members than your specified
+       threshold.
+
+   * - Number of elections in last hour is > X
+     - Number of elections that have occurred in the last hour
+       exceeded the user-specified value of ``X``. The value of ``X``
+       is set when you create the alert. This alert may indicate that
+       the cluster's replication is not in a healthy state, as
+       evidenced by constant elections.
+
+.. note::
+
+   A replica set member is healthy if you run
+   :manual:`rs.status() </reference/method/rs.status>` for that
+   replica set and the result returns :replstate:`PRIMARY` or
+   :replstate:`SECONDARY` for that member. Hidden secondaries and
+   arbiters are not counted.
+
+
+Sharded Cluster Alerts
+----------------------
+
+You may set an alert for a ``mongos`` missing from a
+:manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`. Sharded cluster conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - Cluster is missing an active mongos
+     - |mms| cannot reach **any** :binary:`~bin.mongos` for the cluster.
+
+Agent Alerts
+------------
+
+You may set alerts for agent status or versioning. Agent conditions
+include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - {+aagent+} is down
+     - No {+aagent+} is detected for at least 1 minute. Under
+       normal operation, the {+aagent+} sends a ping to |mms|
+       roughly once every 10 seconds. If |mms| does not receive a ping
+       for at least 1 minute, this alert triggers. 
+       
+       This alert triggers only if the {+aagent+} is managing a
+       MongoDB process or agent module.
+
+   * - {+magent+} is down
+     - No {+magent+} is detected for at least 7 minutes. Under
+       normal operation, the {+magent+} sends a ping to |mms|
+       roughly once per minute. If |mms| does not receive a ping for at
+       least 7 minutes, this alert triggers. However, this alert never
+       triggers for a project that has no hosts configured.
+
+       .. important::
+
+          When the {+magent+} is down, |mms| triggers no other alerts
+          for any host. For example: if a host is down there is no {+magent+} to send data to |mms| that could trigger new alerts.
+
+   * - {+magent+} does not have the latest version
+     - {+magent+} is not running the latest version of the
+       software.
+
+   * - {+bagent+} is down
+     - {+bagent+} for a project with at least one active replica
+       set or cluster is down for more than 1 hour.
+
+       To resolve this alert:
+
+       #. To see which host serves the {+bagent+},
+          click :guilabel:`Deployment`, then the :guilabel:`Servers` tab.
+
+       #. Check the {+bagent+} log file on that host.
+
+   * - {+bagent+} does not have the latest version
+     - {+bagent+} is not running the latest version of the
+       software.
+
+.. {+aagent+} is down
+..    to be defined
+
+.. include:: /includes/extracts/alert-conf-call-failure.rst
+
+.. _backup-alert-conditions:
+
+Backup Alerts
+-------------
+
+You may set alerts for backup oplog, resync and inconsistencies. Backup
+conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - Backup oplog is behind
+     - Most recent :manual:`oplog </reference/glossary/#std-term-oplog>` data received by |mms| is more
+       than 75 minutes old.
+
+       To resolve this alert, see
+       :doc:`/reference/alerts/backup-oplog-is-behind`.
+
+   * - Backup requires a resync
+     - Replication process for a backup falls too far behind the
+       :manual:`oplog </reference/glossary/#std-term-oplog>` to catch up. This occurs when the host overwrites
+       oplog entries that backup has not yet replicated. When this
+       happens, you must resync backup, as described in the procedure
+       :doc:`/tutorial/resync-backup`.
+
+       Also, check the corresponding {+bagent+} log. If you see a
+       "Failed Common Points" test, one of the following may have
+       happened.
+
+       - A significant rollback event occurred on the backed-up replica
+         set.
+
+       - :manual:`oplog </core/replica-set-oplog/>` for the
+         backed-up replica set was resized or deleted.
+
+       - High oplog churn caused the agent to lose the tail of the
+         oplog.
+
+   * - Inconsistent backup configuration has been detected
+     - |mms| has detected that the configuration for a backup does not
+       match the configuration of the MongoDB deployment it backs up.
+
+       To resolve this alert, see :doc:`/reference/alerts/inconsistent-backup`.
+
+   * - Inconsistent cluster snapshot count is...
+     - |mms| fails a consecutive number of times to successfully take a
+       cluster snapshot. This alert is triggered when the number of
+       attempts meets your specified threshold.
+
+       The alert text may contain the reason for the problem. Common
+       problems include:
+
+       - There was no reachable :binary:`~bin.mongos`.
+         To resolve this issue, ensure that there is at least one
+         :binary:`~bin.mongos` showing on the |mms|
+         :guilabel:`Deployment` page.
+
+       - :manual:`balancer </core/sharding-balancing>` could not be
+         stopped. To resolve this issue, check the log files for the
+         first :manual:`config server </core/sharded-cluster-config-servers>`
+         to determine why the balancer will not stop.
+
+       - Could not insert a token in one or more
+         :manual:`shards </core/sharded-cluster-shards>`. To resolve
+         this issue, ensure connectivity between the {+bagent+} and
+         all shards.
+
+.. include:: /includes/extracts/alert-global-alerts.rst
+
+.. _bi-alert-conditions:
+
+BI Connector Alerts
+-------------------
+
+These alert conditions apply to use of the BI Connector with |mms|.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - .. alert:: BI Connector is down
+     - The {+aagent+} has not detected the BI Connector
+       process for at least 4 minutes.
+
+       .. important::
+
+          When the {+aagent+} is down, |mms| cannot
+          trigger alerts for the BI Connector.
+
+User Alerts
+-----------
+
+You may set alerts for user addition, removal and role changes. User
+conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - User joined the project
+     - A new user joins the project.
+
+   * - User left the project
+     - A user leaves the project.
+
+   * - User had their role changed
+     - A user's roles have been changed.
+
+Project Alerts
+--------------
+
+You may set alerts for user approval and authentication configuration.
+Project conditions include:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Condition
+     - Alert Trigger
+
+   * - Users do not have two-factor authentication enabled
+     - Project has users who have not set up
+       :doc:`two-factor authentication </core/two-factor-authentication>`.
+
+   * - Security checkup alerts updated
+     - The project's security checkup alerts changed.

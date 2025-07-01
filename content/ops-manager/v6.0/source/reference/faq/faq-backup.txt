@@ -1,0 +1,416 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _faq-backup:
+
+=======================
+FAQ: Backup and Restore
+=======================
+
+This FAQ addresses common questions about |mms| and how it backs up and
+restores databases and collections.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The introduction of the MongoDB Agent and the new backup process for
+MongoDB 4.2 with a |fcv-link| of ``4.2`` have changed some of these
+answers. Those answers have admonitions explaining the impact of these
+new features to existing answers.
+
+Requirements
+------------
+
+What Version of MongoDB Does the Backup Feature Require?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/list-table-mongodb-version-compatibility.rst
+
+What MongoDB Permissions does Backup Require?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are backing up a MongoDB instance that has authentication
+enabled, the {+mdbagent+} requires the privileges described for the
+MongoDB Agent backup function.
+
+.. seealso::
+
+   :manual:`User Privilege Roles in MongoDB </reference/user-privileges/>`.
+
+How Does |mms| Measure Data Size?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| uses the following conversions to measure snapshot size and to
+measure how much oplog data has been processed:
+
+- 1 MB = 1024\ :sup:`2` bytes (1 MiB)
+
+- 1 GB = 1024\ :sup:`3` bytes (1 GiB)
+
+- 1 TB = 1024\ :sup:`4` bytes (1 TiB)
+
+Does Backup Work with All Types of Deployments?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- For MongoDB 4.2 and later, see
+  :ref:`Backup Considerations for Databases <4.2-backup-considerations>`.
+- For any MongoDB with |fcv| ``4.0`` and earlier databases, Backup
+  doesn't support standalone deployments. Backup has full
+  support for replica sets and sharded clusters.
+
+Why Does The Backup Feature Not Support Standalone Deployments?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| copies data from the :manual:`oplog </reference/glossary/#std-term-oplog>` to provide a continuous backup
+with point-in-time recovery. |mms| does not support backup of standalone
+hosts because they do not have an :manual:`oplog </reference/glossary/#std-term-oplog>`. To support backup with
+a single :binary:`~bin.mongod` instance, you can run a one-member
+replica set. 
+
+.. seealso:: 
+
+   :doc:`/tutorial/convert-standalone-to-replica-set`
+
+Operations
+----------
+
+How Does The Backup Feature Work?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To learn about the Backup feature, see :doc:`/core/backup-overview`.
+
+Will Backup Impact My Production Databases?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   This answer applies only to databases running MongoDB with |fcv|
+   ``4.0`` and earlier
+
+The Backup feature typically has minimal impact on production MongoDB
+deployments. This impact performs similar to that of adding a new
+:manual:`secondary </reference/glossary/#std-term-secondary>` to a :manual:`replica set </reference/glossary/#std-term-replica-set>`.
+
+By default, the Backup Agent performs its initial sync, the most
+resource intensive operation for backups, against a secondary member of
+the replica set to limit its impact. You may optionally configure the
+Backup Agent to perform the initial sync against the replica set's
+:manual:`primary </reference/glossary/#std-term-primary>`, although this increases the impact of the initial
+sync operation.
+
+.. "Is my data safe":
+
+.. include:: /includes/extracts/faq-data-security.rst
+
+.. "Is there a limit to Backup size":
+
+.. include:: /includes/extracts/faq-backup-size-limit.rst
+
+How Do I Maintain a Replica Set with Backup enabled?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most operations in a replica set are replicated via the oplog and are
+thus captured by the backup process. Some operations, however, make
+changes that are *not* replicated: for these operations you *must*
+have |mms|
+:doc:`resync from your current replica set </tutorial/resync-backup>`
+to include the changes.
+
+The following operations are not replicated and therefore require
+resync:
+
+- Renaming or deleting a database by deleting the data files in the
+  data directory. As an alternative, remove databases using an
+  operation that MongoDB will replicate, such as
+  :method:`db.dropDatabase` from {+mongosh+}.
+
+- Changing any data while the instance is running as a
+  :term:`standalone`.
+
+- Rolling index builds.
+
+- Using :dbcommand:`compact` or ``repairDatabase`` to reclaim
+  a significant amount of space.
+
+  Resync is not strictly necessary after :dbcommand:`compact` or
+  ``repairDatabase`` operations but will ensure that the
+  |mms| copy of the data is resized, which means quicker restores.
+
+.. seealso::
+
+   :manual:`Maintenance Operations for Replica Set Members </tutorial/perform-maintence-on-replica-set-members>`.
+
+.. "How much does it cost to use Backup":
+
+.. include:: /includes/extracts/faq-pricing-backup.rst
+
+Legacy Backup Agent
+-------------------
+
+Backup capability has been moved to the {+mdbagent+} with Backup
+activated. This replaces the individual Backup Agent. This information
+covers issues unique to the legacy Backup Agent. All of this
+information applies to MongoDB databases running |fcv| ``4.0`` or
+earlier.
+
+Where Should I Run The Backup Agent?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the Backup Agent on a host that:
+
+- Is separate from your MongoDB instances. This avoids system resource
+  contention.
+
+- Can connect to your MongoDB instances. Check network settings for
+  connections between the agent and MongoDB hosts. For a list of
+  needed ports, see
+  :doc:`open ports for agents </reference/firewall-configuration>`.
+
+- Has at least 2 CPU cores and 3 GB of RAM above platform
+  requirements. With each backup job it runs, the Backup Agent further
+  impacts host performance.
+
+Can I Run the Backup and Monitoring Agents on a Single System?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is no technical restriction that prevents the Backup Agent and
+the {+magent+} from running on a single system or host. However,
+both agents have resource requirements, and running both on a single
+system can affect the ability of these agents to support your
+deployment in |mms|.
+
+The resources required by the Backup Agent depend on rate and size
+of new oplog entries (i.e. total oplog gigabyte/hour produced.)
+The resources that the {+magent+} requires depends on the number
+of monitored :binary:`~bin.mongod` instances and the total number of
+:term:`databases <database>` provided by the :binary:`~bin.mongod`
+instances.
+
+Can I Run Multiple Backup Agents to Achieve High Availability?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run multiple Backup Agents for high availability. If you do,
+the Backup Agents must run on different hosts.
+
+When you run multiple Backup Agents, only one agent per project is the
+**primary agent**. The primary agent performs the backups. The
+remaining agents are completely idle, except to log their status as
+standbys and to periodically ask |mms| whether they should become the
+primary.
+
+Does the Backup Agent Modify My Database?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Backup Agent writes a small token called a :term:`checkpoint` into
+the oplog of the source database at a regular interval. These tokens
+provide a heartbeat for backups and have no effect on the source
+deployment. Each token is less than 100 bytes.
+
+.. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
+
+.. seealso::
+
+   :ref:`checkpoint`
+
+How Does the Initial Backup Sync Impact Database Performance?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The impact of the initial backup synchronization should be similar to
+syncing a new secondary replica set member. The Backup Agent does not
+throttle its activity, and attempts to perform the sync as quickly as
+possible.
+
+.. "Does the Backup Agent Support SSL":
+
+.. include:: /includes/extracts/faq-backup-agent-and-ssl.rst
+
+Namespace Filters
+-----------------
+
+.. include:: /includes/facts/namespace-filter-version.rst
+
+How Can I Prevent |mms| from Backing Up a Collection?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| provides a :ref:`namespaces filter <namespaces-filter>` that
+allows you to specify which collections or databases to back up.
+
+How Can I Change which Namespaces Are Backed Up?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To edit the filter, see :doc:`/tutorial/edit-backup`. Changing the
+:ref:`namespaces filter <namespaces-filter>` might necessitate a
+resync. If so, |mms| handles the resync.
+
+.. "How can I use Backup if Backup jobs fail to bind":
+
+.. include:: /includes/extracts/faq-backup-jobs-fail-to-bind.rst
+
+.. "How do I resolve applyOps errors during backups":
+
+.. include:: /includes/extracts/faq-applyops-errors.rst
+
+Data Restoration
+----------------
+
+|mms| produces a copy of your data files that you can use to seed a
+new deployment.
+
+How Does |mms| Provide Point-in-Time Restores?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   |onprem| 4.2.13 and later supports this feature with |fcv| ``4.2`` or later.
+
+When you trigger the restore, |mms| creates a link to this snapshot.
+Once clicked, |mms| retrieves chunks from the Snapshot Store and
+streams them to the target host.
+
+The MongoDB Backup Restore Utility running on that host then downloads
+and applies oplog entries to reach the specified point in time.
+
+The ability of |mms| to provide a given point-in-time restore
+depends on the retention policy of the snapshots and the configured
+point-in-time window.
+
+To learn more about retention policy and the point-in-time window,
+see :ref:`edit-snapshot-schedule`.
+
+Can I Take Snapshots More Frequently than Every 6 Hours?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+No. |mms| does not support a snapshot schedule more frequent than
+every 6 hours. For more information, see
+:ref:`snapshot-frequency-and-retention`.
+
+Can I Set My Own Snapshot Retention Policy?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes. You can change the schedule through the :guilabel:`Edit Snapshot
+Schedule` menu option for a backed-up deployment.
+Administrators can change the :ref:`snapshot frequency and retention
+policy <snapshot-frequency-and-retention>` through the
+:doc:`snapshotSchedule resource </reference/api/snapshot-schedule>` in
+the API.
+
+.. include:: /includes/extracts/faq-backup-costs.rst
+
+.. "How many copies of my data does Cloud Manager store":
+
+.. include:: /includes/extracts/faq-copies-of-data.rst
+
+How Long Does It Take to Create a Restore Snapshot?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| transmits all backups in a compressed form from the |mms| host
+to your infrastructure.
+
+In addition, point-in-time restores depend upon the amount the oplog
+entries that your host must apply to the received snapshot to roll
+forward to the requested point-in-time of the backup.
+
+Does the Backup Feature Perform Any Data Validation?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Backup conducts basic corruption checks and provides an alert if any
+component (e.g. the agent) is down or broken, but does not perform
+explicit data validation. When it detects corruption, |mms| errs on
+the side of caution and invalidates the current backup and sends an
+alert.
+
+How Do I Restore a Snapshot?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can request a restore via |mms|, where you can then choose which
+snapshot to restore and how you want |mms| to deliver the restore. All
+restores require 2-factor authentication. If you have SMS set up, |mms|
+will send an authorization code via SMS. You must enter the
+authorization code into the backup interface to begin the restore
+process.
+
+.. include:: /includes/fact-two-factor-auth-India-limit.rst
+
+What Is Delivered when I Restore a Snapshot?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| delivers restores as ``tar.gz`` archives of MongoDB data files.
+
+To learn more about restores, see
+:doc:`/tutorial/nav/backup-restore-deployments`.
+
+How Does |mms| Roll Back Backed-up Data?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important:: 
+ 
+   For MongoDB deployments running |fcv| 4.2 or later, rollbacks do not 
+   affect backed-up data in |mms|. From |fcv| 4.2 onward, |mms| only retains 
+   snapshots with timestamps up to and including the 
+   :manual:`majority-commit point </reference/read-concern-majority>`.
+
+If your MongoDB deployment experiences a
+:manual:`rollback </core/replica-set-rollbacks>`, then |mms| also
+rolls back the backed-up data.
+
+|mms| detects the rollback when a
+:term:`tailing cursor <tailable cursor>` finds a mismatch in
+timestamps or hashes of write operations. |mms| enters a rollback
+state and tests three points in the oplog of your replica set's
+:manual:`primary </reference/glossary/#std-term-primary>` to locate a common point in history. |mms| rollback
+differs from MongoDB :manual:`secondary </reference/glossary/#std-term-secondary>` rollback in that the common
+point does not necessarily have to be the most *recent* common point.
+
+When |mms| finds a common point, the service invalidates oplog entries
+and snapshots beyond that point and rolls back to the most recent
+snapshot before the common point. |mms| then resumes normal backup
+operations.
+
+If |mms| cannot find a common point, a
+:doc:`resync </tutorial/resync-backup>` is required.
+
+What Conditions Require a Resync?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   This feature is incompatible with MongoDB 4.2 with |fcv| ``4.2``.
+
+If the Backup Agent's :term:`tailing cursor <tailable cursor>` cannot
+keep up with your deployment's :manual:`oplog </reference/glossary/#std-term-oplog>`, then you must
+:doc:`resync your backups </tutorial/resync-backup>`.
+
+This scenario might occur if:
+
+- Your application periodically generates a lot of data, shrinking the
+  primary's oplog window to the point that data is written to the
+  oplog faster than |mms| can consume it.
+
+- If the Backup Agent is running on an under-provisioned or over-used
+  machine and cannot keep up with the oplog activity.
+
+- If the Backup Agent is down for a period of time longer than the
+  oplog size allows. If you bring down your agents, such as for
+  maintenance, restart them in a timely manner. For more information
+  on oplog size, see
+  :manual:`Replica Set Oplog </core/replica-set-oplog>` in the MongoDB
+  manual.
+
+- If you delete all replica set data and deploy a new replica set with
+  the same name, as might happen in a test environment where
+  deployments are regularly torn down and rebuilt.
+
+- If there is a rollback, and |mms| cannot find a common point in the
+  oplog.
+
+- If an oplog event tries to update a document that does not exist in
+  the backup of the replica set, as might happen if syncing from a
+  secondary that has inconsistent data with respect to the primary.
+
+- If you
+  :ref:`create an index in a rolling fashion <data-explorer-indexes>`.

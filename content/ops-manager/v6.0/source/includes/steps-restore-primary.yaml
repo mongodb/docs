@@ -1,0 +1,189 @@
+title: Shut down the entire replica set.
+stepnum: 1
+ref: shutdown-replica-set
+pre: |
+  Shut down the replica set's :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` processes using one of the
+  following methods, depending on your configuration:
+
+action:
+
+  - heading: "Automated Deployment"
+    pre: |
+      
+       If you use |mms| Automation to manage the replica set, you must shut
+       down through the |mms| console. See :doc:`/tutorial/shut-down-deployment`.
+
+  - heading: "Non-Automated Deployment on MongoDB 2.6 or Later"
+    pre: |
+      
+       Connect to each member of the set and issue the following:
+
+    language: javascript
+    code: |
+       use admin
+       db.shutdownServer()
+
+---
+title: "Restore the snapshot data files to the primary."
+stepnum: 2
+ref: copy
+action:
+  pre: |
+    Extract the data files to the location where the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`
+    process will access them through the ``dbPath`` setting. If you
+    are restoring to existing hardware, use a different data directory than
+    used previously. The following are example commands:
+  language: sh
+  code: |
+    mv <snapshot> /data
+    tar -xvf <snapshot>.tar.gz
+---
+title: "Start the primary with the new ``dbPath``."
+stepnum: 3
+ref: start-with-new-path
+action:
+  pre: |
+    For example:
+  language: sh
+  code: |
+    mongod --dbpath <pathToData> --replSet <replicaSetName> --logpath <pathToData>/mongodb.log --fork
+post: |
+
+  .. include:: /includes/extracts/fact-encrypted-startup-options.rst
+
+---
+title: "Connect to the primary and initiate the replica set."
+stepnum: 4
+ref: initiate
+content: |
+
+  Connect using {+mongosh+} and issue the :method:`rs.initiate` command.
+---
+title: "Restart the primary as a standalone, *without* the ``--replSet`` option."
+stepnum: 5
+ref: restart-as-standalone
+pre: |
+
+  Shut down the process using one of the following methods:
+
+action:
+
+  - heading: "Automated Deployment"
+    pre: |
+       Shut down through the |mms| console. See :doc:`/tutorial/shut-down-deployment`.
+
+  - heading: "Non-Automated Deployment on MongoDB 2.6 or Later"
+    language: javascript
+    code: |
+      use admin
+      db.shutdownServer()
+post: |
+
+  Restart the process as a standalone:
+
+  .. code-block:: javascript
+
+     mongod --dbpath /<pathToData> --logpath /<pathToData>/mongodb.log --fork
+
+  .. include:: /includes/extracts/fact-encrypted-startup-options.rst
+
+---
+title: "Connect to the primary and drop the :manual:`oplog </reference/glossary/#std-term-oplog>`."
+stepnum: 6
+ref: drop-oplog
+action:
+  - pre: |
+      For example, first issue the following to connect:
+    language: sh
+    code: |
+      mongosh
+  - pre: |
+      And then issue :method:`rs.drop` to drop the oplog.
+    language: javascript
+    code: |
+      use local
+      db.oplog.rs.drop()
+---
+title: "Run the ``seedSecondary`` script on the primary."
+stepnum: 7
+ref: seed
+action: 
+  - pre: |
+      Use the appropriate script for your operating system:
+
+      .. list-table::
+         :widths: 40 60
+
+         * - UNIX-based
+           - ``seedSecondary.sh``
+
+         * - Windows
+           - ``seedSecondary.bat``
+
+      This script recreates the oplog :term:`collection` and seeds it with the
+      timestamp of the snapshot's creation. This tells the secondary to
+      recreate all operations to the current time without requiring a full
+      :opsmgr:`initial sync </reference/glossary/#std-term-initial-sync>`. |mms| customizes this script for this particular
+      snapshot and includes it in the snapshot archive.
+
+      To run the script, issue the following command, where:
+
+      .. list-table::
+         :widths: 40 60
+
+         * - ``<alternatePort>``
+           - The port of the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` process
+
+         * - ``<oplogSizeInGigabytes>``
+           - The size of the replica set's oplog
+
+         * - ``<replicaSetName>``
+           - The name of the replica set
+
+         * - ``<primaryHost:primaryPort>``
+           - The ``hostname:port`` combination for the replica set's primary
+
+  - heading: "For UNIX-based systems:"
+    language: sh
+    code: |
+       ./seedSecondary.sh <alternatePort> <oplogSizeInGigabytes> <replicaSetName> <primaryHost:primaryPort>
+       ./seedSecondary.sh 27018 2 rs-1 primaryHost.example.com:27017
+
+  - heading: "For **Windows-based** systems:"
+    language: powershell
+    code: |
+       .\seedSecondary.bat <alternatePort> <oplogSizeInGigabytes> <replicaSetName> <primaryHost:primaryPort>
+       .\seedSecondary.bat 27018 2 rs-1 primaryHost.example.com:27017
+
+---
+title: "Restart the primary as part of a replica set."
+stepnum: 8
+ref: restart
+pre: |
+  Use the following sequence:
+
+  a. Shut down the process using one of the following methods:
+
+     - **Automated Deployment**:
+
+       Shut down through the |mms| console. See :doc:`/tutorial/shut-down-deployment`.
+
+     - **Non-Automated Deployment on MongoDB 2.6 or Later**:
+
+       .. code-block:: javascript
+
+          use admin
+          db.shutdownServer()
+
+  b. Restart the process as part of a replica set:
+
+     .. code-block:: javascript
+
+        mongod --dbpath /<pathToData> --replSet <replicaSetName>
+
+post: |
+
+  .. include:: /includes/extracts/fact-encrypted-startup-options.rst
+
+
+...

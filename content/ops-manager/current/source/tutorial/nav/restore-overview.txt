@@ -1,0 +1,243 @@
+.. _restore-overview:
+
+================
+Restore Overview
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To restore a deployment from a backup, select a snapshot or point in
+time from which you want to restore your database. |mms| provides you
+with the files from which you can restore your database.
+
+You can restore a single MongoDB database, a :manual:`replica set </reference/glossary/#std-term-replica-set>`, or all
+shards in a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
+
+You can restore a deployment from an existing :manual:`snapshot </reference/glossary/#std-term-snapshot>` or a
+specific point in time. For the point in time, you can specify a date and time, 
+an oplog timestamp, or a checkpoint for
+a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
+
+If you are restoring from a point in time, you must download the
+MongoDB Backup Restore Utility to your target host. The |mbru| requests
+and applies :manual:`oplog </reference/glossary/#std-term-oplog>` entries between the latest complete snapshot
+and the point in time you choose.
+
+To restore your backup, use one of these options:
+
+- :ref:`Restore the files to another cluster using automation <mms-automated-restore>`
+- :ref:`Manually copy restored files to the hosts you choose <mms-manual-restore>`
+- :doc:`Restore from a queryable backup </tutorial/restore-single-database>`
+
+Cancel a Restore
+----------------
+
+To cancel a restore:
+
+1. Navigate to the :guilabel:`Backup` > :guilabel:`Restore History`
+   tab.
+
+2. Click :guilabel:`Cancel`.
+
+.. _mms-automated-restore:
+
+Automated Restore
+-----------------
+
+If you choose to have |mms| automation restore your backup, the {+aagent+}
+removes all existing data from the target hosts and replaces that data
+with new backup data from your :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+
+Limitations
+~~~~~~~~~~~
+
+If you are restoring a sharded cluster, you must restore all shards. The
+restore process fails if you try to restore a single shard in a sharded
+cluster.
+
+.. _prerequisites-automatic-restore:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To perform automated restores:
+
+- Install an {+mdbagent+} installed on the source and all target hosts,
+  and check that an {+mdbagent+} on the target deployment can connect
+  to all hosts in the target deployment.
+
+- Configure :ref:`Backup Admin <backup-admin-role>` and
+  :ref:`Automation Admin <automation-admin-role>` roles in |mms|.
+
+- Check that the target cluster's ``featureCompatibilityVersion`` is greater
+  than or equal to the source cluster's ``featureCompatibilityVersion``.
+
+  .. example::
+
+     Run the following command to retrieve the
+     ``featureCompatibilityVersion`` of a given host:
+
+     .. code-block:: javascript
+
+        db.adminCommand( {
+          getParameter: 1,
+          featureCompatibilityVersion: 1
+        } )
+
+     To learn more, see
+     :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion>`.
+
+- Review the following compatibility matrix for the supported source cluster
+  for each MongoDB version. The MongoDB version of each host in
+  the target cluster *must* support the |fcv| of the snapshot of the
+  source cluster.
+
+  .. list-table::
+     :header-rows: 1
+     :stub-columns: 1
+
+     * - Source Cluster |fcv|
+       - | MongoDB
+         | 4.4
+       - | MongoDB
+         | 5.0
+       - | MongoDB
+         | 6.0
+       - | MongoDB
+         | 7.0
+       - | MongoDB
+         | 8.0
+
+     * - 4.4
+       - :icon:`check-circle`
+       - :icon:`check-circle`
+       -
+       -
+       -
+
+     * - 5.0
+       -
+       - :icon:`check-circle`
+       - :icon:`check-circle`
+       -
+       -
+
+     * - 6.0
+       -
+       - 
+       - :icon:`check-circle`
+       - :icon:`check-circle`
+       -
+
+     * - 7.0
+       -
+       - 
+       - 
+       - :icon:`check-circle`
+       - :icon:`check-circle`
+
+     * - 8.0
+       -
+       - 
+       - 
+       - 
+       - :icon:`check-circle`
+
+Restore to Different Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-restore-different-group-requirements.rst
+
+Potential Causes for Automated Restore Failure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An automated restore can fail when certain storage settings of the
+backup's database and target database do not match:
+
+- :setting:`storage.engine`
+- :setting:`storage.directoryPerDB`
+- ``storage.mmapv1.nsSize``
+- ``storage.mmapv1.smallFiles``
+- :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
+- :setting:`storage.wiredTiger.engineConfig.directoryForIndexes`
+
+No method exists to check for mismatches before attempting a restore.
+If a restore attempt fails, |mms| displays any mismatched settings. If
+you still want to restore the backup's database, fix the settings in
+the target database that do not match backup's database, then retry the
+restore process for the backup's database.
+
+.. important::
+
+   .. include:: /includes/fact-mmapv1-deprecated.rst
+
+An automated restore fails when you attempt to restore a single shard
+in a sharded cluster. If you are restoring a sharded cluster, you must
+restore all shards.
+
+Restore Procedures
+~~~~~~~~~~~~~~~~~~
+
+To perform an automated restore, see the procedure for the deployment
+you want to restore:
+
+- :ref:`Replica Set <automatic-restore-replica-set>`
+- :ref:`Sharded Cluster <automatic-restore-sharded-cluster>`
+
+.. _mms-manual-restore:
+
+Manual Restore
+--------------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+.. include:: /includes/fact-restore-manual-user-role.rst
+
+.. _delivery-methods-file-formats:
+
+Restore File Format
+~~~~~~~~~~~~~~~~~~~
+
+|mms| provides each :manual:`snapshot </reference/glossary/#std-term-snapshot>` as an uncompressed (``.tar``)
+or compressed (``.tar.gz``) archive containing a complete copy of
+the data directory.
+
+Choosing compressed :manual:`snapshots </reference/glossary/#std-term-snapshot>` results in faster
+delivery, but requires sufficient space on the target host for both
+the compressed snapshot and its extracted database files.
+
+- For a :manual:`replica set </reference/glossary/#std-term-replica-set>`, |mms| provides one :manual:`snapshot </reference/glossary/#std-term-snapshot>` that
+  you copy to each replica set member.
+
+- For a sharded cluster, |mms| provides one :manual:`snapshot </reference/glossary/#std-term-snapshot>` for the
+  :manual:`config servers  </reference/glossary/#std-term-config-server>` and one :manual:`snapshot </reference/glossary/#std-term-snapshot>` for
+  each :manual:`shard </reference/glossary/#std-term-shard>`.
+
+Manual Restore Procedures
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform a manual restore, see:
+
+- :doc:`Restore a Single Database or Collection using Queryable Backup</tutorial/restore-single-database>`
+- :ref:`Restore a Replica Set <manual-restore-replica-set>`
+- :ref:`Restore a Sharded Cluster <manual-restore-sharded-cluster>`
+
+Restore Process Flows
+~~~~~~~~~~~~~~~~~~~~~
+
+You can restore from a completed shapshot or from a specific point in time.
+Use the following pages to learn about the manual restore process flows.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+  
+   /tutorial/restore-full-snapshot-http
+   /tutorial/restore-pit-snapshot-http

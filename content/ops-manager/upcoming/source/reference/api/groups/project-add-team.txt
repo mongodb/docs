@@ -1,0 +1,177 @@
+======================
+Add Teams to a Project
+======================
+
+.. meta::
+   :description: Add teams to a project in Ops Manager using the API, specifying project roles and team IDs.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+.. include:: /includes/api/teams-ldap-support.rst
+
+.. include:: /includes/api/base-api-uri.rst
+
+Syntax
+------
+
+.. code-block:: none
+
+   POST /groups/{PROJECT-ID}/teams
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 10 75
+
+   * - Path Element
+     - Required/Optional
+     - Description
+
+   * - ``PROJECT-ID``
+
+     - Required.
+
+     - The unique identifier for the :ref:`project <projects>` to which
+       you are adding the team or teams.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-list-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify an array of documents, where each document represents one
+team you want to associate to the project. Each document in the array
+must contain the following fields:
+
+.. list-table::
+   :widths: 10 10 80
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``roleNames``
+     - array
+     - Each object in the array represents a
+       :ref:`project role <project-roles>` you want to assign to
+       the team.
+
+       The valid roles and their associated mappings are:
+
+       - ``GROUP_OWNER`` - :authrole:`Project Owner`
+       - ``GROUP_READ_ONLY`` - :authrole:`Project Read Only`
+       - ``GROUP_DATA_ACCESS_ADMIN`` - :authrole:`Project Data Access Admin`
+       - ``GROUP_DATA_ACCESS_READ_WRITE`` - :authrole:`Project Data Access Read/Write`
+       - ``GROUP_DATA_ACCESS_READ_ONLY`` - :authrole:`Project Data Access Read Only`
+       - ``GROUP_MONITORING_ADMIN`` - :authrole:`Project Monitoring Admin`
+       - ``GROUP_BACKUP_ADMIN`` - :authrole:`Project Backup Admin`
+       - ``GROUP_AUTOMATION_ADMIN`` - :authrole:`Project Automation Admin`
+       - ``GROUP_USER_ADMIN`` - :authrole:`Project User Admin`
+
+   * - ``teamId``
+     - string
+     - The unique identifier of the team you want to associate with the
+       project. The team and project must share the same parent
+       :ref:`organization <organizations>`.
+
+Response
+--------
+
+.. include:: /includes/api/get-all-note.rst
+
+Each element in the ``result`` array is one team added to the project.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``links``
+     - array
+     - .. include:: /includes/api/links-explanation.rst
+
+   * - ``roleNames``
+     - array
+     - Array of :ref:`project roles <project-roles>` assigned to the
+       team.
+
+       The valid roles and their associated mappings are:
+
+       - ``GROUP_OWNER`` - :authrole:`Project Owner`
+       - ``GROUP_READ_ONLY`` - :authrole:`Project Read Only`
+       - ``GROUP_DATA_ACCESS_ADMIN`` - :authrole:`Project Data Access Admin`
+       - ``GROUP_DATA_ACCESS_READ_WRITE`` - :authrole:`Project Data Access Read/Write`
+       - ``GROUP_DATA_ACCESS_READ_ONLY`` - :authrole:`Project Data Access Read Only`
+       - ``GROUP_MONITORING_ADMIN`` - :authrole:`Project Monitoring Admin`
+       - ``GROUP_BACKUP_ADMIN`` - :authrole:`Project Backup Admin`
+       - ``GROUP_AUTOMATION_ADMIN`` - :authrole:`Project Automation Admin`
+       - ``GROUP_USER_ADMIN`` - :authrole:`Project User Admin`
+
+Example Request
+---------------
+
+.. code-block::  sh
+   :copyable:
+   :emphasize-lines: 5
+
+   curl -u "username:apiKey" --digest \
+    --header "Accept: application/json" \
+    --header "Content-Type: application/json" \
+    --request POST "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/teams?pretty=true" \
+    --data '[ { "teamId" : "{TEAM-ID}", "roles" : [ { "roleName" : "GROUP_OWNER" } ] } ]'
+
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :emphasize-lines: 16-17
+
+   {
+    "links": [
+        {
+            "href": "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/teams",
+            "rel": "self"
+        }
+    ],
+    "results": [
+        {
+            "links": [
+                {
+                    "href": "https://cloud.mongodb.com/api/pubic/v1.0/orgs/{ORG-ID}/teams/{TEAM-ID}",
+                    "rel": "self"
+                }
+            ],
+            "roleNames": [ "GROUP_OWNER" ],
+            "teamId": "{TEAM-ID}"
+        }
+    ],
+    "totalCount": 1
+   }

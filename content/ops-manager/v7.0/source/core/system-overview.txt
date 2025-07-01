@@ -1,0 +1,159 @@
+=====================
+|onprem| Architecture
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+An |onprem| installation includes hosts that run the |application| and
+hosts that serve and store application data and snapshots.
+
+.. include:: /images/opsmanager-network-diagram.rst
+
+The |application| requires a dedicated :opsmgr:`Application Database </reference/glossary/#std-term-application-database>`
+and, if you enabled backups, :opsmgr:`Snapshot Stores </reference/glossary/#std-term-snapshot-store>`.
+
+.. _mms-http-service:
+.. _application:
+.. _mms-application-package:
+
+|application|
+-------------
+
+The |application| provides the user interface and the |http| services
+the {+mdbagent+} uses to transmit data to and from |onprem|. These are
+all stateless and start automatically when the |application| starts.
+Multiple instances of the |application| can run if each instance uses
+the same configuration and the same application database. Users and
+Agents can interact with any instance.
+
+By default, the |application| runs on port ``8080`` and contains the
+web interface for managing |onprem| users, monitoring of MongoDB hosts,
+and managing host backups.
+
+For a list of |onprem|'s default ports and health-check endpoints, see
+:doc:`/reference/firewall-configuration`.
+
+.. _backup-daemon:
+
+Backup Daemon Service
+---------------------
+
+You can configure any |onprem| instance to perform backup :term:`snapshot`
+maintenance work, such as a :term:`grooms <groom>` and managing
+file system snapshot files on the :term:`file system store <File System
+Store>` by running the :term:`Backup Daemon`. To learn how to start,
+check the status of, stop, and restart the Backup Daemon on a server,
+see :ref:`Start and Stop the Backup Daemon <start-stop-backup-daemon>`.
+
+How the Backup Daemon performs depends upon the
+:manual:`MongoDB version compatibility</reference/command/setFeatureCompatibilityVersion>`
+of your database. This Feature Compatibility Version ranges from the
+current version to one version earlier. For example, with MongoDB 4.4,
+the FCV can be ``4.2`` or ``4.4``. Backup functionality changed with
+|fcv-link| ``4.2``.
+
+The Backup Daemon service provides the following services for databases:
+
+- Runs groom jobs, incremental filesystem snapshots, other backup
+  related jobs 
+- Performs some state updates to the backup job
+- Perform a queryable restore
+
+Client applications can't communicate with the daemon. Its state and job
+queues come from the :ref:`mms-application-database`. |mms| creates
+snapshots from the database being backed up. For incremental backups
+using file system stores, the daemon is responsible for creating
+snapshots.
+
+:ref:`Multiple Backup Daemons <multiple-backup-daemons>` can scale
+horizontally to run more concurrent jobs when needed and can provide
+*manual* failover.
+
+If you run multiple Backup Daemons, |onprem| selects the Backup Daemon
+to use when a user enables backup for a deployment. The
+:opsmgr:`head database </reference/glossary/#std-term-head-database>`
+resides with the daemon's host.
+
+.. _backing-database:
+
+Dedicated Storage for Operational Data
+--------------------------------------
+
+.. _mms-application-database:
+
+|application| Database
+~~~~~~~~~~~~~~~~~~~~~~
+
+|onprem| uses a dedicated MongoDB database to store the |onprem|\'s
+operational data. The :term:`application database` runs as a
+:manual:`replica set </reference/glossary/#std-term-replica-set>` to ensure redundancy and high availability. This
+replica set hosts *only* |onprem| data. Before installing |onprem|,
+you must :doc:`provision the application database </tutorial/prepare-backing-mongodb-instances>`.
+This database contains :ref:`application` metadata:
+
+- Monitoring data collected from the {+mdbagent+}s.
+
+- Metadata for |onprem| users, projects, hosts, monitoring data, and
+  backup state.
+
+For topology and specifications, see
+:ref:`mms-application-database-specifications`.
+
+.. _backup-database:
+.. _mms-backup-blockstore-database:
+
+Snapshot Storage
+~~~~~~~~~~~~~~~~
+
+|mms| creates snapshots of deployments to back up your databases.
+You can have |mms| store these snapshots in
+:opsmgr:`snapshot stores </reference/glossary/#std-term-snapshot-store>`. Snapshot stores can be local
+databases, local file systems, or cloud-based data stores. There can
+be more than one snapshot store per project. |onprem| writes the
+recent history of the deployment database to a separate database
+regardless of where the snapshots are written.
+
+Snapshot storage include two components:
+
+Snapshot Stores
+```````````````
+
+Snapshots can be written to one of three target storage systems:
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - System
+     - Storage Method
+     - Learn More
+
+   * - :term:`blockstore <backup blockstore database>`
+     - A MongoDB database stored in a local host.
+     - :doc:`/tutorial/manage-blockstore-storage`
+
+   * - :opsmgr:`S3 snapshot store </reference/glossary/#std-term-S3-snapshot-store>`
+     - A cloud data store in |s3|.
+     - :doc:`/tutorial/manage-s3-blockstore-storage`
+
+   * - :opsmgr:`file system store </reference/glossary/#std-term-File-System-Store>`
+     - A local file system in the directory of your choosing.
+     - :doc:`/tutorial/manage-filestore-storage`
+
+Oplog Store
+```````````
+
+The :opsmgr:`Oplog Store  </reference/glossary/#std-term-Oplog-Store-Database>` retains the
+:manual:`oplog </reference/glossary/#std-term-oplog>` entries that the :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` applies to its
+local copies of your backed-up deployments.
+
+.. seealso::
+
+   To learn about the requirements and procedures for Oplog Stores,
+   see :doc:`/tutorial/manage-oplog-storage`.

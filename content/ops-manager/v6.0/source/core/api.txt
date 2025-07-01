@@ -1,0 +1,640 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _public-api-principles:
+
+=======================
+Public |api| Principles
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+The |mms| Public |api| follows the |rest| architecture principles to
+expose internal resources that provide programmatic access to |mms|'s
+features.
+
+.. include:: /includes/extracts/api-principles-pricing.rst
+
+The |api| has the following features:
+
+|json| entities
+  All entities are expressed in |json|.
+
+Key-based access
+  Each |mms| user or application needing to connect to |mms|
+  must
+  :doc:`generate an API key </tutorial/configure-public-api-access>`
+  before accessing the |mms| |api|.
+
+Digest authentication
+  To ensure that your :opsmgr:`public API key </reference/glossary/#std-term-Public-API-key>` is never sent over the
+  network, |api| requests are authenticated using
+  `HTTP Digest Authentication`_.
+
+Browsable interface
+  Using a consistent linking mechanism, you can browse the entire API
+  by starting at the root resource and following links to related
+  resources.
+
+User Access Control
+  Each |mms| user's |api| capabilities match the permissions that
+  their :doc:`/reference/user-roles` grant.
+
+  .. example::
+
+     A user with the :authrole:`Project Read Only` role cannot modify
+     any resource within that project whether through the |mms| UI or
+     the |api|.
+
+|api| Network Access List
+  The |mms| |api| supports a per-user
+  :ref:`API Access List <access-list-for-api-operations>` for restricting
+  |api| access to specific |ipaddr| or |cidr| addresses. For |mms|
+  users with a non-empty |api| access list, all |api| access must
+  originate from an |ipaddr| address in the access list. An empty |api|
+  access list grants access to all |api| endpoints from any |ipaddr|
+  address, except those that explicitly require an address in an 
+  access list.
+
+.. COMMENT: For Ops Manager, the above sentence about |https| may not
+   apply. It depends on their server configuration.
+
+.. _HTTP Digest Authentication: http://en.wikipedia.org/wiki/Digest_access_authentication
+
+|http| Methods
+--------------
+
+All resources support a subset of these common |http| Methods:
+
+.. list-table::
+  :widths: 20 80
+  :header-rows: 1
+
+  * - Method
+    - Purpose
+
+  * - ``GET``
+    - Retrieve the |json| representation of a resource.
+
+  * - ``POST``
+    - Create a new resource using the provided |json| representation.
+
+  * - ``PUT``
+    - Replace a resource with the provided |json| representation.
+
+  * - ``PATCH``
+    - Update the specified fields in a resource using the provided
+      |json| representation.
+
+  * - ``DELETE``
+    - Remove a resource.
+
+  * - ``HEAD``
+    - Retrieve the response header without the |json| representation
+      of the resource.
+
+|json|
+------
+
+All entities are represented in |json|. The following rules for
+requests and conventions of responses apply:
+
+Request Rules
+~~~~~~~~~~~~~
+
+Apply the Correct Content Type Header
+  When sending |json| to the server via ``POST`` or ``PUT``, make sure
+  to specify the correct content type request header:
+  ``Content-Type: application/json``
+
+Set Dates as |iso8601| Strings
+  When sending dates to the server (as query parameters or fields in
+  ``POST`` or ``PATCH`` request entities), use dates formatted
+  according to the |iso8601| standard. If you don't specify a time
+  zone, |mms| assumes |utc|. Include a time zone designator to avoid
+  any ambiguity.
+
+  .. example::
+
+     - September 27, 2018 is expressed as ``2018-09-27``.
+
+     - September 27, 2018 at 4:00 PM EDT is expressed (with time zone)
+       as ``2018-09-27T16:00-04:00``.
+
+  In some cases, a timestamp is returned as a |json| representation of
+  a `BSON timestamp`_, most notably in the backup resources. This
+  representation of a |bson| timestamp provides a |json| document as
+  an object with two fields:
+
+  .. list-table::
+     :widths: 20 80
+     :header-rows: 1
+
+     * - Field
+       - Definition
+     * - ``date``
+       - Seconds since the UNIX Epoch
+     * - ``increment``
+       - An incrementing 32-bit integer ordinal for operations within
+         a given second.
+
+  .. example::
+
+     The third operation at September 27, 2018 at 4:00 PM EDT is expressed (with time zone) as
+
+     .. code-block:: json
+
+        { date: 2018-09-27T16:00-04:00, increment: 3 }
+
+
+Response Conventions
+~~~~~~~~~~~~~~~~~~~~
+
+Rejects Invalid Fields
+  Invalid fields are *rejected* rather than *ignored*.
+
+  .. example::
+
+     You attempt to create a new entity and misspell one of the
+     fields, or if you attempt to update an existing entity and
+     include a field that cannot be modified, the |mms| responds with
+     an |http| 400 status code and an error message stating which
+     field was invalid.
+
+Returns Dates as |iso8601| Strings
+  All dates are returned as |iso8601|\-formatted strings designated
+  in |utc|.
+
+Labels Field to Disambiguate Units
+  Fields that contain numeric values in a particular unit are named so
+  as to disambiguate the unit being used.
+
+  .. example::
+
+     A host's uptime is returned in millseconds, so the name of the
+     host entity field is ``uptimeMsec``.
+
+Returns Default Values for Fields without Other Values
+  Fields that do not have a current value are returned with an
+  appropriate default value.
+
+  .. example::
+
+     |mms| does not have any statistics for a newly discovered host,
+     so any statistics-related fields have a value of zero.
+
+  Fields that do not have a sensible default value are omitted from
+  the entity.
+
+  .. example::
+
+     A host that is not using authentication omits the ``username``
+     field from the returned entity.
+
+Returns Fields in Alphabetical Order
+  The fields in the |json| documents that the |application| returns are
+  in alphabetical order. The order could change. Do not depend on the
+  order of the fields.
+
+.. _BSON timestamp: http://docs.mongodb.org/manual/reference/bson-types/#timestamps
+
+.. _api-linking:
+
+Linking
+-------
+
+Each resource includes one or more links to sub-resources and/or related resources.
+
+.. example::
+
+   A host has a link to the project it belongs to, the replica set it
+   belongs to, and so on.
+
+Links are placed in the ``links`` field of an entity, which is an
+array of link relation objects. Each link relation has two fields:
+
+.. list-table::
+  :widths: 20 80
+  :header-rows: 1
+
+  * - Field
+    - Definition
+
+  * - ``rel``
+    - Name (or type) of the relation. Many of these are
+      considered Extension Relation Types and are prefixed by
+      ``http://mms.mongodb.com``.
+
+  * - ``href``
+    - Target |url|.
+
+All entities include at least one link relation called ``self``, which
+is simply its own |url|. When an entity is part of a list (i.e., when
+requesting all hosts in a project), then it only includes the ``self``
+link relation.
+
+.. example::
+
+   This is a portion of a ``host`` resource with a few links:
+
+   .. code-block:: json
+      :linenos:
+
+      {
+        "rel": "http://mms.mongodb.com/project",
+        "href": "https://cloud.mongodb.com/api/public/v1.0/projects/xxx"
+        "id": "xxx",
+        "projectId": "yyy",
+        "hostname": "mongodb.example.com",
+        "port": 27017,
+        "links": [
+          {
+            "rel": "self",
+            "href": "https://<ops-manager-host>/api/public/v1.0/projects/xxx/hosts/yyy"
+          },
+          {
+            "rel": "http://mms.mongodb.com/project",
+            "href": "https://<ops-manager-host>/api/public/v1.0/projects/xxx"
+          }
+        ]
+      }
+
+To learn more, see the `Web Linking Specification <http://tools.ietf.org/html/rfc5988>`_.
+
+.. note::
+
+   Although the
+   `Web Linking Specification <http://tools.ietf.org/html/rfc5988>`_
+   describes a format for including links in the |http| response
+   headers, it is not required. To make the |api| easily browsable, it
+   includes the links in the response body rather than in the response
+   headers.
+
+.. _api-lists:
+
+Lists
+-----
+
+Some resources return a list of entities.
+
+.. example::
+
+   You can request a list of all **hosts** in a **project**.
+
+When a list of entities is expected in a response, the results are
+returned in batches bounded by two query parameters:
+
+.. list-table::
+  :widths: 20 80
+  :header-rows: 1
+
+  * - Field
+    - Definition
+
+  * - ``pageNum``
+    - Page number (1-based). Defaults to 1 if not specified.
+
+  * - ``itemsPerPage``
+    - Number of items to return per page, up to a maximum of 500.
+      Defaults to 100 if not specified.
+
+The response entity contains three fields:
+
+.. list-table::
+  :widths: 20 80
+  :header-rows: 1
+
+  * - Field
+    - Definition
+
+  * - ``totalCount``
+    - Total number of items in the entire result set.
+
+      For example, if a project has a total of 57 hosts, and you make a request
+      with ``pageNum=6`` and ``itemsPerPage=10``, then
+      ``totalCount`` is **57**.
+
+  * - ``results``
+    - Result set, which is an array of entity documents.
+
+  * - ``links``
+    - Contains one to three link relations:
+
+      - ``previous`` for the previous page of results
+        (omitted for the first page);
+      - ``next`` for the next page of results
+        (omitted for the last page);
+      - ``self`` for the current page (always present).
+
+If you make a request for a list of entities and there are no results,
+then the |api| responds with an |http| 200 status code and an empty
+``results`` array. It does *not* respond with a 404 in this case,
+since the list of entities may not be empty at some point in the
+future.
+
+If you had requested a list of entities in a context that does not
+exist (i.e., the list of hosts for a non-existent project), then this
+results in a an |http| 404 response status.
+
+.. example::
+
+   This is an |http| response for the second page of 10 hosts in a
+   project with a total of 57 hosts:
+
+   .. code-block:: json
+      :linenos:
+
+      {
+
+        "totalCount": 57,
+        "results": [
+          {
+            "id": "yyy",
+            "projectId": "xxx",
+            // additional host properties...
+          },
+          // additional host documents...
+        ],
+        "links": [
+          {
+            "rel" : "self",
+            "href" : "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?pageNum=2&itemsPerPage=10"
+          },
+          {
+            "rel": "previous",
+            "href": "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?itemsPerPage=10&pageNum=1"
+          },
+          {
+            "rel": "next",
+            "href": "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?itemsPerPage=10&pageNum=3"
+          }
+        ]
+      }
+
+.. _api-envelope:
+
+Envelopes
+---------
+
+Some clients may not be able to access the |http| response headers
+and/or status code. In that case, you can request that the response
+include an ``envelope``, which is simply an extra layer of information
+in the |json| document that contains any relevant details that would
+normally be in the response headers.
+
+By default, the |api| does *not* include the response in an envelope.
+To request one, simply add the query parameter ``envelope=true``.
+
+For responses that contain a single entity, the envelope contains two
+fields:
+
+.. list-table::
+  :widths: 20 80
+  :header-rows: 1
+
+  * - Field
+    - Definition
+
+  * - ``status``
+    - |http| status code.
+
+  * - ``content``
+    - Requested entity.
+
+For responses that contain a list of entities, there is already an
+envelope that wraps the results, so specifying ``envelope=true`` as a
+query parameter in this case only adds the ``status`` field to the
+existing envelope.
+
+Pretty Printing
+---------------
+
+By default, extraneous whitespace is stripped from the |json| that
+|mms| returns. To ask for pretty-printed |json|, simply append the
+``pretty=true`` query parameter to any request:
+
+.. code-block:: shell
+
+   curl --user '{USERNAME}:{APIKEY}' --digest \
+   --header 'Accept: application/json' \
+   --include \
+   --request GET "{opsManagerHost}:{Port}/api/public/v1.0?pretty=true"
+
+.. note::
+
+   All the examples in this document show pretty-printed |json| for
+   clarity, although some example |url|\s *may not contain this
+   additional query parameter*.
+
+Response Codes
+--------------
+
+Responses utilize the standard |http| response codes, including:
+
+.. list-table::
+  :widths: 5 20 75
+  :header-rows: 1
+
+  * - Code
+    - Meaning
+    - Notes
+
+  * - 200
+    - OK
+    - The request was successful. This is the typical response to a
+      successful ``GET`` request.
+
+  * - 201
+    - Created
+    - A new resource was created. This is the typical response to a
+      successful ``POST`` request.
+
+  * - 202
+    - Accepted
+    - A request for an asynchronous operation was accepted.
+
+  * - 400
+    - Bad Request
+    - Something was wrong with the client request.
+
+  * - 401
+    - Unauthorized
+    - Authentication is required but was not present in the request.
+      Typically this means that the digest authentication information
+      was omitted from the request, the provided credentials are
+      incorrect, or the user associated with the given |api| key is
+      not allowed to access the requested resource.
+
+  * - 403
+    - Forbidden
+    - Access to the specified resource is not permitted.
+
+  * - 404
+    - Not Found
+    - The requested resource does not exist.
+
+  * - 405
+    - Method Not Allowed
+    - The |http| method is not supported for the specified resource.
+      Keep in mind that each resource may only support a subset of
+      |http| methods.
+
+      For example, you are not allowed to ``DELETE`` the
+      :doc:`root </reference/api/root>` resource.
+
+  * - 409
+    - Conflict
+    - This is typically the response to a request to create or modify
+      a property of an entity that is unique when an existing entity
+      already exists with the same value for that property.
+
+      For example, if you attempt to
+      :doc:`create a project </reference/api/groups/create-one-group>`
+      with the same name as an existing project, the request fails.
+
+  * - 5xx
+    - Various server errors
+    - Something unexpected went wrong. Try again later and consider
+      notifying |mms| Support.
+
+Errors
+------
+
+When a request results in an error, the response body contains a |json|
+document with additional details about what went wrong. The document
+contains five fields:
+
+.. list-table::
+  :widths: 15 10 75
+  :header-rows: 1
+
+  * - Field
+    - Data Type
+    - Definition
+
+  * - ``detail``
+    - string
+    - Human-readable description of the |api| request error.
+
+  * - ``error``
+    - integer
+    - |http| :rfc:`status code <2616#section-6.1.1>`.
+
+  * - ``errorCode``
+    - string
+    - Named constant representing the |api| request error as shown in
+      :ref:`api-error-codes`.
+
+  * - ``parameters``
+    - array of strings
+    - List of parameters passed in the |api| request.
+
+  * - ``reason``
+    - string
+    - |http| :rfc:`status code definition <2616#section-6.1.1>`.
+
+.. example::
+
+   |mms| returns this response body for an incorrectly formatted
+   request:
+
+   .. code-block:: json
+      :copyable: false
+      :linenos:
+
+      {
+        "detail" : "Cannot find resource /api/public/v1.0/softwareComponents/version.",
+        "error" : 404,
+        "errorCode" : "RESOURCE_NOT_FOUND",
+        "parameters" : [ "/api/public/v1.0/softwareComponents/version" ],
+        "reason" : "Not Found"
+      }
+
+To review the list of codes, see :doc:`/reference/api-error-codes`.
+
+Authentication
+--------------
+
+As previously mentioned, the |mms| |api| uses |http| Digest
+Authentication. The details of digest authentication are beyond the
+scope of this document, but it essentially requires a username and a
+password which are hashed using a unique server-generated value called
+a **nonce**. The username is the username of a registered |mms|
+account, and the password is a :opsmgr:`public API key </reference/glossary/#std-term-Public-API-key>` associated
+with that account.
+
+Keep the following points in mind:
+
+- The server-generated nonce is used by the client to hash the
+  username and password before sending them back to the server to
+  authenticate a request. The nonce is only valid for a short amount
+  of time as per the digest authentication specification. This is to
+  prevent replay attacks, so you cannot cache a nonce and use it
+  forever.
+
+- Some resource methods require even more security and are additionally
+  protected by :ref:`access lists <access-list-for-api-operations>`
+  that allow access to the resource only from the |ipaddr| addresses
+  listed. Each user configures their own access list of |ipaddr|
+  addresses that allow access to the resource.
+
+- The |application| has a concept of **roles**, which allow more
+  fine-grained control of the operations a user is allowed to perform.
+  The |api| resources also enforce the same authorization rules, so
+  the resources and methods that can be accessed by an |api| key are
+  governed by the roles granted to the associated user.
+
+  .. example::
+
+     To ``DELETE`` a host, the user that owns the |api| key used to
+     make the request must be a :authrole:`Project Monitoring Admin`
+     or :authrole:`Project Owner` in the project to which the host
+     belongs.
+
+- Many resources are tied to a project (former known as a *group*),
+  as evidenced by |url|\s of the following form:
+
+  .. code-block:: shell
+
+     /api/public/v1.0/groups/{PROJECT-ID}/
+
+  For these resources, the user tied to the |api| key must be a
+  member of the project *or* must be assigned to one of the
+  ``GLOBAL`` roles. Otherwise |application| responds with an |http|
+  401 error.
+
+.. _api-automation:
+
+Automation
+----------
+
+The :doc:`/reference/api/automation-config` and
+:doc:`/reference/api/automation-status` resources provide endpoints
+that let you modify a project's deployment and retrieve deployment
+status. You can modify a deployment by sending a new
+:doc:`automation configuration </reference/cluster-configuration>` to
+|mms|. The automation configuration is where you describe and
+configure the MongoDB processes to be deployed. |mms| refers to this
+as the deployment's "goal state." When you submit a new automation
+configuration through the |api|, the {+aagent+}s adjust the
+current state of the system to match the goal state.
+
+.. important::
+
+   There is no protection in the |api| to prevent concurrent
+   modifications. If two administrators both start with a
+   configuration based on the current version, make their own
+   modifications, and then submit their modifications, the later
+   modification wins.
+
+Additional Information
+----------------------
+
+See :doc:`/reference/api` for a complete reference
+of all resources available in the |mms| Public |api|.

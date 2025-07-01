@@ -1,0 +1,79 @@
+.. _resync-backup:
+
+===============
+Resync a Backup
+===============
+
+.. meta::
+   :description: Resync a backup in Ops Manager when alerted due to oplog lag or missing data, ensuring the backup can catch up with the MongoDB deployment.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note::
+
+   You don't need to resync MongoDB databases.
+
+When a backup becomes out of sync with the MongoDB deployment, |mms|
+produces a ``Backup requires a resync`` alert. If you
+receive this alert, you must resync the backup for the specified
+MongoDB instance.
+
+The following scenarios trigger a ``Backup requires a resync`` alert:
+
+The Oplog has rolled over
+  This is the most common case for the
+  ``Backup requires a resync`` alert. It occurs whenever
+  the {+bagent+}’s :term:`tailing cursor <tailable cursor>`
+  cannot keep up with the deployment's :manual:`oplog </reference/glossary/#std-term-oplog>`. This is similar
+  to when a :manual:`secondary </reference/glossary/#std-term-secondary>` falls too far behind the primary in a
+  replica set. Without a resync, the backups will not catch up.
+
+Unsafe applyOps
+  This occurs when a document that Backup does not have a copy of is
+  indicated.
+
+Data corruption or other illegal instruction
+  This typically causes replication, and therefore the backup job, to
+  break. When the daemon sees the broken job, it requests a resync.
+
+During the resync, data is read from a secondary in each replica set
+and |mms| does not produce any new snapshots.
+
+.. important::
+   
+   |mms| does not attempt to automatically recover from conditions that
+   caused the ``Backup requires a resync`` alert. This
+   alert means there is not enough data to complete a restore. There is
+   no way to automatically recover from not having enough data from the
+   snapshots and the oplog. Resyncing the backup is the best option.
+
+Considerations
+--------------
+
+Deployments are backed up with WiredTiger checkpoints
+using :manual:`backup cursors </reference/glossary/#std-term-backup-cursor>`. Applications can 
+continue read and write operations on the database while WiredTiger
+takes the snapshot.
+
+To provide a buffer for maintenance and for occasional activity bursts,
+ensure that the oplog on the :manual:`primary </reference/glossary/#std-term-primary>` is large enough to contain
+at least 24 hours of activity.
+
+You should resync the head database after you
+:ref:`create an index in a rolling fashion <data-explorer-indexes>` to
+ensure that the head database takes the new index into account.
+
+.. seealso::
+   
+   For more information on the Backup oplog, see the :ref:`faq-backup`.
+
+Procedure
+---------
+
+.. include:: /includes/steps/resync.rst

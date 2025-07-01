@@ -1,0 +1,105 @@
+stepnum: 1
+level: 4
+# Note: This step is borrowed from the deb install procedure, not from steps-source-upgrade.
+source:
+  file: steps-install-on-prem-with-deb-packages.yaml
+  ref: download
+---
+stepnum: 2
+level: 4
+title: "Stop your first running |onprem| instance."
+ref: shutdown
+content: |
+
+  Issue the following command to stop the |application|:
+
+  .. code-block:: sh
+
+     sudo service mongodb-mms stop
+---
+title: "Install the |onprem| package on the host that you are upgrading."
+stepnum: 3
+level: 4
+ref: install
+content: |
+
+  .. include:: /includes/fact-opsmanager-ha-start-upgrade-mode.rst
+
+  a. Install the ``.deb`` package on each |application| and Backup
+     Daemon host. Issue the following command, where  ``<version>`` is
+     the version of the ``.deb`` package:
+
+     .. code-block:: sh
+
+        sudo dpkg -i mongodb-mms_<version>_x86_64.deb
+
+  b. When prompted whether to overwrite the currently installed version
+     of ``mms.conf``, you should type ``Y`` to replace the existing file.
+
+  c. If you :doc:`modified the ports </tutorial/manage-ports>` or the
+     JVM settings that Ops Manager uses, you need to re-apply those
+     changes to the ``mms.conf`` file after |onprem| is upgraded.
+
+     .. include:: /includes/admonitions/warning/unredacted-secrets-from-mms-conf.rst
+
+     The upgrade to |onprem| 4.1 and 4.2 removed the ``-d64`` flag from
+     the ``JAVA_MMS_UI_OPTS`` parameter.
+
+  d. When upgrading to |onprem| 4.4.11, |onprem| prompts you to choose which version
+     of the :file:`/opt/mongodb/mms/conf/conf-mms.properties` file it should use.
+     To avoid having to manually reconfigure |onprem|, choose the
+     current file. For more information, see :ref:`4.4.11 Release Notes
+     <opsmgr-server-4.4.11>`.
+
+---
+stepnum: 4
+level: 4
+title: "Start |onprem| on the upgraded host."
+ref: start
+content: |
+  .. code-block:: sh
+
+     sudo service mongodb-mms start
+
+  .. include:: /includes/note-backup-daemon-will-wait.rst
+  
+  Log into your upgraded |onprem| host after it restarts. If
+  your login succeeds, the upgrade succeeded.
+---
+stepnum: 5
+level: 4
+title: "*[Optional]* Repeat the preceding steps for all other |onprem| hosts in your High Availability deployment."
+ref: rinse-repeat
+content: |
+  
+  |onprem| remains in **Upgrade Mode** until every host is upgraded. For 
+  :doc:`high availability configurations </tutorial/configure-application-high-availability>`, 
+  this means:
+
+  - Your hosts might not be fully operational until the upgrade is completed     
+    cluster-wide. If your first host upgrade takes longer than expected, continue 
+    upgrading the other hosts.
+
+  - Do not stop or cancel processes that seem stuck as this might disrupt the upgrade.
+
+  - The logs that |onprem| generates during startup might temporarily pause 
+    at ``Starting pre-flight checks`` while |onprem| upgrades all its servers
+    to the same version. 
+ 
+  - For multi-version upgrades, do not skip major versions.
+    You must upgrade each node in the cluster to the last minor version of each major release one at a time.
+    For example, to upgrade from 6.0.26 to 8.0.3, do the following steps on *each node*:
+
+    1. Stop the service on a node (running 6.0.26).
+    2. Upgrade to the most recent minor version of 7.0.x.
+    3. Start the upgraded host before you move to the next node.
+    4. Repeat for all other nodes.
+    5. Repeat this process to upgrade each node from 7.0.x to 8.0.3.
+
+---
+stepnum: 6
+level: 4
+source:
+  file: steps-source-upgrade-onprem.yaml
+  ref: upgrade-install-agents
+...
