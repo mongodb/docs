@@ -19,7 +19,8 @@
         .. code-block:: none
            :copyable: false
 
-           mongodb://pl-0-eastus2.uzgh6.mongodb.net:1024,pl-0-eastus2.uzgh6.mongodb.net:1025,pl-0-eastus2.uzgh6.mongodb.net:1026/?ssl=truereplicaSet=atlas-18bndf-shard-0
+           mongodb://pl-0-westeurope-azure.gmmteo.mongodb.net:1024,pl-0-westeurope-azure.gmmteo.mongodb.net:1025,pl-0-westeurope-azure.gmmteo.mongodb.net:1026/
+
 
       When a client in your VNet connects to an |service| cluster using
       one of these private endpoint-aware connection strings, the
