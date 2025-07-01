@@ -1,5 +1,5 @@
 MongoDB 5.0 removes the deprecated ``geoHaystack`` index and
-:dbcommand:`geoSearch` command. Use a :doc:`2d index </core/2d>` with
+``geoSearch`` command. Use a :doc:`2d index </core/2d>` with
 :pipeline:`$geoNear` or one of the supported :ref:`geospatial query
 operators <geospatial-query-selectors>` instead.
 
