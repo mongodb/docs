@@ -1,0 +1,114 @@
+.. _restore-http-point:
+
+=====================================
+Restore from a Specific Point-in-Time
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To restore a :manual:`snapshot </reference/glossary/#std-term-snapshot>` using |http|, |mms|
+creates and displays a download link to the appropriate
+snapshot in snapshot storage.
+
+After clicking the download link, |mms| streams the snapshot to the
+target snapshot host.
+
+.. note::
+
+   PIT restores include points in time and oplog timestamps. 
+
+.. include:: /images/restore-full-wt.rst
+
+Considerations
+--------------
+
+- The |mms| point-in-time restore might have oplog gaps in some
+  situations such as the following:
+
+  - If the oplog tailing stops because of an issue with :term:`backup
+    job <backup job>` tailing the oplog and the oplog rolls over before
+    {+mdbagent+} tails it again.
+
+  - After a topology change until |mms| completes a new snapshot.
+
+  - After the |fcv| change, which causes a gap between the time |mms| detects
+    the |fcv| change and |mms| completes a new snapshot. You can't apply a
+    point-in-time restore across MongoDB version changes.
+
+  - After a restore until |mms| completes a new snapshot.
+
+- If there is an oplog gap after |mms| takes the latest snapshot, then a
+  point-in-time restore fails if the restore time selected is after
+  the oplog gap began and before the next snapshot. Once |mms| takes the
+  next snapshot, you can use point-in-time restore as normal from that
+  snapshot time onward.
+
+- You only see oplog gaps when you attempt and fail a point-in-time
+  restore.
+
+- You can request a point-in-time restore to a specific point in time
+  that includes stale data.
+
+Procedure
+---------
+
+1. The user selects a timestamp:
+
+   - Through the |mms| application:
+
+     1. Click on a timestamp.
+     #. Submit their request.
+
+   - Through the :doc:`API </reference/api/restorejobs/get-one-single-restore-job-for-one-cluster>`:
+
+     1. Find the cluster to restore.
+     #. :doc:`Create new Restore Job </reference/api/restorejobs/create-one-restore-job-for-one-cluster>`
+        for that cluster.
+
+#. |mms| creates a RestoreJob document.
+
+#. |mms| sets the RestoreJob document status to
+   :guilabel:`Transferring...` and starts streaming the
+   :manual:`snapshot </reference/glossary/#std-term-snapshot>` in the requested format from the
+   :opsmgr:`snapshot store </reference/glossary/#std-term-snapshot-store>` to |mms|. Each
+   Snapshot Store streams its snapshot components through |mms|:
+
+   a. A :term:`blockstore <backup blockstore database>` streams
+      blocks.
+   #. A :opsmgr:`S3 snapshot store </reference/glossary/#std-term-S3-snapshot-store>` streams the blocks.
+
+#. With the status set to :guilabel:`Waiting for Customer...`, |mms|
+   creates a |url|.
+
+#. The user clicks the :guilabel:`get link` link, then
+   :guilabel:`Download` in the |mms| application to download the
+   :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+
+#. The user downloads the MongoDB Backup Restore Utility from the |mms|
+   application to the target snapshot host.
+
+   .. note::
+      
+      The |mbru| can be used with any restore. If the utility is
+      installed on the host where you want to restore the snapshot, the
+      user doesn't need to download it again.
+
+#. The user starts a temporary MongoDB instance on the target snapshot
+   host. The fetched :manual:`oplog </reference/glossary/#std-term-oplog>` is applied to the snapshot restored
+   to this instance.
+
+#. The user runs the |mbru| to request the :manual:`oplog </reference/glossary/#std-term-oplog>`.
+
+#. The |mbru| fetches the oplog for the point-in-time snapshot.
+
+#. The |mbru| applies the oplog to snapshot in the temporary MongoDB
+   instance.
+
+#. The user exports the restored database from the temporary MongoDB
+   instance.

@@ -1,0 +1,243 @@
+======================================
+Assign Deployment Region to One Shard 
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   PATCH /groups/{PROJECT-ID}/backupConfigs/{CLUSTER-ID}
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Type
+     - Necessity
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the 
+       project that holds the cluster with the backup configuration you 
+       want to find.
+
+   * - CLUSTER-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the cluster 
+       whose backup configuration you want to find.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55 
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``deploymentConfigs``
+     - array of objects
+     - Required
+     - Specification objects for the cluster members for which to assign
+       deployment regions. 
+
+   * - | ``deploymentConfigs``
+       | ``.rsId`` 
+     - string
+     - Required
+     - :manual:`Replica set </reference/glossary/#std-term-replica-set>`
+       label that identifies the shard.       
+
+   * - | ``deploymentConfigs``
+       | ``.deploymentId`` 
+     - string
+     - Required
+     - Unique identifier that references the deployment region to
+       assign to the shard.
+
+   * - ``multiRegionBackupEnabled``
+     - boolean 
+     - Required
+     - Flag that indicates whether :ref:`multi-region backup
+       <deployment-regions-interface>` is enabled for the cluster.
+
+Response
+--------
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``authMechanismName``
+     - string
+     - Authentication mechanism needed to connect to the sync source
+       database. |mms| requires this parameter if the sync store uses
+       authentication. |mms| returns one of the following: 
+
+       .. include:: /includes/api/lists/authMechanismName-values.rst
+
+   * - ``clusterId``
+     - string
+     - Unique 24-hexadecimal digit string that identifies the 
+       cluster that is configured for backup.
+
+   * - ``encryptionEnabled``
+     - boolean
+     - Flag that indicates whether encryption is enabled for the 
+       backup configuration. 
+
+   * - ``excludedNamespaces``
+     - array of strings
+     - List of database names and collection names omitted from
+       the backup. Each string specifies a namespace of the form
+       ``{database}`` or ``{database}.{collection}``.
+
+   * - ``groupId``
+     - string
+     - Unique 24-hexadecimal digit string that identifies the 
+       project that owns this backup configuration.
+
+   * - ``includedNamespaces``
+     - string array
+     - List of database names and collection names included in
+       the backup. Each string specifies a namespace of the form 
+       ``{database}`` or ``{database}.{collection}``. Any namespace
+       **not listed** in this array **is not to be backed up**. 
+
+   * - ``links``
+     - object array
+     - .. include:: /includes/api/links-explanation.rst
+
+   * - ``multiRegionBackupEnabled``
+     - boolean 
+     - Flag that indicates whether :ref:`multi-region backup
+       <deployment-regions-interface>` is enabled for the cluster.
+
+   * - ``multiRegionMisconfigured``
+     - boolean 
+     - Flag that indicates whether :ref:`multi-region backup
+       <deployment-regions-interface>`, if enabled, is in
+       the ``Misconfigured`` state. The value can be one of the following: 
+       
+       - ``true`` - the status is ``Misconfigured`` and |mms| won't take
+         any new snapshots although |mms| continues oplog tailing 
+         uninterrupted for the cluster members with assigned regions.
+         You must select a deployment region for new cluster members for
+         |mms| to resume taking new snapshots for all cluster members. 
+
+       - ``false`` - the status is ``Active``.
+
+   * - ``preferredMember``
+     - string
+     - Cluster member manually designated as the preferred member 
+       for backup. Appears only for member requests when the 
+       preferred member is set with the :doc:`UI 
+       </tutorial/edit-backup>` or :doc:`API 
+       </reference/api/backup/update-backup-config>`.
+
+   * - ``sslEnabled``
+     - boolean
+     - Flag that indicates whether |tls| is enabled for the sync 
+       source database.
+
+   * - ``statusName``
+     - string
+     - Current (or desired) status of the backup configuration.
+       Possible values are:
+
+       - ``INACTIVE``
+       - ``PROVISIONING``
+       - ``STARTED``
+       - ``STOPPED``
+       - ``TERMINATING``
+
+   * - ``storageEngineName``
+     - string
+     - Storage engine used for the backup. Possible values are:
+
+       - ``MEMORY_MAPPED``
+       - ``WIRED_TIGER``
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{publicKey}:{privateKey}" --digest \
+        --header "Accept: application/json" \
+        --include \
+        --request PATCH "https://{opsManagerHost}:{port}/api/public/v1.0/admin/backup/backupDeployments/?pretty=true"
+        --data '
+          {
+            "multiRegionBackupEnabled" : true,
+            "deploymentConfigs": [
+              {"rsId":"myShard_2", "deploymentId":"NY_NJ"},
+            ]
+          }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "authMechanismName" : "NONE",
+     "clusterId" : "{CLUSTER-ID}",
+     "encryptionEnabled" : false,
+     "excludedNamespaces" : [ ],
+     "groupId" : "{PROJECT-ID}",
+     "links" : [ ],
+     "multiRegionBackupEnabled" : true,
+     "multiRegionMisconfigured" : false,
+     "sslEnabled" : false,
+     "statusName" : "STARTED",
+     "storageEngineName" : "WIRED_TIGER"
+   }

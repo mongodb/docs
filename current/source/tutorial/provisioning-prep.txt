@@ -1,0 +1,274 @@
+========================
+Deployment Prerequisites
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+System Requirements
+-------------------
+
+Hardware and Software
+~~~~~~~~~~~~~~~~~~~~~
+
+Each host must meet the following requirements.
+
+- At least 10 GB of free disk space plus whatever space is necessary to
+  hold your MongoDB data.
+
+- At least 4 GB of RAM.
+
+- If you use |aws| EC2 instances, you should use a minimum of an
+  ``m3.medium`` instance.
+
+- The {+mdbagent+} must be installed only on 64-bit architectures.
+
+.. include:: /includes/prerequisites-automation-agent-servers.rst
+
+MongoDB 4.2 Backup Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enabling backup on MongoDB 4.2 hosts with an
+:manual:`FCV </reference/command/setFeatureCompatibilityVersion>` of
+``4.2`` has the following impact:
+
+- Increased disk usage, disk I/O, and network I/O on each MongoDB 4.2
+  host with backup enabled while a snapshot is being taken.
+
+- Increased inbound network load to the |mms| host or hosts while a
+  snapshot is being taken.
+
+- Snapshots and backups use no storage capacity on |mms| application
+  or Backup Daemon hosts.
+
+MongoDB Agent System User Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want the {+mdbagent+} to manage your MongoDB deployments, the
+{+mdbagent+} System User must have permission:
+
+- To stop the MongoDB processes. The {+mdbagent+} System User restarts
+  the processes using the agent's own set of MongoDB binaries.
+
+  If you had installed MongoDB with a package manager, use the same
+  package manager to install the {+mdbagent+}. This gives the
+  {+mdbagent+} the same owner as MongoDB.
+
+- To ``Read`` and ``Write`` the MongoDB data directories and log
+  directories.
+
+- Set to the same user ID (UID) and group ID (GID) of the MongoDB
+  process to be automated. If the MongoDB processes to be automated are
+  not running as the same user and group, the Agent cannot manage those
+  processes.
+
+  .. example::
+   
+     If your {+mdbagent+} runs as the |mongod| system user in the
+     |mongod| system group, the MongoDB process must also run as the
+     |mongod| system user in the |mongod| system group.
+
+  .. note::
+
+     On Microsoft Windows systems, the {+mdbagent+}, and therefore the
+     |mongod| or ``mongos`` services it manages, run as Windows
+     services as the ``SYSTEM`` user. The existing MongoDB process
+     should run as either ``SYSTEM`` or ``Administrator`` before adding
+     it to Automation.
+
+.. COMMENT There is a link from MMS to the Installation Options heading
+.. You may need to file a CLOUDP if this heading is changed or moved.
+
+Installation Options
+--------------------
+
+Installing MongoDB Enterprise Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   If you want to run
+   :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`, you
+   must manually install a set of dependencies to each host *before
+   installing MongoDB*. Automation cannot install MongoDB Enterprise if
+   these dependencies are not installed.
+
+.. tabs::
+
+   .. tab:: Ubuntu
+      :tabid: ubuntu
+
+      .. tabs::
+
+         .. tab:: Ubuntu 18.04
+            :tabid: ubuntu18
+
+            .. code-block:: sh
+
+               sudo apt-get install \
+                    libcurl4 libgssapi-krb5-2 libldap-2.4-2 liblzma5 \
+                    libsasl2-2 libsasl2-modules \
+                    libsasl2-modules-gssapi-mit libwrap0 openssl
+
+         .. tab:: Ubuntu 20.04
+            :tabid: ubuntu20
+
+            .. code-block:: sh
+
+               sudo apt-get install \
+                    libcurl4 libgssapi-krb5-2 libldap-2.4-2 liblzma5 \
+                    libsasl2-2 libsasl2-modules \
+                    libsasl2-modules-gssapi-mit libwrap0 openssl
+
+         .. tab:: Ubuntu 22.04
+            :tabid: ubuntu22
+
+            .. code-block:: sh
+
+               sudo apt-get install \
+                    libcurl4 libgssapi-krb5-2 libldap-2.5-0 liblzma5 \
+                    libsasl2-2 libsasl2-modules \
+                    libsasl2-modules-gssapi-mit libwrap0 openssl
+
+            .. note:: 
+
+               |bic-full| isn't supported on Ubuntu 22.04.
+
+         .. tab:: Ubuntu 24.04
+            :tabid: ubuntu24
+
+            .. code-block:: sh
+
+               sudo apt-get install \
+                    libcurl4 libgssapi-krb5-2 libldap2 liblzma5 \
+                    libsasl2-2 libsasl2-modules \
+                    libsasl2-modules-gssapi-mit libwrap0 openssl
+
+            
+
+   .. tab:: Debian
+      :tabid: debian
+
+      .. tabs::
+
+         .. tab:: Debian 9
+            :tabid: debian9
+
+            .. code-block:: sh
+
+               sudo apt-get install \
+                    libcurl3 libgssapi-krb5-2 libldap-2.4-2 liblzma5 \
+                    libsasl2-2 libsasl2-modules \
+                    libsasl2-modules-gssapi-mit libwrap0 openssl
+
+         .. tab:: Debian 10, 11
+            :tabid: debian10
+
+            .. code-block:: sh
+
+               sudo apt-get install \
+                    libcurl4 libgssapi-krb5-2 libldap-2.4-2 liblzma5 \
+                    libsasl2-2 libsasl2-modules \
+                    libsasl2-modules-gssapi-mit libwrap0 openssl
+
+   .. tab:: RHEL / CentOS
+      :tabid: rhel
+
+      .. tabs::
+
+         .. tab:: RHEL / CentOS 6.x
+            :tabid: rhel6
+
+            .. code-block:: sh
+
+               sudo yum install cyrus-sasl cyrus-sasl-gssapi \
+                    cyrus-sasl-plain krb5-libs libcurl \
+                    openldap openssl xz-libs
+
+         .. tab:: RHEL / CentOS 7.x
+            :tabid: rhel7
+
+            .. code-block:: sh
+
+               sudo yum install cyrus-sasl cyrus-sasl-gssapi \
+                    cyrus-sasl-plain krb5-libs libcurl \
+                    lm_sensors-libs \
+                    openldap openssl tcp_wrappers-libs xz-libs
+
+         .. tab:: RHEL / CentOS 8.x or 9.x
+            :tabid: rhel8
+
+            .. code-block:: sh
+
+               sudo yum install cyrus-sasl cyrus-sasl-gssapi \
+                    cyrus-sasl-plain krb5-libs libcurl \
+                    lm_sensors-libs \
+                    openldap openssl xz-libs
+
+   .. tab:: SUSE
+      :tabid: suse
+
+      .. tabs::
+
+         .. tab:: SUSE 12.x
+            :tabid: 12
+
+            .. code-block:: sh
+
+               sudo zypper install cyrus-sasl cyrus-sasl-plain \
+                    cyrus-sasl-gssapi krb5 libcurl4 libldap-2_4-2 \
+                    libopenssl1_0_0 libsensors4 libwrap0 \
+                    liblzma5
+
+         .. tab:: SUSE 15.x
+            :tabid: 15
+
+            .. code-block:: sh
+
+               sudo zypper install cyrus-sasl cyrus-sasl-plain \
+                    cyrus-sasl-gssapi krb5 libcurl4 libldap-2_4-2 \
+                    libopenssl1_1 libsensors4 libwrap0 \
+                    liblzma5
+
+   .. tab:: Amazon Linux
+      :tabid: amz
+
+      .. tabs::
+
+         .. tab:: Amazon Linux 2013.03 or later
+            :tabid: v1
+
+            .. code-block:: sh
+
+               sudo yum install cyrus-sasl cyrus-sasl-gssapi \
+                    cyrus-sasl-plain krb5-libs libcurl \
+                    openldap openssl xz-libs
+
+         .. tab:: Amazon Linux 2
+            :tabid: v2
+
+            .. code-block:: sh
+
+               sudo yum install cyrus-sasl cyrus-sasl-gssapi \
+                    cyrus-sasl-plain krb5-libs libcurl \
+                    lm_sensors-libs \
+                    openldap openssl tcp_wrappers-libs xz-libs
+
+         .. tab:: Amazon Linux 2023
+            :tabid: v2023
+
+            .. code-block:: sh
+
+               sudo yum install cyrus-sasl cyrus-sasl-gssapi \
+                    cyrus-sasl-plain krb5-libs \
+                    lm_sensors-libs \
+                    openldap openssl xz-libs
+
+.. include:: /includes/prerequisites-automation-agent-new-deployment.rst
+
+.. include:: /includes/prerequisites-automation-agent-monitored-deployment.rst
