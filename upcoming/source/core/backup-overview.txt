@@ -1,0 +1,110 @@
+==============
+Backup Process
+==============
+
+.. meta::
+   :description: Understand the backup process in Ops Manager, including snapshot intervals, operational states, and regional backup options.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Backups depend upon which :manual:`version of MongoDB your database is
+compatible </reference/command/setFeatureCompatibilityVersion>`. For
+MongoDB 4.4, the FCV can be ``4.2`` or ``4.4``. 
+
+.. include:: /includes/backup/wtchk-process-overview.rst
+
+.. note:: Integrate with Third-Party Backup Platforms
+   
+   You can integrate {+onprem+} with a supported third-party backup
+   platform to enable backups and restores of your MongoDB clusters 
+   without relying solely on MongoDB's native tooling. To learn more,
+   see :ref:`third-party-backup`. 
+
+.. _backup-stages:
+
+Backup Definition and Operational States
+----------------------------------------
+
+Each backup is defined as a :term:`job <backup job>`. Each job defines
+how much and how often data is backed up. Backup jobs are defined on a
+per-project basis.
+
+Operational States
+~~~~~~~~~~~~~~~~~~
+
+The following table lists the states of a backup job:
+
+.. list-table::
+   :widths: 60 20 20
+   :header-rows: 1
+
+   * - State
+     - Retain Old Snapshots
+     - Create New Snapshots
+
+   * - ``Active``
+     - Yes
+     - Yes
+
+   * - ``Stopped``
+     - Yes
+     - No
+
+   * - ``Inactive``
+     - No
+     - No
+
+   * - ``Misconfigured``
+     - Yes
+     - No
+
+.. note::
+
+   The ``Misconfigured`` state applies only to :ref:`regional-backup`.
+
+Change Operational States
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once backup jobs are active for a :opsmgr:`project </reference/glossary/#std-term-project>`, they run without
+further intervention until they are stopped or terminated. The operator
+can change the state of a backup in the following ways:
+
+.. include:: /includes/backup/wtchk-process-change-op-state.rst
+
+.. _backup-initial-sync:
+
+Backup Process Flows
+--------------------
+
+Once created, a backup job goes through the following process flow:
+
+.. include:: /includes/backup/wtchk-process-initial-backup.rst
+
+.. _regional-backup:
+
+Regional Backup
+---------------
+
+You can assign backup jobs to :ref:`deployment-regions-interface` to
+promote data isolation. When you assign a backup job to a deployment
+region, |onprem| writes all snapshots, oplogs, and sync data that the
+job generates to the relevant storage configured for that
+region. Regional backup is available for replica sets and sharded
+clusters. To enable regional backup for a sharded cluster, you must
+assign deployment regions and initiate backup jobs for each shard
+separately.
+
+To determine whether regional backup is enabled in your deployment, you
+can check for the following in the :guilabel:`Continuous Backup`
+dashboard. 
+
+- :guilabel:`Backup Region` on the top right corner displays the group's
+  deployment region by default and if the project is enabled for
+  regional backup, it displays the legend :guilabel:`Multi-Region`. 
+- :guilabel:`Regional Backup` column displays in the dashboard.

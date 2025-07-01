@@ -1,0 +1,264 @@
+.. _third-party-backup:
+
+=============================================
+Backup and Restore with Third-Party Platforms
+=============================================
+
+.. meta::
+   :description: Understand the third-party platform integration options for backup and restore operations with Ops Manager.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To enable reuse of existing third-party backup solutions, you can 
+integrate {+onprem+} with one of the following third-party backup 
+platforms that support certified MongoDB cluster snapshot backups and 
+restores with secure and scalable storage (including cold storage), 
+immutability enforcement, and compliance policy support:
+
+- {+cohesity-link+}
+- {+rubrik-link+}
+
+With these integrations, you can coordinate scheduled or on-demand 
+backups and restores of your MongoDB clusters directly from your
+third-party management console to streamline your backup, retention, and
+recovery operations across data platforms without the complexity and 
+additional operational costs of managing {+onprem+} at backup scale. 
+
+To begin the backup or restore process, the third-party backup
+platform calls the {+admin-api+} to put your MongoDB cluster into a 
+backup-ready or restore-ready state. The third-party platform handles
+all backup or restore operations, before it calls the {+admin-api+} 
+again to return the cluster to a normal running state. 
+
+While |mdb-support| can help you configure the integration points in 
+{+onprem+}, contact your third-party vendor for functionality or 
+performance issues related to the backup and restore process.
+
+.. note:: 
+
+   Third-party backups can't run alongside {+onprem+}'s native backup
+   process on the same cluster. However, you can run both types of 
+   backups in separate clusters within the same project for a flexible 
+   resilience strategy.
+
+Prerequisites
+-------------
+
+- Your {+onprem+} project must run {+onprem-full+} version 8.0.8 or 
+  later to integrate with third-party backup platforms.
+
+- See your vendor's documentation for the tooling version to use.
+
+- Synchronize the clocks across all of your host machines 
+  before you configure {+onprem+} for third-party backup integration. 
+  To learn more, see :manual:`Clock Synchronization 
+  </administration/production-notes/#clock-synchronization>`.
+
+Integrate {+onprem+} with a Third-Party Backup Platform
+--------------------------------------------------------
+
+Complete the following preliminary setup in {+onprem+} before you go to
+your third-party platform to finish setting up your integration: 
+
+.. procedure::
+   :style: normal
+
+   .. step:: Generate API keys for the {+admin-api+}.  
+
+      To grant the appropriate level of {+admin-api+} access to your 
+      third-party vendor, you must generate either a global or 
+      project-level API key in {+onprem+}. 
+
+      See your third-party vendor's documentation to determine which 
+      level of API access is necessary for your integration. 
+
+      .. tabs::
+
+         .. tab:: Global API Access
+            :tabid: global
+            
+            To generate an API key for global {+admin-api+} access: 
+
+            a. In the {+onprem+} :guilabel:`Admin` console, click 
+               :guilabel:`General` and :guilabel:`API Keys`.
+
+            #. Click the :guilabel:`Create API Key` button.
+
+            #. In the :guilabel:`Enter API Key Information` modal, 
+               provide a description for your API key and select 
+               :guilabel:`Global Backup Admin` from the
+               :guilabel:`Global Permissions` drop-down menu.
+             
+            #. Click the ``Next`` button.
+
+            #. Copy the :guilabel:`Public Key` and :guilabel:`Private Key`
+               and store them in a secure location.
+
+               Each API request requires these keys in the header to 
+               securely communicate with {+onprem+}.
+
+            #. Click :guilabel:`Done`.
+
+         .. tab:: Project-Level API Access
+            :tabid: project
+
+            To generate an API key for project-level {+admin-api+} access: 
+
+            a. In your {+onprem+} project, expand the 
+               :guilabel:`Access Manager` drop-down menu and select 
+               :guilabel:`Project Access`.
+      
+            #. Click the :guilabel:`API Keys` tab.
+
+            #. Click the :guilabel:`Create API Key` button.
+
+            #. In the :guilabel:`Enter API Key Information` modal, 
+               provide a description for your API key and select 
+               :guilabel:`Project Backup Admin` from the
+               :guilabel:`Project Permissions` drop-down menu.
+             
+            #. Click the ``Next`` button.
+
+            #. Copy the :guilabel:`Public Key` and :guilabel:`Private Key`
+               and store them in a secure location.
+
+               Each API request requires these keys in the header to 
+               securely communicate with {+onprem+}.
+
+            #. Click :guilabel:`Done`.
+
+      To learn more about {+admin-api+} access, see :ref:`mms-prog-api-key`.
+
+   .. step:: Enable third-party backup in the {+onprem+} configuration. 
+      
+      a. In the {+onprem+} :guilabel:`Admin` console, click 
+         :guilabel:`General` and :guilabel:`Ops Manager Config`.
+
+      #. Click the :guilabel:`Custom` tab. 
+      
+      #. Add one of the following key and value pairs to enable 
+         third-party backup at the global or project level. 
+
+         See your third-party vendor's documentation to determine which
+         level of access is necessary for your integration.
+                     
+         .. list-table:: 
+            :header-rows: 1
+            :widths: 20 40 40 
+
+            * - Access Level
+              - Key 
+              - Value 
+            
+            * - Project 
+              - ``mms.featureFlag.backup.thirdPartyManaged``
+              - ``controlled``
+
+            * - Global 
+              - ``mms.featureFlag.backup.thirdPartyManaged``
+              - ``enabled``
+       
+      #. Click :guilabel:`Save` to enable third-party backup.
+    
+   .. step:: (Conditional) Enable third-party backup in the {+onprem+} project settings.
+
+      If you enabled third-party backup at the project level in the 
+      previous step, you must enable third-party backup in your MongoDB
+      project settings: 
+
+      a. In your {+onprem+} project, click :guilabel:`Settings`.
+
+      #. Click the :guilabel:`Beta Features` tab, and click
+         :guilabel:`Backup Third Party Managed`.
+    
+   .. step:: Install {+mdbagent+}s on every server in the cluster. 
+
+      If not already installed, install {+mdbagent+}s on every server in 
+      each MongoDB cluster that you want to back up:  
+
+      a. In your {+onprem+} project, click :guilabel:`Deployment`, the
+         :guilabel:`Agents` tab, and the 
+         :guilabel:`Downloads & Settings` tab.
+      
+      #. Select your host machine's operating system from the 
+         :guilabel:`Select your operating system` drop-down menu.
+
+      #. Follow the instructions to install a {+mdbagent+} on each of 
+         the MongoDB servers that you want to back up. 
+
+      To learn more, see :ref:`automation-agent-install-steps-manage`. 
+
+   .. step:: Set an oplog file path for third-party backup.
+      
+      To set an directory for {+mdbagent+} oplog output: 
+
+      a. In the {+onprem+} :guilabel:`Admin` console, click 
+         :guilabel:`General` and :guilabel:`Ops Manager Config`.
+
+      #. Click the :guilabel:`Custom` tab, and add the following key and
+         value pair: 
+
+         .. list-table:: 
+            :header-rows: 1
+            :widths: 50 50 
+
+            * - Key 
+              - Value 
+            
+            * - ``brs.thirdparty.baseOplogFilePath``
+              - Path to a directory that the {+mdbagent+} can access.
+      
+      #. Click :guilabel:`Save` to add your file path parameter.
+
+      #. For each {+mdbagent+} that you set up previously, 
+         verify that the Agent can read and write to the oplog directory. 
+
+         For verification methods, see your operating system's 
+         documentation.
+
+   .. step:: Enable monitoring and backup on every server in the cluster.
+
+      In your {+onprem+} project, click :guilabel:`Deployment`, and 
+      the :guilabel:`Servers` tab to view the MongoDB cluster 
+      servers that your {+onprem+} project manages.
+      
+      For each server: 
+         
+      a. Click the :icon-mms:`ellipsis` menu next to your target 
+         server's {+mdbagent+}.
+                     
+      #. Click :guilabel:`Activate Monitoring` and 
+         :guilabel:`Activate Backup`.
+         
+      #. Click :guilabel:`Review & Deploy`.
+
+         The :guilabel:`Review Your Changes` modal appears.
+
+      #. After you review your changes, click 
+         :guilabel:`Confirm & Deploy`. 
+
+   .. step:: Set continuous backup to third-party managed.
+
+      a. In your {+onprem+} project, click :guilabel:`Continuous Backup`.
+
+      #. Hover over the :guilabel:`Status` column for the target 
+         sharded cluster or replica set and click :guilabel:`Manage`. 
+
+      #. In the ensuing modal, click :guilabel:`Manage`. 
+         
+         The cluster's :guilabel:`Continuous Backup` status changes to 
+         :guilabel:`Third Party Managed`.
+
+   .. step:: Finish integrating with your third-party platform.
+      
+      To finish integrating {+onprem+} with your third-party backup 
+      platform, see your vendor's documentation: 
+
+      - {+cohesity-link+}
+      - {+rubrik-link+}
