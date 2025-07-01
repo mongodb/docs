@@ -12,6 +12,6 @@ Compatibility Table Legend
    * - ✓
      - All features are supported.
    * - D
-     - Support for the MongoDB or language version is deprecated.
+     - Support for the language version is deprecated.
    * - No mark
-     - The driver version is not tested with the MongoDB or language version.
+     - The driver version is not tested with the language version.
