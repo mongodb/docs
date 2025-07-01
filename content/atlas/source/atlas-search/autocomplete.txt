@@ -1,0 +1,2317 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, kotlin, python, shell
+
+.. _autocomplete-ref:
+
+==========================
+``autocomplete`` Operator
+==========================
+
+.. default-domain:: mongodb
+ 
+.. meta::
+   :keywords: predict word, search as you type, code example, atlas ui, java sync, node.js, compass
+   :description: Use the autocomplete operator to predict words as you type.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: autocomplete
+
+   .. include:: /includes/fts/facts/fact-autocomplete-operator.rst
+
+.. note:: 
+
+   |fts| might return inaccurate results for queries with more than 
+   three words in a single string.
+
+.. _autocomplete-sample-use-cases:
+
+Sample Use Cases 
+----------------
+
+You can use the ``autocomplete`` operator with search-as-you-type
+applications to predict words with increasing accuracy as characters are
+entered in your application's search field. ``autocomplete`` returns
+results that contain predicted words based on the tokenization strategy
+specified in the index definition for autocompletion. 
+
+If you want to build suggestions or dropdowns using the |fts| 
+``autocomplete`` operator, we recommend that you query a
+collection of suggested search terms or use past search terms to
+populate the dropdown. If you create a separate collection of suggested
+search terms, you can :ref:`define synonym mappings in your Atlas Search index <synonyms-ref>` to search your collection for 
+the exact or alternative words. You can :ref:`track <fts-tracking-ref>`
+search terms and :ref:`view metrics <fts-query-analytics>` for search
+terms to build your collection.
+
+.. _autocomplete-ref-syntax:
+
+Syntax
+------
+
+``autocomplete`` has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     $search: {
+       "index": "<index name>", // optional, defaults to "default"
+       "autocomplete": {
+         "query": "<search-string>",
+         "path": "<field-to-search>",
+         "tokenOrder": "any|sequential",
+         "fuzzy": <options>,
+         "score": <options>
+       }
+     }
+   }
+
+.. _autocomplete-ref-options:
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 50 10 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+     - Default
+
+   * - ``query``
+     - string or array of strings
+     - String or strings to search for. If there are multiple
+       terms in a string, |fts| also looks for a match for each term
+       in the string separately.
+     - yes
+     -
+
+   * - ``path``
+     - string
+     - Indexed field to search.
+       This field must be indexed as the ``autocomplete`` data type. To learn more, 
+       see :ref:`How to Index Fields for Autocompletion <bson-data-types-autocomplete>`. 
+       
+       The ``autocomplete`` operator doesn't support the ``multi`` or ``wildcard (*)`` 
+       options in the ``path`` parameter. It also doesn't support an array of fields as the ``path`` value.
+       
+       For an example of an ``autocomplete`` operator query across multiple fields, 
+       see :ref:`Search Across Multiple Fields <autocomplete-compound>`. 
+
+     - yes
+     -
+
+   * - ``fuzzy``
+     - object
+     - Enable fuzzy search. Find strings which are similar to the
+       search term or terms.
+     - no
+     -
+
+   * - | ``fuzzy``
+       | ``.maxEdits``
+     - integer
+     - Maximum number of single-character edits required to match the
+       specified search term. Value can be ``1`` or ``2``.
+     - no
+     - ``2``
+
+   * - | ``fuzzy``
+       | ``.prefixLength``
+     - integer
+     - Number of characters at the beginning of each term in the result
+       that must exactly match.
+     - no
+     - ``0``
+
+   * - | ``fuzzy``
+       | ``.maxExpansions``
+     - integer
+     - Maximum number of variations to generate and search for. This
+       limit applies on a per-token basis.
+     - no
+     - ``50``
+
+   * - ``score``
+     - object
+     - :ref:`Score <scoring-ref>` to assign to the matching search term
+       results. Use one of the following options to modify the default
+       score:
+
+       - ``boost``: Multiply the result score by the given number.
+       - ``constant``: Replace the result score with the given number.
+       - ``function``: Replace the result score with the given expression.
+       
+       ``autocomplete`` offers less fidelity in :ref:`score <scoring-ref>` 
+       in exchange for faster query execution. To learn more, see :ref:`autocomplete-ref-scores`.
+       
+       For information on using ``score`` in your query, see :ref:`scoring-ref`.
+
+     - no
+     -
+
+   * - ``tokenOrder``
+     - string
+     - Order in which to search for tokens. Value can be one of the
+       following:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+
+          * - ``any``
+            - Indicates tokens in the query can appear in any order in
+              the documents. Results contain documents where the tokens
+              appear sequentially and non-sequentially. However,
+              results where the tokens appear sequentially score higher
+              than other, non-sequential values.
+
+          * - ``sequential``
+            - Indicates tokens in the query must appear adjacent to
+              each other or in the order specified in the query in the
+              documents. Results contain only documents where the
+              tokens appear sequentially.
+
+     - no
+     - ``any``
+
+.. _autocomplete-ref-scores:
+
+Scoring Behavior  
+----------------
+
+The ``autocomplete`` operator query results that are exact matches 
+receive a lower score than results that aren't exact matches. |fts| 
+can't determine if a query string is an exact match for an indexed text 
+if you specify just the autocomplete-indexed token substrings. To score 
+exact matches higher, try the following workaround: 
+
+.. note::
+   
+   The following workaround doesn't guarantee higher scores for exact 
+   matches in all cases.
+
+1. Index the field as both :ref:`autocomplete
+   <bson-data-types-autocomplete>` and :ref:`string
+   <bson-data-types-string>` types. 
+
+   |fts| ``autocomplete`` boosts exact matches when an ``autocomplete`` 
+   field is also indexed as a ``string``, thereby increasing the score 
+   of exact matches.
+
+#. Query using the :ref:`compound operator <compound-ref>`.
+
+For a demonstration of this workaround, see 
+:ref:`autocomplete-compound`.
+
+.. _autocomplete-ref-egs:
+
+Examples
+--------
+
+The following examples use the ``movies`` collection in the 
+``sample_mflix`` database. If you loaded the :ref:`sample dataset 
+<available-sample-datasets>` on your {+cluster+}, you can create the 
+static index for :ref:`autocompletion <bson-data-types-autocomplete>` 
+and run the example queries on your cluster.
+
+Index Definition
+~~~~~~~~~~~~~~~~
+
+The following tabs contain sample index definitions for the 
+``edgeGram``, ``rightEdgeGram``, and ``nGram`` 
+:ref:`tokenization strategies <bson-data-types-autocomplete>`.
+In addition to the :ref:`autocomplete <bson-data-types-autocomplete>` type,
+the sample index definitions include the :ref:`string <bson-data-types-string>` 
+and :ref:`token <bson-data-types-token>` types on the ``title`` field.
+
+.. tabs::
+
+   .. tab:: edgeGram 
+      :tabid: edgeGram
+
+      .. code-block:: javascript
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": [
+                 {
+                   "type": "token"
+                 },
+                 {
+                   "type": "string"
+                 },
+                 {
+                   "foldDiacritics": false,
+                   "maxGrams": 7,
+                   "minGrams": 3,
+                   "tokenization": "edgeGram",
+                   "type": "autocomplete"
+                 }
+               ],
+               "plot": [
+                 {
+                   "type": "autocomplete",
+                   "tokenization": "edgeGram",
+                   "minGrams": 2,
+                   "maxGrams": 15,
+                   "foldDiacritics": true
+                 }
+               ]
+             }
+           }
+         }
+
+   .. tab:: rightEdgeGram 
+      :tabid: rightEdgeGram
+
+      .. code-block:: javascript
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": [
+                 {
+                   "type": "token"
+                 },
+                 {
+                   "type": "string"
+                 },
+                 {
+                   "foldDiacritics": false,
+                   "maxGrams": 7,
+                   "minGrams": 3,
+                   "tokenization": "rightEdgeGram",
+                   "type": "autocomplete"
+                 }
+               ],
+               "plot": [
+                 {
+                   "type": "autocomplete",
+                   "tokenization": "rightEdgeGram",
+                   "minGrams": 2,
+                   "maxGrams": 15,
+                   "foldDiacritics": true
+                 }
+               ]
+             }
+           }
+         }
+
+   .. tab:: nGram 
+      :tabid: nGram
+
+      .. code-block:: javascript
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": [
+                 {
+                   "type": "token"
+                 },
+                 {
+                   "type": "string"
+                 },
+                 {
+                   "foldDiacritics": false,
+                   "maxGrams": 7,
+                   "minGrams": 3,
+                   "tokenization": "nGram",
+                   "type": "autocomplete"
+                 }
+               ],
+               "plot": [
+                 {
+                   "type": "autocomplete",
+                   "tokenization": "nGram",
+                   "minGrams": 2,
+                   "maxGrams": 15,
+                   "foldDiacritics": true
+                 }
+               ]
+             }
+           }
+         }
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the example on this page.
+
+----------
+
+.. tabs-selector:: drivers
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/facts/fact-fts-view-edit-search-tester.rst
+
+   .. tab::
+      :tabid: shell
+
+      Run the following command at the {+mongosh+} prompt to use the
+      ``sample_mflix`` database:
+
+      .. code-block:: shell
+
+         use sample_mflix
+
+      To learn how to run the following queries in the :binary:`~bin.mongosh`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab::
+      :tabid: compass
+
+      To learn how to run the following queries in the |compass|, see
+      :ref:`atlas-search-queries`.
+
+   .. tab:: 
+      :tabid: csharp
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB C# driver </csharp/current/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab:: 
+      :tabid: go
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Go driver </go/current/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Java driver </java-drivers/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Kotlin driver </kotlin-drivers/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab::
+      :tabid: nodejs
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Node Driver </node/current/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab::
+      :tabid: python
+
+      To learn how to run the following queries by using the
+      :driver:`PyMongo driver</pymongo/>`, see :ref:`atlas-search-queries`.
+
+.. _autocomplete-ref-egs-basic:
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following query searches for movies with the characters ``off`` in
+the ``title`` field.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. code-block:: javascript
+
+         [
+           {
+             $search: {
+               autocomplete: {
+                 path: "title",
+                 query: "off"
+               }
+             }
+           }
+         ]
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+      
+      .. literalinclude:: /includes/fts/autocomplete/basic-shell.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+
+      .. include:: /includes/fts/autocomplete/basic.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/basic.cs
+         :language: csharp
+         :dedent:
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/basic.go
+         :language: go
+         :dedent:
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/basic.java
+         :language: java
+         :dedent:
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/basic.kt
+         :language: kotlin
+         :dedent:
+
+   .. tab::
+      :tabid: javascript
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/basic.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-basic.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/basic.py
+         :language: python
+         :dedent:
+
+.. include:: /includes/fts/autocomplete/different-results-note.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. tabs::
+
+         .. tab:: edgeGram
+            :tabid: edgeGram
+
+            .. code-block::
+               :copyable: false
+
+               SCORE: 9.361787796020508  _id:  "573a13b0f29313caabd355c8"
+                 countries: Array
+                 genres: Array
+                 runtime: 100
+                 ...
+                 title: "Off Beat"
+
+               SCORE: 9.068204879760742  _id:  "573a13aaf29313caabd22a8c"
+                 fullplot: "An 11-year-old girl watches her father come down with a crippling depr…"
+                 imdb: Object
+                 year: 2003
+                 ...
+                 title: "Off the Map"
+
+               SCORE: 9.068204879760742  _id:  "573a13bef29313caabd5d208"
+                 plot: "With white Jewish lesbians for parents and two adopted brothers - one …"
+                 genres: Array
+                 runtime: 76
+                 ...
+                 title: "Off and Running"
+
+               SCORE: 8.742463111877441  _id:  "573a13bbf29313caabd5567"
+                 countries: Array
+                 genres: Array
+                 runtime: 98
+                 ...
+                 title: "Hands off Mississippi"
+
+               SCORE: 8.61273193359375  _id:  "5573a1396f29313caabce4791"
+                 plot: "Unable to deal with her parents, Jeannie Tyne runs away from home. Lar…"
+                 genres: Array
+                 runtime: 93
+                 ...
+                 title: "Taking Off"
+
+               SCORE: 8.61273193359375  _id:  "573a1399f29313caabced3c1"
+                 plot: "A travelling theater group find so much action going on behind-the-sce…"
+                 genres: Array
+                 runtime: 101
+                 ...
+                 title: "Noises Off..."
+
+               SCORE: 8.61273193359375  _id:  "573a139af29313caabcefc73"
+                 fullplot: "In existence for a hundred years, Grimley Colliery Brass band is as ol…"
+                 imdb: Object
+                 year: 1996
+                 ...
+                 title: "Brassed Off"
+
+               SCORE: 8.61273193359375  _id:  "573a139af29313caabcf08f5"
+                 fullplot: "Sean Archer, a very tough, rugged FBI Agent. Who is still grieving for…"
+                 imdb: Object
+                 year: 1997
+                 ...
+                 title: "Face/Off"
+
+               SCORE: 8.603004455566406  _id:  "573a13a9f29313caabd1ea36"
+                 fullplot: "Three unlikely, unsuspecting souls who come face-to-face with that mom…"
+                 imdb: Object
+                 year: 2004
+                 ...
+                 title: "Benji: Off the Leash!"
+
+               SCORE: 7.953945159912109  _id:  "573a139af29313caabcf037c"
+                 plot: "Desperation drives four inner-city women (Queen Latifah, Jada Pinkett …"
+                 genres: Array
+                 runtime: 123
+                 ...
+                 title: "Set it Off"
+
+         .. tab:: rightEdgeGram
+            :tabid: rightEdgeGram
+
+            .. code-block::
+               :copyable: false
+
+               SCORE: 9.81808090209961  _id:  "5573a1396f29313caabce4791"
+                 plot: "Unable to deal with her parents, Jeannie Tyne runs away from home. Lar…"
+                 genres: Array
+                 runtime: 93
+                 ...
+                 title: "Taking Off"
+
+               SCORE: 9.81808090209961  _id:  "573a1399f29313caabced3c1"
+                 plot: "A travelling theater group find so much action going on behind-the-sce…"
+                 genres: Array
+                 runtime: 101
+                 ...
+                 title: "Noises Off..."
+
+               SCORE: 9.81808090209961  _id:  "573a139af29313caabcefc73"
+                 fullplot: "In existence for a hundred years, Grimley Colliery Brass band is as ol…"
+                 imdb: Object
+                 year: 1996
+                 ...
+                 title: "Brassed Off"
+
+               SCORE: 9.81808090209961  _id:  "573a139af29313caabcf08f5"
+                 fullplot: "Sean Archer, a very tough, rugged FBI Agent. Who is still grieving for…"
+                 imdb: Object
+                 year: 1997
+                 ...
+                 title: "Face/Off"
+
+               SCORE: 9.544584274291992  _id:  "573a139af29313caabcf037c"
+                 plot: "Desperation drives four inner-city women (Queen Latifah, Jada Pinkett …"
+                 genres: Array
+                 runtime: 123
+                 ...
+                 title: "Set it Off"
+
+               SCORE: 9.191947937011719  _id:  "573a13bbf29313caabd5567"
+                 countries: Array
+                 genres: Array
+                 runtime: 98
+                 ...
+                 title: "Hands off Mississippi"
+
+               SCORE: 9.074413299560547  _id:  "573a1398f29313caabce9f28"
+                 plot: "A high school wise guy is determined to have a day off from school, de…"
+                 genres: Array
+                 runtime: 103
+                 ...
+                 title: "Ferris Bueller's Day Off"
+               
+               SCORE: 9.007184982299805  _id:  "573a13b0f29313caabd355c8"
+                 countries: Array
+                 genres: Array
+                 runtime: 100
+                 ...
+                 title: "Off Beat"
+
+               SCORE: 8.700296401977539  _id:  "573a13a9f29313caabd1ea36"
+                 fullplot: "Three unlikely, unsuspecting souls who come face-to-face with that mom…"
+                 imdb: Object
+                 year: 2004
+                 ...
+                 title: "Benji: Off the Leash!"
+
+               SCORE: 8.33833122253418  _id:  "573a13aaf29313caabd22a8c"
+                 fullplot: "An 11-year-old girl watches her father come down with a crippling depr…"
+                 imdb: Object
+                 year: 2003
+                 ...
+                 title: "Off the Map"
+
+         .. tab:: nGram
+            :tabid: nGram
+
+            .. code-block::
+               :copyable: false
+
+               SCORE: 5.802560806274414  _id:  “573a1396f29313caabce47f4”
+                 countries: Array
+                 genres: Array
+                 runtime: 98
+                 ...
+                 title: "Come Have Coffee with Us"
+
+               SCORE: 5.790548801422119  _id:  "573a13d1f29313caabd90811"
+                 plot: "From pagan re-enactors to failed communes, black metal festivals to Ar…"
+                 genres: Array
+                 runtime: 98
+                 ...
+                 title: "A Spell to Ward Off the Darkness"
+
+               SCORE: 5.7726240158081055  _id:  "573a13f3f29313caabddeb07"
+                 plot: "Turkey in the 1960s and 70s was one of the biggest producers of film i…"
+                 genres: Array
+                 runtime: 96
+                 ...
+                 title: "Remake, Remix, Rip-Off: About Copy Culture & Turkish Pop Cinema"
+
+               SCORE: 5.749281883239746  _id:  "573a13a9f29313caabd1ea36"
+                 fullplot: "Three unlikely, unsuspecting souls who come face-to-face with that mom…"
+                 imdb: Object
+                 year: 2004
+                 ...
+                 title: "Benji: Off the Leash!"
+
+               SCORE: 5.749281883239746  _id:  "573a13d4f29313caabd98488"
+                 fullplot: "This tragicomedy is a self-ironic portrait of a young man who drops ou…"
+                 imdb: Object
+                 year: 2012
+                 ...
+                 title: "A Coffee in Berlin"
+
+               SCORE: 5.74220085144043  _id:  “573a1397f29313caabce863f”
+                 fullplot: "Zack Mayo is a young man who has signed up for Navy Aviation Officer C…"
+                 imdb: Object
+                 year: 1982
+                 ...
+                 title: "An Officer and a Gentleman"
+
+               SCORE: 5.671174049377441  _id:  “573a1398f29313caabce987c”
+                 plot: "After the end of the Dirty War, a high school teacher sets out to find…"
+                 genres: Array
+                 runtime: 112
+                 ...
+                 title: "The Official Story"
+
+               SCORE: 5.671174049377441  _id:   “573a13a5f29313caabd14c36”
+                 plot: "The first days of WWI. Adrien, a young and handsome lieutenant, is wou…"
+                 genres: Array
+                 runtime: 135
+                 ...
+                 title: "The Officer's Ward"
+
+               SCORE: 5.671174049377441  _id:  "573a13bbf29313caabd5567"
+                 countries: Array
+                 genres: Array
+                 runtime: 98
+                 ...
+                 title: "Hands off Mississippi"
+
+               SCORE: 5.534632682800293  _id:  "573a1395f29313caabce18c9"
+                 plot: "In this "Romeo and Juliet" inspired Cold War satire starring, written …"
+                 genres: Array
+                 runtime: 103
+                 ...
+                 title: "Romanoff and Juliet"
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/autocomplete/basic-output-shell-and-compass.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/autocomplete/basic-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/autocomplete/basic-output-cs.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/autocomplete/basic-output-go.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/autocomplete/basic-output-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/autocomplete/basic-output-kotlin.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/autocomplete/basic-output-js.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/autocomplete/basic-output-py.rst
+
+.. _autocomplete-ref-egs-fuzzy:
+
+Fuzzy Example
+~~~~~~~~~~~~~
+
+Basic Example 
+`````````````
+
+The following query searches for movies with the characters ``pre`` in
+the ``title`` field. The query uses:
+
+.. list-table::
+   :stub-columns: 1
+   :widths: 25 75
+
+   * - Field
+     - Description
+
+   * - ``maxEdits``
+     - Indicates that only one character variation is allowed in the
+       query string ``pre`` to match the query to a word in the
+       documents.
+
+   * - ``prefixLength``
+     - Indicates that the first character in the query string ``pre``
+       can't change when matching the query to a word in the documents.
+
+   * - ``maxExpansions``
+     - Indicates that up to two hundred and fifty six similar terms for
+       ``pre`` can be considered when matching the query string to a
+       word in the documents.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. code-block:: javascript
+
+         [
+           {
+             $search: {
+               autocomplete: {
+                 path: "title",
+                 query: "pre",
+                 fuzzy: {
+                   maxEdits: 1,
+                   prefixLength: 1,
+                   maxExpansions: 256
+                 }
+               }
+             }
+           }
+         ]
+
+   .. tab::
+      :tabid: shell
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+  
+      .. literalinclude:: /includes/fts/autocomplete/fuzzy-shell.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
+      :tabid: compass
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+
+      .. include:: /includes/fts/autocomplete/fuzzy.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/fuzzy.cs
+         :language: csharp
+         :dedent:
+
+   .. tab:: 
+      :tabid: go
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/fuzzy.go
+         :language: go
+         :dedent:
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/fuzzy.java
+         :language: java
+         :dedent:
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/fuzzy.kt
+         :language: kotlin
+         :dedent:
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/fuzzy.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
+      :tabid: python
+
+      .. include: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/fuzzy.py
+         :language: python
+         :dedent:
+
+.. include:: /includes/fts/autocomplete/different-results-note.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. tabs::
+
+         .. tab:: edgeGram
+            :tabid: edgeGram
+
+            .. code-block:: javascript
+               :copyable: false
+
+               SCORE: 1  _id:  “573a1390f29313caabcd5293”
+                 plot: "Young Pauline is left a lot of money when her wealthy uncle dies. Howe…"
+                 genres: Array
+                 runtime: 199
+                 ...
+                 title: "The Perils of Pauline"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd9458”
+                 plot: "A young artist draws a face at a canvas on his easel. Suddenly the mou…"
+                 genres: Array
+                 rated: "UNRATED"
+                 ...
+                 title: "The Blood of a Poet"
+
+               SCORE: 1  _id:  “573a1392f29313caabcda09b”
+                 plot: "Tells how King Henry VIII came to marry five more times after his divo…"
+                 genres: Array
+                 runtime: 97
+                 ...
+                 title: "The Private Life of Henry VIII."
+
+               SCORE: 1  _id:  “573a1392f29313caabcda556”
+                 plot: "What do women want? Don Juan is aging. He's arrived secretly in Sevill…"
+                 genres: Array
+                 runtime: 89
+                 ...
+                 title: "The Private Life of Don Juan"
+
+               SCORE: 1  _id:  “573a1392f29313caabcdaee0”
+                 plot: "The story of Dr. Samuel Mudd, who was imprisoned after innocently trea…"
+                 genres: Array
+                 runtime: 96
+                 ...
+                 title: "The Prisoner of Shark Island"
+
+               SCORE: 1  _id:  “573a1392f29313caabcdb3f2”
+                 plot: "Two lookalike boys, one a poor street kid and the other a prince, exch…"
+                 genres: Array
+                 runtime: 118
+                 ...
+                 title: "The Prince and the Pauper"
+
+               SCORE: 1  _id:  “573a1392f29313caabcdb3f4”
+                 plot: "An Englishman on a Ruritarian holiday must impersonate the king when t…"
+                 genres: Array
+                 runtime: 101
+                 ...
+                 title: "The Prisoner of Zenda"
+
+               SCORE: 1  _id:  “573a1392f29313caabcdb505”
+                 plot: "After the death of her husband, Christine realizes she has possibly wa…"
+                 genres: Array
+                 runtime: 144
+                 ...
+                 title: "Dance Program"
+
+               SCORE: 1  _id:  “573a1393f29313caabcdca58”
+                 plot: "While traveling in France during the Nazi invasion of 1940, an English…"
+                 genres: Array
+                 runtime: 87
+                 ...
+                 title: "The Pied Piper"
+
+               SCORE: 1  _id:  “573a1393f29313caabcdca76”
+                 plot: "The official World War II US Government film statement defining the va…"
+                 genres: Array
+                 runtime: 87
+                 ...
+                 title: "Prelude to War"
+
+         .. tab:: rightEdgeGram
+            :tabid: rightEdgeGram
+
+            .. code-block:: javascript
+               :copyable: false
+
+               SCORE: 1  _id:  “573a1390f29313caabcd5ea4”
+                 plot: "A District Attorney's outspoken stand on abortion gets him in trouble …"
+                 genres: Array
+                 runtime: 62
+                 ...
+                 title: "Where Are My Children?"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd70b4”
+                 plot: "An extended family split up in France and Germany find themselves on o…"
+                 genres: Array
+                 runtime: 150
+                 ...
+                 title: "The Four Horsemen of the Apocalypse"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd7850”
+                 plot: "In fifteenth century Paris, the brother of the archdeacon plots with t…"
+                 genres: Array
+                 runtime: 133
+                 ...
+                 title: "The Hunchback of Notre Dame"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd8cbd”
+                 plot: "A young lady from Georgia goes to Hollywood in the hopes of becoming a…"
+                 genres: Array
+                 runtime: 83
+                 ...
+                 title: "Show People"
+
+               SCORE: 1  _id:  “573a1392f29313caabcd9df7”
+                 plot: "A young American man is transported back to London in the time of the …"
+                 genres: Array
+                 runtime: 84
+                 ...
+                 title: "Berkeley Square"
+
+               SCORE: 1  _id:  “573a1392f29313caabcda7fb”
+                 plot: "An entertainer impersonates a look-alike banker, causing comic confusi…"
+                 genres: Array
+                 runtime: 82
+                 ...
+                 title: "Folies Bergère de Paris"
+
+               SCORE: 1  _id:  “573a1393f29313caabcdc4a2”
+                 plot: "Boxer Joe Pendleton dies 50 years too soon due to a heavenly mistake, …"
+                 genres: Array
+                 runtime: 94
+                 ...
+                 title: "Here Comes Mr. Jordan"
+               
+               SCORE: 1  _id:  “573a1393f29313caabcdc814”
+                 plot: "An American man marries a Serbian immigrant who fears that she will tu…"
+                 genres: Array
+                 runtime: 73
+                 ...
+                 title: "Cat People"
+
+               SCORE: 1  _id:  “573a1393f29313caabcdc87b”
+                 plot: "Mail author for translation. Kodos hegycsucsok, fekete fenyvesek vilag…"
+                 genres: Array
+                 runtime: 88
+                 ...
+                 title: "People on the Alps"
+
+               SCORE: 1  _id:  “573a1393f29313caabcdcd39”
+                 plot: "A soldier falls for a chorus girl and then experiences trouble when he…"
+                 genres: Array
+                 runtime: 103
+                 ...
+                 title: "The Gang's All Here"
+
+         .. tab:: nGram
+            :tabid: nGram
+
+            .. code-block:: javascript
+               :copyable: false
+
+               SCORE: 1  _id:  “573a1390f29313caabcd5293”
+                 plot: "Young Pauline is left a lot of money when her wealthy uncle dies. Howe…"
+                 genres: Array
+                 runtime: 199
+                 ...
+                 title: "The Perils of Pauline"
+
+               SCORE: 1  _id:  “573a1390f29313caabcd5967”
+                 plot: "An intrepid reporter and his loyal friend battle a bizarre secret soci…"
+                 genres: Array
+                 runtime: 399
+                 ...
+                 title: "Les vampires"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd6ea2”
+                 plot: "The simple-minded son of a rich financier must find his own way in the…"
+                 genres: Array
+                 runtime: 77
+                 ...
+                 title: "The Saphead"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd70b4”
+                 plot: "An extended family split up in France and Germany find themselves on o…"
+                 genres: Array
+                 runtime: 150
+                 ...
+                 title: "The Four Horsemen of the Apocalypse"
+
+               SCORE: 1 _id:  “573a1391f29313caabcd7b98”
+                 plot: "A bitter clown endeavors to rescue the young woman he loves from the l…"
+                 genres: Array
+                 runtime: 95
+                 ...
+                 title: "He Who Gets Slapped"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd806b”
+                 plot: "A mad, disfigured composer seeks love with a lovely young opera singer…"
+                 genres: Array
+                 runtime: 93
+                 ...
+                 title: "The Phantom of the Opera"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd8cbd”
+                 plot: "A young lady from Georgia goes to Hollywood in the hopes of becoming a…"
+                 genres: Array
+                 runtime: 83
+                 ...
+                 title: "Show People"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd9458”
+                 plot: "A young artist draws a face at a canvas on his easel. Suddenly the mou…"
+                 genres: Array
+                 rated: "UNRATED"
+                 ...
+                 title: "The Blood of a Poet"
+
+               SCORE: 1  _id:  “573a1391f29313caabcd9651”
+                 plot: "In London at the turn of the century, the bandit Mack the Knife marrie…"
+                 genres: Array
+                 runtime: 112
+                 ...
+                 title: "The 3 Penny Opera"
+
+               SCORE: 1  _id:  “573a1392f29313caabcd9caa”
+                 plot: "Many passengers on the Shanghai Express are more concerned that the no…"
+                 genres: Array
+                 runtime: 82
+                 ...
+                 title: "Shanghai Express"
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+   
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-shell-and-compass.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-cs.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-go.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-kotlin.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-js.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/autocomplete/fuzzy-output-py.rst
+
+Partial Match Example 
+`````````````````````
+
+The following queries demonstrate how to search the specified fields for
+a word or phrase that contains the sequence of characters that you
+specify with your query. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui 
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+      
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input::
+            :language: javascript
+            :linenos:
+
+            [
+              {
+                "$search": {
+                  "index": "default",
+                  "autocomplete": {
+                    "path": "plot",
+                    "query": "new purchase",
+                    "tokenOrder": "any",
+                    "fuzzy": {
+                      "maxEdits": 2,
+                      "prefixLength": 1,
+                      "maxExpansions": 256
+                    }
+                  },
+                  "highlight": { 
+                      "path": "plot"
+                  }
+                }
+              }
+            ]
+
+         .. output::
+            :language: javascript
+            :visible: true
+
+            SCORE: 3  _id:  "573a13a4f29313caabd112f0"
+              A divorced woman and her diabetic daughter take refuge in their newly-purchased house's safe room, when three men break-in, searching for a missing fortune.
+              Matching fields: plot
+            
+            SCORE: 3  _id:  "573a13d1f29313caabd8e209"
+              A lonely writer develops an unlikely relationship with his newly purchased operating system that's designed to meet his every need.
+              Matching fields: plot
+            
+            SCORE: 2  _id:  "573a13bef29313caabd5b62d"
+              Set in the near future when artificial organs can be bought on credit, it revolves around a man who struggles to make the payments on a heart he has purchased. He must
+              Matching fields: plot
+            
+            SCORE: 2  _id:  "573a13b3f29313caabd3c91e"
+              He is "purchased" by a wealthy television producer and taken to a desolate island where he must fight to the death against nine other condemned killers from all corners of the world, with freedom going to the sole survivor.
+              Matching fields: plot
+
+            SCORE: 2  _id:  "573a1398f29313caabceb931"
+              A country boy becomes the head of a gang through the purchase of some lucky roses from an old lady.
+              Matching fields: plot, plot
+
+            SCORE: 1  _id:  "573a13a7f29313caabd1b5ab"
+              An illegal Nigerian immigrant discovers the unpalatable side of London life.
+              Matching fields: plot
+
+            SCORE: 1  _id:  "573a13a7f29313caabd1b5c0"
+              A young dropout falls in love with a nightclub dancer...
+              Matching fields: plot
+
+            SCORE: 1  _id:  "573a13a7f29313caabd1b62f"
+              In 1990, to protect his fragile mother from a fatal shock after a long coma, a young man must keep her from learning that her beloved nation of East Germany as she knew it has disappeared.
+              Matching fields: plot
+
+            SCORE: 1  _id:  "573a13a7f29313caabd1b6af"
+              Gadget once again has to fight his arch nemesis, Claw.
+              Matching fields: plot
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "index": "default",
+                  "autocomplete": {
+                    "path": "plot",
+                    "query": "new purchase",
+                    "tokenOrder": "any",
+                    "fuzzy": {
+                      "maxEdits": 2,
+                      "prefixLength": 1,
+                      "maxExpansions": 256
+                    }
+                  },
+                  "highlight": { 
+                      "path": "plot"
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "plot": 1,
+                  "highlights": { "$meta": "searchHighlights" }
+                }
+              }
+            ])
+
+         .. output:: /includes/fts/partial-match/autocomplete-query-shell-compass-results.js
+            :language: javascript
+            :visible: true
+
+   .. tab::
+      :tabid: compass
+
+      The following query uses the operator to query the ``plot`` field of 
+      the ``sample_mflix.movies`` collection. The query includes a:
+      
+      - :pipeline:`$limit` stage to limit the output to 5 results
+      - :pipeline:`$project` stage to exclude all fields except ``title`` 
+        and ``plot``
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 75
+
+         * - Pipeline Stage
+           - Query
+
+         * - ``$search``
+           - .. code-block:: javascript
+
+                {
+                  "index": "default",
+                  "autocomplete": {
+                    "path": "plot",
+                    "query": "new purchase",
+                    "tokenOrder": "any",
+                    "fuzzy": {
+                      "maxEdits": 2,
+                      "prefixLength": 1,
+                      "maxExpansions": 256
+                    }
+                  },
+                  "highlight": {
+                    "path": "plot"
+                  }
+                }
+          
+         * - ``$limit``
+           - .. code-block:: javascript
+
+                5
+
+         * - ``$project``
+           - .. code-block:: javascript
+
+                {
+                  "_id": 0,
+                  "title": 1,
+                  "plot": 1,
+                  "highlights": { "$meta": "searchHighlights" }
+                }
+
+      If you enabled :guilabel:`Auto Preview`, |compass| displays the 
+      following documents next to the ``$project`` pipeline stage:
+
+      .. literalinclude:: /includes/fts/partial-match/autocomplete-query-shell-compass-results.js
+         :language: javascript
+         :linenos:
+
+   .. tab::
+      :tabid: csharp
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Runs a query that uses:
+
+        - :pipeline:`$search` stage to look for a term
+        - :pipeline:`$limit` stage to limit the output to 5 results
+        - :pipeline:`$project` stage to exclude all fields except ``title`` 
+           and ``plot``
+     
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. literalinclude:: /includes/fts/partial-match/autocomplete-query.cs
+        :language: csharp
+        :linenos:
+        :dedent:
+        :emphasize-lines: 9
+
+   .. tab:: 
+      :tabid: go
+
+      The following query uses the operator to query the ``plot`` field of 
+      the ``sample_mflix.movies`` collection. The query includes a:
+      
+      - :pipeline:`$limit` stage to limit the output to 5 results
+      - :pipeline:`$project` stage to exclude all fields except ``title`` 
+        and ``plot``
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. literalinclude:: /includes/fts/partial-match/autocomplete-query.go
+         :language: go
+         :linenos:
+         :dedent:
+         :emphasize-lines: 23
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Runs a query that uses:
+
+        - :pipeline:`$search` stage to look for a term
+        - :pipeline:`$limit` stage to limit the output to 5 results
+        - :pipeline:`$project` stage to exclude all fields except ``title`` 
+          and ``plot``
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. literalinclude:: /includes/fts/partial-match/autocomplete-query.java
+         :language: java
+         :linenos:
+         :dedent:
+         :emphasize-lines: 29
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Runs a query that uses:
+
+        - :pipeline:`$search` stage to look for a term
+        - :pipeline:`$limit` stage to limit the output to 5 results
+        - :pipeline:`$project` stage to exclude all fields except ``title`` 
+          and ``plot``
+
+      - Prints the documents that match the query from the ``AggregateFlow`` instance.
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. literalinclude:: /includes/fts/partial-match/autocomplete-query.kt
+         :language: kotlin
+         :linenos:
+         :dedent:
+         :emphasize-lines: 10
+
+   .. tab::
+      :tabid: nodejs
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb``, MongoDB's Node.js driver.
+      - Creates an instance of the ``MongoClient`` class to establish a 
+        connection to your |service| cluster.
+      - Runs a query that uses:
+
+        - :pipeline:`$search` stage to look for a term
+        - :pipeline:`$limit` stage to limit the output to 5 results
+        - :pipeline:`$project` stage to exclude all fields except ``title`` 
+          and ``plot``
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. literalinclude:: /includes/fts/partial-match/autocomplete-query.js
+         :language: javascript
+         :linenos:
+         :dedent:
+         :emphasize-lines: 37
+
+   .. tab::
+      :tabid: python
+
+      The following code example:
+
+      - Imports ``pymongo``, MongoDB's Python driver, and the ``dns`` 
+        module, which is required to connect ``pymongo`` to ``Atlas`` 
+        using a |dns| seed list connection string. 
+      - Creates an instance of the ``MongoClient`` class to establish a 
+        connection to your |service| cluster.
+      - Runs a query that uses:
+
+        - :pipeline:`$search` stage to look for a term
+        - :pipeline:`$limit` stage to limit the output to 5 results
+        - :pipeline:`$project` stage to exclude all fields except ``title`` 
+          and ``plot``
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. include:: /includes/fts/extracts/fts-partial-match-autocomplete-query-desc.rst
+
+      .. literalinclude:: /includes/fts/partial-match/autocomplete-query.py
+         :language: python
+         :linenos:
+         :dedent:
+         :emphasize-lines: 4
+
+.. _autocomplete-ref-egs-tokenOrder:
+
+Token Order Example
+~~~~~~~~~~~~~~~~~~~
+
+The following queries search for movies with the characters ``men
+with`` in the ``title`` field. The queries also use the ``tokenOrder`` field,
+which specifies whether the query searches for tokens in ``any`` order 
+or in ``sequential`` order.
+
+Starts With Example
+```````````````````
+
+.. include:: /includes/fts/autocomplete/token-seq-analyzer-section.rst
+
+Simple ``any`` Example
+``````````````````````
+
+.. include:: /includes/fts/autocomplete/token-any-section.rst
+
+Simple ``sequential`` Example
+`````````````````````````````
+            
+.. include:: /includes/fts/autocomplete/token-seq-section.rst
+
+.. _autocomplete-highlighting:
+
+Highlighting Example 
+~~~~~~~~~~~~~~~~~~~~
+
+The following query searches for the characters ``ger`` in the 
+``title`` field of the ``movies`` collection, with the 
+``highlight`` option enabled for the ``title`` field.
+
+.. important::
+
+   To highlight the autocomplete indexed version of a path, the 
+   :ref:`autocomplete operator <autocomplete-ref>` must be the only 
+   operator that uses that path in the query.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. code-block:: javascript
+
+         [
+           {
+             $search: {
+               autocomplete: {
+                 path: "title",
+                 query: "ger"
+               },
+               highlight: {
+                 path: "title"
+               }
+             }
+           }
+         ]
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+  
+      .. literalinclude:: /includes/fts/autocomplete/highlight-shell.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+
+      .. include:: /includes/fts/autocomplete/highlight.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/highlight.cs
+         :language: csharp
+         :dedent:
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/highlight.go
+         :language: go
+         :dedent:
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/highlight.java
+         :language: java
+         :dedent:
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/highlight.kt
+         :language: kotlin
+         :dedent:
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/highlight.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-highlighting.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/highlight.py
+         :language: python
+         :dedent:
+
+.. include:: /includes/fts/autocomplete/different-results-note.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. tabs::
+
+         .. tab:: edgeGram
+            :tabid: edgeGram
+
+            .. code-block:: javascript
+               :copyable: false
+
+               SCORE: 6.0822906494140625  _id:  “573a1390f29313caabcd50e5”
+                 Gertie the Dinosaur
+                 Matching fields: title
+
+               SCORE: 6.0822906494140625  _id:  “573a1393f29313caabcddae1”
+                 Germany Year Zero
+                 Matching fields: title
+
+               SCORE: 6.0822906494140625  _id:  “573a1397f29313caabce6b75”
+                 Germany in Autumn
+                 Matching fields: title
+
+               SCORE: 6.0822906494140625  _id:  “573a1397f29313caabce77b5”
+                 Germany Pale Mother
+                 Matching fields: title
+
+               SCORE: 6.0822906494140625  _id:  “573a13d4f29313caabd99fa2”
+                 Gerhard Richter - Painting
+                 Matching fields: title
+
+               SCORE: 6.018838405609131  _id:  “573a1399f29313caabcedb50”
+                 Geronimo: An American Legend
+                 Matching fields: title
+               
+               SCORE: 5.825854301452637  _id:  “573a139bf29313caabcf36bd”
+                 Geri's Game
+                 Matching fields: title
+
+               SCORE: 5.777737617492676  _id:  “573a13a5f29313caabd15dae”
+                 How to Live in the German Federal Republic
+                 Matching fields: title
+
+               SCORE: 5.738928318023682  _id:  “573a13b4f29313caabd41bb7”
+                 The Gerson Miracle
+                 Matching fields: title
+
+               SCORE: 5.738928318023682  _id:  “573a13d2f29313caabd922de”
+                 The German Doctor
+                 Matching fields: title
+
+         .. tab:: rightEdgeGram
+            :tabid: rightEdgeGram
+
+            .. code-block:: javascript
+               :copyable: false
+
+               SCORE: 4.7550506591796875  _id:  “573a139df29313caabcf9ed2”
+                 South Park: Bigger Longer & Uncut
+                 Matching fields: title
+
+               SCORE: 4.568849563598633  _id:  “573a13a7f29313caabd1addf”
+                 Roger Dodger
+                 Matching fields: title
+
+               SCORE: 4.520683288574219  _id:  “573a1391f29313caabcd8783”
+                 The Jazz Singer
+                 Matching fields: title
+
+               SCORE: 4.520683288574219  _id:  “573a1396f29313caabce3974”
+                 Love and Anger
+                 Matching fields: title
+
+               SCORE: 4.520683288574219  _id:  “573a1396f29313caabce5212”
+                 Save the Tiger
+                 Matching fields: title
+
+               SCORE: 4.520683288574219  _id:  “573a1397f29313caabce78da”
+                 The Jazz Singer
+                 Matching fields: title
+               
+               SCORE: 4.520683288574219  _id:  “573a1398f29313caabce9be6”
+                 The Toxic Avenger
+                 Matching fields: title
+
+               SCORE: 4.520683288574219  _id:  “573a139af29313caabcf0f59”
+                 The Wedding Singer
+                 Matching fields: title
+
+               SCORE: 4.520683288574219  _id:  “573a139af29313caabcf1389”
+                 The Crazy Stranger
+                 Matching fields: title
+
+               SCORE: 4.520683288574219  _id:  “573a13abf29313caabd24b5a”
+                 Save the Tiger
+                 Matching fields: title
+
+         .. tab:: nGram
+            :tabid: nGram
+
+            .. code-block:: javascript
+               :copyable: false
+
+               SCORE: 4.371164321899414  _id:  “573a139df29313caabcf9ed2”
+                 South Park: Bigger Longer & Uncut
+                 Matching fields: title
+
+               SCORE: 4.3067307472229  _id:  “573a13bff29313caabd60a4a”
+                 Bigger Stronger Faster*
+                 Matching fields: title
+
+               SCORE: 4.26673698425293  _id:  “573a1398f29313caabcebb00”
+                 The Toxic Avenger Part II
+                 Matching fields: title
+
+               SCORE: 4.26673698425293  _id:  “573a1399f29313caabcee12e”
+                 When a Stranger Calls Back
+                 Matching fields: title
+
+               SCORE: 4.26673698425293  _id:  “573a13cff29313caabd89c2b”
+                 Carol Channing: Larger Than Life
+                 Matching fields: title
+
+               SCORE: 4.2623162269592285  _id:  “573a1396f29313caabce51c6”
+                 Property Is No Longer a Theft
+                 Matching fields: title
+               
+               SCORE: 4.2623162269592285  _id:  “573a139af29313caabcef539”
+                 Mighty Morphin Power Rangers: The Movie
+                 Matching fields: title
+
+               SCORE: 4.2623162269592285  _id:  “573a13b1f29313caabd364e3”
+                 Josee, the Tiger and the Fish
+                 Matching fields: title
+
+               SCORE: 4.253501892089844  _id:  “573a13a5f29313caabd15dae”
+                 How to Live in the German Federal Republic
+                 Matching fields: title
+
+               SCORE: 4.24910831451416  _id:  “573a13a3f29313caabd0f07f”
+                 Into the Arms of Strangers: Stories of the Kindertransport
+                 Matching fields: title
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/autocomplete/highlight-output-shell-and-compass.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/autocomplete/highlight-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/autocomplete/highlight-output-cs.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/autocomplete/highlight-output-go.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/autocomplete/highlight-output-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/autocomplete/highlight-output-kotlin.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/autocomplete/highlight-output-js.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/autocomplete/highlight-output-py.rst
+
+.. _autocomplete-compound:
+
+Search Across Multiple Fields 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query searches the ``title`` and ``plot`` fields of the 
+``movies`` collection for words that begin with the character string ``inter``
+using the :ref:`compound <compound-ref>` operator.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. code-block:: javascript
+
+         [
+           {
+             $search: {
+               compound: {
+                 should: [
+                   {
+                     autocomplete: {
+                       query: "inter",
+                       path: "title"
+                     }
+                   },
+                   {
+                     autocomplete: {
+                       query: "inter",
+                       path: "plot"
+                     }
+                   }
+                 ],
+                 minimumShouldMatch: 1
+               }
+             }
+           }
+         ]
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. literalinclude:: /includes/fts/compound/compound-eg-shell.js 
+         :language: javascript
+         :linenos:
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. include:: /includes/fts/compound/compound-eg-compass.rst 
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. literalinclude:: /includes/fts/compound/compound-eg.cs
+         :language: csharp
+         :linenos:
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. literalinclude:: /includes/fts/compound/compound-eg.go
+         :language: go
+         :linenos:
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. literalinclude:: /includes/fts/compound/compound-eg.java
+         :language: java
+         :linenos:
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. literalinclude:: /includes/fts/compound/compound-eg.kt
+         :language: kotlin
+         :linenos:
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. literalinclude::  /includes/fts/compound/compound-eg.js 
+         :language: javascript
+         :linenos:
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-limit-project-stages-compound.rst
+
+      .. literalinclude:: /includes/fts/compound/compound-eg.py
+         :language: python
+         :linenos:
+
+.. include:: /includes/fts/autocomplete/different-results-note.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/compound/compound-eg-output-atlas-ui.rst
+       
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/compound/compound-eg-output-shell-and-compass.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/compound/compound-eg-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/compound/compound-eg-output-cs.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/compound/compound-eg-output-go.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/compound/compound-eg-output-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/compound/compound-eg-output-kotlin.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/compound/compound-eg-output-nodejs.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/compound/compound-eg-output-py.rst
+
+.. _autocomplete-facet:
+
+Bucket Results through Facet Queries 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. literalinclude:: /includes/fts/autocomplete/facet-atlas-ui.js
+         :language: javascript
+         :dedent: 
+        
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/facet-shell.js 
+         :language: javascript
+         :linenos:
+           
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      .. include:: /includes/fts/autocomplete/facet.rst 
+     
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/facet.cs
+         :language: csharp
+         :linenos:
+      
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/facet.go
+         :language: go
+         :linenos:
+      
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/facet.java
+         :language: java
+         :linenos:
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      .. literalinclude:: /includes/fts/autocomplete/facet.kt
+         :language: kotlin
+         :linenos:
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+
+      .. literalinclude::  /includes/fts/autocomplete/facet.js 
+         :language: javascript
+         :linenos:
+
+   .. tab::
+      :tabid: python
+      
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-intro.rst
+         
+      .. literalinclude:: /includes/fts/autocomplete/facet.py
+         :language: python
+         :linenos:
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/autocomplete/facet-output-atlas-ui.rst
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/autocomplete/facet-output-shell-and-compass.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/autocomplete/facet-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/autocomplete/facet-output-cs.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/autocomplete/facet-output-go.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/autocomplete/facet-output-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/autocomplete/facet-output-kotlin.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/autocomplete/facet-output-nodejs.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/autocomplete/facet-output-py.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      |fts| returns documents that contain the term ``Gravity`` in the
+      ``title`` field. The ``count`` field in the results indicate the number
+      of documents in the collection with the same title. In the results,
+      |fts| found three documents in the collection with ``Gravity`` as its
+      title, but |fts| omitted the duplicate titles and returned only one
+      matching document.
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: javascript
+         :copyable: false
+         
+         [
+           { title: 'Gravity' },
+           { title: 'Gravity' },
+           { title: 'Gravity' },
+           { title: 'Defying Gravity' },
+           { title: 'Laws of Gravity' }
+         ]
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: javascript
+         :copyable: false
+         
+         [
+           { title: 'Gravity' },
+           { title: 'Gravity' },
+           { title: 'Gravity' },
+           { title: 'Defying Gravity' },
+           { title: 'Laws of Gravity' }
+         ]
+ 
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { "title" : "Gravity" }
+         { "title" : "Gravity" }
+         { "title" : "Gravity" }
+         { "title" : "Defying Gravity" }
+         { "title" : "Laws of Gravity" }
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: none
+         :copyable: false
+         
+         [{title Gravity}],
+         [{title Gravity}],
+         [{title Gravity}],
+         [{title Defying Gravity}],
+         [{title Laws of Gravity}]
+
+   .. tab:: 
+      :tabid: java-sync
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: javascript
+         :copyable: false
+
+         {"title": "Gravity"}
+         {"title": "Gravity"}
+         {"title": "Gravity"}
+         {"title": "Defying Gravity"}
+         {"title": "Laws of Gravity"}
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: none
+         :copyable: false
+
+         Document{{title=Gravity}}
+         Document{{title=Gravity}}
+         Document{{title=Gravity}}
+         Document{{title=Defying Gravity}}
+         Document{{title=Laws of Gravity}}
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { title: 'Gravity' }
+         { title: 'Gravity' }
+         { title: 'Gravity' }
+         { title: 'Defying Gravity' }
+         { title: 'Laws of Gravity' }
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/facts/fact-fts-autocomplete-facet-results.rst
+
+      .. code-block:: python
+         :copyable: false
+
+         { 'title': 'Gravity' }
+         { 'title': 'Gravity' }
+         { 'title': 'Gravity' }
+         { 'title': 'Defying Gravity' }
+         { 'title': 'Laws of Gravity' }
+
+Learn More
+----------
+
+To learn more, see :ref:`partial-match-tutorial`.

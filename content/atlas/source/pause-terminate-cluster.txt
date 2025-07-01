@@ -1,0 +1,289 @@
+.. meta::
+   :keywords: atlas api, atlas ui, atlas cli
+   :description: Manage clusters by pausing, resuming, or terminating them, with specific access requirements and considerations for paused clusters.
+
+.. _pause-terminate-cluster:
+
+=====================================
+Pause, Resume, or Terminate a Cluster
+=====================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can pause, resume, or terminate your {+clusters+}. For
+{+Serverless-instances+}, which are :ref:`deprecated <flex-migration>`,
+see :doc:`Terminate a Serverless Instance </terminate-serverless-instance>`.
+
+.. _paused-cluster-considerations:
+
+Considerations for Paused Clusters
+----------------------------------
+
+- You can't:
+
+  - Change the configuration of a paused {+cluster+}.
+  - Read data from or write data to a paused {+cluster+}.
+  - Add or remove Search Nodes to a paused {+cluster+}. 
+
+- For paused {+clusters+}, |service|:
+
+  - Stops triggering configured alerts.
+  - Stops all backups. Your existing snapshots remain until they expire.
+  - Stops all :pipeline:`$search` queries.
+
+    .. note:: 
+
+       When you pause a {+cluster+}, |service| deletes all data from
+       the Search Nodes. |service| automatically rebuilds the |fts|
+       indexes when you resume the |service| {+cluster+}.
+       While |service| rebuilds the |fts| indexes, the 
+       :pipeline:`$search` and :pipeline:`$vectorSearch` pipeline stages
+       are unavailable.
+
+- .. include:: /includes/fact-bcp-resume-cluster.rst
+
+- If a paused {+cluster+} doesn't have :ref:`Encryption at Rest 
+  <security-kms-encryption>` enabled, you can't toggle the 
+  :guilabel:`Require Encryption at Rest using Customer Key Management for all clusters` option to :guilabel:`On` in a {+bcp+}.
+
+- In certain scenarios, pausing a {+cluster+} pauses its required maintenance tasks. 
+  When you unpause the cluster, these maintenance tasks may start immediately, which 
+  could delay {+cluster+} availability.
+
+Required Access
+---------------
+
+To pause or resume a cluster, you must have
+:authrole:`Project Cluster Manager` access or higher to the project.
+
+To terminate a cluster, you must have :authrole:`Project Owner` 
+or :authrole:`Organization Owner` access.
+
+.. _pause-cluster:
+
+Pause One Cluster
+-----------------
+
+.. include:: /includes/flex-serverless-dont-use.rst
+
+Depending on your {+cluster+} tier, |service| either pauses {+clusters+}
+automatically or when you manually initiate it.
+
+M0 {+Clusters+}
+~~~~~~~~~~~~~~~
+
+|service| automatically pauses all inactive ``M0`` {+clusters+} after 
+60 days.
+
+{+Flex-Clusters+}
+~~~~~~~~~~~~~~~~~~
+
+You can't pause {+Flex-clusters+}. |service| doesn't 
+automatically pause inactive {+Flex-clusters+}.
+
+M10+ {+Clusters+}
+~~~~~~~~~~~~~~~~~
+
+You can pause ``M10`` or larger {+clusters+}:
+
+- If they do not use :ref:`NVMe storage <nvme-storage>`. 
+- For up to 30 days. If you don't resume the {+cluster+} within 30 
+  days, |service| resumes the {+cluster+}.
+
+  .. note::
+
+     You must allow a recently :ref:`resumed <resume-cluster>`
+     {+cluster+} to run for at least 60 minutes before pausing the
+     {+cluster+} again. This allows the {+cluster+} to process all
+     the maintenance jobs that were queued while it was paused.
+
+|service| only charges paused {+clusters+} for storage. |service| does
+not charge for any other services or data transfer on paused
+{+clusters+}.
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-clusters-pause.rst
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To pause a cluster with the {+atlas-admin-api+}, see 
+      :oas-atlas-op:`Modify One Cluster </updateCluster>`. 
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To pause |a-service| {+cluster+} using the {+atlas-ui+}:
+
+      .. include:: /includes/steps-pause-cluster.rst
+
+M0 {+Clusters+}
+~~~~~~~~~~~~~~~
+      
+|service| automatically stops collecting monitoring information
+for an ``M0`` {+cluster+} after a few days of inactivity.
+
+If there is no activity for 60 days, then |service| automatically
+pauses the cluster completely, disallowing any connections to it
+until you resume the cluster. |service| sends an email seven days
+before pausing the cluster. |service| sends another email after
+pausing the cluster.
+
+.. include:: /includes/fact-resume-free-cluster.rst
+      
+You can't initiate a pause for ``M0`` clusters.  
+
+Local Deployments
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/atlas-deployments-pause.rst
+      
+.. _resume-cluster:
+
+Resume One Cluster
+------------------
+
+.. include:: /includes/flex-serverless-dont-use.rst
+
+.. note::
+
+   .. include:: /includes/fact-bcp-resume-cluster.rst
+
+To resume collection of monitoring information for |a-service| ``M0``
+{+cluster+} paused for monitoring, connect to that {+cluster+} using a
+:doc:`MongoDB Driver </driver-connection>`, {+mongosh+}, or
+:doc:`Data Explorer </atlas-ui>`.
+
+Resume a Cloud Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To resume |a-service| ``M10+`` {+cluster+} that you paused previously:
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-clusters-start.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. include:: /includes/steps-resume-cluster.rst
+
+.. note::
+
+   If you don't resume an ``M10+`` {+cluster+} within 30 days, |service|
+   resumes the cluster.
+
+Resume a Local Deployment with the {+atlas-cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/atlas-deployments-start.rst
+
+.. _terminate-cluster:
+
+Terminate One Deployment
+------------------------
+
+Use the following resources to terminate a deployment.
+
+.. _terminate-atlas-cluster:
+
+Terminate a Cloud Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To terminate |a-service| cloud cluster:
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. note::
+
+         If you enabled :guilabel:`Termination Protection` on your
+         cluster, you must first disable it.
+
+      .. include:: /includes/extracts/atlas-clusters-delete.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. include:: /includes/steps-terminate-atlas-cluster.rst
+
+|service| terminates the {+cluster+} after completing any in-progress
+deployment changes. |service| also terminates all Search Nodes
+configured for the {+cluster+}.
+
+|service| bills for the hours that the {+cluster+} was active. To learn
+more about |service| billing, see :doc:`/billing`.
+
+.. warning::
+
+   Terminating a cluster also deletes any backup snapshots for that
+   cluster. See :ref:`cloud-provider-retention-policy`. If you
+   terminate a {+cluster+} with associated :ref:`tags
+   <configure-resource-tags>` that don't apply to any other
+   {+database-deployment+}, |service| deletes the tags. You can't
+   restore these deleted tags.
+
+.. tabs:: 
+   :hidden:
+
+   .. tab:: M10+
+      :tabid: m10+
+
+      .. note:: Public IP Address Retention
+
+         When you terminate a {+cluster+} with a lifetime of 12 hours or 
+         more, |service| reserves the cluster's public |ipaddr| 
+         address, bound to its original {+cluster+} name.
+
+         The following time frames apply from the moment you
+         terminate the cluster:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 10 30
+   
+            * - Cluster Lifetime
+              - IP Address Retention
+  
+            * - Less than 12 hours
+              - Not retained
+
+            * - 12 to 35 hours
+              - 12 to 35 hours (equal to the {+cluster+} lifetime)
+   
+            * - 36 hours or more
+              - 36 hours
+    
+         If, in the applicable time frame, you create a new {+cluster+} 
+         with the same name, |service| reassigns the reserved public 
+         |ipaddr| address to that cluster.
+
+         {+cluster+} |ipaddr| addresses don't change when you or |service|
+         pause or resume {+clusters+}.
+
+   .. tab:: M0
+      :tabid: m0
+
+Terminate a Local Deployment with the {+atlas-cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/atlas-deployments-delete.rst

@@ -1,0 +1,262 @@
+.. _real-time-metrics-status-tab:
+
+=============================
+Monitor Real-Time Performance
+=============================
+
+.. meta::
+   :description: Monitor real-time performance in Atlas with the Real-Time Performance Panel, which tracks network traffic, database operations, and hardware statistics for M10+ clusters.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+*Only available on M10+ clusters*
+
+The Real-Time Performance Panel (RTPP) monitors and displays current
+network traffic, database operations on the machines hosting MongoDB in
+your clusters, and hardware statistics about the hosts. Use |rtpp| to
+visually identify relevant database operations, evaluate query
+execution times and the ratio of documents scanned to documents
+returned, monitor network load and throughput, and  discover potential
+replication lag on secondary members of replica sets.
+
+.. note:: 
+  
+   :abbr:`RTPP (Real-Time Performance Panel)` might not work if your 
+   workload triggers :method:`db.currentOp()` output that is greater than  
+   the :abbr:`RTPP (Real-Time Performance Panel)` maximum size of 4MB per 
+   sample. 
+
+Required Access
+---------------
+
+To enable or disable :guilabel:`Real-Time Performance Panel` for a
+project, you must have :authrole:`Project Owner` access. Users with 
+:authrole:`Organization Owner` access must add themselves 
+to the project as a ``Project Owner``.
+
+To view real-time performance in the Real-Time Performance Panel, you 
+must have :guilabel:`Project Read Only`,
+:authrole:`Project Observability Viewer`,
+:authrole:`Project Data Access Read Only`,
+:authrole:`Project Data Access Read/Write`, or
+:authrole:`Project Data Access Admin` access to the project.
+
+.. _toggle-rtpp:
+
+Enable or Disable the Real-Time Performance Panel
+-------------------------------------------------
+
+:guilabel:`Real-Time Performance Panel` is enabled by default. To
+disable or enable the :guilabel:`Real-Time Performance Panel` for a 
+project:
+
+.. include:: /includes/steps-enable-rtpp.rst
+
+Access the Real-Time Performance Panel
+--------------------------------------
+
+To view the Real-Time Performance Panel:
+
+.. include:: /includes/steps-rttp-view.rst
+
+Graph View
+----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Chart/Location
+     - Description
+
+   * - :guilabel:`Connections, Network In, Network Out` (Top of panel)
+
+     - Displays the number of current connections to the machine
+       hosting MongoDB and the number of inbound and outbound bytes as
+       reported by :binary:`mongostat`.
+
+   * - :guilabel:`CPU, Disk IOPS, and Sys Mem` (Top of panel)
+
+     - Displays the currently used percentage of CPU, disk read and 
+       write operations per second, and the total physical memory 
+       usage, excluding buffers and swap space, of the machine hosting 
+       MongoDB.
+
+   * - :guilabel:`Operations`
+
+     - Displays the number of operations as reported by
+       :binary:`mongostat`.
+
+   * - :guilabel:`Query Execution Times`
+
+     - Displays latency statistics for current read requests, write
+       requests, and other database commands. Available in MongoDB 3.6
+       or later. See ``opLatencies`` at :manual:`serverStatus
+       </reference/command/serverStatus>` for more information.
+
+   * - :guilabel:`Query Targeting`
+
+     - Displays the ratio of documents and objects scanned to documents
+       and objects returned in current queries. These statistics are
+       useful in determining if and how a query uses an index. See
+       :manual:`Analyze Query Performance </tutorial/analyze-query-plan>` for more information.
+
+       .. include:: /includes/fact-query-targeting-mongot.rst
+
+   * - :guilabel:`Reads & Writes`
+
+     - Displays the number of active reads, queued reads, active
+       writes, and queued writes as reported by :binary:`mongostat`.
+
+   * - :guilabel:`Replication Lag`
+
+     - Available only for secondary members of a replica set. Displays
+       the time required to replicate operations from the primary to
+       the secondary members of a replica set. See :manual:`Replica Set
+       Secondary Members </core/replica-set-secondary>` for more
+       information.
+
+   * - :guilabel:`Hottest Collections`
+
+     - Displays the collections with the most operations as reported by
+       :binary:`mongotop`. For each hot collection, the table also
+       displays the :guilabel:`Utilization Percent` for  the collection.
+
+       :guilabel:`Utilization Percent` is calculated from the read and
+       write times as reported by :binary:`mongotop` during a sample
+       period. Specifically, the :guilabel:`Utilization Percent` is the
+       percentage (rounded to the nearest 0.1%) of the read and write
+       times for a collection relative to the read and write times for
+       all collections in the deployment during the sample period. If
+       no read and write operation occur during this period, the
+       :guilabel:`Utilization Percent` will be 0%.
+
+       The hottest collections correspond to the most current time
+       displayed in the charts. That is, if the display is running
+       (i.e. not paused), the collections correspond to the hottest
+       collections at the current timestamp. If the display is paused,
+       the collections correspond to the hottest collections at the
+       paused time.
+
+       If you have :manual:`Queryable Encryption 
+       </core/queryable-encryption/>` enabled for a collection, the 
+       |rtpp| doesn't display the collection in this location. 
+       |service| redacts this information.
+
+   * - :guilabel:`Slowest Operations`
+
+     - Displays the slowest operations as reported by
+       :manual:`db.currentOp() </reference/method/db.currentOp>`.
+
+       The operations correspond to the most current time displayed in
+       the charts. That is, if the display is running (i.e. not
+       paused), the operations correspond to the slowest operations at
+       the current timestamp. If the display is paused, the operations
+       correspond to the slowest operations at the paused time.
+
+       Select one of the operations to open the
+       :guilabel:`Operation Details` panel, where you can
+       terminate the selected operation using the :guilabel:`Kill Op`
+       button. The :guilabel:`Kill Op` button issues the
+       :manual:`db.killOp() </reference/method/db.killOp/>` method on
+       the selected operation.
+
+       If you have :manual:`Queryable Encryption 
+       </core/queryable-encryption/>` enabled for a collection, the 
+       |rtpp| hides the JSON view of the query if it involves 
+       encrypted fields. |service| redacts this information.
+
+Read Exact Metrics from Graph View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you pause the :guilabel:`Graph` view of the Real-Time Performance
+Panel, you can hover over a line graph to see its exact value, along
+with the slowest operations and hottest collections, at a given moment
+in time.
+
+Pausing the Performance Panel does not affect the collection of the
+underlying data. When you resume the :guilabel:`Graph` view, the line
+graphs restart from an empty display.
+
+Table View
+----------
+
+Click :icon-mms:`ellipsis` to hide or display fields from the table.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Fields
+     - Description
+
+   * - | :guilabel:`Commands`
+       | :guilabel:`Queries`
+       | :guilabel:`Updates`
+       | :guilabel:`Deletes`
+       | :guilabel:`Inserts`
+       | :guilabel:`GetMores`
+
+     - Displays the number of the specified operations (commands,
+       queries, etc.) as reported by :binary:`mongostat`.
+
+   * - | :guilabel:`Time / Read`
+       | :guilabel:`Time / Write`
+       | :guilabel:`Time / Command`
+
+     - Displays latency statistics for current read requests, write
+       requests, and other database commands. To learn more, see
+       ``opLatencies`` in :manual:`serverStatus  
+       </reference/command/serverStatus>`.
+
+   * - | :guilabel:`Scanned / Returned`
+       | :guilabel:`Scanned Objects / Returned`
+
+     - Displays the ratio of documents and objects scanned to documents
+       and objects returned in current queries. These statistics are
+       useful in determining if and how a query uses an index. To learn
+       more, see :manual:`Analyze Query Performance
+       </tutorial/analyze-query-plan>`.
+
+   * - | :guilabel:`Active Readers`
+       | :guilabel:`Active Writers`
+       | :guilabel:`Queued Readers`
+       | :guilabel:`Queued Writers`
+
+     - Displays the number of active reads, queued reads, active
+       writes, and queued writes as reported by :binary:`mongostat`.
+
+   * - | :guilabel:`Lag Time`
+
+     - Available only for secondary members of a replica set. Displays
+       the time required to replicate operations from the primary to
+       the secondary members of a replica set. To learn more, see
+       :manual:`Replica Set Secondary Members 
+       </core/replica-set-secondary>`.
+
+   * - | :guilabel:`CPU`
+       | :guilabel:`Disk IOPS`
+       | :guilabel:`Sys Mem`
+
+     - Displays the currently used percentage of CPU, disk read and 
+       write operations per second, and the total physical memory 
+       usage, excluding buffers and swap space, of the machine hosting 
+       MongoDB.
+
+   * - | :guilabel:`Connections`
+       | :guilabel:`Bytes In`
+       | :guilabel:`Bytes Out`
+
+     - Displays the number of current connections to the machine
+       hosting MongoDB and the number of inbound and outbound bytes as
+       reported by :binary:`mongostat`.

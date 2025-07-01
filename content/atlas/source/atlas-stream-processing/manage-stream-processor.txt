@@ -1,0 +1,1074 @@
+.. _streams-manage-processor:
+.. _atlas-sp-manage-processor:
+
+=====================================
+Manage Stream Processors
+=====================================
+
+.. meta::
+   :description: Manage stream processors in Atlas Stream Processing by creating, starting, stopping, modifying, and viewing statistics for streaming data pipelines.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+An {+atlas-sp+} stream processor applies the logic of a uniquely named 
+:ref:`stream aggregation pipeline <stream-aggregation>` to your 
+streaming data. {+atlas-sp+} saves each stream processor definition to
+persistent storage so that it can be reused. You can only use a given
+stream processor in the :ref:`{+spi+} <manage-spi>` its definition is
+stored in. {+atlas-sp+} supports up to 4 stream processors per worker.
+For additional processors that exceed this limit, {+atlas-sp+} allocates
+a new resource. 
+
+.. _atlas-sp-manage-processor-prereqs:
+
+Prerequisites
+-------------
+
+To create and manage a stream processor, you must have:
+
+- A :ref:`{+spi+} <manage-spi>`
+- {+mongosh+} version 2.0 or higher
+- A database user with the :atlasrole:`atlasAdmin` role to create
+  and run stream processors
+- An |service| {+cluster+}
+
+.. _atlas-sp-manage-processor-considerations:
+
+Considerations
+--------------
+
+Many stream processor commands require you to specify the name of the
+relevant stream processor in the method invocation. The syntax
+described in the following sections assumes strictly alphanumeric
+names. If your stream processor's name includes non-alphanumeric
+characters such as hyphens (``-``) or full stops (``.``), you must
+enclose the name in square brackets (``[]``) and double quotes
+(``""``) in the method invocation, as in
+``sp.["special-name-stream"].stats()``.
+
+.. _streams-manage-process:
+.. _atlas-sp-manage-processor-interactive:
+
+Create a Stream Processor Interactively
+---------------------------------------
+
+You can create a stream processor interactively with the
+``sp.process()`` method. Stream processors that you create
+interactively exhibit the following behavior:
+
+- Write output and dead letter queue documents to the shell
+- Begin running immediately upon creation
+- Run for either 10 minutes or until the user stops them
+- Don't persist after stopping
+
+Stream processors that you create interactively are intended for
+prototyping. To create a persistent stream processor, see
+:ref:`streams-manage-create`.
+
+``sp.process()`` has the following syntax:
+
+.. code-block:: sh
+
+   sp.process(<pipeline>)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 20 40
+
+   * - Field
+     - Type
+     - Necessity	  
+     - Description
+
+   * - ``pipeline``
+     - array
+     - Required
+     - :ref:`Stream aggregation pipeline <stream-aggregation>` you
+       want to apply to your streaming data.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to your {+spi+}.
+      
+      Use the connection string associated with your {+spi+}
+      to connect using {+mongosh+}.
+
+      .. example::
+
+         The following command connects to a {+spi+} as a user named
+         ``streamOwner`` using `x.059 <https://www.mongodb.com/docs/manual/core/security-x.509/>`_ 
+         authentication:
+
+         .. code-block:: sh
+
+            mongosh "mongodb://atlas-stream-78xq9gi1v4b4288x06a73e9f-zi30g.virginia-usa.a.query.mongodb-qa.net/?authSource=%24external&authMechanism=MONGODB-X509" \\ 
+            --tls --authenticationDatabase admin --username streamOwner
+
+         Provide your user password when prompted.
+
+   .. step:: Define a pipeline.
+
+      In the {+mongosh+} prompt, assign an array containing the
+      aggregation stages you want to apply to a variable named 
+      ``pipeline``. 
+      
+      The following example uses the ``stuff`` topic in
+      the  ``myKafka`` connection in the connection registry as the 
+      :pipeline:`$source`, matches records where the ``temperature`` 
+      field has a value of ``46`` and emits the processed messages to 
+      the ``output`` topic of the ``mySink`` connection in 
+      the connection registry:
+
+      .. code-block:: sh
+
+         pipeline = [
+          {$source: {"connectionName": "myKafka", "topic": "stuff"}},
+          {$match: { temperature: 46 }},
+          {
+            "$emit": {
+              "connectionName": "mySink",
+              "topic" : "output",
+            }  
+          }
+         ]
+
+
+   .. step:: Create a stream processor.
+
+      The following command creates a stream processor that
+      applies the logic defined in ``pipeline``.
+
+      .. code-block:: sh
+      
+         sp.process(pipeline)
+
+.. _streams-manage-create:
+.. _atlas-sp-manage-processor-create:
+
+Create a Stream Processor
+-------------------------
+
+To create a stream processor: 
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: create-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      creating a stream processor.
+
+      :oas-atlas-tag:`Create One Stream Processor </Streams/operation/createStreamProcessor>`
+
+   .. tab:: ``mongosh``
+      :tabid: create-processor-sh
+
+      To create a new stream processor with {+mongosh+}, use the 
+      ``sp.createStreamProcessor()`` method. It has the following syntax:
+
+      .. code-block:: sh
+
+        sp.createStreamProcessor(<name>, <pipeline>, <options>)
+
+      .. list-table::
+        :widths: 20 10 50 20
+        :header-rows: 1
+
+        * - Argument
+          - Type
+          - Necessity
+          - Description
+
+        * - ``name``
+          - string
+          - Required
+          - Logical name for the stream processor. This must be unique
+            within the {+spi+}. This name should contain only alphanumeric
+            characters.
+
+        * - ``pipeline``
+          - array
+          - Required
+          - :ref:`Stream aggregation pipeline <stream-aggregation>` you
+            want to apply to your streaming data.
+
+        * - ``options``
+          - object
+          - Optional
+          - Object defining various optional settings for your stream
+            processor.
+
+        * - ``options.dlq``
+          - object
+          - Conditional
+          - Object assigning a 
+            :term:`dead letter queue` for your {+spi+}. This field is 
+            necessary if you define the ``options`` field.
+
+        * - ``options.dlq.connectionName``
+          - string
+          - Conditional
+          - Human-readable label that identifies a connection in your 
+            connection registry. This connection must reference an 
+            |service| {+cluster+}. This field is necessary if you define the
+            ``options.dlq`` field.
+
+        * - ``options.dlq.db``
+          - string
+          - Conditional
+          - Name of an |service| database on the {+cluster+} specified 
+            in ``options.dlq.connectionName``. This field is necessary if 
+            you define the ``options.dlq`` field.
+
+        * - ``options.dlq.coll``
+          - string
+          - Conditional
+          - Name of a collection in the database specified in
+            ``options.dlq.db``. This field is necessary if you 
+            define the ``options.dlq`` field.
+
+      .. procedure::
+        :style: normal
+
+        .. step:: Connect to your {+spi+}.
+            
+            Use the connection string associated with your {+spi+}
+            to connect using {+mongosh+}.
+
+            .. example::
+
+              The following command connects to a {+spi+} as a user named
+              ``streamOwner`` using `x.059 <https://www.mongodb.com/docs/manual/core/security-x.509/>`_
+              authentication.
+              
+
+              .. code-block:: sh
+
+                  mongosh "mongodb://atlas-stream-78xq9gi1v4b4288x06a73e9f-zi30g.virginia-usa.a.query.mongodb-qa.net/?authSource=%24external&authMechanism=MONGODB-X509" \\ 
+                  --tls --authenticationDatabase admin --username streamOwner
+
+              Provide your user password when prompted.
+
+        .. step:: Define a pipeline.
+
+            In the {+mongosh+} prompt, assign an array containing the
+            aggregation stages you want to apply to a variable named 
+            ``pipeline``. 
+            
+            The following example uses the ``stuff`` topic in
+            the  ``myKafka`` connection in the connection registry as the 
+            :pipeline:`$source`, matches records where the ``temperature`` 
+            field has a value of ``46`` and emits the processed messages to 
+            the ``output`` topic of the ``mySink`` connection in 
+            the connection registry:
+
+            .. code-block:: sh
+
+              pipeline = [
+                {$source: {"connectionName": "myKafka", "topic": "stuff"}},
+                {$match: { temperature: 46 }},
+                {
+                  "$emit": {
+                    "connectionName": "mySink",
+                    "topic" : "output",
+                  }  
+                }
+              ]
+
+        .. step:: (Optional) Define a :term:`DLQ <dead letter queue>`.
+
+            In the {+mongosh+} prompt, assign an object containing the
+            following properties of your DLQ:
+
+            - Connection name
+            - Database name
+            - Collection name
+
+            The following example defines a DLQ over the ``cluster01``
+            connection, in the ``metadata.dlq`` database collection.
+
+            .. code-block:: sh
+
+              deadLetter = {
+                dlq: {
+                  connectionName: "cluster01", 
+                  db: "metadata", 
+                  coll: "dlq"
+                }
+              }
+
+        .. step:: Create a stream processor.
+
+            The following command creates a stream processor named 
+            ``proc01`` that applies the logic defined in ``pipeline``.
+            Documents that throw errors in processing are written to the
+            DLQ defined in ``deadLetter``.
+
+            .. code-block:: sh
+            
+              sp.createStreamProcessor("proc01", pipeline, deadLetter)
+
+.. _streams-manage-start:
+.. _atlas-sp-manage-processor-start:
+
+Start a Stream Processor
+------------------------
+
+.. include:: /includes/atlas-stream-processing/stopped-processor-state.rst
+
+To start a stream processor: 
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: start-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      starting a stream processor.
+
+      :oas-atlas-tag:`Start One Stream Processor </Streams/operation/startStreamProcessor>`
+
+   .. tab:: ``mongosh``
+      :tabid: create-processor-sh
+
+      To start an existing stream processor with {+mongosh+}, use the 
+      ``sp.<streamprocessor>.start()`` method. ``<streamprocessor>`` must be 
+      the name of a stream processor defined for the current {+spi+}.
+
+      For example, to start a stream processor named ``proc01``, run the 
+      following command:
+
+      .. code-block:: sh
+
+        sp.proc01.start()
+
+      This method returns: 
+
+      - ``true`` if the stream processor exists and isn't currently running. 
+
+      - ``false`` if you try to start a stream processor that doesn't exist, 
+        or exists and is currently running.
+
+.. _streams-manage-stop:
+.. _atlas-sp-manage-processor-stop:
+
+Stop a Stream Processor
+-------------------------
+
+.. include:: /includes/atlas-stream-processing/stopped-processor-state.rst
+
+To stop a stream processor:
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: stop-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      stopping a stream processor.
+
+      :oas-atlas-tag:`Stop One Stream Processor </Streams/operation/stopStreamProcessor>`
+
+   .. tab:: ``mongosh``
+      :tabid: create-processor-sh
+
+      To stop an existing stream processor with {+mongosh+}, use the 
+      ``sp.<streamprocessor>.stop()`` method. ``<streamprocessor>`` must be 
+      the name of a currently running stream processor defined for the 
+      current {+spi+}.
+
+      For example, to stop a stream processor named ``proc01``, run the 
+      following command:
+
+      .. code-block:: sh
+
+        sp.proc01.stop()
+
+      This method returns: 
+
+      - ``true`` if the stream processor exists and is currently running. 
+
+      - ``false`` if the stream processor doesn't exist, or if the stream 
+        processor isn't currently running.
+
+Modify a Stream Processor
+-------------------------
+
+You can modify the following elements of an existing stream processor:
+
+- Name
+- :ref:`Pipeline <stream-aggregation>`
+- :ref:`Dead Letter Queue <atlas-sp-dlq>`
+
+To modify a stream processor, do the following:
+
+1. :ref:`Stop the stream processor <streams-manage-stop>`. 
+2. Apply your update to the stream processor. 
+3. :ref:`Restart the stream processor <streams-manage-start>`.
+
+By default, modified processors restore from the last checkpoint. Alternatively, 
+you can set ``resumeFromCheckpoint=false``, in which case the processor only 
+retains summary stats. When you modify a processor with open windows, the windows 
+are entirely recomputed on the updated pipeline. 
+
+.. include:: /includes/fact-asp-alert-condition.rst
+
+Limitations
+~~~~~~~~~~~
+
+When the default setting ``resumeFromCheckpoint=true`` is enabled, the following 
+limitations apply:
+
+- You can't modify the ``$source`` stage.
+- You can't modify the interval of your window.
+- You can't remove a window.
+- You can only modify a pipeline with a window if that window has either a 
+  ``$group`` or ``$sort`` stage in its inner pipeline.
+
+- You can't change an existing window type. For example, you can't change from a 
+  ``$tumblingWindow`` to a ``$hoppingWindow`` or vice versa.
+- Processors with windows may reprocess some data as a product of recalculating 
+  the windows. 
+
+To modify a stream processor:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: ``mongosh``
+      :tabid: modify-processor-sh
+
+      Requires {+mongosh+} v2.3.4+. 
+      
+      Use the ``sp.<streamprocessor>.modify()`` command to modify an existing 
+      stream processor. ``<streamprocessor>`` must be the name of a stopped stream 
+      processor defined for the current {+spi+}.
+
+      For example, to modify a stream processor named ``proc01``, run the
+      following command:
+
+      .. code-block:: javascript
+
+         sp.proc1.modify(<pipeline>, {
+            resumeFromCheckpoint: bool, // optional 
+            name: string, // optional
+            dlq: string, // optional
+        }})
+
+
+      Add a Stage to an Existing Pipeline
+      ````````````````````````````````````
+
+      .. code-block:: javascript
+
+         sp.createStreamProcessor("foo", [
+           {$source: {
+              connectionName: "StreamsAtlasConnection",
+              db: "test",
+              coll: "test"
+          }},
+          {$merge: {
+              into: {
+                  connectionName: "StreamsAtlasConnection",
+                  db: "testout",
+                  coll: "testout"
+              }
+          }}
+        ])
+        sp.foo.start();
+
+      .. code-block:: javascript
+
+         sp.foo.stop();
+         sp.foo.modify([
+           {$source: {
+             connectionName: "StreamsAtlasConnection",
+             db: "test",
+             coll: "test"
+           }},
+           {$match: {
+             operationType: "insert"
+           }},
+           {$merge: {
+              into: {
+              connectionName: "StreamsAtlasConnection",
+              db: "testout",
+              coll: "testout2"
+              }
+           }}
+         ]);
+         sp.foo.start();
+
+      Modify the Input Source of a Stream Processor
+      ``````````````````````````````````````````````
+
+      .. code-block:: javascript
+
+         sp.foo.modify([
+           {$source: {
+             connectionName: "StreamsAtlasConnection",
+             db: "test",
+             coll: "test",
+             config: {
+               startAtOperationTime: new Date(now.getTime() - 5 * 60 * 1000)
+             }
+           }},
+           {$match: {
+             operationType: "insert"
+           }},
+           {$merge: {
+             into: {
+               connectionName: "StreamsAtlasConnection",
+               db: "testout",
+               coll: "testout2"
+             }
+           }}
+         ], {resumeFromCheckpoint: false});
+
+      Remove a Dead Letter Queue from a Stream Processor
+      ```````````````````````````````````````````````````
+      .. code-block:: javascript
+
+         sp.foo.stop();
+         sp.foo.modify({dlq: {}})
+         sp.foo.start();    
+
+      Modify a Stream Processor with a Window
+      ````````````````````````````````````````
+
+      .. code-block:: javascript
+
+         sp.foo.stop();
+         sp.foo.modify([
+           {$source: {
+             connectionName: "StreamsAtlasConnection",
+             db: "test",
+             coll: "test"
+           }},
+           {$replaceRoot: {newRoot: "$fullDocument"}},
+           {$match: {cost: {$gt: 500}}},
+           {$tumblingWindow: {
+             interval: {unit: "day", size: 1},
+             pipeline: [
+              {$group: {_id: "$customerId", sum: {$sum: "$cost"}, avg: {$avg: "$cost"}}}
+             ]
+           }},
+           {$merge: {
+             into: {
+             connectionName: "StreamsAtlasConnection",
+             db: "testout",
+             coll: "testout"
+            }
+           }}
+         ], {resumeFromCheckpoint: false});
+         sp.foo.start();
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: modify-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      modifying a stream processor.
+
+      :oas-atlas-tag:`Modify One Stream Processor </Streams/operation/modifyStreamProcessor>`
+
+.. _streams-manage-drop:
+.. _atlas-sp-manage-processor-drop:
+
+Drop a Stream Processor
+-------------------------
+
+To drop a stream processor: 
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: delete-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      deleting a stream processor.
+
+      :oas-atlas-tag:`Delete One Stream Processor </Streams/operation/deleteStreamProcessor>`
+
+   .. tab:: ``mongosh``
+      :tabid: drop-processor-sh
+
+      To delete an existing stream processor with {+mongosh+}, use the 
+      ``sp.<streamprocessor>.drop()`` method. ``<streamprocessor>`` must be 
+      the name of a stream processor defined for the current {+spi+}.
+
+      For example, to drop a stream processor named ``proc01``, run the 
+      following command:
+
+      .. code-block:: sh
+
+        sp.proc01.drop()
+
+      This method returns: 
+
+      - ``true`` if the stream processor exists.
+
+      - ``false`` if the stream processor doesn't exist.
+
+      When you drop a stream processor, all resources that {+atlas-sp+} 
+      provisioned for it are destroyed, along with all saved state.
+
+.. _streams-list-procs:
+.. _atlas-sp-manage-processor-list:
+
+List Available Stream Processors
+--------------------------------
+
+To list all available stream processors:
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: list-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      listing all available stream processors.
+
+      :oas-atlas-tag:`List Stream Processors </Streams/operation/listStreamProcessors>`
+
+   .. tab:: ``mongosh``
+      :tabid: list-processor-sh
+
+      To list all available stream processors on the current {+spi+} with 
+      {+mongosh+}, use the ``sp.listStreamProcessors()`` method. It returns 
+      a list of documents containing the name, start time, current state, and 
+      pipeline associated with each stream processor. It has the following 
+      syntax:
+
+      .. code-block:: sh
+
+        sp.listStreamProcessors(<filter>)
+
+      ``<filter>`` is a document specifying which field(s) to filter the list 
+      by.
+
+      .. example::
+
+        The following example shows a return value for an unfiltered 
+        request:
+
+        .. io-code-block::
+            :copyable: true
+
+            .. input:: 
+              :language: sh
+
+              sp.listStreamProcessors()
+
+            .. output:: 
+              :language: json
+              :linenos:
+
+              {
+                id: '0135',
+                name: "proc01",
+                last_modified: ISODate("2023-03-20T20:15:54.601Z"),
+                state: "RUNNING",
+                error_msg: '',
+                pipeline: [
+                  {
+                    $source: {
+                      connectionName: "myKafka", 
+                      topic: "stuff"
+                    }
+                  },
+                  {
+                    $match: { 
+                      temperature: 46 
+                    }
+                  },
+                  {
+                    $emit: {
+                      connectionName: "mySink",
+                      topic: "output",
+                    }  
+                  }
+                ],
+                lastStateChange: ISODate("2023-03-20T20:15:59.442Z")
+              },
+              {   
+                id: '0218',
+                name: "proc02",
+                last_modified: ISODate("2023-03-21T20:17:33.601Z"),
+                state: "STOPPED",
+                error_msg: '',
+                pipeline: [
+                  {
+                    $source: {
+                      connectionName: "myKafka", 
+                      topic: "things"
+                    }
+                  },
+                  {
+                    $match: { 
+                      temperature: 41 
+                    }
+                  },
+                  {
+                    $emit: {
+                      connectionName: "mySink",
+                      topic: "results",
+                    }  
+                  }
+                ],
+                lastStateChange: ISODate("2023-03-21T20:18:26.139Z")
+              }
+
+        If you run the command again on the same {+spi+}, filtering for a 
+        ``"state"`` of ``"running"``, you see the following output:
+
+        .. io-code-block::
+            :copyable: true
+
+            .. input:: 
+              :language: sh
+
+              sp.listStreamProcessors({"state": "running"})
+
+            .. output:: 
+              :language: json
+              :linenos:
+
+              {
+                id: '0135',
+                name: "proc01",
+                last_modified: ISODate("2023-03-20T20:15:54.601Z"),
+                state: "RUNNING",
+                error_msg: '',
+                pipeline: [
+                  {
+                    $source: {
+                      connectionName: "myKafka", 
+                      topic: "stuff"
+                    }
+                  },
+                  {
+                    $match: { 
+                      temperature: 46 
+                    }
+                  },
+                  {
+                    $emit: {
+                      connectionName: "mySink",
+                      topic: "output",
+                    }  
+                  }
+                ],
+                lastStateChange: ISODate("2023-03-20T20:15:59.442Z")
+              }
+
+.. _streams-manage-sample:
+.. _atlas-sp-manage-processor-sample:
+
+Sample from a Stream Processor
+------------------------------
+
+To return an array of sampled results from an existing stream processor 
+to ``STDOUT`` with {+mongosh+}, use the 
+``sp.<streamprocessor>.sample()`` method. ``<streamprocessor>`` must be 
+the name of a currently running stream processor defined for the 
+current {+spi+}. For example, the following command samples from a 
+stream processor named ``proc01``.
+
+.. code-block:: sh
+
+   sp.proc01.sample()
+
+This command runs continuously until you cancel it by using
+``CTRL-C``, or until the returned samples cumulatively reach 40 MB in
+size. The stream processor reports invalid documents in the sample in
+a ``_dlqMessage`` document of the following form:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     _dlqMessage: {
+       _stream_meta: {
+	 source: {
+	   type: "<type>"
+	 }
+       },
+       errInfo: {
+	 reason: "<reasonForError>"
+       },
+       doc: {
+	 _id: ObjectId('<group-id>'),
+	 ...
+       },
+       processorName: '<procName>',
+       instanceName: '<instanceName>',
+       dlqTime: ISODate('2024-09-19T20:04:34.263+00:00')
+     }
+  }
+
+You can use these messages to diagnose data hygiene issues without
+defining a :ref:`dead letter queue <atlas-sp-dlq>` collection.
+
+.. _streams-manage-stats:
+.. _atlas-sp-manage-processor-stats:
+
+View Statistics of a Stream Processor
+-------------------------------------
+
+.. include:: /includes/atlas-stream-processing/stopped-processor-state.rst
+
+To view statistics of a stream processor: 
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: get-status-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      viewing the statistics of a stream processor.
+
+      :oas-atlas-tag:`Get One Stream Processor </Streams/operation/getStreamProcessor>`
+
+   .. tab:: ``mongosh``
+      :tabid: get-status-processor-sh
+
+      To return a document summarizing the current status of an existing 
+      stream processor with {+mongosh+}, use the 
+      ``sp.<streamprocessor>.stats()`` method. ``streamprocessor`` must be 
+      the name of a currently running stream processor defined for the 
+      current {+spi+}. It has the following syntax:
+
+      .. code-block:: sh
+
+        sp.<streamprocessor>.stats({options: {<options>}})
+
+      Where ``options`` is an optional document with the following fields:
+
+      .. list-table::
+        :widths: 20 20 60
+        :header-rows: 1
+
+        * - Field
+          - Type
+          - Description
+
+        * - ``scale``
+          - integer
+          - Unit to use for the size of items in the output. By default, 
+            {+atlas-sp+} displays item size in bytes. To display in KB, 
+            specify a ``scale`` of ``1024``.
+
+        * - ``verbose``
+          - boolean
+          - Flag that specifies the verbosity level of the output document. 
+            If set to ``true``, the output document contains a subdocument 
+            that reports the statistics of each individual operator in your 
+            pipeline. Defaults to ``false``.
+
+      The output document has the following fields:
+
+      .. list-table::
+        :widths: 20 20 60
+        :header-rows: 1
+
+        * - Field
+          - Type
+          - Description
+
+        * - ``ns``
+          - string
+          - The namespace the stream processor is defined in.
+
+        * - ``stats``
+          - object
+          - A document describing the operational state of the stream 
+            processor.
+
+        * - ``stats.name``
+          - string
+          - The name of the stream processor.
+
+        * - ``stats.status``
+          - string
+          - The status of the stream processor. This field can have the
+            following values:
+
+            - ``starting``
+            - ``running``
+            - ``error``
+            - ``stopping``
+
+        * - ``stats.scaleFactor``
+          - integer
+          - The scale in which the size field displays. If set to ``1``,
+            sizes display in bytes. If set to ``1024``, sizes display in
+            kilobytes.
+
+        * - ``stats.inputMessageCount``
+          - integer
+          - The number of documents published to the stream. A document
+            is considered 'published' to the stream once it passes
+            through the :pipeline:`$source` stage, not when it passes 
+            through the entire pipeline.
+
+        * - ``stats.inputMessageSize``
+          - integer
+          - The number of bytes or kilobytes published to the stream. 
+            Bytes are considered 'published' to the stream once they pass
+            through the :pipeline:`$source` stage, not when it passes
+            through the entire pipeline.
+
+        * - ``stats.outputMessageCount``
+          - integer
+          - The number of documents processed by the stream. A document is
+            considered 'processed' by the stream once it passes through the
+            entire pipeline.
+
+        * - ``stats.outputMessageSize``
+          - integer
+          - The number of bytes or kilobytes processed by the stream. Bytes
+            are considered 'processed' by the stream once they pass through
+            the entire pipeline.
+
+        * - ``stats.dlqMessageCount``
+          - integer
+          - The number of documents sent to the :ref:`atlas-sp-dlq`.
+
+        * - ``stats.dlqMessageSize``
+          - integer
+          - The number of bytes or kilobytes sent to the 
+            :ref:`atlas-sp-dlq`.
+
+        * - ``stats.changeStreamTimeDifferenceSecs``
+          - integer
+          - The difference, in seconds, between the event time represented by
+            the most recent change stream :manual:`resume token
+            </changeStreams/#resume-tokens-from-change-events>` and the latest
+            event in the :term:`oplog`.
+
+        * - ``stats.changeStreamState``
+          - token
+          - The most recent change stream :manual:`resume token
+            </changeStreams/#resume-tokens-from-change-events>`. Only applies
+            to stream processors with a change stream source.
+
+        * - ``stats.stateSize``
+          - integer
+          - The number of bytes used by windows to store processor state.
+
+        * - ``stats.watermark``
+          - integer
+          - The timestamp of the current watermark.
+
+        * - ``stats.operatorStats``
+          - array
+          - The statistics for each operator in the processor pipeline. 
+            {+atlas-sp+} returns this field only if you pass in the 
+            ``verbose`` option.
+            
+            ``stats.operatorStats`` provides per-operator versions of many
+            core ``stats`` fields:
+
+            - ``stats.operatorStats.name``
+            - ``stats.operatorStats.inputMessageCount``
+            - ``stats.operatorStats.inputMessageSize``
+            - ``stats.operatorStats.outputMessageCount``
+            - ``stats.operatorStats.outputMessageSize``
+            - ``stats.operatorStats.dlqMessageCount``
+            - ``stats.operatorStats.dlqMessageSize``
+            - ``stats.operatorStats.stateSize``
+              
+            ``stats.operatorStats`` includes the following
+            unique fields:
+
+            - ``stats.operatorStats.maxMemoryUsage``
+            - ``stats.operatorStats.executionTimeMillis``
+ 
+            ``stats.operatorStats`` also includes the following fields given 
+            that you have passed in the ``verbose`` option and your 
+            processor includes a window stage:
+
+            - ``stats.minOpenWindowStartTime``
+            - ``stats.maxOpenWindowStartTime``
+
+        * - ``stats.operatorStats.maxMemoryUsage``
+          - integer
+          - The maximum memory usage of the operator in bytes or kilobytes.
+
+        * - ``stats.operatorStats.executionTimeSecs``
+          - integer
+          - The total execution time of the operator in seconds.
+
+        * - ``stats.minOpenWindowStartTime``
+          - date
+          - The start time of the minimum open window. This value is optional.
+
+        * - ``stats.maxOpenWindowStartTime``
+          - date
+          - The start time of the maximum open window. This value is optional.
+
+        * - ``stats.kafkaPartitions``
+          - array
+          - Offset information for an {+kafka+} broker's partitions. 
+            ``kafkaPartitions`` applies only to connections using an 
+            {+kafka+} source.
+       
+        * - ``stats.kafkaPartitions.partition``
+          - integer
+          - The {+kafka+} topic partition number.
+
+        * - ``stats.kafkaPartitions.currentOffset``
+          - integer
+          - The offset that the stream processor is on for the
+            specified partition. This value equals the previous offset
+            that the stream processor processed plus ``1``.
+
+        * - ``stats.kafkaPartitions.checkpointOffset``
+          - integer
+          - The offset that the stream processor last committed to the
+            {+kafka+} broker and the checkpoint for the specified
+            partition. All messages through this offset are 
+            recorded in the last checkpoint.
+
+        * - ``stats.kafkaPartitions.isIdle``
+          - boolean
+          - The flag that indicates whether the partition is idle. This 
+            value defaults to ``false``. 
+
+      For example, the following shows the status of a stream processor named 
+      ``proc01`` on a {+spi+} named ``inst01`` with item sizes displayed in 
+      KB:
+
+      .. code-block:: sh
+
+        sp.proc01.stats(1024)
+
+        {
+          ok: 1,
+          ns: 'inst01',
+          stats: {
+            name: 'proc01',
+            status: 'running',
+            scaleFactor: Long("1"), 
+            inputMessageCount: Long("706028"),
+            inputMessageSize: 958685236,
+            outputMessageCount: Long("46322"),
+            outputMessageSize: 85666332,
+            dlqMessageCount: Long("0"),
+            dlqMessageSize: Long("0"),
+            stateSize: Long("2747968"),
+            watermark: ISODate("2023-12-14T14:35:32.417Z"),
+            ok: 1
+          },
+        }

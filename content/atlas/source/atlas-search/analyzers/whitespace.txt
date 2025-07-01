@@ -1,0 +1,164 @@
+.. _ref-whitespace-analyzer:
+
+===================
+Whitespace Analyzer
+===================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: case sensitive, lucene whitespace analyzer, create index
+   :description: Use the Atlas Search whitespace analyzer to divide text into searchable terms at each whitespace character.
+
+The ``whitespace`` analyzer divides text into searchable terms (tokens)
+wherever it finds a whitespace character. It leaves all text in its 
+original letter case.
+
+.. |analyzer-name| replace:: ``whitespace``
+
+.. include:: /includes/fts/facts/fact-fts-index-configurations.rst
+
+.. important::
+
+   .. include:: /includes/fts/facts/fact-fts-string-size-limit.rst
+
+Example
+-------
+
+.. include:: /includes/fts/analyzers/analyzer-example-intro.rst
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Index Configurations` section, toggle 
+         :guilabel:`Dynamic Mapping` to :guilabel:`off`.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window. 
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click :guilabel:`Customized Configuration`.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.whitespace`` from the dropdown. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.whitespace`` from the dropdown.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      1. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 6
+
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.whitespace",
+                    "searchAnalyzer": "lucene.whitespace"
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query searches for the term ``Lion's`` in the ``title``
+field. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        { 
+          "$search": {
+            "text": {
+               "query": "Lion's",
+               "path": "title"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+      :visible: false
+
+      [
+        { title: 'Lion's Den' },
+        { title: 'The Lion's Mouth Opens' }
+      ]
+
+|fts| returns these documents by doing the following for the text in the
+``title`` field using the ``lucene.whitespace`` analyzer:
+
+-  Retain the original letter case for the text.
+-  Divide the text into tokens wherever it finds a whitespace character. 
+
+The following table shows the tokens (searchable terms) that |fts|
+creates using the :ref:`ref-whitespace-analyzer` and, by contrast, the 
+:ref:`ref-simple-analyzer` and :ref:`ref-keyword-analyzer` for the
+documents in the results:  
+
+.. list-table:: Tokens
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Title 
+     - Whitespace Analyzer Tokens 
+     - Simple Analyzer Tokens
+     - Keyword Analyzer Tokens
+
+   * - ``Lion's Den`` 
+     - ``Lion's``, ``Den``
+     - ``lion``, ``s``, ``den``
+     - ``Lion's Den``
+
+   * - ``The Lion's Mouth Opens`` 
+     - ``The``, ``Lion's``, ``Mouth``, ``Opens``
+     - ``the``, ``lion``, ``s``, ``mouth``, ``opens``
+     - ``The Lion's Mouth Opens``
+
+The index that uses ``whitespace`` analyzer is case-sensitive.
+Therefore, |fts| is able to match the query term ``Lion's`` to the token
+``Lion's`` created by the ``whitespace`` analyzer. 

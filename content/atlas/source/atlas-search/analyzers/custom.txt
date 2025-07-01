@@ -1,0 +1,236 @@
+.. _custom-analyzers:
+
+================
+Custom Analyzers
+================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Define a custom analyzer to transform and filter characters before indexing for search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+An |fts| analyzer prepares a set of documents to be indexed by 
+performing a series of operations to transform, filter, and group 
+sequences of characters. You can define a custom analyzer to suit your 
+specific indexing needs from the {+atlas-ui+}.
+
+A custom |fts| analyzer is made up of a :ref:`tokenizer <tokenizers-ref>`, an optional list of 
+:ref:`character filters <character-filters>`, and an optional list of :ref:`token filters <token-filters-ref>`. 
+When |fts| analyzes text with a custom analyzer, the text passes through the character filters first, then the tokenizer, 
+and then the token filters.
+
+.. _custom-analyzers-syntax:
+
+Syntax 
+------
+
+A custom analyzer has the following syntax:
+
+.. code-block:: json
+   :caption: Syntax
+
+   "analyzers": [
+     {
+       "name": "<name>",
+       "charFilters": [ <list-of-character-filters> ],
+       "tokenizer": {
+         "type": "<tokenizer-type>"
+       },
+       "tokenFilters": [ <list-of-token-filters> ]
+     }
+   ]
+
+.. _custom-analyzers-attrs:
+
+Attributes 
+----------
+
+A custom analyzer has the following attributes:
+
+.. list-table::
+   :widths: 15 20 45 15
+   :header-rows: 1
+
+   * - Attribute
+     - Type
+     - Description
+     - Required?
+
+   * - ``name``
+     - string
+     - Name of the custom analyzer. Names must be unique within an 
+       index, and may not start with any of the following strings:
+
+       - ``lucene.``
+       - ``builtin.``
+       - ``mongodb.``
+
+     - yes
+
+   * - ``charFilters``
+     - list of objects
+     - Array containing zero or more character filters.
+       
+       Character filters examine text one character at 
+       a time and perform filtering operations.
+
+       To learn more, see :ref:`char-filters-ref`. 
+     - no
+
+   * - ``tokenizer``
+     - object
+     - Tokenizer to use to create tokens. 
+     
+       An analyzer uses a tokenizer to split chunks of text into groups,
+       or tokens, for indexing purposes.
+
+       To learn more, see :ref:`tokenizers-ref`. 
+     - yes
+
+   * - ``tokenFilters``
+     - list of objects
+     - Array containing zero or more token filters.
+       
+       A token filter performs operations such as:
+       
+       - Stemming, which reduces related words, such as "talking", "talked",
+         and "talks" to their root word "talk".
+       - Redaction, which removes sensitive information from public 
+         documents.
+
+       To learn more, see :ref:`token-filters-ref`. 
+     - no
+
+.. _custom-analyzer-templates:
+
+Built-in Custom Analyzer Templates
+----------------------------------
+
+The {+atlas-ui+} :guilabel:`Visual Editor` includes the option to choose between 
+the following common-use templates to help you get started with building your custom analyzer:
+
+- **Email Parser** - Use this to tokenize email addresses up to 200 
+  characters using the :ref:`uaxUrlEmail-tokenizer-ref` tokenizer. For example, you can apply this analyzer on the
+  ``page_updated_by.email`` field in the :ref:`custom-analyzers-eg-coll`.
+- **Phone Numbers** - Use this to create a single token from a
+  US-formatted phone number using the :ref:`regexCaptureGroup-tokenizer-ref` tokenizer. For example, you can apply this analyzer
+  on the ``page_updated_by.phone`` field in the
+  :ref:`custom-analyzers-eg-coll`.
+- **Dash-Separated IDs** - Use this to create tokens from
+  hyphen-delimited text using the :ref:`regexSplit-tokenizer-ref` tokenizer. For example, you can apply this analyzer on
+  the ``message`` field in the :ref:`custom-analyzers-eg-coll`.
+
+You can use these built-in custom analyzers or create your own custom
+analyzer using the |fts| :guilabel:`Visual Editor` or |json| Editor.
+
+.. _custom-analyzers-eg-coll:
+
+Example Collection 
+------------------
+
+The :ref:`character-filters`, :ref:`tokenizers-ref`, and 
+:ref:`token-filters-ref` pages contain sample index definitions and 
+query examples for character filters, tokenizers, and token filters.
+These examples use a sample ``minutes`` collection with 
+the following documents:
+
+.. code-block:: json
+
+   { 
+     "_id": 1, 
+     "page_updated_by": {
+       "last_name": "AUERBACH",
+       "first_name": "Siân",
+       "email": "auerbach@example.com",
+       "phone": "(123)-456-7890"
+     },
+     "title": "The team's weekly meeting",
+     "message": "try to siGn-In",
+     "text": {
+       "en_US": "<head> This page deals with department meetings.</head>",
+       "sv_FI": "Den här sidan behandlar avdelningsmöten",
+       "fr_CA": "Cette page traite des réunions de département"
+     }
+   }
+
+.. code-block:: json
+
+   { 
+     "_id": 2, 
+     "page_updated_by": {
+       "last_name": "OHRBACH",
+       "first_name": "Noël",
+       "email": "ohrbach@example.com",
+       "phone": "(123) 456 0987"
+     },
+     "title": "The check-in with sales team",
+     "message": "do not forget to SIGN-IN. See ① for details.",
+     "text" : {
+       "en_US": "The head of the sales department spoke first.",
+       "fa_IR": "ابتدا رئیس بخش فروش صحبت کرد",
+       "sv_FI": "Först talade chefen för försäljningsavdelningen"
+     }
+   }
+
+.. code-block:: json
+
+   { 
+     "_id": 3, 
+     "page_updated_by": {
+       "last_name": "LEWINSKY",
+       "first_name": "Brièle",
+       "email": "lewinsky@example.com",
+       "phone": "(123).456.9870"
+     },
+     "title": "The regular board meeting",
+     "message": "try to sign-in",
+     "text" : {
+       "en_US": "<body>We'll head out to the conference room by noon.</body>"
+     }
+   }
+
+.. code-block:: json
+
+   { 
+     "_id": 4, 
+     "page_updated_by": {
+       "last_name": "LEVINSKI",
+       "first_name": "François",
+       "email": "levinski@example.com",
+       "phone": "123-456-8907"
+     },
+     "title": "The daily huddle on tHe StandUpApp2",
+     "message": "write down your signature or phone №",
+     "text" : {
+       "en_US": "<body>This page has been updated with the items on the agenda.</body>" ,
+       "es_MX": "La página ha sido actualizada con los puntos de la agenda.",
+       "pl_PL": "Strona została zaktualizowana o punkty porządku obrad."
+     }
+   }
+
+Learn More
+----------
+
+To learn more about creating your own custom analyzers, see the following reference pages: 
+
+- :ref:`char-filters-ref`
+- :ref:`tokenizers-ref`
+- :ref:`token-filters-ref`
+
+.. include:: /includes/fts/facts/fact-fts-custom-analyzer-ui.rst 
+
+.. toctree::
+   :titlesonly:
+
+   /atlas-search/analyzers/character-filters
+   /atlas-search/analyzers/tokenizers
+   /atlas-search/analyzers/token-filters

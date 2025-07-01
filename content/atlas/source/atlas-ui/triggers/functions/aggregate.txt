@@ -1,0 +1,406 @@
+.. _atlas-mongodb-aggregate:
+
+===========================================
+Aggregate Data in MongoDB Atlas - Functions
+===========================================
+
+.. meta::
+   :description: Learn how to use the MongoDB Query API in an Atlas Function to aggregate documents in your Atlas cluster.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The examples on this page demonstrate how to use the MongoDB Query API
+in an |service| Function to aggregate documents in your |service| cluster.
+
+MongoDB :manual:`aggregation pipelines </core/aggregation-pipeline>` run
+all documents in a collection through a series of data :ref:`aggregation
+stages <atlas-mongodb-aggregation-stages>` that allow you to filter and shape
+documents as well as collect summary data about groups of related
+documents.
+
+.. note:: Supported Aggregation Stages
+
+   |service| Functions support nearly all MongoDB aggregation pipeline stages and
+   operators, but some stages and operators must be executed within a
+   :ref:`system function <atlas-system-functions>`. See :ref:`Aggregation Framework
+   Limitations <atlas-functions-aggregation-framework-limitations>` for more
+   information.
+
+Data Model
+~~~~~~~~~~
+
+The examples on this page use a collection named ``store.purchases``
+that contains information about historical item sales in an online
+store. Each document contains a list of the purchased ``items``,
+including the item ``name`` and the purchased ``quantity``, as well as a
+unique ID value for the customer that purchased the items.
+
+.. code-block:: json
+   :caption: The JSON schema for store.purchases
+
+  {
+    "title": "Purchase",
+    "required": ["_id", "customerId", "items"],
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "customerId": { "bsonType": "objectId" },
+      "items": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "required": ["name", "quantity"],
+          "properties": {
+            "name": { "bsonType": "string" },
+            "quantity": { "bsonType": "int" }
+          }
+        }
+      }
+    }
+  }
+
+.. include:: /includes/triggers/functions/setup.rst
+
+Run an Aggregation Pipeline
+---------------------------
+
+You can execute an aggregation pipeline using the
+:method:`collection.aggregate()` method.
+
+The following :ref:`Function <atlas-functions>` snippet groups all documents
+in the ``purchases`` collection by their ``customerId`` value and
+aggregates a count of the number of items each customer purchases as
+well as the total number of purchases that they made. After grouping the
+documents the pipeline adds a new field that calculates the average
+number of items each customer purchases at a time,
+``averageNumItemsPurchased``, to each customer's document:
+
+.. include:: /includes/triggers/functions/snippets/aggregate.rst
+
+Find Data with |service| Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run :ref:`|service| Search <fts-top-ref>` queries on a collection
+with :method:`collection.aggregate()` and the ``$search`` aggregation
+stage.
+
+.. important::
+
+   |service| Functions perform ``$search`` operations as a system user and
+   enforce field-level rules on the returned search results. This means that a
+   user may search on a field for which they do not have read access. In this
+   case, the search is based on the specified field but no returned documents
+   include the field.
+
+.. io-code-block::
+
+   .. input::
+      :language: javascript
+
+      exports = async function searchMoviesAboutBaseball() {
+        // 1. Get a reference to the collection you want to search.
+        const movies = context.services
+          .get("mongodb-atlas")
+          .db("sample_mflix")
+          .collection("movies");
+        // 2. Run an aggregation with $search as the first stage.
+        const baseballMovies = await movies
+          .aggregate([
+            {
+              $search: {
+                text: {
+                  query: "baseball",
+                  path: "plot",
+                },
+              },
+            },
+            {
+              $limit: 5,
+            },
+            {
+              $project: {
+                _id: 0,
+                title: 1,
+                plot: 1,
+              },
+            },
+          ])
+          .toArray();
+        return baseballMovies;
+      };
+
+   .. output::
+      :language: json
+
+      {
+        "plot" : "A trio of guys try and make up for missed
+        opportunities in childhood by forming a three-player
+        baseball team to compete against standard children
+        baseball squads.",
+        "title" : "The Benchwarmers"
+      }
+      {
+        "plot" : "A young boy is bequeathed the ownership of a
+        professional baseball team.",
+        "title" : "Little Big League"
+      }
+      {
+        "plot" : "A trained chimpanzee plays third base for a
+        minor-league baseball team.",
+        "title" : "Ed"
+      }
+      {
+        "plot" : "The story of the life and career of the famed
+        baseball player, Lou Gehrig.",
+        "title" : "The Pride of the Yankees"
+      }
+      {
+        "plot" : "Babe Ruth becomes a baseball legend but is
+        unheroic to those who know him.",
+        "title" : "The Babe"
+      }
+
+.. note:: $$SEARCH_META Variable Availability
+
+   The :atlas:`$$SEARCH_META </atlas-search/query-syntax/#aggregation-variable>`
+   aggregation variable is only available for Functions that :ref:`run as system
+   <atlas-system-functions>` or if the first role on the searched collection has its
+   ``apply_when`` and ``read`` expressions set to ``true``.
+
+   If neither of these two scenarios apply, ``$$SEARCH_META`` is undefined and
+   the aggregation will fail.
+
+.. _atlas-mongodb-aggregation-stages:
+
+Aggregation Stages
+------------------
+
+Filter Documents
+~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$match </reference/operator/aggregation/match/>` stage
+to filter incoming documents using standard MongoDB :manual:`query syntax
+</tutorial/query-documents>`.
+
+.. code-block:: javascript
+
+   {
+     "$match": {
+       "<Field Name>": <Query Expression>,
+       ...
+     }
+   }
+
+.. example::
+
+   The following ``$match`` stage filters incoming documents to include
+   only those where the ``graduation_year`` field has a value between
+   ``2019`` and ``2024``, inclusive.
+
+
+   .. code-block:: javascript
+
+      {
+        "$match": {
+          "graduation_year": {
+            "$gte": 2019,
+            "$lte": 2024
+          },
+        }
+      }
+
+Group Documents
+~~~~~~~~~~~~~~~
+
+You can use the :manual:`$group
+</reference/operator/aggregation/group/>` stage to aggregate summary
+data for groups of one or more documents. MongoDB groups documents based
+on the ``_id`` expression.
+
+.. note::
+
+   You can reference a specific document field by prefixing the field
+   name with a ``$``.
+
+.. code-block:: javascript
+
+   {
+     "$group": {
+       "_id": <Group By Expression>,
+       "<Field Name>": <Aggregation Expression>,
+       ...
+     }
+   }
+
+.. example::
+
+   The following ``$group`` stage groups documents by the value of their
+   ``customerId`` field and calculates the number of purchase documents
+   that each ``customerId`` appears in.
+
+
+   .. code-block:: javascript
+
+      {
+        "$group": {
+          "_id": "$customerId",
+          "numPurchases": { "$sum": 1 }
+        }
+      }
+
+Project Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$project
+</reference/operator/aggregation/project/>` stage to include or omit
+specific fields from documents or to calculate new fields using
+:manual:`aggregation operators </reference/operator/aggregation>`.
+To include a field, set its value to ``1``. To omit a field, set its
+value to ``0``.
+
+.. note::
+
+   You can't simultaneously omit and include fields other than ``_id``.
+   If you explicitly include a field other than ``_id``, any fields you
+   did not explicitly include are automatically omitted (and
+   vice-versa).
+
+.. code-block:: javascript
+
+   {
+     "$project": {
+       "<Field Name>": <0 | 1 | Expression>,
+       ...
+     }
+   }
+
+.. example::
+
+   The following ``$project`` stage omits the ``_id`` field, includes
+   the ``customerId`` field, and creates a new field named ``numItems``
+   where the value is the number of documents in the ``items`` array:
+
+   .. code-block:: javascript
+
+      {
+        "$project": {
+          "_id": 0,
+          "customerId": 1,
+          "numItems": { "$sum": { "$size": "$items" } }
+        }
+      }
+
+Add Fields to Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$addFields
+</reference/operator/aggregation/addFields/>` stage to add new fields
+with calculated values using :manual:`aggregation operators
+</reference/operator/aggregation>`.
+
+.. note::
+
+   ``$addFields`` is similar to :manual:`$project
+   </reference/operator/aggregation/project/>` but does not allow you to
+   include or omit fields.
+
+.. example::
+
+   The following ``$addFields`` stages creates a new field named
+   ``numItems`` where the value is the number of documents in the
+   ``items`` array:
+
+   .. code-block:: javascript
+
+      {
+        "$addFields": {
+          "numItems": { "$sum": { "$size": "$items" } }
+        }
+      }
+
+Unwind Array Values
+~~~~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$unwind
+</reference/operator/aggregation/unwind/>` stage to aggregate
+individual elements of array fields. When you unwind an array field,
+MongoDB copies each document once for each element of the array field
+but replaces the array value with the array element in each copy.
+
+.. code-block:: javascript
+
+   {
+     $unwind: {
+       path: <Array Field Path>,
+       includeArrayIndex: <string>,
+       preserveNullAndEmptyArrays: <boolean>
+     }
+   }
+
+.. example::
+
+   The following ``$unwind`` stage creates a new document for each
+   element of the ``items`` array in each document. It also adds a field
+   called ``itemIndex`` to each new document that specifies the
+   element's position index in the original array:
+
+   .. code-block:: javascript
+
+      {
+        "$unwind": {
+          "path": "$items",
+          "includeArrayIndex": "itemIndex"
+        }
+      }
+
+   Consider the following document from the ``purchases`` collection:
+
+   .. code-block:: javascript
+
+      {
+        _id: 123,
+        customerId: 24601,
+        items: [
+          { name: "Baseball", quantity: 5 },
+          { name: "Baseball Mitt", quantity: 1 },
+          { name: "Baseball Bat", quantity: 1 },
+        ]
+      }
+
+   If we apply the example ``$unwind`` stage to this document, the stage
+   outputs the following three documents:
+
+   .. code-block:: javascript
+
+      {
+        _id: 123,
+        customerId: 24601,
+        itemIndex: 0,
+        items: { name: "Baseball", quantity: 5 }
+      }, {
+        _id: 123,
+        customerId: 24601,
+        itemIndex: 1,
+        items: { name: "Baseball Mitt", quantity: 1 }
+      }, {
+        _id: 123,
+        customerId: 24601,
+        itemIndex: 2,
+        items: { name: "Baseball Bat", quantity: 1 }
+      }
+
+.. _atlas-functions-aggregation-framework-limitations:
+
+Aggregation Framework Limitations
+---------------------------------
+
+.. include:: /includes/triggers/functions/aggregation-framework-limitations.rst

@@ -1,0 +1,281 @@
+.. _fts-stored-source-definition:
+
+===============================================
+Define Stored Source Fields in Your |fts| Index 
+===============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+   
+.. meta::
+   :keywords: retrieve specific fields, return stored source option, improve query performance
+   :description: Learn how to store certain fields in Atlas Search to improve query performance and avoid full document lookup.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+The ``storedSource`` option in an |fts| :ref:`index definition
+<ref-index-definitions>` specifies the fields in the source document 
+that |fts| must store. You can configure ``storedSource`` to improve query 
+performance in certain :ref:`use cases <fts-return-stored-source-use-case>`,
+as it reduces the need for implicit query time lookup on the backend database.
+You can store fields of all :ref:`bson-data-chart` on |fts|.
+
+|fts| doesn't index stored fields, so you must 
+index the fields separately in order to run queries on them. 
+You can also retrieve stored fields at query time by 
+using the :ref:`returnStoredSource <fts-return-stored-source-option>` option.
+
+.. note:: 
+
+   .. include:: /includes/fts/facts/fact-fts-stored-source-mdb-version.rst
+
+To learn more about retrieving the stored fields, see 
+:ref:`fts-return-stored-source-option`. 
+
+.. _fts-stored-source-syntax:
+
+Syntax 
+------
+
+The ``storedSource`` option has the following syntax in an :ref:`index 
+definition <ref-index-definitions>`: 
+
+.. code-block:: json 
+   :copyable: false 
+   :linenos:
+   :caption: Syntax
+
+   {
+     "storedSource": true | false | {
+       "include" | "exclude": [
+         "<field-name>", 
+         ...
+       ]
+     }
+   }
+
+.. _fts-stored-source-option:
+
+Options 
+-------
+
+The ``storedSource`` option takes a :ref:`boolean value 
+<fts-stored-source-boolean-values>` or an :ref:`object 
+<fts-stored-source-option>` in the :ref:`index definition 
+<ref-index-definitions>`. 
+
+.. _fts-stored-source-boolean-values: 
+
+Boolean Values
+~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Value
+     - Description
+
+   * - ``true``
+     - Specifies that |fts| must store all the fields in the 
+       documents. Storing full documents might significantly impact 
+       performance during indexing and querying. To learn more, 
+       see :ref:`perf-ref-stored-source`. 
+
+   * - ``false``
+     - Specifies that |fts| must not store the original source 
+       document. This is the default value for the ``storedSource`` 
+       option.
+
+.. _fts-stored-source-document: 
+
+Object 
+~~~~~~
+
+The ``storedSource`` option object must contain one of the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 25 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``include``
+     - array of strings
+     - List that contains the field names or dot-separated paths to 
+       fields to store. In addition to the specified fields, |fts| 
+       stores ``_id`` also by default. 
+
+   * - ``exclude``
+     - array of strings
+     - List that contains the field names or dot-separated paths to 
+       fields to exclude from being stored. If specified, |fts| stores 
+       original documents except the fields listed here. 
+
+.. _fts-stored-source-egs:
+
+Examples 
+--------
+
+The following index examples use the fields in the 
+``sample_mflix.movies`` collection to demonstrate how to configure the 
+fields to store on |fts| using the ``storedSource`` option. You can use
+the Visual Editor or the JSON Editor in the {+atlas-ui+} to configure
+the indexes. 
+
+.. tabs:: 
+
+   .. tab:: Store Specified 
+      :tabid: include 
+
+      .. example:: 
+
+         The following example stores only the ``title`` and 
+         ``awards.wins`` fields in the documents in the collection.
+         After you select your preferred configuration method, select
+         the ``movies`` collection under the ``sample_mflix`` database.   
+
+         .. tabs:: 
+
+            .. tab:: Visual Editor
+               :tabid: vib
+
+               a. Click :guilabel:`Refine Your Index` to configure your
+                  index.
+               #. In the :guilabel:`Stored Source Fields` section, click
+                  :guilabel:`Specified`.
+               #. Select ``awards.wins`` from the dropdown in the
+                  :guilabel:`Field Name` column and click :guilabel:`Add`.
+               #. Click :guilabel:`Add Field` to specify another field
+                  to store.  
+               #. Select ``title`` from the dropdown in the
+                  :guilabel:`Field Name` column and click
+                  :guilabel:`Add`. 
+               #. Click :guilabel:`Save Changes`.
+            
+            .. tab:: JSON Editor
+               :tabid: jsonib
+
+               Append lines 5 to 10 from the following example to the
+               index definition to store the fields on |fts|. The 
+               example uses the :manual:`dot notation
+               </core/document/#dot-notation>` to specify nested 
+               fields. 
+
+               .. code-block:: json
+                  :linenos: 
+                  :emphasize-lines: 5-10
+
+                  {
+                    "mappings": {
+                      ...
+                    },
+                    "storedSource": {
+                      "include": [
+                        "title",
+                        "awards.wins"
+                      ]
+                    },
+                    ...
+                  }
+
+   .. tab:: Exclude Specified 
+      :tabid: exclude 
+
+      .. example:: 
+
+         The following example stores all fields except ``directors`` 
+         and ``imdb.rating`` in the documents in the collection. After
+         you select your preferred configuration method, select the
+         ``movies`` collection under the ``sample_mflix`` database.  
+
+         .. tabs:: 
+
+            .. tab:: Visual Editor
+               :tabid: vib
+
+               a. Click :guilabel:`Refine Your Index` to configure your
+                  index.
+               #. In the :guilabel:`Stored Source Fields` section, click
+                  :guilabel:`All Except Specified`.
+               #. Select ``directors`` from the dropdown in the
+                  :guilabel:`Field Name` column and click :guilabel:`Add`.
+               #. Click :guilabel:`Add Field` to specify another field
+                  to exclude. 
+               #. Select ``imdb.rating`` from the dropdown in the
+                  :guilabel:`Field Name` column and click
+                  :guilabel:`Add`.
+               #. Click :guilabel:`Save Changes`.
+
+            .. tab:: JSON Editor
+               :tabid: jsonib
+
+               Append lines 5 to 10 from the following example to the
+               index definition to exclude the fields. The example uses
+               the :manual:`dot notation </core/document/#dot-notation>`
+               to specify nested fields.
+
+               .. code-block:: json 
+                  :linenos: 
+                  :emphasize-lines: 5-10
+
+                  {
+                    "mappings": {
+                      ...
+                    },
+                    "storedSource": {
+                      "exclude": [
+                        "directors",
+                        "imdb.rating"
+                      ]
+                    },
+                    ...
+                  }
+
+   .. tab:: Store All Fields 
+      :tabid: storeall  
+
+      .. example:: 
+
+         The following example stores all the fields in the documents 
+         in the collection. After you select your preferred
+         configuration method, select the ``movies`` collection under
+         the ``sample_mflix`` database. 
+
+         .. tabs:: 
+
+            .. tab:: Visual Editor
+               :tabid: vib
+
+               a. Click :guilabel:`Refine Your Index` to configure your
+                  index.
+               #. In the :guilabel:`Stored Source Fields` section, click
+                  :guilabel:`All`.
+               #. Click :guilabel:`Save Changes`.
+
+            .. tab:: JSON Editor
+               :tabid: jsonib
+
+               Append line 5 from the following example to the index
+               definition to store all of the fields. 
+
+               .. code-block:: json 
+                  :linenos: 
+                  :emphasize-lines: 5 
+
+                  {
+                    "mappings": {
+                      ...
+                    },
+                    "storedSource": true,
+                    ...
+                  }

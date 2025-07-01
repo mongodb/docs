@@ -1,0 +1,330 @@
+.. _triggers-forward-logs:
+
+=========================
+Forward Logs to a Service
+=========================
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Configure log forwarders to store Trigger or Function logs in a MongoDB collection or send them to an external service.
+   :keywords: atlas ui, app services cli
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can configure a log forwarder to automatically store your
+Trigger and Function server-side logs in a MongoDB collection or send them to
+an external service. You can also forward logs individually as they're created,
+or batch logs together to reduce overhead.
+
+A log forwarder consists of the following components:
+
+- An **action** that controls how and where logs are forwarded.
+
+- A **filter** that controls which logs are forwarded.
+
+- A **policy** that controls whether logs are forwarded individally or in batches.
+
+Why Should I Configure Log Forwarding?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider setting up a log forwarder if you need to do any of the
+following actions:
+
+- Store logs for longer than the retention period of {+triggers-log-retention-time+}.
+
+- Integrate logs into an external logging service.
+
+- Access logs in |fts|, Online Archive, and Charts.
+
+.. _set-up-triggers-log-forwarder:
+
+Set Up a Log Forwarder
+----------------------
+.. procedure::
+      :style: normal
+
+      .. step:: Create a Log Forwarder
+
+         .. tabs::
+            
+            .. tab:: {+atlas-ui+}
+               :tabid: ui
+               
+               To create a log forwarder:
+
+               .. include:: /includes/nav/list-triggers.rst
+               
+               4. Click the :guilabel:`View All Apps` button. 
+               #. Click into the app that contains the Trigger or Function whose logs you'd like to forward.
+               #. Navigate to the :guilabel:`Logs` page.
+               #. Select the :guilabel:`Forwarding` tab. 
+               #. Click the :guilabel:`Create a Log Forwarder` button.
+               #. Specify a unique name for your log forwarder.
+            
+            .. tab:: {+app-services+} CLI
+               :tabid: cli
+
+               To create a new log forwarder, add a new configuration file to the
+               ``log_forwarders`` directory of your app. The file name should
+               match the value in the configuration's ``name`` field.
+               
+               .. code-block:: json
+                  :caption: /log_forwarders/<name>.json
+                  
+                  {
+                  "name": "<name>"
+                  }
+
+      .. step:: Choose Which Logs to Forward
+
+         You can forward all of your Trigger or Function logs or send only a subset to the
+         target collection or service. You control this subset for each log
+         forwarder by defining filters for the log type (e.g. functions, triggers,
+         etc.) and status (i.e. success or error) that invoke the forwarder's
+         action.
+
+         .. tabs::
+            
+            .. tab:: {+atlas-ui+}
+               :tabid: ui
+               
+               Choose one or more types of log to forward in the :guilabel:`Log
+               Type` dropdown. Then, choose one or more statuses to forward in the
+               :guilabel:`Log Status` dropdown.
+            
+            .. tab:: {+app-services+} CLI
+               :tabid: cli
+
+               Specify one or more types and one or more statuses for the
+               forwarder to match and forward:
+
+               .. code-block:: json
+                  :caption: /log_forwarders/<name>.json
+                  :emphasize-lines: 3, 4
+                  
+                  {
+                  "name": "<name>",
+                  "log_types": [ "<type>", ... ],
+                  "log_statuses": [ "<status>", ... ]
+                  }
+               
+               You can forward the following log types:
+               
+               .. include:: /includes/triggers/log-forwarder-types.rst
+               
+               You can forward the following log statuses:
+               
+               .. include:: /includes/triggers/log-forwarder-statuses.rst
+
+         .. important::
+            
+            A log forwarder only forwards a given log if both its type *and* status are
+            specified in the filter.
+
+            For example, consider a forwarder that filters for ``triggers`` logs with
+            an ``error`` status.
+            
+            The filter *would* forward the following log:
+
+            .. code-block:: json
+               
+               { "type": "triggers", "status": "error", ... }
+            
+            The filter *would not* forward the following logs:
+
+            .. code-block:: json
+               
+               { "type": "triggers", "status": "success", ... }
+               { "type": "functions", "status": "error", ... }
+
+      .. step:: Configure Log Batching
+
+         You can combine multiple logs into a single batched request to reduce
+         overhead. The batching policy you select determines how a log forwarder groups
+         logs.
+
+         You can choose between the following batching policies:
+
+         - **No Batching:** The log forwarder forwards logs individually as their
+           corresponding requests occur.
+
+         - **Batching:** The log forwarder groups documents into a batch as they
+           happen. Each batch may include up to 100 log entries. When a batch is
+           full, the log forwarder forwards the entire batch in a single request.
+           The log forwarder forwards logs at least once a minute regardless of the
+           number of logs in the current batch.
+
+         .. tabs::
+            
+            .. tab:: {+atlas-ui+}
+               :tabid: ui
+               
+               To configure batching, select either the :guilabel:`No batch` or
+               :guilabel:`Batching` policy.
+            
+            .. tab:: {+app-services+} CLI
+               :tabid: cli
+               
+               To configure batching, specify the policy type, either ``single``
+               or ``batch``, in the ``policy`` field:
+
+               .. code-block:: json
+                  :caption: /log_forwarders/<name>.json
+                  :emphasize-lines: 5
+                  
+                  {
+                  "name": "<name>",
+                  "log_types": [ "<type>", ... ],
+                  "log_statuses": [ "<status>", ... ],
+                  "policy": { "type": "<single|batch>" }
+                  }
+
+      .. step:: Define an Action
+
+         A log forwarder can automatically store logs in a linked MongoDB
+         collection or call a custom function that sends the logs to an external
+         service.
+
+         Store Logs in a MongoDB Collection
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+         .. tabs::
+            
+            .. tab:: {+atlas-ui+}
+               :tabid: ui
+               
+               To store logs in a collection, select the :guilabel:`To
+               Collection` action and enter the names of the linked cluster,
+               database, and collection that should hold the forwarded logs.
+            
+            .. tab:: {+app-services+} CLI
+               :tabid: cli
+               
+               To store logs in a collection, specify an ``action`` of type
+               ``collection`` that includes the names of the linked cluster,
+               database, and collection that should hold the forwarded logs.
+               
+               .. code-block:: json
+                  :caption: /log_forwarders/<name>.json
+                  :emphasize-lines: 6-11
+                  
+                  {
+                     "name": "<name>",
+                     "log_types": [ "<type>", ... ],
+                     "log_statuses": [ "<status>", ... ],
+                     "policy": { "type": "<single|batch>" },
+                     "action": {
+                        "type": "collection",
+                        "data_source": "<data source name>",
+                        "database": "<database name>",
+                        "collection": "<collection name>"
+                     }
+                  }
+         
+         Forward Logs with a Custom Function
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+         To forward logs to an external service, :ref:`write a function
+         <atlas-define-a-function>` that accepts an array of log objects and calls the
+         service through an API, SDK, or library.
+
+         .. note::
+            
+            Depending on your batching policy and log frequency, the log forwarder may 
+            call a log forwarding function with an array of up to 100 log objects.
+
+         The function should have the same signature as the following example:
+
+         .. code-block:: javascript
+            :caption: /functions/<function name>.js
+
+            exports = async function(logs) {
+            // `logs` is an array of 1-100 log objects
+            // Use an API or library to send the logs to another service.
+               await context.http.post({
+                  url: "https://api.example.com/logs",
+                  body: logs,
+                  encodeBodyAsJSON: true
+               });
+            }
+
+         After you write the log forwarding function, you can assign it to a
+         log forwarder by name.
+
+         .. tabs::
+            
+            .. tab:: {+atlas-ui+}
+               :tabid: ui
+               
+               To assign a function to a log forwarder, select the :guilabel:`To
+               Function` action and then select the function from the dropdown
+               input.
+            
+            .. tab:: {+app-services+} CLI
+               :tabid: cli
+               
+               To assign a function to a log forwarder, specify an ``action`` of
+               type ``function`` that includes the name of the log forwarding
+               function.
+
+               .. code-block:: json
+                  :caption: /log_forwarders/<name>.json
+                  :emphasize-lines: 6-9
+                  
+                  {
+                     "name": "<name>",
+                     "log_types": [ "<type>", ... ],
+                     "log_statuses": [ "<status>", ... ],
+                     "policy": { "type": "<single|batch>" },
+                     "action": {
+                        "type": "function",
+                        "name": "<function name>"
+                     }
+                  }
+
+      .. step:: Save and Deploy your Changes
+
+         .. tabs::
+            
+            .. tab:: {+atlas-ui+}
+               :tabid: ui
+               
+               After you configure the log forwarder, click :guilabel:`Save`.
+               If you have deployment drafts enabled, make sure to deploy your
+               changes.
+            
+            .. tab:: {+app-services+} CLI
+               :tabid: cli
+               
+               After you configure the log forwarder, save the configuration
+               file and then push your updated app configuration:
+               
+               .. code-block:: sh
+                  
+                  {+cli-bin+} push
+
+Restart a Suspended Log Forwarder
+---------------------------------
+
+A log forwarder might suspend in response to an event that prevents it
+from continuing, such as a network disruption or a change to the
+underlying cluster that stores the logs. Once suspended, a forwarder
+cannot be invoked and does not forward any logs.
+
+You can restart a suspended log forwarder from the :guilabel:`Logs >
+Forwarding` screen of the {+atlas-ui+}.
+
+.. note::
+
+   If a log forwarder is suspended, an email is sent to the Project Owner
+   to notify them about the issue.

@@ -1,0 +1,397 @@
+.. meta::
+   :keywords: atlas ui, atlas cli
+   :description: Configure and manage Atlas clusters, including selecting cluster tiers, customizing storage, and configuring auto-scaling and additional settings.
+
+.. _manage-clusters:
+
+===============
+Manage Clusters
+===============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Use the following resources to configure and manage |service|
+{+clusters+}. These settings don't apply to {+Serverless-instances+} (deprecated).
+
+Required Access
+---------------
+
+To view your {+clusters+}, you must have :authrole:`Project Read Only` access 
+or higher to the project.
+
+View Your {+Clusters+}
+----------------------
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-clusters-list-and-describe.rst
+
+      .. include:: /includes/extracts/atlas-clusters-advancedSettings-describe.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To view all {+clusters+} in the {+atlas-ui+}, see
+      :ref:`view-all-database-deployments`. To view the details for a 
+      {+cluster+}, see :ref:`view-cluster-details`.
+
+.. _create-cluster-instance:
+
+Select {+Cluster+} Tier
+-----------------------
+
+Select your preferred {+cluster+} tier. The {+cluster+} tier dictates 
+the memory, storage, vCPUs, and |iops| specification for each 
+data-bearing server [#data-bearing]_ in the {+cluster+}.
+
+.. note::
+
+   You might see different values depending on your
+   selected cloud provider and region.
+
+.. _flex--cluster:
+
+{+Flex-Clusters+}
+~~~~~~~~~~~~~~~~~~~
+
+Use {+Flex-clusters+} as an economical way for getting started with MongoDB
+and for low-throughput applications. These {+clusters+} deploy to an
+environment with access to a subset of |service| features.
+To learn more, see :ref:`limits`.
+
+You can deploy one ``M0`` {+cluster+} (free sandbox replica set 
+cluster) per |service| project. You can :doc:`upgrade </scale-cluster>` 
+an ``M0`` {+Free-cluster+} to a {+Flex-cluster+} at any time.
+
+{+Flex-clusters+} provide the following added features compared to ``M0`` clusters:
+
+- :ref:`Backups <flex-snapshots>` for your {+cluster+} data
+- Increased storage
+- :doc:`API access </api>`
+
+Considerations
+``````````````
+{+Flex-clusters+} don't have the full availability of features found in
+{+Dedicated-clusters+}. To learn more, see :ref:`limits`. 
+
+.. _atlas-low-traffic-tier:
+
+{+Dedicated-Clusters+} for Low-Traffic Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``M10`` and ``M20`` {+cluster+} tiers support development environments 
+and low-traffic applications.
+
+These clusters support replica set deployments only, but otherwise
+provide full access to |service| features.
+
+.. note::
+
+   ``M10`` and ``M20`` {+cluster+} tiers run on a burstable performance
+   infrastructure. {+Clusters+} under heavy load may experience CPU throttling.
+
+.. _atlas-high-traffic-tier:
+
+{+Dedicated-Clusters+} for High-Traffic Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``M30`` and higher {+clusters+} are recommended for production
+environments.
+
+These clusters support replica set and sharded {+cluster+} deployments 
+with full access to |service| features.
+
+Some clusters have variants, denoted by the |angle| character. When you
+select these clusters, |service| lists the variants and tags each
+{+cluster+} to distinguish their key characteristics.
+
+.. |angle| unicode:: U+276F
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+You can use the API to choose a different tier per shard.
+Analytics Nodes can also have independently selected tiers on all shards.
+The minimum and maximum tier autoscaling configuration must be the same for all shards.
+The minimum and maximum shard tiers can be up to two tiers apart.
+When editing a sharded cluster with multiple shard tiers in the UI,
+changing tier will change the tier of all shards.
+
+You can use the API to choose different IOPS per shard
+if the {+cluster+} is on |aws| using |aws| provisioned IOPS
+or the {+cluster+} is on |azure| in regions that support Extended IOPS/storage.
+
+Limitations
+```````````
+
+Every shard must have an equal disk size on all nodes.
+|nvme| {+clusters+} are not compatible with independent shard scaling.
+
+.. _nvme-storage:
+
+NVMe Storage
+~~~~~~~~~~~~
+
+For applications hosted on :ref:`AWS <amazon-aws>` or  :ref:`Azure <microsoft-azure>`
+that require low-latency and high-throughput I/O, |service| offers storage
+options using locally attached ephemeral |nvme| |ssd|\s.
+
+.. include:: /includes/fact-nvme-fcbis.rst
+
+.. note::
+   
+   |service| doesn't support |nvme| {+clusters+} on |gcp|.
+   |nvme| {+clusters+} are not compatible with independent shard scaling.
+
+NVMe Considerations
+```````````````````
+
+The following {+cluster+} tiers support |nvme| {+clusters+} on |aws|:
+
+- ``M40``
+- ``M50``
+- ``M60``
+- ``M80``
+- ``M200``
+- ``M400``
+
+The following {+cluster+} tiers support |nvme| {+clusters+} on |azure|:
+
+- ``M60``
+- ``M80``
+- ``M200``
+- ``M300``
+- ``M400``
+- ``M600``
+
+|service| supports |nvme| {+clusters+} in the following |azure| regions:
+
+.. tabs::
+
+   .. tab:: Americas
+      :tabid: americas
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 30 30
+
+         * - Azure Region
+           - Location
+           - Atlas Region
+
+         * - ``brazilsouth``
+           - São Paulo, Brazil
+           - ``BRAZIL_SOUTH``
+
+         * - ``canadacentral``
+           - Toronto, ON
+           - ``CANADA_CENTRAL``
+
+         * - ``centralus``
+           - Iowa, USA
+           - ``US_CENTRAL``
+
+         * - ``eastus``
+           - Virginia (East US)
+           - ``US_EAST``
+
+         * - ``eastus2``
+           - Virginia, USA
+           - ``US_EAST_2``
+
+         * - ``southcentralus``
+           - Texas, USA
+           - ``US_SOUTH_CENTRAL``
+
+         * - ``westus3``
+           - El Mirage, Arizona
+           - ``US_WEST_3``
+
+   .. tab:: Europe
+      :tabid: europe
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 30 30
+
+         * - Azure Region
+           - Location
+           - Atlas Region
+
+         * - ``francecentral``
+           - Paris, France
+           - ``FRANCE_CENTRAL``
+
+         * - ``northeurope``
+           - Ireland
+           - ``EUROPE_NORTH``
+
+         * - ``swedencentral``
+           - Gävle, Sweden
+           - ``SWEDEN_CENTRAL``
+
+         * - ``uksouth``
+           - London, England, UK
+           - ``UK_SOUTH``
+
+         * - ``westeurope``
+           - Netherlands
+           - ``EUROPE_WEST``
+
+   .. tab:: Asia Pacific
+      :tabid: asia-pacific
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 30 30
+
+         * - Azure Region
+           - Location
+           - Atlas Region
+
+         * - ``australiaeast``
+           - New South Wales, Australia
+           - ``AUSTRALIA_EAST``
+
+         * - ``centralindia``
+           - Pune (Central India)
+           - ``INDIA_CENTRAL``
+
+         * - ``japaneast``
+           -  Saitama, Tokyo, Japan
+           - ``JAPAN_EAST``
+
+The fixed-value storage space and RAM for an |nvme| {+cluster+}
+corresponds to its {+cluster+} tier. To learn more, see 
+:ref:`Amazon Cluster Configuration Options
+<amazon-aws-configuration-options>` and 
+:ref:`Azure Cluster Configuration Options
+<microsoft-azure-configuration-options>`.
+
+Clusters with |nvme| storage use :doc:`{+Cloud-Backup+}s 
+</backup/cloud-backup/overview>`. You can't disable backup on |nvme| 
+clusters. If you want to use hourly backups, |service| limits backups 
+on |nvme| clusters to once every 12 hours.
+
+|nvme| clusters use a :manual:`hidden secondary node
+</core/replica-set-hidden-member>` that consists of a provisioned 
+volume with high throughput and |iops| to facilitate backup.
+
+You can't :ref:`pause <pause-cluster>` an |nvme| {+cluster+}.
+
+.. include:: /includes/fact-nvme-init-sync-perf.rst
+
+.. include:: /includes/fact-nvme-fcbis.rst
+
+NVMe Availability Zones
++++++++++++++++++++++++
+
+|nvme| {+clusters+} in the following |azure| regions have two
+:ref:`Availability Zones <microsoft-azure-availability-zones>`:
+
+- ``eastus2``
+- ``centralus``
+- ``southcentralus``
+
+|nvme| {+clusters+} in all other |azure| regions that 
+:ref:`indicate Availability Zones <microsoft-azure-supported-regions>`
+have three Availability Zones.
+
+
+Free, Flex, and Dedicated Cluster Comparison
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-free-tier-paid-tier.rst
+
+To learn more, see :ref:`cluster-autoscaling`.
+
+.. include:: /includes/footnote-databearing.rst
+
+Take the Next Steps
+-------------------
+
+You can manage {+clusters+} in the following ways:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Action
+     - Description
+
+   * - :doc:`/customize-storage`
+     - Customize the storage capacity of your {+cluster+}. Each 
+       {+cluster+} tier comes with a default set of resources. ``M10+`` 
+       {+clusters+} provide the ability to customize your storage 
+       capacity.
+
+   * - :doc:`/cluster-autoscaling`
+     - Configure the {+cluster+} tier ranges that |service| uses to
+       automatically scale your {+cluster+} tier, storage capacity, or 
+       both in response to {+cluster+} usage.
+
+   * - :doc:`/cluster-additional-settings`
+     - Configure additional {+cluster+} settings such as MongoDB 
+       version, backup, and encryption options.
+
+   * - :ref:`configure-resource-tags`
+     - Use resource tags that you provide and manage to categorize 
+       resources by purpose, environment, team, or billing center.
+
+   * - :doc:`/scale-cluster`
+     - Reconfigure an existing {+cluster+}. Modify any of the available 
+       |service| configuration options.
+
+   * - :doc:`/tutorial/major-version-change/`
+     - Manage major version upgrades for your {+cluster+}. |service| 
+       enables you to upgrade the major version of an |service| 
+       {+cluster+} at any time.
+
+   * - :doc:`/tutorial/cluster-maintenance-window/`
+     - Configure maintenance windows for your {+cluster+}. You can set 
+       the hour of the day that |service| should start weekly 
+       maintenance on your {+cluster+}.
+
+   * -  :doc:`/pause-terminate-cluster`
+     - Pause, resume, or terminate an existing {+cluster+}. You can't 
+       change the configuration of a paused {+cluster+}. Also, you 
+       can't read data from or write data to a paused {+cluster+}.
+
+   * - :doc:`/cluster-config/multi-cloud-distribution`
+     - Configure multi-cloud distribution for increased availability.
+       |service| offers options to improve the availability and 
+       workload balancing of your {+cluster+}.
+
+   * - :ref:`replica-set-tags`
+     - Use pre-defined replica set tags that |service| provides to 
+       direct queries from specific applications to specific node types 
+       and regions. To use pre-defined replica set tags in your 
+       connection string and direct queries to specific nodes, set the 
+       tag in the ``readPreferenceTags`` connection string option.
+
+.. toctree::
+   :titlesonly:
+
+   Storage </customize-storage>
+   Auto-Scaling </cluster-autoscaling>
+   Additional Settings </cluster-additional-settings>
+   Modify a Cluster </scale-cluster>
+   Major MongoDB Version </tutorial/major-version-change/>
+   Maintenance Windows </tutorial/cluster-maintenance-window/>
+   Stop, Start, or Delete </pause-terminate-cluster>
+   Restore a Free Tier Cluster </backup/restore-free-tier-cluster>
+   HA and Workload Isolation </cluster-config/multi-cloud-distribution>
+   Pre-Defined Tags </reference/replica-set-tags>

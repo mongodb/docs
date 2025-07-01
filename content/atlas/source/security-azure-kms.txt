@@ -1,0 +1,277 @@
+.. _security-azure-kms:
+
+=========================================
+Manage Customer Keys with Azure Key Vault
+=========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: encryption
+   :description: Configure customer key management in Atlas using Azure Key Vault to encrypt data at rest, manage key rotation, and ensure secure access through Azure Private Link.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/unavailable-flex-serverless-m0-m2-m5-clusters.rst
+
+You can use a customer-managed key (CMK) from Azure Key Vault (AKV)
+to further encrypt your data at rest in |service|. You can also
+configure all traffic to your |akv| to use {+az-pl+}.
+
+|service| uses your Azure Key Vault |cmk| to encrypt and decrypt 
+your MongoDB Master Keys. These MongoDB Master Keys are used to 
+encrypt {+cluster+} database files and :ref:`cloud providers snapshots 
+<backup-cloud-provider>`. To learn more about how |service| uses |cmk|\s
+for encryption, see :ref:`enable-cmk-akv`.
+
+.. include:: /includes/fact-atlas-key-rotation.rst
+
+.. important:: 
+
+   |azure| limits Client Secret lifetime for |cmk|\s to two years.
+   |service| can't access a |cmk| once the Client Secret expires.
+   Therefore, rotate your Client Secrets before its expiration to
+   prevent loss of {+cluster+} availability. 
+
+This page covers configuring customer key management using |akv| on
+your |service| project. You can also use the {+atlas-admin-api+} to
+automatically set up {+az-pl+} in your |akv| to ensure that all traffic
+between |service| and |akv| take place over |azure|\s private network
+interfaces. 
+
+You must configure customer key management for the |service| project
+before enabling it on clusters in that project.
+
+.. _enable-cmk-akv:
+
+About Customer-Managed Keys with Azure Key Vault
+------------------------------------------------
+
+.. |cloud-kms| replace:: Azure Key Vault
+.. |envelope-encryption| replace:: `envelope encryption <https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-atrest#envelope-encryption-with-a-key-hierarchy>`__
+.. |cmk-link| replace:: `Azure Documentation <https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview>`__
+
+.. include:: /includes/fact-customer-managed-keys.rst
+
+Example
+~~~~~~~
+
+.. include:: /includes/fact-cmk-workflow-example.rst
+
+.. figure:: /images/azure-kms-cmk-diagram.png 
+   :figwidth: 100%
+   :alt: Diagram of CMK workflow with AKV and Atlas
+
+What You Need to Know 
+---------------------
+
+After configuring |service| to use your |akv| |cmk|, learn more
+:ref:`azure-kms-rotate-key` and :ref:`akv-failover`. 
+
+.. _azure-kms-rotate-key:
+
+About Rotating Your Azure Key Identifier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. meta::
+   :keywords: encryption
+   :description: Configure customer key management in Atlas using Azure Key Vault to encrypt data at rest, manage key rotation, and ensure secure access through Azure Private Link.
+
+.. include:: /includes/unavailable-flex-serverless-m0-m2-m5-clusters.rst
+
+MongoDB Master Key - MongoDB Responsibility
+````````````````````````````````````````````
+
+.. include:: /includes/fact-atlas-key-rotation.rst
+
+Rotate your Azure Key ID - Your Responsibility
+``````````````````````````````````````````````
+
+|service| does *not* automatically rotate the Key Identifier used for
+Azure Key Vault. 
+
+|service| automatically creates an :alert:`encryption key rotation alert
+<Azure encryption key elapsed time since last rotation is above (n)
+days>` to remind you to rotate your Azure Key Identifier every 90 days by
+default when you :ref:`enable Encryption at Rest <security-azure-kms>`
+for |a-service| project.
+
+You can `rotate <https://learn.microsoft.com/en-us/azure/container-registry/tutorial-rotate-revoke-customer-managed-keys>`__ 
+|cmk| stored in Azure Key Vault yourself or configure
+your Azure Key Vault to automatically rotate your keys. If you
+configure `automatic rotation
+<https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption#automatic-key-rotation-of-customer-managed-keys>`__ 
+in Azure Key Vault, the default time period for rotation is
+approximately 365 days.  
+
+If you have already set up an automatic rotation in Azure Key Vault and
+don't want to receive the |service| alert to rotate your Azure Key
+Identifier every 90 days, you can :ref:`modify <configure-alerts>` the
+default alert period to be greater than 365 days. 
+
+.. _akv-failover:
+
+About Azure Key Vault Failover During an Outage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+During a regional outage, your |akv| region might become unavailable. If
+this happens, |azure| automatically routes incoming Key Vault requests
+to a pre-assigned secondary region. To learn more, see :azure:`Azure Key
+Vault Failover </key-vault/general/disaster-recovery-guidance#failover>` 
+and :azure:`Regional Pairings </reliability/cross-region-replication-azure#azure-cross-region-replication-pairings-for-all-geographies>`.
+
+If both regions are down, you can manually migrate your key to a 
+region outside of the regional pairing. To learn more, see 
+:azure:`Move a Key Vault across Regions
+</key-vault/general/move-region>`.
+
+.. note::
+
+   If you've enabled :ref:`security-kms-encryption`, you can perform
+   encrypt and decrypt operations while at least one node is still
+   available during the outage. |service| won't shut down your
+   {+clusters+}. 
+
+For certain regions, |azure| doesn't support automatic failover. To
+learn more, see :azure:`Azure documentation
+</key-vault/general/disaster-recovery-guidance>`. 
+
+.. _azure-ear-required-access:
+
+Required Access
+---------------
+
+.. include:: /includes/atlas-roles/kms.rst
+
+You must grant |service| access to your |akv| using a
+:guilabel:`Permission Model`. You can grant access by using a Key Vault
+Access Policy or |azure| :abbr:`RBAC (Role Based Access Control)`.
+
+.. tabs:: 
+
+   .. tab:: Vault Access Policy 
+      :tabid: access-policy 
+
+      If you use access policies, do the following in the |azure| UI to
+      grant |service| access to your |akv|.
+
+      1. Under :guilabel:`Access Control (IAM)` settings, grant the
+         ``Microsoft.KeyVault/vaults/read`` permission to your application.
+      2. In the :guilabel:`Access Policies` page, create an access
+         policy with the following :guilabel:`Key Permissions`:
+
+         .. list-table:: 
+            :header-rows: 1 
+
+            * - Grant this permission...
+              - To... 
+
+            * - Get 
+              - Read the metadata about the key stored in your |akv|.
+         
+            * - Encrypt 
+              - Use the keys in your |akv| to encrypt data.
+         
+            * - Decrypt 
+              - Use the keys in your |akv| to decrypt data that has been
+                previously encrypted with those keys. 
+
+      #. Add the same app as the principal and configure the access policy. 
+
+   .. tab:: Azure RBAC 
+      :tabid: rbac
+
+      If your |akv| uses :abbr:`RBAC (Role Based Access Control)`, you
+      must do the following in the |azure| UI :guilabel:`Access Control
+      (IAM)` settings to grant |service| access to your |akv|.  
+
+      1. Grant the the following ``actions`` permissions to the application. 
+       
+         .. list-table:: 
+            :header-rows: 1 
+
+            * - Grant this permission...
+              - To... 
+
+            * - ``Microsoft.KeyVault/vaults/read``
+              - Read the properties of a Key Vault 
+         
+            * - ``Microsoft.KeyVault/vaults/keys/read``
+              - Read the metadata about the key stored in your |akv|.
+
+         .. code-block:: json 
+
+            {
+              "permissions": [
+                 {
+                   "actions": [
+                     "Microsoft.KeyVault/vaults/read"
+                     "Microsoft.KeyVault/vaults/keys/read"
+                   ]
+                 }
+                 ...
+              ] 
+            }
+
+      2. Grant the following ``dataActions`` permissions to the application.
+
+         .. list-table:: 
+            :header-rows: 1 
+
+            * - Grant this permission...
+              - To... 
+
+            * - ``Microsoft.KeyVault/vaults/keys/read`` 
+              - Read the metadata about the key stored in your |akv|.
+
+            * - ``Microsoft.KeyVault/vaults/keys/encrypt/action`` 
+              - Use the keys in your |akv| to encrypt data.
+
+            * - ``Microsoft.KeyVault/vaults/keys/decrypt/action`` 
+              - Use the keys in your |akv| to decrypt data
+                previously encrypted with those keys. 
+
+         .. code-block:: json 
+
+            {
+              "permissions": [
+                 ...
+                 {
+                   "dataActions": [
+                     "Microsoft.KeyVault/vaults/keys/read",
+                     "Microsoft.KeyVault/vaults/keys/encrypt/action",
+                     "Microsoft.KeyVault/vaults/keys/decrypt/action"
+                   ]
+                 }
+              ] 
+            }
+
+Next Steps 
+----------
+
+You can use a customer-managed key (CMK) from Azure Key Vault (AKV) over
+a public network or over |azure| Private Endpoints. To learn more, see
+the following: 
+
+- :ref:`security-azure-kms-pvt-endpoint`
+- :ref:`security-azure-kms-public-network`
+
+.. note::
+
+   If you've enabled :ref:`security-kms-encryption`, you can
+   perform encrypt and decrypt operations while at least one node 
+   is still available during the outage.
+
+.. toctree::
+   :titlesonly:
+
+   Configure Access Over Public Network </security/azure-kms-over-public-network>
+   Configure Access Over Private Endpoints </security/azure-kms-over-private-endpoint>

@@ -1,0 +1,60 @@
+db.movies.aggregate([{
+    "$search": {
+      "text": {
+        "path": "title",
+        "query": "men",
+        "score": {
+          "function":{
+            "multiply":[
+              {
+                "path": {
+                  "value": "imdb.rating",
+                  "undefined": 2
+                }
+              },
+              {
+                "score": "relevance"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "$limit": 5
+  },
+  {
+    "$addFields": {
+      "score": {
+        "$meta": "searchScore"
+      }
+    }
+  },
+  {
+    "$setWindowFields": {
+      "output": {
+        "maxScore": {
+          "$max": "$score"
+        }
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "normalizedScore": {
+        "$divide": [
+          "$score", "$maxScore"
+        ]
+      }
+    }
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "title": 1,
+      "score": 1,
+      "maxScore": 1,
+      "normalizedScore": 1
+    }
+}])

@@ -1,0 +1,264 @@
+.. _mongomirror:
+
+===========
+mongomirror
+===========
+
+.. meta::
+   :description: Migrate data from a MongoDB replica set to Atlas using mongomirror, noting its end-of-life in July 2025 and transition to mongosync.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. binary:: mongomirror
+
+.. warning::
+
+   When you use ``mongomirror`` with a namespace filter, transactions on the source 
+   with namespaces that are outside of the scope of the ``includeNamespace <database.collection>`` 
+   are considered undefined behavior and incur potential data loss.
+
+``mongomirror`` is a tool for manually migrating data from an existing MongoDB
+replica set to a MongoDB |service| replica set. See also :ref:`Download mongomirror <download-mongomirror>`.
+
+Syntax
+------
+
+To run ``mongomirror``, you must specify:
+
+- The source replica set and the target |service| replica set.
+- A user in the |service| cluster with :ref:`appropriate privileges
+  <destination-authorization>`, the corresponding password, and
+  :ref:`appropriate privileges <source-rs-authorization>`, if the
+  source replica set requires authentication.
+
+.. code-block:: sh
+
+   mongomirror --host <sourceReplSet> \
+      --destination <atlasCluster> \
+      --destinationUsername <atlasAdminUser> \
+      --destinationPassword <atlasPassword> \
+      [Additional options]
+
+You can specify some options in the 
+:option:`config file <--config>` instead of including
+them in the command.
+
+.. _mongomirror-options:
+
+Options
+-------
+
+.. program:: mongomirror
+
+.. include:: /includes/options/option-mongomirror-host.rst
+.. include:: /includes/options/option-mongomirror-username.rst
+.. include:: /includes/options/option-mongomirror-password.rst
+.. include:: /includes/options/option-mongomirror-authenticationDatabase.rst
+.. include:: /includes/options/option-mongomirror-authenticationMechanism.rst
+.. include:: /includes/options/option-mongomirror-awsSessionToken.rst
+.. include:: /includes/options/option-mongomirror-compressors.rst
+.. include:: /includes/options/option-mongomirror-config.rst
+.. include:: /includes/options/option-mongomirror-destination.rst
+.. include:: /includes/options/option-mongomirror-destinationAuthenticationDatabase.rst
+.. include:: /includes/options/option-mongomirror-destinationAuthenticationMechanism.rst
+.. include:: /includes/options/option-mongomirror-destinationUsername.rst
+.. include:: /includes/options/option-mongomirror-destinationPassword.rst
+.. include:: /includes/options/option-mongomirror-drop.rst
+.. include:: /includes/options/option-mongomirror-noIndexRestore.rst
+.. include:: /includes/options/option-mongomirror-includeNamespace.rst
+.. include:: /includes/options/option-mongomirror-includeDB.rst
+.. include:: /includes/options/option-mongomirror-ssl.rst
+.. include:: /includes/options/option-mongomirror-sslPEMKeyFile.rst
+.. include:: /includes/options/option-mongomirror-sslPEMKeyPassword.rst
+.. include:: /includes/options/option-mongomirror-sslCAFile.rst
+.. include:: /includes/options/option-mongomirror-sslCRLFile.rst
+.. include:: /includes/options/option-mongomirror-sslAllowInvalidHostnames.rst
+.. include:: /includes/options/option-mongomirror-sslAllowInvalidCertificates.rst
+.. include:: /includes/options/option-mongomirror-tlsInsecure.rst
+.. include:: /includes/options/option-mongomirror-gssapiServiceName.rst
+.. include:: /includes/options/option-mongomirror-gssapiHostName.rst
+.. include:: /includes/options/option-mongomirror-readPreference.rst
+.. include:: /includes/options/option-mongomirror-writeConcern.rst
+.. include:: /includes/options/option-mongomirror-numParallelCollections.rst
+.. include:: /includes/options/option-mongomirror-bypassDocumentValidation.rst
+.. include:: /includes/options/option-mongomirror-bookmarkFile.rst
+.. include:: /includes/options/option-mongomirror-forceDump.rst
+.. include:: /includes/options/option-mongomirror-oplogPath.rst
+.. include:: /includes/options/option-mongomirror-oplogBatchSize.rst
+.. include:: /includes/options/option-mongomirror-httpStatusPort.rst
+.. include:: /includes/options/option-mongomirror-collStatsThreshold.rst
+.. include:: /includes/options/option-mongomirror-removeAutoIndexId.rst
+.. include:: /includes/options/option-mongomirror-preserveUUIDs.rst
+
+Examples
+--------
+
+Migrate a Replica Set to |service|: No Authentication on Source
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates from a source replica set that doesn't
+require authentication:
+
+.. code-block:: sh
+
+   mongomirror --host  sourceRS/source-host1:27017,source-host2:27017 \
+            --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017 \
+            --destinationUsername myAtlasUser \
+            --destinationPassword myAtlasPwd
+
+To migrate from a source replica set that doesn't require authentication,
+run ``mongomirror`` with the following options:
+
+- :option:`--host` <sourceReplSet/seed list of members>
+- :option:`--destination` <Atlas Cluster>
+- :option:`--destinationUsername` <atlasUser>
+- :option:`--destinationPassword` <atlasPassword>
+
+For the target, specify the replica set name followed by a seed list of
+members in the following format:
+
+.. code-block:: shell
+
+   <replicaSetName>/<host1>:<port1>,<host2>:<port2>,<host3>:<port3>,...
+
+The specified user must have the :atlasrole:`Atlas admin` role on |service|.
+
+Migrate a Replica Set: Source Replica Set Uses SCRAM-SHA1 Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates a source replica set that uses
+SCRAM-SHA1 authentication to |service|:
+
+.. code-block:: sh
+
+   mongomirror --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 \
+      --username mySourceUser \
+      --password mySourcePassword \
+      --authenticationDatabase admin \
+      --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017 \
+      --destinationUsername myAtlasUser \
+      --destinationPassword atlasPassw0Rd
+
+To migrate from a source replica set that uses SCRAM-SHA1 authentication,
+run |mongomirror| with the following options:
+
+- :option:`--host` <sourceReplSet/seed list of members>
+- :option:`--username` <sourceUser>
+- :option:`--password` <sourcePassword>
+- :option:`--authenticationDatabase` <sourceDatabase>
+- :option:`--destination` <Atlas Cluster>
+- :option:`--destinationUsername` <atlasUser>
+- :option:`--destinationPassword` <atlasPassword>
+
+The source replica set user must have the required access on source
+cluster. The ``backup`` role provides the appropriate privileges.
+
+For the target, specify the replica set name followed by a seed list
+of members in the following format:
+
+.. code-block:: shell
+
+   <replicaSetName>/<replicaMember>,<replicaMember>,<replicaMember>,...
+
+The specified user must have the :atlasrole:`Atlas admin` on |service|.
+
+Migrate a Replica Set: Source Replica Set Requires X.509 Client Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates from a source replica set that uses
+X.509 authentication:
+
+.. code-block:: sh
+
+   mongomirror --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 \
+      --username "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry" \
+      --authenticationDatabase '$external' \
+      --authenticationMechanism MONGODB-X509 \
+      --ssl \
+      --sslPEMKeyFile <path-to-my-client-certificate.pem> \
+      --sslCAFile <path-to-my-certificate-authority-certificate.pem> \
+      --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017 \
+      --destinationUsername myAtlasUser \
+      --destinationPassword atlasPassw0Rd
+
+To migrate from a source replica set that uses X.509 authentication,
+run |mongomirror| with the following options:
+
+- :option:`--host` <sourceReplSet/seed list of members>
+- :option:`--username` <subject from the client certificate>
+- :option:`--authenticationMechanism` ``MONGODB-X509``
+- :option:`--authenticationDatabase` ``'$external'``
+- :option:`--ssl`
+- :option:`--sslPEMKeyFile` <path-to-my-client-certificate.pem>
+- :option:`--sslCAFile` <path to root CA PEM file>
+- :option:`--destination` <Atlas Cluster>
+- :option:`--destinationUsername` <atlasUser>
+- :option:`--destinationPassword` <atlasPassword>
+
+The source replica set user must have the required access on source
+cluster. The ``backup`` role provides the appropriate privileges.
+
+For the target, specify the replica set name followed by a seed list
+of members in the following format:
+
+.. code-block:: shell
+
+   <replicaSetName>/<replicaMember>,<replicaMember>,<replicaMember>,...
+
+The specified user must have the :atlasrole:`Atlas admin` on |service|.
+
+Migrate a Replica Set: Source Replica Set Requires Kerberos/GSSAPI Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates from a source replica set that uses
+Kerberos authentication:
+
+.. code-block:: sh
+
+   mongomirror --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 \
+      --username sourceUser/administrator@MYREALM.COM \
+      --authenticationDatabase '$external' \
+      --authenticationMechanism GSSAPI \
+      --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 \
+      --destinationUsername atlasUser \
+      --destinationPassword atlasPass
+
+To migrate from a source replica set that uses Kerberos authentication,
+run |mongomirror| with the following options:
+
+- :option:`--host` <sourceReplSet/seed list of members>
+- :option:`--username` <Kerberos user principal>
+- :option:`--authenticationDatabase` ``'$external'``
+- :option:`--authenticationMechanism` ``GSSAPI``
+- :option:`--destination` <Atlas Cluster>
+- :option:`--destinationUsername` <atlasUser>
+- :option:`--destinationPassword` <atlasPassword>
+
+The source replica set user must have the required access on source
+cluster. The ``backup`` role provides the appropriate privileges.
+
+For the target, specify the replica set name followed by a seed
+list of members in the following format:
+
+.. code-block:: shell
+
+   <replicaSetName>/<replicaMember>,<replicaMember>,<replicaMember>,...
+
+The specified user must have the :atlasrole:`Atlas admin` on |service|.
+
+Save ``mongomirror`` Output to a File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can save the output logs from a ``mongomirror`` procedure to a
+file for later examination and debugging. Use the following
+format to save output to a ``mongomirror.log`` file:
+
+.. code-block:: shell
+
+   mongomirror <args> 2>&1 | tee -a mongomirror.log

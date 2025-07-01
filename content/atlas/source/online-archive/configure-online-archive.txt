@@ -1,0 +1,138 @@
+.. _config-online-archive:
+
+========================
+Configure Online Archive
+========================
+
+.. meta::
+   :description: Configure online archives in Atlas by setting archiving rules for collections, specifying criteria, and managing partitions for efficient data storage and retrieval.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/flex-serverless-dont-use.rst
+
+.. _config-online-archive-intro:
+
+Overview
+--------
+
+You can configure data in a collection to be archived by specifying an 
+archiving rule. The archiving rule for a: 
+
+- Time series collection is a combination of a time that is used to 
+  determine when to archive data and a numeric value representing the 
+  number of days that the |service| cluster stores the data.
+- Standard collection can be one of the following: 
+
+  - A combination of a date that is used to determine when to archive 
+    data and a numeric value representing the number of days that the 
+    |service| cluster stores the data. 
+  - A custom query that is used to select the documents to archive.
+
+To configure your |service| cluster for online archive: 
+
+1. Create an archiving rule by providing the collection namespace and 
+   the criteria for selecting data to archive in the collection.
+
+2. (Optional) Specify commonly queried fields to partition archived   
+   data.
+
+When you configure an {+Online-Archive+} on your {+cluster+}, |service|
+creates 2 {+fdi+}\s on your {+cluster+} for your archive only and for
+your {+cluster+} and archive.
+
+.. note::
+
+   Your |service| cluster must be healthy prior to initiating {+Online-Archive+}.
+   For example, if one node is down, it will remain in ``PENDING`` status.
+
+Required Access
+---------------
+
+To create an {+Online-Archive+}, you must have :authrole:`Project Data Access Admin` 
+access or higher to the project.
+
+To watch for an archive to be available, you must have :authrole:`Project Read Only` 
+access or higher to the project.
+
+.. _config-online-archive-atlas-cli:
+
+Configure Online Archive Through the {+atlas-cli+} 
+--------------------------------------------------
+
+.. include:: /includes/data-size-threshold.rst
+
+.. include:: /includes/extracts/atlas-clusters-onlineArchives-create-and-watch.rst
+
+.. _config-online-archive-api:
+
+Configure Online Archive Through the API  
+----------------------------------------
+
+.. include:: /includes/data-size-threshold.rst
+
+To configure an online archive from the API, send a ``POST`` request to 
+the :oas-atlas-tag:`onlineArchives </Online-Archive>` endpoint.
+
+.. note::
+
+   If you use the ``DATE`` criteria, you must specify the ``date`` field
+   as part of the partition keys.
+
+If the  cluster already has an ``Active`` online archive with the same 
+archiving rule for the same database and collection, the operation will 
+fail. However, if the existing online archive is in ``Paused`` or 
+``Deleted`` state, the new online archive is created and its status is 
+set to ``Active``. To learn more about the syntax and options, see 
+:oas-atlas-op:`API </createOneOnlineArchive>`.
+
+.. _config-online-archive-ui:
+
+Configure Online Archive Through the User Interface   
+---------------------------------------------------
+
+.. include:: /includes/data-size-threshold.rst
+
+To configure an online archive, in your {+atlas-ui+}: 
+
+.. include:: /includes/steps-config-online-archive.rst
+
+.. _config-online-archive-limitations:
+
+Limitations 
+-----------
+
+You can create up to 50 online archives per cluster and up to 20 can be 
+active per cluster. The following limitations apply:
+
+- You can configure multiple online archives in the same namespace, but 
+  only one can be active at any given time. 
+- You can't create multiple online archives on the same fields in the 
+  same collection.
+- You can't access your online archive during the following scenarios:
+
+  - A full outage of the primary region of your {+cluster+}.
+  - An outage of |aws| |s3| where your archived data is stored.
+
+- You can't use an archiving rule for more than one collection. 
+
+  .. note::
+     
+     If your goal is to archive data from several collections,
+     you must create an archiving rule for each collection.
+
+-  You can't archive data below the size of 5 MiB after 7 days. For 7
+   days immediately after |service| creates an archive, |service| 
+   archives all data. After 7 days, |service| archives data only when
+   your data size reaches 5 MiB. 
+
+- Avoid updating or inserting documents that meet the archival condition when |service| 
+  is archiving data. Otherwise, |service| might capture an inconsistent snapshot 
+  of the data during the archival run. If updates occur, the version of the document 
+  that gets archived is uncertain.

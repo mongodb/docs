@@ -1,0 +1,407 @@
+.. _atlas-limits:
+
+=========================
+|service| Service Limits
+=========================
+
+.. meta::
+   :description: Explore Atlas service limits, including cluster components, connection limits, and organization constraints, with options to upgrade for increased capacity.
+
+.. Attention writers: If you make changes to the following limits
+.. please check the related procedures in the following Server docs 
+.. page(s) to see if they require changes as well: 
+.. www.mongodb.com/docs/manual/reference/limits/
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| limits how many of each kind of component you can create, and
+the number of connections allowed to {+database-deployments+}. For
+{+clusters+}, the number of connections allowed is based on {+cluster+}
+tier. The following tables outline component and connection limits.
+
+.. important::
+
+   If any of these limits present a problem for your organization,
+   contact :doc:`Atlas support </support/>`.
+
+{+Cluster+} Limits
+------------------
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Component
+     - Limit
+
+   * - :manual:`Shards </sharding/>` in
+       :doc:`Multi-Region Clusters </cluster-config/multi-cloud-distribution/>`
+     - 12
+
+   * - :manual:`Shards </sharding/>` in Single-region clusters
+     - No hard limit, but contact :ref:`MongoDB Support
+       <request-support>` for more than 70 shards.  
+
+   * - :ref:`Cross-region network permissions <faq-cross-region>`
+       for a Multi-Region Cluster
+     - 40
+
+       If any project's {+cluster+} spans more than 40 regions, you can't create
+       a multi-region {+cluster+} in this project.
+
+
+   * - :manual:`Electable Nodes </core/replica-set-elections/>` per
+       Replica Set or Shard
+     - 7
+
+   * - :manual:`Config Server </core/sharded-cluster-config-servers/>`
+       Tier (minimum and maximum)
+     - ``M30``
+
+.. _connection-limits:
+
+Connection Limits and Cluster Tier
+----------------------------------
+
+|service| sets the :setting:`limits for concurrent incoming connections
+<net.maxIncomingConnections>` based on the {+cluster+} tier and
+:ref:`class<storage-class-ui>`. |service| connection limits apply per node. For
+:manual:`sharded {+clusters+} </sharding/>`, |service| connection limits apply per
+:manual:`mongos </core/sharded-cluster-query-router/>` router. The number of
+:manual:`mongos </core/sharded-cluster-query-router/>` routers is equal to
+the number of replica set nodes across all shards. 
+
+Your :manual:`read preference </core/read-preference/>` also contributes to the
+total number of connections |service| can allocate for a given query.
+
+.. example::
+  Your ``M10`` cluster has three nodes with a 1500 connection limit per node.
+  |service| reserves 10 connections per node. If you set your :manual:`read preference
+  </core/read-preference/>` to :manual:`secondary
+  </core/read-preference/#mongodb-readmode-secondary>`, |service| can read from
+  the two secondary nodes for a combined 2980 connection limit.
+
+Increase Connection Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to increase the number of connections your |service| cluster can handle,
+consider upgrading your :ref:`cluster tier <scale-cluster-instance>`.
+
+If your application dynamically creates additional connections, as it might if,
+for example, your database worker pool is elastic, consider enabling 
+:ref:`Cluster Autoscaling <cluster-autoscaling>` to ensure that your |service| 
+cluster can accomodate your dynamic connection count requirement. 
+
+.. tabs::
+
+   .. tab:: AWS
+      :tabid: aws
+
+      .. tabs::
+
+         .. tab:: General Class
+            :tabid: general-class
+
+            .. list-table::
+               :header-rows: 1
+
+               * - {+Cluster+} Tier
+                 - Maximum Connections Per Node
+
+               * - ``M10``
+                 - 1500
+
+               * - ``M20``
+                 - 3000
+
+               * - ``M30``
+                 - 3000
+
+               * - ``M40``
+                 - 6000
+
+               * - ``M50``
+                 - 16000
+
+               * - ``M60``
+                 - 32000
+
+               * - ``M80``
+                 - 96000
+
+               * - ``M140``
+                 - 96000
+
+               * - ``M200``
+                 - 128000
+
+               * - ``M300``
+                 - 128000
+
+         .. tab:: Low-CPU Class
+            :tabid: low-cpu-class
+
+            .. list-table::
+               :header-rows: 1
+
+               * - Cluster Tier
+                 - Maximum Connections Per Node
+
+               * - ``M40``
+                 - 4000
+
+               * - ``M50``
+                 - 16000
+
+               * - ``M60``
+                 - 32000
+
+               * - ``M80``
+                 - 64000
+
+               * - ``M140``
+                 - 96000
+
+               * - ``M200``
+                 - 128000
+
+               * - ``M300``
+                 - 128000
+
+               * - ``M400``
+                 - 128000
+
+               * - ``M700``
+                 - 128000
+
+   .. tab:: Azure and GCP
+      :tabid: other
+
+      .. list-table::
+         :header-rows: 1
+
+         * - {+Cluster+} Tier
+           - Maximum Connections Per Node
+
+         * - ``M10``
+           - 1500
+
+         * - ``M20``
+           - 3000
+
+         * - ``M30``
+           - 3000
+
+         * - ``M40``
+           - 6000
+
+         * - ``M50``
+           - 16000
+
+         * - ``M60``
+           - 32000
+
+         * - ``M80``
+           - 64000
+
+         * - ``M140``
+           - 96000
+
+         * - ``M200``
+           - 128000
+
+         * - ``M300``
+           - 128000
+
+.. note::
+
+   |service| reserves a small number of connections to each |service|
+   {+cluster+} for supporting |service| services. To learn more about
+   |service| reserved connections, contact |service| :doc:`support</support>`.
+
+.. _cluster-collection-limits:
+
+Collection and Index Limits
+---------------------------
+
+.. include:: /includes/limits/collections-and-indexes-per-cluster.rst
+
+Increase Collection and Index Limits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to increase the number of collections or indexes in your |service| 
+cluster, consider upgrading your :ref:`cluster tier <scale-cluster-instance>`.
+
+.. _org-project-limits:
+
+Organization and Project Limits
+-------------------------------
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Component
+     - Limit
+
+   * - :doc:`Database Users </security-add-mongodb-users/>` per
+       |service| Project
+     - 100
+
+   * - :doc:`Atlas Users </access/manage-org-users>` per
+       |service| Project
+     - 500
+
+   * - :doc:`Atlas Users </access/manage-org-users>` per
+       |service| Organization
+     - 500
+
+   * - API Keys per |service| Organization
+     - 500
+
+   * - :doc:`Access List Entries </security/ip-access-list/>` per
+       |service| Project
+     - 200
+
+   * - Users per |service| Team
+     - 250
+
+   * - Teams per |service| Project
+     - 100
+
+   * - Teams per |service| Organization
+     - 250
+
+   * - Teams per |service| User
+     - 100
+
+   * - Organizations per |service| User
+     - 250
+
+   * - :ref:`Linked Organizations <cross-org-billing>` per 
+       |service| Paying Organization
+     - 50
+
+   * - Clusters per |service| Project
+     - 25 :icon-fa5:`star`
+
+   * - Projects per |service| User
+     - 250
+
+   * - Projects per |service| Organization
+     - 250
+
+   * - :doc:`Custom MongoDB roles </security-add-mongodb-roles/>` per
+       |service| Project
+     - 100
+
+   * - Assigned Roles per Database User
+     - 100
+
+   * - :ref:`Federated database instances <atlas-data-federation>` per
+       |service| :ref:`Project <projects>`
+     - 25
+
+   * - Total Network Peering Connections per |service|
+       :ref:`Project <projects>`
+     - 50
+
+       |service| limits the number of nodes per
+       :ref:`Network Peering connection <vpc-peering>` based on the
+       |cidr| block and the
+       :doc:`region </cloud-providers-regions/>` selected for the
+       project.
+
+   * - Pending Network Peering Connections per |service|
+       :ref:`Project <projects>`
+     - 25
+
+   * - :ref:`{+aws-pl+} <atlas-pl-limitations>` Addressable Targets per
+       Region
+     - 50
+
+   * - :ref:`{+az-pl+} <atlas-pl-limitations>` Addressable Targets per
+       Region
+     - 150
+
+   * - :ref:`{+gcp+} {+gcp-psc+}<atlas-pl-limitations>` Addressable
+       Targets per Region
+     - 50
+
+   * - |global-write-cluster| :manual:`shard keys </core/sharding-shard-key/>` per |service|
+       :ref:`Project <projects>`
+     - 40
+
+:icon-fa5:`star` You can deploy only one ``M0`` {+cluster+} per 
+project. However, if you have sales contracts with MongoDB, you might 
+be able to deploy more ``M0`` {+clusters+} per project. To learn more, 
+contact a MongoDB sales representative.
+
+Label Limits
+------------
+
+|service| limits the length of particular labels for components.
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Component
+     - Character Limit
+     - RegEx Pattern
+
+   * - Cluster Name
+     - 64 [1]_
+     - ``^([a-zA-Z0-9]([a-zA-Z0-9-]){0,21}(?<!-)([\w]{0,42}))$`` [2]_
+
+   * - Project Name
+     - 64
+     -  ``^[\p{L}\p{N}\-_.(),:&@+']{1,64}$`` [3]_
+
+   * - Organization Name
+     - 64
+     -  ``^[\p{L}\p{N}\-_.(),:&@+']{1,64}$`` [3]_
+
+   * - |api| Key Description
+     - 250
+     - 
+
+.. [1] If you have :ref:`peering-only mode enabled 
+       <atlas-faq-azure-gcp-peering-only>`, the {+cluster+} name
+       character limit is 23.
+
+.. [2] |service| uses the first *23 characters* of a {+cluster+} name.
+       These characters must be unique within the containing project.
+       Cluster names with fewer than 23 characters can't end with a hyphen
+       (``-``). Cluster names with more than 23 characters can't have a
+       hyphen as the 23rd character. 
+
+.. [3] Organization and Project names can include any Unicode letter or
+       number plus the following punctuation: ``-_.(),:&@+'``.
+
+Database User Privilege Limits
+------------------------------
+
+To learn more about unsupported commands, see the unsupported commands
+for :ref:`<free-tier-command-limitations>` and 
+:ref:`paid clusters <paid-tier-command-limitations>`.
+
+Multi-Cloud {+Deployment+} Limits
+---------------------------------
+
+Multi-cloud {+deployments+} have different limits. To learn more, 
+see :ref:`Multi-Cloud Deployment Limits <multi-cloud-limitation>`.
+ 

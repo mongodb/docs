@@ -1,0 +1,188 @@
+.. _ref-keyword-analyzer:
+
+================
+Keyword Analyzer
+================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: term search, keyword search, full-text search, text analyzer, single term index, exact match search, index strings, single string search
+   :description: Use the Atlas Search keyword analyzer to index multiple terms in a string field as a single searchable term.
+
+The ``keyword`` analyzer accepts a string or array of strings as a
+parameter and indexes them as a single term (token). Only exact matches
+on the field are returned. It leaves all text in its original letter case.
+
+.. tip:: 
+
+   For exact matching, instead of using the ``keyword`` analyzer, you
+   can index the field as the |fts| :ref:`token <bson-data-types-token>`
+   type and use the :ref:`equals <equals-ref>` operator to search the field. 
+
+.. |analyzer-name| replace:: ``keyword``
+
+.. include:: /includes/fts/facts/fact-fts-index-configurations.rst
+
+.. important:: 
+
+   .. include:: /includes/fts/facts/fact-fts-string-size-limit.rst
+
+Example
+-------
+
+.. include:: /includes/fts/analyzers/analyzer-example-intro.rst
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Index Configurations` section, toggle 
+         :guilabel:`Dynamic Mapping` to :guilabel:`off`.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window. 
+      #. Click :guilabel:`Customized Configuration`.
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.keyword`` from the dropdown. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.keyword`` from the dropdown.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      1. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 6
+      
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.keyword"
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query searches for the phrase ``Class Action`` in the
+``title`` field. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        { 
+          "$search": {
+            "text": {
+               "query": "Class Action",
+               "path": "title"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+      :visible: false
+
+      [
+        { 
+          title: 'Class Action' 
+        }
+      ]
+
+|fts| returned the document because it matched the query term ``Class
+Action`` to the single token ``Class Action`` that it creates for the
+text in the field using the ``lucene.keyword`` analyzer. By contrast,
+|fts| doesn't return any results for the following query: 
+
+.. code-block:: json 
+   :copyable: true 
+
+   db.cases.aggregate([
+     {
+       "$search": {
+         "text": {
+           "query": "action",
+           "path": "title"
+         }
+       }
+     }
+   ])
+
+Many documents in the collection contain the string ``action``, but the 
+``keyword`` analyzer only matches documents in which the search term
+matches the entire contents of the field exactly. For the preceding
+query, the ``keyword`` analyzer wouldn't return any results. However, if
+you indexed the field using the :ref:`ref-standard-analyzer` or
+:ref:`ref-simple-analyzer`, |fts| would return multiple documents in the
+results, including the document with the title field value ``Class 
+Action``, because it would create tokens similar to the following, which
+it would then match to the query term:
+
+.. list-table:: Tokens
+   :header-rows: 1
+
+   * - Analyzer 
+     - Output Tokens
+     - Matches ``action`` 
+     - Matches ``Class Action``
+
+   * - Keyword Analyzer Tokens 
+     - ``Class Action``
+     - X
+     - √
+     
+   * - Standard Analyzer Tokens 
+     - ``class``, ``action``
+     - √
+     - √
+
+   * - Simple Analyzer Tokens
+     - ``class``, ``action``
+     - √
+     - √

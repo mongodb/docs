@@ -1,0 +1,174 @@
+.. _test-failover:
+
+=====================
+Test Primary Failover
+=====================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: test the failover of a replica set, replica set failover, atlas api, atlas cli, atlas ui
+   :description: Test the resilience of your Atlas cluster by simulating a primary failover and observing how your application handles the event.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| conducts :manual:`replica set elections
+</core/replica-set-elections/>` when it makes configuration changes,
+such as patch updates, scaling events, and when failures occur. Your
+applications should handle replica set elections without any downtime.
+To learn how to build a resilient application, see
+:ref:`resilient-application`. 
+
+You can enable retryable writes by adding :manual:`retryWrites=true
+</reference/connection-string/#urioption.retryWrites>` to your |service|
+URI connection string. To learn more, see
+:manual:`Retryable Writes </core/retryable-writes/>`.
+
+You can use the {+atlas-ui+} and |api| to test the failure of the
+replica set :term:`primary` in your |service| cluster and observe how 
+your application handles a replica set failover. 
+
+Required Access
+---------------
+
+To start a failover test, you must have
+:authrole:`Organization Owner`, :authrole:`Project Owner`, :authrole:`Project Cluster Manager` 
+or :authrole:`Project Stream Processing Owner` access to the project.
+
+Prerequisites
+-------------
+
+Before you test the failure of the replica set :term:`primary`, you must
+meet the following conditions:
+
+- All pending changes to your {+cluster+} must be complete.
+- All members of the {+cluster+} must be in a healthy state with
+  up-to-date monitoring data.
+- Each replica set or shard must have a primary node.
+- Any member of the {+cluster+} must have less than a 10-second
+  replication lag.
+- All members of your {+cluster+} must have at least 5% of available
+  disk space remaining.
+- All primary node oplogs must have enough space for a three-hour
+  operation.
+
+.. _test-failover-process:
+
+Test Primary Failover Process 
+-----------------------------
+
+.. important:: 
+
+   Ensure that your |service| cluster is healthy before you test primary 
+   failover. Otherwise, |service| might reject your request.
+
+When you submit a request to test primary failover, |service| simulates
+a failover event. During this process: 
+
+a. |service| shuts down the current :term:`primary`.
+
+#. The members of the replica set hold an 
+   :manual:`election </core/replica-set-elections/>` to choose which
+   of the secondaries will become the new primary.
+
+#. |service| brings the original primary back to the
+   :term:`replica set` as a :term:`secondary`. When the old primary
+   rejoins the replica set, it will sync with the new primary to
+   catch up any writes that occurred during its downtime.
+
+The following statements describe |service| behavior during rollovers
+and when testing failover in sharded clusters: 
+
+- If the original primary accepted write operations that had not
+  been successfully replicated to the secondaries when the
+  primary stepped down, the primary rolls back those write
+  operations when it re-joins the replica set and begins
+  synchronizing. To learn more, see
+  :manual:`Rollbacks During Replica Set Failover 
+  </core/replica-set-rollbacks/>`.
+  Contact |mdb-support| for assistance with resolving rollbacks.
+- Only the :binary:`~bin.mongos` processes that are on the same 
+  instances as the primaries of the replica sets in the sharded cluster 
+  are restarted. 
+- The primaries of the replica sets in the sharded cluster are restarted 
+  in parallel.
+
+.. tabs::
+ 
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+ 
+      .. include:: /includes/extracts/atlas-clusters-failover.rst
+ 
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+ 
+      You can use the :oas-atlas-op:`Test Failover 
+      </testFailoverForOneCluster>` |api| endpoint to simulate a
+      failover event. To learn more about the failover process, see
+      :ref:`Test Failover Process <test-failover-process>`.
+ 
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+ 
+      To perform a Primary Failover test using the {+atlas-ui+}:
+
+      1. .. include:: /includes/nav/list-db-deployments-page.rst
+
+      #. For the cluster you wish to perform failover testing, click the
+         :guilabel:`...` button.
+
+      #. Click :guilabel:`Test Resilience`. 
+
+      #. On the :guilabel:`Test Resilience` modal, click the
+         :guilabel:`Primary Failover` tab. |service| displays the steps
+         that it takes to simulate a failover event. To learn more, see 
+         :ref:`Test Failover Process <test-failover-process>`.
+
+      #. Click :guilabel:`Restart Primary` to begin the test. |service|
+         displays the results of your simulated failover process in the
+         :guilabel:`Test Resilience` modal.
+
+Verify the Failover
+-------------------
+
+To verify that the failover is successful:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Observe the nodes.
+
+      a. Click the name of the cluster for which you performed the 
+         failover test.
+
+      #. Observe the following changes in the list of nodes in 
+         the :guilabel:`Overview` tab:
+
+         - The original ``PRIMARY`` node is now a ``SECONDARY`` node.
+
+         - A former ``SECONDARY`` node is now the ``PRIMARY`` node.
+
+.. _troubleshoot-replica-set-failover-issues:
+
+Troubleshoot Failover Issues 
+----------------------------
+
+If your application doesn't handle the failover gracefully, ensure the
+following:
+
+- You are using the :ref:`connections-dns-seedlist`.
+- You are using the latest version of the driver.
+- You have implemented appropriate retry logic in your application.

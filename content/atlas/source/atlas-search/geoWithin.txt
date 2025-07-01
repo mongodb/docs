@@ -1,0 +1,783 @@
+.. _geowithin-ref:
+
+======================
+``geoWithin`` Operator
+======================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: query within shape
+   :description: Learn how to query points within a specified geometric shape.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: geoWithin
+
+   The ``geoWithin`` operator supports querying geographic points
+   within a given geometry. Only points are returned, even if
+   ``indexShapes`` value is ``true`` in the
+   :ref:`index definition <bson-data-types-geo>`.
+
+   You can query points within a:
+
+   - Circle
+   - Bounding box
+   - Polygon
+
+   .. include:: /includes/fts/facts/fact-atlas-search-geo-coordinates.rst
+
+.. _geowithin-syntax:
+
+Syntax
+------
+
+``geoWithin`` has the following syntax:
+
+.. code-block:: javascript
+
+   {
+     "$search": {
+        "index": <index name>, // optional, defaults to "default"
+        "geoWithin": {
+           "path": "<field-to-search>",
+           "box | circle | geometry": <object>,
+           "score": <score-options>
+        }
+     }
+   }
+
+.. _geowithin-options:
+
+Options
+-------
+
+``geoWithin`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``box``
+     - object
+     - Object that specifies the bottom left and top right
+       :manual:`GeoJSON </reference/geojson/>` points of a box to
+       search within. The object takes the following fields:
+
+       - ``bottomLeft`` - Bottom left GeoJSON :manual:`point
+         </reference/geojson/#point>`.
+       - ``topRight`` - Top right GeoJSON :manual:`point
+         </reference/geojson/#point>`.
+
+       To learn how to specify GeoJSON data inside a GeoJSON object, 
+       see :manual:`GeoJSON Objects </reference/geojson/>`.
+
+       Either ``box``, ``circle``, or ``geometry`` is required.
+
+     - conditional
+
+   * - ``circle``
+     - object
+     - Object that specifies the center point and the radius in meters
+       to search within. The object contains the following
+       :manual:`GeoJSON </reference/geojson/>` fields:
+
+       - ``center`` - Center of the circle specified as a GeoJSON
+         :ref:`point <geojson-point>`.
+       - ``radius`` - Radius, which is a number, specified in
+         meters. Value must be greater than or equal to ``0``.
+
+       To learn how to specify GeoJSON data inside a GeoJSON object, 
+       see :manual:`GeoJSON Objects </reference/geojson/>`.
+
+       Either ``circle``, ``box``, or ``geometry`` is required.
+     - conditional
+
+   * - ``geometry``
+     - GeoJSON object
+     - :manual:`GeoJSON </reference/geojson/>` object that specifies
+       the :ref:`MultiPolygon <geojson-multipolygon>` or
+       :ref:`Polygon <geojson-polygon>` to search
+       within. The polygon must be specified as a closed loop where
+       the last position is the same as the first position.
+
+       .. include:: /includes/fts/facts/fact-fts-geo-intersection.rst
+
+       To learn how to specify GeoJSON data inside a GeoJSON object, 
+       see :manual:`GeoJSON Objects </reference/geojson/>`.
+
+       Either ``geometry``, ``box``, or ``circle`` is required.
+     - conditional
+
+   * - ``path``
+     - string or array of strings
+     - Indexed :ref:`geo <bson-data-types-geo>` type field or fields to
+       search.
+     - yes
+
+   * - ``score``
+     - object
+     - Score to assign to matching search results. By default, the
+       :ref:`score <scoring-ref>` in the results is ``1``. You
+       can modify the score using the following options:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score with the given expression.
+
+       For information on using ``score`` in your query, see
+       :ref:`scoring-ref`.
+     - no
+
+.. _geowithin-egs:
+
+Examples
+--------
+
+The following examples use the ``listingsAndReviews`` collection in the
+``sample_airbnb`` database. If you have the :ref:`sample dataset
+<available-sample-datasets>` on your cluster, you can create a custom
+|fts| index for :ref:`geo <bson-data-types-geo>` type and run the
+example queries on your cluster. 
+
+Use the following sample index definition for
+indexing the ``address.location`` field in the ``listingsAndReviews``
+collection:
+
+.. code-block:: json
+   :linenos:
+
+   {
+     "mappings": {
+       "fields": {
+         "address": {
+           "fields": {
+             "location": {
+               "type": "geo"
+             }
+           },
+           "type": "document"
+         },
+         "property_type": {
+           "type": "token"
+         }
+       }
+     }
+   }
+
+.. _geowithin-box-eg:
+
+``box`` Example
+~~~~~~~~~~~~~~~
+
+The following query uses the ``geoWithin`` operator with
+the ``box`` field to search for
+properties within a bounding box in Australia. 
+
+The query includes a:
+
+- :pipeline:`$limit` stage to limit the output to ``3`` results.
+- :pipeline:`$project` stage to exclude all fields except ``name`` and
+  ``address``.
+
+.. include:: /includes/fts/facts/fact-fts-index-default.rst
+
+Basic Example 
+`````````````
+
+The following query returns the documents that match the specified
+search criteria. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos:
+      
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "geoWithin": {
+              "path": "address.location",
+              "box": {
+                "bottomLeft": {
+                  "type": "Point",
+                  "coordinates": [112.467, -55.050]
+                },
+                "topRight": {
+                  "type": "Point",
+                  "coordinates": [168.000, -9.133]
+                }
+              }
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      {
+        "name" : "Surry Hills Studio - Your Perfect Base in Sydney",
+        "address" : {
+          "street" : "Surry Hills, NSW, Australia",
+          "suburb" : "Darlinghurst",
+          "government_area" : "Sydney",
+          "market" : "Sydney",
+          "country" : "Australia",
+          "country_code" : "AU",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 151.21554, -33.88029 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+      {
+        "name" : "Sydney Hyde Park City Apartment (checkin from 6am)",
+        "address" : {
+          "street" : "Darlinghurst, NSW, Australia",
+          "suburb" : "Darlinghurst",
+          "government_area" : "Sydney",
+          "market" : "Sydney",
+          "country" : "Australia",
+          "country_code" : "AU",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 151.21346, -33.87603 ],
+            "is_location_exact" : false
+          }
+        }
+      }
+      {
+        "name" : "THE Place to See Sydney's FIREWORKS",
+        "address" : {
+          "street" : "Rozelle, NSW, Australia",
+          "suburb" : "Lilyfield/Rozelle",
+          "government_area" : "Leichhardt",
+          "market" : "Sydney",
+          "country" : "Australia",
+          "country_code" : "AU",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ 151.17956, -33.86296 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+
+Metadata Example 
+````````````````
+
+The following query returns the number of types of properties (such
+as apartment, house, and so on) for the specified search criteria.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos:
+
+      db.listingsAndReviews.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "geoWithin": {
+                    "path": "address.location",
+                    "box": {
+                      "bottomLeft": {
+                        "type": "Point",
+                        "coordinates": [112.467, -55.050]
+                      },
+                      "topRight": {
+                        "type": "Point",
+                        "coordinates": [168.000, -9.133]
+                      }
+                    }
+                  }
+              },
+              "facets": {
+                "propertyTypeFacet": {
+                  "type": "string",
+                  "path": "property_type"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      [
+        {
+          count: { lowerBound: Long('610') },
+          facet: {
+            propertyTypeFacet: {
+              buckets: [
+                { _id: 'Apartment', count: Long('334') },
+                { _id: 'House', count: Long('168') },
+                { _id: 'Townhouse', count: Long('29') },
+                { _id: 'Guest suite', count: Long('20') },
+                { _id: 'Condominium', count: Long('11') },
+                { _id: 'Cabin', count: Long('8') },
+                { _id: 'Serviced apartment', count: Long('7') },
+                { _id: 'Villa', count: Long('7') },
+                { _id: 'Bungalow', count: Long('5') },
+                { _id: 'Guesthouse', count: Long('5') }
+              ]
+            }
+          }
+        }
+      ]
+
+.. _geowithin-circle-eg:
+
+``circle`` Example
+~~~~~~~~~~~~~~~~~~
+
+The following query uses the ``geoWithin`` operator with the ``circle``
+field to search for properties within one mile radius of specified 
+coordinates in Canada.
+
+The query includes a:
+
+- :pipeline:`$limit` stage to limit the output to ``3`` results
+- :pipeline:`$project` stage to exclude all fields except ``name``
+  and ``address``.
+
+.. include:: /includes/fts/facts/fact-fts-index-default.rst
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos:
+      
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "geoWithin": {
+              "circle": {
+                "center": {
+                  "type": "Point",
+                  "coordinates": [-73.54, 45.54]
+                },
+                "radius": 1600
+              },
+              "path": "address.location"
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      {
+        "name" : "Ligne verte - à 15 min de métro du centre ville.",
+        "address" : {
+          "street" : "Montréal, Québec, Canada",
+          "suburb" : "Hochelaga-Maisonneuve",
+          "government_area" : "Mercier-Hochelaga-Maisonneuve",
+          "market" : "Montreal",
+          "country" : "Canada",
+          "country_code" : "CA",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.54949, 45.54548 ],
+            "is_location_exact" : false
+          }
+        }
+      }
+      {
+        "name" : "Belle chambre à côté Metro Papineau",
+        "address" : {
+          "street" : "Montréal, QC, Canada",
+          "suburb" : "Gay Village",
+          "government_area" : "Ville-Marie",
+          "market" : "Montreal",
+          "country" : "Canada",
+          "country_code" : "CA",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.54985, 45.52797 ],
+            "is_location_exact" : false
+          }
+        }
+      }
+      {
+        "name" : "L'IDÉAL, ( à 2 min du métro Pie-IX ).",
+        "address" : {
+          "street" : "Montréal, Québec, Canada",
+          "suburb" : "Mercier-Hochelaga-Maisonneuve",
+          "government_area" : "Mercier-Hochelaga-Maisonneuve",
+          "market" : "Montreal",
+          "country" : "Canada",
+          "country_code" : "CA",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -73.55208, 45.55157 ],
+            "is_location_exact" : true
+          }
+        }
+      }
+
+.. _geowithin-geometry-eg:
+
+``geometry`` Examples
+~~~~~~~~~~~~~~~~~~~~~
+
+The following examples use the ``geoWithin`` operator with the
+``geometry`` field to search for properties in Hawaii. The ``type`` field
+specifies whether the area is a GeoJSON :ref:`Polygon <geojson-polygon>` or 
+:ref:`MultiPolygon <geojson-multipolygon>`.
+
+The queries include a: 
+
+- :pipeline:`$limit` stage to limit the output to ``3`` results.
+- :pipeline:`$project` stage to
+  exclude all fields except ``name`` and ``address``.
+
+.. include:: /includes/fts/facts/fact-fts-index-default.rst
+
+.. tabs::
+
+   .. tab:: Polygon Example
+      :tabid: polygon ****  **** 
+
+      ----------
+
+      .. |arrow| unicode:: U+27A4
+
+      |arrow| Use the **Select your language** drop-down menu on this page to 
+      set the language of the examples in this section.
+
+      ----------
+
+      .. tabs-selector:: drivers
+
+      The following |fts| query:
+
+      .. include:: /includes/fts/facts/fact-fts-tutorial-run-geo-query-results.rst
+
+      .. tabs-drivers::
+
+        .. tab::
+           :tabid: atlas-ui 
+
+           .. io-code-block::  
+              :copyable: true 
+            
+              .. input:: /includes/fts/geo/ui-query.json
+                 :language: json 
+
+              .. output:: /includes/fts/geo/ui-query-output.js
+                 :language: javascript
+                 :linenos:
+                 :visible: false
+
+        .. tab::
+           :tabid: shell
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/shell-query.json
+                 :language: json
+
+              .. output:: /includes/fts/geo/shell-query-output.js
+                 :language: javascript
+                 :visible: false
+
+        .. tab::
+           :tabid: compass
+
+           To learn how to run the following queries in the |compass|,
+           see :ref:`atlas-search-queries`. 
+
+           .. input:: /includes/fts/geo/compass-query.rst
+              :language: json
+
+           .. output:: /includes/fts/geo/compass-output.js
+              :language: javascript
+              :visible: false
+
+        .. tab::
+           :tabid: csharp
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/geo-tutorial-query.cs
+                 :language: csharp
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 13
+
+              .. output:: /includes/fts/geo/csharp-output.js
+                 :language: javascript
+                 :visible: false  
+
+        .. tab::
+           :tabid: go
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/run-geo-query.go
+                 :language: go
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 14
+                  
+              .. output:: /includes/fts/geo/run-geo-query.go
+                 :language: javascript
+                 :visible: false
+
+        .. tab::
+           :tabid: java-sync
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/GeoQuery.java
+                 :language: java
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 29
+                  
+              .. output::
+                 :language: json
+                 :visible: false
+
+        .. tab::
+           :tabid: kotlin-coroutine
+
+           The following code example:
+
+           - Imports ``mongodb`` packages and dependencies.
+           - Establishes a connection to your |service| cluster.
+           - Prints the documents that match the query from the
+             ``AggregateFlow`` instance.
+
+           .. io-code-block:: 
+              :copyable: true 
+              
+              .. input:: /includes/fts/geo/tutorial.kt
+                 :language: kotlin
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 10
+
+              .. output:: /includes/fts/geo/kotlin-query-results.js
+                 :language: javascript 
+                 :visible: false
+
+        .. tab::
+           :tabid: nodejs
+
+           The following code example:
+
+           - Imports ``mongodb``, MongoDB's Node.js driver. 
+           - Creates an instance of the ``MongoClient`` class to establish a 
+             connection to your |service| cluster.
+           - Iterates over the cursor to print the documents that match the 
+             query.
+
+           .. io-code-block::
+              :copyable: true
+
+              .. input:: /includes/fts/geo/run-geo-query.js
+                 :language: javascript
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 4
+                  
+              .. output::
+                 :language: javascript
+                 :visible: false
+
+        .. tab::
+           :tabid: python
+
+           The following code example:
+
+           - Imports ``pymongo``, MongoDB's Python driver, and the ``dns``
+             module, which is required to connect ``pymongo`` to ``Atlas`` 
+             using a |dns| seed list connection string. 
+
+           - Creates an instance of the ``MongoClient`` class to establish a 
+             connection to your |service| cluster.
+
+             .. include:: /includes/fts/facts/fact-fts-tutorial-run-geo-query-results.rst
+
+           - Iterates over the cursor to print the documents that match the 
+             query.
+
+           .. io-code-block::
+              :copyable: true 
+
+              .. input:: /includes/fts/geo/run-geo-query.py
+                 :language: python
+                 :linenos:
+                 :dedent:
+                 :emphasize-lines: 4
+
+              .. output:: /includes/fts/geo/python-query-output.js
+                 :language: javascript
+                 :visible: false
+
+   .. tab:: MultiPolygon Example
+      :tabid: multipolygon
+
+      The following examples use the ``geoWithin`` operator with the
+      ``geometry`` field to search for properties in Hawaii. The ``type`` field
+      specifies whether the area is a GeoJSON :ref:`Polygon <geojson-polygon>` or 
+      :ref:`MultiPolygon <geojson-multipolygon>`.
+
+      The query includes a: 
+
+      - :pipeline:`$limit` stage to limit the output to ``3`` results.
+      - :pipeline:`$project` stage to
+        exclude all fields except ``name`` and ``address``.
+
+      .. include:: /includes/fts/facts/fact-fts-index-default.rst
+
+      .. code-block:: javascript
+         :linenos:
+
+         .. input:: 
+            :language: json 
+            :linenos:
+      
+            db.listingsAndReviews.aggregate([
+              {
+                "$search": {
+                  "geoWithin": {
+                    "geometry": {
+                      "type": "MultiPolygon",
+                      "coordinates": [
+                            [[[-157.8412413882,21.2882235819],
+                            [-157.8607925468,21.2962046205],
+                            [-157.8646640634,21.3077019651],
+                            [-157.862776699,21.320776283],
+                            [-157.8341758705,21.3133826738],
+                            [-157.8349985678,21.3000822569],
+                            [-157.8412413882,21.2882235819]]],
+                            [[[-157.852898124,21.301208833],
+                            [-157.8580050499,21.3050871833],
+                            [-157.8587346108,21.3098050385],
+                            [-157.8508811028,21.3119240258],
+                            [-157.8454308541,21.30396767],
+                            [-157.852898124,21.301208833]]]
+                      ]
+                    },
+                    "path": "address.location"
+                  }
+                }
+              },
+              {
+                $limit: 3
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "name": 1,
+                  "address": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            {
+                "name" : "Heart of Honolulu, 2BD gem! Free Garage Parking!",
+                "address" : {
+                  "street" : "Honolulu, HI, United States",
+                  "suburb" : "Makiki/Lower Punchbowl/Tantalus",
+                  "government_area" : "Primary Urban Center",
+                  "market" : "Oahu",
+                  "country" : "United States",
+                  "country_code" : "US",
+                  "location" : {
+                    "type" : "Point",
+                    "coordinates" : [ -157.84343, 21.30852 ],
+                    "is_location_exact" : false
+                  }
+                }
+              }
+              {
+                "name" : "Private Studio closed to town w/ compact parking",
+                "address" : {
+                  "street" : "Honolulu, HI, United States",
+                  "suburb" : "Oʻahu",
+                  "government_area" : "Primary Urban Center",
+                  "market" : "Oahu",
+                  "country" : "United States",
+                  "country_code" : "US",
+                  "location" : {
+                    "type" : "Point",
+                    "coordinates" : [ -157.85228, 21.31184 ],
+                    "is_location_exact" : true
+                  }
+                }
+              }
+              {
+                "name" : "Comfortable Room (2) at Affordable Rates",
+                "address" : {
+                  "street" : "Honolulu, HI, United States",
+                  "suburb" : "Oʻahu",
+                  "government_area" : "Primary Urban Center",
+                  "market" : "Oahu",
+                  "country" : "United States",
+                  "country_code" : "US",
+                  "location" : {
+                    "type" : "Point",
+                    "coordinates" : [ -157.83889, 21.29776 ],
+                    "is_location_exact" : false
+                  }
+                }
+              }

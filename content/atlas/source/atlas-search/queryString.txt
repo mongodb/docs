@@ -1,0 +1,1139 @@
+.. _querystring-ref:
+
+==========================
+``queryString`` Operator
+==========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas search, query string operator, query string syntax, query string fields, logical operators, and operator search, or operator search, not operator search, delimiters in query, parenthesis in query, group terms
+   :description: Learn how to query a combination of indexed fields and values.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: queryString
+
+   The ``queryString`` operator supports querying a combination of
+   indexed fields and values. You can perform text, wildcard, regular
+   expression, fuzzy, and range searches on ``string`` fields using the 
+   ``queryString`` operator.
+
+.. _querystring-syntax:
+
+Syntax
+------
+
+``queryString`` has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     "$search": {
+        "index": <index name>, // optional, defaults to "default"
+        "queryString": {
+           "defaultPath": "<default-field-to-search>",
+           "query": "(<field-to-search>: (<search-values>) AND|OR (<search-values>)) AND|OR (<search-values>)"
+        }
+     }
+   }
+
+.. _querystring-options:
+
+Options
+-------
+
+``queryString`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 10 60 15
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``defaultPath``
+     - string
+     - The indexed field to search by default. |fts| only searches the
+       field in ``defaultPath`` if you omit the field to search in the 
+       ``query``.
+
+     - yes
+
+   * - ``query``
+     - string
+     - One or more indexed fields and values to search. Fields and
+       values are colon-delimited. For example, to search the ``plot``
+       field for the string ``baseball``, use ``plot:baseball``. The
+       following operators are available to combine multiple search
+       criteria:
+
+       You can combine the fields and values using the following:
+
+       .. list-table::
+          :widths: 10 90
+
+          * - ``AND``
+            - Indicates ``AND`` boolean operator. All search values
+              must be present for a document to be included in the
+              results.
+
+          * - ``OR``
+            - Indicates ``OR`` boolean operator. At least one of the
+              search value must be present for a document to be
+              included in the results.
+
+          * - ``NOT``
+            - Indicates ``NOT`` boolean operator. Specified search 
+              value must be absent for a document to be included in 
+              the results.
+
+          * - ``TO`` 
+            - Indicates the range to search. You can use ``[]`` for an
+              inclusive range, ``{}`` for an exclusive range, or ``{]``
+              and ``[}`` for an half-open range. Any value that falls
+              within the specified range must be present for a document
+              to be included in the results. 
+
+          * - ``()``
+            - Delimiters for subqueries. Use the parentheses to group
+              fields and values to search.
+
+       You can run wildcard and regular expression queries using the
+       following: 
+
+       .. list-table::
+          :widths: 10 90
+
+          * - ``?``
+            - Indicates any single character to match. 
+
+          * - ``*``
+            - Indicates 0 or more characters to match.
+
+              The ``queryString`` operator doesn't support a wildcard query
+              with ``*`` as the first character in the query. The
+              ``queryString`` operator treats any character preceding the
+              ``*`` as prefix or as characters that must exactly match. 
+
+          * - ``/`` 
+            - Delimiter for regular expression. 
+
+          * - ``~``
+            - Indicates fuzzy search to find strings which are similar
+              to the search term by up to the specified number of edits.
+              For example, ``{ "query":"foo":"stop"~2 }`` is equal to the following:
+              
+              .. code-block:: shell 
+                :copyable: false
+                
+                { "defaultPath": "foo", "query": "stop", "maxEdits": 2 }
+
+              The ``queryString`` operator only supports fuzzy search for
+              up to at most 2 edits. Higher distances are not useful as the 
+              results may match many dictionary terms. 
+              
+              If you use ``~`` with multiple terms in 
+              a string, the ``queryString`` operator does a proximity 
+              search for the terms within the specified number of terms. For example, 
+              ``{ "query":"foo":"New York"~2 }`` is equal to the following:
+              
+              .. code-block:: shell 
+                 :copyable: false
+
+                 { "defaultPath": "foo", "query": "New York", "slop": 2 }          
+
+          
+     - yes
+
+   * - ``score``
+     - object
+     - The score assigned to matching search results. You can modify
+       the default score using the following options:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score with the given expression.
+       
+       .. include:: /includes/fts/facts/fact-fts-array-scoring.rst
+        
+       For information on using ``score`` in your query, see :ref:`scoring-ref`.
+
+     - no
+
+.. _querystring-ref-examples:
+
+Examples
+--------
+
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database. If you have the :ref:`sample dataset
+<available-sample-datasets>` on your {+cluster+} , you can create the
+|fts| index named ``default`` with dynamic mappings and run the example 
+queries on your {+cluster+}.
+
+Boolean Operator Queries
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Basic Examples 
+``````````````
+
+.. tabs::
+   
+   .. tab:: AND OR
+      :tabid: beg1
+
+      The following example uses the ``queryString`` operator to query for
+      movies with the title ``Rocky`` and either ``IV``, ``4``, or
+      ``Four`` at path ``title`` in the ``movies`` collection. In the
+      following query, a field is specified in the ``defaultPath``,
+      but no fields are specified in the ``query``. The query includes
+      a :pipeline:`$project` stage to exclude all fields except
+      ``title``. 
+
+      .. code-block:: javascript
+         :linenos:
+
+         db.movies.aggregate([
+           {
+             $search: {
+               "queryString": {
+                 "defaultPath": "title",
+                 "query": "Rocky AND (IV OR 4 OR Four)"
+               }
+             }
+           },
+           {
+             $project: {
+               "_id": 0,
+               "title": 1
+             }
+           }
+         ])
+
+      For this query, |fts| performs a search at ``defaultPath``
+      because there are no fields in the ``query``. It returns the
+      following results:
+
+      .. code-block:: json
+          :copyable: false
+
+          { "title" : "Rocky IV" }
+
+   .. tab:: AND NOT
+      :tabid: beg2
+
+      The following example uses the ``queryString`` operator to 
+      query for movies with the title ``Rocky`` and not any form of
+      the numbers ``2``, ``3``, ``4``, or ``5`` at path ``title`` in
+      the ``movies`` collection. In the following query, a field is
+      specified in the ``defaultPath``, but no fields are specified in
+      the ``query``. The query includes a :pipeline:`$project` stage 
+      to exclude all fields except ``title``. 
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                $search: {
+                  "queryString": {
+                    "defaultPath": "title",
+                    "query": "Rocky AND NOT ((II OR 2 OR Two) OR (III OR 3 OR Three) OR (IV OR 4 OR Four) OR (V OR 5 OR Five))"
+                  }
+                }
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+
+            [
+              { title: 'Rocky' },
+              { title: 'Rocky Marciano' },
+              { title: 'Rocky Balboa' },
+              { title: 'The Rocky Horror Picture Show' },
+              { title: 'The Adventures of Rocky & Bullwinkle' }
+            ]  
+
+   .. tab:: AND 
+      :tabid: beg3
+
+      The following example uses the ``queryString`` operator to query
+      a combination of fields for movies with the title ``The
+      Italian`` in the ``Drama`` genre. The ``plot`` field in the
+      ``defaultPath`` will be searched only if no matching results can
+      be found in either of the fields specified in the ``query``
+      field. The ``query`` field contains escaped double quotes as
+      delimiters for the phrase to search. 
+
+      The query includes a :pipeline:`$project` stage to:
+
+      - Exclude all fields except ``_id``, ``title``, ``plot``, and
+        ``genres``
+      - Add a field named ``score``
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                $search: {
+                  "queryString": {
+                    "defaultPath": "plot",
+                    "query": "title:\"The Italian\" AND genres:Drama"
+                  }
+                }
+              },
+              {
+                $project: {
+                  "_id": 1,
+                  "title": 1,
+                  "plot": 1,
+                  "genres": 1,
+                  score: { $meta: "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+
+            {
+              "_id" : ObjectId("573a1390f29313caabcd56df"),
+              "plot" : "An immigrant leaves his sweetheart in Italy to find a better life across the sea in the grimy slums of New York. They are eventually reunited and marry. But  life in New York is hard and ...",
+              "genres" : [ "Drama" ],
+              "title" : "The Italian",
+              "score" : 4.975106716156006
+            }
+            {
+              "_id" : ObjectId("573a13b3f29313caabd3e36c"),
+              "plot" : "Set in 2002, an abandoned 5-year-old boy living in a rundown orphanage in a small Russian village is adopted by an Italian family.",
+              "genres" : [ "Drama" ],
+              "title" : "The Italian",
+              "score" : 4.975106716156006
+            }
+            {
+              "_id" : ObjectId("573a13c7f29313caabd756ee"),
+              "plot" : "A romantic fairy tale about a 19-year old orphan girl who, as her sole inheritance, gets an antique key that unlocks both an old Italian villa and the secrets of her family history.",
+              "genres" : [ "Comedy", "Drama", "Romance" ],
+              "title" : "The Italian Key",
+              "score" : 4.221206188201904
+            }
+            {
+              "_id" : ObjectId("573a13caf29313caabd7d1e4"),
+              "plot" : "A chronicle of the 1969 bombing at a major national bank in Milan and its aftermath.",
+              "genres" : [ "Drama" ],
+              "title" : "Piazza Fontana: The Italian Conspiracy",
+              "score" : 3.4441356658935547
+            }
+
+   .. tab:: OR AND
+      :tabid: beg4
+
+      The following example uses the ``queryString`` operator to query
+      for a combination of terms, ``captain`` or ``kirk`` and
+      ``enterprise``, in the ``plot`` field. It includes a
+      :pipeline:`$limit` stage to limit the output to ``3`` results
+      and a :pipeline:`$project` stage to: 
+
+      - Exclude all fields except ``title``, ``plot``, and ``fullplot``
+      - Add a field named ``score``
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                $search: {
+                  "queryString": {
+                    "defaultPath": "fullplot",
+                    "query": "plot:(captain OR kirk) AND enterprise"
+                  }
+                }
+              },
+              {
+                $limit: 3
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "title": 1,
+                  "plot": 1,
+                  "fullplot": 1,
+                  score: { $meta: "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+
+            { 
+              "plot" : "Captain Picard, with the help of supposedly dead Captain Kirk, must stop a madman willing to murder on a planetary scale in order to enter an energy ribbon.",
+              "fullplot" : "In the late 23rd century, the gala maiden voyage of the third Starship Enterprise (NCC-1701-B) boasts such luminaries as Pavel Chekov, Montgomery Scott and the legendary Captain James T. Kirk as guests. But the maiden voyage turns to disaster as the unprepared ship is forced to rescue two transport ships from a mysterious energy ribbon. The Enterprise manages to save a handful of the ships' passengers and barely makes it out intact... but at the cost of Captain Kirk's life. Seventy-eight years later, Captain Jean-Luc Picard and the crew of the Enterprise-D find themselves at odds with the renegade scientist Tolian Soran... who is destroying entire star systems. Only one man can help Picard stop Soran's scheme... and he's been dead for seventy-eight years.",
+              "title" : "Star Trek: Generations",
+              "score" : 11.274821281433105 
+            }
+            { 
+              "plot" : "Captain Kirk and his crew must deal with Mr. Spock's long-lost half-brother who hijacks the Enterprise for an obsessive search for God at the center of the galaxy.",
+              "fullplot" : "When the newly-christened starship Enterprise's shakedown cruise goes poorly, Captain Kirk and crew put her into Spacedock for repairs. But an urgent mission interrupts their Earth-bound shore leave. A renegade Vulcan named Sybok has taken three ambassadors hostage on Nimbus III, the Planet of Galactic Peace. This event also attracts the attention of a Klingon captain who wants to make a name for himself and sets out to pursue the Enterprise. Sybok's ragtag army captures the Enterprise and takes her on a journey to the center of the galaxy in search of the Supreme Being.",
+              "title" : "Star Trek V: The Final Frontier",
+              "score" : 9.889547348022461 
+            }
+            { 
+              "plot" : "When an alien spacecraft of enormous power is spotted approaching Earth, Admiral Kirk resumes command of the Starship Enterprise in order to intercept, examine and hopefully stop the intruder.",
+              "fullplot" : "A massive alien spacecraft of enormous power is approaching Earth, destroying everything in its path. The only star ship in range is the USS Enterprise still in dry-dock after a major overhaul. As Captain Willard Decker readies his ship and his crew to face this menace, Admiral James T. Kirk arrives with orders to take command of the Enterprise and intercept the alien intruder. But it has been three years since Kirk last commanded the Enterprise on its historic five year mission... is he up to the task of saving the Earth?",
+              "title" : "Star Trek: The Motion Picture",
+              "score" : 8.322310447692871 
+            }
+
+      The documents in the results match because:
+
+      - In the first document, the ``plot`` field, which is the field to
+        search per the  ``query``, contains both ``captain`` and ``kirk``,
+        although only either one is required to meet the criteria for a
+        match. For the term ``enterprise``, |fts| searches the
+        ``fullplot`` field, which is the ``defaultPath``, because the
+        ``plot`` field does not contain ``enterprise``, and finds
+        ``enterprise`` in the ``fullplot`` field.
+      - In the second document, the ``plot`` field contains all three
+        search terms.
+      - In the third document, the ``plot`` field contains ``kirk`` and
+        ``enterprise``.
+
+Advanced Examples
+`````````````````
+
+The examples in this section use the ``queryString`` operator to query
+for movie plots that contain the terms ``captain``, ``kirk``, and
+``chess``. This examples shows how different grouping of the same search
+terms using parentheses can result in different documents to be
+included in the search results.
+
+The queries also includes a :pipeline:`$project` stage to:
+
+- Exclude all fields except ``title``, ``plot``, and ``fullpath``
+- Add a field named ``score``
+
+.. tabs::
+
+   .. tab:: Example 1
+      :tabid: eg1
+
+      The following query searches for ``chess`` and either ``captain`` or 
+      ``kirk`` in the ``plot`` field. 
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                $search: {
+                  "queryString": {
+                    "defaultPath": "fullplot",
+                    "query": "plot:(captain OR kirk) AND chess"
+                  }
+                }
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "title": 1,
+                  "plot": 1,
+                  "fullplot": 1,
+                  score: { $meta: "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+
+            {
+              "fullplot" : "When the crew of the Enterprise is called back home, they find an unstoppable force of terror from within their own organization has detonated the fleet and everything it stands for, leaving our world in a state of crisis. With a personal score to settle, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction. As our heroes are propelled into an epic chess game of life and death, love will be challenged, friendships will be torn apart, and sacrifices must be made for the only family Kirk has left: his crew.",
+              "plot" : "After the crew of the Enterprise find an unstoppable force of terror from within their own organization, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction.",
+              "title" : "Star Trek Into Darkness",
+              "score" : 7.968792915344238
+            }
+          
+      The document in the results is a match because the 
+      ``plot`` contains the terms ``captain`` and ``kirk``, although
+      only one is needed to meet the criteria for a match, and the
+      term ``chess``, although not in the ``plot``, appears in the
+      ``fullplot``, which is the ``defaultPath``.
+
+   .. tab:: Example 2
+      :tabid: eg2
+
+      The following query searches for ``captain`` or
+      both ``kirk`` and ``chess`` in the ``plot`` field. 
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                $search: {
+                  "queryString": {
+                    "defaultPath": "fullplot",
+                    "query": "plot:captain OR (kirk AND chess)"
+                  }
+                }
+              },
+              {
+                $limit: 5
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "title": 1,
+                  "plot": 1,
+                  "fullplot": 1,
+                  score: { $meta: "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+
+            {
+              "fullplot" : "When the crew of the Enterprise is called back home, they find an unstoppable force of terror from within their own organization has detonated the fleet and everything it stands for, leaving our world in a state of crisis. With a personal score to settle, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction. As our heroes are propelled into an epic chess game of life and death, love will be challenged, friendships will be torn apart, and sacrifices must be made for the only family Kirk has left: his crew.",
+              "plot" : "After the crew of the Enterprise find an unstoppable force of terror from within their own organization, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction.",
+              "title" : "Star Trek Into Darkness",
+              "score" : 9.227973937988281
+            }
+            {
+              "plot" : "Captain Picard, with the help of supposedly dead Captain Kirk, must stop a madman willing to murder on a planetary scale in order to enter an energy ribbon.",
+              "title" : "Star Trek: Generations",
+              "fullplot" : "In the late 23rd century, the gala maiden voyage of the third Starship Enterprise (NCC-1701-B) boasts such luminaries as Pavel Chekov, Montgomery Scott and the legendary Captain James T. Kirk as guests. But the maiden voyage turns to disaster as the unprepared ship is forced to rescue two transport ships from a mysterious energy ribbon. The Enterprise manages to save a handful of the ships' passengers and barely makes it out intact... but at the cost of Captain Kirk's life. Seventy-eight years later, Captain Jean-Luc Picard and the crew of the Enterprise-D find themselves at odds with the renegade scientist Tolian Soran... who is destroying entire star systems. Only one man can help Picard stop Soran's scheme... and he's been dead for seventy-eight years.",
+              "score" : 3.3556222915649414
+            }
+            {
+              "plot" : "An army cadet accompanies an irascible, blind captain on a week-long trip from Turin to Naples. The captain, Fausto, who wants no pity, brooks no disagreement, and charges into every ...",
+              "title" : "Scent of a Woman",
+              "fullplot" : "An army cadet accompanies an irascible, blind captain on a week-long trip from Turin to Naples. The captain, Fausto, who wants no pity, brooks no disagreement, and charges into every situation, nicknames the youth Ciccio (\"Babyfat\"), and spends the next few days ordering him about and generally behaving badly in public. In Rome, Fausto summons a priest to ask for his blessing; in Naples, where Fausto joins a blind lieutenant for drinking and revelry, the two soldiers talk quietly and seriously about \"going through with it.\" Also in Naples is Sara, in love with Fausto, but treated cruelly by him. What do the blind soldiers plan? Can Sara soften Fausto's hardened heart?",
+              "score" : 3.2553727626800537
+            }
+            {
+              "plot" : "A seductive woman falls in love with a mysterious ship's captain.",
+              "title" : "Pandora and the Flying Dutchman",
+              "fullplot" : "Albert Lewin's interpretation of the legend of the Flying Dutchman. In a little Spanish seaport named Esperanza, during the 30s, appears Hendrick van der Zee, the mysterious captain of a yacht (he is the only one aboard). Pandora is a beautiful woman (who men kill and die for). She's never really fallen in love with any man, but she feels very attracted to Hendrick... We are soon taught that Hendrick is the Flying Dutchman, this sailor of the 17th century that has been cursed by God to wander over the seas until the Doomsday... unless a woman is ready to die for him...",
+              "score" : 3.2536067962646484
+            }
+            {
+              "plot" : "The adventures of pirate Captain Red and his first mate Frog.",
+              "title" : "Pirates",
+              "fullplot" : "Captain Red runs a hardy pirate ship with the able assistance of Frog, a dashing young French sailor. One day Capt. Red is captured and taken aboard a Spanish galleon, but thanks to his inventiveness, he raises the crew to mutiny, takes over the ship, and kidnaps the niece of the governor of Maracaibo. The question is, can he keep this pace up?",
+              "score" : 3.2536067962646484
+            }
+
+      The documents in the results match because the ``plot``
+      field contains the term ``captain``. The first document
+      gets a higher score because |fts| also finds the terms ``kirk``
+      and ``chess`` in the ``fullplot`` field although the terms are
+      not required to be present to meet the criteria for a match.
+
+Range Queries 
+~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: TO 
+      :tabid: to
+
+      The following example uses the ``queryString`` operator to query the
+      movie titles a range of textual values from the characters
+      ``count`` to any character (defined using the wildcard character
+      ``*``) in ascending alphabetical order. 
+
+      .. io-code-block::
+         :copyable: true 
+  
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "queryString": {
+                      "defaultPath": "plot",
+                      "query": "title:[count TO *]"
+                  }
+                }
+              },
+              {
+                "$limit": 10
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+        
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              { title: 'Blacksmith Scene' },
+              { title: 'The Great Train Robbery' },
+              { title: 'The Land Beyond the Sunset' },
+              { title: 'A Corner in Wheat' },
+              { title: 'Winsor McCay, the Famous Cartoonist of the N.Y. Herald and His Moving Comics' },
+              { title: 'Traffic in Souls' },
+              { title: 'Gertie the Dinosaur' },
+              { title: 'In the Land of the Head Hunters' },
+              { title: 'The Perils of Pauline' },
+              { title: 'The Birth of a Nation' }
+            ]      
+
+      |fts| results include movies with titles ``Blacksmith Scene``
+      and ``A Corner in Wheat`` although the range in the query
+      starts from characters ``count``. When you index with
+      the default analyzer, ``lucene.standard``, |fts| creates
+      separate tokens for the terms in the ``title`` field and
+      matches the query term to the individual tokens. Specifically,
+      |fts| creates the following tokens, at least one of which
+      (indicated by √) matches the query criteria: 
+
+      .. list-table:: 
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Title 
+           - Standard Analyzer Tokens 
+
+         * - Blacksmith Scene
+           - ``blacksmith``, ``scene`` √
+      
+         * - A Corner in Wheat
+           - ``a``, ``corner``, ``in``, ``wheat`` √
+         
+      If you index using the ``lucene.keyword`` analyzer, |fts|
+      would create a single token for the whole string in the
+      ``title`` field, resulting in results similar to the following 
+      for the same query: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         [
+           { title: 'è Nous la Libertè' },
+           { title: 'tom thumb' },
+           { title: 'è nos amours' },
+           { title: 'èke och hans vèrld' },
+           { title: 'èdipussi' },
+           { title: 's/y Glèdjen' },
+           { title: 'èAy, Carmela!' },
+           { title: 'èlisa' },
+           { title: 'èxtasis' },
+           { title: 'eXistenZ' }
+         ]
+
+   .. tab:: TO AND
+      :tabid: to-and
+
+      The following example uses the ``queryString`` operator to query the
+      movie genres for ``drama`` and the titles for a range of textual
+      values between ``man`` and ``men``, including both, in ascending
+      alphabetical order. 
+
+      .. io-code-block::
+         :copyable: true 
+  
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                  "$search": {
+                    "queryString": {
+                    "defaultPath": "plot",
+                    "query": "title:[man TO men] AND genres: Drama"
+                  }
+                }
+              },
+              {
+                "$limit": 10
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "genres": 1
+                }
+              }
+            ])
+        
+         .. output:: 
+            :language: json
+            :linenos:
+
+            [
+              { genres: [ 'Drama' ], title: 'The Wedding March' },
+              { genres: [ 'Drama' ], title: 'Maria Chapdelaine' },
+              { genres: [ 'Drama' ], title: 'Of Mice and Men' },
+              { genres: [ 'Drama' ], title: 'All the King's Men' },
+              { genres: [ 'Drama' ], title: 'Wuya yu maque' },
+              { genres: [ 'Drama' ], title: 'The Men' },
+              { genres: [ 'Drama' ], title: 'The Member of the Wedding' },
+              { genres: [ 'Drama' ], title: 'The Great Man' },
+              { genres: [ 'Drama' ], title: 'A Matter of Dignity' },
+              { genres: [ 'Drama' ], title: 'The Last Angry Man' }
+            ]
+
+      The documents in the results match because the ``genres`` field
+      contains the term ``drama`` and the movie ``title`` field
+      contains terms between ``Man`` and ``Men`` in alphabetical order
+      (``Man``, ``Maque``, ``March``, ``Maria``, ``Matter``,
+      ``Member``, and ``Men`` in the results). 
+
+Wildcard Queries 
+~~~~~~~~~~~~~~~~
+
+The following examples use the ``queryString`` operator to query for
+movie titles using fuzzy, wildcard, and regular expressions. The queries
+include a :pipeline:`$project` stage to exclude all fields except
+``title``. 
+
+.. tabs:: 
+
+   .. tab:: Fuzzy Example 
+      :tabid: fuzzy
+
+      The following query uses fuzzy (``~``) to do a fuzzy search in
+      the ``title`` field for movie titles that contain terms similar to 
+      ``catch`` with up to a two character variation. 
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "queryString": {
+                    "defaultPath": "title",
+                    "query": "catch~2"
+                  }
+                }
+              },
+              {
+                "$limit": 10
+              },
+              {
+                "$project": {
+                   "_id": 0,
+                   "title": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :linenos:
+
+            [
+              { title: 'Catch-22' },
+              { title: 'Catch That Girl' },
+              { title: 'Catch That Kid' },
+              { title: 'Catch a Fire' },
+              { title: 'Catch Me Daddy' },
+              { title: 'Death Watch' },
+              { title: 'Patch Adams' },
+              { title: "Batch '81" },
+              { title: 'Briar Patch' },
+              { title: 'Night Watch' }
+            ]
+
+   .. tab:: Wildcard Example 
+      :tabid: wildcard 
+
+      The following query uses wildcard expression to search the
+      ``title`` field for movie titles that contain characters
+      ``cou*t?*``, where ``*`` indicates any additional number of
+      characters and ``?`` indicates any single character. 
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "queryString": {
+                    "defaultPath": "title",
+                    "query": "cou*t?*" 
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              { title: 'A Day in the Country' },
+              { title: 'Diary of a Country Priest' },
+              { title: 'Cry, the Beloved Country' },
+              { title: 'The Country Girl' },
+              { title: 'Raintree County' }
+            ]
+
+      The documents in the results match because the ``title``
+      field contains the term ``Country`` or ``County``, which matches
+      the query criteria for characters starting with ``cou`` followed
+      by any number of characters (``n`` in the results) and then ``t`` 
+      followed by at least one or many characters (``r`` as in
+      ``country`` or ``y`` as in ``county`` in the results). 
+
+   .. tab:: Regular Expression Example 
+      :tabid: regex
+
+      The following query uses a regular expression to search the
+      ``title`` field for movie titles that contain characters that
+      start with any character followed by the characters ``tal`` 
+      and either ``y`` or ``ian`` after ``tal``. 
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "queryString": {
+                    "defaultPath": "title",
+                    "query": "/.tal(y|ian)/" 
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              { title: 'The Italian' },
+              { title: 'Journey to Italy' },
+              { title: 'Divorce Italian Style' },
+              { title: 'Marriage Italian Style' },
+              { title: 'Jealousy, Italian Style' }
+            ]
+
+      The documents in the results match because the ``title``
+      field contains the term ``Italy`` or ``Italian``, which matches
+      the query criteria for any character (``I`` in the results)
+      followed by ``tal`` with either ``y`` (as in ``Italy`` in the
+      results) or ``ian`` (as in ``Italian`` in the results).  
+
+Metadata Query 
+~~~~~~~~~~~~~~
+
+The following query searches the ``title`` field in the ``movies``
+collection for ``Marvel``, ``Avengers``, ``Iron Man``, or ``Captain
+America``. 
+
+.. tabs:: 
+
+   .. tab:: $searchMeta stage
+      :tabid: searchmeta-stage 
+
+      The following query returns movies in the following buckets
+      (years) that match the search criteria:
+
+      - 2000, inclusive lower bound for this bucket
+      - 2005, exclusive upper bound for the 2000 bucket and inclusive lower bound for this bucket
+      - 2010, exclusive upper bound for the 2005 bucket and inclusive lower bound for this bucket
+      - 2015, exclusive upper bound for the 2010 bucket and inclusive lower bound for this bucket
+      - 2020, exclusive upper bound for the 2015 bucket
+        
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$searchMeta": {
+                  "facet": {
+                    "operator": {
+                      "queryString": {
+                        "defaultPath": "title",
+                        "query": "\"Marvel\" OR \"Avengers\" OR \"Iron Man\" OR \"Captain America\""
+                      }
+                    },
+                    "facets": {
+                      "yearFacet": {
+                        "type": "number",
+                        "path": "year",
+                        "boundaries": [1990, 2000, 2005, 2010, 2015, 2020 ]
+                      }
+                    }
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [
+              {
+                count: { lowerBound: Long('16') },
+                facet: {
+                  yearFacet: {
+                    buckets: [
+                      { _id: 1990, count: Long('1') },
+                      { _id: 2000, count: Long('0') },
+                      { _id: 2005, count: Long('4') },
+                      { _id: 2010, count: Long('10') },
+                      { _id: 2015, count: Long('1') }
+                    ]
+                  }
+                }
+              }
+            ]
+
+   .. tab:: $$SEARCH_META Variable
+      :tabid: searchmeta-variable
+
+      The following query returns movies that match the search criteria
+      and that are in the following buckets (years):
+
+      - 2000, inclusive lower bound for this bucket
+      - 2005, exclusive upper bound for the 2000 bucket and inclusive lower bound for this bucket
+      - 2010, exclusive upper bound for the 2005 bucket and inclusive lower bound for this bucket
+      - 2015, exclusive upper bound for the 2010 bucket and inclusive lower bound for this bucket
+      - 2020, exclusive upper bound for the 2015 bucket
+        
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "facet": {
+                    "operator": {
+                      "queryString": {
+                        "defaultPath": "title",
+                        "query": "\"Marvel\" OR \"Avengers\" OR \"Iron Man\" OR \"Captain America\""
+                      }
+                    },
+                    "facets": {
+                      "yearFacet": {
+                        "type": "number",
+                        "path": "year",
+                        "boundaries": [1990, 2000, 2005, 2010, 2015, 2020 ]
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "$facet": {
+                  "docs": [
+                    { "$project":
+                      {
+                        "title": 1,
+                        "year": 1
+                      }
+                    }
+                  ],
+                  "meta": [
+                    {"$replaceWith": "$$SEARCH_META"},
+                    {"$limit": 1}
+                  ]
+                }
+              },
+              {
+                "$set": {
+                  "meta": {
+                    "$arrayElemAt": ["$meta", 0]
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [
+              {
+                docs: [
+                  {
+                    _id: ObjectId('573a13f3f29313caabddecf8'),
+                    title: 'Iron Man and Captain America: Heroes United',
+                    year: 2014
+                  },
+                  {
+                    _id: ObjectId('573a13adf29313caabd2bf71'),
+                    title: 'Iron Man',
+                    year: 2008
+                  },
+                  {
+                    _id: ObjectId('573a13c1f29313caabd659d3'),
+                    title: 'Iron Man 2',
+                    year: 2010
+                  },
+                  {
+                    _id: ObjectId('573a13c3f29313caabd69c74'),
+                    title: 'Iron Man 3',
+                    year: 2013
+                  },
+                  {
+                    _id: ObjectId('573a13b4f29313caabd4011f'),
+                    title: 'Captain America: The First Avenger',
+                    year: 2011
+                  },
+                  {
+                    _id: ObjectId('573a13d2f29313caabd91d33'),
+                    year: 2014,
+                    title: 'Captain America: The Winter Soldier'
+                  },
+                  {
+                    _id: ObjectId('573a13bbf29313caabd53752'),
+                    title: 'The Invincible Iron Man',
+                    year: 2007
+                  },
+                  {
+                    _id: ObjectId('573a139af29313caabcf075d'),
+                    title: 'The Avengers',
+                    year: 1998
+                  },
+                  {
+                    _id: ObjectId('573a13b6f29313caabd47da7'),
+                    title: 'Ultimate Avengers',
+                    year: 2006
+                  },
+                  {
+                    _id: ObjectId('573a13baf29313caabd506e4'),
+                    year: 2012,
+                    title: 'The Avengers'
+                  },
+                  {
+                    _id: ObjectId('573a13e0f29313caabdba876'),
+                    title: 'Iron Man: Rise of Technovore',
+                    year: 2013
+                  },
+                  {
+                    _id: ObjectId('573a13b8f29313caabd4ca34'),
+                    title: 'Ultimate Avengers II',
+                    year: 2006
+                  },
+                  {
+                    _id: ObjectId('573a13dcf29313caabdb2759'),
+                    title: 'Avengers: Age of Ultron',
+                    year: 2015
+                  },
+                  {
+                    _id: ObjectId('573a13d9f29313caabda9807'),
+                    title: 'Marvel One-Shot: Item 47',
+                    year: 2012
+                  },
+                  {
+                    _id: ObjectId('573a13e6f29313caabdc59ff'),
+                    title: 'Marvel One-Shot: Agent Carter',
+                    year: 2013
+                  },
+                  {
+                    _id: ObjectId('573a13ecf29313caabdd271a'),
+                    title: 'Avengers Confidential: Black Widow & Punisher',
+                    year: 2014
+                  }
+                ],
+                meta: {
+                  count: { lowerBound: Long('16') },
+                  facet: {
+                    yearFacet: {
+                      buckets: [
+                        { _id: 1990, count: Long('1') },
+                        { _id: 2000, count: Long('0') },
+                        { _id: 2005, count: Long('4') },
+                        { _id: 2010, count: Long('10') },
+                        { _id: 2015, count: Long('1') }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]

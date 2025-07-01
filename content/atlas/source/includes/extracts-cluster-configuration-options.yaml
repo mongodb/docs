@@ -1,0 +1,505 @@
+ref: cluster-option-clusterProviderRegionOnly
+content: |
+
+  To configure additional cluster options, toggle
+  :guilabel:`Select Multi-Region, Workload Isolation, and Replication Options (M10+ clusters)`
+  to :guilabel:`Yes`. Use these options to add cluster nodes in
+  different geographic regions with different workload priorities,
+  and direct application queries to the appropriate cluster nodes.
+
+  .. note:: AWS Only
+
+     If this is the first ``M10+`` dedicated paid cluster for the
+     selected region or regions *and* you plan on creating one or more
+     |vpc| peering connections, please review the documentation
+     on :doc:`VPC Peering Connections </security-vpc-peering>` before
+     continuing.
+
+  The following options are available when configuring cross-region
+  clusters:
+
+  :guilabel:`Electable nodes for high availability`
+     .. include:: /includes/cluster-settings/multicloud/electable-nodes-high-avail.rst
+
+     Click :guilabel:`Add a region` to add a new row for region
+     selection and select the region from the dropdown. Specify the
+     desired number of :guilabel:`Nodes` for the region. The total
+     number of electable nodes across all regions in the cluster must
+     be 3, 5, or 7.
+
+
+     When selecting a :guilabel:`Region`, regions marked as
+     :guilabel:`Recommended` provide higher availability compared to
+     other regions. For more information, see:
+
+     - :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
+     - :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.
+     - :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`.
+
+     Each node in the selected regions can participate in replica set
+     :term:`elections <election>`, and can become the :term:`primary`
+     as long as the majority of nodes in the replica set are available.
+
+     You can improve the replication factor of single-region clusters
+     by increasing the number of :guilabel:`Nodes` for your
+     :guilabel:`Highest Priority` region. You do not have to add
+     additional regions to modify the replication factor of your
+     :guilabel:`Highest Priority` region.
+
+     To remove a region, click the :icon:`trash-alt` icon next to that
+     region. You cannot remove the :guilabel:`Highest Priority` region.
+
+     |service| provides checks for whether your selected cross-regional
+     configuration provides availability during partial or whole
+     regional outages. To ensure availability during a full region
+     outage, you need at least one node in three different regions. To
+     ensure availability during a partial region outage, you must have
+     at least 3 electable nodes in a :guilabel:`Recommended` region
+     *or* at least 3 electable nodes across at least 2 regions.
+
+  :guilabel:`Read-only nodes for optimal local reads`
+     Use read-only nodes to optimize local reads in
+     the nodes' respective service areas.
+
+     Click :guilabel:`Add a region` to select a region in which to
+     deploy read-only nodes. Specify the desired number of
+     :guilabel:`Nodes` for the region.
+
+     Read-only nodes cannot provide high availability because they
+     cannot participate in :term:`elections <election>`, or become the
+     :term:`primary` for their cluster. Read-only nodes have
+     :ref:`distinct replica set tags <replica-set-tags>`
+     that allow you to direct queries to desired regions.
+
+     To remove a read-only region, click the :icon:`trash-alt` icon
+     next to that region.
+
+  :guilabel:`Analytics nodes for workload isolation`
+     .. include:: /includes/cluster-settings/multicloud/create-cluster-analytics-nodes.rst
+
+     Analytics nodes cannot participate in
+     :term:`elections <election>` or become the :term:`primary` for
+     their cluster.
+
+     To remove an analytics node, click the :icon:`trash-alt` icon
+     next to that region.
+
+  .. seealso::
+
+     For additional information
+     on replica set tag sets, see
+     :manual:`Configure Replica Set Tag Sets
+     </tutorial/configure-replica-set-tag-sets>` in the MongoDB manual.
+
+  .. note::
+
+     Having a large number of regions or having nodes spread across
+     long distances may lead to long election times or replication lag.
+
+  .. important::
+
+     .. include:: /includes/facts/cross-region-limits.rst
+
+---
+ref: cluster-option-clusterProviderRegion
+content: |
+
+  The cloud provider and region, or physical location, of your MongoDB
+  cluster. The choice of cloud provider and region affects the
+  configuration options for the available cluster tiers, network
+  latency for clients accessing your cluster, and the :doc:`cost of
+  running the cluster </billing>`.
+
+  .. include:: /includes/extracts/cluster-option-clusterProviderRegionOnly.rst
+
+---
+ref: cluster-option-clusterInstance
+content: |
+
+  Select your preferred cluster tier. The selected cluster tier
+  dictates the memory, storage, vCPUs, and |iops| specification for each
+  data-bearing server [#data-bearing]_ in the cluster.
+
+  |service| categorizes the cluster tiers as follows:
+
+  :guilabel:`Free and Flex Clusters`
+    Sandbox replica set clusters for getting started with MongoDB.
+    These clusters deploy to a shared environment with access to a
+    subset of |service| features and functionality. For complete
+    documentation on cluster limits and restrictions, see
+    :ref:`atlas-free-tier` or :ref:`{+Atlas-Flex+} Limitations <atlas-flex-limitations>`.
+
+    |service| provides an option to deploy
+    one ``M0`` {+Free-cluster+} replica set per project. You can
+    :doc:`scale up </scale-cluster>` an ``M0`` {+Free-cluster+} to
+    a {+Flex-cluster+} or a {+Dedicated-cluster+} at any time.
+
+  :guilabel:`Dedicated Clusters (for development and low-traffic applications)`
+    Cluster tiers that support development environments and low-traffic
+    applications.
+
+    These cluster tiers support replica set deployments only, but otherwise
+    provide full access to |service| features and functionality.
+
+  :guilabel:`Dedicated Clusters (for production and high-traffic applications)`
+    Clusters that support production environments with high traffic
+    applications and large datasets.
+
+    These cluster tiers support replica set and sharded cluster
+    deployments with full access to |service| features and
+    functionality.
+
+    Some cluster tiers have variants, denoted by the |angle| character.
+    When you select these cluster tiers, |service| lists the variants
+    and tags each cluster tier to distinguish their key characteristics.
+
+    .. note::
+
+       Changing the cluster tier for a production cluster will
+       require downtime if you are scaling up a tenant cluster (M0, Flex, M2, M5)
+
+    .. |angle| unicode:: U+276F
+
+  To view the key differences between an ``M0`` Free
+  Tier cluster, a {+Flex-cluster+}, and an
+  ``M10+`` dedicated cluster, see :ref:`atlas-free-tier`.
+
+---
+ref: cluster-option-customizeStorage
+content: |
+
+  Each cluster tier comes with a default set of resources.
+  Clusters of size M10 and larger provide the ability to customize
+  your storage capacity.
+
+  |service| provides the following storage configuration options,
+  depending on the selected cloud provider and cluster tier.
+
+  .. _storage-class-ui:
+
+  - :guilabel:`Cluster Class` (AWS only)
+
+    Clusters of size M40 and larger on AWS offer multiple options,
+    including:
+
+    - :guilabel:`Low CPU`
+    - :guilabel:`General`
+    - :guilabel:`Local NVMe SSD`
+
+      Locally attached ephemeral :ref:`NVMe SSDs <nvme-storage>`
+      offer the highest level of speed and performance.
+
+    Select the :guilabel:`Class` box with your preferred speed.
+    Changes to cluster class affect :ref:`cost <instance-size-costs>`.
+
+  .. _storage-capacity-ui:
+
+  - :guilabel:`Storage Capacity`
+
+    The size of the server data volume. To change this, either:
+
+    - Specify the exact disk size in the text box, *or*
+
+    - Move the slide bar until the text box displays your preferred
+      disk size.
+
+    Changes to storage capacity affect
+    :ref:`cost <instance-size-costs>`.
+
+    .. include:: /includes/fact-auto-expand-storage.rst
+
+  .. _storage-iops-ui:
+
+  - :guilabel:`IOPS` (configurable for AWS only)
+
+    .. include:: /includes/cluster-settings/provision-iops-note.rst
+
+    .. important::
+
+       .. include:: /includes/cluster-settings/minimum-iops.rst
+
+       .. include:: /includes/cluster-settings/extended-storage-limit.rst
+
+       For clusters with :guilabel:`Auto-Expand Storage` enabled,
+       |service| respects the calculated maximum storage for the
+       selected cluster tier. Users whose disk capacity reaches the
+       allowable limit receive notification by email.
+
+       For more information on the default resources and available
+       configuration options for each cloud service provider, see:
+
+       - :ref:`AWS Configuration Options <amazon-aws-configuration-options>`
+       - :ref:`GCP Configuration Options <google-gcp-configuration-options>`
+       - :ref:`Azure Configuration Options
+         <microsoft-azure-configuration-options>`.
+
+       .. seealso:: 
+       
+          :ref:`connection-limits`
+---
+ref: cluster-option-clusterSharding
+content: |
+
+  To deploy your cluster as a :term:`sharded cluster <sharded cluster>`,
+  toggle :guilabel:`Shard your cluster (M30 and up)` to ``Yes``.
+
+  :term:`Sharded clusters <sharded cluster>` support horizontal scaling and
+  consist of :manual:`shards </core/sharded-cluster-shards>`,
+  :ref:`config servers <sharding-config-server>` and
+  :term:`mongos <mongos>` routers:
+
+  .. include:: /includes/list-sharded-cluster-components.rst
+
+  .. include:: /includes/fact-conversion-sharded-clusters.rst
+
+  For details on how the number of host machines in a cluster affect cost, see
+  :ref:`server-number-costs`.
+
+  For more information on sharded clusters, see :manual:`Sharding </sharding>`
+  in the MongoDB manual.
+
+---
+ref: cluster-option-clusterShardingNum
+content: |
+
+  This field is visible only if the deployment is a sharded {+cluster+}.
+
+  Your cluster can have between 1 and 70 shards, inclusive.
+
+  To scale up a replica set to a multi-sharded {+cluster+},
+  you must scale up to a **single** shard {+cluster+} first,
+  restart your application and **reconnect to the cluster**, and then add
+  additional shards.
+
+  If you don't reconnect the application clients, your application may suffer
+  from data outages.
+
+  After you scale up a replica set {+cluster+} to a single-shard {+cluster+},
+  you can set the number of shards to deploy with the sharded {+cluster+}.
+
+  If you are reducing the number of shards in your sharded {+cluster+},
+  |service| removes shards in descending order based on the number in the
+  ``"_id"`` field (see :manual:`Sharded Cluster Configuration </tutorial/view-sharded-cluster-configuration/>`).
+  For example, consider a sharded {+cluster+} with the following three shards:
+
+  - ``"shard0"``
+  - ``"shard1"``
+  - ``"shard2"``
+
+  If you set the number of shards to two, |service| 
+  removes ``"shard2"`` from the {+cluster+}.
+
+  .. include:: /includes/fact-reduce-shards-warning.rst
+  
+  .. include:: /includes/cluster-settings/single-shard-cluster-warning.rst
+
+---
+ref: cluster-option-clusterBackup
+content: |
+
+  Backups are automatically enabled for {+Flex-clusters+} and you can't
+  disable them. To learn more, see  :ref:`flex-snapshots`.
+
+  To enable backups for an ``M10+`` |service| {+cluster+}, toggle
+  :guilabel:`Turn on Backup (M10 and up)` to ``Yes``.
+  If enabled, |service| takes snapshots of your databases at
+  regular intervals and retains them according to your project's
+  :ref:`retention policy <cloud-provider-retention-policy>`.
+
+  |service| provides :ref:`/backup/cloud-backup/overview` for ``M10+``
+  {+clusters+}.
+
+  |service| takes either full copy snapshots (for Azure-backed
+  clusters) or incremental snapshots (for AWS and GCP-backed
+  clusters) of data in your cluster
+  and allows you to restore from those snapshots. |service|
+  stores snapshots in the same cloud provider region as the
+  replica set member targeted for snapshots.
+
+  If you enable {+Cloud-Backup+}s for your cluster, you
+  also have the option to enable the {+PIT-Restore+}
+  option. {+PIT-Restore+} allows you to restore your cluster
+  to any time during your restore window, which you can configure
+  with the :ref:`Backup Policy Editor <cps-backup-policies>`.
+---
+ref: cluster-option-bi
+content: |
+
+   To enable `BI Connector for Atlas
+   <https://www.mongodb.com/docs/bi-connector/master/>`__ for this cluster,
+   toggle :guilabel:`Enable Business Intelligence Connector (M10 and
+   up)` to :guilabel:`Yes`.
+
+   .. note::
+
+      .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
+
+   If enabled, select the node type from which |bic|
+   should read.
+
+   .. _bic-read-preferences:
+
+   The following table describes the available read preferences for
+   |bic| and their corresponding
+   :manual:`readPreference </reference/read-preference>` and
+   :manual:`readPreferenceTag </core/read-preference/#tag-sets>`
+   connection string options.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 30 20 30
+
+      * - |bic-short| Read Preference
+        - Description
+        - readPreference
+        - readPreferenceTags
+
+      * - Primary
+        - Read from the :term:`primary` node.
+        - ``primary``
+        - None
+
+      * - Secondary
+        - Read from :term:`secondary` nodes.
+        - ``secondary``
+        - ``nodeType:ELECTABLE,nodeType:READ_ONLY``
+
+      * - Analytics
+        - |bic| reads from analytics nodes.
+        - ``secondary``
+        - ``nodeType:ANALYTICS``
+
+   The ``nodeType`` read preference tag dictates the type of node |bic|
+   connects to. The possible values for this option are as follows:
+
+   - ``ELECTABLE`` restricts |bic-short| to the :term:`primary` and
+     electable :term:`secondary` nodes.
+
+   - ``READ-ONLY`` restricts |bic-short| to connecting to
+     non-electable :term:`secondary` nodes.
+
+   - ``ANALYTICS`` restricts |bic-short| to connecting to
+     :ref:`analytics nodes <analytics-nodes-overview>`.
+
+     .. tip::
+
+        When using a ``readPreference`` of ``"analytics"``,
+        |service| places |bic| on the same hardware
+        as the analytics nodes from which |bic| reads.
+
+        By isolating electable data-bearing nodes from the
+        |bic|, electable nodes do not compete for resources
+        with |bic|, thus improving cluster reliability
+        and performance.
+
+   For high traffic production environments, connecting to the
+   :guilabel:`Secondary Node(s)` or :guilabel:`Analytics Node(s)` may
+   be preferable to connecting to the :guilabel:`Primary Node`.
+
+   For clusters with one or more
+   :ref:`analytics nodes <analytics-nodes-overview>`, select
+   :guilabel:`Analytics Node` to isolate |bic| queries from
+   your operational workload and read from dedicated, read-only
+   analytics nodes. With this option, electable nodes do not compete
+   for resources with |bic|, thus improving cluster reliability and
+   performance.
+
+   The BI Connector generates a relational schema by
+   :bic:`sampling data </schema/cached-sampling/>` from MongoDB. The
+   following sampling settings are configurable:
+
+   .. list-table::
+      :widths: 25 10 65
+      :header-rows: 1
+      :stub-columns: 1
+
+      * - BI Connector Option
+        - Type
+        - Description
+
+      * - Schema Sample Size
+        - integer
+        - *Optional.* The number of documents that the BI Connector
+          samples for each database when gathering schema information.
+          For more information, see the
+          :bic:`BI Connector documentation </reference/mongosqld/#cmdoption-mongosqld-samplesize>`.
+
+      * - Sample Refresh Interval
+        - integer
+        - *Optional.* The frequency, in seconds, at which the BI
+          Connector re-samples data to recreate the schema. For more
+          information, see the
+          :bic:`BI Connector documentation </reference/mongosqld/#cmdoption-mongosqld-samplerefreshintervalsecs>`.
+
+---
+ref: cluster-option-bi-cluster-requirements
+content: |
+
+  The |bic-official| (|bic-short|) is only available for ``M10`` and
+  larger clusters.
+
+  The |bic-short-no-link| is a powerful tool which provides users
+  SQL-based access to their MongoDB databases. As a result, the
+  |bic-short-no-link| performs operations which may be CPU and memory
+  intensive. Given the limited hardware resources on ``M10`` and
+  ``M20`` cluster tiers, you may experience performance degradation of
+  the cluster when enabling the |bic-short-no-link|. If this occurs,
+  scale up to an ``M30`` or larger cluster or disable the
+  |bic-short-no-link|.
+
+---
+ref: cluster-option-encryption-at-rest
+content: |
+
+  .. note:: Configure Encryption at Rest using your Key Management for your |service| Project
+  
+     You must configure the |service| project for Encryption at Rest
+     using your Key Management before enabling the feature for your
+     |service| clusters. To learn more,
+     see :ref:`security-kms-encryption`.
+
+     |service| supports the following Encryption at Rest providers:
+
+     - :ref:`AWS Key Management Services <security-aws-kms>`
+     - :ref:`Azure Key Vault <security-azure-kms>`
+
+  .. important::
+
+     If you want to switch from one Encryption at Rest provider on your
+     cluster to another, you must first disable Encryption at Rest for
+     your cluster, then re-enable it with your desired Encryption at
+     Rest provider. See :doc:`/security-kms-encryption`.
+
+  |service| encrypts all cluster storage and snapshot volumes,
+  ensuring the security of all cluster data at rest
+  (Encryption at Rest). |service|
+  :authrole:`Project Owners <project Owner>` can configure
+  an additional layer of encryption on their data at rest using the
+  MongoDB
+  :manual:`Encrypted Storage Engine </core/security-encryption-at-rest>`
+  and their |service|-compatible Encryption at Rest provider.
+
+  To enable |service| Encryption at Rest for this cluster,
+  toggle :guilabel:`Encryption At Rest with WiredTiger Encrypted Storage Engine (M10 and up)`
+  to :guilabel:`Yes`.
+
+  |service| Encryption at Rest using your Key Management supports
+  ``M10`` or greater replica set clusters backed by
+  :abbr:`AWS (Amazon Web Services)` or
+  :abbr:`Azure (Microsoft Azure)` only.  Support for clusters deployed
+  on Google Cloud Platform (GCP) is in development. |service| Encryption
+  at Rest supports encrypting :ref:`backup-cloud-provider` **only**.
+  
+  |service| clusters using Encryption at Rest using your Key Management
+  incur an increase to their hourly run cost. For more information on
+  |service| billing for advanced security features, see
+  :ref:`advanced-security`.
+
+  .. important::
+
+     If |service| cannot access the |service| project key management
+     provider or the encryption key used to encrypt a cluster, then
+     that cluster becomes inaccessible and unrecoverable. Exercise
+     extreme caution before modifying, deleting, or disabling an
+     encryption key or key management provider credentials used by
+     |service|.

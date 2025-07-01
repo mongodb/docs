@@ -1,0 +1,176 @@
+.. _set-up-database-auditing:
+
+========================
+Set Up Database Auditing
+========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: audit, atlas ui, atlas cli
+   :description: Set up database auditing in Atlas to track system activity, select actions, users, roles, and configure custom audit filters.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/unavailable-flex-serverless-m0-m2-m5-clusters.rst
+
+.. include:: /includes/fact-auditing-overview.rst
+
+To learn about recommendations for auditing
+and logging, including the events that we recommend auditing, see
+:ref:`arch-center-auditing-logging-recs` in the {+atlas-arch-center+}.
+
+.. _enable-auditing-atlas:
+
+Procedure
+---------
+
+.. note::
+
+   To learn about best practices for auditing the actions of temporary
+   database users, see :ref:`audit-temp-db-users`.
+
+Use the following procedure to set up database auditing:
+
+.. include:: /includes/steps-set-up-database-auditing.rst
+
+To retrieve the audit logs in |service|, see :ref:`MongoDB Logs 
+<mongodb-logs>`. To retrieve the audit logs using the API, see 
+:oas-atlas-op:`Logs </downloadLogsForOneClusterHostInOneProject>`.
+
+.. _auditing-custom-filter:
+
+Configure a Custom Auditing Filter
+----------------------------------
+
+.. include:: /includes/unavailable-flex-serverless-m0-m2-m5-clusters.rst
+
+.. include:: /includes/fact-auditing-custom-filter.rst
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps-custom-auditing-filter.rst
+
+Edit a Custom Auditing Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can edit your filter at any time:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-advanced.rst
+
+   .. step:: Edit the filter.
+
+      a. Under :guilabel:`Database Auditing` :icon-fa5:`arrow-right`
+         :guilabel:`Configure Your Auditing Filter`, click
+         :guilabel:`Use Custom JSON Filter`. 
+
+      #. Make the required changes. 
+
+      #. Click :guilabel:`Save`.
+
+View Your Custom Auditing Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-auditing-describe.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To view your custom auditing filter in the {+atlas-ui+}:
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-advanced.rst
+
+         .. step:: View your filter.
+
+            Your custom auditing filter displays under 
+            :guilabel:`Database Auditing`.
+
+.. _auditing-filter-example:
+
+Example Auditing Filters
+------------------------
+
+Use the following example auditing filters for guidance in constructing
+your own filters.
+
+.. important::
+
+   These examples are not intended for use in
+   production environments, nor are they a replacement for familiarity
+   with the :manual:`MongoDB Auditing Documentation </core/auditing/>`.
+
+Audit all authentication events for known users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+ 
+   {
+     "atype": "authenticate"
+   }
+
+Audit all authentication events for known users and authentication failures for unknown users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "$or": [
+       {
+         "users": []
+       },
+       {
+         "atype": "authenticate"
+       } 
+     ]
+   }
+
+.. note::
+
+   The ``authenticate`` action is required to log authentication
+   failures from known and unknown users.
+
+Audit authentication events for the "myClusterAdministrator" user
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json        
+
+    {
+      "atype": "authenticate",
+      "param": {
+        "user": "myClusterAdministrator",
+        "db": "admin",
+        "mechanism": "SCRAM-SHA-256"
+      }
+    }
+
+Audit unauthorized attempts at executing the selected commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+   
+   {
+     "atype": "authCheck",
+     "param.command": {
+       "$in": [
+         "insert",
+         "update",
+         "delete"
+       ]
+     }
+   }

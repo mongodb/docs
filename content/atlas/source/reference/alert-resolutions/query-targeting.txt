@@ -1,0 +1,257 @@
+.. _query-targeting-resolution:
+
+================
+Fix Query Issues
+================
+
+.. meta::
+   :description: Resolve inefficient queries by adding indexes and using Atlas tools like the Performance Advisor, Query Profiler, and Namespace Insights.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+``Query Targeting`` alerts often indicate inefficient queries.
+
+Alert Conditions
+----------------
+
+You can configure the following alert conditions in the project-level 
+:ref:`alert settings <configure-alerts>` page to trigger alerts.
+
+:alert:`Query Targeting: Scanned Objects / Returned` alerts are 
+triggered when the average number of documents scanned relative to the 
+average number of documents returned server-wide across all operations 
+during a sampling period exceeds a defined threshold. The default alert 
+uses a 1000:1 threshold.
+
+Ideally, the ratio of scanned documents to returned documents should be 
+close to 1. A high ratio negatively impacts query performance.
+
+:alert:`Query Targeting: Scanned / Returned` occurs if the number of
+index keys examined to fulfill a query relative to the actual number of
+returned documents meets or exceeds a user-defined threshold. This 
+alert is not enabled by default.
+
+.. example::
+
+   The following :ref:`mongod log <mongodb-logs>` entry shows statistics
+   generated from an inefficient query:
+
+   .. code-block:: json
+      :copyable: false
+
+      <Timestamp> COMMAND  <query>
+      planSummary: COLLSCAN keysExamined:0 
+      docsExamined: 10000 cursorExhausted:1 numYields:234 
+      nreturned:4  protocol:op_query 358ms
+
+   This query scanned 10,000 documents and returned only 4 for a ratio
+   of 2500, which is highly inefficient. No index keys were examined, so
+   MongoDB scanned all documents in the collection, known as a
+   :term:`collection scan`.
+
+Common Triggers
+---------------
+
+The query targeting alert typically occurs when there is no index to
+support a query or queries or when an existing index only partially
+supports a query or queries.
+
+.. include:: /includes/fact-query-targeting-mongot.rst
+
+Fix the Immediate Problem
+-------------------------
+
+Add one or more indexes to better serve the inefficient queries.
+
+The :doc:`Performance Advisor </performance-advisor>` provides the
+easiest and quickest way to create an index. The Performance Advisor
+monitors queries that MongoDB considers slow and recommends indexes to
+improve performance. |service| dynamically adjusts your slow query
+threshold based on the execution time of operations across your
+cluster.
+
+Click :guilabel:`Create Index` on a slow query for instructions on how
+to create the recommended index.
+
+.. note::
+    
+   It is possible to receive a Query Targeting alert for an
+   inefficient query without receiving index suggestions from the
+   Performance Advisor if the query exceeds the slow query threshold and
+   the ratio of scanned to returned documents is greater than the
+   threshold specified in the alert.
+
+In addition, you can use the following resources to determine which 
+query generated the alert:
+
+- The :doc:`Real-Time Performance Panel </real-time-performance-panel/>`
+  monitors and displays current network traffic and database operations
+  on machines hosting MongoDB in your |service| clusters.
+
+- The :ref:`MongoDB logs <mongodb-logs>` maintain an account of 
+  activity,
+  including queries, for each ``mongod`` instance in your |service|
+  clusters.
+
+- The :manual:`cursor.explain() </reference/method/cursor.explain/>`
+  command for {+mongosh+} provides performance details for
+  all queries.
+
+- :ref:`Namespace Insights <namespace-insights>` monitors 
+  collection-level query latency.
+
+- The |service| :ref:`Query Profiler <query-profiler>` records 
+  operations that |service| considers slow when compared to average 
+  execution time for all operations on your cluster.
+
+Implement a Long-Term Solution
+------------------------------
+
+Refer to the following for more information on query performance:
+
+- :manual:`MongoDB Indexing Strategies </applications/indexes>`
+- :manual:`Query Optimization </core/query-optimization>`
+- :manual:`Analyze Query Plan </tutorial/analyze-query-plan/>`
+
+Monitor Your Progress
+---------------------
+
+|service| provides the following methods to visualize query targeting:
+
+- Query Targeting
+  :ref:`metrics <monitor-cluster-metrics>`, which highlight high ratios
+  of objects scanned to objects returned.
+
+- :ref:`Namespace Insights <namespace-insights>`, which monitors 
+  collection-level query latency.
+
+- The :ref:`Query Profiler <query-profiler>`, which describes specific
+  inefficient queries executed on the cluster.
+
+Query Targeting Metrics
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can view historical metrics to help you visualize the query
+performance of your cluster. To view :guilabel:`Query Targeting`
+metrics in the {+atlas-ui+}:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: View :guilabel:`Query Targeting` metrics.
+
+      a. Click :guilabel:`View Monitoring` on the dashboard for the 
+         {+database-deployment+}.
+
+      #. On the :guilabel:`Metrics` page, click the 
+         :guilabel:`Add Chart` dropdown menu and select 
+         :guilabel:`Query Targeting`.
+
+The :guilabel:`Query Targeting` chart displays the following metrics
+for queries executed on the server:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Metric
+     - Description
+
+   * - :guilabel:`Scanned Objects / Returned` 
+     - Indicates the average number of documents examined relative to  
+       the average number of returned documents.
+
+   * - :guilabel:`Scanned / Returned`
+     - Indicates the number of index keys
+       examined to fulfill a query relative to the actual number of
+       returned documents.
+
+.. include:: /includes/fact-query-targeting-mongot.rst
+
+If either of these metrics exceed the
+:doc:`user-defined threshold </configure-alerts>`, |service| generates
+the corresponding
+:alert:`Query Targeting: Scanned Objects / Returned` or
+:alert:`Query Targeting: Scanned / Returned` alert.
+
+.. note::
+
+   You can also view :guilabel:`Query Targeting` ratios of operations in
+   real-time using the
+   :ref:`Real-Time Performance Panel <real-time-metrics-status-tab>`.
+
+Namespace Insights
+~~~~~~~~~~~~~~~~~~
+
+:ref:`Namespace Insights <namespace-insights>` monitors 
+collection-level :manual:`query latency </reference/operator/aggregation/collStats/#latencystats-document>`. You can view query 
+latency metrics and statistics for certain hosts and operation types. 
+Manage pinned namespaces and choose up to five namespaces to show in 
+the corresponding query latency charts.
+
+To access Namespace Insights:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Go to the :guilabel:`Namespace Insights` tab.
+   
+      a. Click :guilabel:`View Monitoring` on the dashboard for the 
+         {+database-deployment+}.
+
+      #. Click the :guilabel:`Query Insights` tab.
+
+      #. Click the :guilabel:`Namespace Insights` tab.
+
+Query Profiler
+~~~~~~~~~~~~~~
+
+The :ref:`Query Profiler <query-profiler>` contains several metrics
+you can use to pinpoint specific inefficient queries. You can
+visualize up to the past 24 hours of query operations. The Query
+Profiler can show the :guilabel:`Examined : Returned Ratio` (index keys 
+examined to documents returned) of logged queries, which might help you 
+identify the queries that triggered a 
+:alert:`Query Targeting: Scanned / Returned` alert. The chart shows the 
+number of index keys examined to fulfill a query relative to the actual 
+number of returned documents.
+
+.. note::
+
+   The :ref:`default <default-alert-settings>`
+   :alert:`Query Targeting: Scanned Objects / Returned` 
+   alert ratio differs slightly. The ratio of the average number of 
+   documents scanned to the average number of documents returned during 
+   a sampling period triggers this alert.
+
+|service| might not :ref:`log <mongodb-logs>` the individual operations 
+that contribute to the Query Targeting ratios due to automatically set 
+thresholds. However, you can still use the Query Profiler and 
+:guilabel:`Query Targeting` metrics to analyze and optimize query 
+performance.
+
+To access the Query Profiler:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Go to the :guilabel:`Query Profiler` tab.
+
+      a. Click :guilabel:`View Monitoring` on the dashboard for the 
+         {+database-deployment+}.
+
+      #. Click the :guilabel:`Query Insights` tab.
+
+      #. Click the :guilabel:`Query Profiler` tab.

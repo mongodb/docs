@@ -1,0 +1,267 @@
+ref: avs-collect-stats
+content: | 
+
+  The ``collectors`` is a |bson| document with the following field:
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 15 15 10 60
+
+     * - Field 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``allCollectorStats``
+       - document
+       - Required
+       - Statistics of all collectors of the query. Statistics reported represent either
+         the maximum value across all collectors used in the query or
+         a sum of the statistic across all the sub-collectors. The timing statistics are
+         summed to reflect the total time spent across all collectors
+         for the entire query. To learn more, see
+         :ref:`avs-explain-search-all-collector-stats`.  
+
+---
+ref: avs-all-collector-stats
+content: | 
+
+  The ``allCollectorStats`` is a |bson| document that describes collector
+  statistics across all collectors specified in the query. 
+  It contains the following keys: 
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 40 60
+
+     * - Field 
+       - Description
+
+     * - ``collect`` 
+       - Tracks the duration and number of results collected by the
+         collector.
+
+     * - ``competitiveIterator``
+       - Statistics tracking the total duration and the number of times a
+         ``competitiveIterator`` was requested from the collector. 
+
+     * - ``setScorer``
+       - Statistics tracking the total duration and number of times a
+         scorer was set on the collector.
+
+---
+ref: avs-explain-metadata
+content: | 
+
+  The ``metadata`` contains helpful metadata, such as the following:
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 15 15 10 60
+ 
+     * - Field 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``mongotVersion``
+       - String
+       - Optional
+       - Current version of ``mongot``.
+
+     * - ``mongotHostName``
+       - String
+       - Optional
+       - Human readable label that identifies the ``mongot`` host.
+
+     * - ``indexName``
+       - String
+       - Optional
+       - {+avs+} index used in the query.
+
+     * - ``cursorOptions``
+       - Document
+       - Optional
+       - Cursor options given to ``mongot``.
+
+     * - ``totalLuceneDocs``
+       - Integer
+       - Optional
+       - Total number of documents in the index including deleted
+         documents. 
+
+---
+ref: avs-explain-query
+content: | 
+
+  The ``explain`` response is a |bson| document with keys and values 
+  describing the execution statistics for the query. The ``explain`` 
+  document in the result set contains the following fields: 
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 15 15 10 60
+
+     * - Field 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``path``
+       - string 
+       - Optional 
+       - Path to the queried embedding field, only if it isn't the root.
+ 
+     * - ``type``
+       - string 
+       - Required 
+       - Name of the type of vector search query. See 
+         ``query`` for more information.
+
+     * - ``args``
+       - document 
+       - Required
+       - Vector search query information. See ``query`` for more information.
+
+     * - ``stats``
+       - document
+       - Optional 
+       - :ref:`avs-explain-timing-breakdown` for the query if ``explain`` 
+         ran with ``executionStats`` or ``allPlansExecution`` 
+         verbosity.
+
+---
+ref: avs-explain-args
+content: | 
+
+  The :ref:`explain response <avs-explain-response>` 
+  contains information how the query was executed internally. The 
+  ``args`` field includes the following details:
+
+  - Query type
+  - A structured summary example for each query type
+  - Query options in the structured summary 
+
+  The following sections describe the query types and the fields in the 
+  structured summaries:
+
+  .. expression:: WrappedKnnQuery
+
+     A wrapper query used for |ann| vector search that combines multiple queries. The 
+     structured summary includes details on the following option:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 15 15 10 50
+
+        * - Field
+          - Type
+          - Necessity
+          - Description
+         
+        * - ``query`` 
+          - Array 
+          - Required
+          - Array of sub-queries used in the vector search, typically containing 
+            ``KnnFloatVectorQuery`` and ``DocAndScoreQuery``.
+
+  .. expression:: KnnFloatVectorQuery
+
+     A query type specific to |ann| search on float vectors. The structured summary 
+     includes details on the following options:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 15 15 10 50
+
+        * - Field
+          - Type
+          - Necessity
+          - Description
+          
+        * - ``field`` 
+          - String 
+          - Required
+          - The vector field path being searched.
+          
+        * - ``k`` 
+          - Integer 
+          - Required
+          - Number of nearest neighbors to retrieve.
+
+  .. expression:: DocAndScoreQuery
+
+     A query type that handles document matching and scoring. The structured summary 
+     typically includes statistics about query execution.
+
+  .. expression:: ExactVectorSearchQuery
+
+     A query type for |enn| vector searches. The structured summary 
+     includes details on the following options:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 15 15 10 50
+
+        * - Field
+          - Type
+          - Necessity
+          - Description
+          
+        * - ``field`` 
+          - String 
+          - Required
+          - The vector field path being searched.
+          
+        * - ``similarityFunction`` 
+          - String 
+          - Required
+          - The similarity function used (``dotProduct``, ``cosine``, or ``euclidean``).
+          
+        * - ``filter`` 
+          - Document 
+          - Optional
+          - Pre-filter query that limits the vector search scope.
+
+  .. expression:: BooleanQuery
+
+     If you use a pre-filter in your vector search query,
+     your explain results include the ``BooleanQuery`` type.
+     To learn more about the fields for this type and  
+     other query types specific to your pre-filter query, 
+     refer to the Query Types on the
+     :ref:`{+fts+} Explain Page <explain-lucene-query>`.
+
+  .. expression:: DefaultQuery
+
+     Queries that are not explicitly defined by another 
+     query are serialized using the default query. The 
+     structured summary includes details on the following option: 
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 15 15 10 50
+
+        * - Field
+          - Type
+          - Necessity
+          - Description
+          
+        * - ``queryType`` 
+          - String 
+          - Required
+          - Type of query.
+
+---
+ref: avs-explain-stats
+content: | 
+
+  The ``explain`` response for :manual:`executionStats 
+  </reference/explain-results/#explain.executionStats>` and 
+  :manual:`allPlansExecution
+  </reference/explain-results/#explain.executionStats>` verbosity modes 
+  includes a ``stats`` field that contains information on how much 
+  :ref:`time <avs-timing-breakdown>` a query spends in various :ref:`stages 
+  of query <avs-areas-of-query>` execution. 
+
+...

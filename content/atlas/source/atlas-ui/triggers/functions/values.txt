@@ -1,0 +1,183 @@
+.. _atlas-define-value:
+
+========================
+Define and Access Values
+========================
+
+.. default-domain:: mongodb
+
+.. meta::
+  :description: Define and access Values to use in Atlas Functions.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A **Value** is a named reference to a piece of static data stored by |service|
+that you can access in |service| :ref:`Functions <atlas-functions>`. Values provide an
+alternative to hardcoding configuration constants directly into your Functions.
+
+In other words, Values allow you to separate deployment-specific configuration
+data from the business logic of your app.
+
+Values can resolve to two types of data:
+
+- *Plain text*: Resolves to a regular JSON object, array, or
+  string Value that you define.
+
+- *Secret*: Resolves to a :ref:`Secret <atlas-app-secret>` Value that you define.
+
+Define a Value
+--------------
+
+You can define a new Value from the UI or using the App Services CLI.
+
+.. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Navigate to the :guilabel:`Values` Page
+
+            a. Navigate to the :guilabel:`Triggers` page:
+
+               .. include:: /includes/nav/list-triggers.rst
+
+            #. Click the :guilabel:`Linked App Service: Triggers` link.
+
+            #. In the sidebar, click :guilabel:`Values` under the :guilabel:`Build` heading.
+
+            #. Click :guilabel:`Create a Value`.
+
+         .. step:: Name the Value
+
+            Enter a unique :guilabel:`Value Name`. This name is how you refer
+            to the Value in Functions.
+
+            .. note:: Value Name Restrictions
+
+               Value names cannot exceed 64 characters and may only contain
+               ASCII letters, numbers, underscores, and hyphens. The first
+               character must be a letter or number.
+
+         .. step:: Define the Value
+
+            a. Select the :guilabel:`Value` type.
+
+            #. Define either a plain text value or link to a Secret value:
+
+               - To define a plain text value, :guilabel:`Custom Content` and
+                 enter the plain text Value in the input box.
+
+               - To link to an existing Secret's value, select :guilabel:`Link to
+                 Secret` and select the Secret from the dropdown.
+
+               - To link to a new Secret value, select :guilabel:`Link to Secret`,
+                 then enter the new Secret's name and the new Secret's value in
+                 the input box that appears.
+
+               For more information on creating a Secret, see
+               :ref:`Create a Secret <atlas-create-secret>`.
+
+         .. step:: Save the Value
+
+            After you have named and defined the new Value, click
+            :guilabel:`Save`.
+
+            Once saved, you can immediately access the Value in your Functions.
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB |service| User
+
+            .. include:: /includes/triggers/app-services/cli-login.rst
+
+         .. step:: Pull Your App's Latest Configuration Files
+
+            .. include:: /includes/triggers/app-services/cli-pull-latest.rst
+
+         .. step:: Add the Value Configuration
+
+            Add a JSON configuration file for the new Value to the ``values``
+            subdirectory of your local application:
+
+            .. code-block:: shell
+
+               touch values/<ValueName>.json
+
+            Each Value is defined in its own JSON file. For example, a Value
+            named ``myValue`` would be defined in the file
+            ``/values/myValue.json``.
+
+            The configuration file should have the following general form:
+
+            .. code-block:: json
+               :caption: values/<ValueName>.json
+
+               {
+                  "name": "<Value Name>",
+                  "from_secret": <boolean>,
+                  "value": <Stored JSON Value|Secret Name>
+               }
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 25 75
+
+               * - Field
+                 - Description
+
+               * - ``name``
+                 - A unique name for the Value. This name is how you refer to
+                   the Value in Functions and rules.
+
+               * - ``from_secret``
+                 - Default: ``false``. If ``true``, the Value exposes a
+                   :ref:`Secret <atlas-app-secret>` instead of a plain-text JSON Value.
+
+               * - ``value``
+                 - The stored data the Value exposes when referenced:
+
+                   - If ``from_secret`` is ``false``, ``value`` can be a
+                     standard JSON string, array, or object.
+
+                   - If ``from_secret`` is ``true``, ``value`` is a string
+                     that contains the name of the Secret the Value exposes.
+
+         .. step:: Deploy Your Changes:
+
+            .. include:: /includes/triggers/app-services/cli-deploy.rst
+
+Access a Value
+--------------
+
+You can access a Value's stored data from an |service| Function
+using the :ref:`context.values <atlas-context-values>` module.
+
+.. code-block:: javascript
+
+   context.values.get("<Value Name>")
+
+For example, the following Function returns ``true`` when the active
+user's id is included in the plain text array Value
+``adminUsers``:
+
+.. code-block:: javascript
+   :caption: Example Function that uses a Value
+
+   exports = function() {
+      const adminUsers = context.values.get("adminUsers");
+      const isAdminUser = adminUsers.indexOf(context.user.id) > 0;
+      return isAdminUser;
+   }

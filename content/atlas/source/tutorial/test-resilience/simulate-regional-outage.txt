@@ -1,0 +1,150 @@
+.. _test-outage:
+
+========================
+Simulate Regional Outage
+========================
+
+.. meta::
+   :description: Simulate a regional outage in Atlas to test application resilience using the UI or API, ensuring proper handling of connectivity loss in multi-region clusters.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/unavailable-flex-serverless-m0-m2-m5-clusters.rst
+
+You can use the {+atlas-ui+} and |api| to simulate an outage on your
+|service| multi-region {+cluster+} and observe how your application
+handles an outage in one or more regions. You can also run multiple
+simulations. When running multiple simulations, we recommend a five
+minute interval between simulations.  
+
+Required Access
+---------------
+
+To start an outage simulation, you must have
+:authrole:`Organization Owner` or :authrole:`Project Owner` access to
+the project.
+
+.. _test-outage-process:
+
+Simulate Regional Outage Process 
+--------------------------------
+
+When you submit a request to test an outage using the {+atlas-ui+} 
+or |api|, |service| simulates an outage event. During a simulated
+outage, |service|: 
+
+- Removes network connectivity to nodes in the selected regions.
+- Does **not** trigger a monitoring alert for :alert:`Replica set has no primary`.
+
+If your application takes more than 15 minutes to notice connection loss
+to some nodes, we recommend that you reduce your |tcp| retransmission 
+timeout values. To learn more, see :manual:`modify tcp_retries2 value
+</faq/diagnostics/#do-tcp-retransmission-timeouts-affect-mongodb-deployments->`.
+
+Simulate Regional Outage Using the {+atlas-ui+} 
+-----------------------------------------------
+
+To simulate a Regional Outage in the {+atlas-ui+}:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Go to the :guilabel:`Test Resilience` modal.
+
+      a. For the {+cluster+} you wish to perform outage testing, click 
+         the :guilabel:`...` button.
+
+      #. Click :guilabel:`Test Resilience`. 
+
+      #. Select :guilabel:`Regional Outage`. |service| displays a 
+         :guilabel:`Test Resilience` modal with the steps |service| 
+         takes to simulate an outage event. To learn more, see 
+         :ref:`Simulate Regional Outage Process <test-outage-process>`.
+
+   .. step:: Begin the simulation.
+
+      a. Click :guilabel:`Select Regions`.
+
+      #. Select the tab corresponding to the type of outage you want to simulate:
+
+         .. tabs::
+
+            .. tab:: Minority of Electable Nodes
+               :tabid: minority
+
+               Select fewer than half of your electable nodes.
+
+            .. tab:: Majority of Electable Nodes
+               :tabid: majority
+         
+               Select at least one more than half of your electable 
+               nodes and keep at least one electable node remaining.
+
+               After selecting a majority of your electable nodes, your 
+               replica set won't have a :manual:`primary node
+               </core/replica-set-members#replica-set-primary-member>`. 
+               This means that your replica set can't perform write 
+               operations and read operations that are not configured 
+               with a suitable :manual:`readPreference 
+               </core/read-preference/>`.
+
+      #. Select :guilabel:`Simulate Regional Outage` to begin the test.
+          
+         |service| notifies you when the outage occurs.
+
+   .. step:: End the simulation.
+
+      Select a tab corresponding to the type of outage you are 
+      performing:
+
+      .. tabs::
+
+         .. tab:: Minority of Electable Nodes
+            :tabid: minority
+
+            When you finish testing the outage, click 
+            :guilabel:`End Simulation`.
+
+         .. tab:: Majority of Electable Nodes
+            :tabid: majority
+
+            When you finish testing the regional outage, you can perform
+            one of the following:
+          
+            - Restore your multi-region {+cluster+} by adding 
+              electable nodes to your replica set. To learn more, see 
+              :ref:`reconfigure-rs-during-regional-outage`.
+
+            - End the regional outage simulation by clicking 
+              :guilabel:`End Simulation`.
+
+Simulate Regional Outage Using the |api| 
+----------------------------------------
+
+You can use the :oas-atlas-op:`Test Outage </startOutageSimulation>`
+|api| endpoint to simulate an outage event. To learn more about the
+outage process, see :ref:`Simulate Regional Outage Process
+<test-outage-process>`. 
+
+Verify the Outage
+-----------------
+
+To verify that the outage is successful, monitor your application and
+ensure your read and write operations are working as expected.
+
+Troubleshoot Outage
+-------------------
+
+.. include:: /includes/fact-outage-sharded-cluster-impact.rst

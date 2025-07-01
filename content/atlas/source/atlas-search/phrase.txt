@@ -1,0 +1,478 @@
+.. _phrase-ref:
+
+=====================
+``phrase`` Operator
+=====================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: phrase operator, ordered sequence term search, slop field, array of phrases
+   :description: Learn how search documents for terms in the exact or a similar order to your query.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: phrase
+
+   The ``phrase`` operator performs search for documents containing an
+   ordered sequence of terms using the :ref:`analyzer <analyzers-ref>`
+   specified in the :ref:`index configuration <index-config-example>`.
+   If no analyzer is specified, the default :ref:`standard
+   <ref-standard-analyzer>` analyzer is used. 
+
+.. _phrase-syntax:
+
+Syntax
+------
+
+``phrase`` has the following syntax:
+
+.. code-block:: json
+   :linenos:
+
+   {
+     $search: {
+        "index": <index name>, // optional, defaults to "default"
+        "phrase": {
+          "query": "<search-string>",
+          "path": "<field-to-search>",
+          "score": <options>,
+          "slop": <distance-number>,
+          "synonyms": "<synonyms-mapping-name>"
+        }
+     }
+   }
+
+.. _phrase-options:
+
+Options
+-------
+
+``phrase`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``query``
+     - string or array of strings
+     - String or strings to search for.
+     - yes
+
+   * - ``path``
+     - string or array of strings
+     - Indexed field or fields to search. You can also specify a 
+       wildcard path to search.
+
+       :gold:`IMPORTANT:` To use the ``phrase`` operator, you must index the query field as type ``string`` with the ``indexOptions`` property
+       set to ``positions`` or the default value, ``offsets``. To learn more, see :ref:`Configure String Field Properties <fts-field-types-string-options>`. 
+     - yes
+
+   * - ``slop``
+     - integer
+     - Allowable distance between words in the ``query`` phrase. Lower
+       value allows less positional distance between the words and
+       greater value allows more reorganization of the words and more
+       distance between the words to satisfy the query. The default is
+       ``0``, meaning that words must be exactly in the same position
+       as the query in order to be considered a match. Exact matches
+       are scored higher.
+     - no
+
+   * - ``score``
+     - object
+     - Score to assign to matching search results. You can modify the
+       default score using the following options:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score with the given expression.
+
+       .. include:: /includes/fts/facts/fact-fts-array-scoring.rst
+
+       For information on the options for modifying the default score,
+       see :ref:`scoring-ref`. 
+
+     - no
+
+   * - ``synonyms`` 
+     - string 
+     - Required for running queries using :ref:`synonyms 
+       <synonyms-ref>`.
+
+       Name of the :ref:`synonym mapping definition <synonyms-ref>` in 
+       the :ref:`index definition <ref-index-definitions>`. Value can't 
+       be an empty string.
+
+       The amount of time that |fts| takes to execute queries that 
+       use :ref:`synonym mappings <synonyms-ref>` depends on the 
+       number and size of documents in the synonym source 
+       collection. 
+       
+       For example, a query that uses a synonym mapping that is based 
+       on very few synonym documents might be faster than a query 
+       that uses a synonym mapping that is based on many synonym 
+       documents. 
+
+     - Optional 
+
+Examples
+--------
+
+The examples in this page use the ``movies`` collection in the
+``sample_mflix`` database. After loading the :ref:`sample dataset
+<available-sample-datasets>` into your {+cluster+}, create the |fts|
+index with dynamic mappings and run the example queries on your
+{+cluster+}. To try the :ref:`synonyms <text-ref-synonyms-eg>` examples,
+you must also add the :ref:`synonymous_terms collection
+<sample-synonyms-coll>` to the ``sample_mflix`` database and then
+:ref:`define the index <synonyms-index-definition-ex>` with the
+``synonyms`` mapping collection.  
+
+Single Phrase Example
+~~~~~~~~~~~~~~~~~~~~~
+
+The following |fts| example performs a basic search of the
+``title`` field for the query string ``new york``. There is no
+``slop`` in the query and so the ``slop`` value defaults to
+``0``, which means the position of the words must exactly match
+the query string to be included in the results. The query also
+includes a:
+
+- :pipeline:`$limit` stage to limit the output to 10 results.
+- :pipeline:`$project` stage to exclude all fields except
+  ``title`` and add a field named ``score``.
+
+Basic Example 
+`````````````
+
+The following query returns the documents that match the search
+criteria. 
+
+.. io-code-block:: 
+   :copyable: true 
+    
+   .. input:: 
+      :language: json
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "phrase": {
+              "path": "title",
+              "query": "new york"
+            }
+          }
+        },
+        { $limit: 10 },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: shell
+      :linenos:
+      :visible: false
+
+      [
+        { title: 'New York, New York', score: 6.786321640014648 }
+        { title: 'New York', score: 6.258549213409424 }
+        { title: 'New York Stories', score: 5.3813982009887695 }
+        { title: 'New York Minute', score: 5.3813982009887695 }
+        { title: 'Synecdoche, New York', score: 5.3813982009887695 }
+        { title: 'New York Doll', score: 5.3813982009887695 }
+        { title: 'Little New York', score: 5.3813982009887695 }
+        { title: 'Escape from New York', score: 4.719893455505371 }
+        { title: 'Naked in New York', score: 4.719893455505371 }
+        { title: 'Autumn in New York', score: 4.719893455505371 }
+      ]
+
+Metadata Example 
+````````````````
+
+The following query returns the metadata results for the search
+criteria. It uses the :pipeline:`$searchMeta` stage to get the
+number of movies in the following buckets (years) that match the search 
+criteria:
+
+- 2000, inclusive lower bound for this bucket
+- 2005, exclusive upper bound for the 2000 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2005 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2010 bucket
+
+.. example::
+
+   .. io-code-block:: 
+      :copyable: true 
+      
+      .. input:: 
+         :language: json
+         :linenos:
+
+         db.movies.aggregate([
+           {
+             "$searchMeta": {
+               "facet": {
+                 "operator": {
+                   "phrase": {
+                     "path": "title",
+                     "query": "new york"
+                   }
+                 },
+                 "facets": {
+                   "yearFacet": {
+                     "type": "number",
+                     "path": "year",
+                     "boundaries": [2000, 2005, 2010, 2015 ]
+                   }
+                 }
+               }
+             }
+           }
+         ])
+
+      .. output:: 
+         :language: shell
+         :linenos:
+         :visible: false
+
+         [
+           {
+             count: { lowerBound: Long('27') },
+             facet: {
+               yearFacet: {
+                 buckets: [
+                   { _id: 2000, count: Long('3') },
+                   { _id: 2005, count: Long('8') },
+                   { _id: 2010, count: Long('4') }
+                 ]
+               }
+             }
+           }
+         ]
+
+   The results show that there are 3 movies between 2000 and 2005, 8
+   movies between 2005 and 2010, and 4 movies between 2010 and 2015 that
+   contain the term ``new york`` in the ``title``.
+
+Multiple Phrases Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following |fts| example performs a basic search of the
+``title`` field for the query strings ``the man`` and ``the
+moon``. There is no ``slop`` in the query and so the ``slop``
+value defaults to ``0``, which means the position of the words
+must exactly match the query string to be included in the
+results. The query also includes a:
+
+- :pipeline:`$limit` stage to limit the output to 10.
+- :pipeline:`$project` stage to exclude all fields except
+  ``title`` and add a field named ``score``.
+
+.. io-code-block:: 
+   :copyable: true 
+  
+   .. input:: 
+      :language: json
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "phrase": {
+              "path": "title",
+              "query": ["the man", "the moon"]
+            }
+          }
+        },
+        { $limit: 10 },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: shell
+      :linenos:
+      :visible: false
+
+      [
+        { title: 'The Man in the Moon', score: 4.4830474853515625 },
+        { title: 'Shoot the Moon', score: 3.252699851989746 },
+        { title: 'Kick the Moon', score: 3.252699851989746 },
+        { title: 'The Man', score: 2.8923356533050537 },
+        { title: 'The Moon and Sixpence', score: 2.8528637886047363 },
+        { title: 'The Moon Is Blue', score: 2.8528637886047363 },
+        { title: 'Racing with the Moon', score: 2.8528637886047363 },
+        { title: 'Mountains of the Moon', score: 2.8528637886047363 },
+        { title: 'Man on the Moon', score: 2.8528637886047363 },
+        { title: 'Castaway on the Moon', score: 2.8528637886047363 }
+      ]
+
+Slop Example
+~~~~~~~~~~~~
+
+The following |fts| example performs a search of the ``title`` field
+for the query string ``men women``. The ``slop`` value of ``5`` in the
+``query`` allows greater movement of the words and distance between the
+words ``men`` and ``women``. The query includes a :pipeline:`$project`
+stage to:
+
+- Exclude all fields except ``title``
+- Add a field named ``score``
+
+.. io-code-block:: 
+   :copyable: true 
+      
+   .. input:: 
+      :language: json
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "phrase": {
+              "path": "title",
+              "query": "men women",
+              "slop": 5
+            }
+          }
+        },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: shell
+      :linenos:
+      :visible: false
+
+      [
+        { title: 'Men Without Women', score: 3.367523193359375 },
+        { title: 'Men Vs Women', score: 3.367523193359375 },
+        { title: 'Good Men, Good Women', score: 2.8529787063598633 },
+        { title: 'The War Between Men and Women', score: 2.1851978302001953 },
+        { title: 'Women Without Men', score: 1.9656763076782227 },
+        { title: 'Women Vs Men', score: 1.9656763076782227 }
+      ]
+
+.. _fts-phrase-synonyms-example: 
+
+Synonyms Example
+~~~~~~~~~~~~~~~~
+
+The following queries search the ``plot`` field in the ``movies``
+collection for the terms in the given query string. |fts| returns
+results based on the :ref:`type of mapping <synonyms-ref>` in the
+:ref:`synonym source collection <synonyms-coll-spec>`,
+``synonymous_terms``, specified in the synonym mapping definition of the 
+index for the ``sample_mflix.movies`` collection. 
+
+The following query searches for the phrase ``automobile race`` anywhere
+in the ``plot`` field with a distance of up to ``5`` between the terms.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          $search: {
+            "phrase": {
+              "path": "plot",
+              "query": "automobile race",
+              "slop": 5,
+              "synonyms": "my_synonyms"
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          $project: {
+            "_id": 0,
+            "plot": 1,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+      :visible: false
+      :emphasize-lines: 3,8,13,18,23
+
+      [
+        {
+          plot: 'When a popular daredevil proposes an automobile race across three continents, his arch rival vows to beat him, while an ambitious female reporter has her own plans for victory.',
+          title: 'The Great Race',
+          score: 29.569732666015625
+        },
+        {
+          plot: 'A wide variety of eccentric competitors participate in a wild and illegal cross-country car race.',
+          title: 'The Cannonball Run',
+          score: 25.50379180908203
+        },
+        {
+          plot: 'A mechanic takes his family to a car race and a series of events occur which brings problems, betrayals, violence and the unexpected death of an elderly person.',
+          title: 'National Mechanics',
+          score: 21.538257598876953
+        },
+        {
+          plot: "It's time for the annual London to Brighton antique car rally, and Alan McKim and Ambrose Claverhouse are not going to let their friendship stop them from trying to humiliate each other. ...",
+          title: 'Genevieve',
+          score: 20.19266128540039
+        },
+        {
+          plot: "A naive drifter runs away from his army father in hopes of making it on the car racing circuit. In Las Vegas, he meets a young scam artist, who develops a crush on him. He is then ...",
+          title: 'Speedway Junky',
+          score: 18.639965057373047
+        }
+      ]
+
+The documents in the results contain the following terms in the ``plot``
+field with up to a distance of ``5`` between the terms:  
+
+- ``automobile``, ``car``, or ``vehicle``, which are defined as
+  ``equivalent`` synonyms in the ``synonymous_terms`` collection, 
+- ``race``, ``contest``, or ``rally``, which are defined as
+  ``explicit`` synonyms in the sy``synonymous_terms`` collection,
+      
+|fts| returns similar results for a search for ``car race`` or ``vehicle
+race`` because we configured ``automobile``, ``car``, and ``vehicle`` to
+be ``equivalent`` synonyms. However, the results for ``automobile
+contest`` wouldn't include documents with ``race`` or ``rally`` and the
+results for ``automobile rally`` wouldn't include documents with
+``race`` or ``contest`` because we didn't configure ``contest`` or
+``rally`` to be synonym of any terms.  

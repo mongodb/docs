@@ -1,0 +1,112 @@
+.. _move-cluster:
+
+========================================
+Move a {+Cluster+} to a Different Region
+========================================
+
+.. meta::
+   :description: Learn how to move a cluster to a different region in Atlas, considering factors like cluster tier, node configuration, and billing implications.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/flex-serverless-dont-use.rst
+
+Considerations
+--------------
+
+Support by {+Cluster+} Tier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports changing a {+cluster+}'s region and cloud provider:
+
+- When you :doc:`increase the {+cluster+} tier </scale-cluster>` of an 
+  ``M0`` {+cluster+} or {+Flex-cluster+}.
+- Anytime on an ``M10+`` multi-region {+cluster+}.
+
+Preferred and Electable Nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each node in the preferred and electable regions can:
+
+- Participate in :manual:`replica set elections
+  </core/replica-set-elections>`
+
+- Become the :term:`primary` if the majority of replica set nodes
+  are available.
+
+Electable nodes in the {+cluster+} must total 3, 5, or 7.
+
+Migration, Downtime and Performance Impact
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Depending on the amount of data to migrate, migrations can take a
+significant amount of time. To maximize availability for a replica set,
+|service| migrates one member at a time, starting with the secondary
+members first and then the primary.
+
+Migration can affect performance if your primary is already reaching
+operational capacity: each newly migrated replica set member must
+perform an :term:`initial sync` from the primary, adding to the
+operational load. Migrations can also affect performance if
+:manual:`read preferences </core/read-preference>` are set to read from
+secondaries: the replica set is down one secondary during the migration.
+
+VPC Peering (AWS Only)
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you move a {+cluster+} out of a region that has a
+:doc:`VPC (Virtual Private Cloud) </security-vpc-peering>` peering
+connection, the moved cluster can no longer use that peering connection
+to communicate with servers in the |vpc|. Any other {+clusters+} with 
+nodes remaining in the original region can continue to use the |vpc| 
+peering connection.
+
+You can create multiple |vpc| connections for each region, including
+a new |vpc| peering connection with the region that you moved a
+{+cluster+} to.
+
+.. note::
+
+   {+Cluster+} nodes removed from a region can't inherit access rules 
+   from an |aws| security group or allowed |vpc| |cidr| blocks 
+   configured for the |vpc| peering connection. You must 
+   :ref:`add-to-access-list` for all the virtual servers residing in 
+   the |vpc|. {+Cluster+} nodes remaining in the region are 
+   unaffected.
+
+Billing 
+~~~~~~~
+
+If you change your {+cluster+}'s :ref:`highest priority region 
+<deploy-across-multiple-regions>` or if MongoDB migrates oplog data to 
+a different region, you will be billed for storage in both the old and 
+new regions for the days following the region change. You must disable 
+{+pit-restore+} and reenable it to prevent billing in both the regions.
+
+.. note:: 
+
+   If you disable {+pit-restore+}, |service| will delete the 
+   {+pit-restore+} history.
+
+
+Move a Single-Region {+Cluster+}
+--------------------------------
+
+Use the following procedure to move nodes to a single-region 
+{+cluster+}.
+
+.. include:: /includes/steps-move-single-region-cluster.rst
+
+Move a Multi-Region {+Cluster+}
+-------------------------------
+
+Use the following procedure to move nodes to one or more regions in an
+``M10`` or larger multi-region {+cluster+}:
+
+.. include:: /includes/steps-move-multi-region-cluster.rst

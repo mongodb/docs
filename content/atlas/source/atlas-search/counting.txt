@@ -1,0 +1,462 @@
+.. _count-ref:
+
+===================
+Count |fts| Results
+===================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: metadata results, searchMeta, lowerBound, 
+   :description: Learn how to find the size, and display the exact result set number or the lower bound number with a specified threshold of the results from your Atlas Search query.
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The |fts| ``count`` option adds a field to the :ref:`metadata results 
+<fts-metadata-results>` document that displays a count of the search 
+results for the query. You can use ``count`` to determine the size of 
+the result set. You can use it in the :pipeline:`$search` 
+or :pipeline:`$searchMeta` stage. You must use it in conjunction with 
+the :ref:`operators <operators-ref>` or :ref:`collectors 
+<collectors-ref>` to display either the total number of documents or a 
+lower bound on the number of documents that match the query. 
+
+MongoDB recommends using ``count`` with the :pipeline:`$searchMeta` 
+stage to retrieve metadata results only for the query. To retrieve 
+metadata results and query results using the :pipeline:`$search` stage, 
+you must use the ``$$SEARCH_META`` variable. To learn more, see 
+:ref:`fts-count-aggregation-variable`.
+
+Considerations
+--------------
+
+To use the ``count`` option over sharded collections, your cluster must 
+run MongoDB 6.0 or later. On sharded |service| {+clusters+} running
+MongoDB 7.2.0, :pipeline:`$searchMeta` might return an error for
+``count``.  
+
+|fts| doesn't include the ``count`` results in the results for 
+queries run with ``count`` in :ref:`explain <explain-ref>` mode. 
+
+.. _count-syntax:
+
+Syntax
+------
+
+``count`` has the following syntax:
+
+.. code-block:: json
+
+   {
+     "$searchMeta"|"$search": {  
+       "index": "<index name>", // optional, defaults to "default"
+       "<operator>": { 
+         <operator-specifications>
+       },
+       "count": { 
+         "type": "lowerBound"|"total", 
+         "threshold": <number-of-documents> //optional
+       }
+     }
+   }
+
+.. _count-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 55 10
+
+   * - Field
+     - Type
+     - Description
+     - Required?
+
+   * - ``type``
+     - string 
+     - Type of count of the documents in the result set. Value can be 
+       one of the following:
+
+       - ``lowerBound`` - for a lower bound count of the number of 
+         documents that match the query. You can set the ``threshold`` 
+         for the lower bound number.
+       - ``total`` - for an exact count of the number of documents that 
+         match the query. If the result set is large, |fts| might take 
+         longer than for ``lowerBound`` to return the count.
+
+       If omitted, defaults to ``lowerBound``.
+
+     - no
+
+   * - ``threshold``
+     - int 
+     - Number of documents to include in the exact count if ``type`` is 
+       ``lowerBound``. If omitted, defaults to ``1000``, which 
+       indicates that any number up to ``1000`` is an exact count and 
+       any number above ``1000`` is a rough count of the number of 
+       documents in the result.
+     - no
+
+.. _count-results:
+
+Count Results 
+-------------
+
+The count document included in the results document contains the 
+following integer fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Option 
+     - Description 
+
+   * - ``lowerBound``
+     - Lower bound for this result set. This is returned by default if
+       you omit the ``type`` option and when you explicitly request a 
+       :ref:`count <count-ref>` of type ``lowerBound``.
+
+   * - ``total`` 
+     - Total count for this result set. This is returned only when a 
+       :ref:`count <count-ref>` of type ``total`` is requested.
+
+.. _fts-count-aggregation-variable: 
+
+``SEARCH_META`` Aggregation Variable
+------------------------------------
+
+.. include:: /includes/fts/facts/fact-fts-search-meta-variable.rst
+
+.. example:: 
+
+   .. tabs:: 
+
+      .. tab:: Basic 
+         :tabid: basic
+
+         Suppose an index on the ``released`` field in the 
+         ``sample_mflix.movies`` collection: 
+
+         .. code-block:: json 
+   
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "released": {
+                    "type": "date"
+                  }
+                }
+              }
+            }
+
+         The following query searches for movies released near September 
+         01, 2011 in the ``movies`` collection. The query requests a total 
+         count of the results. The query includes a: 
+   
+         The sample query uses the following stages: 
+         
+         .. list-table:: 
+            :stub-columns: 1
+            :widths: 20 80
+
+            * - :pipeline:`$search`
+              - Searches for movies released near September 01, 2011 in
+                the ``movies`` collection. The query requests a total
+                count of the results and metadata on the ``genres``
+                field. 
+         
+            * - :pipeline:`$project` 
+              - Excludes all fields except ``title`` and ``released``
+                from the documents and includes the metadata results
+                stored in the ``$$SEARCH_META`` variable as the value of
+                a  field named ``meta``.
+           
+            * - :pipeline:`$limit`  
+              - Limits the output to ``2`` documents. 
+
+         .. io-code-block:: 
+            :copyable: true 
+            
+            .. input:: 
+               :language: json 
+
+               db.movies.aggregate([
+                 {
+                   "$search": {
+                     "near": {
+                       "path": "released",
+                       "origin": ISODate("2011-09-01T00:00:00.000+00:00"),
+                       "pivot": 7776000000
+                     },
+                     "count": {
+                        "type": "total"
+                     }
+                   }
+                 },
+                 {
+                   "$project": {
+                     "meta": "$$SEARCH_META",
+                     "title": 1,
+                     "released": 1
+                   }
+                 },
+                 {
+                   "$limit": 2
+                 }
+               ])
+
+            .. output:: 
+               :language: json 
+
+               { 
+                 "_id" : ObjectId("573a13c3f29313caabd6b025"), 
+                 "title" : "Submarino", 
+                 "released" : ISODate("2011-09-01T00:00:00Z"), 
+                 "meta" : { 
+                   "count" : { "total" : NumberLong(23026) } 
+                 } 
+               }
+               { 
+                 "_id" : ObjectId("573a13c7f29313caabd748f7"), 
+                 "title" : "Devil's Playground", 
+                 "released" : ISODate("2011-09-01T00:00:00Z"), 
+                 "meta" : { 
+                   "count" : { "total" : NumberLong(23026) } 
+                 } 
+               }
+
+      .. tab:: Facet 
+         :tabid: facet
+
+         Suppose an index on the ``released`` and ``genres`` fields in
+         the ``sample_mflix.movies`` collection:
+
+         .. code-block:: json 
+   
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "genres": {
+                    "type": "token"
+                  },
+                  "released": {
+                    "type": "date"
+                  }
+                }
+              }
+            }
+
+         The sample query uses the following stages: 
+         
+         .. list-table:: 
+            :stub-columns: 1
+            :widths: 20 80
+
+            * - :pipeline:`$search`
+              - Searches for movies released near September 01, 2011 in
+                the ``movies`` collection. The query requests a total
+                count of the results and metadata on the ``genres``
+                field.   
+
+            * - :pipeline:`$limit` 
+              - Limits the output to ``2`` documents.
+   
+            * - :pipeline:`$facet` 
+              - Processes the ``$search`` results by excluding all fields except
+                ``title``, ``released``, and ``genres`` from the
+                documents and including the metadata results stored in
+                the ``$$SEARCH_META`` variable inside the ``meta`` array
+                of documents.
+
+         .. io-code-block:: 
+            :copyable: true 
+            
+            .. input:: 
+               :language: json 
+
+               db.movies.aggregate([
+                 {
+                   "$search": {
+                     "facet": {
+                       "operator": {
+                         "near": {
+                           "path": "released",
+                           "origin": ISODate("2011-09-01T00:00:00.000+00:00"),
+                           "pivot": 7776000000
+                         }
+                       },
+                       "facets": {
+                         "genresFacet": {
+                           "type": "string",
+                           "path": "genres"
+                         }
+                       }
+                     },
+                     "count": {
+                       "type": "total"
+                     }
+                   }
+                 },
+                 {
+                   "$limit": 2
+                 },
+                 {
+                   "$facet": {
+                     "results": [ 
+                       { "$project":
+                         {
+                           "title": 1,
+                           "released": 1,
+                           "genres": 1
+                         }
+                       }
+                     ],
+                     "meta": [
+                       {"$replaceWith": "$$SEARCH_META"},
+                       {"$limit": 1}
+                     ]
+                   }
+                 }
+               ])
+
+            .. output:: 
+               :language: json 
+
+               [
+                 {
+                   results: [
+                     {
+                       _id: ObjectId('573a13c3f29313caabd6b025'),
+                       genres: [ 'Drama' ],
+                       title: 'Submarino',
+                       released: ISODate('2011-09-01T00:00:00.000Z')
+                     },
+                     {
+                       _id: ObjectId('573a13c7f29313caabd748f7'),
+                       genres: [ 'Action', 'Horror' ],
+                       title: "Devil's Playground",
+                       released: ISODate('2011-09-01T00:00:00.000Z')
+                     }
+                   ],
+                   meta: [
+                     {
+                       count: { total: Long('20878') },
+                       facet: {
+                         genresFacet: {
+                           buckets: [
+                             { _id: 'Drama', count: Long('12149') },
+                             { _id: 'Comedy', count: Long('6436') },
+                             { _id: 'Romance', count: Long('3274') },
+                             { _id: 'Crime', count: Long('2429') },
+                             { _id: 'Thriller', count: Long('2400') },
+                             { _id: 'Action', count: Long('2349') },
+                             { _id: 'Adventure', count: Long('1876') },
+                             { _id: 'Documentary', count: Long('1755') },
+                             { _id: 'Horror', count: Long('1432') },
+                             { _id: 'Biography', count: Long('1244') }
+                           ]
+                         }
+                       }
+                     }
+                   ]
+                 }
+               ]
+
+   To learn more about the results, see :ref:`count-results`.
+
+.. _count-egs: 
+
+Examples 
+--------
+
+The following example uses an index on the ``year`` field in the 
+``sample_mflix.movies`` collection: 
+
+.. code-block:: json 
+   
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "year": {
+           "type": "number"
+         }
+       }
+     }
+   }
+
+.. tabs:: 
+
+   .. tab:: lowerBound Example 
+      :tabid: lowerBound
+
+      The following query searches for the movies between the years 
+      ``2010`` and ``2015`` in the ``movies`` collection. The query 
+      requests a lower bound count of the results:
+
+      .. code-block:: json 
+
+         db.movies.aggregate([
+           {
+             "$searchMeta": {
+               "range": {
+                 "path": "year",
+                 "gte": 2010,
+                 "lte": 2015
+               },
+               "count": {
+                 "type": "lowerBound"
+               }
+             }
+           }
+         ]) 
+
+      |fts| returns the following results: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         { "count" : { "lowerBound" : NumberLong(1001) } }
+
+   .. tab:: total Example 
+      :tabid: total
+
+      The following query searches for the movies between the years 
+      ``2010`` and ``2015`` in the ``movies`` collection. The query 
+      requests a total count of the results:
+
+      .. code-block:: json 
+
+         db.movies.aggregate([
+           {
+             "$searchMeta": {
+               "range": {
+                 "path": "year",
+                 "gte": 2010,
+                 "lte": 2015
+               },
+               "count": {
+                 "type": "total"
+               }
+             }
+           }
+         ])
+
+      |fts| returns the following results: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         { "count" : { "total" : NumberLong(5971) } }
+
+      To learn more about the results, see :ref:`count-results`.

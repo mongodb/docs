@@ -1,0 +1,723 @@
+.. meta::
+   :keywords: atlas ui, atlas cli
+   :description: Modify your Atlas cluster settings, including cluster type, tier, cloud provider, and enable features like sharding and backups.
+
+.. _scale-cluster:
+.. _modify-cluster:
+
+====================
+Modify a {+Cluster+}
+====================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can modify your {+cluster+} after initial configuration.
+
+- For a summary of available options, see :ref:`cluster-config-options`.
+
+- For in-depth configuration steps, see :ref:`scale-cluster-open-dialog` and 
+  the options that follow.
+
+For more information about the impact, cost, and backup policy of your
+{+cluster+} changes, see :ref:`cluster-config-considerations`.
+
+.. _cluster-config-options:
+
+|service| Configuration Options
+-------------------------------
+
+You can change the following options of your |service| {+cluster+}:
+
+.. list-table::
+   :widths: 20 40 40
+
+   * - Setting
+     - Action
+     - Limitations
+
+
+   * - :ref:`Cluster Type <change-cluster-type>`
+     
+     - Change the {+cluster+} type.
+
+     - You can move from a {+Flex-cluster+} to a {+dedicated-cluster+}.
+       You can also move from a {+Serverless-instance+} to a {+dedicated-cluster+}.
+
+   * - :ref:`Global Cluster Configuration <scale-cluster-global-config>`
+
+     - Enable |global-write| for your {+cluster+} or change existing global
+       {+cluster+} configurations.
+
+     - After you enable |global-write| for a {+cluster+}, you can't disable
+       them.
+
+       .. include:: /includes/cluster-settings/global-cluster/global-clusters-search-nodes-limitations.rst
+
+   * - :ref:`Cloud Provider & Region <scale-cluster-cloud-provider>`
+
+     - Select a different provider to change the cloud provider for
+       your {+dedicated-clusters+}. 
+       
+       If you created an |service| {+cluster+} on |aws| **or** created
+       an |service| {+cluster+} after November 2, 2020, your connection
+       string doesn't change. You don't experience {+cluster+} downtime.
+
+     - If you created an |service| {+cluster+} 
+       on |gcp| or |azure| before November 2, 2020, when |service| added
+       support for multi-cloud clusters, changing to a different
+       provider changes the connection string to your new {+cluster+}. Consider scheduling a time to :ref:`update your applications 
+       with the new connection string <atlas-faq-migrate-providers>`
+       to connect to the {+cluster+} again.
+
+       To learn more, see :ref:`dedicated-to-dedicated`.
+
+       If you add or move a node to a region without a primary node
+       or without an existing secondary node requires each newly 
+       migrated replica set member to perform an
+       :manual:`initial sync </core/replica-set-sync>`.
+
+       For {+clusters+} on |azure|, if you change a region, some storage
+       capabilities might be unavailable in that region. The {+atlas-ui+}
+       notifies you that your |iops| will be reduced, which might impact
+       your application performance. To learn more, see
+       :ref:`regions that support extended storage <microsoft-azure-storage-supported-regions>`,
+       and :ref:`change-storage-capacity-azure`.
+
+
+   * - :ref:`Deploy or Configure a multi-cloud, multi-region {+cluster+} <scale-cluster-region>`
+     - Deploy or modify a multi-cloud, multi-region {+cluster+}.
+
+     - For {+clusters+} on |azure|, if you change to a multi-region {+cluster+},
+       some storage volume capabilities might be unavailable in one of
+       the regions. The {+atlas-ui+} notifies you that your |iops| will be
+       reduced, which might impact your application performance.
+       To learn more, see :ref:`regions that support extended storage <microsoft-azure-storage-supported-regions>`,
+       and :ref:`change-storage-capacity-azure`.
+
+   * - :ref:`Cluster Tier <scale-cluster-instance>`
+
+     - Change the {+cluster+} tier.
+
+     - If your {+cluster+} uses :ref:`NVMe storage <nvme-storage>`,
+       |service| must perform an
+       :manual:`initial sync </core/replica-set-sync>`.
+
+       .. include:: /includes/fact-nvme-fcbis.rst
+
+   * - :ref:`Cluster Storage Options <create-cluster-storage>`
+
+     - Change the storage options for the {+cluster+} tier.
+
+     - Clusters using |nvme| storage have a fixed size for each {+cluster+}
+       tier.
+
+   * - :ref:`Cluster Autoscaling Options <cluster-autoscaling>`
+
+     - Change the {+cluster+}'s auto-scaling options, including storage
+       auto-scaling. Depending on whether you choose to use storage auto-scaling,
+       |service| manages the oplog entries based on either the minimum oplog
+       retention window, or the oplog size. To learn more, see
+       :ref:`Oplog Size Behavior <oplog-size-behavior>`. |service| enables
+       storage auto-scaling by default.
+
+     - None
+
+   * - :ref:`MongoDB Version <scale-cluster-version>`
+
+     - Upgrade the major MongoDB version of the {+cluster+}.
+
+     - You can't downgrade the MongoDB version unless you pinned the cluster's
+       |fcv| before upgrading.
+
+       You can't upgrade to a version that is 2 versions above the pinned |fcv| version. 
+       If a cluster is pinned to |fcv| 6.0, you can only upgrade to 7.0, not 8.0+.
+
+   * - :ref:`Deploy a Sharded {+Cluster+} <scale-cluster-sharding>`
+
+     - Scale up a replica set to a sharded {+cluster+}.
+
+     - You can't reverse this operation.
+
+       |service| allows Sharded Clusters for ``M30`` or larger
+       clusters.
+
+       .. include:: /includes/cluster-settings/convert-to-sharded-cluster-limitations.rst
+
+   * - :ref:`Modify the Number of Shards <scale-cluster-shardNum>`
+
+     - Set the number of shards for a sharded {+cluster+}.
+
+     - Reducing the number of shards takes some time. |service| 
+       removes shards in descending order based on the number in
+       in their ``"_id"`` field. Any subsequent MongoDB
+       configuration changes start after |service| removes the shards.
+
+       .. include:: /includes/fact-reduce-shards-warning-nested.rst
+
+       |service| allows Sharded Clusters for ``M30`` or larger
+       clusters.
+
+   * - :ref:`Enable or Disable Backup <scale-cluster-backups>`
+
+     - Enable or disable backups for the {+cluster+}.
+
+     - |service| enables backups for {+Flex-clusters+} automatically.
+       You can't disable backup for {+clusters+} on those tiers.
+
+   * - :ref:`Enable or Disable the Business Intelligence Connector <create-cluster-enable-bi>`
+
+     - Enable or disable the |bic| for this {+cluster+}.
+
+       .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
+
+     - None
+
+   * - :ref:`Manage your own encryption keys <scale-cluster-enable-encryption>`
+
+     - Enable or disable using your own encryption keys with this
+       {+cluster+}.
+
+     - None
+
+Click :ref:`Apply Changes <scale-cluster-payment>` after you complete any
+of these modifications.
+
+.. _cluster-config-considerations:
+
+Considerations
+--------------
+
+Migration, Availability, and Performance Impact
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Making changes to a {+cluster+} often requires migrating to new servers
+and storage volumes. The time required for an :term:`initial sync` and
+resynchronizing data across storage volumes increases linearly with the
+amount of data in the {+cluster+}.
+
+.. include:: /includes/fact-nvme-fcbis.rst
+
+The following migrations require an :term:`initial sync`:
+
+- Scaling up from a {+Free-cluster+} (``M0``) or a {+Flex-cluster+} to a higher {+cluster+} tier.
+
+- Changes from general to :ref:`NVMe storage volumes <nvme-storage>` and
+  from NVMe to general storage.
+
+- Scaling up or scaling down from one |nvme| {+cluster+} tier to another,
+  initiated either manually or via auto-scaling. |nvme| {+clusters+}
+  auto-scale to the next higher tier when 90% of the available storage
+  space is consumed.
+
+- Changes that require a replacement of an NVMe-backed |service|
+  {+cluster+}, such as region changes.
+
+- For {+clusters+} deployed to |azure|, changes to the :ref:`storage-class-ui`.
+
+To maximize availability:
+
+- For a replica set, |service| migrates one node at a time, starting
+  with the secondary nodes first and then the primary.
+
+- For a sharded {+cluster+}, |service| performs the migration of the shards
+  independently of each other. For each shard, such as a replica set,
+  |service| migrates one node at a time, starting with the secondary
+  nodes first and then the primary.
+
+:manual:`Retryable writes </core/retryable-writes>` should prevent any
+write errors during the election of a new primary. On average, an
+election can take five seconds.
+
+Migration can affect performance if your primary is already reaching
+operational capacity. Each newly migrated replica set node must
+perform an :term:`initial sync` from the primary, adding to the
+operational load. Migrations can also affect performance if you set
+:manual:`read preferences </core/read-preference>` to read from
+secondaries. The replica set is down one secondary during the
+migration.
+
+.. include:: /includes/fact-auto-index.rst
+
+.. _cluster-config-billing:
+
+Billing
+~~~~~~~
+
+As you change your {+cluster+}, you can compare the costs of different
+options before applying them. The :guilabel:`Cluster Overview` box
+displays the cost of the selected configuration, excluding data
+transfer.
+
+.. important:: {+Free-Clusters+}
+
+   Upgrading an ``M0`` {+Free-cluster+} to a paid
+   tier {+cluster+} starts billing for the {+cluster+}. See :doc:`billing` for
+   complete documentation on |service| billing.
+
+The following sections provide complete documentation for each of the
+|service| {+cluster+} scaling configuration options.
+
+Backup
+~~~~~~
+
+See :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` for more information on 
+backing up your {+cluster+}.
+
+.. _scale-cluster-atlas-cli:
+.. _scale-cluster-open-dialog:
+
+Required Access
+---------------
+
+To modify a {+cluster+}, you must have :authrole:`Project Cluster Manager` 
+access or higher to the project.
+
+.. _edit-cluster-atlas:
+
+Edit a {+Cluster+}
+------------------
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      You can modify any of the {+cluster+} settings on this page using the {+atlas-cli+}.
+
+      .. include:: /includes/extracts/atlas-clusters-update-and-upgrade.rst
+
+      Edit Advanced Settings
+      ~~~~~~~~~~~~~~~~~~~~~~
+      
+      .. include:: /includes/extracts/atlas-clusters-advancedSettings-update.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Edit the configuration
+
+            For the {+cluster+} you want to modify, click the  
+            :icon-fa5:`ellipsis-h` icon, and then select :guilabel:`Edit Configuration`.
+
+      Alternatively, if you are already viewing the specific 
+      {+cluster+}, click the :guilabel:`Configuration` button. For 
+      ``M0`` {+Free-clusters+}, you can also click the 
+      :guilabel:`Upgrade` button for the {+cluster+}.
+
+.. _change-cluster-type:
+
+Modify the Cluster Type
+-----------------------
+
+If you have an ``M0`` or {+Flex-cluster+}, you can change it to a dedicated 
+{+cluster+}.
+
+To scale up your ``M0`` or {+Flex-cluster+} to an ``M10+`` {+cluster+}, complete the following steps:
+
+.. procedure::
+   :style: normal
+  
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Click :guilabel:`Edit Config` and select your cluster from the drop-down menu.
+
+   .. step:: At the top of your configuration settings, click the :guilabel:`Dedicated` tab.
+
+   .. step:: Select your preferred cluster tier.
+     
+      To learn more, see :ref:`scale-cluster-instance`. 
+
+.. note:: Considerations
+
+   You can't change a dedicated {+cluster+} to a {+Free-cluster+}, {+Flex-cluster+} or
+   {+Serverless-instance+} (deprecated).
+
+.. _scale-cluster-global-config:
+
+Modify the :guilabel:`Global {+Cluster+} Configuration`
+------------------------------------------------------
+
+.. important::
+
+   You can't disable |global-write| for a {+cluster+} once deployed.
+
+You can enable global writes for your {+cluster+} or modify
+existing global {+cluster+} configurations.
+
+.. seealso::
+
+   - :ref:`global-clusters`.
+   - :ref:`create-new-global-write-cluster`.
+
+.. _scale-cluster-region:
+.. _scale-cluster-cloud-provider:
+
+Modify the :guilabel:`Cloud Provider & Region`
+----------------------------------------------
+
+.. note:: Considerations
+
+   .. include:: /includes/fact-modify-cloud-provider.rst
+
+- To view the current cloud providers and regions for this {+cluster+},
+  select :guilabel:`Cloud Provider & Region`.
+
+- To modify the cloud providers and regions applied to this {+cluster+},
+  follow the procedures on :ref:`deploy-across-multiple-regions`.
+
+- To add electable nodes to your {+cluster+} during a regional outage,
+  follow the procedure on :ref:`reconfigure-rs-during-regional-outage`.
+
+- To scale up from an |service| {+Free-cluster+} or {+Flex-cluster+},
+  select from the available cloud providers.
+
+- To remove or deploy additional Search Nodes, adjust the
+  :guilabel:`Number of Search Nodes` setting under :guilabel:`Search
+  nodes for workload isolation`. You can deploy between 2 and 32 search
+  nodes on your {+cluster+}. 
+
+  .. include:: /includes/fts/extracts/fts-migrate-delete-search-nodes.rst 
+     
+  .. include:: /includes/fts/extracts/fts-migrate-add-search-nodes.rst
+
+.. seealso::
+
+   - :ref:`create-cluster-cloud-provider-region`.
+   - :ref:`move-cluster`.
+
+View Available Regions
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/atlas-clusters-availableRegions-list.rst
+
+.. _scale-cluster-storage:
+.. _scale-cluster-instance:
+
+Modify the :guilabel:`Cluster Tier`
+-----------------------------------
+
+You can change the {+cluster+} tier, as well as the memory, storage,
+and |iops| (speed) specifications for the selected {+cluster+}. If you
+deployed Search Nodes separately for an ``M10`` or higher {+cluster+},
+you can also change your search tier.
+
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, you 
+   can't modify the {+cluster+} tier to a tier that doesn't support 
+   {+cloud-backup+}.
+
+{+Free-Cluster+} and {+Flex-Cluster+} Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- You can't scale down an ``M10+`` {+dedicated-cluster+} to an
+  ``M0`` {+Free-cluster+} or a {+Flex-cluster+}.
+
+- Changing the {+cluster+} tier requires downtime in the following 
+  scenarios:
+     
+- You change from an ``M0`` {+Free-cluster+} or a {+Flex-cluster+} to
+  an ``M10`` or larger {+cluster+} tier.
+
+- You change from an ``M0`` {+Free-cluster+} to a {+Flex-cluster+}.
+
+  To prevent data corruption, halt write operations to your {+cluster+}
+  for the duration of your scale operation.
+
+Tier for {+Cluster+} Nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Select your preferred {+cluster+} tier. If you deployed Search Nodes
+separately, in the :guilabel:`Base Tier` tab, select your preferred
+{+cluster+} tier. The selected instance size dictates
+the memory, storage, vCPUs, and |iops| specification for each 
+data-bearing server [#data-bearing]_ in the {+cluster+}.
+
+.. warning::
+
+   Upgrading from a free or {+Flex-cluster+} to a {+dedicated-cluster+}
+   tier deletes the current {+cluster+}. To keep your existing snapshots,
+   :ref:`download those snapshots <restore-overview>` before upgrading
+   your {+cluster+}.  
+
+.. note::
+   
+   |service| reboots all nodes in your {+cluster+} when you modify the cluster tier. 
+
+.. seealso::
+
+   - :ref:`cloud-provider-retention-policy`
+   - :ref:`create-cluster-instance`
+
+From the :guilabel:`Cluster Tier` section, you can also:
+
+- :ref:`create-cluster-storage`
+
+- :ref:`Configure Autoscaling Options <cluster-autoscaling>`
+
+.. include:: /includes/fact-analytics-nodes-tier.rst
+
+.. important:: 
+
+   After upgrading a free to a {+dedicated-cluster+}, a free to a
+   {+Flex-cluster+}, or a {+Flex-cluster+} to a {+dedicated-cluster+}, you
+   must restart your applications before connecting to the upgraded
+   {+cluster+}. 
+
+If you deploy :term:`read-only nodes <read-only node>` and want your
+{+cluster+} to scale faster, consider adjusting your :ref:`Replica
+Set Scaling Mode <replica-set-scaling-mode>`.
+
+Tier for Search Nodes
+~~~~~~~~~~~~~~~~~~~~~~
+
+In the :guilabel:`Search Tier` tab, select your preferred search tier.
+If the search tier that you select is not available in your region,
+|service| automatically switches to the next higher search tier in your
+region. The selected instance size dictates the memory, storage, |iops| 
+specification, and cost of each search node on your {+cluster+}.
+
+.. note::
+   
+   |service| reboots all nodes in your {+cluster+} when you modify the search tier. 
+
+.. _cluster-config-additional-settings:
+
+Modify :guilabel:`Additional Settings`
+--------------------------------------
+
+You can set the following options:
+
+- :ref:`scale-cluster-version`
+- :ref:`scale-cluster-backups`
+- :ref:`scale-cluster-termination-protection`
+- :ref:`scale-cluster-sharding`
+- :ref:`scale-cluster-shardNum`
+- :ref:`scale-cluster-enable-bi`
+- :ref:`scale-cluster-enable-encryption`
+- :ref:`scale-cluster-more-configuration-options`
+
+.. _scale-cluster-version:
+
+Upgrade the MongoDB Version of the {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-upgrade-best-practices.rst
+
+1. Select :guilabel:`Additional Settings` to view the currently
+   configured MongoDB version for the {+cluster+}.
+
+   .. include:: /includes/extracts/fact-mongodb-version-downgrade-restriction-scale.rst
+
+2. From the :guilabel:`Select a version` dropdown, select the new
+   MongoDB version.
+
+   |service| supports the following upgrade paths:
+
+   - MongoDB 6.0 -> MongoDB 7.0
+   - MongoDB 7.0 -> MongoDB 8.0
+
+.. _scale-cluster-backups:
+
+Enable or Disable Backup for the {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Backups are automatically enabled for {+Flex-clusters+}
+and can't be disabled.
+
+.. seealso::
+
+   :ref:`flex-snapshots`.
+
+To enable backups for an ``M10+`` |service| {+cluster+}, toggle
+:guilabel:`Turn on {+Cloud-Backup+} (M10 and up)` to ``Yes``.
+If enabled, |service| takes snapshots of your databases at
+regular intervals and retains them according to your project's
+:ref:`retention policy <cloud-provider-retention-policy>`.
+
+For detailed descriptions of the available backup options, see
+:ref:`create-cluster-backups`.
+
+.. _scale-cluster-termination-protection:
+
+Enable or Disable Termination Protection for the {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable :guilabel:`Termination Protection` for a {+cluster+}, toggle
+:guilabel:`Termination Protection` to :guilabel:`Yes`.
+
+If enabled, |service| prevents users from deleting the
+cluster. To delete a cluster that has termination protection
+enabled, you must first disable termination protection. By default,
+|service| disables termination protection for
+all {+database-deployments+}.
+
+.. seealso::
+
+   :ref:`terminate-cluster`.
+
+.. _scale-cluster-sharding:
+
+Scale your Replica Set to a Sharded {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/cluster-settings/convert-to-sharded-cluster-limitations.rst
+
+To deploy your {+cluster+} as a :term:`sharded {+cluster+} <sharded cluster>`,
+toggle :guilabel:`Shard your {+cluster+} (M30 and up)` to ``Yes``.
+
+.. include:: /includes/fact-upgrade-to-sharded-cluster-warning.rst
+
+.. seealso::
+
+   :ref:`create-cluster-sharding`.
+
+.. _scale-cluster-shardNum:
+
+Modify the :guilabel:`Number of Shards`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/cluster-option-clusterShardingNum.rst
+
+.. _scale-cluster-enable-bi:
+
+Enable or Disable |bic| for the {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable :bic:`BI Connector for Atlas </>` for this {+cluster+}, toggle
+:guilabel:`Enable Business Intelligence Connector (M10 and up)` to
+:guilabel:`Yes`.
+
+.. seealso::
+
+   :ref:`create-cluster-enable-bi`.
+
+.. _scale-cluster-enable-encryption:
+
+Enable Encryption at Rest
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable |service| Encryption at Rest for this cluster using your 
+|kms|, toggle :guilabel:`Manage your own encryption keys (M10 and up)` 
+to :guilabel:`Yes`. To learn more, see 
+:ref:`create-cluster-enable-encryption`.
+
+.. note::
+
+   All changes to :manual:`customer KMS </security-kms-encryption>`
+   require an :manual:`initial sync </core/replica-set-sync/>`.
+
+.. _scale-cluster-more-configuration-options:
+
+Configure Additional Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configure additional options for your {+cluster+} from this section.
+
+For details on these options, see
+:ref:`create-cluster-more-configuration-options`.
+
+.. _modify-cluster-details:
+
+Modify :guilabel:`Cluster Details`
+--------------------------------------
+
+Add tags, view existing tags, and manage tags. To learn more, see 
+:ref:`manage-tags-modify-cluster`.
+
+.. include:: /includes/fact-sensitive-info-resource-tags.rst
+
+.. _scale-cluster-payment:
+
+Save Your Changes for Later
+---------------------------
+
+Click :guilabel:`Save Draft` at the end of your cluster configuration form 
+to save your changes. 
+
+Clicking :guilabel:`Save Draft` the first time prompts |service| to send an email to the 
+email address associated with your |service| account with a button to 
+return to your modified cluster configuration form.
+
+You can return to the form to: 
+
+- Continue making changes by clicking :guilabel:`Continue` on the pop-up that appears. 
+- Reset your changes made by clicking :guilabel:`Reset` on 
+  the pop-up that appears.
+- :ref:`Review and apply <review-apply-cluster-changes>` your cluster changes by 
+  clicking :guilabel:`Continue` on the pop-up that appears, then :guilabel:`Review Changes`.
+
+.. _review-apply-cluster-changes:
+
+Review and Apply Your Changes
+-----------------------------
+
+Click :guilabel:`Review Changes` to review the changes you have made.
+
+The :guilabel:`Review Changes` page displays a complete side-by-side
+summary of the modified attributes with any warnings or notes
+pertaining to the changes. The original attribute settings are listed
+on the left and the corresponding new settings with changes in pricing
+are listed on the right.
+
+|service| displays all warnings and notes related to the change at the
+top. These include changes that:
+
+- Can't be rolled back.
+- Require an :manual:`initial sync </core/replica-set-sync/>`.
+- Result in expected delays in execution, increase in workload, or
+  downtime.
+
+Once you have reviewed the changes, click :guilabel:`Apply Changes` to
+apply them to your {+cluster+}.
+
+If you are upgrading from an ``M0`` {+Free-cluster+}, |service|
+prompts you to enter payment information before applying your changes.
+
+.. include:: /includes/footnote-databearing.rst
+
+.. _convert-replset-to-sharded:
+
+Convert a Replica Set to a Sharded Cluster
+------------------------------------------
+
+You can convert a :term:`replica set <replica set>` to a :term:`sharded 
+cluster <sharded cluster>`. 
+
+.. note::
+
+   |service| reboots all nodes in your :term:`replica set <replica set>` when you 
+   convert it to a :term:`sharded cluster <sharded cluster>`.
+
+Prerequisites 
+~~~~~~~~~~~~~
+
+To convert your replica set to a sharded {+cluster+}:
+
+- Your {+cluster+} must be an ``M30+`` {+cluster+}.
+- You must have the :authrole:`Project Cluster Manager` or higher role.
+
+Procedure 
+~~~~~~~~~
+
+.. include:: /includes/steps-convert-replset-to-sharded-cluster.rst
+
+.. toctree::
+   :titlesonly:
+
+   Recover from an Outage </reconfigure-replica-set-during-regional-outage>

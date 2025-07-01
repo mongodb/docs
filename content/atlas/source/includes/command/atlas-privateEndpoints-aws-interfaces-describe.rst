@@ -1,0 +1,109 @@
+.. _atlas-privateEndpoints-aws-interfaces-describe:
+
+==============================================
+atlas privateEndpoints aws interfaces describe
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Return the details for the specified AWS private endpoint interface for your project.
+
+To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas privateEndpoints aws interfaces describe <interfaceEndpointId> [options]
+
+.. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - interfaceEndpointId
+     - string
+     - true
+     - Unique string that identifies the AWS private endpoint interface in AWS.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --endpointServiceId
+     - string
+     - true
+     - Unique 24-character alphanumeric string that identifies the private endpoint in Atlas.
+   * - -h, --help
+     - 
+     - false
+     - help for describe
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   ID                      STATUS               ERROR
+   <InterfaceEndpointId>   <ConnectionStatus>   <ErrorMessage>
+   
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Return the JSON-formatted details of the AWS private endpoint interface with the ID 	
+ 		vpce-00713b5e644e830a3 in AWS for an AWS private endpoint with the ID 5f4fc14da2b47835a58c63a2 in Atlas:
+   atlas privateEndpoints aws interfaces describe 	
+   vpce-00713b5e644e830a3 --endpointServiceId 5f4fc14da2b47835a58c63a2

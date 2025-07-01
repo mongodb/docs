@@ -1,0 +1,935 @@
+.. _compound-ref:
+
+=======================
+``compound`` Operator
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. meta::
+   :keywords: combine operators, match score, compound search queries, search scoring
+   :description: Use the compound operator to combine multiple operators in a single query and get results with a match score.
+
+.. |arrow| unicode:: U+27A4
+
+Definition
+----------
+
+.. expression:: compound
+
+   The ``compound`` operator combines two or more operators into a
+   single query. Each element of a ``compound`` query is called a
+   clause, and each clause consists of one or more sub-queries. |fts| 
+   provides a sample compound query template with guidance.
+
+.. _compound-syntax:
+
+Syntax
+------
+
+``compound`` has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     $search: {
+       "index": <index name>, // optional, defaults to "default"
+       "compound": {
+         <must | mustNot | should | filter>: [ { <clauses> } ],
+         "score": <options>
+       }
+     }
+   }
+
+Each ``must``, ``mustNot``, ``should``, and ``filter`` clause contains 
+an array of subclauses. Use array syntax even if the array contains 
+only one subclause. See the :ref:`examples <compound-examples>` on 
+this page.
+
+.. _compound-options:
+
+Options
+-------
+
+``compound`` uses the following terms to construct a query:
+
+.. list-table::
+   :widths: 15 85
+
+   * - .. data:: must
+     - Clauses that must match to for a document to be included in the
+       results. The returned score is the sum of the scores of all the 
+       subqueries in the clause.
+
+       Maps to the ``AND`` boolean operator.
+
+   * - .. data:: mustNot
+     - Clauses that must not match for a document to be included in
+       the results. ``mustNot`` clauses don't contribute to a returned 
+       document's score.
+
+       Maps to the ``AND NOT`` boolean operator.
+
+   * - .. data:: should
+     - Clauses that you prefer to match in documents that are included
+       in the results. Documents that contain a match for a ``should`` 
+       clause have higher scores than documents that don't contain a
+       ``should`` clause. The returned score is the sum of the scores 
+       of all the subqueries in the clause.
+
+       If you use more than one ``should`` clause, you can use the
+       ``minimumShouldMatch`` option to specify a minimum number of
+       ``should`` clauses that must match to include a document in the 
+       results. The value of the ``minimumShouldMatch`` must be
+       less than or equal to the number of ``should`` clauses in the
+       query. If omitted, the ``minimumShouldMatch`` option defaults to
+       ``0``. 
+
+       See an :ref:`example <min-example>`.
+
+       Maps to the ``OR`` boolean operator.
+
+       If you use only the ``should`` clause inside a compound query,
+       the ``compound`` operator treats the array of the ``should`` clause
+       queries as a logical ``OR``. |fts| must find a match for
+       at least one ``should`` criteria to return any results. When
+       you specify multiple ``should`` clause criteria with the
+       ``minimumShouldMatch`` option set to ``0``, |fts| treats 
+       ``minimumShouldMatch`` as set to ``1`` and must match at least
+       one criteria to return any results.
+
+   * - .. data:: filter
+     - Clauses that must all match for a document to be
+       included in the results. ``filter`` clauses do not contribute
+       to a returned document's score.
+       
+       For example, you can replace the :pipeline:`$match` stage with the :pipeline:`$search` stage 
+       using the ``compound`` operator ``filter`` option. The following 
+       :pipeline:`$match` stage filters for documents with a given value for the field ``role``:
+       
+       .. code-block:: json
+          :copyable: false
+          
+          $match: {
+              "role": { "$in": [ "CLIENT", "PROFESSIONAL" ] }
+          }
+        
+       You can use the ``compound`` operator ``filter`` option instead:
+
+       .. code-block:: json 
+          :copyable: false
+          
+          $search: {
+            "compound": {
+              "filter": [{
+                "queryString": {
+                  "defaultPath": "role",
+                  "query": "CLIENT OR PROFESSIONAL"                     
+                }
+              }]
+            }
+          }
+
+       See another :ref:`filter example <filter-example>`.
+
+   * - ``score``
+     - Modify the :ref:`score <scoring-ref>` of the entire ``compound`` 
+       clause. You can use ``score`` to boost, replace, or otherwise 
+       alter the score. If you don't specify ``score``, the returned 
+       score is the sum of the scores of all the subqueries in the 
+       ``must`` and ``should`` clauses that generated a match. To learn
+       more, see :ref:`compound-score`.
+
+.. _compound-usage:
+
+Usage 
+-----
+
+You can use any of the clauses with any top-level operator, such as 
+:ref:`autocomplete <autocomplete-ref>`, :ref:`text <text-ref>`, or 
+:ref:`span <span-ref>`, to specify query criteria. 
+
+To optimize performance, place non-scoring operators such as 
+:ref:`equals <equals-ref>`, :ref:`range <range-ref>`, and :ref:`in <in-ref>` in the
+:data:`filter` clause to avoid unnecessary scoring operations. If you
+want to run multiple operations that must be evaluated as an ``OR``
+condition, nest a :data:`should` clause within the top-level
+:data:`filter`. 
+
+.. example:: 
+
+   .. code-block:: javascript 
+      :copyable: false 
+
+      [
+        {
+          $search: {
+            index: "default",
+            compound: {
+              filter: [
+                {
+                  compound: {
+                    should: [
+                      {
+                        equals: {
+                          path: "accommodates",
+                          value: 2
+                        }
+                      },
+                      {
+                        range: {
+                          path: "pricePerNight",
+                          lte: 200
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+
+.. _compound-score:
+
+Scoring Behavior
+----------------
+
+|fts| scores documents in the result set by summing the score that the
+document received for each individual clause that generated a match on
+the document. Only ``must`` and ``should`` clauses participate in
+scoring. The result set is ordered by score, highest to lowest. 
+
+The following table shows the ``compound`` clauses that contribute and
+don't contribute to the score. 
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Clause 
+     - Contributes to Score 
+
+   * - ``filter`` 
+     -  
+
+   * - ``must`` 
+     - :icon:`check-square` 
+
+   * - ``mustNot`` 
+     -  
+
+   * - ``should`` 
+     - :icon:`check-square`
+
+You can boost or replace the score of the entire compound query using
+the ``score`` option. For an example of replacing the entire compound
+score, see :ref:`Compound Score Example <must-should-example>` below.
+You can use :ref:`score <scoring-ref>` to also boost or alter the score
+for each subquery in each clause. For some examples of altered scores in
+``compound`` operator clauses, see :ref:`scoring-options`. 
+
+.. _compound-examples:
+
+Examples
+--------
+
+You can try the following examples in the {+playground+} or your
+|service| {+cluster+}. 
+
+.. _compound-egs-sample-collections:
+
+Sample Collection 
+~~~~~~~~~~~~~~~~~
+
+The examples on this page use a collection called ``fruit``, which 
+contains the following documents:
+
+.. code-block:: json
+   :linenos:
+
+   {
+     "_id" : 1,
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "category" : "nonorganic",
+     "in_stock" : false
+   },
+   {
+     "_id" : 2,
+     "type" : "banana",
+     "description" : "Bananas are usually sold in bunches of five or six.",
+     "category" : "nonorganic",
+     "in_stock" : true
+   },
+   {
+     "_id" : 3,
+     "type" : "pear",
+     "description" : "Bosc and Bartlett are the most common varieties of pears.",
+     "category" : "organic",
+     "in_stock" : true
+   }
+
+.. _compound-egs-sample-index:
+
+Sample Index 
+~~~~~~~~~~~~
+
+The ``fruit`` collection has a default index with :ref:`dynamic mappings
+<static-dynamic-mappings>` that automatically indexes all the fields in
+the collection and uses the default :ref:`standard
+<ref-standard-analyzer>` analyzer. The ``standard`` analyzer lower-cases
+all words and disregards common stop words (``"the", "a", "and",`` etc). 
+
+.. _compound-egs-sample-queries:
+
+Sample Queries 
+~~~~~~~~~~~~~~
+
+The following queries demonstrate the :pipeline:`$search` ``compound``
+operator in |fts| queries.
+
+.. _must-must-not-example-ref:
+
+``must`` and ``mustNot`` Example
+````````````````````````````````
+
+The following example uses a combination of ``must`` and ``mustNot``
+clauses to contruct a query. The ``must`` clause uses the 
+:ref:`text <text-ref>` operator to search for the term ``varieties`` 
+in the ``description`` field. For a document to match, it must fulfill 
+the ``must`` clause. The ``mustNot`` clause performs a search operation 
+for the term ``apples`` in the ``description`` field. For a document to
+match, it must *not* fulfill the ``mustNot`` clause.
+
+.. code-block:: javascript
+   :linenos:
+
+   db.fruit.aggregate([
+     {
+       "$search": {
+         "compound": {
+           "must": [{
+             "text": {
+               "query": "varieties",
+               "path": "description"
+             }
+           }],
+           "mustNot": [{
+             "text": {
+               "query": "apples",
+               "path": "description"
+             }
+           }]
+         }
+       }
+     }
+   ])
+
+The above query returns the document with ``_id: 3`` because its
+``description`` field contains the word ``varieties`` and does not
+contain ``apples``.
+
+|arrow| Try this in the :asp:`Atlas Search Playground </6613fd6e53a0260867247809>`.
+
+.. _must-should-example:
+
+``must`` and ``should`` Example
+```````````````````````````````
+
+The following queries use ``must`` to specify search conditions
+that must be met and ``should`` to specify preference for documents
+that contain the word ``Fuji``. 
+
+.. tabs:: 
+
+   .. tab:: Basic Example
+      :tabid: basic
+
+      For this query, the ``$project`` pipeline stage excludes all 
+      document fields except ``_id`` and adds a ``score`` field, which
+      displays the document's relevance score.
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "Fuji",
+                        "path": "description"
+                      }
+                    }]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript
+            :visible: false
+
+            { "_id" : 1, "score" : 0.6425117254257202 }
+            { "_id" : 3, "score" : 0.21649497747421265 }
+
+      The document with ``_id: 1`` has a higher score because its
+      ``description`` field contains the word ``Fuji``, satisfying the
+      ``should`` clause.
+
+      |arrow| Try this in the :asp:`Atlas Search Playground </6613fe1753a026086724780b>`.
+
+   .. tab:: Compound Score Example
+      :tabid: compoundscore 
+
+      The following query also specifies a :ref:`scoring-constant` 
+      score of ``3`` for all the documents in the results. For this 
+      query, the ``$project`` pipeline stage excludes all document 
+      fields except ``_id`` and adds a ``score`` field.
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "Fuji",
+                        "path": "description"
+                      }
+                    }],
+                    "score": { "constant": { "value": 3 } }
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript
+            :visible: false
+
+            [ { _id: 1, score: 3 }, { _id: 3, score: 3 } ]
+
+      Both the documents receive the same score because the 
+      ``constant`` option in the query replaces the score of each 
+      document in the result with the number ``3``. 
+
+      |arrow| Try this in the :asp:`Atlas Search Playground </6613fe7b53a026086724780d>`.
+
+.. _min-example:
+
+minimumShouldMatch Example
+``````````````````````````
+
+In a query with multiple ``should`` clauses, you can use the
+``miniumumShouldMatch`` option to specify a minimum number of clauses
+which must match to return a result.
+
+The following query has one ``must`` clause and two ``should`` clauses,
+with a ``minimumShouldMatch`` value of ``1``. A document must include
+the term ``varieties`` in the ``description`` field and must include
+either ``Fuji`` or ``Golden Delicious`` in the description field to be
+included in the result set.
+
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.fruit.aggregate([
+        {
+          $search: {
+            "compound": {
+              "must": [{
+                "text": {
+                   "query": "varieties",
+                   "path": "description"
+                }
+              }],
+              "should": [{
+                "text": {
+                  "query": "Fuji",
+                  "path": "description"
+                }
+              },
+              {
+                "text": {
+                  "query": "Golden Delicious",
+                  "path": "description"
+                }
+              }],
+              "minimumShouldMatch": 1
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
+
+      {
+        "_id" : 1,
+        "type" : "apple",
+        "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+        "category" : "nonorganic",
+        "in_stock" : false
+      }
+
+The document with ``_id: 1`` matches the ``must`` clause and the first
+of the two ``should`` clauses.
+
+|arrow| Try this in the :asp:`Atlas Search Playground </6613ff6fbfc02dcf24ce9588>`.
+
+.. _filter-example:
+
+``filter`` Examples
+```````````````````
+
+``filter`` behaves the same as ``must``, except that the ``filter`` 
+clause is not considered in a returned document's score, and therefore 
+does not affect the order of the returned documents.
+
+.. tabs:: 
+
+   .. tab:: Basic Example 
+      :tabid: basic
+
+      The following query uses the following clauses: 
+      
+      - ``must`` and ``filter`` to specify search conditions which must 
+        be met.
+      - ``should`` to specify preference for documents containing the 
+        word  ``banana``. The ``should`` clause doesn't include the 
+        ``minimumShouldMatch`` option. When you omit 
+        ``minimumShouldMatch``, it defaults to ``0``.
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "banana",
+                        "path": "description"
+                      }
+                    }],
+                    "filter": [{
+                      "text": {
+                        "query": "granny",
+                        "path": "description"
+                      }
+                    }]
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript
+            :linenos:
+            :visible: false
+
+            {
+              "_id" : 1,
+              "type" : "apple",
+              "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+              "category" : "nonorganic",
+              "in_stock" : false
+            }
+
+      The returned document fulfills all the requirements for inclusion:
+
+      - Both the ``must`` clause and the ``filter`` clause match.
+      - The ``minimumShouldMatch`` value is not specified, so it 
+        defaults to ``0``. As a result, the ``should`` clause fails 
+        and still returns a document.
+
+      |arrow| Try this in the :asp:`Atlas Search Playground </6614008353a026086724780f>`.
+
+   .. tab:: $match Replacement Example 
+      :tabid: match
+
+      You can replace the :pipeline:`$match` with :query:`$in` in your 
+      queries against data on your |service| cluster with the 
+      ``filter`` clause. The following query demonstrates how to use 
+      ``filter`` in the :pipeline:`$search` stage to specify the search 
+      terms that must match. The query also uses ``should`` to specify 
+      preference for documents containing the term ``varieties``. The 
+      query includes the ``$project`` pipeline stage to do the 
+      following:
+      
+      - Exclude all fields except ``_id`` and ``description``. 
+      - Add a ``score`` field, which displays the document's relevance 
+        score.
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "filter": [{
+                      "text": {
+                        "query": ["apples", "bananas"],
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "description": 1,
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+         
+         .. output:: 
+            :language: javascript
+            :linenos:
+            :visible: false
+
+            [
+              {
+                _id: 1,
+                description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.',
+                score: 0.36074575781822205
+              },
+              {
+                _id: 2,
+                description: 'Bananas are usually sold in bunches of five or six.',
+                score: 0
+              }
+            ]
+
+      The documents in the result fulfill all the requirements for 
+      inclusion:
+
+      - Both documents contain the term ``apples`` or ``bananas`` that 
+        was specified in the ``filter`` clause of the query.
+      - Document with ``_id: 1`` scores higher than document with 
+        ``_id: 2`` because it contains the term ``varieties`` specified 
+        in the ``should`` clause of the query.
+
+      |arrow| Try this in the :asp:`Atlas Search Playground </661400e853a0260867247811>`.
+
+Nested Example 
+``````````````
+
+The following example uses nested ``compound`` clauses to construct a 
+query. For this example, the ``fruit`` collection has an index on the 
+``type``, ``category``, and ``in_stock`` fields, whose text fields use the 
+:ref:`default <ref-standard-analyzer>` analyzer. The query requires 
+documents to only satisfy one of the following  ``should`` clauses: 
+
+- Contain the word ``apple`` in the ``type`` field.
+- Contain the term ``organic`` in the ``category`` field and have the 
+  value ``true`` in the ``in_stock`` field.
+
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.fruit.aggregate([
+        {
+          $search: {
+            "compound": {
+              "should": [
+                {
+                  "text": {
+                    "query": "apple",
+                    "path": "type"
+                  }
+                },
+                {
+                  "compound": {
+                    "must": [
+                      {
+                        "text": {
+                          "query": "organic",
+                          "path": "category"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "value": true,
+                          "path": "in_stock"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "minimumShouldMatch": 1
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
+   
+      { 
+        "_id" : 3, 
+        "type" : "pear", 
+        "description" : "Bosc and Bartlett are the most common varieties of pears.", 
+        "category" : "organic", 
+        "in_stock" : true 
+      }
+      {
+        "_id" : 1,
+        "type" : "apple",
+        "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+        "category" : "nonorganic",
+        "in_stock" : false
+      }
+
+The documents in the results fulfill all the requirements for inclusion: 
+
+- The document with ``_id: 3`` matches the ``must`` clause nested within 
+  the second ``should`` clause.
+- The document with ``_id: 1`` matches the first ``should`` clause.  
+
+|arrow| Try this in the :asp:`Atlas Search Playground </66140231bfc02dcf24ce958a>`.
+
+Metadata Examples 
+`````````````````
+
+The following queries retrieve metadata to return the number of
+categories in the ``fruit`` collection using either the $searchMeta pipeline stage 
+or the $$SEARCHMETA variable of the $search stage. 
+
+.. tabs:: 
+   
+   .. tab:: $searchMeta Stage
+      :tabid: searchmeta-stage
+
+      The following query returns only the metadata in the results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+
+            db.fruit.aggregate([
+              {
+                "$searchMeta": {
+                  "facet": {
+                    "operator": {
+                      "compound": {
+                        "must": [{
+                          "text": {
+                            "query": "varieties",
+                            "path": "description"
+                          }
+                        }],
+                        "should": [{
+                          "text": {
+                            "query": "Fuji",
+                            "path": "description"
+                          }
+                        }]
+                      }
+                    },
+                    "facets": {
+                      "categoryFacet": {
+                        "type": "string",
+                        "path": "category"
+                      }
+                    }
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [
+              {
+                count: { lowerBound: Long('2') },
+                facet: {
+                  categoryFacet: {
+                    buckets: [
+                      { _id: 'nonorganic', count: Long('1') },
+                      { _id: 'organic', count: Long('1') }
+                    ]
+                  }
+                }
+              }
+            ]
+
+   .. tab:: $$SEARCH_META Variable
+      :tabid: searchmeta-variable 
+
+      The following query returns the metadata and search results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "facet": {
+                    "operator": {
+                      "compound": {
+                        "must": [{
+                          "text": {
+                            "query": "varieties",
+                            "path": "description"
+                          }
+                        }],
+                        "should": [{
+                          "text": {
+                            "query": "Fuji",
+                            "path": "description"
+                          }
+                        }]
+                      }
+                    },
+                    "facets": {
+                      "categoryFacet": {
+                        "type": "string",
+                        "path": "category"
+                      }
+                    }
+                  }
+                }
+              },
+              { "$limit": 2 },
+              {
+                "$facet": {
+                  "docs": [
+                    { "$project":
+                      {
+                        "type": 1,
+                        "description": 1
+                      }
+                    }
+                  ],
+                  "meta": [
+                    {"$replaceWith": "$$SEARCH_META"},
+                    {"$limit": 1}
+                  ]
+                }
+              },
+              {
+                "$set": {
+                  "meta": {
+                    "$arrayElemAt": ["$meta", 0]
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript 
+            :visible: false
+
+            [
+              {
+                docs: [
+                  {
+                    _id: 1,
+                    type: 'apple',
+                    description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.'
+                  },
+                  {
+                    _id: 3,
+                    type: 'pear',
+                    description: 'Bosc and Bartlett are the most common varieties of pears.'
+                  }
+                ],
+                meta: {
+                  count: { lowerBound: Long('2') },
+                  facet: {
+                    categoryFacet: {
+                      buckets: [
+                        { _id: 'nonorganic', count: Long('1') },
+                        { _id: 'organic', count: Long('1') }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]

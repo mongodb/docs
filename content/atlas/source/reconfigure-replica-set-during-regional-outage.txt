@@ -1,0 +1,94 @@
+.. _reconfigure-rs-during-regional-outage:
+
+==================================================
+Reconfigure a Replica Set During a Regional Outage
+==================================================
+
+.. meta::
+   :description: Reconfigure your Atlas multi-region cluster during a regional outage to restore primary node functionality and prevent data loss.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+During a regional outage, your {+cluster+} might not have a primary node
+if the regional outage affects a majority of the cluster's electable
+nodes. You can use the {+atlas-ui+} to restore your |service| multi-region
+{+cluster+} by :ref:`reconfiguring your {+cluster+} <reconfigure-cluster-procedure>`.
+
+If you reconfigure your {+cluster+} during an outage, your {+cluster+}
+might lose data in the following circumstances:
+
+- If your MongoDB process didn't replicate write operations to the node
+  that becomes primary after the reconfiguration in any {+cluster+}.
+  Your replica set rolls back these writes when the unavailable members
+  become available again. To learn more, see :manual:`Rollbacks During
+  Replica Set Failover </core/replica-set-rollbacks/>`. 
+- In :term:`sharded {+clusters+} <sharded cluster>`, if your MongoDB process 
+  didn't replicate chunk migrations. The data inconsistency might cause 
+  :manual:`orphaned chunks </reference/glossary/#orphaned-document>`.
+
+.. note:: 
+
+   If you :manual:`force a reconfiguration 
+   </reference/method/rs.reconfig/#std-label-rs-reconfig-method-force>`
+   for a sharded {+cluster+}, |service| adds two new nodes to the 
+   :manual:`config server replica set </core/sharded-cluster-config-servers>` 
+   in a region unaffected by the outage. When you apply subsequent
+   :ref:`cluster changes <scale-cluster>` after the sharded {+cluster+}
+   becomes healthy, |service| removes the additional nodes.
+
+.. include:: /includes/fact-outage-sharded-cluster-impact.rst
+
+Prerequisites
+-------------
+
+Your {+cluster+} must be experiencing a total outage of nodes in one or more
+regions with at least one electable node remaining in another region. 
+To learn how to simulate a regional outage for your multi-region {+cluster+}, 
+see :ref:`test-outage`.
+
+For assistance with other causes of node outages, :ref:`contact support
+<request-support>`.
+
+.. _reconfigure-cluster-procedure:
+
+Procedure
+---------
+
+To restore your |service| multi-region {+cluster+} from an outage, you
+must manually reconfigure your replica set:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Click :guilabel:`Edit Config`.
+
+   .. step:: Select the {+cluster+} you want to recover from the drop-down menu.
+       
+   .. step:: Click :guilabel:`Cloud Provider & Region`.
+      
+      Under :guilabel:`Electable nodes for high availability`, you
+      can add new nodes to:
+
+      - An existing region by editing the number of nodes in the :guilabel:`Nodes` column
+      - A new region by clicking :guilabel:`+ Add a provider/region` 
+
+      .. tip::
+
+         We strongly advise not adding nodes to one of the regions with
+         an outage.
+
+   .. step:: Click :guilabel:`Review Changes`. 
+
+      Read the :guilabel:`Considerations for force configuration`, and
+      check the box next to :guilabel:`I have reviewed these
+      considerations for force configuration and agree to proceed`.
+
+   .. step:: Click :guilabel:`Apply Changes`.

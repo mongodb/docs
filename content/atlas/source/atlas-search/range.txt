@@ -1,0 +1,806 @@
+.. _range-ref:
+
+=====================
+``range`` Operator
+=====================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: range operator fields
+   :description: Learn how to query values within a specific numeric, date, or string range.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: range
+
+   The ``range`` operator supports querying and scoring numeric, date,
+   and string values. You can use this operator to find results that are
+   within a given numeric, date, objectId, or letter (from the English
+   alphabet) range. 
+
+   ``range`` supports querying the following data types:
+
+   - :ref:`number <bson-data-types-number>`, including ``int32``,
+     ``int64``, and ``double``  
+   - :ref:`date <bson-data-types-date>`  
+   - :ref:`string <bson-data-types-string>`, indexed as |fts|
+     :ref:`token <bson-data-types-token>` type 
+   - :ref:`objectId <objectId-ref>` 
+
+.. _range-syntax:
+
+Syntax
+------
+
+``range`` has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+       "$search": {
+          "index": <index name>, // optional, defaults to "default"
+          "range": {
+             "path": "<field-to-search>",
+             "gt | gte": <value-to-search>,
+             "lt | lte": <value-to-search>,
+             "score": <score-options>
+          }
+       }
+   }
+
+.. _range-options:
+
+Options
+-------
+
+``range`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``gt`` or ``gte``
+     - BSON date, number, or string, or objectId
+     - Find values greater than (``>``) or greater than or equal to
+       (``>=``) the given value.
+
+       - For number fields, the value can be an ``int32``, ``int64``, 
+         or ``double`` data type.
+       - For date fields, the value must be an 
+         :term:`ISODate` formatted date. 
+       - For string fields, the value must be indexed as |fts| ``token``
+         type. 
+       - For ``ObjectId`` fields, the value must be indexed as
+         :ref:`objectId <objectId-ref>` data type or :ref:`dynamic
+         mappings <static-dynamic-mappings>` must be set to ``true``.
+
+     - no
+
+   * - ``lt`` or ``lte``
+     - BSON date, number, or string, or objectId
+     - Find values less than (``<``) or less than or equal to (``<=``)
+       the given value.
+
+       - For number fields, the value can be an ``int32``, ``int64``,
+         or ``double`` data type.
+       - For date fields, the value must be an
+         :term:`ISODate` formatted date.
+       - For string fields, the value must be indexed as |fts| ``token``
+         type. 
+       - For ``ObjectId`` fields, the value must be indexed as
+         :ref:`objectId <objectId-ref>` data type or :ref:`dynamic
+         mappings <static-dynamic-mappings>` must be set to ``true``.
+
+     - no
+
+   * - ``path``
+     - string or array of strings
+     - Indexed field or fields to search.
+     - yes
+
+   * - ``score``
+     - object
+     - Modify the score assigned to matching search results. You can
+       modify the default score using the following options: 
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score with the given expression.
+
+       .. include:: /includes/fts/facts/fact-fts-array-scoring.rst
+
+       For information on using ``score`` in your query, see
+       :ref:`scoring-ref`.
+       
+
+     - no
+
+Examples
+--------
+
+The following examples use the collection in the :ref:`sample data
+<available-sample-datasets>`. If you loaded the :ref:`sample data
+<available-sample-datasets>` on your cluster, you can create the 
+indexes using the index definitions in the examples below and run the
+example queries on your cluster. 
+
+Number Example
+~~~~~~~~~~~~~~
+
+The following examples use indexes on numeric fields in the  
+:ref:`sample data <available-sample-datasets>` and run 
+``range`` queries against the indexed fields. 
+
+.. tabs:: 
+   
+   .. tab:: Example 1
+      :tabid: eg1
+
+      For this example, you can use either static or dynamic mappings to
+      index the ``runtime`` field in the ``sample_mflix.movies``
+      collection. The query uses ``gte`` and ``lte`` fields to define
+      the numeric range to search.
+
+      Sample Index 
+      ````````````
+
+      The following index definition named ``default`` indexes all the
+      fields in the ``movies`` collection. 
+
+      .. tabs:: 
+
+         .. tab:: Dynamic Mapping Example 
+            :tabid: dynamic
+
+            .. code-block:: javascript
+               :linenos:
+               
+               {
+                 "mappings": {
+                   "dynamic": true
+                 }
+               }
+
+         .. tab:: Static Mapping Example 
+            :tabid: static
+
+            The following index definition named ``default`` indexes the
+            ``runtime`` field only in the ``movies`` collection. 
+
+            .. code-block:: javascript
+               :linenos:
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "runtime": {
+                       "type": "number"
+                     }
+                   }
+                 }
+               }
+
+      Sample Query 
+      ````````````
+         
+      The following query searches for movies with a runtime greater 
+      than or equal to ``2`` and less than or equal to ``3``. It 
+      includes a :pipeline:`$limit` stage to limit the output to 
+      ``5`` results and a :pipeline:`$project` stage to exclude all 
+      fields except ``title`` and ``runtime``.
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json 
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "range": {
+                    "path": "runtime",
+                    "gte": 2,
+                    "lte": 3
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "runtime": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :visible: false
+
+            { "runtime" : 3, "title" : "Dots" }
+            { "runtime" : 3, "title" : "Sisyphus" }
+            { "runtime" : 3, "title" : "The Fly" }
+            { "runtime" : 2, "title" : "Andrè and Wally B." }
+            { "runtime" : 2, "title" : "Luxo Jr." }
+
+   .. tab:: Example 2
+      :tabid: eg2
+
+      For this example, you can use either static or dynamic mappings to
+      index the ``runtime`` field in the ``sample_mflix.movies``
+      collection. The  query uses the ``lte`` field to search for all
+      values less than or equal to the given value.
+
+      Sample Index 
+      ````````````
+
+      The following index definition named ``default`` indexes the
+      ``runtime`` field in the ``movies`` collection.
+
+      .. tabs:: 
+
+         .. tab:: Dynamic Mapping Example 
+            :tabid: dynamic
+
+            .. code-block:: javascript
+               :linenos:
+               
+               {
+                 "mappings": {
+                   "dynamic": true
+                 }
+               }
+
+         .. tab:: Static Mapping Example 
+            :tabid: static
+
+            .. code-block:: javascript
+               :linenos:
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "runtime": {
+                       "type": "number"
+                     }
+                   }
+                 }
+               }
+
+      Sample Query 
+      ````````````
+         
+      The following query searches for all movies with a runtime 
+      less than or equal to ``2``. It includes a :pipeline:`$limit` 
+      stage to limit the output to ``5`` results and 
+      :pipeline:`$project` stage to:
+
+      - Exclude all fields except ``title`` and ``runtime``
+      - Add a field named ``score``
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json 
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "range": {
+                    "path": "runtime",
+                    "lte": 2
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "runtime": 1,
+                  score: { $meta: "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :visible: false
+
+            { "runtime" : 1, "title" : "Blacksmith Scene", "score" : 1 }
+            { "runtime" : 2, "title" : "Andrè and Wally B.", "score" : 1 }
+            { "runtime" : 2, "title" : "Luxo Jr.", "score" : 1 }
+            { "runtime" : 1, "title" : "The Kiss", "score" : 1 }
+            { "runtime" : 1, "title" : "Dickson Experimental Sound Film", "score" : 1 }
+
+   .. tab:: Example 3
+      :tabid: eg3
+
+      The following example dynamically indexes all the dynamically 
+      indexable fields, including fields with array of numeric values, 
+      in the ``sample_analytics.customers`` collection. The sample 
+      query uses the ``gte`` and ``lte`` fields to search for all 
+      values between the given values in an array of numeric values.
+
+      Sample Index 
+      ```````````` 
+
+      The following index definition named ``default`` dynamically 
+      indexes all fields, including the ``accounts`` field, which is 
+      an array of numeric values.
+
+      .. code-block:: javascript
+
+         {
+           "mappings": {
+             "dynamic": true
+           }
+         }
+
+      Sample Query 
+      ````````````
+         
+      The following query searches for customer accounts between 
+      ``250000`` and ``300000``. It includes a :pipeline:`$limit`
+      stage to limit the output to ``5`` results and a
+      :pipeline:`$project` stage to exclude all fields except
+      ``accounts`` and ``name``.
+
+      .. io-code-block:: 
+         :copyable: true
+            
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "range": {
+                    "path": "accounts",
+                    "gt": 250000,
+                    "lt": 400000
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "accounts": 1,
+                  "name": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript
+            :linenos:
+            :visible: false
+
+            [
+              {
+                name: 'Elizabeth Ray',
+                accounts: [ 371138, 324287, 276528, 332179, 422649, 387979 ]
+              },
+              {
+                name: 'Katherine David',
+                accounts: [ 462501, 228290, 968786, 515844, 377292 ]
+              },
+              {
+                name: 'Brad Cardenas',
+                accounts: [ 721914, 817222, 973067, 260799, 87389 ]
+              },
+              {
+                name: 'Gary Nichols',
+                accounts: [ 385397, 337979, 325377, 440243, 586395, 86702 ]
+              },
+              { name: 'Jennifer Lawrence', accounts: [ 344885, 839927, 853542 ] }
+            ]
+
+Date Example
+~~~~~~~~~~~~
+
+The following example uses the ``range`` operator to query a date
+field in the ``sample_mflix.movies`` collection. For this example, you 
+can use either static or dynamic mappings to index the ``date`` type 
+field named ``released`` in the collection.
+
+Sample Index 
+````````````
+
+.. tabs:: 
+   
+   .. tab:: Dynamic Mapping Example
+      :tabid: dme
+
+      The following index definition named ``default`` indexes all the 
+      dynamically indexable fields in the ``movies`` collection, 
+      including the ``released`` field, which is of type ``date``.
+
+      .. code-block:: javascript
+
+         {
+            "mappings": {
+               "dynamic": true
+            }
+         }
+
+   .. tab:: Static Mapping Example
+      :tabid: sme
+
+      The following index definition named ``default`` indexes the 
+      ``released`` field in the ``movies`` collection:
+
+      .. code-block:: javascript
+
+         {
+            "mappings": {
+               "dynamic": false,
+               "fields": {
+                  "released": {
+                     "type": "date"
+                  }
+               }
+            }
+         }
+
+Sample Query 
+````````````
+
+The following query searches for movies released between January 1, 
+2010 and January 1, 2015. It includes a :pipeline:`$limit` stage to 
+limit the output to 5 results and a :pipeline:`$project` stage to 
+exclude all fields except ``title`` and ``released``.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input::
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "released",
+              "gt": ISODate("2010-01-01T00:00:00.000Z"),
+              "lt": ISODate("2015-01-01T00:00:00.000Z")
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "released": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+      :linenos:
+      :visible: false
+
+      [
+        {
+          title: 'Too Much Johnson',
+          released: ISODate('2014-08-30T00:00:00.000Z')
+        },
+        {
+          title: 'Stolen Desire',
+          released: ISODate('2012-07-01T00:00:00.000Z')
+        },
+        {
+          title: 'The Monkey King',
+          released: ISODate('2012-01-12T00:00:00.000Z')
+        },
+        { title: 'The Land', released: ISODate('2012-08-04T00:00:00.000Z') },
+        {
+          title: 'My Childhood',
+          released: ISODate('2013-07-31T00:00:00.000Z')
+        }
+      ]
+
+ObjectId Example 
+~~~~~~~~~~~~~~~~
+
+The following example uses the ``range`` operator to query an
+``objectId`` field in the ``sample_mflix.movies`` collection. For this
+example, you can use either static or dynamic mappings to index the
+``objectId`` type field named ``_id`` in the collection.
+
+Sample Index 
+````````````
+
+The following index definition named ``default`` indexes all the
+fields in the ``movies`` collection. 
+
+.. tabs:: 
+   
+   .. tab:: Dynamic Mapping Example
+      :tabid: dme
+
+      The following index definition named ``default`` indexes all the 
+      dynamically indexable fields in the ``movies`` collection, 
+      including the ``_id`` field, which is of type ``objectId``.
+
+      .. code-block:: javascript
+
+         {
+            "mappings": {
+               "dynamic": true
+            }
+         }
+
+   .. tab:: Static Mapping Example
+      :tabid: sme
+
+      The following index definition named ``default`` indexes the 
+      ``_id`` field in the ``movies`` collection:
+
+      .. code-block:: javascript
+
+         {
+            "mappings": {
+               "dynamic": false,
+               "fields": {
+                  "_id": {
+                    "type": "objectId"
+                  }
+               }
+            }
+         }
+
+Sample Query 
+````````````
+
+The following example uses the ``range`` operator to query ``_id`` field
+for a range of ``objectId`` values in the ``sample_mflix.movies``
+collection.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input::
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "_id",
+              "gte": ObjectId("573a1396f29313caabce4a9a"),
+              "lte": ObjectId('573a1396f29313caabce4ae7')
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "title": 1,
+            "released": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
+
+      [
+        {
+          _id: ObjectId('573a1396f29313caabce4a9a'),
+          title: 'The Godfather',
+          released: ISODate('1972-03-24T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4a9b'),
+          title: 'Get to Know Your Rabbit',
+          released: ISODate('1972-06-01T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4aad'),
+          title: 'The Tall Blond Man with One Black Shoe',
+          released: ISODate('1973-08-30T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4abe'),
+          title: 'The Great Northfield Minnesota Raid',
+          released: ISODate('1972-05-12T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ac4'),
+          title: 'The Heartbreak Kid',
+          released: ISODate('1973-02-01T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ac7'),
+          title: 'Gumshoe',
+          released: ISODate('1971-12-01T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ad9'),
+          title: 'Heat',
+          released: ISODate('1972-10-06T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ae7'),
+          title: 'Horror Express',
+          released: ISODate('1973-12-01T00:00:00.000Z')
+        }
+      ]
+
+String Example
+~~~~~~~~~~~~~~
+
+The following example uses the ``range`` operator to query a string
+field in the ``sample_mflix.movies`` collection. For this example, you 
+must use static mappings to index the field named ``title`` in the
+collection as |fts| ``token`` type. 
+
+Sample Index 
+````````````
+
+The following index definition named ``default`` indexes the ``title``
+field in the ``movies``  collection as |fts| ``token`` type:
+
+.. code-block:: javascript
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "title": {
+           "type": "token",
+           "normalizer": "lowercase"
+         }
+       }
+     }
+   }
+
+Sample Query 
+````````````
+
+The following query searches for movie titles that contain characters
+between ``city`` and ``country``. It includes a :pipeline:`$limit` stage
+to limit the output to 5 results and a :pipeline:`$project` stage to 
+exclude all fields except ``title``.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "title",
+              "gt": "city",
+              "lt": "country"
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+      :visible: false
+
+      [
+        { title: 'Civilization' },
+        { title: 'Clash of the Wolves' },
+        { title: 'City Lights' },
+        { title: 'Comradeship' },
+        { title: 'Come and Get It' }
+      ]
+
+Metadata Example 
+~~~~~~~~~~~~~~~~
+
+The following query searches for movies with a runtime greater than or
+equal to ``2`` and less than or equal to ``3``. The query uses the
+:pipeline:`$searchMeta` stage to retrieve all movies in the following
+buckets (years) that match the search criteria:
+
+- 1990, inclusive lower bound for this bucket
+- 2000, exclusive upper bound for the 1990 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2000 bucket and inclusive lower bound for this bucket
+- 2020, exclusive upper bound for the 2010 bucket
+
+The query uses an index named ``default`` that dynamically indexes all
+the fields in the ``sample_mflix.movies`` namespace. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "range": {
+                  "path": "runtime",
+                  "gte": 2,
+                  "lte": 3
+                }
+              },
+              "facets": {
+                "yearFacet": {
+                  "type": "number",
+                  "path": "year",
+                  "boundaries": [1990, 2000, 2010, 2020 ]
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript 
+      :visible: false 
+
+      [
+        {
+          count: { lowerBound: Long('15') },
+          facet: {
+            yearFacet: {
+              buckets: [
+                { _id: 1990, count: Long('2') },
+                { _id: 2000, count: Long('3') },
+                { _id: 2010, count: Long('5') }
+              ]
+            }
+          }
+        }
+      ]

@@ -1,0 +1,169 @@
+.. _atlas-ui-prompt-natural-language-agg:
+
+=====================================
+Prompt a Natural Language Aggregation
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+You can use |service| to generate aggregation queries using natural 
+language. |service| uses AI to generate aggregations based on prompts 
+you provide. Querying with natural language can be a helpful starting point and 
+assist you in learning to write MongoDB queries.
+
+.. note::
+
+   .. include:: /atlas-ui/includes/shared/fact-natural-language-query.rst
+
+About this Task
+---------------
+
+You can also provide natural language prompts on the 
+:ref:`documents tab <atlas-ui-prompt-natural-language-query>`.
+
+Before you Begin
+----------------
+
+You must :ref:`enable natural language querying 
+<atlas-ui-enable-natural-language-querying>`.
+
+Steps
+-----
+
+The examples on this page use the :ref:`sample_mflix.movies <sample-mflix>` 
+collection from the Atlas sample dataset.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Navigate to the :guilabel:`Natural Language Query Bar`
+      
+      a. Select the :guilabel:`Aggregations` tab.
+
+      #. Click the :guilabel:`Generate aggregation` button.
+
+      #. .. include:: /includes/fact-natural-language-query-accept.rst
+
+   .. step:: Type a question about your collection
+
+      Type a natural language prompt for your collection into the query 
+      bar. Aggregation pipeline prompts usually have an aggregation verb 
+      such as count, average, or sum with logical conditions. For 
+      example: ``How many movies have more than 3 writers 
+      in the writers array?``
+
+      a. Press enter or click the :guilabel:`Generate aggregation` button.
+      #. An aggregation pipeline populates in the :guilabel:`Pipeline` 
+         bar. You can scroll down to see the syntax of each stage.
+
+   .. step:: Run the aggregation
+
+      a. Before running the query, make sure to thoroughly review the 
+         syntax of each stage. Ensure the returned pipeline has the 
+         fields and stages that match your desired use case.
+      
+         .. warning::
+
+            .. include:: /atlas-ui/includes/shared/fact-agg-pipeline-merge-out-confirm.rst
+
+      b. Click the :guilabel:`Run` button to execute the pipeline.
+
+      The results populate in the aggregations view.
+
+      .. tip::
+         
+         .. include:: /atlas-ui/includes/shared/fact-natural-language-feedback.rst
+
+Examples
+--------
+
+Below are examples of prompts to help you understand expected results 
+when using natural language prompts for aggregation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Prompt
+     - Response
+
+   * - ``Count the movies that have a release year of 1999``
+     - 
+      .. code-block:: json
+         :copyable: false
+
+         [
+            {
+               $match: {
+                  year: 1999
+               },
+            },
+            {
+               $count: "total_movies",
+            }
+         ]
+
+   * - ``Which comedy genre movie has the most awards?``
+     - 
+      .. code-block:: json
+         :copyable: false
+
+         [
+            {
+               $match: {
+                  genres: "Comedy"
+               }
+            },
+            {
+               $sort: {
+                  "awards.wins": -1,
+                  "awards.nominations": -1
+               }
+            },
+            {
+               $limit: 1
+            },
+            {
+               $project: {
+                  _id: 0,
+                  title: 1,
+                  "awards.wins": 1,
+                  "awards.nominations": 1
+               }
+            }
+         ]
+
+   * - ``How many movies have a imdb.rating > 4?``
+     - 
+      .. code-block:: json
+         :copyable: false
+
+         [
+            {
+               $match: {
+                  "imdb.rating": { $gt: 4 }
+               }
+            },
+            {
+               $group: {
+                  _id: null,
+                  count: { $sum: 1 }
+               }
+            }
+         ]
+
+Next Steps
+----------
+
+:ref:`atlas-ui-prompt-natural-language-query`
+
+Learn More
+----------
+
+- :ref:`atlas-ui-query-natural-language`
+- :ref:`atlas-ui-ai-data-usage`

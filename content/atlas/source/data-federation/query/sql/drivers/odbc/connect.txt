@@ -1,0 +1,292 @@
+.. _sql-connect-odbc:
+
+========================================================
+Connect to {+asql+} with ODBC Driver
+========================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: {+df+}
+   :description: Install and configure the MongoDB ODBC driver to connect to a federated database instance using supported authentication mechanisms on Windows or Ubuntu.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page describes how to install and configure the 
+MongoDB |odbc| driver for connecting to a {+fdi+}.
+
+Currently, the ODBC driver is available for the following architectures:
+
+- Windows
+- Ubuntu 22.04 (x86_64)
+
+Supported Authentication Mechanisms
+-----------------------------------
+
+.. include:: /includes/fact-asql-driver-auth-mechanism.rst
+
+Prerequisites
+-------------
+
+.. tabs::
+
+   .. tab:: Windows
+      :tabid: windows
+
+      .. include:: /includes/fact-shared-prereqs-odbc-driver.rst
+
+   .. tab:: Ubuntu
+      :tabid: ubuntu
+
+      - The `unixODBC <https://www.unixodbc.org/>`__ package:
+        
+        .. code-block:: sh
+
+           sudo apt install unixodbc
+
+      - The `odbcinst 
+        <https://packages.debian.org/unstable/odbcinst>`__ package:
+
+        .. code-block:: sh
+
+           sudo apt install odbcinst
+
+      .. include:: /includes/fact-shared-prereqs-odbc-driver.rst
+
+Procedure
+---------
+
+You can use the ODBC driver to connect to SQL-based tools that accept
+an |odbc| API.
+
+.. tabs::
+
+   .. tab:: Windows
+      :tabid: windows
+
+      Download the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /data-federation/query/sql/drivers/odbc/download
+
+      Install and Configure the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/steps/install-odbc-driver.rst
+
+   .. tab:: Ubuntu
+      :tabid: ubuntu
+
+      Download and Verify the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. procedure::
+         :style: normal
+      
+         .. step:: Download the `MongoDB ODBC Driver <https://www.mongodb.com/try/download/odbc-driver>`__.
+
+           .. note::
+
+              Click :guilabel:`Copy link` to save the URL you need to construct 
+              the download link for the signature file in a later step.
+
+           .. code-block:: sh
+
+              curl https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/ubuntu2204/{+sql-odbc-version+}/release/mongoodbc.tar.gz --output mongoodbc.tar.gz
+
+         .. step:: Verify the integrity of the downloaded package:
+         
+            The MongoDB release team digitally signs all software packages to
+            certify that a particular MongoDB package is a valid and unaltered
+            MongoDB release. The ``atlas-sql-odbc.asc`` key is available on 
+            `pgp.mongodb.com <https://pgp.mongodb.com/atlas-sql-odbc.asc>`__  
+ 
+            a. Run the following command to download the ``.sig`` file.
+       
+               .. code-block:: sh 
+            
+                  curl -LO https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/ubuntu2204/{+sql-odbc-version+}/release/mongoodbc.tar.gz.sig
+
+            #. Run the following command to download then import the key file. 
+     
+               .. io-code-block::
+                  :copyable: true 
+     
+                  .. input:: 
+                     :language: shell 
+     
+                     curl -LO https://pgp.mongodb.com/atlas-sql-odbc.asc
+                     gpg --import atlas-sql-odbc.asc
+
+                  .. output:: 
+                     :language: shell 
+
+                     gpg: key 1CCF1A1263CDD699: public key "Atlas SQL ODBC Release Signing Key <packaging@mongodb.com>" imported
+                     gpg: Total number processed: 1
+                     gpg:               imported: 1
+  
+            #. Run the following command to verify the MongoDB installation file.
+     
+               .. code-block:: 
+        
+                  gpg --verify mongoodbc.tar.gz.sig mongoodbc.tar.gz
+
+               GPG should return this response:
+     
+               .. code-block:: shell
+        
+                  gpg: Signature made Wed May 22 13:24:36 2024 MDT
+                  gpg:                using RSA key 0C5F007ABC491E4A
+                  gpg: Good signature from "Atlas SQL ODBC Release Signing Key <packaging@mongodb.com>" [unknown]
+     
+               If the package is properly signed, but you do not currently trust
+               the signing key in your local ``trustdb``, ``gpg`` will also return
+               the following message: 
+     
+               .. code-block:: shell 
+               
+                  gpg: WARNING: This key is not certified with a trusted signature!
+                  gpg:          There is no indication that the signature belongs to the owner.
+                  Primary key fingerprint: 1CF5 B0D7 B2F8 9E16 52D8 BA79 0C5F 007A BC49 1E4A
+   
+               If you receive the following error message, confirm that you
+               imported the correct public key: 
+    
+               .. code-block:: shell 
+        
+                  gpg: Can't check signature: public key not found
+
+         .. step:: Extract the ODBC driver:
+
+            The following example extracts the archive contents to 
+            ``/usr/local/lib/mongoodbc``. The ``mongoodbc`` directory 
+            contains a ``LICENSE`` file, a ``README.MD`` file, and a 
+            ``bin`` directory. The ``bin`` directory contains the 
+            ``libatsql.so`` ODBC driver library.
+
+            .. code-block:: sh
+
+               sudo tar -zxf mongoodbc.tar.gz --directory /usr/local/lib
+
+      Install and Configure the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Locate the ODBC driver configuration files.
+
+            a. Run the following command:
+               
+               .. code-block:: sh
+
+                  odbcinst -j
+
+            #. Note the locations of the configuration files for the 
+               ``DRIVERS``, ``SYSTEM DATA SOURCES``, and 
+               ``USER DATA SOURCES``.
+
+               **Example:**
+
+               .. code-block:: sh
+
+                  unixODBC 2.3.9
+                  DRIVERS............: /etc/odbcinst.ini
+                  SYSTEM DATA SOURCES: /etc/odbc.ini
+                  FILE DATA SOURCES..: /etc/ODBCDataSources
+                  USER DATA SOURCES..: /home/ubuntu/.odbc.ini
+                  SQLULEN Size.......: 8
+                  SQLLEN Size........: 8
+                  SQLSETPOSIROW Size.: 8
+
+         .. step:: Configure the ODBC driver.
+
+            a. Open the ``odbcinst.ini`` file in your preferred 
+               editor.
+
+               **Example:**
+
+               .. code-block:: sh
+
+                  sudo vim /etc/odbcinst.ini
+
+            #. Add the following entries to the file and specify the 
+               path to the ``libatsql.so`` ODBC driver library.
+
+               **Example:**
+
+               .. code-block:: sh
+
+                  [ODBC Drivers]
+                  MongoDB Atlas SQL ODBC Driver = Installed
+
+                  [MongoDB Atlas SQL ODBC Driver]
+                  Driver=/usr/local/lib/mongoodbc/bin/libatsql.so
+
+         .. step:: Configure the System DSN or User DSN.
+
+            If multiple users share the DSN, configure the System DSN. 
+            If multiple users user shouldn't share the DSN, configure 
+            the User DSN. If a single user uses the DSN, you can 
+            configure the System DSN or User DSN.
+
+            a. Open the ``SYSTEM DATA SOURCES`` file or
+               ``USER DATA SOURCES`` file in your preferred 
+               editor.
+
+               **System DSN Example:**
+
+               .. code-block:: sh
+
+                  sudo vim /etc/odbc.ini
+
+               **User DSN Example:**
+
+               .. code-block:: sh
+
+                  sudo vim /home/ubuntu/.odbc.ini
+
+            #. Add the following entries to the file and specify the 
+               appropriate values.
+
+               .. include:: /includes/fact-system-user-odbc-config.rst
+
+         .. step:: Test your connection.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+               iusql -v MongoDB_Atlas_SQL
+
+            The following example shows a successful connection:
+
+            .. code-block:: sh
+
+               +---------------------------------------+
+               | Connected!                            |
+               |                                       |
+               | sql-statement                         |
+               | help [tablename]                      |
+               | quit                                  |
+               |                                       |
+               +---------------------------------------+
+
+            If the connection fails, verify the details in your 
+            configuration files against your {+adf+} instance.
+
+            .. note::
+
+               The following warning doesn't impact the ODBC driver 
+               operation:
+
+               .. code-block:: sh
+                  
+                  [MongoDB][API] Buffer size "0" not large enough for data.
+              
+               The ODBC driver doesn't support the ``iusql`` query 
+               function.

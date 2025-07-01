@@ -1,0 +1,1041 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, kotlin, python, shell
+
+.. _wildcard-ref:
+
+========================
+``wildcard`` Operator
+========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: wildcard operator, match single characters, escape character, use special characters, term-level operator, allow analyzed field, modify score, boost score, constant score, code example, atlas ui, compass, java sync, node.js
+   :description: Use a wildcard operator in an Atlas Search query to match any character.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: wildcard
+
+   The ``wildcard`` operator enables queries which use special
+   characters in the search string that can match any character.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Character
+        - Description
+
+      * - ``?``
+        - Matches any single character.
+
+      * - ``*``
+        - Matches 0 or more characters.
+
+      * - ``\``
+        - Escape character.
+
+   ``wildcard`` is a term-level operator, meaning that the ``query``
+   field is not analyzed. Term-level operators work well with the
+   :ref:`Keyword Analyzer <ref-keyword-analyzer>`, because the
+   ``query`` field is treated as a single term, with special characters
+   included. For an example of querying against an analyzed ``query``
+   field vs. a non-analyzed ``query`` field, see the
+   :ref:`analyzed field example <analyzed-example>`.
+
+.. _wildcard-syntax:
+
+Syntax
+------
+
+``wildcard`` has the following syntax:
+
+.. code-block:: javascript
+
+   {
+     $search: {
+       "index": <index name>, // optional, defaults to "default"
+       "wildcard": {
+         "query": "<search-string>",
+         "path": "<field-to-search>",
+         "allowAnalyzedField": <boolean>,
+         "score": <options>
+       }
+     }
+   }
+
+.. _wildcard-options:
+
+Options
+-------
+
+``wildcard`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 40 10 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+     - Default
+
+   * - ``query``
+     - string or array of strings
+     - String or strings to search for.
+     - yes
+     -
+
+   * - ``path``
+     - string or array of strings
+     - Indexed field or fields to search. You can also specify a 
+       wildcard path to search.
+     - yes
+     -
+
+   * - ``allowAnalyzedField``
+     - boolean
+     - Must be set to ``true`` if the query is run against an
+       analyzed field.
+     - no
+     - ``false``
+
+   * - ``score``
+     - object
+     - Modify the :ref:`score <scoring-ref>` assigned to matching
+       search term results. Options are:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given
+         number.
+       - ``function``: replace the result score using the given
+         expression. 
+
+       For information on using ``score`` in your query, see
+       :ref:`scoring-ref`.
+     - no
+     -
+
+Behavior
+--------
+
+.. _analyzed-example:
+
+``wildcard`` is a term-level operator, meaning that the ``query`` field
+is not analyzed. It is possible to use the ``wildcard`` operator to
+perform searches on an analyzed field during indexing by setting the
+``allowAnalyzedField`` option to ``true``. However, results reflect that 
+the query text is not analyzed.
+
+The following examples show how the ``wildcard`` operator behaves when performing
+a search on analyzed fields:
+
+.. example::
+
+   Standard Analyzer
+   ~~~~~~~~~~~~~~~~~~
+
+   Suppose that a field ``foo bar baz`` is indexed with the
+   :ref:`standard analyzer <ref-standard-analyzer>`. 
+   |fts| analyzes and indexes the field as  ``foo``, ``bar`` and ``baz``.
+   Searching for ``foo bar*`` on this field finds nothing, 
+   because the wildcard operator treats ``foo bar*`` 
+   as a single search term with a wildcard at the end. 
+   In other words, |fts| searches the field for any term that begins with ``foo bar`` 
+   but finds nothing, because no term exists.
+
+.. example::
+
+   Keyword Analyzer
+   ~~~~~~~~~~~~~~~~
+
+   Searching for ``*Star Trek*`` on a field indexed with the
+   :ref:`keyword analyzer <ref-keyword-analyzer>` finds all documents in which the field contains
+   the string ``Star Trek`` in any context. Searching for ``*Star
+   Trek*`` on a field indexed with the :ref:`standard analyzer
+   <ref-standard-analyzer>` finds nothing, because there is a space
+   between ``Star`` and ``Trek``, and the index contains no spaces.
+
+.. _escape-character-behavior:
+
+Escape Character Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fts/facts/fact-fts-escape-char-behavior.rst
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the examples on this page.
+
+----------
+
+.. tabs-selector:: drivers
+
+Examples
+--------
+
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database with a custom index definition that uses the
+:ref:`keyword analyzer <ref-keyword-analyzer>`. If you have the
+:ref:`sample dataset <available-sample-datasets>` on your cluster, you
+can create an |fts| index on the ``movies`` collection and run the
+example queries on your cluster. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/facts/fact-fts-view-edit-search-tester.rst
+
+      To learn how to run the following queries in the {+atlas-ui+}, see
+      :ref:`atlas-search-queries`. 
+
+   .. tab::
+      :tabid: shell
+
+      Run the following command at {+mongosh+} prompt to use the
+      ``sample_mflix`` database:
+
+      .. code-block:: shell
+
+         use sample_mflix
+
+      To learn how to run the following queries in the
+      :binary:`~bin.mongosh`, see :ref:`atlas-search-queries`. 
+
+   .. tab::
+      :tabid: compass
+
+      To learn how to run the following queries in the |compass|, see
+      :ref:`atlas-search-queries`.  
+
+   .. tab::
+      :tabid: csharp
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB C# driver </csharp/current/>`, see
+      :ref:`atlas-search-queries`.  
+
+   .. tab:: 
+      :tabid: go
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Go# driver </go/current/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Java driver </java-drivers/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Kotlin driver </kotlin-drivers/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab::
+      :tabid: nodejs
+
+      To learn how to run the following queries by using the
+      :driver:`MongoDB Node Driver </node/current/>`, see
+      :ref:`atlas-search-queries`.
+
+   .. tab::
+      :tabid: python
+
+      To learn how to run the following queries by using the
+      :driver:`PyMongo driver</pymongo/>`, see
+      :ref:`atlas-search-queries`. 
+
+Index Example
+~~~~~~~~~~~~~
+
+The following index definition indexes the ``title`` field in the
+``movies`` collection with the :ref:`keyword analyzer
+<ref-keyword-analyzer>`:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     "mappings": {
+       "fields": {
+         "title": {
+           "analyzer": "lucene.keyword",
+           "type": "string"
+         }
+       }
+     }
+   }
+
+Query Examples 
+~~~~~~~~~~~~~~
+
+The following example searches all ``title`` fields for movie titles
+that begin with ``Green D``, followed by any number of other
+characters.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+
+            [
+               {
+                  $search: {
+                     "wildcard": {
+                     "path": "title",
+                     "query": "Green D*"
+                     }
+                  }
+               }
+            ]
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            SCORE: 1  _id:  "573a1393f29313caabcddaf5"
+            plot: "Sophie loved Edmund, but he left town when her parents forced her to m…"
+            genres: Array
+            runtime: 141
+
+            SCORE: 1  _id:  "573a13a2f29313caabd0a4e4"
+            plot: "The story of some Vietnamese refugees as they first arrive at Camp Pen…"
+            genres: Array
+            runtime: 115
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char-shell.js
+            :language: javascript
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { "title" : "Green Dolphin Street" }
+            { "title" : "Green Dragon" }
+
+   .. tab::
+      :tabid: compass
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char-compass.rst
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { "title" : "Green Dolphin Street" }
+            { "title" : "Green Dragon" }
+
+   .. tab::
+      :tabid: csharp
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char.cs
+            :language: csharp
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { "title" : "Green Dolphin Street" }
+            { "title" : "Green Dragon" }
+
+   .. tab:: 
+      :tabid: go
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char.go
+            :language: go
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [{title Green Dolphin Street}]
+            [{title Green Dragon}]
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char.java
+            :language: java
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            {"title": "Green Dolphin Street"}
+            {"title": "Green Dragon"}
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char.kt
+            :language: kotlin
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            Document{{title=Green Dolphin Street}}
+            Document{{title=Green Dragon}}
+
+   .. tab::
+      :tabid: nodejs
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char.js
+            :language: javascript
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { title: 'Green Dolphin Street' }
+            { title: 'Green Dragon' }
+
+   .. tab::
+      :tabid: python
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/single-char.py
+            :language: python
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            {'title': 'Green Dolphin Street'}
+            {'title': 'Green Dragon'}
+
+The following example searches all ``title`` fields for movie titles
+that begin with the string ``Wom?n`` (where ``?`` may be any single
+character), followed by a space and then any number of additional
+characters.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+
+            [
+               {
+                  $search: {
+                     "wildcard": {
+                     "path": "title",
+                     "query": "Wom?n *"
+                     }
+                  }
+               }
+            ]
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            SCORE: 1  _id:  "573a1393f29313caabcdcbdd"
+            plot: "Rival reporters Sam and Tess fall in love and get married, only to fin…"
+            genres: Array
+            runtime: 114
+
+            SCORE: 1  _id:  "573a1394f29313caabce08c6"
+            plot: "A married, middle-aged woman is shocked to discover that her husband, …"
+            genres: Array
+            runtime: 93
+
+            SCORE: 1  _id:  "573a1396f29313caabce42e5"
+            plot: "The battle of the sexes and relationships among the elite of Britian's…"
+            genres: Array
+            runtime: 131
+
+            SCORE: 1  _id:  "573a1398f29313caabceb06d"
+            fullplot: "A woman's lover leaves her, and she tries to contact him to find out w…"
+            imdb: Object
+            year: 1988
+
+            SCORE: 1  _id:  "573a139df29313caabcf9c83"
+            plot: "A new woman comes between a widower and his adult son."
+            genres: Array
+            runtime: 110
+
+            SCORE: 1  _id:  "573a13a0f29313caabd050bf"
+            fullplot: "Isabella is a great cook, making her husband's restaurant in Bahia, Br…"
+            imdb: Object
+            year: 2000
+
+            SCORE: 1  _id:  "573a13aaf29313caabd22c05"
+            countries: Array
+            genres: Array
+            runtime: 115
+
+            SCORE: 1  _id:  "573a13aef29313caabd2d899"
+            countries: Array
+            genres: Array
+            runtime: 72
+
+            SCORE: 1  _id:  "573a13aff29313caabd32566"
+            fullplot: "An adaptation of Bishop T.D. Jakes' self-help novel, chronciling a wom…"
+            imdb: Object
+            year: 2004
+
+            SCORE: 1  _id:  "573a13b0f29313caabd332de"
+            fullplot: "Two college friends get together and reminisce on the woman they both …"
+            imdb: Object
+            year: 2004
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/multiple-char-shell.js
+            :language: javascript 
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [
+               { title: 'Woman of the Year' },
+               { title: 'Woman in a Dressing Gown' },
+               { title: 'Women in Love' },
+               { title: 'Women on the Verge of a Nervous Breakdown' },
+               { title: 'Woman Wanted' }
+            ]
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/multiple-char-compass.rst
+            :language: json 
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { title: 'Woman of the Year' },
+            { title: 'Woman in a Dressing Gown' },
+            { title: 'Women in Love' },
+            { title: 'Women on the Verge of a Nervous Breakdown' },
+            { title: 'Woman Wanted' }
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/multiple-char.cs
+            :language: csharp
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { title: 'Woman of the Year' },
+            { title: 'Woman in a Dressing Gown' },
+            { title: 'Women in Love' },
+            { title: 'Women on the Verge of a Nervous Breakdown' },
+            { title: 'Woman Wanted' }
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. literalinclude:: /includes/fts/wildcard/multiple-char.go
+         :language: go
+         :dedent:
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/multiple-char.java
+            :language: java
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [{title Woman of the Year}]
+            [{title Woman in a Dressing Gown}]
+            [{title Women in Love}]
+            [{title Women on the Verge of a Nervous Breakdown}]
+            [{title Woman Wanted}]
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/multiple-char.kt
+            :language: kotlin
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            {"title": "Woman of the Year"}
+            {"title": "Woman in a Dressing Gown"}
+            {"title": "Women in Love"}
+            {"title": "Women on the Verge of a Nervous Breakdown"}
+            {"title": "Woman Wanted"}
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/multiple-char.js
+            :language: javascript
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { title: 'Woman of the Year' }
+            { title: 'Woman in a Dressing Gown' }
+            { title: 'Women in Love' }
+            { title: 'Women on the Verge of a Nervous Breakdown' }
+            { title: 'Woman Wanted' }
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/facts/fact-fts-wildcard-limit-project-stages.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/multiple-char.py
+            :language: python
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            {'title': 'Woman of the Year'}
+            {'title': 'Woman in a Dressing Gown'}
+            {'title': 'Women in Love'}
+            {'title': 'Women on the Verge of a Nervous Breakdown'}
+            {'title': 'Woman Wanted'}
+
+The following example searches using the **escape character** for documents
+in which the ``title`` field ends with a question mark.
+
+.. note::
+
+   The following example is intended to run in {+mongosh+}. For
+   more information about using the escape characters with a driver,
+   see :ref:`Escape Character Behavior <escape-character-behavior>`.
+
+The ``*`` character in the ``query`` field matches any characters, and
+the ``\\?`` string matches a literal question mark.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: javascript
+            
+            [
+               {
+                  $search: {
+                     "wildcard": {
+                     "path": "title",
+                     "query": "*\\?"
+                     }
+                  }
+               }
+            ]
+
+         .. output::
+            :language: javascript 
+            :visible: false 
+
+            SCORE: 1  _id:  "573a1390f29313caabcd5ea4"
+            plot: "A District Attorney's outspoken stand on abortion gets him in trouble …"
+            genres: Array
+            runtime: 62
+
+            SCORE: 1  _id:  "573a1392f29313caabcdab4a"
+            plot: "Robin is crooning to a Mae West-like Jenny Wren when he is shot with a…"
+            genres: Array
+            runtime: 8
+
+            SCORE: 1  _id:  "573a1394f29313caabce08ab"
+            plot: "Elmer Fudd is again hunting rabbits - only this time it's an opera. Wa…"
+            genres: Array
+            runtime: 7
+
+            SCORE: 1  _id:  "573a1394f29313caabce08c8"
+            plot: "To save his career, an ad man wants a sex symbol to endorse a lipstick…"
+            genres: Array
+            runtime: 93
+
+            SCORE: 1  _id:  "573a1395f29313caabce1555"
+            plot: "In order to get back into the good graces with his wife with whom he h…"
+            genres: Array
+            runtime: 115
+
+            SCORE: 1  _id:  "573a1395f29313caabce1dce"
+            plot: "A former child star torments her crippled sister in a decaying Hollywo…"
+            genres: Array
+            runtime: 134
+
+            SCORE: 1  _id:  "573a1395f29313caabce2422"
+            plot: "Roger Willoughby is considered to be a leading expert on sports fishin…"
+            genres: Array
+            runtime: 120
+
+            SCORE: 1  _id:  "573a1395f29313caabce2d63"
+            plot: "The true story of the departure of the German occupiers from Paris in …"
+            genres: Array
+            runtime: 173
+
+            SCORE: 1  _id:   "573a1395f29313caabce2db5"
+            plot: "In this excoriating satire of the fashion industry, Polly Maggoo is a …"
+            genres: Array
+            runtime: 101
+
+            SCORE: 1  _id:   "573a1395f29313caabce2ecc"
+            plot: "A bitter aging couple with the help of alcohol, use a young couple to …"
+            genres: Array
+            runtime: 131
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char-shell.js
+            :language: javascript
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { "title" : "Where Are My Children?" }
+            { "title" : "Who Killed Cock Robin?" }
+            { "title" : "What's Opera, Doc?" }
+            { "title" : "Will Success Spoil Rock Hunter?" }
+            { "title" : "Who Was That Lady?" }
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char-compass.rst
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { "title" : "Where Are My Children?" }
+            { "title" : "Who Killed Cock Robin?" }
+            { "title" : "What's Opera, Doc?" }
+            { "title" : "Will Success Spoil Rock Hunter?" }
+            { "title" : "Who Was That Lady?" }
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char.cs
+            :language: csharp
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { "title" : "Where Are My Children?" }
+            { "title" : "Who Killed Cock Robin?" }
+            { "title" : "What's Opera, Doc?" }
+            { "title" : "Will Success Spoil Rock Hunter?" }
+            { "title" : "Who Was That Lady?" }
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char.go
+            :language: go
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            [{title Where Are My Children?}]
+            [{title Who Killed Cock Robin?}]
+            [{title What's Opera, Doc?}]
+            [{title Will Success Spoil Rock Hunter?}]
+            [{title Who Was That Lady?}]
+
+   .. tab:: 
+      :tabid: java-sync
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char.java
+            :language: java
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            {"title": "Where Are My Children?"}
+            {"title": "Who Killed Cock Robin?"}
+            {"title": "What's Opera, Doc?"}
+            {"title": "Will Success Spoil Rock Hunter?"}
+            {"title": "Who Was That Lady?"}
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char.kt
+            :language: kotlin
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            Document{{title=Who Are You, Polly Magoo?}}
+            Document{{title=Where Were You When the Lights Went Out?}}
+            Document{{title=Why Does Herr R. Run Amok?}}
+            Document{{title=What's Up, Doc?}}
+            Document{{title=Who Is Killing the Great Chefs of Europe?}}
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char.js
+            :language: javascript
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            { title: 'Where Are My Children?' }
+            { title: 'Who Killed Cock Robin?' }
+            { title: "What's Opera, Doc?" }
+            { title: 'Will Success Spoil Rock Hunter?' }
+            { title: 'Who Was That Lady?' }
+
+   .. tab::
+      :tabid: python
+
+      .. include:: //includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/fts/wildcard/escape-char.py
+            :language: python
+            :dedent:
+
+         .. output:: 
+            :language: javascript 
+            :visible: false 
+
+            {'title': 'Where Are My Children?'}
+            {'title': 'Who Killed Cock Robin?'}
+            {'title': "What's Opera, Doc?"}
+            {'title': 'Will Success Spoil Rock Hunter?'}
+            {'title': 'Who Was That Lady?'}
+
+The following query uses the :pipeline:`$searchMeta` stage to search for
+movies that contain the term ``summer`` anywhere in the ``title`` field
+and retrieve the number of movies that match the criteria in each genre.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+         {
+            "$searchMeta": {
+               "facet": {
+               "operator": {
+                  "wildcard": {
+                     "path": "title",
+                     "query": "*summer*"
+                  }
+               },
+               "facets": {
+                  "genresFacet": {
+                     "type": "string",
+                     "path": "genres"
+                  }
+               }
+               }
+            }
+         }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :visible: false 
+
+      [
+         {
+            count: { lowerBound: Long('6') },
+            facet: {
+               genresFacet: {
+                  buckets: [
+                     { _id: 'Comedy', count: Long('5') },
+                     { _id: 'Fantasy', count: Long('3') },
+                     { _id: 'Romance', count: Long('3') },
+                     { _id: 'Drama', count: Long('2') },
+                     { _id: 'Horror', count: Long('1') },
+                     { _id: 'Mystery', count: Long('1') }
+                  ]
+               }
+            }
+         }
+      ]

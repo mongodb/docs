@@ -1,0 +1,822 @@
+.. _private-endpoint-overview:
+.. _private-endpoint-concepts:
+
+==========================================
+Learn About Private Endpoints in |service|
+==========================================
+
+.. meta::
+   :description: Explore how to set up private endpoints in Atlas for secure connections to dedicated clusters across AWS, Azure, and Google Cloud.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+MongoDB |service| supports private endpoints on {+dedicated-clusters+}. Select 
+your {+database-deployment+} type to learn which cloud providers |service| supports:
+
+- |aws| using the `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__ feature.
+
+- |azure| using the `{+az-pl+} <https://azure.microsoft.com/en-us/services/private-link/>`__
+  feature.
+
+- |gcp| using the `{+gcp-psc+} <https://cloud.google.com/vpc/docs/private-service-connect>`__
+  feature.
+
+You can also set up private endpoints for your Online Archive. To 
+learn more, see :ref:`oa-config-private-endpoint`.
+
+Private Endpoint Concepts 
+-------------------------
+
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      When you enable PrivateLink in |aws| and private
+      endpoints in |service|, |aws| and |service| create the following 
+      resources to support secure connections over |vpc|\s:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 30 50
+
+         * - Resource
+           - Creator
+           - Description
+            
+         * - Private endpoint service
+           - |service|
+           - A collection of private endpoint resources within
+             your |service| |vpc| that places {+database-deployments+} within a region behind a network load balancer. |aws| refers to the endpoint
+             service as the :guilabel:`VPC endpoint service`.
+
+         * - Interface endpoint
+           - |aws|
+           - |aws| |vpc| endpoint with a private IP address
+             that sends traffic to the private endpoint service over |aws| PrivateLink. |aws| refers to the 
+             interface endpoint as the :guilabel:`VPC endpoint`.
+
+         * - Private endpoint
+           - |aws| and |service| together
+           - A generic term for the private
+             connection established
+             between |service| and your cloud provider. For 
+             |aws|, that connection is established using PrivateLink.
+
+      .. tabs::
+
+         .. tab:: {+aws-pl+}
+            :tabid: aws-pl-diagram
+
+            .. figure:: /images/atlas-aws-privatelink.svg
+               :width: 720px
+               :alt: Image showing how {+aws-pl+} establishes   
+                     connections from your application VPC to
+                     resources in the |service| VPC.
+
+         .. tab:: AWS Direct Connect
+            :tabid: aws-pl-directconnect-diagram
+
+            .. figure:: /images/atlas-aws-privatelink-directconnect.svg
+               :width: 720px
+               :alt: Image showing how you can use |aws| Direct
+                     Connect to establish a transitive
+                     connection from your data center to a
+                     peered |aws| VPC to resources in the 
+                     |service| VPC using |aws| Direct Connect.
+      
+      .. include:: /includes/fact-private-endpoint-connections-aws.rst
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      When you enable this feature, |azure| and |service| create
+      the following resources to support secure connections over 
+      VNets:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 40 40 
+
+         * - Resource
+           - Creator
+           - Description
+            
+         * - Private endpoint service
+           - |service|
+           - A collection of private endpoint resources within
+             your |service| VNet that places
+             {+database-deployments+} within a region behind a
+             network load balancer.
+
+         * - Private endpoint
+           - |azure| and |service| together
+           - A generic term for the private
+             connection established
+             between |service| and your cloud provider. For 
+             |azure|, that connection is established using Private Link.
+               
+      |service| creates a Private 
+      Link service and places clusters within a region behind a 
+      load balancer in the |service| VNet.
+
+      Then you create resources that establish a one-way 
+      connection from your VNet to the :azure:`Private Link 
+      service </private-link/private-link-service-overview>` in 
+      the |service| VNet using a private endpoint. The Private 
+      Link service routes traffic to the load balancer that 
+      fronts the clusters in the |service| VNet.
+
+      .. include:: /includes/fact-private-endpoint-connections-azure.rst
+
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      When you enable this feature, |gcp| and |service| create
+      the following resources to support secure connections over 
+      |vpc|\s:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 40 40 
+
+         * - Resource
+           - Creator
+           - Description
+            
+         * - Private endpoint service
+           - |service|
+           - A collection of private endpoint resources within
+             your |service| |vpc| that places
+             {+database-deployments+} within a region behind
+             network load balancers.
+
+         * - Private endpoints
+           - |gcp| and |service| together
+           - A generic term for the private
+             connections established
+             between |service| and your cloud provider. For 
+             |gcp|, those connections are established using
+             Private Service Connect.
+
+      When you enable {+gcp-psc+} in |gcp|, |service|
+      creates a private endpoint service using :gcp:`service attachments 
+      </vpc/docs/private-service-connect#service-attachments>`
+      and load balancers.
+
+      Next, you create resources that establish a one-way 
+      connection from your |vpc| to the private endpoint service 
+      in |service| using a private endpoint. The private endpoint 
+      service routes traffic to the load balancers for the 
+      {+clusters+} in the |service| |vpc|.
+
+      To ensure the availability of resources for both current 
+      and future {+clusters+}, |service| performs the following 
+      actions when you enable this feature:
+
+      .. include:: /includes/gcp-psc-connection-workflow.rst
+
+      .. tabs::
+
+         .. tab:: One Cluster, One Region
+            :tabid: gcp-psc-one-cluster
+
+            The following diagram shows how {+gcp-psc+}
+            establishes connections when you have one {+cluster+}
+            in one region.
+
+            .. figure:: /images/google-psc-diagram.svg
+               :width: 720px
+               :alt: Image showing how {+gcp-psc+} establishes   
+                     connections from your application VPC to
+                     resources in the |service| VPC when you have
+                     one cluster in one region. Lighter colored
+                     lines represent potential connections to
+                     addresses that |service| reserves.
+
+         .. tab:: Multiple Clusters, One Region
+            :tabid: gcp-psc-two-clusters
+
+            The following diagram shows how {+gcp-psc+}
+            establishes connections when you have two 
+            {+clusters+} in one region.
+
+            .. figure:: /images/google-psc-diagram-two-clusters.svg
+               :width: 720px
+               :alt: Image showing how {+gcp-psc+} establishes   
+                     connections from your application VPC to
+                     resources in the |service| VPC when you have
+                     two clusters in one region. Lighter colored
+                     lines represent potential connections to
+                     addresses that |service| reserves.
+
+         .. tab:: One Cluster, Multiple Regions 
+            :tabid: gcp-psc-one-cluster-multiple-regions
+
+            The following diagram shows how {+gcp-psc+}
+            establishes connections when you have one {+cluster+}
+            in multiple regions.
+
+            .. figure:: /images/google-psc-diagram-multiple-regions.svg
+               :width: 720px
+               :alt: Image showing how {+gcp-psc+} establishes   
+                     connections from your application VPC to
+                     resources in the |service| VPC when you have
+                     one cluster in multiple regions. Lighter colored
+                     lines represent potential connections to
+                     addresses that |service| reserves.
+         
+
+      Connections to |service| clusters using private endpoints 
+      offer the following advantages over other network access 
+      management options:
+
+      - Connections to private endpoints are one-way. |service| 
+         |vpc|\s can't initiate connections back to your |gcp| 
+         |vpc|\s. This ensures your perceived network trust 
+         boundary is not extended. 
+      - You can connect to private endpoints within your |vpc| 
+         transitively from an on-premises data center connected 
+         with Google Cloud VPN to the private endpoint-connected 
+         |vpc|. This enables you to connect to |service| directly 
+         from your on-premises data center without adding public IP
+         addresses to the |service| access list.
+
+You can also set up private endpoints for your Online Archive. To 
+learn more, see :ref:`oa-config-private-endpoint`.
+
+Required Access
+---------------
+
+To set up a private endpoint, you must have
+:authrole:`Organization Owner` or :authrole:`Project Owner` access to
+the project.
+
+.. _private-endpoint-considerations:
+
+Considerations
+--------------
+
+.. _private-endpoint-ha:
+
+High Availability
+~~~~~~~~~~~~~~~~~
+
+.. tabs::
+   :hidden:
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      .. include:: /includes/fact-private-endpoint-ha-aws.rst
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      .. include:: /includes/fact-private-endpoint-ha-azure.rst
+
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      You don't need to take additional actions to ensure that 
+      |gcp| private endpoint connections to |service| can 
+      withstand an availability zone outage.
+
+      Multi-Region Support
+      ````````````````````
+      
+      {+gcp-psc+} now provides multi-region support for your 
+      |service| {+database-deployments+}. You can configure :gcp:`global access 
+      </vpc/docs/about-accessing-vpc-hosted-services-endpoints#global-access>`
+      to connect to private endpoints from a different |gcp| region. 
+      By using global access, you can ensure high availability for 
+      your multi-region {+database-deployments+}, single-region deployments 
+      hosted in a different region than your own, and |gcp| nodes in your 
+      multi-cloud deployments. 
+      
+      To learn more, see 
+      `Introducing PSC Interconnect and Global Access for MongoDB Atlas 
+      <https://www.mongodb.com/developer/products/atlas/psc-interconnect-and-global-access/>`__.
+
+      
+.. _private-endpoint-port-ranges:
+
+Port Ranges Used for Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+   :hidden:
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      .. include:: /includes/fact-private-endpoint-ports-aws.rst
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      .. include:: /includes/fact-private-endpoint-ports-azure.rst
+
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      |service| services are accessed through 
+      {+gcp-psc+} endpoints on ports 27015 through 27017. The 
+      ports can change under specific circumstances, including 
+      (but not limited to) cluster changes.
+
+      .. important::
+         MongoDB strongly recommends using the DNS seedlist 
+         private endpoint-aware connection string, so that DNS 
+         automatically updates the ports that {+gcp-psc+} uses if
+         they change. For the same reason, MongoDB also strongly 
+         recommends allow-listing the entire port range, instead
+         of specific ports.
+
+.. _private-endpoint-connection-strings:
+
+Private Endpoint-Aware Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+   :hidden:
+
+   .. tab:: {+Dedicated-Clusters+}
+      :tabid: clusters
+
+      .. tabs::
+         :hidden:
+
+         .. tab:: {+aws-pl+}
+            :tabid: {+aws-pl+}
+
+            .. include:: /includes/aws-pl-connection-strings.rst
+
+         .. tab:: {+az-pl+}
+            :tabid: {+az-pl+}
+
+            .. include:: /includes/az-pl-connection-strings.rst
+
+         .. tab:: {+gcp-psc+}
+            :tabid: {+gcp-psc+}
+
+            .. include:: /includes/gcp-psc-connection-strings.rst
+
+(Optional) Optimize Connection to Sharded {+Clusters+} Behind a Private Endpoint 
+````````````````````````````````````````````````````````````````````````````````
+
+.. include:: /includes/fact-optimized-connection-strings-intro.rst
+
+|service| doesn't support optimized connection strings for 
+{+clusters+} that run on |gcp| or |azure|. To learn more about optimized 
+connection strings for sharded {+clusters+} behind a private 
+endpoint, see :ref:`optimized-connection-strings`. 
+
+.. seealso::
+
+   :ref:`Connect to Atlas using a Private Endpoint <connect-private-endpoint>`
+
+.. _private-endpoint-access-lists:
+
+IP Access Lists and Network Peering Connections with Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you enable private endpoints, you can still enable access to 
+your |service| {+database-deployments+} using other methods, such 
+as adding public IPs to :doc:`IP access lists 
+</security/ip-access-list>` and :doc:`network peering 
+</security-vpc-peering>`.
+
+Clients connecting to |service| {+database-deployments+} using 
+other methods use standard connection strings. Your clients might 
+have to identify when to use private endpoint-aware connection 
+strings and standard connection strings.
+
+Multi-Cloud Deployment Connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you use a private endpoint to connect to a multi-cloud deployment,
+you can access only the nodes hosted in the cloud service provider and region
+that you're connecting from. To access all nodes in your multi-cloud deployment,
+use alternative connection methods described in the :ref:`Connections to Multi-Cloud Deployments
+<multi-cloud-limitation>` section in the "Configure High Availability and Workload Isolation"
+topic.
+
+.. _atlas_regionalized-pl:
+
+(Optional) Regionalized Private Endpoints for Multi-Region Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For global sharded clusters that you deploy in multiple regions, if you need
+to connect to |service| using a private endpoint from networks that can't
+be peered with one another, you can deploy multiple private endpoints to a region.
+
+You can deploy any number of private endpoints to regions that you
+deployed your {+database-deployment+} to. Each regional private
+endpoint connects to the |mongos| instances in that region.
+
+.. include:: /includes/admonitions/warnings/regionalized-pls-change-connection-strings.rst
+
+.. include:: /includes/enable-regionalized-privatelink.rst
+
+To use this feature, you must enable the regionalized private 
+endpoint setting.
+
+To enable or disable the regionalized private endpoint setting:
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli 
+
+      Enable Regionalized Private Endpoints
+      `````````````````````````````````````
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-enable.rst
+
+      Disable Regionalized Private Endpoints
+      ``````````````````````````````````````
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-disable.rst
+
+      View Regionalized Private Endpoint Settings
+      ```````````````````````````````````````````
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-describe.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      Enable Regionalized Private Endpoints
+      `````````````````````````````````````
+
+      .. include:: /includes/steps-enable-regionalized-private-endpoints.rst
+
+      Disable Regionalized Private Endpoints
+      ``````````````````````````````````````
+
+      .. include:: /includes/steps-disable-regionalized-private-endpoints.rst    
+
+Connecting to Multi-Region {+Clusters+} Without Regionalized Private Endpoints 
+``````````````````````````````````````````````````````````````````````````````
+
+If you use {+aws-pl+} and have applications that connect to multi-region {+clusters+}
+that have endpoints in different regions but are not using :ref:`regionalized private endpoints
+<atlas_regionalized-pl>`, ensure that those applications can reach endpoints 
+in the other regions. For example, to do this with |aws|, 
+you can :ref:`peer <vpc-peering>` the |vpc|\s that 
+contain the endpoints on their side.
+
+Avoiding Downtime When Removing Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-multi-region-private-endpoint-considerations.rst
+
+
+Billing 
+~~~~~~~
+
+.. tabs::
+   :hidden:
+
+   .. tab:: {+Dedicated-Clusters+}
+      :tabid: clusters
+
+      To learn more about billing for private endpoints for 
+      {+dedicated-clusters+}, see
+      :ref:`billing-private-endpoints-clusters`.
+
+.. _atlas-pl-limitations:
+
+Limitations
+-----------
+
+.. tabs::
+   :hidden:
+
+   .. tab:: {+Dedicated-Clusters+}
+      :tabid: clusters
+
+      .. tabs::
+         :hidden:
+
+         .. tab:: {+aws-pl+}
+            :tabid: {+aws-pl+}
+
+            - {+aws-pl+} must be active in all regions into which you 
+              deploy a multi-region {+cluster+}. You will receive an 
+              error if {+aws-pl+} is active in some, but not all, 
+              targeted regions. If you have a multi-cloud {+cluster+} 
+              in |aws| or |azure|, you must provision an endpoint in 
+              each provider or region and set up site-to-site VPN.
+
+            - You can do only one of the following:
+
+              - Deploy nodes in more than one region, and have one
+                private endpoint per region.
+              - Have multiple private endpoints in one region, and no
+                other private endpoints. 
+
+                .. important::
+
+                   This limitation applies across cloud providers. For
+                   example, if you create more than one private endpoint
+                   in a single region in |aws|, you can't create
+                   private endpoints in |azure| or any other |aws|
+                   region.
+
+                See :ref:`atlas_regionalized-pl` for an exception for
+                multi-region and global sharded clusters.
+
+            .. include:: /includes/fact-private-endpoint-limits-aws.rst
+
+            - You can use {+aws-pl+} in |service| projects with up to 50
+              addressable targets **per region**. If you need more than 
+              50 addressable targets in a region:
+
+              - Contact :ref:`MongoDB Support <request-support>`, or 
+              - Use additional projects or regions to connect to 
+                addressable targets beyond this limit.
+            
+              Addressable targets include:
+
+              - Each |mongod| instance in a replica set deployment 
+                (sharded clusters excluded).
+              - Each sharded cluster deployment that use 
+                :ref:`optimized connection strings
+                <optimized-connection-strings>`.
+              - Each |mongos| instance for sharded cluster deployments
+                that use non-:ref:`optimized connection strings
+                <optimized-connection-strings>`.
+              - Each |bic| instance across all dedicated clusters in the
+                project.
+
+              .. note::
+
+                 To request a one-time increase to use {+aws-pl+} with 
+                 up to 100 addressable targets per |service| project, 
+                 contact :ref:`MongoDB Support <request-support>`.
+
+         .. tab:: {+az-pl+}
+            :tabid: {+az-pl+}
+
+            .. include:: /includes/fact-privatelink-azure-az-limitations.rst
+
+            - {+az-pl+} must be active in all regions into which you 
+              deploy a multi-region cluster. You will receive an error 
+              if {+az-pl+} is active in some, but not all, targeted 
+              regions. If you have a multi-cloud cluster in |aws| or 
+              |azure|, you must provision an 
+              endpoint in each provider or region and set up 
+              site-to-site VPN.
+
+            - You can do only one of the following:
+
+              - Deploy nodes in more than one region, and have one
+                private endpoint per region.
+              - Have multiple private endpoints in one region, and no
+                other private endpoints. 
+
+                .. important::
+
+                   This limitation applies across cloud providers. For
+                   example, if you create more than one private endpoint
+                   in a single region in |azure|, you can't create
+                   private endpoints in |aws| or any other |azure|
+                   region.
+
+              See :ref:`atlas_regionalized-pl` for an exception for
+              multi-region and global sharded clusters.
+
+            - To connect to |service| clusters using {+az-pl+} from 
+              regions in which you haven't deployed a private endpoint 
+              connection, you must peer VNets in those regions to VNets 
+              in a region in which you have deployed a private endpoint 
+              connection.
+
+              To learn about Global VNet peering, see the
+              :azure:`Azure documentation </virtual-network/virtual-networks-faq#can-i-create-a-peering-connection-to-a-vnet-in-a-different-region>`.
+
+            - You can use {+az-pl+} in |service| projects with up to 150
+              addressable targets **per region**. If you need more than 
+              150 addressable targets in a region:
+
+              - Contact :ref:`MongoDB Support <request-support>`, or 
+              - Use additional projects or regions to connect to 
+                addressable targets beyond this limit.
+
+              Addressable targets include:
+
+              - Each |mongod| instance in a replica set deployment 
+                (sharded clusters excluded).
+              - Each |mongos| instance in a sharded cluster deployment.
+              - Each |bic| instance across all dedicated clusters in the
+                project.
+
+            - {+az-pl+} does not allow more than 64k |tcp| connections
+              per target, which might be lower than the maximum number of
+              connections that a {+cluster+} can sustain.
+
+         .. tab:: {+gcp-psc+}
+            :tabid: {+gcp-psc+}
+
+            - {+gcp-psc+} must be active in all regions into which you 
+              deploy a multi-region cluster. You will receive an error 
+              if {+gcp-psc+} is active in some, but not all, targeted 
+              regions.
+
+            - You can do only one of the following:
+
+              - Deploy nodes in more than one region, and have one
+                private endpoint per region.
+              - Have multiple private endpoints in one region, and no
+                other private endpoints. 
+
+                .. important::
+
+                   This limitation applies across cloud providers. For
+                   example, if you create more than one private endpoint
+                   in a single region in |gcp|, you can't create
+                   private endpoints in |aws| or any other |gcp|
+                   region.
+
+              See :ref:`atlas_regionalized-pl` for an exception for
+              multi-region and global sharded clusters.
+
+            - |service| creates 50 service attachments, each with a
+              subnet mask value of 27. You can change the number of
+              service attachments and the subnet masks that |service|
+              creates by setting the following limits with the 
+              :oas-atlas-op:`Set One Project Limit </setProjectLimit>` 
+              {+atlas-admin-api+} endpoint:
+
+              - Set the 
+                ``atlas.project.deployment.privateServiceConnectionsPerRegionGroup`` limit to
+                change the number of service attachments.
+              - Set the ``atlas.project.deployment.privateServiceConnectionsSubnetMask``
+                limit to change the subnet mask for each service
+                attachment.
+
+              To learn more, see :oas-atlas-op:`Set One Project Limit 
+              </setProjectLimit>`.
+
+            - You can have up to 50 nodes when you create |service| projects 
+              that use {+gcp-psc+} in a **single region**. If you need
+              to change the number of nodes, perform one of the
+              following actions:
+
+              - Remove existing private endpoints and then
+                change the limit using the :oas-atlas-op:`Set One
+                Project Limit </setProjectLimit>` {+atlas-admin-api+}
+                endpoint.
+              - Contact :ref:`MongoDB Support <request-support>`.
+              - Use additional projects or regions to connect to nodes 
+                beyond this limit.
+
+            - Each private endpoint in |gcp| reserves an IP address 
+              within your |gcp| |vpc| and forwards traffic from the 
+              endpoints' IP addresses to the 
+              :gcp:`service attachments </vpc/docs/private-service-connect#service-attachments>`.
+              You must create an equal number of private endpoints 
+              to the number of service attachments. The number of 
+              service attachments defaults to 50.
+
+              Addressable targets include:
+
+              - Each |mongod| instance in a replica set deployment 
+                (sharded clusters excluded).
+              - Each |mongos| instance in a sharded cluster deployment.
+              - Each |bic| instance across all dedicated clusters in the
+                project.
+
+            - If you configure dedicated :ref:`Search Nodes <configure-search-nodes>` 
+              for ``M10+`` {+clusters+} in any |gcp| region, |service| doesn't count 
+              these nodes in the total count of addressable targets.
+            
+            - To request a one-time increase to use {+gcp-psc+} with up to 100 nodes per 
+              |service| project, contact :ref:`MongoDB Support <request-support>`.
+
+            - You can have up to 40 nodes when you create |service| projects 
+              that use {+gcp-psc+} across **multiple regions**. This total 
+              excludes the following instances:
+
+              - |gcp| regions communicating with each other
+              - {+Free-clusters+} or {+Flex-clusters+}
+           
+            - |gcp| {+google-psc+} supports up to 1024 outgoing 
+              connections per virtual machine. As a result, you can't 
+              have more than 1024 connections from a single |gcp| 
+              virtual machine to an |service| cluster.
+
+              To learn more, see the |gcp|
+              :gcp:`cloud NAT documentation 
+              </nat/docs/ports-and-addresses>`.
+
+            - |gcp| {+google-psc+} is region-specific. However, you
+              can configure :gcp:`global access 
+              </vpc/docs/about-accessing-vpc-hosted-services-endpoints#global-access>`
+              to access private endpoints from a different region.
+              
+              To learn more, see :ref:`Multi-Region Support <private-endpoint-ha>`.
+
+              .. note:: 
+
+                 You can't use |vpc| peering to access private endpoints 
+                 from a different region. 
+
+            -  When you use {+google-psc+} to connect to multi-region
+               {+clusters+}, you can connect only to {+cluster+} nodes 
+               that are in the same region as the private endpoint. If 
+               the endpoint and the primary node are in different 
+               regions, you must:
+
+               1. Set your application's
+                  :manual:`read preference </core/read-preference/>`
+                  to allow connections from a secondary node.
+
+                  For example, you can set your application's read 
+                  preference to :manual:`secondaryPreferred </core/read-preference/#mongodb-readmode-secondaryPreferred>`.
+
+               2. Ensure at least one secondary node is in the same 
+                  region as the endpoint.
+
+      - Before you can deploy a private endpoint to a region, 
+        you must first resume any paused {+database-deployments+} 
+        in your project with nodes deployed to that region.
+
+
+.. _atlas-pl-prereqs:
+
+Prerequisites
+-------------
+
+To enable connections to |service| using private endpoints, you must:
+
+- Have a valid payment method already configured for your organization.
+
+.. tabs::
+   :hidden:
+
+   .. tab:: {+Dedicated-Clusters+}
+      :tabid: clusters
+
+      .. tabs::
+         :hidden:
+
+         .. tab:: {+aws-pl+}
+            :tabid: {+aws-pl+}
+
+            .. include:: /includes/fact-private-endpoint-prereq-aws.rst
+
+         .. tab:: {+az-pl+}
+            :tabid: {+az-pl+}
+
+            .. include:: /includes/fact-private-endpoint-prereq-azure.rst
+
+         .. tab:: {+gcp-psc+}
+            :tabid: {+gcp-psc+}
+
+            - Have either the :authrole:`Project Owner` or
+              :authrole:`Organization Owner` role in |service|. 
+
+            - Have a |gcp| user account with an |iam| user policy and a
+              :gcp:`Compute Network Admin </iam/docs/understanding-roles#compute.networkAdmin>`
+              role that grants permissions to create, modify, and delete
+              networking resources. For more information on managing
+              private endpoints and connections, see the :gcp:`GCP
+              documentation </vpc/docs/overview.html>`. 
+
+            - :gcp:`Install gcloud CLI </sdk/docs/install>`.
+
+            - If you have not already done so, create your |vpc| and
+              Compute instances in |gcp|. See the :gcp:`GCP
+              documentation </vpc/docs/using-vpc.html>` for guidance. 
+
+            - Make sure egress firewall rules permit traffic to the
+              internal IP address of the {+gcp-psc+} endpoint. 
+         
+            - (Optional) If you enforce a security perimeter with |vpc|
+              service controls (VPC-SC), you must create ingress and
+              egress rules to establish the connection between the
+              {+gcp-psc+} endpoint and |service| {+clusters+}. See the
+              :gcp:`GCP documentation
+              </vpc/docs/configure-private-service-connect-services#vpc-sc>`
+              for guidance. 
+
+            - Enable :gcp:`global access
+              </vpc/docs/about-accessing-vpc-hosted-services-endpoints#global-access>`
+              to use Private Service Connect to connect to |service|
+              {+clusters+} in different regions.
+

@@ -1,0 +1,28 @@
+import pymongo
+import dns
+
+client = pymongo.MongoClient('<connection-string>')
+result = client['sample_mflix']['movies'].aggregate([
+  {
+    '$search': {
+      'index': 'pagination-tutorial', 
+      'text': {
+        'query': 'tom hanks', 
+        'path': 'cast'
+      }
+    }
+  }, {
+    '$project': {
+      '_id': 0, 
+      'title': 1, 
+      'cast': 1
+    }
+  }, {
+    '$skip': 10
+  }, {
+    '$limit': 10
+  }
+])
+
+for i in result:
+    print(i)

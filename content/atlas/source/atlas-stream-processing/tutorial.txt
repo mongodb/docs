@@ -1,0 +1,380 @@
+.. _atlas-sp-tutorial:
+
+========================================
+Get Started with {+atlas-sp+}
+========================================
+
+.. meta::
+   :description: Set up and run your first stream processor using Atlas Stream Processing with step-by-step guidance.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This tutorial takes you through the steps of setting up {+atlas-sp+}
+and running your first stream processor.
+
+.. _atlas-sp-tutorial-prereqs:
+
+Prerequisites
+-------------
+
+To complete this tutorial you need:
+
+- An |service| project
+- {+mongosh+} version 2.0 or higher
+- An |service| user with the  :authrole:`Project Owner` or
+  the :authrole:`Project Stream Processing Owner` role to manage a
+  {+SPI+} and Connection Registry
+
+  .. note::
+     
+     The :authrole:`Project Owner` role allows you to create database 
+     deployments, manage project access and project settings, manage 
+     IP Access List entries, and more.
+
+     The :authrole:`Project Stream Processing Owner` role enables 
+     {+atlas-sp+} actions such as viewing, creating, deleting, and 
+     editing stream processing instances, and viewing, adding, modifying, 
+     and deleting connections in the connection registry. 
+
+     See :ref:`Project Roles <project-roles>` to learn more about the 
+     differences between the two roles.
+
+- A database user with the  :atlasrole:`atlasAdmin` role to create
+  and run stream processors
+- An |service| {+cluster+}
+
+.. _atlas-sp-tutorial-procedure:
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-stream-processing.rst
+
+   .. step:: Create a {+SPI+}.
+
+      a. Click :guilabel:`Get Started` in the lower-right corner.
+         |service| provides a brief explanation of core {+atlas-sp+}
+         components.
+
+      #. Click the :guilabel:`Create instance` button.
+
+      #. On the :guilabel:`Create a stream processing instance` 
+         page, configure your instance as follows:
+
+         - :guilabel:`Tier`: ``SP30``
+         - :guilabel:`Provider`: ``AWS``
+         - :guilabel:`Region`: ``us-east-1``
+         - :guilabel:`Instance Name`: ``tutorialInstance``
+
+      #. Click :guilabel:`Create`.
+	 
+   .. step:: Get the {+spi+} connection string.
+
+      a. Locate the overview panel of your 
+         {+spi+} and click :guilabel:`Connect`. 
+            
+      #. Select :guilabel:`I have the MongoDB shell installed`.
+
+      #. From the :guilabel:`Select your mongo shell version` dropdown
+         menu, select the latest version of {+mongosh+}.
+
+      #. Copy the connection string provided under 
+         :guilabel:`Run your connection string in your command line`.
+         You will need this in a later step.
+
+      #. Click :guilabel:`Close`.
+
+   .. step:: Add a MongoDB |service| connection to the connection registry.
+
+      This connection serves as our streaming data sink.
+
+      a. In the pane for your {+spi+}, click :guilabel:`Configure`.
+
+      #. In the :guilabel:`Connection Registry` tab, click
+         :guilabel:`+ Add Connection` in the upper right.
+
+      #. Click :guilabel:`Atlas Database`. In the 
+         :guilabel:`Connection Name` field, enter ``mongodb1``.
+         From the :guilabel:`Atlas Cluster` drop down, select an
+         |service| {+cluster+} without any data stored on it.
+
+      #. Click :guilabel:`Add connection`.
+
+   .. step:: Verify that your streaming data source emits messages.
+
+      Your {+spi+} comes preconfigured with a connection to a sample
+      data source called ``sample_stream_solar``. This source
+      generates a stream of reports from various solar power
+      devices. Each report describes the observed wattage and
+      temperature of a single solar device at a specific point in
+      time, as well as that device's maximum wattage.
+
+      The following document is a representative example.
+
+      .. code-block:: json
+         :copyable: true
+
+	 {
+	   device_id: 'device_8',
+	   group_id: 7,
+	   timestamp: '2024-08-12T21:41:01.788+00:00',
+	   max_watts: 450,
+	   event_type: 0,
+	   obs: {
+	     watts: 252,
+	     temp: 17
+	   }
+	 }
+
+      To verify that this source emits messages, create a stream
+      processor interactively.
+
+      a. Open a terminal application of your choice.
+
+      #. Connect to your {+spi+} with {+mongosh+}.
+            
+         Paste the {+mongosh+} connection string that you copied
+         in a previous step into your terminal, where 
+         ``<atlas-stream-processing-url>`` is the URL of your {+spi+}
+         and ``<username>`` is a user with the 
+         :atlasrole:`atlasAdmin` role.
+            
+         .. code-block:: sh
+
+            mongosh "mongodb://<atlas-stream-processing-url>/" 
+            --tls --authenticationDatabase admin --username <username>
+
+         Enter your password when prompted.
+
+      #. Create the stream processor.
+         
+         Copy the following code into your {+mongosh+} prompt:
+
+         .. code-block::
+            :copyable: true
+
+            sp.process([{"$source": {
+               "connectionName": "sample_stream_solar"
+            }}])
+
+         Verify that data from the ``sample_stream_solar`` 
+         connection displays to the console, and terminate 
+         the process.
+
+         Stream processors you create with ``sp.process()`` don't
+         persist after you terminate them.
+
+   .. step:: Create a persistent stream processor.
+
+      Using an :ref:`aggregation pipeline
+      <aggregation-pipeline-intro>`, you can transform each document
+      as it is ingested. The following aggregation pipeline derives
+      the maximum temperature and the average, median, maximum, and
+      minimum wattages of each solar device at one-second intervals.
+
+      a. Configure a :pipeline:`$source` stage.
+
+         The following ``$source`` stage ingests data from the
+         ``sample_stream_solar`` source.
+
+  	 .. code-block:: sh
+	    :copyable: true
+
+	    let s = {
+	       $source: {
+		  connectionName: "sample_stream_solar"
+	       }
+	    }
+	   
+      #. Configure a :pipeline:`$group` stage.
+
+         The following ``$group`` stage organizes all incoming data
+         according to their ``group_id``, accumulates the values of
+         the ``obs.temp`` and ``obs.watts`` fields of all documents
+         for each ``group_id``, then derives the desired data.
+
+         .. code-block:: sh
+	    :copyable: true
+	    
+	    let g = {
+	       $group: {
+		  _id: "$group_id",
+		  max_temp: {
+		     $avg: "$obs.temp"
+		  },
+		  avg_watts: {
+		     $min: "$obs.watts"
+		  },
+		  median_watts: {
+		     $min: "$obs.watts"
+		  },
+		  max_watts: {
+		     $max: "$obs.watts"
+		  },
+		  min_watts: {
+		     $min: "$obs.watts"
+		  }
+	       }
+	    }
+
+      #. Configure a :pipeline:`$tumblingWindow` stage.
+
+         In order to perform accumulations such as ``$group`` on
+         streaming data, {+atlas-sp+} uses :ref:`windows
+         <atlas-sp-windows>` to bound the data set. The following
+         ``$tumblingWindow`` stage separates the stream into
+         consecutive 10-second intervals.
+
+         This means, for example, that when the ``$group`` stage
+         computes a value for ``median_watts``, it takes the
+         ``obs.watts`` values for all documents with a given
+         ``group_id`` ingested in the previous 10 seconds.
+
+         .. code-block:: sh
+            :copyable: true
+
+           let t = {
+           $tumblingWindow: {
+             interval: {
+               size: NumberInt(10),
+               unit: "second"
+             },
+              pipeline: [g]
+            }
+          }
+
+      #. Configure a :ref:`$merge <atlas-sp-agg-merge>` stage.
+
+         ``$merge`` allows you to write your processed streaming data
+         to an {+service+} database. 
+
+         .. code-block:: sh
+	    :copyable: true
+	    
+	    let m = {
+	       $merge: {
+		  into: {
+		     connectionName: "mongodb1",
+		     db: "solarDb",
+		     coll: "solarColl"
+		  }
+	       }
+	    }
+
+      #. Create the stream processor.
+
+         Assign a name to your new stream processor, and declare its
+         aggregation pipeline by listing each stage in order. The
+         ``$group`` stage belongs to the nested pipeline of the
+         ``$tumblingWindow``, and you must not include it in the
+         processor pipeline definition.
+
+         .. code-block:: sh
+	    :copyable: true
+
+            sp.createStreamProcessor("solarDemo", [s, t, m])
+
+      This creates a stream processor named ``solarDemo`` that
+      applies the previously defined query and writes the 
+      processed data to the ``solarColl`` collection of the 
+      ``solarDb`` database on the {+cluster+} you connected to.
+      It returns various measurements derived from 10-second intervals
+      of observations from your solar devices.
+
+      To learn more about how {+atlas-sp+} writes to at-rest
+      databases, see :ref:`<atlas-sp-agg-merge>`.
+
+   .. step:: Start the stream processor. 
+
+      Run the following command in {+mongosh+}:
+
+      .. code-block:: sh
+
+         sp.solarDemo.start()
+
+   .. step:: Verify the output of the stream processor.
+
+      To verify that the processor is active, run the following
+      command in {+mongosh+}:
+
+      .. code-block:: sh
+
+         sp.solarDemo.stats()
+
+      This command reports operational statistics of the 
+      ``solarDemo`` stream processor.
+
+      To verify that the stream processor is writing data to your
+      |service| {+cluster+}:
+
+      a. .. include:: /includes/nav/list-db-deployments-page.rst
+      
+      #. .. include:: /includes/nav/list-data-explorer.rst
+
+      #. View the ``MySolar`` collection.
+
+      Alternatively, you can display a sampling of processed documents
+      in the terminal using {+mongosh+}:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+	    :language: sh
+
+            sp.solarDemo.sample()
+
+         .. output::
+	    :language: json
+            
+	    {
+	      _id: 10,
+	      max_watts: 136,
+	      min_watts: 130,
+	      avg_watts: 133,
+	      median_watts: 130,
+	      max_temp: 7
+	    }
+
+      .. note::
+
+         The preceding is a representative example. Streaming data are
+         not static, and each user sees distinct documents.
+
+   .. step:: Drop the stream processor.
+
+      Run the following command in {+mongosh+}:
+
+      .. code-block:: sh
+         :copyable: true
+
+         sp.solarDemo.drop()
+
+      To confirm that you have dropped ``avgWatts``, list
+      all your available stream processors:
+
+      .. code-block:: sh
+         :copyable: true
+
+         sp.listStreamProcessors()
+
+Next Steps
+----------
+
+Learn how to:
+
+- :ref:`streams-manage-processor`
+- :ref:`manage-spi`

@@ -1,0 +1,6 @@
+- `C++ Driver <https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/>`__ v4.1.0 or later
+- :driver:`C#/.NET Driver </csharp/current/>` v3.2.0 or later
+- :driver:`Go Driver </go/current/>` v2.1.0 or later
+- :driver:`PyMongo Driver </pymongo/>` v4.10 or later
+- :driver:`Node.js Driver </node/current/>` v6.11 or later
+- :driver:`Java Driver </java/sync/current/>` v5.3.1 or later

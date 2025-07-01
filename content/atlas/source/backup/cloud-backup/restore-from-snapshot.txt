@@ -1,0 +1,143 @@
+.. _restore-from-snapshot:
+
+==============================================
+Restore from a Scheduled or On-Demand Snapshot
+==============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: restore, backup, snapshot, atlas api, atlas cli, atlas ui
+   :description: Restore data from scheduled or on-demand Cloud Backup snapshots in Atlas, considering requirements and optimizing restore times.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| lets you restore data from a scheduled or on-demand 
+{+Cloud-Backup+}, including snapshots from different projects 
+or organizations. The following sections describe restoring from a 
+snapshot *without* {+encrypt-at-rest+}. To restore from a snapshot 
+using {+encrypt-at-rest+}, see :ref:`restore-from-ear`.
+
+.. note::
+
+   You can only perform cross-organization restores through the |service| UI.
+
+Restore Considerations
+~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to the :ref:`prerequisites <restore-prereq>`, consider the
+following requirements and limitations when restoring from a scheduled
+or on-demand {+Cloud-Backup+}.
+
+.. include:: /includes/fact-restore-reqs.rst
+
+- This feature is not available for ``M0`` {+clusters+}.
+
+- .. include:: /includes/fts/facts/fact-fts-indexes-backup-restore.rst
+ 
+  .. note::
+     
+     When you restore the data from the snapshot, the |fts| index 
+     definitions from the snapshot replace any existing |fts| index 
+     definitions.
+
+Sharded {+Clusters+}
+````````````````````
+
+- If you are restoring from a sharded {+cluster+}, the source and 
+  target {+clusters+} must have the same number of shards.
+
+- The source and target {+clusters+} must use the same type of 
+  :ref:`config server <sharding-config-server>`. Config servers can
+  be either :ref:`config shards <sharded-cluster-config-server-config-shards>`
+  or dedicated config servers.
+
+- |service| can't restore a sharded {+cluster+} snapshot to a replica set.
+
+{+Flex-Clusters+}
+`````````````````
+If your {+cluster+} has been :ref:`migrated <flex-migration>` from an
+``M2`` or ``M5`` {+cluster+} to a {+Flex-cluster+}, you have access to
+the last eight backup snapshots since the date of the migration.
+
+{+Serverless-Instances+} (Deprecated)
+````````````````````````````````````````
+
+- |service| can't restore snapshots from {+Flex-clusters+}, dedicated {+cluster+}s, or
+  Cloud Manager to a {+Serverless-instance+}.
+
+- If you are restoring from a {+Serverless-instance+}, you can only
+  restore the two most recent snapshots.
+
+Recommendations to Optimize Restore Times
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/restore-optimization-considerations.rst
+
+.. _cps-fallback-snapshots:
+
+Fallback Snapshots
+~~~~~~~~~~~~~~~~~~
+
+If a scheduled snapshot fails for any reason, |service| attempts to
+repeat the snapshot process. If necessary, you may use the resulting
+fallback snapshot to restore the {+cluster+}. This isn't recommended:
+fallback snapshots use a different process from regular snapshots. They
+may contain inconsistent data.
+
+Fallback snapshots are marked in the UI with a warning icon, and a
+warning message appears in the restore modal window if the restore uses
+a fallback snapshot.
+
+.. warning::
+
+   Restoring your {+cluster+} from a fallback snapshot may result in
+   inconsistent data across your {+cluster+}, and should be considered an
+   option of last resort.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-roles/restore-and-watch.rst
+
+.. _restore-cluster:
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/fact-restore-cluster-downtime-warning-unavailable.rst
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      Restore a {+Cluster+} 
+      `````````````````````
+
+      .. include:: /includes/extracts/atlas-backups-restores-start-and-watch.rst
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: atlas-api 
+
+      The {+atlas-admin-api+} provides different endpoints for restoring
+      ``M10+`` {+clusters+}, {+Serverless-instances+} (deprecated), and {+Flex-clusters+}.
+
+      :oas-atlas-tag:`Restore One Snapshot of One Cluster </Cloud-Backups/operation/createBackupRestoreJob>`
+      :oas-atlas-tag:`Restore One Snapshot of One Serverless Instance </Cloud-Backups/operation/createServerlessBackupRestoreJob>`
+      :oas-atlas-tag:`Flex Clusters Restore Jobs </Flex-Restore-Jobs>`
+
+   .. tab:: {+atlas-ui+}
+      :tabid: atlasui
+
+      Restore a {+Cluster+} 
+      `````````````````````
+      .. include:: includes/procedures/snapshot-restore.rst

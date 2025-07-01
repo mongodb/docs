@@ -1,0 +1,5 @@
+Prompt: Answer the following question based on the given context.
+                        Question: In a few sentences, what are MongoDB's latest AI announcements?
+                        Context: for the variety and scale of data required by AI-powered applications.  We are confident MongoDB will be a substantial beneficiary of this next wave of application development.&#34;&#34;As we look ahead, we continue to be incredibly excited by our large market opportunity,...
+
+Response: MongoDB's latest AI announcements include the launch of the MongoDB AI Applications Program (MAAP), which offers customers reference architectures, pre-built partner integrations, and professional services to help them build AI-powered applications quickly. Additionally, Accenture will establish a center of excellence focused on MongoDB projects, making them the first global systems integrator to do so. These announcements demonstrate MongoDB's commitment to expanding its AI ecosystem and positioning itself as a key player in AI-powered application development.

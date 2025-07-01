@@ -1,0 +1,1070 @@
+.. _streams-agg-pipeline-source:
+.. _atlas-sp-agg-source:
+
+========================================
+``$source`` Stage (Stream Processing)
+========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $source aggregation pipeline stage 
+   :description: Learn how to use the $source stage to pull in streaming 
+                 data for processing
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-source-def:
+
+Definition
+----------
+
+.. pipeline:: $source
+
+The :pipeline:`$source` stage specifies a connection in the 
+:ref:`Connection Registry <atlas-sp-manage-connections>` to stream data
+from. The following connection types are supported:
+
+- {+kafka+} broker
+- MongoDB collection change stream 
+- MongoDB database change stream
+- Document array
+
+.. note:: 
+
+   You can't use |service| serverless instances as a 
+   :pipeline:`$source`.
+
+.. _atlas-sp-agg-source-syntax:
+
+Syntax
+------
+
+.. _atlas-sp-agg-source-syntax-kafka:
+
+Apache Kafka Broker
+~~~~~~~~~~~~~~~~~~~
+
+To operate on streaming data from an {+kafka+} broker, the 
+``$source`` stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$source": {
+      "connectionName": "<registered-connection>",
+      "topic" : ["<source-topic>", ...],
+      "timeField": { 
+        $toDate | $dateFromString: <expression>
+      },
+      "tsFieldName": "<string> (optional)", 
+      "partitionIdleTimeout": {
+        "size": <duration-number>,
+        "unit": "<duration-unit>"
+      },
+      "config": { 
+        "auto_offset_reset": "<start-event>",
+        "group_id": "<group-id>",
+	"keyFormat": "<deserialization-type>",
+	"keyFormatError": "<error-handling>"
+      },
+    }
+  }
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, to 
+       ingest data from.
+
+   * - ``topic``
+     - string or array of strings
+     - Required
+     - Name of one or more {+kafka+} topics to stream messages from.
+       If you want to stream messages from more than one topic,
+       specify them in an array. 
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldName``
+     - string 
+     - Optional
+     - Name of the field that ``$source`` projects the document's assigned timestamp into.
+
+       If omitted, ``$source`` doesn't add a timestamp to documents.
+
+   * - ``partitionIdleTimeout``
+     - document
+     - Optional
+     - Document specifying the amount of time that a partition is
+       allowed to be idle before it is ignored in watermark 
+       calculations. 
+       
+       This field is disabled by default. 
+       To handle partitions that don't move forward due to idleness, 
+       set a value for this field.
+
+   * - ``partitionIdleTimeout.size``
+     - integer
+     - Optional
+     - Number specifying the duration of the partition idle timeout.
+
+   * - ``partitionIdleTimeout.unit``
+     - string
+     - Optional
+     - Unit of time for the duration of the partition idle timeout.
+
+       The value of ``unit`` can be one of the following:
+
+       - ``"ms"`` (millisecond)
+       - ``"second"``
+       - ``"minute"``
+       - ``"hour"``
+       - ``"day"``
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.
+
+   * - ``config.auto_offset_reset`` 
+     - string 
+     - Optional
+     - Specifies which event in the {+kafka+} source topic to begin 
+       ingestion with. ``auto_offset_reset`` takes the following values: 
+       
+       - ``end``, ``latest``, or ``largest`` : to begin ingestion from
+         the latest event in the topic at the time the aggregation is
+         initialized.
+       - ``earliest``, ``beginning``, or ``smallest`` : to begin
+         ingestion from the earliest event in the topic. 
+
+       Defaults to ``latest``.
+
+   * - ``config.group_id`` 
+     - string
+     - Optional 
+     - ID of the kafka consumer group to associate with the stream
+       processor. If omitted, {+atlas-sp+} associates the {+spi+} with
+       an auto-generated ID in the following format:  
+
+       .. code-block:: sh 
+          :copyable: false 
+
+          asp-${streamProcessorId}-consumer
+
+       {+atlas-sp+} commits partition offsets to the {+kafka+} broker 
+       for the specified consumer group ID after a checkpoint is 
+       committed. It commits an offset when messages up through that 
+       offset are durably recorded in a checkpoint. This allows you to 
+       track the offset lag and progress of the stream processor 
+       directly from the Kafka broker consumer group metadata.
+
+   * - ``config.keyFormat``
+     - string
+     - Optional
+     - Data type used to deserialize {+kafka+} key data. Must be one
+       of the following values:
+
+       - ``"binData"``
+       - ``"string"``
+       - ``"json"``
+       - ``"int"``
+       - ``"long"``
+
+       Defaults to ``binData``.
+     
+   * - ``config.keyFormatError``
+     - string
+     - Optional
+     - How to handle errors encountered when deserializing {+kafka+} key
+       data. Must be one of the following values:
+
+       - ``dlq``, which writes the document to your :ref:`Dead Letter Queue <atlas-sp-dlq>`.
+       - ``passThrough``, which sends the document to the next stage without key data.
+
+
+.. note::
+
+   {+atlas-sp+} requires that documents in the source data stream be
+   valid ``json`` or ``ejson``. {+atlas-sp+} sets the documents that
+   don't meet this requirement to your :ref:`dead letter queue
+   <atlas-sp-dlq>` if you have configured one.
+
+.. _atlas-sp-agg-source-syntax-coll:
+
+MongoDB Collection Change Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An {+service+} collection change stream allows applications to access real-time 
+data changes on a single collection. To learn how to open a change stream against 
+a collection, see :manual:`Change Streams </changeStreams>`. 
+
+To operate on streaming data from an {+service+} collection change
+stream, the ``$source`` stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$source": {
+      "connectionName": "<registered-connection>",
+      "timeField": { 
+        $toDate | $dateFromString: <expression>
+      },
+      "tsFieldName": "<string> (optional)",
+      "db" : "<source-db>",
+      "coll" : ["<source-coll>",...],
+      "config": { 
+        "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
+        "fullDocument": "<full-doc-condition>",
+        "fullDocumentOnly": <boolean>,
+        "fullDocumentBeforeChange": "<before-change-condition>",          
+	"pipeline": [{
+	  "<aggregation-stage>" : {
+	    <stage-input>,
+	    . . .
+	  },
+	  . . .
+	}],
+	"maxAwaitTimeMS": <time-ms>
+      }
+    }
+  }
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Conditional
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, to 
+       ingest data from.
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldName``
+     - string 
+     - Optional
+     - Name of the field that ``$source`` projects the document's assigned timestamp into.
+
+       If omitted, ``$source`` doesn't add a timestamp to documents.
+
+   * - ``db``
+     - string
+     - Required
+     - Name of a MongoDB database hosted on the |service| instance
+       specified by ``connectionName``. The change stream of this 
+       database acts as the streaming data source.
+
+   * - ``coll``
+     - string or array of strings
+     - Required
+     - Name of one or more MongoDB collections hosted on the |service|
+       instance specified by ``connectionName``. The change stream of
+       these collections act as the streaming data source. If you omit
+       this field, your stream processor will source from a
+       :ref:`streams-agg-db-change-stream`.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.  
+
+   * - ``config.startAfter`` 
+     - token
+     - Conditional
+     - The change event after which the source begins reporting.
+       This takes the form of a 
+       :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.startAtOperationTime`` 
+     - timestamp
+     - Conditional
+     - The operation time after which the source should begin 
+       reporting.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+       Accepts :manual:`MongoDB Extended JSON
+       <mongodb-extended-json-v2>` ``$date`` or ``$timestamp`` values.
+
+   * - ``config.fullDocument``
+     - string
+     - Conditional
+     - Setting that controls whether a change stream source should 
+       return a full document, or only the changes when an update 
+       occurs. Must be one of the following:
+
+       - ``updateLookup`` : Returns only changes on update.
+       - ``required``  : Must return a full document. If a full document
+         is unavailable, returns nothing.
+       - ``whenAvailable``  : Returns a full document whenever one is 
+         available, otherwise returns changes.
+      
+       If you do not specify a value for fullDocument, it defaults to
+       ``updateLookup``.
+
+       To use this field with a collection change stream, you must
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on that collection.
+
+   * - ``config.fullDocumentOnly``
+     - boolean
+     - Conditional
+     - Setting that controls whether a change stream source returns 
+       the entire change event document including all metadata, or 
+       only the contents of ``fullDocument``. If set to ``true``, the 
+       source returns only the contents of ``fullDocument``.
+
+       To use this field with a collection change stream, you must
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on that collection.
+
+   * - ``config.fullDocumentBeforeChange``
+     - string
+     - Optional
+     - Specifies whether a change stream source should include the
+       full document in its original "before changes" state
+       in the output. Must be one of the following:
+
+       - ``off`` : Omits the ``fullDocumentBeforeChange`` field.
+       - ``required`` : Must return a full document in its before
+         changes state. If a full document in its before changes state
+         is unavailable, the stream processor fails.
+       - ``whenAvailable`` : Returns a full document in its before
+         changes state whenever one is 
+         available, otherwise omits the ``fullDocumentBeforeChange`` field.
+      
+       If you do not specify a value for ``fullDocumentBeforeChange``,
+       it defaults to ``off``.
+
+       To use this field with a collection change stream, you must
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on that collection.
+
+   * - ``config.pipeline``
+     - document
+     - Optional
+     - Specifies an aggregation pipeline to filter change stream output
+       at the point of origin. This pipeline must conform to the parameters
+       described in :manual:`Modify Change Stream Output </changeStreams/#modify-change-stream-output>`.
+
+   * - ``config.maxAwaitTimeMS``
+     - integer
+     - Optional
+     - Maximum time, in milliseconds, to wait for new data changes to
+       report to the change stream cursor before returning an empty
+       batch.
+
+       Defaults to ``1000``. 
+
+.. _streams-agg-db-change-stream:
+.. _atlas-sp-agg-source-syntax-db:
+
+MongoDB Database Change Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An {+service+} database change stream allows applications to access real-time 
+data changes on a single database. To learn how to open a change stream against 
+a database, see :manual:`Change Streams </changeStreams>`. 
+
+To operate on streaming data from an {+service+} database change
+stream, the ``$source`` stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$source": {
+      "connectionName": "<registered-connection>",
+      "timeField": { 
+        $toDate | $dateFromString: <expression>
+      },
+      "tsFieldName": "<string> (optional)",
+      "db" : "<source-db>",
+      "config": { 
+        "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
+        "fullDocument": "<full-doc-condition>",
+        "fullDocumentOnly": <boolean>,
+        "fullDocumentBeforeChange": "<before-change-condition>",
+	"pipeline": [{
+	  "<aggregation-stage>" : {
+	    <stage-input>,
+	    . . .
+	  },
+	  . . .
+	}]
+      },
+    }
+  }
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Conditional
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, to 
+       ingest data from.
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldName``
+     - string 
+     - Optional
+     - Name of the field that ``$source`` projects the document's assigned timestamp into.
+
+       If omitted, ``$source`` doesn't add a timestamp to documents.
+
+   * - ``db``
+     - string
+     - Required
+     - Name of a MongoDB database hosted on the |service| instance
+       specified by ``connectionName``. The change stream of this 
+       database acts as the streaming data source.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.  
+
+   * - ``config.startAfter`` 
+     - token
+     - Conditional
+     - The change event after which the source begins reporting.
+       This takes the form of a 
+       :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.startAtOperationTime`` 
+     - timestamp
+     - Conditional
+     - The operation time after which the source should begin 
+       reporting.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+       Accepts :manual:`MongoDB Extended JSON
+       <mongodb-extended-json-v2>` ``$date`` or ``$timestamp`` values.
+
+   * - ``config.fullDocument``
+     - string
+     - Conditional
+     - Setting that controls whether a change stream source should 
+       return a full document, or only the changes when an update 
+       occurs. Must be one of the following:
+
+       - ``updateLookup`` : Returns only changes on update.
+       - ``required`` : Must return a full document. If a full document
+         is unavailable, returns nothing.
+       - ``whenAvailable`` : Returns a full document whenever one is 
+         available, otherwise returns changes.
+      
+       If you do not specify a value for fullDocument, it defaults to
+       ``updateLookup``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentOnly``
+     - boolean
+     - Conditional
+     - Setting that controls whether a change stream source returns 
+       the entire change event document including all metadata, or 
+       only the contents of ``fullDocument``. If set to ``true``, the 
+       source returns only the contents of ``fullDocument``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentBeforeChange``
+     - string
+     - Optional
+     - Specifies whether a change stream source should include the
+       full document in its original "before changes" state
+       in the output. Must be one of the following:
+
+       - ``off`` : Omits the ``fullDocumentBeforeChange`` field.
+       - ``required`` : Must return a full document in its before
+         changes state. If a full document in its before changes state
+         is unavailable, the stream processor fails.
+       - ``whenAvailable`` : Returns a full document in its before
+         changes state whenever one is 
+         available, otherwise omits the ``fullDocumentBeforeChange`` field.
+      
+       If you do not specify a value for ``fullDocumentBeforeChange``,
+       it defaults to ``off``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.pipeline``
+     - document
+     - Optional
+     - Specifies an aggregation pipeline to filter change stream output
+       at the point of origin. This pipeline must conform to the parameters
+       described in :manual:`Modify Change Stream Output </changeStreams/#modify-change-stream-output>`.
+
+   * - ``config.maxAwaitTimeMS``
+     - integer
+     - Optional
+     - Maximum time, in milliseconds, to wait for new data changes to
+       report to the change stream cursor before returning an empty
+       batch.
+
+       Defaults to ``1000``.
+
+.. _atlas-sp-cluster-wide-source:
+
+MongoDB Cluster-wide Change Stream Source
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To operate on streaming data from an entire {+service+} cluster change
+stream, the ``$source`` stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$source": {
+      "connectionName": "<registered-connection>",
+      "timeField": { 
+        $toDate | $dateFromString: <expression>
+      },
+      "tsFieldName": "<string> (optional)",
+      "config": { 
+        "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
+        "fullDocument": "<full-doc-condition>",
+        "fullDocumentOnly": <boolean>,
+        "fullDocumentBeforeChange": "<before-change-condition>",
+	"pipeline": [{
+	  "<aggregation-stage>" : {
+	    <stage-input>,
+	    . . .
+	  },
+	  . . .
+	}]
+      },
+    }
+  }
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Conditional
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, to 
+       ingest data from.
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldName``
+     - string 
+     - Optional
+     - Name of the field that ``$source`` projects the document's assigned timestamp into.
+
+       If omitted, ``$source`` doesn't add a timestamp to documents.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.  
+
+   * - ``config.startAfter`` 
+     - token
+     - Conditional
+     - The change event after which the source begins reporting.
+       This takes the form of a 
+       :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.startAtOperationTime`` 
+     - date | timestamp
+     - Conditional
+     - The operation time after which the source should begin 
+       reporting.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+       Accepts :manual:`MongoDB Extended JSON
+       <mongodb-extended-json-v2>` ``$date`` or ``$timestamp`` values.
+
+   * - ``config.fullDocument``
+     - string
+     - Conditional
+     - Setting that controls whether a change stream source should 
+       return a full document, or only the changes when an update 
+       occurs. Must be one of the following:
+
+       - ``updateLookup`` : Returns only changes on update.
+       - ``required`` : Must return a full document. If a full document
+         is unavailable, returns nothing.
+       - ``whenAvailable`` : Returns a full document whenever one is 
+         available, otherwise returns changes.
+      
+       If you do not specify a value for fullDocument, it defaults to
+       ``updateLookup``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentOnly``
+     - boolean
+     - Conditional
+     - Setting that controls whether a change stream source returns 
+       the entire change event document including all metadata, or 
+       only the contents of ``fullDocument``. If set to ``true``, the 
+       source returns only the contents of ``fullDocument``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentBeforeChange``
+     - string
+     - Optional
+     - Specifies whether a change stream source should include the
+       full document in its original "before changes" state
+       in the output. Must be one of the following:
+
+       - ``off`` : Omits the ``fullDocumentBeforeChange`` field.
+       - ``required`` : Must return a full document in its before
+         changes state. If a full document in its before changes state
+         is unavailable, the stream processor fails.
+       - ``whenAvailable`` : Returns a full document in its before
+         changes state whenever one is 
+         available, otherwise omits the ``fullDocumentBeforeChange`` field.
+      
+       If you do not specify a value for ``fullDocumentBeforeChange``,
+       it defaults to ``off``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.pipeline``
+     - document
+     - Optional
+     - Specifies an aggregation pipeline to filter change stream output
+       at the point of origin. This pipeline must conform to the parameters
+       described in :ref:`<change-stream-modify-output>`.
+
+   * - ``config.maxAwaitTimeMS``
+     - integer
+     - Optional
+     - Maximum time, in milliseconds, to wait for new data changes to
+       report to the change stream cursor before returning an empty
+       batch.
+
+       Defaults to ``1000``.
+
+.. _atlas-sp-agg-source-syntax-array:
+
+Document Array
+~~~~~~~~~~~~~~
+
+To operate on an array of documents, the ``$source`` stage has the 
+following prototype form:
+
+.. code-block:: json
+
+  {
+    "$source": {
+      "timeField": { 
+        $toDate | $dateFromString: <expression>
+      },
+      "tsFieldName": "<string> (optional)",
+      "documents" : [{source-doc},...] | <expression>
+    }
+  }
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldName``
+     - string 
+     - Optional
+     - Name of the field that ``$source`` projects the document's assigned timestamp into.
+
+       If omitted, ``$source`` doesn't add a timestamp to documents.
+
+   * - ``documents``
+     - array
+     - Conditional
+     - Array of documents to use as a streaming data source. The 
+       value of this field can either be an array of objects or an 
+       expression that evaluates to an array of objects. Do not use this
+       field when using the ``connectionName`` field.
+
+.. _atlas-sp-agg-source-behavior:
+
+Behavior
+--------
+
+:pipeline:`$source` must be the first stage of any pipeline it appears 
+in. You can use only one :pipeline:`$source` stage per pipeline.
+
+.. _atlas-sp-agg-source-examples:
+
+Examples
+--------
+
+Kafka Example 
+~~~~~~~~~~~~~
+
+A streaming data source generates detailed weather reports from
+various locations, conformant to the schema of the :ref:`Sample
+Weather Dataset <sample-weather>`. The following aggregation has three
+stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+kafka+} broker collecting these reports in a topic named
+   ``my_weatherdata``, exposing each record as it is ingested to the
+   subsequent aggregation stages. This stage also overrides the name
+   of the timestamp field it projects, setting it to
+   ``ingestionTime``.
+
+2. The :pipeline:`$match` stage excludes documents that have a
+   ``dewPoint.value`` of less than or equal to ``5.0`` and passes
+   along the documents with ``dewPoint.value`` greater than ``5.0`` to
+   the next stage.
+
+3. The :pipeline:`$merge` stage writes the output to an {+service+}
+   collection named ``stream`` in the ``sample_weatherstream``
+   database. If no such database or collection exist, {+service+}
+   creates them.
+
+.. code-block:: json
+   :copyable: true
+   
+   {
+     '$source': {
+       connectionName: 'sample_weatherdata',
+       topic: 'my_weatherdata',
+       tsFieldName: 'ingestionTime'
+     }
+   },
+   { '$match': { 'dewPoint.value': { '$gt': 5 } } },
+   {
+     '$merge': {
+       into: {
+	 connectionName: 'weatherStreamOutput',
+	 db: 'sample_weatherstream',
+	 coll: 'stream'
+       }
+     }
+   }
+
+To view the documents in the resulting ``sample_weatherstream.stream``
+collection, connect to your {+service+} cluster and run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.getSiblingDB("sample_weatherstream").stream.find()
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+	_id: ObjectId('66ad2edfd4fcac13b1a28ce3'),
+	airTemperature: { quality: '1', value: 27.7 },
+	atmosphericPressureChange: {
+	  quantity24Hours: { quality: '9', value: 99.9 },
+	  quantity3Hours: { quality: '1' },
+	  tendency: { code: '1', quality: '1' }
+	},
+	atmosphericPressureObservation: {
+	  altimeterSetting: { quality: '1', value: 1015.9 },
+	  stationPressure: { quality: '1', value: 1021.9 }
+	},
+	callLetters: 'CGDS',
+	dataSource: '4',
+	dewPoint: { quality: '9', value: 25.7 },
+	elevation: 9999,
+	extremeAirTemperature: { code: 'N', period: 99.9, quantity: '9', value: -30.4 },
+	ingestionTime: ISODate('2024-08-02T19:09:18.071Z'),
+	liquidPrecipitation: { condition: '9', depth: 160, period: 24, quality: '2' },
+	pastWeatherObservationManual: {
+	  atmosphericCondition: { quality: '1', value: '8' },
+	  period: { quality: '9', value: 3 }
+	},
+	position: { coordinates: [ 153.3, 50.7 ], type: 'Point' },
+	precipitationEstimatedObservation: { discrepancy: '4', estimatedWaterDepth: 4 },
+	presentWeatherObservationManual: { condition: '53', quality: '1' },
+	pressure: { quality: '1', value: 1016.3 },
+	qualityControlProcess: 'V020',
+	seaSurfaceTemperature: { quality: '9', value: 27.6 },
+	sections: [ 'AA2', 'SA1', 'MW1', 'AG1', 'GF1' ],
+	skyCondition: {
+	  cavok: 'N',
+	  ceilingHeight: { determination: 'C', quality: '1', value: 6900 }
+	},
+	skyConditionObservation: {
+	  highCloudGenus: { quality: '1', value: '05' },
+	  lowCloudGenus: { quality: '9', value: '03' },
+	  lowestCloudBaseHeight: { quality: '9', value: 150 },
+	  lowestCloudCoverage: { quality: '1', value: '05' },
+	  midCloudGenus: { quality: '9', value: '08' },
+	  totalCoverage: { opaque: '99', quality: '1', value: '06' }
+	},
+	skyCoverLayer: {
+	  baseHeight: { quality: '9', value: 99999 },
+	  cloudType: { quality: '9', value: '05' },
+	  coverage: { quality: '1', value: '04' }
+	},
+	st: 'x+35700-027900',
+	type: 'SAO',
+	visibility: {
+	  distance: { quality: '1', value: 4000 },
+	  variability: { quality: '1', value: 'N' }
+	},
+	waveMeasurement: {
+	  method: 'I',
+	  seaState: { code: '99', quality: '9' },
+	  waves: { height: 99.9, period: 14, quality: '9' }
+	},
+	wind: {
+	  direction: { angle: 280, quality: '9' },
+	  speed: { quality: '1', rate: 30.3 },
+	  type: '9'
+	}
+      }
+
+.. note::
+
+   The preceding is a representative example. Streaming data are
+   not static, and each user sees distinct documents.
+
+
+Change Stream Example 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation ingests data from the ``cluster0-collection`` source, 
+which connects to an {+service+} cluster loaded with the :ref:`sample dataset <sample-data>`. 
+To learn how to create a stream processing instance and add a connection to an {+service+} cluster to the 
+connection registry, see :ref:`atlas-sp-tutorial`. This aggregation runs two stages to 
+open a change stream and record changes to the ``data`` collection in the ``sample_weatherdata`` database: 
+
+1. The :pipeline:`$source` stage connects to the ``cluster0-collection`` source and opens a 
+   change stream against the ``data`` collection in the ``sample_weatherdata`` database. 
+
+#. The :pipeline:`$merge` stage writes the filtered change stream documents to an {+service+}
+   collection named ``data_changes`` in the ``sample_weatherdata`` database. 
+   If no such collection exists, {+service+} creates it.
+
+.. code-block:: json
+
+   {
+     $source: {
+       connectionName: "cluster0-connection",
+       db : "sample_weatherdata",
+       coll : "data"
+     },
+     $merge: { 
+       into: {
+         connectionName: "cluster0-connection", 
+         db: "sample_weatherdata",
+         coll: "data_changes"
+       }
+     }  
+   }  
+
+The following :binary:`~bin.mongosh` command deletes a ``data`` document: 
+
+.. code-block:: json
+
+   db.getSiblingDB("sample_weatherdata").data.deleteOne(
+      { _id: ObjectId("5553a99ae4b02cf715120e4b") }
+   )
+
+After the ``data`` document is deleted, the stream processor writes the change stream event 
+document to the ``sample_weatherdata.data_changes`` collection.  
+To view the documents in the resulting ``sample_weatherdata.data_changes``
+collection, use :binary:`~bin.mongosh` to connect to your {+service+} cluster and run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.getSiblingDB("sample_weatherdata").data_changes.find()
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        {
+          _id: {
+            _data: '8267A3D7A3000000012B042C0100296E5A1004800951B8EDE4430AB5C1B254BB3C96D6463C6F7065726174696F6E54797065003C64656C6574650046646F63756D656E744B65790046645F696400645553A99AE4B02CF715120E4B000004'
+          },
+          clusterTime: Timestamp({ t: 1738790819, i: 1 }),
+          documentKey: { _id: ObjectId('5553a99ae4b02cf715120e4b') },
+          ns: { db: 'sample_weatherdata', coll: 'data' },
+          operationType: 'delete',
+          wallTime: ISODate('2025-02-05T21:26:59.313Z')
+        }
+      ]
+

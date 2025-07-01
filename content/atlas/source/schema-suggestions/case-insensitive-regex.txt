@@ -1,0 +1,180 @@
+.. _regex-to-search:
+
+=====================================
+Use |fts| for Full-Text Regex Queries
+=====================================
+
+.. meta::
+   :description: Improve performance of case-insensitive regex queries by using Atlas Search with the $search aggregation pipeline stage instead of inefficient regex matching.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If your queries rely on inefficient regex matching, create and run an
+:ref:`Atlas Search query <searching-ref>` with the :pipeline:`$search` 
+aggregation pipeline stage to improve the performance of text queries 
+which have more options for customizing your query parameters.
+
+.. _case-insensitive-regex-anti-pattern:
+
+Avoid Inefficient Regex Matching
+--------------------------------
+
+If you frequently run case-insensitive regex queries (utilizing the
+``i`` option), we recommend using :ref:`Atlas Search queries
+<searching-ref>` that use the :pipeline:`$search`
+aggregation pipeline stage. 
+
+You can specify :manual:`collation </reference/collation/>` on an
+index to define language-specific rules for string comparison, such as
+rules for lettercase and accent marks. However, :manual:`collation
+</reference/collation/>` can cause some functionality loss compared to
+:ref:`Atlas Search queries <searching-ref>`. In non-Atlas Search
+environments, case-insensitive indexes do not improve performance for
+regex queries. The :query:`$regex` query operator is not
+collation-aware, and cannot use case-insensitive indexes effectively.
+:ref:`Atlas Search indexes <fts-about-indexing>` significantly improve
+the performance of case-sensitive queries and offer more options for
+customizing query parameters.
+
+Example
+-------
+
+Consider an ``employees`` collection with the following documents. This
+collection has no indexes besides the default ``_id`` index:
+
+.. code-block:: javascript
+
+   // employees collection
+
+   {
+     "_id": 1,
+     "first_name": "Hannah",
+     "last_name": "Simmons",
+     "dept": "Engineering"
+   },
+   {
+     "_id": 2,
+     "first_name": "Michael",
+     "last_name": "Hughes",
+     "dept": "Security"
+   },
+   {
+     "_id": 3,
+     "first_name": "Wendy",
+     "last_name": "Crawford",
+     "dept": "Human Resources"
+   },
+   {
+     "_id": 4,
+     "first_name": "MICHAEL",
+     "last_name": "FLORES",
+     "dept": "Sales"
+   }
+
+If your application frequently queries the ``first_name`` field, you may
+want to run case-insensitive regex queries to more easily find matching
+names. Case-insensitive regex also matches against differing data
+formats, as in the example above where you have ``first_names`` of both
+"Michael" and "MICHAEL". However, we recommend 
+:ref:`Atlas Search queries <searching-ref>` that use the 
+:pipeline:`$search` aggregation pipeline stage.
+
+If a user searches for the string "michael", the application may run
+the following query:
+
+.. code-block:: javascript
+
+   db.employees.find( { first_name: { $regex: /michael/i } } )
+
+Since this query specifies the
+:manual:`$regex </reference/operator/query/regex/>` option ``i``, it is
+case-insensitive. The query returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 2, "first_name" : "Michael", "last_name" : "Hughes", "dept" : "Security" }
+   { "_id" : 4, "first_name" : "MICHAEL", "last_name" : "FLORES", "dept" : "Sales" }
+
+Although this query does return the expected documents, case-insensitive
+regex queries with no index support are not very performant. To improve
+performance, :ref:`create an Atlas Search index <ref-create-index>`:
+
+.. code-block:: json
+  
+   {
+     "mappings": {
+       "dynamic": true
+     }
+   }
+
+:manual:`Collation </reference/collation/>` can cause some 
+functionality loss. When the ``strength`` field of an index's 
+``collation`` document is ``1`` or ``2``, the index is 
+case-insensitive. For a detailed description of the collation document 
+and the different ``strength`` values, see :manual:`Collation Document
+</reference/collation/#collation-document>`.
+
+For the application to use the case-insensitive index, you must also 
+specify the *same* collation document from the index in the regex 
+query. While you can remove the ``$regex`` operator from the previous 
+:method:`~db.collection.find()` method and use the newly 
+created index, we recommend that you use an :ref:`Atlas Search query 
+<searching-ref>` that uses the :pipeline:`$search` 
+aggregation pipeline stage.
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Case-insensitive Query
+     - |fts| Query
+   
+   * - .. code-block:: javascript
+
+          db.employees.find( { first_name: "michael" } ).collation( { locale: 'en', strength: 2 } )
+
+     - .. code-block:: json
+      
+          db.employees.aggregate([
+            {
+              $search: {
+                "index": "default",
+                "text": {
+                  "path": "first_name",
+                  "query": "michael"
+                }
+              }
+            }
+          ])
+
+.. important::
+
+   Do not use the :manual:`$regex </reference/operator/query/regex/>`
+   operator when using a case-insensitive index for your query. The
+   ``$regex`` implementation is not collation-aware and cannot utilize
+   case-insensitive indexes. Instead, we recommend 
+   :ref:`Atlas Search queries <searching-ref>` that use the 
+   :pipeline:`$search` aggregation pipeline stage.
+
+Learn More
+----------
+
+- To learn more about |fts| queries, see :ref:`searching-ref`.
+
+- To learn more about case-insensitive indexes with illustrative
+  examples, see
+  :manual:`Case Insensitive Indexes </core/index-case-insensitive/>`.
+
+- To learn more about regex queries in MongoDB, see
+  :manual:`$regex </reference/operator/query/regex/>`.
+
+- MongoDB University offers a free course on optimizing MongoDB
+  Performance. To learn more, see
+  :mdbu-course:`Monitoring and Insights </courses/monitoring-and-insights>`.

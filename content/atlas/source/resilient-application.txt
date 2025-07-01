@@ -1,0 +1,1019 @@
+.. facet::
+   :name: programming_language
+   :values: java, javascript/typescript, python
+
+.. meta::
+   :keywords: code example, java sync, node.js
+   :description: Build a resilient application with Atlas by configuring cluster resilience and client-side best practices to handle unexpected events and improve performance.
+
+.. _resilient-application:
+
+================================================
+Build a Resilient Application with MongoDB Atlas
+================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When building a mission-critical application, it's important to prepare
+for unexpected events that may happen in production. This includes
+unexpected slow queries, missing indexes, or a sharp rise in workload
+volume.
+
+MongoDB |service| helps you build a resilient application by equipping you
+with out-of-the-box features that allow you to prepare proactively and
+respond reactively to situations. To build a resilient application, we
+recommend that you configure your MongoDB deployment with the following
+:ref:`cluster resilience <cluster-resilience>` and :ref:`application
+and client-side <app-client-side-best-practices>` best practices. 
+
+.. _cluster-resilience:
+
+{+Cluster+} Resilience
+----------------------
+
+.. include:: /includes/cluster-resilience.rst
+
+.. _resilient-upgraded-tcmalloc:
+
+Improved Memory Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run your application safely in production, it's important to ensure
+that your memory utilization allows for headroom. If a node runs out of
+available memory, it can become susceptible to the `Linux Out of Memory
+Killer <https://linuxhandbook.com/oom-killer/>`__ that terminates the
+|mongod| process.
+
+MongoDB 8.0 uses an :ref:`upgraded TCMalloc <8.0-tcmalloc-upgrade>`
+for all deployments automatically, which reduces average memory
+fragmentation growth over time. This lower fragmentation improves
+operational stability during peak loads and results in overall improved
+memory utilization.
+
+.. _resilient-operations-rejection-filters:
+
+Operation Rejection Filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An unintentional resource-intensive operation can cause problems in
+production if you don't handle it promptly. 
+
+MongoDB 8.0 allows you to minimize the impact of these operations by
+using operation rejection filters. Operation rejection filters allow
+you to configure MongoDB to reject queries from running until you
+re-enable queries with that :term:`query shape <query shape>`.
+
+In other words, once you identify a slow query, you don't need to
+wait for application teams to fix their queries to contain the slow
+query's impact. Instead, once you notice a poorly performing query in
+either your :ref:`Query Profiler <query-profiler>`, :ref:`Real Time
+Performance Panel <real-time-metrics-status-tab>`, or query logs, you
+can set a rejection filter on that query shape. MongoDB then prevents
+new instances of that incoming query shape from executing. Once you fix
+the query, you can re-enable the query shape.
+
+You should use an operation rejection filter if you want to:
+
+- Contain the impact of slow queries quickly while the fix is in progress.
+- Prioritize more important workloads during times of overload by rejecting less important queries.
+- Give the cluster time to recover if it's close to max resource utilization.
+
+Identify and Reject Slow Queries in the {+atlas-ui+}
+````````````````````````````````````````````````````
+
+To use an operation rejection filter in the {+atlas-ui+}:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+   
+   .. step:: Go to the :ref:`Query Profiler <query-profiler>` for the specified cluster within the current project.
+      
+      a. Click :guilabel:`View Monitoring` for that instance in the project 
+         panel.
+     
+      #. Click the :guilabel:`Query Insights` tab.
+  
+      #. Click the :guilabel:`Query Profiler` tab.
+
+   .. step:: Select the slow query you want to reject.
+
+   .. step:: Extract the ``queryShapeHash``.
+      
+      In the details on the right-hand side, copy the ``queryShapeHash`` value.
+   
+   .. step:: Reject operations of a specific query shape.
+      
+      Use :dbcommand:`setQuerySettings` in your 
+      :method:`db.adminCommand() <db.adminCommand>` method to pass in the ``queryShapeHash``, 
+      which specifies the :ref:`query shape <query-shapes>` you want to reject.
+
+      .. note::
+
+         You must have the :atlasrole:`atlasAdmin` role to use
+         :dbcommand:`setQuerySettings`.
+
+      For an example, see :ref:`operation-rejection-filters`.
+
+.. _view-operation-throttling:
+
+Monitor Your Queries After Rejection or Timeout
+```````````````````````````````````````````````
+
+You can monitor how your queries run afterwards in the
+:ref:`Metrics tab <review-available-metrics>`: 
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the :guilabel:`Metrics` tab.
+    
+      a. Click on the name of the {+database-deployment+} to open the {+database-deployment+} overview.
+      #. Click the :guilabel:`Metrics` tab.
+
+   .. step:: Select a shard to monitor.
+    
+      Under :guilabel:`Shard Name`, click the shard you'd like to monitor.
+
+   .. step:: Select :guilabel:`Operation Throttling`.
+      
+      Under :guilabel:`MongoDB Metrics`, click :guilabel:`Operation Throttling`.
+
+      With this metric, the MongoDB chart shows the following:
+      
+      - :guilabel:`Killed`, which shows the number of read operations
+        that MongoDB kills over time due to exceeding the default
+        {+cluster+} timeout. 
+
+      - :guilabel:`Rejected`, which shows the number of operations that
+        MongoDB rejects over time because the query matches the
+        user-defined rejection filter.
+
+.. _resilient-default-read-timeout:
+
+Cluster-level Timeouts for Read Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's important to ensure that your development process carefully
+considers the efficiency of queries before they reach production.
+Exceptions may always occur, but having a proactive mitigation against
+inefficient queries can help prevent cluster performance issues.
+
+With MongoDB 8.0, you can protect your queries from unindexed operations
+with the server-side :parameter:`defaultMaxTimeMS`
+coming into the {+cluster+}. If an operation exceeds this timeout,
+MongoDB cancels the operation to prevent queries from running too long
+and holding on to resources. This allows you to:
+
+- Shift the responsibility of setting timeouts from individual
+  application teams to database focused teams.
+- Minimize the impact of a collection scan if the query is missing an
+  index.
+- Have a last-round mitigation against expensive operations that make it
+  to production.
+
+If you have queries that require a different timeout, such as analytics
+queries, you can override them by setting the operation-level timeout
+with the :manual:`maxTimeMS
+</tutorial/terminate-running-operations/#maxtimems>` method.
+
+Set the Default Timeout for Read Operations in the {+atlas-admin-api+}
+`````````````````````````````````````````````````````````````````````````````
+
+To set the :parameter:`defaultMaxTimeMS` parameter through the
+{+atlas-admin-api+}, see :oas-atlas-op:`Update Advanced Configuration
+Options for One Cluster </updateClusterAdvancedConfiguration>`.
+
+Set the Default Timeout for Read Operations in the {+atlas-ui+}
+```````````````````````````````````````````````````````````````
+
+To set the :parameter:`defaultMaxTimeMS` parameter in the {+atlas-ui+}:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to your configuration options.
+
+      a. If you have an existing {+cluster+}, navigate to the :ref:`Edit
+         Cluster <scale-cluster>` page.
+
+         If you are creating a new {+cluster+}, from the
+         :guilabel:`Select a version` dropdown, select
+         :guilabel:`MongoDB 8.0`. 
+
+      #. Click :guilabel:`Additional Settings`.
+
+      #. Scroll down and click :guilabel:`More Configuration Options`.
+
+   .. step:: Toggle :guilabel:`Default Timeout for Read Operations` to :guilabel:`Yes`.
+
+   .. step:: Enter a number greater than 0.
+    
+   .. step:: Review and apply your changes.
+      
+      a. Click :guilabel:`Review Changes`.
+      #. Review your changes, then click :guilabel:`Apply Changes` to update
+         your cluster.
+
+To view the behavior of killed operations, see
+:ref:`view-operation-throttling`. To learn more,
+see :parameter:`defaultMaxTimeMS` and
+:ref:`default-timeout-read-operations`.
+
+.. _resilient-move-collection:
+
+Isolate the Impact of Busy, Unsharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:manual:`Sharding </sharding>` allows you to scale your cluster
+horizontally. With MongoDB, you can shard some collections, while
+allowing other collections in the same {+cluster+} to remain unsharded.
+When you create a new database, the shard in the {+cluster+} with the
+least amount of data is picked as that database's :term:`primary shard`
+by default. All of the unsharded collections of that database live in
+that primary shard by default. This can cause increased traffic to the
+primary shard as your workload grows, especially if the workload growth
+focuses on the unsharded collections on the primary shard.
+
+To distribute this workload better, MongoDB 8.0 allows you to move an
+unsharded collection to other shards from the primary shard with the
+:dbcommand:`moveCollection` command. This allows you to place active,
+busy collections onto shards with less expected resource usage. With
+this, you can:
+
+- Optimize performance on larger, complex workloads.
+- Achieve better resource utilization.
+- Distribute date more evenly across shards.
+
+We recommended to isolate your collection in the following circumstances:
+
+- If your primary shard experiences significant workload due to the
+  presence of multiple high-throughput unsharded collections.
+
+- You anticipate an unsharded collection to experience future growth,
+  which could become a bottleneck for other collections.
+
+- You are running a one-collection-per-cluster deployment design and you
+  want to isolate those customers based on priority or workloads.  
+
+- Your shards have more than a proportional amount of data due to the
+  number of unsharded collections located on them.
+
+To learn how to move an unsharded collection with {+mongosh+}, see
+:ref:`task-move-a-collection`.
+
+.. _app-client-side-best-practices:
+
+Application and Client-Side Best Practices
+------------------------------------------
+
+You can configure features of your MongoDB deployments and the driver libraries 
+to create a resilient application that can withstand network outages and 
+failover events. To write application code that takes full advantage of the 
+always-on capabilities of |service-fullname|, you should perform the following 
+tasks:
+
+- :ref:`Install the latest drivers <resilient-install-drivers>`.
+- :ref:`Use the connection string provided by Atlas <resilient-connection-strings>`.
+- :ref:`Use retryable writes and retryable reads <resilient-retryable-writes-reads>`.
+- Use a ``majority`` :ref:`write concern and a read concern <resilient-write-read-concern>` that makes sense
+  for your application.
+- :ref:`Handle errors <resilient-error-handling>` in your application.
+
+.. _resilient-install-drivers:
+
+Install the Latest Drivers
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install the latest drivers for your language from
+:driver:`MongoDB Drivers </>`. Drivers connect and relay
+queries from your application to your database. Using the latest
+drivers enables the latest MongoDB features.
+
+Then, in your application, import the dependency:
+
+.. tabs-selector:: drivers
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: nodejs
+
+      .. code-block:: javascript
+
+         // Latest 'mongodb' version installed with npm
+         const MongoClient = require('mongodb').MongoClient;
+
+   .. tab::
+      :tabid: python
+
+      .. code-block:: python
+
+         # Install the latest 'pymongo' version with pip and 
+         # import MongoClient from the package to establish a connection.
+         from pymongo import MongoClient
+
+   .. tab::
+      :tabid: java-sync
+
+      If you are using `Maven <http://maven.apache.org/>`__, add the
+      following to your ``pom.xml`` dependencies list:
+
+      .. code-block:: xml
+
+         <dependencies>
+             <dependency>
+                 <groupId>org.mongodb</groupId>
+                 <artifactId>mongodb-driver-sync</artifactId>
+                 <version>4.0.1</version>
+             </dependency>
+         </dependencies>
+
+      If you are using `Gradle <https://gradle.org/>`__, add the
+      following to your ``build.gradle`` dependencies list:
+
+      .. code-block:: groovy
+
+         dependencies {
+           compile 'org.mongodb:mongodb-driver-sync:4.0.1'
+         }
+
+.. _resilient-connection-strings:
+
+Connection Strings
+~~~~~~~~~~~~~~~~~~
+
+.. note::
+   |service| provides a pre-configured connection string. For steps to
+   copy the pre-configured string, see
+   :ref:`Atlas-Provided Connection Strings <atlas-connection-string>`.
+
+Use a :manual:`connection string </reference/connection-string>` that
+specifies all the nodes in your |service| cluster to connect your
+application to your database. If your cluster performs a
+:manual:`replica set election </core/replica-set-elections/>` and a new
+primary is elected, a connection string that specifies all the nodes in
+your cluster discovers the new primary without application logic.
+
+You can specify all the nodes in your cluster using either:
+
+- the :manual:`Standard Connection String Format </reference/connection-string/#standard-connection-string-format>`, or
+
+- the :manual:`DNS Seedlist Connection Format </reference/connection-string/#dns-seedlist-connection-format>`
+  (recommended with |service|).
+
+The connection string can also specify options, notably
+:manual:`retryWrites </reference/connection-string/#urioption.retryWrites>`
+and :manual:`writeConcern </reference/write-concern/#wc-w>`.
+
+.. include:: /includes/fact-optimized-connection-strings-intro.rst
+
+To learn more about optimized connection strings for sharded 
+{+clusters+} behind a private endpoint, see
+:ref:`optimized-connection-strings`.
+
+.. _atlas-connection-string:
+
+Atlas-Provided Connection Strings
+`````````````````````````````````
+
+If you copy your connection string from your |service| cluster
+interface, the connection string is pre-configured for your cluster,
+uses the DNS Seedlist format, and includes the recommended
+``retryWrites`` and ``w`` (write concern) options for resilience.
+
+To copy your connection string URI from |service|:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Locate the connection string URI.
+
+      a. Click :guilabel:`Connect` on the cluster you wish to connect 
+         your application to.
+
+      #. Select :guilabel:`Drivers` as your connection
+         method.
+
+      #. Select your :guilabel:`Driver` and :guilabel:`Version`.
+
+   .. step:: Copy the connection string URI.
+
+      Copy the connection string or full driver example into your
+      application code. You must provide database user credentials.
+
+      .. note::
+
+         This guide uses :manual:`SCRAM authentication 
+         </core/security-scram/>` through a connection string. To learn 
+         about using X.509 certificates to authenticate, see 
+         :manual:`X.509 </core/security-x.509/>`.
+
+Use your connection string to instantiate a MongoDB client in your
+application:
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: nodejs
+
+      .. code-block:: javascript
+
+         // Copy the connection string provided by Atlas
+         const uri = <your Atlas connection string>;
+
+         // Instantiate the MongoDB client with the URI
+         const client = new MongoClient(uri, {
+             useNewUrlParser: true,
+             useUnifiedTopology: true
+         });
+
+   .. tab::
+      :tabid: python
+
+      .. code-block:: python
+
+         # Copy the connection string provided by Atlas
+         uri = <your Atlas connection string>
+
+         # Pass your connection string URI to the MongoClient constructor
+         client = MongoClient(uri)
+
+   .. tab::
+      :tabid: java-sync
+
+      .. code-block:: java
+
+       // Copy the connection string provided by Atlas
+       String uri = <your Atlas connection string>;
+
+       // Instantiate the MongoDB client with the URI
+       MongoClient client = MongoClients.create(uri);
+
+.. _resilient-retryable-writes-reads:
+
+Retryable Writes and Reads
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   MongoDB retries both writes and reads once by default.
+
+Retryable Writes
+````````````````
+
+Use :manual:`retryable writes </core/retryable-writes>` to retry
+certain write operations a single time if they fail. If you
+copied your connection string from |service|, it includes
+``"retryWrites=true"``. If you are providing your own connection string,
+include ``"retryWrites=true"`` as a query parameter.
+
+Retrying writes exactly once is the best strategy for handling
+transient network errors and replica set elections in which the
+application temporarily cannot find a healthy primary node. If the
+retry succeeds, the operation as a whole succeeds and no error is
+returned. If the operation fails, it is likely due to:
+
+- A lasting network error
+
+- An invalid command
+
+When an operation fails, your application needs to
+:ref:`handle the error <resilient-error-handling>` itself.
+
+Retryable Reads
+```````````````
+
+Read operations are automatically retried a single time if they fail.
+No additional configuration is required to retry reads.
+
+.. _resilient-write-read-concern:
+
+Write and Read Concern
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can tune the consistency and availability of your application using
+write concerns and read concerns. Stricter concerns imply that database
+operations wait for stronger data consistency guarantees, whereas
+loosening consistency requirements provides higher availability.
+
+.. example::
+
+   If your application handles monetary balances, consistency is
+   extremely important. You might use ``majority`` write and read
+   concerns to ensure you never read from stale data or data that may
+   be rolled back.
+
+   Alternatively, if your application records temperature data from
+   hundreds of sensors every second, you may not be concerned if you
+   read data that does not include the most recent readouts. You can
+   loosen consistency requirements and provide faster access to that
+   data.
+
+Write Concern
+`````````````
+
+You can set the
+:manual:`write concern level </reference/write-concern/>`
+of your |service| replica set through the connection string URI. Use a
+``majority`` write concern to ensure your data is successfully written
+to your database and persisted. This is the recommended default and
+sufficient for most use cases. If you copied your connection string
+from |service|, it includes ``"w=majority"``.
+
+When you use a write concern that requires acknowledgement, such as
+``majority``, you may also specify a maximum time limit for writes
+to achieve that level of acknowledgement:
+
+- The :manual:`wtimeoutMS </reference/connection-string/#urioption.wtimeoutMS>` connection string parameter for all writes, or
+
+- The :manual:`wtimeout </reference/write-concern/#wtimeout>` option
+  for a single write operation.
+
+Whether or not you use a time limit and the value you use depend on
+your application context.
+
+.. important::
+
+   If you do not specify a time limit for writes and the level of write
+   concern is unachievable, the write operation will hang indefinitely.
+
+Read Concern
+````````````
+
+You can set the
+:manual:`read concern level </reference/connection-string/#readconcern-options>`
+of your |service| replica set through the connection string URI. The
+ideal :manual:`read concern </reference/read-concern/>` depends on
+your application requirements, but the default is sufficient for most
+use cases. No connection string parameter is required to use default
+read concerns.
+
+Specifying a read concern can improve guarantees around the data your
+application receives from |service|.
+
+.. note::
+   The specific combination of write and read concern your application
+   uses has an effect on order-of-operation guarantees. This is called
+   causal consistency. For more information on causal consistency
+   guarantees, see :manual:`Causal Consistency and Read and Write Concerns </core/causal-consistency-read-write-concerns/>`.
+
+.. _resilient-error-handling:
+
+Error Handling
+~~~~~~~~~~~~~~
+
+Invalid commands, network outages, and network errors that are not
+handled by :ref:`retryable writes <resilient-retryable-writes-reads>` return errors.
+Refer to your driver's |api| documentation for error details.
+
+For example, if an application tries to insert a document that contains an 
+``_id`` value that is already used in the database's collection, your driver 
+returns an error that includes:
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: nodejs
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+             "name": : "MongoError",
+             "message": "E11000 duplicate key error collection on: <db>.<collection> ... ",
+             ...
+         }
+
+   .. tab::
+      :tabid: python
+
+      .. code-block:: none
+
+         pymongo.errors.DuplicateKeyError: E11000 duplicate key error collection: <db>.<collection> ...
+
+
+   .. tab::
+      :tabid: java-sync
+
+      .. code-block:: none
+
+         Unable to insert due to an error: com.mongodb.MongoWriteException:
+         E11000 duplicate key error collection: <db>.<collection> ...
+
+Without proper error handling, an error may block your application from
+processing requests until it is restarted.
+
+Your application should handle errors without crashing or side
+effects. In the previous example of an application inserting a
+duplicate ``_id`` into a collection, that application could handle errors as 
+follows:
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: nodejs
+
+      .. code-block:: javascript
+         :emphasize-lines: 9-11
+
+         ...
+         collection.insertOne({
+             _id: 1,
+             body: "I'm a goofball trying to insert a duplicate _id"
+         })
+         .then(result => {
+             response.sendStatus(200) // send "OK" message to the client
+         },
+         err => {
+             response.sendStatus(400); // send "Bad Request" message to the client
+         });
+
+   .. tab::
+      :tabid: python
+
+      .. code-block:: python
+
+         ...
+         try:
+             collection.insert_one({
+                 "_id": 1, 
+                 "body": "I'm a goofball trying to insert a duplicate _id"
+             })
+             return {"message": "User successfully added!"}
+         except pymongo.errors.DuplicateKeyError as e:
+             print ("The insert operation failed:", e)
+   .. tab::
+      :tabid: java-sync
+
+      .. code-block:: java
+
+         // Declare a logger instance from java.util.logging.Logger
+         private static final Logger LOGGER = ...
+         ...
+         try {
+             InsertOneResult result = collection.insertOne(new Document()
+                 .append("_id", 1)
+                 .append("body", "I'm a goofball trying to insert a duplicate _id"));
+
+             // Everything is OK
+             LOGGER.info("Inserted document id: " + result.getInsertedId());
+
+         // Refer to the API documentation for specific exceptions to catch
+         } catch (MongoException me) {
+             // Report the error
+             LOGGER.severe("Failed due to an error: " + me);
+         }
+
+The insert operation in this example throws a "duplicate key"
+error the second time it's invoked because the ``_id`` field must be
+unique. The error is caught, the client is notified, and the app
+continues to run. The insert operation fails, however, and it is
+up to you to decide whether to show the user a message, retry the
+operation, or do something else.
+
+You should always log errors. Common strategies for further processing
+errors include:
+
+- Return the error to the client with an error message. This is a good
+  strategy when you cannot resolve the error and need to inform a user
+  that an action cannot be completed.
+
+- Write to a backup database. This is a good strategy when you cannot
+  resolve the error but don't want to risk losing the request data.
+
+- Retry the operation beyond the
+  :ref:`single default retry <resilient-retryable-writes-reads>`. This
+  is a good  strategy when you can solve the cause of an error
+  programmatically, then retry it.
+
+You must select the best strategies for your application context.
+
+.. example::
+
+   In the example of a duplicate key error, you should log the error
+   but not retry the operation because it will never succeed. Instead,
+   you could write to a fallback database and review the contents of
+   that database at a later time to ensure that no information is lost.
+   The user doesn't need to do anything else and the data is recorded,
+   so you can choose not to send an error message to the client.
+
+Planning for Network Errors
+```````````````````````````
+
+Returning an error can be desirable behavior when an operation
+would otherwise hang indefinitely and block your application from
+executing new operations. You can use the
+:manual:`maxTimeMS </tutorial/terminate-running-operations/#maxtimems>`
+method to place a time limit on individual operations, returning an
+error for your application to handle if that time limit is exceeded.
+
+The time limit you place on each operation depends on the context of
+that operation.
+
+.. example::
+
+   If your application reads and displays simple product information
+   from an ``inventory`` collection, you can be reasonably confident
+   that those read operations only take a moment. An unusually
+   long-running query is a good indicator that there is a lasting
+   network problem. Setting ``maxTimeMS`` on that operation to 5000, or
+   5 seconds, means that your application receives feedback as soon as
+   you are confident there is a network problem.
+
+.. _resilient-test-failover:
+
+Test Failover
+~~~~~~~~~~~~~
+
+In the spirit of
+`chaos testing <https://en.wikipedia.org/wiki/Chaos_engineering>`__,
+|service| will perform replica
+set elections automatically for periodic maintenance and certain
+configuration changes.
+
+To check if your application is resilient to replica set elections,
+:doc:`test the failover process </tutorial/test-resilience/test-primary-failover>` by
+simulating a failover event.
+
+Resilient Example Application
+-----------------------------
+
+The example application brings together the following recommendations 
+to ensure resilience against network outages and failover events:
+
+- Use the |service|-provided connection string with retryable writes, majority 
+  write concern, and default read concern.
+
+- Specify an operation time limit with the :manual:`maxTimeMS 
+  </tutorial/terminate-running-operations/#maxtimems>` method. For instructions 
+  on how to set ``maxTimeMS``, refer to your specific :driver:`Driver 
+  Documentation <>`.
+
+- Handle errors for duplicate keys and timeouts.
+
+The application is an HTTP |api| that allows clients to create or list user 
+records. It exposes an endpoint that accepts GET and POST requests 
+http://localhost:3000:
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Method
+     - Endpoint
+     - Description
+
+   * - ``GET``
+     - ``/users``
+     - Gets a list of user names from a ``users`` collection.
+
+   * - ``POST``
+     -  ``/users``
+     - Requires a ``name`` in the request body. Adds a new user to a
+       ``users`` collection.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: nodejs
+
+      .. note::
+         The following server application uses
+         `Express <https://github.com/expressjs/express>`__,
+         which you need to add to your project as a dependency
+         before you can run it.
+
+      .. code-block:: javascript
+         :linenos:
+         :emphasize-lines: 5, 14, 33, 47
+
+         const express = require('express');
+         const bodyParser = require('body-parser');
+
+         // Use the latest drivers by installing & importing them
+         const MongoClient = require('mongodb').MongoClient;
+
+         const app = express();
+         app.use(bodyParser.json());
+         app.use(bodyParser.urlencoded({ extended: true }));
+
+         const uri = "mongodb+srv://<db_username>:<db_password>@cluster0-111xx.mongodb.net/test?retryWrites=true&w=majority";
+
+         const client = new MongoClient(uri, {
+             useNewUrlParser: true,
+             useUnifiedTopology: true
+         });
+
+         // ----- API routes ----- //
+         app.get('/', (req, res) => res.send('Welcome to my API!'));
+
+         app.get('/users', (req, res) => {
+             const collection = client.db("test").collection("users");
+
+             collection
+             .find({})
+             .maxTimeMS(5000)
+             .toArray((err, data) => {
+                 if (err) {
+                     res.send("The request has timed out. Please check your connection and try again.");
+                 }
+                 return res.json(data);
+             });
+         });
+
+         app.post('/users', (req, res) => {
+             const collection = client.db("test").collection("users");
+             collection.insertOne({ name: req.body.name })
+             .then(result => {
+                 res.send("User successfully added!");
+             }, err => {
+                 res.send("An application error has occurred. Please try again.");
+             })
+         });
+         // ----- End of API routes ----- //
+
+         app.listen(3000, () => {
+             console.log(`Listening on port 3000.`);
+             client.connect(err => {
+                 if (err) {
+                     console.log("Not connected: ", err);
+                     process.exit(0);
+                 }
+                 console.log('Connected.');
+             });
+         });
+        
+   .. tab::
+      :tabid: python
+
+      .. note::
+         The following web application uses `FastAPI 
+         <https://github.com/tiangolo/fastapi>`__. To create a new application,
+         use the `FastAPI sample file 
+         <https://github.com/tiangolo/fastapi#example>`__ structure.
+
+      .. code-block:: python
+         :linenos:
+
+         # File: main.py
+
+         from fastapi import FastAPI, Body, Request, Response, HTTPException, status
+         from fastapi.encoders import jsonable_encoder
+
+         from typing import List
+         from models import User
+
+         import pymongo
+         from pymongo import MongoClient
+         from pymongo import errors
+ 
+         # Replace the uri string with your |service| connection string
+         uri = "<atlas-connection-string>"
+         db = "test"
+
+         app = FastAPI()
+
+         @app.on_event("startup")
+         def startup_db_client():
+             app.mongodb_client = MongoClient(uri)
+             app.database = app.mongodb_client[db]
+
+         @app.on_event("shutdown")
+         def shutdown_db_client():
+             app.mongodb_client.close()
+
+         ##### API ROUTES #####
+         @app.get("/users", response_description="List all users", response_model=List[User])
+         def list_users(request: Request):
+             try: 
+                 users = list(request.app.database["users"].find().max_time_ms(5000))
+                 return users
+             except pymongo.errors.ExecutionTimeout: 
+                 raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="The request has timed out. Please check your connection and try again.")
+
+         @app.post("/users", response_description="Create a new user", status_code=status.HTTP_201_CREATED)
+         def new_user(request: Request, user: User = Body(...)):
+             user = jsonable_encoder(user)
+             try: 
+                 new_user = request.app.database["users"].insert_one(user)
+                 return {"message":"User successfully added!"}
+             except pymongo.errors.DuplicateKeyError:
+                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not create user due to existing '_id' value in the collection. Try again with a different '_id' value.")
+                
+
+   .. tab::
+      :tabid: java-sync
+
+      .. note::
+         The following server application uses
+         `NanoHTTPD <https://github.com/NanoHttpd/nanohttpd>`__ and
+         `json <https://mvnrepository.com/artifact/org.json/json>`__ 
+         which you need to add to your project as dependencies before you 
+         can run it.
+
+      .. code-block:: java
+         :linenos:
+
+         // File: App.java
+
+         import java.util.Map;
+         import java.util.logging.Logger;
+
+         import org.bson.Document;
+         import org.json.JSONArray;
+
+         import com.mongodb.MongoException;
+         import com.mongodb.client.MongoClient;
+         import com.mongodb.client.MongoClients;
+         import com.mongodb.client.MongoCollection;
+         import com.mongodb.client.MongoDatabase;
+
+         import fi.iki.elonen.NanoHTTPD;
+
+         public class App extends NanoHTTPD {
+             private static final Logger LOGGER = Logger.getLogger(App.class.getName());
+
+             static int port = 3000;
+             static MongoClient client = null;
+
+             public App() throws Exception {
+                 super(port);
+
+                 // Replace the uri string with your MongoDB deployment's connection string
+                 String uri = "<atlas-connection-string>";
+                 client = MongoClients.create(uri);
+
+                 start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+                 LOGGER.info("\nStarted the server: http://localhost:" + port + "/ \n");
+             }
+
+             public static void main(String[] args) {
+                 try {
+                     new App();
+                 } catch (Exception e) {
+                     LOGGER.severe("Couldn't start server:\n" + e);
+                 }
+             }
+
+             @Override
+             public Response serve(IHTTPSession session) {
+                 StringBuilder msg = new StringBuilder();
+                 Map<String, String> params = session.getParms();
+
+                 Method reqMethod = session.getMethod();
+                 String uri = session.getUri();
+
+                 if (Method.GET == reqMethod) {
+                     if (uri.equals("/")) {
+                         msg.append("Welcome to my API!");
+                     } else if (uri.equals("/users")) {
+                         msg.append(listUsers(client));
+                     } else {
+                         msg.append("Unrecognized URI: ").append(uri);
+                     }
+                 } else if (Method.POST == reqMethod) {
+                     try {
+                         String name = params.get("name");
+                         if (name == null) {
+                             throw new Exception("Unable to process POST request: 'name' parameter required");
+                         } else {
+                             insertUser(client, name);
+                             msg.append("User successfully added!");
+                         }
+                     } catch (Exception e) {
+                         msg.append(e);
+                     }
+                 }
+
+                 return newFixedLengthResponse(msg.toString());
+             }
+
+             static String listUsers(MongoClient client) {
+                 MongoDatabase database = client.getDatabase("test");
+                 MongoCollection<Document> collection = database.getCollection("users");
+
+                 final JSONArray jsonResults = new JSONArray();
+                 collection.find().forEach((result) -> jsonResults.put(result.toJson()));
+
+                 return jsonResults.toString();
+             }
+
+             static String insertUser(MongoClient client, String name) throws MongoException {
+                 MongoDatabase database = client.getDatabase("test");
+                 MongoCollection<Document> collection = database.getCollection("users");
+
+                 collection.insertOne(new Document().append("name", name));
+                 return "Successfully inserted user: " + name;
+             }
+         }
+

@@ -1,0 +1,325 @@
+.. _ldaps-authentication-authorization:
+.. _security-ldaps:
+
+======================================================
+Set Up User Authentication and Authorization with LDAP
+======================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect, atlas ui, atlas cli
+   :description: Set up user authentication and authorization in Atlas using LDAP, including configuration, limitations, and procedures for managing LDAP users and groups.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/ldap-deprecated.rst
+   
+.. include:: /includes/unavailable-flex-serverless-m0-m2-m5-clusters.rst
+
+|service| provides the ability to manage user authentication and
+authorization from all MongoDB clients using your own Lightweight
+Directory Access Protocol (|ldap|) server over |tls|. A single |ldaps|
+(|ldap| over |tls|) configuration applies to all clusters in a project.
+
+If you enable user authorization with |ldap|, you can create |ldap|
+groups on the ``admin`` database by mapping |ldap| groups to MongoDB
+roles on your |service| databases. To use |ldap| groups effectively,
+:doc:`create additional projects </tutorial/manage-projects>` within
+|service| to control access to specific deployments in your
+organization, such as creating separate |service| projects for
+development and production environments. You can then map an |ldap|
+group to a role in the |service| project to provide access to the
+desired deployment.
+
+.. note::
+
+   When you enable user authorization and an |ldap| user doesn't belong
+   to any |ldap| group, |service| doesn't assign any database roles to
+   the user. When you enable user authentication and you disable user
+   authorization, |service| assigns MongoDB database roles to the
+   |ldap| user.
+
+If you have multiple departments with their own billing needs, alert
+settings, and project members, consider creating a new set of 
+:doc:`projects </tutorial/manage-projects>` or a new :doc:`organization 
+</tutorial/manage-organizations>` for each department or business unit.
+
+.. note::
+
+   An explanation of |ldap| is out of scope for the MongoDB
+   documentation. Please review :rfc:`RFC 4515 <4515>` and
+   :rfc:`RFC 4516 <4516>`  or refer to your preferred |ldap|
+   documentation.
+
+Required Access
+---------------
+
+.. include:: /includes/required-atlas-roles-ldap.rst
+
+Prerequisites
+-------------
+
+You must meet the following prerequisites to manage user authentication
+and authorization using |ldap| in |service|:
+
+- |service| cluster using MongoDB 6.0 or later.
+
+- |ldap| server using |tls| that your |service| clusters can access
+  over the network using either  :doc:`VPC </security-vpc-peering>` or
+  VNet peering connection or the cluster nodes' public IP addresses.
+
+- |ldap| group memberships embedded as an attribute for each user in
+  the |ldap| entry for user authorization only.
+
+Recommendation
+--------------
+
+For your |ldaps| service to access |service| clusters, MongoDB
+recommends one of two configurations:
+
+Using a |vpc| or VNet:
+
+1. Run your |ldap| server in a |vpc| or VNet.
+#. Establish a peering connection to your |service| project.
+#. Use a public |fqdn| that resolves to the private IP address
+   of your |ldap| server.
+
+Using your data center:
+
+1. Run your |ldap| server with a public |fqdn| that resolves to a
+   public IP address.
+#. Configure the |ldap| server to allow inbound access from the
+   |service| cluster nodes' public IP addresses.
+
+Considerations
+--------------
+
+When you enable |ldap| authentication and authorization, consider the
+following:
+
+Limitations
+~~~~~~~~~~~
+
+You cannot use both |ldap| and SCRAM authentication for the same
+database user.
+
+You cannot use |oidc| authentication when |ldap| authorization is enabled. 
+When you enable |ldap| authorization, the |ldap| server handles all 
+authorization decisions, including for any external authentication mechanisms. 
+Therefore, if you try to connect to |service| by using |oidc|, 
+the connection fails. You must disable |ldap| authorization in order to use |oidc| 
+authentication.
+
+Conflicts between LDAP Authorization and X.509 Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you enable LDAP authorization, you can't connect to your
+{+database-deployments+} with users that authenticate with an
+|service|-managed X.509 certificate.
+
+After you enable LDAP authorization, you *can* connect to your
+{+database-deployments+} with users that authenticate with an
+:ref:`self-managed X.509 certificate <self-managed-x509>`. However, 
+the user's Common Name in their X.509 certificate must match the 
+Distinguished Name of a user who is authorized to access your 
+database with LDAP.
+
+Usernames
+~~~~~~~~~
+
+|service| uses the full Distinguished Name (DN) of users in your |ldap|
+server as the |service| username. For example, an example |ldap| user
+named ``ralph`` has the following username in |service|:
+
+``cn=ralph,cn=Users,dc=aws-atlas-ldap-01,dc=myteam,dc=com``
+
+.. _ldap-connection-string:
+
+Connection String
+~~~~~~~~~~~~~~~~~
+
+If the administrator enables user authentication or both user
+authentication and authorization with |ldap|, database users must
+override the following parameters in the connection string for their
+clients.
+
+* ``authSource`` must be ``$external``
+
+* ``authenticationMechanism`` must be ``PLAIN``
+
+.. example::
+
+   The following connection string for {+mongosh+}
+   authenticates an |ldap| user named ``rob``:
+
+   .. code-block:: sh
+
+      mongosh "mongodb+srv://cluster0-tijis.mongodb.net/test?authSource=%24external" \
+        --authenticationMechanism PLAIN \
+        --username cn=rob,cn=Users,dc=ldaps-01,dc=myteam,dc=com
+
+To copy the connection string:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Locate the connection string.
+
+      Click :guilabel:`Connect`.
+
+   .. step:: Edit the connection string.
+
+      Edit the string with your ``User DN`` and password.
+
+.. include:: /includes/admonitions/notes/note-escape-special-chars-pwd.rst
+
+Using Public IP Addresses
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use public IP addresses that refer to other internal or private
+IP addresses using Network Address Translation to allow |service|
+traffic to your |ldap| server. If you do this, be aware that
+:doc:`certain activities <reference/faq/networking>` trigger a change
+in the |service| cluster's public IP addresses.
+
+If you allowed |ldap| server access based on public IP addresses,
+changes to the |service| cluster's public IP address prevent |ldap|
+access. To restore |ldap| access, add the new |service| cluster public
+IP addresses to the |ldap| access list.
+
+Procedures
+----------
+
+.. _config-auth-ldap:
+
+Configure Authentication with LDAP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. note::
+
+         You can use the same {+atlas-cli+} command to configure |ldap| authentication and |ldap| authorization.
+
+      .. include:: /includes/extracts/atlas-security-ldap-save.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      Use the following procedure to configure user authentication with
+      |ldap| for all clusters in a project.
+
+      .. include:: /includes/steps-configure-authentication-ldaps.rst
+
+Configure Authorization
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. note::
+
+         You can use the same {+atlas-cli+} command to configure |ldap|
+         authentication and |ldap| authorization.
+
+      .. include:: /includes/extracts/atlas-security-ldap-save.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      Use the following procedure to configure user authorization with 
+      |ldap| for all clusters in a project.
+
+      .. include:: /includes/fact-ldap-authz-intro.rst
+
+      .. include:: /includes/steps-configure-authorization-ldaps.rst
+
+.. _add-db-user-group-ldap:
+
+Add an LDAP Database User or Group
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-dbusers-create.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      After you :ref:`configure authorization with LDAP <config-auth-ldap>`, follow these steps to create an LDAP
+      database user or group:
+
+      .. include:: /includes/steps-create-ldap-user.rst
+
+View LDAP Configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-security-ldap-get.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To view your current |ldap| settings using the {+atlas-ui+}:
+
+      .. include:: /includes/steps-view-ldap-config.rst
+
+Disable LDAP Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. note::
+
+      You can use the same {+atlas-cli+} command to disable |ldap|
+      authentication settings and |ldap| authorization settings.
+
+      .. include:: /includes/extracts/atlas-security-ldap-delete.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To disable your current |ldap| settings using the {+atlas-ui+}:
+
+      .. include:: /includes/steps-disable-ldap-config.rst
+
+
+Tutorials for Third-Party LDAP Providers
+----------------------------------------
+
+Use the following tutorials to configure |service| to authenticate and
+authorize users from third-party LDAP providers:
+
+- :doc:`security-ldaps-azure`
+- :doc:`security-ldaps-okta`
+- :doc:`security-ldaps-onelogin`
+
+.. toctree::
+  :titlesonly:
+  :hidden:
+
+  Microsoft Entra ID DS </security-ldaps-azure>
+  Okta </security-ldaps-okta>
+  OneLogin </security-ldaps-onelogin>

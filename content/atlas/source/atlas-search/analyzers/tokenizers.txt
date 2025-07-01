@@ -1,0 +1,1403 @@
+.. _tokenizers-ref:
+
+==========
+Tokenizers
+==========
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: split text, split text into tokens, split text into chunks, edgeGram, nGram, configure token size, regexCaptureGroup, regexSplit, regular expression, regular expression delimiter, break rules, uaxUrlEmail, url and email tokenizer, whitespace, remove whitespace tokenizer, create index
+   :description: Use a tokenizer in an Atlas Search custom analyzer to split chunks of text into groups, or tokens, for indexing purposes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+A custom analyzer's tokenizer determines how |fts| splits up text into
+discrete chunks for indexing. Tokenizers require a type field, and some 
+take additional options as well.
+
+.. code-block:: json
+   :caption: Syntax
+
+   "tokenizer": {
+     "type": "<tokenizer-type>",
+     "<additional-option>": "<value>"
+   }
+
+.. _fts-tokenizer-types: 
+
+Tokenizer Types
+---------------
+
+|fts| supports the following types of tokenizer:
+
+- :ref:`edgeGram-tokenizer-ref`
+- :ref:`keyword-tokenizer-ref`
+- :ref:`nGram-tokenizer-ref`
+- :ref:`regexCaptureGroup-tokenizer-ref`
+- :ref:`regexSplit-tokenizer-ref`
+- :ref:`standard-tokenizer-ref`
+- :ref:`uaxUrlEmail-tokenizer-ref`
+- :ref:`whitespace-tokenizer-ref`
+
+.. include:: /includes/fts/analyzers/custom-analyzer-examples-intro.rst
+
+.. _edgeGram-tokenizer-ref:
+
+edgeGram
+--------
+
+The ``edgeGram`` tokenizer tokenizes input from the left side, or 
+"edge", of a text input into n-grams of given sizes. You can't use a 
+custom analyzer with :ref:`edgeGram <edgeGram-tokenizer-ref>` tokenizer
+in the ``analyzer`` field for :ref:`synonym <synonyms-ref>` or
+:ref:`autocomplete <bson-data-types-autocomplete>` :ref:`field mapping 
+definitions <fts-field-mappings>`. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes: 
+
+.. note::
+  The ``edgeGram`` tokenizer yields multiple output tokens per word and across words 
+  in input text, producing token graphs.
+  
+  Because :ref:`autocomplete <bson-data-types-autocomplete>` field type mapping definitions 
+  and analyzers with :ref:`synonym <synonyms-ref>` mappings only work when used with 
+  non-graph-producing tokenizers, you can't use a custom analyzer with 
+  :ref:`edgeGram <edgeGram-tokenizer-ref>` tokenizer in the ``analyzer`` field for 
+  :ref:`autocomplete <bson-data-types-autocomplete>` 
+  field type mapping definitions or analyzers with :ref:`synonym <synonyms-ref>` mappings.
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``edgeGram``.
+ 
+   * - ``minGram``
+     - integer
+     - yes
+     - Number of characters to include in the shortest token created.
+ 
+   * - ``maxGram``
+     - integer
+     - yes
+     - Number of characters to include in the longest token created.
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``message`` field in the 
+``minutes`` collection using a custom analyzer named 
+``edgegramExample``. It uses the ``edgeGram`` tokenizer to create
+tokens (searchable terms) between ``2`` and ``7`` characters long
+starting from the first character on the left side of words in the
+``message`` field.
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib 
+
+      .. |analyzer-name| replace:: ``edgegramExample``
+      .. |fts-tokenizer| replace:: :guilabel:`edgeGram`
+      .. |minutes-collection-field| replace:: **message**
+      .. |fts-field-type| replace:: **String**
+
+      .. include:: /includes/fts/extracts/fts-tokenizer-edgegram-config.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "message": {
+                 "analyzer": "edgegramExample",
+                 "type": "string"
+               }
+             }
+           },
+           "analyzers": [
+             {
+               "charFilters": [],
+               "name": "edgegramExample",
+               "tokenFilters": [],
+               "tokenizer": {
+                 "maxGram": 7,
+                 "minGram": 2,
+                 "type": "edgeGram"
+               }
+             }
+           ]
+         }
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for text that begin with ``tr``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "tr",
+              "path": "message"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "message": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+
+      { _id: 1, message: 'try to siGn-In' },
+      { _id: 3, message: 'try to sign-in' }
+
+|fts| returns documents with ``_id: 1`` and ``_id: 3`` in the
+results because |fts| created a token with the value ``tr`` using the
+``edgeGram`` tokenizer for the documents, which matches the search
+term. If you index the ``message`` field using the ``standard``
+tokenizer, |fts| would not return any results for the search term
+``tr``. 
+   
+The following table shows the tokens that the ``edgeGram`` tokenizer 
+and by comparison, the ``standard`` tokenizer, create for the 
+documents in the results:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``try``, ``to``, ``sign``, ``in``
+
+   * - ``edgeGram``
+     - ``tr``, ``try``, ``try{SPACE}``, ``try t``, ``try to``, ``try to{SPACE}``
+
+.. _keyword-tokenizer-ref:
+
+keyword
+-------
+
+The ``keyword`` tokenizer tokenizes the entire input as a single token.
+|fts| doesn't index string fields that exceed 32766 characters using the
+``keyword`` tokenizer. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``keyword``.
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``message`` field in the 
+``minutes`` collection using a custom analyzer named 
+``keywordExample``. It uses the ``keyword`` tokenizer to create
+a token (searchable terms) on the entire field as a single term.
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib 
+
+      .. |analyzer-name| replace:: ``keywordExample``
+      .. |fts-tokenizer| replace:: :guilabel:`keyword`
+      .. |minutes-collection-field| replace:: **message**
+      .. |fts-field-type| replace:: **String**
+
+      .. include:: /includes/fts/extracts/fts-tokenizer-keyword-config.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "message": {
+                 "analyzer": "keywordExample",
+                 "type": "string"
+               }
+             }
+           },
+           "analyzers": [
+             {
+               "charFilters": [],
+               "name": "keywordExample",
+               "tokenFilters": [],
+               "tokenizer": {
+                 "type": "keyword"
+               }
+             }
+           ]
+         }
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for the phrase ``try to sign-in``.
+   
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "try to sign-in",
+              "path": "message"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "message": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+
+      { _id: 3, message: 'try to sign-in' }
+
+|fts| returns the document with ``_id: 3`` in the results because |fts|
+created a token with the value ``try to sign-in`` using the
+``keyword`` tokenizer for the documents, which matches the search
+term. If you index the ``message`` field using the ``standard``
+tokenizer, |fts| returns documents with ``_id: 1``,
+``_id: 2`` and ``_id: 3`` for the search term ``try to sign-in``
+because each document contains some of the tokens the ``standard``
+tokenizer creates.
+   
+The following table shows the tokens that the ``keyword`` tokenizer 
+and by comparison, the ``standard`` tokenizer, create for the 
+document with ``_id: 3``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``try``, ``to``, ``sign``, ``in``
+
+   * - ``keyword``
+     - ``try to sign-in``
+
+.. _nGram-tokenizer-ref:
+
+nGram
+-----
+
+The ``nGram`` tokenizer tokenizes into text chunks, or "n-grams", of 
+given sizes. You can't use a custom analyzer with :ref:`nGram
+<nGram-tokenizer-ref>` tokenizer in the ``analyzer`` field for
+:ref:`synonym <synonyms-ref>` or :ref:`autocomplete
+<bson-data-types-autocomplete>` :ref:`field mapping definitions
+<fts-field-mappings>`. 
+
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes: 
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``nGram``.
+ 
+   * - ``minGram``
+     - integer
+     - yes
+     - Number of characters to include in the shortest token created.
+ 
+   * - ``maxGram``
+     - integer
+     - yes
+     - Number of characters to include in the longest token created.
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``title`` field in the 
+``minutes`` collection using a custom analyzer named 
+``ngramExample``. It uses the ``nGram`` tokenizer to create
+tokens (searchable terms) between ``4`` and ``6`` characters long
+in the ``title`` field.
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib 
+
+      .. |analyzer-name| replace:: ``ngramExample``
+      .. |fts-tokenizer| replace:: :guilabel:`nGram`
+      .. |minutes-collection-field| replace:: **title**
+      .. |fts-field-type| replace:: **String**
+
+      .. include:: /includes/fts/extracts/fts-tokenizer-ngram-config.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "title": {
+                 "analyzer": "ngramExample",
+                 "type": "string"
+               }
+             }
+           },
+           "analyzers": [
+             {
+               "charFilters": [],
+               "name": "ngramExample",
+               "tokenFilters": [],
+               "tokenizer": {
+                 "maxGram": 6,
+                 "minGram": 4,
+                 "type": "nGram"
+               }
+             }
+           ]
+         }
+
+The following query searches the ``title`` field in 
+the ``minutes`` collection for the term ``week``.
+   
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "week",
+              "path": "title"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+
+      { _id: 1, title: "The team's weekly meeting" }
+
+|fts| returns the document with ``_id: 1`` in the results because |fts|
+created a token with the value ``week`` using the ``nGram`` tokenizer
+for the documents, which matches the search term. If you index the
+``title`` field using the ``standard`` or ``edgeGram`` tokenizer,
+|fts| would not return any results for the search term ``week``.
+   
+The following table shows the tokens that the ``nGram`` tokenizer 
+and by comparison, the ``standard`` and ``edgeGram`` tokenizer create
+for the document with ``_id: 1``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``The``, ``team's``, ``weekly``, ``meeting`` 
+
+   * - ``edgeGram``
+     - ``The{SPACE}``, ``The t``, ``The te`` 
+
+   * - ``nGram``
+     - ``The{SPACE}``, ``The t``, ``The te``, ``he t``, ... ,
+       ``week``, ``weekl``, ``weekly``, ``eekl``, ..., ``eetin``,
+       ``eeting``, ``etin``, ``eting``, ``ting``
+
+.. _regexCaptureGroup-tokenizer-ref:
+
+regexCaptureGroup
+-----------------
+
+The ``regexCaptureGroup`` tokenizer matches a Java regular expression 
+pattern to extract tokens. 
+
+.. tip::
+
+   To learn more about the Java regular expression syntax, see the `Pattern
+   <https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html>`__
+   class in the Java documentation.
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``regexCaptureGroup``.
+ 
+   * - ``pattern``
+     - string
+     - yes
+     - Regular expression to match against.
+ 
+   * - ``group``
+     - integer
+     - yes
+     - Index of the character group within the matching expression to 
+       extract into tokens. Use ``0`` to extract all character groups.
+
+Example 
+~~~~~~~
+
+The following index definition indexes the ``page_updated_by.phone``
+field in the ``minutes`` collection using a custom analyzer named 
+``phoneNumberExtractor``. It uses the following:
+
+- ``mappings`` character filter to remove parenthesis around the first
+  three digits and replace all spaces and periods with dashes
+- ``regexCaptureGroup`` tokenizer to create a single token from the
+  first US-formatted phone number present in the text input
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib 
+
+      .. |analyzer-name| replace:: ``phoneNumberExtractor``
+      .. |fts-char-filter| replace:: :guilabel:`mapping`
+      .. |fts-char-filter-option| replace:: :guilabel:`mappings`
+      .. |fts-tokenizer| replace:: :guilabel:`regexCaptureGroup`
+      .. |minutes-collection-field| replace:: **page_updated_by.phone**
+      .. |fts-field-type| replace:: **String**
+
+      .. include:: /includes/fts/extracts/fts-tokenizer-regexcapturegroup-config.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true 
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "page_updated_by": {
+                 "fields": {
+                   "phone": {
+                     "analyzer": "phoneNumberExtractor",
+                     "type": "string"
+                   }
+                 },
+                 "type": "document"
+               }
+             }
+           },
+           "analyzers": [
+             {
+               "charFilters": [
+                 {
+                   "mappings": {
+                     " ": "-",
+                     "(": "",
+                     ")": "",
+                     ".": "-"
+                   },
+                   "type": "mapping"
+                 }
+               ],
+               "name": "phoneNumberExtractor",
+               "tokenFilters": [],
+               "tokenizer": {
+                 "group": 0,
+                 "pattern": "^\\b\\d{3}[-]?\\d{3}[-]?\\d{4}\\b$",
+                 "type": "regexCaptureGroup"
+                 }
+             }
+           ]
+         }
+   
+The following query searches the ``page_updated_by.phone`` field in 
+the ``minutes`` collection for the phone number ``123-456-9870``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "123-456-9870",
+              "path": "page_updated_by.phone"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "page_updated_by.phone": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+
+      { _id: 3, page_updated_by: { phone: '(123).456.9870' }
+
+|fts| returns the document with ``_id: 3`` in the results because |fts|
+created a token with the value ``123-456-7890`` using the
+``regexCaptureGroup`` tokenizer for the documents, which matches the
+search term. If you index the ``page_updated_by.phone`` field using
+the ``standard`` tokenizer, |fts| returns all of the documents for
+the search term ``123-456-7890``.
+   
+The following table shows the tokens that the ``regexCaptureGroup`` tokenizer 
+and by comparison, the ``standard`` tokenizer, create for the 
+document with ``_id: 3``:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``123``, ``456.9870``
+
+   * - ``regexCaptureGroup``
+     - ``123-456-9870`` 
+
+.. _regexSplit-tokenizer-ref:
+
+regexSplit
+----------
+
+The ``regexSplit`` tokenizer splits tokens with a Java regular-expression 
+based delimiter. 
+
+.. tip::
+
+   To learn more about the Java regular expression syntax, see the `Pattern
+   <https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html>`__
+   class in the Java documentation.
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``regexSplit``.
+ 
+   * - ``pattern``
+     - string
+     - yes
+     - Regular expression to match against.
+
+Example 
+~~~~~~~
+
+The following index definition indexes the ``page_updated_by.phone``
+field in the ``minutes`` collection using a custom analyzer named 
+``dashDotSpaceSplitter``. It uses the ``regexSplit`` tokenizer to
+create tokens (searchable terms) from one or more hyphens, periods
+and spaces on the ``page_updated_by.phone`` field.
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib 
+
+      .. |analyzer-name| replace:: ``dashDotSpaceSplitter``
+      .. |fts-tokenizer| replace:: :guilabel:`regexSplit`
+      .. |minutes-collection-field| replace:: **page_updated_by.phone**
+      .. |fts-field-type| replace:: **String**
+
+      .. include:: /includes/fts/extracts/fts-tokenizer-regexsplit-config.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "page_updated_by": {
+                 "fields": {
+                   "phone": {
+                     "analyzer": "dashDotSpaceSplitter",
+                     "type": "string"
+                   }
+                 },
+                 "type": "document"
+               }
+             }
+           },
+           "analyzers": [
+             {
+               "charFilters": [],
+               "name": "dashDotSpaceSplitter",
+               "tokenFilters": [],
+               "tokenizer": {
+                 "pattern": "[-. ]+",
+                 "type": "regexSplit"
+               }
+             }
+           ]
+         }
+
+The following query searches the ``page_updated_by.phone`` field in 
+the ``minutes`` collection for the digits ``9870``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "9870",
+              "path": "page_updated_by.phone"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "page_updated_by.phone": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+
+      { _id: 3, page_updated_by: { phone: '(123).456.9870' }
+
+|fts| returns the document with ``_id: 3`` in the results because |fts|
+created a token with the value ``9870`` using the ``regexSplit``
+tokenizer for the documents, which matches the search term. If you
+index the ``page_updated_by.phone`` field using the ``standard``
+tokenizer, |fts| would not return any results for the search term
+``9870``.
+   
+The following table shows the tokens that the ``regexCaptureGroup``
+tokenizer and by comparison, the ``standard`` tokenizer, create for
+the document with ``_id: 3``:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``123``, ``456.9870``
+
+   * - ``regexSplit``
+     - ``(123)``, ``456``, ``9870`` 
+
+.. _standard-tokenizer-ref:
+
+standard
+--------
+
+The ``standard`` tokenizer tokenizes based on word break rules from the 
+`Unicode Text Segmentation algorithm <https://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 22 12 11 55
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``standard``.
+
+   * - ``maxTokenLength``
+     - integer
+     - no
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
+
+       *Default*: ``255``
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``message``
+field in the ``minutes`` collection using a custom analyzer named
+``standardExample``. It uses the ``standard`` tokenizer and the
+:ref:`stopword token filter <stopword-tf-ref>`.
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib 
+
+      .. |analyzer-name| replace:: ``standardExample``
+      .. |fts-tokenizer| replace:: :guilabel:`standard`
+      .. |minutes-collection-field| replace:: **message**
+      .. |fts-field-type| replace:: **String**
+
+      .. include:: /includes/fts/extracts/fts-tokenizer-standard-config.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true
+      
+        {
+          "mappings": {
+            "dynamic": true,
+            "fields": {
+              "message": {
+                "analyzer": "standardExample",
+                "type": "string"
+              }
+            }
+          },
+          "analyzers": [
+            {
+              "charFilters": [],
+              "name": "standardExample",
+              "tokenFilters": [],
+              "tokenizer": {
+                "type": "standard"
+              }
+            }
+          ]
+        }
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for the term ``signature``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "signature",
+              "path": "message"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "message": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+
+      { _id: 4, message: 'write down your signature or phone №' }
+
+|fts| returns the document with ``_id: 4`` because |fts|
+created a token with the value ``signature`` using the ``standard``
+tokenizer for the documents, which matches the search term. If you
+index the ``message`` field using the ``keyword`` tokenizer, |fts|
+would not return any results for the search term ``signature``.
+   
+The following table shows the tokens that the ``standard``
+tokenizer and by comparison, the ``keyword`` analyzer, create for
+the document with ``_id: 4``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``write``, ``down``, ``your``, ``signature``, ``or``, ``phone``
+
+   * - ``keyword``
+     - ``write down your signature or phone №``
+
+.. _uaxUrlEmail-tokenizer-ref:
+
+uaxUrlEmail
+-----------
+
+The ``uaxUrlEmail`` tokenizer tokenizes |url|\s and email addresses.
+Although ``uaxUrlEmail`` tokenizer tokenizes based on word break rules
+from the `Unicode Text Segmentation
+algorithm <http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__, 
+we recommend using ``uaxUrlEmail`` tokenizer only when the indexed 
+field value includes |url|\s and email 
+addresses. For fields that don't include |url|\s or email addresses, use
+the :ref:`<standard-tokenizer-ref>` tokenizer to create tokens based on
+word break rules. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type`` 
+     - string
+     - yes 
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``uaxUrlEmail``.
+
+   * - ``maxTokenLength``
+     - int
+     - no
+     - Maximum number of characters in one token.
+
+       *Default*: ``255``
+
+Example 
+~~~~~~~
+
+.. tabs::
+
+   .. tab:: Basic Example
+      :tabid: basic 
+
+      The following index definition indexes the ``page_updated_by.email``
+      field in the ``minutes`` collection using a custom analyzer named 
+      ``basicEmailAddressAnalyzer``. It uses the ``uaxUrlEmail`` tokenizer to
+      create tokens (searchable terms) from |url|\s and email
+      addresses in the ``page_updated_by.email`` field.
+
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: vib 
+
+            .. |analyzer-name| replace:: ``basicEmailAddressAnalyzer``
+            .. |fts-tokenizer| replace:: :guilabel:`uaxUrlEmail`
+            .. |minutes-collection-field| replace:: **page_updated_by.email**
+            .. |fts-field-type| replace:: **String**
+
+            .. include:: /includes/fts/extracts/fts-tokenizer-uaxurlemail-config-basic-eg.rst 
+
+         .. tab:: JSON Editor 
+            :tabid: jsoneditor
+
+            Replace the default index definition with the following:
+
+            .. code-block:: json
+               :copyable: true
+
+               {
+                 "mappings": {
+                   "fields": {
+                     "page_updated_by": {
+                       "fields": {
+                         "email": {
+                           "analyzer": "basicEmailAddressAnalyzer",
+                           "type": "string"
+                         }
+                       },
+                       "type": "document"
+                     }
+                   }
+                 },
+                 "analyzers": [
+                   {
+                     "name": "basicEmailAddressAnalyzer",
+                     "tokenizer": {
+                       "type": "uaxUrlEmail"
+                     }
+                   }
+                 ]
+               }
+
+      The following query searches the ``page_updated_by.email`` field in 
+      the ``minutes`` collection for the email ``lewinsky@example.com``.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: json
+
+            db.minutes.aggregate([ 
+              { 
+                "$search": { 
+                  "text": { 
+                    "query": "lewinsky@example.com",
+                    "path": "page_updated_by.email" 
+                  }
+                } 
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "page_updated_by.email": 1
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+            :visible: true
+
+            { _id: 3, page_updated_by: { email: 'lewinsky@example.com' } }
+
+      |fts| returns the document with ``_id: 3`` in the results
+      because |fts| created a token with the value
+      ``lewinsky@example.com`` using the ``uaxUrlEmail`` tokenizer
+      for the documents, which matches the search term. If you
+      index the ``page_updated_by.email`` field using the
+      ``standard`` tokenizer, |fts| returns all the documents for
+      the search term ``lewinsky@example.com``.
+   
+      The following table shows the tokens that the ``uaxUrlEmail``
+      tokenizer and by comparison, the ``standard`` tokenizer, create for
+      the document with ``_id: 3``:
+
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
+
+         * - Tokenizer
+           - Token Outputs
+
+         * - ``standard``
+           - ``lewinsky``, ``example.com``
+
+         * - ``uaxUrlEmail``
+           - ``lewinsky@example.com``
+
+   .. tab:: Advanced Example
+      :tabid: advanced
+            
+      The following index definition indexes the ``page_updated_by.email``
+      field in the ``minutes`` collection using a custom analyzer named 
+      ``emailAddressAnalyzer``. It uses the following:
+   
+      - The :ref:`autocomplete <autocomplete-ref>` type with an
+        ``edgeGram`` :ref:`tokenization strategy
+        <bson-data-types-autocomplete>`
+      - The ``uaxUrlEmail`` tokenizer to create tokens (searchable
+        terms) from |url|\s and email addresses
+            
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: vib 
+
+            .. |analyzer-name| replace:: ``emailAddressAnalyzer``
+            .. |fts-tokenizer| replace:: :guilabel:`uaxUrlEmail`
+            .. |minutes-collection-field| replace:: **page_updated_by.email**
+            .. |fts-field-type| replace:: **Autocomplete**
+
+            .. include:: /includes/fts/extracts/fts-tokenizer-uaxurlemail-config-advanced-eg.rst 
+
+         .. tab:: JSON Editor 
+            :tabid: jsoneditor
+
+            Replace the default index definition with the following:
+
+            .. code-block:: json
+               :copyable: true
+
+               {
+                 "mappings": {
+                   "fields": {
+                     "page_updated_by": {
+                       "fields": {
+                         "email": {
+                           "analyzer": "emailAddressAnalyzer",
+                           "tokenization": "edgeGram",
+                           "type": "autocomplete"
+                         }
+                       },
+                       "type": "document"
+                     }
+                   }
+                 },
+                 "analyzers": [
+                   {
+                     "name": "emailAddressAnalyzer",
+                     "tokenizer": {
+                       "type": "uaxUrlEmail"
+                     }
+                   }
+                 ]
+               }
+
+      The following query searches the ``page_updated_by.email`` field in 
+      the ``minutes`` collection for the term ``exam``.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: json
+
+            db.minutes.aggregate([ 
+              { 
+                "$search": { 
+                  "autocomplete": { 
+                    "query": "lewinsky@example.com",
+                    "path": "page_updated_by.email" 
+                  }
+                } 
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "page_updated_by.email": 1
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+            :visible: true
+
+            _id: 3, page_updated_by: { email: 'lewinsky@example.com' } }
+            
+      |fts| returns the document with ``_id: 3`` in the results
+      because |fts| created a token with the value
+      ``lewinsky@example.com`` using the ``uaxUrlEmail`` tokenizer
+      for the documents, which matches the search term. If you
+      index the ``page_updated_by.email`` field using the
+      ``standard`` tokenizer, |fts| returns all the documents for
+      the search term ``lewinsky@example.com``.
+   
+      The following table shows the tokens that the ``uaxUrlEmail``
+      tokenizer and by comparison, the ``standard`` tokenizer, create for
+      the document with ``_id: 3``:
+
+      .. list-table::
+         :widths: 20 20 60
+         :header-rows: 1
+
+         * - Tokenizer
+           - |fts| Field Type
+           - Token Outputs
+
+         * - ``standard``
+           - ``autocomplete`` ``edgeGram``
+           - ``le``, ``lew``, ``lewi``, ``lewin``, ``lewins``,
+             ``lewinsk``, ``lewinsky``, ``lewinsky@``,
+             ``lewinsky``, ``ex``, ``exa``, ``exam``, ``examp``,
+             ``exampl``, ``example``, ``example.``,
+             ``example.c``, ``example.co``, ``example.com``
+
+         * - ``uaxUrlEmail``
+           - ``autocomplete`` ``edgeGram``
+           - ``le``, ``lew``, ``lewi``, ``lewin``, ``lewins``,
+             ``lewinsk``, ``lewinsky``, ``lewinsky@``,
+             ``lewinsky@e``, ``lewinsky@ex``, ``lewinsky@exa``,
+             ``lewinsky@exam``, ``lewinsky@examp``,
+             ``lewinsky@exampl``
+
+.. _whitespace-tokenizer-ref:
+
+whitespace
+----------
+
+The ``whitespace`` tokenizer tokenizes based on occurrences of 
+whitespace between words. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 22 12 11 45
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``whitespace``.
+
+   * - ``maxTokenLength``
+     - integer
+     - no
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
+
+       *Default*: ``255``
+
+Example 
+~~~~~~~
+
+The following index definition indexes the ``message``
+field in the ``minutes`` collection using a custom analyzer named  ``whitespaceExample``. It uses the ``whitespace`` tokenizer to
+create tokens (searchable terms) from any whitespaces in the
+``message`` field.
+   
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib 
+
+      .. |analyzer-name| replace:: ``whitespaceExample``
+      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
+      .. |minutes-collection-field| replace:: **message**
+      .. |fts-field-type| replace:: **String**
+
+      .. include:: /includes/fts/extracts/fts-tokenizer-whitespace-config.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "message": {
+                 "analyzer": "whitespaceExample",
+                 "type": "string"
+               }
+             }
+           },
+           "analyzers": [
+             {
+               "charFilters": [],
+               "name": "whitespaceExample",
+               "tokenFilters": [],
+               "tokenizer": {
+                 "type": "whitespace"
+               }
+             }
+           ]
+         }
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for the term ``SIGN-IN``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "SIGN-IN",
+              "path": "message"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "message": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+
+      { _id: 2, message: 'do not forget to SIGN-IN' }
+
+|fts| returns the document with ``_id: 2`` in the results because |fts|
+created a token with the value ``SIGN-IN`` using the ``whitespace``
+tokenizer for the documents, which matches the search term. If you
+index the ``message`` field using the ``standard`` tokenizer, |fts|
+returns documents with ``_id: 1``, ``_id: 2`` and ``_id: 3`` for the
+search term ``SIGN-IN``.
+   
+The following table shows the tokens that the ``whitespace``
+tokenizer and by comparison, the ``standard`` tokenizer, create for
+the document with ``_id: 2``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``do``, ``not``, ``forget``, ``to``, ``sign``, ``in``
+
+   * - ``whitespace``
+     - ``do``, ``not``, ``forget``, ``to``, ``SIGN-IN``

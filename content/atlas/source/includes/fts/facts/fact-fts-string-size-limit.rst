@@ -1,0 +1,1 @@
+|fts| won't index string fields where analyzer tokens exceed 32766 bytes in size. If using the keyword analyzer, string fields which exceed 32766 bytes will not be indexed.  

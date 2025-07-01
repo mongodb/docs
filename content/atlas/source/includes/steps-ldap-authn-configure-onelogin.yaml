@@ -1,0 +1,162 @@
+title: "Set up |ldap-provider| |ldap| service."
+level: 4
+ref: set-up-onelogin-ldap
+content: |
+
+  a. To learn more about setting up the OneLogin |ldap| service, see the 
+     `OneLogin documentation 
+     <https://onelogin.service-now.com/support/?id=kb_article&sys_id=7b3ad943db109700d5505eea4b9619db>`__.
+     
+     .. important:: You may need to contact OneLogin support to enable 
+        the VLDAP service for your account.
+
+  #. Note your ``<onelogin-instance-id>``. You must provide it
+     in several places during the configuration process.
+
+     The instance name is located in the URL you use to sign in to your OneLogin
+     account:
+
+     .. code-block:: sh
+        :copyable: false
+
+        https://<onelogin-instance-id>.onelogin.com
+
+---
+title: "Add IP addresses to the IP access list."
+level: 4
+ref: ip-access-list-ips-onelogin
+content: |
+
+  In OneLogin, click :guilabel:`Authentication`, then click 
+  :guilabel:`VLDAP`. Add the following to the 
+  :guilabel:`Allow access by IP address` field to add them to the 
+  IP access list:
+
+  a. The IP address of each node in your |service| cluster. Use 
+     ``nslookup`` to get the IP address of each host in your cluster,
+     using hostnames that |service| generates:
+
+     .. code-block:: sh
+        :copyable: false
+      
+        nslookup cluster0-shard-00-00-example.mongodb.net
+
+     .. note::
+
+        If the :ref:`IP addresses of any of your nodes change
+        <faq-public-ip-changes>`, you must update the IP access list
+        with the new IP addresses.
+      
+  #. (**Optional**) The IP address of a machine you can run ``ldapsearch``
+     commands from to :ref:`troubleshoot LDAP connection issues 
+     <ldaps-onelogin-troubleshooting>`.
+
+---
+title: "Create a bind user."
+level: 4
+ref: bind-user-onelogin
+content: |
+
+  a. `Create a new OneLogin user 
+     <https://onelogin.service-now.com/support/?id=kb_article&sys_id=8bf95543db109700d5505eea4b96198b&kb_category=fdf52dfcdbd45340d5505eea4b96192b>`__ 
+     to use as the |service| bind user. The bind user is a OneLogin 
+     user that you use to query the account and to authenticate database 
+     users' credentials when they connect to an |service| database.
+
+     The :guilabel:`Email` and :guilabel:`Username` fields are required 
+     when you create the bind user. You should enter the same email 
+     address in both of these fields.
+
+     .. important::
+        Don't use your own user account for the bind user.
+
+  #. Use the following template to determine the full Distinguished Name
+     (DN) of your bind user:  
+
+     .. code-block:: sh
+
+        cn=<bind-user-email>,ou=users,dc=<onelogin-instance-id>,dc=onelogin,dc=com
+
+     For example, if your ``<bind-user-email>`` is ``bind@example.com`` and 
+     your ``<onelogin-instance-id>`` is ``mdb-example``, your bind
+     user's DN is: 
+     
+     .. code-block:: sh
+        :copyable: false
+
+        cn=bind@example.com,ou=users,dc=mdb-example,dc=onelogin,dc=com
+
+---
+title: "Assign privileges to the bind user."
+level: 4
+ref: bind-user-privileges-onelogin
+content: |
+
+  In |ldap-provider|, assign the bind user the ``Manage users``, 
+  ``Manage group``, or ``Super user`` privilege.
+
+  .. note::
+
+     If you grant the bind user the ``Manage group`` privilege, you must
+     select a group. |service| can only authenticate and authorize 
+     |ldap| users who belong to this group.
+
+  a. Navigate to your OneLogin Users page.
+  #. Click the bind user.
+  #. Click :guilabel:`Add Privilege`.
+  #. Select the privilege  you want to grant the user, then click 
+     :guilabel:`Continue`.
+  #. Click :guilabel:`Save User`.
+
+---
+title: "Set the bind user's password in |ldap-provider|."
+level: 4
+ref: bind-user-pw-onelogin
+content: |
+  If you have not done so already, set a password for the bind user in
+  |ldap-provider|:
+
+  a. Click :guilabel:`More Actions`, then click 
+     :guilabel:`Change Password`.
+  #. Enter a password, then click :guilabel:`Update`.
+
+---
+title: "Create database users in |ldap-provider|."
+level: 4
+ref: create-db-users-onelogin
+content: |
+
+  If they don't exist already, create users in |ldap-provider| that you want to 
+  grant database access to:
+
+  a. Navigate to your OneLogin users page.
+  #. Click :guilabel:`New User`.
+  #. Enter the user's details.
+
+     The :guilabel:`Email` and :guilabel:`Username` fields are required 
+     when you create database users. Enter the same email address in 
+     both of these fields.
+
+     .. note:: 
+     
+        Avoid entering email addresses with plus symbols (``+``). The
+        |service| |ldap| integration may encounter issues with email
+        addresses containing plus symbols.
+
+  #. Click :guilabel:`Save User`.
+
+---
+title: "Set the database users' passwords in |ldap-provider|."
+level: 4
+ref: db-users-pw-onelogin
+content: |
+  If you have not done so already, set a password for each database user 
+  in |ldap-provider|:
+
+  a. Navigate to your OneLogin users page.
+  #. Click the user you want to set a password for.
+  #. Click :guilabel:`More Actions`, then click 
+     :guilabel:`Change Password`.
+  #. Enter a password, then click :guilabel:`Update`.
+
+...

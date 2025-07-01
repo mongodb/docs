@@ -1,0 +1,257 @@
+.. _c2c-pull-live-migration:
+
+========================================
+Live Migrate (Pull) a Cluster into Atlas
+========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: c2c, mongosync, pull live migration
+   :description: Migrate a MongoDB cluster to Atlas using mongosync for live data transfer, ensuring both source and destination clusters meet version and configuration requirements.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/flex-serverless-dont-use.rst
+
+|service| can pull a source {+cluster+} to an |service| 
+{+cluster+} using the procedure described in this section.
+
+This procedure works for most source cluster versions except source replica sets 
+running MongoDB 4.4. and 5.0. To migrate replica sets 4.4 and 5.0 to |service|, 
+see :ref:`live-migration-pre60`.
+
+This process uses |mongosync| as the underlying data migration tool,
+enabling faster live migrations with less downtime:
+
+- |service| syncs data from the source to the destination {+cluster+} until
+  you cut your applications over to the destination |service| {+cluster+}.
+
+- Once you reach the cutover step in the following procedure:
+  
+  - Stop writes to the source {+cluster+}.
+  - Stop your application instances, point them to the |service| {+cluster+},
+    and restart them.
+
+.. _c2c-pull-limitations:
+
+Restrictions
+------------
+
+The |c2c-limitations| apply to this live migration.
+
+Live migration (pull) doesn't support:
+
+- Rapid releases as the source or destination {+cluster+} version.
+- :ref:`VPC peering <vpc-peering>` or :ref:`private endpoints <private-endpoint>`
+  for either the source or destination {+cluster+}.
+
+.. include:: /includes/fact-lm-search-indexes-unsupported.rst
+
+.. _live-import-c2c-upgrade-path:
+
+Supported Migration Paths
+--------------------------
+
+|service| live migration described in this section supports the following
+migration paths:
+
+.. include:: /includes/list-tables/c2c-pull-live-migration-upgrade-path.rst
+
+Required Access
+---------------
+
+.. include:: /includes/atlas-roles/pull-live-migrate.rst
+
+Supported Source and Destination {+Cluster+} Configuration Pairs
+------------------------------------------------------------------
+
+For this type of live migration, |service| supports the following source
+and destination {+cluster+} configuration pairs:
+
+.. include:: /includes/list-tables/c2c-live-migration-supported-cluster-configurations.rst
+
+Prerequisites
+-------------
+
+- If the {+cluster+} runs with authentication, meet the following prerequisites:
+
+  - For replica sets, grant the :authrole:`backup` and :authrole:`readAnyDatabase`
+    roles on the admin database to the user that will run the migration process.
+  - For sharded {+clusters+}, in addition to the required :authrole:`Project Owner` 
+    and :authrole:`clusterMonitor` roles, grant the :authrole:`backup` and 
+    :authrole:`readAnyDatabase` roles on the admin database to the user
+    that will run the migration process. Ensure the specified user exists
+    on every shard and the config server replica set.
+    The user must have permissions that allow the following actions:
+
+    - Stop or start the sharded {+cluster+} balancer.
+    - Read all databases and collections on the host.
+    - Read the oplog on the host.
+
+  - Ensure that this user is authenticated using
+    :manual:`both SCRAM-SHA-1 and SCRAM-SHA-256 </core/security-scram/>`.
+    To learn more, see :ref:`live-import-c2c-security`.
+
+.. include:: /includes/note-source-cluster-readiness.rst
+
+.. _live-import-c2c-ip-access-list:
+
+Network Access
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/import/network-access.rst
+
+.. _live-import-c2c-migration-validation:
+
+Pre-Migration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before starting the following live migration procedure, |service| runs
+validation checks on the source and destination {+clusters+} and verifies that:
+
+- The source {+cluster+}\'s database user has the correct permissions as
+  described in :ref:`live-import-c2c-security`.
+- The source {+cluster+} does not contain the
+  ``mongosync_reserved_for_internal_use`` metadata database. You must
+  manually drop that database before starting the migration.
+
+.. include:: /includes/fact-live-migration-no-data-destination-cluster.rst
+
+.. _live-import-c2c-security:
+
+Source {+Cluster+} Security
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/c2c-pull-source-cluster-security.rst
+
+.. _live-import-push-security-of-migration-servers:
+
+How MongoDB Secures its Live Migration Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-live-migration-pull-security-of-lm-server.rst
+
+Considerations
+--------------
+
+.. include:: /includes/fact-network-encryption-pull-migration.rst
+
+Database Users and Roles
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| doesn't migrate any user or role data to the destination {+cluster+}.
+
+.. include:: /includes/fact-create-atlas-user.rst
+
+If the source {+cluster+} enforces authentication, you must recreate the
+credentials that your applications use on the destination |service| {+cluster+}.
+|service| uses :ref:`SCRAM <authentication-scram>` for user authentication.
+To learn more, see :doc:`/security-add-mongodb-users`.
+
+.. _oplog-reqs-live-migration:
+
+Oplog Requirements
+~~~~~~~~~~~~~~~~~~
+
+Source {+cluster+} requirements:
+
+.. include:: /includes/fact-live-migration-oplog-source-cluster.rst
+
+Destination {+cluster+} requirements:
+
+.. include:: /includes/fact-live-migration-oplog-destination-cluster.rst
+
+.. _lm-pull-load-balancers:
+
+Source and Destination {+Cluster+} Balancers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-source-destination-balancers.rst
+
+Destination {+Cluster+} Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you configure the destination {+cluster+}, consider the following:
+
+.. include:: /includes/fact-live-migration-no-data-destination-cluster.rst
+
+.. include:: /includes/fact-live-migration-destination-cluster.rst
+
+.. include:: /includes/fact-live-migration-perf-target-cluster.rst
+
+- You can't select an ``M0`` (Free Tier) or a {+Flex-cluster+} as
+  the destination {+cluster+} for live migration.
+
+- Don't change the ``featureCompatibilityVersion`` flag while
+  |service| live migration is running.
+
+Avoid Workloads on the Destination {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Writes are blocked during the live migration:
+
+- When a live migration starts, writes to the destination {+cluster+}
+  are blocked. Attempts to perform writes to the destination {+cluster+}
+  fail.
+- After a live migration completes successfully or fails, writes to the
+  destination {+cluster+} may continue.
+
+Don't run multiple migrations to the same destination {+cluster+} at the
+same time.
+
+Don't start the cutover process for your applications to the destination
+{+cluster+} while the live migration process is syncing.
+
+Avoid Cloud Backups
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-avoid-backups.rst
+
+Avoid Elections
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-avoid-elections.rst
+
+
+Migrate Your {+Cluster+}
+------------------------
+
+.. note:: Staging and Production Migrations
+
+   Consider running this procedure twice. Run a partial migration
+   that stops at the :guilabel:`Perform the Cutover` step *first*. This
+   creates an up-to-date |service|-backed staging {+cluster+} to test
+   application behavior and performance using the latest
+   :driver:`driver version </driver-compatibility-reference>` that
+   supports the MongoDB version of the |service| {+cluster+}.
+
+   After you test your application, run the full migration
+   procedure using a separate |service| {+cluster+} to create your
+   |service|-backed production environment.
+
+.. include:: /includes/pre-migration-checklist.rst
+
+.. _lm-pull-c2c-procedure:
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/c2c-pull-live-migration.rst
+
+Migration Support
+-----------------
+
+.. _live-migration-c2c-support:
+
+.. include:: /includes/import/migration-email-failure.rst
+
+.. include:: /includes/live-migration-support.rst

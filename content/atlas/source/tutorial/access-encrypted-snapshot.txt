@@ -1,0 +1,87 @@
+.. _access-encrypted-snapshot:
+
+============================
+Access an Encrypted Snapshot
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: access encrypted backup, encryption at rest, encrypted, kms, kmip, kmip proxy standalone
+   :description: Obtain access to data in your encrypted backup by accessing a kmip server proxy standalone.
+
+When you use :ref:`security-kms-encryption`, |service| encrypts the
+``mongod`` data files in your snapshots.  If you want to download and
+restore a snapshot, the ``mongod`` can't read these data files unless it
+has access to a |kmip| server that can provide the appropriate
+decryption key. You can use the |kmip| Proxy Standalone to access the
+``mongod`` data files. You download the |kmip| Proxy Standalone as a
+binary for your specific operating system.
+
+Considerations
+--------------
+
+By default, the |kmip| Proxy Standalone uses the credentials stored in
+the
+``/<dbPath>/cloudProviderCredentials/<keyID>.<cloudProvider>.metadata``
+file. 
+
+- If you rotate keys, these credentials reflect the latest key
+  rotation.
+
+- If the |kmip| Proxy Standalone binary is unable to decrypt the snapshots
+  using these credentials, the binary shows an error message stating that
+  you must update the metadata files on disk that contain the old
+  credentials. You can update the metadata file with any text editor.
+
+- If you use :ref:`role-based access to your encryption key
+  <aws-kms-enable-project>`, the 
+  ``/<dbPath>/cloudProviderCredentials/<keyID>.<cloudProvider>.metadata``
+  file won't contain valid credentials. 
+
+  Take one of the following actions:
+
+  - Update the 
+    ``/<dbPath>/cloudProviderCredentials/<keyID>.<cloudProvider>.metadata``
+    file. Use an empty ``roleId``. Provide temporary credentials based
+    on the |iam| role that can access your encryption key in the
+    ``accessKeyId`` and ``secretAccessKey`` fields:
+
+    .. code-block:: json
+     
+       {
+         "accessKeyId": "TemporaryAccessKeyId",
+         "secretAccessKey": "TemporarySecretAccessKey",
+         "roleId": "",
+         "region": "us-east-1"
+       }
+
+  - Start the |kmip| Proxy Standalone binary with the following options:
+
+    - ``awsAccessKey``
+    - ``awsSecretAccessKey``
+    - ``awsSessionToken``
+    - ``awsRegion``
+
+  To generate temporary credentials based on an |iam| role, see the 
+  :aws:`AWS documentation 
+  </STS/latest/APIReference/API_AssumeRole.html>`.
+
+- .. include:: /includes/fact-download-encrypted-snapshots.rst
+  
+Procedure
+---------
+
+.. include:: /includes/steps-access-encrypted-snapshot.rst
+
+You can also :ref:`restore a snapshot using Encryption at Rest <restore-from-ear>`.

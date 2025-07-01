@@ -1,0 +1,454 @@
+.. _cluster-config-costs:
+
+===========================
+Cluster Configuration Costs
+===========================
+
+.. meta::
+   :description: Understand how cloud provider, region, cluster tier, storage capacity, and backup options affect Atlas cluster costs.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _region-costs:
+
+Cloud Service Provider and Region
+---------------------------------
+
+|service| supports deploying clusters onto :ref:`Amazon Web Services
+<amazon-aws>`, the :ref:`Google Cloud Platform <google-gcp>`, and
+:ref:`Microsoft Azure <microsoft-azure>`. The choice of cloud service
+provider and region or regions for the |service| project affects the
+cost of running a |service| cluster.
+
+Multi-region cluster costs depend on the number of and location of
+additional regions selected. When creating a cluster, |service|
+displays the :ref:`cluster tier cost <instance-size-costs>` based on
+only the :guilabel:`Preferred Region` of the cluster. You can see the
+total cost of running the cluster in the :guilabel:`Cluster Overview`.
+
+To learn more about configuring your cloud provider and region, see
+:ref:`Cloud Providers and Regions <create-cluster-cloud-provider-region>`.
+
+.. _instance-size-costs:
+
+Cluster Tier
+-------------
+
+|service| provides different :ref:`cluster tiers <create-cluster-instance>`.
+Each cluster tier has a default RAM capacity, storage capacity, and
+maximum storage speed. The cluster's per-hour charge includes these
+default values. |service| uses the selected cluster when deploying all
+the data-bearing [#data-bearing]_ servers in your cluster.
+
+Depending on the choice of cloud service provider, |service| provides
+customization options for :ref:`cluster storage capacity <storage-capacity>`
+and the :ref:`speed <instance-storage-speed>` of that storage. If you
+add capacity or speed, you incur additional costs on top of the base
+cost. For multi-region clusters, the per-cluster cost, including any
+selected customizations, is relative to the
+:guilabel:`Preferred Region`. The :guilabel:`Cluster Overview` box
+shows your overall charges.
+
+.. _storage-capacity:
+.. _instance-storage-capacity:
+
+Storage Capacity
+~~~~~~~~~~~~~~~~
+
+|service| charges for :ref:`storage capacity <create-cluster-storage>`
+differently depending on whether you use the cluster default or specify
+a custom storage capacity.
+
+- If you use the default storage capacity, |service| includes its cost
+  in the {+cluster+}'s per-hour cost. However, when you pause the
+  {+cluster+}, the [service] cost includes a charge for the default
+  storage.
+
+- If you customize the amount of storage capacity, |service| charges
+  for the full amount of storage. |service| doesn't deduct the cost of
+  the default storage capacity. This change can be a disk upgrade or a
+  instance family change such as changing from general CPU to low-CPU.
+
+.. example::
+
+   A new ``M10`` cluster defaults to 10 GB of storage. You can increase
+   this amount up to 120 GB of storage using this cluster tier.
+
+   If you increase the storage capacity to 50 GB, your monthly
+   |service| cost includes 50 GB of storage, not the cost of the
+   additional 40 GB.
+
+.. note::
+
+   Increasing storage capacity can change the maximum |iops| available
+   with each :guilabel:`Custom Storage Speed`.
+
+|service| only charges for storage for paused {+clusters+}. |service|
+does not charge for any other services or data transfer on paused
+{+clusters+}. To learn more, see :ref:`pause-terminate-cluster`.
+
+.. _storage-speed:
+.. _instance-storage-speed:
+
+Custom Storage Speed
+~~~~~~~~~~~~~~~~~~~~
+
+|service| measures storage speed as maximum |iops|. Each |service|
+:ref:`{+cluster+} tier <instance-size-costs>` offers a default storage
+speed that is included in the cluster's per-hour cost. The choice of
+cloud service provider and cluster affects the available storage
+speed customization options, as well as the cost of selecting a custom
+storage speed.
+
+.. tabs-cloud-providers::
+
+   .. tab::
+      :tabid: azure
+
+      All {+clusters+} use premium |ssd| disks with |iops| based on the
+      storage capacity. The maximum |iops| increases as
+      you increase storage capacity for the {+cluster+} in the same tier.
+      The cost of the increased |iops| is included in the cost of the
+      increased storage capacity. If you choose to increase |iops| in
+      addition to the increased |iops| that comes with the increased
+      storage capacity, MongoDB charges you more.
+
+      To learn more, see :ref:`Change Storage Capacity and IOPS on Azure <change-storage-capacity-azure>`
+      and :azure:`High-performance Premium Storage and Managed Disks for VMs </storage/storage-premium-storage>`.
+
+   .. tab::
+      :tabid: aws
+
+      For most cluster types, you can increase storage speed from
+      :guilabel:`Standard` to :guilabel:`Fast` or :guilabel:`Fastest`,
+      which affects costs. Selecting a custom speed changes both |iops|
+      and the type of storage used. The storage type changes from a
+      general-purpose |ssd| to a provisioned-|iops| |ssd|.
+      To learn more about storage types, see
+      :aws:`Amazon EBS Volume Types </AWSEC2/latest/UserGuide/EBSVolumeTypes.html>`.
+
+   .. tab::
+      :tabid: gcp
+
+      All clusters use |ssd| persistent disks with fixed maximum |iops|
+      based on the cluster storage capacity. The maximum |iops|
+      increases as storage capacity increases. The cost of the
+      increased maximum |iops| is included in the cost of the increased
+      storage capacity. To learn more about the |gcp| persistent disks,
+      see :gcp:`Persistent Disks </compute/docs/disks/#pdspecs>`.
+
+Cluster Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~
+
+To help minimize cluster costs while retaining the flexibility to
+easily scale your cluster, you can enable
+:ref:`Cluster Auto-Scaling <cluster-autoscaling>`. With auto-scaling,
+your cluster automatically scales its tier, storage capacity, or both
+in response to cluster usage. Auto-scaling reduces the need to
+manually optimize your cluster to adapt to your current workload.
+
+.. _cluster-config-costs-backup:
+
+Backup
+------
+
+|service| supports :doc:`Cloud Backups </backup/cloud-backup/overview>`. 
+For each cluster with cloud backups enabled, |service| bills you for:
+
+- Storage costs for data in your replica set
+- Storage costs for the configuration server replica set in sharded deployments
+- Network transfer costs of restoring a snapshot
+
+To learn how |service| charges for network data, see :ref:`data-transfer-costs`.
+
+.. _billing-backup-cloud-provider-snapshots:
+
+{+Cloud-Backup+}s
+~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   If you enabled {+PIT-Restore+}s, |service| bills you using the rates
+   given for :ref:`billing-backup-cps-pit`.
+
+Atlas cloud backups provides localized backup storage using the native snapshot 
+functionality of the cluster's cloud service provider. 
+Snapshots in Cloud Backups are incremental snapshots, where in most cases 
+after the first snapshot, a new snapshot saves only the data that changed 
+after your most recent snapshot. For example, a cluster with 10 GB of data 
+and 3 snapshots may require less than 30 GB of total snapshot storage 
+depending on how data changed between snapshots. 
+
+Incrementality is determined by your cluster's cloud service provider. 
+To compute the cost for Cloud Backups, Atlas obtains the raw metric data 
+from the cloud providers and calculates the total size of all snapshots 
+based on the region where it stores the snapshot and the amount of 
+storage used per month.
+
+The cost for {+Cloud-Backup+}s is calculated per GB per month. Rates 
+vary between cloud providers and between regions within a given cloud 
+provider.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25 50
+
+   * - Cloud Provider
+     - Cost per GB
+
+   * - |aws|
+     - $0.14 to $0.19
+
+   * - |azure|
+     - $0.34 to $0.65
+
+   * - |gcp|
+     - $0.08 to $0.12
+
+While this rate determines the cost of the backup, your bill displays
+this item in terms of ``GB days``. This appears as a line item each 
+day, but does not result in duplicated charges. Each backup retained
+on a given day contributes to the total ``GB days`` billed for that
+day.
+
+.. example::
+
+   You back up 400 GB of data from a cluster in an |aws| region with a
+   $0.14 per month Cost per GB, yielding a cost of $56.00.
+
+   To determine the price in ``GB days``, use the following formula:
+   
+   ``((GB per month rate) * 12 months)/365 days``. 
+   
+   In this case: ``($0.14 * 12)/365 = $0.004603``. A 400 GB backup will
+   appear in your billing statement as 400 GB days at a price of 
+   $0.004603, for a total cost of $1.84 for the day. In a 30-day month,
+   the cost of retaining one 400 GB backup totals $55.20.
+
+.. note::
+  |service| applies a default backup policy to {+Cloud-Backup+}-enabled 
+  {+clusters+} on creation. Review and :ref:`change the backup policy 
+  <cloud-provider-backup-schedule>` as needed.
+  
+|service| can bill backup as high as the total storage capacity of the
+volume. This depends upon how the cloud provider stores the volume
+snapshots.
+
+When restoring a cluster using a manual download via |https|, |service|
+also charges for:
+
+- Each hour that the download link remains active 
+  (*Atlas Backup Download VM* charge).
+
+- The total storage capacity of the restore virtual machine data volume 
+  (*Atlas Backup Restore Storage* charge).
+
+- :ref:`Data transfer <data-transfer-costs>` costs for downloading the
+  snapshot over the public internet or for downloading the snapshot
+  over :ref:`private endpoints <billing-private-endpoints-clusters>`
+  for |service| {+clusters+} on |aws| or |azure| with private
+  endpoints. These costs vary by cloud provider and region. To learn
+  more, see :ref:`billing-private-endpoints-clusters`.
+
+Cloud Backup Considerations
+```````````````````````````
+
+|service| can retain more than one full snapshot per replica set or shard in certain cases. 
+This may result in a higher invoice due to less overall snapshot incrementality.
+|service| might retain more than one full snapshot in the following cases:
+
+- When a snapshot is taken on a different node than the previous snapshot due to node or region failover.
+- When a cluster's configuration changes (including cluster tier, storage volume, or IOPS).
+- When region priority changes for a multi-region cluster and a new node becomes responsible for snapshots.
+- During maintenance performed by the cluster’s cloud provider.
+- When a cluster's topology changes, such as adding a new shard to a cluster.
+
+If |service| must retain more than one snapshot, |service| stores the new snapshot 
+in the same region as the cluster's current backup node. 
+|service| continues using that backup node for snapshots and snapshot storage. 
+ 
+|service| might charge for backup up to the total storage capacity of the volume, depending 
+on how your cloud provider stores volume snapshots.
+
+.. example::
+
+   A storage volume on the cloud provider has a capacity of 4 TB. The
+   cloud provider informs |service| that the snapshots occupy the full
+   volume capacity even though your backups only occupy 500 GB. Due to
+   this reporting, |service| bills you for 4 TB in backup storage.
+
+To learn more about how Atlas manages snapshot storage, see 
+:ref:`Back Up Your {+Database-Deployment+} <backup-cloud-provider>`.
+
+.. include:: /includes/cps-sizing-support.rst
+
+.. _billing-backup-cps-pit:
+
+{+PIT-Restore+}s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cluster owners may enable :ref:`{+PIT-Restore+} restores <pit-restore>` 
+from Cloud Backups. |pit| backups are billed based on the disk space 
+occupied by an internal oplog, combined with the cloud backup 
+snapshot size.
+
+You can :ref:`configure <create-cluster-backups>` |pit| backups to
+cover a window of time that you specify. Longer backup windows result
+in larger oplogs and higher backup costs.
+
+To compute the cost for {+PIT-Restore+}s, |service| obtains the raw
+metric data from the cloud providers and calculates the *total* size of
+all snapshots and the amount of storage used per month:
+
+- The cloud provider
+- The region in which the snapshots are stored
+- The usage tier
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25 15 15 15 15 15
+
+   * - Cloud Provider
+     - 0-5 GB Storage Used (Tier 0)
+     - 5-100 GB Storage Used (Tier 1)
+     - 100-250 GB Storage Used (Tier 2)
+     - 250-500 GB Storage Used (Tier 3)
+     - >500 GB Storage Used (Tier 4)
+
+   * - |aws|
+     - 
+     - $1.00 to $1.55
+     - $0.75 to $1.20
+     - $0.50 to $0.80
+     - $0.25 to $0.40
+
+   * - |azure|
+     - 
+     - $1.00 to $3.95
+     - $0.75 to $2.95
+     - $0.50 to $2.00
+     - $0.55 to $1.00
+
+   * - |gcp|
+     - 
+     - $0.60 to $0.95
+     - $0.45 to $0.70
+     - $0.30 to $0.50
+     - $0.15 to $0.25
+
+.. example::
+
+   A cluster on |aws| in the ``US_EAST_1`` region has a combined total 
+   snapshot and oplog size of 115 GB. The first 5 GB are free. The 
+   remaining 110 GB are billed at $1.00 from 5 to 100 GB, and at $0.75
+   from 100 GB to 115 GB:
+
+   (95 × $1.00) + (15 × $0.75) = $106.25 per month
+
+.. note::
+  |service| applies a default backup policy to {+Cloud-Backup+}-enabled 
+  {+clusters+} on creation. Review and :ref:`change the backup policy 
+  <cloud-provider-backup-schedule>` as needed. 
+   
+Multi-Region Snapshot Distribution Costs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| bills you for the following items:
+
+- Cross region data transfer when you copy your backups to another
+  region.
+
+- Enabling :guilabel:`Additional Backup Copies` for your {+cluster+}, 
+  and using additional storage in other regions. For example, 
+  if you copy all of your backups to one additional region, you pay for 
+  approximately twice the storage: an amount for your standard backup, 
+  and approximately the same amount for your copies stored in the other 
+  region (storage costs vary by region). Furthermore, when copying backups 
+  to a GCP region, snapshot incrementality is **not** preserved. This can lead 
+  to an exponential increase in cost, especially for customers with large data 
+  sizes, as each copied snapshot is a **full** snapshot. For example, if you 
+  have a cluster with 1TB of data and your current backup storage amount in 
+  your billing invoice shows an average of 3TB of backup storage (due to the 
+  incremental changes in your data over time), copying 10 backups to another 
+  region in GCP will incur 1TB of data transfer cost for each copy and 10TB of 
+  backup storage for the secondary backup region (1TB of data size * 10 copied 
+  snapshots).
+
+  .. important:: Google Cloud Platform
+   
+     In |gcp| regions, the incrementality of your backups is not 
+     preserved. Each copy stored in |gcp| is a full copy.
+     Because of this, enabling backup copies in a |gcp| region will 
+     likely result in exponentially higher costs compared to other 
+     cloud providers.
+
+     In |aws| and |azure| regions, the incrementality of your backups is 
+     preserved during the copy process.
+
+Lowering the Monthly Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The amount that you can reduce your costs varies depending on your deployment's configuration. 
+You can reduce your |service| backup costs in the following ways:
+
+- Delete unneeded backup snapshots
+- Reduce the frequency that |service| creates backup snapshots
+- Reduce the retention time of backup snapshots 
+- Modify the backup policy to reduce the number of snapshots automatically copied to additional regions 
+- Increase the efficiency of your application's database access patterns for better snapshot incrementality 
+  (for example, using a simple insert instead of updating an array is a more efficient operation and might improve snapshot incrementality)
+- Change the cluster’s backup cloud provider or region
+- Reduce the restore window duration (for {+pit-restore+}s only)
+
+.. note::
+   
+   When you delete a snapshot, deleted data that exists in any other snapshot is 
+   still counted as unique data. Unique data is only deleted from the sequence 
+   of snapshots if all snapshots that reference that data are deleted.
+
+|bic|
+-----
+
+.. include:: /includes/abic-deprecation.rst
+
+Excluding |service-fullname| Enterprise and |service-fullname| Platinum
+customers, if |bic| is enabled for your cluster:
+
+- The billing rate for the |bic| is described in the cluster console
+  as a daily uplift on the cost of the associated cluster. You can
+  view the rate when :ref:`deploying your cluster <create-new-cluster>`
+  or by :doc:`modifying your cluster </scale-cluster>`.
+
+- |bic| has a sustained-usage pricing. That is, the daily rate is
+  charged only up to a maximum for the month.
+
+.. _server-number-costs:
+
+Number of Nodes
+---------------
+
+|service| charges the cluster cost and data storage cost for each
+data-bearing node [#data-bearing]_ in your cluster.
+
+- For a replica set, the number of data-bearing nodes equals the
+  replication factor.
+
+- For a sharded cluster, the number of data-bearing nodes equals the
+  replication factor multiplied by the number of shards.
+
+If you enable sharding, |service| also runs three
+:ref:`config servers <sharding-config-server>` in addition to your
+data-bearing nodes. Your selections for cluster tier and data
+storage do not affect the costs of the config nodes. Config servers
+are charged at a separate rate. Their cost is reflected in the cost of
+the cluster.
+
+.. include:: /includes/footnote-databearing.rst

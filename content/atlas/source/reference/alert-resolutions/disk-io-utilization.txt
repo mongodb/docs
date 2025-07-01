@@ -1,0 +1,172 @@
+.. _disk-io-util:
+
+===============
+Fix IOPS Issues
+===============
+
+.. meta::
+   :description: Resolve IOPS issues by optimizing queries, using Atlas Performance Advisor, and adjusting cluster IOPS or storage capacity based on alert conditions.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:ref:`System and disk alert <system-disk-alerts>` conditions can 
+indicate IOPS issues.
+
+.. include:: includes/burst-metrics.rst
+   
+Alert Conditions
+----------------
+   
+You can configure the following alert conditions in the project-level 
+:ref:`alert settings <configure-alerts>` page to trigger alerts.
+
+The :alert:`Disk read IOPS on Data Partition is` alert condition is 
+raised if the average number of disk read operations per second exceeds 
+the specified threshold.
+
+The :alert:`Disk write IOPS on Data Partition is` alert condition is 
+raised if the average number of disk write operations per second 
+exceeds the specified threshold.
+
+:alert:`System: CPU (User) % is` measures the CPU usage of the 
+processes on the node, normalized by the number of CPUs. This value is 
+scaled to a range of 0-100%.
+
+Common Triggers
+---------------
+
+A few common events may trigger these alerts:
+
+- :manual:`Unoptimized queries </core/query-optimization/>`.
+
+- A one-time event, such as an :manual:`index build 
+  </core/index-creation>`.
+
+.. _aws-iops-solutions:
+
+Fix the Immediate Problem
+-------------------------
+
+Consider a few possible actions to help resolve
+these alerts:
+
+- :manual:`Optimize your queries </core/query-optimization/>`.
+
+- Use the |service| :doc:`Performance Advisor </performance-advisor/>`
+  to view slow queries and suggested :manual:`indexes </indexes>`.
+
+- Review :manual:`Indexing Strategies </applications/indexes/>` for
+  possible further indexing improvements.
+
+  .. note::
+
+     You might need to temporarily increase your cluster |iops| to 
+     create new indexes. Provisioned |iops| is supported only for 
+     ``M30+`` tier |aws| {+clusters+}.
+     
+To change a cluster's |iops|, go to the 
+:guilabel:`Cluster Configuration` page and do the following possible 
+actions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Cloud Provider
+     - Tier
+     - Possible Actions
+
+   * - |aws|
+     - ``M10``, ``M20``
+     - 
+       - :ref:`Increase Storage Capacity <scale-cluster-storage>`
+       - :ref:`Upgrade Cluster Tier <scale-cluster-instance>`
+
+   * - |aws|
+     - ``M30`` or larger
+     -
+       - :ref:`Increase Cluster IOPS <scale-cluster-storage>`
+       - :ref:`Increase Storage Capacity <scale-cluster-storage>`
+       - :ref:`Upgrade Cluster Tier <scale-cluster-instance>`
+
+   * - |gcp|
+     - ``M10`` or larger
+     -
+       - :ref:`Increase Storage Capacity <scale-cluster-storage>`
+       - :ref:`Upgrade Cluster Tier <scale-cluster-instance>`
+
+   * - Azure
+     - ``M10`` or larger
+     -
+       - :ref:`Increase Storage Capacity <scale-cluster-storage>`
+       - :ref:`Upgrade Cluster Tier <scale-cluster-instance>`
+
+- :manual:`Analyze Query Performance </tutorial/analyze-query-plan/>`
+  to review how your queries are using your indexes.
+
+- Increase hardware resources, such as instance size and |iops|, in the
+  :doc:`Cluster Configuration Page </scale-cluster>`.
+
+Implement a Long-Term Solution
+------------------------------
+
+Disk IOPS Burst Credits for |service| {+Clusters+} on |azure|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| {+clusters+} deployed to |azure| may use credit-based 
+bursting, but the disk will burst only if it has burst credits 
+accumulated in its credit bucket. |azure| also offers an on-demand 
+bursting model, where the disk bursts whenever its needs exceed its 
+current capacity.
+
+See the |azure| :azure:`Disk Bursting documentation 
+</virtual-machines/disk-bursting>` for more information about how bursting 
+for |azure| disks works. 
+
+Conserve Burst Credits
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you regularly exceed your configured |iops| threshold, you can avoid
+depleting your burst credits by increasing your configured |iops| with
+any of the following actions:
+
+- :ref:`Increase Cluster IOPS <scale-cluster-storage>` to increase the
+  cluster's |iops| threshold.
+
+- :ref:`Increase Storage Capacity <scale-cluster-storage>`. The
+  |iops| threshold increases as you increase storage capacity. Clusters
+  configured to use at least 1 TB of storage have baseline |iops|
+  performance that is equal to or greater than the maximum burst
+  performance. These volumes do not deplete burst credit balances.
+
+- :ref:`Upgrade Cluster Tier <scale-cluster-instance>`. Larger cluster
+  tiers include higher |iops| thresholds.
+
+  .. note::
+
+    Cluster tiers ``M140`` and larger are deployed with at least 1 TB
+    of storage capacity by default. Clusters with 1 TB or more of
+    storage capacity do not deplete burst credit balances.
+
+Monitor Your Progress
+---------------------
+
+These are a few possible methods to observe high disk I/O:
+
+- The disk |iops| use from the :guilabel:`Disk IOPS` graph in the
+  cluster :doc:`metrics </monitor-cluster-metrics>` exceeds the
+  provisioned |iops| from the |service| {+cluster+}
+  :doc:`configuration page </scale-cluster>`.
+
+- The :guilabel:`Normalized System CPU`
+  :doc:`metric </monitor-cluster-metrics>`
+  has a high :guilabel:`IOWait` curve. IOWait measures the percentage
+  of time the CPU is idle and waiting for an I/O operation to complete.
+  The :guilabel:`Normalized System CPU` chart is located under the
+  :guilabel:`Hardware Metrics` section of the :guilabel:`Metrics` tab.

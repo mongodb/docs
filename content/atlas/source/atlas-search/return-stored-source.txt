@@ -1,0 +1,305 @@
+.. _fts-return-stored-source-option:
+
+===========================
+Return Stored Source Fields
+===========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: retrieve stored fields, partial document search, $lookup aggegation pipeline stage, lookup documents
+   :description: If you enabled storedSource in your Atlas Search index definition for a collection, use the returnStoredSource boolean option in your Atlas Search queries to retrieve only stored fields.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+If you configured the :ref:`storedSource 
+<fts-stored-source-definition>` option in the :ref:`index definition 
+<ref-index-definitions>` for a collection, |fts| stores the specified 
+fields on ``mongot``. You can use the ``returnStoredSource`` boolean 
+option in your |fts| queries to retrieve only those fields, rather than 
+fetching full documents from the collection. 
+
+By default, |fts| performs full document lookup implicitly on the 
+backend database after |fts| matches documents for the query. This 
+lookup could significantly degrade performance for subsequent 
+aggregation pipeline stages that fetch all matched dataset from 
+:pipeline:`$search` stage (such as :pipeline:`$sort`, 
+:pipeline:`$group`) or filter a large part of it (such as 
+:pipeline:`$match`, :pipeline:`$skip`). If you configured the 
+``storedSource`` option, you can use the  ``returnStoredSource`` option 
+to retrieve only parts of the documents directly stored on |fts| and 
+avoid full document lookup on the database. This allows you to perform 
+most database-side filtering operations on documents with a minimum 
+number of fields. You can then retrieve all the fields from the 
+documents at a later stage in the pipeline using :pipeline:`$lookup`.
+
+.. note:: 
+
+   * ``returnStoredSource`` is only available on |service| clusters 
+     running MongoDB 5.0 and later.
+   * For sharded collections, :pipeline:`$lookup` is only available on |service| 
+     clusters running MongoDB 5.1 and later.
+
+.. _fts-return-stored-source-syntax:
+
+Syntax 
+------
+
+``returnStoredSource`` has the following syntax in your queries:
+
+.. code-block:: json
+   :emphasize-lines: 6 
+
+   {
+     $search: {  
+       "<operator>": { 
+         <operator-specification>
+       },
+       "returnStoredSource": true | false // optional, defaults to "false"
+     }
+   }
+
+To learn more about query syntax, see :pipeline:`$search`.
+
+.. _fts-return-stored-source-behavior:
+
+Behavior
+--------
+
+The ``returnStoredSource`` boolean option specifies whether |fts| must 
+perform a full document lookup on the database or return the stored 
+fields directly from |fts|. You can use the ``returnStoredSource``  
+option only if your index definition includes the configuration for 
+storing fields on |fts|. To learn more about storing fields on |fts|, 
+see :ref:`ref-index-definitions` and 
+:ref:`fts-stored-source-definition`. 
+
+You can set one of the following values for the  ``returnStoredSource`` 
+option: 
+
+- ``true`` - to return only stored source fields directly from |fts|
+- ``false`` - to do an implicit full document lookup on the backend 
+  database (default)
+
+If you run |fts| queries with the ``returnStoredSource`` boolean option 
+set to ``true``:
+
+- |fts| returns an empty document if the document doesn't include the 
+  fields configured for storing.
+- |fts| returns errors if the index definition doesn't include the 
+  Stored Source configuration.
+- |fts| might return stale data due to a replication lag.
+- |fts| might return duplicate data on sharded clusters.
+
+If you perform a high volume and rate of data insert and update 
+operations for your collection on the backend database, |fts| might 
+return stale data because the data stored on ``mongot`` might not be 
+current due to a replication lag. You can view the approximate number 
+of milliseconds that |fts| is behind in replicating changes from the 
+:term:`oplog` of |mongod| in the |service| UI. To learn more, see 
+:ref:`review-atlas-search-metrics`.
+
+If there are :manual:`orphaned documents 
+</reference/glossary/#term-orphaned-document>` during chunk migration, 
+|fts| might return duplicate documents for queries against sharded 
+cluster. 
+
+.. _fts-return-stored-source-use-case:
+
+Sample Use  
+----------
+
+If your ``$search`` stage discards a lot of the results and you need to 
+perform implicit document lookup on your database, we recommend using 
+the ``returnStoredSource`` option. You can store fields required for 
+sorting or filtering and use ``returnStoredSource`` option at query 
+time to perform the following actions: 
+
+1. Intermediate operations on partial documents returned by |fts|
+2. :pipeline:`$lookup` at the end of the pipeline if full documents are 
+   needed. 
+
+.. important:: 
+
+   For efficiency, configure only a minimum number of fields for 
+   storage on |fts|. Use this option if your documents are large enough 
+   to cause issues during lookup.
+
+.. _fts-return-stored-source-egs:
+
+Examples 
+--------
+
+The examples in this section use the ``sample_mflix.movies`` 
+collection. The examples show how to do a sort or match on the 
+documents that |fts| returns after the ``$search`` stage and then 
+lookup documents on the database.
+
+.. tabs:: 
+         
+   .. tab:: Sort Example 
+      :tabid: sorteg
+
+      1. Create the index using the following index definition. The 
+         index definition for the collection specifies the following 
+         fields:
+
+         - Index ``title`` field
+         - Store ``year`` and ``title`` fields
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              },
+              "storedSource": {
+                "include": [
+                  "year",
+                  "title"
+                ]
+              }
+            }
+
+      #. Run the following query against the collection: 
+
+         .. code-block:: json 
+
+            db.movies.aggregate([
+              {
+                // search and output documents 
+                $search: {
+                  "text": {
+                    "query": "baseball",
+                    "path": "title"
+                  },
+                  "returnStoredSource": true // return stored fields only
+                }
+              },
+              // fetch all matched dataset from $search stage and sort it
+              {
+                $sort: {"year": 1, "title": 1}
+              },
+              // discard everything except top 10 results
+              {
+                $limit: 10
+              },
+              // perform full document lookup for top 10 documents only
+              {
+                $lookup: {
+                  from: "movies", localField: "_id", foreignField: "_id", as: "document"
+                }
+              }
+            ])
+
+         The query returns the following documents:
+
+         .. code-block:: json 
+            :copyable: false 
+            :linenos:
+
+            [
+              {
+                _id: ObjectId("573a1399f29313caabced370"),
+                title: 'Mr. Baseball',
+                year: 1992,
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              },
+              {
+                _id: ObjectId("573a1399f29313caabcee1aa"),
+                title: 'Baseball',
+                year: 1994,
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              }
+            ]
+
+   .. tab:: Match Example 
+      :tabid: matcheg
+
+      1. Create the index using the following index definition. The 
+         index definition for the collection specifies the following 
+         fields:
+
+         - Index ``title`` field 
+         - Store ``imdb.rating`` and ``imdb.votes`` fields
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              },
+              "storedSource": {
+                "include": [
+                  "imdb.rating",
+                  "imdb.votes"
+                ]
+              }
+            }
+
+      #. Run the following query against the collection: 
+            
+
+         .. code-block:: json 
+
+            db.movies.aggregate([
+              {
+                // search and output documents 
+                $search: {
+                  "text": {
+                    "query": "baseball",
+                    "path": "title"
+                  },
+                  "returnStoredSource": true // return stored fields only
+                }
+              },
+              // filter dataset from $search stage using $match 
+              {
+                $match: {$or: [ { "imdb.rating": { $gt: 8.2 } }, { "imdb.votes": { $gte: 4500 } } ]}
+              },
+              // perform full document lookup for matched documents only
+              {
+                $lookup: {
+                  from: "movies", localField: "_id", foreignField: "_id", as: "document"
+                }
+              }
+            ])
+
+         The query returns the following documents:
+
+         .. code-block:: json 
+            :copyable: false
+            :linenos:
+
+            [
+              {
+                _id: ObjectId("573a1399f29313caabcee1aa"),
+                imdb: { rating: 9.1, votes: 2460 },
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              },
+              {
+                _id: ObjectId("573a1399f29313caabced370"),
+                imdb: { rating: 5.8, votes: 7617 },
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              }
+            ]

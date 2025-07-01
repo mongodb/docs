@@ -1,0 +1,222 @@
+.. _fts-faq:
+
+==========
+FAQ: |fts|
+==========
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: qna, frequently asked questions, charges for atlas search, partial string matching, case insensitive search, stored source, case insensitive collation, shard key queries, index disappearing, restore atlas search index, query csfle, query encrypting clients, csfle compatibility, time series collection support
+   :description: Find answers to common questions about Atlas Search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+.. _faq-atlas-charges:
+
+Are there any charges for enabling and using |fts|?
+---------------------------------------------------
+
+No, there are no additional fees or charges when you enable |fts| on
+your |service| {+cluster+}. However, you might observe an increase in
+resource utilization on the {+cluster+} depending on factors such as
+the size of the indexed collections or index definitions. To manage and
+control |fts| resource utilization, you can deploy :ref:`dedicated
+Search Nodes <what-is-search-node>`, which is an additive cost per node.
+We recommend this for your production environment.
+
+.. seealso::
+
+  - :ref:`what-is-fts`
+  - :ref:`fts-search-node-costs`
+
+.. _faq-partial-string:
+
+Can I run partial string matching |fts| queries?
+------------------------------------------------
+
+Yes. The following |fts| operators support partial string matching 
+queries:
+
+- :ref:`autocomplete <autocomplete-ref>`
+- :ref:`wildcard <wildcard-ref>`
+- :ref:`regex <regex-ref>`
+
+.. _faq-case-insensitive-search:
+
+Can I perform case-insensitive search with the ``wildcard`` or ``regex`` operator?
+--------------------------------------------------------------------------------------
+
+Yes. You can use the :ref:`wildcard <wildcard-ref>` and :ref:`regex <regex-ref>` operators 
+with a :ref:`custom analyzer <custom-analyzers>` to perform a 
+case-insensitive search. You can define a :ref:`custom analyzer 
+<custom-analyzers>` with the following tokenizer and token filter to 
+perform a wildcard case-insensitive search:
+
+- :ref:`keyword-tokenizer-ref` tokenizer
+- :ref:`lowercase-tf-ref` token filter
+
+Does ``storedSource`` support case-insensitive collation on fields? 
+-------------------------------------------------------------------
+
+Yes. The |fts| :ref:`storedSource <fts-stored-source-definition>` option stores 
+original values. To perform case-insensitive operations after the 
+:pipeline:`$search` stage on the results returned using 
+:ref:`returnStoredSource <fts-return-stored-source-option>` option, you 
+must set the default collation strength of your collection to ``1`` or 
+``2`` when you create it, and must not specify a different collation in 
+your queries and indexes.
+
+How do |fts| indexes work on shards?
+-------------------------------------------
+
+If you add shards to a collection with an existing |fts| index, an 
+initial sync occurs on the newly added shards for that |fts| index. 
+Each shard's |fts| index contains only the documents from the 
+collection that exists on that shard. To learn more, see 
+:ref:`shard-global-collection`.
+
+.. include:: /includes/fact-shardCollection-fts-indexes.rst
+
+Can I use the shard key to run |fts| queries on specific shards?
+----------------------------------------------------------------
+
+No, you can't use the shard key to run |fts| queries on a specific 
+shard or a subset of shards. In a sharded cluster environment, |fts| 
+queries are scatter-gather queries that run on all the shards.
+
+However, if you use :manual:`zones </core/zone-sharding/>` to distribute
+a sharded collection over a subset of the shards in the {+cluster+},
+|fts| routes the query to the zone that contains the shards for the
+collection that you are querying and runs your :pipeline:`$search`
+queries on just the shards where the collection is located. 
+
+Do queries run on primary or secondary nodes?
+---------------------------------------------
+
+By default, queries run on the primary node. You can configure your read 
+preference or use :ref:`replica set tags <replica-set-tags>` to specify 
+read preference. To learn more, see :ref:`what-is-fts`.
+
+Can I duplicate an index?
+-------------------------
+
+Yes, you can duplicate your index by performing the following:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the |fts| index you want to update.
+      
+      a. Navigate to your |fts| tab.
+      b. On the index you want to copy, click :icon-fa5:`ellipsis-h` in the :guilabel:`Action` column.
+      c. Click :guilabel:`Edit With JSON Editor`.
+   
+   .. step:: Copy the index.
+   
+   .. step:: Navigate to the |fts| tab.
+   
+   .. step:: Create a new |fts| index.
+
+      :ref:`Create a new index <ref-create-index>` with the |fts|
+      :guilabel:`JSON Editor`. Paste the index you copied and click
+      :guilabel:`Create Search Index`. You can make any edits you want
+      directly in the |fts| :guilabel:`JSON Editor` or |fts|
+      :guilabel:`Visual Index Builder` after you create the |fts| index.
+
+.. note:: Work in Progress
+
+   We are currently working on a solution for this that doesn't require
+   the steps mentioned above. If you'd like to vote for this feature, or
+   submit your feedback, see `this feedback item
+   <https://feedback.mongodb.com/forums/924868-atlas-search/suggestions/46444396-duplicate-search-index>`__. 
+
+Does |fts| store my entire index in memory?
+-------------------------------------------
+
+No, |fts| uses memory for the :ref:`JVM heap metrics
+<review-atlas-search-metrics>`, which stores the autocomplete and text
+tokens of your search index. Similar to other database engines, |fts|
+stores the majority of the index files on the disk, which benefits from
+the underlying OS page cache.
+
+Why is my search index disappearing?
+------------------------------------
+
+- Verify that you entered the correct database and collection names.
+  If you enter a non-existent database or collection name, the {+atlas-ui+}
+  temporarily builds the index and deletes it shortly after.
+
+- If you use the :pipeline:`$out` aggregation stage to overwrite your
+  collection, you must delete and recreate your search index, as search
+  indexes aren't copied to destination collections. To learn more, see
+  :manual:`$out Index Constraints </reference/operator/aggregation/out/#index-constraints>`.
+
+- If you :manual:`reshard </core/sharding-reshard-a-collection>` a collection
+  that uses |fts|, this operation :manual:`removes </core/sharding-reshard-a-collection/#limitations>`
+  existing search indexes. Once the sharding operation completes, you must
+  manually rebuild your collection's search index.
+
+Can I restore |fts| indexes from {+Cloud-Backup+} snapshots? 
+------------------------------------------------------------
+
+.. include:: /includes/fts/facts/fact-fts-indexes-backup-restore.rst
+
+Does |fts| work with :abbr:`CSFLE (Client-Side Field Level Encryption)` encrypting clients?
+-------------------------------------------------------------------------------------------
+
+Yes, you can use :manual:`CSFLE </core/csfle/>` encrypting clients to 
+run |fts| queries against non-encrypted data in MongoDB version 6.0 and later. 
+
+Can I query :abbr:`CSFLE (Client-Side Field Level Encryption)` encrypted data?
+---------------------------------------------------------------------------------------
+
+No, you can't query :manual:`CSFLE </core/csfle/>` encrypted data using 
+|fts|.
+
+
+Can I use Queryable Encryption with |fts|?
+----------------------------------------------------
+
+No, :manual:`Queryable Encryption </core/queryable-encryption/>` is
+incompatible with |fts|.
+
+Can I use |fts| on time series collections?
+-------------------------------------------
+
+No, you can't use |fts| on :manual:`time series
+</core/timeseries-collections/>` collections. 
+
+Can I request new functionality?
+--------------------------------
+
+Yes, use can request new functionality or upvote an existing request
+using the :ftsuservoice:`MongoDB Feedback Engine </>`.
+
+.. _mongot-logs:
+
+Can MongoDB Support access my Search infrastructure and logs?
+-------------------------------------------------------------
+
+Yes, MongoDB Support can access your |fts| infrastructure on both
+dedicated and co-located nodes, as well as download ``mongot`` logs from  
+these nodes. However, you can block access for MongoDB Support at the
+organization level and then grant access to MongoDB
+Support for 24 hours if needed. To learn more, see :ref:`restrict-access`. 
+
+
+Can I run a :pipeline:`$search` query across multiple collections?
+------------------------------------------------------------------
+
+No, however, you can use :pipeline:`$lookup` and :pipeline:`$unionWith` 
+to run a search query across multiple collections. To learn more, see 
+:ref:`fts-cross-collection-tutorials`.

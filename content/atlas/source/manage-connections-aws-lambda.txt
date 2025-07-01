@@ -1,0 +1,374 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, python, ruby, rust
+
+.. _atlas-lambda-connections:
+
+==================================
+Manage Connections with AWS Lambda
+==================================
+
+.. meta::
+   :keywords: code example, lambda connection, java sync, node.js, cpp
+   :description: Optimize AWS Lambda connections to Atlas by defining the MongoClient outside the handler and using connection options like srvMaxHosts.
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. tabs-selector:: drivers
+
+.. _lambda-aws-best-practices:
+
+Best Practices
+~~~~~~~~~~~~~~
+
+Use the following best practices to properly manage connections
+between :aws:`AWS Lambda </lambda/latest/dg/welcome.html>`
+and |service|:
+
+- Define the client to the MongoDB server outside
+  the :aws:`AWS Lambda handler function </lambda/latest/dg/nodejs-prog-model-handler.html>`.
+
+  .. include:: /includes/fact-create-mongoclient-once.rst
+
+  The :ref:`Connection Example <lambda-aws-example>` reuses existing
+  database connections to speed up communication with the database and
+  keep connection counts to the database at a reasonable level with
+  respect to application traffic.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: c
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+   .. tab::
+      :tabid: csharp
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see :driver:`Connection Options 
+        </csharp/current/fundamentals/connection/connection-options>`.
+
+   .. tab::
+      :tabid: go
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see :driver:`Connection Options
+        </go/current/fundamentals/connection/#connection-options>`.
+
+   .. tab::
+      :tabid: java-sync
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see :driver:`Connection Options
+        </java/sync/current/fundamentals/connection/connection-options>`.
+   
+   .. tab::
+      :tabid: kotlin-coroutine
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see :driver:`Connection Options
+        </kotlin/coroutine/current/fundamentals/connection/connection-options>`.
+
+   .. tab::
+      :tabid: kotlin-sync
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see :driver:`Connection Options
+        </kotlin/kotlin-sync-driver/current/connect/connection-options>`.
+
+   .. tab::
+      :tabid: nodejs
+
+      - If your handler takes a callback as its last argument, set the
+        ``callbackWaitsForEmptyEventLoop`` property on the
+        :aws:`AWS Lambda Context </lambda/latest/dg/nodejs-context.html#nodejs-prog-model-context-properties>`
+        object to **false**.
+
+        .. code-block:: js
+
+           context.callbackWaitsForEmptyEventLoop = false;
+
+        This allows a Lambda function to return its result to the caller
+        without requiring that the MongoDB database connection be closed.
+        Setting this property is not applicable for `async handlers
+        <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html>`__.
+
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see :driver:`Connection Options
+        </node/current/fundamentals/connection/connection-options/>`.
+   
+   .. tab::
+      :tabid: python
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see `Tools for Connecting to MongoDB
+        <https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html>`_.
+
+   .. tab::
+      :tabid: ruby
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+        
+        To learn more, see `URI options 
+        <https://www.mongodb.com/docs/ruby-driver/master/reference/create-client/#uri-options>`_.
+
+   .. tab::
+      :tabid: rust
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+
+        To learn more, see :driver:`Connection Options 
+        </rust/current/fundamentals/connections/connection-options/#std-label-rust-connection-options>`.
+
+   .. tab::
+      :tabid: scala
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+
+   .. tab::
+      :tabid: cpp
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+
+        To learn more, see the `Specify Connection Options 
+        <https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/connect/connection-options/>`__
+        guide.
+
+- Restrict network access to your |service| cluster.
+  
+  Connect to your |service| cluster over private networking using a
+  :doc:`Network Peering connection </security-vpc-peering>` 
+  between your |service| cluster and your |aws| Lambda function, or,
+  alternatively, a :doc:`private endpoint </security-private-endpoint/>`,
+  so that you can allow only private IP addresses from your
+  :doc:`IP access list </security/ip-access-list/>`.
+
+  If you don't use private networking, consider connecting to your
+  |service| cluster via a `NAT gateway <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html>`__
+  with a mapped Elastic IP address. Otherwise, you must
+  allow all IP addresses (0.0.0.0/0) to access your service cluster.
+
+  .. warning::
+
+     Adding ``0.0.0.0/0`` to your :doc:`IP access list </security/ip-access-list/>`
+     allows cluster access from anywhere in the public internet.
+     Ensure that you're using strong credentials for all database
+     users when allowing access from anywhere.
+
+.. include:: /includes/functions-max-idle-time.rst
+
+- :doc:`/security/set-up-unified-aws-access` and use |aws| IAM authentication where possible.
+
+  You can connect to your |service| {+clusters+} using |aws| `IAM roles <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__
+  instead of hardcoding your credentials in Lambda. Hardcoded credentials are
+  viewable by anyone who accesses your AWS Lambda environment, which can pose
+  a security risk. With |aws| IAM authentication, |service| accesses |aws| Lambda
+  through an `assumed IAM role <https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html>`__,
+  so you don't need credentials in your connection strings.
+  
+  |service| supports |aws| IAM authentication for {+clusters+} running
+  MongoDB version 5.0 or higher. We strongly advise using |aws| IAM
+  authentication for Lambda connections if your {+cluster+} meets the
+  requirements.
+
+- The amount of memory allocated to a Lambda function defaults to 128 
+  MB. You can configure the amount of memory allocated to a Lambda 
+  function, between 128 MB and 10,240 MB. Ensure you allocate enough 
+  memory. Increase the memory to increase the amount of virtual CPU 
+  available and improve MongoDB driver performance. To learn more, see 
+  `Memory and computing power <https://docs.aws.amazon.com/lambda/latest/operatorguide/computing-power.html>`_.
+
+- Set your :aws:`AWS_STS_REGIONAL_ENDPOINTS
+  </sdkref/latest/guide/feature-sts-regionalized-endpoints.html>` and
+  :aws:`AWS_REGION </sdkref/latest/guide/feature-region.html>` environment
+  variables.
+
+.. _lambda-aws-example:
+
+Connection Example
+~~~~~~~~~~~~~~~~~~
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: c
+
+      .. literalinclude:: /includes/drivers-examples/aws_lambda_example.c
+         :language: c
+         :copyable:
+
+   .. tab::
+      :tabid: csharp
+
+      |aws| IAM Authentication
+      ````````````````````````
+      
+      .. literalinclude:: /includes/drivers-examples/AwsLambdaExamples.cs 
+         :start-after: // Start AWS Lambda Example 2
+         :end-before: // End AWS Lambda Example 2
+         :language: csharp
+         :copyable:
+         :dedent:
+
+      Other Authentication
+      ````````````````````
+
+      .. literalinclude:: /includes/drivers-examples/AwsLambdaExamples.cs 
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: csharp
+         :copyable:
+         :dedent:
+
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/drivers-examples/_example_aws_lambda_handler.go
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: go
+         :copyable:
+         :dedent:
+   
+   .. tab::
+      :tabid: java-sync
+
+      .. literalinclude:: /includes/drivers-examples/ExampleAwsLambdaHandler.java
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: java
+         :copyable:
+         :dedent:
+
+   .. tab::
+      :tabid: kotlin-coroutine
+
+      .. literalinclude:: /includes/drivers-examples/ExampleAwsLambdaHandlerCoroutine.kt
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: kotlin
+         :copyable:
+         :dedent:  
+
+   .. tab::
+      :tabid: kotlin-sync
+
+      .. literalinclude:: /includes/drivers-examples/ExampleAwsLambdaHandlerSync.kt
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: kotlin
+         :copyable:
+         :dedent:  
+
+   .. tab::
+      :tabid: nodejs
+
+      |aws| IAM Authentication
+      ````````````````````````
+      .. literalinclude:: /includes/drivers-examples/aws_handler.js
+         :start-after: // begin lambda connection
+         :end-before: // end lambda connection
+         :language: js
+         :copyable:
+         :dedent:
+
+      Other Authentication
+      ````````````````````
+
+      .. literalinclude:: /includes/drivers-examples/handler.js
+         :start-after: // begin lambda connection
+         :end-before: // end lambda connection
+         :language: js
+         :copyable:
+         :dedent:
+
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/drivers-examples/test_auth_aws.py
+         :start-after: # Start AWS Lambda Example 1
+         :end-before: # End AWS Lambda Example 1
+         :language: python
+         :copyable:
+         :dedent:
+
+   .. tab::
+      :tabid: ruby
+
+      |aws| IAM Authentication
+      ````````````````````````
+
+      .. literalinclude:: /includes/drivers-examples/aws_lambda_examples_spec.rb
+         :start-after: # Start AWS Lambda Example 2
+         :end-before: # End AWS Lambda Example 2
+         :language: ruby
+         :copyable:
+         :dedent:
+
+      Other Authentication
+      ````````````````````
+
+      .. literalinclude:: /includes/drivers-examples/aws_lambda_examples_spec.rb
+         :start-after: # Start AWS Lambda Example 1
+         :end-before: # End AWS Lambda Example 1
+         :language: ruby
+         :copyable:
+         :dedent:
+
+   .. tab::
+      :tabid: rust
+
+      AWS IAM Authentication
+      ````````````````````````
+
+      .. literalinclude:: /includes/drivers-examples/auth.rs
+         :start-after: // begin lambda connection example 2
+         :end-before: // end lambda connection example 2
+         :language: rust
+         :copyable:
+         :dedent:
+
+      Other Authentication
+      ```````````````````````
+
+      .. literalinclude:: /includes/drivers-examples/no_auth.rs
+         :start-after: // begin lambda connection example 1
+         :end-before: // end lambda connection example 1
+         :language: rust
+         :copyable:
+         :dedent:
+
+   .. tab::
+      :tabid: scala
+
+      .. literalinclude:: /includes/drivers-examples/ExampleAwsLambdaHandler.scala
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: scala
+         :copyable:
+         :dedent:
+
+   .. tab::
+      :tabid: cpp
+
+      .. literalinclude:: /includes/drivers-examples/aws-lambda-example.cpp
+         :language: cpp
+         :copyable:
+         :dedent:

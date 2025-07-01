@@ -1,0 +1,211 @@
+.. _data-transfer-costs:
+
+=============
+Data Transfer
+=============
+
+.. meta::
+   :description: Understand how data transfer costs are calculated in Atlas based on cloud provider and learn strategies to reduce these costs.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Sources of Data Transfer Costs
+------------------------------
+
+|service| data transfer costs depend on the cloud service provider
+hosting your {+database-deployment+}. |service| tabulates data transfer 
+costs daily.
+
+.. tabs-cloud-providers::
+
+   .. tab::
+      :tabid: azure
+
+      |service| charges for data transfer between your |service| node
+      and another node. The following transfers incur costs, listed in order
+      of lowest cost to highest:
+
+      1. Data transfer using in-region VNet peering.
+
+      #. Data transfer to a different region. Data transfer charges for an |service|
+         cluster depend on the geographic location of the source node.
+
+      #. Data transfer using cross-region VNet peering.
+
+      Transfer Cost Exceptions and Behavior
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      |service| doesn't charge for incoming data transfers to an |service|
+      {+cluster+}. Additionally, |service| doesn't charge ``M0`` or
+      {+Flex-cluster+} tiers for outgoing data.
+
+      Data Egress
+      ~~~~~~~~~~~
+
+      |service| typically charges $0.09 per GB for egress data transfer over the Internet.
+      
+      Data transfer between or within |azure| regions have lower costs.
+
+   .. tab::
+      :tabid: aws
+
+      |service| charges for data transfer between your |service| node
+      and another node. The following transfers incur costs, listed in order
+      of lowest cost to highest:
+
+      1. Data transfer in the same |aws| region.
+
+      #. Data transfer between different |aws| regions.
+
+      #. Data transfer to a location outside of an |aws| region, 
+         excluding incoming transfers to the |service| node.
+      
+      {+Cloud-Backup+} Snapshot Export
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/fact-snapshot-export-cost.rst
+
+      To learn more about cloud backup snapshot export, see 
+      :ref:`cloud-provider-snapshot-export`.
+
+      Transfer Cost Exceptions and Behavior
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      |service| doesn't charge for incoming data transfers to an |service|
+      {+cluster+}. Additionally, |service| doesn't charge ``M0`` or
+      {+Flex-cluster+} tiers for outgoing data.
+
+      For |aws| clusters deployed outside of the North America region where 
+      the |service| Control Plane is located, invoices will include an 
+      ``AWS Data Transfer (different region)`` item that results from the 
+      inherited network traffic, such as heartbeats, the automation agent, 
+      and the |pa|, sent between the |aws| North America region with the 
+      |service| control plane, and the |aws| region where the clusters are 
+      deployed. 
+
+      Data Egress
+      ~~~~~~~~~~~
+
+      |service| typically charges $0.09 per GB for egress data transfer over the Internet.
+      
+      Data transfer between or within |aws| regions have lower costs.
+
+   .. tab::
+      :tabid: gcp
+
+      |service| charges for data transfer between your |service| node
+      and another node. The following transfers incur costs, listed in order
+      of lowest cost to highest:
+
+      1. Data transfer between zones in the same region.
+
+      #. Data transfer between regions in the United States of America.
+
+      #. Data transfer between continents.
+
+      #. Data transfer between regions in the same continent 
+         other than the United States of America.
+
+      #. Data transfer to a location outside of a |gcp| data center, 
+         excluding incoming transfers to the |service| node.
+
+      Transfer Cost Exceptions and Behavior
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      |service| doesn't charge for incoming data transfers to an |service|
+      {+cluster+}. Additionally, |service| doesn't charge ``M0`` or {+Flex-cluster+} tiers
+      for outgoing data.
+
+      Data Egress
+      ~~~~~~~~~~~
+
+      |service| typically charges $0.09 per GB for egress data transfer over the Internet.
+      
+      Data transfer between or within |gcp| regions have lower costs.
+
+{+Clusters+}
+~~~~~~~~~~~~
+
+Multi-region {+clusters+} might have higher
+data transfer costs depending on the number and location of additional
+regions, as well as the number of {+clusters+} deployed to each region.
+
+{+Serverless-Instances+} (Deprecated)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+Serverless-instances+} are :ref:`deprecated <flex-migration>`.
+{+Serverless-instances+} incur costs for data transfer to and from
+the virtual machine responsible for backing up and restoring data.
+
+Push-based Log Exports
+~~~~~~~~~~~~~~~~~~~~~~
+
+Exporting :ref:`push-based logs <mongodb-logs-push>` 
+incurs costs for data transfer.
+
+
+Live Migrate Your Data to |service|
+-----------------------------------
+
+MongoDB hosts and operates the free |service| Live Migration Service to
+help users migrate existing MongoDB databases to |service-fullname|.
+MongoDB doesn't charge for any incoming data transfers to an |service|
+{+database-deployment+}.
+:website:`Learn more </cloud/atlas/migrate?tck=docs_atlas>`
+about migrating to |service|.
+
+.. _reducing-data-transfer-costs:
+
+How to Reduce Data Transfer Costs
+---------------------------------
+
+The vast majority of |service| customers spend less than 10% of their
+budget on data transfer. If you are spending significantly more, some
+of these optimizations may reduce your data transfer costs:
+
+- Check all applications and processes that access your data for
+  inefficiencies. Ensure that queries do not:
+
+  - Re-read data that already exists on the client.
+
+  - Re-write existing data to your {+database-deployment+}.
+
+- Ensure that queries originate from the same cloud
+  region and provider as your {+database-deployment+} whenever possible.
+
+  When cross-region queries are necessary:
+
+  - Ensure read queries
+    :manual:`use the preference "nearest."</core/read-preference>`
+
+  - Source write queries from your :guilabel:`Highest Priority Region`
+    whenever possible. For more information on region priorities, see
+    :ref:`Electable Nodes for High Availability
+    <deploy-across-multiple-regions>`.
+
+- Perform query operations with :manual:`projection </tutorial/project-fields-from-query-results/#project-fields-to-return-from-query>` 
+  to specify or restrict the fields that MongoDB returns in matching documents, thereby limiting the 
+  amount of data that MongoDB sends to applications. Alternatively, project document fields using the 
+  :pipeline:`$project` aggregation stage from the :manual:`Aggregation Framework </aggregation>` to 
+  reduce the size of a document before you transfer it.
+
+- Enable network compression in your client driver to compress data between the client and the server. As an 
+  example, you can configure the :driver:`network compression </node/current/fundamentals/connection/network-compression/>` 
+  option for your Node.js driver. |service| always compresses intra-cluster communication. To learn more, see the 
+  :driver:`Driver's Documentation </>`.
+
+.. note::
+
+   Queries from on-premises environments into |service|, across cloud
+   providers, or between continents on the same cloud provider incur
+   the greatest data transfer costs.

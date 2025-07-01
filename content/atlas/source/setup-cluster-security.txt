@@ -1,0 +1,327 @@
+.. _setup-cluster-security:
+
+========================================================
+Configure Security Features for {+Database-Deployments+}
+========================================================
+
+.. meta::
+   :description: Configure security features for Atlas clusters, including encryption, network access, and user authentication, to enhance security and meet specific needs.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can use |service| securely out of the box. |service| comes 
+preconfigured with secure default settings. You can fine-tune 
+the security features for your {+database-deployments+} to meet your 
+unique security needs and preferences. Review the following security 
+features and considerations for {+database-deployments+}.
+
+To learn about recommendations for {+service+} network security, see
+:ref:`arch-center-network-security-recs` in the {+atlas-arch-center+}.
+
+.. important::
+
+   As a security best practice, don't include sensitive information in 
+   namespaces and field names. |service| doesn't obfuscate this 
+   information.
+
+Preconfigured Security Features
+-------------------------------
+
+The following security features are part of the |service| product:
+
+:abbr:`FIPS (Federal Information Processing Standard Publication)` 140-2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| automatically enables :abbr:`FIPS (Federal Information
+Processing Standard Publication)` 140-2 level 2 for all databases.
+
+.. _security-tls:
+
+Encryption in Transit
+~~~~~~~~~~~~~~~~~~~~~
+
+|service| requires |tls-ssl| to encrypt the connections to your 
+databases.
+
+|tls-ssl| certificates are:
+
+- Valid for 90 days from the day |service| issues the certificate.
+- Rotated 42 days before the certificate's expiration date.
+
+To learn more about TLS encryption, see the :website:`Atlas Security White Paper
+</resources/products/capabilities/mongodb-atlas-security>`.
+
+To configure SSL or TLS OCSP certificate revocation checking, see 
+:ref:`oscp-cert-check`.
+
+.. _security-vpc:
+
+Virtual Private Cloud
+~~~~~~~~~~~~~~~~~~~~~
+
+All |service| projects with one or more M10+ {+dedicated-clusters+}
+receive their own dedicated |vpc| (or VNet if you use |azure|). 
+|service| deploys all {+dedicated-clusters+} inside this |vpc| or VNet.
+
+Encryption at Rest 
+~~~~~~~~~~~~~~~~~~
+
+By default, |service| encrypts all data stored on your |service| {+database-deployments+}. 
+|service| also supports :ref:`Encryption at Rest using your Key Management 
+<security-kms-encryption>`. 
+
+Required Security Features
+--------------------------
+
+You *must* configure the following security features:
+
+Network and Firewall Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-open-network-ports.rst
+
+.. _security-ip-access-list:
+
+IP Access List
+~~~~~~~~~~~~~~
+
+|service| only allows client connections to the {+database-deployment+} from entries in
+the project's IP access list. To connect, you must add an entry to the
+IP access list. To set up the IP access list for the project, see
+:doc:`/security/ip-access-list`.
+
+For |service| {+clusters+} deployed on :ref:`google-gcp` or
+:ref:`microsoft-azure`, add the |ipaddr| addresses of your |gcp| or
+|azure| services to |service| project |ipaddr| access list to grant
+those services access to the {+cluster+}.
+
+User Authentication or Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| requires clients to authenticate to connect to the database. 
+You must create database users to access the database. To set up 
+database users to your {+database-deployments+}, see
+:doc:`security-add-mongodb-users`. |service| offers many 
+security features for :ref:`{+database-deployment+} authentication and authorization <db-deployment-auth>`.
+
+To access {+database-deployments+} in a project, users must belong to 
+that project. Users can belong to multiple projects.
+
+.. seealso::
+
+   :ref:`atlas-access`.
+
+Optional Security Features
+--------------------------
+
+You *may* configure the following security features:
+
+Network Peering Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports peering connections with other |aws|, |azure|, or 
+|gcp| network peering connections. To learn more, see 
+:doc:`security-vpc-peering`.
+
+.. include:: /includes/extracts/fact-vpc-per-project-no-link.rst
+
+Private Endpoints
+~~~~~~~~~~~~~~~~~
+
+|service| supports private endpoints on: 
+
+- |aws| using the `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__
+  feature
+
+- |azure| using the `{+az-pl+}
+  <https://azure.microsoft.com/en-us/services/private-link/>`__ feature
+
+- |gcp| using the `{+gcp-psc+} <https://cloud.google.com/vpc/docs/private-service-connect>`__ 
+  feature
+
+To use private endpoints, see :doc:`security-private-endpoint`.
+
+Unified AWS Access
+~~~~~~~~~~~~~~~~~~
+
+Some |service| features, including :ref:`Data Federation 
+<atlas-data-federation>` and :doc:`security-kms-encryption`, use |aws| 
+`IAM roles
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__
+for authentication.
+
+To set up an |aws| IAM role for |service| to use, see
+:ref:`set-up-unified-aws-access`.
+
+.. _db-deployment-auth:
+
+{+Database-Deployment+} Authentication and Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| offers the following security features for 
+{+database-deployment+} authentication and authorization.
+
+Database User Authentication or Authorization
+`````````````````````````````````````````````
+
+|service| requires clients to authenticate to access
+{+database-deployments+}. You must create database users to access the
+database. To set up database users for your {+database-deployments+}, 
+see :ref:`mongodb-users`.
+
+Custom Roles for Database Authorization
+```````````````````````````````````````
+
+|service| supports creating :ref:`custom roles <mongodb-roles>`
+for database authorization in cases where the built-in |service|
+:ref:`roles <atlas-user-privileges>` don't grant your desired set of 
+privileges.
+
+Authentication with AWS IAM
+```````````````````````````
+
+You can set up authentication and authorization for your |aws| |iam|
+roles. To learn more, see :ref:`set-up-pwdless-auth`.
+
+User Authentication or Authorization with |ldap|
+````````````````````````````````````````````````
+
+|service| supports performing user authentication and authorization
+with |ldap|. To use |ldap|, see
+:doc:`Set Up User Authentication and Authorization with LDAP
+</security-ldaps>`.
+
+User Authentication with X.509
+``````````````````````````````
+
+X.509 client certificates provide database users access to the 
+{+database-deployments+} in your project. Options for X.509 
+authentication include |service|-managed X.509 authentication and 
+self-managed X.509 authentication. To learn more 
+about self-managed X.509 authentication, see :ref:`self-managed-x509`.
+
+Restrict MongoDB Support Access to |service| Backend Infrastructure
+```````````````````````````````````````````````````````````````````
+
+Organization owners can restrict MongoDB Production Support Employees
+from accessing |service| backend infrastructure for any |service|
+{+database-deployment+} in their organization. Organization owners may 
+grant a 24 hour bypass to the access restriction at the |service| 
+{+database-deployment+} level.
+
+.. include:: /includes/fact-restrict-support-access.rst
+
+To enable this option, see :doc:`security-restrict-support-access`.
+
+Encryption at Rest using your Key Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports using |aws| |kms|, Azure Key Vault, and |gcp| to
+encrypt storage engines and cloud provider backups. To use encryption
+at rest, see :doc:`security-kms-encryption`.
+
+Client-Side Field Level Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports :manual:`client-side field level encryption
+</core/security-client-side-encryption>`, including
+:manual:`automatic </core/security-automatic-client-side-encryption>`
+encryption of fields. All |service| users are entitled to use MongoDB's 
+automatic client-side field level encryption features.
+
+To learn more, see
+:driver:`Client-Side Field Level Encryption Requirements
+</security/client-side-field-level-encryption-guide#requirements>`.
+
+.. note::
+
+   :compass:`MongoDB Compass </>`, the :ref:`{+atlas-ui+}
+   <atlas-ui>`, and the :mdb-shell:`MongoDB Shell </>`
+   (``mongosh``) do not support decrypting client-side field
+   level-encrypted fields.
+
+.. seealso:: 
+   
+   - :manual:`Client-Side Field Level Encryption
+     </core/security-client-side-encryption/>`
+   - :driver:`Use-Case Guide for Client-Side Field Level Encryption
+     </security/client-side-field-level-encryption-guide/>`
+
+Database Auditing
+~~~~~~~~~~~~~~~~~
+
+|service| supports auditing all system event actions. To use database
+auditing, see :doc:`Set up Database Auditing </database-auditing>`.
+
+Access Tracking
+~~~~~~~~~~~~~~~
+
+|service| surfaces authentication logs directly in the {+atlas-ui+} so 
+that you can easily review successful and unsuccesful authentication 
+attempts made against your {+database-deployment+}s. To view your 
+database access history, see :doc:`access-tracking`.
+
+Multi-Factor Authentication for {+atlas-ui+} Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports |mfa| to help you control access to your 
+|service| accounts. To set up |mfa|, see :ref:`atlas-enable-mfa`.
+
+.. _atlas-add-inbound-ips:
+
+Allow Access to or from the |service| Control Plane
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-firewall-config-webhooks-kms.rst
+
+Allow Access to {+df+} 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your network allows outbound HTTPS requests only to specific IP addresses, 
+you must allow access from the inbound IP addresses on |tcp| port 27017 
+so that your requests can reach the {+fdi+}. We recommend
+that you :oas-atlas-op:`use the Atlas Admin API </returnAllControlPlaneIpAddresses>`
+to fetch the current inbound |service| control plane IP addresses.
+
+.. _oscp-cert-check:
+
+OCSP Certificate Revocation Check 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your network allows outbound requests to specific IP addresses only, 
+to allow |ssl| or |tls| :abbr:`OCSP (Online Certificate Status 
+Protocol)` certificate revocation checking, you must allow access to 
+|service|\' CA (Certificate Authority) :abbr:`OCSP (Online Certificate 
+Status Protocol)` Responder servers that can be found in the 
+:abbr:`OCSP (Online Certificate Status Protocol)` |url| of the |ssl| or 
+|tls| certificate. 
+
+To disable :abbr:`OCSP (Online Certificate Status Protocol)` 
+certificate revocation checking, refer to the documentation 
+for the :driver:`MongoDB driver </>` version that your application uses.
+
+.. toctree::
+   :titlesonly:
+
+   Cluster Access Quickstart </security/quick-start>
+   IP Access List </security/ip-access-list>
+   Atlas Resource Policies </atlas-resource-policies>
+   Network Peering </security-vpc-peering>
+   Private Endpoints </security-configure-private-endpoints>
+   Cloud Provider Access </security/cloud-provider-access>
+   Authentication </security/config-db-auth>
+   Encryption at Rest </security-kms-encryption>
+   Auditing </database-auditing>
+   Access History </access-tracking>
+
+.. dismissible-skills-card::
+   :skill: Secure MongoDB Atlas: AuthN and AuthZ
+   :url: https://learn.mongodb.com/skills?openTab=security
+
+.. |arrow| unicode:: U+27A4

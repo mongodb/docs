@@ -1,0 +1,220 @@
+.. _ref-index-definitions:
+
+===============
+Index Reference
+===============
+
+.. default-domain:: mongodb
+
+.. meta:: 
+   :description: Learn the JSON syntax to include one or more analyzers, field mappings, or synonyms in your Atlas Search index.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+An |fts| index is a data structure that maps documents from your {+service+} {+cluster+} 
+to the terms that are extracted from those documents.
+|fts| indexes enable efficient full-text searches of your database. 
+
+When you define an |fts| index, you can use :ref:`static or dynamic mappings <fts-field-mappings>` 
+to specify which fields you want to index in your collection. You can also use :ref:`analyzers <analyzers-ref>` 
+to define how |fts| extracts searchable tokens from ``string`` fields or query strings.
+Finally, you can apply additional configuration options in your index definition to improve the 
+performance and accuracy of your |fts| query, including options to :ref:`store source fields in your index <fts-stored-source-definition>`,  or
+:ref:`define synonym mappings <fts-field-mappings>`. 
+
+To learn how to define an |fts| index according to your your query requirements, 
+see :ref:`ref-create-index`. Once you define your |fts| index, you can add the
+index to your {+service+} {+cluster+} with the :ref:`Create an {+fts+} Index <create-fts-index>` tutorial.
+To learn how to view, edit, update, or delete your |fts| index, see :ref:`fts-about-indexing`.
+
+This page describes the |json| syntax and definition options for an |fts| index. 
+
+.. _index-definition-syntax:
+
+Syntax 
+------
+
+.. tabs:: 
+
+   .. tab:: Basic 
+      :tabid: basic
+
+      .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-basic.json 
+         :language: json
+         :linenos:
+         :copyable: false
+
+   .. tab:: Expanded 
+      :tabid: expanded 
+
+      .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-advanced.json
+         :language: json
+         :linenos:
+         :copyable: false
+
+.. _index-definition-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 15 50
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``analyzer``
+     - string 
+     - Optional 
+     - Specifies the :ref:`analyzer <analyzers-ref>` to apply to 
+       string fields when indexing. 
+       
+       If you set this only at the top and 
+       do not specify an analyzer for the fields in the index 
+       definition, |fts| applies this analyzer to all the fields. To 
+       use a different analyzer for each field, you must specify a 
+       different analyzer for the field. 
+       
+       If omitted, defaults to 
+       :ref:`ref-standard-analyzer`.
+
+   * - ``analyzers``
+     - array of :ref:`custom-analyzers` 
+     - Optional 
+     - Specifies the :ref:`custom-analyzers` to use in this index.
+
+   * - ``mappings``
+     - :ref:`Document Field Definition <bson-data-types-document>`
+     - Required
+     - Specifies how to index fields at different paths for this 
+       index.
+
+   * - ``mappings.dynamic``
+     - boolean
+     - Optional
+     - Enables or disables dynamic mapping of fields for this index.
+     
+       If set to ``true``, |fts| recursively indexes all
+       :ref:`dynamically indexable <bson-data-chart>` fields.
+
+       If set to ``false``, you must specify individual fields to index 
+       using ``mappings.fields``.
+
+       If omitted, defaults to ``false``.
+
+       .. include:: /includes/fts/facts/dynamic-flag-considerations.rst
+       
+       For example index configurations, see :ref:`Static Mapping Example
+       <index-config-example>` or :ref:`Combined Mapping Example <fts-combined-mapping-example>`
+
+   * - ``mappings.fields``
+     - document
+     - Conditional
+     - Specifies the fields that you would like to index. Required only if dynamic mapping is disabled.
+       
+       .. include:: /includes/fts/facts/fact-fts-field-name-restriction.rst
+       
+       To learn more, see :ref:`fts-field-mappings`. 
+      
+   * - ``searchAnalyzer``
+     - string 
+     - Optional
+     - Specifies the :ref:`analyzer <analyzers-ref>` to apply to query 
+       text before searching with it. 
+       
+       If omitted, defaults to the
+       analyzer that you specify for the ``analyzer`` option. If you 
+       omit both the ``searchAnalyzer`` and the ``analyzer`` options, 
+       defaults to the :ref:`ref-standard-analyzer`.
+
+   * - ``numPartitions``
+     - int
+     - Optional
+     - Specifies the number of sub-indexes to create if the document count 
+       exceeds two billion. The following values are valid: ``1``,
+       ``2``, ``4``. If omitted, defaults to ``1``. 
+
+       To use index partitions, you must have search nodes deployed in your {+cluster+}.
+
+   * - ``storedSource`` 
+     - boolean or :ref:`Stored Source Definition  
+       <fts-stored-source-definition>` 
+     - Optional 
+     - Specifies fields in the documents to store for query-time 
+       look-ups using the :ref:`returnedStoredSource 
+       <fts-return-stored-source-option>` option. You can store fields 
+       of all :ref:`bson-data-chart` on |fts|. Value can be one of 
+       the following:
+
+       - ``true``, to store all fields  
+       - ``false``, to not store any fields 
+       - :ref:`Object <fts-stored-source-document>` that specifies 
+         the fields to ``include`` or ``exclude`` from storage
+       
+       .. include:: /includes/fts/facts/fact-fts-stored-source-mdb-version.rst
+
+       If omitted, defaults to ``false``. 
+       
+       To learn more, see :ref:`fts-stored-source-definition`.
+
+
+   * - ``synonyms`` 
+     - array of :ref:`Synonym Mapping Definition <synonyms-ref>`
+     - Optional 
+     - Synonym mappings to use in your index. 
+
+       .. include:: /includes/fts/facts/fact-fts-synonym-mapping-limitation.rst 
+        
+       To learn more, see :ref:`synonyms-ref`.
+
+.. _fts-troubleshoot-indexes: 
+
+Troubleshoot Indexes
+--------------------
+
+.. _troubleshoot-mongot-process:
+
+``mongot`` Process Not Installed or Running
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following error is returned if you run ``$search`` queries when 
+the |fts| ``mongot`` process isn't installed or running:
+
+.. code-block:: shell 
+   :copyable: false 
+
+   MongoError: Remote error from mongot :: caused by :: Error connecting to localhost:28000.
+
+The ``mongot`` process is installed only when the first |fts| index is 
+defined. If you don't have any |fts| index in your |service| cluster, 
+create at least one |fts| index to resolve this error.
+
+Learn More
+----------
+
+To learn how to define an {+fts+} index to meet your {+fts+} query needs, see :ref:`ref-create-index`. 
+
+To learn how to add an index to your {+service+} {+cluster+}, see :ref:`Create an {+fts+} Index <create-fts-index>`.  
+
+To learn more about the available index configuration options, see the following reference pages: 
+
+- :ref:`analyzers-ref`
+- :ref:`fts-field-mappings` 
+- :ref:`fts-stored-source-definition`
+- :ref:`synonyms-ref`
+
+.. toctree::
+   :titlesonly:
+
+   Analyzers </atlas-search/analyzers>
+   Field Mappings </atlas-search/define-field-mappings>
+   Stored Source </atlas-search/stored-source-definition>
+   Synonym Mappings </atlas-search/synonyms>
+   Index Partitions </atlas-search/index-partition>

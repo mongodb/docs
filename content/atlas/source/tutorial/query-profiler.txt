@@ -1,0 +1,310 @@
+.. _profile-database:
+.. _query-profiler:
+
+=============================================
+Monitor Query Performance with Query Profiler
+=============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: profile
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+*Only available on M10+ {+clusters+}*
+
+The Query Profiler diagnoses and monitors performance issues. This
+monitoring can expose slow-running queries and their key performance
+statistics in the {+atlas-ui+}.
+
+|service| collects and displays statistics from any of your :binary:`mongod <bin.mongod>`
+instances. The Query Profiler identifies slow queries based on :ref:`log data <mongodb-logs>` 
+from your ``mongod`` instances. |service| displays this data on 
+the :guilabel:`Query Insights` tab in the :guilabel:`Query Profiler` 
+section of an instance. 
+
+.. note::
+
+   The Query Profiler differs from the :manual:`Database Profiler 
+   </tutorial/manage-the-database-profiler>`. The Query Profiler identifies 
+   specific inefficient queries based on entries from your ``mongod`` logs.
+   The Database Profiler returns detailed information about commands executed 
+   on the ``mongod`` based on the specified :manual:`profiling level 
+   </tutorial/manage-the-database-profiler/#profiling-levels>`. Changing the 
+   profiling level doesn't impact the slow queries displayed in the Query 
+   Profiler.
+
+The |service| Query Profiler shows operations across your entire {+cluster+} by default. 
+You can filter the hosts for which operations the Query Profiler displays data with the  
+:guilabel:`Filter by Hosts` dropdown, which allows you to view data related to 
+one or more specific hosts or to view primary or secondary host groups. 
+The :guilabel:`Query Insights` tab displays information to reveal slow database 
+operations over a set time frame, such as the following:
+
+- :guilabel:`Operation Execution Time`
+- :guilabel:`Docs Examined : Returned Ratio`
+
+The |service| Query Profiler supports binning operations of the same type 
+running on the same collection around the same timestamp in order to 
+support additional datapoints. 
+
+In order to support additional datapoints, the |service| Query Profiler supports 
+binning operations that meet the following critera:
+
+- The operations are of the same operation type.
+- The operations are running on the same namespace.
+- The operations have matching ``hasSort`` and ``usedIndex`` boolean values.
+- The operations are executed around the same timestamp.
+
+|service| manages the threshold for slow operations for each
+``mongod`` host based on average operation execution time on 
+that host. This threshold can be changed using the 
+:method:`db.setProfilingLevel <db.setProfilingLevel>` 
+{+mongosh+} command.
+
+.. note::
+
+   Changing the threshold for slow operations using 
+   :method:`db.setProfilingLevel <db.setProfilingLevel>` can impact 
+   performance and system log settings. Carefully 
+   consider any performance and security implications before you use 
+   :method:`db.setProfilingLevel <db.setProfilingLevel>` to adjust 
+   the Query Profiler settings on a production deployment. Query 
+   Profiler settings reset to default values following a node restart. 
+
+   Additionally, zooming in on the x axis of the scatterplot will refetch slow 
+   operations and may provide more detailed fidelity of slow operations during 
+   the selected timeframe.
+
+.. note::
+
+   To opt out of the |service|-managed slow operation threshold and
+   use a fixed slow query threshold of 100 milliseconds instead,
+   use the {+atlas-admin-api+}. See :oas-atlas-op:`Disable Managed Slow 
+   Operation Threshold </disableManagedSlowOperationThreshold>`. 
+   For ``M0`` {+clusters+}, {+Flex-clusters+}
+   and {+Serverless-instances+}, |service| disables the |service|-managed
+   slow query operation threshold by default and you can't enable it.
+
+.. _atlas-considerations-profile-database:
+
+Considerations
+--------------
+
+.. important:: Please read the following considerations before you enable the Query Profiler.
+
+Security
+~~~~~~~~
+
+Profile data may include sensitive information including the content of
+database queries. Ensure that exposing this data to |service| is
+consistent with your information security practices.
+
+Data Analysis Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Query Profiler displays approximately 100,000 sampled logs at a
+time. It shows all the logs if 100,000 or less logs were
+recorded in the selected hosts and time range.
+
+Data Display Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| displays no more than 100,000 data points in the
+:guilabel:`Query Profiler` charts.
+
+Log data is processed in batches. Data can be delayed up to five
+minutes from realtime.
+
+Log Quantity
+````````````
+
+.. include:: /includes/log-rate-limiting.rst
+
+.. include:: /includes/high-latency-lookup-ops.rst
+
+Required Access
+---------------
+
+To enable or disable Performance Advisor and the Query Profiler 
+for a project, you must have the :authrole:`Project Owner` role for 
+the project or the :authrole:`Organization Owner` role on its parent 
+organization.
+
+To view query performance in the Query Profiler, you must have 
+:authrole:`Project Read Only` or
+:authrole:`Project Observability Viewer` access to the project.
+
+Enable and Disable the Query Profiler
+-------------------------------------
+
+|service| enables the Query Profiler by default.
+
+To disable the Query Profiler:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-settings.rst
+
+   .. step:: Disable the Query Profiler.
+
+      In the :guilabel:`Database Monitoring Tools` section, toggle
+      :guilabel:`Performance Advisor and Profiler` to :guilabel:`Off`.
+
+.. _atlas-profiler-interface:
+
+Find Slow Queries with the Query Profiler
+-----------------------------------------
+
+The following section describes how to find slow queries using the Query Profiler.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Access the Query Profiler.
+
+      .. include:: /includes/nav/list-db-deployments-page.rst
+        
+      d. Click the :guilabel:`View Monitoring` button for the cluster.
+           
+      e. Click the :guilabel:`Query Insights` tab.
+        
+      f. Click the :guilabel:`Query Profiler` tab.
+
+         The Query Profiler displays all your data from the log on the 
+         :term:`primary` and :term:`secondary` nodes by default.
+   
+   .. step:: Customize the Query Profiler.
+
+      The Query Profiler uses a scatterplot chart and a table directly below the chart to 
+      help you find slow operations.
+      
+      a. Select one or more hosts for which you want to view metrics in the 
+         :guilabel:`Filter by Hosts` dropdown.      
+
+      #. Select the time period from the :guilabel:`Time Range` or 
+         :guilabel:`Filter by Date and Time` dropdowns.
+         The Query Profiler displays data for the last 24 hours by default.
+
+      #. Select the metric from the :guilabel:`Operation Execution Time` dropdown. Options  
+         include:
+
+         - :guilabel:`Operation Execution Time` (default):
+           The total time, typically in milliseconds, that a MongoDB database 
+           operation took to complete.
+         
+         - :guilabel:`Response Length`:
+           The size of the documents or data returned by the database in response to an 
+           operation, measured in bytes.
+         
+         - :guilabel:`Docs Examined`:
+           The total number of documents scanned within the collection to find the results 
+           for a query. 
+         
+         - :guilabel:`Docs Returned`:
+           The number of documents that matched the query criteria that |service| 
+           returned for the query.
+         
+         - :guilabel:`Keys Examined`:
+           The total number of index entries scanned by the database during query execution. 
+         
+         - :guilabel:`Num Yields`:
+           The number of times an operation paused to allow other 
+           operations to proceed. 
+         
+         - :guilabel:`Docs Examined : Returned Ratio`:
+           The ratio calculated by dividing :guilabel:`Docs Examined` by :guilabel:`Docs Returned`. 
+         
+         - :guilabel:`Keys Examined : Returned Ratio`:
+           The ratio calculated by dividing :guilabel:`Keys Examined` by :guilabel:`Docs Returned`. 
+
+      #. Click the :guilabel:`All operation types` dropdown to change which operations you 
+         want to profile.
+         The Query Profiler displays all operation types by default.
+
+   .. step:: Identify slow queries.
+
+      * Click a scatterplot point on the chart.
+        This opens a right-side panel with summary information.  
+      
+      * Click :guilabel:`View more details` in the right-side panel to view the full query 
+        shape, detailed execution statistics, query log, and suggestions for improvement.
+
+      * Click and drag along the ``X`` and ``Y`` axes
+        to zoom in on a specific subset of collected data.
+
+      * Scroll down to the table below the chart to view a list of slow queries by collection.
+        Click a row in the table for more details.
+
+   .. step:: Interpret performance metrics.
+
+      When inspecting a slow query, start by looking at these key metrics and patterns:
+
+      * :guilabel:`Operation Execution Time` (``millis``): Query time in milliseconds. This 
+        is the primary indicator of a slow query. If this metric is consistently high, 
+        consider optimizing the query logic, batching results, or rethink how the data is 
+        being accessed.
+
+      * If you see ``"planSummary": "COLLSCAN":`` in the query log, the query performed a 
+        collection scan and did not use an index. This is a strong signal to add an :ref:`index <indexes>` 
+        or rewrite the query.
+
+      * :guilabel:`Docs Examined` (``docsExamined``): Number of documents MongoDB inspected 
+        for the query. If :guilabel:`Docs Examined` is significantly larger than 
+        :guilabel:`Docs Returned`, this often means that:
+        
+        * The query scanned many documents to find the results, 
+          which could impact network latency and application performance. 
+        * Existing indexes are inefficient or not optimal for this specific query. 
+          To learn more, see :ref:`indexes`.
+        
+      * :guilabel:`Keys Examined` (``keysExamined``): Number of index keys scanned for the query.
+        If this metric is ``0`` for a query that includes filter conditions, it's highly likely
+        there is no index and MongoDB scanned the entire collection. This is a primary cause of slowness.
+        If :guilabel:`Docs Examined` is very high and :guilabel:`Keys Examined` is ``0`` or 
+        very low compared to :guilabel:`Docs Examined`, you're likely scanning the collection 
+        or a very unselective index. To learn more, see :ref:`indexes`.
+
+      * A high :guilabel:`Docs Examined : Returned Ratio` means the 
+        query is scanning many documents to return few results, 
+        which can be a sign of an inefficient query or missing indexes.
+
+      * :guilabel:`Num Yields` (``numYields``): Frequent yields suggest resource contention 
+        or long-running operations that are pausing, potentially impacting overall throughput.
+
+      * :guilabel:`Response Length`: Unusually large response lengths indicate that queries 
+        are returning more data than necessary. Consider using :ref:`projections <projections>` to limit the fields 
+        returned.
+
+      * :guilabel:`Has Index Coverage` (``usedIndex``): This boolean confirms whether an 
+        index was used. If set to ``false`` for a query that should be indexed, add an :ref:`index <indexes>`. 
+
+      * If ``hasSort`` is set to ``true``, this indicates that the query contains a
+        :method:`~cursor.sort()` method. 
+        Unindexed :method:`~cursor.sort()` methods can be very resource intensive. 
+        Check your search index configuration and confirm whether it supports the 
+        :method:`~cursor.sort()` method.
+
+Next Steps
+----------
+
+- :ref:`manual-create-an-index`
+
+Learn More
+----------
+
+- :ref:`database-profiler`
+
+- :ref:`query-performance`
+
+- :ref:`indexes`

@@ -1,0 +1,478 @@
+.. _avs-deployment-options:
+
+=========================
+Review Deployment Options 
+=========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: dedicated search nodes
+   :description: Explore deployment options for Atlas Vector Search, including cluster types, cloud providers, and node architecture for testing and production environments.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can structure your |service| {+cluster+} with different deployment
+types, cloud providers, and cluster tiers to meet the needs of a
+pre-production or production environment. Use these recommendations to
+select the deployment type, cloud provider and region, and {+cluster+}
+and search tiers for performing vector search. 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 20 20 20 25
+   :stub-columns: 1
+
+   * - Environment 
+     - Deployment Type
+     - Cluster Tier 
+     - Cloud Provider Region  
+     - Node Architecture 
+
+   * - Testing Queries
+     - | {+Flex-cluster+}, {+dedicated-cluster+}
+       |
+       | Local deployment
+
+     - | ``M0`` or higher tier
+       |
+       | N/A
+       
+     - | All
+       |
+       |
+       | N/A
+
+     - MongoDB and Search processes run on the same node
+
+   * - Prototyping Applications
+     - Dedicated {+cluster+}
+     - {+Flex-cluster+}, ``M10``, ``M20``, or higher tier
+     - All 
+     - MongoDB and Search processes run on the same node
+
+   * - Production
+     - Dedicated {+cluster+} with separate Search Nodes
+     - ``M10`` or higher {+cluster+} tier and ``S30`` or higher search tier
+     - |aws| and |azure| in some :ref:`regions <fts-cloud-provider-regions>` 
+       or |gcp| in all regions
+     - MongoDB and Search processes run on different nodes
+
+To learn more about these deployment models, review the following
+sections: 
+
+- :ref:`avs-deployment-options-testing`
+- :ref:`avs-deployment-options-production`
+
+Resource Usage 
+--------------
+
+.. _avs-index-memory-requirements:
+
+Memory Requirements for Indexing Vectors 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} holds the entire index in memory, so you need to ensure there's
+enough memory for the {+avs+} index and :abbr:`JVM (Java virtual
+machine)` if your dataset includes full precision vectors. Each index is
+a combination of the vectors being indexed and additional metadata. The
+index size is primarily determined by the size of the vectors that you
+are indexing, with metadata space typically being relatively nominal.
+
+When not using quantization, {+avs+} stores the full fidelity vectors in
+memory. If you enable automatic quantization, {+avs+} stores the
+quantized vectors, which require significantly less resources, in memory
+and the full fidelity vectors on disk. You can view the difference
+between disk and memory requirements for vector indexes by viewing the
+:guilabel:`Size` and :guilabel:`Required Memory` columns in the
+{+atlas-ui+} |fts| page. 
+
+Consider the following requirements for a **single vector**:
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Embedding Model 
+     - Vector Dimension 
+     - Space Requirement
+
+   * - OpenAI ``text-embedding-ada-002``
+     - 1536
+     - 6kb
+
+   * - Google ``text-embedding-gecko``
+     - 768
+     - 3kb
+
+   * - Cohere ``embed-english-v3.0`` :icon-fa5:`star`
+     - 1024
+     - | 1.07kb (for ``int8``)
+       | 0.167kb (for ``int1``)
+
+:icon-fa5:`star` :manual:`BinData </reference/method/BinData/>`
+quantized vectors. To learn more, see
+:ref:`Ingest Quantized Vectors <avs-bindata-vector-subtype>`.
+
+The required space scales linearly with the number of vectors that you
+are indexing and with the vector dimensionality. You can also use the
+:guilabel:`Search Index Size` :ref:`metric
+<review-atlas-search-metrics>` to determine the amount of space and 
+memory you need on your Search Nodes.
+
+.. _avs-index-disk-requirements:
+
+Storage Requirements for Vectors 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use :manual:`BinData </reference/method/BinData/>` or quantized
+vectors, you significantly reduce resource requirements compared to not
+using ``binData`` or quantized vectors. You will notice: 
+
+- Disk storage of vectors on ``mongod`` reduce by 66% when using ``binData``
+  vectors. 
+- RAM usage of vectors on ``mongot`` reduce by 3.75x (scalar) or 24x
+  (binary) due to vector compression when using either automatic vector
+  quantization or quantized vector ingestion. 
+
+When you use automatic quantization, |service| stores the full-precision
+vectors for rescoring or exact search on disk, with minimal RAM and cache
+usage for rescoring. 
+
+If you enable :ref:`automatic quantization <avs-automatic-quantization>`
+in your {+avs+} :ref:`index definition <avs-types-vector-search>`, you
+must consider disk space also when sizing your {+cluster+}. This is
+because {+avs+} stores full-precision vectors also on disk for |enn|
+search and for rescoring if you configured automatic quantization.
+Therefore, ensure that there is an appropriate disk to RAM ratio on the
+hardware that you use. Consider configuring search nodes that can
+accommodate roughly a 4:1 ratio of storage to RAM for scalar
+quantization or a 24:1 ratio of storage to RAM for binary quantization. 
+
+.. example:: 
+
+   This example demonstrates how to configure binary quantization for 10
+   million 1536 dimension embeddings from OpenAI stored in the field
+   named ``my-embeddings``:
+
+   .. code-block:: 
+      :copyable: false 
+
+      {
+        "fields":[
+          {
+            "type": "vector",
+            "path": "my-embeddings",
+            "numDimensions": 1536,
+            "similarity": "euclidean",
+            "quantization": "binary"
+          }
+        ]
+      }
+
+Use the following formula to roughly calculate the disk space for
+your binary quantization-enabled index with rescoring: 
+
+.. code-block:: shell 
+   :copyable: false 
+
+   Original index size * (25/24)
+
+Here, the ``24`` in the denominator represents the original index size
+split into ``24`` parts for easier fraction representation. The ``25``
+in the numerator accounts for an additional space allocation, which is
+approximately 1/24 of the original index size, for additional data
+needed to store binary vectors. Both the original index and the |hnsw|
+graph are still stored on disk. The oversize factor is 1/24 rather than
+1/32 because the HNSW graph is not compressed.
+
+.. example:: 
+
+   Suppose your original index size is 1 GB. You can calculate the
+   binary quantized index size with rescoring as shown below: 
+
+   .. code-block:: shell 
+      :copyable: 
+
+      1 GB * (25/24) = 1.042 GB
+
+.. important:: 
+
+   In the {+atlas-ui+}, |service| displays the entire index size, which
+   might be large as |service| doesn't show a break down of the data
+   structures within an index that are stored in RAM and on disk. The
+   |fts| metrics show a much smaller index that is held in memory when
+   you enable automatic quantization. 
+
+For vectors for which you configured automatic quantization, we
+recommend allocating free disk space equal to 125% of the estimated 
+index size.  
+
+.. _avs-deployment-options-testing:
+
+Testing and Prototyping Environments
+------------------------------------
+
+For testing your vector search queries and prototyping your
+application, we recommend the following configuration.
+
+Deployment Type
+~~~~~~~~~~~~~~~
+
+For testing {+avs+} queries, you can deploy a {+Flex-cluster+}, a dedicated
+{+cluster+}, or use a local {+service+} deployment.
+
+.. tabs::
+
+   .. tab:: {+service+} {+Cluster+}
+      :tabid: cloud
+
+      {+Cluster+} Tiers 
+      `````````````````
+
+      {+Free-clusters+} include an ``M0`` tier.
+      {+Flex-clusters+} are low-cost cluster types suitable for teams that are
+      learning MongoDB or developing small proof-of-concept applications.
+      You can begin your project with an {+Atlas-Flex+} cluster and upgrade to 
+      a production-ready {+Dedicated-cluster+} tier at a future time.
+
+      These low-cost cluster types are available for testing your {+avs+} queries.
+      However, you might experience resource contention and query latency on
+      {+Flex-clusters+}. If you begin your project with a {+Flex-cluster+},
+      we recommend upgrading to a higher tier when your
+      application is ready for production.
+
+      Dedicated {+clusters+} include ``M10`` and higher tiers. The ``M10`` and
+      ``M20`` tiers are suitable for prototyping your application. You can
+      upgrade to higher tiers to handle large datasets or deploy
+      :ref:`dedicated Search Nodes <configure-search-nodes>` for workload
+      isolation when your application is ready for production.  
+
+      Cloud Provider and Region 
+      `````````````````````````
+
+      The cloud provider and region that you choose affects the configuration
+      options available for the {+cluster+} tiers and the cost of
+      running the cluster.  
+
+      All the {+cluster+} tiers are available in all the supported
+      :ref:`cloud provider regions <fts-cloud-provider-regions>`
+      
+   .. tab:: Local Deployment
+      :tabid: local
+
+      If you prefer to test {+avs+} queries locally, you can use the 
+      {+atlas-cli+} to deploy a single-node replica set hosted on your 
+      local computer. To get started, complete the :ref:`vector-search-quick-start` 
+      and select the tab for local deployments.
+
+      When your application is ready for production, migrate your local |service| 
+      deployment to a production environment by using :ref:`Live Migration 
+      <c2c-pull-live-migration>`.
+      Local deployments are limited by the CPU, memory, and 
+      storage resources of your local machine.
+
+Node Architecture 
+~~~~~~~~~~~~~~~~~
+
+.. |product-name| replace:: {+avs+}
+
+.. include:: /includes/search-shared/extracts/fts-architecture-coupled.rst
+
+Size Your {+Cluster+} for Prototyping Your Application 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When |service| runs your database and search workloads on the same node,
+the MongoDB storage takes a certain percentage of the node's available
+memory (RAM), leaving the remaining for the {+avs+} index and the
+``mongot`` process.
+
+.. list-table:: 
+   :header-rows: 1 
+   :widths: 34 33 33
+
+   * - Tier 
+     - Total Memory (GB)
+     - Memory Available for {+avs+} Index (GB)
+   
+   * - ``M10`` 
+     - 2 
+     - 1  
+
+   * - ``M20`` 
+     - 4
+     - 2  
+
+   * - ``M30`` 
+     - 8
+     - 4  
+
+For ``M10``, ``M20``, and ``M30`` {+cluster+} tiers, 25% is reserved for 
+MongoDB and the remaining 75% is for other operations, including your
+{+avs+} index. For M40+ {+cluster+} tiers, 50% is reserved for MongoDB
+and the remaining is for other operations, including your {+avs+} 
+index.
+
+Limitations 
+~~~~~~~~~~~
+
+You might experience resource contention between the database ``mongod``
+and the search ``mongot`` processes. This could negatively impact the
+performance of your index and latency of your queries. We recommend this 
+deployment model for only testing and prototyping environments. For
+production-ready applications and associated search workloads, we
+recommend :ref:`migrating to dedicated Search Nodes
+<avs-migrate-to-decoupled>`. 
+
+.. _avs-deployment-options-production:
+
+Production Environment
+----------------------
+
+For your production-ready application, we recommend the following
+{+cluster+} configuration.
+
+Deployment Type
+~~~~~~~~~~~~~~~
+
+For production-ready applications, you need a dedicated {+cluster+} with
+separate :ref:`configure-search-nodes`. 
+ 
+{+Cluster+} Tiers 
+~~~~~~~~~~~~~~~~~
+
+Dedicated {+clusters+} include ``M10`` and higher tiers. The ``M10`` and
+``M20`` tiers are suitable for development and for production
+environments. However, the higher tiers can handle large datasets and
+production workloads. We recommend that you also :ref:`deploy dedicated
+Search Nodes <configure-search-nodes>` for your search workload. This
+allows you to scale your search deployment independently and
+appropriately. 
+
+Cloud Provider and Region
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Search Nodes are available in all the regions for |gcp| but
+are only available in a subset of |aws| and |azure| :ref:`regions
+<fts-cloud-provider-regions>`. You *must* select a cloud provider and
+region where Search Nodes are available for your deployment.
+
+All {+cluster+} tiers are available in supported cloud provider regions.
+The cloud provider and region that you choose affects the configuration
+options and search tiers available for the {+cluster+} and the
+cost of running the cluster.
+
+Node Architecture 
+~~~~~~~~~~~~~~~~~
+
+.. |product-name| replace:: {+avs+}
+.. |index-doc| replace:: :ref:`avs-types-vector-search`
+.. |query-doc| replace:: :ref:`return-vector-search-results`
+
+.. include:: /includes/search-shared/extracts/fts-architecture-decoupled.rst
+
+Benefits 
+~~~~~~~~
+
+This deployment model provides the following benefits: 
+
+- Efficiently utilize your resources while ensuring high availability of
+  your resources for search workloads.
+
+- Size and scale your search deployment independently from your database
+  deployment. 
+
+- Automatically process {+avs+} queries concurrently, improving the
+  response time especially on large datasets. To learn more, see 
+  :ref:`vectorSearch-concurrent-queries`.
+
+Size Your Search Nodes for Production 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} holds the entire index in memory, so you need to ensure there's
+enough memory for the {+avs+} index and :abbr:`JVM (Java virtual
+machine)`. Search nodes allow for workload isolation without data
+isolation, and almost 90% of their RAM allocation can be used to store
+the vector data and indexes in memory, with the leftover being used for
+the JVM. 
+
+Each index is a combination of the vectors being indexed and additional
+metadata. The index size is primarily determined by the size of the
+vectors that you are indexing, with metadata space typically being
+relatively nominal. To learn more, see :ref:`avs-index-memory-requirements`.
+
+When you deploy dedicated Search Nodes, you can choose from different
+:ref:`search tiers <select-tiers-for-search-nodes>`. Each search tier
+has a default RAM capacity, storage capacity, and CPU. This allows you
+to size and scale your {+cluster+} independently from your database
+deployment. To scale your search deployment separately, you can make the
+following changes to your {+cluster+} configuration at any time: 
+
+- Adjust the number of Search Nodes on your {+cluster+}.
+- Adjust the CPU, RAM, and storage of the node by changing search tiers. 
+
+.. note:: 
+
+   To learn more about the cost of Search Nodes and search tiers, expand
+   :guilabel:`View all plan features` and click :guilabel:`Atlas Vector
+   Search` in the the `MongoDB Pricing <https://www.mongodb.com/pricing>`__ 
+   page.
+
+We recommend that your node has RAM that is at least 10% larger than the
+total size of your {+avs+} indexes. We also recommend that 
+you ensure you have enough available CPUs. Query latency 
+depends on the number of available CPUs, which can significantly
+impact the level of internal concurrency that accelerates query
+performance. 
+
+.. example:: 
+
+   Suppose you have 1M 768 dimensions vectors of roughly 3GB in size.
+   Both the S30 (Low-CPU) and S20 (High-CPU) search tiers have enough
+   RAM to support the index. Instead of deploying on the S30
+   (Low-CPU) search tier, we recommend deploying on the S20 (High-CPU)
+   search tier because the S20 (High-CPU) search tier has more available
+   CPUs to run queries concurrently. 
+
+Enable Encryption at Rest
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |search-type| replace:: {+avs+}
+
+.. include:: /includes/fts/extracts/fts-search-nodes-encryption.rst 
+
+.. _avs-migrate-to-decoupled:
+
+Migrate to Dedicated Search Nodes 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Dedicated Search Nodes allow you to both size and scale your search
+deployment separately from your {+database-deployment+}. It also eliminates
+any resource contention that you might experience on a {+cluster+} that
+runs both the database and search processes on the same node.
+
+To migrate to dedicated Search Nodes, make the following changes to your
+deployment: 
+
+1. If your deployment is currently using a free tier cluster or a {+Flex-cluster+},
+   :ref:`upgrade <change-cluster-type>` your {+cluster+} to a higher tier.
+   Dedicated Search Nodes are supported only for ``M10`` and higher {+cluster+}
+   tiers. To learn more about migrating to a different {+cluster+} 
+   tier, see :ref:`scale-cluster-instance`.
+
+2. Dedicated Search Nodes are available on a subset of the |aws| and |azure|
+   regions and in all supported |gcp| regions. Make sure to deploy your
+   {+cluster+} in regions where Search Nodes are also available. If
+   your existing {+cluster+} is in regions where Search Nodes are not 
+   available, migrate your {+cluster+} to regions where Search Nodes
+   are available. To learn more, see :ref:`fts-cloud-provider-regions`.  
+
+3. Enable :guilabel:`Search Nodes for workload isolation` and configure
+   Search Nodes. To learn more, see :ref:`add-search-nodes`.

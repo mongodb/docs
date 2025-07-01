@@ -1,0 +1,104 @@
+.. _atlas-sp-limitations:
+
+===========
+Limitations
+===========
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Known limitations of {+atlas-sp+}
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The following limitations apply to {+atlas-sp+}:
+
+- The combined ``state.stateSize`` of all {+spi+}s can't exceed 80% of 
+  the RAM available for a worker in the same SPI tier. For example, the 
+  maximum size of a stream processor in the ``SP30`` tier which has 8GB 
+  of RAM per worker, is 6.4GB. If the ``state.stateSize`` of any of your 
+  stream processors is approaching 80% of the RAM available for a worker 
+  in the same SPI tier, move up to the next SPI tier. 
+
+  When the 80% RAM threshold has been crossed, all stream processors fail 
+  with a ``stream processing instance out of memory`` error. You can 
+  view the ``state.stateSize`` value of each stream processor with the 
+  ``sp.processor.stats()`` command. See :ref:`View Statistics of a Stream 
+  Processor <streams-manage-stats>` to learn more.
+
+- A {+spi+} can use only {+clusters+} in the same project as sources or
+  sinks.
+
+- An {+atlas-sp+} pipeline definition cannot exceed 16 MB.
+
+- Only users with the :authrole:`Project Owner` or 
+  :atlasrole:`Atlas admin` roles can use {+atlas-sp+}.
+
+- {+atlas-sp+} currently supports only the following connection types:
+
+  .. list-table::
+     :widths: 30 70
+     :header-rows: 1
+
+     * - Connection Type
+       - Usage
+
+     * - {+kafka+}
+       - Source or Sink
+
+     * - {+service+} Database
+       - Source or Sink
+
+     * - Sample Connection
+       - Source Only
+
+- For {+atlas-sp+} using {+kafka+} as a :ref:`$source
+  <atlas-sp-agg-source>`, if the {+kafka+} topic acting as :ref:`$source 
+  <atlas-sp-agg-source>` to the running processor adds a partition,
+  {+atlas-sp+} continues running without reading the partition.
+  The processor fails when it detects the new partition after you restore
+  it from a checkpoint after a failure, or you restart it after stopping it. 
+  You must recreate the processors that read from topics with
+  the newly added partitions. 
+
+- {+atlas-sp+} currently supports only JSON-formatted data. It does not
+  currently support alternative serializations such as Avro or Protocol 
+  Buffers.
+
+- For {+kafka+} connections, {+atlas-sp+} currently supports only the
+  following security protocols:
+
+  - ``SASL_PLAINTEXT``
+  - ``SASL_SSL``
+  - ``SSL``
+  
+  For ``SASL``, {+atlas-sp+} supports the following mechanisms:
+
+  - ``PLAIN``
+  - ``SCRAM-SHA-256``
+  - ``SCRAM-SHA-512``
+
+  For ``SSL``, you must provide the following assets
+  for your {+kafka+} system mutual TLS authentication with {+atlas-sp+}:
+
+  - a Certificate Authority (if you are using one other than the default {+kafka+} CA)
+  - a client TLS certificate
+  - a TLS keyfile, used to sign your TLS certificate
+
+- {+atlas-sp+} doesn't support 
+  :manual:`$function </reference/operator/aggregation/function/>`
+  JavaScript :abbr:`UDFs (user-defined functions)`.
+
+- {+atlas-sp+} supports a subset of the Aggregation Pipeline Stages available 
+  in |service|, allowing you to perform many of the same operations on streaming 
+  data that you can perform on data-at-rest. For a full list of supported 
+  Aggregation Pipeline Stages, see the :ref:`Stream Aggregation documentation <stream-aggregation>`.
+ 

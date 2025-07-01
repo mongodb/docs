@@ -1,0 +1,455 @@
+.. _atlas-resource-policies-overview:
+
+=======================
+{+arps+}
+=======================
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Use the Atlas Administration API to create an Atlas Resource Policy that restricts how your users configure clusters, including limiting the cloud provider, region, and use of wildcard IPs.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+arps+} are controls that enable :authrole:`Organization Owners <Organization Owner>` 
+to constrain the specific 
+configuration options available to developers when they create or configure 
+|service| {+clusters+}. 
+
+With resource policies, you can:
+
+* Limit cluster deployment to specific cloud platforms (|aws|, |gcp|, |azure|).
+* Restrict cluster deployment to designated regions within a cloud provider. For example, ``aws:us-east-1``.
+* Prohibit the use of the wildcard IP (``0.0.0.0/0``) to enforce stricter network controls.
+* Prohibit traffic through public networks by requiring that the IP access list remain empty 
+  or by preventing additions to an existing IP access list.
+* Prevent users from provisioning, updating, or :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} to a tier above or below a specified threshold.
+* Require that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
+* Prevent modifications to |vpc| peering and private endpoint connections across cloud providers. 
+* Impose a minimum |tls| version or require a specific |tls| cipher suite configuration for {+cluster+} connections.
+
+You create {+arps+} at the organization level and they apply to all projects and clusters
+within that organization.
+
+In addition to the {+atlas-ui+} and the :ref:`{+atlas-admin-api+} <atlas-admin-api>`, you can use the
+:ref:`atlas-programmatic-access-terraform-overview`, :ref:`atlas-programmatic-access-cloudformation-overview`,
+or `AWS CloudFormation <https://constructs.dev/packages/awscdk-resources-mongodbatlas/v/3.9.0/api/CfnResourcePolicy?lang=typescript>`__
+to configure and manage {+arps+}.
+
+.. note::
+
+   For :ref:`atlas-programmatic-access-terraform-overview`, use 1.33.0 or later 
+   to impose a minimum |tls| version or require a specific |tls| cipher suite 
+   configuration for {+cluster+} connections. |service| might block connections from 
+   earlier versions of Terraform.
+
+Prerequisites
+-------------
+
+* Ensure your |service| user has the appropriate organization role:
+  
+  - To view {+arps+}, you must have at least :authrole:`Organization Read Only` or 
+    :authrole:`Organization Member` access to |service|.
+
+  - To create, update, or delete an {+arp+}, you must have :authrole:`Organization Owner` 
+    access to |service|. 
+
+* To use the {+atlas-admin-api+} to create or manage {+arps+}, locate your public and private |api| keys so you can authenticate to the 
+  :ref:`{+atlas-admin-api+} <atlas-admin-api>`. To learn more, see :ref:`atlas-admin-api-access`.
+
+
+Limitations
+-----------
+
+* *We strongly recommend that you proactively monitor your list of non-compliant resources* 
+  using the :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources </getResourcesNonCompliant>` endpoint.
+  {+arps+} ensure compliance with defined goals but do not enforce intermediate 
+  or transitional states. For example, if a downstream component fails, the policy 
+  may temporarily enter a non-compliant intermediate state.  
+
+* Each {+arp+} must have a unique name. If you attempt to create an {+arp+} with 
+  an existing name, the server returns a ``400 (Bad Request)`` status code. 
+  
+* It's possible to create identical {+arps+} with different names. While this doesn't 
+  cause functional conflicts, it can lead to redundancy and confusion in policy management.
+
+* {+arps+} are allow-by-default. If no {+arps+} exist, users can perform all actions on |service| {+clusters+}
+  that their :ref:`Atlas user role <user-roles>` allows.
+
+* Our implemented version of {+cedar+} supports only one Cedar policy per ``.cedar`` file, but you 
+  can list multiple Cedar policies (``.cedar`` files) in your {+arp+}. 
+  Each ``.cedar`` file is identified in the :ref:`{+atlas-admin-api+} <atlas-admin-api>` 
+  response as a unique 24-hexadecimal character string after ``policies.id``.
+
+* If the :ref:`auto-scaling <cluster-autoscaling>` limits on your existing {+cluster+}
+  don't match the new {+arp+}, the {+cluster+} might exceed the policy's defined boundaries. 
+  To address this issue, use the :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources` 
+  endpoint to identify and monitor non-compliant resources so you can update them to meet 
+  policy requirements.
+
+* Before enabling network-layer controls, review your existing :ref:`IP access list <access-list>` 
+  to ensure it contains all necessary access points.
+
+* Private endpoint definitions in {+cedar+} require that you enter individual IP addresses, 
+  as wildcard operations are not supported.
+
+Using the Cedar Policy Language 
+-------------------------------
+
+MongoDB uses the open-source {+cedar+} to define {+arps+}. 
+Cedar's design balances expressiveness with simplicity, employing a concise syntax 
+that streamlines both writing and understanding resource policies.
+
+To quickly create an {+arp+}, adapt the :ref:`examples <arp-examples>` and add to |service|
+using the {+atlas-ui+} or {+atlas-admin-api+} by following :ref:`procedure-create-atlas-resource-policy`.
+
+To learn more about {+cedar+}, see:
+
+- :ref:`key-cedar-elements`
+- :ref:`example-cedar-policy`
+- `Cedar GitHub Repository <https://github.com/cedar-policy>`__.
+
+.. _key-cedar-elements:
+
+Key Cedar Syntax Elements for |service|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 40 30
+
+   * - Cedar Element
+     - Descripton
+     - {+arp+} Options
+
+   * - ``forbid``
+     - Denies the specified action if conditions in the ``when`` clause are met. 
+       The converse element, ``permit``, is not allowed in {+arps+}.
+     - Example: ``forbid (principal, action, resource) when { ... };``
+
+   * - ``principal``
+     - Defines the user affected by the policy. 
+     - Applied universally by default. Do not change or omit.
+
+   * - ``action``
+     - Represents the action being controlled in the policy. 
+     - Available actions:
+  
+       - Restrict IP access list: ``ResourcePolicy::Action::"project.ipAccessList.modify"``
+       - Restrict cluster attributes: ``ResourcePolicy::Action::"cluster.modify"``
+       - Modify maintenance window: ``ResourcePolicy::Action::"project.maintenanceWindow.modify"``
+
+   * - ``ResourcePolicy::Cluster::"<CLUSTER-ID>"``
+     - Refers to a specific {+cluster+}
+     - To find your {+cluster+} ID, use the {+atlas-admin-api+} to 
+       :oas-atlas-op:`return all {+clusters+} in a project </listClusters>`.
+  
+   * - ``ResourcePolicy::Project::"<PROJECT-ID>"``
+     - Refers to a specific project. For example, ``ResourcePolicy::Project::"6217f7fff7957854e2d09179"``
+     - To find your project ID, see :ref:`atlas-modify-project-settings`.
+
+   * - ``context.cluster.project``
+     -  Specifies the project to which the {+cluster+} belongs. 
+     -  To find your project ID, see :ref:`atlas-modify-project-settings`.
+
+   * - ``context.cluster.cloudProviders``
+     -  Specifies the allowed cloud providers. 
+     -  Available options: 
+  
+        - ``ResourcePolicy::CloudProvider::"aws"`` 
+        - ``ResourcePolicy::CloudProvider::"azure"``
+        - ``ResourcePolicy::CloudProvider::"gcp"``
+
+   * - ``context.cluster.regions``
+     - Limits access based on deployment regions. 
+     - For example, ``ResourcePolicy::Region::"aws:us-east-1"``. For a list of available 
+       regions by cloud provider see :ref:`amazon-aws`, :ref:`google-gcp`, 
+       or :ref:`microsoft-azure`.
+
+   * - ``context.cluster has <PROPERTY>``
+     - Checks if a specific property exists within the cluster context.
+     - Available properties:
+
+       - Minimum General class :ref:`cluster tier <create-cluster-instance>`: ``minGeneralClassInstanceSizeValue``
+       - Maximum General class :ref:`cluster tier <create-cluster-instance>`: ``maxGeneralClassInstanceSizeValue``
+   
+   * - ``context.cluster.minGeneralClassInstanceSizeValue``
+     - Sets the minimum :ref:`cluster tier <create-cluster-instance>` for scaling the {+cluster+} down to.
+     - For example, ``context.cluster.minGeneralClassInstanceSizeValue < 30`` matches {+clusters+} 
+       whose current tier or minimum :ref:`auto-scaling <cluster-autoscaling>` size is less than ``M30``. 
+
+   * - ``context.cluster.maxGeneralClassInstanceSizeValue``
+     - Sets the maximum :ref:`cluster tier <create-cluster-instance>` for scaling the {+cluster+} up to.
+     - For example, ``context.cluster.maxGeneralClassInstanceSizeValue < 60`` matches {+clusters+} 
+       whose current tier or maximum :ref:`auto-scaling <cluster-autoscaling>` size is less than ``M60``. 
+
+   * - ``context.project.hasDefinedMaintenanceWindow``
+     - Requires that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
+     - For example, ``context.project.hasDefinedMaintenanceWindow == false`` checks 
+       if the project has no maintenance window configured.
+   
+   * - ``context.project.ipAccessList``
+     - Specifies the IP addresses that can access the {+cluster+}. 
+     - You can block a wildcard IP ``ip("0.0.0.0/0")`` to enhance security.
+
+   * - ``context.project.peeringConnections``
+     - Refers to a specific |vpc| peering connection.
+     - To format for your specific cloud provider, see :ref:`prevent-peering-modifications`.
+
+   * - ``context.project.privateEndpoints``
+     - Refers to a specific private endpoint.
+     - To format for your specific cloud provider, see :ref:`prevent-private-endpoint-modifications`.
+
+   * - ``containsAny`` and ``containsAll``
+     - Checks for inclusion of one or more elements (``containsAny``) or all 
+       elements (``containsAll``) from a list.
+     - Example: ``context.cluster.regions.containsAny([ResourcePolicy::Region::"aws:us-east-1"])``
+   
+   * - ``unless``
+     - Specifies exceptions to a policy. Actions are forbidden unless certain conditions are met.
+     - Example: ``forbid (principal, action, resource) unless { condition };``
+
+   * - ``isEmpty``
+     - Checks whether a list is empty. For example, enforcing no access over public 
+       networks requires that the IP access list is empty.
+     - ``forbid (principal, action == ResourcePolicy::Action::"project.ipAccessList.modify", resource) unless { context.project.ipAccessList.isEmpty() };``
+
+   * - Logical Operators (``&&``, ``||``)
+     - Combine multiple conditions in a policy.
+     - Available options:
+
+       - ``&&`` (AND): Requires all conditions to be true.
+       - ``||`` (OR): Requires at least one condition to be true.
+
+   * - IP Addressing (``ip``)
+     - Refers to specific IP addresses or ranges in policies. 
+     - Available options: 
+
+       - ``ip("0.0.0.0/0")`` for wildcard IP.
+       - ``ip("1.2.3.4/32")`` for specific IP addresses.
+
+.. _procedure-create-atlas-resource-policy:
+
+Create an Atlas Resource Policy Configuration
+---------------------------------------------
+
+To create an {+arp+}, use the following procedure to construct a policy by using {+cedar+} 
+and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terraform.
+
+.. warning::
+
+   We recommend that you test this feature in a non-production environment by creating 
+   a new organization with a fresh {+cluster+}. 
+   This ensures you can assess the feature safely without impacting your existing systems as you skill up.
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To create an {+arp+} using the {+atlas-admin-api+}, construct a policy using 
+      {+cedar+} and pass it in to the {+atlas-admin-api+} via a ``POST`` request 
+      using the ``policies`` parameter.
+      
+      .. procedure::
+         :style: normal
+
+         .. step:: Construct the policy in the Cedar policy language.
+
+            Specify the rules for restricting resources using {+cedar+}. You can copy
+            and modify the following example policies for your organization:
+      
+            * :ref:`restrict-cloud-provider`
+            * :ref:`restrict-region`
+            * :ref:`example-cedar-policy`
+            * :ref:`restrict-ip-addresses`
+            * :ref:`restrict-cluster-tier`
+            * :ref:`require-maintenance-window`
+            * :ref:`prevent-peering-modifications`
+            * :ref:`prevent-private-endpoint-modifications`
+  
+            .. note::
+         
+               We recommend creating multiple, simple {+arps+} to make tracking easier. 
+               For example, if you want to restrict cloud provider and multiple regions, 
+               consider creating one {+arp+} that restricts the cloud provider and another 
+               {+arp+} that restricts the regions. 
+        
+         .. step:: Send a ``POST`` request.
+
+            Use the ``POST`` verb to create an {+arp+} for your organization. 
+            The request must include:
+
+            * ``name``: The name of the {+arp+}.
+            * ``policies``: The {+cluster+} restrictions you defined in {+cedar+} in the previous step. If       you use quotes (``"``) in ``policies.body``, escape with a backslash (``\``).
+      
+            Example ``POST`` request:
+
+            .. include:: /includes/arp-api-post-example.rst
+
+            Example response:
+
+            .. include:: /includes/arp-api-post-example-response.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To create an {+arp+} using the new {+atlas-ui+} editor, use the following 
+      procedure to copy and paste an example policy into the editor, then modify 
+      it for your organization.
+
+      .. procedure::
+         :style: normal
+      
+         .. include:: /includes/nav/steps-org-settings.rst
+
+         .. include:: /includes/nav/steps-org-resource-policy.rst
+
+         .. step:: Click :guilabel:`Create policy`.
+
+         .. step:: Name, describe, and define your {+arp+}.
+
+            a. Give your {+arp+} a unique name.
+            #. (Optional) Add a description.
+            #. Copy and modify the following example policies for your organization, 
+               then paste the code in the :guilabel:`Cedar Policy` field.
+      
+               * :ref:`restrict-cloud-provider-ui`
+               * :ref:`restrict-region-ui`
+               * :ref:`restrict-ip-addresses-ui`
+               * :ref:`restrict-cluster-tier-ui`
+               * :ref:`require-maintenance-window-ui`
+               * :ref:`prevent-peering-modifications-ui`
+               * :ref:`prevent-private-endpoint-modifications-ui`
+  
+               .. note::
+         
+                  We recommend creating multiple, simple {+arps+} to make tracking easier. 
+                  For example, if you want to restrict cloud provider and multiple regions, 
+                  consider creating one {+arp+} that restricts the cloud provider and another 
+                  {+arp+} that restricts the regions. 
+         
+         .. step:: Click :guilabel:`Create policy`.
+
+      This {+arp+} applies to all new {+clusters+}. For existing {+clusters+} that
+      do not comply with the {+arp+}, |service| only allows users to make
+      changes to the {+cluster+} which brings the {+cluster+} into compliance.
+      For example, if ``cluster0`` runs on |aws| and you apply an {+arp+} that blocks 
+      {+clusters+} on |aws|, the only change users could make to ``cluster0`` while 
+      it is non-compliant is switching the cloud provider to |azure| or |gcp|.
+      
+      To return a list of existing {+clusters+} that do not conform to your {+arp+}, 
+      use the ``GET`` 
+      :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources </getResourcesNonCompliant>` resource.
+
+      |service| generates an :ref:`activity feed event <view-activity-feed>` when 
+      you create, update, or delete an {+arp+}. To help identify your activity feed events
+      and make tracking easier, we recommend creating multiple, simple {+arps+}.
+      For example, if you want to restrict the usage of a cloud provider and multiple regions,
+      consider creating one {+arp+} that restricts the cloud provider and another 
+      {+arp+} that restricts the regions. 
+
+   .. tab:: Terraform
+      :tabid: tf
+
+      .. note:: Additional Prerequisites
+
+         Complete the following steps before continuing with this guide:
+         
+         - :atlas:`Create an API key </configure-api-access/>` for your :atlas:`paying
+           organization </billing/#configure-a-paying-organization>` and store
+           your API keys as environment variables by running
+           the following commands:
+
+           .. code-block:: bash
+
+              export MONGODB_ATLAS_PUBLIC_KEY="<your public key>"
+              export MONGODB_ATLAS_PRIVATE_KEY="<your private key>"
+
+         - Install the `Terraform CLI
+           <https://developer.hashicorp.com/terraform/install>`__
+
+      To create an {+arp+} by using Terraform, configure the `MongoDB Atlas
+      Terraform Provider
+      <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs>`__,
+      then construct a policy by using {+cedar+} and specifying it in your
+      ``main.tf`` Terraform file.
+      
+      .. procedure::
+         :style: normal
+
+         .. step:: Configure the MongoDB Atlas Terraform Provider.
+
+            Create a new file in your project directory called ``main.tf``.
+            Paste the following code, which configures the MongoDB Atlas
+            Provider and specifies your public and private keys:
+
+            .. literalinclude:: /includes/terraform-resource-policies.tf
+               :language: terraform
+            
+            After you create the file, run the following command to download the
+            latest version of the provider and initialize Terraform:
+
+            .. code-block:: bash
+
+               terraform init -upgrade
+
+         .. step:: Define the policy in the Cedar policy language.
+
+            Specify the rules for restricting resources using {+cedar+}. You can copy
+            and modify the following example policies for your organization:
+
+            * :ref:`tf-restrict-cloud-provider`
+            * :ref:`tf-restrict-region`
+            * :ref:`tf-restrict-provider-region`
+            * :ref:`tf-restrict-ip-addresses`
+
+            .. note::
+
+               We recommend creating multiple, simple {+arps+} to make tracking easier. 
+               For example, if you want to restrict cloud provider and multiple regions, 
+               consider creating one {+arp+} that restricts the cloud provider and another 
+               {+arp+} that restricts the regions.
+
+         .. step:: Create the policies by using Terraform.
+
+            After you define the policies you want in your ``main.tf`` file, run
+            the following command to create the policies:
+
+            .. code-block:: bash
+
+               terraform apply
+
+.. _arp-examples:
+
+Atlas Resource Policy Examples
+------------------------------
+
+Copy and modify the following example policies to use for your organization.
+All examples use {+cedar+}, but for the {+atlas-admin-api+}, the examples are wrapped 
+in |json| so you can paste them directly into your |api| calls.
+To learn more, see :ref:`procedure-create-atlas-resource-policy`.  
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      .. include:: /includes/example-resource-policies-api.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. include:: /includes/example-resource-policies-ui.rst
+
+   .. tab:: Terraform
+      :tabid: tf
+
+      .. include:: /includes/example-resource-policies-tf/example-resource-policies-tf.rst

@@ -1,0 +1,53 @@
+db.movies.aggregate([
+    {
+      "$search": {
+        "index": "pagination-tutorial",
+        "facet": {
+          "operator": {
+            "text": {
+              "path": "title",
+              "query": "summer"
+            } 
+          },
+          "facets": {
+            "genresFacet": {
+              "type": "string",
+              "path": "genres"
+            }
+          }
+        }
+      }
+    },
+    { 
+      "$addFields": {
+        "paginationToken" : { "$meta" : "searchSequenceToken" }
+      }
+    },
+    { "$limit": 10 },
+    {
+      "$facet": {
+        "docs": [
+          { "$project":
+            {
+              "_id": 0,
+              "title": 1,
+              "released": 1,
+              "genres": 1,
+              "paginationToken" : 1
+            }
+          }
+        ],
+        "meta": [
+          { "$replaceWith": "$$SEARCH_META" },
+          { "$limit": 1 }
+        ]
+      }
+    },
+    {
+      "$set": {
+        "meta": {
+          "$arrayElemAt": ["$meta", 0]
+        }
+      }
+    }
+])

@@ -1,0 +1,211 @@
+.. _fts-query-reference:
+
+===============
+Query Reference
+===============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _query-syntax-ref:
+
+Pipeline Stages
+---------------
+
+|fts| queries take the form of an :manual:`aggregation pipeline stage 
+</aggregation>`. |fts| provides :pipeline:`$search` and 
+:pipeline:`$searchMeta` stages, both of which must be the first stage 
+in any query pipeline, including the :pipeline:`$lookup` and
+:pipeline:`$unionWith` sub-pipelines. These stages can be used in
+conjunction with other :manual:`aggregation pipeline stages
+</aggregation>` in your query pipeline.
+
+Based on the pipeline stage that you choose, your 
+query returns either the search results of a full-text search or 
+metadata about your search results:
+
+.. include:: /includes/fts/list-tables/list-table-fts-pipeline-stages.rst
+
+Operators and Collectors
+------------------------
+
+|fts| also provides query :ref:`operators <operators-ref>` and 
+:ref:`collectors <collectors-ref>` that you can use inside the 
+:pipeline:`$search` and :pipeline:`$searchMeta` aggregation
+pipeline stages. The |fts| operators allow you to
+locate and retrieve relevant data from the collection on your |service|
+{+cluster+}. The collector returns a document representing the search
+metadata results. 
+
+You can use |fts| operators to query terms, phrases, geographic shapes 
+and points, numeric values, similar documents, synonymous terms, and 
+more.
+
+You can also search using regex and wildcard expressions. The |fts|
+:ref:`compound <compound-ref>` operator allows you to combine multiple operators 
+inside your :pipeline:`$search` stage to perform a complex search and 
+filter of data based on what *must*, *must not*, or *should* be present 
+in the documents returned by |fts|. You can use the :ref:`compound <compound-ref>` 
+operator to also match or filter documents in the :pipeline:`$search` 
+stage itself. Running :pipeline:`$match` after :pipeline:`$search` is 
+less performant than running :pipeline:`$search` with the 
+:ref:`compound <compound-ref>` operator.
+
+To learn more about operators and collectors, see :ref:`operators-ref`.
+
+.. _about-mongot:
+
+Query Processing
+----------------
+
+``mongod`` and ``mongot`` on the Same Node
+  When you run a query, |fts| uses the :ref:`configured read preference
+  <replica-set-tags>` to identify the node on which to run the query. The
+  query first goes to the MongoDB process, which is ``mongod`` for a
+  replica set cluster or ``mongos`` for a sharded cluster.  
+
+  For a replica set {+cluster+}, the MongoDB process routes the query to
+  the ``mongot`` on the same node. For sharded clusters, your cluster data
+  is partitioned across ``mongod`` instances and each ``mongot`` knows
+  about the data on the ``mongod`` on the same node only. Therefore, you
+  can't run |fts| queries that target a particular  shard. ``mongos``
+  directs the queries to all shards, making these *scatter gather*
+  queries. If you use :manual:`zones </core/zone-sharding/>` to
+  distribute a sharded collection over a subset of the shards in the
+  {+cluster+}, |fts| routes the query to the zone that contains the
+  shards for the collection that you are querying and runs your
+  :pipeline:`$search` queries on just the shards where the collection is
+  located.  
+
+  |fts| performs the search and scoring and returns the document IDs and
+  other search metadata for the matching results to ``mongod``. The
+  ``mongod`` then performs a full document lookup implicitly for the
+  matching results and returns the results to the client. If you use
+  the :pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in
+  your query, |fts| enables intra-query parallelism. To learn more, see
+  :ref:`Parallelize Query Execution Across Segments <concurrent-ref>`.
+
+``mongod`` and ``mongot`` on Different Nodes 
+  When you run a query, the query first goes to the ``mongod`` based on
+  the :ref:`configured read preference <replica-set-tags>`. The
+  ``mongod`` process routes the search query through a load balancer on
+  the same node, which distributes the requests across all of the
+  ``mongot`` processes. 
+  
+  The |fts| ``mongot`` process performs the search and scoring and
+  returns the document IDs and metadata for the matching results to
+  ``mongod``. The ``mongod`` then performs a full document lookup for
+  the matching results and returns the results to the client. If you use 
+  the :pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in
+  your query, |fts| enables intra-query parallelism. To learn more, see
+  :ref:`Parallelize Query Execution Across Segments <concurrent-ref>`.   
+
+Scoring
+-------
+
+|fts| associates a relevance-based score with every document in the 
+result set. The relevance-based scoring allows |fts| to return documents
+in the order from the highest score to the lowest. |fts| scores 
+documents higher if the query term appears frequently in a document and 
+lower if the query term appears across many documents in the 
+collection. |fts| also supports customizing the relevance-based default 
+score by boosting, decaying, or other modifying options. To learn more 
+about customizing the resulting scores, see :ref:`scoring-ref`.
+
+.. seealso:: Learn by Watching
+
+   Watch this video for an overview of searching and tracking your
+   queries with |fts|. In this video, you can learn more about |fts|
+   :ref:`operators <operators-ref>` and how |fts| :ref:`scores
+   <scoring-ref>` documents in the results. 
+
+   *Duration: 15 Minutes*
+
+   .. video:: https://youtu.be/U-hAo_TAi9c
+
+.. _ref-query-management:
+
+Supported Clients
+-----------------
+
+You can create and run |fts| queries using the following clients: 
+
+- :ref:`Search Tester <atlas-search-queries>`
+- {+mongosh+}
+- :compass:`Compass </>`
+- :driver:`MongoDB drivers </>`
+
+.. _fts-troubleshooting:
+
+Troubleshoot Queries
+--------------------
+
+.. _troubleshoot-empty-results:
+
+Empty Result Set 
+~~~~~~~~~~~~~~~~
+
+``mongot`` doesn't return any errors, but returns an empty result set if
+your :pipeline:`$search` query:
+
+- References an index that doesn't exist. If you don't specify an index
+  by name in the query, |fts| defaults to an index named ``default``. If
+  you don't have an index named ``default`` or if the index that you
+  specified doesn't exist, |fts| doesn't return an error and returns an
+  empty result set. You can specify a valid index by its name using the
+  ``index`` option.
+- Specifies a non-indexed field. If you run a query against a field that
+  isn't indexed, |fts| doesn't return an error and returns an empty
+  result set. You must specify only indexed fields as values for the 
+  ``path`` parameter. You can enable :ref:`dynamic mapping
+  <static-dynamic-mappings>` in your index definition for the collection
+  to ensure that all the :ref:`dynamically indexable fields
+  <bson-data-chart>` in the collection are automatically indexed. To
+  learn more, see :ref:`dynamic mapping <static-dynamic-mappings>`.
+- Uses the ``text`` operator on a field path which is not indexed as a 
+  ``string`` type. If a field is indexed as an |fts| field type other than 
+  ``string``, such as ``stringFacet`` or ``autocomplete``, |fts| doesn't 
+  return an error and returns an empty result set. You *must* index the 
+  fields with ``string`` |bson| data type values as 
+  :ref:`string <bson-data-types-string>` type to query the fields using 
+  the :ref:`text <text-ref>` operator.
+
+``PlanExecutor`` Error
+~~~~~~~~~~~~~~~~~~~~~~
+
+``mongot`` returns a ``PlanExecutor`` error if your :pipeline:`$search` query:
+
+- Specifies a field that is indexed as an incorrect data type. In this
+  case, if you run a query, |fts| returns an error message identifying the 
+  field that was indexed incorrectly and its correct data type. For 
+  example:
+
+  .. code-block:: shell
+     :copyable: false
+
+     PlanExecutor error during aggregation :: caused by :: Cannot facet on field "genres" because 
+     it was not indexed as a "stringFacet" field.
+
+  For example, to run :ref:`fts-facet-ref` queries
+  against ``string``, ``number``, or ``date`` fields, create an index
+  for the fields using the corresponding |fts| field type such as
+  ``stringFacet``, ``number``, and ``date`` respectively. To learn more,
+  see :ref:`Supported and Unsupported Data Types <bson-data-chart>`.
+  
+.. toctree::
+   :titlesonly:
+
+   Pipeline Stages <atlas-search/query-syntax>
+   Operators & Collectors <atlas-search/operators-and-collectors>
+   Query Path <atlas-search/path-construction>
+   Search Options </atlas-search/search-options>
+   Performance Options </atlas-search/performance-options>

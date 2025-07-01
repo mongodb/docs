@@ -1,0 +1,382 @@
+.. _query-perf:
+
+=======================
+|fts| Query Performance
+=======================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: cluster performance, trigger atlas alerts, $match aggregation pipeline stage, $compound operator, stored source fields, $near operator
+   :description: Improve your query performance by understanding how query complexity, operators, and pipeline stages can affect cluster performance.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _query-operators-and-complexity:
+
+Consider Query Operators and Query Complexity
+---------------------------------------------
+
+The complexity level of |fts| queries and the type of :ref:`operators
+<fts-operators>` used can affect database performance.
+
+Highly complex queries, such as queries with multiple clauses that use
+the :ref:`compound <compound-ref>` operator, or queries which use
+the :ref:`regex <regex-ref>` (regular expression) or the :ref:`wildcard <wildcard-ref>`
+operator, are resource-intensive.
+
+Compound Queries 
+~~~~~~~~~~~~~~~~
+
+If your query includes multiple nested :ref:`compound <compound-ref>` statements,
+ensure that these are not redundant. If the clauses are added
+programmatically, consider implementing the logic in the application to
+avoid inclusion of redundant clauses in the queries. Every score
+calculation per field that ``mongot`` performs, such as for the ``must``
+and ``should`` clauses, increases execution time.  
+
+Faceted Search 
+~~~~~~~~~~~~~~
+
+You can use the |fts| :ref:`fts-facet-ref` collector to extract
+metadata and avoid running multiple queries for search results and 
+metadata. For an example, see the :ref:`Metadata and Search Results
+example <fts-facet-egs>`. 
+
+Scoring the Results  
+~~~~~~~~~~~~~~~~~~~
+
+|fts| queries are ranked by :ref:`score <scoring-ref>`. Queries that
+return a large number of results are more computationally intensive
+because they must keep track of all the scores for the result set.
+
+Use ``$search`` Instead of ``$text`` or ``$regex``
+--------------------------------------------------
+
+For applications that rely heavily on MongoDB :query:`$text` and
+:query:`$regex` queries, use the following recommendations to determine
+whether to refactor your applications or migrate your applications to
+|fts| :pipeline:`$search`. The ``$search`` aggregation pipeline stage
+provides features that are either not available through the MongoDB
+operators or are available through the MongoDB operators but not as
+performant as |fts| ``$search``.
+
+The following table shows how MongoDB :query:`$regex`, :query:`$text`,
+and |fts| :pipeline:`$search` address your application's requirements. 
+
+.. list-table:: 
+   :widths: 40 10 60 
+   :header-rows: 1
+
+   * - If your application requires... 
+     - Use...
+     - Because...
+
+   * - Datastore to respect write concerns
+     - :query:`$regex`
+     - For transactions with heavy reads after writes, we recommend
+       :query:`$regex`. For :pipeline:`$search`, reads after writes
+       should be rare.  
+
+   * - Cluster optimized for write performance
+     - :pipeline:`$search`
+     - |fts| indexes don't degrade {+cluster+} write performance.
+
+   * - Searching through large data sets
+     - :pipeline:`$search`
+     - |fts| uses an inverted index, which enables fast document retrieval
+       at very large scales.
+
+   * - Language awareness 
+     - :pipeline:`$search`
+     - |fts| supports many :ref:`language analyzers
+       <ref-language-analyzers>` that can tokenize (create searchable
+       terms) languages, remove stopwords, and interpret diacritics for
+       improved search relevance.
+
+   * - Case-insensitive text search
+     - :pipeline:`$search`
+     - :pipeline:`$search` offers more capabilities than
+       :query:`$regex`. 
+
+   * - Highlighting result text
+     - :pipeline:`$search`
+     - |fts| :ref:`highlighting <highlight-ref>` allows you to
+       contextualize the documents in the results, which is essential
+       for natural language queries.
+
+   * - Geospatial-aware search queries
+     - :query:`$regex` or :pipeline:`$search`
+     - MongoDB :query:`$regex` and |fts| :pipeline:`$search` treat
+       geospatial parameters differently. In MongoDB, lines between
+       coordinates are spherical, which is well-suited for coordinates
+       for long distance such as air flight. |fts| uses Lucene, which
+       draws a straight line between coordinates and is well-suited
+       for short distance.
+
+   * - On-premises or local deployment
+     - :query:`$regex` or :query:`$text`
+     - |fts| is unavailable for on-premises or local deployment. |fts|
+       is only available for data on the |service| {+cluster+}.
+
+   * - Autocompletion of search queries
+     - :pipeline:`$search`
+     - For :ref:`autocomplete <autocomplete-ref>` of characters (nGrams), |fts|
+       includes ``edgeGrams`` for left-to-right autocomplete, ``nGrams``
+       for autocomplete of languages that don't have whitespace, and
+       ``rightEdgeGram`` for autocomplete of languages that you write
+       and read right-to-left. 
+       
+       For :ref:`autocomplete <autocomplete-ref>` of words (wordGrams), |fts| includes
+       :ref:`shingle-tf-ref` token filter, which supports word-based
+       autocomplete by concatenating adjacent words to create a single
+       token.
+
+   * - Fuzzy matching on text input 
+     - :pipeline:`$search`
+     - |fts| :ref:`text <text-ref>` and :ref:`autocomplete <autocomplete-ref>` operators
+       support ``fuzzy`` matching to filter on input text and address
+       misspelled words (typos).
+
+   * - Filtering based on multiple strings
+     - :pipeline:`$search`
+     - |fts| :ref:`compound <compound-ref>` supports filtering based on multiple
+       strings.
+
+   * - Relevance score sorted search 
+     - :pipeline:`$search`
+     - |fts| uses the `BM25 algorithm
+       <https://en.wikipedia.org/wiki/Okapi_BM25>`__ for determining
+       the search relevance score of documents. It supports advanced
+       configuration through :ref:`scoring-boost` expressions like
+       multiply and gaussian decay, as well as analyzers, search
+       operators, and synonyms. To learn more, see
+       :ref:`compound-query-custom-score-tutorial`.
+
+   * - Partial indexes 
+     - :query:`$regex`
+     - |fts| doesn't support partial indexing. 
+
+   * - Patial match
+     - :pipeline:`$search`
+     - |fts| :ref:`wildcard <wildcard-ref>` and :ref:`autocomplete <autocomplete-ref>` operators
+       support partial match queries.
+
+   * - Single compound index on arrays
+     - :pipeline:`$search`
+     - |fts| term indexes are intersected in a single |fts| index and 
+       eliminate the need for compound indexes for filtering on arrays.
+
+   * - Synonyms search
+     - :pipeline:`$search`
+     - |fts| supports :ref:`synonyms <synonyms-ref>` defined in a
+       separate collection, which you can reference in your search index
+       for use. To learn more, see the :ref:`synonyms-tutorial` tutorial.
+
+   * - Faceting for counts
+     - :pipeline:`$search`
+     - |fts| provides fast :ref:`counts <count-ref>` of documents based
+       on text criteria, and also supports :ref:`faceted
+       <fts-facet-ref>` search for numbers and dates. To learn more, see
+       :ref:`facet-tutorial`. 
+
+   * - Extract metadata
+     - :pipeline:`$search`
+     - |fts| :ref:`fts-facet-ref` collector returns metadata and doesn't
+       require you to run multiple queries for retrieving metadata. To
+       learn more, see the :ref:`facet-tutorial` tutorial.
+
+   * - Custom analyzers 
+     - :pipeline:`$search`
+     - |fts| supports :ref:`custom analyzers <custom-analyzers>` to suit
+       your specific indexing requirements. For example, you can index
+       and search email addresses and |http| or |https| |url|\s using
+       custom analyzers.
+
+   * - Searching phrases or multiple words
+     - :pipeline:`$search`
+     - |fts| :ref:`phrase <phrase-ref>` operator supports searching for a
+       sequence of terms. 
+
+   * - Searching with regular expression
+     - :pipeline:`$search`
+     - |fts| provides improved performance when you use the |fts|
+       :ref:`autocomplete <autocomplete-ref>` operator instead.
+
+.. seealso:: 
+
+   - :ref:`text-to-search` - describes how you can replace
+     :query:`$text` aggregation pipeline stage in your query with
+     :pipeline:`$search` to improve both the flexibility and performance
+     of these queries.  
+   - :ref:`regex-to-search` - describes how you can replace
+     inefficient regex matching with :pipeline:`$search` to improve the
+     performance of text queries. 
+
+.. _query-limit-and-facet-agg-stage:
+
+Use ``$limit`` Before ``$facet``
+--------------------------------
+
+Using a :pipeline:`$limit` aggregation pipeline stage after a
+:pipeline:`$facet` aggregation pipeline stage might negatively impact query performance. To avoid
+performance bottlenecks, use :pipeline:`$limit` before
+:pipeline:`$facet`.  
+
+.. example:: 
+
+   .. code-block:: json 
+      :copyable: false 
+
+      {
+        {
+          "$search": {...}
+        },
+        { "$limit": 20 },
+        {
+          "$facet": {
+            "results": [],
+            "totalCount": $$SEARCH_META
+          }
+        }
+      }
+
+For a demonstration, see the following examples: 
+
+- :ref:`Metadata and Search Results Example <fts-facet-egs>` 
+- :ref:`Facet Example <fts-count-aggregation-variable>`
+
+.. _query-match-agg-stage:
+
+Avoid ``$match`` After ``$search`` 
+----------------------------------
+
+Using a :manual:`$match </reference/operator/aggregation/match/>`
+aggregation pipeline stage after a :pipeline:`$search`
+stage can drastically slow down query results. If possible, design
+your ``$search`` query so that all necessary filtering occurs in the
+``$search`` stage to remove the need for a ``$match`` stage. 
+
+The |fts| :ref:`compound <compound-ref>` operator helps with queries that
+require multiple filtering operations. If you must use the
+:pipeline:`$match` stage in your aggregation pipeline, consider using
+the :ref:`storedSource <fts-stored-source-definition>` option to store 
+only the fields that your :pipeline:`$match` condition needs. You can 
+then use the :ref:`returnStoredSource <fts-return-stored-source-option>`
+option to retrieve stored fields.
+
+.. seealso:: 
+
+   - :ref:`perf-ref-stored-source`
+   - :ref:`$match Example <fts-return-stored-source-egs>`
+
+.. _query-group-agg-stage:
+
+Avoid ``$group`` After ``$search``  
+----------------------------------
+
+Using a :pipeline:`$group` aggregation pipeline stage after a
+:pipeline:`$search` stage can slow down query results. If
+you use :pipeline:`$group` to get basic counts for field aggregations,
+we recommend that you use :ref:`fts-facet-ref` inside the
+:pipeline:`$searchMeta` stage instead.  
+
+.. _query-count-agg-stage:
+
+Avoid ``$count`` After ``$search`` 
+----------------------------------
+
+Using a :pipeline:`$count` aggregation pipeline stage after a
+:pipeline:`$search` stage can slow down query results. If 
+you use :pipeline:`$count` to get a count of the number of documents, 
+we recommend that you use :ref:`count <count-ref>` inside the
+:pipeline:`$search` or :pipeline:`$searchMeta` stage instead.  
+
+.. _query-sort-agg-stage:
+
+Avoid ``$sort`` After ``$search`` 
+---------------------------------
+
+Using a :manual:`$sort </reference/operator/aggregation/sort/>` 
+aggregation pipeline stage after a :pipeline:`$search` 
+stage can drastically slow down query results. 
+
+- For sorting numeric, date, or string fields,  use the ``sort`` option with
+  the :pipeline:`$search` stage. To learn more, see :ref:`sort-ref`.  
+- For sorting geo fields, use the :ref:`near <near-ref>` operator. 
+- To sort other fields, use ``$sort`` and :ref:`returnStoredSource
+  <fts-return-stored-source-option>` fields.  
+
+Limit Use of ``$skip`` and ``$limit`` After ``$search`` 
+-------------------------------------------------------
+
+Using :pipeline:`$skip` and :pipeline:`$limit` to retrieve results
+non-sequentially might be slow if the results for your query are large. 
+For optimal performance, use the :pipeline:`$search` ``searchAfter`` or
+``searchBefore`` options to paginate results. To learn more, see 
+:ref:`fts-paginate-results`. 
+
+To return non-sequential results, such as jumping from page 2 to page 5,
+you can use the following pipeline stages: 
+
+- :pipeline:`$search` ``searchAfter`` the last result on Page 2
+- :pipeline:`$skip` documents on Pages 3 and 4 
+- :pipeline:`$limit` results for Page 5
+
+Here, your query is optimized to skip only 2 pages of results, instead
+of skipping 4 pages if you didn't use ``searchAfter``. For a
+demonstration of this, see :ref:`fts-paginate-results`.
+
+.. _query-performance-monitoring:
+
+Monitor Performance 
+-------------------
+
+You can :ref:`monitor <monitor-cluster-metrics>` your |service|
+cluster and view charts with performance statistics on the |service|
+:guilabel:`Metrics` tab. These metrics can help you see how |fts|
+queries and index building affect your cluster's performance. To learn 
+more, see :ref:`review-atlas-search-metrics`.
+
+|service| might trigger some |service| :ref:`alerts <alerts>` when:
+
+- |fts| queries your {+database-deployments+}, which can impact
+  |service| performance metrics, such as the :ref:`query targeting 
+  <query-targeting-resolution>` metrics.
+
+  .. include:: /includes/fact-query-targeting-mongot.rst
+
+- |fts| replicates data from MongoDB, which contributes to the 
+  :ref:`metrics <monitor-cluster-metrics>` measured in |service|, such 
+  as the number of :guilabel:`getmore` operations.
+
+.. note::
+
+   If your cluster's resources are stretched or near the
+   limits of acceptable performance, consider :ref:`upgrading
+   <scale-cluster>` to a larger cluster tier before implementing
+   |fts| functionality.
+
+.. seealso:: 
+
+   - :ref:`perf-ref-stored-source`
+   - :ref:`$sort Example <fts-return-stored-source-egs>`
+
+Continue Learning 
+-----------------
+
+Follow along with this video to learn how to understand, iterate, and
+improve your |fts| results using :ref:`explain <explain-ref>` and
+:ref:`$search score details <fts-score-details>`.
+
+*Duration: 5 Minutes*
+
+.. video:: https://youtu.be/KPrunyBrehcgst

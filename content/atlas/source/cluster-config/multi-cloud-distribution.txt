@@ -1,0 +1,644 @@
+.. meta::
+   :keywords: atlas cli, atlas api, atlas ui
+   :description: Configure multi-cloud MongoDB deployments in Atlas to enhance availability and workload isolation using different cloud providers and regions.
+
+.. _create-cluster-multi-region:
+
+==================================================
+Configure High Availability and Workload Isolation
+==================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. tip::
+
+   You can create multi-cloud MongoDB deployments in |service| using any
+   combination of cloud providers: |aws|, |azure|, and |gcp|.
+
+You can set the nodes in your MongoDB deployment to use different:
+
+- Cloud providers
+- Geographic regions
+- Workload priorities
+- Replication configurations
+
+Using these options allows you to improve the availability and workload
+balancing of your cluster.
+
+To configure node-specific options for your cluster, toggle
+:guilabel:`Multi-Cloud, Multi-Region & Workload Isolation (M10+ clusters)`
+to :guilabel:`On`.
+
+.. figure:: /images/multi-cloud-2.png
+   :figwidth: 720px
+   :alt: Multi-Cloud Provider, Multi-Region & Workload Isolation feature
+
+A cluster may be hosted in:
+
+- Multiple regions within a single cloud provider.
+- Multiple regions across multiple cloud providers.
+
+As each cloud provider has its own set of regions, multi-cloud
+clusters are also multi-region clusters.
+
+Considerations
+--------------
+
+- .. include:: /includes/cluster-settings/node-type-topology-warning.rst
+
+- In sharded clusters that use a :ref:`dedicated config server
+  <config-server-types>`, |service| distributes the three config server 
+  nodes based on the number of electable regions in the cluster. If the
+  cluster has:
+
+  - Only one electable region, |service| deploys all three config
+    nodes in that region.
+  - Two electable regions, |service| deploys two config nodes in the
+    highest priority region and one config node in the second highest
+    priority region.
+  - Three or more electable regions, |service| deploys one config node
+    in each of the three highest priority regions.
+
+- Having a large number of regions or having nodes spread across
+  long distances may lead to long election times or replication lag.
+
+- A cluster change that adds, removes, or modifies voting members will take longer, since
+  |service| adds, removes, or modifies :manual:`voting members </core/replica-set-elections/#voting-members>` one at a time on a :ref:`rolling basis <high-availability>`.
+
+- .. include:: /includes/facts/cross-region-limits.rst
+
+- |service| provides built-in custom write concerns for multi-region
+  clusters. Use these write concerns to ensure your write operations
+  propagate to a desired number of regions, thereby ensuring data
+  consistency across your regions. To learn more, see
+  :ref:`Built-In Custom Write Concerns <built-in-custom-wc>`.
+
+- .. include:: /includes/extracts/fact-no-node-restriction-base.rst
+
+- .. include:: /includes/cluster-settings/multicloud/remove-region-cross-region.rst
+
+- If you plan on creating one or more |vpc| peering connections on
+  your first ``M10+`` dedicated paid cluster for the selected region
+  or regions, first review the documentation on
+  :doc:`VPC Peering Connections </security-vpc-peering>`.
+
+- |service| may use different cloud provider hardware for ``M10`` and ``M20`` 
+  {+clusters+} in specific :ref:`GCP <google-gcp>` regions. As a result, 
+  certain :ref:`GCP <google-gcp>` region combinations may not be supported by 
+  multi-region ``M10`` and ``M20`` clusters. 
+
+.. _deploy-across-multiple-regions:
+.. _deploy-across-multiple-cloud-providers:
+
+Electable Nodes for High Availability
+-------------------------------------
+
+.. include:: /includes/cluster-settings/multicloud/electable-nodes-high-avail.rst
+
+Each electable node can:
+
+- Participate in replica set elections.
+
+- Become the :term:`primary` while the majority of nodes in the
+  replica set remain available.
+
+.. important::
+
+   .. include:: /includes/cluster-settings/global-cluster/global-clusters-search-nodes-limitations.rst
+
+.. _config-cloud-providers-regions:
+.. _add-electable-node:
+
+Add Electable Nodes
+~~~~~~~~~~~~~~~~~~~
+
+You can add electable nodes in one cloud provider and region from the
+:guilabel:`Electable nodes for high availability` section.
+
+To add an electable node:
+
+1. Click :guilabel:`Add a provider/region`.
+2. Select the cloud provider from the :guilabel:`Provider` dropdown.
+3. Select the region from the :guilabel:`Region` dropdown.
+
+   When you change the :guilabel:`Provider` option, the
+   :guilabel:`Region` changes to a blank option. If you don't select a
+   region, |service| displays an error when you click
+   :guilabel:`Create Cluster`.
+
+4. Specify the desired number of :guilabel:`Nodes` for the provider and
+   region.
+
+   The total number of electable nodes across all providers and regions
+   in the cluster must equal **3**, **5**, or **7**.
+
+|service| considers regions marked with a :icon-fa5:`star` as
+recommended. These regions provide higher availability compared to
+other regions.
+
+To learn more, see:
+
+- :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`
+- :ref:`GCP Recommended Regions <google-gcp-availability-zones>`
+- :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`
+
+.. _remove-electable-node:
+
+Remove Electable Nodes
+~~~~~~~~~~~~~~~~~~~~~~
+
+To remove a node from a region, click the :icon:`trash-alt` icon to the
+right side of that region. You cannot remove a node in the
+:guilabel:`Highest Priority` region.
+
+To learn more, see :ref:`Multi-Region Cluster Backups
+<multi-region-cloud-backup>`. 
+
+Change Electable Nodes to Read-Only Nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can change an electable node to a :ref:`read-only node
+<deploy-read-only-replicas>` by adding a read-only node and removing an
+electable node at the same time. To learn more, see :ref:`<change-workload-purpose>`.
+
+Improve the Availability of a Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To improve the redundancy and availability of a cluster, increase the
+number of electable nodes in that region. Every |service| cluster has a
+:guilabel:`Highest Priority` region. If your cluster spans multiple
+regions, you can select which cloud provider region should be the
+:guilabel:`Highest Priority`.
+
+To prevent loss of availability and performance, consider the following
+scenarios:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Point of Failure
+     - How to Prevent this Point of Failure
+
+   * - Cloud Provider
+     - Minimum of one node set in all three cloud providers. More than
+       one node per region.
+
+   * - Region
+     - Minimum of one node set in three or more different regions. More
+       than one node per region.
+
+   * - Node
+     -
+       - Three or more electable nodes in a :guilabel:`Recommended`
+         region *or*
+       - Three or more electable nodes across two or more regions.
+
+Change the Highest Priority Provider or Region
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you change the :guilabel:`Highest Priority` provider and region in
+an active multi-region cluster, |service| selects a new :term:`primary` 
+node in the provider and region that you specify (assuming that the number of 
+nodes in each provider and region remains the same and nothing else is 
+modified).
+
+.. example::
+
+   If you have an active 5-node cluster with the following
+   configuration:
+
+   .. list-table::
+      :widths: 10 30 30 30
+      :header-rows: 1
+      :stub-columns: 1
+
+      * - Nodes
+        - Provider
+        - Region
+        - Priority
+
+      * - 3
+        - |aws|
+        - **us-east-1**
+        - Highest
+
+      * - 2
+        - |gcp|
+        - **us-west3**
+        -
+
+   To make the |gcp| **us-west3** nodes the :guilabel:`Highest 
+   Priority`, drag its row to the top of your cluster's 
+   :guilabel:`Electable nodes` list. After this change, |service| elects a 
+   new **PRIMARY** in **us-west3**. |service| doesn't start an initial 
+   sync or re-provision hosts when changing this configuration.
+
+.. important::
+
+   Certain circumstances may delay an election of a new
+   :term:`primary`.
+
+   For example, a sharded cluster with heavy workloads on its :term:`primary`
+   shard may delay the election. This results in not having all
+   primary nodes in the same region temporarily.
+
+   To minimize these risks, avoid modifying your primary region during
+   periods of heavy workload.
+
+.. _deploy-read-only-replicas:
+
+Read-Only Nodes for Optimal Local Reads
+---------------------------------------
+
+Use read-only nodes to optimize local reads in the nodes' respective
+service areas.
+
+.. _add-read-only-node:
+
+Add Read-Only Nodes
+~~~~~~~~~~~~~~~~~~~
+
+You can add read-only nodes from the
+:guilabel:`Read-Only Nodes for Optimal Local Reads` section.
+
+To add a read-only node in one cloud provider and region:
+
+1. Click :guilabel:`Add a provider/region`.
+2. Select the cloud provider from the :guilabel:`Provider` dropdown.
+3. Select the region from the :guilabel:`Region` dropdown.
+
+   When you change the :guilabel:`Provider` option, the
+   :guilabel:`Region` changes to a blank option. If you don't select a
+   region, |service| displays an error when you click
+   :guilabel:`Create Cluster`.
+
+4. Specify the desired number of :guilabel:`Nodes` for the provider and
+   region.
+
+|service| considers regions marked with a :icon-fa5:`star` as
+recommended. These regions provide higher availability compared to
+other regions.
+
+Read-only nodes don't provide high availability because they don't
+participate in :term:`elections <election>`. They can't become the
+:term:`primary` for their cluster. To direct queries to read-only nodes, 
+use :ref:`pre-defined replica set tags <replica-set-tags>`.
+
+.. _remove-read-only-node:
+
+Remove Read-Only Nodes
+~~~~~~~~~~~~~~~~~~~~~~ 
+
+To remove all read-only nodes in one cloud provider and region, click
+the :icon:`trash-alt` icon to the right of that cloud provider and
+region.
+
+.. _change-workload-purpose:
+
+Change Workload Purpose of Nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can change a node's workload purpose by adding and removing nodes at the
+same time.
+
+.. include:: /includes/fact-changing-node-to-from-read-only.rst
+
+For example, to change a read-only node to an :ref:`electable node <deploy-across-multiple-cloud-providers>`:
+
+1. :ref:`Add an electable node <add-electable-node>`.
+2. :ref:`Remove a read-only node <remove-read-only-node>`.
+3. Click :guilabel:`Review Changes`.
+4. Click :guilabel:`Apply Changes`.
+
+.. _deploy-analytics-nodes:
+
+Analytics Nodes for Workload Isolation
+--------------------------------------
+
+.. include:: /includes/cluster-settings/multicloud/create-cluster-analytics-nodes.rst
+
+.. note::
+
+   The :manual:`readPreference </reference/connection-string/#mongodb-urioption-urioption.readPreference>` and 
+   :manual:`readPreferenceTags </reference/connection-string/#mongodb-urioption-urioption.readPreferenceTags>` connection
+   string options are unavailable for the :manual:`mongo 
+   </mongo>` shell. To learn more, see :manual:`cursor.readPref() 
+   </reference/method/cursor.readPref/#mongodb-method-cursor.readPref>` 
+   and :manual:`Mongo.setReadPref() 
+   </reference/method/Mongo.setReadPref/#mongodb-method-Mongo.setReadPref>` instead.
+
+.. _add-analytics-node:
+
+Add Analytics Nodes
+~~~~~~~~~~~~~~~~~~~
+
+You can add analytics nodes from the
+:guilabel:`Analytics nodes for workload isolation` section.
+
+To add analytics nodes in one cloud provider and region:
+
+1. Click :guilabel:`Add a provider/region`.
+2. Select the cloud provider from the :guilabel:`Provider` dropdown.
+3. Select the region from the :guilabel:`Region` dropdown.
+
+   When you change the :guilabel:`Provider` option, the
+   :guilabel:`Region` changes to a blank option. If you don't select a
+   region, |service| displays an error when you click
+   :guilabel:`Create Cluster`.
+
+4. Specify the desired number of :guilabel:`Nodes` for the provider and
+   region.
+
+|service| considers regions marked with a :icon-fa5:`star` as
+recommended. These regions provide higher availability compared to
+other regions.
+
+Analytics nodes don't provide high availability because they don't
+participate in :term:`elections <election>`. They can't become the
+:term:`primary` for their cluster.
+
+.. _select-analytics-nodes-tier:
+
+Select a {+Cluster+} Tier for Your Analytics Nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your workloads can vary greatly between analytics and operational nodes.
+To help manage this issue, for ``M10+`` {+clusters+}, you can 
+:ref:`select a {+cluster+} tier <create-cluster-instance>` 
+appropriately sized for your analytics workload. You can select a 
+{+cluster+} tier for your analytics nodes that's larger or smaller than 
+the {+cluster+} tier selected for your electable and read-only nodes 
+(operational nodes). This functionality helps to ensure that you get 
+the performance required for your transactional and analytical queries 
+without over or under provisioning your entire {+cluster+} for your 
+analytical workload.
+
+.. include:: /includes/fact-analytics-nodes-autoscaling.rst
+
+After you :ref:`add your analytics nodes <add-analytics-node>`, you can 
+:ref:`select a {+cluster+} tier <create-cluster-instance>` 
+appropriately sized for your analytics workload.
+
+1. In the :guilabel:`Cluster Tier` section, click the 
+   :guilabel:`Analytics Tier` tab.
+
+#. Select the :guilabel:`Cluster Tier`.
+
+Remove Analytics Nodes
+~~~~~~~~~~~~~~~~~~~~~~
+
+To remove all analytics nodes in one cloud provider and region, click
+the :icon:`trash-alt` icon to the right of that cloud provider and
+region.
+
+.. _configure-search-nodes:
+
+Search Nodes for Workload Isolation
+-----------------------------------
+
+You can set the nodes in your {+database-deployment+} to run only the |fts| 
+``mongot`` process. When you run the |fts| ``mongot`` process
+separately, you improve the availability and workload balancing of the
+``mongot`` process. To learn more, see :ref:`what-is-search-node`.
+
+Considerations
+~~~~~~~~~~~~~~
+
+On ``M10`` or higher |service| {+clusters+} running MongoDB v6.0 and
+higher, you can configure Search Nodes separately from the database
+nodes. Review the following before deploying |fts| nodes separately.
+
+Cluster Tier 
+````````````
+
+.. include:: /includes/fts/extracts/fts-search-nodes-cluster-tier.rst
+
+.. _fts-cloud-providers:
+
+Cloud Provider 
+``````````````
+
+.. include:: /includes/fts/extracts/fts-search-nodes-cloud-provider.rst
+
+.. _fts-cloud-provider-regions:
+
+Cloud Provider Regions 
+``````````````````````
+
+.. include:: /includes/fts/extracts/fts-search-nodes-cloud-provider-regions.rst
+
+To deploy Search Nodes separately, you must select a supported |aws|, |gcp|,
+or |azure| region from the :guilabel:`Electable nodes for high availability`
+dropdown. To learn more about the supported regions, see 
+:ref:`Regions for Dedicated Search Nodes 
+<create-cluster-cloud-provider-region>`. |service|
+automatically uses the same region for read-only and analytics nodes on
+your {+cluster+}. After deployment, you can't change the
+cloud provider or cloud provider region for your |service| {+cluster+}. 
+
+.. _multi-region-search-nodes:
+
+Multi-Region and Multi-Cloud {+Clusters+}
++++++++++++++++++++++++++++++++++++++++++
+
+|service| supports deploying Search Nodes across multiple
+regions and cloud providers. When deploying Search Nodes 
+for multi-region or multi-cloud {+clusters+}, consider the following:
+
+- |service| deploys the same number of Search Nodes 
+  in each region.
+- All nodes across regions have the same :ref:`search tier 
+  <select-tiers-for-search-nodes>`.
+- If you use the :ref:`{+atlas-admin-api+} <atlas-admin-api>`
+  to add a new region to existing Search Nodes, |service| deploys
+  the same number of Search Nodes in the new region. However, if the
+  new region does not support the current search tier, the
+  request fails.
+
+.. _select-tiers-for-search-nodes:
+
+Search Tier 
+```````````
+
+.. include:: /includes/fts/extracts/fts-search-nodes-search-tier.rst
+
+Enable Encryption at Rest
+`````````````````````````
+
+.. |search-type| replace:: |fts| and {+avs+}
+
+.. include:: /includes/fts/extracts/fts-search-nodes-encryption.rst
+
+.. _add-search-nodes:
+
+Add Search Nodes 
+~~~~~~~~~~~~~~~~
+
+.. tabs:: 
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To configure separate Search Nodes on your |service| {+cluster+},
+      do the following:  
+
+      1. Toggle :guilabel:`Multi-Cloud, Multi-Region & Workload
+         Isolation (M10+ clusters)` to :guilabel:`On`.
+
+      #. Toggle :guilabel:`Search nodes for workload isolation` to
+         :guilabel:`On`. 
+
+      #. Specify the number of nodes to deploy. You can specify between
+         a minimum of 2 and a maximum of 32 nodes.
+
+         After deployment, you can modify the cluster to add and remove
+         any additional Search Nodes. 
+
+         .. note:: 
+               
+            For multi-region {+clusters+}, |service| deploys 
+            the specified number of nodes in each region.
+            To learn more, see :ref:`multi-region-search-nodes`.
+
+      #. Expand :guilabel:`Cluster Tier` to select a tier for your search
+         nodes in the :guilabel:`Search Tiers` tab.
+
+         To learn more about the different tiers for your Search Nodes, see 
+         :ref:`select-tiers-for-search-nodes`.
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-clusters-search-nodes-create.rst
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api 
+
+      .. note:: 
+
+         You can add Search Nodes to existing |service| {+cluster+} only
+         if you currently don't have any and have never created |fts|
+         indexes on your {+cluster+}. 
+
+      To configure separate Search Nodes on your |service| {+cluster+},
+      send a ``POST`` request to the :oas-atlas-tag:`Atlas Search
+      </Atlas-Search>` resource ``/deployment`` :oas-atlas-op:`endpoint
+      </createAtlasSearchDeployment>`. You must specify the number of
+      nodes and the :ref:`instance size
+      <select-tiers-for-search-nodes>`. You can deploy between a minimum 
+      of 2 and a maximum of 32 nodes. To learn more, see
+      :oas-atlas-op:`Create Search Nodes </createAtlasSearchDeployment>`. 
+
+.. include:: /includes/fts/extracts/fts-migrate-add-search-nodes.rst
+
+.. _remove-search-nodes:
+
+Remove Search Nodes 
+~~~~~~~~~~~~~~~~~~~
+
+.. tabs:: 
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+      
+      .. tabs:: 
+
+         .. tab:: Remove Some
+            :tabid: remove-some
+
+            To remove some Search Nodes, adjust the :guilabel:`Number of
+            Search Nodes` setting under :guilabel:`Search nodes for workload
+            isolation`. You can deploy between 2 and 32 Search Nodes on your
+            {+cluster+}.
+      
+         .. tab:: Remove All
+            :tabid: remove-all
+
+            .. include:: /includes/fact-remove-search-nodes-encryption.rst
+
+            To remove all Search Nodes on your |service| {+cluster+},
+            do the following:  
+
+            1. Toggle :guilabel:`Search nodes for workload isolation` to
+               :guilabel:`Off`.
+
+               You can now select any region from the available cloud
+               providers.
+
+            #. Click :guilabel:`Remove` to confirm in the :guilabel:`Are
+               you sure you want to remove Search Nodes?` modal.
+
+            #. Click :guilabel:`Review Changes`.
+            
+            #. Click the checkbox to confirm that you understand and agree to
+               the considerations for deleting a cluster with Search Nodes.
+
+               There will be a brief interruption in processing your search
+               query results.
+            
+            #. Click :guilabel:`Apply Changes`.
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/fact-remove-search-nodes-encryption.rst
+
+      .. include:: /includes/extracts/atlas-clusters-search-nodes-delete.rst
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api 
+
+      .. tabs::
+      
+         .. tab:: Remove Some
+            :tabid: remove-some
+
+            To add or remove Search Nodes or modify search tier on your
+            |service| {+cluster+}, send a ``PATCH`` request to the
+            :oas-atlas-tag:`Atlas Search </Atlas-Search>` resource
+            ``/deployment`` :oas-atlas-op:`Update Search Nodes
+            </updateAtlasSearchDeployment>` endpoint.
+
+            You can specify the following:
+            
+            - The number of nodes to remove. If omitted, |service| doesn't
+              change the current number of deployed nodes.
+            - The :ref:`instance size <select-tiers-for-search-nodes>` to use 
+              to switch to a different search tier. If omitted, |service|
+              doesn't modify the current search tier for the deployed nodes.
+            
+            To learn more, see :oas-atlas-op:`Update Search Nodes
+            </updateAtlasSearchDeployment>`. 
+      
+         .. tab:: Remove All
+            :tabid: remove-all
+
+            .. include:: /includes/fact-remove-search-nodes-encryption.rst
+
+            To remove all Search Nodes on your |service| {+cluster+},
+            send a ``DELETE`` request to the :oas-atlas-tag:`Atlas Search
+            </Atlas-Search>` resource ``/deployment`` :oas-atlas-op:`endpoint
+            </deleteAtlasSearchDeployment>`. To learn more, see
+            :oas-atlas-op:`Delete Search Nodes
+            </deleteAtlasSearchDeployment>`.
+
+.. include:: /includes/fts/extracts/fts-migrate-delete-search-nodes.rst 
+
+.. _multi-cloud-limitation:
+
+Connections to Multi-Cloud Deployments
+--------------------------------------
+
+.. include:: /includes/fact-multi-cloud-connection-limitation.rst

@@ -1,0 +1,458 @@
+.. meta::
+   :keywords: atlas api
+   :description: Understand how to manage multiple connection strings for Atlas clusters, including public and private IP configurations.
+
+.. _conn-string-options:
+
+==============================
+FAQ: Connection String Options
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| provides multiple connection strings. These strings allow
+you to connect to your clusters from both public and private contexts. 
+|service| always assigns {+database-deployments+} unique connections 
+strings so that no two {+database-deployments+} share hostnames or 
+connection strings across |service|.
+
+.. _atlas-faq-multi-conn-strings:
+
+Why does my cluster have multiple connection strings?
+-----------------------------------------------------
+
+To connect to |service|, point your applications to a |uri| to
+communicate with a cluster. |service| creates clusters with more than
+one node or host. Each node has its own hostname that resolves to an IP
+address. The |uri|, known as a *connection string*, to which |service|
+connects might have more than one hostname. Configure |service| to
+accept connections to the cluster hosts from allowed IP addresses.
+
+|service| secures connections from public IP address through
+authentication and |tls|. If you want to connect to private IP
+addresses, you can use:
+
+- :doc:`AWS and GCP VPC Peering </security-vpc-peering>`
+- :doc:`Azure VNet Peering </security-vpc-peering>`
+- :ref:`AWS PrivateLink and Azure Private Link <private-endpoint-connection-strings>`
+
+These features all manage communication over internal IP addresses
+within secure networks.
+
+|service| provides more than one connection string when using secure
+networks. Each network offers a string that resolves to different IP
+addresses.
+
+All clusters have a
+:ref:`standard connection string <connstring-standard>`. This resolves
+to the cluster's:
+
+- Public IP addresses for Internet connections and
+- |vpc| private IP addresses for |aws| clusters when resolved from a
+  peered |vpc|.
+
+Use this string for applications connecting over the Internet or
+connecting to peered clusters in |aws|.
+
+Clusters with peered networks have a
+:ref:`Private IP for Peering connection string <connstring-private>`.
+This string resolves to IP addresses available to:
+
+- Peered networks in |azure| or |gcp|
+- |aws| peered clusters with a custom |dns| service.
+
+Use this connection string with applications connecting:
+
+- Within an |azure| or |gcp| peered network
+- To |aws| clusters when using |aws| with custom |dns| service.
+
+|aws| or |azure| clusters in regions with :ref:`private endpoints
+<private-endpoint-connection-strings>` configured have one or more
+connection strings. Each string resolves to the private IP address of a
+network interface in your |vpc| or VNet that connects directly to a load
+balancer in the |service| |vpc| or VNet. Use these connection strings
+with applications connecting with private endpoints.
+
+.. _atlas-faq-azure-gcp-peering-only:
+
+What does this mean for |gcp| or |azure| clusters in peering-only mode?
+-----------------------------------------------------------------------
+
+Before 31 March 2020, you were required to enable peering-only mode to
+connect to databases on peer networked |azure| or |gcp| clusters. This
+mode:
+
+- Affected global |dns| resolution and
+- Limited any database connections outside the peered network.
+
+Multiple horizons lifts these restrictions and unlocks the following
+additional features:
+
+- :charts:`Charts </>`
+- :doc:`Live Migration </import>`
+
+To leverage multiple horizons, complete the following tasks:
+
+- Update your application's existing connection strings to use
+  :ref:`Private IP for Peering connection strings <connstring-private>`.
+- :ref:`Disable Peering-Only mode <disable-peering-mode>`.
+- Connect using the strings outlined in :ref:`Why does my cluster have multiple connection strings <atlas-faq-multi-conn-strings>`.
+
+.. note::
+
+   You *can* keep connecting to your clusters using existing
+   peering-enabled connection strings at this time. Peering-Only mode
+   prevents access to the improved functionality and reduced
+   limitations of multiple horizons. To use the new features and remove
+   the legacy limitations, MongoDB requires that you use the new
+   connection strings.
+
+.. _atlas-faq-azure-span-regions:
+
+Can my VNet-peered |azure| cluster span multiple regions?
+---------------------------------------------------------
+
+Yes.
+
+Change your applications to connect using the
+:ref:`Private IP for Peering connection string <connstring-private>`.
+This change allows your applications to connect from peered networks
+using the UI or API.
+
+To expand into more regions, disable Peering-Only mode on existing
+|azure| clusters first.
+
+.. _disable-peering-mode:
+.. _atlas-faq-disable-peering-mode:
+
+How do I disable peering-only mode?
+-----------------------------------
+
+To disable Peering-Only mode using the:
+
+.. tabs::
+
+   .. tab:: Atlas Console
+      :tabid: console
+
+      .. include:: /includes/steps-disable-private-ip-mode-console.rst
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      .. include:: /includes/steps/disable-private-ip-mode-api.rst
+
+.. _faq-custom-dns:
+.. _atlas-faq-custom-dns:
+
+How does this affect |aws| |vpc| peering when I use custom |dns|?
+-----------------------------------------------------------------
+
+Before 31 March 2020, applications deployed within |aws| using custom
+|dns| services and |vpc|\-peered with |service| couldn't connect over
+private IP addresses:
+
+- Custom |dns| resolved to public IP addresses.
+- |aws| internal |dns| resolved to private IP addresses.
+
+Applications deployed with custom |dns| services in |aws| should use
+:ref:`Private IP for Peering connection strings <connstring-private>`.
+
+To show these strings:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-settings.rst
+
+   .. step:: Show the connection string.
+
+      a. Toggle 
+         :guilabel:`Using Custom DNS on AWS with VPC Peering` to
+         :guilabel:`On`.
+
+      #. View the :guilabel:`connect` modal for your |aws| cluster.
+
+      #. Select the :guilabel:`Private IP for Peering` connection 
+         string.
+
+.. _atlas-faq-id-connstrings:
+
+How do I identify which connection string my application uses?
+--------------------------------------------------------------
+
+The structure of the connection string's |uri| indicates the string's
+type. If you have created a peering connection or private endpoint,
+|service| displays more than one of these options for your use.
+
+.. _connstring-standard:
+.. _atlas-faq-connstring-standard:
+
+Standard Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Standard connection strings follow this format:
+
+.. code-block:: sh
+
+   mongodb://xyz456-shard-00-00.ab123.mongodb.net:27017
+   mongodb+srv://xyz456.ab123.mongodb.net
+
+The dot before ``ab123`` *matters*. |uri|\s using this format resolve
+to public IP addresses *except* when connecting from inside |aws| with
+|vpc|\-peering configured.
+
+.. important::
+
+   This format changes one character from the
+   :ref:`Legacy Connection Strings <connstring-legacy>`: a hyphen
+   (``-``) after the cluster name becomes a period (``.``).
+
+   For example, this *legacy connection string*:
+
+   .. code-block:: sh
+
+      mongodb+srv://xyx456-ab123.mongodb.net
+
+   is written as this *standard connection string*:
+
+   .. code-block:: sh
+
+      mongodb+srv://xyx456.ab123.mongodb.net
+
+   For new clusters, replica sets and shards don't derive their name
+   from the name of the cluster. The new names use a six alphanumeric
+   character ID.
+
+.. _connstring-private:
+.. _atlas-faq-connstring-private:
+
+Private Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Private connection strings follow this format:
+
+.. code-block:: sh
+
+   mongodb://xyx456-shard-00-00-pri.ab123.mongodb.net:27017
+   mongodb+srv://xyx456-pri.ab123.mongodb.net
+
+The ``-pri`` before ``ab123`` *matters*. |uri|\s using this format
+resolve to private IP addresses reachable within the peered network. 
+If you configure network peering for your cluster, you must use the 
+new hostname when you connect to your cluster to utilize the peering.
+
+.. important::
+
+  In new clusters, replica sets and shards don't derive their name
+  from the name of the cluster. The new names use a six
+  alphanumeric character ID.
+
+.. _connstring-privatelink:
+.. _atlas-faq-connstring-privatelink:
+
+|aws| Privatelink Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`AWS PrivateLink <private-endpoint-connection-strings>`
+connection strings follow this format:
+
+.. code-block:: sh
+   :copyable: false
+
+   mongodb://pl-0-us-east-1a.ab123.mongodb.net:1024
+   mongodb+srv://pl-0-us-east-1a.ab123.mongodb.net
+
+If you enable the :ref:`regionalized private endpoint
+<atlas_regionalized-pl>` setting, {+aws-pl+} connection strings follow
+this format:
+
+.. code-block:: sh
+   :copyable: false
+
+   mongodb://pl-0-us-west-1.ab123.mongodb.net:1024
+   mongodb+srv://cluster0-pl-0-us-west-1.ab123.mongodb.net
+
+|uri|\s using this format can be reachable via the |aws| |vpc| where
+someone configured PrivateLink, though access can be transitive from
+other |vpc|\s peered in turn.
+
+|azure| Private Link Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Azure Private Link <private-endpoint-connection-strings>`
+connection strings follow this format:
+
+.. code-block:: sh
+   :copyable: false
+
+   mongodb://pl-0-eastus2.ab123.mongodb.net:1024
+   mongodb+srv://pl-0-eastus2.ab123.mongodb.net
+
+If you enable the :ref:`regionalized private endpoint
+<atlas_regionalized-pl>` setting, {+az-pl+} connection strings follow
+this format:
+
+.. code-block:: sh
+   :copyable: false
+
+   mongodb://pl-0-eastus2.ab123.mongodb.net:1024
+   mongodb+srv://cluster0-pl-0-eastus2.ab123.mongodb.net
+
+|uri|\s using this format can be reachable via the |azure| VNet where
+someone configured Private Link, though access can be transitive from
+other VNets peered in turn.
+
+.. _connstring-legacy:
+.. _atlas-faq-connstring-legacy:
+
+Legacy Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before 31 March 2020, you wrote |service| connection strings as
+follows:
+
+.. list-table::
+   :widths: 30 70
+   :stub-columns: 1
+
+   * - |aws|
+     -
+       .. code-block:: sh
+          :copyable: false
+
+          foo-shard-00-00-ab123.mongodb.net
+          foo-ab123.mongodb.net
+
+   * - |azure|
+     -
+       .. code-block:: sh
+          :copyable: false
+
+          foo-shard-00-00-ab123.azure.mongodb.net
+          foo-ab123.azure.mongodb.net
+
+   * - |gcp|
+     -
+       .. code-block:: sh
+          :copyable: false
+
+          foo-shard-00-00-ab123.gcp.mongodb.net
+          foo-ab123.gcp.mongodb.net
+
+If you enabled **Private Only** mode, these hostnames resolve to peered
+network IP addresses. If you disabled that mode, hostnames resolve to
+public IP addresses.
+
+If your application uses a legacy connection string in **Peering Only**
+mode, switch to
+:ref:`Private IP for Peering connection strings <connstring-private>`.
+
+.. _atlas-faq-migrate-providers:
+.. _tenant-to-tenant:
+
+Do I have to update my connection string when migrating to a different cloud provider from an ``M0`` {+cluster+} or {+Flex-cluster+} to another?
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+If you have a :ref:`legacy connection string
+<atlas-faq-connstring-legacy>` and you want to change cloud 
+providers, your connection string must include ``.gcp`` or ``.azure``
+and you want to do one of the following:
+
+- Move to |gcp| or |azure|
+- Move off of |gcp| or |azure|
+
+  .. note::
+
+     Either operation may change your connection string. In the
+     {+atlas-ui+}, click :guilabel:`Connect` on your {+cluster+} after
+     the upgrade completes for an updated connection string. 
+
+.. _dedicated-to-dedicated:
+
+Do I have to update my connection string when migrating to a different cloud provider from a {+dedicated-cluster+} to another?
+------------------------------------------------------------------------------------------------------------------------------
+
+It depends on the following:
+
+- which cloud provider your current cluster uses
+- when you created the cluster
+
+GCP or Azure {+Clusters+} Created Before November 3, 2020
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you created your cluster before multi-cloud clusters were introduced
+on November 3, 2020, **and** your cluster runs on |gcp| or |azure|:
+
+1. Open the cluster builder.
+
+#. Edit the cluster.
+
+#. Add read-only nodes from your target cloud provider.
+
+   .. note::
+   
+      If you are using legacy backups, keep one node in your current cloud provider,
+      and move the rest to your target cloud provider.
+
+#. Review and submit the changes.
+
+#. Copy the resulting comma-delimited |uri| connection string.
+
+#. Replace the connection string in your application with this new
+   :ref:`standard connection string <atlas-faq-connstring-standard>`.
+
+   This allows your application to connect to nodes from multiple cloud
+   providers.
+
+#. Restart your application.
+
+#. Make sure that your application can connect to |service|.
+
+#. After the first change completes, reconfigure your cluster:
+
+   - Remove all electable nodes using the original cloud provider.
+   - Remove the read-only nodes for the target cloud provider.
+   - Add the same number of electable nodes using the target cloud
+     provider.
+
+   .. note::
+   
+      If you are using legacy backups, wait until new backups are taken,
+      then move the remaining node to your target cloud provider.
+
+#. Review and submit the changes.
+
+#. Copy the resulting comma-delimited |uri| connection string.
+
+#. Replace the |uri| connection string in your application with this
+   new |uri| connection string.
+
+#. Restart your application.
+
+#. Make sure that your application can connect to |service|.
+
+AWS and {+Clusters+} Created After November 2, 2020
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your connection string doesn't change and you don't experience {+cluster+} downtime 
+if any of the following is true:
+
+* Your {+cluster+} runs on |aws|. 
+* Your {+cluster+} runs on any cloud provider but was created after November 2, 2020.  
+
+To change the cloud provider for your {+cluster+}:
+
+1. Open the {+cluster+} builder.
+
+#. Edit the {+cluster+}.
+
+#. Change the cloud provider.
+
+#. Review and submit the changes.

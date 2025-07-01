@@ -1,0 +1,425 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, kotlin, python, shell
+
+.. _query-nonstring-tutorial:
+
+==============================================
+How to Search Non-Alphabetical Data as Strings
+==============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: convert date field to string, convert number field to string, queryString operator, autocomplete operator, logical and, logical or, compound operator, should clause, code example, java sync, node.js, compass
+   :description: In this tutorial, learn how to create a materialized view to query non-string fields with operators that only support strings.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial demonstrates how to run string-specific 
+queries against non-string fields by converting the fields to 
+strings and storing them in a :manual:`materialized view </core/materialized-views/>`. 
+The materialized view lets you use string-specific operators to query 
+the converted fields and keep the original data intact in the source collection.
+
+Specifically, this tutorial takes you through the following steps:
+
+1. Create a materialized view on a sample collection.
+#. Set up |fts| indexes on the materialized view.
+#. Run |fts| queries against the converted fields in the 
+   materialized view.
+
+.. include:: /includes/fts/fts-design-patterns-prereqs.rst
+
+.. _query-nonstring-create-mv:
+
+Create a Materialized View
+--------------------------
+
+This section demonstrates how to create a 
+:manual:`materialized view </core/materialized-views/>` 
+named ``airbnb-mat-view`` on the 
+:ref:`sample_airbnb.listingsAndReviews <sample-airbnb>` collection. 
+This view stores various numeric and date fields from the source 
+collection as string fields.
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Log in to |service| and connect to your {+cluster+} using {+mongosh+}.
+
+      Open {+mongosh+} in a terminal window and connect to your 
+      {+cluster+}. For detailed instructions on connecting, see 
+      :ref:`connect-mongo-shell`.
+
+   .. step:: Verify and switch to the ``sample_airbnb`` database. 
+
+      a. Run the following command to verify that the database exists 
+         in your {+cluster+}: 
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: 
+               :language: sh
+
+               show dbs 
+
+            .. output:: 
+               :language: sh
+               :emphasize-lines: 1
+
+               sample_airbnb       55.3 MB
+               sample_analytics    9.59 MB
+               sample_geospatial   1.43 MB
+               sample_guides         41 kB
+               sample_mflix        51.1 MB
+               sample_restaurants  6.95 MB
+               sample_supplies     1.21 MB
+               sample_training     55.5 MB
+               sample_weatherdata  2.89 MB
+               admin                348 kB
+               local                2.1 GB
+
+      #. Run the following command to switch to the ``sample_airbnb`` 
+         database.
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: 
+               :language: sh
+
+               use sample_airbnb 
+
+            .. output:: 
+               :language: sh
+               :emphasize-lines: 1 
+
+               switched to db sample_airbnb
+
+   .. step:: Create a materialized view named ``airbnb_mat_view``.
+
+      To create a materialized view, run the following query. The query 
+      specifies the following aggregation pipeline stages:
+
+      - :pipeline:`$project`: In this stage, the query does the 
+        following:
+
+        - Converts the ``last_scraped`` date object to a string in the 
+          format ``YYYY-MM-DD`` using :expression:`$dateToString`.
+        - Includes ``name`` and ``property_type`` string fields.
+        - Converts ``accommodates`` number field to a string using 
+          :expression:`$toString`.
+        - Converts ``maximum_nights`` number field to a string using 
+          :expression:`$toString`.
+
+      - :pipeline:`$merge`: In this stage, the query writes the output 
+        fields from the :pipeline:`$project` stage to a  materialized 
+        view named ``airbnb_mat_view``.
+
+        .. code-block:: json 
+           :copyable: true 
+
+           db.listingsAndReviews.aggregate( [
+             {
+               $project: {
+                 lastScrapedDate: { $dateToString: { format: "%Y-%m-%d", date: "$last_scraped" } },
+                 propertyName: "$name",
+                 propertyType: "$property_type",
+                 accommodatesNumber: { $toString: "$accommodates" },
+                 maximumNumberOfNights: { $toString: "$maximum_nights" }
+               }
+             },
+             { $merge: { into: "airbnb_mat_view", whenMatched: "replace" } }
+           ] )
+
+   .. step:: Verify that the materialized view was successfully created. 
+
+      To verify, run the following command:
+
+      .. io-code-block::
+            :copyable: true 
+
+            .. input:: 
+               :language: sh
+
+               db.airbnb_mat_view.findOne() 
+
+            .. output:: 
+               :language: json
+               :emphasize-lines: 1 
+
+               {
+                 _id: '10006546',
+                 lastScrapedDate: '2019-02-16',
+                 propertyName: 'Ribeira Charming Duplex',
+                 propertyType: 'House',
+                 accommodatesNumber: '8',
+                 maximumNumberOfNights: '30'
+               }
+
+.. _query-nonstring-create-index:
+
+Create |fts| Indexes on the Materialized View 
+---------------------------------------------
+
+In this section, you create |fts| indexes on the 
+``lastScrapedDate``, ``name``, ``propertyType``, 
+``accommodatesNumber``, and ``maximumNumberOfNights`` fields for 
+running queries against these fields. 
+
+.. |search-type| replace:: :guilabel:`Atlas Search`
+.. |index-name| replace:: ``date-number-fields-tutorial``
+.. |database-name| replace:: ``sample_airbnb`` database
+.. |collection-name| replace:: ``airbnb_mat_view`` collection
+
+.. procedure:: 
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. include:: /includes/nav/steps-atlas-search.rst
+
+   .. include:: /includes/nav/steps-configure-index.rst
+
+   .. step:: Define an index on the fields in the materialized view.
+
+      You can create one of the following indexes:
+  
+      - Index that uses dynamic mappings for running queries using the 
+        :ref:`queryString <querystring-ref>` operator. You can't run queries using 
+        the :ref:`autocomplete <autocomplete-ref>` operator if your index definition 
+        uses only dynamic mappings.
+      - Index that uses static mappings for running queries using 
+        :ref:`autocomplete <autocomplete-ref>` operator. You can't run queries using 
+        the :ref:`queryString <querystring-ref>` operator against fields indexed as 
+        type ``autocomplete``.
+
+      .. tabs:: 
+
+         .. tab:: Dynamic Mappings
+            :tabid: dynamic
+
+            You can use the :guilabel:`Visual Editor` or the 
+            :guilabel:`JSON Editor` in the |service| user interface to 
+            create the index. 
+
+            .. tabs:: 
+  
+               .. tab:: Visual Editor
+                  :tabid: vib
+  
+                  Click :guilabel:`Create Search Index`.
+
+               .. tab:: JSON Editor 
+                  :tabid: jsoneditor
+
+                  a. Review the index definition. 
+          
+                     Your index definition should look similar to the 
+                     following: 
+
+                     .. code-block:: json 
+
+                        {
+                          "mappings": {
+                            "dynamic": true
+                          }
+                        }
+
+                  #. Click :guilabel:`Next`.
+                  #. Click :guilabel:`Create Search Index`.
+
+         .. tab:: Static Mappings
+            :tabid: static
+
+            You can use the :guilabel:`Visual Editor` or the 
+            :guilabel:`JSON Editor` in the |service| user interface 
+            to create the index. 
+
+            .. tabs:: 
+  
+               .. tab:: Visual Editor
+                  :tabid: vib
+  
+                  a. Click :guilabel:`Refine Your Index`.
+                  #. Click :guilabel:`Add Field` in the :guilabel:`Field
+                     Mappings` section.
+                  #. Click :guilabel:`Customized Configuration` in
+                     the :guilabel:`Add Field Mapping` window.
+                  #. Select :guilabel:`accommodatesNumber` from the 
+                     :guilabel:`Field Name` dropdown.
+                  #. Click the :guilabel:`Data Type` dropdown, select
+                     :guilabel:`Autocomplete` from the dropdown,
+                     and configure the following fields:
+
+                     .. list-table:: 
+                        :header-rows: 1
+                        :widths: 20 80
+   
+                        * - UI Field Name 
+                          - Configuration
+    
+                        * - :guilabel:`Max Grams`
+                          - ``<maximum number of characters to index per sequence, numeric value>``
+
+                        * - :guilabel:`Min Grams`
+                          - ``<minimum number of characters to index per sequence, numeric value.``
+                         
+
+
+                        * - :guilabel:`Tokenization`
+                          - :guilabel:`edgeGram`
+
+                        * - :guilabel:`Fold Diacritics`
+                          - :guilabel:`true`
+                     
+                     
+                     Very low values for ``Min Grams`` might result in a very large index. 
+
+                  #. Click :guilabel:`Add` to add the field to the
+                     :guilabel:`Field Mappings` table.
+                  #. Click :guilabel:`Add Field` in the :guilabel:`Field
+                     Mappings` section and repeat step **d** to step
+                     **f** to configure the settings for the following
+                     fields: 
+
+                     - ``lastScrapedDate``
+                     - ``numberOfNights``
+
+                  #. Click :guilabel:`Save Changes`. 
+
+               .. tab:: JSON Editor 
+                  :tabid: jsoneditor
+
+                  a. Replace the default index definition with the 
+                     following example index definition.
+
+                     .. code-block:: json 
+
+                        {
+                          "mappings": {
+                          "dynamic": false,
+                            "fields": {
+                              "accommodatesNumber": [
+                                {
+                                  "dynamic": true,
+                                  "type": "document"
+                                },
+                                {
+                                  "minGrams": 1,
+                                  "type": "autocomplete"
+                                }
+                              ],
+                              "lastScrapedDate": [
+                                {
+                                  "dynamic": true,
+                                  "type": "document"
+                                },
+                                {
+                                  "type": "autocomplete"
+                                }
+                              ],
+                              "maximumNumberOfNights": [
+                                {
+                                  "dynamic": true,
+                                  "type": "document"
+                                },
+                                {
+                                  "minGrams": 1,
+                                  "type": "autocomplete"
+                                }
+                              ]
+                            }
+                          }
+                        }
+
+                  #. Click :guilabel:`Next`.
+   
+   .. step:: Click :guilabel:`Create Search Index`.
+      
+      The :guilabel:`You're All Set!` modal window displays to indicate that |fts| is building your index.
+
+   .. step:: Close the :guilabel:`You're All Set!` modal window and wait for the index build to complete.
+
+.. _query-nonstring-run-queries:
+
+Run Queries on the Converted Fields 
+-----------------------------------
+
+You can run queries against the numeric and date fields that were 
+converted to strings. This tutorial uses :ref:`queryString <querystring-ref>` and 
+:ref:`autocomplete <autocomplete-ref>` operators to search for properties. The query 
+uses the following pipeline stages:
+
+- :pipeline:`$search` stage to search the collection
+- :pipeline:`$limit` stage to limit the output to ``5`` results 
+- :pipeline:`$project` stage to exclude ``_id``
+
+In this section, you connect to your |service| {+cluster+} and run 
+the sample queries using the operator against the fields in the 
+``airbnb_mat_view`` collection. 
+
+.. note:: 
+
+   You can't run :ref:`near <near-ref>` or :ref:`range <range-ref>` queries against 
+   the date and number fields that were converted to strings in your 
+   materialized view.
+
+.. tabs-selector:: drivers
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu on this page to 
+set the language of the examples in this section.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-mongosh.txt
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-compass.txt
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-query-go.txt
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-java.txt
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-kotlin.txt
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-nodejs.txt
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-python.txt
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/fts/date-number-to-string/procedures/steps-fts-date-number-query-csharp.txt

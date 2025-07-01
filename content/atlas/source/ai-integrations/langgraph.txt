@@ -1,0 +1,150 @@
+.. _langgraph:
+
+================================
+Integrate MongoDB with LangGraph
+================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Integrate MongoDB with LangGraph to build AI agents and advanced RAG applications.
+   :keywords: AI agents, agents, agentic, RAG, retrieval, langgraph, langchain, chatbot, vector database, integration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |langgraph-link| replace:: `LangGraph <https://langchain-ai.github.io/langgraph/>`__
+.. |langgraph| replace:: LangGraph
+
+.. include:: /includes/avs/ai-integrations/extracts/avs-langgraph-intro.rst
+
+.. button:: Get Started
+   :uri: https://www.mongodb.com/docs/atlas/ai-integrations/langgraph/build-agents
+
+.. note::
+
+   For the JavaScript integration, see :ref:`LangGraph JS/TS <langgraph-js>`.
+
+Background
+----------
+
+.. |graphs-link| replace:: `Graphs <https://langchain-ai.github.io/langgraph/concepts/low_level/>`__
+
+.. include:: /includes/avs/ai-integrations/extracts/avs-langgraph-background.rst
+
+.. _langgraph-retrieval:
+
+Retrieval Tools
+---------------
+
+You can seamlessly use LangChain retrievers as
+tools in your LangGraph workflow to retrieve relevant 
+data from |service|.
+
+The MongoDB LangChain integration natively supports 
+full-text search, vector search, hybrid search, and 
+parent-document retrieval. For a complete list of
+retrieval methods, see :ref:`MongoDB LangChain Retrievers 
+<langchain-retrievers>`.
+
+Usage
+~~~~~
+
+1. To create a basic retrieval tool with {+avs+} and LangChain:
+
+   .. code-block:: python
+
+      from langchain.tools.retriever import create_retriever_tool
+      from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+      from langchain_voyageai import VoyageAIEmbeddings
+
+      # Instantiate the vector store
+      vector_store = MongoDBAtlasVectorSearch.from_connection_string(
+        connection_string = "<connection-string>",        # Atlas cluster or local deployment URI
+        namespace = "<database-name>.<collection-name>",  # Database and collection name
+        embedding = VoyageAIEmbeddings(),                 # Embedding model to use
+        index_name = "vector_index",                      # Name of the vector search index
+        # Other optional parameters...
+      )
+      
+      # Create a retrieval tool
+      retriever = vector_store.as_retriever()
+      retriever_tool = create_retriever_tool(
+          retriever,
+          "vector_search_retriever", # Tool name
+          "Retrieve relevant documents from the collection" # Tool description
+      )
+
+#. To add the tool as a node in LangGraph:
+
+   a. Convert the tool into a node.
+   #. Add the node to the graph.
+
+   .. code-block:: python
+
+      from langgraph.graph import StateGraph
+      from langgraph.prebuilt import ToolNode
+
+      # Define the graph
+      workflow = StateGraph()
+
+      # Convert the retriever tool into a node
+      retriever_node = ToolNode([retriever_tool])
+
+      # Add the tool as a node in the graph
+      workflow.add_node("vector_search_retriever", retriever_node)
+
+      graph = workflow.compile()
+
+.. note::
+
+   - :ref:`Tutorial <langgraph-build-agents>`
+   - :ref:`MongoDB LangChain Integration <langchain>`
+   - `LangGraph Documentation <https://langchain-ai.github.io/langgraph/>`__
+
+MongoDB Checkpointer
+--------------------
+
+The MongoDB Checkpointer allows you to `persist
+<https://langchain-ai.github.io/langgraph/concepts/persistence/>`__
+your agent's state in MongoDB. This feature enables human-in-the-loop,
+memory, time travel, and fault-tolerance for your LangGraph agents.
+
+Usage
+~~~~~
+
+.. code-block:: python
+
+   from langgraph.checkpoint.mongodb import MongoDBSaver
+   from pymongo import MongoClient
+
+   # Connect to your Atlas cluster or local Atlas deployment
+   client = MongoClient("<connection-string>")
+
+   # Initialize the MongoDB checkpointer
+   checkpointer = MongoDBSaver(client)
+
+   # Instantiate the graph with the checkpointer
+   app = graph.compile(checkpointer=checkpointer)
+
+.. note::
+
+   - :ref:`Tutorial <langgraph-add-memory>`
+   - `MongoDB Checkpointer Documentation <https://langchain-ai.github.io/langgraph/how-tos/persistence_mongodb/>`__
+   - `LangGraph API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langgraph_checkpoint_mongodb/api_docs.html>`__
+
+.. toctree::
+    :titlesonly:
+
+    Build AI Agents </ai-integrations/langgraph/build-agents>

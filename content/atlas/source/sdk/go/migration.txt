@@ -1,0 +1,96 @@
+.. NOTE TO WRITERS: Don't edit these files. Docurl pulls the content in automatically from the mongodb/atlas-sdk-go repo. To make copy edits, change the source files here: https://github.com/mongodb/atlas-sdk-go/tree/main/docs. For rST issues, open a Jira ticket and assign it to Sarah Simpers. 
+
+.. _atlas-sdk-migration: 
+
+===================================================
+Migrate from the Go HTTP Client to the Atlas Go SDK
+===================================================
+
+.. meta::
+   :description: Migrate from the deprecated Go HTTP client to the Atlas Go SDK for improved API handling and error management.
+
+Use this guide to migrate from the Go HTTP client (\ `go-client-mongodb-atlas <https://github.com/mongodb/go-client-mongodb-atlas>`__\ ) to the Atlas Go SDK (\ `mongodb/atlas-sdk-go <https://github.com/mongodb/atlas-sdk-go>`__\ ).
+
+The `go-client-mongodb-atlas <https://github.com/mongodb/go-client-mongodb-atlas>`__ is deprecated and doesn't receive major feature updates. We strongly recommend migrating to the `Atlas Go SDK <https://github.com/mongodb/atlas-sdk-go>`__ for the latest changes. You can also migrate partially by using both libraries at the same time. 
+
+Background
+----------
+
+The Atlas Go SDK (\ `mongodb/atlas-sdk-go <https://github.com/mongodb/atlas-sdk-go>`__\ ) is based on the Atlas Admin API V2. 
+The Atlas Go SDK simplifies the complexity of the versioned API by exposing the versioned API as Golang methods. Major SDK releases can introduce breaking changes only in a small subset of the Atlas Admin API endpoints.
+
+Structural Changes
+------------------
+
+The Atlas Go SDK doesn't rely on the deprecated `go-client-mongodb-atlas <https://github.com/mongodb/go-client-mongodb-atlas>`__. It changes how API requests are made, but minimizes the changes required for the end users.
+
+Client Initialization
+~~~~~~~~~~~~~~~~~~~~~
+
+The Atlas Go SDK has different methods for the initialization of the clients:
+
+.. code-block:: go
+
+   // Surrounding code ignored for brevity
+
+   sdk, err := admin.NewClient(
+       // Authentication using ApiKey and ApiSecret
+       admin.UseDigestAuth(apiKey, apiSecret))
+
+Note: Both the deprecated `go-client-mongodb-atlas <https://github.com/mongodb/go-client-mongodb-atlas>`__ and the Atlas Go SDK use Digest-based authentication. The same credentials apply. 
+
+To learn more, see :ref:`atlas-sdk-authentication`.
+
+Error Handling
+~~~~~~~~~~~~~~
+
+Error handling requires developers to use dedicated methods for casting errors to API error objects:
+
+.. code-block:: go
+
+   // Surrounding code omitted for brevity
+
+   apiErr, _ := admin.AsError(err)
+   log.Fatalf("Error when performing SDK request: %v", apiErr.GetDetail())
+
+To learn more, see :ref:`atlas-sdk-error_handling`.
+
+Format of the API Interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Atlas Go SDK changes the API interface to differentiate APIs from other methods.  
+
+Each API method has an API suffix. For example:
+
+``sdk.Projects`` will now ``sdk.ProjectsApi``
+
+Each method now explains the object that is created. For example:
+
+``sdk.Projects.create()`` will become ``sdk.ProjectsApi.createProject(...)``
+
+To learn more, see the `Endpoint Documentation <https://github.com/mongodb/atlas-sdk-go/blob/main/docs/doc_last_reference.md>`__.
+
+Different Naming Conventions for SDK Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Model names and properties are formatted in PascalCase format for clarity and predictability of the methods and field names. 
+For example, *ClusterAWSProviderSettings* will become now *ClusterAwsProviderSettings*.  
+
+The same applies to property names. For example, ``ID`` fields will become ``Id`` etc. 
+
+Multiple Choices when Creating Request Body Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Atlas Go SDK improves the clarity for request and response objects. For situations when the endpoint accepts multiple formats of the payload (polymorphism), you can specify instances of the API models that you want to use for a particular request. For example, when creating a cluster you can use one of the dedicated RegionConfigs objects (AWSRegionConfig, GCPRegionConfig, etc.): 
+
+.. code-block:: go
+
+   // Surrounding code omitted for brevity
+
+   RegionConfig{
+       // Dedicated region config for AWS cloud
+       AWSRegionConfig: &mongodbatlas.AWSRegionConfig{
+           //AWS-specific fields are here
+           RegionName:   &regionName, 
+       },
+   }

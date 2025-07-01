@@ -1,0 +1,919 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, java, javascript/typescript, python, shell, go
+
+.. _return-vector-search-results:
+
+=========================
+Run Vector Search Queries 
+=========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: code example, sample dataset, motor, java sync, node.js, .NET, go
+   :description: Explore how to perform vector search queries using Atlas Vector Search, supporting both Approximate and Exact Nearest Neighbor searches.
+
+.. dismissible-skills-card::
+   :skill: Vector Search Fundamentals
+   :url: https://learn.mongodb.com/skills?openTab=gen%20ai
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+{+avs+} queries take the form of an 
+:manual:`aggregation pipeline stage </aggregation>`. For the
+:pipeline:`$vectorSearch` queries, {+avs+} returns the results of your
+semantic search.
+
+.. note:: 
+
+   .. include:: /includes/avs/shared/avs-requirements-cluster-version-ann-enn.rst
+
+.. _vectorSearch-agg-pipeline:
+
+Definition
+----------
+
+The :pipeline:`$vectorSearch` stage performs an |ann| or |enn| search on
+a vector in the specified field. 
+
+.. _vectorSearch-ann:
+
+|ann| Search 
+~~~~~~~~~~~~
+
+For |ann| search, {+avs+} finds vector embeddings in your data that are
+closest to the vector embedding in your query based on their proximity
+in multi-dimensional space and based on the number of neighbors that it
+considers. It uses the |hnsw| algorithm and finds the vector embeddings
+most similar to the vector embedding in your query without scanning
+every vector. Therefore, |ann| search is ideal for querying large
+datasets without significant filtering.
+
+.. note:: 
+
+   .. include:: /includes/avs/facts/fact-avs-recall.rst
+
+.. _vectorSearch-enn:
+
+|enn| Search 
+~~~~~~~~~~~~
+
+For |enn| search, {+avs+} exhaustively searches all the indexed vector
+embeddings by calculating the distance between all the embeddings 
+and finds the exact nearest neighbor for the vector embedding in your
+query. This is computationally intensive and might negatively impact
+query latency. Therefore, we recommend |enn| searches for the following
+use-cases:
+
+- You want to determine the :term:`recall` and accuracy of your |ann| query
+  using the ideal, exact results for the |enn| query.
+- You want to query less than 10000 documents without having to tune the 
+  number of nearest neighbors to consider.
+- Your want to include selective pre-filters in your query against
+  collections where less than 5% of your data meets the given pre-filter.
+
+If you enable automatic quantization, {+avs+} uses only the full-fidelity
+vectors for |enn| queries.
+
+Syntax 
+------
+
+The field that you want to search must be indexed as {+avs+}
+:ref:`vector <avs-types-vector>` type inside a :ref:`vectorSearch 
+<avs-types-vector-search>` index type. 
+
+.. pipeline:: $vectorSearch
+
+   A ``$vectorSearch`` pipeline has the following prototype form: 
+
+   .. code-block:: json 
+
+      {
+        "$vectorSearch": {
+          "exact": true | false,
+          "filter": {<filter-specification>},
+          "index": "<index-name>",
+          "limit": <number-of-results>,
+          "numCandidates": <number-of-candidates>,
+          "path": "<field-to-search>",
+          "queryVector": [<array-of-numbers>]
+        }
+      }
+
+.. _vectorSearch-agg-pipeline-options:
+
+Fields 
+------
+
+The ``$vectorSearch`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``exact``
+     - boolean
+     - Optional 
+     - This is required if ``numCandidates`` is omitted. 
+
+       Flag that specifies whether to run |enn| or |ann| search. Value
+       can be one of the following: 
+ 
+       - ``false`` - to run |ann| search 
+       - ``true`` - to run |enn| search
+
+       If omitted, defaults to ``false``. 
+
+       .. include:: /includes/avs/shared/avs-requirements-cluster-version-ann-enn.rst
+
+   * - ``filter``
+     - document
+     - Optional
+     - :abbr:`MQL (MongoDB Query Language)` expression that
+       compares an indexed field to use as a pre-filter. 
+       You can filter on {+avs-filter-types+}.
+
+       To learn which MQL operators {+avs+} supports
+       in your filter, see :ref:`vectorSearch-agg-pipeline-filter`.
+
+   * - ``index`` 
+     - string 
+     - Required 
+     - Name of the {+avs+} index to use.
+       
+       {+avs+} doesn't return results if you misspell the index name or 
+       if the specified index doesn't already exist on the {+cluster+}.
+
+   * - ``limit`` 
+     - number 
+     - Required 
+     - Number (of type ``int`` only) of documents to return in the
+       results. This value can't exceed the value of ``numCandidates`` if
+       you specify ``numCandidates``.
+
+   * - ``numCandidates``
+     - number 
+     - Optional 
+     - This field is required if ``exact`` is ``false`` or omitted.
+       
+       Number of nearest neighbors to use during the search. Value must 
+       be less than or equal to (``<=``) ``10000``. You can't specify a
+       number less than the number of documents to return (``limit``).
+       
+       We recommend that you specify a number at least 20 times higher than the 
+       number of documents to return (``limit``) to increase accuracy.
+       
+       This overrequest pattern is the recommended way to 
+       trade off latency and :term:`recall` in your |ann| searches, 
+       and we recommend tuning this parameter based on your specific dataset 
+       size and query requirements.
+
+       To learn more about other variables that might impact this parameter, see :ref:`avs-num-candidates`.
+
+   * - ``path``
+     - string 
+     - Required 
+     - Indexed :ref:`vector <avs-types-vector>` type field to search.
+
+   * - ``queryVector``
+     - array of numbers 
+     - Required 
+     - Array of numbers of ``float32``, |bson|
+       :manual:`BinData </reference/method/BinData/>` vectors with subtype
+       ``float32``, or |bson| :manual:`BinData </reference/method/BinData/>` 
+       vectors with subtype ``int1`` or ``int8`` type that represent the
+       query vector. 
+
+       To learn more about generating |bson| ``binData``
+       vectors with subtype ``float32``, ``int8``, ``int1``,
+       see :ref:`avs-bindata-vector-subtype`. 
+
+       The array size must match the number of vector ``dimensions`` 
+       specified in the :ref:`index definition <avs-types-vector-search>`  
+       for the field. 
+
+       You must embed your query with the same model that you used to
+       embed the data.
+
+       You can query your embeddings with full-fidelity vectors,
+       as long as the vector subtype is the same. This is only possible with
+       ``binData`` vectors with subtype ``float32``. If you use any other
+       subtype (``int8`` or ``int1``), {+avs+} doesn't return any results or errors.
+
+.. _vectorSearch-agg-pipeline-clients:
+
+Supported Clients
+-----------------
+
+You can run :pipeline:`$vectorSearch` queries by using the 
+{+atlas-ui+}, {+mongosh+}, and any :driver:`MongoDB driver </>`.
+
+You can also use {+avs+} with local |service| deployments that you
+create with the {+atlas-cli+}. To learn more, see :atlascli:`Create a
+Local Atlas Deployment </atlas-cli-deploy-local>`. 
+
+.. _vectorSearch-agg-pipeline-limitations:
+
+Limitations 
+~~~~~~~~~~~
+
+:pipeline:`$vectorSearch` is supported only on |service| {+clusters+}
+running the following MongoDB versions: 
+
+- v6.0.11
+- v7.0.2 and later (including :abbr:`RCs (Release Candidates)`). 
+
+:pipeline:`$vectorSearch` can't be used in 
+:manual:`view definition </core/views/>` and the following pipeline
+stages:  
+
+- :pipeline:`$lookup` sub-pipeline :icon-fa5:`star`
+- :pipeline:`$facet` pipeline stage
+
+:icon-fa5:`star` You can pass the results of :pipeline:`$vectorSearch`
+to this stage.
+
+.. _vectorSearch-agg-pipeline-behavior:
+
+Behavior 
+--------
+
+:pipeline:`$vectorSearch` must be the first stage of any pipeline where it
+appears. 
+
+.. _vectorSearch-agg-pipeline-index:
+
+{+avs+} Index
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must index the fields to search using the :pipeline:`$vectorSearch`
+stage inside a :ref:`vectorSearch <avs-types-vector-search>` type index
+definition. You can index the following types of fields in an {+avs+}
+:ref:`vectorSearch <avs-types-vector-search>` type index definition: 
+
+- Fields that contain vector embeddings as :ref:`vector
+  <avs-types-vector-search>` type.  
+- Additional fields as the :ref:`filter <avs-types-vector-search>` 
+  type to enable vector search on pre-filtered data.
+
+To learn more about these 
+{+avs+} field types, see :ref:`avs-types-vector-search`. 
+
+.. _vectorSearch-agg-pipeline-score:
+
+{+avs+} Score
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} assigns a score, in a fixed range from ``0`` to ``1`` 
+(where ``0`` indicates low similarity and ``1`` indicates high
+similarity), to every document that it returns. 
+
+The score is calculated according to the similarity measure that
+you specify in the :ref:`index definition <avs-types-vector-search-options>`. 
+For ``cosine`` and ``dotProduct`` :ref:`similarities <avs-types-vector-search-options>`,
+{+avs+} normalizes the score to ensure that the score is not negative.
+
+.. tabs::
+
+   .. tab:: Cosine
+      :tabid: cosine
+
+      For ``cosine``, {+avs+} uses the following algorithm to normalize the
+      score: 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         score = (1 + cosine(v1,v2)) / 2
+
+      This algorithm normalizes the score by considering the similarity score of the 
+      document vector (``v1``) and the query vector (``v2``), which has the range 
+      [``-1``, ``1``]. {+avs+} adds ``1`` to the similarity score to normalize 
+      the score to a range [``0``, ``2``] and then divides by ``2`` to ensure a 
+      value between ``0`` and ``1``.
+
+   .. tab:: Dot Product
+      :tabid: dotProduct
+    
+      For ``dotProduct``, {+avs+} uses the following algorithm to normalize
+      the score:  
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         score = (1 + dotProduct(v1,v2)) / 2
+
+      This algorithm normalizes the score by considering the similarity score of the 
+      document vector (``v1``) and the query vector (``v2``), which has the range 
+      [``-1``, ``1``]. {+avs+} adds ``1`` to the similarity score to normalize 
+      the score to a range [``0``, ``2``] and then divides by ``2`` to ensure a 
+      value between ``0`` and ``1``.
+
+   .. tab:: Euclidean 
+      :tabid: euclidean
+    
+      For ``euclidean`` similarity, {+avs+} uses the following algorithm to
+      normalize the score to ensure a value between ``0`` and ``1``: 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         score = 1 / (1 + euclidean(v1,v2))
+
+      This algorithm normalizes the score by calculating the euclidean distance,
+      which is the distance between the document vector (``v1``) and the query 
+      vector (``v2``), which has the range [``0``, ``∞``]. {+avs+} then transforms 
+      the distance to a similarity score by adding ``1`` to the distance and then 
+      divides ``1`` by the result to ensure a value between ``0`` and ``1``.
+
+Each returned document includes the score as metadata. 
+To include each returned document's score along with the
+result set, use a :pipeline:`$project` stage in your aggregation
+pipeline.
+
+To retrieve the score of your {+avs+} query results, use
+``vectorSearchScore`` as the value in the :manual:`$meta 
+</reference/operator/aggregation/meta/>` expression. That is, after the
+:pipeline:`$vectorSearch` stage, in the :pipeline:`$project` stage, the
+``score`` field takes the :manual:`$meta
+</reference/operator/aggregation/meta/>` expression. The expression
+requires the ``vectorSearchScore`` value to return the score of
+documents for the vector search. 
+
+.. example:: 
+
+   .. code-block:: javascript
+      :copyable: false
+      :linenos:
+      :emphasize-lines: 11
+
+      db.<collection>.aggregate([
+        {
+          "$vectorSearch": {
+            <query-syntax>
+          }
+        },
+        {
+          "$project": {
+            "<field-to-include>": 1,
+            "<field-to-exclude>": 0,
+            "score": { "$meta": "vectorSearchScore" }
+          }
+        }
+      ]) 
+
+.. include:: /includes/avs/facts/fact-avs-pre-filtering-score-impact.rst
+
+.. _vectorSearch-agg-pipeline-filter:
+
+{+avs+} Pre-Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$vectorSearch` ``filter`` option matches |bson|
+{+avs-filter-types+}.
+
+You **must** index the fields that you want to filter your data by as the 
+:ref:`filter <avs-types-vector-search>` type in a :ref:`vectorSearch
+<avs-types-vector-search>` type index definition. Filtering your data is 
+useful to narrow the scope of your semantic search and ensure that not
+all vectors are considered for comparison. 
+
+{+avs+} supports the :pipeline:`$vectorSearch` ``filter`` option
+for the following :abbr:`MQL (MongoDB Query Language)` 
+:manual:`operators </reference/operator/query/>`:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Type
+     - :abbr:`MQL (MongoDB Query Language)` operator
+
+   * - Equals 
+     - :query:`$eq`, :query:`$ne`
+
+   * - Range 
+     - :query:`$gt`, :query:`$lt`, :query:`$gte`, :query:`$lte`
+
+   * - In set 
+     - :query:`$in`, :query:`$nin`
+
+   * - Logical 
+     - :query:`$not`, :query:`$nor`, :expression:`$and`, :expression:`$or`
+
+.. note:: 
+
+   The :pipeline:`$vectorSearch` ``filter`` option doesn't support other
+   :manual:`query operators </reference/operator/query/>`,
+   :manual:`aggregation pipeline operators </reference/operator/aggregation/>`,
+   or :ref:`{+fts+} operators <operators-ref>`.
+
+Considerations
+``````````````
+
+{+avs+} supports the short form of :query:`$eq`. In the short
+form, you don't need to specify ``$eq`` in the query. 
+
+.. example::
+   
+   For example, consider the following filter with ``$eq``: 
+
+   .. code-block:: json
+      :copyable: false 
+
+      "filter": { "_id": { "$eq": ObjectId("5a9427648b0beebeb69537a5") }
+
+   You can run the preceding query using the short form of ``$eq`` in the
+   following way: 
+
+   .. code-block:: json
+      :copyable: false 
+
+      "filter": { "_id": ObjectId("5a9427648b0beebeb69537a5") }
+
+You can also specify an array of filters in a single query 
+by using the :expression:`$and` operator.
+
+.. example::
+   
+   For example, consider the following pre-filter for
+   documents with a ``genres`` field equal to ``Action`` and a
+   ``year`` field with the value ``1999``, ``2000``, or ``2001``:
+
+   .. code-block:: json
+      :copyable: false 
+
+      "filter": {
+        "$and": [
+          { "genres": "Action" },
+          { "year": { "$in": [ 1999, 2000, 2001 ] } }
+        ]
+      }
+
+.. _avs-num-candidates:
+
+``numCandidates`` Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For |ann| search, we recommend that you specify a ``numCandidates``  
+number at least 20 times higher than the number of documents to return 
+(``limit``) to increase accuracy. For example, if you set ``limit`` to 
+return ``5`` results, consider setting ``numCandidates`` to ``100`` as 
+a starting point. A higher number also reduces any discrepancies between
+your |ann| and |enn| query results. To learn more, see
+:ref:`avs-improve-results`. 
+
+This overrequest pattern is the recommended way to 
+trade off latency and :term:`recall` in your |ann| searches. 
+However, we recommend tuning this parameter based on your specific dataset 
+size and query requirements. To ensure that you get accurate results,
+consider the following variables:
+
+- **Index Size**: Larger collections typically require higher ``numCandidates`` values 
+  to maintain recall. A collection with millions of vectors might need significantly 
+  more candidates than one with thousands of vectors.
+
+- **Limit Value**: Because ``numCandidates`` is highly correlated with the index 
+  size, low ``limit`` values require proportionally 
+  higher ``numCandidates`` values to maintain recall.
+
+- **Vector Quantization**: :ref:`Quantized vectors <avs-quantization>` 
+  reduce storage at the cost of accuracy. Using quantized 
+  vectors (``int8`` or ``int1`` subtypes) might require higher ``numCandidates`` 
+  values compared to full precision ``float32`` vectors to maintain similar recall.
+
+To learn more, see 
+
+.. _vectorSearch-concurrent-queries:
+
+Parallel Query Execution Across Segments 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend dedicated :ref:`Search Nodes <configure-search-nodes>`
+to isolate vector search query processing. You might see improved query 
+performance on the dedicated Search Nodes. Note that the high-CPU systems
+might provide more performance improvement. When {+avs+} runs on search
+nodes, {+avs+} parallelizes query execution across segments of data. 
+
+Parallelization of query processing improves the response time in many
+cases, such as queries on large datasets. Using intra-query parallelism
+during {+avs+} query processing utilizes more resources, but improves
+latency for each individual query. 
+
+.. note:: 
+
+   {+avs+} doesn't guarantee that each query will run concurrently. For
+   example, when too many concurrent queries are queued, {+avs+} might
+   fall back to single-threaded execution.
+
+   You might see inconsistent results for the same successive queries.
+   To mitigate this, increase the value of ``numCandidates`` in your
+   :pipeline:`$vectorSearch` queries.
+
+.. _vectorSearch-agg-pipeline-egs:
+
+Examples 
+--------
+
+The following queries search the sample ``sample_mflix.embedded_movies``
+collection using the :pipeline:`$vectorSearch` stage. The queries search
+the ``plot_embedding`` field, which contains embeddings created using the
+``text-embedding-ada-002`` embedding model from OpenAI.
+
+.. tabs-selector:: drivers
+   :default-tabid: python
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the
+language of the examples in this page.
+
+----------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you run these examples, perform the following actions:
+
+- Add the :ref:`sample collection <mflix-embedded_movies>` to your |service|
+  {+cluster+}.
+
+- Create the sample indexes for the collection. For instructions, see the 
+  basic and filter examples in :ref:`Create and Manage Indexes 
+  <avs-types-vector-search-egs>` for your desired language.
+  
+.. note:: 
+
+   If you use {+mongosh+}, pasting the ``queryVector`` from the sample code 
+   into your terminal might take a while depending on your machine.  
+   
+|ann| Examples 
+~~~~~~~~~~~~~~
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell 
+
+      .. tabs:: 
+
+         .. tab:: Basic Example 
+            :tabid: basic 
+
+            .. include:: /includes/avs/extracts/avs-basic-query-desc.rst
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/basic-query.sh
+                  :language: json
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/basic-query-shell-output.js
+                  :language: js
+                  :linenos: 
+
+         .. tab:: Filter Example 
+            :tabid: filter 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-desc.rst
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/filter-query.sh
+                  :language: json
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/filter-query-shell-output.js 
+                  :language: js
+                  :linenos: 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-results.rst          
+
+   .. tab::
+      :tabid: csharp 
+
+      .. tabs:: 
+
+         .. tab:: Basic Example 
+            :tabid: basic 
+
+            .. include:: /includes/avs/extracts/avs-basic-query-desc.rst
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/basic-query.cs
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/basic-query-csharp-output.js
+                  :language: js
+                  :linenos: 
+
+         .. tab:: Filter Example 
+            :tabid: filter 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-desc.rst
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/filter-query.cs 
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/filter-query-csharp-output.js  
+                  :language: js
+                  :linenos: 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-results.rst    
+
+   .. tab::
+      :tabid: go
+
+      .. tabs:: 
+
+         .. tab:: Basic Example 
+            :tabid: basic 
+
+            .. include:: /includes/avs/extracts/avs-basic-query-desc.rst
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/ann-basic-query.go
+                  :language: go
+                  :linenos:
+
+               .. output:: /includes/avs/pipeline-stage-examples/ann-basic-query-go-output.sh
+                  :language: shell
+                  :linenos:
+
+         .. tab:: Filter Example 
+            :tabid: filter 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-desc.rst
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/filter-query.go
+                  :language: go
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/filter-query-go-output.sh
+                  :language: shell
+                  :linenos:
+
+            .. include:: /includes/avs/extracts/avs-filter-query-results.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. tabs:: 
+
+         .. tab:: Basic Example 
+            :tabid: basic 
+
+            .. include:: /includes/avs/extracts/avs-basic-query-desc.rst
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/basic-query.java
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/basic-query-java-output.js 
+                  :language: js
+                  :linenos: 
+
+         .. tab:: Filter Example 
+            :tabid: filter 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-desc.rst
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/filter-query.java 
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/filter-query-java-output.js  
+                  :language: js
+                  :linenos: 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-results.rst
+
+
+   .. tab::
+      :tabid: nodejs
+
+      .. tabs:: 
+
+         .. tab:: Basic Example 
+            :tabid: basic 
+
+            .. include:: /includes/avs/extracts/avs-basic-query-desc.rst
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/basic-query.js
+                  :language: js
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js 
+                  :language: js
+                  :linenos: 
+
+         .. tab:: Filter Example 
+            :tabid: filter 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-desc.rst
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/filter-query.js 
+                  :language: js
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/filter-query-nodejs-output.js  
+                  :language: js
+                  :linenos: 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-results.rst    
+
+
+   .. tab::
+      :tabid: python
+
+      .. tabs:: 
+
+         .. tab:: Basic Example 
+            :tabid: basic
+
+            .. include:: /includes/avs/extracts/avs-basic-query-desc.rst
+
+            ..
+               NOTE: If you edit this Python file, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb
+
+            .. cta-banner::
+               :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb?tck=docs
+               :icon: Code
+
+               Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb?tck=docs>`.
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/basic-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/basic-query-python-output.js
+                  :language: js
+                  :linenos: 
+
+         .. tab:: Filter Example 
+            :tabid: filter
+
+            .. include:: /includes/avs/extracts/avs-filter-query-desc.rst
+
+            ..
+               NOTE: If you edit this Python file, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+
+            .. cta-banner::
+               :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb?tck=docs
+               :icon: Code
+
+               Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb?tck=docs>`.
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/avs/pipeline-stage-examples/filter-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/avs/pipeline-stage-examples/filter-query-python-output.js  
+                  :language: js
+                  :linenos: 
+
+            .. include:: /includes/avs/extracts/avs-filter-query-results.rst    
+
+|enn| Example 
+~~~~~~~~~~~~~
+
+.. include:: /includes/avs/extracts/avs-enn-query-description.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell 
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/avs/pipeline-stage-examples/enn-basic-query.sh
+            :language: shell
+            :linenos: 
+
+         .. output:: /includes/avs/pipeline-stage-examples/enn-basic-query-shell-output.js 
+            :language: js
+            :linenos: 
+
+   .. tab::
+      :tabid: csharp 
+
+      .. code-block:: shell
+         :copyable: false
+
+         Not yet available.
+
+   .. tab::
+      :tabid: go
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/avs/pipeline-stage-examples/enn-basic-query.go
+            :language: go
+            :linenos: 
+
+         .. output:: /includes/avs/pipeline-stage-examples/enn-basic-query-go-output.sh
+            :language: sh
+            :linenos: 
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. code-block:: shell
+         :copyable: false
+
+         Not yet available.
+
+   .. tab::
+      :tabid: nodejs
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/avs/pipeline-stage-examples/enn-basic-query.js
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/avs/pipeline-stage-examples/enn-basic-query-nodejs-output.js 
+            :language: js
+            :linenos: 
+
+   .. tab::
+      :tabid: python
+
+      ..
+         NOTE: If you edit this Python file, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb
+
+      .. cta-banner::
+         :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb?tck=docs
+         :icon: Code
+
+         Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb?tck=docs>`.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/avs/pipeline-stage-examples/enn-basic-query.py
+            :language: python
+            :linenos: 
+
+         .. output:: /includes/avs/pipeline-stage-examples/enn-basic-query-py-output.js 
+            :language: js
+            :linenos:
+
+.. toctree::
+   :titlesonly:
+
+   Explain Query Results </atlas-vector-search/explain>

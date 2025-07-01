@@ -1,0 +1,186 @@
+ref: fts-compound-constant-desc
+content: | 
+
+  - ``filter`` clause with the :ref:`range <range-ref>` operator to 
+    search for movies between the years ``2013`` to ``2015``.
+  - ``should`` clause with the :ref:`text <text-ref>` operator to query 
+    for the term ``snow`` in the ``title`` field and alter the 
+    ``score`` with the ``constant`` option. The ``constant`` option 
+    replaces all score results for the search term with ``5``. 
+
+---
+ref: fts-compound-boost-desc
+content: | 
+
+  - ``must`` clause with the :ref:`range <range-ref>` operator to search 
+    for movies between the years ``2013`` to ``2015``. 
+  - ``should`` clause with the :ref:`text <text-ref>` operator to query 
+    for the term ``snow`` in the ``title`` field and alter the 
+    ``score`` with the ``boost`` option. The ``boost`` option 
+    multiplies the base score in the results for the search term by ``2``.
+
+---
+ref: fts-compound-boost-advanced-desc
+content: | 
+
+  - ``must`` clause with the :ref:`text <text-ref>` operator to prioritize the 
+    genre ``comedy`` the most, followed by the term ``snow`` in the 
+    ``title`` field. The ``boost`` option applies weights to the fields.
+  - ``should`` clause with the :ref:`range <range-ref>` operator to search 
+    for movies between the years ``2013`` to ``2015``. 
+
+  .. note:: 
+
+     The ``boost`` option applies different weights to the fields to 
+     prioritize the fields.
+
+---
+ref: fts-compound-boost-variable-desc
+content: | 
+
+  - ``must`` clause with the :ref:`text <text-ref>` operator to search for the 
+    term ``snow`` in the ``title`` field and modify the score using 
+    arithmetic expressions. 
+  - ``should`` clause with the :ref:`range <range-ref>` operator to search 
+    for movies between the years ``2013`` to ``2015``. 
+
+---
+ref: fts-compound-function-desc
+content: | 
+
+  - ``must`` clause with the :ref:`range <range-ref>` operator to search 
+    for movies between the years ``2013`` to ``2015``. 
+  - ``should`` clause with the :ref:`text <text-ref>` operator to query 
+    for the term ``snow`` in the ``title`` field and alter the 
+    ``score`` with the ``function`` option. The ``function`` option 
+    adds the following using an arithmetic expression: 
+        
+    - The relevance score of the query for the search term
+    - The value of the numeric field named ``imdb.rating`` or the 
+      number ``2`` for those documents that do not have the ``imdb.rating`` 
+      field.
+
+---
+ref: fts-compound-highlight-desc
+content: | 
+
+  Specifies the :ref:`highlight <highlight-ref>` option to return snippets of text
+  from the ``title`` field that match the query. The snippets contain
+  matching text specified with ``type: 'hit'``, and adjacent text
+  specified with ``type: 'text'``.
+
+---
+ref: fts-compound-bury-category-stages
+content: | 
+  This query uses the following pipeline stages:
+
+  .. list-table:: 
+     :stub-columns: 1
+  
+     * - :pipeline:`$search` 
+       - - Searches for movies that contain the term ``ghost`` in the plot or 
+           title (``must`` clause) and aren't in the ``comedy`` genre
+           (``mustNot`` clause).
+         - Searches for movies that contain the term ``ghost`` in the
+           plot or title (``must`` clause) and are in the ``comedy``
+           genre (``filter`` clause), but reduces the ``score`` by 50% (``boost``). 
+  
+     * - :pipeline:`$limit` 
+       - Limits the number of results to ``10`` documents.
+  
+     * - :pipeline:`$project`
+       - - Includes only the ``_id``, ``title``, ``plot``, and
+           ``genres`` fields from the documents in the results.
+         - Adds a field named ``score`` that shows the score in the
+           results.  
+
+---
+ref: fts-compound-bury-id-stages
+content: | 
+  This query uses the following pipeline stages:
+
+  .. list-table:: 
+     :stub-columns: 1
+  
+     * - :pipeline:`$search` 
+       - - Searches for movies that contain the term ``ghost`` in the plot or 
+           title (``must`` clause), but doesn't have the specified ObjectIds
+           (``mustNot`` clause).
+         - Searches for movies that contain the term ``ghost`` in the plot or 
+           title (``must`` clause) and have the specified ObjectIds
+           (``filter`` clause), but reduces the ``score``
+           by 50% (``boost``) .
+  
+     * - :pipeline:`$limit` 
+       - Limits the number of results to ``10`` documents.
+  
+     * - :pipeline:`$project`
+       - - Includes only the ``title``, ``plot``, and ``_id`` fields from
+           the documents in the results.
+         - Adds a field named ``score`` that shows the score of the document
+           in the results. 
+      
+---
+ref: fts-compound-score-stages
+content: | 
+
+  - :manual:`$limit </reference/operator/aggregation/limit>` stage to 
+    limit the output to 10 results 
+  - :manual:`$project </reference/operator/aggregation/project>` stage 
+    to: 
+    
+    - Exclude all fields except ``title`` and ``year``
+    - Add two fields named ``score`` and ``highlights``
+
+---
+ref: fts-compound-constant-score-desc
+content: | 
+
+  The first four documents in the results have a higher score 
+  because the ``should`` clause in the query specifies a preference for 
+  documents with ``snow`` in the title. The ``should`` clause also 
+  alters the score for the query term ``snow`` using the ``constant`` 
+  option.
+
+---
+ref: fts-compound-boost-score-desc
+content: | 
+
+  The first four documents in the results have a higher score 
+  because the ``should`` clause in the query specifies a preference for 
+  documents with ``snow`` in the title. The ``should`` clause also 
+  alters the score for the query term ``snow`` using the ``boost`` 
+  option.
+
+---
+ref: fts-compound-function-score-desc
+content: | 
+
+  The first four documents in the results have a higher score 
+  because the ``should`` clause in the query specifies a preference for 
+  documents with ``snow`` in the title. The ``should`` clause also 
+  alters the score for the query term ``snow`` using the ``function`` 
+  option.
+
+---
+ref: fts-compound-bury-genre-results
+content: | 
+  The movie documents in the results contain the query term ``ghost`` in
+  the ``plot`` or ``title`` field and aren't in the ``Comedy`` genre.
+  |fts| didn't return documents in the ``Comedy`` genre with the term
+  ``ghost`` in the ``plot`` or ``title`` field because those documents
+  didn't rank in the top 10 documents since the query reduced the score
+  of those documents by 50%.
+
+---
+ref: fts-compound-bury-id-results
+content: | 
+  The movie documents in the results contain the query term ``ghost`` in
+  the ``plot`` or ``title`` field and don't have the specified
+  ObjectIds in the ``_id`` field. |fts| didn't return the documents with
+  the specified ObjectsIds, even though they contain the query term
+  ``ghost`` in the ``title`` field, because the query reduced the score
+  of these documents by 50% and so, these documents didn't rank in the
+  top 10 documents. 
+
+...

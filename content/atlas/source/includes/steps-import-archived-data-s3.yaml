@@ -1,0 +1,126 @@
+title: "Copy the data in the |s3| bucket to a folder using the |aws| 
+       CLI and extract the data."
+level: 4
+ref: import-s3-archived-data-step1
+stepnum: 1
+content: | 
+
+  .. code-block:: shell 
+        
+     aws s3 cp s3://<bucketName>/<prefix> <downloadFolder> --recursive 
+     gunzip -r <downloadFolder>
+
+  where: 
+
+  .. list-table:: 
+     :widths: 30 70 
+
+     * - ``<bucketName>`` 
+       - Name of the |aws| |s3| bucket.
+
+     * - ``<prefix>``
+       - Path to archived data in the bucket. The path has the 
+         following format:
+
+         .. code-block:: shell 
+            :copyable: false 
+
+            /exported_snapshots/<orgId>/<projectId>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
+
+     * - ``<downloadFolder>``
+       - Path to the local folder where you want to copy the archived 
+         data.
+
+  For example, run a command similar to the following: 
+
+  .. example:: 
+
+     .. code-block:: shell 
+        :copyable: false
+
+        aws s3 cp
+        s3://export-test-bucket/exported_snapshots/1ab2cdef3a5e5a6c3bd12de4/12ab3456c7d89d786feba4e7/myCluster/2021-04-24T0013/1619224539
+        mybucket --recursive
+        gunzip -r mybucket
+
+--- 
+title: "Copy and store the following script in a file named 
+       ``massimport.sh``."
+level: 4
+ref: import-s3-archived-data-step2
+stepnum: 2
+content: | 
+
+  .. code-block:: shell 
+        
+     #!/bin/bash
+
+     regex='/(.+)/(.+)/.+'
+     dir=${1%/}
+     connstr=$2
+
+     # iterate through the subdirectories of the downloaded and
+     # extracted snapshot export and restore the docs with mongoimport
+     find $dir -type f -not -path '*/\.*' -not -path '*metadata\.json' | while read line ; do
+       [[ $line =~ $regex ]]
+       db_name=${BASH_REMATCH[1]}
+       col_name=${BASH_REMATCH[2]}
+       mongoimport --uri "$connstr" --mode=upsert -d $db_name -c $col_name --file $line --type json
+     done
+
+     # create the required directory structure and copy/rename files
+     # as needed for mongorestore to rebuild indexes on the collections
+     # from exported snapshot metadata files and feed them to mongorestore
+     find $dir -type f -name '*metadata\.json' | while read line ; do
+       [[ $line =~ $regex ]]
+       db_name=${BASH_REMATCH[1]}
+       col_name=${BASH_REMATCH[2]}
+       mkdir -p ${dir}/metadata/${db_name}/
+       cp $line ${dir}/metadata/${db_name}/${col_name}.metadata.json
+     done
+     mongorestore "$connstr" ${dir}/metadata/
+
+     # remove the metadata directory because we do not need it anymore and this returns
+     # the snapshot directory in an identical state as it was prior to the import
+     rm -rf ${dir}/metadata/
+
+  Here: 
+  
+  - ``--mode=upsert`` enables |mongoimport| to handle duplicate 
+    documents from an archive. 
+  - ``--uri`` specifies the connection string for the |service| cluster.
+
+---
+title: "Run the ``massimport.sh`` utility to import the archived data 
+       into the |service| {+cluster+}."
+level: 4
+ref: import-s3-archived-data-step3
+stepnum: 1
+content: | 
+
+  .. code-block:: shell 
+        
+     sh massimport.sh <downloadFolder> "mongodb+srv://<connectionString>"
+
+  where: 
+
+  .. list-table:: 
+     :widths: 30 70 
+
+     * - ``<downloadFolder>``
+       - Path to the local folder where you copied the archived data.
+
+     * - ``<connectionString>``
+       - Connection string for the |service| cluster.
+
+
+  For example, run a command similar to the following: 
+
+  .. example:: 
+
+     .. code-block:: shell 
+        :copyable: false
+        
+        sh massimport.sh mybucket "mongodb+srv://<myConnString>"
+
+...

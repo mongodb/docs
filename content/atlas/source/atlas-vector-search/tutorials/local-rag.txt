@@ -1,0 +1,561 @@
+:tabs-selector-position: main
+
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, python
+
+.. _local-rag:
+
+=========================================================
+Build a Local RAG Implementation with {+avs+}
+=========================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: How to implement retrieval-augmented generation (RAG) for Atlas Vector Search using local embedding models and chat models.
+   :keywords: RAG, local RAG, LLM, code example, sample dataset, Node.js, Java (Sync), Python, java sync, node.js, go, .NET, local deployment, vector database, Hugging Face
+
+.. dismissible-skills-card::
+   :skill: RAG with MongoDB
+   :url: https://learn.mongodb.com/skills?openTab=gen+ai
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial demonstrates how to implement
+retrieval-augmented generation (RAG)
+locally, without the need for |api| keys or credits. 
+To learn more about |rag|, see :ref:`ai-key-concepts`. 
+
+Specifically, you perform the following actions:
+
+#. Create a local |service| {+deployment+} or deploy a {+cluster+} on the cloud.
+#. Set up the environment.
+#. Use a local embedding model to generate vector embeddings.
+#. Create an {+avs+} index on your data.
+#. Use a local |llm| to answer questions on your data.
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the examples on this page.
+
+.. tabs-selector:: drivers
+   :default-tabid: python
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: csharp
+
+   .. tab::
+      :tabid: go
+
+   .. tab::
+      :tabid: java-sync
+
+   .. tab::
+      :tabid: nodejs
+
+   .. tab::
+      :tabid: python
+
+      .. cta-banner::
+         :url: https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb?tck=docs
+         :icon: Code
+
+         Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb?tck=docs>`.
+
+      .. note::
+
+         For a local |rag| implementation with LangChain, see :ref:`langchain-local-rag`.   
+
+.. collapsible::
+   :heading: About this Tutorial
+   :expanded: false
+      
+   To complete this tutorial, you can either create a local |service| 
+   {+deployment+} by using the :ref:`{+atlas-cli+} 
+   <atlas-programmatic-access-cli-overview>` or :ref:`deploy a 
+   {+cluster+} <create-new-cluster>` on the cloud. The {+atlas-cli+} 
+   is the command-line interface for |service-fullname|, and you can use 
+   the {+atlas-cli+} to interact with |service| from the terminal for 
+   various tasks, including creating local |service| {+deployments+}. 
+   To learn more, see 
+   :atlascli:`Manage Local and Cloud Deployments from the Atlas CLI </atlas-cli-local-cloud>`.
+
+   .. note::
+      
+      Local |service| {+deployments+} are intended for testing only. 
+      For production environments, :ref:`deploy a {+cluster+} <create-new-cluster>`.
+
+   .. tabs-drivers::
+      
+      .. tab::
+         :tabid: csharp
+
+         You also use the following open-source models in this tutorial:
+
+         - `Nomic Embed Text <https://ollama.com/library/nomic-embed-text>`__ embedding model
+         - `Mistral 7B <https://ollama.com/library/mistral>`__ generative model
+
+         There are several ways to download and deploy |llm|\s locally.
+         In this tutorial, you download `Ollama <https://ollama.com/>`__ and pull
+         the open source models listed above to perform |rag| tasks.
+
+         This tutorial also uses the `Microsoft.Extensions.AI.Ollama
+         <https://aka.ms/meai-ollama-nuget>`__ package to connect to these models
+         and integrate them with {+avs+}. If you prefer different models or a 
+         different framework, you can adapt this tutorial by replacing 
+         the Ollama model names with their equivalents for your preferred setup.
+
+      .. tab::
+         :tabid: go
+
+         You also use the following open-source models in this tutorial:
+
+         - `Nomic Embed Text <https://ollama.com/library/nomic-embed-text>`__ embedding model
+         - `Mistral 7B <https://ollama.com/library/mistral>`__ generative model
+
+         There are several ways to download and deploy |llm|\s locally.
+         In this tutorial, you download `Ollama <https://ollama.com/>`__ and pull
+         the open source models listed above to perform |rag| tasks.
+
+         This tutorial also uses the `Go language port of LangChain
+         <https://tmc.github.io/langchaingo/docs/>`__, a popular
+         open-source |llm| framework, to connect to these models and
+         integrate them with {+avs+}. If you prefer different models or a 
+         different framework, you can adapt this tutorial by replacing 
+         the Ollama model names or LangChain library components 
+         with their equivalents for your preferred setup.
+
+      .. tab::
+         :tabid: java-sync
+
+         There are several ways to download and deploy |llm|\s locally.
+         In this tutorial, you download `Ollama <https://ollama.com/>`__ and pull
+         the following open source models to perform |rag| tasks:
+
+         - `Nomic Embed Text <https://ollama.com/library/nomic-embed-text>`__
+           embedding model
+         - `Mistral 7B <https://ollama.com/library/mistral>`__ generative model
+
+         This tutorial also uses `LangChain4j
+         <https://docs.langchain4j.dev/intro/>`__, a popular
+         open-source |llm| framework for Java, to connect to these models and
+         integrate them with {+avs+}. If you prefer different models or a
+         different framework, you can adapt this tutorial by replacing
+         the Ollama model names or LangChain4j library components
+         with their equivalents for your preferred setup.
+
+      .. tab::
+         :tabid: nodejs
+
+         You also use the following open-source models in this tutorial:
+
+         - `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ embedding model
+         - `Mistral 7B <https://docs.mistral.ai/getting-started/models/>`__ generative model
+
+         There are several ways to download and deploy |llm|\s locally.
+         In this tutorial, you download the Mistral 7B model
+         by using `GPT4All <https://gpt4all.io/index.html>`__,
+         an open-source ecosystem for local |llm| development.
+
+      .. tab::
+         :tabid: python
+
+         When working through this tutorial, you use an interactive Python notebook.
+         This environment allows you to create and execute individual code blocks without
+         running the entire file each time.
+
+         You also use the following open-source models in this tutorial:
+
+         - `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ embedding model 
+         - `Mistral 7B <https://docs.mistral.ai/getting-started/models/>`__ generative model
+
+         There are several ways to download and deploy |llm|\s locally.
+         In this tutorial, you download the Mistral 7B model
+         by using `GPT4All <https://gpt4all.io/index.html>`__,
+         an open-source ecosystem for local |llm| development. 
+
+Prerequisites
+-------------
+
+In addition to the :ref:`common prerequisites <avs-tutorials-prereqs>`,
+this tutorial requires the following:
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: csharp
+
+      - The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or
+        later.
+
+      - `MongoDB Command Line Database Tools
+        <https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-arm64-100.10.0.zip>`__
+        installed.
+
+      - A terminal and code editor to run your .NET project.
+
+      - `.NET version 8.0 or higher <https://dotnet.microsoft.com/en-us/download>`__
+        installed.
+
+      - `Ollama <https://ollama.com/>`__ installed.
+
+   .. tab::
+      :tabid: go
+
+      - The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or
+        later.
+
+      - `MongoDB Command Line Database Tools
+        <https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-arm64-100.10.0.zip>`__
+        installed.
+
+      - A terminal and code editor to run your Go project.
+
+      - `Go <https://go.dev/doc/install>`__ installed.
+
+      - `Ollama <https://ollama.com/>`__ installed.
+
+   .. tab::
+      :tabid: java-sync
+
+      - The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or later.
+
+      - `MongoDB Command Line Database Tools
+        <https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-arm64-100.10.0.zip>`__
+        installed.
+
+      .. include:: /includes/avs/shared/avs-requirements-java.rst
+
+      - `Ollama <https://ollama.com/>`__ installed.
+
+   .. tab::
+      :tabid: nodejs
+
+      - The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or later.
+
+      - `MongoDB Command Line Database Tools
+        <https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-arm64-100.10.0.zip>`__
+        installed.
+
+      - A `Hugging Face Access Token <https://huggingface.co/docs/hub/en/security-tokens>`__
+        with read access.
+
+      - `Git Large File Storage <https://git-lfs.com/>`__ installed.
+
+      - A terminal and code editor to run your Node.js project.
+
+      - `npm and Node.js
+        <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__
+        installed.
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/avs/shared/avs-local-rag-prerequisites.rst
+
+Create a Local {+Deployment+} or |service| {+Cluster+}
+------------------------------------------------------
+
+This tutorial requires a local or cloud |service| {+deployment+} loaded with
+the :ref:`sample AirBnB listings <sample-airbnb>` dataset to use as a vector
+database.
+
+If you have an existing |service| {+cluster+} running MongoDB version 6.0.11,
+7.0.2, or later with the ``sample_airbnb.listingsAndReviews`` sample data
+loaded, you can skip this step.
+
+You can create a local |service| {+deployment+} using the {+atlas-cli+} or
+deploy a {+cluster+} on the cloud.
+
+.. tabs::
+
+   .. tab:: Local {+Deployment+}
+      :tabid: local
+
+      You can create a local {+deployment+} using the {+atlas-cli+}.
+
+      .. include:: /includes/search-shared/steps-create-local-deployment-atlas-cli.rst
+
+   .. tab:: Cloud {+Deployment+}
+      :tabid: cloud
+
+      You can create and deploy a new {+cluster+} using the {+atlas-cli+} or
+      {+atlas-ui+}. Ensure that you preload the new {+cluster+} with the
+      :ref:`sample data <sample-data>`.
+
+      .. include:: /includes/search-shared/fact-how-to-load-sample-data.rst
+
+      For detailed instructions, see :ref:`create-new-cluster`.
+
+Set Up the Environment
+----------------------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: csharp
+
+      In this section, you set up the environment for this tutorial. Create
+      a project, install the required packages, and define a connection
+      string:
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-set-up-environment-csharp.rst
+
+   .. tab::
+      :tabid: go
+
+      In this section, you set up the environment for this tutorial. Create
+      a project, install the required packages, and define a connection
+      string:
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-set-up-environment-go.rst
+
+   .. tab::
+      :tabid: java-sync
+
+      In this section, you set up the environment for this tutorial. Create
+      a project, install the required packages, and define a connection
+      string:
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-set-up-environment-java.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      In this section, you set up the environment for this tutorial. Create
+      a project, install the required packages, and define a connection
+      string:
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-set-up-environment-java.rst
+
+   .. tab::
+      :tabid: python
+
+      In this section, you set up the environment for this tutorial.
+
+      .. include:: /includes/ai-integrations/langchain/local-rag-set-up-environment.rst
+
+.. _local-rag-embeddings:
+
+Generate Embeddings with a Local Model
+--------------------------------------
+
+In this section, you load an embedding model locally and 
+generate vector embeddings by using data from the 
+:ref:`sample_airbnb <sample-airbnb>` database, 
+which contains a collection called ``listingsAndReviews``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-generate-embeddings-with-local-model-csharp.rst
+
+   .. tab::
+      :tabid: go
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-generate-embeddings-with-local-model-go.rst
+
+   .. tab::
+      :tabid: java-sync
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-generate-embeddings-with-local-model-java.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-generate-embeddings-with-local-model-javascript.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/avs/local-rag/avs-local-rag-generate-embeddings-python.rst
+
+.. tabs::
+   :hidden: true
+
+   .. tab:: Local {+Deployment+}
+      :tabid: local
+
+      This code might take several minutes to run. After it's finished, you can
+      view your vector embeddings by connecting to your local {+deployment+}
+      from {+mongosh+} or your application using your {+deployment+}\'s
+      connection string. Then you can run :manual:`read operations
+      </crud/#read-operations>` on the ``sample_airbnb.listingsAndReviews``
+      collection.
+      
+   .. tab:: Cloud {+Deployment+}
+      :tabid: cloud
+
+      .. include:: /includes/avs/facts/fact-view-embeddings-atlas-ui-airbnb.rst
+
+.. tip::
+
+   You can convert the embeddings in the sample data to |bson| vectors for
+   efficient storage and ingestion of vectors in |service|. To learn
+   more, see :ref:`how to convert native embeddings to BSON vectors
+   <avs-bindata-vector-subtype>`. 
+
+Create the {+avs+} Index
+------------------------------------
+
+To enable vector search on the ``sample_airbnb.listingsAndReviews`` 
+collection, create an {+avs+} index.
+
+This tutorial walks you through how to create an {+avs+}
+index programmatically with a supported :driver:`MongoDB Driver </>` or
+using the {+atlas-cli+}. For information on other ways to create an
+{+avs+} index, see :ref:`avs-types-vector-search`.
+
+.. note::
+
+   To create an {+avs+} index, you must have :authrole:`Project Data Access Admin` or higher access to the |service| project.
+
+.. tabs::
+
+   .. tab:: Supported Driver
+      :tabid: programmatic-index
+
+      .. tabs-drivers::
+
+         .. tab::
+            :tabid: csharp
+
+            To create an {+avs+} index for a collection using the :driver:`MongoDB C# driver </csharp/current/fundamentals/indexes/>` v3.1.0 or later, perform the following steps:
+
+            .. include:: /includes/avs/local-rag/create-index-programmatically-csharp.rst
+
+         .. tab::
+            :tabid: go
+
+            To create an {+avs+} index for a collection using the :driver:`MongoDB Go driver </go/current/fundamentals/indexes/>` v2.0 or later, perform the following steps:
+
+            .. include:: /includes/avs/local-rag/create-index-programmatically-go.rst
+            
+            .. note:: Programmatic Index Creation
+               
+               The MongoDB Go driver supports programmatic {+avs+} index creation starting
+               in v1.16.0, but the preceding code shows the syntax for the v2.x driver.
+
+         .. tab::
+            :tabid: java-sync
+
+            To create an {+avs+} index for a collection using the
+            :driver:`MongoDB Java driver </java/sync/current/fundamentals/indexes/>`
+            v5.2.0 or later, perform the following steps:
+
+            .. include:: /includes/avs/local-rag/create-index-programmatically-java.rst
+
+         .. tab::
+            :tabid: nodejs
+
+            To create an {+avs+} index for a collection using the
+            :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>`
+            v6.6.0 or later, perform the following steps:
+
+            .. include:: /includes/avs/local-rag/create-index-programmatically-javascript.rst
+
+         .. tab::
+            :tabid: python
+
+            To create an {+avs+} index for a collection using the
+            `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
+            driver v4.7 or later, perform the following steps:
+
+            .. include:: /includes/avs/local-rag/create-index-programmatically-python.rst
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      To create an {+avs+} index using the {+atlas-cli+}, perform the following steps:
+
+      .. tabs-drivers::
+
+         .. tab::
+            :tabid: csharp
+
+            .. include:: /includes/avs/local-rag/local-rag-create-index-cli-nomic-dims.rst
+
+         .. tab::
+            :tabid: go
+
+            .. include:: /includes/avs/local-rag/local-rag-create-index-cli-nomic-dims.rst
+
+         .. tab::
+            :tabid: java-sync
+
+            .. include:: /includes/avs/local-rag/local-rag-create-index-cli-nomic-dims.rst
+
+         .. tab::
+            :tabid: nodejs
+
+            .. include:: /includes/ai-integrations/langchain/local-rag-create-index-cli.rst
+
+         .. tab::
+            :tabid: python
+
+            .. include:: /includes/ai-integrations/langchain/local-rag-create-index-cli.rst
+
+Answer Questions with the Local LLM
+-----------------------------------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: csharp
+
+      This section demonstrates a sample |rag| implementation 
+      that you can run locally using {+avs+} and Ollama.
+
+      .. include:: /includes/avs/local-rag/perform-qa-csharp.rst
+
+   .. tab::
+      :tabid: go
+
+      This section demonstrates a sample |rag| implementation 
+      that you can run locally using {+avs+} and Ollama.
+
+      .. include:: /includes/avs/local-rag/perform-qa-go.rst
+
+   .. tab::
+      :tabid: java-sync
+
+      This section demonstrates a sample |rag| implementation
+      that you can run locally using {+avs+} and Ollama.
+
+      .. include:: /includes/avs/local-rag/perform-qa-java.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      This section demonstrates a sample |rag| implementation 
+      that you can run locally using {+avs+} and GPT4All.
+
+      .. include:: /includes/avs/local-rag/perform-qa-javascript.rst
+
+   .. tab::
+      :tabid: python
+
+      This section demonstrates a sample |rag| implementation 
+      that you can run locally using {+avs+} and GPT4All.
+
+      In your notebook, run the following code snippets:
+
+      .. include:: /includes/ai-integrations/langchain/local-rag-perform-qa.rst

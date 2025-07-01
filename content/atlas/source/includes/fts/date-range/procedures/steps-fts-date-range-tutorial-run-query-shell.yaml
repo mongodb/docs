@@ -1,0 +1,215 @@
+stepnum: 1
+ref: fts-date-range-tutorial-step1
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: connect-to-database-deployment-fts
+---
+stepnum: 2
+ref: fts-date-range-tutorial-step2
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: use-sample-mflix
+---
+stepnum: 3
+ref: fts-date-range-tutorial-step3
+title: "Run an |fts| ``compound`` query with two clauses on the
+       ``movies`` collection."
+content: |
+  
+  The following example uses the ``compound`` operator with subqueries 
+  to search for movies between the years ``2010`` to ``2015``. The 
+  query uses the following clauses:
+
+  .. include:: /includes/fts/extracts/fts-date-range-clauses.rst
+
+  .. include:: /includes/fts/extracts/fts-date-range-stages.rst
+
+  .. io-code-block::
+     :copyable: true 
+
+     .. input:: 
+        :language: json 
+
+        db.movies.aggregate([
+          {
+            "$search": {
+                "index": "date-range-tutorial",
+                "compound": {
+                  "must": [{
+                    "range": {
+                      "path": "released",
+                      "gt": ISODate("2015-01-01T00:00:00.000Z"),
+                      "lt": ISODate("2015-12-31T00:00:00.000Z")
+                    }
+                  }],
+                  "should": [{
+                    "near": {
+                      "path": "released",
+                      "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
+                      "pivot": 2629800000
+                    }
+                  }]
+                }
+              }
+            },
+            {
+              "$limit": 6
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "released": 1,
+                "genres": 1,
+                "score": { "$meta": "searchScore" }
+              }
+            }
+          ])
+        
+     .. output::
+        :language: json
+        :visible: true
+        
+        [
+          {
+            "genres": [ "Action", "Adventure", "Sci-Fi" ],
+            "title": "Terminator Genisys",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama", "Music" ],
+            "title": "Magic Mike XXL",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Documentary", "Biography", "Drama" ],
+            "title": "Mala Mala",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama" ],
+            "title": "Home Care",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Documentary", "News" ],
+            "title": "Bitcoin: The End of Money as We Know It",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Drama", "Mystery", "Sci-Fi" ],
+            "title": "Pig",
+            "released": ISODate("2015-07-02T00:00:00.000Z"),
+            "score": 1.9681909084320068
+          }
+        ]
+
+  .. include:: /includes/fts/extracts/fts-date-range-results.rst
+
+---
+stepnum: 4
+ref: fts-date-range-tutorial-step4
+title: "Run an |fts| ``compound`` query with three clauses on the
+       ``movies`` collection."
+content: |
+
+  The following example adds on to the previous example. 
+  
+  .. include:: /includes/fts/extracts/fts-date-range-complex-clauses.rst
+
+  .. io-code-block::
+     :copyable: true 
+
+     .. input:: 
+        :language: json 
+
+        db.movies.aggregate([
+          {
+            "$search": {
+                "compound": {
+                  "must": [{
+                    "range": {
+                      "path": "released",
+                      "gt": ISODate("2015-01-01T00:00:00.000Z"),
+                      "lt": ISODate("2015-12-31T00:00:00.000Z")
+                    }
+                  }],
+                  "should": [{
+                    "near": {
+                      "path": "released",
+                      "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
+                      "pivot": 2629800000
+                    }
+                  }],
+                  "mustNot": [{
+                    "text": {
+                      "query": "documentary",
+                      "path": "genres"
+                    }
+                  }]
+                }
+              }
+            },
+            {
+              "$limit": 10
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "released": 1,
+                "genres": 1,
+                "score": { "$meta": "searchScore" }
+              }
+            }
+          ])
+        
+     .. output::
+        :language: json
+        :visible: true
+        
+        [
+          {
+            "genres": [ "Action", "Adventure", "Sci-Fi" ],
+            "title": "Terminator Genisys",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama", "Music" ],
+            "title": "Magic Mike XXL",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama" ],
+            "title": "Home Care",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Drama", "Mystery", "Sci-Fi" ],
+            "title": "Pig",
+            "released": ISODate("2015-07-02T00:00:00.000Z"),
+            "score": 1.9681909084320068
+          },
+          {
+            "genres": [ "Drama", "History", "Romance" ],
+            "title": "Gold Coast",
+            "released": ISODate("2015-07-02T00:00:00.000Z"),
+            "score": 1.9681909084320068
+          },
+          {
+            "genres": [ "Animation", "Family" ],
+            "title": "Zarafa",
+            "released": ISODate("2015-07-03T00:00:00.000Z"),
+            "score": 1.9383430480957031
+          }
+        ]
+
+  .. include:: /includes/fts/extracts/fts-date-range-results.rst

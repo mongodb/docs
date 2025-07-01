@@ -1,0 +1,463 @@
+.. _ref-multi-analyzers:
+
+==============
+Multi Analyzer
+==============
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: multiple analyzers, alternate search analyzer, multi path option
+   :description: Use the ``multi`` object to specify alternate analyzers to also index the field with. Then you can search with the default or the alternate analyzer.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can use the ``multi`` object in your index definition to specify 
+alternate analyzers with which to also index the field. When you index 
+a field with alternate analyzers in addition to the default analyzer, 
+you can search the collection with either the default or the alternate 
+analyzer. This page demonstrates how to specify alternate analyzers in 
+your :ref:`index definition <ref-index-definitions>` using ``multi``.
+
+.. _ref-multi-limitations:
+
+Multi Analyzer Limitations
+--------------------------
+
+The ``multi`` path option is available only to fields of
+type :ref:`string <bson-data-types-string>`.
+
+|fts| does not support nesting multiple layers of ``multi`` objects.
+
+Examples 
+--------
+
+The following examples demonstrate index definitions on the fields in the
+``sample_mflix.movies`` collection. If you load the collection on your
+{+cluster+}, you can create the example indexes using the Visual Editor or
+the |json| Editor in the {+atlas-ui+}. After you select your preferred
+configuration method, select the database and collection to define the
+index.
+
+Single Field Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example index definition specifies an index on the
+``title`` field  using the ``standard`` analyzer. The index definition
+also specifies :ref:`lucene.french <ref-language-analyzers>` analyzer as
+an alternate analyzer for the ``title`` field, with the name
+``frenchAnalyzer``. 
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window. 
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add Multi Field` to configure another analyzer
+         on the ``title`` field.
+      #. Enter ``frenchAnalyzer`` in the :guilabel:`Multi Field Name`
+         field. 
+      #. Make the following changes to the :guilabel:`Multi Field
+         Properties` : 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.french`` from the dropdown if it isn't
+                already selected. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.french`` from the dropdown if it isn't
+                already selected.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      2. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 8-13
+            :linenos:
+
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.standard",
+                    "multi": {
+                      "frenchAnalyzer": {
+                        "type": "string",
+                        "analyzer": "lucene.french"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query uses the alternate analyzer, named 
+``frenchAnalyzer``, to search for the string ``liberte``. 
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "liberte",
+              "path": { "value": "title", "multi": "frenchAnalyzer" }
+            }
+          }
+        }, 
+        { 
+          "$project": { 
+            "title": 1,
+            "year": 1,
+            "_id": 0 
+          } 
+        }
+      ])
+
+   .. output:: 
+      :language: json
+      :visible: false
+
+      [ { title: 'è Nous la Libertè', year: 1931 } ]
+
+The document in the results is a match because the ``frenchAnalyzer``
+reduced both the indexed string ``è Nous la Libertè`` and query term
+``liberte`` to the base word ``libert``. |fts| won't return this
+document for a search with the ``standard`` analyzer because it doesn't
+remove diacritics. Each analyzer generates the following tokens
+(searchable terms) for the index and query: 
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Analyzer 
+     - Index Tokens
+     - Query Tokens
+
+   * - Standard Analyzer 
+     - ``è``, ``nous``, ``la``, ``libertè``
+     - ``libertè``
+
+   * - French Analyzer 
+     - ``è``, ``libert``
+     - ``libert``
+
+Multiple Fields Example 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example index definition specifies an index on the
+``title`` and ``plot`` fields using the ``standard`` analyzer. The index
+definition also specifies :ref:`lucene.french
+<ref-language-analyzers>` as an alternate analyzer for the ``title``
+and the ``plot`` fields.
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window. 
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add Multi Field` to configure another analyzer
+         on the ``title`` field.
+      #. Enter ``frenchAnalyzer`` in the :guilabel:`Multi Field Name`
+         field. 
+      #. Make the following changes to the :guilabel:`Multi Field
+         Properties` : 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.french`` from the dropdown if it isn't
+                already selected. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.french`` from the dropdown if it isn't
+                already selected.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Add Field Mapping` to open the :guilabel:`Add
+         Field Mapping` window.
+      #. Select ``plot`` from the :guilabel:`Field Name` dropdown.
+      #. Repeat steps 4 to 9. 
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      1. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 8-13
+            :linenos:
+
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.standard",
+                    "multi": {
+                      "frenchAnalyzer": {
+                        "type": "string",
+                        "analyzer": "lucene.french"
+                      }
+                    }
+                  },
+                  "plot": {
+                    "type": "string",
+                    "analyzer": "lucene.standard",
+                    "multi": {
+                      "frenchAnalyzer": {
+                        "type": "string",
+                        "analyzer": "lucene.french"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query searches for matches for the string ``revolution`` in the
+``title`` and the ``plot`` fields by using the alternate analyzer named
+``frenchAnalyzer``.  
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "revolution",
+              "path": ["title", "plot",
+                { "value": "title", "multi": "frenchAnalyzer" },
+                {  "value": "plot", "multi": "frenchAnalyzer" }
+              ]
+            }
+          }
+        }, 
+        {
+          "$limit": 5
+        },
+        { 
+          "$project": { 
+            "title": 1,
+            "plot": 1,
+            "year": 1,
+            "_id": 0 
+          } 
+        }
+      ])
+
+   .. output:: 
+      :language: json
+      :visible: false
+
+      [
+        {
+          year: 2012,
+          plot: 'REVOLUTION is a film about changing the world, going for it, taking a stand, and fighting for something. A true-life adventure following Director, Rob Stewart (SHARKWATER) over four years ...',
+          title: 'Revolution'
+        },
+        {
+          plot: 'New York trapper Tom Dobb becomes an unwilling participant in the American Revolution after his son Ned is drafted into the Army by the villainous Sergeant Major Peasy. Tom attempts to find...',
+          title: 'Revolution',
+         year: 1985
+        },
+        {
+          plot: "Together with five Soviet avant-garde artists, hero of the Russian revolution Polina Schneider travels to Siberia to 'civilize' the native Khanty and Nenets tribes, for whom interaction ...",
+          title: 'Angels of Revolution',
+          year: 2014
+        },
+        {
+          plot: 'Two mismatched sets of identical twins - one aristocrat, one peasant - mistakenly exchange identities on the eve of the French Revolution.',
+          title: 'Start the Revolution Without Me',
+          year: 1970
+        },
+        {
+          plot: "A history of the French Revolution from the decision of the king to convene the Etats-Generaux in 1789 in order to deal with France's debt problem. The first part of the movie tells the ...",
+          title: 'La rèvolution franèaise',
+          year: 1989
+        }
+      ]
+
+The documents in the results contain the query term in both the
+``title`` and the ``plot`` fields. Each analyzer creates the following
+tokens (searchable terms) for the ``title`` field for each document in
+the results:  
+
+.. list-table:: 
+
+   * - Year
+     - Analyzer
+     - Index Tokens
+     - Query Tokens
+  
+   * - 2012
+     - | Standard Analyzer
+       | French Analyzer
+     - | ``revolution``
+       | ``revolution``
+     - | ``revolution`` 
+       | ``revolution`` 
+
+   * - 1985
+     - | Standard Analyzer
+       | French Analyzer
+     - | ``revolution``
+       | ``revolution``
+     - | ``revolution``
+       | ``revolution`` 
+
+   * - 2014
+     - | Standard Analyzer
+       | French Analyzer
+     - | ``angels``, ``of``, ``revolution``
+       | ``angels``, ``of``, ``revolution``
+     - | ``revolution``
+       | ``revolution``
+
+   * - 1970
+     - | Standard Analyzer
+       | French Analyzer
+     - | ``start``, ``the``, ``revolution``, ``without``, ``me``
+       | ``start``, ``the``, ``revolution``, ``without``
+     - | ``revolution``
+       | ``revolution``
+
+   * - 1989 
+     - | Standard Analyzer
+       | French Analyzer
+     - | ``la``, ``rèvolution``, ``franèaise``
+       | ``revolution``, ``franeais`` 
+     - | ``revolution``
+       | ``revolution``
+
+
+For the fifth document in the results, the ``frenchAnalyzer`` removed
+the diacritics in the ``title`` field to match the document to the query
+term.

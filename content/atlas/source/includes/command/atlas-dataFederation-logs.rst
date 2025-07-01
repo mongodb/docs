@@ -1,0 +1,105 @@
+.. _atlas-dataFederation-logs:
+
+=========================
+atlas dataFederation logs
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Returns logs of the specified data federation database for your project.
+
+To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas dataFederation logs <name> [options]
+
+.. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - name
+     - string
+     - true
+     - Name of the data federation database.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --end
+     - int
+     - false
+     - Timestamp in UNIX epoch format when the logs end.
+   * - --force
+     - 
+     - false
+     - Flag that indicates whether to overwrite the destination file.
+   * - -h, --help
+     - 
+     - false
+     - help for logs
+   * - --out
+     - string
+     - true
+     - Output file name. This value defaults to the log name.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+   * - --start
+     - int
+     - false
+     - Timestamp in UNIX epoch format when the logs start.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # download logs of data federation database 'DataFederation1':
+   atlas dataFederation logs DataFederation1
+

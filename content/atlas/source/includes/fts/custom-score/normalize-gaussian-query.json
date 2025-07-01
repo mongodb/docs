@@ -1,0 +1,59 @@
+db.movies.aggregate([{
+    "$search": {
+      "text": {
+        "path": "title",
+        "query": "shop",
+        "score": {
+          "function":{
+            "gauss": {
+              "path": {
+                "value": "imdb.rating",
+                "undefined": 4.6
+              },
+              "origin": 9.5,
+              "scale": 5,
+              "offset": 0,
+              "decay": 0.5
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "$limit": 5
+  },
+  {
+    "$addFields": {
+      "score": {
+        "$meta": "searchScore"
+      }
+    }
+  },
+  {
+    "$setWindowFields": {
+      "output": {
+        "maxScore": {
+          "$max": "$score"
+        }
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "normalizedScore": {
+        "$divide": [
+          "$score", "$maxScore"
+        ]
+      }
+    }
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "title": 1,
+      "score": 1,
+      "maxScore": 1,
+      "normalizedScore": 1
+    }
+}])

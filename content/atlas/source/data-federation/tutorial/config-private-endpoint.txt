@@ -1,0 +1,152 @@
+.. meta::
+   :keywords: atlas api, atlas cli, atlas ui
+   :description: Set up AWS PrivateLink endpoints for a federated database instance using Atlas CLI, UI, or API.
+
+.. _config-private-endpoint:
+
+===========================================================
+Set Up a Private Endpoint for a {+FDI+} 
+===========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB supports |aws| and |azure| private endpoints for your {+fdi+}. You 
+can set up the private endpoints from the {+atlas-cli+}, {+atlas-ui+}, and 
+and {+atlas-admin-api+}.
+
+.. note:: 
+
+   You can't use your |service| cluster :ref:`private endpoint ID
+   <private-endpoint>` for {+adf+}. The {+adf+} endpoint ID must be
+   different from your |service| cluster endpoint ID, if you have one. 
+
+Required Access
+---------------
+
+To set up a private endpoint, you must have :authrole:`Project Owner` access to the project.
+Users with :authrole:`Organization Owner` access must add themselves as a ``Project Owner``
+to the project before setting up a private endpoint.
+
+Prerequisites 
+-------------
+
+The procedure differs depending on whether you use |aws| or |azure| for your cloud provider.
+Select the appropriate tab:
+
+.. tabs:: 
+
+   .. tab:: AWS
+      :tabid: aws
+
+      1. Have an |aws| user account with an |iam| user policy that grants 
+         permissions to create, modify, describe, and delete endpoints. To 
+         learn more about controlling the use of interface endpoints, see 
+         the :aws:`AWS Documentation 
+         </vpc/latest/userguide/vpc-endpoints.html>`.
+
+      #. :aws:`Install the AWS CLI 
+         </cli/latest/userguide/cli-chap-install.html>`.
+
+      #. If you have not already done so, create your |vpc| and EC2 instances 
+         in |aws|. To learn more, see the :aws:`AWS documentation 
+         </index.html>` for guidance.
+
+   .. tab:: Azure
+      :tabid: azure
+
+      1. Have an |azure| user account with 
+         permissions to create resources like virtual networks and private endpoints.
+         To learn more about the permissions required, see 
+         the `Azure Documentation 
+         <https://learn.microsoft.com/en-us/azure/private-link/rbac-permissions>`__.
+
+      #. `Install the Azure CLI <https://learn.microsoft.com/en-us/cli/azure/install-azure-cli>`__.
+
+      .. important:: 
+
+         With |azure|, you can create *up to three private endpoints per project* 
+         for your {+fdi+}\s due to an |azure|-imposed limit. This is why |service| 
+         prevents you from deleting an |service| project before first deleting its 
+         private endpoints. To request more than three private endpoints for a project, 
+         contact :ref:`MongoDB Support <request-support>`.
+
+Procedure
+---------
+
+.. tabs::
+ 
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+ 
+      .. include:: /includes/extracts/atlas-dataFederation-privateEndpoints-create.rst
+ 
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+ 
+      To configure a private endpoint from the API, send a ``POST`` request 
+      with the private endpoint ID to the ``privateNetworkSettings`` 
+      endpoint. 
+
+      - If the endpoint ID already exists and there is no change to 
+        the comment associated with the endpoint, |service| makes no change 
+        to the endpoint ID list.
+      - If the endpoint ID already exists and there is a change to the 
+        associated comment, |service| updates the ``comment`` value only in 
+        the endpoint ID list.
+      - If the endpoint ID doesn't exist, |service| appends the new endpoint 
+        to the list of endpoints in the endpoint ID list.
+
+      To learn more about the syntax and options, see :oas-atlas-op:`API 
+      </createOneDataFederationPrivateEndpointForOneProject>`.
+ 
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+ 
+      To set up a private endpoint for your {+fdi+} using the {+atlas-ui+}, follow these steps:
+
+      .. tabs::
+         :hidden: true 
+
+         .. tab:: AWS
+            :tabid: aws
+      
+            .. tabs:: 
+
+               .. tab:: Create New Endpoint 
+                  :tabid: create-new 
+
+                  .. include:: /includes/steps-adf-create-new-privatelink.rst
+
+               .. tab:: Add Existing Endpoint 
+                  :tabid: add-existing
+
+                  .. include:: /includes/steps-adf-add-existing-privatelink.rst 
+
+         .. tab:: Azure
+            :tabid: azure
+
+            .. include:: /includes/steps-adf-create-privatelink-azure.rst
+
+To verify whether the private endpoint setup is successful:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-network-access.rst
+
+   .. step:: Click the :guilabel:`Private Endpoint` tab.
+
+   .. step:: Click the :guilabel:`Federated Database Instance / Online Archive` tab.
+
+   .. step:: Review the details.
+
+       Review the :guilabel:`Cloud Provider`, :guilabel:`Region`, :guilabel:`Endpoint Status`, :guilabel:`VPC ID / Virtual Network Name` and :guilabel:`Description`.
+
+       To learn more, see :ref:`view-private-endpoints`.
+

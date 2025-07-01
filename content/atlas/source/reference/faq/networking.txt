@@ -1,0 +1,139 @@
+===============
+FAQ: Networking
+===============
+
+.. meta::
+   :description: Discover networking FAQs for Atlas, including IP address changes, VPC usage, firewall configuration, and cross-region network permissions.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _faq-public-ip-changes:
+
+Do |service| {+cluster+}\'s public IPs ever change?
+---------------------------------------------------
+
+The factors that determine if and when |a-service| {+cluster+}\'s public IP 
+address changes depends on the cluster tier.
+
+.. note::
+
+    This section applies to ``M10`` or larger {+dedicated-clusters+} only 
+    unless specified.
+
+|A-service| {+cluster+}\'s public IP addresses must change when you:
+
+- Vertically scale an :ref:`NVMe-backed <nvme-storage>` cluster on
+  :ref:`Amazon Web Services (AWS) <amazon-aws>` or :ref:`Microsoft Azure
+  <microsoft-azure>`.
+- :ref:`Convert a replica set to a sharded cluster <scale-cluster-sharding>`.
+- :ref:`Add shards to a sharded cluster <scale-cluster-shardNum>`.
+- :ref:`Change the region into which a cluster is deployed <scale-cluster-region>`.
+- :ref:`Scale <scale-cluster-open-dialog>` an ``M0`` or {+Flex-cluster+}
+  to an ``M10`` or larger {+cluster+}.
+- :ref:`Terminate <terminate-cluster>` then re-deploy a 
+  {+cluster+} with the same name *but in a different tier* within 
+  36 hours.
+- :ref:`Enable Encryption at Rest 
+  <scale-cluster-enable-encryption>` on a {+cluster+} with a 
+  lifetime less than 12 hours.
+
+|A-service| {+cluster+}\'s public IPs don't change when you:
+
+- Vertically scale a {+cluster+} on :ref:`Amazon Web Services (AWS)
+  <amazon-aws>` or :ref:`Microsoft Azure <microsoft-azure>` that is not
+  backed by an :ref:`NVMe SSD <nvme-storage>`, or vertically
+  scale a {+cluster+} from any tier on :ref:`Google Cloud Platform (GCP) <google-gcp>`.
+- Unpause the {+cluster+}.
+- :ref:`Terminate <terminate-cluster>` and then re-deploy a {+cluster+}
+  with a lifetime of 12 hours or more within 12-36 hours.
+- Experience a maintenance or a healing event on your {+cluster+}.
+
+To find the public IP address for any node in your {+cluster+}, use the
+``nslookup`` tool from the command line. The IP address is shown in the
+``Address`` portion of the output.
+
+.. code-block:: sh
+
+    $ nslookup ds-shard-00-00-17jcm.mongodb-dev.net
+
+    Address: 34.226.104.79
+
+.. _faq-atlas-side-hostnames:
+
+Can I specify my own VPC for my |service-fullname| project?
+-----------------------------------------------------------
+
+No. An |service| project, and its clusters, are associated with a
+region-specific |vpc|.
+
+|service| creates a |vpc| when you deploy the first ``M10+`` dedicated
+paid cluster to a given provider and region. For multi-region clusters,
+|service| creates one |vpc| per region if there is not already a |vpc|
+for that region.
+
+*(AWS deployments only)* |service| also creates a |vpc| when you create
+a :doc:`VPC peering connection </security-vpc-peering>` to an |aws|
+|vpc|. |service| creates the |vpc| in the same region as the peered
+|vpc|.
+
+To use a different |vpc| (that is, on the customer's own cloud
+infrastructure accounts), you would need to use |mms-full|
+or Ops Manager.
+
+How do I find my Atlas-side hostnames to open up my outbound firewall?
+----------------------------------------------------------------------
+
+If your firewall blocks outbound network connections, you must open
+outbound access from your application environment to
+|service-fullname|. To configure your application-side networks to
+accept |service| traffic you can use the 
+:oas-atlas-tag:`Return All IP Addresses for One Project </Projects/operation/returnAllIpAddresses>` 
+API endpoint to retrieve all IP addresses for your project.
+
+You can pass the IP addresses programmatically into your application-tier 
+orchestration automation to push firewall updates.
+
+.. _faq-cross-region:
+
+How many cross-region network permissions does |service| support?
+-----------------------------------------------------------------
+
+.. include:: /includes/facts/cross-region-limits.rst
+
+If you would exceed the cross-region permissions limit when creating a
+cluster through the {+atlas-admin-api+}, the |api| returns the following
+error:
+
+.. code-block:: json
+
+   {
+     "error" : 403,
+     "detail" : "Cannot have more than 40 cross-region network permissions.",
+     "reason" : "Forbidden"
+   }
+
+.. _atlas-faq-aws-transit-gateway:
+
+Can Atlas be used with AWS Transit Gateway?
+-------------------------------------------
+
+Yes. |aws| PrivateLink powers |service| Private Endpoints. This allows
+for transitive connectivity. You can use the
+:aws:`AWS Transit Gateway </vpc/latest/tgw/tgw-getting-started.html>`
+with your |vpc| if you connected your |vpc| to |service| via |aws|
+PrivateLink.
+
+.. _atlas-faq-aws-direct-connect:
+
+Can Atlas be used with AWS Direct Connect?
+------------------------------------------
+
+Yes. |aws| PrivateLink powers |service| Private Endpoints. This allows
+for transitive connectivity. You can use :aws:`AWS Direct Connect </whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect-network-to-amazon.html>` with your
+|vpc| if you connected your |vpc| to |service| via |aws| PrivateLink.

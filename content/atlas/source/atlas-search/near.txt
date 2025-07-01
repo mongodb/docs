@@ -1,0 +1,682 @@
+.. _near-ref:
+
+=================
+``near`` Operator
+=================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: compound search
+   :description: Learn how to search near a numeric, date, or GeoJSON point value.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _near-query-limitations:
+
+``near`` Operator Limitations
+-----------------------------
+
+You can't use the ``near`` operator to query numeric or date values
+stored in an array, even if you have an |fts| index. You can use the 
+:ref:`range <range-ref>` only to query indexed numeric or date values
+inside arrays. 
+
+Definition
+----------
+
+.. expression:: near
+
+   The ``near`` operator supports querying and scoring numeric, date, 
+   and GeoJSON point values. This operator can be used to perform a 
+   search over:
+
+   - Number fields of BSON ``int32``, ``int64``, and ``double`` data
+     types. 
+   - Date fields of BSON ``date`` type in :term:`ISODate` format.
+   - Geographic location fields defined using latitude and longitude
+     coordinates.
+
+   You can use the ``near`` operator to find results that are near a
+   number or a date. The ``near`` operator scores the |fts| results by
+   proximity to the number or date.
+
+.. _near-syntax:
+
+Syntax
+------
+
+``near`` has the following syntax:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      $search: {
+         "index": <index name>, // optional, defaults to "default"
+         "near": {
+            "path": "<field-to-search>",
+            "origin": <date-or-number>,
+            "pivot": <pivot-distance>,
+            "score": <score-options>
+         }
+      }
+   }
+
+.. _near-options:
+
+Options
+-------
+
+``near`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``origin``
+     - date, number, or geo
+     - Number, date, or geographic
+       :ref:`point <geojson-point>` to search near. This is the origin
+       from which the proximity of the results is measured.
+
+       - For number fields, the value must be of BSON ``int32``,
+         ``int64``, or ``double`` data types.
+       - For date fields, the value must be an
+         :term:`ISODate`
+         formatted date.
+       - For :ref:`geo <bson-data-types-geo>` fields. the value must be
+         a :ref:`GeoJSON point <geojson-point>`.
+
+     - yes
+
+   * - ``path``
+     - string or array of strings
+     - Indexed field or fields to search.
+     - yes
+
+   * - ``pivot``
+     - number
+     - Value to use to calculate scores of |fts| result documents.
+       Score is calculated using the following formula:
+
+       .. code-block:: text
+          :copyable: false
+
+                        pivot
+          score = ------------------
+                   pivot + distance
+
+       where ``distance`` is the difference between ``origin`` and the
+       indexed field value.
+
+       Results have a score equal to ``1/2`` (or ``0.5``) when their
+       indexed field value is ``pivot`` units away from ``origin``.
+       The value of ``pivot`` must be greater than (i.e. ``>``) ``0``.
+
+       If ``origin`` is a:
+
+       - Number, ``pivot`` can be specified as an integer or floating
+         point number.
+       - Date, ``pivot`` must be specified in milliseconds and can be
+         specified as a 32 or 64 bit integer. For example: 
+         
+         - 1 minute is equal to ``60,000 ms``
+         - 1 hour is equal to ``3,600,000 ms``
+         - 1 day is equal to ``86,400,000 ms``
+         - 1 month (or 30 days) is equal to ``2,592,000,000 ms``
+
+       - GeoJSON point, ``pivot`` is measured in meters and must be
+         specified as an integer or floating point number.
+
+     - yes
+
+   * - ``score``
+     - object
+     - Score to assign to matching search results. You can modify
+       the default score using the following options:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score with the given expression.
+
+       For information on using ``score`` in your query, see
+       :ref:`scoring-ref`.
+
+       To learn more, see :ref:`near-query-score`.
+
+     - no
+
+.. _near-query-score:
+
+Scoring Behavior 
+----------------
+
+|fts| ``score`` is a measure of the proximity of the |fts| results to
+``origin``. The ``score`` is scaled between ``0`` and ``1`` with ``1``
+being an exact match and ``0`` being a distant match. Score is equal to
+``0.5`` when the distance of the |fts| result from ``origin`` is equal
+to the distance away from origin as calculated using ``pivot``.
+
+Score is calculated using the following formula:
+
+.. code-block:: text
+   :copyable: false
+
+                  pivot
+   score = ------------------
+            pivot + distance
+
+where, ``distance`` is the difference between ``origin`` and the indexed
+field value. 
+
+You can modify the default score using  ``score`` option in your query.
+To learn more about the options, :ref:`scoring-options`.
+
+.. _near-ref-egs:
+
+Examples
+--------
+
+The :ref:`number <near-number-eg>` and :ref:`date <near-date-eg>`
+examples use the ``movies`` collection in the ``sample_mflix``
+database. The :ref:`GeoJSON point <near-geo-point-eg>` example uses the
+``listingsAndReviews`` collection in the ``sample_airbnb`` database. 
+
+If you :ref:`load the sample data <sample-data>` on your |service| cluster,
+you can create the static indexes using the index definitions in the examples
+below or the dynamic index and run the example queries on your cluster.
+
+.. include:: /includes/fts/facts/get-started-atlas-search.rst
+
+.. _near-number-eg:
+
+Number Example
+~~~~~~~~~~~~~~
+
+The following example uses the ``near`` operator to query a number
+field. The following queries use an index named ``runtimes`` that
+dynamically indexes all the fields in the ``movies`` collection. The
+query searches for documents in the ``movies`` collection with a
+``runtime`` field value that is near ``279``.
+
+Basic Example 
+`````````````
+
+The following query returns all documents that match the search
+criteria. It includes a :pipeline:`$limit` stage to limit the output to
+7 results and a :pipeline:`$project` stage to:
+
+- Exclude all fields except ``title`` and ``runtime``
+- Add a field named ``score``
+
+The ``score`` is calculated using ``pivot``.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          $search: {
+            "index": "runtimes",
+            "near": {
+              "path": "year",
+              "origin": 2000,
+              "pivot": 2
+            }
+          }
+        },
+        {
+          $limit: 7
+        },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            "runtime": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      [
+        { runtime: 279, title: 'The Kingdom', score: 1 },
+        { runtime: 279, title: 'The Kingdom', score: 1 },
+        { runtime: 279, title: 'The Jinx: The Life and Deaths of Robert Durst', score: 1  },
+        { runtime: 281, title: 'Les Misèrables', score: 0.5 },
+        { runtime: 277, title: 'Tokyo Trial', score: 0.5 },
+        { runtime: 283, title: 'Scenes from a Marriage', score: 0.3333333432674408 },
+        { runtime: 274, title: 'The Crimson Petal and the White', score: 0.2857142984867096 }
+      ]
+
+In the |fts| results, the movies ``The Kingdom`` and ``The
+Jinx: The Life and Deaths of Robert Durst`` receive a score of
+``1.0`` because their ``runtime`` field value of ``279`` is an exact
+match. The movies ``Les Misèrables`` and ``Tokyo Trial`` receive a
+score of ``0.5`` because their ``runtime`` field value is ``2``
+units away from ``279``.
+
+Metadata Example 
+````````````````
+
+The following query returns the metadata results for the search
+criteria. That is, it uses the :pipeline:`$searchMeta` stage to get the
+number of movies in the following buckets (years) that match the search
+criteria:
+
+- 2000, inclusive lower bound for this bucket
+- 2005, exclusive upper bound for the 2000 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2005 bucket and inclusive lower bound for this bucket
+- 2010, exclusive upper bound for the 2010 bucket
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input::
+      :language: json
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "near": {
+                  "path": "runtime",
+                  "origin": 279,
+                  "pivot": 2
+                }
+              },
+              "facets": {
+                "yearFacet": {
+                  "type": "number",
+                  "path": "year",
+                  "boundaries": [2000, 2005, 2010, 2015 ]
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      [
+        {
+          count: { lowerBound: Long('20910') },
+          facet: {
+            yearFacet: {
+              buckets: [
+                { _id: 2000, count: Long('3058') },
+                { _id: 2005, count: Long('4012') },
+                { _id: 2010, count: Long('4669') }
+              ]
+            }
+          }
+        }
+      ]
+
+.. _near-date-eg:
+
+Date Example
+~~~~~~~~~~~~
+
+The following example uses the ``near`` operator to query a date field.
+
+.. example::
+
+   The following index definition named ``releaseddate`` indexes the
+   ``released`` field values in the ``movies`` collection:
+
+   .. code-block:: javascript
+      :linenos:
+
+      {
+         "mappings": {
+            "dynamic": false,
+            "fields": {
+               "released": {
+                  "type": "date"
+               }
+            }
+         }
+      }
+
+   The following query searches for movies released near September 13,
+   1.    It includes a :pipeline:`$limit` stage to limit the output to
+   ``3`` results and a :pipeline:`$project` stage to:
+
+   - Exclude all fields except ``title`` and ``released``
+   - Add a field named ``score``
+
+   The ``score`` of results is calculated using ``pivot``.
+
+   .. note::
+
+      ``pivot`` is measured here in milliseconds, and
+      ``7,776,000,000 ms`` is equal to approximately three months.
+
+   .. code-block:: javascript
+      :linenos:
+
+      db.movies.aggregate([
+         {
+            $search: {
+               "index": "releaseddate",
+               "near": {
+                  "path": "released",
+                  "origin": ISODate("1915-09-13T00:00:00.000+00:00"),
+                  "pivot": 7776000000
+               }
+            }
+         },
+         {
+            $limit: 3
+         },
+         {
+            $project: {
+               "_id": 0,
+               "title": 1,
+               "released": 1,
+               score: { $meta: "searchScore" }
+            }
+         }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :copyable: false
+
+      { "title" : "Regeneration", "released" : ISODate("1915-09-13T00:00:00Z"), "score" : 1 }
+      { "title" : "The Cheat", "released" : ISODate("1915-12-13T00:00:00Z"), "score" : 0.49723756313323975 }
+      { "title" : "Hell's Hinges", "released" : ISODate("1916-03-05T00:00:00Z"), "score" : 0.34090909361839294 }
+
+   In the above |fts| results, the movie ``Regeneration`` receives a
+   score of ``1`` because the ``released`` field value of
+   ``1915-09-13`` is an exact match. The movie ``The Cheat``, which was
+   released on ``1915-12-13``, receives a score of approximately
+   ``0.5`` because the ``released`` field value distance from
+   ``origin`` is approximately ``7,776,000,000`` milliseconds from
+   ``1915-09-13``.
+
+.. _near-geo-point-eg:
+
+GeoJSON Point Examples
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples use the ``near`` operator to query a GeoJSON 
+point object in the ``sample_airbnb.listingsAndReviews`` collection. 
+The following index definition indexes the ``address.location`` and 
+``property_type`` fields in the ``listingsAndReviews`` collection.
+
+.. example::
+
+   .. code-block:: javascript
+      :linenos:
+
+      {
+        "mappings": {
+          "fields": {
+            "address": {
+              "fields": {
+                "location": {
+                  "type": "geo"
+                }
+              },
+              "type": "document"
+            },
+            "property_type": {
+              "type": "string"
+            }
+          }
+        }
+      } 
+
+Basic Example 
+`````````````
+
+The following examples use the ``near`` operator to query the 
+``address.location`` field in the ``sample_airbnb.listingsAndReviews`` 
+collection.
+
+.. example::
+
+   The following query searches for properties in Portugal. It includes
+   a :pipeline:`$limit` stage to limit the output to ``3`` results and a
+   :manual:`$project </reference/operator/aggregation/project>` stage to:
+
+   - Exclude all fields except ``name`` and ``address``
+   - Add a field named ``score``
+
+   The ``score`` of results is calculated using ``pivot``. Note that
+   ``pivot`` is measured here in meters and 1000 meters is equal to 1
+   kilometer.
+
+   .. code-block:: javascript
+      :linenos:
+
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "near": {
+              "origin": {
+                "type": "Point",
+                "coordinates": [-8.61308, 41.1413]
+              },
+              "pivot": 1000,
+              "path": "address.location"
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :linenos:
+      :copyable: false
+
+      {
+        "name" : "Ribeira Charming Duplex",
+        "address" : {
+          "street" : "Porto, Porto, Portugal",
+          "suburb" : "",
+          "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória",
+          "market" : "Porto",
+          "country" : "Portugal",
+          "country_code" : "PT",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -8.61308, 41.1413 ],
+            "is_location_exact" : false
+          }
+        },
+        "score" : 1
+      }
+      {
+        "name" : "DB RIBEIRA - Grey Apartment",
+        "address" : {
+          "street" : "Porto, Porto, Portugal",
+          "suburb" : "",
+          "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória",
+          "market" : "Porto",
+          "country" : "Portugal",
+          "country_code" : "PT",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -8.61294, 41.14126 ],
+            "is_location_exact" : true
+          }
+        },
+        "score" : 0.9876177310943604
+      }
+      {
+        "name" : "Ribeira 24 (4)",
+        "address" : {
+          "street" : "Porto, Porto, Portugal",
+          "suburb" : "",
+          "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória",
+          "market" : "Porto",
+          "country" : "Portugal",
+          "country_code" : "PT",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [ -8.61318, 41.14107 ],
+            "is_location_exact" : false
+          }
+        },
+        "score" : 0.973789632320404
+      }
+
+   The results show that properties that are farther away from the
+   specified coordinates have a lower score.
+
+Compound Example 
+````````````````
+
+The following example uses the ``compound`` operator to query the 
+``property_type`` and ``address.location`` fields in the 
+``sample_airbnb.listingsAndReviews`` collection.
+
+.. example::
+
+   The following query searches for apartments in Hong Kong near a 
+   specified GeoJSON point. The query uses **must** to specify the search 
+   condition, which must be met, and **should** to specify preference for 
+   location. It includes a :pipeline:`$limit` stage to limit the output to 3 
+   results and a :manual:`$project </reference/operator/aggregation/project>` 
+   stage to:
+
+   - Exclude all fields except ``property_type`` and ``address``
+   - Add a field named ``score``
+
+   The ``score`` is calculated using the ``pivot`` field. Note that
+   ``pivot`` is measured here in meters and 1000 meters is equal to 1
+   kilometer.
+
+   .. code-block:: javascript
+      :linenos:
+
+      db.listingsAndReviews.aggregate([
+        {
+          $search: {
+            "compound": {
+              "must": {
+                "text": {
+                  "query": "Apartment",
+                  "path": "property_type"
+                }
+              },
+              "should": {
+                "near": {
+                  "origin": {
+                    "type": "Point",
+                    "coordinates": [114.15027, 22.28158]
+                  },
+                  "pivot": 1000,
+                  "path": "address.location"
+                }
+              }
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "property_type": 1,
+            "address": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :linenos:
+      :copyable: false
+
+      { 
+        "property_type" : "Apartment", 
+        "address" : { 
+          "street" : "Hong Kong, Hong Kong Island, Hong Kong", 
+          "suburb" : "Central & Western District", 
+          "government_area" : "Central & Western", 
+          "market" : "Hong Kong", 
+          "country" : "Hong Kong", 
+          "country_code" : "HK", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ 114.15027, 22.28158 ], 
+            "is_location_exact" : true 
+          } 
+        }, 
+        "score" : 1.177286982536316 
+      }
+      { 
+        "property_type" : "Apartment", 
+        "address" : { 
+          "street" : "Hong Kong, Hong Kong Island, Hong Kong", 
+          "suburb" : "Central & Western District", 
+          "government_area" : "Central & Western", 
+          "market" : "Hong Kong", 
+          "country" : "Hong Kong", 
+          "country_code" : "HK", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ 114.15082, 22.28161 ], 
+            "is_location_exact" : true 
+          } 
+        }, 
+        "score" : 1.1236450672149658 
+      }
+      { 
+        "property_type" : "Apartment", 
+        "address" : { 
+          "street" : "Hong Kong, 
+          Hong Kong Island, Hong Kong", 
+          "suburb" : "Mid-Levels", 
+          "government_area" : "Central & Western", 
+          "market" : "Hong Kong", 
+          "country" : "Hong Kong", 
+          "country_code" : "HK", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ 114.15007, 22.28215 ], 
+            "is_location_exact" : true 
+          }
+        }, 
+        "score" : 1.114811897277832 
+      }

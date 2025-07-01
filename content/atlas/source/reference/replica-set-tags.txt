@@ -1,0 +1,466 @@
+.. _replica-set-tags:
+
+========================================
+Query using Pre-Defined Replica Set Tags
+========================================
+
+.. meta::
+   :description: Utilize pre-defined replica set tags in Atlas to customize read preferences, improving performance and reliability by directing queries to specific node types and regions.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| clusters are configured with pre-defined replica set tags
+for different member types in the cluster. You can utilize these
+pre-defined replica set tags to direct queries from specific
+applications to specific node types, regions, and availability zones. 
+These pre-defined replica set tags allow you to customize :manual:`read 
+preferences </core/read-preference/>` for a replica set, thus improving 
+cluster performance and reliability.
+
+.. note::
+
+   These pre-defined replica set tags differ from the 
+   :ref:`resource tags <configure-resource-tags>` that you provide 
+   and manage. You can't change these replica set tags that |service| 
+   provides.
+
+To use pre-defined replica set tags in your connection string and 
+direct queries to specific nodes, use the following connection string 
+options:
+
+- ``readPreference``
+- ``readPreferenceTags``
+- ``readConcernLevel``
+
+For examples, see :ref:`repl-set-tag-examples`. 
+
+Pre-Defined Replica Set Tag Descriptions
+----------------------------------------
+
+The following table describes the pre-defined replica set tags
+that |service| provides.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 40 40
+
+   * - Pre-Defined Tag Name
+     - Description
+     - Example
+
+   * - Availability Zone
+     - |aws| availability zone ID, |gcp| fully-qualified name for a 
+       zone, or |azure| zone number.
+
+       |azure| supports availability zones only in a subset of 
+       regions. |service| provides pre-defined availability zone 
+       tags for |azure| only for regions that support availability 
+       zones. To learn more, see :ref:`microsoft-azure`.
+
+       For more information about the possible ``availabilityZone`` 
+       values for each cloud provider, see the cloud provider's 
+       documentation:
+
+       - :aws:`AWS </ram/latest/userguide/working-with-az-ids.html>`
+       
+       - :gcp:`GCP </compute/docs/regions-zones>`
+       
+       - :azure:`Azure 
+         </reliability/availability-zones-overview>`
+      
+     - - |aws|: ``{"availabilityZone" : "use1-az1"}``
+       - |gcp|: ``{"availabilityZone" : "us-east1-b"}``
+       - |azure|: ``{"availabilityZone" : "1"}``
+
+   * - Node Type
+     - Node type.
+
+       Possible values are:
+
+       - ``ELECTABLE``
+       - ``READ_ONLY``
+       - ``ANALYTICS``
+
+       For more information, see :ref:`repl-set-node-types`.
+
+     - ``{"nodeType" : "ANALYTICS"}``
+
+   * - Provider
+     - Cloud provider on which the node is provisioned.
+
+       Possible values are:
+
+       - ``AWS``
+       - ``GCP``
+       - ``AZURE``
+
+     - ``{"provider" : "AWS"}``
+
+   * - Region
+     - Cloud region in which the node resides.
+
+       For a complete list of possible ``region`` values,
+       see the reference page for your cloud provider:
+
+       - :ref:`AWS <amazon-aws>`
+       - :ref:`GCP <google-gcp>`
+       - :ref:`Azure <microsoft-azure>`
+
+     - ``{"region" : "US_EAST_2"}``
+   
+   * - Workload Type
+     - Pre-defined replica set tag to distribute your workload evenly 
+       among your non-analytics (electable or read-only) nodes.
+
+       Possible values are:
+
+       - ``OPERATIONAL``
+
+     - ``{"workloadType" : "OPERATIONAL"}``    
+
+   * - Disk State
+     - State of your disk. 
+
+       Possible value: ``READY``
+
+       For more information, see :ref:`repl-set-disk-states`.
+
+     - ``{"diskState" : "READY"}``
+
+.. _repl-set-disk-states:
+
+Disk States
+~~~~~~~~~~~
+
+The following table describes the possible ``diskState`` values in your
+pre-defined replica set tags.
+
+.. list-table::
+   :widths: 10 40
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Disk State
+     - Description
+
+   * - ``READY``
+     -  Only target warm nodes.
+      
+        You can run queries without experiencing increased or
+        unpredictable latency.
+
+For an example of this replica set tag, see
+:ref:`reduce-secondary-disk-warming-example`.
+
+.. _repl-set-node-types:
+
+Node Types
+~~~~~~~~~~
+
+The following table describes the possible ``nodeType`` values in your
+pre-defined replica set tags.
+
+.. list-table::
+   :widths: 10 40
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Node Type
+     - Description
+
+   * - ``ELECTABLE``
+     - Read from nodes eligible to be elected :term:`primary`.
+       ``ELECTABLE`` nodes correspond to
+       :guilabel:`Electable nodes for high availability` in the cluster
+       creation UI.
+
+   * - ``READ_ONLY``
+     - Read from read-only nodes. ``READ_ONLY`` nodes correspond to
+       :guilabel:`Read-only nodes for optimal local reads` in the
+       cluster creation UI. 
+
+   * - ``ANALYTICS``
+     - Read from read-only :term:`analytics nodes <analytics node>`.
+       ``ANALYTICS`` nodes correspond to
+       :guilabel:`Analytics nodes for workload isolation` in the cluster
+       creation UI.
+
+To learn how to configure electable, read-only, and analytics nodes for
+your cluster, see :ref:`create-cluster-multi-region`.
+
+.. seealso::
+
+   For details on how these pre-defined replica set tags correspond to
+   |bic| read preferences, refer to the |bic-short| cluster options
+   section of the :ref:`Create a Cluster Page <bic-read-preferences>`.
+
+.. _repl-set-tag-examples:
+
+Use Cases and Examples
+----------------------
+
+Consider the following scenarios where utilizing pre-defined replica set
+tags would be beneficial, and see the corresponding sample connection
+strings.
+
+.. important:: High Availability for Analytics Node Queries
+   
+   For reads targeting analytic nodes with tags like ``readPreferenceTags=nodeType:ANALYTICS``,
+   resilience is crucial when node availability fluctuates. Without fallback tags, 
+   queries may fail during:
+
+   * Initial sync during data compaction
+   * Disk scale-down events
+   * Any |nvme| cluster tier changes
+
+   To mitigate these risks, ensure your connection string includes *multiple read 
+   preference tags* to provide fallback options so |service| can route analytic 
+   reads to available nodes during such events. For example:
+
+   .. code-block:: none
+
+      db+srv://<db_username>:<db_password>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ANALYTICS,priority:1&readPreferenceTags=&readConcernLevel=local
+
+   In this example:
+   
+   1. The application first tries to connect to a node tagged ``nodeType:ANALYTICS``.
+   2. If no such nodes are available, the final empty ``readPreferenceTags=`` 
+      allows the application to connect to any available secondary node.
+
+.. note::
+
+   Each of the following example connection strings employ the
+   ``readConcernLevel=local`` connection string option. Specifying
+   a :manual:`read concern of local </reference/read-concern-local/>`
+   ensures that secondary reads on sharded clusters do not
+   return :term:`orphaned documents <orphaned document>`. You do not
+   need to specify this option when connecting to non-sharded replica sets.
+
+Use Analytics Nodes to Isolate Workloads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an application performs complex or long-running operations, such as
+:abbr:`ETL (Extract Transform Load)` or reporting, you may want to
+isolate the application's queries from the rest of your operational
+workload by connecting exclusively to analytics nodes.
+
+Consider the following connection string:
+
+.. code-block:: none
+
+   mongodb+srv://<db_username>:<db_password>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ANALYTICS&readConcernLevel=local
+
+The connection string options appear in the following order:
+
+- ``readPreference=secondary``
+- ``readPreferenceTags=nodeType:ANALYTICS``
+- ``readConcernLevel=local``
+
+The :manual:`readPreference </reference/read-preference>` option of
+``secondary`` and :manual:`readPreferenceTag
+</core/read-preference/#tag-sets>` option of
+``{ nodeType : ANALYTICS }`` limit the application connections to
+analytic nodes.
+
+Isolate Normal Application Secondary Reads from Analytics Nodes
+```````````````````````````````````````````````````````````````
+
+You may want to isolate regular application reads from the workload on 
+analytics nodes.
+
+Consider the following connection string:
+
+.. code-block:: none
+
+   mongodb+srv://<db_username>:<db_password>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=workloadType:OPERATIONAL&readConcernLevel=local
+
+The connection string options appear in the following order:
+
+- ``readPreference=secondary``
+- ``readPreferenceTags=workloadType:OPERATIONAL``
+- ``readConcernLevel=local``
+
+The specified options prevent your application from reading from
+analytics nodes. The application must read from ``operational``, or
+non-analytics, nodes.
+
+Target Local Reads for Geographically-Distributed Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use pre-defined replica set tags to target local reads to
+specific regions for globally distributed applications. Prior to the
+introduction of these pre-defined replica set tags, local reads for 
+globally distributed applications relied on correctly calculating the
+:manual:`nearest </reference/read-preference/#nearest>` read
+preference. With pre-defined replica set tags, specifying appropriate
+geographic tags in combination with a read preference mode of 
+``nearest`` provides more consistent behavior.
+
+The following connection string prioritizes connections to the
+|aws| ``US_EAST_1`` region, followed by the ``US_EAST_2`` region:
+
+.. code-block:: none
+
+   mongodb+srv://<db_username>:<db_password>@foo-q8x1v.mycluster.com/test?readPreference=nearest&readPreferenceTags=provider:AWS,region:US_EAST_1&readPreferenceTags=provider:AWS,region:US_EAST_2&readPreferenceTags=&readConcernLevel=local
+
+The connection string options appear in the following order:
+
+- ``readPreference=nearest``
+- ``readPreferenceTags=provider:AWS,region:US_EAST_1``
+- ``readPreferenceTags=provider:AWS,region:US_EAST_2``
+- ``readPreferenceTags=``
+- ``readConcernLevel=local``
+
+|service| considers each read preference tag in the order you specify
+them. After |service| matches a node to a tag, it finds all eligible
+nodes that match that tag. |service| then ignores any following
+``readPreferenceTags``. 
+
+In this example, the application first tries to connect to a node in
+|aws| region ``US_EAST_1``. If there no nodes in that region are
+available, the application tries to connect to a node in |aws| region
+``US_EAST_2``.
+
+The final (empty) ``readPreferenceTags=`` provides a fallback option.
+With an empty ``readPreferenceTags=`` option, the application can
+connect to any available node regardless of provider or region.
+
+These options help ensure that the application connects to the closest
+geographic region for reduced latency and improved performance.
+
+.. note::
+
+   You can further target reads based on availability zones.
+
+.. seealso::
+
+   For additional information and use cases for various read
+   preferences, refer to the
+   :manual:`Read Preference page in the MongoDB Manual
+   </reference/read-preference/#use-cases>`.
+
+.. _reduce-secondary-disk-warming-example:
+
+Reduce Secondary Disk Warming Impact
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When |service| adds or replaces a node in your cluster, it performs
+:aws:`disk pre-warming </AWSEC2/latest/UserGuide/ebs-initialize.html>`
+by default. During the disk pre-warming process, the newly created storage
+volume undergoes a period of heavy |iops| usage. This slows down read operations
+made against this node. Therefore, during the disk pre-warming process,
+|service| keeps the pre-warming node hidden by default, preventing it
+from participating in any read operations.
+
+If you prefer that a newly added or replaced node becomes immediately active
+and visible, you can choose to :ref:`disable fast disk pre-warming <disk-pre-warming>`
+and prevent read operations on a warming node by using a connection string
+as in the following example:
+
+.. code-block:: none
+   
+   mongodb+srv://<db_username>:<db_password>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=diskState:READY&readConcernLevel=local
+
+The connection string options appear in the following order:
+
+- ``readPreference=secondary``
+- ``readPreferenceTags=diskState:READY``
+- ``readConcernLevel=local``
+
+The :manual:`readPreference </reference/read-preference>` option of
+``secondary`` and :manual:`readPreferenceTag
+</core/read-preference/#tag-sets>` option of ``{ diskState : READY }``
+tells |service| to only target warm nodes.
+
+Retrieve Availability Zones
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| provides pre-defined replica set tags for availability 
+zones by default. These tags include the |aws| availability zone ID,
+|gcp| fully-qualified name for a zone, or |azure| zone number. You can 
+check the availability zone of a node by using the :method:`rs.conf()
+<rs.conf>` shell method or by viewing the last ping of the cluster 
+node.
+
+.. example::
+
+   .. code-block:: sh
+    
+      ...
+
+      "tags": {
+                "availabilityZone": "use2-az2",
+
+      ...
+
+.. _built-in-custom-wc:
+
+Built-In Custom Write Concerns
+------------------------------
+
+|service| provides built-in custom write concerns for multi-region
+clusters. Write concern describes the level of acknowledgment requested
+from MongoDB for write operations to a cluster.
+
+|service|'s built-in custom write concerns can help improve
+data consistency by ensuring your operations are propagated to a set
+number of regions to succeed.
+
+To use a custom write concern, specify the
+write concern in the :manual:`write concern document
+</reference/write-concern/>` of your operation.
+
+|service| provides the following custom write concerns for multi-region
+clusters:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 30 30
+
+   * - Write Concern
+     - Tags
+     - Description
+   * - ``twoRegions``
+     - ``{ region: 2 }``
+     - Write operations must be acknowledged by at least two regions in
+       your cluster.
+   * - ``threeRegions``
+     - ``{ region: 3 }``
+     - Write operations must be acknowledged by at least three regions
+       in your cluster.
+   * - ``twoProviders``
+     - ``{ provider: 2 }``
+     - Write operations must be acknowledged by at least two regions in 
+       your cluster with distinct cloud providers.
+
+.. example::
+
+   Consider a multi-region cluster across three regions:
+   **us-east-1**, **us-east-2**, and **us-west-1**. You want to have
+   write operations propagate to all three regions in your cluster
+   before |service| accepts them.
+
+   The following operation inserts a document and requires that the
+   operation be propagated to all three regions due to the
+   ``{ w: "threeRegions" }`` write concern object:
+
+   .. code-block:: javascript
+
+      db.employees.insertOne(
+        { name: "Bob Smith", company: "MongoDB" },
+        { writeConcern: { w: "threeRegions" } }
+      )

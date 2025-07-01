@@ -1,0 +1,137 @@
+.. meta::
+   :keywords: atlas ui, atlas api
+   :description: Resolve disk space alerts in Atlas by enabling Auto-Expand Storage or manually increasing storage, and consider upgrading to a larger cluster tier for long-term solutions.
+
+.. _disk-space-used:
+
+==================
+Fix Storage Issues
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+``Disk Space % Used`` alerts indicate the percentage of used disk space
+on a partition reaches a specified threshold.
+
+Alert Conditions
+----------------
+
+You can configure the following alert conditions in the project-level 
+:ref:`alert settings <configure-alerts>` page to trigger alerts.
+
+:alert:`Disk space % used on Data Partition
+<Disk space % used on Data Partition is>` occurs when the
+percentage of disk space used on any partition that contains the
+MongoDB collection data meets or exceeds a certain threshold.
+:ref:`By default <default-alert-settings>`, the threshold is 90
+percent of the cluster's :doc:`configured storage size </scale-cluster>`.
+
+Common Triggers
+---------------
+
+The following common events can trigger ``Disk Space % Used`` alerts:
+
+- The disk is full and :ref:`Auto-Expand Storage
+  <scale-cluster-storage>` is not enabled.
+
+- Auto-Expand Storage is enabled, but the disk filled too quickly
+  for |service| to expand the cluster's storage space. This
+  can happen during data migration.
+
+- Auto-Expand Storage is enabled, but |service| cannot expand the
+  cluster's storage space because it has reached the maximum storage
+  capacity for this cluster. For more information on cluster tier
+  limits, see the :ref:`Amazon Web Services <amazon-aws-configuration-options>`,
+  :ref:`Google Cloud Platform <google-gcp-configuration-options>`, and
+  :ref:`Microsoft Azure <microsoft-azure-configuration-options>`
+  instance configuration options.
+
+.. _disk-space-used-fix-problem:
+
+Fix the Immediate Problem
+-------------------------
+
+Consider the following actions to help resolve ``Disk Space % Used``
+alerts through the {+atlas-ui+} or API.
+
+.. tabs::
+
+   .. tab:: Atlas UI
+      :tabid: atlas-ui
+
+      - :ref:`Enable Auto-Expand Storage <scale-cluster-storage>`.
+
+        .. note::
+
+    		   If the disk fills too quickly, |service| might not be
+    		   able to expand the cluster's storage space in time,
+    		   even if Auto-Expand Storage is enabled.
+
+      - Manually increase the :guilabel:`Storage` of this cluster
+        in the :guilabel:`Cluster Tier` section of the
+        :ref:`configuration page <scale-cluster-storage>`.
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: atlas-api
+
+      - :oas-atlas-op:`Enable Auto-Expand Storage
+        </updateConfigurationOfOneCluster>` using the
+        ``autoScaling.diskGBEnabled`` parameter.
+
+        .. note::
+
+    		   If the disk fills too quickly, |service| might not be
+    		   able to expand the cluster's storage space in time,
+    		   even if Auto-Expand Storage is enabled.
+
+      - :oas-atlas-op:`Increase the storage of this cluster
+        </updateConfigurationOfOneCluster>` using the
+        ``diskSizeGB`` parameter.
+
+Implement a Long-Term Solution
+------------------------------
+
+Consider the following long-term solutions to help resolve 
+``Disk Space % Used`` alerts through the {+atlas-ui+} or API.
+
+.. tabs::
+
+   .. tab:: Atlas UI
+      :tabid: atlas-ui
+
+      If you have reached the maximum storage capacity for this
+      cluster, upgrade to a larger cluster tier in the
+      :guilabel:`Cluster Tier` section of the 
+      :ref:`configuration page <scale-cluster-instance>`.
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: atlas-api
+
+      If you have reached the maximum storage capacity for this
+      cluster, :oas-atlas-op:`specify a larger cluster tier
+      </updateConfigurationOfOneCluster>` using the
+      ``providerSettings.instanceSizeName`` parameter.
+
+Monitor Your Progress
+---------------------
+
+You can observe a high percentage of used disk space in the following
+ways:
+
+- In the cluster :doc:`metrics </monitor-cluster-metrics>`, the
+  :guilabel:`Disk Usage` graph displays the used disk space in
+  yellow. This indicates that the used disk space is approximately
+  70 percent of the |service| cluster's :doc:`configured storage
+  size </scale-cluster>`.
+
+- |service| nodes are unhealthy, because the
+  used disk space reached the cluster's
+  :ref:`configured storage size <scale-cluster-instance>`.
+
+- The cluster refuses writes and connections from the client.

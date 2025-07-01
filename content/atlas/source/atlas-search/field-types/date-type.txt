@@ -1,0 +1,223 @@
+.. _bson-data-types-date:
+
+========================
+How to Index Date Fields 
+========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Atlas Search date field type to include date values in the search index.
+
+.. :keywords: date, date field type, atlas search field type, date search, equals search, range search, near search, field type for indexing date values, index date values
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |data-type| replace:: ``date`` 
+.. |fts-ui-field-type| replace:: :guilabel:`Date`
+.. |fts-field-type| replace:: ``date``
+.. |properties-link| replace:: :ref:`Field Properties <fts-field-types-date-options>` 
+.. |sample-collection| replace:: :ref:`sample_mflix.movies <sample-mflix>`
+
+You can use the |fts| ``date`` type to index date values. You can query
+fields of type ``date`` using the |fts| :ref:`range <range-ref>`,
+:ref:`near <near-ref>`, :ref:`in <in-ref>`, and :ref:`equals <equals-ref>` operators. You can
+also run a :ref:`fts-facet-ref` query on ``date`` type fields. 
+
+You can also use the ``date`` type to index:
+
+- Fields whose value is an array of dates. To learn more, see 
+  :ref:`fts-array-ref`.
+
+- Date fields inside an array of documents indexed as the
+  :ref:`embeddedDocuments <bson-data-types-embedded-documents>` type. 
+
+- Date fields for sorting. |fts| automatically indexes all date fields
+  in indexes created after :ref:`July 2023 <fts20230710>` for
+  :ref:`sorting <sort-ref>` the |fts| results. For preexisting indexes,
+  you must rebuild the index to use date fields in the index for
+  sorting. To learn more, see :ref:`sort-index-rebuild` and
+  :ref:`sort-ref`.  
+
+.. note:: 
+   
+   To query indexed date values inside arrays, you must use the :ref:`range <range-ref>` 
+   operator. You can't use the :ref:`near <near-ref>` operator
+   to query date values stored in an array, even if you have an |fts|
+   index on the date values inside the array.
+
+.. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst 
+
+.. _fts-field-types-date-vib-jsonib:
+
+Define the Index for the |fts-field-type| Type  
+----------------------------------------------
+
+.. include:: /includes/fts/extracts/fts-index-definition-intro.rst 
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      .. include:: /includes/fts/extracts/fts-vib-index-definition-simple.rst  
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      .. include:: /includes/fts/extracts/fts-jsonib-index-definition.rst    
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos: 
+         :emphasize-lines: 6
+
+         {
+           "mappings": {
+             "dynamic": true|false,
+             "fields": {
+               "<field-name>": {
+                 "type": "date"
+               }
+             }
+           }
+         }
+
+.. _fts-field-types-date-options:
+
+Configure |fts-field-type| Field Properties 
+-------------------------------------------
+
+The |fts| ``date`` type takes the following parameter:  
+
+.. list-table::
+   :widths: 18 9 8 54
+   :header-rows: 1
+
+   * - Option
+     - Type
+     - Necessity
+     - Description
+
+   * - ``type``
+     - string 
+     - required
+     - Human-readable label that identifies this field type. Value must
+       be ``date``. 
+
+.. _fts-field-types-date-example:
+
+Try an Example for the |fts-field-type| Type  
+--------------------------------------------
+
+.. include:: /includes/fts/extracts/fts-index-definition-egs-intro.rst 
+
+.. tabs::  
+
+   .. tab:: Basic Example
+      :tabid: basic
+
+      The following example index definition indexes the  ``released``
+      field as the |fts| ``date`` type to support queries against that
+      field using |fts| operators such as :ref:`near <near-ref>`,
+      :ref:`range <range-ref>`, and :ref:`equals <equals-ref>`.  
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`released` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`Date`.
+            #. Click :guilabel:`Add`. 
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json
+               :copyable: true 
+               :linenos: 
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "released": {
+                      "type": "date"
+                     }
+                   }
+                 }
+               }
+
+   .. tab:: Multiple Types Example
+      :tabid: multitype 
+
+      The following example index definition indexes the  ``released``
+      field as the ``date`` and ``dateFacet`` types to return the
+      following types of results for your queries: 
+      
+      - Search results for queries using |fts| operators like
+        :ref:`near <near-ref>`, :ref:`equals <equals-ref>`, and :ref:`range <range-ref>`.  
+      - Metadata results for queries using |fts| :ref:`fts-facet-ref`. 
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`released` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`Date`.
+            #. Click :guilabel:`Add`. 
+            #. Repeat step **1** and select :guilabel:`DateFacet` from
+               the :guilabel:`Data Type` dropdown.
+            #. Click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json
+               :copyable: true 
+               :linenos: 
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "released": [
+                       {
+                         "type": "date"
+                       },
+                       {
+                         "type": "dateFacet"
+                       }
+                     ]
+                   }
+                 }
+               }
+
+Learn More 
+----------
+
+To learn more about the operators you can use to query the ``date`` type, see the following operator reference pages:
+
+- :ref:`equals <equals-ref>` 
+- :ref:`fts-facet-ref`
+- :ref:`in <in-ref>`
+- :ref:`near <near-ref>`
+- :ref:`range <range-ref>`

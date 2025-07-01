@@ -1,0 +1,59 @@
+.. _atlas-performanceAdvisor-slowQueryLogs:
+
+======================================
+atlas performanceAdvisor slowQueryLogs
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Get log lines for slow queries for a specified host
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for slowQueryLogs
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-performanceAdvisor-slowQueryLogs-list` - Return log lines for slow queries that the Performance Advisor and Query Profiler identified.
+
+
+.. toctree::
+   :titlesonly:
+
+   list </command/atlas-performanceAdvisor-slowQueryLogs-list>
+

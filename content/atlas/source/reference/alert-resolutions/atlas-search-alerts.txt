@@ -1,0 +1,181 @@
+.. _atlas-search-alerts:
+
+================
+Fix |fts| Issues
+================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: mongot runs out of memory, mongot runs out of disk space, view metrics
+   :description: Learn about each project-level Atlas Search alert and how to fix common Atlas Search issues.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|fts| triggers :ref:`Atlas Search alerts 
+<alert-conditions-atlas-search>` when the amount of CPU and memory used 
+by |fts| processes reaches a specified threshold. If the search 
+process (``mongot``) runs out of memory, indexing and 
+queries fail. You can configure |fts| alert conditions in the project 
+:ref:`alert settings <configure-alerts>` modal. You can also view |fts| 
+metrics with :ref:`cluster monitoring <review-atlas-search-metrics>`.
+
+.. include:: /includes/fact-shardCollection-fts-indexes.rst
+
+Alert Conditions
+----------------
+
+You can configure the following alert conditions in the project-level 
+:ref:`alert settings <configure-alerts>` page to trigger alerts.
+
+:alert:`Atlas Search: Index Replication Lag
+<Atlas Search: Index Replication Lag is>` occurs if the approximate 
+number of milliseconds that |fts| is behind in replicating changes from 
+the :term:`oplog` of |mongod| is above or below the threshold.
+
+:alert:`Atlas Search: Index Size on Disk
+<Atlas Search: Index Size on Disk is>` occurs if the total size of all 
+|fts| indexes on disk in bytes is above or below the threshold.
+
+:alert:`Atlas Search: Max Number of Lucene Docs
+<Atlas Search: Max Number of Lucene Docs is>` runs automatically by default.
+This alert occurs if the upper bound number of Lucene docs used to store
+|fts| indexes for a given replica  set or shard is above the threshold.
+
+:alert:`Atlas Search: Mongot stopped replication
+<Atlas Search: Mongot stopped replication>` runs automatically by default. 
+This alert occurs only on dedicated Search Nodes if the replication is
+interrupted by the |fts| ``mongot`` process due to high disk utilization.
+The pause replication threshold is 90% and the resume replication threshold
+is 85% disk utilization.
+
+The ``mongot`` process falls off the oplog if replication is paused for a
+long time. |service| rebuilds the index if the ``mongot`` process falls
+off the oplog. However, you can prevent the ``mongot`` from falling off
+the oplog if you upscale your search instances or delete |fts| indexes.
+
+:alert:`Atlas Search: Number of Error Queries
+<Atlas Search: Number of Error Queries is>` occurs if the number of 
+queries for which |fts| is unable to return a response is above or 
+below the threshold.
+
+:alert:`Atlas Search: Number of Index Fields
+<Atlas Search: Number of Index Fields is>` occurs if the total number 
+of unique fields present in the |fts| index is above or below the 
+threshold.
+
+:alert:`Atlas Search: Number of Successful Queries
+<Atlas Search: Number of Successful Queries is>` occurs if the number 
+of queries for which |fts| successfully returned a response is above or 
+below the threshold.
+
+:alert:`Atlas Search: Total Number of Queries
+<Atlas Search: Total Number of Queries is>` occurs if the number of 
+queries submitted to |fts| is above or below the threshold.
+
+:alert:`Atlas Search Opcounter: Delete
+<Atlas Search Opcounter: Delete is>` occurs if the total number of 
+documents or fields (specified in the index definition) removed per 
+second is above or below the threshold.
+
+:alert:`Atlas Search Opcounter: Getmore
+<Atlas Search Opcounter: Getmore is>` occurs if the total number of 
+``getmore`` commands run on all |fts| queries per second is above or 
+below the threshold.
+
+:alert:`Atlas Search Opcounter: Insert
+<Atlas Search Opcounter: Insert is>` occurs if the total number of 
+documents or fields (specified in the index definition) that |fts| 
+indexes per second is above or below the threshold.
+
+:alert:`Atlas Search Opcounter: Update
+<Atlas Search Opcounter: Update is>` occurs if the total number of 
+documents or fields (specified in the index definition) that |fts| 
+updates per second is above or below the threshold.
+
+:alert:`Insufficient disk space to support rebuilding search indexes` runs
+automatically by default. This alert occurs when your {+database-deployment+}
+runs out of enough free disk space to support your |fts| indexes.
+
+.. note::
+
+   This alert might appear when |service| automatically :ref:`upgrades
+   your search indexes <index-create-and-update>` to enable new
+   features. Your {+database-deployment+} must have sufficient disk
+   space for both the previous and new version of the index. If the
+   rebuild increases disk space use to 90% or more, |service| increases
+   the {+cluster+} storage if you enabled auto-scaling. After the index
+   upgrade completes, |service| deletes the old version of the index,
+   which frees up disk space.  
+
+:alert:`Search Memory: Resident <Search Memory: Resident is>` occurs 
+if the total bytes of resident memory occupied by the |fts| process is 
+above or below the threshold.
+
+:alert:`Search Memory: Shared <Search Memory: Shared is>` occurs if
+the total bytes of shared memory occupied by the |fts| process is above 
+or below the threshold.
+
+:alert:`Search Memory: Virtual <Search Memory: Virtual is>` occurs if 
+the total bytes of virtual memory occupied by the |fts| process is 
+above or below the threshold.
+
+:alert:`Search Process: CPU (Kernel) % 
+<Search Process: CPU (Kernel) % is>` occurs if the percentage of time 
+the CPU spent servicing operating system calls for the |fts| process is 
+above the threshold.
+
+:alert:`Search Process: CPU (User) % <Search Process: CPU (User) % is>` 
+occurs if the percentage of time the CPU spent servicing the |fts| 
+process is above the threshold.
+
+:alert:`Search Process: Disk space used <Search Process: Disk space used is>`
+occurs if the total bytes of disk space used by the |fts| process is above the threshold.
+
+:alert:`Search Process: Ran out of memory <Search Process: Ran out of memory>`
+runs automatically by default. You can configure the :ref:`alert setting <configure-alerts>`
+to disable this notification. This alert occurs when the search process (``mongot``)
+runs out of memory. When the search process runs out of memory, indexing and queries fail.
+
+Common Triggers
+---------------
+
+|fts| alerts often occur when you try to build a large or 
+complex search index. These indexes remain in the 
+:guilabel:`Initial Sync` phase until you resolve the memory issue.
+
+Fix the Immediate Problem
+-------------------------
+
+If the search process (``mongot``) runs out of memory or disk space, 
+you can :ref:`upgrade your cluster <scale-cluster-instance>` to fix the 
+immediate problem. You can select a cluster tier with more memory, 
+storage, and |iops|.
+
+Implement a Long-Term Solution
+------------------------------
+
+To prevent |fts| alerts in the future, carefully review the 
+:ref:`perf-ref` for |fts|. 
+
+To optimize your indexes, we recommend deploying :ref:`dedicated Search
+nodes <configure-search-nodes>`, which allows you to scale your
+|service| {+cluster+} and :pipeline:`$search` workloads independently.
+Dedicated Search Nodes only run the ``mongot`` process and therefore
+improve the availability, performance, and workload balancing of the
+``mongot`` process.
+
+Monitor Your Progress
+---------------------
+
+View the available :ref:`Atlas Search charts 
+<review-atlas-search-metrics>` to monitor |fts| metrics.
+
+Monitor |fts| metrics to evaluate and optimize your 
+|fts| indexes.
+
+To learn more, see :ref:`View Cluster Metrics <monitor-cluster-metrics>`

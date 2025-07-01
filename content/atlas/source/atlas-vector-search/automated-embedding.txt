@@ -1,0 +1,962 @@
+.. The feature that this page describes is in Private Preview. 
+.. This page is hidden from the TOC and search indexing.
+
+:noprevnext:
+:orphan:
+
+:tabs-selector-position: main
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _avs-automated-embedding:
+
+===========================================================
+Generate Embeddings Automatically Using {+avs+}
+===========================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: python, javascript/typescript
+
+.. meta::
+   :description: Use the Atlas Vector Search to generate index and query vectors.
+   :keywords: atlas ui, node.js, code example, python, mongodb shell, sample dataset
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can configure {+avs+} to automatically generate and manage vector
+embeddings for the text data in your |service| cluster. You can create a
+one-click AI semantic search index in your ``M10`` or higher |service|
+cluster and use  Voyage AI embedding models, simplifying indexing,
+updating, and querying with vectors. 
+
+When you enable automated embeddings, {+avs+} automatically generates
+embeddings using the specified embedding model at index-time for the
+specified text field in your |service| collection and at query-time for
+your text string in your query against the field indexed for automated
+embeddings. 
+
+Considerations 
+--------------
+
+.. important:: 
+
+   You can use {+avs+} automated embeddings on any ``M10`` or higher
+   cluster on any cloud provider. However, the service that handles the
+   inference process for generating vector embeddings runs on |gcp|. This
+   means that your data is sent to |gcp| for embedding generation and
+   retrieval, regardless of your cluster's cloud provider. We provide
+   enterprise grade security and therefore, your data is only stored
+   in your cluster. 
+
+The embedding models run on a shared, multi-tenant inference platform.
+Therefore, during the preview period, you must use datasets with less
+than 100k document and run queries only for the evaluation of the
+feature and not for load testing. Contact your account team if you have
+a use case with higher limits.
+
+Although there are no hard rate-limits for your workload, there are
+global limits. If your queries return a rate limit error (error 409),
+perform a backoff and retry in your application code. This allows your 
+application to gracefully handle rate limits and ensures continued
+functionality. 
+
+Prerequisites 
+-------------
+
+To enable vector search using automated embeddings, you must have the
+following: 
+
+- ``M10`` or higher |service| cluster 
+- A collection with a text field that you want to index for automated
+  embeddings. 
+- One of the following clients:
+
+  - {+atlas-ui+} for creating indexes 
+  - {+mongosh+} for creating indexes and running queries
+  - :driver:`Node Driver </node/current/>` 6.6.0 or higher for creating indexes and running queries
+  - :driver:`Python Driver </python-drivers/>` 4.7 or higher for creating indexes and running queries
+
+  Use the following drop-down menu to set the client for the procedures on this page.
+
+  .. tabs-selector:: drivers
+     :default-tabid: shell
+
+  .. tabs-drivers::
+
+     .. tab::
+        :tabid: atlas-ui
+
+     .. tab::
+        :tabid: shell
+
+     .. tab::
+        :tabid: nodejs
+
+     .. tab::
+        :tabid: python
+
+{+avs+} Index for Automated Embeddings 
+--------------------------------------------------
+
+The following sections describe the {+avs+} index syntax and fields for
+enabling automatic generation of embeddings for text fields and walk you
+through the steps for configuring your index for automated embeddings.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+You need the :authrole:`Project Data Access Admin` or higher role to create
+and manage {+avs+} indexes.
+
+Index Syntax 
+~~~~~~~~~~~~
+
+The following is the syntax for enabling automatic generation of
+embeddings:
+
+.. code-block:: json
+   :linenos:
+
+   {
+     "fields": [
+       {
+         "type": "text",
+         "path": "<field-name>",
+         "model": "voyage-3-large | voyage-3.5 | voyage-3.5-lite"
+       }
+     ]
+   }
+
+Index Fields 
+~~~~~~~~~~~~
+
+The following fields are required in the index definition:
+
+.. list-table:: 
+   :widths: 15 15 70
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``type``
+     - string
+     - The type of the field. For automated embeddings, this must be
+       ``text``.
+
+   * - ``path``
+     - string
+     - The name of the field in the collection that you want to index
+       for automated embeddings.
+
+   * - ``model``
+     - string
+     - The Voyage AI embedding model to use for generating the embeddings
+       for the index. You can specify one of the following models:
+       
+       - ``voyage-3-large`` - Highest-quality retrieval across languages
+         and domains. 
+       - ``voyage-3.5`` - Balanced model for multilingual use and
+         general-purpose retrieval accuracy. 
+       - ``voyage-3.5-lite`` - Lightweight, faster model optimized for
+         latency and lower cost. 
+
+       After creating the index, if you change the embedding model
+       subsequently, {+avs+} generates new embeddings for the dataset.
+       While {+avs+} generates the embeddings, you can continue to
+       query by using the old embeddings. When the old embeddings are
+       replaced with embeddings from the new embedding model, {+avs+}
+       removes the old embeddings.
+
+Considerations
+~~~~~~~~~~~~~~
+
+The index fields for automated embeddings are mutually exclusive with the
+following ``vector`` type index fields: 
+
+- ``numDimensions``
+- ``similarity``
+- ``quantization``
+
+If your collection already has embeddings, you must use the ``vector``
+type fields to index the embeddings. To learn more about indexing fields
+with embeddings, see :ref:`avs-types-vector-search`. 
+
+You can create an index with both the ``text`` and ``vector`` types if
+you want to index a text field for automatically generating embeddings
+and also index a field with your own embeddings. {+avs+} will
+automatically generate embeddings for queries against only the field
+indexed as the ``text`` type. You must specify embeddings in the query
+for searching the field indexed as the ``vector`` type.
+
+You can also index fields to pre-filter your data by using the {+avs+}
+``filter`` type. Pre-filtering reduces the number of documents against
+which to run similarity comparisons, which can decrease query latency
+and increase the accuracy of search results. To learn more about
+pre-filtering your data, see :ref:`avs-types-filter`. 
+
+Create an Index for Automated Embeddings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |database-name| replace:: ``sample_mflix``
+.. |collection-name| replace:: ``movies``
+.. |index-name| replace:: ``movies_automated_embeddings``
+
+The following procedure walks through the steps for enabling automated
+embeddings in your {+avs+} index. If you loaded the
+``sample_mflix.movies`` dataset, the example in the procedure
+demonstrates how to enable automated embeddings for the ``fullplot``
+field in the collection.
+
+.. tabs-drivers::
+
+    .. tab::
+       :tabid: atlas-ui
+
+       .. procedure:: 
+          :style: normal 
+
+          .. include:: /includes/nav/steps-db-deployments-page.rst
+
+          .. include:: /includes/nav/steps-atlas-search.rst
+
+          .. step:: Start your index configuration.
+
+             Make the following selections on the page and then click
+             :guilabel:`Next`.
+
+             .. list-table:: 
+                :widths: 25 75
+
+                * - :guilabel:`Search Type`
+                  - Select the :guilabel:`Vector Search` index type.
+
+                * - :guilabel:`Index Name and Data Source`
+                  - Specify the following information:
+                    
+                    - :guilabel:`Index Name`: <INDEX-NAME>
+                    - :guilabel:`Database and Collection`:
+                          
+                      - <DATABASE-NAME>
+                      - <COLLECTION-NAME>
+
+                * - :guilabel:`Configuration Method`
+                  - Select :guilabel:`JSON Editor`. 
+
+             .. example:: 
+
+                For example, enter |index-name| for the index name and
+                select |database-name| and |collection-name| from 
+                the :guilabel:`Database and Collection` dropdown.
+          
+          .. step:: Define your index.
+
+             In the JSON editor, enter the following index definition:
+
+             .. code-block:: json 
+                :linenos: 
+                :emphasize-lines: 3-7
+
+                {
+                  "fields": [
+                    {
+                      "type": "text",
+                      "path": "<FIELD-NAME>",
+                      "model": "voyage-3-large | voyage-3.5 | voyage-3.5-lite" 
+                    }
+                  ]
+                }             
+
+             .. example:: 
+
+                For example, to create an index that enables automated
+                embeddings by using the ``voyage-3-large`` model for the
+                ``fullplot`` field in the collection, enter the
+                following:  
+
+                .. code-block:: json 
+                   :linenos: 
+                   :emphasize-lines: 3-7
+
+                   {
+                     "fields": [
+                       {
+                         "type": "text",
+                         "path": "fullplot",
+                         "model": "voyage-3-large"
+                       }
+                     ]
+                   }
+
+          .. step:: Create your index. 
+
+             a. Click :guilabel:`Next`.
+             #. Review your index configuration and click 
+                :guilabel:`Create Vector Search Index`.
+
+             .. note:: 
+
+                The index creation can take some time to complete.
+                When the index is being created, the :guilabel:`Status`
+                column in the {+atlas-ui+} displays :guilabel:`Pending`.
+                When the index creation completes, the :guilabel:`Status`
+                column in the {+atlas-ui+} displays :guilabel:`Ready`.
+
+    .. tab::
+       :tabid: shell
+
+       .. procedure:: 
+          :style: normal 
+    
+          .. step:: Connect to the |service| {+cluster+} using {+mongosh+}. 
+
+             To learn more, see :ref:`connect-mongo-shell`.
+
+          .. step:: Switch to the database that contains the collection for which you want to create the index. 
+
+             To switch, run the following command: 
+
+             .. code-block:: javascript
+
+                use <DATABASE-NAME>
+
+             Here, ``<DATABASE-NAME>`` is the name of the database you
+             want to use. 
+
+             .. example:: 
+
+                For example, to switch to the ``sample_mflix`` database,
+                which contains the ``movies`` collection, run the
+                following command: 
+
+                .. code-block:: javascript
+
+                   use sample_mflix
+
+          .. step:: Run the ``db.collection.createSearchIndex()`` method. 
+            
+             The :method:`db.collection.createSearchIndex()` method has 
+             the following syntax: 
+
+             .. literalinclude:: /includes/avs/automated-embeddings/index-syntax.json
+                :language: json
+                :linenos:
+    
+             .. example:: 
+    
+                For example, to create an index that enables automated
+                embeddings by using the ``voyage-3-large`` model for the
+                ``fullplot`` field in the collection, run the following
+                command in your terminal:
+    
+                .. literalinclude:: /includes/avs/automated-embeddings/index-example.json 
+                   :language: json
+                   :linenos: 
+
+    .. tab::
+       :tabid: nodejs
+
+       .. procedure:: 
+          :style: normal 
+
+          .. step:: Initialize your Node.js project.
+
+             Run the following commands in your terminal 
+             to create a new directory named ``auto-embeddings-project`` and
+             initialize your project:
+
+             .. code-block:: javascript
+
+                mkdir auto-embeddings-project
+                cd auto-embeddings-project
+                npm init -y
+
+          .. step:: Create the ``.js`` file. 
+            
+             .. code-block:: javascript 
+
+                touch <file-name>.js
+
+             .. example:: 
+
+                For example, create a file named ``create_index.js``.
+
+                .. code-block:: javascript
+
+                   touch create_index.js
+
+          .. step:: Define the index in the ``.js`` file.
+            
+             .. literalinclude:: /includes/avs/automated-embeddings/index-syntax.js 
+                :language: javascript
+                :linenos:
+
+             .. example:: 
+
+                For example, to create an index that enables automated
+                embeddings by using the ``voyage-3-large`` model for the
+                ``fullplot`` field in the ``sample_mflix.movies``
+                namespace, copy and paste the following in the
+                ``create_index.js`` file:
+
+                .. literalinclude:: /includes/avs/automated-embeddings/index-example.js 
+                   :language: javascript
+                   :linenos:
+
+          .. step:: Replace the following values and save the file.
+
+             .. list-table:: 
+                :widths: 25 75
+
+                * - ``<CONNECTION-STRING>``
+                  - The connection string for your |service| cluster.
+                * - ``<DATABASE-NAME>``
+                  - The name of the database that contains the collection
+                    for which you want to create the index.
+                * - ``<COLLECTION-NAME>``
+                  - The name of the collection for which you want to
+                    create the index.
+                * - ``<FIELD-NAME>``
+                  - The name of the field in the collection that you want
+                    to index for automated embeddings.
+                * - ``<INDEX-NAME>``
+                  - The name of the index that you want to create.
+
+          .. step:: Run the following command to create the index.
+            
+             .. code-block:: javascript 
+                 
+                node <file-name>.js
+          
+             .. example:: 
+
+                For example, to create the index defined in the
+                ``create_index.js`` file, run the following command in
+                your terminal:
+
+                .. code-block:: javascript 
+
+                   node create_index.js
+
+    .. tab::
+       :tabid: python
+
+       .. procedure:: 
+          :style: normal
+
+          .. step:: Create a ``.py`` file.
+
+             .. code-block:: javascript 
+
+                touch <file-name>.py
+
+             .. example:: 
+
+                For example, create a file named ``create_index.py``.
+
+                .. code-block:: javascript
+
+                   touch create_index.py
+
+          .. step:: Define the index in the ``.py`` file.
+
+             .. literalinclude:: /includes/avs/automated-embeddings/index-syntax.py 
+                :language: python
+                :linenos:
+
+             .. example:: 
+
+                For example, to create an index that enables automated
+                embeddings by using the ``voyage-3-large`` model for the
+                ``fullplot`` field in the ``sample_mflix.movies``
+                namespace, copy and paste the following in the
+                ``create_index.py`` file:
+
+                .. literalinclude:: /includes/avs/automated-embeddings/index-example.py 
+                   :language: python
+                   :linenos:
+
+          .. step:: Replace the following values and save the file.
+
+             .. list-table:: 
+                :widths: 25 75
+
+                * - ``<CONNECTION-STRING>``
+                  - The connection string for your |service| cluster.
+                * - ``<database-name>``
+                  - The name of the database that contains the collection
+                    for which you want to create the index.
+                * - ``<collection-name>``
+                  - The name of the collection for which you want to
+                    create the index.
+                * - ``<field-name>``
+                  - The name of the field in the collection that you want
+                    to index for automated embeddings.
+                * - ``<index-name>``
+                  - The name of the index that you want to create.
+
+          .. step:: Run the following command to create the index.
+
+             .. code-block:: javascript 
+                 
+                python <file-name>.py
+          
+             .. example:: 
+
+                For example, to create the index defined in the
+                ``create_index.py`` file, run the following command in
+                your terminal:
+
+                .. code-block:: javascript 
+
+                   python create_index.py
+
+{+avs+} Query with Automated Embeddings 
+---------------------------------------------------
+
+After you create an index with automated embeddings, you can run text
+queries against the indexed field. {+avs+} automatically generates
+embeddings for the text string in your query using the same embedding
+model specified in the index. It uses the embeddings to search the index
+for documents that are semantically similar to the specified query text.
+
+The following sections describe the :pipeline:`$vectorSearch` pipeline
+syntax and fields for automatically generating embeddings for your query
+text against the field indexed for automated embeddings and demonstrate
+how to run semantic search queries against the fields indexed for
+automated embeddings.  
+
+Query Syntax 
+~~~~~~~~~~~~
+
+The following syntax demonstrates how to run a query against a field
+indexed for automated embeddings: 
+
+.. code-block:: json
+   :linenos:
+
+   {
+     "$vectorSearch": {
+       "index": "<index-name>",
+       "limit": <number-of-results>,
+       "numCandidates": <number-of-candidates>,
+       "path": "<field-to-search>",
+       "query": "<query-string>"
+     }
+   }
+
+Query Fields 
+~~~~~~~~~~~~
+
+The following fields are required for an {+avs+} query using automated
+embeddings: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``exact``
+     - boolean
+     - Conditional 
+     - This field is required if ``numCandidates`` is omitted. Mutually
+       exclusive with ``numCandidates``. 
+      
+       Flag that specifies whether to run |enn| or |ann| search. Value
+       can be one of the following: 
+ 
+       - ``false`` - to run |ann| search 
+       - ``true`` - to run |enn| search
+
+       If omitted, defaults to ``false``. 
+
+   * - ``index`` 
+     - string 
+     - Required 
+     - Name of the {+avs+} index to use.
+       
+       {+avs+} doesn't return results if you misspell the index name or 
+       if the specified index doesn't already exist on the {+cluster+}.
+
+   * - ``limit`` 
+     - number 
+     - Required 
+     - Number (of type ``int`` only) of documents to return in the
+       results. This value can't exceed the value of ``numCandidates`` if
+       you specify ``numCandidates``.
+
+   * - ``numCandidates``
+     - number 
+     - Conditional 
+     - This field is required if ``exact`` is ``false`` or omitted.
+       Mutually exclusive with ``exact``. 
+       
+       Number of nearest neighbors to use during the search. Value must 
+       be less than or equal to (``<=``) ``10000``. You can't specify a
+       number less than the number of documents to return (``limit``).
+
+   * - ``path``
+     - string 
+     - Required 
+     - Indexed :ref:`vector <avs-types-vector>` type field to search.
+
+   * - ``query``
+     - string 
+     - Required 
+     - Text for which to automatically generate embeddings and perform
+       the semantic search.
+
+Considerations  
+~~~~~~~~~~~~~~
+
+You can run an |ann| or |enn| query against the indexed field. To learn
+more, see :ref:`vectorSearch-ann` and :ref:`vectorSearch-enn`.
+
+You can't specify vector embeddings in your query against fields indexed
+for automated embeddings. Instead, you must run a natural language query 
+against the field. When you run a natural language query against the
+field indexed for automated embeddings, {+avs+} automatically generates
+the embeddings for the query text using the same embedding model as the
+indexed field. It then uses the generated embeddings to perform a
+semantic search against the indexed field.
+
+You can optionally specify ``filter`` fields in your query to pre-filter
+the documents against which {+avs+} performs the semantic search. To learn
+more, see :ref:`vectorSearch-agg-pipeline-filter`.
+
+You can also optionally retrieve the score of the documents in the
+results. To learn more, see :ref:`vectorSearch-agg-pipeline-score`.
+
+Run a Query Using Automated Embeddings 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      You can't run {+avs+} queries in the {+atlas-ui+}. Use the
+      {+mongosh+} or a supported driver to run queries.
+
+   .. tab::
+      :tabid: shell
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Connect to the |service| {+cluster+} using {+mongosh+}. 
+
+            To learn more, see :ref:`connect-mongo-shell`.
+
+         .. step:: Switch to the database that contains the collection for which you want to run the query. 
+
+            .. code-block:: javascript 
+
+               use <database-name>
+
+            .. example:: 
+
+               For example, to switch to the ``sample_mflix`` database,
+               run the following command in your terminal:
+
+               .. code-block:: javascript 
+
+                  use sample_mflix
+
+         .. step:: Run the ``db.collection.aggregate()`` method with the ``$vectorSearch`` stage.
+
+            The :method:`db.collection.aggregate()` method has the
+            following syntax:
+
+            .. literalinclude:: /includes/avs/automated-embeddings/basic-query-syntax.sh
+               :language: javascript 
+               :linenos:
+
+            .. example:: 
+
+               For example, to run a query against the ``fullplot``
+               field in the ``movies`` collection for a semantic search
+               for movies semantically similar to ``young heroes caught
+               in epic struggles between light and darkness``, copy,
+               paste, and run the following query.
+
+               .. io-code-block:: 
+                  :copyable: true 
+
+                  .. input:: /includes/avs/automated-embeddings/basic-query-example.sh
+                     :language: javascript
+                     :linenos:
+
+                  .. output:: 
+                     :language: javascript
+                     :linenos:
+                     :visible: false
+
+                     [
+                        {
+                            title: 'Day Watch',
+                            fullplot: 'Anton belongs to the Forces of the Light as well as his powerful girlfriend and apprentice, but his son is a powerful teenager from the Darkness and Anton protects him. When the balance between Light and Darkness is affected by the death of some evil vampires, Anton is framed and accused of the murders, and he chases an ancient chalk that has the power of changing the destiny of its owner.',
+                            score: 0.5449697971343994
+                        },
+                        {
+                            title: 'Dungeons & Dragons',
+                            fullplot: "The Empire of Izmer has long been a divided land. The Mages - an elite group of magic-users - rule whilst the lowly commoners are powerless. Izmer's young Empress, Savina, wants equality and prosperity for all, but the evil Mage Profion is plotting to depose her and establish his own rule. The Empress possesses a scepter which controls Izmer's Golden Dragons. To challenge her rule, Profion must have the scepter, and tricks the Council of Mages into believing Savina is unfit to hold it. Knowing that Profion will bring death and destruction to Izmer, Savina must find the legendary Rod of Savrille, a mythical rod that has the power to control Red Dragons, a species even mightier than the Gold. Enter two thieves, Ridley and Snails, who unwittingly become instrumental in Savina's search for the Rod. Joined by a feisty Dwarf named Elwood, and helped by the Empress's expert tracker, the Elf Norda, the young heroes go in search of the Rod of Savrille. From the deadly maze of the Thieves Guild at Antius to an Elven Village, secret grotto and abandoned castles, Ridley and his band must outwit Profion's chief henchman Damodar at every turn while, back in Izmer, Profion prepares to do battle with the Empress. All depends on the Rod, but the outcome of the race to reach it first is far from certain, and Izmar's very survival hangs in the balance.",
+                            score: 0.5414832830429077
+                        },
+                        {
+                            title: 'Brave Story',
+                            fullplot: 'A young boy attempts to change his destiny by entering a magic gateway to another world; but on his quest to find the Tower of Fortune and be granted any wish, he must conjure up all his bravery to battle demons, his friends, and ultimately himself.',
+                            score: 0.5404887795448303
+                        },
+                        {
+                            title: 'Justin and the Knights of Valour',
+                            fullplot: 'Justin lives in a kingdom where bureaucrats rule and knights have been ousted. His dream is to be become one of the Knights of Valour, like his grandfather was, but his father Reginald, the chief counsel to the Queen, wants his son to follow in his footsteps and become a lawyer. After an inspiring visit to his beloved Grandmother and bidding farewell to his supposed lady-love Lara, Justin leaves home and embarks on a quest to become a knight. Along the way he meets the beautiful, feisty Talia, a quirky wizard called Melquiades, and the handsome Sir Clorex and is mentored by three monks; Blucher, Legantir and Braulio, who teach and test him in the ancient ways of the Knights of Valour. Whilst an unlikely candidate for knighthood, Justin must rise to the challenge quickly when banished former knight Sir Heraclio and his army, lead by Sota, return and threaten to destroy the Kingdom.',
+                            score: 0.5374966859817505
+                        },
+                        {
+                            title: 'Forest Warrior',
+                            fullplot: 'John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.',
+                            score: 0.5331881642341614
+                        },
+                        {
+                            title: 'Forest Warrior',
+                            fullplot: 'John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.',
+                            score: 0.5331881642341614
+                        },
+                        {
+                            title: 'Catatan (Harian) si Boy',
+                            fullplot: "A circle of friends risking their Friendship, Trust, Love and Hope in search of a legend. A young and privileged teenager with a golden heart, beset with challenges and tribulations we face today with the goal to open many young people's mind with inspirations and hopes that drive them in achieving their dreams. To get out of their comfort zone and finish what they started.",
+                            score: 0.5322973728179932
+                        },
+                        {
+                            title: 'Bionicle: Mask of Light',
+                            fullplot: "In a land of living machines, two young ones are chosen to seek the legendary Mask of Light to reveal the savior of all the lands from the dark forces of the Makuta. During the course of their adventure, they will call on the heroes of their people, the great Toa. These Toa, masters of nature's forces such as Fire, Wind, Earth & Water, try to protect the chosen ones as they seek their destiny.",
+                            score: 0.5315042734146118
+                        },
+                        {
+                            title: 'Fear No Evil',
+                            fullplot: 'High school student turns out to be personification of Lucifer. Two arch angels in human form (as women) take him on.',
+                            score: 0.5295513868331909
+                        },
+                        {
+                            title: 'Tales of Vesperia: The First Strike',
+                            fullplot: 'In a mythical kingdom, the mighty Imperial Knights harness a magical substance known as Aer to power their weapons and protect humanity from the monsters of the forest. But something strange is afoot. The Aer is somehow changing, causing the wilderness to waste away and stirring the woodland beasts to attack with greater frequency. As danger creeps steadily closer to civilization, two young recruits - Flynn, the rigid son of a fallen hero, and the rebellious and brash Yuri - must ride with their fellow Imperial Knights to distant ruins in hopes of uncovering the truth behind the transforming Aer. Some will not survive the thrilling journey. Some will be betrayed. If Flynn and Yuri cannot overcome their differences and learn to fight together, all will be lost for the people of the realm.',
+                            score: 0.5276793241500854
+                        }
+                     ]
+
+   .. tab::
+      :tabid: nodejs
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Create a ``.js`` file.
+
+            .. example:: 
+
+               For example, create a file named
+               ``automated-embeddings-query.js``. 
+
+               .. code-block:: shell 
+
+                  touch automated-embeddings-query.js
+
+         .. step:: Define the query in the file. 
+
+            .. literalinclude:: /includes/avs/automated-embeddings/basic-query-syntax.js
+               :language: javascript 
+               :linenos:
+
+            .. example:: 
+
+               For example, in the ``automated-embeddings-query.js``
+               file, copy paste the following code to define a query
+               against the ``fullplot`` field in the ``movies``
+               collection for a semantic search for movies semantically
+               similar to ``young heroes caught in epic struggles
+               between light and darkness``.   
+
+               .. literalinclude:: /includes/avs/automated-embeddings/basic-query-example.js 
+                  :language: javascript 
+                  :linenos:
+
+         .. step:: Replace the following in the query. 
+
+            .. list-table:: 
+               :stub-columns: 1
+
+               * - ``<CONNECTION-STRING>``
+                 - You cluster connection string.
+
+               * - ``<DATABASE-NAME>``
+                 - Name of the database that contains the collection.
+
+               * - ``<COLLECTION-NAME>``
+                 - Name of the collection that contains the indexed field.
+
+               * - ``<INDEX-NAME>``
+                 - Name of the index.
+
+               * - ``<FIELD-NAME>``
+                 - Name of the indexed field.
+
+               * - ``<QUERY-TEXT>``
+                 - Text string for which to generate embeddings and use
+                   in the semantic search.
+
+               * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>``
+                 - Number of nearest neighbors to consider.
+
+               * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>``
+                 - Number of documents to return in the results.
+
+         .. step:: Run the query.
+
+            .. code-block:: 
+
+               node <FILE-NAME>.js 
+
+            Here ``<FILE-NAME>`` is the name of the ``.js`` file you created.
+
+            .. example:: 
+
+               For example, to run the example query in the
+               ``automated-embeddings-query.js`` file, run the following
+               command: 
+
+               .. io-code-block:: 
+                  :copyable: true 
+                  
+                  .. input:: 
+                     :language: javascript 
+
+                     node automated-embeddings-query.js
+
+                  .. output:: 
+                     :language: javascript 
+
+                     '{"title":"Day Watch","fullplot":"Anton belongs to the Forces of the Light as well as his powerful girlfriend and apprentice, but his son is a powerful teenager from the Darkness and Anton protects him. When the balance between Light and Darkness is affected by the death of some evil vampires, Anton is framed and accused of the murders, and he chases an ancient chalk that has the power of changing the destiny of its owner.","score":0.5449697971343994}'
+                     `{"title":"Dungeons & Dragons","fullplot":"The Empire of Izmer has long been a divided land. The Mages - an elite group of magic-users - rule whilst the lowly commoners are powerless. Izmer's young Empress, Savina, wants equality and prosperity for all, but the evil Mage Profion is plotting to depose her and establish his own rule. The Empress possesses a scepter which controls Izmer's Golden Dragons. To challenge her rule, Profion must have the scepter, and tricks the Council of Mages into believing Savina is unfit to hold it. Knowing that Profion will bring death and destruction to Izmer, Savina must find the legendary Rod of Savrille, a mythical rod that has the power to control Red Dragons, a species even mightier than the Gold. Enter two thieves, Ridley and Snails, who unwittingly become instrumental in Savina's search for the Rod. Joined by a feisty Dwarf named Elwood, and helped by the Empress's expert tracker, the Elf Norda, the young heroes go in search of the Rod of Savrille. From the deadly maze of the Thieves Guild at Antius to an Elven Village, secret grotto and abandoned castles, Ridley and his band must outwit Profion's chief henchman Damodar at every turn while, back in Izmer, Profion prepares to do battle with the Empress. All depends on the Rod, but the outcome of the race to reach it first is far from certain, and Izmar's very survival hangs in the balance.","score":0.5414832830429077}`
+                     '{"title":"Brave Story","fullplot":"A young boy attempts to change his destiny by entering a magic gateway to another world; but on his quest to find the Tower of Fortune and be granted any wish, he must conjure up all his bravery to battle demons, his friends, and ultimately himself.","score":0.5404887795448303}'
+                     '{"title":"Justin and the Knights of Valour","fullplot":"Justin lives in a kingdom where bureaucrats rule and knights have been ousted. His dream is to be become one of the Knights of Valour, like his grandfather was, but his father Reginald, the chief counsel to the Queen, wants his son to follow in his footsteps and become a lawyer. After an inspiring visit to his beloved Grandmother and bidding farewell to his supposed lady-love Lara, Justin leaves home and embarks on a quest to become a knight. Along the way he meets the beautiful, feisty Talia, a quirky wizard called Melquiades, and the handsome Sir Clorex and is mentored by three monks; Blucher, Legantir and Braulio, who teach and test him in the ancient ways of the Knights of Valour. Whilst an unlikely candidate for knighthood, Justin must rise to the challenge quickly when banished former knight Sir Heraclio and his army, lead by Sota, return and threaten to destroy the Kingdom.","score":0.5374966859817505}'
+                     '{"title":"Forest Warrior","fullplot":"John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.","score":0.5331881642341614}'
+                     '{"title":"Forest Warrior","fullplot":"John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.","score":0.5331881642341614}'
+                     `{"title":"Catatan (Harian) si Boy","fullplot":"A circle of friends risking their Friendship, Trust, Love and Hope in search of a legend. A young and privileged teenager with a golden heart, beset with challenges and tribulations we face today with the goal to open many young people's mind with inspirations and hopes that drive them in achieving their dreams. To get out of their comfort zone and finish what they started.","score":0.5322973728179932}`
+                     `{"title":"Bionicle: Mask of Light","fullplot":"In a land of living machines, two young ones are chosen to seek the legendary Mask of Light to reveal the savior of all the lands from the dark forces of the Makuta. During the course of their adventure, they will call on the heroes of their people, the great Toa. These Toa, masters of nature's forces such as Fire, Wind, Earth & Water, try to protect the chosen ones as they seek their destiny.","score":0.5315042734146118}`
+                     '{"title":"Fear No Evil","fullplot":"High school student turns out to be personification of Lucifer. Two arch angels in human form (as women) take him on.","score":0.5295513868331909}'
+                     '{"title":"Tales of Vesperia: The First Strike","fullplot":"In a mythical kingdom, the mighty Imperial Knights harness a magical substance known as Aer to power their weapons and protect humanity from the monsters of the forest. But something strange is afoot. The Aer is somehow changing, causing the wilderness to waste away and stirring the woodland beasts to attack with greater frequency. As danger creeps steadily closer to civilization, two young recruits - Flynn, the rigid son of a fallen hero, and the rebellious and brash Yuri - must ride with their fellow Imperial Knights to distant ruins in hopes of uncovering the truth behind the transforming Aer. Some will not survive the thrilling journey. Some will be betrayed. If Flynn and Yuri cannot overcome their differences and learn to fight together, all will be lost for the people of the realm.","score":0.5276793241500854}'
+
+   .. tab::
+      :tabid: python
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Create a ``.py`` file.
+
+            .. example:: 
+
+               For example, create a file named
+               ``automated-embeddings-query.js``. 
+
+               .. code-block:: shell 
+
+                  touch automated-embeddings-query.py
+
+         .. step:: Define the query in the file. 
+
+            .. literalinclude:: /includes/avs/automated-embeddings/basic-query-syntax.py 
+               :language: javascript 
+               :linenos:
+
+            .. example:: 
+
+               For example, in the ``automated-embeddings-query.py``
+               file, copy paste the following code to define a query
+               against the ``fullplot`` field in the ``movies``
+               collection for a semantic search for movies semantically
+               similar to ``young heroes caught in epic struggles
+               between light and darkness``.   
+
+               .. literalinclude:: /includes/avs/automated-embeddings/basic-query-example.py 
+                  :language: javascript 
+                  :linenos:
+
+         .. step:: Replace the following in the query. 
+
+            .. list-table:: 
+               :stub-columns: 1
+
+               * - ``<CONNECTION-STRING>``
+                 - You cluster connection string.
+
+               * - ``<DATABASE-NAME>``
+                 - Name of the database that contains the collection.
+
+               * - ``<COLLECTION-NAME>``
+                 - Name of the collection that contains the indexed field.
+
+               * - ``<INDEX-NAME>``
+                 - Name of the index.
+
+               * - ``<FIELD-NAME>``
+                 - Name of the indexed field.
+
+               * - ``<QUERY-TEXT>``
+                 - Text string for which to generate embeddings and use
+                   in the semantic search.
+
+               * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>``
+                 - Number of nearest neighbors to consider.
+
+               * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>``
+                 - Number of documents to return in the results.
+
+         .. step:: Run the query.
+
+            .. code-block:: 
+
+               python <FILE-NAME>.py 
+
+            Here ``<FILE-NAME>`` is the name of the ``.py`` file you created.
+
+            .. example:: 
+
+               For example, to run the example query in the
+               ``automated-embeddings-query.py`` file, run the following
+               command: 
+
+               .. io-code-block:: 
+                  :copyable: true 
+                  
+                  .. input:: 
+                     :language: javascript 
+
+                     python automated-embeddings-query.js
+
+                  .. output:: 
+                     :language: javascript 
+
+                     {'title': 'Day Watch', 'fullplot': 'Anton belongs to the Forces of the Light as well as his powerful girlfriend and apprentice, but his son is a powerful teenager from the Darkness and Anton protects him. When the balance between Light and Darkness is affected by the death of some evil vampires, Anton is framed and accused of the murders, and he chases an ancient chalk that has the power of changing the destiny of its owner.', 'score': 0.5449697971343994}
+                     {'title': 'Dungeons & Dragons', 'fullplot': "The Empire of Izmer has long been a divided land. The Mages - an elite group of magic-users - rule whilst the lowly commoners are powerless. Izmer's young Empress, Savina, wants equality and prosperity for all, but the evil Mage Profion is plotting to depose her and establish his own rule. The Empress possesses a scepter which controls Izmer's Golden Dragons. To challenge her rule, Profion must have the scepter, and tricks the Council of Mages into believing Savina is unfit to hold it. Knowing that Profion will bring death and destruction to Izmer, Savina must find the legendary Rod of Savrille, a mythical rod that has the power to control Red Dragons, a species even mightier than the Gold. Enter two thieves, Ridley and Snails, who unwittingly become instrumental in Savina's search for the Rod. Joined by a feisty Dwarf named Elwood, and helped by the Empress's expert tracker, the Elf Norda, the young heroes go in search of the Rod of Savrille. From the deadly maze of the Thieves Guild at Antius to an Elven Village, secret grotto and abandoned castles, Ridley and his band must outwit Profion's chief henchman Damodar at every turn while, back in Izmer, Profion prepares to do battle with the Empress. All depends on the Rod, but the outcome of the race to reach it first is far from certain, and Izmar's very survival hangs in the balance.", 'score': 0.5414832830429077}
+                     {'title': 'Brave Story', 'fullplot': 'A young boy attempts to change his destiny by entering a magic gateway to another world; but on his quest to find the Tower of Fortune and be granted any wish, he must conjure up all his bravery to battle demons, his friends, and ultimately himself.', 'score': 0.5404887795448303}
+                     {'title': 'Justin and the Knights of Valour', 'fullplot': 'Justin lives in a kingdom where bureaucrats rule and knights have been ousted. His dream is to be become one of the Knights of Valour, like his grandfather was, but his father Reginald, the chief counsel to the Queen, wants his son to follow in his footsteps and become a lawyer. After an inspiring visit to his beloved Grandmother and bidding farewell to his supposed lady-love Lara, Justin leaves home and embarks on a quest to become a knight. Along the way he meets the beautiful, feisty Talia, a quirky wizard called Melquiades, and the handsome Sir Clorex and is mentored by three monks; Blucher, Legantir and Braulio, who teach and test him in the ancient ways of the Knights of Valour. Whilst an unlikely candidate for knighthood, Justin must rise to the challenge quickly when banished former knight Sir Heraclio and his army, lead by Sota, return and threaten to destroy the Kingdom.', 'score': 0.5374966859817505}
+                     {'title': 'Forest Warrior', 'fullplot': 'John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.', 'score': 0.5331881642341614}
+                     {'title': 'Forest Warrior', 'fullplot': 'John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.', 'score': 0.5331881642341614}
+                     {'title': 'Catatan (Harian) si Boy', 'fullplot': "A circle of friends risking their Friendship, Trust, Love and Hope in search of a legend. A young and privileged teenager with a golden heart, beset with challenges and tribulations we face today with the goal to open many young people's mind with inspirations and hopes that drive them in achieving their dreams. To get out of their comfort zone and finish what they started.", 'score': 0.5322973728179932}
+                     {'title': 'Bionicle: Mask of Light', 'fullplot': "In a land of living machines, two young ones are chosen to seek the legendary Mask of Light to reveal the savior of all the lands from the dark forces of the Makuta. During the course of their adventure, they will call on the heroes of their people, the great Toa. These Toa, masters of nature's forces such as Fire, Wind, Earth & Water, try to protect the chosen ones as they seek their destiny.", 'score': 0.5315042734146118}
+                     {'title': 'Fear No Evil', 'fullplot': 'High school student turns out to be personification of Lucifer. Two arch angels in human form (as women) take him on.', 'score': 0.5295513868331909}
+                     {'title': 'Tales of Vesperia: The First Strike', 'fullplot': 'In a mythical kingdom, the mighty Imperial Knights harness a magical substance known as Aer to power their weapons and protect humanity from the monsters of the forest. But something strange is afoot. The Aer is somehow changing, causing the wilderness to waste away and stirring the woodland beasts to attack with greater frequency. As danger creeps steadily closer to civilization, two young recruits - Flynn, the rigid son of a fallen hero, and the rebellious and brash Yuri - must ride with their fellow Imperial Knights to distant ruins in hopes of uncovering the truth behind the transforming Aer. Some will not survive the thrilling journey. Some will be betrayed. If Flynn and Yuri cannot overcome their differences and learn to fight together, all will be lost for the people of the realm.', 'score': 0.5276793241500854}

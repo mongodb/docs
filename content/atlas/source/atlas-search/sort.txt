@@ -1,0 +1,3238 @@
+.. _sort-ref:
+
+==================
+Sort |fts| Results 
+==================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Sort you Atlas Search results by date, number, and string fields.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+   
+Overview
+--------
+
+|fts| allows you to sort the results in ascending or descending order on 
+fields that you define in your |fts| index. You can sort by the
+following field types using the ``sort`` option: 
+
+- ``boolean``
+- ``date``
+- ``number`` (integer, float, and double values)
+- ``objectId``
+- ``uuid`` 
+- ``string`` (indexed as the :ref:`token <bson-data-types-token>` type) 
+
+You can also sort by the score of the documents in the results and by
+:ref:`null values <fts-sort-null>`.
+
+.. _sort-compatibility-ref:
+
+``sort`` Option Compatibility 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports non-sharded sort queries across all major and minor
+MongoDB 5.0 and later versions. Sharded sort queries are available on
+all major releases for 6.0 and on all major and minor releases for 
+7.0 and later versions.
+
+.. _sort-option-limitations:
+
+``sort`` Option Limitations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- You can't sort on fields of :ref:`embeddedDocuments
+  <bson-data-types-embedded-documents>` type.
+- You can't use the ``sort`` option with the deprecated
+  :ref:`knnBeta <knn-beta-ref>`
+  operator.
+
+.. _fts-sort-usage:
+
+Usage 
+~~~~~
+
+To sort your |fts| results, you must do the following:
+
+1. Create an |fts| index on the fields to sort the results by. 
+
+   To sort on ``boolean``, ``date``, ``number``, ``UUID``, and
+   ``objectId`` fields, use dynamic or static mappings. To sort on
+   string fields, you must use :ref:`static mappings
+   <static-dynamic-mappings>` to index the field as the ``token`` type. 
+
+#. Create and run your query with the ``sort`` option against the fields
+   you defined in the index for sorting. To learn more, see 
+   :ref:`sort-syntax-ref`.
+
+.. _fts-sort-behavior:
+
+Behavior 
+~~~~~~~~
+
+Sort by Boolean, Date, Numeric, UUID, ObjectId, or String Field 
+```````````````````````````````````````````````````````````````
+
+The ``sort`` option takes a document that specifies the fields to sort 
+by and the respective sort order. |fts| follows the :manual:`MongoDB
+comparison order </reference/bson-type-comparison-order/>` for the
+supported data types. It treats UUID values like ``BinData``. To learn
+more, see :manual:`non-existent fields 
+</reference/bson-type-comparison-order/#non-existent-fields>`. 
+
+You can specify the following sort order to sort your results by: 
+
+.. list-table:: 
+   :widths: 10 90 
+
+   * - ``1`` 
+     - Sort in ascending order. 
+  
+       When you sort in ascending order, |fts| returns documents with
+       missing values before documents with values. 
+
+   * - ``-1`` 
+     - Sort in descending order.
+
+.. _fts-sort-score-unique-field:
+
+Sort by Score And a Unique Field 
+````````````````````````````````
+
+You can also sort by score in ascending or descending order. The
+``sort`` option takes a document that specifies the :manual:`$meta
+</reference/operator/aggregation/meta/>` expression, which requires the
+``searchScore`` value. 
+
+.. example:: 
+
+   Suppose your application allows users to skip to the last page of the
+   search results. The following example sorts the results by score in
+   ascending order so that the document with the lowest score displays at
+   the top of the results: 
+
+   .. code-block:: json 
+      :copyable: true 
+
+      sort: {score: {$meta: "searchScore", order: 1}}
+
+You can use ``sort`` to also ensure that the results have a determined
+order when multiple documents in the results have identical scores. For
+example, if you sort the results by a unique field, such as a date field
+named ``lastUpdated`` as shown in the following example, |fts| returns
+results with identical scores in a determined order: 
+
+.. example::
+
+   .. code-block:: 
+      :copyable: false
+
+      sort: {score: {$meta: "searchScore"}, lastUpdated: 1}
+
+However, if you don't specify a unique field to sort the results by,
+|fts| returns the results sorted by score in descending order. |fts|
+returns results with identical scores or values in an arbitrary order.
+The following example doesn't sort the results by a unique field.   
+
+.. example:: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      sort: {score: {$meta: "searchScore"}}
+
+To learn more, see :ref:`scoring-ref`.
+
+.. _fts-sort-arrays:
+
+Sort Arrays 
+```````````
+
+|fts| flattens the arrays for sorting. 
+
+.. example:: 
+
+   Consider the following array: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      [4, [1, [8,5], 9], 2]
+
+   |fts| flattens the preceding array similar to the following:
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      4, 1, 8, 5, 9, 2
+
+   For an ascending sort, |fts| uses ``1`` to compare the array to other
+   values. For a descending sort, |fts| uses ``9`` to compare the array
+   to other values.
+
+When comparing with elements inside an array:
+
+- For an ascending sort, |fts| compares the smallest elements of the
+  array or performs a less than (``<``) comparison. 
+
+  .. example:: 
+
+     |fts| sorts results in the following order if you sort by numbers
+     in ascending order:
+
+     .. code-block:: shell 
+        :copyable: false 
+
+        -20
+        [-3, 12] // <- -3 comes before 5.
+        5
+        [6, 18]  // <- 6 comes after 5.
+        13
+        14
+
+- For a descending sort, |fts| compares the largest elements of the
+  array or performs a greater than (``>``) comparison. 
+
+  .. example:: 
+
+     |fts| sorts results in the following order if you sort by numbers
+     in descending order:
+
+     .. code-block:: shell 
+        :copyable: false 
+
+        [6, 18]  // <- 18 comes before 14.
+        14
+        13
+        [-3, 12] // <- 12 comes after 13.
+        5
+        -20
+
+.. _fts-sort-arrays-multiple-types:
+
+Sort Arrays with Multiple Types
+```````````````````````````````
+
+When sorting over array fields that contain values of multiple 
+|bson| types, |fts| selects a representative element from the array 
+to use for comparison according to the :manual:`MongoDB comparison and sort order
+</reference/bson-type-comparison-order/>` by default.
+
+- For an ascending sort, |fts| uses the element with the 
+  lowest |bson| type.
+
+- For a descending sort, |fts| uses the element with the
+  highest |bson| type.
+
+If there are multiple values of the same |bson| type
+in the array, standard sort behavior for the selected 
+type applies.
+
+.. example:: 
+
+   Consider the following array: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      [ 'foo', null, 15, true, false ]
+
+   - For an ascending sort, |fts| uses ``null``, as it 
+     is the lowest :ref:`supported <bson-data-types>` |bson| type. 
+
+   - For a descending sort, |fts| uses ``true``, as it 
+     is the highest |bson| type in the array and |fts| ranks ``true`` 
+     values above ``false`` values. 
+
+   However, if you set ``noData: highest`` in your 
+   ``sort`` :ref:`syntax <sort-syntax-ref>`, |fts| considers 
+   null and missing values as the highest |bson| type.
+   For the example array, the following behavior applies:
+
+   - For an ascending sort, |fts| uses ``15``, as
+     it is now the lowest |bson| type in the array.
+   - For a descending sort, |fts| uses ``null``, as it 
+     is now the highest |bson| type in the array.
+ 
+   To learn more, see :ref:`fts-sort-null`.
+
+For an example, see :ref:`fts-sort-eg-null-multiple-types`.
+
+.. _fts-sort-null:
+
+Sort by Null and Missing Values 
+```````````````````````````````
+
+|fts| treats null values as equal to missing and empty values, and the
+order of documents with these values is non-deterministic when sorting.
+
+By default, |fts| follows the :manual:`MongoDB comparison and sort order
+</reference/bson-type-comparison-order/>` and considers null values 
+as lower than all other :ref:`supported <bson-data-types>` |bson| types. 
+Therefore, null values appear at the top of the results during 
+an ascending sort and at the bottom during a descending sort.
+
+To configure where null values appear in the results, specify the ``noData``
+field in your ``sort`` :ref:`syntax <sort-syntax-ref>`. The ``noData`` 
+field takes the following values:
+
+- ``lowest`` (default): Sets null values as the lowest |bson| type during sorting.
+  Sorts null values at the top of the results during an
+  ascending sort and at the bottom during a descending sort.
+- ``highest``: Sets null values as the highest |bson| type during sorting.
+  Sorts null values at the bottom of the results during an
+  ascending sort and at the top during a descending sort.
+
+.. note::
+    
+   The same behavior applies when sorting on
+   :ref:`arrays with multiple types <fts-sort-arrays-multiple-types>`
+   that contain null or missing values.
+
+For examples, see :ref:`fts-sort-eg-null` and 
+:ref:`fts-sort-eg-null-multiple-types`.
+
+.. _fts-sort-embedded-documents:
+
+Sort on Embedded Documents Array Fields 
+```````````````````````````````````````
+
+.. include:: /includes/fts/facts/fact-fts-embedded-documents-sort.rst
+
+.. _sort-considerations:
+
+Considerations 
+~~~~~~~~~~~~~~
+
+Consistency 
+```````````
+
+|fts| indexes are eventually :ref:`consistent
+<index-eventual-consistency-and-latency>`, and values returned in
+results might be different from values used in sorting.
+
+Performance 
+```````````
+
+This feature optimizes queries that use :pipeline:`$search` with
+:pipeline:`$limit` as a subsequent stage. If |fts| needs to sort all 
+documents in the collection, the response might be slow.
+
+Scoring 
+```````
+
+|fts| returns :ref:`scores <scoring-ref>` for all documents in the
+results. However, you might see higher scoring documents after lower
+scoring documents because the order of documents in the results is based
+on the sort criteria unless you explicitly sort by score.
+
+.. _sort-syntax-ref:
+
+Syntax 
+------
+
+``sort`` has the following syntax:
+
+.. code-block:: json
+   :emphasize-lines: 7-11
+   :linenos:
+
+   {
+     "$search": {  
+       "index": "<index name>", // optional, defaults to "default"
+       "<operator>": { // such as "text", "compound", or "phrase"
+         <operator-specification>
+       },
+       "sort": { 
+         score: {$meta: "searchScore"}, // optional field
+         "<field-to-sort>": <sort-order>, // 1 or -1, or a document
+         ...
+       }
+     }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Parameter
+     - Description
+
+   * - ``score``
+     - Optional. Determines whether to sort by the search score.
+       To learn more, see :ref:`fts-sort-score-unique-field`.
+
+   * - ``<field-to-sort>``
+     - Required. The name of the field to sort by.
+
+   * - ``<sort-order>``
+     - Required. Determines the sort order. 
+       Use ``1`` for ascending order and ``-1`` for
+       descending order. 
+       
+       If you want to specify the 
+       :ref:`noData <fts-sort-null>` field, use a document 
+       with the following syntax:
+
+       .. code-block:: json
+
+          "<field-to-sort>": {
+            order: 1 | -1, // required field
+            noData: "lowest" | "highest" // optional field
+          },
+          ...
+
+.. _fts-sort-egs:
+
+Examples 
+--------
+
+The following examples use the ``sample_mflix.movies``, 
+``sample_airbnb.listingsAndReview``, or a custom collection named
+``users``. 
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the examples in this section.
+
+----------
+
+.. tabs-selector:: drivers
+
+.. _fts-sort-index:
+
+Index Definition
+~~~~~~~~~~~~~~~~
+
+The example queries in this page use either the ``sample_mflix.movies``,
+the ``sample_airbnb.listingsAndReview``, or a custom collection. If you
+create the following indexes on these collections, you can run the
+sample queries against the indexed fields.
+
+.. tabs:: 
+
+   .. tab:: ``movies`` Collection
+      :tabid: movies
+
+      The index definition for the ``movies`` collection specifies the
+      following:  
+
+      - Index ``awards.wins`` field as: 
+
+        - ``number`` type for sorting and querying, including running
+          :ref:`fts-facet-ref` queries 
+
+      - Index ``released`` field as: 
+
+        - ``date`` type for sorting and querying, including running
+          :ref:`fts-facet-ref` queries 
+
+      - Index ``title`` field as: 
+
+        - ``token`` type for sorting 
+        - ``string`` type for querying  
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "awards": {
+                 "dynamic": false,
+                 "fields": {
+                   "wins": [
+                     {
+                       "type": "number"
+                     }
+                   ]
+                 },
+                 "type": "document"
+               },
+               "released": [
+                 {
+                   "type": "date"
+                 }
+               ],
+               "title": [{
+                 "type": "token"
+               }, {
+                 "type": "string"
+               }]
+             }
+           }
+         }
+
+      For the preceding index definition, |fts| creates an index named
+      ``default`` with :ref:`static mappings <static-dynamic-mappings>`
+      on the specified fields. 
+
+   .. tab:: ``listingsAndReviews`` Collection
+      :tabid: airbnb
+
+      The example queries against the
+      ``sample_airbnb.listingsAndReviews`` collection use the following
+      index. The index definition specifies dynamic mappings on the
+      fields in the collection:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "mappings": {
+             "dynamic": true
+           }
+         }
+  
+   .. tab:: ``users`` Collection
+      :tabid: users
+
+      The ``users`` collection contains the following documents: 
+
+      .. code-block:: json
+         :copyable: true
+
+         db.users.insertMany([
+           {
+             "_id": 0,
+             "a": UUID("1a324de2-e34b-c87e-f2a1-42ce37ad74ed"),
+             "b": "hello",
+             "c": ObjectId("507f1f77bcf86cd799439011")
+           },
+           {
+             "_id": 1,
+             "a": UUID("3b241101-e2bb-4255-8caf-4136c566a962"),
+             "b": "hello",
+             "c": true
+           },
+           {
+             "_id": 2,
+             "a": UUID("dee11d4e-63c6-4d90-983c-5c9f1e79e96c"),
+             "b": "hello",
+             "c": "foo"
+           },
+           {
+             "_id": 3,
+             "b": "hello",
+             "c": UUID("3be11d4e-62cb-4e95-9a3c-5c9f1e56c732")
+           },
+           {
+             "_id": 4,
+             "a": UUID("d3c12e1c-c36e-25ed-7c3e-1e7f1e53c752"),
+             "b": "hello",
+             "c": null
+           },
+           {
+             "_id": 5,
+             "a": UUID("d73f181e-cdda-42b4-b844-4d6e172e9bc8"),
+             "b": "hello",
+             "c": []
+           }
+           {
+             "_id": 6,
+             "a": UUID("7eeddf21-b313-4a5c-81c2-c68915daa618"),
+             "b": "hello",
+           }
+         ])
+
+      The index definition for the ``users`` collection specifies the
+      following: 
+
+      - Dynamically index all the fields except fields named ``c``.
+      - Statically index field named ``c`` as the following types for
+        sorting:  
+
+        - ``token``  
+        - ``uuid`` 
+        - ``objectId``
+        - ``boolean``
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {         
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "c": [
+                { "type": "token" },
+                { "type": "uuid" },
+                { "type": "objectId" },
+                { "type": "boolean" },
+                { "type": "number" }
+               ]
+             }
+           }
+         }
+
+      For the preceding collection, |fts| creates an index named
+      ``default`` with the specified mappings on the specified fields. 
+
+.. _fts-sort-eg-date:
+
+Date Search and Sort 
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fts/extracts/fts-sort-by-date-constant-desc.rst 
+
+.. include:: /includes/fts/extracts/fts-sort-by-date-stage.rst
+
+.. tabs-drivers::
+
+   .. tab:: 
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-atlas-ui.rst
+     
+   .. tab:: 
+      :tabid: shell
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-shell.rst
+
+   .. tab:: 
+      :tabid: compass
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-compass.rst
+  
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-cs.rst
+
+   .. tab:: 
+      :tabid: nodejs
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-nodejs.rst
+
+   .. tab:: 
+      :tabid: java-sync
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-kotlin.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-go.rst
+
+   .. tab:: 
+      :tabid: python
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-sort-date-tutorial-run-query-python.rst
+
+.. _fts-sort-eg-number:
+
+Number Search and Sort 
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fts/extracts/fts-sort-by-numbers-constant-desc.rst 
+ 
+.. include:: /includes/fts/extracts/fts-sort-by-numbers-stage.rst
+
+.. tabs-drivers::
+
+   .. tab:: 
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-atlas-ui.rst
+
+   .. tab:: 
+      :tabid: shell
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-shell.rst  
+
+   .. tab:: 
+      :tabid: compass
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-cs.rst
+
+   .. tab:: 
+      :tabid: nodejs
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-nodejs.rst
+
+   .. tab:: 
+      :tabid: java-sync
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-kotlin.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-go.rst
+
+   .. tab:: 
+      :tabid: python
+
+      .. include:: /includes/fts/sort/procedures/steps-fts-tutorial-sort-numbers-run-query-python.rst
+
+.. _fts-sort-eg-string:
+
+String Search and Sort 
+~~~~~~~~~~~~~~~~~~~~~~
+
+Basic Example 
+`````````````
+
+The following query on the ``sample_mflix.movies`` namespace uses the
+:pipeline:`$search` stage to do the following: 
+
+- Search for movies that have the term ``country`` in the title.  
+- Sort the results in ascending order using ``sort`` option. 
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+documents. It also uses the :pipeline:`$project` stage to do the
+following: 
+
+- Omit all fields except ``title`` in the results.
+- Add a field named ``score``.
+
+.. io-code-block::
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "title",
+              "query": "country"
+            },
+            "sort": {
+              "title": 1
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        { title: 'A Country Called Home', score: 2.536633253097534 },
+        { title: 'A Month in the Country', score: 2.258953094482422 },
+        { title: 'A Quiet Place in the Country', score: 2.0360684394836426 },
+        { title: 'A Sunday in the Country', score: 2.258953094482422 },
+        { title: 'Another Country', score: 3.3635599613189697 }
+      ]
+
+Compound Wildcard Search and Sort Example 
+`````````````````````````````````````````
+
+.. include:: /includes/fts/extracts/fts-sort-by-string-desc.rst
+.. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+.. tabs-drivers::
+
+   .. tab:: 
+      :tabid: atlas-ui
+
+      .. io-code-block::
+         :copyable: true 
+      
+         .. input::
+            :language: json
+      
+            [
+              { 
+                $search: {
+                  "compound": {
+                    "should": [{
+                      "wildcard": {
+                        "query": ["Prance*"],
+                        "path": "title",
+                        "allowAnalyzedField": true
+                      }
+                    },
+                    {
+                      "wildcard": {
+                        "query": ["Prince*"],
+                        "path": "title",
+                        "allowAnalyzedField": true
+                      }
+                    }]
+                  },
+                  "sort": {
+                    "title": 1
+                  }
+                }
+              }
+            ]
+            
+         .. output::
+            :visible: false
+            
+            SCORE: 1  _id:  "573a1398f29313caabceb98e"
+              plot: "A farm girl nurses a wounded reindeer she believes is one of Santa's, …"
+              genres: Array
+              runtime: 103
+              ...
+              title: "Prancer"
+              ...
+      
+            SCORE: 1  _id:  "573a13a5f29313caabd14f54"
+              plot: "Preteen brothers from a broken marriage live with their mother, Denise…"
+              genres: Array
+              runtime: 91
+              ...
+              title: "Prancer Returns"
+              ...
+      
+            SCORE: 1  _id:  "573a13f5f29313caabde3755"
+              plot: "A troubled teenager attempts to conquer the love of his life by becomi…"
+              genres: Array
+              runtime: 78
+              ...
+              title: "Prince"
+              ...
+      
+            SCORE: 1  _id:  "573a13d8f29313caabda665f"
+              fullplot: "Two highway road workers spend the summer of 1988 away from their city…"
+              imdb: Object
+              year: 2013
+              ...
+              title: "Prince Avalanche"
+              ...
+      
+            SCORE: 1  _id:  "573a13bdf29313caabd5898a"
+              plot: "A New York street drama about the lives of immigrants in America seeki…"
+              genres: Array
+              runtime: 70
+              ...
+              title: "Prince of Broadway"
+              ...
+      
+            SCORE: 1  _id:  "573a1398f29313caabcea967"
+              fullplot: "A sinister secret has been kept in the basement of an abandoned Los An…"
+              imdb: Object
+              year: 1987
+              ...
+              title: "Prince of Darkness"
+              ...
+      
+            SCORE: 1  _id:  "573a1393f29313caabcde40d"
+              plot: "An unscrupulous agent for the Borgias suffers a change of heart when a…"
+              genres: Array
+              runtime: 107
+              ...
+              title: "Princess of Foxes"
+              ...
+      
+            SCORE: 1  _id:  "573a13b5f29313caabd43816"
+              plot: "A young fugitive prince and princess must stop a villain who unknowing…"
+              genres: Array
+              runtime: 116
+              ...
+              title: "Prince of Persia: The Sands of Time"
+              ...
+      
+            SCORE: 1  _id:  "573a1397f29313caabce8081"
+              plot: "A New York City narcotics detective reluctantly agrees to cooperate wi…"
+              genres: Array
+              runtime: 167
+              ...
+              title: "Prince of the City"
+              ...
+      
+            SCORE: 1  _id:  "573a13a2f29313caabd0a767"
+              plot: "Six old-style funny silhouetted fairy tales for not so-old-style peopl…"
+              genres: Array
+              runtime: 70
+              ...
+              title: "Princes and Princesses"
+              ...
+      
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+      .. include:: /includes/fts/facts/fact-fts-expand-search-tester-results.rst
+
+   .. tab:: 
+      :tabid: shell
+
+      .. io-code-block::
+         :copyable: true
+
+        .. input:: /includes/fts/sort/strings-query-shell.js
+           :language: js
+           :linenos:
+
+        .. output:: 
+           :language: shell
+           :visible: true
+
+           [
+             { title: 'Prancer', score: 1 },
+             { title: 'Prancer Returns', score: 1 },
+             { title: 'Prince', score: 1 },
+             { title: 'Prince Avalanche', score: 1 },
+             { title: 'Prince of Broadway', score: 1 }
+           ]
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst 
+
+   .. tab:: 
+      :tabid: compass
+
+      .. include:: /includes/fts/sort/strings-query.rst
+
+      If you enabled :guilabel:`Auto Preview`, |compass| displays the 
+      following documents next to the ``$project`` pipeline stage:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         {
+          title: 'Prancer',
+          score: 1
+         },
+         {
+          title: 'Prancer Returns',
+          score: 1
+         },
+         {
+          title: 'Prince',
+          score: 1
+         },
+         {
+          title: 'Prince Avalanche',
+          score: 1
+         },
+         {
+          title: 'Prince of Boradway',
+          score: 1
+         }
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+     
+      - .. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.cs
+            :language: csharp
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: json
+            :visible: false
+
+            { "title" : "Prancer", "score" : 1.0 }
+            { "title" : "Prancer Returns", "score" : 1.0 }
+            { "title" : "Prince", "score" : 1.0 }
+            { "title" : "Prince Avalanche", "score" : 1.0 }
+            { "title" : "Prince of Broadway", "score" : 1.0 }
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: nodejs
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb``, MongoDB's Node.js driver.
+      - Creates an instance of the ``MongoClient`` class to establish a 
+        connection to your |service| cluster.
+      - .. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.js
+            :language: javascript
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            { title: 'Prancer', score: 1 }
+            { title: 'Prancer Returns', score: 1 }
+            { title: 'Prince', score: 1 }
+            { title: 'Prince Avalanche', score: 1 }
+            { title: 'Prince of Broadway', score: 1 }
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: java-sync
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Iterates over the cursor to print the documents that match the 
+        query.
+     
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.java
+            :language: java
+            :linenos:
+            :dedent:
+
+            javac SortByString.java
+            java SortByString
+
+         .. output::
+            :language:  json
+            :visible: false
+
+            {"title": "Prancer", "score": 1.0}
+            {"title": "Prancer Returns", "score": 1.0}
+            {"title": "Prince", "score": 1.0}
+            {"title": "Prince Avalanche", "score": 1.0}
+            {"title": "Prince of Broadway", "score": 1.0}
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Prints the documents that match the query from the ``AggregateFlow`` instance.
+     
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: /includes/fts/sort/strings-query.kt
+            :language: kotlin
+            :linenos:
+            :dedent:
+
+         .. output:: 
+            :language: shell
+            :visible: false
+
+            Document{{title=Prancer, score=1.0}}
+            Document{{title=Prancer Returns, score=1.0}}
+            Document{{title=Prince, score=1.0}}
+            Document{{title=Prince Avalanche, score=1.0}}
+            Document{{title=Prince of Broadway, score=1.0}}
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: go
+
+      The code example performs the following tasks:
+
+      - Imports ``mongodb`` packages and dependencies.
+      - Establishes a connection to your |service| cluster.
+      - Iterates over the cursor to print the documents that match the 
+        query.
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.go
+            :language: go
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: none
+            :visible: true
+
+            [{title Prancer} {score 1}]
+            [{title Prancer Returns} {score 1}]
+            [{title Prince} {score 1}]
+            [{title Prince Avalanche} {score 1}]
+            [{title Prince of Broadway} {score 1}]
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+   .. tab:: 
+      :tabid: python
+
+      The following code example:
+
+      - Imports ``pymongo``, MongoDB's Python driver, and the ``dns``
+        module, which is required to connect ``pymongo`` to ``Atlas`` 
+        using a |dns| seed list connection string. 
+      - Creates an instance of the ``MongoClient`` class to establish a 
+        connection to your |service| cluster.
+      - .. include:: /includes/fts/extracts/fts-sort-by-string-stage.rst
+
+      - Iterates over the cursor to print the documents that match the 
+        query.
+         
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/sort/strings-query.py
+            :language: python
+            :linenos:
+            :dedent:
+
+
+         .. output::
+            :language: python
+            :visible: true
+
+            {'title': 'Prancer', 'score': 1.0}
+            {'title': 'Prancer Returns', 'score': 1.0}
+            {'title': 'Prince', 'score': 1.0}
+            {'title': 'Prince Avalanche', 'score': 1.0}
+            {'title': 'Prince of Broadway', 'score': 1.0}
+
+      .. include:: /includes/fts/extracts/fts-sort-by-string-results.rst
+
+Cases-Insensitive Sort Example 
+``````````````````````````````
+
+.. include:: /includes/fts/extracts/fts-normalized-sort-query-desc.rst
+.. include:: /includes/fts/extracts/fts-normalized-sort-query-stages.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+
+            [
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "train",
+                  },
+                  "sort": {
+                    "title": 1
+                  }
+                }
+              }
+            ]
+      
+         .. output:: 
+            :language: shell
+            :visible: false
+                
+            SCORE: 3.317898988723755  _id: "573a139cf29313caabcf662c"
+            plot: "A train filled with atomic devices threatens to destroy the city of De…"
+            genres: Array
+            runtime: 122
+
+            SCORE: 3.317898988723755  _id: "64de50ae2932de4dd3203061"
+            genres: Array
+            title: "atomic train"
+            awards: Object
+
+            SCORE: 2.228306293487549  _id: "573a13bbf29313caabd52ff4"
+            fullplot: "Long ago up North on the Island of Berk, the young Viking, Hiccup, wan…"
+            imdb: Object
+            year: 2010
+                
+            SCORE: 2.228306293487549  _id: "64de50da2932de4dd3204393"
+            genres: Array
+            title: "how to train your dragon"
+            awards: Object
+
+            SCORE: 2.008449077606201  _id: "573a13ccf29313caabd83281"
+            plot: "When Hiccup and Toothless discover an ice cave that is home to hundred…"
+            genres: Array
+            runtime: 102
+
+            SCORE: 1.4400973320007324  _id: "573a13b1f29313caabd36490"
+            plot: "The life and times of Howard Zinn: the historian, activist, and author…"
+            genres: Array
+            runtime: 78
+
+            SCORE: 2.228306293487549  _id: "573a1394f29313caabce0fb4"
+            plot: "A marshal tries to bring the son of an old friend, an autocratic cattl…"
+            genres: Array
+            runtime: 95
+
+            SCORE: 2.8528976440429688  _id: "573a13c8f29313caabd78a6b"
+            plot: "A couple embarks on a journey home for Chinese new year along with 130…"
+            genres: Array
+            runtime: 85
+
+            SCORE: 2.502213716506958  _id: "573a13baf29313caabd50811"
+            plot: "Two thugs from the Perth suburb of Midland catch the last train to Fre…"
+            genres: Array
+            runtime: 89
+
+            SCORE: 2.502213716506958  _id: "573a13a7f29313caabd1b667"
+            fullplot: "A teacher and a gangster meet by chance in a small town pharmacy. As a…"
+            imdb: Object
+            year: 2002
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: json
+         :copyable: false 
+                
+         SCORE: 3.317898988723755  _id: "573a139cf29313caabcf662c"
+         plot: "A train filled with atomic devices threatens to destroy the city of De…"
+         genres: Array
+         runtime: 122
+
+         SCORE: 2.2382168769836426  _id: "573a13bbf29313caabd52ff4"
+         fullplot: "Long ago up North on the Island of Berk, the young Viking, Hiccup, wan…"
+         imdb: object
+         year: 2010
+
+         SCORE: 2.008449077606201  _id: "573a13ccf29313caabd83281"
+         plot: "When Hiccup and Toothless discover an ice cave that is home to hundred…"
+         genres: Array
+         runtime: 102
+
+         SCORE: 1.4400973320007324  _id: "573a13b1f29313caabd36490"
+         plot: "The life and times of Howard Zinn: the historian, activist, and author…"
+         genres: Array
+         runtime: 78
+
+         SCORE: 2.8528976440429688  _id: "573a13c8f29313caabd78a6b"
+         plot: "A couple embarks on a journey home for Chinese new year along with 130…"
+         genres: Array
+         runtime: 85
+
+         SCORE: 2.228306293487549  _id: "573a1394f29313caabce0fb4"
+         plot: "A marshal tries to bring the son of an old friend, an autocratic cattl…"
+         genres: Array
+         runtime: 95
+
+         SCORE: 2.502213716506958  _id: "573a13baf29313caabd50811"
+         plot: "Two thugs from the Perth suburb of Midland catch the last train to Fre…"
+         genres: Array
+         runtime: 89
+
+         SCORE: 2.502213716506958  _id: "573a13a7f29313caabd1b667"
+         fullplot: "A teacher and a gangster meet by chance in a small town pharmacy. As a…"
+         imdb: Object
+         year: 2002
+
+         SCORE: 3.3326687812805176  _id: "573a139af29313caabcef573"
+         plot: "A vengeful New York transit cop decides to steal a trainload of subway…"
+         genres: Array
+         runtime: 110
+                
+         SCORE: 3.3326687812805176  _id: "573a1398f29313caabceb8f2"
+         plot: "Three stories are connected by a Memphis hotel and the spirit of Elvis…"
+         genres: Array
+         runtime: 110
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst 
+
+   .. tab::
+      :tabid: shell
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+
+            db.movies.aggregate(
+              {
+                "$search": {
+                  "index": "default",
+                  "text": {
+                    "path": "title",
+                    "query": "train",
+                  },
+                  "sort": {
+                    "title": 1
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "title": 1,
+                  "awards": 1,
+                  "score": { $meta: "searchScore" }
+                }
+              }
+            )
+      
+         .. output:: 
+            :language: javascript
+            :visible: false
+
+            [
+              {
+                _id: ObjectId("573a139cf29313caabcf662c"),
+                title: 'Atomic Train',
+                awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+                score: 3.317898988723755
+              },
+              {
+                _id: ObjectId("64de50ae2932de4dd3203061"),
+                title: 'atomic train',
+                awards: { wins: 1, nominations: 1 },
+                score: 3.317898988723755
+              },
+              {
+                _id: ObjectId("573a13bbf29313caabd52ff4"),
+                title: 'How to Train Your Dragon',
+                awards: {
+                  wins: 32,
+                  nominations: 51,
+                  text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+                },
+                score: 2.228306293487549
+              },
+              {
+                _id: ObjectId("64de50da2932de4dd3204393"),
+                title: 'how to train your dragon',
+                awards: { wins: 32, nominations: 51 },
+                score: 2.228306293487549
+              },
+              {
+                _id: ObjectId("573a13ccf29313caabd83281"),
+                title: 'How to Train Your Dragon 2',
+                awards: {
+                  wins: 18,
+                  nominations: 52,
+                  text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+                },
+                score: 2.008449077606201
+              }
+            ]
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: json
+         :copyable: false 
+
+         [
+           {
+             _id: ObjectId("573a139cf29313caabcf662c"),
+             title: 'Atomic Train',
+             awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+             score: 3.3326687812805176
+           },
+          {
+             _id: ObjectId("573a13bbf29313caabd52ff4"),
+             title: 'How to Train Your Dragon',
+             awards: {
+               wins: 32,
+               nominations: 51,
+               text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+             },
+             score: 2.2382168769836426
+           },
+           {
+             _id: ObjectId("573a13ccf29313caabd83281"),
+             title: 'How to Train Your Dragon 2',
+             awards: {
+               wins: 18,
+              nominations: 52,
+               text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+             },
+             score: 2.0173802375793457
+           },
+           {
+             _id: ObjectId("573a13b1f29313caabd36490"),
+             title: "Howard Zinn: You Can't Be Neutral on a Moving Train",
+             awards: { wins: 1, nominations: 0, text: '1 win.' },
+             score: 1.446497917175293
+           },
+           {
+             _id: ObjectId("573a13c8f29313caabd78a6b"),
+             title: 'Last Train Home',
+             awards: { wins: 14, nominations: 9, text: '14 wins & 9 nominations.' },
+             score: 2.8655927181243896
+           }
+         ]  
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 75
+
+         * - Pipeline Stage
+           - Query
+
+         * - ``$search``
+           - .. code-block:: javascript
+                :copyable: true 
+
+                {
+                  "index": "default",
+                  "text": {
+                    "path": "title",
+                    "query": "train",
+                  },
+                  "sort": {
+                    "title": 1,
+                  }
+                }
+
+         * - ``$limit``
+           - ``5``
+
+         * - ``$project``
+           - .. code-block:: javascript
+                :copyable: true 
+
+                {
+                  "_id": 1,
+                  "title": 1,
+                  "awards": 1,
+                  "score": { $meta: "searchScore" }
+                }
+
+      If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+      :guilabel:`Auto Preview`, |compass| displays the following
+      documents next to the ``$project`` pipeline stage: 
+
+      .. code-block:: json
+         :copyable: false 
+
+         _id: ObjectId('573a139cf29313caabcf662c')
+         title: 'Atomic Train'
+         awards: Object
+         score: 3.317898988723755
+
+         _id:  ObjectId("64de50ae2932de4dd3203061")
+         title: 'atomic train'
+         awards: Object
+         score: 3.317898988723755
+
+         _id: ObjectId('573a13bbf29313caabd52ff4')
+         title: 'How to Train Your Dragon'
+         awards: Object
+         score: 2.228306293487549
+
+         _id: ObjectId("64de50da2932de4dd3204393"),
+         title: 'how to train your dragon'
+         awards: 
+         score: 2.228306293487549
+
+         _id: ObjectId('573a13ccf29313caabd83281')
+         title: 'How to Train Your Dragon 2'
+         awards: object
+         score: 2.0173802375793457        
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+         .. code-block:: json 
+            :copyable: false 
+
+            _id: ObjectId('573a139cf29313caabcf662c')
+            title: 'Atomic Train'
+            awards: Object
+            score: 3.317898988723755
+
+            _id: ObjectId('573a13bbf29313caabd52ff4')
+            title: 'How to Train Your Dragon'
+            awards: Object
+            score: 2.228306293487549
+
+            _id: ObjectId('573a13ccf29313caabd83281')
+            title: 'How to Train Your Dragon 2'
+            awards: 
+            score: 2.0173802375793457
+
+            _id: ObjectId('573a13b1f29313caabd36490')
+            title: 'Howard Zinn: You Can't Be Neutral on a Moving Train'
+            awards: Object
+            score: 1.446497917175293
+
+            _id: ObjectId('573a13c8f29313caabd78a6b')
+            title: 'Last Train Home'
+            awards: Object
+            score: 2.8655927181243896
+
+         .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab::
+      :tabid: csharp
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.cs
+            :language: csharp
+            :linenos:
+            :dedent:
+
+         .. output:: 
+            :language: javascript
+
+            { "_id" : ObjectId("573a139cf29313caabcf662c"), "title" : "Atomic Train", "awards" : { "wins" : 1, "nominations" : 1 }, "score" : 3.3035578727722168 }
+            { "_id" : ObjectId("64de50ae2932de4dd3203061"), "title" : "atomic train", "awards" : { "wins" : 1, "nominations" : 1 }, "score" : 3.3035578727722168 }
+            { "_id" : ObjectId("573a13bbf29313caabd52ff4"), "title" : "How to Train Your Dragon", "awards" : { "wins" : 32, "nominations" : 51 }, "score" : 2.2186923027038574 }
+            { "_id" : ObjectId("64de50da2932de4dd3204393"), "title" : "how to train your dragon", "awards" : { "wins" : 32, "nominations" : 51 }, "score" : 2.2186923027038574 }
+            { "_id" : ObjectId("573a13ccf29313caabd83281"), "title" : "How to Train Your Dragon 2", "awards" : { "wins" : 18, "nominations" : 52 }, "score" : 1.9997868537902832 }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         { "_id" : ObjectId("573a139cf29313caabcf662c"), "title" : "Atomic Train", "awards" : { "wins" : 1, "nominations" : 1 }, "score" : 3.3035225868225098 }
+         { "_id" : ObjectId("573a13bbf29313caabd52ff4"), "title" : "How to Train Your Dragon", "awards" : { "wins" : 32, "nominations" : 51 }, "score" : 2.2186522483825684 }
+         { "_id" : ObjectId("573a13ccf29313caabd83281"), "title" : "How to Train Your Dragon 2", "awards" : { "wins" : 18, "nominations" : 52 }, "score" : 1.9997482299804688 }
+         { "_id" : ObjectId("573a13b1f29313caabd36490"), "title" : "Howard Zinn: You Can't Be Neutral on a Moving Train", "awards" : { "wins" : 1, "nominations" : 0 }, "score" : 1.4338588714599609 }
+         { "_id" : ObjectId("573a13c8f29313caabd78a6b"), "title" : "Last Train Home", "awards" : { "wins" : 14, "nominations" : 9 }, "score" : 2.8405368328094482 }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst 
+
+   .. tab:: 
+      :tabid: go
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: /includes/fts/case-insensitive/query.go
+            :language: go
+            :linenos:
+            :dedent:
+      
+         .. output:: 
+            :language: javascript
+
+            [{_id ObjectID("573a139cf29313caabcf662c")} {title Atomic Train} {awards [{wins 1} {nominations 1} {text 1 win & 1 nomination.}]} {score 3.317898988723755}]
+            [{_id ObjectId("64de50ae2932de4dd3203061")} {title atomic train} {awards [{wins 1} {nominations 1}]} {score 3.317898988723755}]
+            [{_id ObjectID("573a13bbf29313caabd52ff4")} {title How to Train Your Dragon} {awards [{wins 32} {nominations 51} {text Nominated for 2 Oscars. Another 30 wins & 51 nominations.}]} {score 2.228306293487549}]
+            [{_id ObjectId("64de50da2932de4dd3204393")} {title how to train your dragon} {awards [{wins 32} {nominations 51}]} {score 2.228306293487549}]
+            [{_id ObjectID("573a13ccf29313caabd83281")} {title How to Train Your Dragon 2} {awards [{wins 18} {nominations 52} {text Nominated for 1 Oscar. Another 17 wins & 52 nominations.}]} {score 2.008449077606201}]
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         [{_id ObjectID("573a139cf29313caabcf662c")} {title Atomic Train} {awards [{wins 1} {nominations 1} {text 1 win & 1 nomination.}]} {score 3.3326687812805176}]
+         [{_id ObjectID("573a13bbf29313caabd52ff4")} {title How to Train Your Dragon} {awards [{wins 32} {nominations 51} {text Nominated for 2 Oscars. Another 30 wins & 51 nominations.}]} {score 2.2382168769836426}]
+         [{_id ObjectID("573a13ccf29313caabd83281")} {title How to Train Your Dragon 2} {awards [{wins 18} {nominations 52} {text Nominated for 1 Oscar. Another 17 wins & 52 nominations.}]} {score 2.0173802375793457}]
+         [{_id ObjectID("573a13b1f29313caabd36490")} {title Howard Zinn: You Can't Be Neutral on a Moving Train} {awards [{wins 1} {nominations 0} {text 1 win.}]} {score 1.446497917175293}]
+         [{_id ObjectID("573a13c8f29313caabd78a6b")} {title Last Train Home} {awards [{wins 14} {nominations 9} {text 14 wins & 9 nominations.}]} {score 2.8655927181243896}]
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+        
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.java
+            :language: java
+            :linenos:
+            :dedent:
+        
+         .. output::
+            :language: json
+            :visible: true
+
+            {"_id": {"$oid": "573a139cf29313caabcf662c"}, "title": "Atomic Train", "awards": {"wins": 1, "nominations": 1, "text": "1 win & 1 nomination."}, "score": 3.317898988723755}
+            {"_id": {"$oid": "64de50ae2932de4dd3203061"}, "title": "atomic train", "awards": {"wins": 1, "nominations": 1}, "score": 3.317898988723755}
+            {"_id": {"$oid": "573a13bbf29313caabd52ff4"}, "title": "How to Train Your Dragon", "awards": {"wins": 32, "nominations": 51, "text": "Nominated for 2 Oscars. Another 30 wins & 51 nominations."}, "score": 2.228306293487549}
+            {"_id": {"$oid": "64de50da2932de4dd3204393"}, "title": "how to train your dragon", "awards": {"wins": 32, "nominations": 51}, "score": 2.228306293487549}
+            {"_id": {"$oid": "573a13ccf29313caabd83281"}, "title": "How to Train Your Dragon 2", "awards": {"wins": 18, "nominations": 52, "text": "Nominated for 1 Oscar. Another 17 wins & 52 nominations."}, "score": 2.008449077606201}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: shell
+         :copyable: false 
+
+         {"_id": {"$oid": "573a139cf29313caabcf662c"}, "title": "Atomic Train", "awards": {"wins": 1, "nominations": 1, "text": "1 win & 1 nomination."}, "score": 3.3326687812805176}
+         {"_id": {"$oid": "573a13bbf29313caabd52ff4"}, "title": "How to Train Your Dragon", "awards": {"wins": 32, "nominations": 51, "text": "Nominated for 2 Oscars. Another 30 wins & 51 nominations."}, "score": 2.2382168769836426}
+         {"_id": {"$oid": "573a13ccf29313caabd83281"}, "title": "How to Train Your Dragon 2", "awards": {"wins": 18, "nominations": 52, "text": "Nominated for 1 Oscar. Another 17 wins & 52 nominations."}, "score": 2.0173802375793457}
+         {"_id": {"$oid": "573a13b1f29313caabd36490"}, "title": "Howard Zinn: You Can't Be Neutral on a Moving Train", "awards": {"wins": 1, "nominations": 0, "text": "1 win."}, "score": 1.446497917175293}
+         {"_id": {"$oid": "573a13c8f29313caabd78a6b"}, "title": "Last Train Home", "awards": {"wins": 14, "nominations": 9, "text": "14 wins & 9 nominations."}, "score": 2.8655927181243896}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.kt
+            :language: kotlin
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: javascript
+
+            Document{{title=atomic train, awards=Document{{wins=1, nominations=1}}, score=3.3326687812805176}}
+            Document{{title=Atomic Train, awards=Document{{wins=1, nominations=1, text=1 win & 1 nomination.}}, score=3.3326687812805176}}
+            Document{{title=how to train your dragon, awards=Document{{wins=32, nominations=51}}, score=2.2382168769836426}}
+            Document{{title=How to Train Your Dragon, awards=Document{{wins=32, nominations=51, text=Nominated for 2 Oscars. Another 30 wins & 51 nominations.}}, score=2.2382168769836426}}
+            Document{{title=How to Train Your Dragon 2, awards=Document{{wins=18, nominations=52, text=Nominated for 1 Oscar. Another 17 wins & 52 nominations.}}, score=2.0173802375793457}}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: none
+         :copyable: false 
+
+         Document{{title=Atomic Train, awards=Document{{wins=1, nominations=1, text=1 win & 1 nomination.}}, score=3.3326687812805176}}
+         Document{{title=How to Train Your Dragon, awards=Document{{wins=32, nominations=51, text=Nominated for 2 Oscars. Another 30 wins & 51 nominations.}}, score=2.2382168769836426}}
+         Document{{title=How to Train Your Dragon 2, awards=Document{{wins=18, nominations=52, text=Nominated for 1 Oscar. Another 17 wins & 52 nominations.}}, score=2.0173802375793457}}
+         Document{{title=Howard Zinn: You Can't Be Neutral on a Moving Train, awards=Document{{wins=1, nominations=0, text=1 win.}}, score=1.446497917175293}}
+         Document{{title=Last Train Home, awards=Document{{wins=14, nominations=9, text=14 wins & 9 nominations.}}, score=2.8655927181243896}}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst 
+
+   .. tab::
+      :tabid: nodejs
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/fts/case-insensitive/query.js
+            :language: go
+            :linenos:
+            :dedent:
+        
+         .. output::
+            :language: json
+            :visible: false
+
+            {
+              _id: new ObjectId("573a139cf29313caabcf662c"),
+              title: 'Atomic Train',
+              awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+              score: 3.317898988723755
+            }
+            {
+              _id: new ObjectId("64de50ae2932de4dd3203061"),
+              title: 'atomic train',
+              awards: { wins: 1, nominations: 1 },
+             score: 3.317898988723755
+            }
+            {
+              _id: new ObjectId("573a13bbf29313caabd52ff4"),
+              title: 'How to Train Your Dragon',
+              awards: {
+                wins: 32,
+                nominations: 51,
+                text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+              },
+              score: 2.228306293487549
+            }
+            {
+              _id: new ObjectId("64de50da2932de4dd3204393"),
+              title: 'how to train your dragon',
+              awards: { wins: 32, nominations: 51 },
+              score: 2.228306293487549
+            }
+            {
+              _id: new ObjectId("573a13ccf29313caabd83281"),
+              title: 'How to Train Your Dragon 2',
+              awards: {
+                wins: 18,
+                nominations: 52,
+                text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+              },
+              score: 2.008449077606201
+            }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         {
+           _id: new ObjectId("573a139cf29313caabcf662c"),
+           title: 'Atomic Train',
+           awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+           score: 3.3326687812805176
+         }
+         {
+           _id: new ObjectId("573a13bbf29313caabd52ff4"),
+           title: 'How to Train Your Dragon',
+           awards: {
+             wins: 32,
+             nominations: 51,
+             text: 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'
+           },
+           score: 2.2382168769836426
+         }
+         {
+           _id: new ObjectId("573a13ccf29313caabd83281"),
+           title: 'How to Train Your Dragon 2',
+           awards: {
+             wins: 18,
+             nominations: 52,
+             text: 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'
+           },
+           score: 2.0173802375793457
+         }
+         {
+           _id: new ObjectId("573a13b1f29313caabd36490"),
+           title: "Howard Zinn: You Can't Be Neutral on a Moving Train",
+           awards: { wins: 1, nominations: 0, text: '1 win.' },
+           score: 1.446497917175293
+         }
+         {
+           _id: new ObjectId("573a13c8f29313caabd78a6b"),
+           title: 'Last Train Home',
+           awards: { wins: 14, nominations: 9, text: '14 wins & 9 nominations.' },
+           score: 2.8655927181243896
+         }
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+   .. tab::
+      :tabid: python
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/fts/case-insensitive/query.py
+            :language: go
+            :linenos:
+            :dedent:
+
+         .. output::
+            :language: json
+            :visible: false
+            
+            {'_id': ObjectId('573a139cf29313caabcf662c'), 'title': 'Atomic Train', 'awards': {'wins': 1, 'nominations': 1, 'text': '1 win & 1 nomination.'}, 'score': 3.317898988723755}
+            {'_id': ObjectId('64de50ae2932de4dd3203061'), 'title': 'atomic train', 'awards': {'wins': 1, 'nominations': 1}, 'score': 3.317898988723755}
+            {'_id': ObjectId('573a13bbf29313caabd52ff4'), 'title': 'How to Train Your Dragon', 'awards': {'wins': 32, 'nominations': 51, 'text': 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'}, 'score': 2.228306293487549}
+            {'_id': ObjectId('64de50da2932de4dd3204393'), 'title': 'how to train your dragon', 'awards': {'wins': 32, 'nominations': 51}, 'score': 2.228306293487549}
+            {'_id': ObjectId('573a13ccf29313caabd83281'), 'title': 'How to Train Your Dragon 2', 'awards': {'wins': 18, 'nominations': 52, 'text': 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'}, 'score': 2.008449077606201}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-results.rst
+
+      .. code-block:: shell
+         :copyable: false 
+
+         {'_id': ObjectId('573a139cf29313caabcf662c'), 'title': 'Atomic Train', 'awards': {'wins': 1, 'nominations': 1, 'text': '1 win & 1 nomination.'}, 'score': 3.3326687812805176}
+         {'_id': ObjectId('573a13bbf29313caabd52ff4'), 'title': 'How to Train Your Dragon', 'awards': {'wins': 32, 'nominations': 51, 'text': 'Nominated for 2 Oscars. Another 30 wins & 51 nominations.'}, 'score': 2.2382168769836426}
+         {'_id': ObjectId('573a13ccf29313caabd83281'), 'title': 'How to Train Your Dragon 2', 'awards': {'wins': 18, 'nominations': 52, 'text': 'Nominated for 1 Oscar. Another 17 wins & 52 nominations.'}, 'score': 2.0173802375793457}
+         {'_id': ObjectId('573a13b1f29313caabd36490'), 'title': "Howard Zinn: You Can't Be Neutral on a Moving Train", 'awards': {'wins': 1, 'nominations': 0, 'text': '1 win.'}, 'score': 1.446497917175293}
+         {'_id': ObjectId('573a13c8f29313caabd78a6b'), 'title': 'Last Train Home', 'awards': {'wins': 14, 'nominations': 9, 'text': '14 wins & 9 nominations.'}, 'score': 2.8655927181243896}
+
+      .. include:: /includes/fts/extracts/fts-normalized-sort-query-run-query.rst
+
+.. _fts-sort-eg-objectid:
+
+Sort by ObjectId
+~~~~~~~~~~~~~~~~
+
+The following query uses the :ref:`range <range-ref>` operator to search the
+the ``released`` field in the ``sample_mflix.movies`` collection for
+movies released between ``2015-01-01`` and ``2015-12-31``. It sorts the
+results by the ``_id`` field, which contains value of type ``ObjectId``,
+in descending order. 
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "released",
+              "gt": ISODate("2015-01-01T00:00:00.000Z"),
+              "lt": ISODate("2015-12-31T00:00:00.000Z")
+            },
+            "sort": {
+              "_id": -1
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "title": 1,
+            "released": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        {
+          _id: ObjectId('573a13fbf29313caabdedf31'),
+          title: 'No Home Movie',
+          released: ISODate('2015-08-10T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13fbf29313caabdedf30'),
+          title: 'Our Loved Ones',
+          released: ISODate('2015-08-12T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13faf29313caabded406'),
+          title: 'The Red Spider',
+          released: ISODate('2015-11-20T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13faf29313caabded1d6'),
+          title: 'The Laundryman',
+          released: ISODate('2015-07-11T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13faf29313caabdecaf3'),
+          title: 'Right Now, Wrong Then',
+          released: ISODate('2015-09-01T00:00:00.000Z'),
+          score: 1
+        }
+      ]
+
+.. _fts-sort-eg-uuid:
+
+Sort by UUID
+~~~~~~~~~~~~
+
+The following query searches for the term ``hello`` in field ``b`` in
+the ``users`` collection. The query sorts the results by field ``a``,
+which contains polymorphic data (to demonstrate the sort order), in
+ascending order. 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.users.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "b",
+              "query": "hello"
+            },
+            "sort": {
+              "a": 1
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "a": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        { _id: 3, score: 0.029335692524909973 },
+        {
+          _id: 0,
+          a: UUID('1a324de2-e34b-c87e-f2a1-42ce37ad74ed'),
+          score: 0.029335692524909973
+        },
+        {
+          _id: 1,
+          a: UUID('3b241101-e2bb-4255-8caf-4136c566a962'),
+          score: 0.029335692524909973
+        },
+        {
+          _id: 6,
+          a: UUID('7eeddf21-b313-4a5c-81c2-c68915daa618'),
+          score: 0.029335692524909973
+        },
+        {
+          _id: 4,
+          a: UUID('d3c12e1c-c36e-25ed-7c3e-1e7f1e53c752'),
+          score: 0.029335692524909973
+        },
+        {
+          _id: 5,
+          a: UUID('d73f181e-cdda-42b4-b844-4d6e172e9bc8'),
+          score: 0.029335692524909973
+        },
+        {
+          _id: 2,
+          a: UUID('dee11d4e-63c6-4d90-983c-5c9f1e79e96c'),
+          score: 0.029335692524909973
+        }
+      ]
+
+.. _fts-sort-eg-null:
+
+Sort by Null Values
+~~~~~~~~~~~~~~~~~~~
+
+Consider the following queries that search field ``b`` for the string ``hello`` in
+the ``users`` collection using the :ref:`text <text-ref>` operator. The query then
+sorts the results by field ``c``, which contains null or missing values for 
+some documents in the collection.
+
+To learn more, see :ref:`fts-sort-null`.
+
+.. tabs:: 
+  
+   .. tab:: Default
+      :tabid: default
+
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            During an ascending sort, |fts| returns documents with 
+            null or missing values at the top of the results by default,
+            as shown in the following example:
+            
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": { "c": 1 }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts/sort/null-values-top.js
+                  :language: js
+                  :visible: false
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            During a descending sort, |fts| returns documents with 
+            null or missing values at the bottom of the results by default,
+            as shown in the following example:
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": { "c": -1 }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts/sort/null-values-bottom.js
+                  :language: js
+                  :visible: false
+
+   .. tab:: ``noData: lowest``
+      :tabid: nodata-lowest 
+
+      .. note::
+
+         Setting ``noData: lowest`` is the same as the default.
+
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            If you specify the ``noData`` field as ``lowest``
+            during an ascending sort, |fts| returns documents 
+            with null or missing values at the top of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": 1,
+                            "noData": "lowest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts/sort/null-values-top.js
+                  :language: js
+                  :visible: false
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            If you specify the ``noData`` field as ``lowest``
+            during a descending sort, |fts| returns documents 
+            with null or missing values at the bottom of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": -1,
+                            "noData": "lowest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts/sort/null-values-bottom.js
+                  :language: js
+                  :visible: false
+                  
+   .. tab:: ``noData: highest``
+      :tabid: nodata-highest 
+
+      .. tabs::
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            If you specify the ``noData`` field as ``highest``
+            during an ascending sort, |fts| returns documents 
+            with null or missing values at the bottom of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": 1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output::
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 }
+                  ]
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            If you specify the ``noData`` field as ``highest``
+            during a descending sort, |fts| returns documents 
+            with null or missing values at the top of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": -1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 }
+                  ]
+
+The order of documents with ``"_id": 4``, ``"_id": 5``, and ``"_id": 6`` 
+is random because |fts| treats null and missing values as equal 
+when sorting.
+
+.. _fts-sort-eg-null-multiple-types:
+
+Sort on Multi-Typed Arrays
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following queries on the :ref:`users collection <fts-sort-index>`
+given an additional document with a multi-typed array in field ``c``:
+
+.. code-block:: json
+   :copyable: true
+   
+   db.users.insertOne({
+     "_id": 7,
+     "a": UUID("03e32aa9-1cbd-43b8-b9d6-18b171a03cc7"),
+     "b": "hello",
+     "c": [ false, null, 15 ]
+   })
+
+The following queries search field ``b`` for the string ``hello`` 
+using the :ref:`text <text-ref>` operator and sorts the results by field ``c``.
+
+.. tabs:: 
+
+   .. tab:: Default
+      :tabid: default
+
+      .. note::
+
+         Setting ``noData: lowest`` in your :ref:`sort syntax <sort-syntax-ref>` 
+         is the same as the default.
+
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            For an ascending sort, |fts| uses the element with the 
+            lowest |bson| type to represent the multi-typed array.
+            By default, |fts| considers null or missing values 
+            as the lowest |bson| value. Therefore, 
+            |fts| uses ``null`` to represent the multi-typed array for 
+            the document with ``_id: 7`` and returns this document at 
+            the top of the results along with other null and missing values.
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": 1
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 }
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 1, c: true, score: 0.025981096550822258 }
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, ``"_id": 6``, and ``"_id": 7`` 
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            For a descending sort, |fts| uses the element with the 
+            highest |bson| type to represent the multi-typed array.
+            |fts| uses ``false`` to represent the multi-typed array for 
+            the document with ``_id: 7``, as this is the highest |bson| type
+            in the array. Since |fts| also ranks ``true`` values above ``false`` values,
+            |fts| returns this document after the document with ``_id: 1``. 
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": -1
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 }
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 },
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, and ``"_id": 6``
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
+
+   .. tab:: ``noData: highest``
+      :tabid: nodata-highest 
+
+      The following queries specify ``noData: highest`` 
+      to set null values as the highest |bson| type during sorting.
+        
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+            
+            For an ascending sort, |fts| uses the element with the 
+            lowest |bson| type to represent the multi-typed array.
+            The query specifies ``noData: highest`` to consider 
+            null or missing values as the highest |bson| value, so 
+            |fts| uses ``15`` to represent the multi-typed array for 
+            the document with ``_id: 7`` since numbers are the next 
+            lowest |bson| type in the array.
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": 1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 }
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, and ``"_id": 6``
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            For a descending sort, |fts| uses the element with the 
+            highest |bson| type to represent the multi-typed array.
+            Since the query specifies the ``noData`` field as ``highest``
+            to set null or missing values as the highest |bson| value, 
+            |fts| uses ``null`` to represent the multi-typed array for 
+            the document with ``_id: 7`` and returns this document at 
+            the top of the results along
+            with other null and missing values.
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": -1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 },
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 }
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, ``"_id": 6``, and ``"_id": 7`` 
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
+
+.. _fts-sort-eg-boolean:
+
+Sort by Boolean
+~~~~~~~~~~~~~~~
+
+The following query searches the ``sample_airbnb.listingsAndReviews``
+collection for properties in ``Portugal`` and sorts the results in 
+descending order by the ``boolean`` field ``is_location_exact``.
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``5`` 
+documents. It also uses the :pipeline:`$project` stage to omit all
+fields except ``name``, ``property_type``, ``address.country``, and
+``address.location.is_location_exact`` in the results. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos: 
+
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "address.country",
+              "query": "Portugal"
+            },
+            "sort": {
+              "address.location.is_location_exact": -1,
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "name": 1,
+            "property_type": 1,
+            "address.country": 1,
+            "address.location.is_location_exact": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :linenos: 
+      :visible: false 
+
+      [
+        {
+          name: 'BBC OPORTO 4X2',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: 'Heroísmo IV',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: 'Spacious and well located apartment',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: 'Renovated Classic Design Studio with Sun Room',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: "O'Porto Studio | Historic Center",
+          property_type: 'Loft',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        }
+      ]
+
+In the preceding results, the value of ``is_location_exact`` is ``true``
+for the documents because in a descending sort, |fts| ranks ``true``
+values above ``false`` values. If you do an ascending sort by changing
+the value on line 9 of the preceding query to ``1``, |fts| ranks the
+documents with ``false`` values higher than ``true`` values and returns
+the following documents:  
+   
+.. code-block:: json 
+   :copyable: false 
+
+   [
+     {
+       name: 'Ribeira Charming Duplex',
+       property_type: 'House',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'Be Happy in Porto',
+       property_type: 'Loft',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'Downtown Oporto Inn (room cleaning)',
+       property_type: 'Hostel',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'A Casa Alegre é um apartamento T1.',
+       property_type: 'Apartment',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'FloresRooms 3T',
+       property_type: 'Apartment',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     }
+   ]
+
+.. _fts-sort-eg-compound:
+
+Compound Search and Sort 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query uses the :pipeline:`$search` stage to do the
+following: 
+
+- Search for movies that have the term ``dance`` in the title, with
+  a preference for movies that have won 2 or more awards and were
+  released after 01 January, 1990.  
+- Sort the results by the number of awards in descending order, then by
+  the movie title in ascending order, and then by the release date in
+  descending order. 
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``10``
+documents. It also uses the :pipeline:`$project` stage to do the
+following: 
+
+- Omit all fields except ``title``, ``released``, and ``awards.wins`` in
+  the results. 
+- Add a field named ``score``.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "compound": {
+              "must": [{
+                "text": {
+                  "path": "title",
+                  "query": "dance"
+                }
+              }],
+              "should": [{
+                "range": {
+                  "path": "awards.wins",
+                  "gte": 2
+                }
+              }, {
+                "range": {
+                  "path": "released",
+                  "gte": ISODate("1990-01-01T00:00:00.000Z")
+                }
+              }]
+            },
+            "sort": {
+              "awards.wins": -1, 
+              "title": 1, 
+              "released": -1
+            }
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "released": 1,
+            "awards.wins": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        {
+          title: 'Shall We Dance?',
+          released: ISODate("1997-07-11T00:00:00.000Z"),
+          awards: { wins: 57 },
+          score: 4.9811458587646484
+        },
+        {
+          title: 'Shall We Dance?',
+          released: ISODate("1997-07-11T00:00:00.000Z"),
+          awards: { wins: 57 },
+          score: 4.9811458587646484
+        },
+        {
+          title: 'War Dance',
+          released: ISODate("2008-11-01T00:00:00.000Z"),
+          awards: { wins: 11 },
+          score: 5.466421127319336
+        },
+        {
+          title: 'Dance with the Devil',
+          released: ISODate("1997-10-31T00:00:00.000Z"),
+          awards: { wins: 6 },
+          score: 4.615056037902832
+        },
+        {
+          title: 'Save the Last Dance',
+          released: ISODate("2001-01-12T00:00:00.000Z"),
+          awards: { wins: 6 },
+          score: 4.615056037902832
+        },
+        {
+          title: 'Dance with a Stranger',
+          released: ISODate("1985-08-09T00:00:00.000Z"),
+          awards: { wins: 4 },
+          score: 3.615056037902832
+        },
+        {
+          title: 'The Baby Dance',
+          released: ISODate("1998-08-23T00:00:00.000Z"),
+          awards: { wins: 4 },
+          score: 4.981145858764648
+        },
+        {
+          title: 'Three-Step Dance',
+          released: ISODate("2004-02-19T00:00:00.000Z"),
+          awards: { wins: 4 },
+          score: 4.981145858764648
+        },
+        {
+          title: "Cats Don't Dance",
+          released: ISODate("1997-03-26T00:00:00.000Z"),
+          awards: { wins: 3 },
+          score: 4.981145858764648
+        },
+        {
+          title: 'Dance Me Outside',
+          released: ISODate("1995-03-10T00:00:00.000Z"),
+          awards: { wins: 3 },
+          score: 4.981145858764648
+        }
+      ]
+
+.. _fts-sort-eg-facet:
+
+Facet Search and Sort 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following query uses the :pipeline:`$search` stage to do the
+following: 
+
+- Search for movies released between 01 January, 2010 and 01, January,
+  2015 using the :ref:`range <range-ref>` operator. 
+- Get a count of the number of movies that won ``1``, ``5``, ``10``, and
+  ``15`` awards.
+- Get a count of the number of movies released on ``2010-01-01``,
+  ``2011-01-01``, ``2012-01-01``, ``2013-01-01``, ``2014-01-01``, and
+  ``2015-01-01``.
+- Sort the results in descending order of released date using the 
+  ``sort`` option. 
+
+The query uses the :pipeline:`$limit` stage to do the following: 
+
+- Limit the output to ``5`` documents in the ``docs`` output field. 
+- Limit the output to ``1`` document in the ``meta`` output field. 
+
+It uses the :pipeline:`$project` stage to omit all fields except the
+``awards.wins``, ``released``, and ``title`` fields.
+
+It also uses the :pipeline:`$replaceWith` stage to include the metadata
+results stored in the ``$$SEARCH_META`` variable in the ``meta`` output
+field and the :pipeline:`$set` stage to add the ``meta`` field to the
+results.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "facet": {
+              "operator": {
+                "range": {
+                  "path": "released",
+                  "gt": ISODate("2010-01-01T00:00:00.000Z"),
+                  "lt": ISODate("2015-01-01T00:00:00.000Z")
+                }
+              },
+              "facets": {
+                "awardsFacet": {
+                  "type": "number",
+                  "path": "awards.wins",
+                  "boundaries" : [1,5,10,15]
+                },
+                "releasedFacet" : {
+                  "type" : "date",
+                  "path" : "released",
+                  "boundaries" : [ISODate("2010-01-01T00:00:00.000Z"), ISODate("2011-01-01T00:00:00.000Z"), ISODate("2012-01-01T00:00:00.000Z"), ISODate("2013-01-01T00:00:00.000Z"), ISODate("2014-01-01T00:00:00.000Z"), ISODate("2015-01-01T00:00:00.000Z")]
+                }
+              }
+            },
+            "sort": {
+              "released": -1
+            }
+          }
+        },
+        {
+          "$facet": {
+            "docs": [
+              { "$limit": 5 },
+              { "$project":
+                {
+                  "_id": 0,
+                  "title": 1,
+                  "released": 1,
+                  "awards.wins": 1
+                }
+              }
+            ],
+            "meta": [
+              {"$replaceWith": "$$SEARCH_META"},
+              {"$limit": 1}
+            ]
+          }
+        },
+        {
+          "$set": {
+            "meta": {
+              "$arrayElemAt": ["$meta", 0]
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        {
+          docs: [
+            {
+              title: 'Cold in July',
+              released: ISODate("2014-12-31T00:00:00.000Z"),
+              awards: { wins: 1 }
+            },
+            {
+              title: 'The Gambler',
+              released: ISODate("2014-12-31T00:00:00.000Z"),
+              awards: { wins: 7 }
+            },
+
+            {
+              title: 'Force Majeure',
+              released: ISODate("2014-12-30T00:00:00.000Z"),
+              awards: { wins: 31 }
+            },
+            {
+              title: 'LFO',
+              released: ISODate("2014-12-27T00:00:00.000Z"),
+              awards: { wins: 3 }
+            },
+            {
+              title: 'Peace After Marriage',
+              released: ISODate('2014-12-26T00:00:00.000Z'),
+              awards: { wins: 5 }
+            }
+          ],
+          meta: {
+            count: { lowerBound: Long("4821") },
+              facet: {
+                releasedFacet: {
+                  buckets: [
+                    {
+                      _id: ISODate("2010-01-01T00:00:00.000Z"),
+                      count: Long("857")
+                    },
+                    {
+                      _id: ISODate("2011-01-01T00:00:00.000Z"),
+                      count: Long("909")
+                    },
+                    {
+                      _id: ISODate("2012-01-01T00:00:00.000Z"),
+                      count: Long("903")
+                    },
+                    {
+                      _id: ISODate("2013-01-01T00:00:00.000Z"),
+                      count: Long("1063")
+                    },
+                    {
+                      _id: ISODate("2014-01-01T00:00:00.000Z"),
+                      count: Long("1089")
+                    }
+                  ]
+                },
+                awardsFacet: {
+                  buckets: [
+                    { _id: 1, count: Long("2330") },
+                    { _id: 5, count: Long("604") },
+                    { _id: 10, count: Long("233") }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+
+.. _sort-by-score-egs:
+
+Sort by Score
+~~~~~~~~~~~~~
+
+The following examples demonstrate how to sort the results by the score
+of the documents in the results. The examples demonstrate how to perform
+the following actions: 
+
+- Retrieve the lowest scoring documents first by sorting the results in
+  ascending order.
+- Sort the results by score in descending order and for results with
+  identical scores, sort arbitrarily. 
+- Sort the results by score and for results with identical scores, sort
+  using a unique field. 
+
+.. tabs:: 
+
+   .. tab:: Ascending Sort 
+      :tabid: ascending-sort
+
+      The following query uses the :pipeline:`$search` stage to perform
+      the following actions: 
+
+      - Search for movies that have the term ``story`` in the title.  
+      - Sort the results by score in ascending order. 
+
+      The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+      documents. It also uses the :pipeline:`$project` stage to perform the
+      following actions: 
+
+      - Omit all fields except ``title`` in the results.
+      - Add a field named ``score``.
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :emphasize-lines: 8
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "story"
+                  },
+                  "sort": {score: {$meta: "searchScore", order: 1}}
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "score": {$meta: "searchScore"}
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+            :visible: false
+
+            [
+              {
+                title: 'Do You Believe in Miracles? The Story of the 1980 U.S. Hockey Team',
+                score: 0.8674521446228027
+              },
+              {
+                title: 'Once in a Lifetime: The Extraordinary Story of the New York Cosmos',
+                score: 0.9212141036987305
+              },
+              {
+                title: 'The Source: The Story of the Beats and the Beat Generation',
+                score: 0.9820802211761475
+              },
+              {
+                title: 'If These Knishes Could Talk: The Story of the NY Accent',
+                score: 0.9820802211761475
+              },
+              {
+                title: 'Dream Deceivers: The Story Behind James Vance vs. Judas Priest',
+                score: 1.051558256149292
+              }
+            ]
+
+   .. tab:: Default (Descending) Sort 
+      :tabid: descending-sort
+
+      The following query uses the :pipeline:`$search` stage to perform
+      the following actions: 
+
+      - Search for movies that have the term ``summer`` in the title.  
+      - Sort the results by score in descending order and for results
+        with identical scores, sort arbitrarily. 
+
+      The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+      documents. It also uses the :pipeline:`$project` stage to perform the
+      following actions: 
+
+      - Omit all fields except ``_id`` and ``title`` in the results.
+      - Add a field named ``score``.
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :emphasize-lines: 8
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "summer"
+                  },
+                  "sort": {score: {$meta: "searchScore"}}
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "title": 1,
+                  "score": {$meta: "searchScore"}
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+            :visible: false
+
+            [
+              {
+                _id: ObjectId("573a1398f29313caabcea21e"),
+                title: 'Summer',
+                score: 3.5844719409942627
+              },
+              {
+                _id: ObjectId("573a13a6f29313caabd18eca"),
+                title: 'Summer Things',
+                score: 3.000213623046875
+              },
+              {
+                _id: ObjectId("573a13b8f29313caabd4c1d0"),
+                title: 'Summer Palace',
+                score: 3.000213623046875
+              },
+              {
+                _id: ObjectId("573a1394f29313caabcde8e8"),
+                title: 'Summer Stock',
+                score: 3.000213623046875
+              },
+              {
+                _id: ObjectId("573a13acf29313caabd284fa"),
+                title: 'Wolf Summer',
+                score: 3.000213623046875
+              }
+            ]
+
+   .. tab:: Sort by Unique Field
+      :tabid: unique-field-sort
+
+      The following query uses the :pipeline:`$search` stage to perform the
+      following actions: 
+
+      - Search for movies that have the term ``prince`` in the title.  
+      - Sort the results first by score and then by the value of the
+        ``released`` field in ascending order for results with identical
+        scores.  
+
+      The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+      documents. It also uses the :pipeline:`$project` stage to perform the
+      following actions: 
+
+      - Omit all fields except ``title`` and ``released`` in the results.
+      - Add a field named ``score``.
+ 
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :emphasize-lines: 8
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "prince"
+                  },
+                  "sort": {score: {$meta: "searchScore"}, "released": 1}
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "released": 1,
+                  "score": {$meta: "searchScore"}
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+            :visible: false
+
+            [
+              {
+                title: 'Prince',
+                released: ISODate("2015-08-14T00:00:00.000Z"),
+                score: 4.168826103210449
+              },
+              {
+                title: 'Prince Avalanche',
+                released: ISODate("2013-09-19T00:00:00.000Z"),
+                score: 3.4893198013305664
+              },
+              {
+                title: 'The Prince',
+                released: ISODate("2014-08-22T00:00:00.000Z"),
+                score: 3.4893198013305664
+              },
+              {
+                title: 'Prince of Foxes',
+                released: ISODate("1949-12-23T00:00:00.000Z"),
+                score: 3.0002830028533936
+             },
+              {
+                title: 'The Oil Prince',
+                released: ISODate("1966-01-01T00:00:00.000Z"),
+                score: 3.0002830028533936
+              }
+            ]

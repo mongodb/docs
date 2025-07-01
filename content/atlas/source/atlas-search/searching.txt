@@ -1,0 +1,590 @@
+.. _searching-ref:
+.. _fts-about-queries:
+
+===================
+Queries and Indexes
+===================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: perform specific searches, search options, get detailed information
+   :description: Create an Atlas Search query to perform a full text search on indexed fields using the Mongo Shell (mongosh), a driver, or the Atlas user interface.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The relationship between search queries and search indexes dictates how efficiently and effectively
+you can find data within your MongoDB collections using |fts|.
+
+|fts| queries specify the criteria for finding documents within a database. 
+|fts| queries take the form of an :manual:`aggregation pipeline </aggregation>`
+that begins with the :pipeline:`$search` or :pipeline:`$searchMeta` pipeline stage.
+You can use :ref:`operators <fts-operators>`, :ref:`collectors <fts-collectors>`, and 
+:ref:`search options <fts-search-options>` inside the pipeline stages to 
+implement complex search functionality like full-text search, 
+relevance-based ranking, faceted search, filtering, and sorting.
+
+Before you can run an |fts| query, you must create an |fts| index on the fields 
+that you want to search. Search indexes are data structures that are optimized to quickly retrieve documents 
+that meet the search criteria of your query. When you define a search index, you specify which fields to index and
+how these fields should be tokenized.
+
+Effective search queries depend on properly defined search indexes. The fields you intend to search must be indexed,
+and your index configuration determines whether your search supports sorting, faceting, autocomplete, and other
+search functionality. You can iterate on both query and index design to balance search accuracy with performance.
+
+This page describes how to plan your |fts| search experience and define an |fts| index and query to fit your search requirements. 
+
+.. _fts-create-queries:
+.. _fts-plan-query:
+
+Plan Your Search Experience
+---------------------------
+
+When planning your |fts| implementation, start by defining the search experience you want to deliver:
+
+- Clearly identify what types of searches your application needs to perform. 
+  Are you building a search feature for a blog website that needs full-text search and autocomplete for article titles, 
+  or an e-commerce site that requires faceted search and filtering by product categories?
+- Determine how users will interact with your application. Prioritize features that will enhance the user experience, such as 
+  quick response times or accurate autocomplete suggestions. 
+
+Then, consider the following questions to help determine the structure of your |fts| indexes and queries based on those user needs:
+
+.. collapsible::
+   :heading: What are your users searching for?
+   :sub_heading: Choose between returning document content or search metadata. 
+   :expanded: false 
+
+   Consider whether your application users want to return the content of documents or metadata about your documents:
+
+   - If users want document content, 
+     use the :pipeline:`$search` aggregation stage to return documents that match their search criteria. 
+   - If users want metadata about their search results, 
+     use the :pipeline:`$searchMeta` stage to return customizable counts of matching documents and facets. 
+
+.. collapsible::
+   :heading: Which fields in your documents contain likely search terms? 
+   :sub_heading: Determine which fields to index based on which fields contain the data your users want to find.
+   :expanded: false 
+
+   Identify the specific fields within your collections that users are likely to search so that you know which fields to index.
+   Each |fts| query searches a single |fts| index, which contains terms that are extracted from one or more specified
+   fields within a collection. When planning your |fts| queries, decide whether to index only key fields or every field in your 
+   specified collection by enabling :ref:`static or dynamic mapping <static-dynamic-mappings>`. 
+   You can query across multiple fields by specifying the :ref:`query path <ref-path-intro>` as an array of fields, 
+   or by using the :ref:`queryString <querystring-ref>` operator.
+
+.. collapsible::
+   :heading: How closely should users' search terms match your data? 
+   :sub_heading: Choose search operators based on whether your users' common search terms are exact, similar, or partial matches for your data. 
+   :expanded: false 
+
+   Your users' common search terms may be **exact**, **similar** , or **partial** matches for the data in your {+service+} {+cluster+}.
+   For example, users of a movie review application may want to filter for movies from an *exact* year, or see
+   movie recommendations that are *similar* to their favorite film. 
+
+   Determine the type of matches your users are searching for to inform which :ref:`operators <fts-operators>` to use in your |fts| queries: 
+
+   - For **exact** matches, use operators like :ref:`equals <equals-ref>` or :ref:`in <in-ref>` to match documents that contain
+     terms that are identical to the specified ``query`` value. You can also use the :ref:`text <text-ref>` operator to match documents
+     that contain ``any`` or ``all`` of the strings in the ``query`` value. 
+   - For **similar** matches, use operators like :ref:`near <near-ref>`, :ref:`moreLikeThis <more-like-this-ref>`, or :ref:`phrase <phrase-ref>` to match documents that contain
+     numeric values, documents, or string orderings that are similar to the specified search terms. You can also use the :ref:`range <range-ref>` operator to match
+     documents that contain a value within a specified range of values. 
+   - For **partial** matches, such as search-as-you-type queries, use operators like :ref:`autocomplete <autocomplete-ref>`, :ref:`regex <regex-ref>`, or :ref:`wildcard <wildcard-ref>` to 
+     implement search-as-you-type functionality or match terms using regular expressions. 
+   - Use the :ref:`compound <compound-ref>` operator to blend multiple matching behaviors in a single query. 
+
+.. collapsible::
+   :heading: Do you need advanced text analysis?
+   :sub_heading: Use text analysis tools if your application requires text normalization, multi-language support, or more. 
+   :expanded: false 
+
+   For applications that require text normalization, multi-language support, stemming, or more, leverage 
+   |fts| text analysis tools: 
+
+   - Choose a :ref:`built-in analyzer <ref-built-in-analyzers>` in your index definition to match the language and nature of your text data. 
+     Analyzers break text into terms or tokens and can adjust text to remove punctuation and capitalization, convert words to their root form,
+     and more. 
+   - Configure :ref:`custom analyzers <custom-analyzers>` if your application has specific requirements like handling domain-specific jargon or 
+     parsing formatted text like email addresses or dash-separated IDs. 
+     Custom analyzers enable you to filter text by character, 
+     define the number of characters to include in each token chunk, or enable stemming or redaction.
+   - Define :ref:`synonyms <synonyms-ref>` to improve search accuracy for terms with the same or similar meanings.
+
+.. collapsible::
+   :heading: How do you want to present search results?  
+   :sub_heading: Use search options to implement filtering, sorting, or relevancy demands for your search results. 
+   :expanded: false 
+
+   You can adjust the presentation of search results based on your users' filtering, sorting, or 
+   relevancy demands: 
+
+   - Use the :ref:`score <scoring-ref>` query option to modify the relevance score of documents and affect the order in which 
+     users view results. 
+     |fts| queries associate a relevance-based score with every document in the result set, and returns documents in order from  
+     the highest to the lowest score. 
+   - Set the :ref:`sort <sort-ref>` query option for indexed fields that users are likely to sort in ascending or descending order,
+     such as dates or numeric fields.
+   - Use the :ref:`searchBefore or searchAfter <fts-paginate-results>` query options to display results as a set of pages
+     that users can navigate sequentially or skip through.
+   - Use the :ref:`fts-facet-ref` collector to allow users to filter results by categories or other dimensions. 
+     This can significantly improve the relevance of search results, offering users a more guided search experience. 
+
+.. collapsible::
+   :heading: How can you optimize search performance?
+   :sub_heading: Adjust your index and query configuration to optimize your search performance. 
+   :expanded: false 
+
+   |fts| query performance is affected by your index configuration and the complexity of your queries.
+   Focus on indexing fields that are critical to your application's search functionality and aim for a
+   logical balance between query complexity and speed.
+
+   To further optimize performance, consider the following query options:
+
+   - Use the :ref:`concurrent <concurrent-ref>` query option to set the number of concurrent
+     search requests that are executed when evaluating a query. 
+     This option is useful for complex queries or large datasets.
+   - Use the :ref:`returnStoredSource <fts-return-stored-source-option>` query option in combination with the :ref:`storedSource <fts-stored-source-definition>` index option  
+     to determine whether to return original source documents, stored as part of the index, alongside the search results. 
+     This option is useful for applications where you display summaries or highlights based on search criteria.
+   - Use the :ref:`numPartitions <fts-index-partition>` index option to partition your index,
+     distributing index objects between sub-indexes in an optimal way. 
+
+   For more recommendations on how to optimize your query performance, see :ref:`query-perf`. 
+
+.. _fts-define-index: 
+
+Define Your Index
+-----------------
+
+Before you can search your data using |fts|, you must create one or more |fts| indexes
+to be used during your |fts| query. This section demonstrates how to apply your query preferences
+to the |json| configuration syntax of an |fts| index.
+
+To use the |json| syntax in this section in your index definition, replace the placeholders with valid values and 
+ensure that your full index definition contains the :ref:`necessary options <index-definition-options>`.
+
+To learn how to add your |fts| index to your |service| {+cluster+}, see the :ref:`fts-tutorial-ref`. 
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Choose which fields to index. 
+
+      If you know which fields you want to query in your collection, enable
+      static mappings and specify the fields in your |fts| index definition.
+      Otherwise, you can enable dynamic mappings to automatically index all 
+      the fields of :ref:`supported types <bson-data-chart>`.
+      
+      To learn more, see :ref:`static-dynamic-mappings`.
+
+      .. note::
+         
+         .. include:: /includes/fts/facts/fact-fts-document-size.rst 
+
+      .. tabs::
+
+         .. tab:: Dynamic Mappings
+            :tabid: dynamic-mappings-syntax
+
+            .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-dynamic.json 
+               :language: json
+               :linenos:
+               :emphasize-lines: 3
+               :copyable: true
+
+         .. tab:: Static Mappings
+            :tabid: static-mappings-syntax
+
+            .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-static.json
+               :language: json
+               :linenos:
+               :emphasize-lines: 3
+               :copyable: true     
+
+   .. step:: *(Optional)* Apply text analysis rules. 
+
+      If you have special language or parsing requirements, you can apply the following 
+      options to your index definition:
+
+      .. tabs:: 
+         
+         .. tab:: Built-in Analyzers
+            :tabid: analyzers-syntax
+
+            Specify which :ref:`built-in analyzers <analyzers-ref>` to apply to the string fields you are indexing 
+            in the ``analyzer``, ``searchAnalyzer``, or ``fields.<field-name>.analyzer`` fields.
+
+            .. code-block:: json
+               :copyable: true 
+               :emphasize-lines: 2,3,10
+               :linenos:
+
+               {
+                 "analyzer": "<index-analyzer-name>", // top-level index analyzer, used if no analyzer is set in the field mappings
+                 "searchAnalyzer": "<search-analyzer-name>", // query text analyzer, typically the same as the index analyzer
+                 "mappings": {
+                   "dynamic": <boolean>,
+                   "fields":{
+                     "<field-name>": [
+                       {
+                         "type": "string",
+                         "analyzer": "<field-analyzer-name>" // field-specific index analyzer
+                       }
+                     ]
+                   }
+                 }
+               }
+
+         .. tab:: Custom Analyzers
+            :tabid: custom-analyzers-syntax
+        
+            Define :ref:`custom analyzers <custom-analyzers>` for your |fts| index in the ``analyzers`` field.
+
+            .. code-block:: json
+               :copyable: true
+               :linenos: 
+
+               {
+                 "analyzers": [
+                   {
+                     "name": "<custom-analyzer-name>", 
+                     "tokenizer": {
+                       "type": "<tokenizer-type>"
+                     }
+                   },
+                   ...
+                 ]
+               }
+
+         .. tab:: Synonyms
+            :tabid: synonyms-syntax 
+           
+            Define :ref:`synonyms <synonyms-ref>` for terms that have the same or similar meanings 
+            in the ``synonyms`` field. 
+
+            .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-synonyms.json 
+               :language: json
+               :copyable: true
+               :linenos:
+
+   .. step:: *(Optional)* Add options to optimize query performance. 
+
+      If you want to optimize your query performance on a large dataset, you can add the following
+      options to your index definition to limit the amount of data that your |fts| query must traverse: 
+
+      .. tabs:: 
+
+         .. tab:: numPartitions
+            :tabid: numPartitions-syntax
+
+            Use the :ref:`numPartitions <fts-index-partition>` option to configure partitions for your index.
+            When you partition your index, |fts| automatically distributes the index objects between sub-indexes in an optimal way. 
+
+            .. code-block:: json
+               :copyable: true
+               :linenos:
+
+               {
+                 "numPartitions": <integer>,
+               }
+
+         .. tab:: storedSource
+            :tabid: storedSource-syntax
+
+            Use the :ref:`storedSource <fts-stored-source-definition>` option to specify fields in the source document that |fts| must store.
+
+            .. code-block:: json
+               :copyable: true
+               :linenos:
+
+               {
+                 "storedSource": true | false | {
+                   "include" | "exclude": [
+                     "<field-name>", 
+                     ...
+                   ]
+                 }
+               }
+               
+.. _atlas-search-queries:
+.. _fts-define-query: 
+
+Define Your Query
+-----------------
+
+After you create an :ref:`{+fts+} index <ref-index-definitions>`
+for all the fields that you want to search in your collection, you can run an |fts| query.
+This section demonstrates how to apply your :ref:`goals for your application's search experience <fts-plan-query>` to the |json| syntax of an |fts| query. 
+
+To use the |json| syntax in this section in your |fts| query aggregation pipeline, replace the placeholders with valid values and 
+ensure that your full query pipeline contains the required :ref:`$search fields <fts-search-fields>` or :ref:`$searchMeta fields <fts-searchMeta-fields>`. 
+
+To learn how to run a Search query, see the :ref:`fts-tutorial-ref`.
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Choose your initial |fts| pipeline stage. 
+
+      The first stage of your |fts| query aggregation pipeline must be either the :pipeline:`$search` or :pipeline:`$searchMeta` stage,
+      depending on whether you're searching for documents or metadata:
+      
+      .. list-table::
+         :header-rows: 1
+         :widths: 40 60
+
+         * - Aggregation Pipeline Stage
+           - Purpose
+         * - :pipeline:`$search`
+           - Return the search results of a full-text search.
+         * - :pipeline:`$searchMeta`
+           - Return metadata about your search results.
+
+   .. step:: Apply operators to define your search criteria.
+
+      To define your search criteria, you must apply one or more :ref:`operators <fts-operators>` or :ref:`collectors <fts-collectors>`
+      to your :pipeline:`$search` or :pipeline:`$searchMeta` pipeline stage. 
+
+      |fts| operators allow you to locate and retrieve relevant data from your {+service+} {+cluster+} according to content, format, or data tyoe.
+      To learn which operators support searches for each :ref:`field type <bson-data-types>`, see the table in the :ref:`operators <fts-operators>` reference section.
+      You must specify one or more indexed search fields in the operator's :ref:`query path <ref-path>` parameter:
+
+      .. tabs:: 
+         
+         .. tab:: $search
+            :tabid: search-equals-operator 
+
+            .. io-code-block:: 
+               :copyable: true
+
+               .. input:: 
+                  :language: json 
+                  :linenos:
+                  :emphasize-lines: 3-5
+
+                  {
+                    $search: {
+                      "<operator-name>"|"<collector-name>": {
+                        <operator-specification>|<collector-specification>
+                      }
+                    }
+                  }
+
+              
+               .. output:: 
+                  :visible: false 
+
+                  [
+                    {
+                      _id: <result-document-id>,
+                      ... 
+                    },
+                    {
+                      _id: <result-document-id>,
+                      ...
+                    },
+                    ...
+                  ]
+
+         .. tab:: $searchMeta
+            :tabid: searchMeta-equals-operator 
+
+            .. io-code-block:: 
+               :copyable: true
+
+               .. input:: 
+                  :language: json
+                  :linenos:
+                  :emphasize-lines: 3-5
+
+                  {
+                    $searchMeta: {
+                      "<operator-name>"|"<collector-name>": {
+                        <operator-specification>|<collector-specification>
+                      }
+                    }
+                  }
+
+               .. output:: 
+                  :visible: false
+
+                  [ 
+                    { 
+                      count: { 
+                        total: <results-count>
+                      } 
+                    } 
+                  ]
+
+      .. tip:: 
+         
+         You can combine multiple operators into one operation using the :ref:`compound <compound-ref>` operator.
+         You can also use the :ref:`compound <compound-ref>` operator's *filter* clause to filter for query output that matches a given clause.
+
+   .. step:: *(Optional)* Apply options or collectors to return metadata. 
+
+      If you want to retrieve metadata from your |fts| query, you can apply one of the following configurations 
+      to choose between the :ref:`count <count-ref>` or :ref:`fts-facet-ref` type of metadata results document: 
+
+      .. tabs:: 
+        
+         .. tab:: Count Metadata
+            :tabid: count-option
+
+            To return the total or lower-bounded count of your search results, set the :ref:`count <count-ref>` option in your aggregation stage.
+
+            The :pipeline:`$searchMeta` stage returns the ``count`` metadata results, while the :pipeline:`$search` stage stores the metadata results in the 
+            :ref:`$$SEARCH_META aggregation variable <fts-aggregation-variable>` and returns only the search results.
+            For an example of how to retrieve the ``count`` metadata results from the ``$$SEARCH_META`` variable, see :ref:`count-results`. 
+
+            .. code-block:: json
+               :copyable: true
+               :linenos:
+               :emphasize-lines: 6-9
+
+               {
+                 "$search" | "$searchMeta": {
+                   "<operator-name>": {
+                     <operator-specifications>
+                   },
+                   "count": {
+                     "type": "lowerBound" | "total",
+                     "threshold": <number-of-documents> // Optional
+                   }
+                 }
+               } 
+
+         .. tab:: Facet Metadata
+            :tabid: facet-collector
+
+            To run a facet query, which groups results by values or ranges and returns the count for each of these groups, 
+            use the :ref:`fts-facet-ref` collector in your aggregation stage.
+
+            The :pipeline:`$searchMeta` stage returns ``facet`` metadata results, while the :pipeline:`$search` stage stores the metadata results in the 
+            :ref:`$$SEARCH_META aggregation variable <fts-aggregation-variable>` and returns only the search results.
+            For an example of how to retrieve the ``facet`` metadata results from the ``$$SEARCH_META`` variable, see :ref:`fts-facet-results`. 
+
+            .. code-block:: json
+               :copyable: true
+               :linenos:
+               :emphasize-lines: 3-7
+
+               {
+                 "$search" | "$searchMeta": {
+                   "facet": {
+                     "facets": {
+                       <facet-definitions>
+                     }
+                   }
+                 }
+               }
+
+   .. step:: *(Optional)* Add search options to your $search stage to retrieve additional information about your |fts| query.
+
+      You can retrieve additional information about your :pipeline:`$search` stage results using the following options: 
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+              
+         * - Option
+           - Use Case
+
+         * - :ref:`highlight <highlight-ref>`
+           - Display your search terms in their original
+             context as fields in your query result.
+                
+         * - :ref:`scoreDetail <fts-score-details>`
+           -  Retrieve a detailed breakdown of the score for each document |fts| returns.
+          
+         * - :ref:`tracking <fts-tracking-ref>`
+           - Track and provide analytics information for your query search terms.
+
+         * - :ref:`explain <explain-ref>`
+           - Retrieve analytics about which Lucene queries |fts| executed to
+             satify your query, and how much time your query
+             spends in the various stages of execution.
+                            
+   .. step:: *(Optional)* Add $search options to define result ranking. 
+
+      You can implement special ordering functionality for your :pipeline:`$search` results with the following options: 
+
+      .. list-table::
+          :widths: 30 70
+          :header-rows: 1
+              
+          * - Option
+            - Use Case
+         
+          * - :ref:`score <scoring-ref>`
+            - Modify the relevance score of the documents in the results to ensure |fts| returns relevant results.
+
+          * - :ref:`sort <sort-ref>`
+            - Sort your results by number, string, and date fields, or by score.
+
+          * - :ref:`searchBefore/searchAfter <fts-paginate-results>`
+            - Set a reference point to stop or start your ordered results
+   
+   .. step:: *(Optional)* Add $search options to optimize query performance.
+
+      Optimize query performance using the following :pipeline:`$search` options: 
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Option
+           - Use Case
+  
+         * - :ref:`returnStoredSource <fts-return-stored-source-option>`
+           - Run your |fts| query more efficiently by only
+             retrieving fields stored on ``mongot`` as
+             specified in your |fts| index definition for a
+             collection.
+
+         * - :ref:`concurrent <concurrent-ref>`
+           - Parallelize search across segments on :ref:`dedicated search
+             nodes <what-is-search-node>`.
+
+Learn More 
+----------
+
+To learn how to build and run an |fts| index and |fts| query, see the :ref:`fts-tutorial-ref`. 
+
+To learn more about the |fts| query configuration options mentioned in this tutorial,
+see the following reference pages: 
+
+- :ref:`fts-pipeline-stage`
+- :ref:`operators-ref`
+- :ref:`fts-search-options`
+- :ref:`scoring-ref`
+- :ref:`fts-performance-options`
+
+To learn more about the |fts| index configuration options mentioned in this tutorial,
+see the following reference pages: 
+
+- :ref:`fts-field-mappings`
+- :ref:`analyzers-ref`
+- :ref:`custom-analyzers`
+- :ref:`fts-stored-source-definition`
+- :ref:`synonyms-ref`
+
+.. toctree::
+   :titlesonly:
+
+   Manage Indexes </atlas-search/manage-indexes>
+   Index Reference </atlas-search/index-definitions>
+   Query Reference <atlas-search/query-ref>
+   Transform Documents & Filter Collections </atlas-search/transform-documents-collections>
+   Search Playground </atlas-search/playground/>

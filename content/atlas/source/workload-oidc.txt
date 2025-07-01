@@ -1,0 +1,637 @@
+.. _oidc-authentication-workload:
+
+======================================================================
+Set up {+workload+} with OAuth 2.0
+======================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+   :description: Set up Workload Identity Federation to access Atlas clusters using external identities like Azure Service Principals and Google Service Accounts.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|workload| lets your applications access MongoDB |service| 
+{+clusters+} using external programmatic identities such as Azure Service 
+Principals, Azure Managed Identities and Google Service 
+Accounts.
+
+You can enable any number of workload identity providers for one 
+or more organizations. When you enable a Workload Identity Provider in an 
+|service| organization, you can use it in all the projects in that 
+organization for database access.
+
+|service| supports |workload| on only dedicated {+clusters+} (M10 and above) 
+running MongoDB version 7.0.11 and above, and only by selected drivers.
+
+To learn more about implementing {+workload+} access with your chosen
+driver, see :ref:`oauth-supported-drivers`.
+
+How it Works
+-------------
+
+|workload| allows your applications access to MongoDB 
+{+clusters+} with OAuth2.0 access tokens. The access tokens can be issued by 
+any external Identity Provider including Azure Entra ID and Google Cloud 
+Platform. |service| stores the user identifiers and privileges, but 
+not the secrets. This authentication mechanism for your applications 
+is only supported by MongoDB drivers. Other MongoDB tools like  
+{+mongosh+} and |compass| don't support this authentication mechanism.
+
+MongoDB Drivers support two types of authentication flow for |workload|: 
+Built-in Authentication and Callback Authentication. 
+
+Built-in Authentication
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use built-in authentication if you deploy your application on a 
+supported infrastructure with a supported principal type. Your application 
+can access |service| {+clusters+} without supplying a password or 
+manually requesting a |jwt| from your cloud provider's metadata service. Instead, 
+your chosen MongoDB driver uses your existing principal identifier to request a 
+JWT access token under the hood, which is then passed to the |service| {+cluster+}
+automatically when your application connects. 
+
+For more implementation details, see :ref:`your chosen Driver's documentation <oauth-supported-drivers>`.
+
+**Built-in Authentication Supported Infrastructure and Principal Types**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
+
+   * - Cloud Provider
+     - Infrastructure Type
+     - Principal Type
+
+   * - GCP
+     - Compute Engine
+     - GCP Service Accounts
+
+   * - 
+     - App Engine Standard Environment
+     -  
+
+   * - 
+     - App Engine Flexible Environment
+     - 
+   
+   * - 
+     - Cloud Functions
+     - 
+
+   * - 
+     - Cloud Run
+     - 
+
+   * - 
+     - Google Kubernetes Engine
+     - 
+
+   * - 
+     - Cloud Build
+     - 
+
+   * - Azure
+     - Azure VM
+     - Azure Managed Identities (User and System assigned)
+
+.. _oidc-callback-authentication:
+
+Callback Authentication
+~~~~~~~~~~~~~~~~~~~~~~~ 
+
+If you cannot use built-in authentication methods, you can use callback authentication
+with any OAuth 2.0 authorization service. With callback authentication, the MongoDB driver
+calls a provided callback method to get a |jwt| token for database access. Within your
+callback method, retrieve the token from your authorization provider using your preferred
+mechanism, such as certificate authentication, client credentials
+flow, or an SDK.
+
+To confirm that your chosen driver supports {+workload+} authentication and review additional
+implementation details, see the list of :ref:`driver versions that support {+workload+} authentication
+<oauth-supported-drivers>`.
+
+The following list provides examples of how you could retrieve your access token for applications running on cloud or
+on-premises resources:
+
+- Azure Managed Identities: Use the Microsoft Authentication Library (MSAL) to grant
+  access for applications if your application runs on `Azure compute resources supporting managed identities 
+  <https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identities-status>`__.
+
+- Azure Service Principals: Use the client-credentials flow or certificate authentication
+  to retrieve the access token and grant access for applications.
+
+- External Authorization Providers: Use a service account from providers like GitHub,
+  Okta, ForgeRock, or Ping Identity to grant access for applications.
+
+Procedures
+----------
+
+To configure MongoDB's {+workload+}:
+
+1. :ref:`Configure Workload Identity Provider (one-time setup) <set-up-in-cloud-provider>`.
+   
+   a. Configure your external identity provider.
+   b. Configure Workload Identity Provider in |service| and 
+      enable it for your |service| organization(s).
+
+2. :ref:`Grant external identities (service principals) or groups access to MongoDB {+clusters+} <configure-wif-in-atlas>`.
+3. :ref:`Connect your application to {+service+} with a MongoDB Driver <oauth-supported-drivers>`.
+
+.. _set-up-in-cloud-provider:
+
+Prepare Your External Identity Provider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: Azure
+      :tabid: azure-oauth
+
+      In order to access MongoDB |service| {+clusters+} with Azure Managed Identities 
+      or Azure Service Principals, you need to register an Azure Entra ID 
+      application. If you have an existing application registration for 
+      :ref:`Workforce <oidc-authentication-workforce>` (human user) access, we recommended that you register a separate 
+      application for Workload access.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Register an application.
+
+            1. Navigate to :guilabel:`App registrations`.
+
+               a. In your `Azure portal <https://portal.azure.com/>`__ account, search and click :guilabel:`Microsoft Entra ID`.
+
+               b. In the :guilabel:`Manage` section of the left navigation, click :guilabel:`App registrations`.
+           
+            2. Click :guilabel:`New registration`.
+
+            3. Apply the following values.
+
+               .. list-table::
+                  :header-rows: 1
+                  :widths: 20 40
+
+                  * - Field
+                    - Value
+
+                  * - :guilabel:`Name`
+                    - :guilabel:`Atlas Database - Workload`
+
+                  * - :guilabel:`Supported Account Types`
+                    - :guilabel:`Accounts in this organizational directory only (single tenant)`
+
+                  * - :guilabel:`Redirect URI`
+                    - :guilabel:`Web`
+
+         .. step:: (Optional) Add groups claim.
+
+            It is a best practice to use service principal identifiers as MongoDB user 
+            identifiers while defining access rights in Atlas. If you plan to 
+            use this common approach, skip this step. However, if you prefer to use 
+            group identifiers such as Azure AD Security Group identifier 
+            instead, you can set groups claim in your application registration 
+            with below steps.
+
+
+            1. Navigate to :guilabel:`Token Configuration`.
+
+               In the :guilabel:`Manage` section of the left navigation,
+               click :guilabel:`Token Configuration`.
+
+            2. Click :guilabel:`Add groups claim`.
+
+            3. In the :guilabel:`Edit groups claim` modal, select :guilabel:`Security`.
+
+               What groups you select depend on the type of groups you configured
+               in your Azure environment. You may need to select a different
+               type of group to send the appropriate group information.
+
+            4. In the :guilabel:`Customize token properties by type` section, ensure that you only select :guilabel:`Group ID`.
+
+               When you select :guilabel:`Group Id`, Azure sends the
+               security group's Object ID.
+
+            5. Click :guilabel:`Add`.
+
+               To learn more about adding a group claim, see `Azure Documentation <https://learn.microsoft.com/en-us/azure/active-directory/hybrid/connect/how-to-connect-fed-group-claims>`__.
+
+         .. step:: Enable an Application ID URI.
+
+            1. Navigate to :guilabel:`Expose an API` 
+               in the left sidebar and enable Application ID URI.
+            
+            2. Enable an Application ID URI.
+             
+               a. Keep the default Application ID URI assigned by Azure, 
+                  which is ``<application_client_id>``. Copy and store this value, 
+                  as MongoDB Atlas and all MongoDB drivers require this value 
+                  for |workload| configuration.
+
+         .. step:: Update the manifest.
+
+            1. In the :guilabel:`Manage` section of the left navigation, click :guilabel:`Manifest`.
+
+            2. Update the :guilabel:`requestedAccessTokenVersion` from ``null`` to ``2``.
+
+               The number ``2`` represents Version 2 of Microsoft's access
+               tokens. Other applications can use this as a signed
+               attestation of the Active Directory-managed user's identity.
+               Version 2 ensures that the token is a JSON Web Token that
+               MongoDB understands.
+              
+            3. Click :guilabel:`Save`.
+
+            To learn more about adding an optional claim, see `Azure Documentation <https://learn.microsoft.com/en-us/azure/active-directory/develop/reference-app-manifest>`__.
+
+         .. step:: Remember metadata.
+
+            1. In the left navigation, click :guilabel:`Overview`.
+              
+               Copy the :guilabel:`Application (client) ID` value.
+     
+            2. In the top navigation, click :guilabel:`Endpoints`.
+                 
+               Copy the :guilabel:`OpenID Connect metadata document` value 
+               without the ``/.well-known/openid-configuration`` part.
+
+               You can also retrieve this value by following the
+               :guilabel:`OpenID Connect metadata document` |url| and
+               copying the value for ``issuer``.
+
+            The following table shows what these Microsoft Entra ID UI values map to in our |service| Configuration Properties:
+           
+            .. list-table::
+               :header-rows: 1
+               :widths: 50 50
+               :stub-columns: 1
+
+               * - Microsoft Entra ID UI 
+                 - |service| Configuration Property
+
+               * - :guilabel:`OpenID Connect metadata document (without /.well-known/openid-configuration)`
+                 - :guilabel:`Issuer URI`. 
+
+
+               * - :guilabel:`Application (client) ID`
+                 - :guilabel:`Client ID`. 
+
+
+               * - :guilabel:`Application ID URI (<Application ID>)` 
+                 - :guilabel:`Audience`
+
+   .. tab:: GCP
+      :tabid: gcp-oauth
+
+      You don't need to make any configuration changes in your |gcp| account.
+
+.. _configure-wif-in-atlas:
+
+Configure {+workload+} Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Prerequisite
+
+   This procedure requires you to have :authrole:`Organization Owner`
+   access and assumes you have already configured your external |idp|. To learn
+   how to configure an |idp|, see :ref:`configure-idp-oidc`.
+
+You can configure {+workload+} for database access in |service|
+from the :guilabel:`Federation Management Console`.
+
+.. tabs::
+
+   .. tab:: Azure
+      :tabid: Azure
+
+      To configure a |workload| |idp-full| with Azure Entra ID in |service|:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Navigate to Organization settings. 
+        
+            1. Click on :guilabel:`Open Federation Management App`.
+
+         .. step:: Click :guilabel:`Identity Providers` on the left sidebar.
+
+            1. Click :guilabel:`Set Up Identity Provider` or :guilabel:`Configure Identity Provider` 
+         
+            2. Select :guilabel:`Workload Identity Provider` and click :guilabel:`Continue`.
+
+         .. step:: Enter the following {+workload+} settings.
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 30 20 50
+               :stub-columns: 1
+
+               * - Setting
+                 - Necessity
+                 - Value
+
+               * - :guilabel:`Configuration Name`
+                 - Required
+                 - Specify a human-readable label that identifies this configuration.
+                   This label is visible to |service| users.
+
+               * - :guilabel:`Configuration Description`
+                 - Optional
+                 - Describe this configuration.
+
+               * - :guilabel:`Issuer URI`
+                 - Required
+                 - Specify the issuer URI value provided by your |azure-ad| application
+                   registration. To learn more, see the table in :ref:`Prepare your External Identity <set-up-in-cloud-provider>`.
+
+               * - Audience
+                 - Required
+                 - Specify the application ID URI value from your Azure Entra ID application
+                   registration. To learn more, see the table in :ref:`Prepare your External Identity <set-up-in-cloud-provider>`.
+
+               * - Authorization Type
+                 - Required
+                 - Select ``Group Membership`` to grant authorization based on group 
+                   membership, or select ``User ID`` to authorize an individual user. 
+
+                   It is more common to use User ID for application access. 
+
+               * - :guilabel:`Groups Claim`
+                 - Conditional
+                 - Specify the identifier of the claim that includes the principal's |idp|
+                   user group membership information. If you 
+                   select ``Groups Membership`` as authorization type, you must 
+                   specify this field. Leave the value set to the default, ``groups``. 
+               
+                   *Default*: ``groups``
+
+               * - :guilabel:`User Claim`
+                 - Required
+                 - Don't modify the default value, ``sub``.
+                
+                   *Default*: ``sub``
+
+         .. step:: Click :guilabel:`Save and Finish`.
+
+         .. step:: Enable your Workload Identity for an organization.
+
+            1. Click :guilabel:`Connect Organizations`.
+            
+            2. For the organization that you want to connect to {+workload+}, click
+               :guilabel:`Configure Access`.
+               
+            3. Click :guilabel:`Connect Identity Provider`.
+            
+               .. note::
+               
+                  If you already configured another |idp|, |service| displays
+                  a :guilabel:`Connect Identity Provider(s)` button instead.
+
+         .. step:: Select a Workload Identity Provider.
+         
+            In the :guilabel:`Connect Identity Provider(s)` modal, select
+            a Workload Identity Provider where the :guilabel:`Purpose` is 
+            :guilabel:`Workload Identity Federation`.
+
+         .. step:: Click :guilabel:`Connect`.
+
+            When you connect your Workload Identity Provider to an 
+            organization, |service| enables {+workload+} for all the 
+            projects within that organization.
+
+   .. tab:: GCP
+      :tabid: GCP
+
+      To configure a |workload| |idp-full| with |gcp| in |service|:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Navigate to Organization settings. 
+        
+            1. Click on :guilabel:`Open Federation Management App`.
+
+         .. step:: Click :guilabel:`Identity Providers` on the left sidebar.
+
+            1. Click :guilabel:`Set Up Identity Provider` or :guilabel:`Configure Identity Provider` 
+         
+            2. Select :guilabel:`Workload Identity Provider` and click :guilabel:`Continue`.
+
+         .. step:: Enter the following {+workload+} settings.
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 30 20 50
+               :stub-columns: 1
+
+               * - Setting
+                 - Necessity
+                 - Value
+
+               * - :guilabel:`Configuration Name`
+                 - Required
+                 - Specify a human-readable label that identifies this configuration.
+                   This label is visible to |service| users.
+
+               * - :guilabel:`Configuration Description`
+                 - Optional
+                 - Describe this configuration.
+
+               * - :guilabel:`Issuer URI`
+                 - Required
+                 - Enter the URI ``https://accounts.google.com``.
+
+               * - Audience
+                 - Required
+                 - Specify any custom value. Audience is used 
+                   while calling MongoDB drivers.
+
+               * - Authorization Type
+                 - Required
+                 - Select ``Group Membership`` to grant authorization based on group 
+                   membership, or select ``User ID`` to authorize individual users.
+
+                   It is more common to use User ID for application access. 
+
+               * - :guilabel:`User Claim`
+                 - Required
+                 - Don't modify the default value, ``sub``.
+                
+                   *Default*: ``sub``
+
+         .. step:: Click :guilabel:`Save and Finish`.
+
+         .. step:: Enable your Workload Identity in an organization.
+
+            a. Click :guilabel:`Connect Organizations`.
+            
+            #. For the organization you want to connect to |workload|, click
+               :guilabel:`Configure Access`.
+               
+            #. Click :guilabel:`Connect Identity Provider`.
+            
+               .. note::
+               
+                  If you already configured another |idp|, |service| displays
+                  a :guilabel:`Connect Identity Provider(s)` button instead.
+
+         .. step:: Select a Workload Identity Provider.
+         
+            In the :guilabel:`Connect Identity Provider(s)` modal, select
+            a Workload Identity Provider where the :guilabel:`Purpose` is 
+            :guilabel:`Workload Identity Federation`.
+
+         .. step:: Click :guilabel:`Connect`.
+
+            When you connect your Workload Identity Provider to an 
+            organization, |service| enables |workload| for all the 
+            projects within that organization.
+
+.. _add-to-org:
+
+Add a Database User Using {+workload+} Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Prerequisites
+``````````````
+
+Before you begin, you must have the following to add a database user:
+
+- :authrole:`Project Owner` access
+- {+workload+} configured in |service| and enabled for your Organization.
+
+.. procedure::
+   :style: normal
+      
+   .. step:: Open the :guilabel:`Add New Database User or Group` dialog box.
+
+      .. include:: /includes/nav/steps-db-access.rst
+
+         Click :icon-fa5:`plus` :guilabel:`Add New Database User or Group`.
+
+         .. note::
+         
+            Until you :ref:`enable your Workload IdP to Atlas Organization
+            <apply-oidc-idp>`, this button says :icon-fa5:`plus`
+            :guilabel:`Add New Database User`.
+      
+   .. step:: Select :guilabel:`Federated Auth`.
+      
+      In the :guilabel:`Authentication Method` section, select :guilabel:`Federated Auth`.
+       
+      .. note::
+          
+         Until you :ref:`enable Workload IdP for your organization <configure-oidc>`,
+         you can't select this box.
+      
+   .. step:: Select an Identity Provider and Identifier.
+      
+      a. In the :guilabel:`Select Identity Provider` section, select a configured 
+         Workload Identity Provider.
+      
+      #. Specify either the user identifier or group identifier associated with 
+         your configured Workload |idp-full|.
+
+      .. note:: 
+
+         - For Azure Entra ID users, this value maps to the Object Id 
+           of your Azure user group rather than user group name.
+
+         - For GCP users, this value maps to the Unique Id of your 
+           GCP Service Account.
+      
+   .. step:: Assign user or group privileges.
+   
+   .. step:: Add the new database user or group.
+   
+      - If you added a user, click the :guilabel:`Add User` button.
+      - If you added a group, click the :guilabel:`Add Group` button.
+
+.. _oauth-supported-drivers:
+
+Connect an Application to MongoDB with {+workload+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the listed version or higher of the following MongoDB Drivers to connect an 
+application to MongoDB with {+workload+} authentication:
+
+- :driver:`Java </java/sync/upcoming/security/auth/oidc/>` v5.1+
+- :ref:`C#/.NET <csharp-mongodb-oidc>` v2.25+
+- :driver:`Go </go/current/fundamentals/enterprise-auth/#mongodb-oidc>` v1.17+
+- :ref:`PyMongo <pymongo-enterprise-auth>` v4.7+
+- :ref:`Node <node-mongodb-oidc-azure-imds>` / :driver:`Typescript </typescript>` v6.7+
+- :driver:`Kotlin </kotlin/coroutine/current/fundamentals/enterprise-auth/#mongodb-oidc>` v5.1+
+
+Manage an Existing {+workload+} Configuration
+--------------------------------------------------------------
+
+Revoke JWKS
+~~~~~~~~~~~
+
+.. note::
+
+   This procedure is only for users who manage their own signing keys.
+   
+   Don't use this feature to rotate your signing keys. When you rotate 
+   your {+workload+} signing keys, MongoDB fetches 
+   the JWKS automatically upon expiration of the existing access tokens.
+
+If your private key is compromised, you can immediately revoke your JSON
+Web Key Sets (JWKS) cached in MongoDB nodes:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Update your signing keys in your Workload Identity provider.
+
+   .. include:: /includes/steps-open-fed-auth-console.rst
+
+   .. step:: Click :guilabel:`Identity Providers` in the left sidebar.
+
+   .. step:: Scroll to the {+workload+} card.
+
+   .. step:: Click the :guilabel:`Revoke` button under the :guilabel:`Manage` dropdown.
+
+      After you click :guilabel:`Revoke`, MongoDB fetches the new keys
+      through your JWKS endpoint. You must restart your clients (such as
+      {+mongosh+} or :compass:`Compass </>`) after you revoke JWKS.
+
+Delete {+workload+} Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete your {+workload+} configuration:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/steps-open-fed-auth-console.rst
+
+   .. step:: Disconnect each organization you connected to your Workload Identity Provider.
+
+      1. Click :guilabel:`Organizations` in the left sidebar.
+
+      2. Click the organization that has {+workload+} enabled.
+
+      3. Click :guilabel:`Disconnect` under the :guilabel:`Manage` dropdown on the {+workload+} card.
+
+      4. In the :guilabel:`Disconnect identity provider?` modal, click
+         :guilabel:`Disconnect`.
+
+         When you disconnect an |idp|, users who authenticate using the
+         |idp| lose access to {+workload+} in the |service| projects
+         listed in the :guilabel:`Project` table.
+
+   .. step:: Click :guilabel:`Identity Providers` in the left side navigation
+      bar.
+
+   .. step:: In the {+workload+} card, click :guilabel:`Delete`.
+
+   .. step:: In the :guilabel:`Delete Identity Provider?` modal, click
+      :guilabel:`Delete`.

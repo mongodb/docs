@@ -1,0 +1,433 @@
+.. _fts-paginate-results:
+
+====================
+Paginate the Results 
+====================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas search, paginate documents in the results, searchAfter option, search after a reference point, searchBefore option, search before a reference point
+   :description: Retrieve $search results before or after a given reference point.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+On |service| {+clusters+} running MongoDB 6.0.13+ or 7.0.5+, use |fts|
+to retrieve your :pipeline:`$search` query results sequentially after or
+before a reference point. Use the :pipeline:`$search` ``searchAfter`` or
+``searchBefore`` options to traverse results in-order and build
+"Next Page" and "Previous Page" functions in your application.
+
+.. _fts-paginate-results-usage:
+
+Usage
+-----
+
+To retrieve paginated results, perform the following steps: 
+
+a. :ref:`Create an index <ref-create-index>` on the fields you want to query.
+#. Run a :pipeline:`$search` query that returns a point of reference. To
+   learn more, see :ref:`paginate-results-search-sequence-token`.
+#. Use the point of reference in your subsequent :pipeline:`$search`
+   query to retrieve the next or previous set of documents in the
+   results. 
+   
+   - To learn more about retrieving results to build a "Next
+     Page" function, see :ref:`paginate-results-search-after`.
+   - To learn more about retrieving results to build a "Previous Page"
+     function, see :ref:`paginate-results-search-before`.
+   - To jump to a page in your results, combine :pipeline:`$skip` and
+     :pipeline:`$limit` with :pipeline:`$search` ``searchAfter`` or
+     ``searchBefore`` options. For example, to jump to results from Page
+     3 to Page 5, with 10 results per page, do the following: 
+
+     a. Retrieve results using ``searchAfter`` with the point of
+        reference for the last result on Page 3 (Result 30).
+     #. Use :pipeline:`$skip` to skip the 10 results on Page 4 (Results
+        31-40) and :pipeline:`$limit` to limit the results to 10
+        documents. 
+     #. Return results for Page 5 (Results 41-50).
+
+     Here, using :pipeline:`$skip` with the ``searchAfter`` option optimizes
+     the query to skip only 1 page of results (10 documents). By comparison,
+     if you use ``$skip`` without the :pipeline:`$search` ``searchAfter``
+     option, the query skips 4 pages of results (40 documents). To learn
+     more, see :ref:`sequential-pagination-tutorial-skip-query`.
+
+.. _fts-paginate-results-considerations:
+
+Considerations 
+--------------
+
+A tie occurs when you sort on a field for which multiple documents
+have identical values. MongoDB doesn't guarantee ordering of tied
+query results, which can lead to duplication and inconsistency when
+you use ``searchAfter`` and ``searchBefore``. Apply the following
+principles to ensure deterministic search behavior:
+
+- Sort your query by a unique field to prevent relevance score ties.
+- If  you want to primarily sort by a non-unique field, add a secondary
+  sort clause on a unique field to serve as a tiebreaker.
+- Sort your query results by an immutable field. |fts| reflects
+  the updates you make to your collection between initial and
+  subsequent queries. If you sort by a mutable field such
+  as ``updated_time`` and you update your collection between your
+  first and second queries, |fts| may order the same documents differently.
+
+To learn how to sort your query results by an immutable or unique field,
+see :ref:`sort-ref`.
+
+.. include:: /includes/fts/facts/fact-search-score-for-search-nodes.rst
+
+.. _paginate-results-search-sequence-token:
+
+Retrieve Point of Reference
+---------------------------
+
+To retrieve query results at a certain point, you must provide the point
+of reference in your :pipeline:`$search` query. You can retrieve the
+reference point by using the :expression:`$meta` keyword
+``searchSequenceToken`` in the :pipeline:`$project` stage after your
+:pipeline:`$search` stage.
+
+.. _search-sequence-token-syntax:
+
+Syntax 
+~~~~~~
+
+.. code-block:: json
+   :copyable: true
+   :caption: searchSequenceToken Syntax
+   :emphasize-lines: 16
+   :linenos: 
+
+   [{
+     "$search": {
+       "index": "<index-name>",
+       "<operator-name>"|"<collector-name>": {
+         <operator-specification>|<collector-specification>
+       }
+       "sort": {
+         "score": {
+	   "$meta": "searchScore", _id:1
+	 }
+       }
+       ...
+     },
+     {
+       "$project": {
+         { "paginationToken" : { "$meta" : "searchSequenceToken" } }
+     },
+     ...
+   }]
+
+.. _search-sequence-token-output:
+
+Output 
+~~~~~~
+
+The ``searchSequenceToken`` generates a Base64-encoded token for each
+document in the results. The length of the token increases with the number
+of fields specified in the :ref:`sort <sort-ref>` option of your query.
+The token isn't tied to a snapshot of the database. 
+
+The documents in the results are sorted in the default order, unless you
+specify the ``sort`` option in your query. To learn about sorting your
+results, see :ref:`sort-ref`. 
+
+.. _paginate-results-search-after:
+
+Search After a Specific Point of Reference 
+------------------------------------------
+
+To search after a reference point, you must specify the reference point
+in your :pipeline:`$search` query by using the ``searchAfter`` option with
+the token generated by ``searchSequenceToken``. You can use the token
+generated by ``searchSequenceToken`` only when you rerun the
+:pipeline:`$search` query for which ``searchSequenceToken`` generated
+the token. The semantics (search fields and values) of the subsequent 
+:pipeline:`$search` query in which you use the token must be identical
+to the query for which ``searchSequenceToken`` generated the token. 
+
+You can use the ``searchAfter`` option to build a "Next Page" function
+in your application. For a demonstration of this, see the :ref:`example
+<search-before-egs>` on this page. 
+
+.. _search-after-syntax:
+
+``searchAfter`` Syntax 
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: true
+   :caption: searchAfter Syntax
+   :emphasize-lines: 7
+   :linenos: 
+
+   {
+     "$search": {
+       "index": "<index-name>",
+       "<operator-name>"|"<collector-name>": {
+         <operator-specification>|<collector-specification>
+       },
+       "searchAfter": "<base64-encoded-token>",
+       "sort": {
+         "score": {
+	   "$meta": "searchScore", _id:1
+	 }
+       }       
+       ...
+     },
+     "$project": {
+       { "paginationToken" : { "$meta" : "searchSequenceToken" } }
+     },
+     ...
+   }
+
+.. _search-after-output:
+
+Output 
+~~~~~~
+
+|fts| returns the documents in the results after the specified token.
+|fts| returns the generated tokens for the documents in the results
+because you specified the ``searchSequenceToken`` in the
+:pipeline:`$project` stage after the :pipeline:`$search` stage (as 
+shown in line 11). These tokens can be used as a reference point for
+another query with the same semantics.
+
+The documents in the results are sorted in the default order, unless you
+specify the ``sort`` option in your query. To learn about sorting your
+results, see :ref:`sort-ref`. 
+
+.. _paginate-results-search-before:
+
+Search Before a Specific Point of Reference 
+-------------------------------------------
+
+To search before a reference point, you must specify the reference point 
+in your :pipeline:`$search` query by using the ``searchBefore`` option
+with the token generated by ``searchSequenceToken``. You can use the token
+generated by ``searchSequenceToken`` only when you rerun the
+:pipeline:`$search` query for which ``searchSequenceToken`` generated
+the token. The semantics (search fields and values) of the subsequent 
+:pipeline:`$search` query in which you use the token must be identical
+to the query for which ``searchSequenceToken`` generated the token. 
+
+You can build a "Previous Page" function in your application using the
+``searchBefore`` option. To build a "Previous Page" function, combine
+the following:
+
+- :pipeline:`$search` stage with ``searchBefore`` option
+- :pipeline:`$limit` stage 
+- :manual:`toArray() </reference/method/cursor.toArray/>` and
+  ``reverse()`` methods.  
+  
+For a demonstration of this, see the ``searchBefore`` query :ref:`examples
+<search-before-egs>` on this page.
+
+.. _search-before-syntax:
+
+``searchBefore`` Syntax 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: true
+   :caption: searchBefore Syntax
+   :emphasize-lines: 7
+   :linenos: 
+
+   {
+     "$search": {
+       "index": "<index-name>",
+       "<operator-name>"|"<collector-name>": {
+         <operator-specification>|<collector-specification>
+       },
+       "searchBefore": "<base64-encoded-token>",
+       "sort": {
+         "score": {
+	   "$meta": "searchScore", _id:1
+	 }
+       }       
+       ...
+     },
+     "$project": {
+       { "paginationToken" : { "$meta" : "searchSequenceToken" } }
+     },
+     ...
+   }
+
+.. _search-before-output:
+
+``searchBefore`` Output
+~~~~~~~~~~~~~~~~~~~~~~~
+
+|fts| returns documents in the results preceding the specified token in
+reverse order. |fts| also returns the generated tokens for the documents
+in the results because you specified the ``searchSequenceToken`` in the
+:pipeline:`$project` stage after the :pipeline:`$search` stage (as
+shown in line 11). These tokens can be used as a reference point for
+another query with the same semantics.
+
+.. _search-before-egs:
+
+Examples 
+--------
+
+The following examples use the :ref:`sample-mflix.movies <sample-mflix>`
+collection, which has an |fts| index named ``default`` with dynamic
+mappings. If you load the collection and create the index, you can run
+the following queries against the collection.
+
+The queries demonstrate how to retrieve a point of reference, which you
+then use in the subsequent queries to retrieve additional results for
+the same term before and after the specified point of reference. 
+
+This examples demonstrate how to do the following tasks:
+
+1. :ref:`sequential-pagination-tutorial-por-query`
+2. :ref:`sequential-pagination-tutorial-after-query`
+3. :ref:`sequential-pagination-tutorial-before-query`
+4. :ref:`sequential-pagination-tutorial-skip-query`
+5. :ref:`sequential-pagination-tutorial-facet-query`
+
+.. note:: 
+
+   By default, |fts| sorts the documents in the results by the relevance
+   score of the documents. If multiple documents in the results have
+   identical scores, |fts| returns arbitrarily ordered results. To
+   return documents in a determined order, the queries specify a unique 
+   field, ``released``, to sort the results.
+
+.. _sequential-pagination-tutorial-por-query:
+
+.. collapsible::
+   :heading: Retrieve Page 1 and Generate Pagination Tokens 
+   :sub_heading: Retrieve results for the first page and retrieve tokens or a point of reference for subsequent queries.
+   :expanded: false 
+
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-point-of-ref-query-desc.rst
+
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/point-of-ref-query-mongosh.json 
+         :language: json
+
+      .. output:: /includes/fts/sequential-pagination/point-of-ref-mongosh-query-results.json
+         :language: json
+         :visible: false
+
+.. _sequential-pagination-tutorial-after-query:
+
+.. collapsible::
+   :heading: Retrieve Page 2 Using searchAfter 
+   :sub_heading: Retrieve results to build a function like "Next Page" in your application.
+   :expanded: false 
+
+   To retrieve additional results, specify the point of reference after
+   which you want to retrieve the results. 
+
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-search-after-query-desc.rst
+
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/search-after-query-mongosh.json 
+         :language: json
+
+      .. output:: /includes/fts/sequential-pagination/search-after-mongosh-query-results.json 
+         :language: json
+         :visible: false
+
+.. _sequential-pagination-tutorial-before-query:
+
+.. collapsible::
+   :heading: Return to Page 1 Using searchBefore
+   :sub_heading: Retrieve results to build a function like "Previous Page" in your application.
+   :expanded: false 
+
+   To retrieve previous results, specify the point of reference before
+   which you want to retrieve the results. 
+
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-search-before-query-desc.rst
+
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/search-before-query-mongosh.json
+         :language: json
+
+      .. output:: /includes/fts/sequential-pagination/search-before-mongosh-query-results.json
+         :language: json
+         :visible: false 
+
+.. _sequential-pagination-tutorial-skip-query:
+
+.. collapsible::
+   :heading: Jump from Page 2 to Page 5 Using searchAfter and $skip
+   :sub_heading: Retrieve results to build a function in your application that allows skipping pages.
+   :expanded: false 
+
+   To skip results and jump from page 2 to 5, use the token that
+   the ``searchSequenceToken`` generates to specify the point of reference after which you
+   want to retrieve the results and then skip twenty documents in the
+   results.
+
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-skip-results-query-desc.rst
+
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/skip-results-query-mongosh.json 
+         :language: json
+
+      .. output:: /includes/fts/sequential-pagination/skip-results-mongosh-query-results.json 
+         :language: json
+         :visible: false
+
+.. _sequential-pagination-tutorial-facet-query:
+
+.. collapsible::
+   :heading: Use Facet with the Paginated Results
+   :sub_heading: Use searchSequenceToken with Atlas Search facets.
+   :expanded: false 
+
+   To group results by using |fts| :ref:`fts-facet-ref`, you must index
+   any ``string`` field as the ``token`` type. To run the following
+   query and group the results by the ``genres`` field in the ``movies``
+   collection, your index must resemble the following example:
+
+   .. code-block:: json 
+
+      {
+        "mappings": {
+          "dynamic": true,
+            "fields": {
+              "genres": {
+                "type": "token"
+              }
+            }
+          }
+        }
+      }
+
+   .. include:: /includes/fts/extracts/fts-sequential-pagination-facet-query-desc.rst
+
+   .. io-code-block::
+      :copyable: true
+         
+      .. input:: /includes/fts/sequential-pagination/facet-query-mongosh.json 
+         :language: json
+
+      .. output:: /includes/fts/sequential-pagination/facet-mongosh-query-results.json 
+         :language: json
+         :visible: false

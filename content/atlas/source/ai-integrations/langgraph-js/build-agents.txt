@@ -1,0 +1,640 @@
+.. _langgraph-js-build-agents:
+
+==============================================================
+Build an AI Agent with LangGraph.js and {+avs+}
+==============================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta::
+   :description: Integrate Atlas Vector Search with LangGraph JS/TS to build LLM and RAG applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate |service-fullname| with :ref:`LangGraph.js <langgraph-js>`
+to build AI agents. This tutorial demonstrates how to build an
+agent with LangGraph.js and {+avs+} that can answer questions about 
+your data.
+
+Specifically, you perform the following actions:
+
+1. Set up the environment.
+#. Configure your |service| {+cluster+}.
+#. Build the agent, including the agent tools.
+#. Add memory to the agent.
+#. Create a server and test the agent.
+
+.. cta-banner::
+   :url: https://github.com/mongodb-developer/LangGraph.js-MongoDB-Example/
+   :icon: Code
+
+   Work with the code for this tutorial by cloning the :github:`GitHub repository <mongodb-developer/LangGraph.js-MongoDB-Example/>`.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you have the following:
+
+- `npm and Node.js
+  <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__
+  installed.
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+- An Anthropic API key. To learn more, see `Anthropic documentation 
+  <https://docs.anthropic.com/en/api/getting-started>`__.
+
+.. note::
+ 
+   This tutorial uses models from OpenAI and Anthropic, but 
+   you can modify the code to use your models of choice.
+
+Set up the Environment
+----------------------
+
+.. collapsible::
+   :heading: Learn by Watching
+   :sub_heading: You can follow along with this tutorial by watching the video.
+   
+   *Duration: 30 Minutes*
+
+   .. video:: https://www.youtube.com/watch?v=qXDrWKVSx1w
+
+To set up the environment, complete the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Initialize the project and install dependencies.
+
+      Create a new project directory, then run the following commands 
+      in the project to install the required dependencies:
+
+      .. code-block:: bash
+
+         npm init -y
+         npm i -D typescript ts-node @types/express @types/node
+         npx tsc --init
+         npm i langchain @langchain/langgraph @langchain/mongodb @langchain/langgraph-checkpoint-mongodb @langchain/anthropic dotenv express mongodb zod
+
+   .. step:: Create the environment file.
+   
+      Create a ``.env`` file in your project root and add your API keys and MongoDB Atlas connection string:
+
+      .. code-block:: env
+
+         OPENAI_API_KEY = "<openai-api-key>"
+         ANTHROPIC_API_KEY = "<anthropic-api-key>"
+         MONGODB_ATLAS_URI = "<connection-string>"
+
+.. note::
+
+   Your project uses the following structure:
+
+   .. code-block:: text
+
+      ├── .env
+      ├── index.ts
+      ├── agent.ts
+      ├── seed-database.ts
+      ├── package.json
+      ├── tsconfig.json
+
+Configure your |service| {+cluster+}
+------------------------------------
+
+In this section, you configure 
+and ingest sample data into your |service| {+cluster+}
+to enable vector search over your data.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up your |service| {+cluster+}.
+
+      If you haven't already, :ref:`create a {+cluster+} <create-new-cluster>`
+      and obtain your :ref:`connection string <connect-to-your-cluster>`.
+         
+   .. step:: Create a file to connect to |service|.
+   
+      Create an ``index.ts`` file that establishes a connection to your |service| {+cluster+}:
+
+      .. code-block:: typescript
+
+         import { MongoClient } from "mongodb";
+         import 'dotenv/config';
+         const client = new MongoClient(process.env.MONGODB_ATLAS_URI as string);
+         async function startServer() {
+           try {
+             await client.connect();
+             await client.db("admin").command({ ping: 1 });
+             console.log("Pinged your deployment. You successfully connected to MongoDB!");
+             // ... rest of the server setup
+           } catch (error) {
+             console.error("Error connecting to MongoDB:", error);
+             process.exit(1);
+           }
+         }
+         startServer();
+
+   .. step:: Seed sample data into your {+cluster+}.
+   
+      Create a ``seed-database.ts`` script to generate and store 
+      sample employee records. This script performs the following actions:
+
+      - Defines a schema for employee records.
+      - Creates a function to generate sample employee data using the LLM.
+      - Processes each record to create a text summary to use for embeddings.
+      - Uses the LangChain MongoDB integration to initialize your |service| {+cluster+}
+        as a vector store. This component generates vector embeddings and stores the 
+        documents in your ``hr_database.employees`` namespace.
+
+      .. collapsible::
+         :heading: seed-database.ts
+         :sub_heading: Copy and paste the following code into your seed-database.ts file.
+         :expanded: false
+
+         .. literalinclude:: /includes/avs/ai-integrations/seed-database.ts
+            :language: typescript
+            :copyable:         
+
+   .. step:: Run the seeding script.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+
+            npx ts-node seed-database.ts
+
+         .. output::
+
+            Pinged your deployment. You successfully connected to MongoDB!
+            Generating synthetic data...
+            Successfully processed & saved record: EMP001
+            Successfully processed & saved record: EMP002
+            Successfully processed & saved record: EMP003
+            Successfully processed & saved record: EMP004
+            Successfully processed & saved record: EMP005
+            Database seeding completed
+
+      .. tip::
+
+         After running the script, you can view the seeded data in your |service| {+cluster+} 
+         by navigating to the ``hr_database.employees`` namespace in the 
+         :ref:`{+atlas-ui+} <atlas-ui-view-documents>`.
+
+   .. step:: Create an {+avs+} index.
+   
+      Follow the steps to :ref:`create an {+avs+} index
+      <avs-create-index>` for the ``hr_database.employees`` 
+      namespace. Name the index ``vector_index`` and specify
+      the following index definition:
+
+      .. code-block:: json
+
+         {
+           "fields": [
+             {
+               "numDimensions": 1536,
+               "path": "embedding",
+               "similarity": "cosine",
+               "type": "vector"
+             }
+           ]
+         }
+
+Build the Agent
+---------------
+
+In this section, you build a `graph <https://langchain-ai.github.io/langgraphjs/concepts/low_level/#graphs>`__
+to orchestrate the agent's workflow. The graph defines the sequence of steps that
+the agent takes to respond to a query.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create an ``agent.ts`` file.
+
+      Create a new file named ``agent.ts`` in your project,
+      then add the following code to begin setting up the agent.
+      You will add more code to the asynchronous function in the
+      subsequent steps.
+
+      .. code-block:: typescript
+         :emphasize-lines: 20
+
+         import { OpenAIEmbeddings } from "@langchain/openai";
+         import { ChatAnthropic } from "@langchain/anthropic";
+         import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
+         import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
+         import { StateGraph } from "@langchain/langgraph";
+         import { Annotation } from "@langchain/langgraph";
+         import { tool } from "@langchain/core/tools";
+         import { ToolNode } from "@langchain/langgraph/prebuilt";
+         import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
+         import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
+         import { MongoClient } from "mongodb";
+         import { z } from "zod";
+         import "dotenv/config";
+
+         export async function callAgent(client: MongoClient, query: string, thread_id: string) {
+           // Define the MongoDB database and collection
+           const dbName = "hr_database";
+           const db = client.db(dbName);
+           const collection = db.collection("employees");
+           // ... (Add rest of code here)
+         }
+
+   .. step:: Define the agent state.
+   
+      Add the following code to the file to define the graph 
+      `state <https://langchain-ai.github.io/langgraphjs/concepts/low_level/#state>`__:
+
+      .. code-block:: typescript
+
+         const GraphState = Annotation.Root({
+           messages: Annotation<BaseMessage[]>({
+             reducer: (x, y) => x.concat(y),
+           }),
+         });
+
+      The state defines the data structure that flows through your agent workflow. 
+      Here, the state tracks conversation messages, with a `reducer 
+      <https://langchain-ai.github.io/langgraphjs/concepts/low_level/#reducers>`__ that 
+      concatenates new messages to the existing conversation history.
+
+   .. step:: Define tools.
+   
+      Add the following code to define a tool and tool node 
+      that uses {+avs+} to retrieve relevant employee information by 
+      querying the vector store:
+
+      .. code-block:: typescript
+
+         const employeeLookupTool = tool(
+           async ({ query, n = 10 }) => {
+             console.log("Employee lookup tool called");
+             const dbConfig = {
+               collection: collection,
+               indexName: "vector_index",
+               textKey: "embedding_text",
+               embeddingKey: "embedding",
+             };
+             const vectorStore = new MongoDBAtlasVectorSearch(
+               new OpenAIEmbeddings(),
+               dbConfig
+             );
+             const result = await vectorStore.similaritySearchWithScore(query, n);
+             return JSON.stringify(result);
+           },
+           {
+             name: "employee_lookup",
+             description: "Gathers employee details from the HR database",
+             schema: z.object({
+               query: z.string().describe("The search query"),
+               n: z.number().optional().default(10).describe("Number of results to return"),
+             }),
+           }
+         );
+
+         const tools = [employeeLookupTool];
+         const toolNode = new ToolNode<typeof GraphState.State>(tools);
+
+   .. step:: Configure the chat model.
+     
+      Add the following code to the file to determine which
+      model to use for the agent. This example uses 
+      a model from Anthropic, but you can modify it to use
+      your preferred model:
+     
+      .. code-block:: typescript
+
+         const model = new ChatAnthropic({
+           model: "claude-3-5-sonnet-20240620",
+           temperature: 0,
+         }).bindTools(tools);
+
+   .. step:: Define additional functions.
+
+      Add the following code to define the functions 
+      that the agent uses to process messages and determine
+      whether to continue the conversation:
+
+      a. This function configures how the agent uses the LLM:
+         
+         - Constructs a prompt template with system instructions and conversation history.
+         - Formats the prompt with the current time, available tools, and messages.
+         - Invokes the LLM to generate the next response.
+         - Returns the model's response to be added to the conversation state.
+
+         .. code-block:: typescript
+
+            async function callModel(state: typeof GraphState.State) {
+              const prompt = ChatPromptTemplate.fromMessages([
+                [
+                  "system",
+                  `You are a helpful AI assistant, collaborating with other assistants. Use the provided tools to progress towards answering the question. If you are unable to fully answer, that's OK, another assistant with different tools will help where you left off. Execute what you can to make progress. If you or any of the other assistants have the final answer or deliverable, prefix your response with FINAL ANSWER so the team knows to stop. You have access to the following tools: {tool_names}.\n{system_message}\nCurrent time: {time}.`,
+                ],
+                new MessagesPlaceholder("messages"),
+              ]);
+              const formattedPrompt = await prompt.formatMessages({
+                system_message: "You are helpful HR Chatbot Agent.",
+                time: new Date().toISOString(),
+                tool_names: tools.map((tool) => tool.name).join(", "),
+                messages: state.messages,
+              });
+              const result = await model.invoke(formattedPrompt);
+              return { messages: [result] };
+            }
+
+      #. This function determines whether the agent should continue 
+         or end the conversation:
+         
+         - If the message contains tool calls, route the flow to the tools node.
+         - Otherwise, end the conversation and return the final response.
+
+         .. code-block:: typescript
+
+            function shouldContinue(state: typeof GraphState.State) {
+              const messages = state.messages;
+              const lastMessage = messages[messages.length - 1] as AIMessage;
+              if (lastMessage.tool_calls?.length) {
+                return "tools";
+              }
+              return "__end__";
+            }
+
+   .. step:: Define the agent's workflow.
+
+      Add the following code to define the sequence of steps that
+      the agent takes to respond to a query.
+
+      .. code-block:: typescript
+
+         const workflow = new StateGraph(GraphState)
+           .addNode("agent", callModel)
+           .addNode("tools", toolNode)
+           .addEdge("__start__", "agent")
+           .addConditionalEdges("agent", shouldContinue)
+           .addEdge("tools", "agent");
+
+      Specifically, the agent performs the following steps:
+            
+      1. The agent receives a user query.
+      #. In the **agent node**, the agent processes the query and 
+         determines whether to use a tool or to end the conversation.
+      #. If a tool is needed, the agent routes to the **tools node**, 
+         where it executes the selected tool.
+         The result from the tool are sent back to the **agent node**.
+      #. The agent interprets the tool's output and forms a response or decides on the next action.
+      #. This continues until the agent determines that no further action is needed 
+         (``shouldContinue`` function returns ``end``).
+
+      .. figure:: /images/avs/langgraph-agent-workflow.svg
+         :alt: Diagram that shows the workflow of the LangGraph-MongoDB agent.
+         :figwidth: 500px
+        
+      .. collapsible:: 
+         :heading: About the Workflow
+         :sub_heading: Expand this section to learn more about nodes and edges.
+         :expanded: false
+
+         For this agent, you define two custom
+         `nodes <https://langchain-ai.github.io/langgraphjs/concepts/low_level/#nodes>`__
+         :
+
+         - **Agent node**: This node processes the messages in the current state,
+           invokes the |llm| with these messages, and updates the state 
+           with the |llm|\'s response, which includes any tool calls.
+
+         - **Tools node**: This node processes tool calls, determines the appropriate tool 
+           to use based on the current state, and updates the conversation history 
+           with the results of the tool call.
+
+         You also define `edges <https://langchain-ai.github.io/langgraphjs/concepts/low_level/#edges>`__
+         to connect the nodes in the graph and define the flow of the agent.
+         In this code, you define the following edges:
+
+         - The following `normal edges <https://langchain-ai.github.io/langgraphjs/concepts/low_level/#normal-edges>`__
+           that route:
+         
+           - Start node to agent node.
+           - Agent node to tools node.
+
+         - A `conditional edge <https://langchain-ai.github.io/langgraphjs/concepts/low_level/#conditional-edges>`__
+           that routes the flow based on the output of the agent node.
+           If the agent node determines that a tool is needed, it routes to the tools node.
+           Otherwise, it ends the conversation.
+
+Add Memory to the Agent
+-----------------------
+
+To improve the agent's performance, you can `persist
+<https://langchain-ai.github.io/langgraphjs/concepts/persistence/>`__ its state
+by using the MongoDB Checkpointer. Persistence allows the agent to store information about previous interactions,
+which the agent can use in future interactions to provide more contextually
+relevant responses.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the MongoDB Checkpointer.
+   
+      Add the following code to your ``agent.ts`` file
+      to set up a persistence layer for your agent's state:
+
+      .. code-block:: typescript
+
+         const checkpointer = new MongoDBSaver({ client, dbName });
+         const app = workflow.compile({ checkpointer });
+
+   .. step:: Complete the agent function.
+   
+      Finally, add the following code to complete 
+      the agent function to handle queries:
+
+      .. code-block:: typescript
+
+         const finalState = await app.invoke(
+           {
+             messages: [new HumanMessage(query)],
+           },
+           { recursionLimit: 15, configurable: { thread_id: thread_id } }
+         );
+         console.log(finalState.messages[finalState.messages.length - 1].content);
+         return finalState.messages[finalState.messages.length - 1].content;
+
+Create the Server and Test the Agent
+------------------------------------
+
+In this section, you create a server to
+interact with your agent and test its functionality.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the Express.js server.
+   
+      Replace your ``index.ts`` file with the following code:
+
+      .. code-block:: typescript
+
+         import 'dotenv/config';
+         import express, { Express, Request, Response } from "express";
+         import { MongoClient } from "mongodb";
+         import { callAgent } from './agent';
+         const app: Express = express();
+         app.use(express.json());
+         const client = new MongoClient(process.env.MONGODB_ATLAS_URI as string);
+         async function startServer() {
+           try {
+             await client.connect();
+             await client.db("admin").command({ ping: 1 });
+             console.log("Pinged your deployment. You successfully connected to MongoDB!");
+             app.get('/', (req: Request, res: Response) => {
+               res.send('LangGraph Agent Server');
+             });
+             app.post('/chat', async (req: Request, res: Response) => {
+               const initialMessage = req.body.message;
+               const threadId = Date.now().toString(); 
+               try {
+                 const response = await callAgent(client, initialMessage, threadId);
+                 res.json({ threadId, response });
+               } catch (error) {
+                 console.error('Error starting conversation:', error);
+                 res.status(500).json({ error: 'Internal server error' });
+               }
+             });
+             app.post('/chat/:threadId', async (req: Request, res: Response) => {
+               const { threadId } = req.params;
+               const { message } = req.body;
+               try {
+                 const response = await callAgent(client, message, threadId);
+                 res.json({ response });
+               } catch (error) {
+                 console.error('Error in chat:', error);
+                 res.status(500).json({ error: 'Internal server error' });
+               }
+             });
+             const PORT = process.env.PORT || 3000;
+             app.listen(PORT, () => {
+               console.log(`Server running on port ${PORT}`);
+             });
+           } catch (error) {
+             console.error('Error connecting to MongoDB:', error);
+             process.exit(1);
+           }
+         }
+         startServer();
+
+   .. step:: Start the server.
+   
+      Run the following command to start your server:
+
+      .. code-block:: bash
+
+         npx ts-node index.ts
+
+   .. step:: Test the agent.
+   
+      Send sample requests to interact with your agent.
+      Your responses vary depending on your data and the models you use.
+
+      .. note::
+
+         The request returns a response in |json| format. You can also view 
+         the plaintext output in your terminal where the server is running.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+
+            curl -X POST -H "Content-Type: application/json" -d '{"message": "Build a team to make a web app based on the employee data."}' http://localhost:3000/chat
+
+         .. output::
+            :language: text
+            :visible: false
+            
+            # Sample response
+            {"threadId": "1713589087654", "response": "To assemble a web app development team, we ideally need..." (truncated)}
+
+            # Plaintext output in the terminal
+            To assemble a web app development team, we ideally need the following roles:
+
+            1. **Software Developer**: To handle the coding and backend.
+            2. **UI/UX Designer**: To design the application's interface and user experience.
+            3. **Data Analyst**: For managing, analyzing, and visualizing data if required for the app.
+            4. **Project Manager**: To coordinate the project tasks and milestones, often providing communication across departments.
+
+            ### Suitable Team Members for the Project:
+
+            #### 1. Software Developer
+            - **John Doe** 
+              - **Role**: Software Engineer
+              - **Skills**: Java, Python, AWS
+              - **Location**: Los Angeles HQ (Remote)
+              - **Notes**: Highly skilled developer with exceptional reviews (4.8/5), promoted to Senior Engineer in 2018.
+
+            #### 2. Data Analyst
+            - **David Smith**
+              - **Role**: Data Analyst
+              - **Skills**: SQL, Tableau, Data Visualization
+              - **Location**: Denver Office
+              - **Notes**: Strong technical analysis skills. Can assist with app data integration or dashboards.
+
+            #### 3. UI/UX Designer
+            No specific UI/UX designer was identified in the current search. I will need to query this again or look for a graphic designer with some UI/UX skills.
+
+            #### 4. Project Manager
+            - **Emily Davis**
+              - **Role**: HR Manager
+              - **Skills**: Employee Relations, Recruitment, Conflict Resolution
+              - **Location**: Seattle HQ (Remote)
+              - **Notes**: Experienced in leadership. Can take on project coordination.
+
+            Should I search further for a UI/UX designer, or do you have any other parameters for the team?
+
+      You can continue the conversation by using the thread ID returned in your previous response.
+      For example, to ask a follow-up question, use the following command. Replace ``<threadId>`` 
+      with the thread ID returned in the previous response.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+
+            curl -X POST -H "Content-Type: application/json" -d '{"message": "Who should lead this project?"}' http://localhost:3000/chat/<threadId>
+
+         .. output::
+            :visible: false
+
+            # Sample response
+            {"response": "For leading this project, a suitable choice would be someone..." (truncated)}
+
+            # Plaintext output in the terminal
+            ### Best Candidate for Leadership:
+            - **Emily Davis**:
+              - **Role**: HR Manager
+              - **Skills**: Employee Relations, Recruitment, Conflict Resolution
+              - **Experience**:
+                - Demonstrated leadership in complex situations, as evidenced by strong performance reviews (4.7/5).
+                - Mentored junior associates, indicating capability in guiding a team.
+              - **Advantages**:
+                - Remote-friendly, enabling flexible communication across team locations.
+                - Experience in managing people and processes, which would be crucial for coordinating a diverse team.
+
+            **Recommendation:** Emily Davis is the best candidate to lead the project given her proven leadership skills and ability to manage collaboration effectively. 
+
+            Let me know if you'd like me to prepare a structured proposal or explore alternative options.

@@ -1,0 +1,643 @@
+.. _mql-support-diagnostic-cmd:
+
+===================
+Diagnostic Commands
+===================
+
+.. meta::
+   :description: Explore the diagnostic commands supported by Atlas Data Federation, including `buildInfo`, `collStats`, `connectionStatus`, `dbStats`, and `explain`.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+``buildInfo`` 
+-------------
+
+For the :manual:`buildInfo </reference/command/buildInfo>` command, the 
+response contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``ok``
+     - Returns ``1`` for success or ``0`` for failure.
+
+   * - ``version``
+     - MongoDB client compatibility version. This is the earliest 
+       version of the MongoDB client with which the {+df+} service 
+       is compatible.
+
+   * - ``versionArray``
+     - MongoDB client compatibility version in array format.
+
+   * - ``dataLake.version``
+     - Version number of {+df+}.
+
+   * - ``dataLake.gitVersion``
+     - Git version of the {+df+} service.
+
+   * - ``dataLake.date``
+     - Build timestamp of the {+df+} service.
+
+   * - ``dataLake.mongoSQLVersion``
+     - ``mongoSQL`` version of the {+df+} service.
+
+.. example::
+
+   .. code-block:: json
+
+      {
+        "ok" : <return>,
+        "version" : "<version-number>",
+        "versionArray" : [
+          <number>,
+          <number>,
+          <number>,
+          <number>
+        ],
+        "dataLake" : {
+          "version" : "<version-number>",
+          "gitVersion" : "<version-number>",
+          "date" : "<timestamp>",
+          "mongoSQLVersion" : "<version-number>"
+        }
+      }
+
+``collStats``
+-------------
+
+For the :manual:`collStats </reference/command/collStats>` command, 
+{+adf+} omits the following fields in the response:
+
+- ``avgObjSize``
+- ``capped``
+- ``max``
+- ``maxSize``
+- ``wiredTiger``
+- ``nindexes``
+- ``totalIndexSize``
+- ``indexSizes``
+
+{+adf+} includes the following fields in the response. You can use 
+these fields to verify what partitions are used to populate a 
+collection, understand how recently the stats were computed, and 
+determine if {+adf+} truncated the output document.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``dataLake.partitionCount``
+     - Number of partitions.
+
+   * - ``dataLake.avgPartitionSize``
+     - Average size of all partitions.
+
+   * - ``dataLake.partitions.format``
+     - File format of the partition.
+
+   * - ``dataLake.partitions.attributes``
+     - Filtering attributes of the partition.
+
+   * - ``dataLake.partitions.count``
+     - Number of documents in the partition.
+
+   * - ``dataLake.partitions.size``
+     - Size, in bytes, of the partition.
+
+   * - ``dataLake.partitions.source``
+     - Cloud storage URL, which contains the 
+       backing data of the partition.
+
+   * - ``dataLake.partitions.version``
+     - MongoDB version of the |service| {+cluster+}. The ``collStats``
+       command returns this only for :ref:`adf-configuration-file-atlas`
+       data stores. The value has the following format:
+     
+       .. code-block:: 
+          :copyable: false 
+
+          <major-version-number>.<minor-version-number>.<patch-version-number>
+
+       For example, ``7.0.1``.
+
+   * - ``cacheMetadata``
+     - Information about how recently {+adf+} computed the statistics. 
+
+   * - ``cacheMetadata.computeTime`` 
+     - Time in :manual:`ISODate 
+       </reference/glossary/#term-isodate>` format when the computation 
+       for the stats started.
+
+   * - ``cacheMetadata.automaticRefreshInProgress``
+     - Flag that indicates whether a background job is running now to 
+       refresh the cache.
+
+   * - ``truncated`` 
+     - Flag that indicates whether {+adf+} enforced the maximum 
+       document size limit of 16MiB. The flag value can be one of the 
+       following: 
+
+       - ``true`` - if the output document size exceeded the limit and 
+         was therefore truncated to include only enough partitions that 
+         allowed the document to comply with the size limit. If 
+         ``true``, the ``partitionCount`` and ``avgPartitionSize`` 
+         values that {+adf+} returns may be smaller than the actual 
+         values.
+       - ``false`` - if {+adf+} returns the entire document.
+
+.. example::
+
+   .. code-block:: json
+
+      {
+        ...
+        "partitionCount": <number of partitions>,
+        "avgPartitionSize": <average size of all partitions>,
+        "partitions": [
+          {
+    	      "format": <file format>,
+    	      "attributes": <filtering attributes>,
+    	      "count": <number of documents in partition>,
+    	      "source": <cloud storage URL>,
+    	      "size": <size, in bytes, of the partition>
+    	    }, 
+          ...
+        ],
+        "truncated": false,
+    	"cacheMetadata": {
+          computeTime: ISODate("2021-07-25T15:10:33.513Z"),
+          automaticRefreshInProgress: false
+        },
+        ...
+      }
+
+{+adf+} introduces an optional boolean parameter, ``sync``, to bypass 
+the cache and fetch the most recent storage statistics for a given 
+collection. The following values are valid for the ``sync`` parameter:
+
+- ``true`` - to bypass the cache and return the most recent storage 
+  statistics
+- ``false`` - to return cached data 
+
+If the ``sync`` parameter is omitted, defaults to ``false``.
+
+.. example:: 
+
+   .. code-block:: js 
+             
+      db.runCommand( {collStats: "<string>", sync: true|false} )
+
+To learn more about the parameters supported by this command, see 
+:manual:`collStats </reference/command/collStats>`.
+
+``connectionStatus`` 
+--------------------
+
+For :manual:`connectionStatus </reference/command/connectionStatus>` 
+command, {+adf+} returns information about the current connection, 
+specifically the state of authenticated users and their available
+:atlas:`roles </reference/user-roles>`.
+
+.. include:: /includes/data-federation/fact-connection-limitation.rst
+
+``dbStats``
+-----------
+
+For :manual:`dbStats </reference/command/dbStats>` command, {+adf+} 
+introduces an optional boolean parameter, ``sync``, to bypass the cache 
+and fetch the most recent storage statistics for a given database. The 
+following values are valid for the ``sync`` parameter:
+
+- ``true`` - to bypass the cache and return the most recent storage 
+  statistics
+- ``false`` - to use the cached data also
+
+If the ``sync`` parameter is omitted, defaults to ``false``.
+
+.. example:: 
+
+   .. code-block:: js 
+             
+      db.runCommand( {dbStats: 1, sync: true|false} )
+
+To learn more about the parameters supported by this command, see 
+:manual:`dbStats </reference/command/dbStats>`. 
+
+{+adf+} command omits the followig fields in the response: 
+
+- ``object``
+- ``avgObjSize``
+- ``fsUsedSize``
+- ``fsTotalSize``
+
+The commands adds the following fields in the response. You can use 
+these fields to determine whether the command returned stale data.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``cacheMetadata``
+     - Contains information on how recently the stats were computed. 
+
+   * - ``cacheMetadata.computeTime``
+     - Time in :manual:`ISODate 
+       </reference/glossary/#term-isodate>` format when the computation 
+       for the stats started.
+
+   * - ``cacheMetadata.automaticRefreshInProgress``
+     - Flag that indicates whether a background job is running now to 
+       refresh the cache.
+
+.. _adf-diagnostic-cmd-explain:
+
+``explain`` 
+-----------
+
+The :manual:`explain </reference/command/explain>` command returns
+information that describes the {+df+} query plan. The ``explain`` output
+differs from MongoDB in that it provides information about the data
+partitions used to satisfy the query. 
+
+The following commands can be explained in {+df+}: 
+
+- ``aggregate()``
+- ``count()``
+- ``find()``
+
+Usage 
+~~~~~
+
+{+adf+} supports the following ``verbosity`` modes: 
+
+- ``queryPlanner`` - provides information on the query plan. If the
+  verbosity is not specified, {+adf+} defaults to this mode.
+- ``queryPlannerExtended`` - provides detailed information on the query
+  plan including information about the object-storage objects, such as
+  the object-storage object names and sizes that will be queried.
+- ``executionStats`` - provides query execution statistics and
+  performance.
+
+{+adf+} doesn't support the ``allPlansExecution`` mode.
+
+.. example:: 
+
+   The following example shows how to use the ``explain`` command to 
+   get information about the :manual:`aggregate 
+   </reference/command/aggregate>` command, including detailed 
+   information on the query plan.
+          
+   .. code-block:: js 
+      :copyable: false 
+
+      db.runCommand({ "explain": { "aggregate": "user", "verbosity":
+      "queryPlannerExtended", "pipeline": [ ], "cursor": {} }})
+      
+   The following example shows how to append a method to the
+   ``explain`` method, such as the :method:`~db.collection.find()`
+   method, to get query execution statistics on the query.
+
+   .. code-block:: js 
+      :copyable: false 
+
+      db.users.explain("executionStats").find({"type": "admin"})
+
+Output 
+~~~~~~
+
+When you run ``explain``, {+adf+} returns the following additional
+fields for other partitions:  
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 30 70 
+
+   * - Output Field Name
+     - Description 
+
+   * - ``stats``
+     - Document that describes the number and total size of partitions 
+       that {+adf+} might open for the query.
+
+   * - ``stats.size``
+     - Total size of partitions that {+adf+} might open for the query.
+
+   * - ``stats.numberOfPartitions``
+     - Number of partitions that {+adf+} might open for the query.
+
+   * - ``truncated``
+     - Boolean that indicates whether the ``explain`` output
+       is truncated. The ``explain`` total output document size is
+       limited to 16 MiB. 
+
+   * - ``plan``
+     - Document that contains the query execution plan for the query.  
+       The document contains nested execution plan nodes, each of which 
+       is a document describing the plan node. The nested plan node 
+       documents contain internal description of {+adf+}'s query 
+       execution, and include various node kinds that are subject to 
+       change. Contact MongoDB support if you need more help with 
+       understanding the query plan.
+
+.. tabs:: 
+
+   .. tab:: queryPlanner (default)
+      :tabid: query-planner
+
+      In the ``queryPlanner`` mode, the results returned by ``explain``
+      provide detailed information on the partitions in the {+fdi+}. 
+
+      .. code-block:: js
+         :copyable: false
+         :caption: Example Output
+         :linenos: 
+      
+         {
+           ok: 1,
+           stats: { size: '66 B', numberOfPartitions: 2 },
+           truncated: false,
+           plan: {
+             kind: 'region',
+             region: 'aws/us-east-1',
+             node: {
+               kind: 'data',
+               size: '66 B',
+               numberOfPartitions: 2,
+               partitionsTruncated: false,
+               partitions: [
+                 {
+                   source: 'projectID:cluster',
+                   provider: 'atlas',
+                   size: '4 B',
+                   database: 'locations',
+                   collection: 'nyc'
+                 },
+                 {
+                   source: 'dls:projectID',
+                   provider: 'dls:aws',
+                   size: '62 B',
+                   metadataLocation: { provider: 'aws', region: 'us-east-1' },
+                   dataSetName: 'v1$atlas$archive$etc',
+                   optimizationPlan: { kind: 'everything' }
+                 }
+               ]
+             }
+           }
+         }
+
+      The ``explain`` command returns the following additional fields
+      for |service| partitions: 
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
+
+         * - Output 
+           - Description 
+
+         * - ``database`` 
+           - Database that that {+adf+} queried. 
+
+         * - ``collection`` 
+           - Collection that that {+adf+} queried. 
+
+         * - ``pipeline`` 
+           - Aggregation pipeline that {+adf+} executed. 
+
+      The ``explain`` command returns the following additional field
+      for {+Online-Archive+} partitions:  
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
+
+         * - Output Field Name
+           - Description 
+
+         * - ``optimizationPlan``
+           - Details on {+Online-Archive+} optimizations. Queries will
+             likely be optimized when they contain fields that match the
+             configured partition keys for an {+Online-Archive+}. 
+
+   .. tab:: queryPlannerExtended
+      :tabid: query-planner-extended
+
+      In the ``queryPlannerExtended`` mode, the results returned by
+      ``explain`` provide extended query planning information for
+      partition types. 
+
+      .. code-block:: js
+         :copyable: false
+         :caption: Example Output
+         :linenos: 
+         :emphasize-lines: 27-28
+
+         {
+           ok: 1,
+           stats: { size: '66 B', numberOfPartitions: 2 },
+           truncated: false,
+           plan: {
+             kind: 'region',
+             region: 'aws/us-east-1',
+             node: {
+               kind: 'data',
+               size: '66 B',
+               numberOfPartitions: 2,
+               partitionsTruncated: false,
+               partitions: [
+                 {
+                   source:'projectID:cluster',
+                   provider: 'atlas',
+                   size: '4 B',
+                   database: 'locations',
+                   collection: 'nyc'
+                 },
+                 {
+                   source: 'dls:projectID',
+                   provider: 'dls:aws',
+                   size: '62 B',
+                   metadataLocation: { provider: 'aws', region: 'us-east-1' },
+                   dataSetName: 'v1$atlas$archive$etc',
+                   scannedDataSetPartitionsCount: 1,
+                   percentOfTotalPartitions: 100,
+                   optimizationPlan: { kind: 'everything' }
+                 },
+               ]
+             }
+           }
+         }
+
+      The ``explain`` command returns all the information from
+      ``queryPlanner`` and the following additional fields for
+      {+Online-Archive+} partitions: 
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
+
+         * - Output Field Name
+           - Description 
+
+         * - ``scannedDataSetPartitionsCount``
+           -  Number of partitions scanned to complete the query.
+
+         * - ``percentOfTotalPartitions`` 
+           - Percentage of partitions scanned over the total number of
+             partitions. 
+
+   .. tab:: executionStats
+      :tabid: execution-stats
+
+      In the ``executionStats`` mode, the results returned by
+      ``explain`` provide information on query execution statistics and 
+      performance for only |service| partitions. These are obtained by
+      executing an ``executionStats`` explain command on the |service|
+      partition's underlying |service| collection. For non-|service|
+      partitions, ``explain`` returns the ``queryPlanner`` information.
+      The ``partitions`` field in the results include an additional
+      ``explainResults`` field, which is a document that might contain
+      the following fields:
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
+
+         * - Output Field Name
+           - Description 
+
+         * - ``executionStats``
+           -  Provides information about the execution of the |service| cluster's winning query plan, including the number of documents and
+              keys examined. 
+
+         * - ``queryPlanner``
+           -  Contains information about |service| cluster's query plan selection, including index selection.
+
+         * - ``stages``
+           -  Includes breakdown of pipeline stages and statistics on a
+              per stage basis.  
+
+      .. note:: 
+
+         To learn more about these fields, see :ref:`executionStats`.
+
+      .. code-block:: js
+         :copyable: false
+         :caption: Example Output
+         :linenos:
+         :emphasize-lines: 20-34
+
+         {
+           ok: 1,
+           stats: { size: '66 B', numberOfPartitions: 2 },
+           truncated: false,
+           plan: {
+             kind: 'region',
+             region: 'aws/us-east-1',
+             node: {
+               kind: 'data',
+               size: '66 B',
+               numberOfPartitions: 2,
+               partitionsTruncated: false,
+               partitions: [
+                 {
+                   source: 'projectID:cluster',
+                   provider: 'atlas',
+                   size: '4 B',
+                   database: 'locations',
+                   collection: 'nyc',
+                   explainResults: {
+                     queryPlanner: {
+                       ...
+                       winningPlan: {
+                         ...
+                       },
+                       rejectedPlans: []
+                     },
+                     executionStats: {
+                       ...
+                     },
+                     stages: {
+                         ...
+                     }
+                   }
+                 },
+                 {
+                   source: 'dls:projectID',
+                   provider: 'dls:aws',
+                   size: '62 B',
+                   metadataLocation: { provider: 'aws', region: 'us-east-1' },
+                   dataSetName: 'v1$atlas$archive$etc'
+                 },
+               ]
+             }
+           }
+         }
+
+``getLog``
+----------
+
+For :manual:`getLog </reference/command/getlog>` command, {+adf+}  
+returns a successful response, but doesn't includes log data.
+
+``getMore`` 
+-----------
+
+For :manual:`getMore </reference/command/getMore>` command, {+adf+} 
+returns subsequent batches of documents currently pointed to by a cursor,
+when used in conjunction with commands that return a cursor, e.g.
+:manual:`find </reference/command/find>` and
+:manual:`aggregate </reference/command/aggregate>`.
+
+``hostInfo``
+------------
+
+For :manual:`hostInfo </reference/command/hostinfo>` command, {+adf+} 
+returns only the following subset of fields from the standard MongoDB 
+response:
+
+.. code-block:: json
+
+   {
+     "ok" : <return>,
+     "system" : {
+       "currentTime" : ISODate("<timestamp>"),
+       "hostname" : "<hostname>",
+       "cpuAddrSize" : <number>,
+       "memSizeMB" : <number>,
+       "numCores" : <number>,
+       "cpuArch" : "<identifier>",
+     },
+     "os" : {
+       "type" : "<string>",
+       "name" : "<string>",
+     },
+     "extra" : { }
+   }
+
+``ping``
+--------
+
+For :manual:`ping </reference/command/ping>` command, {+adf+} tests 
+whether a server is responding to commands.
+
+``whatsmyuri``
+--------------
+
+For :manual:`whatsmyuri </reference/command/whatsmyuri>` command, 
+{+adf+} returns the client IP address.

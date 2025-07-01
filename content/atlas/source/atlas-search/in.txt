@@ -1,0 +1,399 @@
+.. _in-ref:
+
+=================
+``in`` Operator
+=================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas search, in operator, in, search in operator, Atlas search in operator, query Boolean values, query arrays, query object id, query Int32, query Int64, query Double, Boolean queries, array queries, object id queries, numeric queries, search operators, search operators for arrays, search array operators, query string values, string array search
+   :description: Perform a search for a single or array of numeric, date, boolean, objectID, or string values. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+The ``in`` operator in |fts| performs a search for an array of |bson| ``number``,
+``date``, ``boolean``, ``objectId``, ``uuid``, or ``string`` values at the given
+path and returns documents where the value of the field equals any value
+in the specified array. If the field holds an array, then the
+``in`` operator selects the documents whose field holds an array that
+contains at least one element that matches any value in the specified
+array. 
+
+.. _in-ref-syntax:
+
+Syntax 
+------
+
+The ``in`` operator has the following syntax: 
+
+.. code-block:: json 
+   :copyable: true
+
+   { 
+     $search: {  
+       "index": <index name>, // optional, defaults to "default"
+       "in": {
+         "path": "<field-to-search>",
+         "score": <options>,
+         "value": <single-or-array-of-values-to-search>
+       }
+     }
+   }
+
+.. _in-ref-fields:
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10 
+
+   * - Field
+     - Type 
+     - Description 
+     - Necessity
+
+   * - ``path``
+     - string 
+     - Indexed field to search. You can also specify a wildcard
+       path to search.
+       
+       To search for :manual:`string </reference/bson-types/#string>`
+       values in a field, you must index the field as the |fts| :ref:`token
+       <bson-data-types-token>` type.
+
+     - Required
+
+   * - ``score``
+     - object
+     - Score to assign to matching search term results. Use one of 
+       the following options to modify the score:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score using the function
+         expression. 
+
+     - Optional
+
+   * - ``value`` 
+     - :ref:`boolean <boolean-ref>`, :ref:`objectId <objectId-ref>`, 
+       :ref:`number <bson-data-types-number>`, :ref:`date
+       <bson-data-types-date>`, :ref:`uuid <bson-data-types-uuid>`, or :ref:`string
+       <bson-data-types-string>`
+     - Value or values to search. Value can be either a single value or
+       an array of values of only one of the supported |bson| types and
+       can't be a mix of different types. 
+       
+       To search for :manual:`string </reference/bson-types/#string>`
+       values in a field, you must index the field as the |fts| :ref:`token
+       <bson-data-types-token>` type.
+
+     - Required
+
+.. _in-ref-egs:
+
+Examples 
+--------
+
+The following examples use the ``in`` operator to query collections in 
+the :ref:`sample_analytics.customers <sample-analytics>` collection. If
+you load the sample data on your |service| cluster and :ref:`create
+<ref-create-index>` an |fts| index named ``default`` that uses
+:ref:`static mappings <static-dynamic-mappings>` on the collection, you 
+can run the following queries against the collections. 
+
+.. _in-ref-ee-index:
+
+Sample Index 
+~~~~~~~~~~~~
+
+The sample index definition specifies the following actions to support
+``in`` operator queries against the indexed fields in the collection:
+
+- Automatically index all the dynamically indexable fields in the collection.
+- Statically index the ``name`` field as the :ref:`token
+  <bson-data-types-token>` type and converts the text in the field to
+  lowercase.
+
+.. code-block:: json 
+   :copyable: true 
+
+   {
+     "mappings": {
+       "index": "default",
+       "dynamic": true,
+       "fields": {
+         "name": {
+           "normalizer": "lowercase",
+           "type": "token"
+         }
+       }
+     }
+   }
+
+To learn how to create an |fts| index, see :ref:`ref-create-index`.
+
+.. _in-ref-eg-queries:
+
+Sample Queries
+~~~~~~~~~~~~~~
+
+.. tabs:: 
+
+   .. tab:: Single Value Field Match
+      :tabid: single 
+
+      The following query uses the ``in`` operator to search the
+      ``birthdate`` field, which contains a single value, for customers
+      who were born on given dates. The query uses the
+      :pipeline:`$project` stage to: 
+
+      - Omit the ``_id`` field in the results.
+      - Include only the ``name`` and ``birthdate`` fields in the 
+        results. 
+  
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language:  json
+            :linenos: 
+
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "in": {
+                    "path": "birthdate",
+                    "value": [ISODate("1977-03-02T02:20:31.000+00:00"), ISODate("1977-03-01T00:00:00.000+00:00"), ISODate("1977-05-06T21:57:35.000+00:00")]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "name": 1,
+                  "birthdate": 1
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              {
+                name: 'Elizabeth Ray',
+                birthdate: ISODate("1977-03-02T02:20:31.000Z")
+              },
+              {
+                name: 'Brad Cardenas',
+                birthdate: ISODate("1977-05-06T21:57:35.000Z")
+              }
+            ]
+
+      |fts| returns two documents that it matches with the dates
+      specified in the query.
+  
+   .. tab:: Array Value Field Match
+      :tabid: multiple 
+
+      The following query uses the ``in`` operator to query the
+      ``accounts`` field, which contains an array of numbers, for
+      customers with account numbers ``371138``, ``371139``, or
+      ``371140``. The query uses the :pipeline:`$project` stage to:
+
+      - Omit the ``_id`` field in the results.
+      - Include only the ``name`` and ``accounts`` fields in the results.
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language:  json
+            :linenos: 
+
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "in": {
+                    "path": "accounts",
+                    "value": [371138, 371139, 371140]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "name": 1,
+                  "accounts": 1
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              {
+                name: 'Elizabeth Ray',
+                accounts: [ 371138, 324287, 276528, 332179, 422649, 387979 ]
+              }
+            ]
+
+      |fts| returns only one document that it matches with the account
+      number ``371138`` specified in the query. 
+
+   .. tab:: Compound Query Match 
+      :tabid: compound 
+
+      The following query uses the ``text`` operator to query for
+      customers whose first name is ``James`` in the ``name`` field.
+      The query specifies preference using the ``in`` operator for
+      customers associated with the given objectIds in the ``_id``
+      field. The query uses :pipeline:`$limit` stage to limit the output
+      to 5 results and the :pipeline:`$project` stage to: 
+
+      - Include only the ``_id`` and ``name`` fields in the results. 
+      - Add a field named ``score`` to the results.
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language:  json
+            :linenos: 
+
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "in": {
+                        "path": "name",
+                        "value": ["james sanchez", "jennifer lawrence"]
+                      }
+                    }],
+                    "should": [{
+                      "in": {
+                        "path": "_id",
+                        "value": [ObjectId("5ca4bbcea2dd94ee58162a72"), ObjectId("5ca4bbcea2dd94ee58162a91")]
+                      }
+                    }]
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "name": 1,
+                  "score": { $meta: "searchScore" }
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              {
+                _id: ObjectId("5ca4bbcea2dd94ee58162a72"),
+                name: 'James Sanchez',
+                score: 2
+              },
+              {
+                _id: ObjectId("5ca4bbcea2dd94ee58162a71"),
+                name: 'Jennifer Lawrence',
+                score: 1
+              }
+            ]
+
+      |fts| returns documents that contain ``James Sanchez`` and
+      ``Jennifer Lawrence`` in the ``name`` field. |fts| scores the
+      document that contains ``name: 'James Sanchez'`` higher because it
+      matches the ``ObjectId`` specified in the ``should`` clause.
+
+Facet Query 
+~~~~~~~~~~~
+
+The following query uses the ``in`` operator to search the ``active``
+field, which contains a boolean value, for customers who are active. The
+query returns the number of active customers whose birthdate falls in
+the following buckets: 
+
+- 1970-01-01, inclusive lower bound for this bucket
+- 1980-01-01, exclusive upper bound for the 1970-01-01 bucket and inclusive lower bound for this bucket
+- 1990-01-01, exclusive upper bound for the 1980-01-01 bucket and inclusive lower bound for this bucket
+- 2000-01-01, exclusive upper bound for the 1990-01-01 bucket
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json
+      :linenos: 
+
+      db.customers.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "in": {
+                  "path": "active",
+                  "value": null
+                }
+              },
+              "facets": {
+                "birthdateFacet": {
+                  "type": "date",
+                  "path": "birthdate",
+                  "boundaries": [ISODate("1970-01-01"), ISODate("1980-01-01"), ISODate("1990-01-01"), ISODate("2000-01-01")],
+                  "default": "other"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
+
+      [
+        {
+          count: { lowerBound: Long('1') },
+          facet: {
+            birthdateFacet: {
+              buckets: [
+                {
+                  _id: ISODate('1970-01-01T00:00:00.000Z'),
+                  count: Long('1')
+                },
+                {
+                  _id: ISODate('1980-01-01T00:00:00.000Z'),
+                  count: Long('0')
+                },
+                {
+                  _id: ISODate('1990-01-01T00:00:00.000Z'),
+                  count: Long('0')
+                }
+              ]
+            }
+          }
+        }
+      ]

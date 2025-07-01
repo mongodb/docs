@@ -1,0 +1,226 @@
+=============
+FAQ: Security
+=============
+
+.. meta::
+   :description: Understand Atlas's security measures, including TLS encryption requirements and certificate authority details.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+How does |service| encrypt my data?
+-----------------------------------
+
+|service| uses whole volume (disk) encryption for any data at rest,
+including your cluster data and backups of that data.
+
+|service| also requires |tls| encryption for client data and
+intra-cluster network communications.
+
+If your organization requires more specific information regarding
+|service| encryption, please contact |service| |mdb-support|:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-support.rst
+
+   .. step:: Request support.
+
+Can I disable TLS on my deployment?
+-----------------------------------
+
+No.
+
+.. _faq-tls-1.0-deprecation:
+
+What versions of TLS does |service| support?
+-------------------------------------------- 
+
+|service| requires |tls| connections for all |service| clusters. 
+After July 2020, |service| enabled Transport Layer Security  (|tls|)
+protocol version 1.2 by default for all new |service|  clusters
+regardless of the MongoDB version.
+
+MongoDB 6.0 and later disabled support for TLS 1.0 where |tls| 1.1+ is available.
+You can manually configure |tls| 1.1 or 1.0 by 
+:ref:`editing your cluster configuration 
+<scale-cluster-more-configuration-options>`. 
+
+.. include:: /includes/tls-deprecation.rst
+
+You can read more about timing and reasons for the change from the
+`Payment Card Industry (PCI) <https://blog.pcisecuritystandards.org/migrating-from-ssl-and-early-tls>`_
+as well as the
+`National Institute of Standards and Technology (NIST) 
+<https://www.nist.gov/news-events/news/2014/04/nist-revises-guide-use-transport-layer-security-tls-networks>`_.
+
+If you have questions about |tls| support or cannot update your
+applications to support |tls| 1.2, please contact |service| 
+|mdb-support|.
+
+To open a |service| support ticket:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-support.rst
+
+   .. step:: Request support.
+
+How do I know if my applications support TLS 1.2?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Applications whose underlying programming languages or security 
+libraries predate |tls| 1.2 may require updating to a more recent 
+version to support |tls| 1.2. You may also need to update the 
+application host operating system to support |tls| 1.2.
+
+MongoDB and |service| don't provide services to audit external
+applications for which versions of |tls| support they support.
+Third party services, such as
+`howsmyssl.com <https://www.howsmyssl.com/s/api.html>`_
+may provide the appropriate tooling. MongoDB doesn't endorse this
+service, and its reference is only informational. Use your
+organization's procedures for selecting the vendor or service for auditing
+your applications.
+
+What do I have to do to update my clusters for TLS 1.2?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Conduct an audit of your applications for support of |tls| 1.2.
+- Udate all components of your technology stack that don't support
+  |tls| 1.2.
+- :ref:`Modify <scale-cluster-more-configuration-options>` your cluster
+  configuration to use |tls| 1.2.
+
+Can I force enable TLS 1.0?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| allows you to manually configure |tls| 1.0 during
+:ref:`cluster modification <scale-cluster-more-configuration-options>`.
+
+Enabling |tls| 1.0 for any |service| cluster carries significant risks.
+Consider enabling |tls| 1.0 only for as long as required to update your
+application stack to support |tls| 1.2.
+
+.. include:: /includes/tls-deprecation.rst
+
+.. _faq-tls-ca:
+
+Which certificate authority signs MongoDB Atlas TLS certificates?
+-----------------------------------------------------------------
+
+|service-fullname| uses `Let's Encrypt <https://letsencrypt.org>`__ as
+the |certauth| for |tls| certificates for all {+clusters+}.
+
+Starting in June of 2025, we are adding Google Trust Services as an
+additional |certauth| for |service| {+clusters+} to improve availability.
+With this addition, |service| signs |tls| certificates for your {+clusters+}
+with the :guilabel:`GTS Root R1`, :guilabel:`GTS Root R2`, :guilabel:`GTS Root R3`, 
+or :guilabel:`GTS Root R4` root |certauth| from Google Trust Services, 
+*in addition* to the :guilabel:`ISRG Root X1` root |certauth| from Let's Encrypt.
+
+|service| will use the :guilabel:`GTS Root R3` and :guilabel:`GTS Root R4` root CA certificates
+for |tls| 1.3 support in the future.
+
+.. note:: 
+   
+   Most application environments already have Let's Encrypt and Google Trust
+   Services in their trusted |certauth| list.
+
+To download the |certauth| certificates, see the
+`Google Trust Services repository <https://pki.goog/repository/>`__ and 
+`ISRG Root X1 <https://letsencrypt.org/certificates/>`__.
+
+.. note:: 
+
+   |service| automatically rotates the certificates. You don't need to
+   run the :dbcommand:`rotateCertificates` command. Use the
+   ``rotateCertificates`` command only if you want to rotate the
+   certificates manually.
+
+How often does an Atlas Cluster rotate TLS certificates?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|tls| certificates are valid for 90 days from the day it is issued.
+Certificates are rotated 42 days before the certificate's expiration
+date.
+
+Use the following command to check expiration of your |tls| certificate
+of a node:
+
+.. code-block::
+
+   echo | openssl s_client -showcerts -connect $HOSTNAME:$PORT 2> /dev/null | openssl x509 -noout -enddate
+
+.. _tls-change-hard-code:
+
+Hard-coded Certificate Authority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We don't recommend hard-coding or pinning `intermediate certificates
+<https://letsencrypt.org/certificates/#intermediate-certificates>`__
+because it introduces an operational burden and availability risk. If
+Let's Encrypt or Google Trust Services rotates or replaces your pinned
+intermediate certificate, your application might fail to connect, which
+results in an outage.
+
+If you must pin a certificate, pin it to |certauth| certificates and not
+to any intermediate certificates.
+
+Java Users
+~~~~~~~~~~
+
+Let's Encrypt's ISRG root certificate and Google Trust Services root
+certificates are both available in the default trust store of `Java
+version 7 after the 7u391 update
+<https://www.oracle.com/java/technologies/javase/7-support-relnotes.html#JDK-8307134>`__
+and `Java version 8 after the 8u381 update
+<https://www.oracle.com/java/technologies/javase/8u381-relnotes.html#JDK-8307134>`__.
+Use a Java release after 18 July 2023.
+
+Ensure your Java client software is up-to-date. Use the latest Java
+versions to utilize many improvements beyond these new |certauth|
+requirements for our |tls| certificates.
+
+If you have your own trust store, add the Let's Encrypt and Google Trust
+Services certificates to it. To learn more, see
+:ref:`faq-tls-ca`
+
+Windows Server Users
+~~~~~~~~~~~~~~~~~~~~
+
+The ISRG Root X1, GTS Root R1 and GTS Root R2 root |certauth| aren't
+included by default in Windows Server, but it is available in the
+`Microsoft Trusted Root Program
+<https://docs.microsoft.com/en-us/security/trusted-root/participants-list>`__.
+
+
+To configure Windows Server to download trusted root certificates, see
+`Windows Documentation
+<https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn265983(v=ws.11)>`__.
+
+Amazon Linux AMI Users
+~~~~~~~~~~~~~~~~~~~~~~
+
+Some versions of `Amazon Linux AMI
+<https://aws.amazon.com/amazon-linux-ami/>`__  may not have both ISRG
+Root X1 and GTS Root R1 and R2 certificates. Please migrate to a newer
+version of Amazon Linux for required root certificates. After June 2025,
+we will require the support of ISRG Root X1, GTS Root R1 and R2
+certificates for |service| to avoid certificate compatibility issues.
+
+If you must use an older Amazon Linux AMI, manually install the ISRG
+Root X1, GTS Root R1 and R2 root |certauth|.
+
+Everyone Else
+~~~~~~~~~~~~~
+
+This change shouldn't impact you if you use a recent programming
+language and operating system version.

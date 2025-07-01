@@ -1,0 +1,400 @@
+.. _regex-ref:
+
+==================
+``regex`` Operator
+==================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: regex operator, term level operator, regular expressions
+   :description: Learn how to use a regular expression in your Atlas Search query.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: regex
+
+   ``regex`` interprets the ``query`` field as a regular expression.
+   ``regex`` is a term-level operator, meaning that the ``query`` field
+   isn't analyzed.
+
+   .. seealso::
+
+      - :ref:`Analyzers <analyzers-ref>`.
+      - :ref:`Analyzed field example <analyzed-field-example>`.
+
+   .. note::
+
+      The regular expression language available to the ``regex``
+      operator is a limited subset of the |pcre| library.
+
+      For detailed information, see the
+      `Class RegExp <https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/util/automaton/RegExp.html>`__ documentation.
+
+.. _regex-syntax:
+
+Syntax
+------
+
+``regex`` has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     $search: {
+       "index": <index name>, // optional, defaults to "default"
+       "regex": {
+         "query": "<search-string>",
+         "path": "<field-to-search>",
+         "allowAnalyzedField": <boolean>,
+         "score": <options>
+       }
+     }
+   }
+
+.. _regex-options:
+
+Options
+-------
+
+``regex`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 40 10 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+     - Default
+
+   * - ``query``
+     - string or array of strings
+     - String or strings to search for.
+     - yes
+     -
+
+   * - ``path``
+     - string or array of strings
+     - Indexed field or fields to search. You can also specify a 
+       wildcard path to search.
+     - yes
+     -
+
+   * - ``allowAnalyzedField``
+     - boolean
+     - Must be set to ``true`` if the query is run against an analyzed
+       field.
+     - no
+     - ``false``
+
+   * - ``score``
+     - object
+     - :ref:`Score <scoring-ref>` to assign to matching search term 
+       results. Options are: 
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given
+         number.
+       - ``function``: replace the result score with the given
+         expression. 
+
+     - no
+     -
+
+Behavior
+--------
+
+.. _analyzed-field-example:
+
+``regex`` is a term-level operator, meaning that the ``query`` field is
+not analyzed. Regular expression searches work well with the
+:ref:`keyword analyzer <ref-keyword-analyzer>`, because it indexes
+fields one word at a time. To do a case-sensitive search, do not use 
+the default analyzer, :ref:`standard analyzer <ref-standard-analyzer>`, 
+because the ``standard`` analyzer lower cases all terms. Specify a 
+different :ref:`analyzer <analyzers-ref>` instead.
+
+It is possible to use the ``regex`` operator to perform searches on an
+analyzed field by setting the ``allowAnalyzedField`` option to
+``true``, but you may get unexpected results.
+
+.. example::
+
+   Searching for ``.*Star Trek.*`` on a field indexed with the
+   :ref:`keyword analyzer <ref-keyword-analyzer>` finds all documents in which the field contains
+   the string ``Star Trek`` in any context. Searching for ``.*Star
+   Trek.*`` on a field indexed with the :ref:`standard analyzer 
+   <ref-standard-analyzer>` finds nothing, because there is a space 
+   between ``Star`` and ``Trek``, and the index contains no spaces.
+
+Lucene Regular Expression Behavior
+----------------------------------
+
+The |fts| ``regex`` operator uses the `Lucene regular expression engine
+<https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/util/automaton/RegExp.html>`__,
+which differs from `Perl Compatible Regular Expressions <https://www.pcre.org/>`__.
+
+Reserved characters
+~~~~~~~~~~~~~~~~~~~
+
+The following characters are reserved as operators when used in regular
+expressions:
+
+``. ? + * | { } [ ] ( ) < > " \ @ #``
+
+To use any of the above characters literally in a matching expression,
+precede it with a ``\`` character. 
+
+.. example::
+
+   ``who\?`` *matches "who?"*
+
+
+.. include:: /includes/fts/facts/fact-fts-escape-char-behavior.rst
+
+Supported Operators
+~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 60 30
+
+   * - Operator
+     - Description
+     - Example
+
+   * - ``.``
+     - Matches any character.
+     - ``x.z`` *matches "xyz", "xaz", etc.* 
+
+   * - ``?``
+     - The preceding character is optional and matches if it occurs no more than
+       once.
+     - ``xyz?`` *matches "xy" and "xyz"*
+
+   * - ``+``
+     - The preceding character matches if it occurs one or more times.
+     - ``xy+`` *matches "xy", "xyy", "xyyy", etc.*
+
+   * - ``*``
+     - The preceding character matches if it occurs any number of times.
+     - ``xyz*`` *matches "xy", "xyz", "xyzz", etc.*
+
+   * - ``|``
+     - The ``OR`` operator. The expression matches if either of the two
+       patterns on either side of the ``|`` operator matches. 
+     - ``abc|xyz`` *matches "abc" or "xyz"*
+
+   * - ``{<number>}``
+     - The preceding character matches if it occurs exactly <number> times.
+     - ``xyz{3}`` *matches "xyzzz"*
+
+   * - ``()``
+     - Characters inside parentheses are treated as a single unit for matching
+       purposes.
+     - ``xyz(abc)[2]`` *matches "xyzabcabc"*
+
+   * - ``[]``
+     - Matches any of the characters inside the square brackets. 
+      
+       Adding a ``^`` to the beginning matches any character except 
+       those within the square brackets. 
+
+       Inside the square brackets, ``-`` indicates a range, unless ``-`` is 
+       the first character or is escaped with a ``\``.  
+     - | ``[xyz]`` *matches "x", "y", and "z"*
+       | ``[^abc]`` *matches any character except "a", "b", or "c"*
+       | ``[a-d]`` *matches "a", "b", "c", or "d"*
+       | ``[0-9]`` *matches any numeric character from 0 through 9* 
+
+   * - ``<>`` 
+     - Match a numeric range. 
+     - ``<1-3>`` *matches "1", "2", and "3"*
+
+   * - ``#`` 
+     - The empty language operator. The ``#`` operator does not match any string, including an empty string.
+     - ``#|xyz`` *matches "xyz" and nothing else*
+
+Unsupported Operators
+~~~~~~~~~~~~~~~~~~~~~
+
+``regex`` does not support anchor operators. For example, these
+operators are not supported:
+
+- ``^``, which matches the beginning of a line.
+- ``$``, which matches the end of a line.
+
+To match a term, the regular expression must match the entire string.
+
+Examples
+--------
+
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database with a custom index definition that uses the
+:ref:`keyword analyzer <ref-keyword-analyzer>`. If you have the
+:ref:`sample dataset <available-sample-datasets>` on your cluster, you
+can create an |fts| index on the ``movies`` collection and run the
+example queries on your cluster. 
+
+Index Definition
+~~~~~~~~~~~~~~~~
+
+The following index definition indexes the ``title`` field in the
+``movies`` collection with the
+:ref:`keyword analyzer <ref-keyword-analyzer>`:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     "mappings": {
+       "fields": {
+         "title": {
+           "analyzer": "lucene.keyword",
+           "type": "string"
+         },
+         "genres": {
+           "type": "token"
+         }
+       }
+     }
+   }
+
+The following example searches all ``title`` fields for movie titles
+that end with the word ``Seattle``. The ``(.*)`` regular expression
+matches any number of characters. 
+
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+              "regex": {
+                "path": "title",
+                "query": "(.*) Seattle"
+              }
+          }
+        },
+        {
+          $project: {
+              "_id": 0,
+              "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+
+      { "title" : "Sleepless in Seattle" }
+      { "title" : "Battle in Seattle" }
+
+The following example uses the regular expression ``[0-9]{2} (.){4}s``
+to find movie titles which begin with a 2-digit number followed by a
+space, and end with a 5-letter word ending in ``s``.
+
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+              "regex": {
+                "path": "title",
+                "query": "[0-9]{2} (.){4}s"
+              }
+          }
+        },
+        {
+          $project: {
+              "_id": 0,
+              "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+
+      { "title" : "20 Dates" }
+      { "title" : "25 Watts" }
+      { "title" : "21 Grams" }
+      { "title" : "13 Lakes" }
+      { "title" : "18 Meals" }
+      { "title" : "17 Girls" }
+      { "title" : "16 Acres" }
+      { "title" : "26 Years" }
+      { "title" : "99 Homes" }
+      { "title" : "45 Years" }
+
+The following example uses the regular expression ``.*`` to find movie
+titles that contain the term ``summer`` anywhere in the ``title`` and
+returns the number of movies that match the criteria in each genre.
+
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$searchMeta": {
+            "facet": {
+              "operator": {
+                "regex": {
+                  "path": "title",
+                  "query": ".*summer.*"
+                }
+              },
+              "facets": {
+                "genresFacet": {
+                  "type": "string",
+                  "path": "genres"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+
+      [
+        {
+          count: { lowerBound: Long('6') },
+          facet: {
+            genresFacet: {
+              buckets: [
+                { _id: 'Comedy', count: Long('5') },
+                { _id: 'Fantasy', count: Long('3') },
+                { _id: 'Romance', count: Long('3') },
+                { _id: 'Drama', count: Long('2') },
+                { _id: 'Horror', count: Long('1') },
+                { _id: 'Mystery', count: Long('1') }
+              ]
+            }
+          }
+        }
+      ]

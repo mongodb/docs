@@ -1,0 +1,497 @@
+.. _atlas-mongodb-read:
+
+========================================
+Read Data from MongoDB Atlas - Functions
+========================================
+
+.. default-domain:: mongodb
+
+.. meta:: 
+  :description: Use Atlas Functions to query and read data from MongoDB Atlas.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The examples on this page demonstrate how to use the MongoDB Query API
+in an |service| Function to read documents from your |service| {+cluster+}.
+
+Learn about the :ref:`methods <atlas-mongodb-query-methods>` that you
+can call to query data, the :ref:`operators <atlas-mongodb-query-operators>`
+that let you write expressive match filters, and some :ref:`patterns
+<atlas-mongodb-query-patterns>` for combining them to handle common use cases.
+
+.. include:: /includes/triggers/functions/data-model.rst
+
+.. include:: /includes/triggers/functions/setup.rst
+
+.. _atlas-mongodb-query-methods:
+
+Query Methods
+-------------
+
+.. _atlas-mongodb-find-a-single-document:
+
+Find a Single Document (``findOne()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can find a single document using the :method:`collection.findOne()`
+method.
+
+The following :ref:`function <atlas-functions>` snippet finds a single
+document from the ``items`` collection that has a ``quantity`` greater
+than or equal to ``25``:
+
+.. include:: /includes/triggers/functions/snippets/findOne.rst
+
+.. _atlas-mongodb-find-one-or-more-documents:
+
+Find One or More Documents (``find()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can find multiple documents using the :method:`collection.find()`
+method.
+
+The following :ref:`function <atlas-functions>` snippet finds all documents in
+the ``items`` collection that have at least one review and returns them
+sorted by ``name`` with the ``_id`` field omitted:
+
+.. include:: /includes/triggers/functions/snippets/findMany.rst
+
+.. _atlas-mongodb-count-documents:
+
+Count Documents in the Collection (``count()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can count documents in a collection using the
+:method:`collection.count()` method. You can specify a query to
+control which documents to count. If you don't specify a query, the
+method counts all documents in the collection.
+
+The following :ref:`function <atlas-functions>` snippet counts the number of
+documents in the ``items`` collection that have at least one review:
+
+.. include:: /includes/triggers/functions/snippets/count.rst
+
+.. _atlas-mongodb-query-patterns:
+
+Query Patterns
+--------------
+
+.. _atlas-query-pattern-document-id:
+
+Find by Document ID
+~~~~~~~~~~~~~~~~~~~
+
+You can query a collection to find a document that has a specified ID.
+MongoDB automatically stores each document's ID as an ``ObjectId`` value
+in the document's ``_id`` field.
+
+.. code-block:: javascript
+
+   { "_id": <ObjectId> }
+
+.. example::
+
+   The following query matches a document in the collection that has an
+   ``_id`` value of ``5ad84b81b8b998278f773c1b``:
+
+   .. code-block:: javascript
+
+      { "_id": BSON.ObjectId("5ad84b81b8b998278f773c1b") }
+
+.. _atlas-query-pattern-date:
+
+Find by Date
+~~~~~~~~~~~~
+
+You can query a collection to find documents that have a field with a
+specific date value, or query for a documents within a range of dates.
+
+.. code-block:: javascript
+
+   { "<Date Field Name>": <Date | Expression> }
+
+.. example::
+
+   The following query matches documents in the collection that have a
+   ``createdAt`` date of January 23, 2019:
+
+   .. code-block:: javascript
+
+      { "createdAt": new Date("2019-01-23T05:00:00.000Z") }
+
+.. example::
+
+   The following query matches documents in the collection that have a
+   ``createdAt`` date some time in the year 2019:
+
+   .. code-block:: javascript
+
+      {
+        "createdAt": {
+          "$gte": new Date("2019-01-01T00:00:00.000Z"),
+          "$lt": new Date("2020-01-01T00:00:00.000Z"),
+        }
+      }
+
+.. _atlas-query-pattern-root-level-field:
+
+Match a Root-Level Field
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can query a collection based on the value of a root-level field in
+each document. You can specify either a specific value or a nested
+expression that MongoDB evaluates for each document.
+
+For more information, see the :manual:`Query Documents
+</tutorial/query-documents>` tutorial in the MongoDB Server Manual.
+
+.. code-block:: javascript
+
+   { "<Field Name>": <Value | Expression> }
+
+.. example::
+
+   The following query matches documents where the ``name`` field has a
+   value of ``Basketball``:
+
+   .. code-block:: javascript
+
+      { "name": "Basketball" }
+
+.. _atlas-query-pattern-multiple-fields:
+
+Match Multiple Fields
+~~~~~~~~~~~~~~~~~~~~~
+
+You can specify multiple query conditions in a single query document.
+Each root-level field of a query document maps to a field in the
+collection. MongoDB only returns documents that fulfill all query
+conditions.
+
+For more information, see the :manual:`Query on Embedded/Nested
+Documents </tutorial/query-embedded-documents>` tutorial in the MongoDB
+Server Manual.
+
+.. code-block:: javascript
+
+   {
+     "<Field Name 1>": <Value | Expression>,
+     "<Field Name 2>": <Value | Expression>
+   }
+
+.. example::
+
+   The following query matches documents where the ``name`` field has a
+   value of ``Basketball`` and the ``quantity`` value is greater than
+   zero:
+
+   .. code-block:: javascript
+
+      {
+        "name": "Basketball",
+        "quantity": { "$gt": 0 }
+      }
+
+.. _atlas-query-pattern-embedded-field:
+
+Match an Embedded Document Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can query a collection based on the value of embedded document
+fields. To specify an embedded document field, use multiple nested query
+expressions or standard document :manual:`dot notation
+</core/document/#dot-notation>`.
+
+For more information, see the :manual:`Query on Embedded/Nested
+Documents </tutorial/query-embedded-documents>` tutorial in the MongoDB
+Server Manual.
+
+.. code-block:: javascript
+   :caption: Nested Query Expressions
+
+   { "<Field Name>": { "<Nested Field Name>": <Value | Expression> } }
+
+.. code-block:: javascript
+   :caption: Dot Notation
+
+   { "<Field Name>.<Nested Field Name>": <Value | Expression> }
+
+.. example::
+
+   The following query matches documents where the first review in the
+   ``reviews`` array was left by someone with the username
+   ``JoeMango``:
+
+   .. code-block:: javascript
+
+      {
+        "reviews.0.username": "JoeMango"
+      }
+
+.. _atlas-query-pattern-array-of-values:
+
+Match an Array of Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can query a collection based on all the elements contained in an
+array field.
+
+If you query an array field for a specific array of values, MongoDB
+returns documents where the array field *exactly matches* the specified
+array of values.
+If you want MongoDB to return documents where the array field *contains*
+all elements in the specified array of values, use the :manual:`$all
+</reference/operator/query/all>` operator.
+
+For more information, see the :manual:`Query an Array
+</tutorial/query-arrays>` tutorial in the MongoDB Server Manual.
+
+.. code-block:: javascript
+
+   { "<Array Field Name>": [<Value>, ...] }
+
+.. example::
+
+   The following query matches documents where the ``reviews`` array
+   contains exactly one element and the element matches the specified
+   document:
+
+   .. code-block:: javascript
+
+      {
+        "reviews": [{ username: "JoeMango", comment: "This rocks!" }]
+      }
+
+.. example::
+
+   The following query matches documents where the ``reviews`` array
+   contains one or more elements that match all of the specified
+   documents:
+
+   .. code-block:: javascript
+
+      {
+        "reviews": {
+          "$all": [{ username: "JoeMango", comment: "This rocks!" }]
+        }
+      }
+
+.. _atlas-query-pattern-array-field:
+
+Match an Array Element
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can query a collection based on the value of one or more elements in
+an array field.
+
+If you query an array field with a query expression that has multiple
+conditions, MongoDB returns documents where *any combination* of the
+array's elements satisfy the expression. If you want MongoDB to return
+documents where a *single* array element satisfies all of the expression
+conditions, use the :manual:`$elemMatch
+</reference/operator/query/elemMatch>` operator.
+
+For more information, see the :manual:`Query an Array
+</tutorial/query-arrays>` tutorial in the MongoDB Server Manual.
+
+.. code-block:: javascript
+
+   { "<Array Field Name>": <Value | Expression> }
+
+.. example::
+
+   The following query matches documents where both conditions in the
+   embedded expression are met by *any combination* of elements in the
+   ``reviews`` array. The specified ``username`` and ``comment`` values
+   do not need to be in the same document:
+
+   .. code-block:: javascript
+
+      {
+        "reviews": {
+          "username": "JoeMango",
+          "comment": "This is a great product!"
+        }
+      }
+
+.. example::
+
+   The following query matches documents where both conditions in the
+   embedded expression are met by a *single* element in the ``reviews``
+   array. The specified ``username`` and ``comment`` must be in the same
+   document:
+
+   .. code-block:: javascript
+
+      {
+        "reviews": {
+          "$elemMatch": {
+            "username": "JoeMango",
+            "comment": "This is a great product!"
+          }
+        }
+      }
+
+.. _atlas-mongodb-query-operators:
+
+Query Operators
+---------------
+
+.. _atlas-query-operators-comparison:
+
+Compare Values
+~~~~~~~~~~~~~~
+
+You can use a :manual:`comparison operator
+</reference/operator/query-comparison>` to compare the value of a
+document field to another value.
+
+.. code-block:: javascript
+
+   { "<Field Name>": { "<Comparison Operator>": <Comparison Value> } }
+
+The following comparison operators are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 1 3
+
+   * - Comparison Operator
+     - Description
+   
+   * - :manual:`$eq </reference/operator/query/eq>`
+     - Matches documents where the value of a field equals a specified
+       value.
+   
+   * - :manual:`$ne </reference/operator/query/ne>`
+     - Matches documents where the value of a field does not equal a
+       specified value.
+   
+   * - :manual:`$gt </reference/operator/query/gt>`
+     - Matches documents where the value of a field is strictly greater
+       than a specified value.
+   
+   * - :manual:`$gte </reference/operator/query/gte>`
+     - Matches documents where the value of a field is greater than or
+       equal to a specified value.
+   
+   * - :manual:`$lt </reference/operator/query/lt>`
+     - Matches documents where the value of a field is strictly less
+       than a specified value.
+   
+   * - :manual:`$lte </reference/operator/query/lte>`
+     - Matches documents where the value of a field is less than or
+       equal to a specified value.
+   
+   * - :manual:`$in </reference/operator/query/in>`
+     - Matches documents where the value of a field is included in a
+       specified array of values.
+   
+   * - :manual:`$nin </reference/operator/query/nin>`
+     - Matches documents where the value of a field is not included in
+       a specified array of values.
+
+.. example::
+
+   The following query matches documents where ``quantity`` is greater
+   than zero and less than or equal to ten.
+
+   .. code-block:: javascript
+
+      {
+        "quantity": { "$gt": 0, "$lte": 10 }
+      }
+
+.. _atlas-query-operators-logical:
+
+Evaluate a Logical Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use a :manual:`logical operator
+</reference/operator/query-logical>` to evaluate multiple expressions
+for a single field.
+
+.. code-block:: javascript
+
+   {
+     "<Field Name>": {
+       "<Logical Operator>": [<Expression>, ...]
+     }
+   }
+
+The following logical operators are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 1 3
+
+   * - Logical Operator
+     - Description
+   
+   * - :manual:`$and </reference/operator/query/and>`
+     - Matches documents where the value of a field matches *all* of the
+       specified expressions.
+   
+   * - :manual:`$or </reference/operator/query/or>`
+     - Matches documents where the value of a field matches *any* of the
+       specified expressions.
+   
+   * - :manual:`$nor </reference/operator/query/or>`
+     - Matches documents where the value of a field matches *none* of
+       the specified expressions.
+   
+   * - :manual:`$not </reference/operator/query/not>`
+     - Inverts the boolean result of the specified logical expression.
+
+.. example::
+
+   The following query matches documents where either ``quantity`` is
+   greater than zero or there are no more than five documents in the
+   ``reviews`` array.
+
+   .. code-block:: javascript
+
+      {
+        "$or": [
+          { "quantity": { "$gt": 0 } },
+          { "reviews": { "$size": { "$lte": 5 } } }
+        ]
+      }
+
+.. _atlas-query-operators-regex:
+
+Evaluate a Regular Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$regex </reference/operator/query/regex>` query
+operator to return documents with fields that match a
+:wikipedia:`regular expression <Regular_expression>`. To avoid ambiguity
+with the ``$regex`` EJSON type, you must use a :ref:`atlas-BSON.BSONRegExp
+<bson-regexp>` object.
+
+.. code-block:: javascript
+
+   {
+     "<Field Name>": {
+       "$regex": BSON.BSONRegExp(<RegEx String>, <RegEx Options>)
+     }
+   }
+
+.. example::
+
+   The following query matches documents where the ``name`` value
+   contains the substring ``ball`` (case-insensitive).
+
+   .. code-block:: javascript
+
+      {
+        "name": { "$regex": BSON.BSONRegExp(".+ball", "i") }
+      }

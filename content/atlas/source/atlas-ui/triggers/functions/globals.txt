@@ -1,0 +1,1612 @@
+.. _atlas-function-global-modules:
+
+==============
+Global Modules
+==============
+
+.. meta::
+   :description: Learn how to use the MongoDB Query API in an Atlas function to aggregate documents in your Atlas cluster.
+   :keywords: code example
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+All :ref:`functions <atlas-functions>` have access to built-in global modules
+that support common data transformation, encoding, and processing work.
+You can access the modules in your function source code via global
+variables specific to each module.
+
+.. tip::
+
+   These global modules are *not* the same as the Node.js built-in modules.
+   For more information on supported Node.js modules, including how to
+   import them, see :ref:`Built-in Module Support <atlas-js-support-builtin-modules>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Module
+     - Description
+
+   * - :ref:`JSON Web Tokens <atlas-function-utils-jwt>`
+     - Methods to read and write JSON Web Tokens.
+
+   * - :ref:`Cryptography <atlas-function-utils-crypto>`
+     - Methods that implement cryptographic algorithms like hashes and
+       signatures.
+
+   * - :ref:`JSON <atlas-json>`
+     - Methods that convert between string and object
+       representations of :wikipedia:`JSON <JSON>` data.
+
+   * - :ref:`EJSON <atlas-ejson>`
+     - Methods that convert between string and object
+       representations of :manual:`Extended JSON
+       </reference/mongodb-extended-json>` data.
+
+   * - :ref:`BSON <atlas-bson>`
+     - Methods that create :wikipedia:`Binary JSON <BSON>`
+       objects and convert between various BSON data types and
+       encodings.
+
+.. _atlas-function-utils-jwt:
+
+JSON Web Tokens (``utils.jwt``)
+-------------------------------
+
+You can create and read :jwt-io:`JSON Web Tokens <introduction>` with
+the ``utils.jwt`` interface.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Method
+     - Description
+
+   * - :method:`utils.jwt.encode()`
+     - Generates an encoded JSON Web Token string for a given
+       ``payload``, ``signingMethod``, and ``secret``.
+
+   * - :method:`utils.jwt.decode()`
+     - Decodes the ``payload`` of a JSON Web Token string.
+
+utils.jwt.encode()
+~~~~~~~~~~~~~~~~~~
+
+Generates an encoded JSON Web Token string for the ``payload`` based
+on the specified ``signingMethod`` and ``secret``.
+
+.. code-block:: typescript
+
+  utils.jwt.encode(
+      signingMethod: string,
+      payload: object,
+      secret: string,
+      customHeaderFields: object
+  ): string
+
+.. list-table::
+  :header-rows: 1
+  :widths: 15 10 75
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``signingMethod``
+    - string
+    - The cryptographic algorithm to use when encoding the JWT.
+      |service| supports the following JWT signing methods:
+
+      - ``"HS256"``: HMAC using SHA-256
+      - ``"HS384"``: HMAC using SHA-384
+      - ``"HS512"``: HMAC using SHA-512
+      - ``"RS256"``: RSASSA-PKCS1-v1_5 using SHA-256
+      - ``"RS384"``: RSASSA-PKCS1-v1_5 using SHA-384
+      - ``"RS512"``: RSASSA-PKCS1-v1_5 using SHA-512
+      - ``"ES256"``: ECDSA using P-256 and SHA-256
+      - ``"ES384"``: ECDSA using P-384 and SHA-384
+      - ``"ES512"``: ECDSA using P-512 and SHA-512
+      - ``"PS256"``: RSASSA-PSS using SHA-256 and MGF1 with SHA-256
+      - ``"PS384"``: RSASSA-PSS using SHA-384 and MGF1 with SHA-384
+      - ``"PS512"``: RSASSA-PSS using SHA-512 and MGF1 with SHA-512
+
+  * - ``payload``
+    - object
+
+    - A JSON object that specifies the token's claims and any
+      additional related data.
+
+  * - ``secret``
+    - string
+    - A secret string that |service| uses to sign the token. The value
+      of the string depends on the signing method that you use:
+
+      * - ``"HS256"``, ``"HS384"``, and ``"HS512"``: A random string.
+      * - ``"RS256"``, ``"RS384"``, and ``"RS512"``: An RSA-SHA private key in
+          PKCS#8 format.
+      * - ``"PS256"``, ``"PS384"``, and ``"PS512"``: An RSA-PSS private key in
+          PKCS#8 format.
+      * - ``"ES256"``, ``"ES384"``, and ``"ES512"``: An :wikipedia:`ECDSA
+          <Elliptic_Curve_Digital_Signature_Algorithm>`  private
+          key in PKCS#8 format.
+
+  * - ``customHeaderFields``
+    - object
+
+    - A JSON object that specifies additional fields to include in
+      the JWT's `JOSE header
+      <https://tools.ietf.org/html/rfc7515#section-4>`__.
+
+Returns
+```````
+
+Returns a JSON Web Token string encoded for the provided ``payload``.
+
+Consider the following JWT claims object:
+
+.. code-block:: json
+
+    {
+      "sub": "1234567890",
+      "name": "Joe Example",
+      "iat": 1565721223187
+    }
+
+We can encode the claims object as a JWT string by calling
+``utils.jwt.encode()``. The following function encodes the JWT
+using the ``HS512`` signing method and the secret
+``"SuperSecret"``:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+
+      exports = function() {
+        const signingMethod = "HS512";
+        const payload = {
+          "sub": "1234567890",
+          "name": "Joe Example",
+          "iat": 1565721223187
+        };
+        const secret = "SuperSecret";
+        return utils.jwt.encode(signingMethod, payload, secret);
+      }
+
+
+    .. output::
+      :language: json
+
+      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvZSBTY2htb2UiLCJpYXQiOjE1NjU3MjEyMjMxODd9.-QL15ldu2BYuJokNWT6YRiwZQIiIpvq6Kyv-C6qslNdNiUVxo8zqLJZ1iEkNf2yZKMIrQuMCtIC1tzd2H31AxA"
+
+utils.jwt.decode()
+~~~~~~~~~~~~~~~~~~
+
+Decodes the ``payload`` of the provided JSON Web Token string. The
+value of ``key`` must correspond to the secret value that was used to
+encode the JWT string.
+
+.. code-block:: typescript
+
+  utils.jwt.decode(
+      jwtString: string,
+      key: string,
+      returnHeader: boolean
+  ): object
+
+.. list-table::
+  :header-rows: 1
+  :widths: 15 15 70
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``jwtString``
+    - string
+    - A JSON Web Token string that encodes a set of claims signed
+      with a secret value.
+
+  * - ``key``
+    - string
+    - A string that |service| uses to verify the token signature. The
+      value of the string depends on the signing method that you use:
+
+      - ``"HS256"``, ``"HS384"``, and ``"HS512"``: The random string that was
+        used to sign the token.
+      - ``"RS256"``, ``"RS384"``, and ``"RS512"``: The RSA-SHA public key that
+        corresponds to the private key that was used to sign the token.
+      - ``"PS256"``, ``"PS384"``, and ``"PS512"``: The RSA-SHA public key that
+        corresponds to the private key that was used to sign the token.
+      - ``"ES256"``, ``"ES384"``, and ``"ES512"``: The :wikipedia:`ECDSA
+        <Elliptic_Curve_Digital_Signature_Algorithm>` public key that
+        corresponds to the private key that was used to sign the token.
+
+  * - ``returnHeader``
+    - boolean
+
+    - If ``true``, return the JWT's `JOSE header
+      <https://tools.ietf.org/html/rfc7515#section-4>`__ in addition
+      to the decoded payload.
+
+  * - ``acceptedSigningMethods``
+    - string[]
+
+    - Optional. Array of accepted signing methods. For example, ``["PS256", "HS256"]``.
+      This argument should be included to prevent against
+      `known JWT security vulnerabilities
+      <https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/#RSA-or-HMAC->`_.
+
+Returns
+```````
+
+If ``returnHeader`` is ``false``, returns the decoded EJSON
+payload.
+
+If ``returnHeader`` is ``true``, returns an object that contains
+the `JOSE header
+<https://tools.ietf.org/html/rfc7515#section-4>`__ in the
+``header`` field and the decoded EJSON payload in the ``payload``
+field.
+
+.. code-block:: json
+
+  {
+    "header": {
+      "<JOSE Header Field>": <JOSE Header Value>,
+      ...
+    },
+    "payload": {
+      "<JWT Claim Field>": <JWT Claim Value>,
+      ...
+    }
+  }
+
+Consider the following signed JWT string:
+
+.. code-block:: json
+
+  "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvZSBTY2htb2UiLCJpYXQiOjE1NjU3MjEyMjMxODd9.-QL15ldu2BYuJokNWT6YRiwZQIiIpvq6Kyv-C6qslNdNiUVxo8zqLJZ1iEkNf2yZKMIrQuMCtIC1tzd2H31AxA"
+
+The JWT was signed using the ``HS512`` signing method with the
+secret value ``"SuperSecret"``. We can decode the JWT's claims
+object ``utils.jwt.decode()``. The following function decodes the
+JWT string into an EJSON object:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+
+      exports = function(jwtString) {
+        const key = "SuperSecret";
+        return utils.jwt.decode(jwtString, key, false, ["HS512"]);
+      }
+
+    .. output::
+      :language: json
+
+      {
+        "sub": "1234567890",
+        "name": "Joe Example",
+        "iat": { "$numberDouble": 1565721223187 }
+      }
+
+.. _atlas-function-utils-crypto:
+
+Cryptography (``utils.crypto``)
+-------------------------------
+
+You can encrypt, decrypt, sign, and verify data using cryptographic
+algorithms with the ``utils.crypto`` interface.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Method
+     - Description
+
+   * - :method:`utils.crypto.encrypt()`
+     - Generates an encrypted text string from a given text string using
+       a specific encryption method and key.
+
+   * - :method:`utils.crypto.decrypt()`
+     - Decrypts a provided text string using a specific encryption
+       method and key.
+
+   * - :method:`utils.crypto.sign()`
+     - Generates a cryptographically unique signature for a given
+       message using a private key.
+
+   * - :method:`utils.crypto.verify()`
+     - Verifies that a signature is valid for a given message and public
+       key.
+
+   * - :method:`utils.crypto.hmac()`
+     - Generates an :wikipedia:`HMAC <HMAC>` signature from a given
+       input and secret.
+
+   * - :method:`utils.crypto.hash()`
+     - Generates a hash value for a given input and hash function.
+
+utils.crypto.encrypt()
+~~~~~~~~~~~~~~~~~~~~~~
+
+Generates an encrypted text string from the provided text using the
+specified encryption method and key.
+
+.. code-block:: typescript
+
+  utils.crypto.encrypt(
+    encryptionType: string,
+    message: string,
+    key: string
+  ): BSON.Binary
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``encryptionType``
+    - string
+    - The type of encryption with which to encrypt the message. The
+      following encryption types are supported:
+
+      - :wikipedia:`AES Encryption <Advanced_Encryption_Standard>` (``"aes"``)
+
+  * - ``message``
+    - string
+    - The text string that you want to encrypt.
+
+  * - ``key``
+    - string
+
+    - A cryptographic key used to encrypt the text. The key
+      you should use depends on the encryption method:
+
+      - AES:  16-byte, 24-byte, or 32-byte random string
+
+Returns
+```````
+
+A :ref:`BSON Binary <atlas-bson-binary>` object that contains the text
+string encrypted with the specified encryption type and key.
+
+Assume that we have defined a :ref:`value <atlas-define-value>`
+named ``aesEncryptionKey`` that contains the following 32-byte AES
+encryption key:
+
+.. code-block:: json
+
+    "603082712271C525E087BD999A4E0738"
+
+With this AES key, we can encrypt a message into a base64 string
+using the following function:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+      :emphasize-lines: 4
+
+      exports = function() {
+        const message = "MongoDB is great!"
+        const key = context.values.get("aesEncryptionKey");
+        const encryptedMessage = utils.crypto.encrypt("aes", message, key);
+        return encryptedMessage.toBase64();
+      }
+
+    .. output::
+      :language: json
+
+      "WPBuIvJ6Bity43Uh822dW8QlVYVJaFUiDeUjlTiJXzptUuTYIKPlXekBQAJb"
+
+utils.crypto.decrypt()
+~~~~~~~~~~~~~~~~~~~~~~
+
+Decrypts the provided text string using the specified encryption type
+and key. If both the encryption type and key are the same as those
+used to encrypt, this returns the original, unencrypted text.
+
+.. code-block:: typescript
+
+  utils.crypto.decrypt(
+    encryptionType: string,
+    encryptedMessage: BSON.Binary,
+    key: string
+  ): BSON.Binary
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``encryptionType``
+    - string
+    - The type of encryption that was used to encrypt the provided
+      text. The following encryption types are supported:
+
+      - :wikipedia:`AES Encryption <Advanced_Encryption_Standard>` (``"aes"``)
+
+  * - ``encryptedMessage``
+    - :ref:`BSON.Binary <atlas-bson-binary>`
+    - A BSON Binary that encodes the encrypted text string that
+      you want to decrypt.
+
+  * - ``key``
+    - string
+    - A cryptographic key used to decrypt the text. The key
+      you should use depends on the encryption type:
+
+      - AES:  16-byte, 24-byte, or 32-byte random string
+
+Returns
+```````
+
+A :ref:`BSON Binary <atlas-bson-binary>` object that contains the
+decrypted message.
+
+If the provided encrypted message was encrypted with the
+specified method and key, then the decrypted message is identical
+to the original message.
+
+Assume that we have defined a Value named
+``aesEncryptionKey`` that contains the following 32-byte AES
+encryption key:
+
+.. code-block:: json
+
+    "603082712271C525E087BD999A4E0738"
+
+We can use this AES key to decrypt any base64 string that was
+encrypted with the same key using the following function:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+      :emphasize-lines: 7
+
+      exports = function(encryptedMessage) {
+        // The encrypted message must be a BSON.Binary
+        if(typeof encryptedMessage === "string") {
+          encryptedMessage = BSON.Binary.fromBase64(encryptedMessage)
+        }
+        const key = context.values.get("aesEncryptionKey");
+        const decryptedMessage = utils.crypto.decrypt("aes", encryptedMessage, key);
+        return decryptedMessage.text();
+      }
+
+    .. output::
+      :language: json
+
+      "MongoDB is great!"
+
+utils.crypto.sign()
+~~~~~~~~~~~~~~~~~~~
+
+Generates a cryptographically unique signature for a message using a
+private key. The signature can be verified with the corresponding
+public key to ensure that the signer has access to the private key
+and that the message content has not been altered since it was
+signed.
+
+.. code-block:: typescript
+
+  utils.crypto.sign(
+    encryptionType: string,
+    message: string,
+    privateKey: string,
+    signatureScheme: string
+  ): BSON.Binary
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``encryptionType``
+    - string
+    - The type of encryption that was used to generate the
+      private/public key pair. The following encryption types are
+      supported:
+
+      - :wikipedia:`RSA Encryption <RSA_algorithm>` (``"rsa"``)
+
+  * - ``message``
+    - string
+    - The text string that you want to sign.
+
+  * - ``privateKey``
+    - string
+    - A private key generated with the specified encryption type.
+
+      **Important!** Not all RSA keys use the same format. |service| can only sign
+      messages with a private key that conforms to the standard
+      :wikipedia:`PKCS#1 <PKCS_1>` format. Private keys in this
+      format have the header ``-----BEGIN RSA PRIVATE KEY-----``.
+
+      .. include:: /includes/triggers/functions/shell-generate-an-rsa-key-pair.rst
+
+  * - ``signatureScheme``
+    - string
+    - Optional. Default: ``"pss"``
+
+      The :wikipedia:`padding scheme <Padding_(cryptography)>` that
+      the signature should use. |service| supports signing messages
+      with the following schemes:
+
+      - :wikipedia:`Probabilistic signature scheme <Probabilistic_signature_scheme>` (``"pss"``)
+      - :wikipedia:`PKCS1v1.5 <PKCS_1>` (``"pkcs1v15"``)
+
+Returns
+```````
+
+A :ref:`BSON.Binary <atlas-bson-binary>` :wikipedia:`cryptographic
+signature <Digital_signature>` for the message signed using the
+specified private key.
+
+Assume that we have defined a :ref:`value <atlas-define-value>`
+named ``rsaPrivateKey`` that contains the following RSA private key:
+
+.. code-block:: none
+
+    -----BEGIN RSA PRIVATE KEY-----
+    MIICXAIBAAKBgQDVsEjse2qO4v3p8RM/q8Rqzloc1lee34yoYuKZ2cemuUu8Jpc7
+    KFO1+aJpXdbSPZNhGLdANn8f2oMIZ1R9hgEJRn/Qm/YyC4RPTGg55nzHqSlziNZJ
+    JAyEUyU7kx5+Kb6ktgojhk8ocZRkorM8FEylkrKzgSrfay0PcWHPsKlmeQIDAQAB
+    AoGAHlVK1L7kLmpMbuP4voYMeLjYE9XdVEEZf2GiFwLSE3mkJY44033y/Bb2lgxr
+    DScOf675fFUAEK59ATlhxfu6s6rgx+g9qQQ+mL74YZWPqiZHBPjyMRaBalDVC4QF
+    YJ+DopFcB8hY2ElXnbK70ALmVYNjw3RdmC97h0YfOsQcWW0CQQD18aeuPNicVnse
+    Ku22vvhvQYlabaQh4xdkEIxz1TthZj48f61wZwEMipYqOAc5XEtDlNnxgeipv0yF
+    RHstUjwXAkEA3m0Br/U/vC9evuXppWbONana08KLgfELyd3Uw9jG7VKJZTBH5mS8
+    7CB68aEF8egrJpo8Ss8BkWrvCxYDb4Y77wJAUlbOMZozVtvpKidrIFR9Lho91uWA
+    Hsw9h4W20AzibXBig7SnJ0uE4WMAdS/+0yhgFkceVCmO8E2YW8Gaj4jJjwJASxtg
+    AHy+ItuUEL4uIW4Pn8tVW0BMP3qX0niXyfI/ag/+2S5uePv3V3y4RzNqgH83Yved
+    +FziWKpVQdcTHeuj/QJBAJl1G3WFruk0llIoKKbKljaEiCm1WCTcuEPbdOtkJYvO
+    9ZYQg/fji70FERkq2KHtY7aLhCHzy0d4n9xgE/pjV+I=
+    -----END RSA PRIVATE KEY-----
+
+With this RSA key, we can sign a message using the following
+function:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+      :emphasize-lines: 4
+
+      exports = function() {
+        const message = "MongoDB is great!"
+        const rsaPrivateKey = context.values.get("rsaPrivateKey");
+        const signature = utils.crypto.sign("rsa", message, rsaPrivateKey, "pss");
+        return signature.toBase64();
+      }
+
+    .. output::
+      :language: json
+
+      "SpfXcJwPbypArt+XuYQyuZqU52YCAY/sZj2kiuin2b6/RzyM4Ek3n3spOtqZJqxn1tfQavxIX4V+prbs74/pOaQkCLekl9Hoa1xOzSKcGoRd8U+n1+UBY3d3cyODGMpyr8Tim2HZAeLPE/D3Q36/K+jpgjvrJFXsJoAy5/PV7iEGV1fkzogmZtXWDcUUBBTTNPY4qZTzjNhL4RAFOc7Mfci+ojE/lLsNaumUVU1/Eky4vasmyjqunm+ULCcRmgWtGDMGHaQV4OXC2LMUe9GOqd3Q9ghCe0Vlhn25oTh8cXoGpd1Fr8wolNa//9dUqSM+QYDpZJXGLShX/Oa8mPwJZKDKHtqrS+2vE6S4dDWR7zKDza+DeovOeCih71QyuSYMXSz+WWGgfLzv/syhmUXP/mjqgLmJU6Kwg5htajDoylpzLC0BLGT4zDZEwBrq/AjwRs/EPjYdFgGCt1WCbbVlDyXvvH1ekDrzACzumhiMSZNNa+ZH3JmMJxTCQWDfiTeAfkauaaZHKIj2q2/QE7vuAhNcVPJ2YgpXnvnQHJpEZBc/Y3Q6JLxom6+cGC4P//9d++r2cwzXIkqD+wSGZVSVtpm5CLtWMRSK5FX2dv16bM+LE8ozoRvtMUDTrQ8SSSDGxyuYbvN9b2fYYPcWpCMchqOBXV6eZGoMldaHX3Qy5h8="
+
+utils.crypto.verify()
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks that the provided signature is valid for the specified message
+and public key.
+
+If the signature is valid, it guarantees that the signer has access
+to the corresponding private key and that the message content has not
+been altered since it was signed.
+
+.. code-block:: typescript
+
+  utils.crypto.verify(
+    encryptionType: string,
+    message: string,
+    publicKey: string,
+    signature: BSON.Binary,
+    signatureScheme: string
+  ): boolean
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``encryptionType``
+    - string
+    - The type of encryption that was used to generate the
+      private/public key pair. The following encryption types are
+      supported:
+
+      - :wikipedia:`RSA Encryption <RSA_algorithm>` (``"rsa"``)
+
+  * - ``message``
+    - string
+    - The text string for which you want to verify the signature. If
+      the signature is valid, this is the exact message that was
+      signed.
+
+  * - ``publicKey``
+    - string
+
+    - The public key for which you want to verify the signature. If
+      the signature is valid, this is the corresponding public key
+      of the private key that was used to sign the message.
+
+      **Important!** Not all RSA keys use the same format. |service| can only
+      verify signatures with RSA keys that conform to the
+      standard :wikipedia:`PKCS#1 <PKCS_1>` format. Public keys
+      in this format have the header ``-----BEGIN RSA PUBLIC
+      KEY-----``.
+
+      .. include:: /includes/triggers/functions/shell-generate-an-rsa-key-pair.rst
+
+  * - ``signature``
+    - :ref:`BSON.Binary <atlas-bson-binary>`
+    - The signature that you want to verify.
+
+  * - ``signatureScheme``
+    - string
+    - Optional. Default: ``"pss"``
+
+      The :wikipedia:`padding scheme <Padding_(cryptography)>` that
+      the signature uses. |service| supports verifying signatures that
+      use the following schemes:
+
+      - :wikipedia:`Probabilistic signature scheme <Probabilistic_signature_scheme>` (``"pss"``)
+      - :wikipedia:`PKCS1v1.5 <PKCS_1>` (``"pkcs1v15"``)
+
+Returns
+```````
+
+A boolean that, if ``true``, indicates whether or not the
+signature is valid for the provided message and public key.
+
+We received a message with a signature in :ref:`BSON.Binary
+<atlas-bson-binary>` format and want to verify that the message was
+signed with the private key that corresponds to the sender's RSA
+public key:
+
+.. code-block:: none
+
+    -----BEGIN RSA PUBLIC KEY-----
+    MIGJAoGBANWwSOx7ao7i/enxEz+rxGrOWhzWV57fjKhi4pnZx6a5S7wmlzsoU7X5
+    omld1tI9k2EYt0A2fx/agwhnVH2GAQlGf9Cb9jILhE9MaDnmfMepKXOI1kkxDIRT
+    JTuTHn4pvqS2CiOGTyhxlGSiszwUTKWSsrOBKt9rLQ9xYc+wqWZ5AgMBAAE=
+    -----END RSA PUBLIC KEY-----
+
+With this RSA key, we can verify a message signed with the
+correspdoning private key using the following function:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+      :emphasize-lines: 5
+
+      exports = function() {
+        const rsaPublicKey = context.values.get("rsaPublicKey");
+        const message = "MongoDB is great!"
+        const signature = BSON.Binary.fromBase64("SpfXcJwPbypArt+XuYQyuZqU52YCAY/sZj2kiuin2b6/RzyM4Ek3n3spOtqZJqxn1tfQavxIX4V+prbs74/pOaQkCLekl9Hoa1xOzSKcGoRd8U+n1+UBY3d3cyODGMpyr8Tim2HZAeLPE/D3Q36/K+jpgjvrJFXsJoAy5/PV7iEGV1fkzogmZtXWDcUUBBTTNPY4qZTzjNhL4RAFOc7Mfci+ojE/lLsNaumUVU1/Eky4vasmyjqunm+ULCcRmgWtGDMGHaQV4OXC2LMUe9GOqd3Q9ghCe0Vlhn25oTh8cXoGpd1Fr8wolNa//9dUqSM+QYDpZJXGLShX/Oa8mPwJZKDKHtqrS+2vE6S4dDWR7zKDza+DeovOeCih71QyuSYMXSz+WWGgfLzv/syhmUXP/mjqgLmJU6Kwg5htajDoylpzLC0BLGT4zDZEwBrq/AjwRs/EPjYdFgGCt1WCbbVlDyXvvH1ekDrzACzumhiMSZNNa+ZH3JmMJxTCQWDfiTeAfkauaaZHKIj2q2/QE7vuAhNcVPJ2YgpXnvnQHJpEZBc/Y3Q6JLxom6+cGC4P//9d++r2cwzXIkqD+wSGZVSVtpm5CLtWMRSK5FX2dv16bM+LE8ozoRvtMUDTrQ8SSSDGxyuYbvN9b2fYYPcWpCMchqOBXV6eZGoMldaHX3Qy5h8=")
+        const isValid = utils.crypto.verify("rsa", message, rsaPublicKey, signature, "pss");
+        return isValid; // true if the signature matches, else false
+      }
+
+    .. output::
+      :language: json
+
+      true
+
+utils.crypto.hmac()
+~~~~~~~~~~~~~~~~~~~
+
+Generates an :wikipedia:`HMAC <HMAC>` signature from the provided
+input and secret. This is useful when communicating with third-party
+HTTP services that require signed requests.
+
+.. code-block:: typescript
+
+  utils.crypto.hmac(
+    input: string,
+    secret: string,
+    hash_function: string,
+    output_format: string
+  ): string
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``input``
+    - string
+    - The input for which you would like to generate a signature.
+
+  * - ``secret``
+    - string
+    - The secret key to use when generating the signature.
+
+  * - ``hash_function``
+    - string
+    - The name of the hashing function to use when generating the
+      signature. The following functions are supported: ``"sha1"``,
+      ``"sha256"``, ``"sha512"``.
+
+  * - ``output_format``
+    - string
+    - The format of the generated signature. Can be either
+      ``"hex"`` for a hex string, or ``"base64"`` for a Base64
+      string.
+
+Returns
+```````
+
+The signature of the input, in the format specified by
+``output_format``.
+
+The following function generates a sha256 signature as a
+base 64 string:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+      :emphasize-lines: 5
+
+      exports = function() {
+        const signature = utils.crypto.hmac(
+          "hello!",
+          "super-secret",
+          "sha256",
+          "base64"
+        )
+        return signature
+      }
+
+    .. output::
+      :language: json
+
+      "SUXd6PRMaTXXgBGaGsIHzaDWgTSa6C3D44lRGrvRak0="
+
+utils.crypto.hash()
+~~~~~~~~~~~~~~~~~~~
+
+Generates a hash value for the provided input using the specified
+hash function.
+
+.. code-block:: typescript
+
+  utils.crypto.hash(
+    hash_function: string,
+    input: string | BSON.Binary
+  ): BSON.Binary
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``hash_function``
+    - string
+    - The name of the hashing function.
+      The following functions are supported: ``"sha1"``,
+      ``"sha256"``, ``"md5"``.
+
+  * - ``input``
+    - string or BSON.Binary
+    - Required.
+      The input for which you would like to generate a hash value.
+
+Returns
+```````
+
+A ``BSON.Binary`` object that encodes the hash value for the
+provided input generated by the specified hashing function.
+
+The following function hashes an input string with sha256:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+      :emphasize-lines: 5
+
+      exports = function() {
+        return utils.crypto.hash(
+          "sha256",
+          "hello!"
+        )
+      }
+
+    .. output::
+      :language: json
+
+      "zgYJL7lI2f+sfRo3bkBLJrdXW8wR7gWkYV/vT+w6MIs="
+
+.. _atlas-json:
+
+JSON (JavaScript Object Notation)
+---------------------------------
+
+The ``JSON`` global module provides :mdn:`JSON methods
+<Web/JavaScript/Reference/Global_Objects/JSON>` to serialize and
+deserialize standard JavaScript objects.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Method
+     - Description
+
+   * - :method:`JSON.parse()`
+     - Parse a serialized JSON string into a JavaScript object.
+
+   * - :method:`JSON.stringify()`
+     - Serialize a JavaScript object into a JSON string.
+
+JSON.parse()
+~~~~~~~~~~~~
+
+Parses the provided JSON string and converts it to a JavaScript
+object.
+
+.. code-block:: typescript
+
+  JSON.parse(jsonString: string): object
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``jsonString``
+    - :mdn:`string <Web/JavaScript/Reference/Global_Objects/String>`
+    - A serialized string representation of a standard JSON object.
+
+Returns
+```````
+
+A standard JavaScript object generated from the provided JSON
+string.
+
+The following function converts a serialized JSON string into an
+equivalent JavaScript object:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+
+      exports = function() {
+        const jsonString = `{
+          "answer": 42,
+          "submittedAt": "2020-03-02T16:50:24.475Z"
+        }`;
+        return JSON.parse(jsonString);
+      }
+
+    .. output::
+      :language: json
+
+      {
+        "answer": 42,
+        "submittedAt": "2020-03-02T16:50:24.475Z"
+      }
+
+JSON.stringify()
+~~~~~~~~~~~~~~~~
+
+Serializes the provided JavaScript object to a JSON string.
+
+.. code-block:: typescript
+
+  JSON.stringify(json: object): string
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``object``
+    - :mdn:`object <Web/JavaScript/Reference/Global_Objects/Object>`
+    - A standard :mdn:`JavaScript Object
+      <Web/JavaScript/Reference/Global_Objects/Object>`.
+
+Returns
+```````
+
+A string representation of the provided JavaScript object.
+
+The following function serializes a JavaScript object into an
+equivalent JSON string:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+
+      exports = function() {
+        const jsonObject = {
+          answer: 42,
+          submittedAt: new Date("2020-03-02T16:46:47.977Z")
+        };
+        return JSON.stringify(jsonObject);
+      }
+
+    .. output::
+      :language: json
+
+      "{\"answer\":42,\"submittedAt\":\"2020-03-02T16:46:47.977Z\"}"
+
+.. _atlas-ejson:
+.. _atlas-extended-json:
+
+EJSON (Extended JSON)
+---------------------
+
+The ``EJSON`` global module is similar to :ref:`JSON <atlas-json>` but
+preserves additional :manual:`Extended JSON
+</reference/mongodb-extended-json>` type information.
+
+EJSON is a superset of standard JSON that adds additional support for
+types that are available in :ref:`BSON <atlas-bson>` but not included in the
+`JSON specification <https://www.json.org/>`_.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Method
+     - Description
+
+   * - :method:`EJSON.parse()`
+     - Parse a serialized Extended JSON string into a JavaScript object.
+
+   * - :method:`EJSON.stringify()`
+     - Serialize a JavaScript object into an ExtendedJSON string.
+
+EJSON.parse()
+~~~~~~~~~~~~~
+
+Parses the provided :manual:`EJSON
+</reference/mongodb-extended-json/>` string and converts it to a
+JavaScript object.
+
+.. code-block:: typescript
+
+  EJSON.parse(ejsonString: string): object
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ejsonString
+    - string
+    - A serialized string representation of an Extended JSON object.
+
+Returns
+```````
+
+A JavaScript object representation of the provided EJSON string.
+
+The following function converts a serialized EJSON string into an
+equivalent JavaScript object:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+
+      exports = function() {
+        const ejsonString = `{
+          "answer": {
+            "$numberLong": "42"
+          },
+          "submittedAt": {
+            "$date": {
+              "$numberLong": "1583167607977"
+            }
+          }
+        }`;
+        return EJSON.parse(ejsonString);
+      }
+
+    .. output::
+      :language: json
+
+      {
+        "answer": {
+          "$numberLong": "42"
+        },
+        "submittedAt": {
+          "$date": {
+            "$numberLong": "1583167607977"
+          }
+        }
+      }
+
+EJSON.stringify()
+~~~~~~~~~~~~~~~~~
+
+Serializes the provided JavaScript object to an :manual:`EJSON
+</reference/mongodb-extended-json/>` string.
+
+.. code-block:: typescript
+
+  EJSON.stringify(json: object): string
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``object``
+    - document
+    - An :manual:`EJSON
+      </reference/mongodb-extended-json/>` object. The object may
+      contain BSON types.
+
+Returns
+```````
+
+A string representation of the provided EJSON object.
+
+The following function serializes a JavaScript object into an
+equivalent EJSON string:
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+
+      exports = function() {
+        const jsonObject = {
+          answer: 42,
+          submittedAt: new Date("2020-03-02T16:46:47.977Z")
+        };
+        return EJSON.stringify(jsonObject);
+      }
+
+    .. output::
+      :language: json
+
+      "{\"answer\":{\"$numberLong\":\"42\"},\"submittedAt\":{\"$date\":{\"$numberLong\":\"1583167607977\"}}}"
+
+.. _atlas-bson:
+.. _atlas-binary-json:
+
+BSON (Binary JSON)
+------------------
+
+The ``BSON`` global module allows you to create typed BSON objects and
+convert them between various data formats and encodings.
+
+:wikipedia:`BSON <BSON>`, or Binary JSON, is the data format used
+internally by MongoDB databases. It encodes a binary representation of
+document data structures using a superset of the standard JSON types.
+For more information, refer to the `BSON specification
+<http://bsonspec.org/>`__.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Type
+     - Description
+
+   * - :ref:`BSON.ObjectId <atlas-bson-objectid>`
+     - Represent an ObjectId value
+
+   * - :ref:`BSON.BSONRegExp <atlas-bson-regexp>`
+     - Represent a regular expression
+
+   * - :ref:`BSON.Binary <atlas-bson-binary>`
+     - Represent a binary data structure
+
+   * - :ref:`BSON.MaxKey <atlas-bson-maxkey>`
+     - Represent a value that compares higher than all other values
+
+   * - :ref:`BSON.MinKey <atlas-bson-minkey>`
+     - Represent a value that compares lower than all other values
+
+   * - :ref:`BSON.Int32 <atlas-bson-int32>`
+     - Represent a 32-bit signed integer
+
+   * - :ref:`BSON.Long <atlas-bson-long>`
+     - Represent a 64-bit signed integer
+
+   * - :ref:`BSON.Double <atlas-bson-double>`
+     - Represent a 64-bit floating point number
+
+   * - :ref:`BSON.Decimal128 <atlas-bson-decimal128>`
+     - Represent a 128-bit floating point number
+
+.. _atlas-bson-objectid:
+
+BSON.ObjectId
+~~~~~~~~~~~~~
+
+The ``BSON.ObjectId`` type represents a 12-byte MongoDB ``ObjectId``
+identifier.
+
+Constructs a ``BSON.ObjectId`` object that encodes an
+:manual:`ObjectId </reference/method/ObjectId>`
+
+.. code-block:: typescript
+
+  new BSON.ObjectId(id: string)
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``id``
+    - string
+    - Optional. A 12-byte string or a string of 24 hex characters.
+
+Returns
+```````
+
+A ``BSON.ObjectId`` object that encodes the specified
+:manual:`ObjectId </reference/method/ObjectId>` string or a
+generated ``ObjectId`` string if none was specified.
+
+.. code-block:: javascript
+
+    const objectId = new BSON.ObjectId("5e58667d902d38559c802b13");
+    const generatedObjectId = new BSON.ObjectId();
+
+.. _atlas-bson-regexp:
+
+BSON.BSONRegExp
+~~~~~~~~~~~~~~~
+
+The ``BSON.BSONRegExp`` type represents a :mdn:`regular expression
+<Web/JavaScript/Guide/Regular_Expressions>`. You can use a
+``BSON.BSONRegExp`` object with the ``$regex`` query operator to
+:ref:`perform a regular expression query <atlas-query-operators-regex>` on a
+MongoDB collection.
+
+Constructs a ``BSON.BSONRegExp`` object from a regular expression
+string. You can optionally specify configuration flags.
+
+.. code-block:: typescript
+
+  BSON.BSONRegExp(pattern: string, flags: string)
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``pattern``
+    - string
+    - A :mdn:`regular expression
+      <Web/JavaScript/Guide/Regular_Expressions>` pattern.
+
+  * - ``flags``
+    - string
+    - Optional. One or more :mdn:`regular expression flags
+      <Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2>`.
+
+Returns
+```````
+
+A ``BSON.BSONRegExp`` object that encodes the provided regular
+expression pattern and flags.
+
+.. code-block:: javascript
+
+    const regex = BSON.BSONRegExp("the great", "ig");
+
+.. _atlas-bson-binary:
+
+BSON.Binary
+~~~~~~~~~~~
+
+The ``BSON.Binary`` type represents a binary-encoded data string.
+
+BSON.Binary.fromHex()
+`````````````````````
+
+Constructs a ``BSON.Binary`` object from data represented as a
+hexadecimal string.
+
+.. code-block:: typescript
+
+  BSON.Binary.fromHex(
+    hexString: string,
+    subType?: number
+  ): BSON.Binary
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``hexString``
+    - string
+    - A :wikipedia:`byte aligned <Data_structure_alignment>` string
+      of hexadecimal characters (0-9 and A-F).
+
+  * - ``subType``
+    - integer
+    - Optional. The type of data encoded in the hexadecimal string.
+      The value must be in the range 0-255 where ``0``, the default
+      value, represents a generic binary. For a full list of
+      supported subtypes, refer to the `BSON specification
+      <http://bsonspec.org/spec.html>`__.
+
+**Returns**
+
+A ``BSON.Binary`` object that encodes the provided hexadecimal
+string.
+
+.. code-block:: javascript
+
+    const binary = BSON.Binary.fromHex("54657374206d65737361676520706c656173652069676e6f7265=");
+
+BSON.Binary.prototype.toHex()
+`````````````````````````````
+
+Converts the ``BSON.Binary`` object into a hexadecimal string.
+
+.. code-block:: typescript
+
+  BSON.Binary.prototype.toHex(): string
+
+**Returns**
+
+A hexadecimal string representation of the provided
+``BSON.Binary`` object.
+
+.. io-code-block::
+
+    .. input::
+      :language: javascript
+
+      export = function() {
+        const binary = BSON.Binary.fromHex(
+            "54657374206d65737361676520706c656173652069676e6f7265="
+          );
+        const hexString = binary.toHex();
+        return hexString
+      }
+
+    .. output::
+      :language: json
+
+      "54657374206d65737361676520706c656173652069676e6f7265="
+
+
+BSON.Binary.fromBase64()
+````````````````````````
+
+Constructs a ``BSON.Binary`` object from data represented as a base64
+string.
+
+.. code-block:: typescript
+
+  BSON.Binary.fromBase64(
+    base64String: string,
+    subType?: number
+  ): BSON.Binary
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``base64String``
+    - string
+    - A string of base64 encoded characters.
+
+      **Note:** The base64-encoded string must include either one or two equals
+      signs (``=``), referred to as "padding", at the end of the string.
+      ``BSON.Binary.fromBase64()`` does not support unpadded strings.
+
+  * - ``subType``
+    - integer
+    - Optional. The type of data encoded in the hexadecimal string.
+      The value must be in the range 0-255 where ``0``, the default
+      value, represents a generic binary. For a full list of
+      supported subtypes, refer to the `BSON specification
+      <http://bsonspec.org/spec.html>`__.
+
+**Returns**
+
+A ``BSON.Binary`` object that encodes the provided base64 string.
+
+.. code-block:: javascript
+
+    const binary = BSON.Binary.fromBase64("VGVzdCBtZXNzYWdlIHBsZWFzZSBpZ25vcmU=");
+
+BSON.Binary.prototype.toBase64()
+````````````````````````````````
+
+Converts a ``BSON.Binary`` object into a base64 string.
+
+.. code-block:: typescript
+
+  BSON.Binary.prototype.toBase64(): string
+
+**Returns**
+
+A base64 string representation of the ``BSON.Binary`` object.
+
+.. code-block:: javascript
+
+    const binary = BSON.Binary.fromBase64("VGVzdCBtZXNzYWdlIHBsZWFzZSBpZ25vcmU=");
+    const base64String = binary.toBase64();
+
+BSON.Binary.prototype.text()
+````````````````````````````
+
+Converts the ``BSON.Binary`` object into a UTF-8 string.
+
+.. code-block:: typescript
+
+  BSON.Binary.prototype.text(): string
+
+**Returns**
+
+A UTF-8 string representation of the provided ``BSON.Binary``
+object.
+
+.. code-block:: javascript
+
+    const binary = BSON.Binary.fromBase64("VGVzdCBtZXNzYWdlIHBsZWFzZSBpZ25vcmU=");
+    const decodedString = binary.text();
+
+.. _atlas-bson-maxkey:
+
+BSON.MaxKey
+~~~~~~~~~~~
+
+The ``BSON.MaxKey`` type represents a value that compares higher than
+all other BSON values.
+
+.. code-block:: javascript
+
+  await collection.findOne({ date: { $lt: BSON.MaxKey } });
+
+.. _atlas-bson-minkey:
+
+BSON.MinKey
+~~~~~~~~~~~
+
+The ``BSON.MinKey`` type represents a value that compares lower than all
+other BSON values.
+
+.. code-block:: javascript
+
+  await collection.findOne({ date: { $gt: BSON.MinKey } });
+
+.. _atlas-bson-int32:
+
+BSON.Int32
+~~~~~~~~~~
+
+The ``BSON.Int32`` type represents a 32-bit signed integer.
+
+BSON.Int32()
+~~~~~~~~~~~~
+
+Constructs a ``BSON.Int32`` object from a 32-bit number.
+
+.. code-block:: typescript
+
+  BSON.Int32(low32: number): BSON.Int32
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``low32``
+    - number
+    - A 32-bit number.
+
+Returns
+```````
+
+A ``BSON.Int32`` object that encodes the specified integer.
+Returns ``0`` if no arguments are supplied.
+
+.. code-block:: javascript
+
+    const int32 = BSON.Int32(42);
+
+.. _atlas-bson-long:
+
+BSON.Long
+~~~~~~~~~
+
+The ``BSON.Long`` type represents a 64-bit signed integer.
+
+.. code-block:: javascript
+
+    const long = BSON.Long(600206158, 342);
+
+BSON.Long(low32, high32)
+````````````````````````
+
+.. code-block:: typescript
+
+  BSON.Long(low32: number, high32: number): BSON.Long
+
+Constructs a ``BSON.Long`` object from two 32-bit integers that
+represent the low 32 bits and the high 32 bits in the 64-bit ``Long``
+integer.
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``low32``
+    - integer
+
+    - Optional. The long integer's 32 low bits. These bits represent
+      the least significant digits of the number.
+
+  * - ``high32``
+    - integer
+    - Optional. The long integer's 32 high bits. These bits
+      represent the most significant digits of the number.
+
+**Returns**
+
+A ``BSON.Long`` object that encodes the specified integer.
+Returns ``0`` if no arguments are supplied.
+
+``BSON.Long`` encodes using the following formula:
+
+.. code-block:: javascript
+    :copyable: false
+
+    (high32 * (2**32)) + low32
+
+.. _atlas-bson-double:
+
+BSON.Double
+~~~~~~~~~~~
+
+The ``BSON.Double`` type represents a 64-bit (8-byte) floating point
+number. It constructs a ``BSON.Double`` object from a 64-bit decimal value.
+
+.. important:: Use Decimal128 for Money
+
+   ``BSON.Double`` is subject to floating point rounding errors, so it
+   is not recommended for use cases where decimal values must round
+   exactly, e.g. financial data. For these cases, use
+   :ref:`BSON.Decimal128 <atlas-bson-decimal128>` instead.
+
+.. code-block:: typescript
+
+  BSON.Double(double: number): BSON.Double
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``double``
+    - number
+    - A 64-bit decimal value.
+
+Returns
+```````
+
+A ``BSON.Double`` object that encodes the specified double.
+Returns ``0`` if no argument is supplied.
+
+.. code-block:: javascript
+
+    const double = BSON.Double(1234.5678);
+
+.. _atlas-bson-decimal128:
+
+BSON.Decimal128
+~~~~~~~~~~~~~~~
+
+The ``BSON.Decimal128`` type represents a 128-bit (16-byte) floating
+point number. This type is intended for use cases where decimal values
+must round exactly, e.g. financial data.
+
+Constructs a ``BSON.Decimal128`` from a string representation of a
+decimal number.
+
+.. code-block:: typescript
+
+  BSON.Decimal128(decimalString: string): BSON.Decimal128
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 60
+
+  * - Parameter
+    - Type
+    - Description
+
+  * - ``decimalString``
+    - string
+    - A string representing a decimal number, e.g. ``"1234.5678910123456"``.
+
+Returns
+```````
+
+A ``BSON.Decimal128`` that encodes the provided decimal value.
+
+.. code-block:: javascript
+
+    const double = BSON.Decimal128.fromString("1234.5678910123456");

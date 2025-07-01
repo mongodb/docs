@@ -1,0 +1,112 @@
+============
+FAQ: Storage
+============
+
+.. meta::
+   :description: Understand what happens when you reach your Atlas storage limit and learn about storage options and configurations.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _faq-storage limit:
+
+What happens when I reach my Atlas storage limit?
+-------------------------------------------------
+
+The result of reaching your |service| storage limit depends on the
+|service| cluster you are using.
+
+- For ``M0`` and {+Flex-clusters+}, the maximum storage is
+  a hard limit and cannot be exceeded. You can add additional storage
+  by upgrading to a dedicated cluster (``M10+``). For details on how
+  |service| calculates storage limits for {+Flex-clusters+}, see
+  :ref:`this section <faq-caluculate-flex-storage-limit>` of the FAQ.
+
+- By default, ``M10+`` clusters
+  :ref:`auto-expand storage <scale-cluster-storage>` based on disk
+  usage thresholds. To modify this setting to a fixed storage limit,
+  refer to the :ref:`Modify a Cluster <scale-cluster-storage>` page.
+
+If you attempt to write to a {+Flex-cluster+} that does not have space
+for the desired write operation, |service| displays an error message
+similar to the following:
+
+.. code-block:: javascript
+
+   WriteResult({
+     "writeError": {
+       "code": 8000,
+       "errmsg": "you are over your space quota, using 513 MB of 512 MB"
+     }
+   })
+
+.. seealso::
+
+   To learn about the differences between {+Flex-clusters+} and dedicated
+   clusters, see 
+   :ref:`{+Atlas-Flex+} Limits <atlas-flex-limitations>`.
+
+.. tip::
+
+   You can configure alerts which trigger once your allocated storage
+   reaches a specified threshold. |service| calculates allocated
+   storage using metrics returned by the
+   :dbcommand:`dbStats` command.
+
+   .. include:: /includes/fact-db-stats-collection-interval.rst
+   
+   To learn more about storage alerts, see
+   :ref:`DB Storage alert conditions <db-storage-alerts>`.
+
+.. _faq-caluculate-flex-storage-limit:
+
+How does Atlas calculate storage limits for {+Flex-Clusters+}?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| calculates the storage limit for {+Flex-clusters+} based on
+data usage, as opposed to the ``storageSize`` metric used by
+non-{+Flex-clusters+} (which includes compression). |service| determines
+data usage by summing a cluster's ``dataSize`` and ``indexSize``.  You
+can issue the :manual:`db.stats() </reference/method/db.stats/>`
+method to view the values of these fields.
+
+Without using Provisioned IOPS on MongoDB Atlas on AWS, what kind of IOPS should I expect?
+------------------------------------------------------------------------------------------
+
+|service| provides an estimate of how many 16K |iops| you can expect,
+calculated as the lesser of 3 |iops| per provisioned GB, or the cluster
+node's maximum |iops| capacity.
+
+Can I configure a {+cluster+} with more storage than the standard limit for the {+cluster+} tier?
+-------------------------------------------------------------------------------------------------
+
+For {+clusters+} that meet specific criteria, yes. To learn which {+clusters+} support extended 
+storage and how to enable this for your projects, see :ref:`project-settings`.
+
+.. _faq-reduce-storage-usage:
+
+How can I reduce storage usage on a cluster?
+--------------------------------------------
+
+You can use the ``autoCompact`` command on dedicated clusters to perform background
+compaction, which reduces your storage use. This command automatically iterates through
+available files and continuously attempts to release unneeded disk space to the operating
+system. To learn more about enabling the ``autoCompact`` privilege action, see
+:ref:`atlas-specific-privileges` in the "Built-In Roles and Privileges" section.
+
+The ``autoCompact`` command is supported only on dedicated clusters
+running MongoDB 8.0+.
+
+To run ``autoCompact`` on a cluster, do the following steps:
+
+1. Create a database user and configure the ``autoCompact`` privilege.
+#. (*Optional*) If you are connecting to a sharded cluster, retrieve the connection
+   string of each node in the sharded cluster. You can use an
+   :oas-atlas-op:`{+atlas-admin-api+} endpoint </getCluster>` to retrieve this information.
+#. Connect to each node that you want to run ``autoCompact`` on.
+#. Run ``autoCompact`` on the ``admin`` database.

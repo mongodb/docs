@@ -1,0 +1,136 @@
+.. _langchain-natural-language-to-mql:
+
+====================================================================
+Query |service| with Natural Language Using LangChain and LangGraph
+====================================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Convert natural language to MQL.
+   :keywords: natural language, MQL, langchain, integration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the LangChain MongoDB integration to run natural language MongoDB 
+queries. In this tutorial, you build a basic AI agent that converts natural 
+language to :abbr:`MQL (MongoDB Query Language)` by using the 
+`ReAct Agent framework <https://python.langchain.com/api_reference/langchain/agents/langchain.agents.react.agent.create_react_agent.html>`__ 
+and the `MongoDB Agent Toolkit <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/agent_toolkit/langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit.html#langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit>`__.
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-natural-language.ipynb?tck=docs
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langchain-natural-language.ipynb?tck=docs>`.
+
+
+Prerequisites 
+-------------
+
+- Have a |service| cluster and user.
+- Add the :ref:`Restaurants <sample-restaurants>` sample dataset to your |service| cluster.
+- Have an OpenAI API key.
+- Run the following to install required dependencies: 
+  
+  .. code-block::
+
+     pip install langchain-mongodb langchain-openai langgraph 
+
+Conceptual Overview
+-------------------
+
+This agent leverages a predefined set of tools with which it executes a 
+step-by-step plan defined by a LLM. When a user submits a prompt to the agent, 
+the agent sends a request to the LLM that details its available tools and the 
+user's desired outcome. With that information, the LLM generates a specific 
+series of steps that leverage the agent's available toolset to achieve the 
+user's desired outcome. 
+
+The agent then executes the steps and confirms success, or executes updated 
+steps as needed, by sending intermediate results back to the LLM for analysis. 
+And finally, the system's results are returned to the user.
+
+Build the Agent
+---------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set the required environment variable.
+
+      In your terminal, populate and run the following command to set the 
+      required environment variable. 
+
+      .. code-block::
+
+         export OPENAI_API_KEY=<your-openai-api-key>
+
+   .. step:: Save the example as a local Python file.
+
+      Copy and paste the following into a local file called 
+      ``natural_language_to_mql.py``.
+
+      **Key Points**
+
+      - ``self.toolkit``, the tools that the agent can use, is an instance of the `MongoDB Toolkit <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/agent_toolkit/langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit.html#langchain_mongodb.agent_toolkit.toolkit.MongoDBDatabaseToolkit>`__. 
+      - ``self.agent``, the agent itself, is an instance of the `ReAct Agent framework <https://langchain-ai.github.io/langgraph/agents/agents/>`__, which takes ``self.toolkit`` as a parameter.
+
+      .. literalinclude:: /includes/langchain_natural_language_to_mql.py
+         :language: python
+         :linenos:
+
+   .. step:: Add your |service| connection string.
+
+      .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+
+Run a Test Query 
+----------------
+
+From the directory in which you saved the local file, run the following command. 
+Your results might vary.
+
+.. io-code-block::
+
+   .. input::
+      :language: bash
+   
+      python natural_language_to_mql.py
+
+   .. output::
+
+      Here are some restaurants that serve hamburgers:
+
+      1. **Wendy's**
+         - Address: 469 Flatbush Avenue, Brooklyn, NY 11225
+         - Borough: Brooklyn
+
+      2. **White Castle**
+         - Address: 531 Myrtle Avenue, Brooklyn, NY 11205
+         - Borough: Brooklyn
+
+      3. **McDonald's**
+         - Address: 75-50 101 Avenue, Queens, NY 11416
+         - Borough: Queens
+
+      4. **McDonald's**
+         - Address: 943 Flatbush Avenue, Brooklyn, NY 11226
+         - Borough: Brooklyn
+
+      5. **McDonald's**
+         - Address: 395 Flatbush Avenue Extension, Brooklyn, NY 11201
+         - Borough: Brooklyn
+
+      Let me know if you'd like more details or additional results!

@@ -1,0 +1,127 @@
+.. _atlas-disable-a-trigger:
+
+=================
+Disable a Trigger
+=================
+
+.. meta::
+   :description: Learn how to disable Triggers and why you might want to do so.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Triggers may enter a :guilabel:`suspended` state in response to
+an event that prevents the Trigger's change stream from continuing, such
+as a network disruption or change to the underlying cluster. When a
+Trigger enters a suspended state, it is disabled. It does not receive change
+events and will not fire.
+
+.. note::
+
+   In the event of a suspended or failed Trigger, |service| sends the
+   project owner an email alerting them of the issue.
+
+Manually Disable a Trigger
+--------------------------
+
+You can manually disable an active Trigger from the {+atlas-ui+} or by
+importing an application directory with the App Services CLI.
+
+.. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      a. Navigate to the :guilabel:`Triggers` Page
+
+         .. include:: /includes/nav/list-triggers.rst
+
+      #. From the listed Triggers, find the Trigger that you want to disable.
+
+      #. Toggle the :guilabel:`Enabled` setting to disable it, then click
+         :guilabel:`Save`.
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      a. Authenticate a MongoDB |service| user:
+
+         .. include:: /includes/triggers/app-services/cli-login.rst
+
+      #. Pull your App's latest configuration files:
+
+         .. include:: /includes/triggers/app-services/cli-pull-latest.rst
+
+      #. Verify the Trigger configuration file:
+
+         If you exported a new copy of your application, it should already
+         include an up-to-date configuration file for the suspended Trigger. You
+         can confirm that the configuration file exists by looking in the
+         ``/triggers`` directory for a :ref:`Trigger configuration file
+         <config-database-trigger>` with the same name as the Trigger.
+
+      #. Disable the Trigger:
+
+         After you have verified that the Trigger configuration file exists, add
+         a field named ``"disabled"`` with the value ``true`` to the top
+         level of the Trigger json definition:
+
+         .. code-block:: json
+            :emphasize-lines: 9
+
+            {
+               "id": "6142146e2f052a39d38e1605",
+               "name": "steve",
+               "type": "SCHEDULED",
+               "config": {
+                  "schedule": "*/1 * * * *"
+               },
+               "function_name": "myFunc",
+               "disabled": true
+            }
+
+      #. Deploy your changes:
+
+         .. include:: /includes/triggers/app-services/cli-deploy.rst
+
+
+Restoring from a Snapshot
+-------------------------
+
+When you restore the database from a snapshot, any Trigger that was disabled or
+suspended is re-enabled. The Trigger will not fire for events that have already
+been processed. For more information on restoring from snapshots, see
+:ref:`restore-overview`.
+
+Consider the following scenario:
+
+1. Your database Trigger is disabled or suspended.
+
+#. New documents are added while the Trigger is disabled.
+
+#. You restore the database from a snapshot to a time prior to the new documents
+   being added.
+
+#. |service| restarts the disabled database Trigger.
+
+#. The restarted Trigger picks up all of the newly-added documents and fires for
+   each document. However, it will *not* fire again for events that have already
+   been processed.
+
+.. note::
+
+   If a previously-enabled database Trigger is running during snapshot restoration,
+   you will see an error in the Edit Trigger section of the {+atlas-ui+} because the
+   Trigger cannot connect to the |service| cluster during the restore process.
+   After the
+   snapshot restoration completes, the error disappears and the Trigger continues
+   to execute normally.
