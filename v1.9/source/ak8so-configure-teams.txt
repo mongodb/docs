@@ -1,0 +1,145 @@
+.. _ak8so-team:
+
+===============
+Configure Teams
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|ak8so| supports :ref:`teams <manage-teams>` for controlling access to 
+your |service| projects. 
+
+.. include:: /includes/teams-overview.rst
+
+To manage teams with |ak8so|, specify and 
+update the following custom resources:
+
+.. list-table::
+   :widths: 50 80
+   :header-rows: 1
+
+   * - Custom Resource
+     - Purpose
+
+   * - :ref:`atlasteam-custom-resource` 
+     - Defines the team name and the users who belong to it.
+
+   * - :ref:`atlasproject-custom-resource`
+     - Defines the team's access roles for this project. You
+       must set the :setting:`spec.teams.teamRef.name` field to match the 
+       :setting:`metadata.name` of the :ref:`atlasteam-custom-resource` to assign 
+       the team to this project.
+
+Each time you change any of the supported custom resources, such as updating or 
+removing a team, |ak8so|
+:ref:`creates or updates <ak8so-create-update-process>` the 
+corresponding |service| configuration.
+
+Limitations
+-----------
+
+You must assign the team to a project by configuring both the 
+:ref:`atlasteam-custom-resource` and the :ref:`atlasproject-custom-resource` for 
+the team to appear in the |service| UI.
+
+For other limitations that apply to teams, see 
+:ref:`<manage-teams>`.
+
+Prerequisites
+-------------
+
+To enable teams for your |ak8so|-managed 
+{+cluster+}, you must: 
+
+- Have a running |k8s| cluster with 
+  |ak8so| :ref:`deployed <ak8so-quick-start-ref>`.
+- Ensure your |ipaddr| address is in the organization's |api| 
+  :ref:`access list <access-list>`.
+
+Procedure
+---------
+
+Follow these steps to enable teams for your |ak8so|-managed 
+projects:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the team.
+
+     Create an :ref:`atlasteam-custom-resource` for each team using the following 
+     example. Specify a :setting:`metadata.name` so that you can reference this 
+     file from the :ref:`atlasproject-custom-resource` and a ``spec.name`` so you 
+     can differentiate this team from other teams in your organization.
+     
+     Add only users who are part of the organization.
+
+     To learn more about the parameters for a team, see
+     the :ref:`atlasteam-custom-resource`.
+
+     **Example:**
+
+     .. code-block:: sh
+
+        cat <<EOF | kubectl apply -f -
+        apiVersion: atlas.mongodb.com/v1
+        kind: AtlasTeam    
+        metadata:
+          name: green-leaf-team
+          labels:
+            app.kubernetes.io/version: 1.6.0      
+        spec:  
+          name: "greenLeafTeam"               
+          usernames:
+            - "atlas.user1@example.com"
+            - "atlas.user2@example.com"
+            - "atlas.user3@example.com"
+            - "atlas.user4@example.com"   
+         EOF
+
+   .. step:: Grant the team access to a project.
+
+      To assign this team to a project, set the :setting:`spec.teams.teamRef.name` 
+      field in the :ref:`atlasproject-custom-resource` to match the 
+      :setting:`metadata.name` from the previous step.
+
+      In the :setting:`spec.teams.teamRef.roles` field, specify the team's 
+      :ref:`user-roles` for this project.
+
+      You can add more than one team. The following example shows two teams with 
+      different access roles for the same project.
+
+      To learn about the other parameters for a team,
+      see :ref:`atlasproject-custom-resource`.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject   
+         metadata:
+           name: my-project
+           labels:
+             app.kubernetes.io/version: 1.6.0      
+         spec:
+           name: Test project
+           teams:
+             - teamRef:
+                 name: green-leaf-team
+               roles:
+               - GROUP_OWNER
+             - teamRef:
+                 name: no-leaf-team
+               roles:
+               - GROUP_CLUSTER_MANAGER
+               - GROUP_DATA_ACCESS_ADMIN
+              
+         EOF
