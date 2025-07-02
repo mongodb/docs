@@ -1,0 +1,124 @@
+.. _ak8so-federated-auth:
+
+=================================================
+Leverage Federated Authentication from Kubernetes
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|ak8so| supports using :ref:`federated authentication
+<atlas-federated-authentication>` for your |service| organization. 
+
+.. note:: 
+
+   You can't use |ak8so| to set up an |idp|. To set up an |idp|, see
+   :atlas:`Configure Database Deployment Authentication and
+   Authorization </security/config-db-auth>`.  
+   
+   Once you set up your |idp|, you can manage the role mappings that
+   authenticate users to use your |idp|.
+
+To configure federated authentication through the |ak8so|, you must 
+specify and update the :ref:`atlasfederatedauth-custom-resource`.
+
+.. include:: /includes/fact-ak8so-federated-auth.rst
+
+Prerequisites
+-------------
+
+Before you can use |ak8so| to configure federated authentication,
+you must have:
+
+- An existing identity provider (|idp|) linked to |service|. 
+  To learn how to link an |idp| to |service|, see 
+  :ref:`atlas-manage-fed-auth`.
+  
+- A |k8s-secret| with :ref:`API keys <about-org-api-keys>` that 
+  |ak8so| can use to :ref:`connect <ak8so-access-to-atlas-ref>` to |service|. 
+  The API keys must have the :authrole:`Organization Owner` role.
+
+- At least one :ref:`role <user-roles>` within an active |service| organization 
+  or the projects in the organization.
+
+Update an Organization Configuration
+------------------------------------
+
+To configure federated authentication through the |ak8so|,
+update the organization configuration for your federation
+by specifying the :ref:`atlasfederatedauth-custom-resource`.
+
+.. include:: /includes/fact-atlasfederatedauth-example.rst
+
+To learn more, see :ref:`atlasfederatedauth-parameters`.
+
+.. note:: 
+
+   The :ref:`spec.roleMappings.roleAssignments 
+   <atlasfederatedauth-roleAssignments>` 
+   parameter must include at least one organization role
+   within the current organization or the projects in 
+   the organization.
+
+**Example:**
+
+.. code-block:: sh
+
+   cat <<EOF | kubectl apply -f -
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasFederatedAuth
+   metadata:
+     name: atlas-default-federated-auth
+     namespace: mongodb-atlas-system
+   spec:
+     enabled: true
+     connectionSecretRef:
+       name: my-org-secret
+       namespace: mongodb-atlas-system
+     domainAllowList:
+       - my-org-domain.com
+     domainRestrictionEnabled: true
+     ssoDebugEnabled: false
+     postAuthRoleGrants:
+       - ORG_MEMBER
+     roleMappings:
+       - externalGroupName: org-admin
+         roleAssignments:
+           - role: ORG_OWNER
+       - externalGroupName: dev-team
+         roleAssignments:
+           - role: ORG_GROUP_CREATOR
+           - projectName: dev-project
+             role: GROUP_OWNER 
+
+   EOF
+
+To check on the status of the update process,
+run the following command:
+
+.. code-block::
+
+   kubectl get atlasfederatedauth -o yaml
+
+|ak8so| returns the custom resource and includes a
+status section that resembles the following example:
+
+.. code-block::
+   :copyable: false
+
+   status:
+     conditions:
+       - type: Ready
+         status: True
+       - type: RolesReady
+         status: True
+       - type: UsersReady
+         status: True
+
+To learn about the available parameters for this resource, 
+see :ref:`atlasfederatedauth-custom-resource`.
