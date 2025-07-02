@@ -1,5 +1,5 @@
-const { MongoClient } = require("mongodb");
-const { setTimeout } = require("timers/promises"); // Import from timers/promises
+import { MongoClient, BSON } from "mongodb";  
+import { setTimeout } from "timers/promises";  
 
 // Connect to your Atlas deployment
 const uri = process.env.MONGODB_URI || "<CONNECTION-STRING>";
@@ -8,8 +8,10 @@ const client = new MongoClient(uri);
 
 async function main() {
   try {
-    const database = client.db("<DB-NAME>");
-    const collection = database.collection("<COLLECTION-NAME>");
+    const DB_NAME = "<DATABASE-NAME>";
+    const COLLECTION_NAME = "<COLLECTION-NAME>";
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
 
     // Define your Atlas Vector Search index
     const index = {

@@ -27,11 +27,6 @@
                         <version>5.3.1</version>
                     </dependency>
                     <dependency>
-                        <groupId>com.cohere</groupId>
-                        <artifactId>cohere-java</artifactId>
-                        <version>1.6.0</version>
-                    </dependency>
-                    <dependency>
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-api</artifactId>
                         <version>2.0.16</version>
@@ -42,7 +37,17 @@
                         <version>2.0.16</version>
                         <scope>test</scope>
                     </dependency>
-                </dependencies>
+                    <dependency>  
+                        <groupId>org.json</groupId>  
+                        <artifactId>json</artifactId>  
+                        <version>20250517</version>  
+                    </dependency>
+                    <dependency>
+                        <groupId>com.squareup.okhttp3</groupId>
+                        <artifactId>okhttp</artifactId>
+                        <version>4.12.0</version>
+                    </dependency>
+               </dependencies>
 
           .. tab:: Gradle
              :tabid: gradle
@@ -53,15 +58,25 @@
              .. code-block:: json
                 :caption: build.gradle
 
-                dependencies {
-                    // MongoDB Java Sync Driver v5.3.1 or later
-                    implementation 'org.mongodb:mongodb-driver-sync:[5.3.1,)'
-                    // Java library for working with Cohere models
-                    implementation 'ai.cohere:cohere-java:1.6.0'
-                    // SLF4J (The Simple Logging Facade for Java)
-                    testImplementation("org.slf4j:slf4j-simple:2.0.16")
-                    implementation("org.slf4j:slf4j-api:2.0.16")
-                }
+                dependencies {  
+                    // JUnit for testing  
+                    testImplementation 'junit:junit:3.8.1'  
+                
+                    // MongoDB synchronous driver  
+                    implementation 'org.mongodb:mongodb-driver-sync:5.3.1'  
+                
+                    // SLF4J API for logging  
+                    implementation 'org.slf4j:slf4j-api:2.0.16'  
+                
+                    // SLF4J Simple Logger (scope: test)  
+                    testImplementation 'org.slf4j:slf4j-simple:2.0.16'  
+                
+                    // JSON library  
+                    implementation 'org.json:json:20210307'  
+
+                    // HTTP client for Java
+                    implementation 'com.squareup.okhttp3:okhttp:4.12.0' // Or the latest version
+                }  
 
    #. Run your package manager to install the dependencies to your project.
 
@@ -79,10 +94,10 @@
    .. code-block:: shell
        :caption: Environment variables
 
-       COHERE_API_KEY=<api-key>
+       VOYAGE_API_KEY=<api-key>
        MONGODB_URI=<connection-string>
 
    Update the placeholders with the following values:
 
-   - Replace the ``<api-key>`` placeholder value with your Cohere API key.
+   - Replace the ``<api-key>`` placeholder value with your |voyage| API key.
    - .. include:: /includes/avs/shared/avs-replace-connection-string.rst

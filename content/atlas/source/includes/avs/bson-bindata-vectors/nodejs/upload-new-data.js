@@ -1,11 +1,10 @@
-const fs = require('fs/promises'); // Use fs/promises for asynchronous operations
-const { MongoClient, BSON } = require('mongodb'); // Import from the 'mongodb' package
-
-const { Binary } = BSON; // Ensure the Binary class is imported correctly
+import fs from 'fs/promises';  
+import { MongoClient, BSON } from 'mongodb';  
+const { Binary } = BSON; 
 
 async function main() {
     const MONGODB_URI = process.env.MONGODB_URI || "<CONNECTION-STRING>";
-    const DB_NAME = "<DB-NAME>";
+    const DB_NAME = "<DATABASE-NAME>";
     const COLLECTION_NAME = "<COLLECTION-NAME>";
 
     let client;

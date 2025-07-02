@@ -9,9 +9,9 @@
       ``int8``, and ``int1`` embeddings for your data and then use the
       :driver:`MongoDB Go driver </go/current/>` to convert your
       native vector embedding to |bson| vectors. The following sample
-      code uses Cohere's ``embed`` |api| to generate full-precision
-      vectors from the data in the ``sample_airbnb.listingsAndReviews``
-      namespace. 
+      code uses |voyage|'s ``voyage-3-large`` embedding model to
+      generate full-precision vectors from the data in the
+      ``sample_airbnb.listingsAndReviews`` namespace. 
 
       a. Create a new file named ``GenerateAndConvertEmbeddings.go``
          in your Go project. 
@@ -28,13 +28,13 @@
          - Gets the ``summary`` field from 50 documents in the
            ``sample_airbnb.listingsAndReviews`` namespace.
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
-           embeddings by using Cohere's ``embed`` |api|.
+           embeddings by using |voyage|'s |api|.
          - Converts the embeddings to |bson| ``binData`` vectors by using
            :driver:`MongoDB Go driver </go/current/>`. 
          - Creates a file named ``embeddings.json`` and saves
            the data with embeddings in the file. 
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/get-convert-embeddings-existing-data.go 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/go/get-convert-embeddings-existing-data.go 
             :language: go
             :caption: GenerateAndConvertEmbeddings.go
             :linenos: 
@@ -50,8 +50,8 @@
               - Your |service| {+cluster+} connection string if you
                 didn't set the environment variable. 
 
-            * - ``COHERE_API_KEY``
-              - You Cohere |api| key if you didn't set the environment variable. 
+            * - ``VOYAGE_API_KEY``
+              - Your |voyage| |api| key if you didn't set the environment variable. 
 
       #. Compile and run the file using your application run
          configuration.
@@ -100,7 +100,7 @@
          - Creates an {+avs+} index on the ``embeddings.float32``,
            ``embeddings.int8``, and ``embeddings.int1`` fields.  
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/upload-create-index-existing-data.go
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/go/upload-create-index-existing-data.go
             :language: go
             :caption: UploadDataAndCreateIndex.go
             :linenos: 
@@ -151,7 +151,7 @@
       To test your embeddings, you can run a query against your
       collection. Use an embedding model provider to generate ``float``,
       ``int8``, and ``int1`` embeddings for your query text. The
-      following sample code uses Cohere's ``embed`` |api| to generate
+      following sample code uses |voyage|'s |api| to generate
       full-precision vectors. After generating the embeddings, use the
       :driver:`MongoDB Go driver </go/current/>` to convert your native
       vector embedding to |bson| vectors and run
@@ -170,13 +170,13 @@
          This code does the following:
 
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
-           embeddings by using Cohere's ``embed`` |api|.
+           embeddings by using |voyage|'s |api|.
          - Converts the embeddings to |bson| ``binData`` vectors by using
            :driver:`MongoDB Go driver </go/current/>`. 
          - Runs the query against your collection and returns the
            results. 
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/create-embeddings-run-query.go
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/go/create-embeddings-run-query.go
             :language: go
             :caption: CreateEmbeddingsAndRunQuery.go
             :linenos: 
@@ -192,14 +192,16 @@
               - Your |service| {+cluster+} connection string if you
                 didn't set the environment variable. 
 
-            * - ``COHERE_API_KEY``
-              - You Cohere |api| key if you didn't set the environment variable. 
+            * - ``VOYAGE_API_KEY``
+              - Your |voyage| |api| key if you didn't set the environment variable. 
 
             * - ``<DATABASE-NAME>``
-              - Name of the database in your |service| {+cluster+}. For this example, use ``sample_airbnb``.
+              - Name of the database in your |service| {+cluster+}. For
+                this example, use ``sample_airbnb``. 
 
             * - ``<COLLECTION-NAME>``
-              - Name of the collection where you ingested the data. For this example, use ``listingsAndReviews``.
+              - Name of the collection where you ingested the data. For
+                this example, use ``listingsAndReviews``. 
 
             * - ``<INDEX-NAME>``
               - Name of the {+avs+} index for the collection. 
@@ -210,6 +212,15 @@
 
             * - ``<QUERY-TEXT>``
               - Text for the query. For this example, use ``ocean view``. 
+
+            * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>``
+              - Number of nearest neighbors to consider during the
+                search. For this example, use ``20``. 
+
+            * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>``
+              - Number of documents to return in the results. For this
+                example, use ``5``.  
+
 
       #. Compile and run the file using your application run
          configuration.

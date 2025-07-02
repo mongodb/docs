@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. include:: /includes/avs/bson-bindata-vectors/steps-preliminary-shared-java.rst
+   .. include:: /includes/avs/bson-bindata-vectors/steps-shared-java.rst
 
    .. step:: (Conditional) Generate embeddings from your data. 
 
@@ -9,7 +9,7 @@
       ``int8``, and ``int1`` embeddings for your data and then use the
       :driver:`MongoDB Java driver </java/sync/current/>` to
       convert your native vector embedding to |bson| vectors. The
-      following sample code uses Cohere's ``embed`` |api| to generate
+      following sample code uses |voyage|'s REST |api| to generate
       full-precision vectors from the data in the
       ``sample_airbnb.listingsAndReviews`` namespace.
 
@@ -28,30 +28,17 @@
          - Gets the ``summary`` field from 50 documents in the
            ``sample_airbnb.listingsAndReviews`` namespace.
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
-           embeddings by using Cohere's ``embed`` |api|.
+           embeddings by using |voyage|'s ``voyage-3-large`` embedding model.
          - Converts the embeddings to |bson| ``binData`` vectors by using
            :driver:`MongoDB Java driver </java/sync/current/>`. 
          - Creates a file named ``embeddings.json`` and saves
            the data with embeddings in the file. 
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/get-convert-embeddings-existing-data.java 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/java/get-convert-embeddings-existing-data.java 
             :language: java
             :caption: GenerateAndConvertEmbeddings.java
             :linenos: 
             :copyable: true
-     
-      #. Replace the following placeholder values in the code if
-         you didn't set the environment variables and save the file.
-
-         .. list-table:: 
-            :stub-columns: 1
-
-            * - ``MONGODB_URI``
-              - Your |service| {+cluster+} connection string if you
-                didn't set the environment variable. 
-
-            * - ``COHERE_API_KEY``
-              - You Cohere |api| key if you didn't set the environment variable. 
 
       #. Compile and run the file using your application run
          configuration.
@@ -104,21 +91,17 @@
          - Creates an {+avs+} index on the ``embeddings.float32``,
            ``embeddings.int8``, and ``embeddings.int1`` fields.  
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/upload-create-index-existing-data.java
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/java/upload-create-index-existing-data.java
             :language: java
             :caption: UploadDataAndCreateIndex.java
             :linenos: 
             :copyable: true
 
-      #. Replace the following placeholder values in the code and save
+      #. Replace the following placeholder value in the code and save
          the file. 
 
          .. list-table:: 
             :stub-columns: 1
-
-            * - ``MONGODB_URI``
-              - Your |service| {+cluster+} connection string if you
-                didn't set the environment variable. 
 
             * - ``<INDEX-NAME>``
               - Name of the {+avs+} index for the collection. 
@@ -141,6 +124,8 @@
             .. output:: 
                :language: shell 
 
+               Processed document with summary: ...
+               ...
                Successfully created vector index named: <INDEX_NAME>
                It may take up to a minute for the index to leave the BUILDING status and become queryable.
                Polling to confirm the index has changed from the BUILDING status.
@@ -156,9 +141,9 @@
       To test your embeddings, you can run a query against your
       collection. Use an embedding model provider to generate ``float``,
       ``int8``, and ``int1`` embeddings for your query text. The
-      following sample code uses Cohere's ``embed`` |api| to generate
+      following sample code uses |voyage|'s REST |api| to generate
       full-precision vectors. After generating the embeddings, use the
-      :driver:`MongoDB Java driver </java/sync/current/>` to
+      :driver:`MongoDB Java driver </drivers/java/sync/current/>` to 
       convert your native vector embedding to |bson| vectors and run
       :pipeline:`$vectorSearch` query against the collection.
 
@@ -175,13 +160,13 @@
          This code does the following:
 
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
-           embeddings by using Cohere's ``embed`` |api|.
+           embeddings by using |voyage|'s ``voyage-3-large`` embedding model.
          - Converts the embeddings to |bson| ``binData`` vectors by using
            :driver:`MongoDB Java driver </java/sync/current/>`. 
          - Runs the query against your collection and returns the
            results. 
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/create-embeddings-run-query.java
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/java/create-embeddings-run-query.java
             :language: java
             :caption: CreateEmbeddingsAndRunQuery.java
             :linenos: 
@@ -192,13 +177,6 @@
 
          .. list-table:: 
             :stub-columns: 1
-
-            * - ``MONGODB_URI``
-              - Your |service| {+cluster+} connection string if you
-                didn't set the environment variable. 
-
-            * - ``COHERE_API_KEY``
-              - You Cohere |api| key if you didn't set the environment variable. 
 
             * - ``<DATABASE-NAME>``
               - Name of the database in your |service| {+cluster+}. For this example, use ``sample_airbnb``.
@@ -234,15 +212,18 @@
             .. output:: 
                :language: shell 
 
-               Results from int1 embeddings:
-               {"summary": "A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.", "vectorSearchScore": 0.6591796875}
-               {"summary": "A short distance from Honolulu's billion dollar mall, and the same distance to Waikiki. Parking included. A great location that work perfectly for business, education, or simple visit. Experience Yacht Harbor views and 5 Star Hilton Hawaiian Village.", "vectorSearchScore": 0.6337890625}
-               Results from int8 embeddings:
-               {"summary": "A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.", "vectorSearchScore": 0.5215557217597961}
-               {"summary": "A short distance from Honolulu's billion dollar mall, and the same distance to Waikiki. Parking included. A great location that work perfectly for business, education, or simple visit. Experience Yacht Harbor views and 5 Star Hilton Hawaiian Village.", "vectorSearchScore": 0.5179016590118408}
+               Fetching embeddings...
+               Using embeddings in vector search queries...
                Results from float32 embeddings:
-               {"summary": "A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.", "vectorSearchScore": 0.7278661131858826}
-               {"summary": "A short distance from Honolulu's billion dollar mall, and the same distance to Waikiki. Parking included. A great location that work perfectly for business, education, or simple visit. Experience Yacht Harbor views and 5 Star Hilton Hawaiian Village.", "vectorSearchScore": 0.688639760017395}
+               {"summary": "Fantastic duplex apartment with three bedrooms, located in the historic area of Porto, Ribeira (Cube) - UNESCO World Heritage Site. Centenary building fully rehabilitated, without losing their original character.", "vectorSearchScore": 0.5}
+               {"summary": "One bedroom + sofa-bed in quiet and bucolic neighbourhood right next to the Botanical Garden. Small garden, outside shower, well equipped kitchen and bathroom with shower and tub. Easy for transport with many restaurants and basic facilities in the area.", "vectorSearchScore": 0.5}
+               Results from int8 embeddings:
+               {"summary": "A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.", "vectorSearchScore": 0.5056195259094238}
+               {"summary": "THIS IS A VERY SPACIOUS 1 BEDROOM FULL CONDO (SLEEPS 4) AT THE BEAUTIFUL VALLEY ISLE RESORT ON THE BEACH IN LAHAINA, MAUI!! YOU WILL LOVE THE PERFECT LOCATION OF THIS VERY NICE HIGH RISE! ALSO THIS SPACIOUS FULL CONDO, FULL KITCHEN, BIG BALCONY!!", "vectorSearchScore": 0.5048412084579468}
+               Results from int1 embeddings:
+               {"summary": "A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.", "vectorSearchScore": 0.7119140625}
+               {"summary": "A short distance from Honolulu's billion dollar mall, and the same distance to Waikiki. Parking included. A great location that work perfectly for business, education, or simple visit. Experience Yacht Harbor views and 5 Star Hilton Hawaiian Village.", "vectorSearchScore": 0.6787109375}
+
 
       To learn more about generating embeddings and converting the
       embeddings to ``binData`` vectors, see :ref:`create-vector-embeddings`.

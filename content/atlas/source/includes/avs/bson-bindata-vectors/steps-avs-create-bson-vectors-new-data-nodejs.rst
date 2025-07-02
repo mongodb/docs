@@ -1,12 +1,12 @@
 .. procedure:: 
    :style: normal 
 
-   .. include:: /includes/avs/bson-bindata-vectors/steps-preliminary-common-nodejs.rst 
+   .. include:: /includes/avs/bson-bindata-vectors/steps-shared-nodejs.rst 
 
    .. step:: Generate the vector embeddings for your data. 
 
       a. Create a file named ``get-embeddings.js`` to generate ``float32``,
-         ``int8``, and ``int1`` vector embeddings by using Cohere's
+         ``int8``, and ``int1`` vector embeddings by using |voyage|'s
          ``embed`` |api|.
 
          .. code-block:: shell 
@@ -19,22 +19,22 @@
          This code does the following:
 
          - Generates ``float32``, ``int8``, and ``int1`` embeddings for
-           the given data by using Cohere's ``embed-english-v3.0``
+           the given data by using |voyage|'s ``voyage-3-large``
            embedding model. 
-         - Stores the ``float``, ``int8``, and ``int1`` embeddings in
+         - Stores the ``float32``, ``int8``, and ``int1`` embeddings in
            fields named ``float``, ``int8``, and ``ubinary``
            respectively.
          - Creates a file named ``embeddings.json`` and saves the
            embeddings in the file.
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/get-embeddings-for-new-data.js 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/nodejs/get-embeddings-for-new-data.js 
             :language: javascript
             :caption: get-embeddings.js
             :copyable: true
             :linenos:
 
-      #. Replace the ``<COHERE_API_KEY>`` placeholder if you didn't set
-         your API Key for Cohere as an environment variable and then
+      #. Replace the ``<VOYAGE_API_KEY>`` placeholder if you didn't set
+         your API Key for |voyage| as an environment variable and then
          save the file.  
 
       #. Run the code to generate embeddings.
@@ -58,7 +58,7 @@
 
       a. Create a file named ``convert-embeddings.js`` to convert the
          ``float32``, ``int8``, and ``int1`` vector embeddings from
-         Cohere to |bson| ``binData`` vectors by using the
+         |voyage| to |bson| ``binData`` vectors by using the
          :driver:`MongoDB Node.js </node/current/>` driver.
 
          .. code-block:: shell 
@@ -75,7 +75,7 @@
          - Appends the ``float32``, ``int8``, and ``ubinary`` |bson|
            ``binData`` vectors to the ``embeddings.json`` file.
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/convert-embeddings.js 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/nodejs/convert-embeddings.js 
             :language: javascript
             :copyable: true
             :caption: convert-embeddings.js
@@ -119,7 +119,7 @@
          - Uploads the data including the embeddings in the
            ``embeddings.json`` file to the specified namespace.
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/upload-new-data.js 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/nodejs/upload-new-data.js 
             :language: javascript
             :caption: upload-data.js
             :copyable: true
@@ -175,7 +175,7 @@
            ``bsonEmbeddings.int1`` field also as ``vector`` type that
            uses the ``euclidean`` function.
  
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/create-index.js 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/nodejs/create-index.js 
             :language: javascript
             :caption: create-index.js
             :copyable: true
@@ -222,13 +222,13 @@
          The sample code does the following: 
 
          - Generates ``float32``, ``int8``, and ``int1`` embeddings for the
-           query text by using Cohere.
+           query text by using |voyage|.
          - Converts the generated embeddings to |bson| ``binData``
            vectors by using PyMongo. 
          - Saves the generated embeddings to a file named
            ``query-embeddings.json``. 
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/get-query-embeddings.js 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/nodejs/get-query-embeddings.js 
             :language: javascript
             :caption: get-query-embedding.js
             :copyable: true
@@ -238,8 +238,8 @@
 
          .. list-table:: 
 
-            * - ``<COHERE-API-KEY>``
-              - Your API Key for Cohere. Only replace this value if you didn't set the
+            * - ``<VOYAGE-API-KEY>``
+              - Your API Key for |voyage|. Only replace this value if you didn't set the
                 environment variable. 
       
             * - ``<QUERY-TEXT>``
@@ -281,7 +281,7 @@
          - Prints the results from Float32, Int8, and Packed Binary
            (Int1) embeddings to the console.
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/run-query-new.js 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/nodejs/run-query.js 
             :language: javascript
             :caption: run-query.js
             :copyable: true
@@ -308,6 +308,18 @@
             * - ``<INDEX-NAME>``
               - Name of the index for the collection. 
 
+            * - ``<NUMBER-OF-CAANDIDATES-TO-CONSIDER>``
+              - Number of nearest neighbors to consider during the
+                search. For this example, specify ``5``. 
+
+            * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>``
+              - Number of results to return. For this example, specify
+                ``2``.  
+
+            * - ``<TEXT-FIELD-NAME>``
+              - Name of the field that contains the text data. For this
+                example, specify ``text``.
+
       #. Run the following command to execute the query.
 
          .. io-code-block:: 
@@ -322,26 +334,34 @@
                :language: shell
 
                Connected to MongoDB
+               Running vector search using "float32" embedding...
+               Running vector search using "int8" embedding...
+               Running vector search using "int1" embedding...
+               MongoDB connection closed
                Results from Float32 embeddings:
-               ┌─────────┬─────────────────────────────────────────────────────────┬────────────────────┐
-               │ (index) │                          text                           │       score        │
-               ├─────────┼─────────────────────────────────────────────────────────┼────────────────────┤
-               │    0    │ 'Mount Everest is the highest peak on Earth at 8,848m.' │ 0.6583383083343506 │
-               │    1    │    'The Great Wall of China is visible from space.'     │ 0.6536108255386353 │
-               └─────────┴─────────────────────────────────────────────────────────┴────────────────────┘
-               --------------------------------------------------------------------------
+               Result 1: {
+                 text: 'The Great Wall of China is visible from space.',
+                 score: 0.7719700336456299
+               }
+               Result 2: {
+                 text: 'Mount Everest is the highest peak on Earth at 8,848m.',
+                 score: 0.735608696937561
+               }
                Results from Int8 embeddings:
-               ┌─────────┬─────────────────────────────────────────────────────────┬────────────────────┐
-               │ (index) │                          text                           │       score        │
-               ├─────────┼─────────────────────────────────────────────────────────┼────────────────────┤
-               │    0    │ 'Mount Everest is the highest peak on Earth at 8,848m.' │ 0.5149773359298706 │
-               │    1    │    'The Great Wall of China is visible from space.'     │ 0.5146723985671997 │
-               └─────────┴─────────────────────────────────────────────────────────┴────────────────────┘
-               --------------------------------------------------------------------------
-               Results from Packed Binary (PackedBits) embeddings:
-               ┌─────────┬─────────────────────────────────────────────────────────┬─────────────┐
-               │ (index) │                          text                           │    score    │
-               ├─────────┼─────────────────────────────────────────────────────────┼─────────────┤
-               │    0    │ 'Mount Everest is the highest peak on Earth at 8,848m.' │ 0.642578125 │
-               │    1    │    'The Great Wall of China is visible from space.'     │ 0.61328125  │
-               └─────────┴─────────────────────────────────────────────────────────┴─────────────┘
+               Result 1: {
+                 text: 'The Great Wall of China is visible from space.',
+                 score: 0.5051995515823364
+               }
+               Result 2: {
+                 text: 'Mount Everest is the highest peak on Earth at 8,848m.',
+                 score: 0.5044659972190857
+               }
+               Results from Int1 (PackedBits) embeddings:
+               Result 1: {
+                 text: 'The Great Wall of China is visible from space.',
+                 score: 0.6845703125
+               }
+               Result 2: {
+                 text: 'Mount Everest is the highest peak on Earth at 8,848m.',
+                 score: 0.6650390625
+               }

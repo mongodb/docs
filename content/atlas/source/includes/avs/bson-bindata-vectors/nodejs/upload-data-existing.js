@@ -1,6 +1,6 @@
-const fs = require('fs/promises'); // Use fs/promises for asynchronous operations
-const { MongoClient, BSON } = require('mongodb'); // Import from the 'mongodb' package
-const { EJSON, Binary } = require('bson'); // Import EJSON and Binary from bson
+import fs from 'fs/promises'; 
+import { MongoClient, BSON } from 'mongodb'; 
+import { EJSON, Binary } from 'bson'; 
 
 async function main() {
   const MONGODB_URI = process.env.MONGODB_URI || "<CONNECTION-STRING>";

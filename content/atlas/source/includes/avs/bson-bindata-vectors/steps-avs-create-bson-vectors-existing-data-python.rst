@@ -1,155 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Install the required libraries.
-
-      Run the following command to install the :driver:`PyMongo Driver
-      </pymongo/>`. If necessary, you can also install libraries from 
-      your embedding model provider. This operation might take a few
-      minutes to complete.
-
-      ..
-         NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-      .. code-block:: python 
-
-         pip install pymongo
-            
-      You must install :driver:`PyMongo </pymongo/>` v4.10 or later
-      driver. 
-
-      .. example:: Install PyMongo and Cohere
-
-         ..
-            NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-         .. code-block:: python 
-
-            pip install --quiet --upgrade pymongo cohere
-
-   .. step:: Define the functions to generate vector embeddings and convert embeddings to BSON-compatible format. 
-
-      You must define functions that perform the following by using an
-      embedding model: 
-      
-      - Generate embeddings from your existing data if your existing
-        data doesn't have any embeddings. 
-      - Convert the embeddings to |bson| vectors.
-
-      .. example:: Function to Generate and Convert Embeddings
-
-         .. list-table:: 
-            :widths: 30 70 
-            :header-rows: 1
-
-            * - Placeholder 
-              - Valid Value 
-
-            * - ``<COHERE-API-KEY>``
-              - API key for Cohere.
-
-         .. tabs:: 
-
-            .. tab:: float32
-               :tabid: float32
-
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-               .. code-block:: python 
-   
-                  import os
-                  import pymongo
-                  import cohere
-                  from bson.binary import Binary, BinaryVectorDtype
-
-                  # Specify your Cohere API key 
-                  os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
-                  cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
-                  # Define function to generate embeddings using the embed-english-v3.0 model
-                  def get_embedding(text):
-                      response = cohere_client.embed(
-                        texts=[text],
-                        model='embed-english-v3.0', 
-                        input_type='search_document',
-                        embedding_types=["float"]
-                      )
-                      embedding = response.embeddings.float[0] 
-                      return embedding
-                
-                  # Define function to convert embeddings to BSON-compatible format
-                  def generate_bson_vector(vector, vector_dtype):
-                      return Binary.from_vector(vector, vector_dtype)
-
-            .. tab:: int8
-               :tabid: int8
-
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-               .. code-block:: python 
-   
-                  import os
-                  import pymongo
-                  import cohere
-                  from bson.binary import Binary, BinaryVectorDtype
-
-                  # Specify your Cohere API key
-                  os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
-                  cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
-                  # Define function to generate embeddings using the embed-english-v3.0 model
-                  def get_embedding(text):
-                      response = cohere_client.embed(
-                        texts=[text],
-                        model='embed-english-v3.0', 
-                        input_type='search_document',
-                        embedding_types=["int8"]
-                      )
-                      embedding = response.embeddings.int8[0] 
-                      return embedding
-                
-                  # Define function to convert embeddings to BSON-compatible format
-                  def generate_bson_vector(vector, vector_dtype):
-                      return Binary.from_vector(vector, vector_dtype)
-
-            .. tab:: int1
-               :tabid: int1
-
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-               .. code-block:: python 
-   
-                  import os
-                  import pymongo
-                  import cohere
-                  from bson.binary import Binary, BinaryVectorDtype
-
-                  # Specify your Cohere API key
-                  os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
-                  cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
-                  # Define function to generate embeddings using the embed-english-v3.0 model
-                  def get_embedding(text):
-                      response = cohere_client.embed(
-                        texts=[text],
-                        model='embed-english-v3.0', 
-                        input_type='search_document',
-                        embedding_types=["ubinary"]
-                      )
-                      embedding = response.embeddings.ubinary[0] 
-                      return embedding
-                
-                  # Define function to convert embeddings to BSON-compatible format
-                  def generate_bson_vector(vector, vector_dtype):
-                      return Binary.from_vector(vector, vector_dtype)
+   .. include:: /includes/avs/bson-bindata-vectors/steps-shared-python.rst 
 
    .. step:: Connect to the |service| {+cluster+} and retrieve existing data. 
 
@@ -162,208 +14,142 @@
         want to generate embeddings.
       - Name of the collection for which you want to generate embeddings.
 
-      .. example:: Connect to |service| {+Cluster+} for Accessing Data
+      To retrieve the data, copy, paste, and run the sample code below
+      after replacing the placeholder values (highlighted in the code):
 
-         .. list-table:: 
-            :widths: 30 70 
-            :header-rows: 1
+      .. list-table:: 
+         :widths: 30 70 
+         :header-rows: 1
 
-            * - Placeholder 
-              - Valid Value 
+         * - Placeholder 
+           - Valid Value 
 
-            * - ``<ATLAS-CONNECTION-STRING>``
-              - |service| connection string. To learn more, see
-                :ref:`connect-via-driver`. 
+         * - ``<CONNECTION-STRING>``
+           - Cluster connection string. To learn more, see
+             :ref:`connect-via-driver`.  
 
-         ..
-            NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+         * - ``<DATABASE-NAME>``
+           - Name of the database that contains the collection for which
+             you want to generate and convert embeddings. For this
+             example, specify ``sample_airbnb``.
 
-         .. code-block:: python 
-            :linenos:
+         * - ``<COLLECTION-NAME>``
+           - Name of the collection for which you want to generate and
+             convert embeddings. For this example, specify
+             ``listingsAndReviews``. 
 
-            # Connect to your Atlas cluster
-            mongo_client = pymongo.MongoClient("<ATLAS-CONNECTION-STRING>")
-            db = mongo_client["sample_airbnb"]
-            collection = db["listingsAndReviews"]
+         * - ``<TEXT-FIELD-NAME>``
+           - Name of the text field for which you want to generate
+             embeddings. For this example, specify ``summary``.
 
-            # Filter to exclude null or empty summary fields
-            filter = { "summary": {"$nin": [None, ""]} }
-
-            # Get a subset of documents in the collection
-            documents = collection.find(filter).limit(50)
-
-            # Initialize the count of updated documents
-            updated_doc_count = 0
+      .. literalinclude:: /includes/avs/bson-bindata-vectors/python/load-existing-data.py
+         :copyable: true 
+         :language: python
+         :linenos:
+         :emphasize-lines: 4-6, 9
 
    .. step:: Generate, convert, and load embeddings into your collection. 
+
+      The sample code performs the following actions:
      
-      a. Generate embeddings from your data using any embedding 
+      a. Generates embeddings from your data using any embedding 
          model if your data doesn't already have embeddings. To learn 
          more about generating embeddings from your data, see 
          :ref:`create-vector-embeddings`. 
-      #. Convert the embeddings to |bson| vectors (as shown 
+      #. Converts the embeddings to |bson| vectors (as shown 
          on line 7 in the following example). 
-      #. Upload the embeddings to your collection on the
+      #. Uploads the embeddings to your collection on the
          |service| {+cluster+}.
 
       These operation might take a few minutes to complete.
- 
-      .. example:: Generate, Convert, and Load Embeddings to Collection
 
-         .. tabs:: 
-            :hidden:
+      Copy, paste, and run the code below after replacing the following
+      placeholder values (highlighted in the code):
 
-            .. tab:: float32
-               :tabid: float32
+      .. list-table:: 
+         :widths: 30 70 
+         :header-rows: 1
 
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+         * - Placeholder 
+           - Valid Value 
 
-               .. code-block:: python 
-   
-                  for doc in documents:
-                      # Generate embeddings based on the summary
-                      summary = doc["summary"]
-                      embedding = get_embedding(summary)  # Get float32 embedding
+         * - ``<EMBEDDING-MODEL>``
+           - Embedding model to use for generating the embeddings. For
+             this example, specify ``voyage-3-large``. 
 
-                      # Convert the float32 embedding to BSON format
-                      bson_float32 = generate_bson_vector(embedding, BinaryVectorDtype.FLOAT32)
+         * - ``<NUMBER-OF-DIMENSIONS>``
+           - Number of dimensions for the resulting output embeddings.
+             For this example, specify ``1024``.
 
-                      # Update the document with the BSON embedding
-                      collection.update_one(
-                          {"_id": doc["_id"]},
-                          {"$set": {"embedding": bson_float32}}
-                      )
-                      updated_doc_count += 1
+         * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
+           - Name of field with ``float32`` values.
 
-                  print(f"Updated {updated_doc_count} documents with BSON embeddings.")
+         * - ``<FIELD-NAME-FOR-INT8-TYPE>``
+           - Name of field with ``int8`` values.
 
-            .. tab:: int8
-               :tabid: int8
+         * - ``<FIELD-NAME-FOR-INT1-TYPE>``
+           - Name of field with ``int1`` values. 
 
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+         * - ``<EMBEDDING-MODEL>``
+           - Embedding model to use for generating the embeddings. For
+             this example, specify ``voyage-3-large``.
 
-               .. code-block:: python 
-   
-                  for doc in documents:
-                      # Generate embeddings based on the summary
-                      summary = doc["summary"]
-                      embedding = get_embedding(summary)  # Get int8 embedding
+         * - ``<TEXT-FIELD-NAME>``
+           - Name of the text field for which you generated
+             embeddings. For this example, specify ``summary``.
 
-                      # Convert the int8 embedding to BSON format
-                      bson_int8 = generate_bson_vector(embedding, BinaryVectorDtype.INT8)
-
-                      # Update the document with the BSON embedding
-                      collection.update_one(
-                          {"_id": doc["_id"]},
-                          {"$set": {"embedding": bson_int8}}
-                      )
-                      updated_doc_count += 1
-
-                  print(f"Updated {updated_doc_count} documents with BSON embeddings.")
-
-            .. tab:: int1
-               :tabid: int1
-
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-               .. code-block:: python 
-   
-                  for doc in documents:
-                      # Generate embeddings based on the summary
-                      summary = doc["summary"]
-                      embedding = get_embedding(summary)  # Get int1 embedding
-
-                      # Convert the int1 embedding to BSON format
-                      bson_int1 = generate_bson_vector(embedding, BinaryVectorDtype.PACKED_BIT)
-
-                      # Update the document with the BSON embedding
-                      collection.update_one(
-                          {"_id": doc["_id"]},
-                          {"$set": {"embedding": bson_int1}}
-                      )
-                      updated_doc_count += 1
-
-                  print(f"Updated {updated_doc_count} documents with BSON embeddings.")
+      .. literalinclude:: /includes/avs/bson-bindata-vectors/python/generate-embeddings-existing-data.py 
+         :copyable: true 
+         :language: python
+         :linenos:
+         :emphasize-lines: 1-5, 10
 
    .. step:: Create the {+avs+} index on the collection.
 
       You can create {+avs+} indexes by using the {+atlas-ui+},
-      {+atlas-cli+}, {+atlas-admin-api+}, and MongoDB drivers in your
-      preferred language. To learn more, see
-      :ref:`avs-types-vector-search`. 
+      {+atlas-cli+}, {+atlas-admin-api+}, and MongoDB drivers. To learn
+      more, see :ref:`avs-types-vector-search`. 
 
-      .. example:: Create Index for the Collection
+      To create the index, copy, paste, and run the sample code below after
+      replacing the following placeholder value (highlighted in the code):  
 
-         .. list-table:: 
-            :widths: 30 70 
-            :header-rows: 1
+      .. list-table:: 
+         :widths: 30 70 
+         :header-rows: 1
 
-            * - Placeholder 
-              - Valid Value 
+         * - Placeholder 
+           - Valid Value 
 
-            * - ``<INDEX-NAME>``
-              - Name of ``vector`` type index. 
+         * - ``<INDEX-NAME>``
+           - Name of ``vector`` type index. 
+            
+      .. io-code-block::  
+         :copyable: true 
 
-         ..
-            NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-         .. code-block:: python 
+         .. input:: /includes/avs/bson-bindata-vectors/python/create-index-new-data.py
+            :language: python 
             :linenos:
+            :emphasize-lines: 5
 
-            from pymongo.operations import SearchIndexModel
-            import time
+         .. output:: 
+            :language: shell 
+            :visible: false
 
-            # Define and create the vector search index
-            index_name = "<INDEX-NAME>"
-            search_index_model = SearchIndexModel(
-              definition={
-                "fields": [
-                  {
-                    "type": "vector",
-                    "path": "embedding",
-                    "similarity": "euclidean",
-                    "numDimensions": 1024
-                  }
-                ]
-              },
-              name=index_name,
-              type="vectorSearch"
-            )
-            result = collection.create_search_index(model=search_index_model)
-            print("New search index named " + result + " is building.")
+            New search index named <INDEX-NAME> is building.
+            Polling to check if the index is ready. This may take up to a minute.
+            <INDEX-NAME> is ready for querying.
 
-            # Wait for initial sync to complete
-            print("Polling to check if the index is ready. This may take up to a minute.")
-            predicate=None
-            if predicate is None:
-              predicate = lambda index: index.get("queryable") is True
-            while True:
-              indices = list(collection.list_search_indexes(index_name))
-              if len(indices) and predicate(indices[0]):
-                break
-              time.sleep(5)
-            print(result + " is ready for querying.")
+   .. step:: Run {+avs+} queries on the collection. 
 
-      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst 
+      a. Define a function to run a vector search query.
 
-   .. step:: Define a function to run the {+avs+} queries. 
-
-      The function to run {+avs+} queries must perform the following
-      actions:
-      
-      - Generate embeddings for the query text.
-      - Convert the query text to a |bson| vector. 
-      - Define the pipeline for the {+avs+} query.
-
-      .. example:: Function to Run {+avs+} Query
+         The function to run {+avs+} queries performs the following
+         actions:
+         
+         - Generates embeddings using Voyage AI for the query text.
+         - Converts the embeddings to |bson| vectors. 
+         - Defines the aggregation pipeline for the vector search.
+         - Runs the aggregation pipeline and returns the results.
 
          .. list-table:: 
             :widths: 30 70 
@@ -374,184 +160,139 @@
 
             * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>`` 
               - Number of nearest neighbors to use during the search.
+                For this example, specify ``20``
 
             * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>`` 
-              - Number of documents to return in the results.
+              - Number of documents to return in the results. For this
+                example, specify ``5``.
 
-         .. tabs:: 
-            :hidden:
+            * - ``<TEXT-FIELD-NAME>`` 
+              - Name of the field that contains the text data. For this
+                example, specify ``summary``.
 
-            .. tab:: float32
-               :tabid: float32
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/python/query-function.py 
+            :copyable: true 
+            :language: python 
+            :linenos:
+            :emphasize-lines: 37-38, 22, 44
 
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+      #. Run the {+avs+} query.
 
-               .. code-block:: python 
-   
-                  def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding(query_text)
-                    bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.FLOAT32)
+         You can run {+avs+} queries programmatically. To learn more, see
+         :ref:`return-vector-search-results`. 
 
-                    pipeline = [
-                      {
-                        '$vectorSearch': {
-                          'index': index_name, 
-                          'path': path,
-                          'queryVector': bson_query_vector,
-                          'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
-                          'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 5
-                         }
-                       },
-                       {
-                         '$project': {
-                           '_id': 0,
-                           'name': 1,
-                           'summary': 1,
-                           'score': { '$meta': 'vectorSearchScore' }
-                          }
-                       }
-                    ]
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
 
-                    return collection.aggregate(pipeline)
+            * - Placeholder 
+              - Valid Value 
 
-            .. tab:: int8
-               :tabid: int8
+            * - ``<QUERY-TEXT>`` 
+              - Text string for which to retrieve semantically similar
+                documents. For this example, specify ``ocean view``.
 
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-               .. code-block:: python 
-   
-                  def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding(query_text)
-                    bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.INT8)
-
-                    pipeline = [
-                      {
-                        '$vectorSearch': {
-                          'index': index_name, 
-                          'path': path,
-                          'queryVector': bson_query_vector,
-                          'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
-                          'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 5
-                         }
-                       },
-                       {
-                         '$project': {
-                           '_id': 0,
-                           'name': 1,
-                           'summary': 1,
-                           'score': { '$meta': 'vectorSearchScore' }
-                          }
-                       }
-                    ]
-
-                    return collection.aggregate(pipeline)
-
-            .. tab:: int1
-               :tabid: int1
-
-               ..
-                  NOTE: If you edit this Python code, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-
-               .. code-block:: python 
-   
-                  def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding(query_text)
-                    bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.PACKED_BIT)
-
-                    pipeline = [
-                      {
-                        '$vectorSearch': {
-                          'index': index_name, 
-                          'path': path,
-                          'queryVector': bson_query_vector,
-                          'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
-                          'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 5
-                         }
-                       },
-                       {
-                         '$project': {
-                           '_id': 0,
-                           'name': 1,
-                           'summary': 1,
-                           'score': { '$meta': 'vectorSearchScore' }
-                          }
-                       }
-                    ]
-
-                    return collection.aggregate(pipeline)
-
-   .. step:: Run the {+avs+} query.
-
-      You can run {+avs+} queries programmatically. To learn more, see
-      :ref:`return-vector-search-results`. 
-
-      .. example:: Run a Sample {+avs+} Query
-
-         ..
-            NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
-         
          .. io-code-block:: 
             :copyable: true 
             
-            .. input:: 
+            .. input:: /includes/avs/bson-bindata-vectors/python/run-query.py 
                :language: python 
-
-               from pprint import pprint
-
-               query_text = "ocean view"
-               query_results = run_vector_search(query_text, collection, "embedding")
-
-               print("query results:")
-               pprint(list(query_results))
+               :linenos:
+               :emphasize-lines: 8
 
             .. output:: 
-               :language: python 
-               :visible: false
+               :language: shell 
 
-               query results:
-               [{'name': 'Your spot in Copacabana',
-                 'score': 0.5468248128890991,
-                 'summary': 'Having a large airy living room. The apartment is well divided. '
-                            'Fully furnished and cozy. The building has a 24h doorman and '
-                            'camera services in the corridors. It is very well located, close '
-                            'to the beach, restaurants, pubs and several shops and '
-                            'supermarkets. And it offers a good mobility being close to the '
-                            'subway.'},
-                {'name': 'Twin Bed room+MTR Mongkok shopping&My',
-                 'score': 0.527062714099884,
-                 'summary': 'Dining shopping conveniently located Mongkok subway E1, airport '
-                            'shuttle bus stops A21. Three live two beds, separate WC, 24-hour '
-                            'hot water. Free WIFI.'},
-               {'name': 'Quarto inteiro na Tijuca',
-                 'score': 0.5222363471984863,
-                 'summary': 'O quarto disponível tem uma cama de solteiro, sofá e computador '
-                            'tipo desktop para acomodação.'},
-                {'name': 'Makaha Valley Paradise with OceanView',
-                 'score': 0.5175154805183411,
-                 'summary': 'A beautiful and comfortable 1 Bedroom Air Conditioned Condo in '
-                            'Makaha Valley - stunning Ocean & Mountain views All the '
-                            'amenities of home, suited for longer stays. Full kitchen & large '
-                            "bathroom.  Several gas BBQ's for all guests to use & a large "
-                            'heated pool surrounded by reclining chairs to sunbathe.  The '
-                            'Ocean you see in the pictures is not even a mile away, known as '
-                            'the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  '
-                            'paddle boarding, surfing are all just minutes from the front '
-                            'door.'},
-                {'name': 'Cozy double bed room 東涌鄉村雅緻雙人房',
-                 'score': 0.5149975419044495,
-                 'summary': 'A comfortable double bed room at G/F. Independent entrance. High '
-                            'privacy. The room size is around 100 sq.ft. with a 48"x72" '
-                            'double bed. The village house is close to the Hong Kong Airport, '
-                            'AsiaWorld-Expo, HongKong-Zhuhai-Macau Bridge, Disneyland, '
-                            'Citygate outlets, 360 Cable car, shopping centre, main tourist '
-                            'attractions......'}]
-
-         Your results might vary depending on the vector data type 
-         that you specified in the previous steps.
+               Results from float32-embeddings
+               [{'score': 0.8044508695602417,
+               'summary': 'A beautiful and comfortable 1 Bedroom Air Conditioned Condo in '
+                           'Makaha Valley - stunning Ocean & Mountain views All the '
+                           'amenities of home, suited for longer stays. Full kitchen & large '
+                           "bathroom.  Several gas BBQ's for all guests to use & a large "
+                           'heated pool surrounded by reclining chairs to sunbathe.  The '
+                           'Ocean you see in the pictures is not even a mile away, known as '
+                           'the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  '
+                           'paddle boarding, surfing are all just minutes from the front '
+                           'door.'},
+               {'score': 0.7622430920600891,
+               'summary': 'THIS IS A VERY SPACIOUS 1 BEDROOM FULL CONDO (SLEEPS 4) AT THE '
+                           'BEAUTIFUL VALLEY ISLE RESORT ON THE BEACH IN LAHAINA, MAUI!! YOU '
+                           'WILL LOVE THE PERFECT LOCATION OF THIS VERY NICE HIGH RISE! ALSO '
+                           'THIS SPACIOUS FULL CONDO, FULL KITCHEN, BIG BALCONY!!'},
+               {'score': 0.7484776973724365,
+               'summary': 'Para 2 pessoas. Vista de mar a 150 mts. Prédio com 2 elevadores. '
+                           'Tem: - quarto com roupeiro e cama de casal (colchão '
+                           'magnetizado); - cozinha: placa de discos, exaustor, frigorifico, '
+                           'micro-ondas e torradeira; casa de banho completa; - sala e '
+                           'varanda.'},
+               {'score': 0.7452666759490967,
+               'summary': 'Quarto com vista para a Lagoa Rodrigo de Freitas, cartão postal '
+                           'do Rio de Janeiro. Linda Vista.  1 Quarto e 1 banheiro  Amplo, '
+                           'arejado, vaga na garagem. Prédio com piscina, sauna e '
+                           'playground.  Fácil acesso, próximo da praia e shoppings.'},
+               {'score': 0.73777174949646,
+               'summary': 'próximo aos principais pontos turísticos,,do lado do metro, '
+                           'vista p o CRISTO REDENTOR, GARAGEM, FAXINEIRA, PLAY.'}]
+               Results from int8-embeddings embeddings
+               [{'score': 0.5057082176208496,
+               'summary': 'A beautiful and comfortable 1 Bedroom Air Conditioned Condo in '
+                           'Makaha Valley - stunning Ocean & Mountain views All the '
+                           'amenities of home, suited for longer stays. Full kitchen & large '
+                           "bathroom.  Several gas BBQ's for all guests to use & a large "
+                           'heated pool surrounded by reclining chairs to sunbathe.  The '
+                           'Ocean you see in the pictures is not even a mile away, known as '
+                           'the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  '
+                           'paddle boarding, surfing are all just minutes from the front '
+                           'door.'},
+               {'score': 0.5048595666885376,
+               'summary': 'THIS IS A VERY SPACIOUS 1 BEDROOM FULL CONDO (SLEEPS 4) AT THE '
+                           'BEAUTIFUL VALLEY ISLE RESORT ON THE BEACH IN LAHAINA, MAUI!! YOU '
+                           'WILL LOVE THE PERFECT LOCATION OF THIS VERY NICE HIGH RISE! ALSO '
+                           'THIS SPACIOUS FULL CONDO, FULL KITCHEN, BIG BALCONY!!'},
+               {'score': 0.5045757293701172,
+               'summary': 'Para 2 pessoas. Vista de mar a 150 mts. Prédio com 2 elevadores. '
+                           'Tem: - quarto com roupeiro e cama de casal (colchão '
+                           'magnetizado); - cozinha: placa de discos, exaustor, frigorifico, '
+                           'micro-ondas e torradeira; casa de banho completa; - sala e '
+                           'varanda.'},
+               {'score': 0.5044537782669067,
+               'summary': 'Quarto com vista para a Lagoa Rodrigo de Freitas, cartão postal '
+                           'do Rio de Janeiro. Linda Vista.  1 Quarto e 1 banheiro  Amplo, '
+                           'arejado, vaga na garagem. Prédio com piscina, sauna e '
+                           'playground.  Fácil acesso, próximo da praia e shoppings.'},
+               {'score': 0.5044353604316711,
+               'summary': 'The ultimate way to experience Sydney Harbour; fireworks, the '
+                           'bridge, and the proximity to the city means you can experience '
+                           'everything this city has to offer.  Tucked into the Balmain '
+                           "Peninsula, you're close to parks, pubs, shops, buses, and more!"}]
+               Results from int1-embeddings embeddings
+               [{'score': 0.7158203125,
+               'summary': 'A beautiful and comfortable 1 Bedroom Air Conditioned Condo in '
+                           'Makaha Valley - stunning Ocean & Mountain views All the '
+                           'amenities of home, suited for longer stays. Full kitchen & large '
+                           "bathroom.  Several gas BBQ's for all guests to use & a large "
+                           'heated pool surrounded by reclining chairs to sunbathe.  The '
+                           'Ocean you see in the pictures is not even a mile away, known as '
+                           'the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  '
+                           'paddle boarding, surfing are all just minutes from the front '
+                           'door.'},
+               {'score': 0.6865234375,
+               'summary': 'Para 2 pessoas. Vista de mar a 150 mts. Prédio com 2 elevadores. '
+                           'Tem: - quarto com roupeiro e cama de casal (colchão '
+                           'magnetizado); - cozinha: placa de discos, exaustor, frigorifico, '
+                           'micro-ondas e torradeira; casa de banho completa; - sala e '
+                           'varanda.'},
+               {'score': 0.677734375,
+               'summary': 'próximo aos principais pontos turísticos,,do lado do metro, '
+                           'vista p o CRISTO REDENTOR, GARAGEM, FAXINEIRA, PLAY.'},
+               {'score': 0.6748046875,
+               'summary': 'Cozy and comfortable apartment. Ideal for families and '
+                           'vacations.  3 bedrooms, 2 of them suites.  Located 20-min walk '
+                           'to the beach and close to the Rio 2016 Olympics Venues. Situated '
+                           'in a modern and secure condominium, with many entertainment '
+                           'available options around.'},
+               {'score': 0.6728515625,
+               'summary': 'THIS IS A VERY SPACIOUS 1 BEDROOM FULL CONDO (SLEEPS 4) AT THE '
+                           'BEAUTIFUL VALLEY ISLE RESORT ON THE BEACH IN LAHAINA, MAUI!! YOU '
+                           'WILL LOVE THE PERFECT LOCATION OF THIS VERY NICE HIGH RISE! ALSO '
+                           'THIS SPACIOUS FULL CONDO, FULL KITCHEN, BIG BALCONY!!'}]

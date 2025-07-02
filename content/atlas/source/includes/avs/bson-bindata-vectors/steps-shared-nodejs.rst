@@ -1,23 +1,35 @@
+.. include:: /includes/avs/shared/steps-avs-nodejs-config-modules.rst
+
 .. step:: Install the required libraries.
 
    Run the following command to install the MongoDB :driver:`Node.js
-   Driver </node/current/>`. This operation might take a few 
-   minutes to complete.
+   Driver </node/current/>` and the ``dotenv`` package. This operation
+   might take a few minutes to complete.
 
    .. code-block:: python 
 
-       npm install mongodb
+       npm install mongodb dotenv
     
    You must install :driver:`Node.js </node/current/>` v6.11 or later
-   driver. If necessary, you can also install libraries from your
-   embedding model provider. For example, to generate ``float32``,
-   ``int8``, and ``int1`` embeddings by using Cohere as demonstrated
-   in this page, install Cohere:
- 
-   .. code-block:: python 
+   driver.
 
-      npm install cohere-ai dotenv
-      npm show cohere-ai version
+   If necessary, you must also install libraries from your embedding
+   model provider. In this tutorial, you use the Voyage AI REST API to
+   generate embeddings. Therefore, you don't need to install any
+   additional libraries for Voyage AI. 
+
+.. step:: Initialize your Node.js project. 
+
+   In a terminal window, run the following commands to create a new
+   directory named ``my-quantization-project`` and initialize your
+   project:  
+
+   .. code-block:: shell 
+      :copyable: true 
+
+      mkdir my-quantization-project
+      cd my-quantization-project
+      npm init -y
 
 .. step:: Set the environment variables in your terminal.
 
@@ -25,21 +37,21 @@
       and converting embeddings, set the environment variable for the
       embedding model provider's API key, if necessary.
        
-      For using embeddings from Cohere, set up the ``COHERE_API_KEY``
+      For using embeddings from |voyage|, set up the ``VOYAGE_API_KEY``
       environment variable. 
 
       .. code-block:: 
 
-         export COHERE_API_KEY="<COHERE-API-KEY>"
+         export VOYAGE_API_KEY="<VOYAGEAI-API-KEY>"
 
       If you don't set the environment variable, replace the
-      ``<COHERE-API-KEY>`` in the sample code with the API key before
+      ``<VOYAGE-API-KEY>`` in the sample code with the API key before
       running the code.  
 
    #. To access |service| {+cluster+}, set the ``MONGODB_URI``
       environment variable. 
 
-      .. code-block:: shell 
+      .. code-block::  
 
          export MONGODB_URI="<CONNECTION-STRING>"
 

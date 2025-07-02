@@ -31,6 +31,7 @@ public class UploadDataAndCreateIndex {
         }
     }
 
+    // Upload the documents in the file to the given MongoDB namespace
     public static void storeEmbeddings(MongoClient client) throws IOException {
         MongoDatabase database = client.getDatabase(DB_NAME);
         MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
@@ -47,6 +48,7 @@ public class UploadDataAndCreateIndex {
         return rootDoc.getList("data", Document.class);
     }
 
+    // Create the Vector Search index
     public static void setupVectorSearchIndex(MongoClient client) throws InterruptedException {
         MongoDatabase database = client.getDatabase(DB_NAME);
         MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
@@ -83,6 +85,7 @@ public class UploadDataAndCreateIndex {
         waitForIndex(collection, INDEX_NAME);
     }
 
+    // Wait for the index build to complete
     public static <T> boolean waitForIndex(final MongoCollection<T> collection, final String indexName) {
         long startTime = System.nanoTime();
         long timeoutNanos = TimeUnit.SECONDS.toNanos(60);

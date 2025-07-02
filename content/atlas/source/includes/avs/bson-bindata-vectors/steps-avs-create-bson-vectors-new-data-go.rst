@@ -30,7 +30,7 @@
          - Creates a file named ``embeddings.json`` and saves the data
            with embeddings in the file.  
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/get-convert-embeddings-new-data.go 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/go/get-convert-embeddings-new-data.go 
             :language: go
             :caption: GenerateAndConvertEmbeddings.go
             :linenos: 
@@ -42,8 +42,8 @@
          .. list-table:: 
             :stub-columns: 1
 
-            * - ``COHERE_API_KEY``
-              - You Cohere |api| key only if you didn't set the
+            * - ``VOYAGE_API_KEY``
+              - Your |voyage| |api| key only if you didn't set the
                 environment variable.
 
       #. Run the program using the following command.
@@ -93,7 +93,7 @@
          - Creates an {+avs+} index on the ``embeddings.float32``,
            ``embeddings.int8``, and ``embeddings.int1`` fields.  
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/upload-create-index-new-data.go
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/go/upload-create-index-new-data.go
             :language: go
             :caption: UploadDataAndCreateIndex.go
             :linenos: 
@@ -175,7 +175,7 @@
          - Runs the query against your collection and returns the
            results. 
 
-         .. literalinclude:: /includes/avs/bson-bindata-vectors/create-embeddings-run-query.go 
+         .. literalinclude:: /includes/avs/bson-bindata-vectors/go/create-embeddings-run-query.go 
             :language: go
             :caption: CreateEmbeddingsAndRunQuery.go
             :linenos: 
@@ -191,8 +191,8 @@
               - Your |service| {+cluster+} connection string if you
                 didn't set the environment variable. 
 
-            * - ``COHERE_API_KEY``
-              - You Cohere |api| key only if you didn't set the
+            * - ``VOYAGE_API_KEY``
+              - Your |voyage| |api| key only if you didn't set the
                 environment variable.
 
             * - ``<DATABASE-NAME>``
@@ -206,10 +206,18 @@
 
             * - ``<TEXT-FIELD-NAME>``
               - Name of the field that contain the text from which you
-                generated embeddings.  
+                generated embeddings. For this example, use ``text``.
 
             * - ``<QUERY-TEXT>``
               - Text for the query. For this example, use ``science fact``. 
+
+            * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>``
+              - Number of nearest neighbors to consider during the
+                search. For this example, use ``5``. 
+
+            * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>``
+              - Number of documents to return in the results. For this
+                example, use ``2``.  
 
       #. Compile and run the file using your application run
          configuration.
@@ -228,12 +236,12 @@
             .. output:: 
                :language: shell 
 
-               Results from embeddings_int1 embeddings:
-               {"_id":{"$oid":"68129070e7f516cc19658bc9"},"text":"Mount Everest is the highest peak on Earth at 8,848m.","score":{"$numberDouble":"0.642578125"}}
-               {"text":"The Great Wall of China is visible from space.","score":{"$numberDouble":"0.61328125"},"_id":{"$oid":"68129070e7f516cc19658bc7"}}
                Results from embeddings_float32 embeddings:
-               {"_id":{"$oid":"68129070e7f516cc19658bc9"},"text":"Mount Everest is the highest peak on Earth at 8,848m.","score":{"$numberDouble":"0.6583383083343506"}}
-               {"_id":{"$oid":"68129070e7f516cc19658bc7"},"text":"The Great Wall of China is visible from space.","score":{"$numberDouble":"0.6536108255386353"}}
+               {"_id":{"$oid":"68630fc85cb353712a1c521d"},"text":"The Great Wall of China is visible from space.","score":{"$numberDouble":"0.7723928093910217"}}
+               {"_id":{"$oid":"68630fc85cb353712a1c521f"},"text":"Mount Everest is the highest peak on Earth at 8,848m.","score":{"$numberDouble":"0.7363046407699585"}}
                Results from embeddings_int8 embeddings:
-               {"_id":{"$oid":"68129070e7f516cc19658bc9"},"text":"Mount Everest is the highest peak on Earth at 8,848m.","score":{"$numberDouble":"0.5149773359298706"}}
-               {"_id":{"$oid":"68129070e7f516cc19658bc7"},"text":"The Great Wall of China is visible from space.","score":{"$numberDouble":"0.5146723985671997"}}
+               {"_id":{"$oid":"68630fc85cb353712a1c521d"},"text":"The Great Wall of China is visible from space.","score":{"$numberDouble":"0.5051995515823364"}}
+               {"_id":{"$oid":"68630fc85cb353712a1c521f"},"text":"Mount Everest is the highest peak on Earth at 8,848m.","score":{"$numberDouble":"0.5044659972190857"}}
+               Results from embeddings_int1 embeddings:
+               {"_id":{"$oid":"68630fc85cb353712a1c521d"},"text":"The Great Wall of China is visible from space.","score":{"$numberDouble":"0.6845703125"}}
+               {"_id":{"$oid":"68630fc85cb353712a1c521f"},"text":"Mount Everest is the highest peak on Earth at 8,848m.","score":{"$numberDouble":"0.6650390625"}}

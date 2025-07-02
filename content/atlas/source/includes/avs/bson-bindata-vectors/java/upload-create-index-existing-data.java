@@ -20,8 +20,8 @@ import java.util.stream.StreamSupport;
 public class UploadDataAndCreateIndex {
 
     private static final String MONGODB_URI = System.getenv("MONGODB_URI");
-    private static final String DB_NAME = "sample_airbnb";
-    private static final String COLLECTION_NAME = "listingsAndReviews";
+    private static final String DB_NAME = "<DATABASE-NAME>";
+    private static final String COLLECTION_NAME = "<COLLECTION-NAME>";
     private static final String INDEX_NAME = "<INDEX-NAME>";
 
     public static void main(String[] args) {
@@ -33,6 +33,7 @@ public class UploadDataAndCreateIndex {
         }
     }
 
+    // Upload the embeddings in the file to the given MongoDB namespace
     public static void uploadEmbeddingsData(MongoClient mongoClient) throws IOException {
         MongoDatabase database = mongoClient.getDatabase(DB_NAME);
         MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
@@ -64,6 +65,7 @@ public class UploadDataAndCreateIndex {
         }
     }
 
+    // Create a Vector Search index
     public static void setupVectorSearchIndex(MongoClient client) throws InterruptedException {
         MongoDatabase database = client.getDatabase(DB_NAME);
         MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
@@ -100,6 +102,7 @@ public class UploadDataAndCreateIndex {
         waitForIndex(collection, INDEX_NAME);
     }
 
+    // Wait for the index build to complete
     public static <T> boolean waitForIndex(final MongoCollection<T> collection, final String indexName) {
         long startTime = System.nanoTime();
         long timeoutNanos = TimeUnit.SECONDS.toNanos(60);

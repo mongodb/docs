@@ -1,23 +1,3 @@
-.. step:: Install the required libraries.
-
-   Run the following command to install the MongoDB :driver:`Go
-   Driver </go/current/>`. This operation might take a few 
-   minutes to complete.
-
-   .. code-block:: python 
-
-       go get go.mongodb.org/mongo-driver/v2/mongo
-    
-   You must install :driver:`Go </go/current/>` v2.1 or later
-   driver. If necessary, you can also install libraries from your
-   embedding model provider. For example, to generate ``float32``,
-   ``int8``, and ``int1`` embeddings by using Cohere as demonstrated
-   in this page, install Cohere:
- 
-   .. code-block:: python 
-
-      go get github.com/cohere-ai/cohere-go/v2/client@v2.13.0
-
 .. step:: Initialize your Go project.
 
    In a terminal window, run the following commands to create a new
@@ -30,18 +10,34 @@
       cd ingest-binary-vectors-project
       go mod init ingest-binary-vectors-project
 
+.. step:: Install the required libraries.
+
+   Run the following command to install the MongoDB :driver:`Go
+   Driver </go/current/>`. This operation might take a few 
+   minutes to complete.
+
+   .. code-block:: python 
+
+       go get go.mongodb.org/mongo-driver/v2/mongo
+    
+   You must install :driver:`Go </go/current/>` v2.1 or later
+   driver. If necessary, you can also install libraries from your
+   embedding model provider. For examples in this tutorial, we will use
+   the Voyage AI REST API to generate embeddings. Therefore, you don't
+   need to install any additional libraries.
+
 .. step:: Set the environment variables in your terminal.
 
    a. To access the embedding model provider for generating
       and converting embeddings, set the environment variable for the
       embedding model provider's API key, if necessary.
        
-      For using embeddings from Cohere, set up the ``COHERE_API_KEY``
+      For using embeddings from |voyage|, set up the ``VOYAGE_API_KEY``
       environment variable. 
 
       .. code-block:: 
 
-         export COHERE_API_KEY="<COHERE-API-KEY>"
+         export VOYAGE_API_KEY="<VOYAGE-API-KEY>"
 
    #. To access |service| {+cluster+}, set the ``MONGODB_URI``
       environment variable. 
