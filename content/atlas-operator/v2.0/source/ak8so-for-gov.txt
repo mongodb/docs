@@ -1,0 +1,113 @@
+.. _ak8so-for-gov-ref:
+
+==============================================
+Configure |ak8so| for |service| for Government 
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 0
+   :class: singlecol
+
+You can use the |ak8so| to manage resources in |service| for Government.
+The |ak8so| only supports managing |service| for Government on |aws|. It
+doesn't support {+adf+} and Serverless deployments. For more
+information, see :atlas:`Supported Features
+</government/overview/supported-features/>` in the |service-fullname|
+for Government documentation. 
+
+This page describes how to configure the |ak8so| to manage resources in
+|service| for Government.
+
+Prerequisites
+-------------
+
+You must install the |ak8so|. If you install the |ak8so| using
+{+atlas-cli+} with the ``--gov`` flag, you can skip steps 1 - 3 in the
+following procedure. If you don't specify ``--gov`` flag for installing
+the |ak8so|, complete all the steps in the following procedure. 
+
+To learn more about installing the |ak8so| using the {+atlas-cli+}, see
+:ref:`ak8so-quick-start-ref`.
+
+Procedure 
+---------
+
+After you install the |ak8so|, do the following:
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Edit the |ak8so| Deployment manifest to set the target to the domain of |service| for Government.
+
+      For example, to edit using ``kubectl``: 
+
+      .. code-block:: shell 
+         :copyable: true 
+
+         kubectl edit deployments.apps -n default <your-mongodb-atlas-operator>
+
+   .. step:: Locate the ``atlas-domain`` setting under ``spec.containers.args`` in the file.
+
+      .. code-block:: shell 
+         :copyable: false 
+         :emphasize-lines: 19
+
+         apiVersion: apps/v1
+         kind: Deployment
+         metadata:
+           ...
+         spec:
+           progressDeadlineSeconds: 600
+           replicas: 1
+           revisionHistoryLimit: 10
+           selector:
+             ...
+           strategy:
+            ...
+           template:
+             metadata:
+               ...
+             spec:
+               containers:
+               - args:
+                 - --atlas-domain=https://cloud.mongodb.com/
+                 - --leader-elect
+                 - --health-probe-bind-address=:8081
+                 - --metrics-bind-address=127.0.0.1:8080
+                 - --log-level=info
+                 - --log-encoder=json
+                 command:
+                 - /manager
+                 env:
+                 - name: OPERATOR_POD_NAME
+          ...
+
+   .. step:: Modify the domain to set the target to |service| for Government.
+
+      To configure the domain, replace the value of ``--atlas-domain``
+      with the following |url|: 
+
+      .. code-block:: shell 
+         :copyable: true 
+
+         https://cloud.mongodbgov.com/
+
+   .. step:: Deploy |ak8so|. 
+
+      Follow the procedure in the :ref:`ak8so-quick-start-ref` to deploy
+      |ak8so|.
+      
+   .. step:: Set the |aws| region for |service| for Government.
+
+      Use the ``spec.regionUsageRestrictions`` parameter in the
+      ``AtlasProject`` custom resource to set the |aws| region for 
+      |service| for Government. If you omit the
+      ``spec.regionUsageRestrictions`` parameter,
+      |ak8so| restricts the project to |aws| `FedRamp
+      <https://www.fedramp.gov/>`__ Moderate standard regions by
+      default. To learn more, see
+      :setting:`spec.regionUsageRestrictions`.

@@ -1,0 +1,361 @@
+.. _atlasnetworkpeering-custom-resource:
+
+=======================================
+``AtlasNetworkPeering`` Custom Resource
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasNetworkPeering`` custom resource defines a :ref:`network
+peering connection <ak8so-network-peering>` for a |service|
+project. Network peering connections isolate traffic from public
+networks for added security.
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+|ak8so| does one of the following actions using the |service|
+:oas-atlas-tag:`Network Peering API Resource </Network-Peering>`:
+   
+- Creates a new network peering connection.
+- Updates an existing network peering connection.
+
+.. note::
+
+   A network peering connection can belong only to one project. To
+   define the same network peering connection for multiple projects,
+   create custom resource definitions for each project.
+
+Examples
+--------
+
+The following examples illustrate configurations for
+``AtlasNetworkPeering`` CRDs.
+
+- The basic example configuration defines a resource that you manage
+  with the same |ak8so| instance with which you manage its parent
+  {+service+} project.
+
+- The :ref:`Independent CRD <ak8so-independent-crd>` example
+  configures the same |vpc| peering connection as the basic example,
+  but for a {+service+} project that you manage outside of the |ak8so|
+  instance with which you manage the |vpc| peering connection.
+
+.. _atlasnetworkpeering-example-basic:
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following example shows an ``AtlasNetworkPeering`` custom resource
+that defines the ``green-leaf-peering`` connection between the
+``my-project`` project |vpc| and your {+aws+} |vpc|. To manage this
+resource in the same |ak8so| instance as its parent {+service+}
+project, you must identify the project with ``projectRef`` instead of
+``externalProjectRef``.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasNetworkPeering
+   metadata:
+     name: green-leaf-peering
+   spec:
+     projectRef:
+       name: my-project
+       namespace: my-operator-namespace
+     containerRef:
+       id: 72a6d2a69388ba121943ae27
+     id: 72a6d2a69388ba121943ae27
+     provider: AWS
+     awsConfiguration:
+       accepterRegionName: us-east-1
+       awsAccountId: 389226183042
+       routeTableCiderBlock: 10.0.0.0/21
+       vpcId: vpc-abc
+
+Independent CRD Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasNetworkPeering``
+:ref:`independent CRD <ak8so-independent-crd>` that configures the
+same |vpc| peering connection defined by the :ref:`Basic Example
+<atlasnetworkpeering-example-basic>`. To enable resource management
+independent of the parent project, you must use an
+``externalProjectRef`` instead of a ``projectRef``, and you must
+supply a ``connectionSecret`` directly since this resource can't
+inherit API credentials from its parent project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasNetworkPeering
+   metadata:
+     name: green-leaf-peering
+   spec:
+     externalProjectRef:
+       projectId: 66e2f2b621571b7e69a89b66
+     connectionSecret:
+       name: atlas-connection-secret
+     containerRef:
+       id: 72a6d2a69388ba121943ae27
+     id: 72a6d2a69388ba121943ae27
+     provider: AWS
+     awsConfiguration:
+       accepterRegionName: us-east-1
+       awsAccountId: 389226183042
+       routeTableCiderBlock: 10.0.0.0/21
+       vpcId: vpc-abc
+
+Parameters
+----------
+
+This section describes the ``AtlasNetworkPeering`` parameters
+available in this custom resource definition. 
+
+.. setting:: metadata.name
+
+   *Type*: string
+
+   *Required*
+
+   Name that the :ref:`atlasnetworkpeering-custom-resource` uses to add
+   this network peering connection to a project.
+
+.. setting:: metadata.namespace
+
+   *Type*: string
+
+   *Optional*
+
+   Namespace other than ``default`` that you want to contain the
+   ``AtlasNetworkPeering`` custom resource.
+
+.. setting:: spec.connectionSecret.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the opaque |k8s-secret| that contains the organization ID
+   and :ref:`API keys <about-org-api-keys>` that |ak8so| uses to
+   :ref:`connect <ak8so-access-to-atlas-ref>` to |service|.  If
+   unspecified, |ak8so| defaults to one of the following options:
+
+   - The ``spec.connectionSecretRef.name`` parameter of the parent
+     ``atlasProject``
+   - The default ``global`` secret, if you haven't defined the
+     ``spec.connectionSecretRef.name`` for the parent ``atlasProject``
+
+   This parameter is required for :ref:`independent CRDs
+   <ak8so-independent-crd>`.
+   
+   .. include:: /includes/fact-ak8so-label-secret.rst
+
+.. setting:: spec.containerRef.id
+
+   *Type*: string
+
+   *Conditional*
+
+   If this resource represents a new network peering connection, omit
+   this parameter.
+
+   ID of the existing network peering container. Provide this field
+   only if you want this resource to manage an existing network
+   peering connection within |ak8so|. If you prefer that this resource
+   starts managing a |k8s| local resource, use the
+   ``spec.containerRef.name`` parameter.
+
+.. setting:: spec.containerRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of an existing network peering container which you manage with
+   a |k8s| local resource in your project namespace. Provide this
+   field only if you want this resource to manage a |k8s| local
+   resource. If you prefer that this resource starts managing a network
+   peering connection already managed by |ak8so|, use the
+   ``spec.containerRef.id`` parameter. If this resource represents a
+   new network peering connection, omit this field.
+
+.. setting:: spec.externalProjectRef.id
+
+   *Type*: string
+
+   *Conditional*
+
+   ID of the project to which the network peering connection
+   belongs. You must specify the project ID of an existing :ref:`Atlas
+   Project <manage-projects>`. You must specify this parameter for network
+   peering connections that belong to projects managed by either:
+
+   - A different instance of |ak8so|
+   - Tooling other than |ak8so|
+
+   For deployments that belong to projects managed by
+   the same instance of |ak8so|, use ``spec.projectRef.name``. These
+   parameters are mutually exclusive with each other.
+
+   A network peering connection can belong to only one project. To
+   define the same network peering connection for multiple projects,
+   create custom resource definitions for each project.
+
+.. setting:: spec.projectRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the project to which the network peering connection
+   belongs. You must specify an existing
+   :ref:`atlasproject-custom-resource`. This parameter applies only to
+   network peering connections that belong to projects managed by the
+   same instance |ak8so|.
+
+   For deployments that belong to projects managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
+
+   use ``spec.externalProjectRef.id``. These parameters are mutually
+   exclusive with each other.
+
+   A network peering connection can belong only to one project. To
+   define the same network peering connection for multiple projects,
+   create custom resource definitions for each project.
+
+.. setting:: spec.projectRef.namespace
+
+   *Type*: string
+
+   *Conditional*
+
+   Namespace in which the :ref:`atlasproject-custom-resource`
+   specified in ``spec.projectRef.name`` exists.
+
+   Do not set this parameter for deployments that belong to projects
+   managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
+
+.. setting:: spec.id
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier of the existing network peering connection within
+   {+service+}. This parameter is required for and limited to
+   scenarios in which |ak8so| assumes management of a pre-existing
+   network peering connection.
+
+.. setting:: spec.provider
+
+   *Type*: string
+
+   *Required*
+
+   Cloud provider with which to establish a |vpc| peering
+   connection. Must be one of the following:
+
+   - ``AWS``
+   - ``Azure``
+   - ``GCP``
+
+.. setting:: spec.awsConfiguration.accepterRegionName
+
+   *Type*: string
+
+   *Conditional*
+
+   {+aws+} region to which to establish a |vpc| peering
+   connection. Required for and limited to {+aws+} connections.
+
+.. setting:: spec.awsConfiguration.awsAccountId
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier of the {+aws+} account to which the connection
+   belongs. Required for and limited to {+aws+} connections.
+
+.. setting:: spec.awsConfiguration.routeTableCidrBlock
+
+   *Type*: string
+
+   *Conditional*
+
+   CIDR block of your {+aws+} |vpc|. Required for and limited to
+   {+aws+} connections.
+
+.. setting:: spec.awsConfiguration.vpcId
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier of your {+aws+} |vpc|. Required for and limited to
+   {+aws+} connections.
+
+.. setting:: spec.azureConfiguration.azureDirectoryId
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier of your |azure| directory. Required for and
+   limited to |azure| connections.
+
+.. setting:: spec.azureConfiguration.azureSubscriptionId
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier of your |azure| subscription. Required for and
+   limited to |azure| connections.
+
+.. setting:: spec.azureConfiguration.resourceGroupName
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the |azure| Resource Group to which the connection
+   belongs. Required for and limited to |azure| connections.
+
+.. setting:: spec.azureConfiguration.vNetName
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of your |azure| Virtual Network. Required for and limited to
+   |azure| connections.
+
+.. setting:: spec.gcpConfiguration.gcpProjectId
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of your {+gcp+} Google project. Required for and limited to
+   {+gcp+} connections.
+
+.. setting:: spec.gcpConfiguration.networkName
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of your {+gcp+} network. Required for and limited to
+   {+gcp+} connections.

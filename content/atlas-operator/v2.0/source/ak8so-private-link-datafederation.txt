@@ -1,0 +1,170 @@
+.. _ak8so-private-endpoint-datafederation:
+
+==============================================================
+Manage Private Endpoints for an {+FDI+}
+==============================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|ak8so| supports managing private endpoints for {+dedicated-clusters+} 
+on |aws| using the `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__
+feature.
+
+Before you begin, see :ref:`ak8so-private-endpoint`.
+
+Procedure
+---------
+
+To enable clients to connect to |service| {+dedicated-clusters+} using 
+private endpoints:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Find the service name for your private endpoint.
+
+      Use the following table to find the service name that corresponds
+      to the |aws| region for your private endpoint:
+
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
+
+         * - |aws| Region
+           - Service Name
+
+         * - ``us-east-1``
+           - ``com.amazonaws.vpce.us-east-1.vpce-svc-00e311695874992b4``
+
+         * - ``us-west-1``
+           - ``com.amazonaws.vpce.us-west-2.vpce-svc-09d86b19e59d1b4bb``
+           
+         * - ``eu-west-1``
+           - ``com.amazonaws.vpce.eu-west-1.vpce-svc-0824460b72e1a420e``
+
+         * - ``eu-west-2``
+           - ``com.amazonaws.vpce.eu-west-2.vpce-svc-052f1840aa0c4f1f9``
+
+         * - ``eu-central-1``
+           - ``com.amazonaws.vpce.eu-central-1.vpce-svc-0ac8ce91871138c0d``
+
+         * - ``sa-east-1``
+           - ``com.amazonaws.vpce.sa-east-1.vpce-svc-0b56e75e8cdf50044``
+
+         * - ``ap-southeast-2``
+           - ``com.amazonaws.vpce.ap-southeast-2.vpce-svc-036f1de74d761706e``
+
+         * - ``ap-south-1``
+           - ``com.amazonaws.vpce.ap-south-1.vpce-svc-03eb8a541f96d356d``
+
+   .. step:: Use the AWS CLI to configure each private endpoint.
+
+      To create your application |vpc| :term:`interface endpoint`:
+
+      a. Copy the following command:
+
+         .. code-block:: sh
+
+            aws ec2 create-vpc-endpoint --vpc-id {your-application-vpc-id} --region {aws-region} --service-name {service-name} --vpc-endpoint-type Interface --subnet-ids {your-application-subnet-ids}
+             
+      #. Replace the following placeholders with the details 
+         about your |aws| |vpc|:
+
+         .. list-table::
+            :widths: 20 80
+
+            * - ``your-application-vpc-id``
+              - Unique string that identifies the peer |aws| 
+                |vpc|. Find this value on the |vpc| dashboard in 
+                your |aws| account.
+
+            * - ``aws-region``
+              - Label that identifies the :ref:`AWS region 
+                <amazon-aws>` of the private endpoint.
+
+            * - ``service-name``
+              - Unique string that identifies the service
+                for your private endpoint. This is the service name
+                value you retrieved in the previous step.
+
+            * - ``your-application-subnet-ids``
+              - Unique strings that identify the subnets your 
+                |aws| |vpc| uses. Separate each subnet with a 
+                space. Find these values on the 
+                :guilabel:`Subnet`  dashboard in your |aws| 
+                account.
+
+                .. important::
+
+                   You must specify at least one subnet. If you 
+                   don't, |aws| won't provision a 
+                   :term:`interface endpoint` in your |vpc|. An 
+                   interface endpoint is required for clients 
+                   in your |vpc| to send traffic to the private 
+                   endpoint.
+
+      #. Run the command with the :aws:`AWS CLI 
+         </cli/latest/userguide/cli-chap-install.html>`.
+
+      #. Note the ``VpcEndpointId`` value in the output.
+
+         **Example**
+
+         .. code-block:: sh
+            :emphasize-lines: 2
+
+            "VpcEndpoint": {
+                     "VpcEndpointId": "vpce-XXXXXX”,
+                     "VpcEndpointType": "Interface",
+                     "VpcId": "vpc-XXXXX”,
+                     "ServiceName": "com.amazonaws.vpce.{aws-region}.vpce-svc-XXXX”,
+                     "State": "pendingAcceptance", 
+                     }
+
+      To learn more, see :aws:`Creating an Interface Endpoint 
+      </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` in the |aws| 
+      documentation.
+
+   .. step:: Specify the ``spec.privateEndpoints`` parameter.
+
+      Specify the :ref:`spec.privateEndpoints 
+      <fdi-setting-spec.privateEndpoints>` parameter for 
+      the :ref:`atlasdatafederation-custom-resource`. Replace
+      ``vpce-id`` with  the ``VpcEndpointId`` value from the previous
+      step and run the following command:
+
+      .. note::
+             
+         You can find the unique identifier of the peer 
+         |aws| |vpc| on the |vpc| dashboard in your |aws| account.
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDataFederation
+         metadata:
+           name: my-federated-deployment
+         spec:
+           name: my-fdi
+           privateEndpoints:
+           - endpointId: {vpce-id}
+             provider: AWS
+             type: DATA_LAKE
+         EOF
+        
+   .. step:: Check the status of your private endpoints using |ak8so|.
+
+      Run the following command:
+
+      .. code-block:: sh
+
+         kubectl get atlasdatafederation my-fdi -o yaml

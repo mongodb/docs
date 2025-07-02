@@ -1,0 +1,261 @@
+.. _atlasipaccesslist-custom-resource:
+
+=====================================
+``AtlasIPAccessList`` Custom Resource
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasIPAccessList`` custom resource configures an :ref:`IP
+access list <access-list>` for an |service| project. An IP access list
+allows you to secure your project using a minimum-access policy.
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+|ak8so| does one of the following actions using the |service|
+:oas-atlas-tag:`Project IP Access List API Resource
+</Project-IP-Access-List>`:
+
+- Creates a new IP access list.
+- Replace an existing IP access list.
+
+Examples
+--------
+
+.. _atlasipaccesslist-example-basic:
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following example shows an ``AtlasIPAccessList`` custom resource
+that permits access to the ``my-project`` project from the following
+sources:
+
+- CIDR block ``192.168.1.0/24``
+- IP address ``10.0.0.1``
+- :aws:`AWS security group
+  <vpc/latest/userguide/vpc-security-groups>`
+
+Access from ``10.0.0.1`` expires after the 31st of March, 2025.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasIPAccessList
+   metadata:
+     name: atlasipaccesslist-sample
+   spec:
+     projectRef:
+       name: my-project
+       namespace: my-operator-namespace
+     entries:
+       - cidrBlock: 192.168.1.0/24
+       - ipAddress: 10.0.0.1
+	 deleteAfterDate: 2025-03-31T23:59:59+02:00
+       - awsSecurityGroup: sg-1234
+	 comment: "AWS Access to my network peering"
+
+Independent CRD Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasIPAccessList`` :ref:`independent
+CRD <ak8so-independent-crd>` that permits access from the same CIDR
+block and IP address permitted by the :ref:`Basic Example
+<atlasipaccesslist-example-basic>`. This custom resource definition
+allows you to create an IP access list in a project you manage
+outside the instance of |ak8so| with which you define this
+resource. To enable independent operation, you must use an
+``externalProjectRef`` instead of a ``projectRef``, and you must
+supply a ``connectionSecret`` directly since this resource can't
+inherit API credentials from its parent project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasIPAccessList
+   metadata:
+     name: atlasipaccesslist-sample
+   spec:
+     externalProjectRef:
+       projectId: 66e2f2b621571b7e69a89b66
+     connectionSecret:
+       name: atlas-connection-secret
+     entries:
+       - cidrBlock: 192.168.1.0/24
+       - ipAddress: 10.0.0.1
+	 deleteAfterDate: 2025-03-31T23:59:59+02:00
+       - awsSecurityGroup: sg-1234
+	 comment: "AWS Access to my network peering"
+
+Parameters
+----------
+
+This section describes the ``AtlasIPAccessList`` custom resource parameters available. 
+
+.. setting:: metadata.name
+
+   *Type*: string
+
+   *Required*
+
+   Name that the :ref:`atlasipaccesslist-custom-resource` uses to add
+   this IP access list to a project.
+
+.. setting:: metadata.namespace
+
+   *Type*: string
+
+   *Optional*
+
+   Namespace other than ``default`` that you want to contain the
+   ``atlasIPAccessList`` custom resource.
+
+.. setting:: spec.connectionSecret.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the opaque |k8s-secret| that contains the organization ID
+   and :ref:`API keys <about-org-api-keys>` that |ak8so| uses to
+   :ref:`connect <ak8so-access-to-atlas-ref>` to |service|.  If
+   unspecified, |ak8so| defaults to one of the following options:
+
+   - The ``spec.connectionSecretRef.name`` parameter of the parent
+     ``atlasProject``
+   - The default ``global`` secret, if ``spec.connectionSecretRef.name``
+     is undefined for the parent ``atlasProject``
+
+   This parameter is required for :ref:`independent CRDs
+   <ak8so-independent-crd>`.
+   
+   .. include:: /includes/fact-ak8so-label-secret.rst
+
+.. setting:: spec.entries
+
+   *Type*: array
+
+   *Required*
+
+   Set of connection sources from which to permit access to the
+   project.
+
+.. setting:: spec.entries.[n].awsSecurityGroup
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier of the :aws:`AWS security group
+   <vpc/latest/userguide/vpc-security-groups>` from which to grant
+   access to the project.
+
+   Each entry in ``spec.entries`` must have one and only one of
+   ``awsSecurityGroup``, ``cidrBlock``, or ``ipAddress``.
+
+.. setting:: spec.entries.[n].cidrBlock
+
+   *Type*: string
+
+   *Conditional*
+
+   Range of IP addresses in CIDR block notation from which to grant
+   access to the project.
+
+   Each entry in ``spec.entries`` must have one and only one of
+   ``awsSecurityGroup``, ``cidrBlock``, or ``ipAddress``.
+
+.. setting:: spec.entries.[n].comment
+
+   *Type*: string
+
+   *Optional*
+
+   Comment associated with this access list entry.
+
+.. setting:: spec.entries.[n].deleteAfterDate
+
+   *Type*: string
+
+   *Optional*
+
+   Date and time after which |service| deletes the temporary access
+   list entry.
+
+   To create a permanent access list entry, omit this parameter.
+
+.. setting:: spec.entries.[n].ipAddress
+
+   *Type*: string
+
+   *Optional*
+
+   Single IP address from which to grant access to the project.
+
+   Each entry in ``spec.entries`` must have one and only one of
+   ``awsSecurityGroup``, ``cidrBlock``, or ``ipAddress``.
+
+.. setting:: spec.externalProjectRef.id
+
+   *Type*: string
+
+   *Conditional*
+
+   ID of the project to which the IP access list belongs. You must
+   specify the project ID of an existing :ref:`Atlas Project
+   <manage-projects>`. This parameter is required for IP access lists
+   that belong to projects managed by either:
+
+   - A different instance of |ak8so|
+   - Tooling other than |ak8so|
+
+   For deployments that belong to projects managed by
+   the same instance of |ak8so|, use ``spec.projectRef.name`` if you
+   do not use ``spec.externalProjectRef.id``.
+
+   An IP access list can belong to only one project. To define the
+   same IP access list for multiple projects, create custom resource
+   definitions for each project.
+
+.. setting:: spec.projectRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the project to which the IP access list belongs. You must
+   specify an existing :ref:`atlasproject-custom-resource`. This
+   parameter applies only to IP access lists that belong to projects
+   managed by the same instance |ak8so|.
+
+   For deployments that belong to projects managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
+
+   use ``spec.externalProjectRef.id``.
+
+   An IP access list can belong only to one project. To define the
+   same IP access list for multiple projects, create custom resource
+   definitions for each project.
+
+.. setting:: spec.projectRef.namespace
+
+   *Type*: string
+
+   *Conditional*
+
+   Namespace in which the :ref:`atlasproject-custom-resource`
+   specified in ``spec.projectRef.name`` exists.
+
+   Do not set this parameter for deployments that belong to projects
+   managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
