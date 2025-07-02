@@ -1,0 +1,342 @@
+.. _bcp-custom-resource:
+
+===============================================
+``AtlasBackupCompliancePolicy`` Custom Resource
+===============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasBackupCompliancePolicy`` custom resource configures a 
+:ref:`{+bcp+} <backup-compliance-policy>` that applies to the 
+:ref:`atlasproject-custom-resource` to protect your backup data. When 
+you create the ``AtlasBackupCompliancePolicy`` custom resource, |ak8so| 
+tries to create or update a {+bcp+}.
+
+|ak8so| does one of the following actions using the |service| 
+:oas-atlas-op:`Backup Compliance Policy API Resource 
+</CloudBackups/operation/updateDataProtectionSettings>`:
+   
+- Creates a new {+bcp+}.
+- Updates an existing {+bcp+}.
+
+.. important::
+
+   See the :ref:`ak8so-bcp-prohibited-actions` and
+   :ref:`ak8so-bcp-considerations`. A {+bcp+} applies as the minimum 
+   backup policy to all {+clusters+} in the project. The {+bcp+} 
+   protects all existing snapshots. The {+bcp+} prevents any user, 
+   regardless of role, from modifying or deleting existing 
+   snapshots prior to their expiration. Changes made to this 
+   {+bcp+} apply only to future snapshots. If you enable a 
+   {+bcp+}, the {+bcp+} limits your ability to reduce backup 
+   storage costs. You can't adjust the retention or delete a 
+   backup to reduce the backup storage costs.
+
+Example
+-------
+
+The following example shows a ``BackupCompliancePolicy`` custom 
+resource. To learn more, see :ref:`ak8so-bcp`.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasBackupCompliancePolicy
+   metadata:
+     name: my-backup-compliance-policy
+     namespace: mongodb-atlas-system
+   spec:
+     authorizedEmail: john.doe@example.com
+     authorizedUserFirstName: John
+     authorizedUserLastName: Doe
+     copyProtectionEnabled: false
+     encryptionAtRestEnabled: false
+     onDemandPolicy:
+       retentionUnit: weeks
+       retentionValue: 3
+     overwriteBackupPolicies: false
+     pointInTimeEnabled: true
+     restoreWindowDays: 42
+     scheduledPolicyItems:
+     - frequencyInterval: 2
+       frequencyType: daily
+       retentionUnit: days
+       retentionValue: 7
+
+Parameters
+----------
+
+This section describes some of the key ``BackupCompliancePolicy`` custom
+resource parameters available. For a full list of parameters available,
+see the |service| :oas-atlas-op:`Update or Enable the Backup Compliance Policy settings API 
+</CloudBackups/operation/updateDataProtectionSettings>`. Refer to these 
+descriptions, the available examples, and the |api| documentation to 
+customize your specifications.
+
+.. setting:: spec.authorizedEmail
+
+   *Type*: string
+
+   *Required*
+
+   Email address of an authorized security or legal representative.
+
+   .. important::
+
+      An invalid or incorrect email address prevents you from 
+      modifying or enabling this {+bcp+} until you correct it 
+      with MongoDB Support.
+
+.. setting:: spec.authorizedUserFirstName
+
+   *Type*: string
+
+   *Required*
+
+   First name of an authorized security or legal representative.
+
+.. setting:: spec.authorizedUserLastName
+
+   *Type*: string
+
+   *Required*
+
+   Last name of an authorized security or legal representative.
+
+.. setting:: spec.copyProtectionEnabled
+
+   *Type*: boolean
+
+   *Optional*
+
+   Flag that indicates whether to 
+   :ref:`keep all snapshots when removing additional snapshot regions 
+   <snapshot-distribution>`. This parameter defaults to ``false``.
+
+   .. note::
+
+      You can prevent {+cluster+} users from deleting backups copied to 
+      other regions even if you change this parameter to ``false``. To 
+      learn more, see :ref:`snapshot-distribution`.
+
+.. setting:: spec.encryptionAtRestEnabled
+
+   *Type*: boolean
+
+   *Optional*
+
+   Flag that indicates whether to :ref:`require Encryption at Rest using Customer Key Management for all clusters 
+   <ak8so-ear>`. This parameter defaults to 
+   ``false``.
+
+   .. note::
+
+      To enable this option, you must :ref:`Enable Encryption at Rest 
+      <ak8so-ear>` for all current {+clusters+}. You 
+      can't enable this option on :ref:`paused {+clusters+} 
+      <paused-cluster-considerations>` that don't have Encryption at 
+      Rest enabled.
+
+.. setting:: spec.onDemandPolicy
+
+   *Type*: object
+
+   *Optional*
+
+   Object that contains the settings for the on-demand snapshot policy 
+   item.
+
+.. setting:: spec.onDemandPolicy.frequencyInterval
+
+   *Type*: number
+
+   *Required*
+
+   Number that indicates the desired frequency of the policy item 
+   specified by :setting:`spec.onDemandPolicy.frequencyType`. A value 
+   of ``1`` specifies the first instance of the corresponding
+   :setting:`spec.onDemandPolicy.frequencyType`.
+
+   .. example::
+
+      - In a monthly {+bcp+}, ``1`` indicates that the monthly
+        snapshot occurs on the first day of the month.
+      - In a weekly {+bcp+}, ``1`` indicates that the weekly
+        snapshot occurs on Monday.
+
+   This setting accepts the following frequency values:
+
+   - Hourly: ``1``, ``2``, ``4``, ``6``, ``8``, and ``12``.
+   - Daily: ``1``.
+   - Weekly: ``1`` through ``7``, where ``1`` is Monday and ``7`` is
+     Sunday.
+   - Monthly: ``1`` through ``28`` and ``40``, where ``1`` is the first
+     day of the month and ``40`` is the last day of the month.
+
+.. setting:: spec.onDemandPolicy.frequencyType
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the frequency associated with the policy item. 
+   Accepted values are: ``hourly``, ``daily``, ``weekly``, or 
+   ``monthly``.
+
+   .. note::
+
+      You can't specify multiple ``hourly`` and ``daily`` backup policy
+      onDemandPolicy.
+
+.. setting:: spec.onDemandPolicy.retentionUnit
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the scope of the policy item. Together
+   with :setting:`spec.onDemandPolicy.retentionValue`, these settings 
+   define the length of time to retain snapshots. Accepted values are: 
+   ``days``, ``weeks``, or ``months``.
+
+.. setting:: spec.onDemandPolicy.retentionValue
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the value to associate with 
+   :setting:`spec.onDemandPolicy.retentionUnit`. Together with
+   :setting:`spec.onDemandPolicy.retentionUnit`, these settings define
+   the length of time to retain snapshots.
+
+.. setting:: spec.overwriteBackupPolicies
+
+   *Type*: boolean
+
+   *Required*
+
+   Flag that indicates whether to upgrade all backup policies in the 
+   project regardless of what is specified in the 
+   :ref:`atlasbackuppolicy-custom-resource`.
+   
+   .. important::
+
+      If you set this parameter to ``true``, |service| upgrades all 
+      backup policies in the project regardless of what is specified in 
+      the :ref:`atlasbackuppolicy-custom-resource`. |service| overrides 
+      the :ref:`atlasbackuppolicy-custom-resource` and the status 
+      of that custom resource updates to ``Ready: False``. You must 
+      manually update the :ref:`atlasbackuppolicy-custom-resource` to 
+      align with the {+bcp+}.
+      
+      If you set this parameter to ``false``, creating the {+bcp+} 
+      fails if the existing backup policies do not satisfy the {+bcp+}.
+
+.. setting:: spec.pitEnabled
+
+    *Type*: boolean
+
+    *Optional*
+
+    Flag that indicates whether to require a point in time restore to 
+    all {+clusters+}. This parameter defaults to ``false``.
+
+.. setting:: spec.restoreWindowDays
+
+   *Type*: number
+
+   *Conditional*
+
+   Number of days in the restore window for point in time restore. If 
+   you set :setting:`spec.pitEnabled` to ``true``, you must specify 
+   this parameter.
+
+   .. important::
+
+      You can't configure a restore window that is longer than 
+      the :ref:`Hourly Snapshot Retention Time 
+      <creating-backup-policy>`. After you save this {+bcp+}, you 
+      can't change this setting without MongoDB support. To 
+      change this setting, the security or legal representative 
+      specified for the {+bcp+} must :ref:`request support 
+      <request-support>` and complete an extensive verification 
+      process.
+
+.. setting:: spec.scheduledPolicyItems
+
+   *Type*: object
+
+   *Optional*
+
+   Object that contains the settings for the snapshot policy items.
+
+.. setting:: spec.scheduledPolicyItems.frequencyInterval
+
+   *Type*: number
+
+   *Required*
+
+   Number that indicates the desired frequency of the policy item 
+   specified by :setting:`spec.scheduledPolicyItems.frequencyType`. A 
+   value of ``1`` specifies the first instance of the corresponding
+   :setting:`spec.scheduledPolicyItems.frequencyType`.
+
+   .. example::
+
+      - In a monthly {+bcp+}, ``1`` indicates that the monthly
+        snapshot occurs on the first day of the month.
+      - In a weekly {+bcp+}, ``1`` indicates that the weekly
+        snapshot occurs on Monday.
+
+   This setting accepts the following frequency values:
+
+   - Hourly: ``1``, ``2``, ``4``, ``6``, ``8``, and ``12``.
+   - Daily: ``1``.
+   - Weekly: ``1`` through ``7``, where ``1`` is Monday and ``7`` is
+     Sunday.
+   - Monthly: ``1`` through ``28`` and ``40``, where ``1`` is the first
+     day of the month and ``40`` is the last day of the month.
+
+.. setting:: spec.scheduledPolicyItems.frequencyType
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the frequency associated with the policy item. 
+   Accepted values are: ``hourly``, ``daily``, ``weekly``, or 
+   ``monthly``.
+
+   .. note::
+
+      You can't specify multiple ``hourly`` and ``daily`` backup policy
+      scheduledPolicyItems.
+
+.. setting:: spec.scheduledPolicyItems.retentionUnit
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the scope of the policy item. Together
+   with :setting:`spec.scheduledPolicyItems.retentionValue`, these 
+   settings define the length of time to retain snapshots. Accepted 
+   values are: ``days``, ``weeks``, or ``months``.
+
+.. setting:: spec.scheduledPolicyItems.retentionValue
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the value to associate with 
+   :setting:`spec.scheduledPolicyItems.retentionUnit`. Together with
+   :setting:`spec.scheduledPolicyItems.retentionUnit`, these settings 
+   define the length of time to retain snapshots.
