@@ -16,4 +16,4 @@
 
 .. [#govcloud-aks-provider]
 
-   |service| Kubernetes Operator is available on |aws| only.
+   |service| Kubernetes Operator is available on |aws| and |gcp| only.
