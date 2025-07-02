@@ -1,39 +1,55 @@
 .. list-table::
-   :widths: 75 25
+   :widths: 40 30 30
    :header-rows: 1
 
-   * - {+df+} Regions
-     - |aws| Regions
+   * - {+df+} Region
+     - |aws| Region
+     - |service| Region
 
-   * - Virginia, USA
-     - us-east-1
+   * - Northern Virginia, USA
+     - ``us-east-1``
+     - ``US_EAST_1``
 
    * - Oregon, USA
-     - us-west-2
+     - ``us-west-2``
+     - ``US_WEST_2``
 
    * - Sao Paulo, Brazil
-     - sa-east-1
+     - ``sa-east-1``
+     - ``SA_EAST_1``
 
    * - Ireland
-     - eu-west-1
+     - ``eu-west-1``
+     - ``EU_WEST_1``
 
-   * - London, England
-     - eu-west-2
+   * - London, England, UK
+     - ``eu-west-2``
+     - ``EU_WEST_2``
 
    * - Frankfurt, Germany
-     - eu-central-1
+     - ``eu-central-1``
+     - ``EU_CENTRAL_1``
     
    * - Tokyo, Japan
-     - ap-northeast-1
+     - ``ap-northeast-1``
+     - ``AP_NORTHEAST_1``
+   
+   * - Seoul, South Korea
+     - ``ap-northeast-2``
+     - ``AP_NORTHEAST_2``
 
    * - Mumbai, India
-     - ap-south-1
+     - ``ap-south-1``
+     - ``AP_SOUTH_1``
 
    * - Singapore
-     - ap-southeast-1
+     - ``ap-southeast-1``
+     - ``AP_SOUTHEAST_1``
 
    * - Sydney, Australia
-     - ap-southeast-2
+     - ``ap-southeast-2``
+     - ``AP_SOUTHEAST_2``
 
-   * - Montreal, Canada
-     - ca-central-1
+   * - Montreal, QC, Canada
+     - ``ca-central-1``
+     - ``CA_CENTRAL_1``

@@ -1,12 +1,19 @@
 .. list-table::
-   :widths: 75 25
+   :widths: 40 30 30
    :header-rows: 1
 
-   * - {+df+} Regions
-     - |azure| Regions
+   * - {+df+} Region
+     - |azure| Region
+     - |service| Region
 
    * - Virginia, USA
+     - ``eastus2``
      - ``US_EAST_2``
 
+   * - Sao Paulo, Brazil
+     - ``brazilsouth``
+     - ``BRAZIL_SOUTH``
+
    * - Netherlands
+     - ``westeurope``
      - ``EUROPE_WEST``
