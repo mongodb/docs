@@ -4,7 +4,7 @@
 
    Specifies the authentication mechanism that your MongoDB deployment 
    uses. Valid values are ``SCRAM``, ``SCRAM-SHA-1``, ``MONGODB-CR``, 
-   ``X509``, and ``LDAP``. We recommend ``SCRAM-SHA-256`` (``SCRAM``) 
+   ``X509``, ``LDAP``, and ``OIDC``. We recommend ``SCRAM-SHA-256`` (``SCRAM``) 
    over ``SCRAM-SHA-1``. If you specify ``SCRAM-SHA-1``, you must also 
    specify ``MONGODB-CR``.
    

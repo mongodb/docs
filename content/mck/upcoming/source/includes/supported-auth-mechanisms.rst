@@ -1,4 +1,4 @@
-The |k8s-op-short| supports SCRAM, LDAP, and X.509 authentication
+The |k8s-op-short| supports SCRAM, LDAP, |oidc|, and X.509 authentication
 mechanisms in deployments it creates. In an |k8s-op-short|-created
 deployment, you cannot use |mms| to:
 
