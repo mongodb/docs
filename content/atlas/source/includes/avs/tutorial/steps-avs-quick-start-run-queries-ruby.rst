@@ -29,7 +29,7 @@
       This installs the latest version of the Ruby driver. For
       alternate installation instructions and version compatibility,
       see the
-      :ref:`MongoDB Ruby Driver documentation <installation>`.
+      :ref:`MongoDB Ruby Driver documentation <ruby-quick-start-download-and-install>`.
 
    .. step:: Construct your vector search query.
 
