@@ -1,3 +1,78 @@
+.. _opsmgr-server-8.0.9:
+
+|onprem| Server 8.0.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-06-24*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the MongoDB Agent to :ref:`108.0.9.8826-1 
+  <mongodb-108.0.9.8826-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.12.2 
+  </release-notes/database-tools-changelog>`.
+- Tests and releases :dbtools:`MongoDB Database Tools 100.12.2 
+  </release-notes/database-tools-changelog>` in {+mdbagent+}, 
+  |cloud-short|, and |onprem|.
+- Release of cloud-automation-ops-manager-8.0 108.0.9.8826-1 and 
+  108.0.9.8818-1 to Ops Manager 8.0.
+- Adds a cap to the retryability of ``moveCollection`` for each 
+  collection, returning an error code upon continual failure.
+- MongoDB Agent now attempts to abort currently active 
+  ``moveCollection`` commands via ``abortMoveCollection`` when a shard 
+  removal is canceled.
+- Auto extends the queryable restore job expiry to account for long 
+  queryable mounting times.
+- Improves agent job logging for better debugging.
+- Deletes the ``pausefreetiermonitoring`` packages and removes feature 
+  flag ``mms.feature.enablePauseFreeTierMonitoring``.
+- Bumps ``backupSocketTimeoutMs`` to allow backup cursors that may take 
+  over 10 minutes to open.
+- Improves TP oplog snapshotting to avoid removing the wrong oplog files
+  in a gap.
+- Improves agent discovery to avoid project-wide failures after config
+  node is removed.
+- Improves generation of outdated JS dependencies.
+
+Bug Fixes 
+~~~~~~~~~
+
+- Disallows KMIP key rotation via the OM UI when ``kmip.keyIdentifier``
+  is specified. Users must clear the value or rotate manually.
+- Ensures SSL socket factory is recomputed for new S3 store configs by
+  using the current timestamp.
+- Defaults S3 v2 client to ``us-east-1`` region when region is not 
+  provided for bucket access with keys.
+- Fixes a failure when connecting to S3 buckets via IAM roles and via 
+  keys.
+- Addresses failure in E2E automated restore steps.
+- Disallows key rotation when ``kmip.keyIdentifier`` is specified in the
+  UI.
+- Fixes issue with reporting failure status in the ``ADD_NODE`` job when
+  a host cannot be reached.
+- Ensures the abort snapshot logic sets ``lastSnapshotTimestamp`` 
+  correctly when a shard snapshot is aborted.
+- Fixes project-wide discovery failures after config node removal from a
+  sharded cluster.
+- Fixes ``minBlockSize`` stored as double, which could cause 
+  ``ClassCastException``.
+- Addresses infrequent failure in ``mms-ops-manager-7.0-E2E_Local_BRS_Third_Party_SELF_PIT_Restore_ShardedCluster_WithTopologyChange``.
+- Addresses failure in ``mms-ops-manager-main-E2E_OpsManager_SAML_AUTH``
+  task.
+- Fixes broken E2E automated restore step.
+- Fixes listing outdated JS dependencies from bazel script errors.
+- Fixes third party E2Es to handle delayed shard discovery when updating
+  preferred oplog nodes.
+- Fixes an edge case causing third-party backup pit restore failure for 
+  Cohesity.
+- Fixes the following CVEs:
+  
+  - `CVE-2025-48734 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-48734>`__
+  - `CVE-2025-30360 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-30360>`__
+  - `CVE-2025-30359 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-30359>`__
+  - `CVE-2025-5889 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-5889>`__
+
 .. _opsmgr-server-8.0.8:
 
 |onprem| Server 8.0.8
