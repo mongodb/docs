@@ -16,27 +16,19 @@
       To prevent undefined behavior, specify a value for this
       parameter between ``1`` and the local system ``SOMAXCONN``
       constant.
-   
-   The default value for the ``listenBacklog`` parameter is set at
-   compile time to the target system ``SOMAXCONN`` constant.
-   ``SOMAXCONN`` is the maximum valid value that is documented for
-   the *backlog* parameter to the *listen* system call.
-   
+
+   The default value for the ``listenBacklog`` parameter depends on the 
+   target system. On Linux, MongoDB uses ``/proc/sys/net/core/somaxconn``. 
+   On all other target systems, MongoDB uses the compile time constant 
+   ``SOMAXCONN``.
+
    Some systems may interpret ``SOMAXCONN`` symbolically, and others
    numerically. The actual *listen backlog* applied in practice may
    differ from any numeric interpretation of the ``SOMAXCONN`` constant
-   or argument to ``--listenBacklog``, and may also be constrained by
-   system settings like ``net.core.somaxconn`` on Linux.
+   or argument to ``--listenBacklog``.
    
    Passing a value for the ``listenBacklog`` parameter that exceeds the
    ``SOMAXCONN`` constant for the local system is, by the letter of the
    standards, undefined behavior. Higher values may be silently integer
    truncated, may be ignored, may cause unexpected resource
    consumption, or have other adverse consequences.
-   
-   On systems with workloads that exhibit connection spikes, for which
-   it is empirically known that the local system can honor higher
-   values for the *backlog* parameter than the ``SOMAXCONN`` constant,
-   setting the ``listenBacklog`` parameter to a higher value may reduce
-   operation latency as observed by the client by reducing the number
-   of connections which are forced into a backoff state.
