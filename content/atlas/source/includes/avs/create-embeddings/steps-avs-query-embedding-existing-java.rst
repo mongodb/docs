@@ -24,6 +24,7 @@
          variable for the model you used:
 
          - ``dimensionsHuggingFaceModel``: ``1024`` dimensions (open-source)
+         - ``dimensionsVoyageAiModel``: ``1024`` dimensions (Voyage AI)
          - ``dimensionsOpenAiModel``: ``1536`` dimensions
     
          .. note::

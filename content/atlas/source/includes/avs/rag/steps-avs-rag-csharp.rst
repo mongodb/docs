@@ -32,30 +32,31 @@
 
          .. code-block::
 
-            export OPENAI_API_KEY="<api-key>"
+            export VOYAGE_API_KEY="<voyage-api-key>"
+            export OPENAI_API_KEY="<openai-api-key>"
             export ATLAS_CONNECTION_STRING="<connection-string>"
 
-      Replace the ``<api-key>`` placeholder value with your OpenAI API key.
-
+      Replace the placeholder values with your Voyage AI and OpenAI API keys.
+ 
       .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 
    .. step:: Create a function to generate vector embeddings.
 
-      Create a new class named ``OpenAIService`` in a file of the same name by
+      Create a new class named ``AIService`` in a file of the same name by
       pasting the following code. This code defines an async Task named
       ``GetEmbeddingsAsync`` to generate a array of embeddings for an array
-      of given string inputs. This function uses OpenAI's
-      ``text-embedding-3-small`` model to generate an embedding for a given input.
+      of given string inputs. This function uses Voyage AI's
+      ``voyage-3-large`` model to generate an embedding for a given input.
 
-      .. literalinclude:: /includes/avs/rag/OpenAIService-GetEmbeddingsAsync.cs
+      .. literalinclude:: /includes/avs/rag/AIService-GetEmbeddingsAsync-VoyageAI-RAG.cs
          :language: csharp
          :copyable:
-         :caption: OpenAIService.cs
+         :caption: AIService.cs
 
    .. step:: Ingest data into |service|.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that |llm|\s don't have access to.
+      data into |service| that LLMs don't have access to.
       
       a. Load and split the data.
 
@@ -236,12 +237,12 @@
       - Prompts the |llm| about MongoDB's latest AI announcements.
       
       a. Add the imports, the new ``ChatClient`` information, and a new method
-         called ``GenerateAnswer`` in the file named ``OpenAIService.cs``.
+         called ``GenerateAnswer`` in the file named ``AIService.cs``.
 
          .. literalinclude:: /includes/avs/rag/OpenAIService-GenerateAnswer.cs
             :language: csharp
-            :caption: OpenAIService.cs
-            :emphasize-lines: 4, 6, 14-15, 22-38
+            :caption: AIService.cs
+            :emphasize-lines: 3, 18-20, 27-43
 
       #. Create a ``RAGPipeline`` class.
 

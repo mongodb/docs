@@ -10,6 +10,7 @@ import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DataIngest {
 
@@ -60,7 +61,12 @@ public class DataIngest {
     */
     private static List<Document> embedText(List<TextSegment> segments) {
         EmbeddingProvider embeddingProvider = new EmbeddingProvider();
-        List<BsonArray> embeddings = embeddingProvider.getEmbeddings(segments);
+
+        List<String> texts = segments.stream()
+                                     .map(TextSegment::text)
+                                     .collect(Collectors.toList());
+
+        List<BsonArray> embeddings = embeddingProvider.getEmbeddings(texts);
 
         List<Document> documents = new ArrayList<>();
         int i = 0;

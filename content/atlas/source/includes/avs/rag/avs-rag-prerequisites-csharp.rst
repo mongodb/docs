@@ -1,6 +1,8 @@
 - .. include:: /includes/avs/shared/avs-requirements-cluster.rst
 
-- An OpenAI API Key.
+- A `Voyage AI API key <https://docs.voyageai.com/docs/api-key-and-installation>`__.
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
 
 - A terminal and code editor to run your .NET project.
 

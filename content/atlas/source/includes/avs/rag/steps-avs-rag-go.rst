@@ -26,6 +26,7 @@
             go get github.com/tmc/langchaingo/llms
             go get github.com/tmc/langchaingo/documentloaders
             go get github.com/tmc/langchaingo/embeddings/huggingface
+            go get github.com/tmc/langchaingo/embeddings/voyageai
             go get github.com/tmc/langchaingo/llms/huggingface
             go get github.com/tmc/langchaingo/prompts
             go get github.com/tmc/langchaingo/vectorstores/mongovector
@@ -39,16 +40,17 @@
             :caption: .env
 
             HUGGINGFACEHUB_API_TOKEN = "<access-token>"
+            VOYAGEAI_API_KEY = "<api-key>" # If using Voyage AI
             ATLAS_CONNECTION_STRING = "<connection-string>"
 
-         Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
+         Replace the placeholder values with your credentials.
 
          .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 
    .. step:: Create a function to retrieve and process your data.
 
       In this section, you download and process sample 
-      data into |service| that |llm|\s don't have access to.
+      data into |service| that LLMs don't have access to.
       The following code uses the `Go library for LangChain
       <https://tmc.github.io/langchaingo/docs/>`__ to perform the
       following tasks:
@@ -76,14 +78,13 @@
    .. step:: Ingest data into |service|.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that |llm|\s don't have access to.
+      data into |service| that LLMs don't have access to.
       The following code uses the `Go library for LangChain
       <https://tmc.github.io/langchaingo/docs/>`__
       and :driver:`Go driver </go/current/quick-start>` to perform the
       following tasks:
 
-      - Load the `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
-        embedding model from Hugging Face's model hub.
+      - Load the embedding model.
       - Create an instance of `mongovector
         <https://pkg.go.dev/github.com/tmc/langchaingo/vectorstores/mongovector>`__
         from your Go driver client and Hugging Face embedding model to
@@ -98,9 +99,28 @@
       #. Create a file called ``ingest-data.go`` in your project, and paste the
          following code into it:
 
-         .. literalinclude:: /includes/avs/rag/ingest-data.go
-            :language: go
-            :caption: ingest-data.go
+         .. tabs::
+
+            .. tab:: Voyage AI
+               :tabid: voyage-ai
+
+               This code uses the ``voyage-3-large`` embedding model from
+               `Voyage AI <https://docs.voyageai.com/docs/embeddings>`__ to generate vector embeddings.
+
+               .. literalinclude:: /includes/avs/rag/ingest-data-voyage.go
+                  :language: go
+                  :caption: ingest-data.go
+
+            .. tab:: Open Source
+               :tabid: open-source
+
+               This code uses the `mxbai-embed-large-v1
+               <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
+               embedding model from Hugging Face to generate vector embeddings.
+
+               .. literalinclude:: /includes/avs/rag/ingest-data-hf.go
+                  :language: go
+                  :caption: ingest-data.go
 
       #. Run the following command to execute the code:
 
@@ -151,9 +171,26 @@
          In the ``common`` directory, create a new file called
          ``get-query-results.go``, and paste the following code into it:
 
-         .. literalinclude:: /includes/avs/rag/get-query-results.go
-            :language: go
-            :caption: get-query-results.go
+         .. tabs::
+            :hidden: true
+
+            .. tab:: Voyage AI
+               :tabid: voyage-ai
+
+               .. literalinclude:: /includes/avs/rag/get-query-results-voyage.go
+                  :language: go
+                  :caption: get-query-results.go
+
+            .. tab:: Open Source
+               :tabid: open-source
+
+               This code uses the `mxbai-embed-large-v1
+               <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
+               embedding model from Hugging Face to generate vector embeddings.
+
+               .. literalinclude:: /includes/avs/rag/get-query-results-hf.go
+                  :language: go
+                  :caption: get-query-results.go
 
       #. Test retrieving the data.
 
@@ -180,18 +217,18 @@
                   :language: console
                   :visible: false
 
-   .. step:: Generate responses with the |llm|.
+   .. step:: Generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>` 
-      responses by prompting an |llm| to use the retrieved documents 
+      responses by prompting an LLM to use the retrieved documents 
       as context. This example uses the function you just defined to retrieve
       matching documents from the database, and additionally:
       
       - Accesses the `Mistral 7B Instruct <https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3>`__ 
         model from Hugging Face's model hub.
-      - Instructs the |llm| to include the user's question and retrieved
+      - Instructs the LLM to include the user's question and retrieved
         documents in the prompt.
-      - Prompts the |llm| about MongoDB's latest AI announcements.
+      - Prompts the LLM about MongoDB's latest AI announcements.
       
       a. Create a new file called ``generate-responses.go``, and paste the following
          code into it:

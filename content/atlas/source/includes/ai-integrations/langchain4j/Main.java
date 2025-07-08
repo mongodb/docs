@@ -42,7 +42,7 @@ public class Main {
         // start-embedding-model
         EmbeddingModel embeddingModel = VoyageAiEmbeddingModel.builder()
                 .apiKey(embeddingApiKey)
-                .modelName("voyage-3")
+                .modelName("voyage-3-large")
                 .build();
         // end-embedding-model
 

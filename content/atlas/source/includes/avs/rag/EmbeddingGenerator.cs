@@ -3,15 +3,15 @@ namespace MyCompany.RAG;
 public class EmbeddingGenerator
 {
     private readonly MongoDBDataService _dataService = new();
-    private readonly OpenAIService _openAiService = new();
+    private readonly AIService _AiService = new();
     public async Task<string> GenerateEmbeddings(List<string> textChunks)
     {
         Console.WriteLine("Generating embeddings.");
         Dictionary<string, float[]> docs = new Dictionary<string, float[]>();
         try
         {
-            // Pass the text chunks to OpenAI to generate vector embeddings
-            var embeddings = await _openAiService.GetEmbeddingsAsync(textChunks.ToArray());
+            // Pass the text chunks to AI to generate vector embeddings
+            var embeddings = await _AiService.GetEmbeddingsAsync(textChunks.ToArray());
             
             // Pair each embedding with the text chunk used to generate it
             int index = 0;

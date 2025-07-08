@@ -20,27 +20,32 @@
                   :caption: pom.xml
 
                   <dependencies>
-                     <!-- MongoDB Java Sync Driver v5.2.0 or later -->
-                     <dependency>
-                           <groupId>org.mongodb</groupId>
-                           <artifactId>mongodb-driver-sync</artifactId>
-                           <version>[5.2.0,)</version>
-                     </dependency>
-                     <!-- Java library for Hugging Face models -->
-                     <dependency>
-                           <groupId>dev.langchain4j</groupId>
-                           <artifactId>langchain4j-hugging-face</artifactId>
-                     </dependency>
-                     <!-- Java library for URL Document Loader -->
-                     <dependency>
-                           <groupId>dev.langchain4j</groupId>
-                           <artifactId>langchain4j</artifactId>
-                     </dependency>
-                     <!-- Java library for ApachePDFBox Document Parser -->
-                     <dependency>
-                           <groupId>dev.langchain4j</groupId>
-                           <artifactId>langchain4j-document-parser-apache-pdfbox</artifactId>
-                     </dependency>
+                      <!-- MongoDB Java Sync Driver -->
+                      <dependency>
+                          <groupId>org.mongodb</groupId>
+                          <artifactId>mongodb-driver-sync</artifactId>
+                          <version>5.2.0</version>
+                      </dependency>
+                      <!-- Core LangChain4j library (provides Document interface, etc.) -->
+                      <dependency>
+                          <groupId>dev.langchain4j</groupId>
+                          <artifactId>langchain4j</artifactId>
+                      </dependency>
+                      <!-- Hugging Face integration -->
+                      <dependency>
+                          <groupId>dev.langchain4j</groupId>
+                          <artifactId>langchain4j-hugging-face</artifactId>
+                      </dependency>
+                      <!-- Voyage AI integration -->
+                      <dependency>
+                          <groupId>dev.langchain4j</groupId>
+                          <artifactId>langchain4j-voyage-ai</artifactId>
+                      </dependency>
+                      <!-- Apache PDFBox Document Parser -->
+                      <dependency>
+                          <groupId>dev.langchain4j</groupId>
+                          <artifactId>langchain4j-document-parser-apache-pdfbox</artifactId>
+                      </dependency>
                   </dependencies>
                   <dependencyManagement>
                      <dependencies>
@@ -48,7 +53,7 @@
                            <dependency>
                               <groupId>dev.langchain4j</groupId>
                               <artifactId>langchain4j-bom</artifactId>
-                              <version>0.36.2</version>
+                              <version>1.1.0</version>
                               <type>pom</type>
                               <scope>import</scope>
                            </dependency>
@@ -67,13 +72,16 @@
 
                   dependencies {
                      // Bill of Materials (BOM) to manage Java library versions
-                     implementation platform('dev.langchain4j:langchain4j-bom:0.36.2')
+                     implementation platform('dev.langchain4j:langchain4j-bom:1.1.0')
 
                      // MongoDB Java Sync Driver v5.2.0 or later
                      implementation 'org.mongodb:mongodb-driver-sync:5.2.0'
 
                      // Java library for Hugging Face models
                      implementation 'dev.langchain4j:langchain4j-hugging-face'
+
+                     // Java library for Voyage AI models
+                     implementation 'dev.langchain4j:langchain4j-voyage-ai'
 
                      // Java library for URL Document Loader
                      implementation 'dev.langchain4j:langchain4j'
@@ -99,11 +107,13 @@
          :caption: Environment variables
 
             HUGGING_FACE_ACCESS_TOKEN=<access-token>
+            VOYAGE_AI_KEY=<api-key>
             ATLAS_CONNECTION_STRING=<connection-string>
 
       Update the placeholders with the following values:
 
       - Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
+      - Replace the ``<api-key>`` placeholder value with your Voyage AI API key, if you're using Voyage AI.
       - .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 
    .. step:: Define methods to parse and split the data.
@@ -132,25 +142,53 @@
       Create a file named ``EmbeddingProvider.java`` and paste
       the following code.
 
-      This code defines two methods to generate embeddings for a given input using the
-      `mxbai-embed-large-v1
-      <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
-      open-source embedding model:
+      .. tabs::
+         
+         .. tab:: Voyage AI
+            :tabid: voyage-ai
 
-      - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
-        array of text segment inputs (``List<TextSegment>``), allowing you to create multiple
-        embeddings in a single API call. The method converts the API-provided
-        arrays of floats to BSON arrays of doubles for storing in your |service|
-        {+cluster+}.
+            This code defines two methods to generate embeddings for a given input using the
+            `voyage-3-large
+            <https://docs.voyageai.com/docs/embeddings>`__
+            embedding model from Voyage AI:
 
-      -  **Single Input**: The ``getEmbedding`` method accepts a
-         single ``String``, which represents a query you want to make against
-         your vector data. The method converts the API-provided array of floats
-         to a BSON array of doubles to use when querying your collection.
+            - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
+              array of text inputs (``List<String>``), allowing you to create multiple
+              embeddings in a single API call. The method converts the API-provided
+              arrays of floats to BSON arrays of doubles for storing in your |service|
+              {+cluster+}.
 
-      .. literalinclude:: /includes/avs/rag/EmbeddingProvider.java
-         :language: java
-         :caption: EmbeddingProvider.java
+            -  **Single Input**: The ``getEmbedding`` method accepts a
+               single ``String``, which represents a query you want to make against
+               your vector data. The method converts the API-provided array of floats
+               to a BSON array of doubles to use when querying your collection.
+
+            .. literalinclude:: /includes/avs/create-embeddings/EmbeddingProviderVoyageRag.java
+               :language: java
+               :caption: EmbeddingProvider.java
+
+         .. tab:: Open Source
+            :tabid: open-source
+
+            This code defines two methods to generate embeddings for a given input using the
+            `mxbai-embed-large-v1
+            <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
+            open-source embedding model:
+
+            - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
+              array of text segment inputs (``List<TextSegment>``), allowing you to create multiple
+              embeddings in a single API call. The method converts the API-provided
+              arrays of floats to BSON arrays of doubles for storing in your |service|
+              {+cluster+}.
+
+            -  **Single Input**: The ``getEmbedding`` method accepts a
+               single ``String``, which represents a query you want to make against
+               your vector data. The method converts the API-provided array of floats
+               to a BSON array of doubles to use when querying your collection.
+
+            .. literalinclude:: /includes/avs/rag/EmbeddingProvider.java
+               :language: java
+               :caption: EmbeddingProvider.java
 
    .. step:: Define a method to ingest data into |service|.
 
@@ -159,7 +197,7 @@
       
       This code uses the `LangChain4j <https://docs.langchain4j.dev/intro/>`__
       library and the MongoDB :driver:`Java Sync Driver </java/sync/>` to
-      :ref:`ingest <rag-ingestion>` sample data into |service| that |llm|\s
+      :ref:`ingest <rag-ingestion>` sample data into |service| that LLMs
       don't have access to.
 
       Specifically, this code does the following:
@@ -217,10 +255,10 @@
          .. literalinclude:: /includes/avs/tutorial/output-vector-index-creation.sh
             :language: shell
 
-   .. step:: Create the code to generate responses with the |llm|.
+   .. step:: Create the code to generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>`
-      responses by prompting an |llm| to use the retrieved documents 
+      responses by prompting an LLM to use the retrieved documents 
       as context.
 
       Create a new file called ``LLMPrompt.java``, and paste the following code into it.
@@ -241,17 +279,17 @@
          from Hugging Face's model hub, and creates a templated prompt using a
          ``createPrompt`` method.
 
-         The method instructs the |llm| to include the user's question
+         The method instructs the LLM to include the user's question
          and retrieved documents in the defined prompt.
 
-      #. Prompts the |llm| about MongoDB's latest AI announcements, then returns
+      #. Prompts the LLM about MongoDB's latest AI announcements, then returns
          a generated response.
       
          .. literalinclude:: /includes/avs/rag/LLMPrompt.java
             :language: java
             :caption: LLMPrompt.java
 
-   .. step:: Generate responses with the |llm|.
+   .. step:: Generate responses with the LLM.
       
       Save and run the file. The output resembles the following, but note that
       the generated response might vary.

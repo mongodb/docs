@@ -20,22 +20,21 @@ async function run() {
             Context: {${textDocuments}}
         `;
 
-        // Connect to Hugging Face, using the access token from the environment file
-        const hf = new HfInference(process.env.HUGGING_FACE_ACCESS_TOKEN);
-        const llm = hf.endpoint(
-            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
-           );
-        
-        // Prompt the LLM to answer the question using the
-        // retrieved documents as the context
-        const output = await llm.chatCompletion({
-            model: "mistralai/Mistral-7B-Instruct-v0.2",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 150,
+        // Prompt the LLM to generate a response based on the context
+        const client = new InferenceClient(process.env.HUGGING_FACE_ACCESS_TOKEN);
+        const chatCompletion = await client.chatCompletion({
+            provider: "fireworks-ai",
+            model: "mistralai/Mixtral-8x22B-Instruct-v0.1",
+            messages: [
+                {
+                    role: "user",
+                    content: prompt
+                },
+            ],
         });
 
         // Output the LLM's response as text.
-        console.log(output.choices[0].message.content);
+        console.log(chatCompletion.choices[0].message.content);
     } catch (err) {
         console.log(err.stack);
     }

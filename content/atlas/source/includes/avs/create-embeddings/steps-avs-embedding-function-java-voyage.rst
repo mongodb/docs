@@ -25,10 +25,10 @@
                         <artifactId>mongodb-driver-sync</artifactId>
                         <version>[5.2.0,)</version>
                      </dependency>
-                     <!-- Java library for working with Hugging Face models -->
+                     <!-- Java library for working with Voyage AI models -->
                      <dependency>
                         <groupId>dev.langchain4j</groupId>
-                        <artifactId>langchain4j-hugging-face</artifactId>
+                        <artifactId>langchain4j-voyage-ai</artifactId>
                         <version>1.1.0-beta7</version>
                      </dependency>
                   </dependencies>
@@ -45,8 +45,8 @@
                   dependencies {
                      // MongoDB Java Sync Driver v5.2.0 or later
                      implementation 'org.mongodb:mongodb-driver-sync:[5.2.0,)'
-                     // Java library for working with Hugging Face models
-                     implementation 'dev.langchain4j:langchain4j-hugging-face:1.1.0-beta7'
+                     // Java library for working with Voyage AI models
+                     implementation 'dev.langchain4j:langchain4j-voyage-ai:1.1.0-beta7'
                   }
 
       #. Run your package manager to install the dependencies to your project.
@@ -65,12 +65,12 @@
       .. code-block:: shell
          :caption: Environment variables
 
-         HUGGING_FACE_ACCESS_TOKEN=<access-token>
+         VOYAGE_AI_KEY=<api-key>
          ATLAS_CONNECTION_STRING=<connection-string>
 
       Update the placeholders with the following values:
 
-      - Replace the``<access-token>`` placeholder value with your Hugging Face access token.
+      - Replace the ``<api-key>`` placeholder value with your Voyage AI API key.
       - .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 
    .. step:: Define a method to generate vector embeddings.
@@ -79,9 +79,9 @@
       the following code.
 
       This code defines two methods to generate embeddings for a given input using the
-      `mxbai-embed-large-v1
-      <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
-      open-source embedding model:
+      `voyage-3-large
+      <https://docs.voyageai.com/docs/embeddings>`__
+      embedding model from Voyage AI:
 
       - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
         array of text inputs (``List<String>``), allowing you to create multiple
@@ -94,6 +94,6 @@
          your vector data. The method converts the API-provided array of floats
          to a BSON array of doubles to use when querying your collection.
 
-      .. literalinclude:: /includes/avs/create-embeddings/EmbeddingProvider.java
+      .. literalinclude:: /includes/avs/create-embeddings/EmbeddingProviderVoyage.java
          :language: java
          :caption: EmbeddingProvider.java

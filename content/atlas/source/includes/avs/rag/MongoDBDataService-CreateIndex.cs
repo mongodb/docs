@@ -28,7 +28,7 @@ public class DataService
                     {
                         { "type", "vector" },
                         { "path", "embedding" },
-                        { "numDimensions", 1536 },
+                        { "numDimensions", 1024 },
                         { "similarity", "cosine" }
                     }
                 }

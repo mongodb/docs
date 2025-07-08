@@ -11,24 +11,23 @@
 
          go get github.com/joho/godotenv
          go get go.mongodb.org/mongo-driver/v2/mongo
-         go get github.com/milosgajdos/go-embeddings/openai
 
-   .. step:: Create a ``.env`` file to manage secrets.
+   .. step:: Set your environment variables.
 
-      In your project, create a ``.env`` file to store your connection
-      string and OpenAI API token.
+      In your terminal window, run the following commands
+      to set the required environment variables.
 
       .. code-block::
 
-         OPENAI_API_KEY = "<api-key>"
-         ATLAS_CONNECTION_STRING = "<connection-string>"
+         export VOYAGE_API_KEY="<api-key>"
+         export ATLAS_CONNECTION_STRING="<connection-string>"
 
       Replace the ``<api-key>`` 
-      and ``<connection-string>`` placeholder values with your OpenAI API key
+      and ``<connection-string>`` placeholder values with your Voyage API key
       and the |srv| :manual:`connection string 
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
       for your |service| {+cluster+}.
-      
+
       .. note::
          
          .. include:: /includes/fact-connection-string-format-drivers.rst
@@ -44,10 +43,10 @@
 
       #. Create a file named ``get-embeddings.go`` and paste 
          the following code. This code defines a function named ``GetEmbeddings`` 
-         that uses OpenAI's ``text-embedding-3-small`` model to generate an 
+         that uses Voyage AI's ``voyage-3-large`` model to generate an 
          embedding for a given input.
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings-openai.go
+         .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.go
             :language: go
             :copyable:
             :caption: get-embeddings.go
@@ -57,4 +56,3 @@
          .. code-block:: console
 
             cd ../
-      

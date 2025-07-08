@@ -23,7 +23,7 @@
             :emphasize-lines: 21-69
 
       #. Replace the ``<dimensions>`` placeholder value with ``1024`` if you
-         used the open-source model and ``1536`` if you used the model from
+         used Voyage AI or the open-source model and ``1536`` if you used the model from
          OpenAI.
 
       #. Update the code in your ``Program.cs``.

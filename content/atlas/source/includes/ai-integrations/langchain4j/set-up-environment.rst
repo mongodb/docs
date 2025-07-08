@@ -33,12 +33,12 @@
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-mongodb-atlas</artifactId>
-                <version>1.0.0-beta1</version>
+                <version>1.1.0</version>
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-voyage-ai</artifactId>
-                <version>1.0.0-beta1</version>
+                <version>1.1.0-beta7</version>
             </dependency>
             <dependency>
                 <groupId>org.mongodb</groupId>
@@ -57,7 +57,7 @@
                     <dependency>
                         <groupId>dev.langchain4j</groupId>
                         <artifactId>langchain4j-bom</artifactId>
-                        <version>1.0.0-beta1</version>
+                        <version>1.1.0</version>
                         <type>pom</type>
                         <scope>import</scope>
                     </dependency>

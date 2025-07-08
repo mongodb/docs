@@ -30,7 +30,7 @@
    .. step:: Ingest data into |service|.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that |llm|\s don't have access to.
+      data into |service| that LLMs don't have access to.
       Paste and run each of the following code snippets in your notebook:
 
       a. Define a function to generate vector embeddings.
@@ -393,10 +393,10 @@
                                'outdated consumer-servicing application into microservices and '
                                'migrated off its underlying legacy relational database'}]
 
-   .. step:: Generate responses with the |llm|.
+   .. step:: Generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>` 
-      responses by prompting an |llm| to use the retrieved documents 
+      responses by prompting an LLM to use the retrieved documents 
       as context. 
       
       Replace ``<token>`` in the following code with your Hugging Face 
@@ -407,9 +407,9 @@
         relevant documents from |service|.
       - Creates a prompt using the user's question and retrieved
         documents as context.
-      - Accesses the `Mistral 7B Instruct <https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3>`__ 
-        model from Hugging Face's model hub.
-      - Prompts the |llm| about MongoDB's latest AI announcements. 
+      - Accesses an LLM from `Mistral <https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1>`__ 
+        on Hugging Face.
+      - Prompts the LLM about MongoDB's latest AI announcements. 
         The generated response might vary.
 
       ..
@@ -437,7 +437,8 @@
 
             # Use a model from Hugging Face
             llm = InferenceClient(
-                "mistralai/Mistral-7B-Instruct-v0.3",
+                "mistralai/Mixtral-8x22B-Instruct-v0.1",
+                provider = "fireworks-ai"
                 token = os.getenv("HF_TOKEN"))
 
             # Prompt the LLM (this code varies depending on the model you use)

@@ -1,3 +1,4 @@
+
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -5,6 +6,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.search.FieldSearchPath;
 import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.huggingface.HuggingFaceChatModel;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
@@ -14,6 +17,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +71,8 @@ public class LLMPrompt {
 
         try {
             // generate the query embedding to use in the vector search
-            BsonArray queryEmbeddingBsonArray = EmbeddingProvider.getEmbedding(question);
+            EmbeddingProvider embeddingProvider = new EmbeddingProvider();
+            BsonArray queryEmbeddingBsonArray = embeddingProvider.getEmbedding(question);
             List<Double> queryEmbedding = new ArrayList<>();
             for (BsonValue value : queryEmbeddingBsonArray.stream().toList()) {
                 queryEmbedding.add(value.asDouble().getValue());
@@ -117,7 +122,8 @@ public class LLMPrompt {
             System.out.println("Generating a response from the retrieved documents. This may take a few moments.");
 
         // define a prompt template
-        HuggingFaceChatModel huggingFaceChatModel = EmbeddingProvider.getChatModel();
+        EmbeddingProvider embeddingProvider = new EmbeddingProvider();
+        HuggingFaceChatModel huggingFaceChatModel = embeddingProvider.getChatModel();
         PromptTemplate promptBuilder = PromptTemplate.from("""
                 Answer the following question based on the given context:
                 Question: {{question}}
@@ -138,10 +144,15 @@ public class LLMPrompt {
 
         // generate and output the response from the chat model
         Prompt prompt = promptBuilder.apply(variables);
-        AiMessage response = huggingFaceChatModel.generate(prompt.toUserMessage()).content();
+        ChatRequest chatRequest = ChatRequest.builder()
+                .messages(Collections.singletonList(prompt.toUserMessage()))
+                .build();
+        ChatResponse chatResponse = huggingFaceChatModel.chat(chatRequest);
+        AiMessage aiMessage = chatResponse.content();
+
 
         // extract the generated text to output a formatted response
-        String responseText = response.text();
+        String responseText = aiMessage.text();
         String marker = "-------";
         int markerIndex = responseText.indexOf(marker);
         String generatedResponse;

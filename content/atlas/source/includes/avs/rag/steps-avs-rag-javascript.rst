@@ -45,7 +45,7 @@
    .. step:: Ingest data into |service|.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that |llm|\s don't have access to.
+      data into |service| that LLMs don't have access to.
       The following code uses the :ref:`LangChain integration <langchain-js>`
       and :driver:`Node.js driver </node/current/quick-start>` to do the
       following:
@@ -155,18 +155,18 @@
             .. output:: /includes/avs/rag/retrieve-data-output.sh
                :language: console
 
-   .. step:: Generate responses with the |llm|.
+   .. step:: Generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>` 
-      responses by prompting an |llm| to use the retrieved documents 
+      responses by prompting an LLM to use the retrieved documents 
       as context. This example uses the function you just defined to retrieve
       matching documents from the database, and additionally:
-      
-      - Accesses the `Mistral 7B Instruct <https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3>`__ 
-        model from Hugging Face's model hub.
-      - Instructs the |llm| to include the user's question and retrieved
+
+      - Accesses an LLM from `Mistral <https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1>`__ 
+        on Hugging Face.
+      - Instructs the  LLM to include the user's question and retrieved
         documents in the prompt.
-      - Prompts the |llm| about MongoDB's latest AI announcements.
+      - Prompts the LLM about MongoDB's latest AI announcements.
       
       Create a new file called ``generate-responses.js``, and paste the following
       code into it:
