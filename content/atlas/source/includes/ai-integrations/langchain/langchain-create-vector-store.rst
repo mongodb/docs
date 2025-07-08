@@ -51,7 +51,7 @@
 
       - The connection string to your |service| {+cluster+}.
       - ``langchain_db.test`` as the |service| namespace to store the documents.
-      - The ``text-embedding-3-large`` embedding model from OpenAI 
+      - The ``voyage-3-large`` embedding model from Voyage AI.
         to convert the text into vector embeddings for the ``embedding`` field.
       - ``vector_index`` as the index to use for querying the vector store.
 
@@ -65,7 +65,7 @@
          vector_store = MongoDBAtlasVectorSearch.from_connection_string(
            connection_string = ATLAS_CONNECTION_STRING,
            namespace = "langchain_db.test",
-           embedding =  OpenAIEmbeddings(model="text-embedding-3-large"),
+           embedding =  VoyageAIEmbeddings(model="voyage-3-large"),
            index_name = "vector_index"
          )
 

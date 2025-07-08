@@ -1,8 +1,8 @@
 from langchain_mongodb.retrievers import MongoDBAtlasParentDocumentRetriever
-from langchain_openai import OpenAIEmbeddings
+from langchain_voyageai import VoyageAIEmbeddings
 
 # Define the embedding model to use
-embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
+embedding_model = VoyageAIEmbeddings(model="voyage-3-large")
 
 # Define the chunking method for the child documents
 child_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)

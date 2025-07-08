@@ -17,7 +17,7 @@ async function run() {
     }
 
     // Save online PDF as a file
-    const rawData = await fetch("https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP");
+    const rawData = await fetch("https://webassets.mongodb.com/MongoDB_Best_Practices_Guide.pdf");
     const pdfBuffer = await rawData.arrayBuffer();
     const pdfData = Buffer.from(pdfBuffer);
     fs.writeFileSync("atlas_best_practices.pdf", pdfData);
