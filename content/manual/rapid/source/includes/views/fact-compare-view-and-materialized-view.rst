@@ -20,11 +20,21 @@ Indexes
 ~~~~~~~
 
 Standard views use the indexes of the underlying collection. As a
-result, you cannot create, drop or re-build indexes on a standard view
-directly, nor get a list of indexes on the view.
+result, you cannot create, drop or re-build general indexes on a standard view
+directly, nor get a list of general indexes on the view. 
 
-You can create indexes directly on on-demand materialized views because
-they are stored on disk.
+MongoDB stores search indexes and vector search indexes on disk. Accordingly,
+you can create :atlas:`Atlas Search indexes
+</atlas-search/transform-documents-collections/>` and :atlas:`Atlas Vector Search
+indexes </atlas-vector-search/transform-documents-collections/>` on compatible
+views that contain only the following stages:
+
+- :pipeline:`$addFields`
+- :pipeline:`$set`
+- :pipeline:`$match` wrapping an :query:`$expr` operation
+
+You can also create indexes directly on on-demand materialized views because
+MongoDB stores those indexes on disk. 
 
 Performance
 ~~~~~~~~~~~
