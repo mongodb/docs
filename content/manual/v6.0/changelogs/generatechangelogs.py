@@ -50,7 +50,7 @@ def get_jira_issues(fixVersion):
                      'server': 'https://jira.mongodb.org'}, validate=True)
 
     # Run the JIRA query
-    query = "project in {0} and fixVersion = {1} and resolution = 'Fixed' ORDER BY key ASC".format(
+    query = "project in {0} and fixVersion = {1} and resolution in ('Fixed','Done') ORDER BY key ASC".format(
         projects, fixVersion)
     issues = auth_jira.search_issues(query, maxResults=500)
 

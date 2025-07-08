@@ -56,10 +56,13 @@ def get_jira_issues(fixVersion):
     #  
     # Starting 2023-04-21:
     #   project in {0} and fixVersion in versionMatch( {1} ) and resolution = 'Fixed' ORDER BY key ASC
+    #
+    # Starting 2025-07-08:
+    #   project in {0} and fixVersion in versionMatch( {1} ) and resolution in ('Fixed','Done') and (level is EMPTY OR level NOT IN ('Mongo Internal', Private) ) ORDER BY key ASC
     # 
     # See this comment for additional info: 
     #   https://github.com/10gen/docs-mongodb-internal/pull/2945#issuecomment-1517034809
-    query = "project in {0} and fixVersion in versionMatch( {1} ) and resolution = 'Fixed' ORDER BY key ASC".format(
+    query = "project in {0} and fixVersion in versionMatch( {1} ) and resolution in ('Fixed','Done') and (level is EMPTY OR level NOT IN ('Mongo Internal', Private) ) ORDER BY key ASC".format(
         projects, fixVersion)
     issues = auth_jira.search_issues(query, maxResults=500)
 
