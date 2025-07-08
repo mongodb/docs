@@ -1,0 +1,363 @@
+.. _csharp-aggregation-stages:
+.. _csharp-builders-aggregation:
+
+===========================
+Aggregation Pipeline Stages
+===========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: dotnet, code example, transform, pipeline
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+On this page, you can learn how to create an aggregation pipeline and pipeline stages  
+by using methods in the {+driver-short+}.
+
+Build an Aggregation Pipeline
+-----------------------------
+
+You can use the {+driver-short+} to build an aggregation pipeline by using builder
+methods or BSON documents. See the following sections to learn more about each of these
+approaches.
+
+.. _csharp-aggregation-stages-builder:
+
+Builder Methods
+~~~~~~~~~~~~~~~
+
+You can build a type-safe aggregation pipeline in the following ways:
+
+- Construct an ``EmptyPipelineDefinition<TDocument>`` object. Chain calls from this object
+  to the relevant aggregation methods. Then, pass the pipeline object to the
+  ``IMongoCollection<TDocument>.Aggregate()`` method.
+
+- Call the ``IMongoCollection<TDocument>.Aggregate()`` method. Chain calls from this
+  method call to the relevant aggregation methods.
+
+Select the :guilabel:`EmptyPipelineDefinition`
+or :guilabel:`Aggregate` tab to see the corresponding code for each approach:
+
+.. tabs::
+
+   .. tab:: EmptyPipelineDefinition
+      :tabid: empty-pipeline-definition
+
+      .. code-block:: csharp
+
+         // Defines the aggregation pipeline
+         var pipeline = new EmptyPipelineDefinition<Movie>()
+            .Match(...)
+            .Group(...)
+            .Merge(...);
+
+         // Executes the aggregation pipeline
+         var results = collection.Aggregate(pipeline);
+
+   .. tab:: Aggregate
+      :tabid: aggregate
+
+      .. code-block:: csharp
+
+         // Defines and executes the aggregation pipeline
+         var results = collection.Aggregate()
+            .Match(...)
+            .Group(...)
+            .Merge(...);
+
+.. _csharp-aggregation-stages-bsondocument:
+
+BsonDocument
+~~~~~~~~~~~~
+
+Some aggregation stages don't have corresponding methods in the {+driver-short+}.
+To add these stages to your pipeline, use ``BsonDocument`` objects or string literals
+to construct a stage in the Query API syntax. Then, pass the BSON document to the
+``PipelineDefinitionBuilder.AppendStage()`` method. This syntax supports all stages
+in the aggregation pipeline, but doesn't provide type hints or type safety.
+
+The following code example shows how to add the ``$unset`` stage to an empty aggregation
+pipeline:
+
+.. code-block:: csharp
+
+   var pipeline = new EmptyPipelineDefinition<BsonDocument>()
+           .AppendStage<BsonDocument, BsonDocument, BsonDocument>("{ $unset: 'field1' }");
+
+.. important::
+
+   If you use a ``BsonDocument`` to define a pipeline stage, the driver doesn't
+   recognize any ``BsonClassMap`` attributes, serialization attributes, or
+   serialization conventions. The field names that you use in the ``BsonDocument`` must
+   match the field names stored in {+mdb-server+}.
+
+Aggregation Stage Methods
+-------------------------
+
+The following table lists the builder methods in the {+driver-short+} that correspond
+to stages in the aggregation pipeline. To learn more about an aggregation stage and
+see a code example for the equivalent C# method, follow the link from the stage name
+to its reference page in the {+mdb-server+} manual.
+
+If an aggregation stage isn't in the table, the driver doesn't provide a builder method for
+it. In this case, you must use the
+:ref:`BsonDocument <csharp-aggregation-stages-bsondocument>` syntax to add the stage
+to your pipeline.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 44 28
+
+   * - Aggregation Stage
+     - Description
+     - Builder Method
+
+   * - :manual:`$bucket </reference/operator/aggregation/bucket/>`
+     - Categorizes incoming documents into groups, called buckets,
+       based on a specified expression and bucket boundaries.
+     - ``Bucket()``
+
+   * - :manual:`$bucketAuto </reference/operator/aggregation/bucketAuto/>`
+     - Categorizes incoming documents into a specific number of
+       groups, called buckets, based on a specified expression.
+       Bucket boundaries are automatically determined in an attempt
+       to evenly distribute the documents into the specified number
+       of buckets.
+     - ``BucketAuto()``
+
+   * - :manual:`$changeStream </reference/operator/aggregation/changeStream/>`
+     - Returns a change stream cursor for the
+       collection. This stage can occur only once in an aggregation
+       pipeline and it must occur as the first stage.
+     - ``ChangeStream()``
+
+   * - :manual:`$changeStreamSplitLargeEvent </reference/operator/aggregation/changeStreamSplitLargeEvent/>`
+     - Splits large change stream events that exceed 16 MB into smaller fragments returned
+       in a change stream cursor.
+
+       You can use ``$changeStreamSplitLargeEvent`` only in a ``$changeStream`` pipeline, and
+       it must be the final stage in the pipeline.
+     - ``ChangeStreamSplitLargeEvent()``
+
+   * - :manual:`$count </reference/operator/aggregation/count/>`
+     - Returns a count of the number of documents at this stage of
+       the aggregation pipeline.
+     - ``Count()``
+
+   * - :manual:`$densify </reference/operator/aggregation/densify/>`
+     - Creates new documents in a sequence of documents where certain values in a field are missing.
+     - ``Densify()``
+
+   * - :manual:`$documents </reference/operator/aggregation/documents/>`
+     - Returns literal documents from input expressions.
+     - ``Documents()``
+
+   * - :manual:`$facet </reference/operator/aggregation/facet/>`
+     - Processes multiple aggregation pipelines
+       within a single stage on the same set
+       of input documents. Enables the creation of multi-faceted
+       aggregations capable of characterizing data across multiple
+       dimensions, or facets, in a single stage.
+     - ``Facet()``
+
+   * - :manual:`$geoNear </reference/operator/aggregation/geoNear/>`
+     - Returns documents in order of nearest to farthest from a
+       specified point. This method adds a field to output documents
+       that contains the distance from the specified point.
+     - ``GeoNear()``
+
+   * - :manual:`$graphLookup </reference/operator/aggregation/graphLookup/>`
+     - Performs a recursive search on a collection. This method adds  
+       a new array field to each output document that contains the traversal  
+       results of the recursive search for that document.
+     - ``GraphLookup()``
+
+   * - :manual:`$group </reference/operator/aggregation/group/>`
+     - Groups input documents by a specified identifier expression
+       and applies the accumulator expressions, if specified, to
+       each group. Consumes all input documents and outputs one
+       document per each distinct group. The output documents
+       contain only the identifier field and, if specified, accumulated
+       fields.
+     - ``Group()``
+
+   * - :manual:`$limit </reference/operator/aggregation/limit/>`
+     - Passes the first *n* documents unmodified to the pipeline,
+       where *n* is the specified limit. For each input document,
+       outputs either one document (for the first *n* documents) or
+       zero documents (after the first *n* documents).
+     - ``Limit()``
+
+   * - :manual:`$lookup </reference/operator/aggregation/facet/>`
+     - Performs a left outer join to another collection in the
+       *same* database to filter in documents from the "joined"
+       collection for processing.
+     - ``Lookup()``
+
+   * - :manual:`$match </reference/operator/aggregation/match/>`
+     - Filters the document stream to allow only matching documents
+       to pass unmodified into the next pipeline stage.
+       For each input document, outputs either one document (a match) or zero
+       documents (no match).
+     - ``Match()``
+
+   * - :manual:`$merge </reference/operator/aggregation/merge/>`
+     - Writes the resulting documents of the aggregation pipeline to
+       a collection. The stage can incorporate (insert new
+       documents, merge documents, replace documents, keep existing
+       documents, fail the operation, process documents with a
+       custom update pipeline) the results into an output
+       collection. To use this stage, it must be
+       the last stage in the pipeline.
+     - ``Merge()``
+
+   * - :manual:`$out </reference/operator/aggregation/out/>`
+     - Writes the resulting documents of the aggregation pipeline to
+       a collection. To use this stage, it must be
+       the last stage in the pipeline.
+     - ``Out()``
+
+   * - :manual:`$project </reference/operator/aggregation/project/>`
+     - Reshapes each document in the stream, such as by adding new
+       fields or removing existing fields. For each input document,
+       outputs one document.
+     - ``Project()``
+
+   * - :manual:`$rankFusion </reference/operator/aggregation/rankFusion/>`
+     - Uses a rank fusion algorithm to combine results from a Vector Search
+       query and an Atlas Search query.
+     - ``RankFusion()``
+
+   * - :manual:`$replaceRoot </reference/operator/aggregation/replaceRoot/>`
+     - Replaces a document with the specified embedded document. The
+       operation replaces all existing fields in the input document,
+       including the ``_id`` field. Specify a document embedded in
+       the input document to promote the embedded document to the
+       top level.
+
+       The ``$replaceWith`` stage is an alias for the ``$replaceRoot`` stage.
+     - ``ReplaceRoot()``
+
+   * - :manual:`$replaceWith </reference/operator/aggregation/replaceWith/>`
+     - Replaces a document with the specified embedded document.
+       The operation replaces all existing fields in the input document, including
+       the ``_id`` field. Specify a document embedded in the input document to promote
+       the embedded document to the top level.
+
+       The ``$replaceWith`` stage is an alias for the ``$replaceRoot`` stage.
+     - ``ReplaceWith()``
+
+   * - :manual:`$sample </reference/operator/aggregation/sample/>`
+     - Randomly selects the specified number of documents from its
+       input.
+     - ``Sample()``
+
+   * - :manual:`$search </reference/operator/aggregation/search/>`
+     - Performs a full-text search of the field or fields in an
+       :atlas:`Atlas </reference/atlas-search/query-syntax/>`
+       collection.
+
+       This stage is available only for MongoDB Atlas clusters, and is not
+       available for self-managed deployments. To learn more, see
+       :atlas:`Atlas Search Aggregation Pipeline Stages
+       </reference/atlas-search/query-syntax>` in the Atlas documentation.
+     - ``Search()``
+
+   * - :manual:`$searchMeta </reference/operator/aggregation/searchMeta/>`
+     - Returns different types of metadata result documents for the
+       :atlas:`Atlas Search </atlas-search>` query against an
+       :atlas:`Atlas </reference/atlas-search/query-syntax/>`
+       collection.
+
+       This stage is available only for MongoDB Atlas clusters,
+       and is not available for self-managed deployments. To learn
+       more, see :atlas:`Atlas Search Aggregation Pipeline Stages
+       </reference/atlas-search/query-syntax>` in the Atlas documentation.
+     - ``SearchMeta()``
+
+   * - :manual:`$set </reference/operator/aggregation/set/>`
+     - Adds new fields to documents. Like the ``Project()`` method,
+       this method reshapes each
+       document in the stream by adding new fields to
+       output documents that contain both the existing fields
+       from the input documents and the newly added fields.
+     - ``Set()``
+
+   * - :manual:`$setWindowFields </reference/operator/aggregation/setWindowFields/>`
+     - Groups documents into windows and applies one or more
+       operators to the documents in each window.
+     - ``SetWindowFields()``
+
+   * - :manual:`$skip </reference/operator/aggregation/skip/>`
+     - Skips the first *n* documents, where *n* is the specified skip
+       number, and passes the remaining documents unmodified to the
+       pipeline. For each input document, outputs either zero
+       documents (for the first *n* documents) or one document (if
+       after the first *n* documents).
+     - ``Skip()``
+
+   * - :manual:`$sort </reference/operator/aggregation/sort/>`
+     - Reorders the document stream by a specified sort key. The documents remain unmodified.
+       For each input document, outputs one document.
+     - ``Sort()``
+
+   * - :manual:`$sortByCount </reference/operator/aggregation/sortByCount/>`
+     - Groups incoming documents based on the value of a specified
+       expression, then computes the count of documents in each
+       distinct group.
+     - ``SortByCount()``
+
+   * - :manual:`$unionWith </reference/operator/aggregation/unionWith/>`
+     - Combines pipeline results from two collections into a single
+       result set.
+     - ``UnionWith()``
+
+   * - :manual:`$unwind </reference/operator/aggregation/unwind/>`
+     - Deconstructs an array field from the input documents to
+       output a document for *each* element. Each output document
+       replaces the array with an element value. For each input
+       document, outputs *n* Documents, where *n* is the number of
+       array elements. *n* can be zero for an empty array.
+     - ``Unwind()``
+
+   * - :manual:`$vectorSearch </reference/operator/aggregation/vectorSearch/>`
+     - Performs an :abbr:`ANN (Approximate Nearest Neighbor)` or
+       :abbr:`ENN (Exact Nearest Neighbor)` search on a
+       vector in the specified field of an
+       :atlas:`Atlas </reference/atlas-search/query-syntax/>` collection.
+
+       This stage is available only for MongoDB Atlas clusters, and is not
+       available for self-managed deployments. To learn more, see
+       :ref:`Atlas Vector Search <csharp-atlas-vector-search>`. 
+     - ``VectorSearch()``
+
+API Documentation
+-----------------
+
+To learn more about assembling an aggregation pipeline, see
+:manual:`Aggregation Pipeline </core/aggregation-pipeline/>` in the {+mdb-server+}
+manual.
+
+To learn more about creating pipeline stages, see
+:manual:`Aggregation Stages </reference/operator/aggregation-pipeline/>` in the
+{+mdb-server+} manual.
+
+For more information about the methods and classes used on this page, see the
+following API documentation:
+
+- `Aggregate() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoCollection-1.Aggregate.html>`__
+- `AggregateOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.AggregateOptions.html>`__
+- `EmptyPipelineDefinition<TDocument> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.EmptyPipelineDefinition-1.-ctor.html>`__
+- `BsonDocument <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonDocument.html>`__
+- `PipelineDefinitionBuilder.AppendStage()
+  <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.PipelineDefinitionBuilder.AppendStage.html>`__
