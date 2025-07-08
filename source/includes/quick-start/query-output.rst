@@ -1,4 +1,4 @@
-When you run ``Program.cs``, it should output the details of the following movie from
+When you run ``Program.cs``, it outputs the details of the following movie from
 the sample dataset:
 
 .. code-block:: json

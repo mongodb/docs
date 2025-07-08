@@ -2,7 +2,7 @@
 var filter = Builders<Guitar>.Filter.Size(g => g.Models, 3);
 
 // Finds all documents that match the filter
-var result = _guitarsCollection.Find(filter).ToList();
+var result = guitarCollection.Find(filter).ToList();
 
 foreach (var doc in result)
 {
