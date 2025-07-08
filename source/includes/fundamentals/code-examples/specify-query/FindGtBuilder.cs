@@ -3,7 +3,7 @@
 var filter = Builders<Guitar>.Filter.Gt(g => g.EstablishedYear, 1985);
 
 // Finds all documents that match the filter
-var result = _guitarsCollection.Find(filter).ToList();
+var result = guitarCollection.Find(filter).ToList();
 
 foreach (var doc in result)
 {

@@ -8,7 +8,7 @@ public class ReplicaSetConfigs
         var client = new MongoClient("mongodb://localhost:27017");
         {
             // start-write-concern-client
-            var mongoClientSettings = MongoClientSettings.FromConnectionString("<connection string URI>");
+            var mongoClientSettings = MongoClientSettings.FromConnectionString("<connection URI>");
             mongoClientSettings.WriteConcern = WriteConcern.WMajority;
             var mongoClient = new MongoClient(mongoClientSettings);
             // end-write-concern-client
@@ -24,7 +24,7 @@ public class ReplicaSetConfigs
         
         {
             // start-read-concern-client
-            var mongoClientSettings = MongoClientSettings.FromConnectionString("<connection string URI>");
+            var mongoClientSettings = MongoClientSettings.FromConnectionString("<connection URI>");
             mongoClientSettings.ReadConcern = ReadConcern.Majority;
             var mongoClient = new MongoClient(mongoClientSettings);
             // end-read-concern-client
@@ -40,7 +40,7 @@ public class ReplicaSetConfigs
 
         {
             // start-read-preference-client
-            var mongoClientSettings = MongoClientSettings.FromConnectionString("<connection string URI>");
+            var mongoClientSettings = MongoClientSettings.FromConnectionString("<connection URI>");
             mongoClientSettings.ReadPreference = ReadPreference.Secondary;
             var mongoClient = new MongoClient(mongoClientSettings);
             // end-read-preference-client
@@ -52,6 +52,23 @@ public class ReplicaSetConfigs
             var collection = database.GetCollection<BsonDocument>("<collection name>")
                                      .WithReadPreference(ReadPreference.Secondary);
             // end-read-preference-collection
+        }
+
+        {
+            // start-retry-reads-writes
+            var mongoClientSettings = MongoClientSettings.FromConnectionString("<connection URI>");
+            mongoClientSettings.RetryReads = false;
+            mongoClientSettings.RetryWrites = false;
+            var mongoClient = new MongoClient(mongoClientSettings);
+            // end-retry-reads-writes
+        }
+
+        {
+            // start-retry-reads-writes-connection-string
+            var connectionString = "mongodb://localhost:27017/?retryReads=false&retryWrites=false";
+            var mongoClientSettings = MongoClientSettings.FromConnectionString(connectionString);
+            var mongoClient = new MongoClient(mongoClientSettings);
+            // end-retry-reads-writes-connection-string
         }
     }
 }

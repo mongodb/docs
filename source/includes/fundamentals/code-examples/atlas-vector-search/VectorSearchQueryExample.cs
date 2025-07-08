@@ -24,7 +24,7 @@ public class VectorSearchQuery
             NumberOfCandidates = 150
         };
 
-        // run query
+        // Run vector search query
         var results = collection.Aggregate()
               .VectorSearch(movie => movie.PlotEmbedding, vector, 10, options)
               .Project(Builders<Movie>.Projection
@@ -32,7 +32,7 @@ public class VectorSearchQuery
                 .Include(movie => movie.Plot))
               .ToList();
 
-        // print results
+        // Print the results
         foreach (var movie in results)
         {
             Console.WriteLine(movie.ToJson());
@@ -46,13 +46,34 @@ public class VectorSearchQuery
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-        // Establish the connection to MongoDB and get the restaurants database
+        // Establish the connection to MongoDB and get the embedded_movies database
         var mongoClient = new MongoClient(_mongoConnectionString);
-        var restaurantsDatabase = mongoClient.GetDatabase("sample_mflix");
-        collection = restaurantsDatabase.GetCollection<Movie>("embedded_movies");
+        var movieDatabase = mongoClient.GetDatabase("sample_mflix");
+        collection = movieDatabase.GetCollection<Movie>("embedded_movies");
+    }
+
+    private static void BuildersExample()
+    {
+        // start-builders-example
+        var pipeline = new EmptyPipelineDefinition<Movie>()
+            .VectorSearch(m => m.PlotEmbedding, vector, 10, options)
+            .Project(Builders<Movie>.Projection
+                .Include(m => m.Title)
+                .Include(m => m.Plot));
+        // end-builders-example
+    }
+
+    private static void LinqExample()
+    {
+        // start-linq-example
+        var results = collection.AsQueryable()
+            .VectorSearch(m => m.PlotEmbedding, vector, 10, options)
+            .Select(m => new { m.Title, m.Plot });
+        // end-linq-example
     }
 }
 
+// start-sample-class
 [BsonIgnoreExtraElements]
 public class Movie
 {
@@ -62,3 +83,4 @@ public class Movie
     [BsonElement("plot_embedding")]
     public float[] PlotEmbedding { get; set; }
 }
+// end-sample-class
