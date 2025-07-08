@@ -24,5 +24,5 @@ classes as models:
 .. include:: /includes/convention-pack-note.rst
 
 This collection is from the :atlas:`sample datasets </sample-data>` provided
-by Atlas. See the :ref:`<csharp-quickstart>` to learn how to create a free MongoDB cluster
+by Atlas. See the :ref:`<csharp-get-started>` to learn how to create a free MongoDB cluster
 and load this sample data.

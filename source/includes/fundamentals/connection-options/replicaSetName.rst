@@ -1,0 +1,1 @@
+The name of the replica set to connect to. The default value is ``null``.
