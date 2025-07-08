@@ -4,7 +4,7 @@ defined Atlas Vector Search index before you can perform a vector search on your
 
 .. tip::
 
-   To obtain the sample dataset used in the following example, see :ref:`csharp-quickstart`.
+   To obtain the sample dataset used in the following example, see :ref:`csharp-get-started`.
    To create the sample Atlas Vector Search index used in the following example, see
    :atlas:`Create an Atlas Vector Search Index </atlas-vector-search/create-index>` in the
    Atlas manual.
