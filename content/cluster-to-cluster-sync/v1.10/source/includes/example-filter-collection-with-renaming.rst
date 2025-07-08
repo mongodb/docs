@@ -3,8 +3,8 @@
 ``cluster0`` contains the ``students``, ``staff``, and ``prospects``
 databases.
 
-- The ``students`` database contains the ``undergrad`` and ``graduate``
-  collections.
+- The ``students`` database contains the ``undergrad``, ``graduate``, and
+  ``adjuncts`` collections.
 - The ``staff`` database contains the ``employees`` and ``contractors``
   collections.
 
