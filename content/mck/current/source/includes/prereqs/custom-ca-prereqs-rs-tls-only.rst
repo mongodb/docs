@@ -15,7 +15,7 @@
        To use an |acme| based certificate, you must configure 
        the certificate for your replica set resource. 
        To learn more, see the step about |acme| based |tls| 
-       certificates in the :ref:`procedure <tls-for-replica-set>`.
+       certificates in the :ref:`procedure <tls-for-replica-set-mck>`.
 
   .. include:: /includes/prereqs/mdbagent-reqs.rst
 

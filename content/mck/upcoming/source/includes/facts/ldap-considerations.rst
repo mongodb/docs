@@ -6,7 +6,7 @@
   provide examples of LDAP configuration.
 
 - To improve security, consider deploying a
-  :ref:`TLS-encrypted replica set <tls-for-replica-set>` or a 
+  :ref:`TLS-encrypted replica set <tls-for-replica-set-mck>` or a 
   :ref:`TLS-encrypted sharded cluster <tls-for-sharded-cluster>`.
   Encryption with |tls| is optional. By default, |ldap| traffic is sent
   as plain text. This means that username and password are exposed to
