@@ -1,8 +1,8 @@
 .. _php-get-started:
 
-================================
-Get Started with the PHP Library
-================================
+========================================
+Get Started with the {+php-library+}
+========================================
 
 .. contents:: On this page
    :local:
@@ -58,6 +58,7 @@ Download and Install
       
       - :php:`PHP <install>` version 7.4 or later
       - `Composer <https://getcomposer.org/download/>`__ version 2.0 or later
+      - :github:`pie </php/pie/blob/main/docs/usage.md>`
     
    .. step:: Install the MongoDB PHP extension
 
@@ -65,25 +66,19 @@ Download and Install
       
       .. code-block:: bash
 
-         sudo pecl install mongodb
+         pie install mongodb/mongodb-extension
 
-   .. step:: Update your PHP configuration file
+      .. tip:: Specify the PHP Extension Version
 
-      To enable the ``mongodb`` extension in your PHP configuration file, add the
-      following line to the top of your ``php.ini`` file:
-
-      .. code-block:: none
-
-         extension=mongodb.so
-
-      .. tip::
-
-         You can locate your ``php.ini`` file by running the following command
-         in your shell:
+         To install a specific version of the {+extension-short+}, include
+         the version number as shown in the following command:
 
          .. code-block:: bash
 
-            php --ini
+            pie install mongodb/mongodb-extension:^{+full-version+}
+
+         To install a {+extension-short+} version before v1.21, you must
+         use the :php:`pecl command <mongodb.installation#mongodb.installation.pecl>`.
 
    .. step:: Create a project directory
 
@@ -191,9 +186,8 @@ The connection string includes the hostname or IP address and
 port of your deployment, the authentication mechanism, user credentials 
 when applicable, and connection options.
 
-.. TODO:
- To connect to an instance or deployment not hosted on Atlas, see
- :ref:`php-connection-targets`.
+To connect to an instance or deployment not hosted on Atlas, see
+:ref:`php-connection-targets`.
 
 .. procedure::
    :style: connected
@@ -341,8 +335,101 @@ In this tutorial, you created a PHP application that
 connects to a MongoDB deployment hosted on MongoDB Atlas
 and retrieves a document that matches a query.
 
-
 Learn more about the {+php-library+} from the following resources:
 
-- Learn how to perform read operations in the :ref:`<php-read>` section.
-- Learn how to perform write operations in the :ref:`<php-write>` section.
+- Learn how to configure your MongoDB connection in the :ref:`php-connect` section.
+- Learn how to perform read and write operations in the :ref:`php-crud-operations` section.
+
+Troubleshooting
+---------------
+
+This section addresses issues that you might encounter when installing the
+{+library-short+} and its dependencies.
+
+PHP Headers Not Found
+~~~~~~~~~~~~~~~~~~~~~
+
+You might see a header file error that resembles the following code when installing
+the {+library-short+}:
+
+.. code-block:: none
+   :copyable: false
+
+   /private/tmp/pear/install/mongodb/php_phongo.c:24:10: fatal error: 'php.h' file not found
+
+   #include <php.h>
+            ^~~~~~~
+
+This error indicates that PHP's build system cannot find the necessary headers.
+All PHP extensions require headers to compile. Those headers
+must correspond to the PHP runtime for which the extension will be used.
+The ``phpize`` command, which is invoked by ``pecl`` and ``pie``, usually ensures that the
+extension builds with the correct headers.
+
+If you install a PHP runtime, the corresponding headers are not always automatically
+available. On many Linux distributions, headers are often published under a
+separate ``php-dev`` or ``php-devel`` package. On macOS, the default PHP runtime
+does not include headers. Users typically must install PHP and its headers by using
+`Homebrew <https://brew.sh/>`__.
+
+Multiple PHP Runtimes Installed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your system has multiple versions of PHP installed, each version will have
+its own ``pecl``, ``pie``, and ``phpize`` commands. Additionally, each PHP runtime may
+have separate ``php.ini`` files for each server application programming interface (SAPI),
+such as FPM and CLI. If you installed the extension but it is not available at runtime,
+ensure that you use the correct ``pecl`` or ``pie`` command and modify the appropriate ``php.ini``
+file.
+
+To see which ``php.ini`` file a PHP runtime uses,
+view the output of :php:`phpinfo() <phpinfo>` for that particular
+SAPI. Additionally, you can use :php:`php_ini_loaded_file() <php_ini_loaded_file>` and
+:php:`php_ini_scanned_files() <php_ini_scanned_files>` to determine
+which INI files have been loaded by PHP.
+
+To debug issues when the extension is not loaded, you can use the
+``detect-extension`` script provided in the tools directory. You can run this
+script from the CLI or include it in a script available to your web server.
+The tool finds potential issues and installation instructions for your
+system. If you installed the library by using Composer, you can call the
+script from the vendor directory as shown in the following code:
+
+.. code-block:: none
+
+   php vendor/mongodb/mongodb/tools/detect-extension.php
+
+If you want to check configuration for a web server SAPI, include the file in
+a script available to the web server and open it in your browser. Ensure that you
+wrap the script in ``<pre>`` tags to properly format its output as shown in the following code:
+
+.. code-block:: php
+
+   <pre><?php require(...); ?></pre>
+
+Loading an Incompatible DLL on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Windows binaries are available for several combinations of a PHP version,
+thread safety setting (TS or NTS), and architecture type (x86 or x64). Failure to select the
+correct binary causes an error when attempting to load the extension DLL
+at runtime, as shown in the following sample output:
+
+.. code-block:: none
+   :copyable: false
+
+   PHP Warning:  PHP Startup: Unable to load dynamic library 'mongodb'
+
+Ensure that you have downloaded a DLL that corresponds to the following PHP
+runtime properties:
+
+- PHP version (``PHP_VERSION``)
+- Thread safety (``PHP_ZTS``)
+- Architecture (``PHP_INT_SIZE``)
+
+In addition to the preceding constants, these properties can also be
+inferred from :php:`phpinfo() <phpinfo>`. If your system has multiple PHP
+runtimes installed, view the ``phpinfo()`` output for the correct environment.
+
+You can also use the ``detect-extension`` script described in the previous section to determine the
+correct DLL for your PHP environment.

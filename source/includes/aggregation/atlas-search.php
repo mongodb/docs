@@ -60,9 +60,9 @@ $pipeline = [
     Stage::project(
         borough: 1,
         cuisine: 1,
-        name: 1
+        name: 1,
     ),
-    Stage::limit(3)
+    Stage::limit(3),
 ];
 
 $cursor = $collection->aggregate($pipeline);
@@ -76,21 +76,21 @@ echo "\nUpdating the Atlas Search index for autocomplete.\n";
 $collection->updateSearchIndex(
     'default',
     ['mappings' => [
-        "dynamic" => false,
-        "fields" => [
-            "name" => [
-                ["type" => "stringFacet"],
-                ["type" => "string"],
+        'dynamic' => false,
+        'fields' => [
+            'name' => [
+                ['type' => 'stringFacet'],
+                ['type' => 'string'],
                 [
-                    "foldDiacritics" => false,
-                    "maxGrams" => 7,
-                    "minGrams" => 3,
-                    "tokenization" => "edgeGram",
-                    "type" => "autocomplete"
+                    'foldDiacritics' => false,
+                    'maxGrams' => 7,
+                    'minGrams' => 3,
+                    'tokenization' => 'edgeGram',
+                    'type' => 'autocomplete',
                 ],
-            ]
-        ]
-    ]]
+            ],
+        ],
+    ]],
 );
 
 // Waits for the index to be updated.

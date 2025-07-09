@@ -111,6 +111,101 @@ set this connection option:
 
    .. sharedinclude:: dbx/docker-replica-set.rst
 
+.. _php-connection-dns:
+
+DNS Service Discovery
+---------------------
+
+.. sharedinclude:: dbx/srv-polling.rst
+
+   .. replacement:: srv-uri
+
+      .. code-block:: php
+
+         $uri = 'mongodb+srv://<hostname>/';
+
+Server Selection Errors
+-----------------------
+
+The following code shows possible server selection error
+messages that your application might generate: 
+
+.. code-block:: none
+   :copyable: false
+
+   No suitable servers found (`serverSelectionTryOnce` set):
+     [connection refused calling hello on 'a.example.com:27017']
+     [connection refused calling hello on 'b.example.com:27017']
+
+   No suitable servers found: `serverSelectionTimeoutMS` expired:
+     [socket timeout calling hello on 'example.com:27017']
+
+   No suitable servers found: `serverSelectionTimeoutMS` expired:
+     [connection timeout calling hello on 'a.example.com:27017']
+     [connection timeout calling hello on 'b.example.com:27017']
+     [TLS handshake failed: -9806 calling hello on 'c.example.com:27017']
+
+   No suitable servers found: `serverselectiontimeoutms` timed out:
+    [TLS handshake failed: certificate verify failed (64): IP address mismatch calling hello on 'a.example.com:27017']
+    [TLS handshake failed: certificate verify failed (64): IP address mismatch calling hello on 'b.example.com:27017']
+
+The {+extension-short+} usually represents these errors as
+:php:`MongoDB\Driver\Exception\ConnectionTimeoutException <mongodb-driver-exception-connectiontimeoutexception>`
+exceptions. However, the exception messages originate from
+``libmongoc``, which is the underlying system library used by the extension. Since
+these messages can take many forms, we recommend breaking down the structure of
+the message so you can better diagnose errors in your application.
+
+Messages typically start with "No suitable servers found". The next part of
+the message indicates *how* server selection failed. The extension
+avoids a server selection loop and makes a single attempt by default, according to
+the ``serverSelectionTryOnce`` connection string option. If the extension is
+configured to use a loop, a message that includes the phrase "serverSelectionTimeoutMS expired"
+indicates that you exhausted its time limit.
+
+The last component of the message tells us *why* server selection failed and
+includes one or more errors directly from the topology scanner, which is the
+service responsible for connecting to and monitoring each host. Any host that
+previously experienced an error during monitoring will be included in this list. These
+messages typically originate from low-level socket or TLS functions.
+
+The following list describes the possible meanings of common phrases in the last error message
+component: 
+
+- "Connection refused": The remote host might not be not listening on
+  the expected port.
+- "Connection timeout": There might be a routing problem, a firewall error, or
+  a timeout due to latency.
+- "Socket timeout": You likely established an initial connection that
+  was dropped or timed out due to latency.
+- "TLS handshake failed": TLS or OCSP verification did not succeed, and you might
+  be using misconfigured TLS certificates.
+
+In the case of a connection failure, you can use the ``connect`` tool for
+more troubleshooting information. This tool tries to connect to each host in a
+connection string by using socket functions, and then attempts to interact with
+data. If you used Composer to install the library, you can use the following command
+to start the ``connect`` tool:
+
+.. code-block:: none
+
+   php vendor/mongodb/mongodb/tools/connect.php <connection URI>
+
+If the server you are connecting to does not accept connections, the output
+resembles the following code:
+
+.. code-block:: none
+
+   Looking up MongoDB at <connection URI>
+   Found 1 host(s) in the URI. Will attempt to connect to each.
+
+   Could not connect to <host>:<port>: Connection refused
+
+.. note::
+
+   The tool supports only the ``mongodb://`` URI schema. Using the
+   ``mongodb+srv`` scheme is not supported.
+
 API Documentation
 -----------------
 

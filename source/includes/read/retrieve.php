@@ -30,7 +30,7 @@ foreach ($results as $doc) {
 // start-modify
 $results = $collection->find(
     ['number_of_employees' => 1000],
-    ['limit' => 5]
+    ['limit' => 5],
 );
 
 foreach ($results as $doc) {

@@ -1,10 +1,10 @@
 <?php
 require 'vendor/autoload.php';
 
+use MongoDB\Client;
 use MongoDB\Driver\ReadConcern;
 use MongoDB\Driver\ReadPreference;
 use MongoDB\Driver\WriteConcern;
-use MongoDB\Client;
 
 // start-client-settings
 $clientOptions = [

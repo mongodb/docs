@@ -2,7 +2,6 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-use MongoDB\Client;
 
 $uri = getenv('MONGODB_URI') ?: throw new RuntimeException('Set the MONGODB_URI variable to your connection URI');
 $client = new MongoDB\Client($uri);
@@ -15,8 +14,8 @@ $cursor = $database->command(['hello' => 1]);
 // start-readpref
 $readPref = new MongoDB\Driver\ReadPreference('primaryPreferred');
 $cursor = $database->command(
-    ['hello' => 1], 
-    ['readPreference' => $readPref]
+    ['hello' => 1],
+    ['readPreference' => $readPref],
 );
 // end-readpref
 

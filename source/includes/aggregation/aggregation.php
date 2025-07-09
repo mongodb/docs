@@ -32,7 +32,7 @@ $pipeline = [
 $aggregate = new MongoDB\Operation\Aggregate(
     $collection->getDatabaseName(),
     $collection->getCollectionName(),
-    $pipeline
+    $pipeline,
 );
 
 $result = $collection->explain($aggregate);

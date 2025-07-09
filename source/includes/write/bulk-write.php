@@ -31,7 +31,7 @@ $result = $collection->bulkWrite(
                 ['borough' => 'Manhattan'],
             ],
         ],
-    ]
+    ],
 );
 // end-run-bulk
 
@@ -52,6 +52,6 @@ $result = $collection->bulkWrite(
             ],
         ],
     ],
-    ['ordered' => false]
+    ['ordered' => false],
 );
 // end-bulk-options

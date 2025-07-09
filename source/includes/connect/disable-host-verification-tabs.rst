@@ -9,7 +9,7 @@
 
          $options = [
             'tls' => true,
-            'tlsAllowInvalidHostnames' => true
+            'tlsAllowInvalidHostnames' => true,
          ];
 
          $client = new MongoDB\Client($uri, $options);
