@@ -38,7 +38,8 @@
          import { formatDocumentsAsString } from "langchain/util/document";
          import { MongoClient } from "mongodb";
          import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
-         import { OpenAIEmbeddings, ChatOpenAI } from "@langchain/openai";
+         import { ChatOpenAI } from "@langchain/openai";
+         import { VoyageEmbeddings } from "@langchain/community/embeddings/voyage";
          import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
          import { PromptTemplate } from "@langchain/core/prompts";
          import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
@@ -46,6 +47,7 @@
          import { StringOutputParser } from "@langchain/core/output_parsers";
          import * as fs from 'fs';
 
+         process.env.VOYAGEAI_API_KEY = "<api-key>"
          process.env.OPENAI_API_KEY = "<api-key>";
          process.env.ATLAS_CONNECTION_STRING = "<connection-string>";
          const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
@@ -54,9 +56,9 @@
 
       To finish setting up the environment, replace the ``<api-key>`` 
       and ``<connection-string>`` placeholder values in ``get-started.js``
-      with your OpenAI API Key and the |srv| :manual:`connection string 
+      with your Voyage AI API Key, your OpenAI API Key and the |srv| :manual:`connection string 
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      for your |service| {+cluster+}. Your connection string should use
+      for your |service| {+cluster+} respectively. Your connection string should use
       the following format:
 
       .. code-block::

@@ -2,8 +2,8 @@ Add the following code to the asynchronous function that you defined in your ``g
 This code creates an index of the :ref:`vectorSearch <avs-types-vector-search>` type that indexes the following fields:
 
 - ``embedding`` field as the :ref:`vector <avs-types-vector-search>` type. The ``embedding`` field
-  contains the embeddings created using OpenAI's ``text-embedding-ada-002`` embedding model. The index
-  definition specifies ``1536`` vector dimensions and measures similarity using ``cosine``.
+  contains the embeddings created using Voyage AI's ``voyage-3-large`` embedding model. The index
+  definition specifies ``1024`` vector dimensions and measures similarity using ``cosine``.
 - ``loc.pageNumber`` field as the :ref:`filter <avs-types-vector-search>` type for pre-filtering data
   by the page number in the PDF.
 
@@ -25,7 +25,7 @@ This code also uses an await function to ensure that your search index has :ref:
             "fields": [
                {
                   "type": "vector",
-                  "numDimensions": 1536,
+                  "numDimensions": 1024,
                   "path": "embedding",
                   "similarity": "cosine"
                },

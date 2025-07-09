@@ -50,25 +50,16 @@ Before you begin, ensure that you have the following:
 - `npm and Node.js
   <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__
   installed.
+- .. include:: /includes/avs/shared/avs-requirements-voyageai-api-key.rst
 - .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
-- An Anthropic API key. To learn more, see `Anthropic documentation 
-  <https://docs.anthropic.com/en/api/getting-started>`__.
 
 .. note::
  
-   This tutorial uses models from OpenAI and Anthropic, but 
+   This tutorial uses models from OpenAI and Voyage AI, but 
    you can modify the code to use your models of choice.
 
 Set up the Environment
 ----------------------
-
-.. collapsible::
-   :heading: Learn by Watching
-   :sub_heading: You can follow along with this tutorial by watching the video.
-   
-   *Duration: 30 Minutes*
-
-   .. video:: https://www.youtube.com/watch?v=qXDrWKVSx1w
 
 To set up the environment, complete the following steps:
 
@@ -85,7 +76,7 @@ To set up the environment, complete the following steps:
          npm init -y
          npm i -D typescript ts-node @types/express @types/node
          npx tsc --init
-         npm i langchain @langchain/langgraph @langchain/mongodb @langchain/langgraph-checkpoint-mongodb @langchain/anthropic dotenv express mongodb zod
+         npm i langchain @langchain/langgraph @langchain/mongodb @langchain/community @langchain/langgraph-checkpoint-mongodb dotenv express mongodb zod
 
    .. step:: Create the environment file.
    
@@ -94,8 +85,8 @@ To set up the environment, complete the following steps:
       .. code-block:: env
 
          OPENAI_API_KEY = "<openai-api-key>"
-         ANTHROPIC_API_KEY = "<anthropic-api-key>"
          MONGODB_ATLAS_URI = "<connection-string>"
+         VOYAGEAI_API_KEY = "<voyage-api-key>"
 
 .. note::
 
@@ -109,6 +100,14 @@ To set up the environment, complete the following steps:
       ├── seed-database.ts
       ├── package.json
       ├── tsconfig.json
+
+.. collapsible::
+   :heading: Learn by Watching
+   :sub_heading: You can follow along with this tutorial by watching the video.
+   
+   *Duration: 30 Minutes*
+
+   .. video:: https://www.youtube.com/watch?v=qXDrWKVSx1w
 
 Configure your |service| {+cluster+}
 ------------------------------------
@@ -181,12 +180,22 @@ to enable vector search over your data.
 
             Pinged your deployment. You successfully connected to MongoDB!
             Generating synthetic data...
-            Successfully processed & saved record: EMP001
-            Successfully processed & saved record: EMP002
-            Successfully processed & saved record: EMP003
-            Successfully processed & saved record: EMP004
-            Successfully processed & saved record: EMP005
-            Database seeding completed
+            Successfully added database record: {
+              acknowledged: true,
+              insertedId: new ObjectId('685d89d966545cfb242790f0')
+            }
+            Successfully added database record: {
+              acknowledged: true,
+              insertedId: new ObjectId('685d89d966545cfb242790f1')
+            }
+            Successfully added database record: {
+              acknowledged: true,
+              insertedId: new ObjectId('685d89da66545cfb242790f2')
+            }
+            Successfully added database record: {
+              acknowledged: true,
+              insertedId: new ObjectId('685d89da66545cfb242790f3')
+            }
 
       .. tip::
 
@@ -206,7 +215,7 @@ to enable vector search over your data.
          {
            "fields": [
              {
-               "numDimensions": 1536,
+               "numDimensions": 1024,
                "path": "embedding",
                "similarity": "cosine",
                "type": "vector"
@@ -232,10 +241,9 @@ the agent takes to respond to a query.
       subsequent steps.
 
       .. code-block:: typescript
-         :emphasize-lines: 20
+         :emphasize-lines: 19
 
-         import { OpenAIEmbeddings } from "@langchain/openai";
-         import { ChatAnthropic } from "@langchain/anthropic";
+         import { ChatOpenAI } from "@langchain/openai";
          import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
          import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
          import { StateGraph } from "@langchain/langgraph";
@@ -280,50 +288,21 @@ the agent takes to respond to a query.
       that uses {+avs+} to retrieve relevant employee information by 
       querying the vector store:
 
-      .. code-block:: typescript
-
-         const employeeLookupTool = tool(
-           async ({ query, n = 10 }) => {
-             console.log("Employee lookup tool called");
-             const dbConfig = {
-               collection: collection,
-               indexName: "vector_index",
-               textKey: "embedding_text",
-               embeddingKey: "embedding",
-             };
-             const vectorStore = new MongoDBAtlasVectorSearch(
-               new OpenAIEmbeddings(),
-               dbConfig
-             );
-             const result = await vectorStore.similaritySearchWithScore(query, n);
-             return JSON.stringify(result);
-           },
-           {
-             name: "employee_lookup",
-             description: "Gathers employee details from the HR database",
-             schema: z.object({
-               query: z.string().describe("The search query"),
-               n: z.number().optional().default(10).describe("Number of results to return"),
-             }),
-           }
-         );
-
-         const tools = [employeeLookupTool];
-         const toolNode = new ToolNode<typeof GraphState.State>(tools);
+      .. literalinclude:: /includes/ai-integrations/langgraph/employeeLookupTool.ts
+         :language: typescript
 
    .. step:: Configure the chat model.
      
       Add the following code to the file to determine which
       model to use for the agent. This example uses 
-      a model from Anthropic, but you can modify it to use
+      a model from OpenAI, but you can modify it to use
       your preferred model:
      
       .. code-block:: typescript
 
-         const model = new ChatAnthropic({
-           model: "claude-3-5-sonnet-20240620",
-           temperature: 0,
-         }).bindTools(tools);
+         const model = new ChatOpenAI({
+           model: "gpt-4o"
+           }).bindTools(tools);
 
    .. step:: Define additional functions.
 

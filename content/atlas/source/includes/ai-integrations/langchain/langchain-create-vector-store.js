@@ -32,7 +32,8 @@ async function run() {
     const docs = await textSplitter.splitDocuments(data);
 
     // Instantiate Atlas as a vector store
-    const vectorStore = await MongoDBAtlasVectorSearch.fromDocuments(docs, new OpenAIEmbeddings(), dbConfig);
+    const embeddingModel = new VoyageEmbeddings({ model: "voyage-3-large" });
+    const vectorStore = await MongoDBAtlasVectorSearch.fromDocuments(docs, embeddingModel, dbConfig);
 
   } finally {
     // Ensure that the client will close when you finish/error

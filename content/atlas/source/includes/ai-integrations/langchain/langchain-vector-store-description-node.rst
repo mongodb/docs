@@ -30,7 +30,7 @@ This code performs the following actions:
   This method specifies the following parameters:
 
   - The sample documents to store in the vector database.
-  - OpenAI's embedding model as the model used to convert text into 
+  - Voyage AI's embedding model as the model used to convert text into 
     vector embeddings for the ``embedding`` field.
   - Your |service| configuration.
   

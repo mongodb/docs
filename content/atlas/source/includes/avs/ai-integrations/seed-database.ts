@@ -1,11 +1,9 @@
-import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
+import { ChatOpenAI } from "@langchain/openai";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { MongoClient } from "mongodb";
-import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import { z } from "zod";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_ATLAS_URI as string);
 const llm = new ChatOpenAI({
   modelName: "gpt-4o-mini",
   temperature: 0.7,
@@ -60,10 +58,12 @@ const EmployeeSchema = z.object({
   }),
   notes: z.string(),
 });
+
 type Employee = z.infer<typeof EmployeeSchema>;
 const parser = StructuredOutputParser.fromZodSchema(z.array(EmployeeSchema));
 
 async function generateSyntheticData(): Promise<Employee[]> {
+  
   const prompt = `You are a helpful assistant that generates employee data. Generate 10 fictional employee records. Each record should include the following fields: employee_id, first_name, last_name, date_of_birth, address, contact_details, job_details, work_location, reporting_manager, skills, performance_reviews, benefits, emergency_contact, notes. Ensure variety in the data and realistic values.
 
   ${parser.getFormatInstructions()}`;
@@ -92,11 +92,44 @@ async function createEmployeeSummary(employee: Employee): Promise<string> {
   });
 }
 
+const fetchEmbeddings = async (records: { pageContent: string }[]) => {
+  const apiUrl = "https://api.voyageai.com/v1/embeddings";  
+  const apiKey = process.env.VOYAGEAI_API_KEY;
+  
+  const inputs = records.map(record => record.pageContent); 
+  const requestBody = {  
+    input: inputs,
+    model: "voyage-3.5",  
+  };  
+  
+  try {  
+    const response = await fetch(apiUrl, {  
+      method: "POST",  
+      headers: {  
+        Authorization: `Bearer ${apiKey}`,  
+        "Content-Type": "application/json",  
+      },  
+      body: JSON.stringify(requestBody),  
+    });  
+  
+    if (!response.ok) {  
+      throw new Error(`Error: ${response.status} ${response.statusText}`);  
+    }  
+  
+    const data = await response.json();  
+    return data;
+  } catch (error) {  
+    console.error("Error while fetching embeddings:", error);  
+  }  
+};
+
 async function seedDatabase(): Promise<void> {
   try {
+    const client = new MongoClient(process.env.MONGODB_ATLAS_URI as string);
     await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
     const db = client.db("hr_database");
     const collection = db.collection("employees");
     await collection.deleteMany({});
@@ -108,25 +141,22 @@ async function seedDatabase(): Promise<void> {
         metadata: {...record},
       }))
     );
-    
-    for (const record of recordsWithSummaries) {
-      await MongoDBAtlasVectorSearch.fromDocuments(
-        [record],
-        new OpenAIEmbeddings(),
-        {
-          collection,
-          indexName: "vector_index",
-          textKey: "embedding_text",
-          embeddingKey: "embedding",
+
+    for (const record of recordsWithSummaries ) {
+        const db = client.db("hr_database");
+        const collection = db.collection("employees");
+        const embedding = await fetchEmbeddings([record]);
+        const enrichedRecord = {
+            pageContent: record.pageContent,
+            metadata: record.metadata,
+            embedding: embedding.data[0].embedding
         }
-      );
-      console.log("Successfully processed & saved record:", record.metadata.employee_id);
+        const result = await collection.insertOne(enrichedRecord);
+        console.log("Successfully added database record:", result);
     }
-    console.log("Database seeding completed");
+    await client.close();
   } catch (error) {
     console.error("Error seeding database:", error);
-  } finally {
-    await client.close();
-  }
-}
+}}
+
 seedDatabase().catch(console.error);

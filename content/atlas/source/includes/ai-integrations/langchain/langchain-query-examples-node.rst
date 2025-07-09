@@ -19,8 +19,8 @@
                // Basic semantic search
                const basicOutput = await vectorStore.similaritySearch("MongoDB Atlas security");
                const basicResults = basicOutput.map((results => ({ 
-               pageContent: results.pageContent, 
-               pageNumber: results.metadata.loc.pageNumber,
+                  pageContent: results.pageContent, 
+                  pageNumber: results.metadata.loc.pageNumber,
                })))
                
                console.log("Semantic Search Results:")
@@ -39,41 +39,33 @@
                .. output:: 
                   :language: json
 
-                  ...
-
                   Semantic Search Results:
                   [
-                     {
-                        pageContent: 'MongoDB Atlas features extensive capabilities to defend,\n' +
-                           'detect, and control access to MongoDB, offering among\n' +
-                           'the most complete security controls of any modern\n' +
-                           'database:',
-                        pageNumber: 18
-                     },
-                     {
-                        pageContent: 'Atlas provides encryption of data at rest with encrypted\n' +
-                           'storage volumes.\n' +
-                           'Optionally, Atlas users can configure an additional layer of\n' +
-                           'encryption on their data at rest using the MongoDB',
-                        pageNumber: 19
-                     },
-                     {
-                        pageContent: 'automatically enabled.\n' +
-                           'Review thesecurity section of the MongoDB Atlas\n' +
-                           'documentationto learn more about each of the security\n' +
-                           'features discussed below.\n' +
-                           'IP Whitelisting',
-                        pageNumber: 18
-                     },
-                     {
-                        pageContent: '16Security\n' +
-                           '17Business Intelligence with MongoDB Atlas\n' +
-                           '18Considerations for Proofs of Concept\n' +
-                           '18MongoDB Stitch: Serverless Platform from MongoDB\n' +
-                           '19We Can Help\n' +
-                           '19Resources',
-                        pageNumber: 2
-                     }
+                    {
+                      pageContent: 'Atlas free tier, or download MongoDB for local \n' +
+                        'development.\n' +
+                        'Review the MongoDB manuals and tutorials in our \n' +
+                        'documentation. \n' +
+                        'More Resources\n' +
+                        'For more on getting started in MongoDB:',
+                      pageNumber: 30
+                    },
+                    {
+                      pageContent: 'read isolation.  \n' +
+                        'With MongoDB Atlas, you can achieve workload isolation with dedicated analytics nodes. Visualization \n' +
+                        'tools like Atlas Charts can be configured to read from analytics nodes only.',
+                      pageNumber: 21
+                    },
+                    {
+                      pageContent: '• Zoned Sharding — You can define specific rules governing data placement in a sharded cluster.\n' +
+                        'Global Clusters in MongoDB Atlas allows you to quickly implement zoned sharding using a visual UI or',
+                      pageNumber: 27
+                    },
+                    {
+                      pageContent: 'are updated, associated indexes must be maintained, incurring additional CPU and disk I/O overhead. \n' +
+                        'If you\'re running fully managed databases on MongoDB Atlas, the built-in Performance Advisor',
+                      pageNumber: 20
+                    }
                   ]
 
    .. tab:: Semantic Search with Filtering
@@ -111,14 +103,14 @@
             .. code-block:: javascript
 
                // Semantic search with metadata filter
-               const filteredOutput = await vectorStore.similaritySearch("MongoDB Atlas security", 3, { 
-               preFilter: {
-                  "loc.pageNumber": {"$eq": 17 },
-               }
+               const filteredOutput = await vectorStore.similaritySearch("MongoDB Atlas Search", 3, { 
+                  preFilter: {
+                     "loc.pageNumber": {"$eq": 22 },
+                  }
                });
                const filteredResults = filteredOutput.map((results => ({ 
-               pageContent: results.pageContent, 
-               pageNumber: results.metadata.loc.pageNumber,
+                  pageContent: results.pageContent, 
+                  pageNumber: results.metadata.loc.pageNumber,
                })))
                
                console.log("Semantic Search with Filtering Results:")
@@ -137,30 +129,22 @@
                .. output:: 
                   :language: json
 
-                  ...
-
-                  Semantic Search with Filter Results:
+                  Semantic Search with Filtering Results:
                   [
-                     {
-                        pageContent: 'BSON database dumps produced bymongodump.\n' +
-                           'In the vast majority of cases, MongoDB Atlas backups\n' +
-                           'delivers the simplest, safest, and most efficient backup',
-                        pageNumber: 17
-                     },
-                     {
-                        pageContent: 'Monitoring Solutions\n' +
-                           'The MongoDB Atlas API provides integration with external\n' +
-                           'management frameworks through programmatic access to\n' +
-                           'automation features and alerts.\n' +
-                           'APM Integration',
-                        pageNumber: 17
-                     },
-                     {
-                        pageContent: 'MongoDB Atlas backups are maintained continuously, just\n' +
-                           'a few seconds behind the operational system. If the\n' +
-                           'MongoDB cluster experiences a failure, the most recent',
-                        pageNumber: 17
-                     }
+                    {
+                      pageContent: 'Atlas Search is built for the MongoDB document data model and provides higher performance and',
+                      pageNumber: 22
+                    },
+                    {
+                      pageContent: 'Figure 9: Atlas Search queries are expressed through the MongoDB Query API and backed by the leading search engine library, \n' +
+                        'Apache Lucene.',
+                      pageNumber: 22
+                    },
+                    {
+                      pageContent: 'consider using Atlas Search. The service is built on fully managed Apache Lucene but exposed to users \n' +
+                        'through the MongoDB Aggregation Framework.',
+                      pageNumber: 22
+                    }
                   ]
 
    .. tab:: MMR Search
@@ -190,12 +174,12 @@
                
                // Max Marginal Relevance search
                const mmrOutput = await vectorStore.maxMarginalRelevanceSearch("MongoDB Atlas security", {
-               k: 3, 
-               fetchK: 10,
+                  k: 3, 
+                  fetchK: 10,
                });
                const mmrResults = mmrOutput.map((results => ({ 
-               pageContent: results.pageContent, 
-               pageNumber: results.metadata.loc.pageNumber,
+                  pageContent: results.pageContent, 
+                  pageNumber: results.metadata.loc.pageNumber,
                })))
 
                console.log("Max Marginal Relevance Search Results:")
@@ -214,33 +198,21 @@
                .. output:: 
                   :language: json
 
-                  ...
-
                   Max Marginal Relevance Search Results:
-
                   [
-                     {
-                        pageContent: 'MongoDB Atlas features extensive capabilities to defend,\n' +
-                           'detect, and control access to MongoDB, offering among\n' +
-                           'the most complete security controls of any modern\n' +
-                           'database:',
-                        pageNumber: 18
-                     },
-                     {
-                        pageContent: 'automatically enabled.\n' +
-                           'Review thesecurity section of the MongoDB Atlas\n' +
-                           'documentationto learn more about each of the security\n' +
-                           'features discussed below.\n' +
-                           'IP Whitelisting',
-                        pageNumber: 18
-                     },
-                     {
-                        pageContent: '16Security\n' +
-                           '17Business Intelligence with MongoDB Atlas\n' +
-                           '18Considerations for Proofs of Concept\n' +
-                           '18MongoDB Stitch: Serverless Platform from MongoDB\n' +
-                           '19We Can Help\n' +
-                           '19Resources',
-                        pageNumber: 2
-                     }
+                    {
+                      pageContent: 'Atlas Search is built for the MongoDB document data model and provides higher performance and',
+                      pageNumber: 22
+                    },
+                    {
+                      pageContent: '• Zoned Sharding — You can define specific rules governing data placement in a sharded cluster.\n' +
+                        'Global Clusters in MongoDB Atlas allows you to quickly implement zoned sharding using a visual UI or',
+                      pageNumber: 27
+                    },
+                    {
+                      pageContent: 'read isolation.  \n' +
+                        'With MongoDB Atlas, you can achieve workload isolation with dedicated analytics nodes. Visualization \n' +
+                        'tools like Atlas Charts can be configured to read from analytics nodes only.',
+                      pageNumber: 21
+                    }
                   ]

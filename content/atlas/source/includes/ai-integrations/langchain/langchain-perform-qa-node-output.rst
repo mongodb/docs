@@ -12,32 +12,35 @@ The generated response might vary.
     .. output:: 
         :language: json
 
-        ... 
         Question: How can I secure my MongoDB Atlas cluster?
-        Answer: You can secure your MongoDB Atlas cluster by taking
-        advantage of extensive capabilities to defend, detect, and control 
-        access to MongoDB. You can also enable encryption of data at rest 
-        with encrypted storage volumes and configure an additional layer of 
-        encryption on your data. Additionally, you can set up global clusters 
-        on Amazon Web Services, Microsoft Azure, and Google Cloud Platform 
-        with just a few clicks in the MongoDB Atlas UI.
+        Answer: The given context does not explicitly provide detailed steps to secure a MongoDB Atlas cluster. However, based on general best practices, here are some common steps to secure your MongoDB Atlas cluster:
+
+        1. **Enable Network Access Controls**: Configure IP whitelists to only allow connections from trusted IP addresses.
+        2. **Use Strong Authentication and Authorization**: Enable SCRAM (Salted Challenge Response Authentication Mechanism) for authenticating users and define roles with specific permissions.
+        3. **Encrypt Data**: Ensure data is encrypted both at rest and in transit by default in MongoDB Atlas.
+        4. **Enable VPC Peering (if applicable)**: Use Virtual Private Cloud (VPC) peering for secure and private connections.
+        5. **Monitor Activity**: Use MongoDB Atlas's built-in monitoring to track cluster activity and detect unauthorized attempts or anomalies.
+        6. **Implement Automated Backups**: Secure backups and ensure they are protected from unauthorized access.
+        7. **Educate Yourself**: Continuously refer to the MongoDB documentation and follow security best practices.
+
+        It is recommended to visit the MongoDB documentation and security guides for the most accurate and detailed steps tailored to your specific use case.
 
         Source documents:
         [
           {
-            "pageContent": "MongoDB Atlas features extensive capabilities to defend,\ndetect, and control access to MongoDB, offering among\nthe most complete security controls of any modern\ndatabase:",
-            "pageNumber": 18
+            "pageContent": "Atlas free tier, or download MongoDB for local \ndevelopment.\nReview the MongoDB manuals and tutorials in our \ndocumentation. \nMore Resources\nFor more on getting started in MongoDB:",
+            "pageNumber": 30
           },
           {
-            "pageContent": "throughput is required, it is recommended to either\nupgrade the Atlas cluster or take advantage of MongoDB's\nauto-shardingto distribute read operations across multiple\nprimary members.",
-            "pageNumber": 14
+            "pageContent": "read isolation.  \nWith MongoDB Atlas, you can achieve workload isolation with dedicated analytics nodes. Visualization \ntools like Atlas Charts can be configured to read from analytics nodes only.",
+            "pageNumber": 21
           },
           {
-            "pageContent": "Atlas provides encryption of data at rest with encrypted\nstorage volumes.\nOptionally, Atlas users can configure an additional layer of\nencryption on their data at rest using the MongoDB",
-            "pageNumber": 19
+            "pageContent": "• Zoned Sharding — You can define specific rules governing data placement in a sharded cluster.\nGlobal Clusters in MongoDB Atlas allows you to quickly implement zoned sharding using a visual UI or",
+            "pageNumber": 27
           },
           {
-            "pageContent": "You can set up global clusters — available on Amazon Web\nServices, Microsoft Azure, and Google Cloud Platform —\nwith just a few clicks in the MongoDB Atlas UI. MongoDB",
-            "pageNumber": 13
+            "pageContent": "22\nWorkload Type: Search\nIf your application requires rich full-text search functionality and you are running MongoDB on Atlas,",
+            "pageNumber": 22
           }
         ]
