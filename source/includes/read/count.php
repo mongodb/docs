@@ -1,7 +1,6 @@
 <?php
 require 'vendor/autoload.php';
 
-use MongoDB\BSON\Document;
 
 $uri = getenv('MONGODB_URI') ?: throw new RuntimeException('Set the MONGODB_URI variable to your Atlas URI that connects to the sample dataset');
 $client = new MongoDB\Client($uri);
@@ -26,7 +25,7 @@ echo 'Number of companies founded in 2010: ', $result;
 // start-modify-accurate
 $result = $collection->countDocuments(
     ['number_of_employees' => 50],
-    ['limit' => 100]
+    ['limit' => 100],
 );
 echo 'Number of companies with 50 employees: ', $result;
 // end-modify-accurate

@@ -1,8 +1,8 @@
 <?php
 require 'vendor/autoload.php';
 
-use MongoDB\Client;
 use MongoDB\BSON\ObjectId;
+use MongoDB\Client;
 
 $uri = getenv('MONGODB_URI') ?: throw new RuntimeException('Set the MONGODB_URI variable to your Atlas URI that connects to the sample dataset');
 $client = new Client($uri);
@@ -21,15 +21,15 @@ $bucket = $client->db->selectGridFSBucket();
 
 // Creates or references a GridFS bucket with a custom name
 // start-create-custom-bucket
-$custom_bucket = $client->db->selectGridFSBucket(
-    ['bucketName' => 'myCustomBucket']
+$customBucket = $client->db->selectGridFSBucket(
+    ['bucketName' => 'myCustomBucket'],
 );
 // end-create-custom-bucket
 
 // Uploads a file called "my_file" to the GridFS bucket and writes data to it
 // start-open-upload-stream
 $stream = $bucket->openUploadStream('my_file', [
-    'metadata' => ['contentType' => 'text/plain']
+    'metadata' => ['contentType' => 'text/plain'],
 ]);
 fwrite($stream, 'Data to store');
 fclose($stream);
@@ -44,8 +44,8 @@ $bucket->uploadFromStream('new_file', $file);
 // Prints information about each file in the bucket
 // start-retrieve-file-info
 $files = $bucket->find();
-foreach ($files as $file_doc) {
-    echo toJSON($file_doc), PHP_EOL;
+foreach ($files as $fileDocument) {
+    echo toJSON($fileDocument), PHP_EOL;
 }
 // end-retrieve-file-info
 
@@ -75,8 +75,8 @@ fclose($stream);
 // start-download-to-stream
 $file = fopen('/path/to/output_file', 'wb');
 $bucket->downloadToStream(
-	new ObjectId('66e0a5487c880f844c0a32b1'),
-	$file,
+    new ObjectId('66e0a5487c880f844c0a32b1'),
+    $file,
 );
 // end-download-to-stream
 

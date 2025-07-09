@@ -2,10 +2,9 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use MongoDB\Client;
 
 $uri = getenv('MONGODB_URI') ?: throw new RuntimeException(
-    'Set the MONGODB_URI environment variable to your Atlas URI'
+    'Set the MONGODB_URI environment variable to your Atlas URI',
 );
 $client = new MongoDB\Client($uri);
 $collection = $client->sample_mflix->movies;

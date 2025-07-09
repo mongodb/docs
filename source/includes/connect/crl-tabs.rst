@@ -9,7 +9,7 @@
 
          $options = [
             'tls' => true,
-            'tlsCRLFile' => '/path/to/crl.pem' 
+            'tlsCRLFile' => '/path/to/crl.pem', 
          ];
 
          $client = new MongoDB\Client($uri, $options);

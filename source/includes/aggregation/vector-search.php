@@ -22,8 +22,8 @@ $collection->createSearchIndex(
             'path' => 'plot_embedding',
             'numDimensions' => 1536,
             'similarity' => 'dotProduct',
-            'quantization' => 'scalar'
-        ]]
+            'quantization' => 'scalar',
+        ]],
     ],
     ['name' => 'vector', 'type' => 'vectorSearch'],
 );

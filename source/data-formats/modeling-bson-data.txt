@@ -1,8 +1,8 @@
 .. _php-bson:
 
-==================
-Modeling BSON Data
-==================
+===================
+Work with BSON Data
+===================
 
 
 .. contents:: On this page
@@ -11,21 +11,113 @@ Modeling BSON Data
    :depth: 2
    :class: singlecol
 
+Overview
+--------
+
+In this guide, you can learn how to create and interact with BSON documents
+by using the {+library-short+}.
+
+**BSON**, or Binary JSON, is the data format that MongoDB uses to organize
+and store data. This data format includes all JSON data structure types and
+also supports other types, including dates, different-sized integers, ``ObjectId``
+values, and binary data. The {+library-short+} provides the :phpclass:`MongoDB\Model\BSONArray`
+and :phpclass:`MongoDB\Model\BSONDocument` types to store BSON data.
+
+.. tip::
+
+   To view a complete list of supported BSON types, see :manual:`BSON Types
+   </reference/bson-types>` in the {+mdb-server+} manual.
+
+.. _php-bson-sample:
+
+Sample Data
+~~~~~~~~~~~
+
+The code examples in this guide reference the following sample BSON document:
+
+.. code-block:: js
+
+   {
+       "address" : {
+           "street" : "Pizza St", 
+           "zipcode" : "10003" 
+       },
+       "coord" : [-73.982419, 41.579505]
+       "cuisine" : "Pizza",
+       "name" : "Planet Pizza"
+   }
+
+Create a BSON Document
+----------------------
+
+You can create a BSON document by using the same notation that you use to create an
+associative array in {+language+}. The {+library-short+} automatically converts
+these values into BSON documents when inserting them into a collection.
+
+The following example creates a BSON document that represents the preceding
+:ref:`sample BSON document <php-bson-sample>`:
+
+.. literalinclude:: /includes/bson/interact-bson.php
+    :language: php
+    :dedent:
+    :start-after: start-create-doc
+    :end-before: end-create-doc
+
+Change a BSON Document
+----------------------
+
+You can modify the contents of a BSON document by using the same notation that you use to
+modify an associative array in {+language+}. This example makes the following changes
+to the :ref:`sample BSON document <php-bson-sample>`:
+
+- Adds a new ``restaurant_id`` field that has a value of ``12345``
+- Changes the ``name`` field value to ``"Galaxy Pizza"``
+
+.. literalinclude:: /includes/bson/interact-bson.php
+    :language: php
+    :dedent:
+    :start-after: start-modify-doc
+    :end-before: end-modify-doc
+
+.. note::
+
+   The preceding code changes only the in-memory values of the sample BSON
+   document. It does not run any database operations that change values stored
+   in MongoDB. To learn how to modify documents stored in MongoDB, see the
+   :ref:`php-write-update` guide.
+
+Customize BSON Serialization
+----------------------------
+
+The following sections describe how to configure the way your application
+serializes BSON data:
+
+- :ref:`php-type-map`: Use the ``typeMap`` option to specify the default conversion
+  between {+language+} types and BSON types.
+
+- :ref:`php-persistable-classes`: Use the ``MongoDB\BSON\Persistable`` interface to
+  enable serialization.
+
+- :ref:`php-enums`: Use the ``bsonSerialize()`` and ``bsonUnserialize()`` methods to
+  specify serialization between backed enums and BSON values.
+
 .. _php-type-map:
 
 Type Maps
----------
+~~~~~~~~~
 
-Most methods that read data from MongoDB support a ``typeMap`` option, which
-allows control over how BSON is converted to PHP. Additionally,
-the :phpclass:`MongoDB\Client`, :phpclass:`MongoDB\Database`, and
-:phpclass:`MongoDB\Collection` classes accept a ``typeMap`` option, which can
-be used to specify a default type map to apply to any supporting methods and
-selected classes (e.g. :phpmethod:`MongoDB\Client::getDatabase()`).
+You can set the ``typeMap`` option, which configures serialization and
+deserialization between {+language+} and BSON values, at the following levels:
 
-The :phpclass:`MongoDB\Client`, :phpclass:`MongoDB\Database`, and
-:phpclass:`MongoDB\Collection` classes use the following type map by
-default:
+- ``MongoDB\Client``, which sets the *default for all operations* unless overridden
+- ``MongoDB\Database``
+- ``MongoDB\Collection``
+
+This list also indicates the increasing order of precedence of the option settings. For
+example, if you set a ``typeMap`` for a collection, it will override the type map
+set on the database.
+
+The {+library-short+} uses the following type map by default:
 
 .. code-block:: php
 
@@ -35,116 +127,86 @@ default:
        'root' => 'MongoDB\Model\BSONDocument',
    ]
 
-The type map above will convert BSON documents and arrays to
-:phpclass:`MongoDB\Model\BSONDocument` and
-:phpclass:`MongoDB\Model\BSONArray` objects, respectively. The ``root`` and
-``document`` keys are used to distinguish the top-level BSON document from
-embedded documents, respectively.
+This type map performs the following conversions in both directions:
 
-A type map may specify any class that implements
-:php:`MongoDB\BSON\Unserializable <mongodb-bson-unserializable>` as well as
-``"array"``, ``"stdClass``", and ``"object"`` (``"stdClass``" and ``"object"``
-are aliases of one another).
+- Arrays to ``MongoDB\Model\BSONArray`` objects
+- Top-level and embedded BSON documents to ``MongoDB\Model\BSONDocument`` objects
 
-.. seealso::
+A type map can specify any class that implements the
+:php:`MongoDB\BSON\Unserializable <mongodb-bson-unserializable>` interface.
+It can also specify conversions of the ``array``, ``stdClass``, and ``object`` types.
 
-   :php:`Deserialization from BSON <manual/en/mongodb.persistence.deserialization.php>` in the PHP manual
+Custom Type Map Example
+```````````````````````
 
+The following example sets the ``typeMap`` option for the ``restaurants`` collection
+that serializes arrays and BSON documents as ``MongoDB\Model\BSONDocument`` objects:
+
+.. literalinclude:: /includes/bson/interact-bson.php
+    :language: php
+    :dedent:
+    :start-after: start-type-map
+    :end-before: end-type-map
+
+.. _php-persistable-classes:
 
 Persistable Classes
--------------------
+~~~~~~~~~~~~~~~~~~~
 
-The extension's :php:`persistence specification <mongodb.persistence>` outlines
-how classes implementing its :php:`MongoDB\BSON\Persistable
-<mongodb-bson-persistable>` interface are serialized to and deserialized from
-BSON. The :php:`Persistable <mongodb-bson-persistable>` interface is analogous
-to PHP's :php:`Serializable interface <class.serializable>`.
+You can create classes that implement the :php:`MongoDB\BSON\Persistable <mongodb-bson-persistable>`
+interface. This interface instructs the {+library-short+} to automatically perform serialization
+and deserialization according to the {+extension-short+}'s :php:`persistence specification
+<mongodb.persistence>` without requiring the ``typeMap`` option. The ``Persistable`` interface
+is analogous to {+language+}'s :php:`Serializable interface <class.serializable>`.
 
-The extension automatically handles serialization and deserialization for
-classes implementing the :php:`Persistable <mongodb-bson-persistable>` interface
-without requiring the use of the ``typeMap`` option. This is done by encoding
-the name of the PHP class in a special property within the BSON document.
+When deserializing a PHP variable from BSON, the encoded class name of a
+``Persistable`` object overrides any class specified in the ``typeMap`` option.
+However, it does not override ``array``,  ``stdClass``, or ``object`` types.
 
-.. note::
+Example
+```````
 
-   When deserializing a PHP variable from BSON, the encoded class name of a
-   :php:`Persistable <mongodb-bson-persistable>` object will override any class
-   specified in the type map, but it will not override ``"array"`` and
-   ``"stdClass"`` or ``"object"``. This is discussed in the
-   :php:`persistence specification <mongodb.persistence>` but it bears
-   repeating.
+Consider the following ``Person`` class definition, which implements the
+``Persistable`` interface and specifies how to serialize and deserialize
+object fields as BSON values:
 
-Consider the following class definition:
-
-.. code-block:: php
-
-   <?php
-
-   class Person implements MongoDB\BSON\Persistable
-   {
-       private MongoDB\BSON\ObjectId $id;
-       private string $name;
-       private MongoDB\BSON\UTCDateTime $createdAt;
-
-       public function __construct(string $name)
-       {
-           $this->id = new MongoDB\BSON\ObjectId;
-           $this->name = $name;
-           $this->createdAt = new MongoDB\BSON\UTCDateTime;
-       }
-
-       function bsonSerialize()
-       {
-           return [
-               '_id' => $this->id,
-               'name' => $this->name,
-               'createdAt' => $this->createdAt,
-           ];
-       }
-
-       function bsonUnserialize(array $data)
-       {
-           $this->id = $data['_id'];
-           $this->name = $data['name'];
-           $this->createdAt = $data['createdAt'];
-       }
-   }
+.. literalinclude:: /includes/bson/Person.php
+    :language: php
+    :dedent:
+    :start-after: start-person-class
+    :end-before: end-person-class
 
 The following example constructs a ``Person`` object, inserts it into the
 database, and reads it back as an object of the same type:
 
-.. code-block:: php
+.. io-code-block::
+   :copyable:
 
-   <?php
+   .. input:: /includes/bson/interact-bson.php
+      :start-after: start-person-serialize
+      :end-before: end-person-serialize
+      :language: php
+      :dedent:
 
-   $collection = (new MongoDB\Client)->test->persons;
+   .. output::
+      :visible: false
 
-   $result = $collection->insertOne(new Person('Bob'));
+      object(Person)#18 (3) {
+          ["id":"Person":private]=>
+          object(MongoDB\BSON\ObjectId)#15 (1) {
+          ["oid"]=>
+          string(24) "56fad2c36118fd2e9820cfc1"
+          }
+          ["name":"Person":private]=>
+          string(3) "Bob"
+          ["createdAt":"Person":private]=>
+          object(MongoDB\BSON\UTCDateTime)#17 (1) {
+          ["milliseconds"]=>
+          int(1459278531218)
+          }
+      }
 
-   $person = $collection->findOne(['_id' => $result->getInsertedId()]);
-
-   var_dump($person);
-
-The output would then resemble:
-
-.. code-block:: none
-
-   object(Person)#18 (3) {
-     ["id":"Person":private]=>
-     object(MongoDB\BSON\ObjectId)#15 (1) {
-       ["oid"]=>
-       string(24) "56fad2c36118fd2e9820cfc1"
-     }
-     ["name":"Person":private]=>
-     string(3) "Bob"
-     ["createdAt":"Person":private]=>
-     object(MongoDB\BSON\UTCDateTime)#17 (1) {
-       ["milliseconds"]=>
-       int(1459278531218)
-     }
-   }
-
-The same document in the MongoDB shell might display as:
+The returned document is equivalent to the following BSON document:
 
 .. code-block:: js
 
@@ -155,64 +217,102 @@ The same document in the MongoDB shell might display as:
      "createdAt" : ISODate("2016-03-29T19:08:51.218Z")
    }
 
+The {+library-short+} automatically adds the ``__pclass`` field to keep
+track of the document's corresponding class name, which allows you to
+deserialize the document into a ``Person`` object.
+
 .. note::
 
-   :php:`MongoDB\BSON\Persistable <mongodb-bson-persistable>` may only be used
-   for root and embedded BSON documents. It may not be used for BSON arrays.
+   You can use the ``Persistable`` interface for root and embedded BSON documents
+   only, not BSON arrays.
 
-Working with Enums
-------------------
+.. _php-enums:
 
-:php:`Backed enums <enumerations.backed>` can be used with BSON and will
-serialize as their case value (i.e. integer or string).
-:php:`Pure enums <enumerations.basics>`, which have no backed cases, cannot be
-directly serialized. This is similar to how enums are handled by
-:php:`json_encode() <json-encode>`.
+Enum Values
+~~~~~~~~~~~
 
-Round-tripping a backed enum through BSON requires special handling. In the
-following example, the ``bsonUnserialize()`` method in the class containing the
-enum is responsible for converting the value back to an enum case:
+You can serialize and deserialize backed enums into BSON data. Backed 
+enum values serialize as their case value, while pure enums without
+case values cannot be directly serialized. To perform these conversions,
+you must specify serialization logic by defining the ``bsonSerialize()``
+and ``bsonUnserialize()`` methods in your class definition.
 
-.. code-block:: php
+.. tip::
 
-   <?php
+   To learn more about backed enums, see :php:`Backed enums <enumerations.backed>`
+   in the {+extension-short+} documentation.
 
-   enum Role: int
-   {
-       case USER = 1;
-       case ADMIN = 2;
-   }
+Example
+```````
 
-   class User implements MongoDB\BSON\Persistable
-   {
-       public function __construct(
-           private string $username,
-           private Role $role,
-           private MongoDB\BSON\ObjectId $_id = new MongoDB\BSON\ObjectId(),
-       ) {}
+Consider the following backed enum named ``Role``, which has two
+integer-valued cases:
 
-       public function bsonSerialize(): array
-       {
-           return [
-               '_id' => $this->_id,
-               'username' => $this->username,
-               'role' => $this->role,
-           ];
-       }
+.. literalinclude:: /includes/bson/Role.php
+    :language: php
+    :dedent:
+    :start-after: start-backed-enum
+    :end-before: end-backed-enum
 
-       public function bsonUnserialize(array $data): void
-       {
-           $this->_id = $data['_id'];
-           $this->username = $data['username'];
-           $this->role = Role::from($data['role']);
-       }
-   }
+This ``User`` class definition includes a ``role`` field with a ``Role`` enum
+value and specifies logic for serializing and deserializing its fields into BSON
+values:
 
-Enums are prohibited from implementing
-:php:`MongoDB\BSON\Unserializable <mongodb-bson-unserializable>` and
-:php:`MongoDB\BSON\Persistable <mongodb-bson-persistable>`, since enum cases
-have no state and cannot be instantiated like ordinary objects. Pure and backed
-enums can, however, implement
-:php:`MongoDB\BSON\Serializable <mongodb-bson-serializable>`, which can be
-used to overcome the default behavior whereby backed enums are serialized as
-their case value and pure enums cannot be serialized.
+.. literalinclude:: /includes/bson/User.php
+    :language: php
+    :emphasize-lines: 5
+    :dedent:
+    :start-after: start-user-class
+    :end-before: end-user-class
+
+The following example constructs a ``User`` object with a ``role`` field,
+inserts it into the database, and reads it back as an object of the same type:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/bson/interact-bson.php
+      :start-after: start-enum-serialize
+      :end-before: end-enum-serialize
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      object(User)#40 (3) {
+         ["username":"User":private]=>
+         string(5) "alice"
+         ["role":"User":private]=>
+         enum(Role::USER)
+         ["_id":"User":private]=>
+         object(MongoDB\BSON\ObjectId)#38 (1) {
+            ["oid"]=>
+            string(24) "..."
+         }
+      }
+
+.. note::
+
+   Enums cannot implement the ``MongoDB\BSON\Unserializable`` and
+   ``MongoDB\BSON\Persistable`` interfaces because enum cases have no
+   state and cannot be instantiated like class objects. However, pure and backed
+   enums can implement ``MongoDB\BSON\Serializable``, which you can use to
+   override the default enum serialization behavior.
+
+API Documentation
+-----------------
+
+To learn more about any of the {+library-short+} methods or types discussed in this
+guide, see the following library API documentation:
+
+- :phpmethod:`MongoDB\Database::createCollection()`
+- :phpclass:`MongoDB\Model\BSONDocument`
+- :phpclass:`MongoDB\Model\BSONArray`
+
+To learn more about the {+extension-short+} types discussed in this
+guide, see the following extension API documentation:
+
+- :php:`MongoDB\BSON\Persistable <mongodb-bson-persistable>`
+- :php:`MongoDB\BSON\Unserializable <mongodb-bson-unserializable>`
+- :php:`MongoDB\BSON\Serializable <mongodb-bson-serializable>`

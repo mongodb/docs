@@ -21,7 +21,7 @@ $indexName = $collection->createIndex(['<field name>' => 1]);
 
 // start-compound
 $indexName = $collection->createIndex(
-    ['<field name 1>' => 1, '<field name 2>' => 1]
+    ['<field name 1>' => 1, '<field name 2>' => 1],
 );
 // end-compound
 
@@ -32,7 +32,7 @@ $indexName = $collection->createIndex(['<array field name>' => 1]);
 // start-search-create
 $indexName = $collection->createSearchIndex(
     ['mappings' => ['dynamic' => true]],
-    ['name' => '<Search index name>']
+    ['name' => '<Search index name>'],
 );
 // end-search-create
 
@@ -50,11 +50,11 @@ $collection->updateSearchIndex(
         'fields' => [
             '<string field name>' => [
                 'type' => 'string',
-                'analyzer' => 'lucene.standard'
-            ]
-        ]
-    ]]
- );
+                'analyzer' => 'lucene.standard',
+            ],
+        ],
+    ]],
+);
 // end-search-update
 
 // start-search-delete
@@ -67,7 +67,7 @@ $indexName = $collection->createIndex(['<field name>' => 'text']);
 
 // start-geo
 $indexName = $collection->createIndex(
-    [ '<GeoJSON object field>' => '2dsphere']
+    ['<GeoJSON object field>' => '2dsphere'],
 );
 // end-geo
 
@@ -83,8 +83,8 @@ $indexName = $collection->createIndex(['$**' => 1]);
 $options = [
     'clusteredIndex' => [
         'key' => ['_id' => 1],
-        'unique' => true
-    ]
+        'unique' => true,
+    ],
 ];
 
 $database->createCollection('<collection name>', $options);
