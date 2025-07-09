@@ -25,15 +25,10 @@ Improvements
 - Auto extends the queryable restore job expiry to account for long 
   queryable mounting times.
 - Improves agent job logging for better debugging.
-- Deletes the ``pausefreetiermonitoring`` packages and removes feature 
-  flag ``mms.feature.enablePauseFreeTierMonitoring``.
-- Bumps ``backupSocketTimeoutMs`` to allow backup cursors that may take 
-  over 10 minutes to open.
 - Improves TP oplog snapshotting to avoid removing the wrong oplog files
   in a gap.
 - Improves agent discovery to avoid project-wide failures after config
   node is removed.
-- Improves generation of outdated JS dependencies.
 
 Bug Fixes 
 ~~~~~~~~~
@@ -46,7 +41,6 @@ Bug Fixes
   provided for bucket access with keys.
 - Fixes a failure when connecting to S3 buckets via IAM roles and via 
   keys.
-- Addresses failure in E2E automated restore steps.
 - Disallows key rotation when ``kmip.keyIdentifier`` is specified in the
   UI.
 - Fixes issue with reporting failure status in the ``ADD_NODE`` job when
@@ -57,15 +51,6 @@ Bug Fixes
   sharded cluster.
 - Fixes ``minBlockSize`` stored as double, which could cause 
   ``ClassCastException``.
-- Addresses infrequent failure in ``mms-ops-manager-7.0-E2E_Local_BRS_Third_Party_SELF_PIT_Restore_ShardedCluster_WithTopologyChange``.
-- Addresses failure in ``mms-ops-manager-main-E2E_OpsManager_SAML_AUTH``
-  task.
-- Fixes broken E2E automated restore step.
-- Fixes listing outdated JS dependencies from bazel script errors.
-- Fixes third party E2Es to handle delayed shard discovery when updating
-  preferred oplog nodes.
-- Fixes an edge case causing third-party backup pit restore failure for 
-  Cohesity.
 - Fixes the following CVEs:
   
   - `CVE-2025-48734 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-48734>`__
