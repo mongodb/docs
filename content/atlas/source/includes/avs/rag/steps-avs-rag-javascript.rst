@@ -164,7 +164,7 @@
 
       - Accesses an LLM from `Mistral <https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1>`__ 
         on Hugging Face.
-      - Instructs the  LLM to include the user's question and retrieved
+      - Instructs the LLM to include the user's question and retrieved
         documents in the prompt.
       - Prompts the LLM about MongoDB's latest AI announcements.
       

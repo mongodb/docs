@@ -34,7 +34,7 @@
          .. output:: /includes/avs/local-rag/test-query-output.sh
             :visible: false
 
-   .. step:: Download the local |llm| and model information mapping.
+   .. step:: Download the local LLM and model information mapping.
 
       a. Click the following button to download the Mistral 7B model
          from GPT4All. To explore other models, refer to the 
@@ -66,7 +66,7 @@
 
       - Queries for relevant documents.
 
-      - Prompts the |llm| and returns the response. The generated response
+      - Prompts the LLM and returns the response. The generated response
         might vary.
 
       Run the following code to complete your |rag| implementation:

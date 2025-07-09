@@ -48,14 +48,14 @@
             
    .. step:: Prepare the |llm|.
        
-      The following code prepares the |llm| for the agent
+      The following code prepares the LLM for the agent
       by doing the following:
 
-      - Specifies which |llm| to use. By default, the ``ChatOpenAI`` class uses
+      - Specifies which LLM to use. By default, the ``ChatOpenAI`` class uses
         ``gpt-3.5-turbo``.
       - Defines a LangChain `prompt template 
         <https://python.langchain.com/docs/how_to/#prompt-templates>`__
-        to instruct the |llm| on how to generate responses, including
+        to instruct the LLM on how to generate responses, including
         how to handle tool calls.
       - Binds the tools and prompt template to the |llm|.
 
@@ -65,7 +65,7 @@
 
    .. step:: Test the tool calls.
 
-      You can run the following code snippets to test that the |llm| makes the
+      You can run the following code snippets to test that the LLM makes the
       correct tool calls based on the query by checking the 
       name of the tool that the LLM is calling:
 

@@ -1,9 +1,9 @@
 The following code defines a `prompt 
 <https://learn.microsoft.com/en-us/semantic-kernel/prompts/your-first-prompt>`__
-to instruct the |llm| to use the retrieved document as context for your query. 
-In this example, you prompt the |llm| with the sample query 
+to instruct the LLM to use the retrieved document as context for your query. 
+In this example, you prompt the LLM with the sample query 
 ``When did I start using MongoDB?``. Because you augmented
-the knowledge base of the |llm| with custom data,
+the knowledge base of the LLM with custom data,
 the chat model is able to generate a more accurate, 
 context-aware response.
 

@@ -76,7 +76,7 @@
 
       This code defines and runs a function to populate the ``semantic_kernel_db.test``
       collection with some sample documents. These documents
-      contain personalized data that the |llm| did not originally have access to.
+      contain personalized data that the LLM did not originally have access to.
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook

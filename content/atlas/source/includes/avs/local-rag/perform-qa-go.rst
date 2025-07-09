@@ -48,7 +48,7 @@
 
             .. output:: /includes/avs/local-rag/test-query-output-go.sh
 
-   .. step:: Download the local |llm| model.
+   .. step:: Download the local LLM model.
 
       Run the following command to pull the generative model:
 
@@ -70,7 +70,7 @@
 
       - Queries for relevant documents.
 
-      - Prompts the |llm| and returns the response. The generated response
+      - Prompts the LLM and returns the response. The generated response
         might vary.
 
       Run the following code to complete your |rag| implementation:

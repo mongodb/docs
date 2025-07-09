@@ -10,13 +10,13 @@ with the follow components:
   to retrieve embeddings from your document store
   that are similar to the query embedding.
 - A `PromptBuilder <https://docs.haystack.deepset.ai/docs/promptbuilder>`__ that passes
-  a prompt template to instruct the |llm| to use the retrieved document as context for your prompt. 
+  a prompt template to instruct the LLM to use the retrieved document as context for your prompt. 
 - The `OpenAIGenerator <https://docs.haystack.deepset.ai/docs/openaigenerator>`__
   `generator <https://docs.haystack.deepset.ai/docs/generators>`__
-  to generate a context-aware response using an |llm| from OpenAI.
+  to generate a context-aware response using an LLM from OpenAI.
 
-In this example, you prompt the |llm| with the sample query 
-``Where does Mark live?``. The |llm| generates an accurate,
+In this example, you prompt the LLM with the sample query 
+``Where does Mark live?``. The LLM generates an accurate,
 context-aware response from the custom data you stored 
 in |service|.
 

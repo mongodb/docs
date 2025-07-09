@@ -137,7 +137,7 @@
       - Queries your collection for relevant documents by using the function 
         you just defined.
 
-      - Prompts the |llm| using the retrieved documents as context. 
+      - Prompts the LLM using the retrieved documents as context. 
         The generated response might vary.
 
       ..

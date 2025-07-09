@@ -52,7 +52,7 @@
 
             .. output:: /includes/avs/local-rag/test-query-output-csharp.sh
 
-   .. step:: Download the local |llm| model.
+   .. step:: Download the local LLM model.
 
       Run the following command to pull the generative model:
 
@@ -70,7 +70,7 @@
             :emphasize-lines: 10-11, 18-30
             :caption: OllamaAIService.cs
       
-         This prompts the |llm| and returns the response. The generated response
+         This prompts the LLM and returns the response. The generated response
          might vary.
 
       #. Define a new ``PerformQuestionAnswer`` class to:

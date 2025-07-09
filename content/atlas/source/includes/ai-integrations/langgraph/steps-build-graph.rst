@@ -24,7 +24,7 @@
       a. Add the **agent node**.
 
          This node processes the messages in the current state,
-         invokes the |llm| with these messages, and updates the state 
+         invokes the LLM with these messages, and updates the state 
          with the |llm|\'s response, which includes any tool calls.
 
          .. literalinclude:: /includes/ai-integrations/langgraph/agent-node.py

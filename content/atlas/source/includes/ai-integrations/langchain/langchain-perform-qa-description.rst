@@ -1,6 +1,6 @@
 - Defines a LangChain `prompt template 
   <https://python.langchain.com/docs/how_to/#prompt-templates>`__
-  to instruct the |llm| to use 
+  to instruct the LLM to use 
   these documents as context for your query.
   LangChain passes these documents to the ``{context}`` input
   variable and your query to the ``{question}`` variable.

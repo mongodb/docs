@@ -33,7 +33,7 @@
 
       - Defines a LangChain `prompt template 
         <https://python.langchain.com/docs/how_to/#prompt-templates>`__
-        to instruct the |llm| to use 
+        to instruct the LLM to use 
         the retrieved parent documents as context for your query.
         LangChain passes these documents to the ``{context}`` input
         variable and your query to the ``{query}`` variable.
@@ -47,7 +47,7 @@
           
         - The prompt template that you defined.
 
-        - An |llm| from OpenAI to generate a 
+        - An LLM from OpenAI to generate a 
           context-aware response. By default, this is the 
           ``gpt-3.5-turbo`` model.
 

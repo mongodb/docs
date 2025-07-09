@@ -226,15 +226,15 @@
    .. step:: Generate responses with the |llm|.
 
       In this section, you :ref:`generate <rag-ingestion>` 
-      responses by prompting an |llm| to use the retrieved documents 
+      responses by prompting an LLM to use the retrieved documents 
       as context. This example uses the function you just defined to retrieve
       matching documents from the database, and additionally:
       
       - Accesses the `gpt-4o-mini <https://platform.openai.com/docs/models/gpt-4o-mini>`__ 
         model from OpenAI.
-      - Instructs the |llm| to include the user's question and retrieved
+      - Instructs the LLM to include the user's question and retrieved
         documents in the prompt.
-      - Prompts the |llm| about MongoDB's latest AI announcements.
+      - Prompts the LLM about MongoDB's latest AI announcements.
       
       a. Add the imports, the new ``ChatClient`` information, and a new method
          called ``GenerateAnswer`` in the file named ``AIService.cs``.
@@ -255,7 +255,7 @@
          - ``PerformVectorQuery`` function: retrieve semantically-similar
            results from the database.
          - ``GenerateAnswer`` function: pass the documents retrieved from the
-           database to the |llm| to generate the response.
+           database to the LLM to generate the response.
 
          .. literalinclude:: /includes/avs/rag/RAGPipeline.cs
             :language: csharp

@@ -423,6 +423,67 @@ Usage
    - `Video <https://www.youtube.com/watch?v=v5V3W-NNSQw>`__
    - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/retrievers/langchain_mongodb.retrievers.parent_document.MongoDBAtlasParentDocumentRetriever.html>`__
 
+.. _self-querying-retrieval:
+
+Self-Querying Retriever
+~~~~~~~~~~~~~~~~~~~~~~~
+
+``MongoDBAtlasSelfQueryRetriever`` is a retriever that queries itself. 
+The retriever uses an LLM to process your search query to identify possible metadata 
+filters, forms a structured vector search query with the filters,
+and then runs the query to retrieve the most relevant documents.
+
+For example, with a query like "What are thriller movies from after 2010 with
+ratings above 8?", the retriever can identify filters on the ``genre``, 
+``year``, and ``rating`` fields, and use those filters to retrieve documents
+that match the query.
+
+This retriever requires an existing :ref:`vector store
+<langchain-vector-store>` and :ref:`{+avs+} Index <avs-types-vector-search>`.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from langchain_mongodb.retrievers import MongoDBAtlasSelfQueryRetriever
+   from langchain_mongodb import MongoDBAtlasVectorSearch
+
+   # Given an existing vector store with movies data, define metadata describing the data
+   metadata_field_info = [
+       AttributeInfo(
+           name="genre",
+           description="The genre of the movie. One of ['science fiction', 'comedy', 'drama', 'thriller', 'romance', 'animated']",
+           type="string",
+       ),
+       AttributeInfo(
+           name="year",
+           description="The year the movie was released",
+           type="integer",
+       ),
+       AttributeInfo(
+           name="rating", description="A 1-10 rating for the movie", type="float"
+       ),
+   ]
+
+   # Create the retriever from the VectorStore, an LLM and info about the documents
+   retriever = MongoDBAtlasSelfQueryRetriever.from_llm(
+       llm=llm,
+       vectorstore=vector_store,
+       metadata_field_info=metadata_field_info,
+       document_contents="Descriptions of movies",
+       enable_limit=True
+   )
+
+   # This example results in the following composite filter sent to $vectorSearch:
+   # {'filter': {'$and': [{'year': {'$lt': 1960}}, {'rating': {'$gt': 8}}]}}
+   print(retriever.invoke("Movies made before 1960 that are rated higher than 8"))
+
+.. note::
+
+   - :ref:`Tutorial <langchain-self-query>`
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/retrievers/langchain_mongodb.retrievers.self_querying.MongoDBAtlasSelfQueryRetriever.html>`__
+
 GraphRAG
 --------
 
@@ -464,7 +525,7 @@ LLM Caches
 ----------
 
 `Caches <https://python.langchain.com/docs/how_to/caching_embeddings/>`__ are
-used to optimize |llm| performance by storing repetitive responses 
+used to optimize LLM performance by storing repetitive responses 
 for similar or repetitive queries to avoid recomputing them.
 MongoDB provides the following caches for your LangChain applications.
 
@@ -753,6 +814,7 @@ see :github:`Docs Notebooks Repository </mongodb/docs-notebooks/blob/main/ai-int
    Memory and Semantic Caching </ai-integrations/langchain/memory-semantic-cache>
    Hybrid Search </ai-integrations/langchain/hybrid-search>
    Parent Document Retrieval </ai-integrations/langchain/parent-document-retrieval>
+   Self-Querying Retrieval </ai-integrations/langchain/self-query-retrieval>
    Local RAG </ai-integrations/langchain/local-rag>
    GraphRAG </ai-integrations/langchain/graph-rag>
    Natural Language Queries </ai-integrations/langchain/natural-language-to-mql>

@@ -1,0 +1,353 @@
+.. _langchain-self-query:
+
+==========================================================
+Perform Self-Querying Retrieval with MongoDB and LangChain
+==========================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Learn how to use MongoDB Atlas Vector Search with LangChain's self-querying retriever to build advanced RAG applications.
+   :keywords: RAG, retrieval, langchain, vector database, vector search, semantic search, self-querying, self-query, self-querying retriever, metadata filtering, LLM
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+..
+    NOTE: If you edit any of the code on this page, also update the Jupyter Notebook
+    at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-self-query-retriever.ipynb
+
+You can integrate {+avs+} with LangChain to perform 
+:ref:`self-querying retrieval <self-querying-retrieval>`.
+This tutorial demonstrates how to use the self-querying retriever
+to run natural language {+avs+} queries with metadata filtering.
+
+Self-querying retrieval uses an LLM to process your search query 
+to identify possible metadata filters, forms a structured vector 
+search query with the filters, and then runs the query to retrieve 
+the most relevant documents.
+
+.. example::
+
+   With a query like "What are thriller movies from after 2010 with
+   ratings above 8?", the retriever can identify filters on the ``genre``, 
+   ``year``, and ``rating`` fields, and use those filters to retrieve documents
+   that match the query.
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-self-query-retrieval.ipynb?tck=docs
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langchain-self-query-retrieval.ipynb?tck=docs>`.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+- A Voyage AI API key. To learn more, see `Voyage AI Documentation <https://docs.voyageai.com/docs/api-key-and-installation>`__.
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+Use |service| as a Vector Store
+-------------------------------
+
+In this section, you create a vector store instance
+using |service| as the vector database.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up the environment.
+
+      .. include:: /includes/avs/shared/set-up-python-notebook-environment.rst
+      
+      a. Run the following command in your notebook:
+
+         .. code-block:: shell
+
+            pip install --quiet --upgrade langchain-mongodb langchain-voyageai langchain-openai langchain langchain-core lark
+
+      #. Set environment variables.
+
+         Run the following code to set the environment variables for this tutorial.
+         Provide your Voyage API key, OpenAI API Key, and |service| {+cluster+}'s 
+         |srv| :manual:`connection string
+         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
+
+         .. code-block:: python
+
+            import os
+
+            os.environ["OPENAI_API_KEY"] = "<openai-key>"
+            os.environ["VOYAGE_API_KEY"] = "<voyage-key>"
+            MONGODB_URI = "<connection-string>"
+
+         .. note:: 
+
+            .. include:: /includes/fact-connection-string-format-drivers.rst
+
+   .. step:: Instantiate the vector store.
+
+      Run the following code in your notebook 
+      to create a vector store instance
+      named ``vector_store`` using the ``langchain_db.self_query``
+      namespace in |service|:
+
+      .. code-block:: python
+
+         from langchain_mongodb import MongoDBAtlasVectorSearch
+         from langchain_voyageai import VoyageAIEmbeddings
+
+         # Use the voyage-3-large embedding model
+         embedding_model = VoyageAIEmbeddings(model="voyage-3-large")
+
+         # Create the vector store
+         vector_store = MongoDBAtlasVectorSearch.from_connection_string(
+            connection_string = MONGODB_URI,
+            embedding = embedding_model,
+            namespace = "langchain_db.self_query",
+            text_key = "page_content"
+         )
+
+   .. step:: Add data to the vector store.
+
+      Paste and run the following code in your notebook 
+      to ingest some sample documents with metadata into 
+      your collection in |service|.
+
+      .. code-block:: python
+
+         from langchain_core.documents import Document
+
+         docs = [
+             Document(
+                 page_content="A bunch of scientists bring back dinosaurs and mayhem breaks loose",
+                 metadata={"year": 1993, "rating": 7.7, "genre": "action"},
+             ),
+             Document(
+                 page_content="A fight club that is not a fight club, but is a fight club",
+                 metadata={"year": 1994, "rating": 8.7, "genre": "action"},
+             ),
+             Document(
+                 page_content="Leo DiCaprio gets lost in a dream within a dream within a dream within a ...",
+                 metadata={"year": 2010, "genre": "thriller", "rating": 8.2},
+             ),
+             Document(
+                 page_content="A bunch of normal-sized women are supremely wholesome and some men pine after them",
+                 metadata={"year": 2019, "rating": 8.3, "genre": "drama"},
+             ),
+             Document(
+                 page_content="Three men walk into the Zone, three men walk out of the Zone",
+                 metadata={"year": 1979, "rating": 9.9, "genre": "science fiction"},
+             ),
+             Document(
+                 page_content="A psychologist / detective gets lost in a series of dreams within dreams within dreams and Inception reused the idea",
+                 metadata={"year": 2006, "genre": "thriller", "rating": 9.0},
+             ),
+             Document(
+                 page_content="Toys come alive and have a blast doing so",
+                 metadata={"year": 1995, "genre": "animated", "rating": 9.3},
+             ),
+             Document(
+                 page_content="The toys come together to save their friend from a kid who doesn't know how to play with them",
+                 metadata={"year": 1997, "genre": "animated", "rating": 9.1},
+             ),
+         ]
+
+         # Add data to the vector store, which automaticaly embeds the documents
+         vector_store.add_documents(docs)
+
+      You can view your vector embeddings :ref:`in the {+atlas-ui+}
+      <atlas-ui-view-collections>` by navigating to the ``langchain_db.self_query`` 
+      collection in your {+cluster+}.
+
+   .. step:: Create the {+avs+} index with filters.
+
+      Run the following code to create the {+avs+} index with filters 
+      for the vector store to enable vector search and metadata filtering 
+      over your data:
+
+      .. literalinclude:: /includes/ai-integrations/langchain/self-query/create-vector-search-index.py
+         :language: python
+         :copyable:
+
+      .. tip::
+
+         `create_vector_search_index API reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/index/langchain_mongodb.index.create_vector_search_index.html>`__
+
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
+
+Create the Self-Querying Retriever
+----------------------------------
+
+In this section, you initialize the self-querying retriever
+to query data from your vector store.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Describe the documents and metadata fields.
+      
+      To use the self-querying retriever, you must describe the 
+      documents in your collection and the metadata fields that you want to filter on.
+      This information helps the LLM understand the structure of your data
+      and how to filter results based on user queries.
+
+      .. literalinclude:: /includes/ai-integrations/langchain/self-query/describe-documents-metadata.py
+         :language: python
+         :copyable:
+         
+   .. step:: Initialize the self-querying retriever.
+    
+      Run the following code to create a self-querying retriever
+      using the ``MongoDBAtlasSelfQueryRetriever.from_llm`` method.
+      
+      .. literalinclude:: /includes/ai-integrations/langchain/self-query/initialize-self-querying-retriever.py
+         :language: python
+         :copyable:
+
+      .. tip::
+
+         `MongoDBAtlasSelfQueryRetriever API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/retrievers/langchain_mongodb.retrievers.self_querying.MongoDBAtlasSelfQueryRetriever.html>`__
+
+Run Queries with the Self-Querying Retriever
+--------------------------------------------
+
+Run the following queries to see how the self-querying retriever 
+executes different types of queries:
+
+.. tabs::
+
+   .. tab:: Query with filters
+      :tabid: with-filters
+
+      .. io-code-block::
+         :copyable:
+
+         .. input::
+            :language: python
+          
+            # This example specifies a filter (rating > 9)
+            retriever.invoke("What are some highly rated movies (above 9)?")
+
+         .. output::
+            :language: text
+            :visible: false
+
+            [Document(id='686e84de13668e4048bf9ff3', metadata={'_id': '686e84de13668e4048bf9ff3', 'year': 1979, 'rating': 9.9, 'genre': 'science fiction'}, page_content='Three men walk into the Zone, three men walk out of the Zone'),
+             Document(id='686e84de13668e4048bf9ff5', metadata={'_id': '686e84de13668e4048bf9ff5', 'year': 1995, 'genre': 'animated', 'rating': 9.3}, page_content='Toys come alive and have a blast doing so'),
+             Document(id='686e84de13668e4048bf9ff6', metadata={'_id': '686e84de13668e4048bf9ff6', 'year': 1997, 'genre': 'animated', 'rating': 9.1}, page_content="The toys come together to save their friend from a kid who doesn't know how to play with them")]
+             
+      .. io-code-block::
+         :copyable:
+
+         .. input::
+            :language: python
+
+            # This example specifies a semantic search and a filter (rating > 9)
+            retriever.invoke("I want to watch a movie about toys rated higher than 9")
+
+         .. output::
+            :language: text
+            :visible: false
+
+            [Document(id='686e84de13668e4048bf9ff5', metadata={'_id': '686e84de13668e4048bf9ff5', 'year': 1995, 'genre': 'animated', 'rating': 9.3}, page_content='Toys come alive and have a blast doing so'),
+             Document(id='686e84de13668e4048bf9ff6', metadata={'_id': '686e84de13668e4048bf9ff6', 'year': 1997, 'genre': 'animated', 'rating': 9.1}, page_content="The toys come together to save their friend from a kid who doesn't know how to play with them"),
+             Document(id='686e84de13668e4048bf9ff3', metadata={'_id': '686e84de13668e4048bf9ff3', 'year': 1979, 'rating': 9.9, 'genre': 'science fiction'}, page_content='Three men walk into the Zone, three men walk out of the Zone')]
+             
+      .. io-code-block::
+         :copyable:
+
+         .. input::
+            :language: python
+            
+            # This example specifies a composite filter (rating >= 9 and genre = thriller)
+            retriever.invoke("What's a highly rated (above or equal 9) thriller film?")
+
+         .. output::
+            :language: text
+            :visible: false
+
+            [Document(id='686e84de13668e4048bf9ff4', metadata={'_id': '686e84de13668e4048bf9ff4', 'year': 2006, 'genre': 'thriller', 'rating': 9.0}, page_content='A psychologist / detective gets lost in a series of dreams within dreams within dreams and Inception reused the idea')]
+
+      .. io-code-block::
+         :copyable:
+
+         .. input::
+            :language: python
+
+            # This example specifies a query and composite filter (year > 1990 and year < 2005 and genre = action)
+            retriever.invoke(
+                "What's a movie after 1990 but before 2005 that's all about dinosaurs, " +
+                "and preferably has the action genre"
+            )
+
+         .. output::
+            :language: text
+            :visible: false
+
+            [Document(id='686e84de13668e4048bf9fef', metadata={'_id': '686e84de13668e4048bf9fef', 'year': 1993, 'rating': 7.7, 'genre': 'action'}, page_content='A bunch of scientists bring back dinosaurs and mayhem breaks loose'),
+             Document(id='686e84de13668e4048bf9ff0', metadata={'_id': '686e84de13668e4048bf9ff0', 'year': 1994, 'rating': 8.7, 'genre': 'action'}, page_content='A fight club that is not a fight club, but is a fight club')]
+             
+   .. tab:: Query with no filters
+      :tabid: no-filters
+
+      .. io-code-block::
+         :copyable:
+
+         .. input::
+            :language: python
+
+            # This example only specifies a semantic search query
+            retriever.invoke("What are some movies about dinosaurs")
+
+         .. output::
+            :language: text
+            :visible: false
+
+            [Document(id='686e84de13668e4048bf9fef', metadata={'_id': '686e84de13668e4048bf9fef', 'year': 1993, 'rating': 7.7, 'genre': 'action'}, page_content='A bunch of scientists bring back dinosaurs and mayhem breaks loose'),
+             Document(id='686e84de13668e4048bf9ff5', metadata={'_id': '686e84de13668e4048bf9ff5', 'year': 1995, 'genre': 'animated', 'rating': 9.3}, page_content='Toys come alive and have a blast doing so'),
+             Document(id='686e84de13668e4048bf9ff1', metadata={'_id': '686e84de13668e4048bf9ff1', 'year': 2010, 'genre': 'thriller', 'rating': 8.2}, page_content='Leo DiCaprio gets lost in a dream within a dream within a dream within a ...'),
+             Document(id='686e84de13668e4048bf9ff6', metadata={'_id': '686e84de13668e4048bf9ff6', 'year': 1997, 'genre': 'animated', 'rating': 9.1}, page_content="The toys come together to save their friend from a kid who doesn't know how to play with them")]
+             
+Use the Retriever in Your RAG Pipeline
+--------------------------------------
+
+You can use the self-querying retriever in your RAG pipeline. 
+Paste and run the following code in your notebook to implement 
+a sample RAG pipeline that performs self-querying retrieval.
+
+This code also configures the retriever to use the ``enable_limit`` parameter,
+which allows the LLM to limit the number of documents returned by the retriever
+if necessary. The generated response might vary.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: /includes/ai-integrations/langchain/self-query/self-query-rag-pipeline.py
+      :language: python
+
+   .. output:: 
+
+      Question: What are two movies about toys after 1990?
+      Answer: The two movies about toys after 1990 are:  
+
+      1. The 1995 animated movie (rated 9.3) where toys come alive and have fun.  
+      2. The 1997 animated movie (rated 9.1) where toys work together to save their friend from a kid who doesn’t know how to play with them.  
+
+      Source documents:
+      [Document(id='686e84de13668e4048bf9ff5', metadata={'_id': '686e84de13668e4048bf9ff5', 'year': 1995, 'genre': 'animated', 'rating': 9.3}, page_content='Toys come alive and have a blast doing so'),
+       Document(id='686e84de13668e4048bf9ff6', metadata={'_id': '686e84de13668e4048bf9ff6', 'year': 1997, 'genre': 'animated', 'rating': 9.1}, page_content="The toys come together to save their friend from a kid who doesn't know how to play with them")]
+       

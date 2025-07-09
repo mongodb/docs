@@ -24,7 +24,7 @@
       #. Create a context by concatenating a question with the retrieved
          documents using the ``createPrompt`` method.
 
-      #. Feed the created prompt to the |llm| ``chatmodel`` you defined
+      #. Feed the created prompt to the LLM ``chatmodel`` you defined
          previously to generate a response.
 
       #. Print the question and generated response to the console.
@@ -39,7 +39,7 @@
          :language: java
          :caption: LocalLLM.java
 
-   .. step:: Download the local |llm| model.
+   .. step:: Download the local LLM model.
 
       Run the following command to pull the generative model:
 

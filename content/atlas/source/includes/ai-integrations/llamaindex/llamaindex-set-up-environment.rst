@@ -59,7 +59,7 @@
       Run the following code to configure settings that are specific
       to LlamaIndex. These settings specify the following:
       
-      - OpenAI as the |llm| used by your application to answer questions on your data.
+      - OpenAI as the LLM used by your application to answer questions on your data.
       - ``text-embedding-ada-002`` as the embedding model used by your application 
         to generate vector embeddings from your data.
       - `Chunk size and overlap
