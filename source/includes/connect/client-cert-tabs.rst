@@ -9,7 +9,7 @@
 
          $options = [
             'tls' => true,
-            'tlsCertificateKeyFile' => '/path/to/client.pem' 
+            'tlsCertificateKeyFile' => '/path/to/client.pem', 
          ];
 
          $client = new MongoDB\Client($uri, $options);

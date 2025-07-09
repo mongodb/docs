@@ -27,8 +27,8 @@ $docs = $collection->find(
                 coordinates: [-79.9, 9.3],
             ),
             maxDistance: 10000,
-        )
-    )
+        ),
+    ),
 );
 
 // Prints matching documents
@@ -44,7 +44,7 @@ $result = $collection->deleteOne(
     Query::or(
         Query::query(feature_type: Query::regex('nondangerous$', '')),
         Query::query(depth: Query::gt(10.0)),
-    )
+    ),
 );
 
 // Prints number of deleted documents
@@ -76,7 +76,7 @@ $pipeline = [
 // Opens the change stream
 $changeStream = $collection->watch(
     $pipeline,
-    ['fullDocument' => MongoDB\Operation\Watch::FULL_DOCUMENT_UPDATE_LOOKUP]
+    ['fullDocument' => MongoDB\Operation\Watch::FULL_DOCUMENT_UPDATE_LOOKUP],
 );
 
 // Prints change events based on the pipeline specifications

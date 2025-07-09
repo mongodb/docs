@@ -9,7 +9,7 @@
 
          $options = [
             'tls' => true,
-            'tlsInsecure' => true
+            'tlsInsecure' => true,
          ];
 
          $client = new MongoDB\Client($uri, $options);

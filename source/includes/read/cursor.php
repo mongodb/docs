@@ -26,20 +26,20 @@ echo json_encode($cursor->current());
 // Converts the documents stored in a cursor to an array
 // start-cursor-array
 $cursor = $collection->find(['name' => 'Dunkin\' Donuts']);
-$array_results = $cursor->toArray();
+$resultArray = $cursor->toArray();
 // end-cursor-array
 
 // Creates a collection with a maximum size and inserts documents representing vegetables
 // start-capped-coll
 $db = $client->db;
 $db->createCollection(
-    'vegetables', 
-    ['capped' => true, 'size' => 1024 * 1024]
+    'vegetables',
+    ['capped' => true, 'size' => 1024 * 1024],
 );
 
 $vegetables = [
     ['name' => 'cauliflower'],
-    ['name' => 'zucchini']
+    ['name' => 'zucchini'],
 ];
 
 $collection = $db->vegetables;
@@ -52,12 +52,12 @@ $result = $collection->insertMany($vegetables);
 $cursor = $collection->find([], ['cursorType' => MongoDB\Operation\Find::TAILABLE]);
 $cursor->rewind();
 
-$docs_found = 0;
-while ($docs_found < 3) {
+$docsFound = 0;
+while ($docsFound < 3) {
     if ($cursor->valid()) {
         $doc = $cursor->current();
         echo json_encode($doc), PHP_EOL;
-        $docs_found++;
+        $docsFound++;
     }
     $cursor->next();
 }

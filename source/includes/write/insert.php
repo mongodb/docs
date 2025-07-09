@@ -18,7 +18,7 @@ $result = $collection->insertOne(['name' => 'Mongo\'s Burgers']);
 // start-insert-many
 $restaurants = [
     ['name' => 'Mongo\'s Burgers'],
-    ['name' => 'Mongo\'s Pizza']
+    ['name' => 'Mongo\'s Pizza'],
 ];
 
 $result = $collection->insertMany($restaurants);
@@ -29,9 +29,8 @@ $result = $collection->insertMany($restaurants);
 $docs = [
     ['name' => 'Mongo\'s Burgers'],
     ['name' => 'Mongo\'s Pizza'],
-    ['name' => 'Mongo\'s Tacos']
+    ['name' => 'Mongo\'s Tacos'],
 ];
 
 $result = $collection->insertMany($docs, ['bypassDocumentValidation' => true]);
 // end-modify
-

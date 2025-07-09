@@ -33,15 +33,15 @@ echo json_encode($document), PHP_EOL;
 
 // start-index-compound
 $indexName = $collection->createIndex(
-    ['title' => 1, 'year' => 1]
+    ['title' => 1, 'year' => 1],
 );
 // end-index-compound
 
 // start-compound-query
-$document = $collection->findOne(
-    ['title' => ['$regex' => 'Sunrise'],
-    'year' => ['$gte' => 1990]]
-);
+$document = $collection->findOne([
+    'title' => ['$regex' => 'Sunrise'],
+    'year' => ['$gte' => 1990],
+]);
 echo json_encode($document), PHP_EOL;
 // end-compound-query
 
@@ -51,7 +51,7 @@ $indexName = $collection->createIndex(['cast' => 1]);
 
 // start-index-array-query
 $document = $collection->findOne(
-    ['cast' => ['$in' => ['Aamir Khan', 'Kajol']]]
+    ['cast' => ['$in' => ['Aamir Khan', 'Kajol']]],
 );
 echo json_encode($document), PHP_EOL;
 // end-index-array-query
@@ -59,7 +59,7 @@ echo json_encode($document), PHP_EOL;
 // start-create-search-index
 $searchIndexName = $collection->createSearchIndex(
     ['mappings' => ['dynamic' => true]],
-    ['name' => 'mySearchIdx']
+    ['name' => 'mySearchIdx'],
 );
 // end-create-search-index
 
@@ -70,10 +70,10 @@ $vectorSearchIndexName = $collection->createSearchIndex(
             'type' => 'vector',
             'path' => 'plot_embedding',
             'numDimensions' => 1536,
-            'similarity' => 'dotProduct'
-        ]]
+            'similarity' => 'dotProduct',
+        ]],
     ],
-    ['name' => 'myVSidx', 'type' => 'vectorSearch']
+    ['name' => 'myVSidx', 'type' => 'vectorSearch'],
 );
 // end-create-vector-index
 
@@ -92,11 +92,11 @@ $indexNames = $collection->createSearchIndexes(
                     'type' => 'vector',
                     'path' => 'plot_embedding',
                     'numDimensions' => 1536,
-                    'similarity' => 'dotProduct'
-                ]]
+                    'similarity' => 'dotProduct',
+                ]],
             ],
         ],
-    ]
+    ],
 );
 // end-create-multiple-indexes
 
@@ -114,10 +114,10 @@ $collection->updateSearchIndex(
         'fields' => [
             'title' => [
                 'type' => 'string',
-                'analyzer' => 'lucene.simple'
-            ]
-        ]
-    ]]
+                'analyzer' => 'lucene.simple',
+            ],
+        ],
+    ]],
 );
 // end-update-search-indexes
 

@@ -9,7 +9,7 @@
 
          $options = [
             'tls' => true,
-            'tlsDisableOCSPEndpointCheck' => true
+            'tlsDisableOCSPEndpointCheck' => true,
          ];
 
          $client = new MongoDB\Client($uri, $options);

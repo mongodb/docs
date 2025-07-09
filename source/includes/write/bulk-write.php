@@ -29,7 +29,7 @@ $result = $restaurantCollection->bulkWrite(
                 ['borough' => 'Manhattan'],
             ],
         ],
-    ]
+    ],
 );
 // end-run-bulk
 
@@ -50,7 +50,7 @@ $result = $restaurantCollection->bulkWrite(
             ],
         ],
     ],
-    ['ordered' => false]
+    ['ordered' => false],
 );
 // end-bulk-options
 
@@ -154,7 +154,7 @@ echo 'Deleted documents: ', $result->getDeletedCount(), PHP_EOL;
 // start-bulk-client-options
 $bulkWrite = MongoDB\ClientBulkWrite::createWithCollection(
     $restaurantCollection,
-    ['ordered' => false]
+    ['ordered' => false],
 );
 // end-bulk-client-options
 

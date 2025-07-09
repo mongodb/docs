@@ -13,7 +13,7 @@ $collection = $client->sample_restaurants->restaurants;
 // start-limit
 $cursor = $collection->find(
     ['cuisine' => 'Italian'],
-    ['limit' => 5]
+    ['limit' => 5],
 );
 
 foreach ($cursor as $doc) {
@@ -24,8 +24,8 @@ foreach ($cursor as $doc) {
 // Retrieves documents with a "cuisine" value of "Italian" and sorts in ascending "name" order
 // start-sort
 $cursor = $collection->find(
-    ['cuisine' => 'Italian'], 
-    ['sort' => ['name' => 1]]
+    ['cuisine' => 'Italian'],
+    ['sort' => ['name' => 1]],
 );
 
 foreach ($cursor as $doc) {
@@ -37,7 +37,7 @@ foreach ($cursor as $doc) {
 // start-skip
 $cursor = $collection->find(
     ['borough' => 'Manhattan'],
-    ['skip' => 10]
+    ['skip' => 10],
 );
 
 foreach ($cursor as $doc) {
@@ -64,9 +64,9 @@ foreach ($cursor as $doc) {
 // start-return-type
 $options = [
     'typeMap' => [
-        'root' => 'array', 
-        'document' => 'array'
-    ]
+        'root' => 'array',
+        'document' => 'array',
+    ],
 ];
 
 $cursor = $collection->find(['cuisine' => 'Hawaiian'], $options);

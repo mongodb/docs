@@ -31,4 +31,3 @@ $collection->deleteMany(
 $result = $collection->deleteMany(['cuisine' => 'Greek']);
 echo 'Deleted documents: ', $result->getDeletedCount(), PHP_EOL;
 // end-delete-count
-

@@ -1,5 +1,5 @@
 <?php
-require 'vendor/autoload.php'; 
+require 'vendor/autoload.php';
 
 // start-to-json
 function toJSON(object $document): string
@@ -19,7 +19,7 @@ $collection = $client->sample_restaurants->restaurants;
 // start-update-for-change-stream
 $result = $collection->updateOne(
     ['name' => 'Blarney Castle'],
-    ['$set' => ['cuisine' => 'Irish']]
+    ['$set' => ['cuisine' => 'Irish']],
 );
 // end-update-for-change-stream
 

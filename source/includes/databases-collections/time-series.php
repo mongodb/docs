@@ -1,5 +1,5 @@
 <?php
-require 'vendor/autoload.php'; 
+require 'vendor/autoload.php';
 
 $uri = getenv('MONGODB_URI') ?: 'mongodb://localhost:27017';
 $client = new MongoDB\Client($uri);
@@ -13,7 +13,7 @@ $options = [
         'timeField' => 'timestamp',
         'metaField' => 'location',
         'granularity' => 'minutes',
-    ]
+    ],
 ];
 
 $db->createCollection('sept2023', $options);
@@ -43,6 +43,6 @@ $result = $collection->insertMany(
             'location' => 'New York City',
             'timestamp' => new MongoDB\BSON\UTCDateTime(1695594780000),
         ],
-    ]
+    ],
 );
 // end-insert-ts
