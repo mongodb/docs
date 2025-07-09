@@ -20,7 +20,17 @@ response times.
 
 Index keys correspond to document fields. In most cases, applying the
 ESR (Equality, Sort, Range) Guideline to arrange the index keys helps to
-create a more efficient :ref:`compound index <index-type-compound>`.
+create a more efficient :ref:`compound index <index-type-compound>`. 
+
+Ensure that equality fields always come first. Applying equality to the leading
+field(s) of the compound index allows you to take advantage of the rest of the 
+field values being in sorted order. Choose whether to use a sort or range field
+next based on your index's specific needs:
+
+- If avoiding in-memory sorts is critical, place sort fields before range fields 
+  (ESR)
+- If your range predicate in the query is very selective, then put it before
+  sort fields (ERS)
 
 This page introduces the ESR Guideline. For more information on optimizing
 queries, see :dbcommand:`explain` and 
@@ -45,9 +55,9 @@ exact match queries scan the ``cars`` collection for documents whose
    db.cars.find( { model: "Cordoba" } )
    db.cars.find( { model: { $eq: "Cordoba" } } )
 
-Index searches make efficient use of exact matches to limit the number
-of documents that need to be examined to complete a query. Put the fields
-that require exact matches first in your index.
+Index searches make efficient use of exact matches to reduce the number of index
+keys examined. Equality fields must come first. When you use the first part of 
+the index for equality, the rest of the index stays in sorted order. 
 
 An index may have multiple keys for queries with exact matches. The
 index keys for equality matches can appear in any order. However, to
@@ -56,19 +66,15 @@ exact matches must come before any other index fields. MongoDB's search
 algorithm eliminates any need to arrange the exact match fields in a
 particular order.
 
-Exact matches should be selective. To reduce the number of index keys
-scanned, ensure equality tests eliminate at least 90% of possible
-document matches.
+The more selective the equality matches, the more efficient the indexed query.
 
 .. _esr-rule-sort:
 
 Sort
 ----
 
-"Sort" determines the order for results. Sort follows equality matches
-because the equality matches reduce the number of documents that need
-to be sorted. Sorting after the equality matches also allows MongoDB to
-do an index sort.
+"Sort" determines the order for results. To avoid in-memory sorts, put sort 
+fields before range in the index.
 
 An index can support sort operations when the query fields are a subset
 of the index keys. Sort operations on a subset of the index keys are
@@ -112,9 +118,13 @@ Range filters resemble the following:
    db.cars.find( { age: { $lt: 10 } } )
    db.cars.find( { priorAccidents: { $ne: null } } )
 
-MongoDB cannot perform an index sort on the results of a range filter. Place the range
-filter after the sort predicate so MongoDB can use an index sort. For more information on
-in-memory sorts, see :method:`cursor.allowDiskUse()`.
+If the range predicate in your query is very selective, place it before the sort
+fields to reduce the number of sorted documents and allow an in-memory sort.
+
+To avoid an in-memory sort, place the range filter after the sort 
+predicate. For more information on in-memory sorts, see 
+:method:`cursor.allowDiskUse()`.
+
 
 Additional Considerations
 -------------------------
