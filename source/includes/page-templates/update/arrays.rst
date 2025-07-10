@@ -125,7 +125,7 @@ This method accepts the following parameters:
      - A ``SortDefinition`` object that specifies how the driver sorts the array elements
        after adding the new values.
 
-       **Data Type:** `SortDefinition<TItem> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.SortDefinition-1.html>`__
+       **Data Type:** `SortDefinition<TItem> <{+api-root+}/MongoDB.Driver/MongoDB.Driver.SortDefinition-1.html>`__
 
 The following code example uses the ``PushEach()`` method to add two new ``GradeEntry``
 objects to the start of the ``Grades`` array in |matching-document-or-documents|.
@@ -290,7 +290,7 @@ This method accepts the following parameters:
    * - ``filter``
      - A query filter that specifies the condition for values to remove.
 
-       **Data Type:** `FilterDefinition<TItem> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.FilterDefinition-1.html>`__
+       **Data Type:** `FilterDefinition<TItem> <{+api-root+}/MongoDB.Driver/MongoDB.Driver.FilterDefinition-1.html>`__
 
 The following code example uses the ``PullFilter()`` method to remove all ``GradeEntry``
 objects where the ``Grade`` value is ``"F"`` from the ``Grades`` array in the
@@ -365,13 +365,13 @@ API Documentation
 For more information about any of the methods or types discussed in this
 guide, see the following API documentation:
 
-- `Builders.Update.Push() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Push.html>`__
-- `Builders.Update.AddToSet() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.AddToSet.html>`__
-- `Builders.Update.PushEach() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PushEach.html>`__
-- `Builders.Update.AddToSetEach() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.AddToSetEach.html>`__
-- `Builders.Update.PopFirst() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PopFirst.html>`__
-- `Builders.Update.PopLast() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PopLast.html>`__
-- `Builders.Update.Pull() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Pull.html>`__
-- `Builders.Update.PullAll() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PullAll.html>`__
-- `Builders.Update.PullFilter() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PullFilter.html>`__
-- `Builders.Update.Set() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Set.html>`__
+- `Builders.Update.Push() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Push.html>`__
+- `Builders.Update.AddToSet() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.AddToSet.html>`__
+- `Builders.Update.PushEach() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PushEach.html>`__
+- `Builders.Update.AddToSetEach() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.AddToSetEach.html>`__
+- `Builders.Update.PopFirst() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PopFirst.html>`__
+- `Builders.Update.PopLast() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PopLast.html>`__
+- `Builders.Update.Pull() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Pull.html>`__
+- `Builders.Update.PullAll() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PullAll.html>`__
+- `Builders.Update.PullFilter() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.PullFilter.html>`__
+- `Builders.Update.Set() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Set.html>`__

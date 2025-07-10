@@ -253,7 +253,7 @@ To set the value of a field to the current date and time, call the
      - The format of the date and time, defined in the ``UpdateDefinitionCurrentDateType``
        enum. The default value is ``null``.
 
-       **Data Type:** `UpdateDefinitionCurrentDateType? <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionCurrentDateType.html>`__
+       **Data Type:** `UpdateDefinitionCurrentDateType? <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionCurrentDateType.html>`__
 
 The following code example uses the ``CurrentDate()`` method to update the
 ``Date`` field of the first ``GradeEntry`` object to the current date in
@@ -290,12 +290,12 @@ API Documentation
 For more information about any of the methods discussed in this
 guide, see the following API documentation:
 
-- `Builders.Update.Inc() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Inc.html>`__
-- `Builders.Update.Mul() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Mul.html>`__
-- `Builders.Update.Rename() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Rename.html>`__
-- `Builders.Update.Set() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Set.html>`__
-- `Builders.Update.Max() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Max.html>`__
-- `Builders.Update.Min() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Min.html>`__
-- `Builders.Update.SetOnInsert() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.SetOnInsert.html>`__
-- `Builders.Update.CurrentDate() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.CurrentDate.html>`__
-- `Builders.Update.Unset() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Unset.html>`__
+- `Builders.Update.Inc() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Inc.html>`__
+- `Builders.Update.Mul() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Mul.html>`__
+- `Builders.Update.Rename() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Rename.html>`__
+- `Builders.Update.Set() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Set.html>`__
+- `Builders.Update.Max() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Max.html>`__
+- `Builders.Update.Min() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Min.html>`__
+- `Builders.Update.SetOnInsert() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.SetOnInsert.html>`__
+- `Builders.Update.CurrentDate() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.CurrentDate.html>`__
+- `Builders.Update.Unset() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionBuilder-1.Unset.html>`__

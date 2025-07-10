@@ -32,21 +32,21 @@ The |sync-method| and |async-method| methods accept the following parameters:
        to update.
        To learn how to create a query filter, see :ref:`csharp-specify-query`.
 
-       **Data Type:** `FilterDefinition <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.FilterDefinition-1.html>`__
+       **Data Type:** `FilterDefinition <{+api-root+}/MongoDB.Driver/MongoDB.Driver.FilterDefinition-1.html>`__
 
    * - ``update``
      - An instance of the ``UpdateDefinition`` class. This object specifies the kind of update
        operation, the fields to update, and the new value for each field. To learn how to
        create an ``UpdateDefinition`` object, see |fields-link| and |arrays-link|.
 
-       **Data Type:** `UpdateDefinition<TDocument> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinition-1.html>`__
+       **Data Type:** `UpdateDefinition<TDocument> <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinition-1.html>`__
 
    * - ``options``
      - *Optional.* An instance of the ``UpdateOptions`` class that specifies the
        configuration for the update operation. The default value is ``null``. For a list
        of available options, see |options-ref-link|.
 
-       **Data Type:** `UpdateOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateOptions.html>`__
+       **Data Type:** `UpdateOptions <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateOptions.html>`__
 
    * - ``cancellationToken``
      - *Optional.* A token that you can use to cancel the operation.
@@ -152,7 +152,7 @@ The ``UpdateOptions`` class contains the following properties:
        See :manual:`the {+mdb-server+} manual</reference/command/update/#update-elements-match-arrayfilters-criteria>`
        for more information.
 
-       **Data Type:** IEnumerable<`ArrayFilterDefinition <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.ArrayFilterDefinition.html>`__>
+       **Data Type:** IEnumerable<`ArrayFilterDefinition <{+api-root+}/MongoDB.Driver/MongoDB.Driver.ArrayFilterDefinition.html>`__>
 
    * - ``BypassDocumentValidation``
      - Specifies whether the update operation bypasses document validation. This lets you 
@@ -167,21 +167,21 @@ The ``UpdateOptions`` class contains the following properties:
        results. See the
        :ref:`<csharp-find-collation>` section of this page for more information.
 
-       **Data Type:** `Collation <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Collation.html>`__
+       **Data Type:** `Collation <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Collation.html>`__
 
    * - ``Comment``
      - Gets or sets the user-provided comment for the operation. 
        See :manual:`the {+mdb-server+} manual</reference/command/update/#command-fields>`
        for more information.
 
-       **Data Type:** `BsonValue <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
+       **Data Type:** `BsonValue <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
 
    * - ``Hint``
      - Gets or sets the index to use to scan for documents. 
        See :manual:`the {+mdb-server+} manual</reference/command/update/#std-label-update-command-hint>`
        for more information.
 
-       **Data Type:** `BsonValue <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
+       **Data Type:** `BsonValue <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
 
    * - ``IsUpsert``
      - Specifies whether the update operation performs an upsert operation if no 
@@ -213,7 +213,7 @@ The ``UpdateOptions`` class contains the following properties:
        See :manual:`the {+mdb-server+} manual </reference/command/update/#std-label-update-let-syntax>`
        for more information.
 
-       **Data Type:** `BsonDocument <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonDocument.html>`__
+       **Data Type:** `BsonDocument <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonDocument.html>`__
 
 .. _csharp-update-collation:
 
@@ -262,7 +262,7 @@ The ``UpdateResult`` class contains the following properties:
      - The ID of the document that was upserted in the database, if the driver
        performed an upsert.
 
-       **Data Type:** `BsonValue <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
+       **Data Type:** `BsonValue <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
 
 Additional Information
 ----------------------
@@ -283,7 +283,7 @@ guide, see the following API documentation:
 
 - |sync-api-link|
 - |async-api-link|
-- `UpdateOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateOptions.html>`__
-- `UpdateResult <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateResult.html>`__
+- `UpdateOptions <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateOptions.html>`__
+- `UpdateResult <{+api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateResult.html>`__
 
 |instruqt-lab-component|
