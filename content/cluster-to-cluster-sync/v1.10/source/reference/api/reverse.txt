@@ -57,10 +57,15 @@ You cannot update these options after the sync starts.
 - The destination cluster oplog must not roll over between 
   ``mongosync`` reaching ``canWrite=true`` and receiving
   the ``/reverse`` request.
-- :ref:`index-type-unique` require proper formatting.
-  
-  To validate that collection indexes use the proper formatting, see
-  :ref:`c2c-validate-unique-index`.
+
+.. warning::
+
+   :ref:`Unique indexes <index-type-unique>` on the source cluster must not use
+   the legacy format.
+
+   To validate that collection indexes on the source cluster use the proper
+   formatting, see :ref:`c2c-validate-unique-index`.
+
 - .. include:: /includes/fact-reverse-limitation.rst
 - .. include:: /includes/fact-permissions-body.rst
 
@@ -76,11 +81,59 @@ You cannot update these options after the sync starts.
 Validate Unique Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to reverse direction, ``mongosync`` requires that all
-:ref:`unique <index-type-unique>` indexes use the correct formatting. 
+In order to reverse direction, ``mongosync`` requires that all :ref:`unique
+<index-type-unique>` indexes on the source cluster (except for ``_id``) do not
+have legacy unique index keys.
 
-To correct indexes, you can :ref:`resync <resync-replica-member>` all nodes
-in the original source cluster.  To resync all nodes: 
+Before you Begin
+````````````````
+
+You can ensure that non-``_id`` unique indexes use the correct formatting on the
+source cluster with the :pipeline:`$collStats` aggregation stage. To run this
+aggregation pipeline on your collection, copy and paste the example code,
+replacing ``<collection>`` with the collection name and ``<field_name>`` with
+the name of the indexed field. You must run this on all nodes, for all
+collections that have unique indexes. Note that only the non-``_id`` unique
+indexes need to have formatVersion ``13`` or ``14``.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input::
+      :language: javascript 
+
+       db.<collection>.aggregate( [ 
+         { $collStats: { storageStats: { } } },
+         { $project: { "storageStats.indexDetails.<field_name>.metadata.formatVersion": 1 } }
+       ] )
+
+   .. output:: 
+      :language: javascript
+
+      [
+        {
+          storageStats: {
+            indexDetails: { <field_name>: { metadata: { formatVersion: 14 } } }
+          }
+        }
+      ]
+
+Unique indexes with formatVersion ``13`` or ``14`` are guaranteed to not 
+have legacy keys.
+
+If you have unique indexes of a different formatVersion, you can also 
+use the :method:`db.collection.validate` method with ``full = false`` to 
+confirm if there are legacy index keys. You must run this on all nodes 
+for all collections with unique indexes. ``validate()`` returns a 
+warning if legacy format index keys are detected.
+
+Steps
+`````
+
+To update the format version of the indexes for compatibility with 
+``mongosync``, you must :ref:`resync <resync-replica-member>` all nodes
+in the original source cluster. To resync all nodes: 
+
 
 .. procedure::
    :style: normal
@@ -93,13 +146,6 @@ in the original source cluster.  To resync all nodes:
    .. step:: Step down the primary node and step up one of the secondary nodes.
    
    .. step:: Resync the old primary node from the new primary node. 
-
-Alternatively, to avoid resyncing, you can use the
-:method:`db.collection.validate` method with ``full = false`` on each
-collection with unique indexes on all nodes to determine whether each
-collection contains improperly formatted unique indexes. If
-:method:`db.collection.validate` does not return a warning about a
-unique index, you can skip resyncing. 
 
 Request
 -------
