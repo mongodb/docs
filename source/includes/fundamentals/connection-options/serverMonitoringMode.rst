@@ -1,5 +1,5 @@
 Specifies the server monitoring protocol to use. The available values for this
-property are defined in the `ServerMonitoringMode <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Servers.ServerMonitoringMode.html>`__
+property are defined in the `ServerMonitoringMode <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Servers.ServerMonitoringMode.html>`__
 enum. The default value is ``Auto``.
 
 When this option is set to ``Auto`` the monitoring mode is determined
