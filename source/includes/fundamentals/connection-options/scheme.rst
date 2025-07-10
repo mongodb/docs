@@ -1,6 +1,6 @@
 Specifies whether to use the standard connection string format (``MongoDB``)
 or the DNS seed list format (``MongoDBPlusSrv``). The available values for this
-property are defined in the `ConnectionStringScheme <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Configuration.ConnectionStringScheme.html>`__
+property are defined in the `ConnectionStringScheme <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Configuration.ConnectionStringScheme.html>`__
 enum. The default value is ``ConnectionStringScheme.MongoDB``.
 See :manual:`Connection Strings </reference/connection-string/>` in the {+mdb-server+}
 manual for more information about connection string formats.

@@ -30,7 +30,7 @@ following parameters:
        Although the data type of this parameter is ``QueryVector``, you can also pass an
        array of ``float`` values.
        
-       **Data type**: `QueryVector <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.QueryVector.html>`__
+       **Data type**: `QueryVector <{+api-root+}/MongoDB.Driver/MongoDB.Driver.QueryVector.html>`__
 
    * - ``limit``
      - The maximum number of documents to return.
@@ -40,7 +40,7 @@ following parameters:
    * - ``options``
      - Configuration options for the vector search operation.
     
-       **Data type**: `VectorSearchOptions<TDocument> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.VectorSearchOptions-1.html>`__
+       **Data type**: `VectorSearchOptions<TDocument> <{+api-root+}/MongoDB.Driver/MongoDB.Driver.VectorSearchOptions-1.html>`__
 
 You can use the ``options`` parameter to configure your vector search operation. The
 ``VectorSearchOptions`` class contains the following properties:
@@ -64,7 +64,7 @@ You can use the ``options`` parameter to configure your vector search operation.
    * - ``Filter``
      - Additional search criteria that the found documents must match.
    
-       | **Data Type:** `FilterDefinition<TDocument> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.FilterDefinition-1.html>`__
+       | **Data Type:** `FilterDefinition<TDocument> <{+api-root+}/MongoDB.Driver/MongoDB.Driver.FilterDefinition-1.html>`__
        | **Default**: ``null``
    
    * - ``IndexName``
