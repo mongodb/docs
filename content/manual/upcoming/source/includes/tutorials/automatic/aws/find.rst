@@ -1,6 +1,5 @@
 Retrieve the {+in-use-doc+} you inserted in the
-:ref:`Insert a Document with Encrypted Fields <csfle-aws-insert>`
-step of this guide.
+Insert a Document with Encrypted Fields step of this guide.
 
 To show the functionality of {+csfle-abbrev+}, the following code snippet queries for
 your document with a client configured for automatic {+csfle-abbrev+} as well as

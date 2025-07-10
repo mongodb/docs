@@ -115,8 +115,7 @@ a. Add your AWS KMS Credentials
    .. tip::
 
       You recorded your {+cmk-long+}'s {+aws-arn-abbr+} and Region
-      in the :ref:`Create a {+cmk-long+} <aws-create-master-key>`
-      step of this guide.
+      in the Create a {+cmk-long+} step of this guide.
 
    .. tabs-drivers::
 
