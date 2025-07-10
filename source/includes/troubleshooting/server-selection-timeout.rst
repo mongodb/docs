@@ -4,7 +4,7 @@ Driver Throws a Timeout During Server Selection
 Each driver operation requires that you choose a server that
 satisfies the :manual:`server selection criteria
 </core/read-preference-mechanics>`. If you do not select an appropriate
-server within the `server selection timeout <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.ServerSelectionTimeout.html>`__, the driver throws a
+server within the `server selection timeout <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.ServerSelectionTimeout.html>`__, the driver throws a
 server selection timeout exception. The exception looks similar to the
 following:
 
