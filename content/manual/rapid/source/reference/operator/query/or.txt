@@ -93,14 +93,51 @@ error.
 
 .. include:: /includes/text-search-legacy-atlas-section.rst
 
-``$or`` and GeoSpatial Queries
+``$or`` and Geospatial Queries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:query:`$or` supports :ref:`geospatial clauses
-<geospatial-query-operators>` with the following exception
-for the near clause (near clause includes :query:`$nearSphere` and
-:query:`$near`). :query:`$or` cannot contain a near clause with any
-other clause.
+``$or`` supports :ref:`geospatial clauses <geospatial-query-operators>`.
+However, if you use a near clause (:query:`$near` or
+:query:`$nearSphere`), ``$or`` cannot contain any other clauses. Using
+``$or`` with a single clause has the same effect as omitting the ``$or``
+operator.
+
+For example, the following query is invalid because the ``$or``
+operator combines ``$near`` with another clause:
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.places.find( {
+      $or: [
+         { location: { $near: [ 40, 5 ] } },
+         { category: "restaurant" }
+      ]
+   } )
+
+The following query is valid because ``$or`` uses a non-near
+geospatial clause (``$geoIntersects``):
+
+.. code-block:: javascript
+
+   db.places.find( {
+      $or: [
+         {
+            location: {
+               $geoIntersects: {
+                  $geometry: {
+                     type: "Polygon",
+                     coordinates: [
+                        [ [ 39, 4 ], [ 41, 4 ], [ 41, 6 ], [ 39, 4 ] ]
+                     ]
+                  }
+               }
+            }
+         },
+         { category: "restaurant" }
+      ]    
+   } )
+
 
 ``$or`` and Sort Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
