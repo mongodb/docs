@@ -1,0 +1,480 @@
+.. _aggregation-pipeline-generation:
+
+============================
+Backing Aggregation Pipeline
+============================
+
+.. meta::
+   :description: Understand how MongoDB Charts generates an aggregation pipeline to render data, using various settings like queries, calculated fields, and filters.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To get the data needed to render a chart, |charts-short| creates a
+MongoDB Aggregation Pipeline and runs the pipeline on the MongoDB database
+server. The pipeline consists of multiple stages, each of which is
+generated based on different settings specified by the chart's author.
+
+This document explains how the various Chart Builder settings are used
+to construct the Aggregation Pipeline. You can view the pipeline used to
+create a chart by choosing the :guilabel:`View Aggregation Pipeline`
+option in the Chart Builder's ellipsis dropdown on the top right.
+
+|charts| construct a pipeline that consists of the following segments in
+the following order:
+
+1. :ref:`Charts views <data-sources-pipeline>`
+#. :ref:`Pre-filters in embedding charts <embed-options-pre-filter>`
+#. :ref:`Dashboard filters <filter-dashboards>`
+#. :ref:`Chart query <query-bar>`
+#. :ref:`Lookup fields <add-lookup-field>`
+#. :ref:`Calculated fields <calculated-fields>`
+#. :ref:`Embedding filters, including injected filters <embedded-chart-options>`
+#. :ref:`Chart filters <charts-filter-documents>`
+#. :ref:`Encoded fields <encoding-channels>`
+#. :ref:`Sorting <charts-sort-data>`
+#. :ref:`Maximum document limit <max-documents-limit>`
+
+.. note::
+
+   When creating a chart, you can configure some but not all of the previous
+   chart segments. When |charts-short| generates the aggregation pipeline,
+   it skips unspecified segments.
+
+Example 
+-------
+
+The following chart shows the total sale amounts from an office supply
+company, categorized by purchase method. Each document in the data
+collection represents a single sale.
+
+Using this chart as an example, we will explore how the specifications
+for each of the above settings change the aggregation pipeline generated
+by |charts|. 
+
+.. figure:: /images/charts/agg-pipeline.png
+   :figwidth: 720px
+   :alt: Aggregation pipline example without any filters.
+
+
+Encoding
+~~~~~~~~
+
+Without any :guilabel:`Data Source` pipeline, :guilabel:`Query` bar
+queries, calculated fields, and filters added in the :guilabel:`Filter`
+pane, |charts| generates the following aggregation pipeline: 
+
+.. code-block:: javascript
+   :emphasize-lines: 1-31, 33-51
+   :linenos:
+
+   {
+     "$addFields": {              // Encoding
+       "__alias_0": {
+         "$sum": "$items.price"
+       }
+     }
+   },
+   {
+     "$group": {
+       "_id": {
+         "__alias_1": "$purchaseMethod"
+       },
+       "__alias_0": {
+         "$sum": "$__alias_0"
+       }
+     }
+   },
+   {
+     "$project": {
+       "_id": 0,
+       "__alias_1": "$_id.__alias_1",
+       "__alias_0": 1
+     }
+   },
+   {
+     "$project": {
+       "x": "$__alias_1",
+       "y": "$__alias_0",
+       "_id": 0
+     }
+   },
+
+   {
+     "$addFields": {              // Sorting
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
+     }
+   },
+   {
+     "$limit": 5000
+   }
+  
+The pipeline at this point consists of groups from the
+:guilabel:`Encode` panel, stages for the default sort order, and the 
+maximum document limit, which is set to 5000 by |charts|.
+
+Adding Queries
+~~~~~~~~~~~~~~
+
+The query below restricts the documents shown to only those with
+a ``saleDate`` equal to or more recent than ``January 1, 2017`` with at
+least 5 elements in the ``items`` array. ``items`` is
+an array where each element is an item purchased during a sale.
+
+
+Query:
+
+.. code-block:: javascript
+
+ { 
+   $and: [ 
+   { 
+     saleDate: { $gte: new Date("2017-01-01") } 
+   }, 
+   { 
+     'items.4': { $exists: true } 
+   } ] 
+ }
+
+
+Applying the above query in the :guilabel:`Query` bar generates the
+following chart and aggregation pipeline: 
+
+.. figure:: /images/charts/agg-pipeline-query.png
+   :figwidth: 720px
+   :alt: Aggregation pipline example with query.
+
+Aggregation Pipeline: 
+
+.. code-block:: javascript
+   :emphasize-lines: 1-18
+   :linenos:
+
+   {
+     "$match": {              // Query     
+       "$and": [
+         {
+           "saleDate": {
+             "$gte": {
+               "$date": "2017-01-01T00:00:00Z"
+             }
+           }
+         },
+         {
+           "items.4": {
+             "$exists": true
+           }
+         }
+       ]
+     }
+   },
+   {
+     "$addFields": {
+       "__alias_0": {
+         "$sum": "$items.price"
+       }
+     }
+   },
+   {
+     "$group": {
+       "_id": {
+         "__alias_1": "$purchaseMethod"
+       },
+       "__alias_0": {
+         "$sum": "$__alias_0"
+       }
+     }
+   },
+   {
+     "$project": {
+       "_id": 0,
+       "__alias_1": "$_id.__alias_1",
+       "__alias_0": 1
+     }
+   },
+   {
+     "$project": {
+       "x": "$__alias_1",
+       "y": "$__alias_0",
+       "_id": 0
+     }
+   },
+   {
+     "$addFields": {
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
+     }
+   },
+   {
+     "$limit": 5000
+   }
+
+The aggregation pipeline now starts with the query applied, and is
+followed by the groups selected in the :guilabel:`Encode` panel and the
+max document limit. 
+
+
+Adding Calculated Fields
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can also change the chart to show the total revenue generated
+categorized by purchase method. To accomplish this task, we will create
+a calculated field that calculates the total revenue by multiplying
+price by quantity. Adding this new calculated field, in addition to the
+query above, produces the following chart and pipeline:
+
+
+Calculated Field Expression: 
+
+
+.. figure:: /images/charts/agg-pipeline-calc-field.png
+   :figwidth: 720px
+   :alt: Aggregation pipline example with calculated field.
+
+
+Aggregation Pipeline: 
+
+.. code-block:: javascript
+   :emphasize-lines: 19-39
+   :linenos:
+
+   {
+     "$match": {
+       "$and": [
+         {
+           "saleDate": {
+             "$gte": {
+               "$date": "2017-01-01T00:00:00Z"
+             }
+           }
+         },
+         {
+           "items.4": {
+             "$exists": true
+           }
+         }
+       ]
+     }
+   },
+   {
+     "$addFields": {              // Calculated Field
+       "revenue": {
+         "$reduce": {
+           "input": "$items",
+           "initialValue": 0,
+           "in": {
+             "$sum": [
+               "$$value",
+               {
+                 "$multiply": [
+                   "$$this.price",
+                   "$$this.quantity"
+                 ]
+               }
+             ]
+           }
+         }
+       }
+     }
+   },
+   {
+     "$group": {
+       "_id": {
+         "__alias_0": "$purchaseMethod"
+       },
+       "__alias_1": {
+         "$sum": "$revenue"
+       }
+     }
+   },
+   {
+     "$project": {
+       "_id": 0,
+       "__alias_0": "$_id.__alias_0",
+       "__alias_1": 1
+     }
+   },
+   {
+     "$project": {
+       "x": "$__alias_0",
+       "y": "$__alias_1",
+       "_id": 0
+     }
+   },
+   {
+     "$addFields": {
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
+     }
+   },
+   {
+     "$limit": 5000
+   }
+
+
+The updated pipeline now includes the calculated field right below the
+query applied in the :guilabel:`Query` bar while the order of the rest
+of the components remains unchanged. 
+
+Adding Filters
+~~~~~~~~~~~~~~
+
+This chart can be further refined by adding a filter in the
+:guilabel:`Filter` pane to only select in-store sales made in the New
+York location. Adding this filter produces the following chart and
+aggregation pipeline: 
+
+.. figure:: /images/charts/agg-pipeline-with-filter.png
+   :figwidth: 720px
+   :alt: Aggregation pipline example with filter.
+
+
+Aggregation Pipeline: 
+
+.. code-block:: javascript
+   :emphasize-lines: 40-48
+   :linenos:
+
+   {
+     "$match": {
+       "$and": [
+         {
+           "saleDate": {
+             "$gte": {
+               "$date": "2017-01-01T00:00:00Z"
+             }
+           }
+         },
+         {
+           "items.4": {
+             "$exists": true
+           }
+         }
+       ]
+     }
+   },
+   {
+     "$addFields": {
+       "revenue": {
+         "$reduce": {
+           "input": "$items",
+           "initialValue": 0,
+           "in": {
+             "$sum": [
+               "$$value",
+               {
+                 "$multiply": [
+                   "$$this.price",
+                   "$$this.quantity"
+                 ]
+               }
+             ]
+           }
+         }
+       }
+     }
+   },
+   {
+     "$match": {             // Filter
+       "storeLocation": {
+         "$in": [
+           "New York"
+         ]
+       }
+     }
+   },
+   {
+     "$group": {
+       "_id": {
+         "__alias_0": "$purchaseMethod"
+       },
+       "__alias_1": {
+         "$sum": "$revenue"
+       }
+     }
+   },
+   {
+     "$project": {
+       "_id": 0,
+       "__alias_0": "$_id.__alias_0",
+       "__alias_1": 1
+     }
+   },
+   {
+     "$project": {
+       "x": "$__alias_0",
+       "y": "$__alias_1",
+       "_id": 0
+     }
+   },
+   {
+     "$addFields": {
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
+     }
+   },
+   {
+     "$limit": 5000
+   }
+
+The pipeline now includes the ``storeLocation`` filter right below the
+calculated field while the order of the rest of the components remains
+unchanged. 

@@ -1,0 +1,379 @@
+.. _filter-embedded-charts:
+.. _pre-filter-embedded-charts:
+
+======================
+Filter Embedded Charts
+======================
+
+.. meta::
+   :description: Customize embedded charts by adding pre-filters and filters using the Charts Embedding SDK or query parameters to control data display.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can customize your embedded charts by adding:
+
+- Pre-filters. Use the ``preFilter`` option with the |charts-short| Embedding SDK 
+  or append various query parameters to your iframe URLs.
+
+- Filters. Use the ``filter`` option with the |charts-short| Embedding SDK or
+  append various query parameters to your iframe URLs.
+
+You can use both pre-filters and filters in the same dashboard, even though
+using them is optional. If specified, pre-filters always run after the
+chart views and before the dashboard's queries and filters.
+
+.. note::
+
+   To embed charts from your dashboards, you must configure embedding
+   options on your data sources. For instructions, see:
+   
+   - :ref:`embedding-charts`
+
+   You can filter embedded charts and charts on 
+   :ref:`embedded dashboards <embedding-dashboards>`.
+
+.. _specify-filter-fields:
+
+Specify Filterable Fields
+-------------------------
+
+A chart :ref:`Author <dashboard-roles>` specifies the fields that can be
+included in pre-filters and filters set by the embedding application code
+or added by chart viewers. A chart author can limit access to data by allowing only 
+certain fields to be pre-filtered or filtered. By default, no fields are allowed, 
+meaning the chart cannot be pre-filtered or filtered until you explicitly allow at 
+least one field.
+
+To define filterable fields for pre-filters and filters:
+
+1. Navigate to the :ref:`dashboard <dashboards>` that contains the chart
+   where you wish to define filterable fields.
+
+#. For the desired chart, click the :icon-fa5:`ellipsis-h` button and
+   select :guilabel:`Embed Chart` from the dropdown.
+
+#. In the :guilabel:`Allowed filter fields` section, use the
+   dropdown to select which fields chart viewers can use filter data
+   in the chart. You can also manually type values to add fields not
+   listed in the dropdown.
+
+   .. note::
+
+      This option only appears if you already have **Unauthenticated** 
+      or **Authenticated** embedding access enabled.
+
+   To specify on which fields chart viewers can pre-filter or filter
+   data, you can:
+
+   - Use the dropdown to select the fields.
+   - Manually type values to add fields not listed in the dropdown.
+   - Select :guilabel:`Allow all fields in the data source used in
+     this chart`.
+
+#. When you have selected all desired fields, click :guilabel:`Save`
+   below the dropdown.
+
+Chart :ref:`viewers <dashboard-roles>` and applications which render
+the chart can now use pre-filters and filters based on the specified fields to
+display subsets of the original chart data. If a viewer attempts to
+use a filter for a field not included in the :ref:`Allowed filter fields
+<specify-filter-fields>` list, |charts| returns an :ref:`error <embedded-errors>`.
+
+Specify Filterable Sub-Fields for Fields with Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you add a field to the :guilabel:`Allowed filter fields` list 
+whose value is an embedded document, you must also specify each 
+individual sub-field you want to allow.
+
+.. example::
+
+  Consider the following document:
+
+  .. code-block:: json
+
+      {
+        "name": "Alice",
+        "favorites" : 
+        {
+          "color": "green",
+          "animal": "turtle",
+          "season": "autumn"
+        } 
+      }
+
+  If you only add the ``favorites`` field to the list of allowed fields, it does
+  *not* grant viewers permission to filter upon any of the sub-fields
+  of ``favorites``. Instead, you may add one or more of the sub-fields
+  to the list individually by specifying ``favorites.color``,
+  ``favorites.animal``, or ``favorites.season``.
+
+.. _embed-options-pre-filter:
+
+Pre-Filter Data on Charts Embedded in an iframe
+------------------------------------------------
+
+Use pre-filters for embedded charts and dashboards with large numbers of collections.
+Pre-filters run at an earlier stage in the embedded chart's pipeline and allow you
+to do the following:
+
+- Filter the data early, to reduce the query running time.
+- Apply filters before the query execution for chart queries that contain aggregations.
+
+Pre-filters behave exactly as filters and use the same syntax. Their only
+difference is that they run after the chart views and before the start of the charts queries and filters.
+To learn more about the order of pipeline segments, see :ref:`aggregation pipeline <aggregation-pipeline-generation>`.
+
+Use the ``preFilter`` query parameter to filter data before the chart query
+starts running, for the chart embedded in an iframe.
+
+You can specify an MQL document as your ``preFilter`` query parameter provided
+that the fields used in your filter are in the :ref:`list of allowed filterable fields <specify-filter-fields>`.
+
+.. _pre-filter-example:
+
+Pre-Filter Example
+~~~~~~~~~~~~~~~~~~~
+
+The following example illustrates how chart views, queries in the query bar,
+filters, and pre-filters work together.
+
+Consider the following scenario:
+
+- Charts View contains: 
+
+  .. code-block:: none
+
+     [ { $project: { accommodates: 1, "bedrooms": 1, "address.country": 1 } } ]
+
+- Query bar contains:
+
+  .. code-block:: none
+
+     [ { $match: { accommodates: { $gte: 3 } } }, { $project: { address: 0 } } ]
+
+- The filter in an embedded chart contains:
+  
+  .. code-block:: none
+
+     { "bedrooms": { $lte: 3 } }
+
+- The pre-filter in an embedded chart contains:
+
+  .. code-block:: none
+  
+     { "address.country": "Australia" }
+
+In the previous example, before the chart's query starts to run,
+the pre-filter is applied, to only look for apartments in Australia.
+After that, the chart's query runs, to identify all apartments that
+accommodate more than three people.
+
+.. _embed-options-filter:
+
+Filter Data on Charts Embedded in an iframe
+-------------------------------------------
+
+Use the ``filter`` query parameter to only display data that matches a 
+specified :abbr:`MQL (MongoDB Query Language)` filter in your
+chart embedded in an iframe. 
+
+You can use the ``filter`` query parameter on both 
+:guilabel:`Unauthenticated`
+and :guilabel:`Verified Signature` charts. The filtering
+behavior differs with each authentication setting:
+
+- With unauthenticated charts, the chart
+  :ref:`Author <dashboard-roles>` specifies the fields that can be
+  included in filters set by the embedding application code or added by
+  chart viewers. To learn how to specify filterable fields, see
+  :ref:`Specify Filterable Fields <specify-filter-fields>`.
+
+- With charts which require a Verified Signature, all document
+  fields can be filtered upon, however you must generate
+  the filter in the server-side code and include the filter as part of
+  your signed payload.
+
+Filter Syntax
+~~~~~~~~~~~~~
+
+Select the appropriate tab to see an example of how to filter data in
+an :guilabel:`Unauthenticated` chart and a 
+:guilabel:`Verified Signature` chart:
+
+.. tabs::
+
+   tabs:
+     - id: unauthenticated
+       name: Unauthenticated External Sharing
+       content: |
+
+         You can specify an MQL document as your ``filter`` query
+         parameter provided that the fields used in your filter are in
+         the :ref:`list of allowed filterable fields <specify-filter-fields>`.
+
+         .. include:: /includes/fact-embedded-filter-examples-unauth.rst
+
+         .. note::
+
+            You must URL-encode special characters of the filter
+            parameter.
+
+         Example
+         ```````
+
+         The following iframe ``src`` URL renders a chart which only
+         displays documents with an ``imdb.rating`` greater than or
+         equal to ``8``:
+
+         .. code-block:: none
+            :emphasize-lines: 3
+
+            https://charts.mongodb.com/charts-atlasproject1-piocy/embed/charts?
+            id=93584ddb-1115-4a12-afd9-5129e47bbb0d&
+            filter={"imdb.rating":%20{$gte:%208}}&
+            autoRefresh=60
+
+         The URL uses an encoded ``filter`` parameter of
+         ``{"imdb.rating":%20{$gte:%208}}``. Decoded,
+         this filter is:
+
+         .. code-block:: json
+
+            {"imdb.rating": {$gte: 8}}
+
+     - id: verified-signature
+       name: Verified Signature Required
+       content: |
+
+         Specify an MQL document as your ``filter`` query parameter.
+
+         .. include:: /includes/fact-embedded-filter-examples-verified.rst
+
+         When using filters in a Verified Signature, MQL queries contain
+         characters that must be URL-encoded before your server-side
+         code calculates the signature. When |charts-short| verifies the
+         signature, it URL-encodes the filter again using the JavaScript
+         `encodeURIComponent
+         <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent>`__
+         function. You must use the same encoding algorithm to encode
+         your filter.
+
+         .. important::
+
+            You must encode spaces in your filter as ``%20``, rather than ``+``
+            or a raw space.
+
+         To see how correctly encode an MQL filter using different server-side
+         programming languages, see `Atlas Charts Embedding Examples
+         <https://github.com/mongodb/charts-embedding-examples>`__ on GitHub.
+
+         Example
+         ```````
+
+         The following iframe ``src`` URL renders a chart which only
+         displays documents with an ``imdb.rating`` greater than or
+         equal to ``8``:
+
+         .. code-block:: none
+            :emphasize-lines: 5
+
+            https://charts.mongodb.com/charts-atlasproject1-piocy/embed/charts?
+            id=93584ddb-1115-4a12-afd9-5129e47bbb0d&
+            timestamp=1564156636&
+            expires-in=300&
+            filter=%7B%22imdb.rating%22%3A%20%7B%24gte%3A%208%7D%7D&
+            autoRefresh=60&
+            signature=8e0d92b33934c928f6c6974e2f0102ace77f56d851cb0d33893e84c359ab1043
+
+         The URL uses an encoded ``filter`` parameter of
+         ``%7B%22imdb.rating%22%3A%20%7B%24gte%3A%208%7D%7D``. Decoded,
+         this filter is:
+
+         .. code-block:: json
+
+            {"imdb.rating": {$gte: 8}}
+
+.. _pre-filter-embedded-sdk:
+
+Pre-Filter Data on Charts Embedded with the SDK
+------------------------------------------------
+
+You can add a :ref:`preFilter <embed-options-pre-filter>` to an embedded chart
+with the ``preFilter`` option. Pre-filtering allows the chart author to run
+a filter after the chart views and before the chart query execution and chart's
+filters.
+
+In the :guilabel:`Embed Chart` modal, you must specify fields you want to
+include in the pre-filter. The :guilabel:`Embed Chart` modal contains a
+dropdown menu of fields on which to allow filtering.
+
+The following uses the ``preFilter`` option to represent only documents
+in Australia:
+
+.. code-block:: javascript
+
+   createChart({
+     baseUrl: '<your-base-url>',
+     chartId: '<your-chart-id>',
+     width: 500,
+     height: 500,
+     preFilter: { "address.country": "Australia" }
+   })
+
+.. _filter-embedded-sdk:
+
+Filter Data on Charts Embedded with the SDK
+-------------------------------------------
+
+You can add a :ref:`filter <embed-options-filter>` to an embedded chart
+with the ``filter`` option. Filtering allows the chart author to only display
+data in the embedded chart which matches a specified :abbr:`MQL (MongoDB
+Query Language)` filter.
+
+In the :guilabel:`Embed Chart` modal, you must specify fields you want
+to include in the filter. The :guilabel:`Embed Chart` modal contains a
+dropdown menu of fields on which to allow filtering.
+
+The following uses the ``filter`` option to represent only documents in
+which the ``total`` field is greater than ``100``:
+
+.. code-block:: javascript
+
+   createChart({
+     baseUrl: '<your-base-url>',
+     chartId: '<your-chart-id>',
+     width: 500,
+     height: 500,
+     filter: { "total": { "$gt": 100 } }
+   })
+
+.. _inject-filter-per-user:
+
+Inject User-Specific Filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you embed a chart that requires :guilabel:`Authenticated` access, 
+you can use the :guilabel:`Injected function` setting to inject a 
+MongoDB filter document specific to each user who views 
+the chart. The function has access to your Embedding Authentication 
+Provider's token via ``context.token``, and can filter the chart data 
+based on the token.
+
+This filter ensures that viewers of an embedded chart see only their
+own data, which is useful when embedding charts with potentially
+sensitive information.
+
+To inject a filter specific to each user, in the 
+:guilabel:`Authenticated` tab of the :guilabel:`Embed Chart`
+dialog, set the :guilabel:`Injected function`
+setting to :guilabel:`On`. Specify a function and click 
+:guilabel:`Save`.
+
+.. include:: /includes/example-user-filter-function.rst

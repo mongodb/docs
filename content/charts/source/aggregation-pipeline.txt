@@ -1,0 +1,125 @@
+.. _charts-agg-pipeline:
+
+======================================
+Run Aggregation Pipelines on Your Data
+======================================
+
+.. meta::
+   :description: Transform documents into aggregated results using aggregation pipelines in Atlas Charts, with examples and error handling guidance.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:manual:`Aggregation pipelines </core/aggregation-pipeline/>` transform
+your documents into an aggregated set of results. In |charts|,
+aggregation pipelines are commonly used to visualize new fields created
+from calculated results of pre-existing fields, but also have many other
+applications.
+
+To create an aggregation pipeline:
+
+1. In the :guilabel:`Query` bar, input an aggregation pipeline. Your
+   pipeline must be in square brackets.
+
+#. (Optional) Select :guilabel:`Format` to arrange the query as 
+   follows: 
+
+   -  Split the query across multiple lines
+   -  Indent the query as per JSON conventions
+
+#. (Conditional) If you selected the :guilabel:`Format` option, click 
+   :guilabel:`Close` when you finish. 
+
+#. Click :guilabel:`Apply` to execute your pipeline.
+
+Example
+~~~~~~~
+
+The following chart shows total sale amounts from an office supply
+company, categorized by store location. The chart uses the
+following aggregation pipeline in the :guilabel:`Query` bar:
+
+.. code-block:: javascript
+
+   [
+     {
+       $unwind: "$items"
+     },
+     {
+       $addFields: {
+         saleAmount: {
+           $multiply: [ "$items.price", "$items.quantity" ]
+         }
+       }
+     }
+   ]
+
+This aggregation pipeline processes the collection data using
+the following order:
+
+1. The :pipeline:`$unwind` stage unwinds the ``items`` array and
+   outputs a new document for each item in the array. Each element
+   in the ``items`` array contains a single item sold during a
+   transaction.
+
+#. The :pipeline:`$addFields` stage adds a new field to the
+   documents called ``saleAmount``. The :expression:`$multiply`
+   expression sets the value of ``saleAmount`` to the product of
+   ``items.price`` and ``items.quantity``. You can see this
+   new field highlighted in the following screenshot:
+
+.. figure:: /images/charts/query-bar-agg-example.png
+   :figwidth: 720px
+   :alt: Example Aggregation Pipeline
+
+Once the data has been processed using the pipeline, the
+chart displays the :guilabel:`Sum` of all
+``saleAmounts`` categorized by store location.
+
+Address Aggregation Pipeline Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your aggregation is invalid, |charts-short| displays the
+:icon-fa4:`exclamation-triangle` icon in the :guilabel:`Query` bar.
+
+Click the :guilabel:`Query` bar if it is not already displayed to view
+error details. |charts-short| displays error details for:
+
+- Client-side errors, such as malformed JSON, and
+- Server-side errors, such as invalid :abbr:`MQL (MongoDB Query
+  Language)` or unsupported pipeline stages.
+
+.. figure:: /images/charts/agg-pipeline-error.png
+   :figwidth: 720px
+   :alt: Example Aggregation Pipeline Error
+
+Review the error details, then adjust your aggregation pipeline
+accordingly.
+
+Limitations
+~~~~~~~~~~~
+
+- |charts-short| doesn't support the :pipeline:`$lookup` operator in aggregation 
+  queries. However, you can use this operator in Data Source pipelines. 
+  To learn more about how to use pipelines to pre-process data before 
+  it reaches the Chart Builder, see :ref:`data-sources-pipeline`.
+
+- |charts-short| supports the :expression:`$function` operator only when 
+  you define the function body in a single line and 
+  wrap it in double quotes. To use this operator in your aggregation 
+  queries, you must use the following syntax:
+
+  .. code-block:: javascript
+
+     {
+       $function: {
+         body: "function(arg1, arg2, ...) { ... }",
+         args: <array expression>,
+         lang: "js"
+       }
+     }
