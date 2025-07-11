@@ -4,6 +4,7 @@ Important:
 - DO NOT change any special formatting or .rST formatting.
 - DO NOT hallucinate or add new information.
 - You can fix any typos or grammatical errors.
+- Add line breaks to the content at 72 characters.
 
 Here is the style guide:
 
@@ -88,6 +89,30 @@ Use bullet lists for three or more items.
 Examples:
 Use: "- Run a generated script immediately."
 Avoid: "From the Job Scheduler, run a script, schedule it, track jobs…"
+## Create Effective Lists
+Introduce a list with a contextual sentence, and end the sentence with a
+colon.
+Don't specify the number of items in the list in the introduction. 
+Avoid using a fragment to introduce a list.
+Use the following guidelines when writing list items:
+
+-  Capitalize the first letter of each list item unless the first
+   letter must be lowercase.
+-  Make all list items parallel grammatically. For example, all items
+   start with fragments, or all items use sentences.
+-  Use the following guidelines for punctuation in lists:
+
+   -  In a list of only sentences, including imperative statements, use
+      punctuation at the end of each list item.
+   -  In a list of only fragments, do not use punctuation at the end of
+      any of the list items.
+   -  In a list of fragments, some or all of which are followed by
+      sentences, use punctuation at the end of every list item.
+
+-  Don't connect separate list items with commas or conjunctions
+   (*and*, *or*).
+
+-  Avoid using articles (*a*, *an*, *the*) to start list items.
 # Use Effective Verbs
 ## Use Action-Oriented Verbs
 Replace weak verbs and gerunds with strong, action-oriented verbs.
