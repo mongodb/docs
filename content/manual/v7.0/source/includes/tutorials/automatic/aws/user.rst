@@ -45,8 +45,8 @@
 
       .. note:: Remote Master Key ARN
 
-         The following policy requires the {+aws-arn-abbr+} of the key you generate in the
-         :ref:`Create the Master Key <aws-create-master-key>` step of this guide.
+      The following policy requires the {+aws-arn-abbr+} of the key you generate in the
+      Create the Master Key step of this guide.
 
       .. literalinclude:: /includes/tutorials/automatic/aws/iam-user-policy-minimum.json
          :language: json

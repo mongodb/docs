@@ -61,9 +61,8 @@
 
       .. tip::
 
-         You recorded your {+cmk-long+}'s {+aws-arn-abbr+} and Region
-         in the :ref:`Create a {+cmk-long+} <aws-create-master-key>`
-         step of this guide.
+      You recorded your {+cmk-long+}'s {+aws-arn-abbr+} and Region
+      in the Create a {+cmk-long+} step of this guide.
 
       .. tabs-drivers::
 
