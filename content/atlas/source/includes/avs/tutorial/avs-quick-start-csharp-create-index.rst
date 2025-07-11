@@ -14,7 +14,7 @@ a. In your terminal, run the following commands to create a new directory
       dotnet add package MongoDB.Driver
 
    For more detailed installation instructions, see the 
-   :ref:`MongoDB C# Driver documentation <csharp-quickstart>`.
+   :driver:`MongoDB C# Driver documentation </csharp/current/>`.
 
 #. Define the index.
 

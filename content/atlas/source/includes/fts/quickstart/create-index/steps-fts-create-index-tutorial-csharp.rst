@@ -12,7 +12,7 @@ a. Set up and initialize the .NET/C# project.
       dotnet add package MongoDB.Driver
 
    For more detailed installation instructions, see the 
-   :ref:`MongoDB C# Driver documentation <csharp-quickstart>`.
+   :driver:`MongoDB C# Driver documentation </csharp/current/>`.
    
 #. Define the index.
    
