@@ -5,9 +5,9 @@
   - Uses {+avs+} as a retriever to query for semantically similar documents 
     based on the prompt.
     
-  - Calls the LLM that you specified when you :ref:`set up your environment 
-    <llamaindex-environment>` to generate a context-aware
-    response based on the retrieved documents.
+  - Calls the LLM that you specified when you set up your environment
+    to generate a context-aware response based on the retrieved
+    documents.
   
 - Prompts the LLM with a sample query about |service| security 
   recommendations. 

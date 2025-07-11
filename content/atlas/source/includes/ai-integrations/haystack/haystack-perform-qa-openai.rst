@@ -49,11 +49,11 @@ in |service|.
        rag_pipeline.add_component(instance=MongoDBAtlasEmbeddingRetriever(document_store=document_store,top_k=15), name="retriever")
 
        # Building prompts based on retrieved documents to be used for generating responses.
-       rag_pipeline.add_component(instance=PromptBuilder(template=prompt_template), name="prompt_builder")
+       rag_pipeline.add_component("prompt_builder", PromptBuilder(template=prompt_template))
 
        # Adding a language model generator to produce the final text output.
-       rag_pipeline.add_component(instance=OpenAIGenerator(), name="llm")
-
+       rag_pipeline.add_component("llm", OpenAIGenerator())
+       
        # Connecting the components of the RAG pipeline to ensure proper data flow.
        rag_pipeline.connect("text_embedder.embedding", "retriever.query_embedding")
        rag_pipeline.connect("retriever", "prompt_builder.documents")

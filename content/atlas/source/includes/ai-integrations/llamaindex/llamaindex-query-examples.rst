@@ -72,8 +72,7 @@
       .. note:: 
 
          You specified the ``metadata.page_label`` field as a filter 
-         when you :ref:`created the index <llamaindex-create-index>`
-         for this tutorial.
+         when you created the index for this tutorial.
 
       This example performs a semantic search for the
       string ``MongoDB Atlas security`` and returns a 

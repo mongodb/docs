@@ -31,11 +31,11 @@
             :language: python
 
             # Load the sample data
-            !mkdir -p 'data/'
-            !wget 'https://investors.mongodb.com/node/13176/pdf' -O 'data/mongodb-earnings-report.pdf'
-            sample_data = SimpleDirectoryReader(input_files=["./data/mongodb-earnings-report.pdf"]).load_data()
-
-            # Print the first document
+	    from urllib.request import urlretrieve
+	    urlretrieve("https://investors.mongodb.com/node/13176/pdf", "mongodb-earnings-report.pdf")
+	    sample_data = SimpleDirectoryReader(input_files=["mongodb-earnings-report.pdf"]).load_data()
+	    
+            # Print the first document	    
             sample_data[0]
 
          .. output:: 
@@ -161,8 +161,7 @@
       .. note:: 
 
          This method uses the embedding model and chunk settings 
-         that you configured when you
-         :ref:`set up your environment <llamaindex-environment>`.
+         that you configured when you set up your environment.
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
