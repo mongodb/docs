@@ -20,13 +20,13 @@
          :stub-columns: 1
 
          * - ``<api-key>`` 
-           - Your VoyageAI |api| key (line 6).
+           - Your Voyage AI |api| key (line 6).
       
          * - ``<connection-string>``
            - Your MongoDB cluster connection string (line 18).
 
       The following code defines a function that generates vector
-      embeddings by using a proprietary embedding model from `VoyageAI
+      embeddings by using a proprietary embedding model from `Voyage AI
       <https://www.voyageai.com/>`__. Specifically, this code does the
       following: 
 

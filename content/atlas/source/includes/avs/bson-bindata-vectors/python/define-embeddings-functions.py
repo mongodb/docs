@@ -2,7 +2,7 @@ import os
 import voyageai
 from bson.binary import Binary, BinaryVectorDtype
 
-# Initialize the VoyageAI Client
+# Initialize the Voyage AI Client
 os.environ["VOYAGE_API_KEY"] = "<VOYAGEAI-API-KEY>"
 vo = voyageai.Client()
 

@@ -39,7 +39,7 @@
 
             * - journey across lands
               - JOURNEY_ACROSS_LANDS_VOYAGEAI
-              - VoyageAI's ``voyage-3-large``
+              - Voyage AI's ``voyage-3-large``
               - 1024
 
             * - journey across lands

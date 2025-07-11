@@ -12,11 +12,11 @@ if (!apiKey || apiKey === "<VOYAGE-API-KEY>") {
   throw new Error("API key not found. Please set VOYAGE_API_KEY in your environment.");  
 }  
   
-// Define the VoyageAI REST API endpoint  
+// Define the Voyage AI REST API endpoint  
 const apiEndpoint = "https://api.voyageai.com/v1/embeddings";  
   
 /**  
- * Fetch embeddings using VoyageAI REST API for a specific output data type  
+ * Fetch embeddings using Voyage AI REST API for a specific output data type  
  */  
 async function fetchEmbeddings(data, model, outputDtype, dimension) {  
   const response = await fetch(apiEndpoint, {  
