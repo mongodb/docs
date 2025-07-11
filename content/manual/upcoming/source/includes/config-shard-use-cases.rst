@@ -11,8 +11,7 @@ the following conditions:
 
 - You plan to use more than three :ref:`shards 
   <sharding-sharded-cluster>`.
-- You plan to use :ref:`Time series collections 
-  <manual-timeseries-landing>` or :ref:`Queryable Encryption 
+- You plan to use :ref:`Queryable Encryption 
   <qe-manual-feature-qe>` collections. 
 - You plan to use :opsmgr:`queryable backups 
   </tutorial/query-backup>` (on-prem).
