@@ -1,0 +1,175 @@
+:template: guide
+
+.. _guide-search-facet:
+
+========================================================
+Querying with Facets
+========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+.. short-description::
+
+   Retrieve documents in MongoDB with counts of specific values.
+
+In this guide, you will learn how to run a query with the 
+:ref:`facet collector <fts-facet-ref>` to group your query results 
+and returns the count for each of these groups.
+
+.. time:: 10
+
+What You'll Need
+----------------
+
+- A MongoDB account. See :ref:`guides-create-atlas-account`.
+- An Atlas cluster. See :ref:`guides-create-a-cluster`.
+- Sample datasets :ref:`loaded into your cluster <guides-load-sample-data>`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/navigate_to_cluster.rst
+
+   .. step:: Create a search index with facets.
+
+      .. procedure::
+         :style: connected
+
+         .. include:: /includes/nav/steps-atlas-search.rst
+
+         .. step:: Click 
+            :guilabel:`Create Index`.
+
+         .. step:: Select the :guilabel:`Visual Editor` configuration 
+            method, then click :guilabel:`Next`.
+
+         .. step:: For the :guilabel:`Index Name`, type ``facets``.
+
+         .. step:: For the :guilabel:`Database and Collection`, select the 
+            ``sample_supplies`` database and the ``sales`` collection. 
+            Then, click :guilabel:`Next`.
+
+         .. step:: Click :guilabel:`Refine Your Index`. In the 
+            :guilabel:`Index Configuration` pane, toggle off
+            :guilabel:`Dynamic Mapping`.
+
+         .. step:: In the :guilabel:`Field Mappings` pane, click
+            :guilabel:`Add Field Mapping`. In the modal window, select 
+            ``purchaseMethod`` from the :guilabel:`Field Name` dropdown menu.
+
+         .. step:: From the :guilabel:`Data Type` dropdown menu, select 
+            ``String``. Click :guilabel:`Add` at the bottom of the 
+            modal window. Leave the :guilabel:`Index Configurations` 
+            values unchanged, and click :guilabel:`Add` at the bottom 
+            of the modal window.  
+
+         .. step:: In the :guilabel:`Field Mappings` pane, click
+            :guilabel:`Add Field Mapping`. In the modal window, select 
+            ``storeLocation`` from the :guilabel:`Field Name` dropdown 
+            menu.
+
+         .. step:: From the :guilabel:`Data Type` dropdown, select 
+            ``StringFacet``. Click :guilabel:`Add` at the bottom of the
+            modal window.
+
+         .. step: Click :guilabel:`Save Changes`, then click 
+            :guilabel:`Create Search Index`. Wait for the 
+            :guilabel:`Status` column to read :guilabel:`Active`.
+
+         You now have a search index that enables faceted queries.
+
+   .. step:: Run a faceted query on your index by using the Aggregation Pipeline.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Click the 
+            :guilabel:`Aggregation` tab.
+
+         .. step:: Click :guilabel:`+ Add Stage` to begin creating
+            your aggregation pipeline.
+            
+         .. step:: In the stage window, click on the dropdown menu
+            labeled :guilabel:`Select...` and select the 
+            :guilabel:`$searchMeta` stage.
+
+         .. step:: Replace the placeholder code with the following
+            query.
+
+            .. code-block:: json
+
+               {
+                  "facet": {
+                     "operator": {
+                        "text": {
+                        "query": ["In store"],
+                        "path": "purchaseMethod"
+                        }
+                     },
+                     "facets": {
+                        "locationFacet": {
+                        "type": "string",
+                        "path": "storeLocation",
+                        }
+                     }
+                  }
+               }
+
+            This query uses the ``facet`` collector with:
+
+            - The ``text`` operator 
+              to count only documents with a ``purchaseMethod`` 
+              value of ``In store``.
+
+            - The facet named 
+              ``locationFacet`` that creates a bucket
+              for each different ``storeLocation`` value.
+
+         .. step:: Review the results of the faceted query.
+
+            Your results should resemble the following sample document,
+            which is shown partially expanded:
+
+            .. code-block:: json
+               :copyable: false
+
+               count: Object
+               lowerBound: 2819
+               facet: Object
+               locationFacet: Object
+                  buckets: Array
+                     0: Object
+                        id: "Denver"
+                        count: 864
+                     1: Object
+                        id: "Seattle"
+                        count: 648
+                     2: Object
+                     3: Object
+                     4: Object
+                     5: Object
+            
+            You can expand ``Array`` and ``Object`` fields to view their 
+            contents by clicking on them.
+
+Summary
+-------
+
+If you successfully completed the procedure in this guide, you have
+created an Atlas Search index with faceting and created an aggregation
+pipeline that leverages faceting to organize matching records into
+categories for improved visibility.
+
+.. guide-next::
