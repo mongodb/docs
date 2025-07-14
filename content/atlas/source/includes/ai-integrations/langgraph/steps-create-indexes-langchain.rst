@@ -26,10 +26,11 @@ a. Create the {+avs+} index.
 
       # Connect to your cluster
       client = MongoClient(MONGODB_URI)
+      collection = client["sample_mflix"]["embedded_movies"]
 
       # Use helper method to create the search index
       create_fulltext_search_index( 
-         collection = client["sample_mflix"]["embedded_movies"],
+         collection = collection,
          field = "title",
          index_name = "search_index"
       )

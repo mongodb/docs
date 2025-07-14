@@ -6,6 +6,10 @@ a. Create the {+avs+} index.
    .. code-block:: python
 
       from pymongo.operations import SearchIndexModel
+
+      # Connect to your cluster
+      client = MongoClient(MONGODB_URI)
+      collection = client["sample_mflix"]["embedded_movies"]
       
       # Create your vector search index model, then create the index
       vector_index_model = SearchIndexModel(

@@ -38,8 +38,8 @@
       Run the following code, replacing the placeholders with 
       the following values:
       
+      - Your |voyage| API Key.
       - Your OpenAI API Key.
-      - Your Voyage AI API Key.
       - Your |service| {+cluster+}'s |srv| :manual:`connection string
         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
 
@@ -49,8 +49,8 @@
 
       .. code-block:: python
 
+         os.environ["VOYAGE_API_KEY"] = "<voyage-api-key>"
          os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
-	 os.environ["VOYAGEAI_API_KEY"] = "<voyageai-api-key>"
          os.environ["MONGO_CONNECTION_STRING"]= "<connection-string>"
 
       .. note:: 

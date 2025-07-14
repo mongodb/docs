@@ -49,7 +49,7 @@ in |service|.
        rag_pipeline.add_component(instance=MongoDBAtlasEmbeddingRetriever(document_store=document_store,top_k=15), name="retriever")
 
        # Building prompts based on retrieved documents to be used for generating responses.
-       rag_pipeline.add_component("prompt_builder", PromptBuilder(template=prompt_template))
+       rag_pipeline.add_component("prompt_builder", PromptBuilder(template=prompt_template, required_variables=["query", "documents"]))
 
        # Adding a language model generator to produce the final text output.
        rag_pipeline.add_component("llm", OpenAIGenerator())

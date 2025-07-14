@@ -21,6 +21,7 @@
             database_name="haystack_db",
             collection_name="test",
             vector_search_index="vector_index",
+            full_text_search_index="search_index" # Declared but not used in this example
          )
 
    .. step:: Load sample data on your |service| {+cluster+}.
