@@ -1,3 +1,30 @@
+.. _opsmgr-server-8.0.10:
+
+|onprem| Server 8.0.10
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-07-03*
+
+Improvements
+~~~~~~~~~~~~
+
+- Customizable webhooks – Adds webhook headers and body templating support to project and global alert webhooks.
+
+- Adds validation and disables ongoing backups for S3 snapshot stores with slashes in the bucket name, as required by the AWS S3 SDK update. Existing backups remain accessible to prevent data loss.
+
+- Updates {+mongosh+} to 2.5.3.
+
+Bug fixes
+~~~~~~~~~
+
+- Adds validation to ensure the head directory path ends in a slash.
+
+- Fixes an error that occurs when a shard is split out from a sharded cluster to run as a standalone replica set.
+
+- Fixes a bug that causes S3 stores to ignore host machine environment variables for region configuration. Defaults to ``us-east-1`` if not defined.
+
+- Fixes an issue causing DNS resolution failures for S3 endpoints using HTTP.
+
 .. _opsmgr-server-8.0.9:
 
 |onprem| Server 8.0.9
