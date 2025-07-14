@@ -22,8 +22,8 @@ pub(crate) async fn vector_index() {
         .definition(doc! {
             "fields": vec! {doc! {
                 "type": "vector",
-                "path": "plot_embedding",
-                "numDimensions": 1536,
+                "path": "plot_embedding_voyage_3_large",
+                "numDimensions": 2048,
                 "similarity": "dotProduct",
                 "quantization": "scalar"
             }}

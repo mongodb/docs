@@ -38,13 +38,13 @@
 
          Copy and paste the following index definition into the
          ``vector-index.json`` file. The following index definition
-         indexes the ``plot_embedding`` field as the ``vector`` type
-         and the ``genres`` and ``year`` fields as the ``filter`` type
-         in an {+avs+} index. The ``plot_embedding`` field contains
-         embeddings created using OpenAI's ``text-embedding-ada-002``
-         embeddings model. The index definition specifies ``1536``
-         vector dimensions and measures similarity using ``dotProduct``
-         function. 
+         indexes the ``plot_embedding_voyage_3_large`` field as the
+         ``vector`` type and the ``genres`` and ``year`` fields as the
+         ``filter`` type in an {+avs+} index. The
+         ``plot_embedding_voyage_3_large`` field contains ``2048``
+         vector dimension embeddings created using |voyage|'s
+         ``voyage-3-large`` embeddings model. The index specifies
+         similarity measurement using ``dotProduct`` function.
 
          .. tabs:: 
 
@@ -66,7 +66,7 @@
          
                - A string field (``genres``) and a numeric field (``year``)
                  for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding``) for
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
                  performing vector search against pre-filtered data.
 
                .. literalinclude:: /includes/avs/index-management/create-index/filter-example-acli.json 

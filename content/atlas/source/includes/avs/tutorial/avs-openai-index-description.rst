@@ -1,6 +1,6 @@
-The following index definition indexes the ``plot_embedding``
-field as the ``vector`` type. The ``plot_embedding`` field 
-contains embeddings created using
-OpenAI's ``text-embedding-ada-002`` embeddings model. The
-index definition specifies ``1536`` vector dimensions and
-measures similarity using ``dotProduct`` function. 
+The following index definition indexes the
+``plot_embedding_voyage_3_large`` field as the ``vector`` type. The
+``plot_embedding_voyage_3_large`` field contains ``2048`` vector
+dimension embeddings created using |voyage|'s ``voyage-3-large``
+embeddings model. The index measures similarity using ``dotProduct``
+function. 

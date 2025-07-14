@@ -31,17 +31,17 @@
                   .. tab:: Basic Example
                      :tabid: basic
 
-                     For the ``embedded_movies`` collection, the ``plot_embedding`` field displays. 
+                     For the ``embedded_movies`` collection, the ``plot_embedding_voyage_3_large`` field displays. 
 
                      .. include:: /includes/avs/extracts/steps-avs-index-basic.rst
 
                      This index definition indexes only the vector
-                     embeddings field (``plot_embedding``) for performing vector search.  
+                     embeddings field (``plot_embedding_voyage_3_large``) for performing vector search.  
 
                   .. tab:: Advanced Example 
                      :tabid: advanced
 
-                     For the ``embedded_movies`` collection, the ``plot_embedding`` field displays.
+                     For the ``embedded_movies`` collection, the ``plot_embedding_voyage_3_large`` field displays.
 
                      .. include:: /includes/avs/extracts/steps-avs-index-quantization-filters.rst
 
@@ -49,7 +49,7 @@
             
                      - A string field (``genres``) and a numeric field (``year``)
                        for pre-filtering the data. 
-                     - The vector embeddings field (``plot_embedding``) for
+                     - The vector embeddings field (``plot_embedding_voyage_3_large``) for
                        performing vector search against pre-filtered data.       
                      
                      It also enables automatic quantization (``scalar``) for efficient 
@@ -102,8 +102,8 @@
                         {
                           "fields": [{
                             "type": "vector",
-                            "path": "plot_embedding",
-                            "numDimensions": 1536,
+                            "path": "plot_embedding_voyage_3_large",
+                            "numDimensions": 2048,
                             "similarity": "dotProduct"
                           }]
                         }
@@ -115,7 +115,7 @@
             
                      - A string field (``genres``) and a numeric field (``year``)
                        for pre-filtering the data. 
-                     - The vector embeddings field (``plot_embedding``) for
+                     - The vector embeddings field (``plot_embedding_voyage_3_large``) for
                        performing vector search against pre-filtered data.
                      
                      It also enables automatic quantization (``scalar``) for efficient 
@@ -127,8 +127,8 @@
                         {
                           "fields": [{
                             "type": "vector",
-                            "path": "plot_embedding",
-                            "numDimensions": 1536,
+                            "path": "plot_embedding_voyage_3_large",
+                            "numDimensions": 2048,
                             "similarity": "dotProduct",
                             "quantization": "scalar"
                           },

@@ -28,8 +28,8 @@ int main() {
     auto definition = make_document(
         kvp("fields",
             make_array(make_document(
-                kvp("type", "vector"), kvp("path", "plot_embedding"),
-                kvp("numDimensions", 1536), kvp("similarity", "dotProduct"), 
+                kvp("type", "vector"), kvp("path", "plot_embedding_voyage_3_large"),
+                kvp("numDimensions", 2048), kvp("similarity", "dotProduct"), 
                 kvp("quantization", "scalar")))));
     auto model =
         mongocxx::search_index_model(name, definition.view()).type(type);

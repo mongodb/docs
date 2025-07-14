@@ -33,13 +33,13 @@
 
       The following example index definitions:
 
-      - Index the ``plot_embedding`` field as the ``vector`` type and the
-        ``genres`` and ``year`` fields as the ``filter`` type in an {+avs+}
-        index.
-      - Specifies the ``plot_embedding`` field as the vector embeddings field,
-        which contains embeddings created using OpenAI's
-        ``text-embedding-ada-002`` embeddings model.
-      - Specifies ``1536`` vector dimensions and measures similarity
+      - Index the ``plot_embedding_voyage_3_large`` field as the
+        ``vector`` type and the ``genres`` and ``year`` fields as the
+        ``filter`` type in an {+avs+} index.
+      - Specifies the ``plot_embedding_voyage_3_large`` field as the
+        vector embeddings field, which contains embeddings created using
+        |voyage|'s ``voyage-3-large`` embeddings model. 
+      - Specifies ``2048`` vector dimensions and measures similarity
         using ``dotProduct`` function. 
 
       .. tabs::
@@ -47,9 +47,12 @@
          .. tab:: Basic Example
             :tabid: basic
 
-            This index definition indexes only the vector embeddings field (``plot_embedding``) for performing vector search.
+            This index definition indexes only the vector embeddings
+            field (``plot_embedding_voyage_3_large``) for performing
+            vector search. 
 
-            Copy and paste the following into the file you created, and replace the ``<connectionString>`` placeholder value.
+            Copy and paste the following into the file you created, and
+            replace the ``<connectionString>`` placeholder value. 
 
             .. literalinclude:: /includes/avs/index-management/create-index/basic-example.java
                :language: java
@@ -63,7 +66,7 @@
 
             - A string field (``genres``) and a numeric field (``year``)
               for pre-filtering the data.
-            - The vector embeddings field (``plot_embedding``) for
+            - The vector embeddings field (``plot_embedding_voyage_3_large``) for
               performing vector search against pre-filtered data.
 
             Copy and paste the following into the file you created, and replace

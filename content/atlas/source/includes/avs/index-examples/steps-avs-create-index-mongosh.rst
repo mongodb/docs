@@ -75,7 +75,7 @@
       
                - A string field (``genres``) and a numeric field (``year``)
                  for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding``) for
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
                  performing vector search against pre-filtered data.
 
                .. literalinclude:: /includes/avs/index-management/create-index/filter-example-mongosh.sh  

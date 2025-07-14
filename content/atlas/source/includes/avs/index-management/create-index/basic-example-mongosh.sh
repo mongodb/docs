@@ -5,8 +5,8 @@ db.embedded_movies.createSearchIndex(
     "fields": [
       {
         "type": "vector",
-        "path": "plot_embedding",
-        "numDimensions": 1536,
+        "path": "plot_embedding_voyage_3_large",
+        "numDimensions": 2048,
         "similarity": "dotProduct",
         "quantization": "scalar"
       }

@@ -30,8 +30,8 @@ public class VectorIndex {
                 "fields",
                 Collections.singletonList(
                     new Document("type", "vector")
-                        .append("path", "plot_embedding")
-                        .append("numDimensions", 1536)
+                        .append("path", "plot_embedding_voyage_3_large")
+                        .append("numDimensions", 2048)
                         .append("similarity", "dotProduct")
                         .append("quantization", "scalar")));
 

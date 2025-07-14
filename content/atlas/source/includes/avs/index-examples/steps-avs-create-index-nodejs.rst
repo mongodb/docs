@@ -39,13 +39,14 @@
 
          Copy and paste the following into the ``vector-index.js`` file
          and replace the ``<connectionString>`` placeholder value. The
-         following index definition indexes the ``plot_embedding`` field
-         as the ``vector`` type and the ``genres`` and ``year`` fields
-         as the ``filter`` type in an {+avs+} index. The
-         ``plot_embedding`` field contains embeddings created using
-         OpenAI's ``text-embedding-ada-002`` embeddings model. The index 
-         definition specifies ``1536`` vector dimensions and measures
-         similarity using ``dotProduct`` function. 
+         following index definition indexes the
+         ``plot_embedding_voyage_3_large`` field as the ``vector`` type
+         and the ``genres`` and ``year`` fields as the ``filter`` type
+         in an {+avs+} index. The ``plot_embedding_voyage_3_large``
+         field contains embeddings created using |voyage|'s
+         ``voyage-3-large`` embeddings model. The index definition
+         specifies ``2048`` vector dimensions and measures similarity
+         using ``dotProduct`` function.
 
          .. tabs:: 
 
@@ -53,7 +54,8 @@
                :tabid: basic
 
                The following index definition indexes only the vector
-               embeddings field (``plot_embedding``) for performing vector search. 
+               embeddings field (``plot_embedding_voyage_3_large``) for
+               performing vector search.  
 
                .. literalinclude:: /includes/avs/index-management/create-index/basic-example.js
                   :language: js
@@ -67,8 +69,9 @@
       
                - A string field (``genres``) and a numeric field (``year``)
                  for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding``) for
-                 performing vector search against pre-filtered data.
+               - The vector embeddings field
+                 (``plot_embedding_voyage_3_large``) for performing
+                 vector search against pre-filtered data. 
 
                .. literalinclude:: /includes/avs/index-management/create-index/filter-example.js
                   :language: js

@@ -49,8 +49,8 @@ func main() {
 
 	vectorDefinition := vectorDefinitionField{
 		Type:          "vector",
-		Path:          "plot_embedding",
-		NumDimensions: 1536,
+		Path:          "plot_embedding_voyage_3_large",
+		NumDimensions: 2048,
 		Similarity:    "dotProduct",
 		Quantization:  "scalar"}
 	genreFilterDefinition := filterField{"filter", "genres"}
