@@ -1,3 +1,49 @@
+.. _opsmgr-server-7.0.16:
+
+|onprem| Server 7.0.16
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-07-03*
+
+- Updates the {+mdbagent+} to :ref:`107.0.16.8756-1 <mongodb-107.0.16.8756-1>`.
+- Adds support for |bic-full| 2.14.23.
+- Supports MongoDB Database Tools 100.12.2.
+- Updates JDK to ``jdk-17.0.15+6``.
+- Updates {+mongosh+} to 2.5.3.
+- Customizable webhooks – Adds support for custom headers and body templating in project and global alert webhooks.
+- Improves logging for the ``webhooksImproved`` agent job to aid debugging.
+- Enhanced validation and handling for Oplog, Shard, and Backup workflows, including:
+  - Updated ``ThirdPartyJob`` cluster name to reflect name changes.
+  - Oplog snapshot now waits before failing if no oplogs are available.
+  - Improved handling of duplicate oplog metadata.
+  - Cleanups of snapshot and ``backup_cursor_file_list`` now occur only during the appropriate lifecycle events.
+  - Better handling of topology changes and preferred node processing in backup workflows.
+- ``ThirdPartyBackup`` now updates LastTopology if the cluster topology changes after management but before preferredNodesSet.
+- Enhanced logging for agent jobs and backup workflows.
+- Improved backup daemon configuration so ``emptyDaemonFilter`` arrays match as intended.
+- Cache S3 custom keystore creation and reduce excessive log calls in OEM S3 operations.
+- Added and improved validations in Automation and various workflows.
+
+Bug Fixes
+```````````
+
+- Added validation that head directory ends in a slash.
+- Auto extends the queryable restore job expiry to prevent queryable restore expiry mid-restore.
+- Update ``automationConfig`` validations for ``lastErrorMode`` and ``lastErrorDefaults`` to eliminate false positives due to Map ordering.
+- Make KMIP proxy’s ``custodian.Stop()`` wait till server is fully stopped.
+- Fix errors verifying TLS connections on stand-alone hosts.
+- Prevent key rotation via the OM UI when a kmip.keyIdentifier is specified.
+- Fix for ``passVersion`` mismatch when resetting a password, now updates version as required.
+
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-27789 <https://nvd.nist.gov/vuln/detail/CVE-2025-27789>`__.
+  - `CVE-2025-32996 <https://nvd.nist.gov/vuln/detail/CVE-2025-32996>`__.
+  - `CVE-2025-32997 <https://nvd.nist.gov/vuln/detail/CVE-2025-32997>`__.
+  - `CVE-2025-30360 <https://nvd.nist.gov/vuln/detail/CVE-2025-30360>`__.
+  - `CVE-2025-30359 <https://nvd.nist.gov/vuln/detail/CVE-2025-30359>`__.
+  - `CVE-2025-48734 <https://nvd.nist.gov/vuln/detail/CVE-2025-48734>`__.
+
 .. _opsmgr-server-7.0.15:
 
 |onprem| Server 7.0.15
