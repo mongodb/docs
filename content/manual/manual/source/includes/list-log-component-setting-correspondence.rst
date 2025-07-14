@@ -16,6 +16,8 @@
 
 - :setting:`query <systemLog.component.query.verbosity>`
 
+- :setting:`query.rejected <systemLog.component.query.rejected.verbosity>`
+
 - :setting:`queryStats <systemLog.component.queryStats.verbosity>`
 
 - :setting:`replication <systemLog.component.replication.verbosity>`
