@@ -5,7 +5,7 @@
 
       Run the following code to create
       a :ref:`vector search index <avs-types-vector-search>` that indexes the 
-      ``plot_embedding`` field in the collection.
+      ``plot_embedding_voyage_3_large`` field in the collection.
       
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
@@ -15,7 +15,7 @@
 
         # Use helper method to create the vector search index
         vector_store.create_vector_search_index( 
-           dimensions = 1536 # The dimensions of the vector embeddings to be indexed
+           dimensions = 2048 # The dimensions of the vector embeddings to be indexed
         )
 
       .. tip::

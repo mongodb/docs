@@ -51,7 +51,7 @@
 
       - The connection string to your |service| {+cluster+}.
       - ``langchain_db.test`` as the |service| namespace to store the documents.
-      - The ``voyage-3-large`` embedding model from Voyage AI.
+      - The ``voyage-3-large`` embedding model from |voyage|.
         to convert the text into vector embeddings for the ``embedding`` field.
       - ``vector_index`` as the index to use for querying the vector store.
 

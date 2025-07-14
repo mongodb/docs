@@ -7,20 +7,21 @@
 
       .. code-block:: python
 
-         pip install --quiet --upgrade langgraph langgraph-checkpoint-mongodb langchain langchain_mongodb langchain-openai pymongo
+         pip install --quiet --upgrade langgraph langgraph-checkpoint-mongodb langchain langchain-mongodb langchain-voyageai langchain-openai pymongo
 
    .. step:: Set environment variables.
 
       Run the following code to set the environment variables for this tutorial.
-      Provide your OpenAI API Key and |service| {+cluster+}'s |srv| :manual:`connection string
+      Provide your API keys and |service| {+cluster+}'s |srv| :manual:`connection string
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
       
       
       .. code-block:: python
 
          import os
-
-         os.environ["OPENAI_API_KEY"] = "<api-key>"
+         
+         os.environ["VOYAGE_API_KEY"] = "<voyage-api-key>"
+         os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
          MONGODB_URI = "<connection-string>"
 
       .. note:: 

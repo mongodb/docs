@@ -22,11 +22,11 @@
 
             Deep Rising: A group of heavily armed hijackers board a luxury ocean liner in the South Pacific Ocean to loot it, only to do battle with a series of large-sized, tentacled, man-eating sea creatures who have taken over the ship first.
 
-            Lost River: A single mother is swept into a dark underworld, while her teenage son discovers a road that leads him to a secret underwater town.
+            The Rift: An experimental submarine, the "Siren II", with a very experienced crew is sent to find out what happened to the "Siren I", mysteriously disappeared in a submarine rift. Things go awry when...
+
+            Heaven Knows, Mr. Allison: A Marine and a Nun, The Marine is shipwrecked on a Pacific Island and the Nun has been left behind there, they find comfort in one another as the two wait out the war.
 
             Waterworld: In a future where the polar ice-caps have melted and Earth is almost entirely submerged, a mutated mariner fights starvation and outlaw "smokers," and reluctantly helps a woman and a young girl try to find dry land.
-
-            Poseidon: On New Year's Eve, the luxury ocean liner Poseidon capsizes after being swamped by a rogue wave. The survivors are left to fight for their lives as they attempt to escape the sinking ship.
 
    .. step:: Define a tool for full-text search.
 

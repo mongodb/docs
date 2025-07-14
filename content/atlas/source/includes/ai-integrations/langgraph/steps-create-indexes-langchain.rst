@@ -1,13 +1,13 @@
 a. Create the {+avs+} index.
    
    Run the following code to create a :ref:`vector search index <avs-types-vector-search>` that indexes the 
-   ``plot_embedding`` field in the collection.
+   ``plot_embedding_voyage_3_large`` field in the collection.
    
    .. code-block:: python
 
       # Use helper method to create the vector search index
       vector_store.create_vector_search_index( 
-         dimensions = 1536
+         dimensions = 2048
       )
 
    .. tip::

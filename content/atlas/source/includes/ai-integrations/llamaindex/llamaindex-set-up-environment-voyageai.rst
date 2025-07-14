@@ -76,12 +76,12 @@
 
          from llama_index.embeddings.voyageai import VoyageEmbedding
 	 
-	 embed_model= VoyageEmbedding(
-	   voyage_api_key = os.environ["VOYAGEAI_API_KEY"],
-	   model_name = "voyage-3-large",
-	 )
+         embed_model= VoyageEmbedding(
+           voyage_api_key = os.environ["VOYAGEAI_API_KEY"],
+           model_name = "voyage-3-large",
+         )
 		      
          Settings.llm = OpenAI()
-	 Settings.model = "gpt-4o"
+	        Settings.embed_model = embed_model
          Settings.chunk_size = 100
          Settings.chunk_overlap = 10

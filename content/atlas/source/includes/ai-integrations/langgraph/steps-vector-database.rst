@@ -25,10 +25,10 @@
 
       - The ``sample_mflix.embedded_movies`` namespace 
         as the data source that contains the vector embeddings and text data.
-      - OpenAI's ``text-embedding-ada-002`` embedding model as the
+      - |voyage|'s ``voyage-3-large`` embedding model as the
         model used to convert text into embeddings during queries. 
       - ``plot`` as the field in the collection that contains the text.
-      - ``plot_embedding`` as the field in the collection that contains the embeddings.
+      - ``plot_embedding_voyage_3_large`` as the field in the collection that contains the embeddings.
       - ``dotProduct`` as the relevance score function to use for vector search.
 
       .. literalinclude:: /includes/ai-integrations/langgraph/vector-store.py

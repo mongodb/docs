@@ -19,11 +19,11 @@
       vector store and specifies the following parameters:
 
       - Your |service| {+cluster+}'s connection string.
-      - An OpenAI embedding model as the model used to convert text into 
-        vector embeddings. By default, this model is ``text-embedding-ada-002``.
+      - The ``voyage-3-large`` embedding model from |voyage| to convert text into 
+        vector embeddings. 
       - ``sample_mflix.embedded movies`` as the namespace to use.
       - ``plot`` as the field that contains the text.
-      - ``plot_embedding`` as the field that contains the embeddings.
+      - ``plot_embedding_voyage_3_large`` as the field that contains the embeddings.
       - ``dotProduct`` as the relevance score function.
 
       ..
@@ -33,14 +33,14 @@
       .. code-block:: python
 
          from langchain_mongodb import MongoDBAtlasVectorSearch
-         from langchain_openai import OpenAIEmbeddings
+         from langchain_voyageai import VoyageAIEmbeddings
 
          # Create the vector store
          vector_store = MongoDBAtlasVectorSearch.from_connection_string(
             connection_string = ATLAS_CONNECTION_STRING,
-            embedding = OpenAIEmbeddings(disallowed_special=()),
+            embedding = VoyageAIEmbeddings(model = "voyage-3-large", output_dimension = 2048),
             namespace = "sample_mflix.embedded_movies",
             text_key = "plot",
-            embedding_key = "plot_embedding",
+            embedding_key = "plot_embedding_voyage_3_large",
             relevance_score_fn = "dotProduct"
          )

@@ -81,7 +81,7 @@
       This code defines two methods to generate embeddings for a given input using the
       `voyage-3-large
       <https://docs.voyageai.com/docs/embeddings>`__
-      embedding model from Voyage AI:
+      embedding model from |voyage|:
 
       - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
         array of text inputs (``List<String>``), allowing you to create multiple

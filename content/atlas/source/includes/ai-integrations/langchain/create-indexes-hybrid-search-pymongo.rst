@@ -5,7 +5,7 @@
 
       Run the following code to create
       a :ref:`vector search index <avs-types-vector-search>` that indexes the 
-      ``plot_embedding`` field in the collection.
+      ``plot_embedding_voyage_3_large`` field in the collection.
 
       .. code-block:: python
 
@@ -22,8 +22,8 @@
                "fields": [
                   {
                   "type": "vector",
-                  "path": "plot_embedding",
-                  "numDimensions": 1536,
+                  "path": "plot_embedding_voyage_3_large",
+                  "numDimensions": 2048,
                   "similarity": "dotProduct"
                   }
                ]
