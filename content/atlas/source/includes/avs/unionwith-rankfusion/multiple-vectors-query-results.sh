@@ -11,364 +11,39 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 1,
           weight: 0.5,
-          value: 0.9327191114425659,
+          value: 0.8094863891601562,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 1,
           weight: 0.5,
-          value: 0.9237540364265442,
+          value: 0.7794423699378967,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a13d3f29313caabd96a55'),
-    plot: 'A teacher with paranormal abilities helps a group of ghosts graduate high school.',
-    title: 'Ghost Graduation',
+    _id: ObjectId('573a1398f29313caabceaf10'),
+    plot: "When Peter Plunkett's Irish castle turned hotel is about to be repossesed, he decides to spice up the attraction a bit for the 'Yanks' by having his staff pretend to haunt the castle. The ...",
+    title: 'High Spirits',
     scoreDetails: {
-      value: 0.015512265512265512,
+      value: 0.01575682382133995,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 3,
+          rank: 2,
           weight: 0.5,
-          value: 0.9280960559844971,
+          value: 0.7949001789093018,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 6,
-          weight: 0.5,
-          value: 0.9170590043067932,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13abf29313caabd24011'),
-    plot: 'A real-time dark comedy about a science geek who tangles with a clutch of Russian gangsters after he delivers them the wrong computer disk.',
-    title: 'Nicotina',
-    scoreDetails: {
-      value: 0.014306006493506494,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 17,
-          weight: 0.5,
-          value: 0.9196028709411621,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 4,
-          weight: 0.5,
-          value: 0.9184012413024902,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13c6f29313caabd72c06'),
-    plot: "Two exorcists literally remove the skeletons from the cupboards from people's homes. Some fairly embarrassing secrets are revealed along the way. A case where the skeletons have hidden themselves turns the lives of all those involved.",
-    title: 'Skeletons',
-    scoreDetails: {
-      value: 0.013986697965571206,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 11,
-          weight: 0.5,
-          value: 0.9218283891677856,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 12,
-          weight: 0.5,
-          value: 0.9145868420600891,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1398f29313caabcebf6f'),
-    plot: 'After an accident leaves a young man dead, his spirit stays behind to warn his lover of impending danger, with the help of a reluctant psychic.',
-    title: 'Ghost',
-    scoreDetails: {
-      value: 0.013748597081930415,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 6,
-          weight: 0.5,
-          value: 0.9261202812194824,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 21,
-          weight: 0.5,
-          value: 0.9131492376327515,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1399f29313caabced85b'),
-    plot: 'A comical Gothic horror-movie-type family tries to rescue their beloved uncle from his gold-digging new love.',
-    title: 'Addams Family Values',
-    scoreDetails: {
-      value: 0.013574660633484163,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
           rank: 5,
           weight: 0.5,
-          value: 0.9271853566169739,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 25,
-          weight: 0.5,
-          value: 0.912155270576477,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1398f29313caabceace9'),
-    plot: 'A couple of recently deceased ghosts contract the services of a "bio-exorcist" in order to remove the obnoxious new owners of their house.',
-    title: 'Beetlejuice',
-    scoreDetails: {
-      value: 0.013486782952706347,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 7,
-          weight: 0.5,
-          value: 0.9257347583770752,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 23,
-          weight: 0.5,
-          value: 0.9131345152854919,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13acf29313caabd281b1'),
-    plot: 'Will and Jake Grimm are traveling con-artists who encounter a genuine fairy-tale curse which requires true courage instead of their usual bogus exorcisms.',
-    title: 'The Brothers Grimm',
-    scoreDetails: {
-      value: 0.01324561403508772,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 16,
-          weight: 0.5,
-          value: 0.9197224974632263,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 15,
-          weight: 0.5,
-          value: 0.9143059849739075,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a139af29313caabcf0859'),
-    plot: 'A man struggles with memories of his past, including a wife he cannot remember, in a nightmarish world with no sun and run by beings with telekinetic powers who seek the souls of humans.',
-    title: 'Dark City',
-    scoreDetails: {
-      value: 0.013167013167013167,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 18,
-          weight: 0.5,
-          value: 0.9192354083061218,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 14,
-          weight: 0.5,
-          value: 0.9144110083580017,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13bcf29313caabd566d2'),
-    plot: "A hotel handyman's life changes when the lavish bedtime stories he tells his niece and nephew start to magically come true.",
-    title: 'Bedtime Stories',
-    scoreDetails: {
-      value: 0.01250758035172832,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 37,
-          weight: 0.5,
-          value: 0.9158861041069031,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 8,
-          weight: 0.5,
-          value: 0.9161232709884644,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13b5f29313caabd41f29'),
-    plot: '14-year-old Lulu moves to a small provincial town with her mother and younger brother. One night, her brother is struck by a beam of white light - actually the spirit of Herman Hartmann ...',
-    title: 'Island of Lost Souls',
-    scoreDetails: {
-      value: 0.012404870624048707,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 13,
-          weight: 0.5,
-          value: 0.9203757643699646,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 30,
-          weight: 0.5,
-          value: 0.9115088582038879,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1398f29313caabce9fd5'),
-    plot: 'A troubled writer moves into a haunted house after inheriting it from his aunt.',
-    title: 'House',
-    scoreDetails: {
-      value: 0.012207602339181285,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 12,
-          weight: 0.5,
-          value: 0.9210504293441772,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 35,
-          weight: 0.5,
-          value: 0.9111618995666504,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13a8f29313caabd1db7e'),
-    plot: 'Kung-Fu Action / Comedy / Horror / Musical about the second coming.',
-    title: 'Jesus Christ Vampire Hunter',
-    scoreDetails: {
-      value: 0.012193362193362194,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 39,
-          weight: 0.5,
-          value: 0.9157752990722656,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 10,
-          weight: 0.5,
-          value: 0.9146226644515991,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1398f29313caabce98c8'),
-    plot: 'The planned reburial of a village elder goes awry as the corpse resurrects into a hopping, bloodthirsty vampire, threatening mankind. Therefore, a Taoist Priest and his two disciples attempt to stop the terror.',
-    title: 'Mr. Vampire',
-    scoreDetails: {
-      value: 0.0115210355987055,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 15,
-          weight: 0.5,
-          value: 0.9200190305709839,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 43,
-          weight: 0.5,
-          value: 0.9108449220657349,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1397f29313caabce784b'),
-    plot: "The bizarre and musical tale of a girl who travels to another dimension through the gateway found in her family's basement.",
-    title: 'Forbidden Zone',
-    scoreDetails: {
-      value: 0.011160714285714284,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 36,
-          weight: 0.5,
-          value: 0.916013240814209,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 24,
-          weight: 0.5,
-          value: 0.913086473941803,
+          value: 0.7545012831687927,
           details: []
         }
       ]
@@ -379,114 +54,415 @@
     plot: 'Three unemployed parapsychology professors set up shop as a unique ghost removal service.',
     title: 'Ghostbusters',
     scoreDetails: {
-      value: 0.010583778966131907,
+      value: 0.015038444142921756,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 42,
+          rank: 6,
           weight: 0.5,
-          value: 0.9153138995170593,
+          value: 0.7781286239624023,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 28,
+          rank: 7,
           weight: 0.5,
-          value: 0.9117591381072998,
+          value: 0.7519128918647766,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a1398f29313caabcea63f'),
-    plot: 'A group of people stop by a mansion during a storm and discover two magical toy makers, and their haunted collection of dolls.',
-    title: 'Dolls',
+    _id: ObjectId('573a13a0f29313caabd056df'),
+    plot: "A girl calls on her brother's imaginary friend to banish a mischievous boogeyman who has framed her for his pranks.",
+    title: "Don't Look Under the Bed",
     scoreDetails: {
-      value: 0.010081053698074976,
+      value: 0.014913831197525408,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 45,
+          rank: 13,
           weight: 0.5,
-          value: 0.9147992730140686,
+          value: 0.7534659504890442,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 34,
-          weight: 0.5,
-          value: 0.9112522006034851,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13f3f29313caabddfde0'),
-    plot: 'Two siblings discover a supernatural escape from a troubled home, but find their bond tested when reality threatens to tear their family apart.',
-    title: 'One and Two',
-    scoreDetails: {
-      value: 0.010064412238325281,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 32,
-          weight: 0.5,
-          value: 0.9163687229156494,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 48,
-          weight: 0.5,
-          value: 0.9105724096298218,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13b5f29313caabd44e20'),
-    plot: 'While sorting the affairs of his late Uncle, a man accidentally stumbles across a series of dark secrets connected to an ancient horror waiting to be freed.',
-    title: 'The Call of Cthulhu',
-    scoreDetails: {
-      value: 0.009441524895341587,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 43,
-          weight: 0.5,
-          value: 0.9152694344520569,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 49,
-          weight: 0.5,
-          value: 0.9104976654052734,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13b3f29313caabd3e8a1'),
-    plot: 'A folk tale - supernatural love story about a ghost who falls in love with a newlywed woman.',
-    title: 'Paheli',
-    scoreDetails: {
-      value: 0.008064516129032258,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
           rank: 2,
           weight: 0.5,
-          value: 0.9308393001556396,
+          value: 0.7626002430915833,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1399f29313caabced85b'),
+    plot: 'A comical Gothic horror-movie-type family tries to rescue their beloved uncle from his gold-digging new love.',
+    title: 'Addams Family Values',
+    scoreDetails: {
+      value: 0.014854753521126762,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 11,
+          weight: 0.5,
+          value: 0.7640036344528198,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 4,
+          weight: 0.5,
+          value: 0.7570045590400696,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13bdf29313caabd58456'),
+    plot: 'Bertram Pincus is a man whose people skills leave much to be desired. When Pincus dies unexpectedly, but is miraculously revived after seven minutes, he wakes up to discover that he now has the annoying ability to see ghosts.',
+    title: 'Ghost Town',
+    scoreDetails: {
+      value: 0.014709063378758382,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 7,
+          weight: 0.5,
+          value: 0.7774010300636292,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 9,
+          weight: 0.5,
+          value: 0.7500401735305786,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1398f29313caabceace9'),
+    plot: 'A couple of recently deceased ghosts contract the services of a "bio-exorcist" in order to remove the obnoxious new owners of their house.',
+    title: 'Beetlejuice',
+    scoreDetails: {
+      value: 0.014186507936507936,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 3,
+          weight: 0.5,
+          value: 0.785067617893219,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 20,
+          weight: 0.5,
+          value: 0.7415448427200317,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1398f29313caabcebb96'),
+    plot: "A mother/daughter pair of witches descend on a yuppie family's home and cause havoc, one at a time since they share one body & the other must live in a cat the rest of the time. Now it's up...",
+    title: 'Wicked Stepmother',
+    scoreDetails: {
+      value: 0.013683634373289545,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 27,
+          weight: 0.5,
+          value: 0.7426956295967102,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 3,
+          weight: 0.5,
+          value: 0.7574828267097473,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1394f29313caabcdf488'),
+    plot: 'The Bowery Boys find themselves in London, in an old mansion complete with a dungeon, an ominous bell tower and the ghost of an old hangman.',
+    title: 'Loose in London',
+    scoreDetails: {
+      value: 0.013235294117647059,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 8,
+          weight: 0.5,
+          value: 0.7734314203262329,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 25,
+          weight: 0.5,
+          value: 0.7381086349487305,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1398f29313caabceaddd'),
+    plot: 'Two cops are brought back to life to chase down supernatural criminals.',
+    title: 'Dead Heat',
+    scoreDetails: {
+      value: 0.012903762903762904,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 17,
+          weight: 0.5,
+          value: 0.7512531280517578,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 18,
+          weight: 0.5,
+          value: 0.7426376342773438,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1399f29313caabcec582'),
+    plot: 'Con artists plan to fleece the eccentric family using an accomplice who claims to be their long lost Uncle Fester.',
+    title: 'The Addams Family',
+    scoreDetails: {
+      value: 0.012698412698412698,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 30,
+          weight: 0.5,
+          value: 0.7411460280418396,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 10,
+          weight: 0.5,
+          value: 0.748729944229126,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1398f29313caabce9a71'),
+    plot: 'Peanut butter is the secret ingredient for magic potions made by two friendly ghosts. Eleven-year-old Michael loses all of his hair when he gets a fright and uses the potion to get his hair...',
+    title: 'The Peanut Butter Solution',
+    scoreDetails: {
+      value: 0.012561274509803922,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 36,
+          weight: 0.5,
+          value: 0.7384192943572998,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 8,
+          weight: 0.5,
+          value: 0.7511122226715088,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13a6f29313caabd16c49'),
+    plot: 'Elvis and JFK, both alive and in nursing homes, fight for the souls of their fellow residents as they battle an ancient Egyptian Mummy.',
+    title: 'Bubba Ho-Tep',
+    scoreDetails: {
+      value: 0.012092758571631812,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 39,
+          weight: 0.5,
+          value: 0.736645519733429,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 11,
+          weight: 0.5,
+          value: 0.7481721043586731,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a139af29313caabcf1044'),
+    plot: 'When a shy groom practices his wedding vows in the inadvertent presence of a deceased young woman, she rises from the grave assuming he has married her.',
+    title: 'Corpse Bride',
+    scoreDetails: {
+      value: 0.011513157894736843,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 20,
+          weight: 0.5,
+          value: 0.7498250007629395,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 35,
+          weight: 0.5,
+          value: 0.7354456186294556,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1398f29313caabceb9b4'),
+    plot: "Neil Gallagher found the secret to Toulon's puppets who come to life and then killed himself. Alex and his psychic friends come to investigate and are stalked by Toulon's puppets who have a...",
+    title: 'Puppetmaster',
+    scoreDetails: {
+      value: 0.01003996003996004,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 50,
+          weight: 0.5,
+          value: 0.7304129004478455,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 31,
+          weight: 0.5,
+          value: 0.7357485294342041,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13d3f29313caabd96a55'),
+    plot: 'A teacher with paranormal abilities helps a group of ghosts graduate high school.',
+    title: 'Ghost Graduation',
+    scoreDetails: {
+      value: 0.0078125,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 4,
+          weight: 0.5,
+          value: 0.7812073826789856,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 0, weight: 0.5 }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a139af29313caabcefcce'),
+    plot: 'Adaption of the famous Oscar Wilde tale about a young American girl that helps a British ghost find rest and forgiveness.',
+    title: 'The Canterville Ghost',
+    scoreDetails: {
+      value: 0.007692307692307693,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 5,
+          weight: 0.5,
+          value: 0.7810665965080261,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 0, weight: 0.5 }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1399f29313caabcec258'),
+    plot: 'The puppets return, this time they hunt some Paranormal Researchers to take their brain fluid for the dead/living puppet master, Andre Toulon.',
+    title: 'Puppet Master II',
+    scoreDetails: {
+      value: 0.007575757575757576,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        { inputPipelineName: 'vectorPipeline1', rank: 0, weight: 0.5 },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 6,
+          weight: 0.5,
+          value: 0.7542119026184082,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13edf29313caabdd4424'),
+    plot: 'A ghost returns back from his world to prove something. But on earth, he has something more to do for his country.',
+    title: 'Bhoothnath Returns',
+    scoreDetails: {
+      value: 0.007246376811594203,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 9,
+          weight: 0.5,
+          value: 0.7711119651794434,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 0, weight: 0.5 }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13bdf29313caabd58274'),
+    plot: 'Banku, his mother, Anjali Sharma and father move in to their new house -- the Nath villa, unaware of the fact that the house is inhabited by a ghost. It is learnt the ghost is not too happy...',
+    title: 'Bhoothnath',
+    scoreDetails: {
+      value: 0.007142857142857143,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 10,
+          weight: 0.5,
+          value: 0.7709513902664185,
           details: []
         },
         { inputPipelineName: 'vectorPipeline2', rank: 0, weight: 0.5 }

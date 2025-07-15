@@ -29,31 +29,26 @@
 
             * - light-hearted comedy with ghosts
               - COMEDY_INVOLVING_GHOSTS
-              - OpenAI's ``text-embedding-ada-002``
-              - 1536
+              - |voyage|'s ``voyage-3-large``
+              - 2048
 
             * - slapstick humor with paranormal events
               - HUMOR_INVOLVING_PARANORMAL
-              - OpenAI's ``text-embedding-ada-002``
-              - 1536
+              - |voyage|'s ``voyage-3-large``
+              - 2048
+
+            * - battle between good and evil
+              - BATTLE_GOOD_EVIL
+              - |voyage|'s ``voyage-3-large``
+              - 2048 
 
             * - journey across lands
               - JOURNEY_ACROSS_LANDS_VOYAGEAI
-              - Voyage AI's ``voyage-3-large``
-              - 1024
+              - |voyage|'s ``voyage-3-large``
+              - 2048
 
             * - journey across lands
               - JOURNEY_ACROSS_LANDS_OPENAI
-              - OpenAI's ``text-embedding-ada-002``
-              - 1536
-
-            * - battle between good and evil
-              - BATTLE_GOOD_EVIL_TITLE_SEARCH
-              - OpenAI's ``text-embedding-3-large``
-              - 3072
-
-            * - battle between good and evil
-              - BATTLE_GOOD_EVIL_PLOT_SEARCH
               - OpenAI's ``text-embedding-ada-002``
               - 1536
 
@@ -111,7 +106,7 @@
             .. output:: 
                :language: javascript  
 
-               1536
+               2048
 
    .. step:: Run the {+avs+} queries against the ``embedded_movies`` collection.
 
@@ -139,11 +134,11 @@
              :widths: 20 80
 
              * - :pipeline:`$vectorSearch` 
-               - - Searches the ``plot_embedding`` field for the phrase
-                   *light-hearted comedy with ghosts*, specified in the
-                   ``queryVector`` field of the query as vector
-                   embeddings by using the  ``COMEDY_INVOLVING_GHOSTS``
-                   variable. 
+               - - Searches the ``plot_embedding_voyage_3_large`` field
+                   for the phrase *light-hearted comedy with ghosts*,
+                   specified in the ``queryVector`` field of the query
+                   as vector embeddings by using the
+                   ``COMEDY_INVOLVING_GHOSTS`` variable. 
                  - Specifies a search for up to ``2000`` nearest neighbors.
                  - Limits the results from this stage to ``50`` documents.
                  - Specifies a weight of ``0.5`` to influence that
@@ -151,10 +146,11 @@
 
              * - :pipeline:`$vectorSearch`
                - - Performs a sequential vector search on the
-                   ``plot_embedding`` field for the phrase *slapstick
-                   humor with paranormal events*, specified in the
-                   ``queryVector`` field as vector embeddings by using
-                   the ``HUMOR_INVOLVING_PARANORMAL`` variable. 
+                   ``plot_embedding_voyage_3_large`` field for the
+                   phrase *slapstick humor with paranormal events*,
+                   specified in the ``queryVector`` field as vector
+                   embeddings by using the
+                   ``HUMOR_INVOLVING_PARANORMAL`` variable.
                  - Specifies a search for up to ``2000`` nearest neighbors.
                  - Limits the results from this stage to ``50`` documents.
                  - Specifies a weight of ``0.5`` to influence that
@@ -193,7 +189,7 @@
 
       .. collapsible::
          :heading: Same Term Query Vector Against Multiple Document Vectors
-         :sub_heading: Search multiple fields in the dataset to determine which fields return the best results for the query.
+         :sub_heading: Search multiple fields in the dataset to determine which fields return the best results for the same query.
          :expanded: false 
 
          .. io-code-block:: 
@@ -215,11 +211,11 @@
              :widths: 20 80
 
              * - :pipeline:`$vectorSearch` 
-               - - Searches the ``plot_embedding`` field for the phrase 
-                   *battle between good and evil* specified in the
-                   ``queryVector`` field of the query as vector
-                   embeddings by using the
-                   ``BATTLE_GOOD_EVIL_PLOT_SEARCH`` variable.
+               - - Searches the ``plot_embedding_voyage_3_large`` field
+                   for the phrase *battle between good and evil*,
+                   specified in the ``queryVector`` field of the query
+                   as vector embeddings by using the
+                   ``BATTLE_GOOD_EVIL`` variable.
                  - Specifies a search for up to ``2000`` nearest
                    neighbors. 
                  - Limits the results to ``200`` documents only.
@@ -228,10 +224,10 @@
 
              * - :pipeline:`$vectorSearch`
                - - Performs a sequential vector search on the
-                   ``title_embedding`` field for the string *battle
-                   between good and evil*, specified in the
+                   ``title_voyageai_embedding`` field for the string
+                   *battle between good and evil*, specified in the
                    ``queryVector`` field as vector embeddings by using
-                   the ``BATTLE_GOOD_EVIL_TITLE_SEARCH`` variable. 
+                   the ``BATTLE_GOOD_EVIL`` variable. 
                  - Specifies a search for up to ``2000`` nearest neighbors.
                  - Limits the results to ``200`` documents only.
                  - Specifies a weight of ``0.5`` to influence that
@@ -262,9 +258,11 @@
            reciprocal rank score, which shows which fields return the
            most relevant result for the query term.  
          
-         For example, the first and second documents in the results
-         suggest a significant match for the term in the ``title``
-         field. You can do the following: 
+         For example, the first and fourth documents in the results
+         suggest a significant match for the term in the ``plot``
+         field while the second and fifth documents suggest a
+         significant match in the ``title`` field. You can do the
+         following: 
          
          - Adjust the weights assigned to each pipeline in the query to
            further refine the results. 
@@ -308,7 +306,7 @@
 
              * - :pipeline:`$vectorSearch`
                - - Performs a sequential vector search on the
-                   ``plot_voyageai_embedding`` field for the string
+                   ``plot_embedding_voyage_3_large`` field for the string
                    *journey across lands*, specified in the ``queryVector``
                    field as vector embeddings by using the
                    ``JOURNEY_ACROSS_LANDS_VOYAGEAI`` variable.  
@@ -344,6 +342,8 @@
            differences in the semantic interpretation of the query term
            by the different embedding models.  
          
-         For example, the first and seconds documents in the results
-         suggest closer semantic interpretation by the model used in the
-         ``vectorPipeline2``. 
+         For example, the first and fifth documents in the results suggest more
+         similar semantic representation by the model used in the
+         ``vectorPipeline2`` while the second and fourth document in the
+         results suggest closer semantic interpretation by the model
+         used in the ``vectorPipeline1``. 

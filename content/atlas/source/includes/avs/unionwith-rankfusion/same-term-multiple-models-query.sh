@@ -18,7 +18,7 @@ db.embedded_movies.aggregate([
             {
               "$vectorSearch": {
                 "index": "multiple-vector-search",
-                "path": "plot_voyageai_embedding",
+                "path": "plot_embedding_voyage_3_large",
                 "queryVector": JOURNEY_ACROSS_LANDS_VOYAGEAI,
                 "numCandidates": 2000,
                 "limit": 100

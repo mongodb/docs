@@ -7,8 +7,8 @@ db.embedded_movies.aggregate([
             {
               "$vectorSearch": {
                 "index": "multiple-vector-search",
-                "path": "plot_embedding",
-                "queryVector": BATTLE_GOOD_EVIL_PLOT_SEARCH,
+                "path": "plot_embedding_voyage_3_large",
+                "queryVector": BATTLE_GOOD_EVIL,
                 "numCandidates": 2000,
                 "limit": 200
               }
@@ -18,8 +18,8 @@ db.embedded_movies.aggregate([
             {
               "$vectorSearch": {
                 "index": "multiple-vector-search",
-                "path": "title_embedding",
-                "queryVector": BATTLE_GOOD_EVIL_TITLE_SEARCH,
+                "path": "title_voyageai_embedding",
+                "queryVector": BATTLE_GOOD_EVIL,
                 "numCandidates": 2000,
                 "limit": 200
               }

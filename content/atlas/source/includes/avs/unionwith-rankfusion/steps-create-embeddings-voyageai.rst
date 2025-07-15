@@ -32,13 +32,13 @@
 
       - Specifies the ``voyage-3-large`` embedding model.
       - Creates a function named ``get_embedding`` that calls the model's |api|
-        to generate an embedding for a given text input.
+        to generate ``2048`` dimension embedding for a given text input.
       - Connects to the |service| {+cluster+} and fetches ``3500`` documents
         from the ``sample_mflix.embedded_movies`` namespace.
-      - Generates embeddings from each document's ``plot`` field by
+      - Generates embeddings from each document's ``title`` field by
         using the ``get_embedding`` function. 
       - Updates each document with a new field named
-        ``plot_voyageai_embedding`` that contains the embedding value by
+        ``title_voyageai_embedding`` that contains the embedding value by
         using the MongoDB PyMongo Driver.  
 
       .. io-code-block:: 

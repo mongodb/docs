@@ -40,22 +40,22 @@
         - Specifies ``1536`` :term:`vector dimensions <vector>`.
         - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
 
-        This field mapping is required for all the queries in this tutorial.
+        This field mapping is required for the :ref:`third use case <avs-unionwith-use-cases>`.
 
-      - ``plot_voyageai_embedding`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
+      - ``plot_embedding_voyage_3_large`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
         This field contains :term:`vector embeddings` that represent the summary of a 
         movie's plot. The index definition:
             
-        - Specifies ``1024`` :term:`vector dimensions <vector>`.
+        - Specifies ``2048`` :term:`vector dimensions <vector>`.
         - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
 
-        This field mapping is required for the :ref:`second use case <avs-unionwith-use-cases>`. 
+        This field mapping is required all the queries in this tutorial. 
 
-      - ``title_embedding`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
+      - ``title_voyageai_embedding`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
         This field contains :term:`vector embeddings` that represent the
         title of the movie. The index definition:
             
-        - Specifies ``3072`` :term:`vector dimensions <vector>`.
+        - Specifies ``2048`` :term:`vector dimensions <vector>`.
         - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
 
-        This field mapping is required for the :ref:`third use case <avs-unionwith-use-cases>`.
+        This field mapping is required for the :ref:`second use case <avs-unionwith-use-cases>`.

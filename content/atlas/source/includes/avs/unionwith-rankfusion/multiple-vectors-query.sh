@@ -7,7 +7,7 @@ db.embedded_movies.aggregate([
             {
               "$vectorSearch": {
                 "index": "multiple-vector-search",
-                "path": "plot_embedding",
+                "path": "plot_embedding_voyage_3_large",
                 "queryVector": COMEDY_INVOLVING_GHOSTS,
                 "numCandidates": 2000,
                 "limit": 50
@@ -18,7 +18,7 @@ db.embedded_movies.aggregate([
             {
               "$vectorSearch": {
                 "index": "multiple-vector-search",
-                "path": "plot_embedding",
+                "path": "plot_embedding_voyage_3_large",
                 "queryVector": HUMOR_INVOLVING_PARANORMAL,
                 "numCandidates": 2000,
                 "limit": 50
