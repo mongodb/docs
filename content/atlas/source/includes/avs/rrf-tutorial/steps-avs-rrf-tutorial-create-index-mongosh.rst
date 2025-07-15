@@ -22,8 +22,9 @@
 
    .. step:: Define the {+avs+} index.
 
-      Run the following command. This index definition indexes the ``plot_embedding`` field as
-      the {+avs+} field when querying the collection.
+      Run the following command. This index definition indexes the
+      ``plot_embedding_voyage_3_large`` field as the {+avs+} field when
+      querying the collection. 
 
       .. literalinclude:: /includes/avs/rrf-tutorial/create-avs-index-mongosh.sh
          :language: shell

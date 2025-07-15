@@ -7,7 +7,7 @@ db.embedded_movies.aggregate([
             {
               "$vectorSearch": {
                 "index": "hybrid-vector-search",
-                "path": "plot_embedding",
+                "path": "plot_embedding_voyage_3_large",
                 "queryVector": STAR_WARS_EMBEDDING,
                 "numCandidates": 100,
                 "limit": 20
@@ -30,8 +30,8 @@ db.embedded_movies.aggregate([
       },
       combination: {
         weights: {
-          vectorPipeline: 0.7,
-          fullTextPipeline: 0.3
+          vectorPipeline: 0.5,
+          fullTextPipeline: 0.5
         }
       },
       "scoreDetails": true
@@ -46,6 +46,6 @@ db.embedded_movies.aggregate([
     }
   },
   {
-    "$limit": 20
+    "$limit": 10
   }
 ]);
