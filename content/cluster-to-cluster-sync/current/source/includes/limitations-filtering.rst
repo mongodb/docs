@@ -22,4 +22,3 @@
 - Filtering does not support dual :ref:`write 
   blocking <c2c-write-blocking>`. You can use destination-only
   write-blocking. 
-

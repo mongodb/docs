@@ -171,6 +171,72 @@ Request Body Parameters
 
        .. versionadded:: 1.6
 
+   * - ``preExistingDestinationData``
+     - boolean
+     - Optional
+     - .. important::
+          
+          This feature is currently in Public Preview. Please review the
+          behavior and limitations in this section before using
+          this feature.
+     
+       Default value is ``false``.
+
+       If set to ``true``:
+
+       - ``mongosync`` allows pre-existing namespaces on the destination cluster.
+
+       - You must specify a namespace filter by using one or both of the ``includeNamespaces``
+         and ``excludeNamespaces`` parameters in your request.
+         
+       - If :ref:`embedded verification <c2c-embedded-verifier>` 
+         is enabled, the namespace filter must filter
+         out any pre-existing collections or indexes on the destination cluster,
+         even if they don't exist on the source cluster. Otherwise, embedded
+         verification fails.
+
+       - Ensure that you follow all directions in the :ref:`cutover process
+         <c2c-cutover-process>` to ensure that no unsafe writes occur on the
+         source or destination cluster. ``mongosync`` does not enable write-blocking
+         when you enable this feature, so you must manually ensure that these
+         writes don't occur.
+       
+       - ``mongosync`` does not ensure that sufficient resources, such as disk space,
+         compute, and oplog, exist on the destination cluster to accommodate 
+         the additional load of the migration. Monitor your destination cluster to
+         ensure that it has sufficient resources.
+      
+       - ``mongosync`` does not migrate views when you use this feature. 
+         It ignores views on the source cluster during
+         migration. You must migrate views separately after cutover.
+
+       - The default :ref:`load level <mongosync-load-level>` is changed from 3 to 2.
+
+       - You can leave the balancer enabled for a sharded destination
+         cluster during migration.
+
+       - The default :ref:`write-blocking mode <c2c-write-blocking>` 
+         is changed from ``"destinationOnly"`` to ``"none"``. You cannot
+         set write-blocking on individual collections on either the source or
+         destination cluster, because write-blocking is only available at
+         the cluster level. Additionally, namespace filtering is not compatible with
+         dual write-blocking.
+         
+       - ``mongosync`` does not allow reverse migration.
+
+       - ``mongosync`` outputs the following log message in the beginning of
+         migration:
+ 
+         .. code-block:: shell
+            
+            ATTENTION! Data migration to a non-empty cluster is allowed 
+            with the preExistingDestinationData set to true in the 
+            request to start migration. This feature is currently in 
+            preview. Please see https://www.mongodb.com/docs/cluster-to-cluster-sync/current/reference/api/start/ 
+            for important requirements and limitations.
+
+       See :ref:`Filtered Sync Limitations <c2c-filtering-limitations>`.
+
    * - ``reversible``
      - boolean
      - Optional

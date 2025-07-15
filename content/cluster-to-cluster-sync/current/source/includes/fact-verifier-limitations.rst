@@ -22,6 +22,12 @@ The embedded verifier has the following limitations:
   verification process restarts from the beginning. This can
   cause verification to fall substantially behind the migration.
 
+- When migrating from a replica set to a sharded cluster, you cannot rename 
+  source collections that you specify in the :ref:`sharding options 
+  <c2c-api-start-sharding>`. If you rename a collection included in the sharding 
+  options during the :ref:`CEA phase <c2c-cea>`, the verifier reports a sharding 
+  mismatch. 
+
 - .. include:: /includes/fact-verifier-buildIndexes
 
 Unsupported Verification Checks
