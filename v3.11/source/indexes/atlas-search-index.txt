@@ -1,0 +1,307 @@
+.. _cpp-atlas-search-index:
+
+====================
+Atlas Search Indexes
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: index, query, text search, efficiency
+
+Overview
+--------
+
+The MongoDB Atlas Search feature enables you to perform full-text
+searches on collections hosted on Atlas. Before you can perform Atlas
+Search queries, you must create indexes that specify which
+fields to index and how they are indexed.
+
+To learn more about Atlas Search, see the :atlas:`Atlas Search Overview
+</atlas-search/atlas-search-overview/>` in the Atlas Search documentation. 
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``movies`` collection in the ``sample_mflix``
+database from the :atlas:`Atlas sample datasets </sample-data>`. 
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+To manage Atlas Search indexes on the ``sample_mflix`` collection from your C++ application, 
+first instantiate a ``mongocxx::client`` that connects to an Atlas cluster
+and assign the following values to your ``db`` and ``collection`` variables: 
+
+.. literalinclude:: /includes/indexes/indexes.cpp
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+    :language: cpp
+    :copyable:
+    :dedent:
+
+Then, call the ``search_indexes()`` method
+on your ``collection`` variable to instantiate a ``mongocxx::search_index_view`` on your collection: 
+
+.. literalinclude:: /includes/indexes/indexes.cpp
+    :start-after: start-siv
+    :end-before: end-siv
+    :language: cpp
+    :copyable:
+    :dedent:
+
+The ``mongocxx::search_index_view`` class contains the following member functions that allow you to interact with Atlas Search indexes: 
+
+- :ref:`create_one() <cpp-atlas-search-index-create>`: Creates an Atlas Search index with the specified configuration 
+- :ref:`create_many() <cpp-atlas-search-index-create-static>`: Creates multiple Atlas Search indexes with the specified configurations
+- :ref:`list() <cpp-atlas-search-index-list>`: Returns a ``mongocxx::cursor`` instance that points to a list of Atlas Search indexes on the collection
+- :ref:`update_one() <cpp-atlas-search-index-update>`: Updates the definition of the specified Atlas Search index
+- :ref:`drop_one() <cpp-atlas-search-index-drop>`: Removes the specified index from the collection 
+
+.. note:: Atlas Search Index Management is Asynchronous
+
+   The {+driver-long+} manages Atlas Search indexes asynchronously. The
+   library methods described in the following sections return the server
+   response immediately, but the changes to your Atlas Search indexes take
+   place in the background and might not complete until some time later.
+
+The following sections provide code examples that demonstrate how to use
+each Atlas Search index management method.
+
+.. _cpp-atlas-search-index-create:
+
+Create an Atlas Search Index
+----------------------------
+
+To create a single Atlas Search index on a collection, call the ``create_one()`` method on a ``mongocxx::search_index_view`` instance and pass in a ``mongoxcc::search_index_model`` 
+instance specifying the index that you want to create. 
+
+The ``mongocxx::search_index_model`` constructor requires the following arguments:
+
+- ``name``: String specifying the name for your index
+- ``definition``: Document containing the ``mappings`` field, which specifies how to configure fields in your index
+
+.. tip:: 
+
+   For a full list of fields that you can configure in an Atlas Search index, see the :atlas:`Review Atlas Search Index Syntax </atlas-search/index-definitions/>` guide in the Atlas Search documentation.
+
+The following sections show how to create a single Atlas Search index that uses static or dynamic mappings. 
+
+.. _cpp-atlas-search-index-create-static:
+
+Create an Atlas Search Index with Static Mappings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use static mappings in your Atlas Search index to specify the fields that you want to index and configure index options for individual fields.
+
+To create a single Atlas Search index that uses static mappings, first create a ``definition`` document containing the ``mappings`` field.
+In the ``mappings`` field, specify a document containing the following fields and values: 
+
+-  ``dynamic``: Set to ``false``. 
+- ``fields``: Document specifying the names of the fields that you want to index and their index configurations. To learn more about ``mappings.fields`` 
+  options, see the :atlas:`Static Mapping Example </atlas-search/define-field-mappings/#static-mapping-example>` in the Atlas Search documentation.
+
+Then, pass a ``name`` string and the ``definition`` document into a ``mongocxx::search_index_model`` constructor to instantiate a ``mongocxx::search_index_model``. 
+Pass this ``mongocxx::search_index_model`` instance into the ``create_one()`` method to add the specified Atlas Search index to your collection.
+
+The following example shows how to create a single Atlas Search index that uses static mappings: 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/indexes.cpp
+      :start-after: start-create-static-search-index
+      :end-before: end-create-static-search-index
+      :language: cpp
+      :dedent:
+   
+   .. output:: 
+      :language: cli
+      :visible: false
+      
+      New index name: myStaticIndex
+
+.. important:: 
+
+   You can't index fields that contain the dollar (``$``) sign at the start of the field name.
+
+To learn more about when to use static mappings, see the :atlas:`Static Mappings </atlas-search/define-field-mappings/#static-mappings>` section in the Atlas Search documentation.
+
+.. _cpp-atlas-search-index-create-dynamic:
+
+Create an Atlas Search Index with Dynamic Mappings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use dynamic mappings in your Atlas Search index to automatically index all fields of supported types.
+For a list of supported BSON data types, see the :atlas:`Data Types </atlas-search/define-field-mappings/#data-types>` section in the Atlas Search documentation. 
+
+To create a single Atlas Search index that uses dynamic mappings, first create a ``definition`` document containing the ``mappings`` field. 
+In the ``mappings`` field, specify a document containing the ``dynamic`` field with its value set to ``true``. 
+Then, pass a ``name`` string and the ``definition`` document into a ``mongocxx::search_index_model`` constructor to instantiate a ``mongocxx::search_index_model``. 
+Pass this ``mongocxx::search_index_model`` instance into the ``create_one()`` method to add the specified Atlas Search index to your collection.
+
+The following example shows how to to create a single Atlas Search index that uses dynamic mappings:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/indexes.cpp
+      :start-after: start-create-dynamic-search-index
+      :end-before: end-create-dynamic-search-index
+      :language: cpp
+      :dedent:
+   
+   .. output:: 
+      :language: cli
+      :visible: false
+      
+      New index name: myDynamicIndex
+
+To learn more about when to use dynamic mappings, see the :atlas:`Dynamic Mappings </atlas-search/define-field-mappings/#dynamic-mappings>` section in the Atlas Search documentation.
+
+.. _cpp-atlas-search-index-create-multiple:
+
+Create Multiple Atlas Search Indexes
+------------------------------------
+
+To create multiple Atlas Search indexes, call the ``create_many()`` method on a ``mongocxx::search_index_view`` instance
+and pass in a vector of ``mongocxx::search_index_model`` instances specifying the Atlas Search indexes that you want to create. 
+
+The following example shows how to create multiple Atlas Search indexes:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/indexes.cpp
+      :start-after: start-create-multiple-search-indexes
+      :end-before: end-create-multiple-search-indexes
+      :language: cpp
+      :dedent:
+   
+   .. output:: 
+      :language: cli
+      :visible: false
+      
+      New index names:
+      myDynamicIndex
+      myStaticIndex
+
+.. _cpp-atlas-search-index-list:
+
+List Atlas Search Indexes
+-------------------------
+
+To list the Atlas Search indexes on a collection, call the ``list()`` method on a ``mongocxx::search_index_view`` instance. This method returns a ``mongocxx::cursor`` instance that you can
+use to iterate over the collection's Atlas Search indexes. 
+
+The following example prints a list of Atlas Search indexes by iterating over a ``cursor::iterator`` instance 
+that points to the indexes from :ref:`Create Multiple Atlas Search Indexes <cpp-atlas-search-index-create-multiple>`: 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/indexes.cpp
+      :start-after: start-list-search-indexes
+      :end-before: end-list-search-indexes
+      :language: cpp
+      :dedent:
+
+   .. output:: 
+      :language: cli
+      :visible: false
+
+      { "id" : ..., "name" : "myDynamicIndex", "type" : "search", ...,
+        "latestDefinition" : { "mappings" : { "dynamic" : true } }, ...} 
+
+      { "id" : ..., "name" : "myStaticIndex", "type" : "search", ...,
+        "latestDefinition" : { "mappings" : { "dynamic" : false, "fields" : { "title" : { "type" : "string", "analyzer" : "lucene.standard" }, "year" : { "type" : "number" } } } }, ...} 
+
+Alternatively, you can list a specific Atlas Search index by passing an index name into the ``list()`` method. 
+This returns a ``mongocxx::cursor`` instance that points to a result set containing only the specified index. 
+
+The following example uses the ``list()`` method to print an index with the name ``myDynamicIndex``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/indexes.cpp
+      :start-after: start-list-search-index
+      :end-before: end-list-search-index
+      :language: cpp
+      :dedent:
+
+   .. output:: 
+      :language: cli
+      :visible: false
+      
+      { "id" : ..., "name" : "myDynamicIndex", "type" : "search", ...,
+        "latestDefinition" : { "mappings" : { "dynamic" : true } }, ...} 
+
+.. _cpp-atlas-search-index-update:
+
+Update an Atlas Search Index
+----------------------------
+
+To update an Atlas Search index, call the ``update_one()`` method on a ``mongocxx::search_index_view`` instance and pass in the name of the index that
+you want to update and the definition to update the index to.
+
+The following example shows how to update the Atlas Search index from :ref:`Create a Search Index with Static Mappings <cpp-atlas-search-index-create-static>` to use a simple 
+analyzer on the ``title`` field: 
+
+.. literalinclude:: /includes/indexes/indexes.cpp
+   :language: cpp
+   :dedent:
+   :start-after: start-update-search-index
+   :end-before: end-update-search-index
+
+.. _cpp-atlas-search-index-drop:
+
+Remove an Atlas Search Index
+----------------------------
+
+To remove an Atlas Search index from a collection, call the ``drop_one()`` method on a ``mongocxx::search_index_view`` instance and pass in 
+the name of the index that you want to remove. 
+
+The following example shows how to remove an Atlas Search index named ``myDynamicIndex``: 
+
+.. literalinclude:: /includes/indexes/indexes.cpp
+   :language: cpp
+   :dedent:
+   :start-after: start-remove-search-index
+   :end-before: end-remove-search-index
+
+Additional Information
+----------------------
+
+To view runnable examples that demonstrate how to manage indexes, see :ref:`Optimize Queries with Indexes.
+<cpp-indexes>`
+
+For more detailed guides about how to use the Atlas Search feature and define Atlas Search indexes,
+see the following Atlas Search documentation pages: 
+
+- :atlas:`Atlas Search Overview </atlas-search/atlas-search-overview/>`
+- :atlas:`Get Started with Atlas Search </atlas-search/tutorial/>`
+- :atlas:`Create and Run Atlas Search Queries </atlas-search/searching/>`
+- :atlas:`Create an Atlas Search Index </atlas-search/create-index/>` 
+- :atlas:`Define Field Mappings </atlas-search/define-field-mappings/>`
+- :atlas:`Review Atlas Search Index Syntax </atlas-search/index-definitions/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods discussed in this guide, see the
+following API documentation:
+
+- `search_indexes() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#a1ff18a94afc676f1d85f4aa9570e9c0f>`__
+- `create_one() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#a980873272536347345ef68cc2d5d7408>`__
+- `create_many() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#aad93b8f9fe525bf7c133d4408f5d1e5f>`__
+- `list() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#a54caee8c3c16ad099d823270086dceef>`__
+- `drop_one() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#a184088ce06247b26c44c3c0d2ee8b99b>`__
+- `update_one() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#aec3f5a861d36d573c8489d8e488597c8>`__
