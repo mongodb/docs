@@ -1,0 +1,182 @@
+.. _cpp-write-delete:
+
+================
+Delete Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: remove, drop, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to remove
+documents from a MongoDB collection by performing **delete operations**.
+
+A delete operation removes one or more documents from a MongoDB collection.
+You can perform a delete operation by using the ``delete_one()`` or
+``delete_many()`` methods.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your C++ application, instantiate a ``mongocxx::client`` that connects to an Atlas cluster
+and assign the following values to your ``db`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/delete.cpp
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+    :language: cpp
+    :dedent:
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Delete Operations
+-----------------
+
+You can perform delete operations by using the following methods:
+
+- ``delete_one()``, which deletes *the first document* that matches the search criteria
+- ``delete_many()``, which deletes *all documents* that match the search criteria
+
+Each delete method requires a **query filter** document, which specifies the
+search criteria to determine which documents to select for removal.
+For more information about query filters, see the 
+:manual:`Query Filter Documents section </core/document/#query-filter-documents>` in
+the {+mdb-server+} manual.
+
+Delete One Document
+~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``delete_one()`` method to remove a document in
+the ``restaurants`` collection that has a ``name`` value of ``"Ready Penny Inn"``:
+
+.. literalinclude:: /includes/write/delete.cpp
+   :start-after: start-delete-one
+   :end-before: end-delete-one
+   :language: cpp
+   :dedent:
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``delete_many()`` method to remove all documents
+in the ``restaurants`` collection that have a ``borough`` value of ``"Brooklyn"``:
+
+.. literalinclude:: /includes/write/delete.cpp
+   :start-after: start-delete-many
+   :end-before: end-delete-many
+   :language: cpp
+   :dedent:
+
+Customize the Delete Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``delete_one()`` and ``delete_many()`` methods by
+passing an instance of the ``mongocxx::options::delete_options`` class as an optional
+parameter. The following table describes the fields you can set in a
+``mongocxx::options::delete_options`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``collation``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.
+
+   * - ``write_concern``
+     - | Sets the write concern for the operation.
+         For more information, see :manual:`Write Concern </reference/write-concern/>`
+         in the {+mdb-server+} manual.
+
+   * - ``hint``
+     - | Gets or sets the index to scan for documents. 
+         For more information, see the :manual:`hint statement </reference/command/delete/#std-label-deletes-array-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``let``
+     - | Specifies a document with a list of values to improve operation readability.
+         Values must be constant or closed expressions that don't reference document
+         fields. For more information, see the :manual:`let statement
+         </reference/command/delete/#std-label-delete-let-syntax>` in the
+         {+mdb-server+} manual.
+
+   * - ``comment``
+     - | Attaches a comment to the operation. For more information, see the :manual:`delete command
+         fields </reference/command/delete/#command-fields>` guide in the
+         {+mdb-server+} manual.
+
+The following example calls the ``delete_many()`` method to delete all documents in
+the ``restaurants`` collection that have a ``name`` value containing the string ``"Mongo"``.
+It also sets the ``comment`` field of a ``mongocxx::options::delete_options`` instance
+to add a comment to the operation:
+
+.. literalinclude:: /includes/write/delete.cpp
+   :start-after: start-delete-options
+   :end-before: end-delete-options
+   :language: cpp
+   :dedent:
+
+.. tip::
+
+   If the preceding example used the ``delete_one()`` method instead of
+   ``delete_many()``, the driver would delete only the first document that has
+   a ``name`` value containing ``"Mongo"``.
+
+Return Value
+~~~~~~~~~~~~
+
+The ``delete_one()`` and ``delete_many()`` methods return an instance of
+the ``mongocxx::result::delete_result`` class. This class contains the
+following member functions:
+
+- ``result()``, which returns the raw bulk write result
+- ``deleted_count()``, which returns the number of documents deleted
+
+If the query filter does not match any documents, the driver doesn't delete any
+documents and ``deleted_count`` is 0.
+
+The following example calls the ``delete_many()`` method to delete documents
+that have a ``cuisine`` value of ``"Greek"``. It then calls the ``deleted_count()``
+member function to print the number of deleted documents:
+
+.. io-code-block::
+
+   .. input:: /includes/write/delete.cpp
+      :start-after: start-delete-count
+      :end-before: end-delete-count
+      :language: cpp
+      :dedent:
+
+   .. output:: 
+
+      Deleted documents: 111
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `delete_one() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#adecd9613670ec09aa02814d652ef0014>`__
+- `delete_many() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#a8f8907150f76ab1ba31c52b23f0b50d7>`__
+- `mongocxx::options::delete_options <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1delete__options.html>`__
+- `mongocxx::result::delete_result <{+api+}/classmongocxx_1_1v__noabi_1_1result_1_1delete__result.html>`__
