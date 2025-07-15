@@ -30,6 +30,7 @@
           "-y",
           "mongodb-mcp-server",
           "--connectionString",
-          "<connection-string>"
+          "<connection-string>",
+          "--readOnly"
         ]
       }

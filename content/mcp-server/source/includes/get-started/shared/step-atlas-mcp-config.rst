@@ -45,7 +45,8 @@
              "--apiClientId",
              "<client-id>",
              "--apiClientSecret",
-             "<client-secret>"
+             "<client-secret>",
+             "--readOnly"
            ]
          }
          
