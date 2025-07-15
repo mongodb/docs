@@ -2703,7 +2703,7 @@ const tocData: TocItem[] = [
           {
             label: "Kubernetes Operator",
             contentSite: "docs-k8s-operator",
-            url: "docs/kubernetes-operator/stable/release-notes/",
+            url: "/docs/kubernetes-operator/stable/release-notes/",
           },
         ],
       },

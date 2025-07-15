@@ -1,8 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { TocItem } from '../../types';
+import type { TocItem } from '../../types';
 
 export const generateJSON = (toc: TocItem[]) => {
+ 
   const filePath = path.join('output');
 
   console.log(`File will be written to ./${filePath}`);
@@ -14,5 +15,4 @@ export const generateJSON = (toc: TocItem[]) => {
   );
 
   console.log(`The toc.json was written to ./${filePath}`);
-
 }

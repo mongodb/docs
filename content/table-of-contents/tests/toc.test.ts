@@ -1,4 +1,6 @@
-import { tocData as unifiedToc } from "../toc";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { toc } from "../toc";
 import { TocItem } from "../types";
 
 const DocSitesTesting = [
@@ -55,7 +57,7 @@ describe("tocData", () => {
 
   beforeEach(() => {
     // Export the unifiedToc function and call it before each test
-    result = unifiedToc();
+    result = toc;
   });
 
   describe("function call", () => {
@@ -91,15 +93,15 @@ describe("tocData", () => {
     it("should have valid contentSite values", () => {
       const validContentSites = Object.values(DocSitesTesting);
       result.forEach((item) => {
-        expect(typeof DocSitesTesting).toContain(item.contentSite);
+        expect(validContentSites).toContain(item.contentSite);
       });
     });
   });
 
   describe("nested structure validation", () => {
     it("should have valid nested items structure", () => {
-      const validateNestedItems = (items: any[], depth = 0) => {
-        items.forEach((item, index) => {
+      const validateNestedItems = (items: TocItem[] | undefined, depth = 0) => {
+        items?.forEach((item, index) => {
           // Check required properties for nested items
           expect(item).toHaveProperty("label");
           expect(typeof item.label).toBe("string");
@@ -154,8 +156,8 @@ describe("tocData", () => {
     it("should contain expected top-level sections", () => {
       const labels = result.map((item) => item.label);
       //TODO: Once DOP-5379 is complete, we can update this to support the real data
-      expect(labels).toContain("Database tools");
-      expect(labels).toContain("Atlas");
+      expect(labels).toContain("Tools");
+      expect(labels).toContain("Atlas Architecture Center");
       expect(labels).toContain("Client Libraries");
     });
 
@@ -178,7 +180,7 @@ describe("tocData", () => {
         items.forEach((item) => {
           if (item.url) {
             // Check if URL is either a relative path starting with / or an external URL
-            expect(item.url).toMatch(/^(\/|https?:\/\/)/);
+            expect(item.url).toMatch(/^(\/|https:\/\/)/);
           }
           if (item.items && Array.isArray(item.items)) {
             validateUrls(item.items);
@@ -197,9 +199,7 @@ describe("tocData", () => {
 
 describe("output file creation", () => {
   it("should create toc.json in output/development", () => {
-    const fs = require("fs");
-    const path = require("path");
-    const tocPath = path.join(__dirname, "../output/development/toc.json");
+    const tocPath = path.join(__dirname, "../output/toc.json");
     expect(fs.existsSync(tocPath)).toBe(true);
   });
 });
