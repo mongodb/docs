@@ -1,52 +1,52 @@
 [
-    {
-      plot: 'It is the dawn of World War III. In mid-western America, a group of teenagers bands together to defend their town, and their country, from invading Soviet forces.',
-      title: 'Red Dawn',
-      score: 0.7700583338737488
-    },
-    {
-      plot: 'A dramatization of the World War II Battle of Iwo Jima.',
-      title: 'Sands of Iwo Jima',
-      score: 0.7581185102462769
-    },
-    {
-      plot: 'Great Patriotic War, early 1940s. After barely surviving a battle with a mysterious, ghostly-white Tiger tank, Red Army Sergeant Ivan Naydenov becomes obsessed with its destruction.',
-      title: 'White Tiger',
-      score: 0.750884473323822
-    },
-    {
-      plot: "As World War Two rages on, the allies are about to push the Nazis out of North Africa. That's when the Nazis turn up the heat, unleashing their secret Weapon - dragons.",
-      title: 'P-51 Dragon Fighter',
-      score: 0.749922513961792
-    },
-    {
-      plot: 'A private in the latter days of WWII on the German front struggles between his will to survive and what his superiors perceive as a battlefield instinct.',
-      title: 'When Trumpets Fade',
-      score: 0.7498313188552856
-    },
-    {
-      plot: 'Post World War III futuristic tale of collapsed governments & bankrupt countries heralding a new lawless age.',
-      title: 'Battletruck',
-      score: 0.7497193217277527
-    },
-    {
-      plot: 'It is post-World War III. War is outlawed. In its place, are matches between large Robots called Robot Jox. These matches take place between two large superpowers over disputed territories....',
-      title: 'Robot Jox',
-      score: 0.7495121955871582
-    },
-    {
-      plot: 'During World War II, an American destroyer meets a German U-Boat. Both captains are good ones, and the engagement lasts for a considerable time.',
-      title: 'The Enemy Below',
-      score: 0.746050238609314
-    },
-    {
-      plot: 'Four American soldiers and one Brit fighting in Europe during World War II struggle to return to Allied territory after being separated from U.S. forces during the historic Malmedy Massacre.',
-      title: 'Saints and Soldiers',
-      score: 0.7435222864151001
-    },
-    {
-      plot: 'Four American soldiers and one Brit fighting in Europe during World War II struggle to return to Allied territory after being separated from U.S. forces during the historic Malmedy Massacre.',
-      title: 'Saints and Soldiers',
-      score: 0.743497371673584
-    }
+  {
+    plot: 'During WW2 the Russian Army sent a special group named "Zvezda" to fight the Nazis in their backyard.',
+    title: 'The Star',
+    score: 0.7459506392478943
+  },
+  {
+    plot: "As World War Two rages on, the allies are about to push the Nazis out of North Africa. That's when the Nazis turn up the heat, unleashing their secret Weapon - dragons.",
+    title: 'P-51 Dragon Fighter',
+    score: 0.7430292367935181
+  },
+  {
+    plot: 'April, 1945. As the Allies make their final push in the European Theatre, a battle-hardened Army sergeant named Wardaddy commands a Sherman tank and his five-man crew on a deadly mission behind enemy lines. Outnumbered, out-gunned, and with a rookie soldier thrust into their platoon, Wardaddy and his men face overwhelming odds in their heroic attempts to strike at the heart of Nazi Germany.',
+    title: 'Fury',
+    score: 0.7428240776062012
+  },
+  {
+    plot: "It's May 1943 at a US Army Air Corps base in England. The four officers and six enlisted men of the Memphis Belle - a B-17 bomber so nicknamed for the girlfriend of its stern and stoic ...",
+    title: 'Memphis Belle',
+    score: 0.7340154647827148
+  },
+  {
+    plot: 'The destiny of three soldiers during World War II. The German officer Christian Diestl approves less and less of the war. Jewish-American Noah Ackerman deals with antisemitism at home and ...',
+    title: 'The Young Lions',
+    score: 0.7327103614807129
+  },
+  {
+    plot: 'Great Patriotic War, early 1940s. After barely surviving a battle with a mysterious, ghostly-white Tiger tank, Red Army Sergeant Ivan Naydenov becomes obsessed with its destruction.',
+    title: 'White Tiger',
+    score: 0.732368528842926
+  },
+  {
+    plot: 'The story of ordinary men during WWII as seen from three different points of View.',
+    title: 'The Fallen',
+    score: 0.7301670908927917
+  },
+  {
+    plot: 'A rag tag unit of misfits known as the War Pigs must go behind enemy lines to exterminate Nazis by any means necessary.',
+    title: 'War Pigs',
+    score: 0.7290490865707397
+  },
+  {
+    plot: 'Baron Manfred von Richthofen is the most feared and celebrated pilot of the German air force in World War I. To him and his companions, air combats are events of sporty nature, technical ...',
+    title: 'The Red Baron',
+    score: 0.728823184967041
+  },
+  {
+    plot: 'In 1940, the British Royal Air Force fights a desperate battle vs. the Nazi Germany Air Force for control of British air space to prevent a Nazi invasion of Britain.',
+    title: 'Battle of Britain',
+    score: 0.7270985245704651
+  }
 ]
