@@ -1,0 +1,157 @@
+.. _cpp-cursors:
+
+=========================
+Access Data From a Cursor
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read, results, oplog
+
+Overview
+--------
+
+In this guide, you can learn how to access data from a **cursor** by using the
+{+driver-short+}.
+
+A cursor is a mechanism that returns the results of a read operation in iterable
+batches. Cursors reduce both memory consumption and network bandwidth usage by holding
+only a subset of documents at any given time rather than returning all documents at
+once.
+
+Whenever the {+driver-short+} performs a read operation by using the ``find()``
+method, it returns the matching documents in a ``mongocxx::cursor`` instance.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your C++ application, instantiate a ``mongocxx::client`` that connects to an Atlas cluster
+and assign the following values to your ``db`` and ``collection`` variables:
+
+.. literalinclude:: /includes/read/cursor.cpp
+    :language: cpp
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _cpp-cursors-iterate:
+
+Retrieve All Cursor Documents
+-----------------------------
+
+To iterate over the contents of a ``mongocxx::cursor`` instance, use a ``for`` loop.
+
+The following example uses the ``find()`` method to retrieve all documents that have a
+``name`` value of ``"Dunkin' Donuts"``. It then prints each document from the cursor returned
+by the ``find()`` method:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursor.cpp
+      :start-after: start-cursor-all
+      :end-before: end-cursor-all
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "..." }, ... "name" : "Dunkin' Donuts", "restaurant_id" : "40379573" }
+      { "_id" : { "$oid" : "..." }, ... "name" : "Dunkin' Donuts", "restaurant_id" : "40363098" }
+      { "_id" : { "$oid" : "..." }, ... "name" : "Dunkin' Donuts", "restaurant_id" : "40395071" }
+      ...
+
+Retrieve Documents Individually
+-------------------------------
+
+To retrieve an individual document from a cursor, call the ``begin()`` method on
+a ``mongocxx::cursor`` instance. This method returns an instance of ``mongocxx::cursor::iterator``
+that points to the first document in the cursor.
+
+The following example finds all documents in a collection that have a ``name`` value
+of ``"Dunkin' Donuts"``. It then prints the first document from the cursor by calling the
+``begin()`` method:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursor.cpp
+      :start-after: start-cursor-first
+      :end-before: end-cursor-first
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "..." }, ... "name" : "Dunkin' Donuts", "restaurant_id" : "40379573" }
+      
+Tailable Cursors
+----------------
+
+When querying on a :manual:`capped collection </core/capped-collections/>`, you
+can use a **tailable cursor** that remains open after the client exhausts the
+results in a cursor. To create a tailable cursor, instantiate a ``mongocxx::options::find``
+object and set its ``cursor_type`` field to ``mongocxx::cursor::type::k_tailable``. Then,
+pass your ``mongocxx::options::find`` instance as an argument to the ``find()`` method.
+
+For example, you can create a capped collection called ``vegetables`` that stores
+documents representing vegetables, as shown in the following code:
+
+.. literalinclude:: /includes/read/cursor.cpp
+    :language: cpp
+    :dedent:
+    :start-after: start-capped-coll
+    :end-before: end-capped-coll
+
+The following code uses a tailable cursor to retrieve all documents in the ``vegetables``
+collection. After the cursor is exhausted, it remains open until retrieving three documents:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursor.cpp
+      :start-after: start-tailable
+      :end-before: end-tailable
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "..." }, "name" : "cauliflower" }
+      { "_id" : { "$oid" : "..." }, "name" : "zucchini" }
+
+If you insert another document into the ``vegetables`` collection, the preceding code prints
+the new document and closes the ``while`` loop.
+
+To learn more about tailable cursors, see the :manual:`Tailable Cursors guide
+</core/tailable-cursors/>` in the {+mdb-server+} manual.
+
+Additional Information
+----------------------
+
+To learn more about read operations, see the :ref:`cpp-retrieve` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `mongocxx::cursor <{+api+}/classmongocxx_1_1v__noabi_1_1cursor>`__
+- `find() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#ada76e1596a65c7615e7af7d34a8140d6>`__
+- `begin() <{+api+}/classmongocxx_1_1v__noabi_1_1cursor.html#a85122947e05eb53535c6b62a9c2a1a35>`__
+- `mongocxx::options::find <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1find.html>`__

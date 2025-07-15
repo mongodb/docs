@@ -1,0 +1,268 @@
+.. _cpp-tls:
+
+========================================
+Configure Transport Layer Security (TLS) 
+========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: security, authentication, transport layer security, encrypt
+
+Overview
+--------
+
+In this guide, you can learn how to use the :wikipedia:`TLS <Transport_Layer_Security>`
+protocol to secure your connection to a MongoDB deployment.
+
+When you enable TLS for a connection, the {+driver-short+} performs the following actions:
+
+- Uses TLS to connect to the MongoDB deployment
+- Verifies the deployment's certificate
+- Ensures that the certificate certifies the deployment
+
+To learn how to configure your MongoDB deployment for TLS, see the
+:manual:`TLS configuration guide </tutorial/configure-ssl/>` in the
+{+mdb-server+} manual. 
+
+.. note::
+
+   This page assumes prior knowledge of TLS/SSL and access to valid certificates.
+   A full description of TLS/SSL, PKI (Public Key Infrastructure) certificates, and
+   Certificate Authorities (CAs) is beyond the scope of this documentation. 
+
+.. tip::
+
+   The C++ driver delegates most TLS behavior to the MongoDB C Driver.
+   For information about how the C driver handles TLS, including configuration steps
+   and expected behavior, see
+   `Configuring TLS <https://www.mongodb.com/docs/languages/c/c-driver/current/libmongoc/guides/configuring_tls/#supported-libraries>`__
+   in the C driver Documentation.
+
+.. _cpp-enable-tls:
+
+Enable TLS
+----------
+
+To enable TLS for the connection to your MongoDB instance, set the ``tls`` connection
+option to ``true`` in your connection string, as shown in the following example:
+
+.. code-block:: cpp
+
+   mongocxx::uri uri("mongodb://<hostname>:<port>/?tls=true");
+
+.. tip::
+   
+   If your connection string includes the ``+srv`` modification, which specifies the
+   SRV connection format, TLS is enabled on your connection by default.
+
+   To learn more about the SRV connection format, see
+   :manual:`SRV Connection Format </reference/connection-string/#srv-connection-format>`
+   in the {+mdb-server+} documentation.
+
+.. _cpp-specify-ca-file:
+
+Specify a CA File
+------------------
+
+During the TLS handshake, the MongoDB deployment presents a certificate key file to your
+application to establish its identity. Usually, a deployment's certificate has been
+signed by a well-known CA, and your application relies on this CA to validate the certificate.
+
+During testing, however, you might want to act as your own CA.
+In this case, you must instruct the {+driver-short+} to
+use your CA certificates instead of ones signed by another CA.
+
+To do so, specify the path to a ``.pem`` file containing the root certificate chain.
+You can do this in two ways: by setting a property on a ``mongocxx::options::tls`` object,
+or by using the ``tlsCAFile`` parameter in your connection string.
+
+.. include:: /includes/connect/ca-file-tabs.rst
+
+.. _cpp-specify-ca-directory:
+
+Specify a CA Directory
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you are using OpenSSL or LibreSSL (``libtls``) for TLS support, you can also instruct
+the {+driver-short+} to search for a CA file within a directory. The driver searches this
+directory if it doesn't find a CA file at the path specified in the ``tlsCAFile`` or
+``pem_file`` option.
+ 
+The following code example shows how to use the ``ca_dir`` option to specify the
+directory that the driver should search:
+
+.. literalinclude:: /includes/connect/ca-dir.cpp
+      :language: cpp
+      :copyable: true
+
+.. tip:: 
+   
+   This option corresponds to the OpenSSL
+   `SSL_CTX_load_verify_locations <https://linux.die.net/man/3/ssl_ctx_load_verify_locations>`__
+   parameter and
+   the LibreSSL `tls_config_set_ca_path <https://man.openbsd.org/tls_load_file.3>`__
+   parameter. 
+
+.. _cpp-certificate-revocation:
+
+Check Certificate Revocation
+----------------------------
+
+When an X.509 certificate is no longer trustworthy—for example, if its private key
+has been compromised—the CA revokes the certificate. The {+driver-short+} includes two ways
+to check whether a server's certificate has been revoked.
+
+.. _cpp-disable-ocsp:
+
+OCSP
+~~~~
+
+The Online Certificate Status Protocol (OCSP) process varies depending on the version of
+{+mdb-server+} you're connecting to:
+
+- **MongoDB v4.4 or later:** The server staples a
+  time-stamped OCSP response to its certificate. The {+driver-short+} validates the certificate
+  against the OCSP response. If the CA has revoked the certificate, or if the OCSP response
+  is otherwise invalid, the TLS handshake fails.
+- **MongoDB v4.3 or earlier:** The server supplies an OCSP endpoint, which the {+driver-short+}
+  contacts directly. The {+driver-short+} then validates the certificate against the OCSP
+  response. If the CA hasn't revoked the certificate, the TLS handshake continues, even if
+  the OCSP response is invalid or malformed.
+
+To stop the {+driver-short+} from contacting the OCSP endpoint,
+set the ``tlsDisableOCSPEndpointCheck`` connection option to ``true`` in your
+connection string, as shown in the following code example:
+
+.. code-block:: cpp
+
+   mongocxx::uri uri("mongodb://<hostname>:<port>/?tls=true&tlsDisableOCSPEndpointCheck=true");
+
+.. _cpp-crl:
+
+Certificate Revocation List
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instead of using OCSP, you can instruct the {+driver-short+} to check the server's certificate
+against a Certificate Revocation List (CRL) published by the CA.
+
+The following code example shows how to use the ``crl_file`` option to specify the
+path to specify the path to a ``.pem`` file from the CA:
+
+.. literalinclude:: /includes/connect/crl-file.cpp
+   :language: cpp
+   :copyable: true
+
+.. tip::
+
+   You can specify a CRL file in either the ``.pem`` or ``.der`` format.
+
+.. _cpp-client-cert:
+
+Present a Client Certificate
+----------------------------
+
+Some MongoDB deployments require every connecting application to present a client certificate
+that proves its identity. To specify the client certificate for the {+driver-short+} to
+present, specify the file path of the ``.pem`` file that
+contains your certificate and private key.
+
+You can do this in two ways: by setting a property on a ``mongocxx::options::tls`` object,
+or by using the ``tlsCertificateKeyFile`` parameter in your connection string.
+
+.. include:: /includes/connect/client-cert-tabs.rst
+
+.. important::
+   
+   Your client certificate and private key must be in the same ``.pem`` file. If they
+   are stored in different files, you must concatenate them. The following example
+   shows how to concatenate a key file and a certificate file into a third file called
+   ``combined.pem`` on a Unix system: 
+
+   .. code-block:: sh
+
+      $ cat key.pem cert.pem > combined.pem
+
+.. _cpp-key-file-password:
+
+Provide a Key Password
+~~~~~~~~~~~~~~~~~~~~~~
+
+If the private key in your certificate file is encrypted, you must provide the password.
+You can do this in two ways: by setting a property on a ``mongocxx::options::tls`` object,
+or by using the ``tlsCertificateKeyFilePassword`` parameter in your connection string.
+
+.. include:: /includes/connect/key-file-password.rst
+
+.. _cpp-insecure-tls:
+
+Allow Insecure TLS
+------------------
+
+When TLS is enabled, the {+driver-short+} automatically verifies the certificate that
+the server presents. When testing your code, you can disable this verification.
+This is known as *insecure TLS.*
+
+When insecure TLS is enabled, the driver requires only that the server present an
+X.509 certificate. The driver accepts a certificate even if any of the following are
+true: 
+
+- The hostname of the server and the subject name (or subject alternative name) 
+  on the certificate don't match.
+- The certificate is expired or not yet valid. 
+- The certificate doesn't have a trusted root certificate in the chain. 
+- The certificate purpose isn't valid for server identification.
+
+.. note::
+
+   Even when insecure TLS is enabled, communication between the client and server
+   is encrypted with TLS.
+
+To enable insecure TLS, set the ``tlsInsecure`` connection
+option to ``true`` in your connection string, as shown in the following code example:
+
+.. code-block:: cpp
+
+   mongocxx::uri uri("mongodb://<hostname>:<port>/?tls=true&tlsInsecure=true");
+
+To disable only certificate validation, set the ``tlsAllowInvalidCertificates`` option to
+``true``, and set the ``tlsInsecure`` option to ``false`` (or omit it):
+
+.. include:: /includes/connect/disable-cert-validation-tabs.rst
+
+To disable only hostname verification, set the ``tlsAllowInvalidHostnames`` option to
+``true``, and set the ``tlsInsecure`` option to ``false`` (or omit it):
+
+.. code-block:: cpp
+
+   mongocxx::uri uri("mongodb://<hostname>:<port>/?tls=true&tlsAllowInvalidHostnames=true");
+
+.. warning:: Don't Use in Production
+
+   Always set the ``tlsInsecure``, ``tlsAllowInvalidCertificates``, and
+   ``tlsAllowInvalidHostnames`` options to ``false`` in production.
+   
+   Setting any of these options to ``true`` in a production environment makes
+   your application insecure and potentially
+   vulnerable to expired certificates and to foreign processes posing
+   as valid client instances.
+
+API Documentation
+-----------------
+
+To learn more about configuring TLS for the {+driver-short+},
+see the following API documentation:
+
+- `mongocxx::client <{+api+}/classmongocxx_1_1v__noabi_1_1client.html>`__ 
+- `mongocxx::uri <{+api+}/classmongocxx_1_1v__noabi_1_1uri.html>`__ 
+- `mongocxx::instance <{+api+}/classmongocxx_1_1v__noabi_1_1instance.html>`__ 
+- `mongocxx::options::client <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1client.html>`__
+- `mongocxx::options::tls <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1tls.html>`__

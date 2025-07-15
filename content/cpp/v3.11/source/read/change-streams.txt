@@ -1,0 +1,271 @@
+.. _cpp-change-streams:
+
+====================
+Monitor Data Changes
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: watch, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use a **change stream** to monitor real-time
+changes to your database. A change stream is a {+mdb-server+} feature that
+allows your application to subscribe to data changes on a collection, database,
+or deployment.
+
+When using the {+driver-short+}, you can instantiate a ``mongocxx::change_stream`` to
+monitor data changes.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your C++ application, instantiate a ``mongocxx::client`` that connects to an Atlas cluster
+and assign the following values to your ``db`` and ``collection`` variables:
+
+.. literalinclude:: /includes/read/change-streams.cpp
+    :language: cpp
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Open a Change Stream
+--------------------
+
+To open a change stream, call the ``watch()`` method. The instance on which you
+call the ``watch()`` method on determines the scope of events that the change
+stream listens for. You can call the ``watch()`` method on the following
+classes:
+
+- ``mongocxx::client``: Monitor all changes in the MongoDB deployment
+- ``mongocxx::database``: Monitor changes in all collections in the database
+- ``mongocxx::collection``: Monitor changes in the collection
+
+The following example opens a change stream on the ``restaurants`` collection
+and outputs changes as they occur:
+
+.. literalinclude:: /includes/read/change-streams.cpp
+   :start-after: start-open-change-stream
+   :end-before: end-open-change-stream
+   :language: cpp
+   :dedent:
+
+To begin watching for changes, run the preceding code. Then, in a separate
+application or shell, modify the ``restaurants`` collection. The following
+example updates a document that has a ``name`` field value of ``Blarney Castle``:
+
+.. _cpp-change-stream-update:
+
+.. literalinclude:: /includes/read/change-streams.cpp
+   :start-after: start-update-for-change-stream
+   :end-before: end-update-for-change-stream
+   :language: cpp
+   :dedent:
+
+When you update the collection, the change stream application prints the change
+as it occurs. The printed change event resembles the following output:
+
+.. code-block:: bash
+   :copyable: false
+
+   { "_id" : { "_data" : "..." }, "operationType" : "update", "clusterTime" : 
+   { "$timestamp" : { ... }, "wallTime" : { "$date" : ... }, "ns" : 
+   { "db" : "sample_restaurants", "coll" : "restaurants" }, "documentKey" : 
+   { "_id" : { "$oid" : "..." } }, "updateDescription" : { "updatedFields" :
+   { "cuisine" : "Irish" }, "removedFields" : [  ], "truncatedArrays" : [  ] } }
+
+Modify the Change Stream Output
+-------------------------------
+
+You can pass a ``mongocxx::pipeline`` instance as an argument to the ``watch()`` method
+to modify the change stream output. The following list includes some of the ``mongocxx::pipeline``
+fields you can set by calling their corresponding setter methods:
+
+- ``add_fields``: Adds new fields to documents
+- ``match``: Filters the documents
+- ``project``: Projects a subset of the document fields
+- ``redact``: Restricts the contents of the documents
+- ``group``: Groups documents by a specified expression
+- ``merge``: Outputs the results to a collection
+
+.. tip::
+
+   For a full list of ``mongocxx::pipeline`` fields, see the `mongocxx::pipeline
+   <{+api+}/classmongocxx_1_1v__noabi_1_1pipeline.html>`__ API documentation.
+
+The following example sets the ``match`` field of a ``mongocxx::pipeline`` instance,
+then passes the pipeline to the ``watch()`` method. This instructs the ``watch()`` method
+to output only update operations:
+
+.. literalinclude:: /includes/read/change-streams.cpp
+   :start-after: start-change-stream-pipeline
+   :end-before: end-change-stream-pipeline
+   :language: cpp
+   :dedent:
+
+Modify ``watch()`` Behavior
+---------------------------
+
+You can modify the behavior of the ``watch()`` method by passing an instance
+of the ``mongocxx::options::change_stream`` class as a parameter. The following table
+describes the fields you can set in a ``mongocxx::options::find`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``full_document``
+     - | Specifies whether to show the full document after the change, rather
+         than showing only the changes made to the document. To learn more about
+         this option, see :ref:`cpp-change-stream-pre-post-image`.
+
+   * - ``full_document_before_change``
+     - | Specifies whether to show the full document as it was before the change, rather
+         than showing only the changes made to the document. To learn more about
+         this option, see :ref:`cpp-change-stream-pre-post-image`.
+    
+   * - ``resume_after``
+     - | Instructs ``watch()`` to resume returning changes after the
+         operation specified in the resume token.
+       | Each change stream event document includes a resume token as the ``_id``
+         field. Pass the entire ``_id`` field of the change event document that
+         represents the operation you want to resume after.
+       | ``resume_after`` is mutually exclusive with ``start_after`` and ``start_at_operation_time``.
+
+   * - ``start_after``
+     - | Instructs ``watch()`` to start a new change stream after the
+         operation specified in the resume token. This field allows notifications to
+         resume after an invalidate event.
+       | Each change stream event document includes a resume token as the ``_id``
+         field. Pass the entire ``_id`` field of the change event document that
+         represents the operation you want to resume after.
+       | ``start_after`` is mutually exclusive with ``resume_after`` and ``start_at_operation_time``.
+       
+   * - ``start_at_operation_time``
+     - | Instructs ``watch()`` to return only events that occur after the
+         specified timestamp.
+       | ``start_at_operation_time`` is mutually exclusive with ``resume_after`` and ``start_after``.
+
+   * - ``max_await_time_ms``
+     - | Sets the maximum amount of time, in milliseconds, the server waits for new
+         data changes to report to the change stream cursor before returning an
+         empty batch. Defaults to 1000 milliseconds.
+
+   * - ``batch_size``
+     - | Sets the maximum number of change events to return in each batch of the
+         response from the MongoDB cluster.
+
+   * - ``collation``
+     - | Sets the collation to use for the change stream cursor.
+
+   * - ``comment``
+     - | Attaches a comment to the operation.
+
+.. _cpp-change-stream-pre-post-image:
+
+Include Pre-Images and Post-Images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   You can enable pre-images and post-images on collections only if your
+   deployment uses MongoDB v6.0 or later.
+
+By default, when you perform an operation on a collection, the
+corresponding change event includes only the delta of the fields
+modified by that operation. To see the full document before or after a
+change, specify the ``full_document_before_change`` or the ``full_document``
+fields of a ``mongocxx::options::change_stream`` instance.
+
+The **pre-image** is the full version of a document *before* a change. To include the
+pre-image in the change stream event, set the ``full_document_before_change``
+field to one of the following strings:
+
+- ``"whenAvailable"``: The change event includes a pre-image of the
+  modified document for change events only if the pre-image is available.
+- ``"required"``: The change event includes a pre-image of the
+  modified document for change events. If the pre-image is not available, the
+  driver raises an error.
+
+The **post-image** is the full version of a document *after* a change. To include the
+post-image in the change stream event, set the ``full_document`` field to
+one of the following strings:
+
+- ``"updateLookup"``: The change event includes a copy of the entire changed
+  document from some time after the change.
+- ``"whenAvailable"``: The change event includes a post-image of the
+  modified document for change events only if the post-image is available.
+- ``"required"``: The change event includes a post-image of the
+  modified document for change events. If the post-image is not available, the
+  driver raises an error.
+
+The following example calls the ``watch()`` method on a collection and includes the post-image
+of updated documents by setting the ``full_document`` field of a ``mongocxx::options::change_stream``
+instance:
+
+.. literalinclude:: /includes/read/change-streams.cpp
+   :start-after: start-change-stream-post-image
+   :end-before: end-change-stream-post-image
+   :language: cpp
+   :dedent:
+
+With the change stream application running, updating a document in the
+``restaurants`` collection by using the :ref:`preceding update example
+<cpp-change-stream-update>` prints a change event resembling the following
+code:
+
+.. code-block:: bash
+   :copyable: false
+   :emphasize-lines: 3,4,5,6
+
+   { "_id" : { "_data" : "..." }, "operationType" : "update", "clusterTime" :
+   { "$timestamp" : { ... } }, "wallTime" : { "$date" : ... },
+   "fullDocument" : { "_id" : { "$oid" : "..." }, "address" : { "building" : "202-24",
+   "coord" : [ -73.925044200000002093, 40.559546199999999772 ], "street" :
+   "Rockaway Point Boulevard", "zipcode" : "11697" }, "borough" : "Queens", "cuisine" :
+   "Irish", "grades" : [ ... ], "name" : "Blarney Castle", "restaurant_id" : "40366356" },
+   "ns" : { "db" : "sample_restaurants", "coll" : "restaurants" }, "documentKey" :
+   { "_id" : { "$oid" : "..." } }, "updateDescription" : { "updatedFields" :
+   { "cuisine" : "Irish" }, "removedFields" : [  ], "truncatedArrays" : [  ] } }
+
+.. tip::
+
+   To learn more about pre-images and post-images, see 
+   :manual:`Change Streams with Document Pre- and Post-Images </changeStreams#change-streams-with-document-pre--and-post-images>` 
+   in the {+mdb-server+} manual.
+
+Additional Information
+----------------------
+
+To learn more about change streams, see :manual:`Change Streams
+</changeStreams>` in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `watch() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#a1618a354ef5a84299e3680e02636e64e>`__
+- `update_one() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#ab7dc140185de1492c52187b19e83d736>`__
+- `mongocxx::pipeline <{+api+}/classmongocxx_1_1v__noabi_1_1pipeline.html>`__
+- `mongocxx::options::change_stream <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1change__stream.html>`__
