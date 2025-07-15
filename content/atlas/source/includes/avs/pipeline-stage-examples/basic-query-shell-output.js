@@ -1,52 +1,52 @@
 [
   {
-    plot: 'A reporter, learning of time travelers visiting 20th century disasters, tries to change the history they know by averting upcoming disasters.',
-    title: 'Thrill Seekers',
-    score: 0.7892671227455139
-  },
-  {
     plot: 'At the age of 21, Tim discovers he can travel in time and change what happens and has happened in his own life. His decision to make his world a better place by getting a girlfriend turns out not to be as easy as you might think.',
     title: 'About Time',
-    score: 0.7843604683876038
+    score: 0.7710106372833252
   },
   {
-    plot: 'Hoping to alter the events of the past, a 19th century inventor instead travels 800,000 years into the future, where he finds humankind divided into two warring races.',
-    title: 'The Time Machine',
-    score: 0.7801066637039185
-  },
-  {
-    plot: "After using his mother's newly built time machine, Dolf gets stuck involuntary in the year 1212. He ends up in a children's crusade where he confronts his new friends with modern techniques...",
-    title: 'Crusade in Jeans',
-    score: 0.7789170742034912
-  },
-  {
-    plot: 'An officer for a security agency that regulates time travel, must fend for his life against a shady politician who has a tie to his past.',
-    title: 'Timecop',
-    score: 0.7771612405776978
+    plot: 'A psychiatrist makes multiple trips through time to save a woman that was murdered by her brutal husband.',
+    title: 'Retroactive',
+    score: 0.760047972202301
   },
   {
     plot: 'A time-travel experiment in which a robot probe is sent from the year 2073 to the year 1973 goes terribly wrong thrusting one of the project scientists, a man named Nicholas Sinclair into a...',
     title: 'A.P.E.X.',
-    score: 0.7730885744094849
+    score: 0.7576861381530762
   },
   {
-    plot: "Agent J travels in time to M.I.B.'s early days in 1969 to stop an alien from assassinating his friend Agent K and changing history.",
-    title: 'Men in Black 3',
-    score: 0.7712380886077881
+    plot: 'An officer for a security agency that regulates time travel, must fend for his life against a shady politician who has a tie to his past.',
+    title: 'Timecop',
+    score: 0.7576561570167542
   },
   {
-    plot: 'Bound by a shared destiny, a teen bursting with scientific curiosity and a former boy-genius inventor embark on a mission to unearth the secrets of a place somewhere in time and space that exists in their collective memory.',
-    title: 'Tomorrowland',
-    score: 0.7669923901557922
+    plot: 'After visiting 2015, Marty McFly must repeat his visit to 1955 to prevent disastrous changes to 1985... without interfering with his first trip.',
+    title: 'Back to the Future Part II',
+    score: 0.7521393895149231
   },
   {
-    plot: 'With the help of his uncle, a man travels to the future to try and bring his girlfriend back to life.',
-    title: 'Love Story 2050',
-    score: 0.7649372816085815
+    plot: 'A reporter, learning of time travelers visiting 20th century disasters, tries to change the history they know by averting upcoming disasters.',
+    title: 'Thrill Seekers',
+    score: 0.7509932518005371
   },
   {
-    plot: 'A dimension-traveling wizard gets stuck in the 21st century because cell-phone radiation interferes with his magic. With his home world on the brink of war, he seeks help from a jaded ...',
-    title: 'The Portal',
-    score: 0.7640786170959473
+    plot: 'Lyle, a motorcycle champion is traveling the Mexican desert, when he find himself in the action radius of a time machine. So he find himself one century back in the past between rapists, ...',
+    title: 'Timerider: The Adventure of Lyle Swann',
+    score: 0.7502642869949341
+  },
+  {
+    plot: 'Hoping to alter the events of the past, a 19th century inventor instead travels 800,000 years into the future, where he finds humankind divided into two warring races.',
+    title: 'The Time Machine',
+    score: 0.7502503395080566
+  },
+  {
+    plot: 'A romantic drama about a Chicago librarian with a gene that causes him to involuntarily time travel, and the complications it creates for his marriage.',
+    title: "The Time Traveler's Wife",
+    score: 0.749496340751648
+  },
+  {
+    plot: 'A modern aircraft carrier is thrown back in time to 1941 near Hawaii, just hours before the Japanese attack on Pearl Harbor.',
+    title: 'The Final Countdown',
+    score: 0.7469133734703064
   }
 ]

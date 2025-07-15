@@ -28,6 +28,6 @@
       Run the ``atlasVectorSearchQuery.kt`` file in your IDE.
       The output should resemble the following:
 
-      .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js
+      .. literalinclude:: /includes/avs/tutorial/basic-query-kotlin-output.js
          :language: js
          :linenos:

@@ -13,11 +13,10 @@
      <avs-types-vector-search>` type for 
      the following fields: 
      
-     - ``plot_embedding`` field as the :ref:`vector
-       <avs-types-vector-search>` type. The ``plot_embedding`` field
-       contains embeddings created using OpenAI's
-       ``text-embedding-ada-002`` embedding model. The index
-       definition specifies ``1536`` vector dimensions and
+     - ``plot_embedding_voyage_3_large`` field as the :ref:`vector
+       <avs-types-vector-search>` type. The ``plot_embedding_voyage_3_large`` field 
+       contains embeddings created using |voyage|'s ``voyage-3-large`` embedding model. 
+       The index definition specifies ``2048`` vector dimensions and
        measures similarity using ``dotProduct``. 
      - ``genres`` field as the :ref:`filter <avs-types-vector-search>`
        type for pre-filtering data by string values in the field.
@@ -29,7 +28,11 @@
         .. tab:: Visual Editor 
            :tabid: vib 
 
-           .. include:: /includes/avs/shared/avs-vib-description-short.rst
+           |service| automatically detects fields that contain vector embeddings,
+           as well as their corresponding dimensions. For the |avs-namespace|
+           collection, the |embedding-field-name| and |voyage-embedding-field|
+           fields displays. For this tutorial, you need to index only
+           the |voyage-embedding-field| field. 
 
            .. include:: /includes/avs/extracts/steps-avs-index-quantization-filters.rst
             
@@ -46,8 +49,8 @@
                 "fields": [
                   {
                     "type": "vector",
-                    "path": "plot_embedding",
-                    "numDimensions": 1536,
+                    "path": "plot_embedding_voyage_3_large",
+                    "numDimensions": 2048,
                     "similarity": "dotProduct",
                     "quantization": "scalar"
                   },
