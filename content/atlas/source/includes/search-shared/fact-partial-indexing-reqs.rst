@@ -5,16 +5,25 @@ You must use:
 
 - MongoDB 8.0 or higher.
 
-During the Preview period, you must use:
 
-- {+mongosh+} or :compass:`Compass </>` to create and manage MongoDB 
-  Views.
+- On MongoDB v8.0+:
 
-- {+atlas-ui+} and the {+atlas-admin-api+} to create
-  |product-name| indexes on Views.  Support for {+mongosh+}, 
-  :compass:`Compass </>`, and :driver:`Drivers </>` will be available 
-  when this feature is Generally Available.
+  - Use the {+atlas-ui+} or the {+atlas-admin-api+} to create
+    |product-name| indexes on Views.  
 
+  - Run the |product-name| queries against the source collection. Reference the |product-name| index that was created on the View. These queries return the original documents as they appear in the source collection.
+
+- On MongoDB v8.1+, you can additionally: 
+
+  - Use {+mongosh+} and :driver:`Driver </>` methods,
+    :method:`db.collection.createSearchIndex()`,
+    :method:`db.collection.updateSearchIndex()`, 
+    :method:`db.collection.dropSearchIndex()`, and
+    :pipeline:`$listSearchIndexes` to create and manage |product-name| 
+    indexes on Views. 
+
+  - Run the |product-name| queries against the View.
+ 
 To edit a View, you must have a :ref:`User Admin <create-user-admin>` 
 role and use the :dbcommand:`collMod` database command.
 
