@@ -3,7 +3,7 @@ db.embedded_movies.aggregate([
     "$vectorSearch": {
       "index": "vector_index",
       "path": "plot_embedding_voyage_3_large",
-      "queryVector": TIME_TRAVEL_EMBEDDINGS,
+      "queryVector": TIME_TRAVEL_EMBEDDING,
       "numCandidates": 150,
       "limit": 10,
       "quantization": "scalar"

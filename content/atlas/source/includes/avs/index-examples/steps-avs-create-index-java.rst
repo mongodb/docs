@@ -38,7 +38,7 @@
         ``filter`` type in an {+avs+} index.
       - Specifies the ``plot_embedding_voyage_3_large`` field as the
         vector embeddings field, which contains embeddings created using
-        |voyage|'s ``voyage-3-large`` embeddings model. 
+        |voyage|'s ``voyage-3-large`` embedding model. 
       - Specifies ``2048`` vector dimensions and measures similarity
         using ``dotProduct`` function. 
 

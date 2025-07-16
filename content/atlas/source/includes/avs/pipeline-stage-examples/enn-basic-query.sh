@@ -3,7 +3,7 @@ db.embedded_movies.aggregate([
     "$vectorSearch": {
       "index": "vector_index",
       "path": "plot_embedding_voyage_3_large",
-      "queryVector": WORLD_WAR_EMBEDDINGS,
+      "queryVector": WORLD_WAR_EMBEDDING,
       "exact": true,
       "limit": 10
     }

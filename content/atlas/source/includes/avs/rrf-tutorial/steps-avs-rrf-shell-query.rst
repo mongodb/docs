@@ -45,7 +45,7 @@
 
       .. code-block:: shell 
 
-         load('<path-to-file>/embeddings.js');
+         load('/<path-to-file>/embeddings.js');
 
       To verify that the embeddings loaded successfully, run the
       following command: 

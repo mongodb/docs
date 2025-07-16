@@ -34,7 +34,7 @@
          that contains your data source from the list.
       #. Click :guilabel:`Next`. 
       
-         {+aws-bedrock+} displays available embeddings models that you can use to 
+         {+aws-bedrock+} displays available embedding models that you can use to 
          convert your data source's text data into vector embeddings. 
          
       #. Select the :guilabel:`Titan Embeddings G1 - Text` model.

@@ -14,7 +14,7 @@
 
             .. include:: /includes/avs/extracts/fts-vector-search-tutorial-simple-query-desc.rst
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-and-query.java  
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-and-query.java  
                :language: java
                :linenos:
                :dedent:
@@ -26,7 +26,7 @@
 
             .. include:: /includes/avs/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-or-and-query.java  
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query.java  
                :language: java
                :linenos:
                :dedent:
@@ -54,7 +54,7 @@
                   javac AtlasVectorSearchTutorial.java
                   java AtlasVectorSearchTutorial
 
-               .. output:: /includes/avs/tutorial/filter-by-and-query-java-output.js
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-and-query-java-output.js
                   :language: json 
                   :linenos:
                   :visible: true
@@ -71,7 +71,7 @@
                   javac AtlasVectorSearchTutorial.java
                   java AtlasVectorSearchTutorial
 
-               .. output:: /includes/avs/tutorial/filter-by-or-and-query-java-output.js
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query-java-output.js
                   :language: json 
                   :linenos:
                   :visible: true

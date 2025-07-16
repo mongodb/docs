@@ -14,7 +14,7 @@
 
             .. include:: /includes/avs/extracts/fts-vector-search-tutorial-simple-query-desc.rst
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-and-query.go
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-and-query.go
                :language: go
                :linenos:
                :dedent:
@@ -26,7 +26,7 @@
 
             .. include:: /includes/avs/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-or-and-query.go
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query.go
                :language: go
                :linenos:
                :dedent:
@@ -53,7 +53,7 @@
 
                   go run AtlasVectorSearchTutorial.go
 
-               .. output:: /includes/avs/tutorial/filter-by-and-query-go-output.sh
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-and-query-go-output.sh
                   :language: shell
                   :linenos:
                   :visible: true
@@ -69,7 +69,7 @@
 
                   go run AtlasVectorSearchTutorial.go
 
-               .. output:: /includes/avs/tutorial/filter-by-or-and-query-go-output.sh
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query-go-output.sh
                   :language: shell
                   :linenos:
                   :visible: true

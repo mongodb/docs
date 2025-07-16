@@ -14,7 +14,7 @@
 
             .. include:: /includes/avs/extracts/fts-vector-search-tutorial-simple-query-desc.rst
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-and-query.js
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-and-query.js
                :language: js
                :linenos:
                :dedent:
@@ -25,7 +25,7 @@
 
             .. include:: /includes/avs/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-or-and-query.js
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query.js
                :language: js
                :linenos:
                :dedent:
@@ -54,7 +54,7 @@
      
                   node atlas-vector-search-tutorial.js
         
-               .. output:: /includes/avs/tutorial/filter-by-and-query-nodejs-output.js 
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-and-query-nodejs-output.js 
                   :language: json
                   :visible: true
 
@@ -69,6 +69,6 @@
      
                   node atlas-search-tutorial.js
         
-               .. output:: /includes/avs/tutorial/filter-by-or-and-query-nodejs-output.js 
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query-nodejs-output.js 
                   :language: json
                   :visible: true        

@@ -1,11 +1,27 @@
 .. procedure::
    :style: normal
 
+   .. step:: Prepare your query embeddings.
+
+      Save the following embeddings in a file named ``query-embeddings.js``:
+
+      .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-embeddings.js 
+         :language: javascript
+         :copyable: true 
+
    .. step:: Connect to your |service| {+cluster+} using {+mongosh+}. 
 
       Open a terminal window and connect to your {+cluster+} by using
-      {+mongosh+}. To learn more, see :ref:`connect-mongo-shell`. 
+      {+mongosh+}. To learn more, see :ref:`connect-mongo-shell`.  
+   
+   .. step:: Load the query embeddings into {+mongosh+}. 
 
+      Load the file into {+mongosh+} to use the embeddings in your query:
+   
+      .. code-block:: javascript 
+
+         load('/<path-to-file>/query-embeddings.js');
+         
    .. step:: Switch to your database. 
       
       .. example:: 

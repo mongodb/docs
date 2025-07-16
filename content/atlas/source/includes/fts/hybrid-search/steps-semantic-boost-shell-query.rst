@@ -47,7 +47,7 @@
 
       .. code-block:: shell 
 
-         load('<path-to-query-embeddings.js-file>');
+         load('<path-to-file>/query-embeddings.js');
 
    .. step:: Run the following |fts| queries against the ``embedded_movies`` collection.
 

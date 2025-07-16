@@ -2,11 +2,11 @@
   {
     "$vectorSearch": {
       "index": "vector_index",
-      "path": "plot_embedding",
+      "path": "plot_embedding_voyage_3_large",
       "filter": {
         "$and": [{
           "genres": { 
-            "$nin": ["Drama", "Western", "Crime"] ,
+            "$nin": ["Drama", "Western", "Crime"],
             "$in": ["Action", "Adventure", "Family"]
           }, 
         }, {

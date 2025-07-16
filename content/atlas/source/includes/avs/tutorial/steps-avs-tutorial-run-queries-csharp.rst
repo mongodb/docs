@@ -68,7 +68,7 @@
 
                   dotnet run query_quick_start.csproj
 
-               .. output:: /includes/avs/tutorial/filter-by-and-query-csharp-output.sh
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-and-query-csharp-output.sh
                   :language: shell
                   :linenos:
                   :visible: true
@@ -84,7 +84,7 @@
 
                   dotnet run query_quick_start.csproj
 
-               .. output:: /includes/avs/tutorial/filter-by-or-and-query-csharp-output.sh
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query-csharp-output.sh
                   :language: shell
                   :linenos:
                   :visible: true

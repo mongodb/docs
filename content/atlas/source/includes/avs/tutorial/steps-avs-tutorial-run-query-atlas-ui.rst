@@ -32,11 +32,11 @@
             .. io-code-block::
                :copyable: true
    
-               .. input:: /includes/avs/tutorial/filter-by-and-query-ui.js 
+               .. input:: /includes/avs/tutorial/semantic-search/filter-by-and-query-ui.js 
                   :language: json
                   :linenos:
 
-               .. output:: /includes/avs/tutorial/filter-by-and-query-ui-output.js
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-and-query-ui-output.js
                   :language: javascript
                   :linenos:
 
@@ -48,11 +48,11 @@
             .. io-code-block::
                :copyable: true
    
-               .. input:: /includes/avs/tutorial/filter-by-or-and-query-ui.js
+               .. input:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query-ui.js
                   :language: json
                   :linenos:
 
-               .. output:: /includes/avs/tutorial/filter-by-or-and-query-ui-output.js
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query-ui-output.js
                   :language: javascript
                   :linenos:
 

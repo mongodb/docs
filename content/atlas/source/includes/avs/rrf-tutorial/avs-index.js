@@ -16,8 +16,8 @@ async function run() {
             "fields": [
               {
                 "type": "vector",
-                "numDimensions": 1536,
-                "path": "plot_embedding",
+                "numDimensions": 2048,
+                "path": "plot_embedding_voyage_3_large",
                 "similarity": "dotProduct"
               }
             ]

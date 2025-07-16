@@ -21,7 +21,7 @@
 
       .. code-block:: shell 
 
-         load('<path-to-file>/query-embeddings.js')
+         load('/<path-to-file>/query-embeddings.js')
 
       You can verify if the file loaded properly by running the following
       command: 

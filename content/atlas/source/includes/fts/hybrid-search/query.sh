@@ -8,8 +8,8 @@ vectorResults = db.embedded_movies.aggregate([
     {  
         $vectorSearch: {  
             index: "hybrid-vector-search", 
-            path: "plot_embedding",
-            queryVector: QUERY_EMBEDDING,   
+            path: "plot_embedding_voyage_3_large",
+            queryVector: STAR_WARS_EMBEDDING,
             numCandidates: numCandidates,   
             limit: numResults  
         }  

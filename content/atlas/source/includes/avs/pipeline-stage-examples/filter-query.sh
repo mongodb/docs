@@ -13,7 +13,7 @@ db.embedded_movies.aggregate([
           }
         ]
       },
-      "queryVector": KIDS_ADVENTURE_EMBEDDINGS,
+      "queryVector": KIDS_ADVENTURE_EMBEDDING,
       "numCandidates": 150,
       "limit": 10
     }

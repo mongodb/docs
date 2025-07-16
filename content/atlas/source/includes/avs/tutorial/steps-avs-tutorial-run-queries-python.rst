@@ -18,7 +18,7 @@
                NOTE: If you edit this Python file, also update the Jupyter Notebook
                at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-filter.ipynb
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-and-query.py
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-and-query.py
                :language: js
                :linenos:
                :dedent:
@@ -33,7 +33,7 @@
                NOTE: If you edit this Python file, also update the Jupyter Notebook
                at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-or-filter.ipynb
 
-            .. literalinclude:: /includes/avs/tutorial/filter-by-or-and-query.py
+            .. literalinclude:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query.py
                :language: js
                :linenos:
                :dedent:
@@ -60,7 +60,7 @@
      
                   python atlas-vector-search-tutorial.py
         
-               .. output:: /includes/avs/tutorial/filter-by-and-query-python-output.js 
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-and-query-python-output.js 
                   :language: json
                   :visible: true
 
@@ -75,6 +75,6 @@
      
                   python atlas-vector-search-tutorial.py
         
-               .. output:: /includes/avs/tutorial/filter-by-or-and-query-python-output.js 
+               .. output:: /includes/avs/tutorial/semantic-search/filter-by-or-and-query-python-output.js 
                   :language: json
                   :visible: true      

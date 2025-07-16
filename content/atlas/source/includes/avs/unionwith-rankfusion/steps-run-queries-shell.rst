@@ -84,7 +84,7 @@
             .. input:: 
                :language: javascript 
 
-               load('<path-to-file>/embeddings.js';
+               load('/<path-to-file>/embeddings.js';
 
             .. output:: 
                :language: javascript 
