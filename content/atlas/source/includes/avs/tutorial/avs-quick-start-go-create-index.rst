@@ -31,7 +31,7 @@ a. Initialize your Go module:
 
    This code also includes a polling mechanism to check if the index is ready to use.
 
-#. Specify the ``<connection-string>``.
+#. Specify the ``<connectionString>``.
 
    .. include:: /includes/steps-connection-string-drivers-hidden.rst
 

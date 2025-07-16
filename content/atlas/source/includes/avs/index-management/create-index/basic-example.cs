@@ -8,7 +8,7 @@ using System.Threading;
 public class IndexService
 {
     // Replace the placeholder with your Atlas connection string
-    private const string MongoConnectionString = "<connection-string>";
+    private const string MongoConnectionString = "<connectionString>";
     public void CreateVectorIndex()
     {
         try

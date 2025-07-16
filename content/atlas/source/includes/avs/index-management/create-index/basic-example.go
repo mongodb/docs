@@ -15,7 +15,7 @@ func main() {
 	ctx := context.Background()
 
 	// Replace the placeholder with your Atlas connection string
-	const uri = "<connection-string>"
+	const uri = "<connectionString>"
 
 	// Connect to your Atlas cluster
 	clientOptions := options.Client().ApplyURI(uri)

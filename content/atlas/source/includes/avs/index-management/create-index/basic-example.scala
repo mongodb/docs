@@ -5,7 +5,7 @@ import com.mongodb.client.model.SearchIndexType
 class VectorIndex {
   def createIndex(): Unit = {
     val collection =
-      MongoClient("<connection-string>")
+      MongoClient("<connectionString>")
         .getDatabase("sample_mflix")
         .getCollection("embedded_movies")
     val indexName = "vector_index"

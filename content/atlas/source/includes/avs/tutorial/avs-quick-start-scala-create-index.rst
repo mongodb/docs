@@ -29,7 +29,7 @@ a. Install the MongoDB Scala Driver.
 
    This code also includes a polling mechanism to check if the index is ready to use.
 
-#. Specify the ``<connection-string>``.
+#. Specify the ``<connectionString>``.
 
    .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
