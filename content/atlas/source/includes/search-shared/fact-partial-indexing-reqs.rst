@@ -1,10 +1,7 @@
 Requirements
 ------------
 
-You must use:
-
-- MongoDB 8.0 or higher.
-
+You must use MongoDB 8.0 or higher.
 
 - On MongoDB v8.0+:
 
