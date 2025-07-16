@@ -1,0 +1,135 @@
+.. _rm-example-refactor-litigation-domain:
+
+==============================
+Refactor the Litigation Domain
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Litigations may have several parties involved, in which each party plays a 
+specific role with an associated claim. Since the Claim and Litigation domains 
+are closely related, we will embed fields in the claim domain apart from its 
+identifier. This way, we can have a snapshot of the claim details at the time 
+the litigation was made, so even if the claim details change, we won’t lose the 
+original claim data associated with the litigation.
+
+About this Task 
+---------------
+
+The Litigation domain includes the following key entities:
+
+- **Litigation**: Claim litigation 
+- **Litigation Party Role**: An associative entity which links the following 
+  entities:
+
+  - Claims
+  - Party Roles
+  - Insurable Objects
+
+- **Insurable Object Party Role**: An associative entity which links the 
+  following entities:
+
+  - Party
+  - Party Roles
+  - Insurable Objects
+
+The relationship between litigations and parties are the facilitated through 
+the ``litigation_party_role`` table, which we will represent in MongoDB by using 
+an embedded array. 
+
+Before You Begin
+----------------
+
+Refactoring the Litigation domain is the fifth step of the 
+:ref:`insurance data model example tutorial <rm-example-insurance-data>`. Before 
+you refactor the Litigation domain, ensure that you:
+
+- :ref:`Connected to your PostgreSQL database <rm-example-connect>` in 
+  {+rel-mig+}.
+
+- :ref:`Refactored the Party domain <rm-example-refactor-party-domain>`.
+
+- :ref:`Refactored the Policy domain <rm-example-refactor-policy-domain>`.
+
+- :ref:`Refactored the Claim domain <rm-example-refactor-claim-domain>`.
+
+Steps 
+-----
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: From the MongoDB view, click the litigation document
+
+      On the right side of the screen, the :guilabel:`Mappings` menu opens.
+
+   .. step:: Add mappings for the litigation_party_role table 
+
+      Next to :guilabel:`Mappings from relational tables`, click :guilabel:`Add`. 
+      Click :guilabel:`Embedded array` and select 
+      :guilabel:`litigation_party_role` from the :guilabel:`Source table` 
+      drop-down menu. 
+      
+      Under the :guilabel:`All fields` checkbox, uncheck the 
+      ``litigationIdentifier`` field and click :guilabel:`Save and close`.
+
+   .. step:: Add mappings for the the claim table
+
+      Next to :guilabel:`Mappings from relational tables`, click :guilabel:`Add` 
+      and select :guilabel:`Embedded documents`. Choose :guilabel:`claim` from 
+      the :guilabel:`Source table` drop-down menu. 
+      
+      Click :guilabel:`Save and close`.
+
+   .. step:: Add mappings for the insurable_object table
+
+      Next to :guilabel:`Mappings from relational tables`, click :guilabel:`Add` 
+      and select :guilabel:`Embedded documents`. Choose 
+      :guilabel:`insurable_object` from the :guilabel:`Source table` drop-down 
+      menu. Ensure that the :guilabel:`Root path` prefix is set to 
+      :guilabel:`litigationPartyRoles.claim`.
+      
+      Click :guilabel:`Save and close`.
+
+   .. step:: Add mappings for the insurable_object_party_role table
+
+      Next to :guilabel:`Mappings from relational tables`, click :guilabel:`Add` 
+      and select :guilabel:`Embedded array`. Choose 
+      :guilabel:`insurable_object_party_role` from the :guilabel:`Source table` 
+      drop-down menu. Ensure that the :guilabel:`Root path` prefix is set to 
+      :guilabel:`litigationPartyRoles.claim.insurableObjects`.
+      
+      Click :guilabel:`Save and close`.
+
+   .. step:: Remove collections that are no longer needed
+
+        Now that you mapped all the necessary tables to the ``litigation`` 
+        document, you can delete the following collections from the MongoDB view 
+        of {+rel-mig+}:
+    
+        - ``agreementPartyRole``
+        - ``litigationPartyRole``
+        - ``insurableObject``
+        - ``insurableObjectPartyRole``
+        - ``locationAddress``
+        - ``insurableObjectParty``
+
+You have modeled the entire relationship schema in just five collections: 
+
+- ``party``
+- ``partyRole``
+- ``policy``
+- ``claim``
+- ``litigation``
+
+Next Steps
+----------
+
+Now that you completed your model, you need to :ref:`migrate the data 
+<rm-example-insurance-migrate-data>` to your MongoDB instance. 

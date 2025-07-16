@@ -1,0 +1,119 @@
+.. _rm-example-refactor-claim-domain:
+
+=========================
+Refactor the Claim Domain
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In this step, you will refactor the Claim domain by adding mappings for 
+each related table in the relational database and embedding all claim-related 
+information under a single MongoDB ``claim`` document. Since the Claim and 
+Litigation domains are closely related, you will also recreate the many-to-many 
+relationship between the two domains by referencing the Litigation entity 
+from the ``claim`` document.
+
+About this Task 
+---------------
+
+The Claim domain includes the following key entities:
+
+- **Claim**: Claim for coverage or compensation
+- **Claim Party Role**: An associative entity which links the following entities:
+
+  - Party
+  - Party Roles
+  - Insurable Objects
+
+- **Insurable Object Party Role**: An associative entity which links the 
+  following entities:
+
+  - Party
+  - Party Roles
+  - Insurable Objects
+
+Before You Begin
+----------------
+
+Refactoring the Claim & Litigation domain is the fourth step of the 
+:ref:`insurance data model example tutorial <rm-example-insurance-data>`. Before 
+you refactor the Claim & Litigation domain, ensure that you:
+
+- :ref:`Connected to your PostgreSQL database <rm-example-connect>` in 
+  {+rel-mig+}.
+
+- :ref:`Refactored the Party domain <rm-example-refactor-party-domain>`.
+
+- :ref:`Refactored the Policy domain <rm-example-refactor-policy-domain>`.
+
+Steps 
+-----
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: From the MongoDB view, click the claim document
+
+      On the right side of the screen, the :guilabel:`Mappings` menu opens.
+
+   .. step:: Add mappings for the claim_party_role table 
+
+      Next to :guilabel:`Mappings from relational tables`, click 
+      :guilabel:`Add`. Click :guilabel:`Embedded array` and select 
+      :guilabel:`claim_party_role` from the :guilabel:`Source table` drop-down 
+      menu. 
+      
+      Under the :guilabel:`All fields` checkbox, uncheck the 
+      ``claimIdentifier`` field and click :guilabel:`Save and close`.
+
+   .. step:: Add mappings for the the insurable_object table under the claim document 
+
+      Next to :guilabel:`Mappings from relational tables`, click :guilabel:`Add` 
+      and select :guilabel:`Embedded documents`. Choose 
+      :guilabel:`insurable_object` from the :guilabel:`Source table` drop-down 
+      menu. 
+      
+      Click :guilabel:`Save and close`.
+
+   .. step:: Embed the policy_coverage_detail table within insurableObject
+
+      Policy coverage details help establish the link between claims and 
+      policies. To embed the information from the ``policy_coverage_detail`` 
+      table, click :guilabel:`Add` and select :guilabel:`Embedded array`. Choose
+      :guilabel:`policy_coverage_detail` from the :guilabel:`Source table`
+      drop-down menu.
+
+      Under the :guilabel:`All fields` checkbox, uncheck the 
+      ``insurableObjectIdentifier`` field, and click 
+      :guilabel:`Save and close`.
+
+   .. step:: Map the many-to-many relationship between litigation and claim
+
+      Since Litigation is a separate entity, you just need to reference that 
+      entity from the ``claims`` document as an array of litigation identifiers.
+
+      Next to :guilabel:`Mappings from relational tables`, click :guilabel:`Add` 
+      and select :guilabel:`Embedded array`. Choose 
+      :guilabel:`litigation_party_role` from the :guilabel:`Source table` 
+      drop-down menu. 
+      
+      Under the :guilabel:`All fields` checkbox, uncheck the 
+      ``litigationIdentifier`` field, and click :guilabel:`Save and close`.
+
+   .. step:: Remove collections that are no longer needed 
+
+      Now that you mapped all the necessary tables to the ``claim`` collection, 
+      you can delete the ``claimPartyRole`` collections from the MongoDB view of 
+      {+rel-mig+}.
+
+Next Steps
+----------
+
+After you map the Claim domain, refactor the Litigation domain in a similar 
+manner. See :ref:`rm-example-refactor-litigation-domain`.

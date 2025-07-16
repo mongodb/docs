@@ -1,0 +1,122 @@
+.. _rm-example-refactor-party-domain:
+
+=========================
+Refactor the Party Domain
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The original PostgreSQL schema represents parties through one-to-one 
+relationships. The ``party`` table holds the common attributes for all parties, 
+while the other tables store specific information for each party class. These 
+differences result in distinct fields for each class, which forces tabular 
+schemas like PostgreSQL to create new tables. 
+
+You can embed this information under a single MongoDB ``party`` document by 
+adding mappings for each table in the relational database. 
+
+About this Task 
+---------------
+
+A Party includes the following key entities: 
+
+- **Party**: Represents people, organizations, and groups.
+
+- **Party Role**: Defines the role of a Party in relation to other objects, 
+  such as: 
+
+  - Policy 
+  - Claim 
+  - Agreement 
+  - Litigation 
+  - Insurable Object
+
+- **Communication Identity**: Includes information such as the email, phone, and 
+  address for a Party. 
+
+The following image shows the Entity Relationship Diagram (ERD) for the Party 
+domain:
+
+.. image:: /img/example-insurance/refactor-party-domain.png
+   :alt: Entity Relationship Diagram (ERD) for the Party domain
+
+Before You Begin
+----------------
+
+Refactoring the Party domain is the second step of the :ref:`insurance data 
+model example tutorial <rm-example-insurance-data>`. Before you refactor the 
+Party domain, :ref:`connect to your PostgreSQL database <rm-example-connect>` 
+in {+rel-mig+}.
+
+Steps 
+-----
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: From the MongoDB view of {+rel-mig+}, click the party collection
+      
+      On the right side of the screen, the :guilabel:`Mappings` menu opens.
+
+   .. step:: Add mappings for the person, organization, and grouping tables
+
+      Next to :guilabel:`Mappings from relational tables`, click :guilabel:`Add`. 
+      Click :guilabel:`Embedded documents` and select :guilabel:`person` from 
+      the :guilabel:`Source table` drop-down menu.
+      
+      After you click :guilabel:`Save and close`, repeat this process for the 
+      :guilabel:`organization` and :guilabel:`grouping` source tables.
+      
+   .. step:: Add mappings for the party_location_address table
+    
+      Next to :guilabel:`Mappings from relational tables` and click 
+      :guilabel:`Add`. Since a party can have many location addresses, select 
+      :guilabel:`Embedded array`. Choose :guilabel:`party_location_address` from 
+      the :guilabel:`Source table` drop-down menu. 
+
+      Under the :guilabel:`All fields` checkbox, uncheck the 
+      ``partyIdentifier`` field and click :guilabel:`Save and close`.
+
+   .. step:: Add mappings for the location_address table
+
+      To include the address information within the  ``party_location_address`` 
+      collection, click :guilabel:`Add` and select 
+      :guilabel:`Embedded documents`. Choose :guilabel:`location_address` from 
+      the :guilabel:`Source table` drop-down menu.
+
+      Under :guilabel:`Advanced settings`, click the 
+      :guilabel:`Merge fields into the parent` checkbox. This option ensures 
+      that the document doesn't have more nested fields than necessary. 
+      
+      Click :guilabel:`Save and close`.
+
+   .. step:: Remove collections that are no longer needed 
+      
+      Now that you mapped all the necessary tables to the ``party`` collection, 
+      you can delete the following collections from the MongoDB view of 
+      {+rel-mig+}:
+
+      - ``person``
+      - ``organization``
+      - ``grouping``
+      - ``partyLocationAddress``
+
+      .. important:: 
+
+         Don't delete the ``locationAddress`` collection, as it still has an 
+         existing relationship with the ``insurable_object`` table, which we'll 
+         add mapping rules to in a later step.
+
+      Your schema 
+
+Next Steps
+----------
+
+After you map the Party domain, you can refactor the Policy domain. See 
+:ref:`rm-example-refactor-policy-domain`.
