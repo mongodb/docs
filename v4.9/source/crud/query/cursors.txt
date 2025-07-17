@@ -1,0 +1,132 @@
+.. _pymongo-cursors:
+
+=========================
+Access Data From a Cursor
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read, results, oplog
+
+Overview
+--------
+
+In this guide, you can learn how to access data from a **cursor** with
+{+driver-short+}.
+
+A cursor is a mechanism that returns the results of a read operation in iterable
+batches. Because a cursor holds only a subset of documents at any given time,
+cursors reduce both memory consumption and network bandwidth usage.
+
+Whenever {+driver-short+} performs a read operation that returns multiple
+documents, it automatically returns those documents in a cursor.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the :ref:`<pymongo-get-started>`
+tutorial.
+
+.. _pymongo-cursors-iterate:
+
+Access Cursor Contents Iteratively
+----------------------------------
+
+To iterate over the contents of a cursor, use a ``for`` loop, as shown in the
+following example:
+
+.. literalinclude:: /includes/cursors/cursors.py
+   :start-after: start-cursor-iterate
+   :end-before: end-cursor-iterate
+   :language: python
+   :copyable:
+
+Retrieve Documents Individually
+-------------------------------
+
+Retrieve documents from a cursor individually by calling the ``next()`` method.
+
+The following example finds all documents in a collection with a ``name`` value
+of ``"Dunkin' Donuts"``. It then prints the first document in the cursor by calling the
+``next()`` method.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/cursors/cursors.py
+      :start-after: start-cursor-next
+      :end-before: end-cursor-next
+      :language: python
+
+   .. output::
+
+      {'_id': ObjectId('...'), 'address': { ... }, 'borough': 'Bronx', 'cuisine': 'Donuts', 'grades': [...], 'name': "Dunkin' Donuts", 'restaurant_id': '40379573'}
+
+Retrieve All Documents
+----------------------
+
+.. warning::
+
+   If the number and size of documents returned by your query exceeds available
+   application memory, your program will crash. If you expect a large result
+   set, :ref:`access your cursor iteratively <pymongo-cursors-iterate>`.
+
+To retrieve all documents from a cursor, convert the cursor into a ``list`` as
+shown in the following example:
+
+.. literalinclude:: /includes/cursors/cursors.py
+   :start-after: start-cursor-list
+   :end-before: end-cursor-list
+   :language: python
+   :copyable:
+   :emphasize-lines: 3
+
+Close a Cursor
+--------------
+
+By default, MongoDB closes a cursor when the client has exhausted all the
+results in the cursor. To explicitly close a cursor, call the ``close()`` method
+as shown in the following example:
+
+.. literalinclude:: /includes/cursors/cursors.py
+   :start-after: start-cursor-close
+   :end-before: end-cursor-close
+   :emphasize-lines: 5
+   :language: python
+   :copyable:
+
+Tailable Cursors
+----------------
+
+When querying on a :manual:`capped collection </core/capped-collections/>`, you
+can use a **tailable cursor** that remains open after the client exhausts the
+results in a cursor. To create a tailable cursor with capped collection,
+specify ``CursorType.TAILABLE_AWAIT`` in the ``cursor_type`` option of a
+``find()`` method.
+
+The following example uses a tailable cursor to tail the oplog
+of a replica-set member:
+
+.. literalinclude:: /includes/cursors/tailable-cursor.py
+   :language: python
+   :copyable:
+   :emphasize-lines: 8
+
+To learn more about tailable cursors, see the :manual:`Tailable Cursors guide
+</core/tailable-cursors/>` in the {+mdb-server+} manual.
+
+Troubleshooting
+---------------
+
+.. include:: /includes/troubleshooting/cursors.rst
