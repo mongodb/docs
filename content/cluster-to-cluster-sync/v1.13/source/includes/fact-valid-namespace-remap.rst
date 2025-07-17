@@ -18,19 +18,9 @@ The following restrictions apply to namespace remapping:
 
   For example:
 
-  .. code-block:: javascript
+  .. literalinclude:: /code-examples/includes/fact-valid-namespace-remap/1.js
+     :language: javascript
      :copyable: false
-
-     "namespaceRemap": [
-       {
-          "from": { "database": "us-west" },
-          "to": {"database": "us-accounts" }
-       },
-       {
-          "from": { "database": "us-south" },
-          "to": { "database": "us-accounts" }
-       }
-     ]
 
   If each database on the source cluster contains a ``texas`` collection,
   ``mongosync`` may fail, corrupt data, or exhibit unexpected behavior.
