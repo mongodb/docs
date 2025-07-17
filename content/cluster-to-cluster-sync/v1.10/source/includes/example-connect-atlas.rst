@@ -24,12 +24,8 @@ Connect the Source and Destination Clusters with ``mongosync``
 Use the connection information you gathered to create the connection
 strings for ``cluster0`` and ``cluster1``:
 
-.. code-block:: shell
-
-   cluster0:
-   mongodb+srv://clusterAdmin:superSecret@clusterOne.abc12.mongodb.net
-   cluster1:
-   mongodb+srv://clusterAdmin:superSecret@clusterTwo.abc12.mongodb.net
+.. literalinclude:: /code-examples/includes/example-connect-atlas/1.sh
+   :language: shell
 
 .. note:: 
     
@@ -43,8 +39,6 @@ The ``mongosync`` command layout below is modified for display. To
 connect ``cluster0`` to ``cluster1`` with ``mongosync``, enter the
 following command on one line:
 
-.. code-block:: shell
+.. literalinclude:: /code-examples/includes/example-connect-atlas/2.sh
+   :language: shell
 
-   mongosync \
-         --cluster0 "mongodb+srv://clusterAdmin:superSecret@clusterOne.abc12.mongodb.net" \
-         --cluster1 "mongodb+srv://clusterAdmin:superSecret@clusterTwo.abc12.mongodb.net"

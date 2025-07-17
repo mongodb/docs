@@ -12,17 +12,8 @@ of the databases, ``sales`` and ``marketing``.
 The ``sales`` database also filters on the ``EMEA`` and ``APAC``
 collections. 
 
-.. code-block:: json
-
-   "includeNamespaces" : [
-         {
-             "database" : "sales",
-             "collections": [ "EMEA", "APAC" ]
-         },
-         {
-             "database" : "marketing"
-         }
-      ]
+.. literalinclude:: /code-examples/includes/example-filter-collection/1.json
+   :language: json
 
 After you call the ``/start`` API with this filter in place,
 ``mongosync``:
