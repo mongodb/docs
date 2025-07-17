@@ -5,6 +5,8 @@ deployment matches one of the following cases:
   the number of CPU threads available to mongod
 - If your WiredTiger cache fill ratio regularly exceeds 90%
 
+.. include:: /includes/warning-simultaneous-index-builds.rst
+
 .. note::
 
    If your deployment does not meet this criteria, use the

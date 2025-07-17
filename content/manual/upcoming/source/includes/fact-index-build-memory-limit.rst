@@ -16,3 +16,5 @@ memory greater than the limit set by
    sharded clusters with replica set shards, use a rolling index build
    procedure as described on :ref:`Rolling Index Builds on Replica Sets 
    <index-building-replica-sets>`.
+
+.. include:: /includes/warning-simultaneous-index-builds.rst
