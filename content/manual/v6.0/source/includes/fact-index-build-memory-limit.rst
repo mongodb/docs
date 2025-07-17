@@ -16,5 +16,7 @@ set in :parameter:`maxIndexBuildMemoryUsageMegabytes`.
 
    To minimize the impact of building an index on replica sets and
    sharded clusters with replica set shards, use a rolling index build
-   procedure as described on
-   :doc:`/tutorial/build-indexes-on-replica-sets`.
+   procedure as described on :ref:`Rolling Index Builds on Replica Sets 
+   <index-building-replica-sets>`.
+
+.. include:: /includes/warning-simultaneous-index-builds.rst
