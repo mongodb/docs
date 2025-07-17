@@ -1,0 +1,305 @@
+.. _pymongo-geo-queries:
+
+==================
+Geospatial Queries
+==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, coordinates, location, geographic
+
+Overview
+--------
+
+In this guide, you can learn how to work with **geospatial data**, data formats,
+indexes, and queries.
+
+Geospatial data represents a geographic location on the surface of the Earth.
+
+Examples of geospatial data include:
+
+- Locations of movie theaters
+- Borders of countries
+- Routes of bicycle rides
+- Dog exercise areas in New York City
+- Points on a graph
+
+Geospatial Data Formats
+-----------------------
+
+All geospatial data in MongoDB is stored in one of the following formats:
+
+- GeoJSON, a format that represents geospatial data on an earth-like
+  sphere
+
+- Legacy coordinate pairs, a format that represents geospatial data
+  on a Euclidean plane
+
+GeoJSON
+~~~~~~~
+
+Use GeoJSON to store data that represents geospatial information on
+an earth-like sphere. GeoJSON is composed of one or more **positions**
+and a **type**.
+
+Positions
+`````````
+
+A position represents a single location and exists in code as an array
+containing the following values:
+
+- Longitude in the first position (required)
+- Latitude in the second position (required)
+- Elevation in the third position (optional)
+
+The following is the position of the MongoDB Headquarters in New York City, NY.
+
+.. code-block:: python
+
+   [-73.986805, 40.7620853]
+
+.. important:: Longitude then Latitude
+
+  GeoJSON orders coordinates with longitude first and latitude second.
+  Make sure to check what format any other tools you are working with use, since many popular
+  tools such as OpenStreetMap and Google Maps list coordinates with latitude first and
+  longitude second.
+
+Types
+`````
+
+The type of your GeoJSON object determines the geometric shape it represents. Geometric
+shapes are made up of positions.
+
+Here are some common GeoJSON types and how you can specify them with positions:
+
+- ``Point``: a single position. The following ``Point`` represents the location of
+  the MongoDB Headquarters:
+
+  .. code-block:: python
+
+     {
+         "type": "Point",
+         "coordinates": [-73.856077, 40.848447] 
+     }
+
+- ``LineString``: an array of two or more positions that forms a series of line
+  segments. A ``LineString`` can represent a path, route, border, or any other linear
+  geospatial data. The following ``LineString`` represents a segment of
+  the Great Wall of China:
+
+  .. code-block:: python
+
+     {
+         "type": "LineString",
+         "coordinates": 
+         [[116.572, 40.430],
+         [116.570, 40.434],
+         [116.567, 40.436],
+         [116.566, 40.441]]
+     }
+
+- ``Polygon``: an array of positions in which the first and last
+  position are the same and enclose some space. The following
+  ``Polygon`` roughly represents the land within the Vatican City:
+
+  .. code-block:: python
+
+     {
+         "type": "Polygon",
+         "coordinates": 
+         [[[12.446086, 41.901977],
+         [12.457952, 41.901559],
+         [12.455375, 41.907351],
+         [12.449863, 41.905186],
+         [12.446086, 41.901977]]]
+     }
+
+To learn more about the GeoJSON types you can use in MongoDB, see the
+:manual:`GeoJSON manual entry </reference/geojson/>`.
+
+For more information on the GeoJSON format, see the
+`official IETF specification <https://datatracker.ietf.org/doc/html/rfc7946>`__.
+
+Legacy Coordinate Pairs
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use legacy coordinate pairs to store data that represents geospatial information
+on a two-dimensional plane.
+
+Legacy coordinate pairs are represented by an array of two values, in which the first value
+represents the ``x`` axis value and the second represents the ``y`` axis value.
+
+For more information on legacy coordinate pairs, see the
+:manual:`MongoDB server manual page on legacy coordinate pairs </geospatial-queries/#legacy-coordinate-pairs>`.
+
+Geospatial Indexes
+------------------
+
+To enable querying on geospatial data, you must create an index that
+corresponds to the data format. The following index types enable geospatial
+queries:
+
+- ``2dsphere``, used for GeoJSON data
+- ``2d``, used for legacy coordinate pairs
+
+To learn more about how to create geospatial indexes, see the :ref:`pymongo-geospatial-index`
+section of the Indexes guide.
+
+Query Operators
+~~~~~~~~~~~~~~~
+
+To query geospatial data using the ``find`` operator, use one of the following query operators:
+
+- ``$near``
+- ``$geoWithin``
+- ``$nearSphere``
+- ``$geoIntersects`` (*requires a 2dsphere index*)
+
+When using the ``$near`` operator, you can specify the following distance operators:
+
+- ``$minDistance``
+- ``$maxDistance``
+
+When using the ``$geoWithin`` operator, you can specify the following shape operators:
+
+- ``$box``
+- ``$polygon``
+- ``$center``
+- ``$centerSphere``
+
+To query geospatial data using the ``aggregate`` operator, you must use the ``$geoNear`` pipeline stage.
+
+For more information on geospatial query operators, see
+:manual:`Geospatial Query Operators </geospatial-queries/#geospatial-query-operators>` in
+the server manual.
+
+Examples
+--------
+
+The following examples uses the MongoDB Atlas sample dataset. To obtain this sample
+dataset, see the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see
+:ref:`<pymongo-get-started>`.
+
+The examples use the ``theaters`` collection in the ``sample_mflix`` database
+from the sample dataset. The ``theaters`` collection contains a ``2dsphere`` index
+on the ``location.geo`` field.
+
+Query by Proximity
+~~~~~~~~~~~~~~~~~~
+
+The following example queries for documents with a ``location.geo`` field value
+within 1000 meters of the MongoDB Headquarters in New York City, NY. It returns documents
+from nearest to farthest.
+
+.. io-code-block::
+   :copyable: true
+
+  .. input::
+     :language: python
+
+     # set query with point at MongoDB headquarters and a maxDistance of 1000 meters
+     query = {
+      "location.geo": {
+               "$near": {
+                 "$geometry": {
+                  # Search around this location
+                                 "type": "Point",
+                                 "coordinates": [-73.986805, 40.7620853]
+                              },
+                 "$maxDistance": 1000 # Distance in meters (1 km)
+                        }          
+                     }
+             }  
+
+     # fetches the _id and theaterId fields 
+     projection = { "theaterId": 1 }
+
+     nearby_places = location.find(query, projection)
+
+     for i in nearby_places:
+         print(i) 
+
+  .. output::
+     :language: json
+     :visible: false
+
+     { "_id" : ObjectId("59a47287cfa9a3a73e51e8e2"), "theaterId" : 1908 }
+     { "_id" : ObjectId("59a47286cfa9a3a73e51e838"), "theaterId" : 1448 }
+
+Query by Polygon
+~~~~~~~~~~~~~~~~
+
+The following example queries for documents with a ``location.geo`` field value that exists
+within the boundaries of Manhattan.
+
+.. io-code-block::
+   :copyable: true
+
+  .. input::
+     :language: python
+
+     # Polygon representation of Manhattan
+     query = {
+        "location.geo": {
+           "$geoWithin": {
+                 "$geometry": {
+                    # Search around this location
+                                 "type": "Polygon",
+                                 "coordinates": 
+                                 [[[-73.925492, 40.877410],
+                                 [-73.910372, 40.872366],
+                                 [-73.935127, 40.834020],
+                                 [-73.929049, 40.798569],
+                                 [-73.976485, 40.711432],
+                                 [-74.015747, 40.701229],
+                                 [-74.018859, 40.708367],
+                                 [-74.008007, 40.754307],
+                                 [-73.925492, 40.877410]]]
+                              }
+                           }
+                        }
+                     }
+
+     # fetches the _id and theaterId fields 
+     projection = { "theaterId": 1 }
+
+     nearby_places = location.find(query, projection)
+
+     for i in nearby_places:
+         print(i)
+
+  .. output::
+     :language: json
+     :visible: false
+
+     { "_id" : ObjectId("59a47287cfa9a3a73e51e8e2"), "theaterId" : 1908 }
+     { "_id" : ObjectId("59a47287cfa9a3a73e51eccb"), "theaterId" : 835 }
+     { "_id" : ObjectId("59a47286cfa9a3a73e51e838"), "theaterId" : 1448 }
+     { "_id" : ObjectId("59a47286cfa9a3a73e51e744"), "theaterId" : 1028 }
+     { "_id" : ObjectId("59a47287cfa9a3a73e51ebe1"), "theaterId" : 609 }
+     { "_id" : ObjectId("59a47287cfa9a3a73e51e8ed"), "theaterId" : 1906 }
+     { "_id" : ObjectId("59a47287cfa9a3a73e51e87d"), "theaterId" : 1531 }
+     { "_id" : ObjectId("59a47287cfa9a3a73e51eb63"), "theaterId" : 482 }
+
+Additional Resources
+--------------------
+
+- For more information about working with geospatial data, see the
+  :ref:`manual entry for geospatial data <geo-overview-location-data>`.
+
+- For more information about supported GeoJSON types, see the the
+  :manual:`GeoJSON manual entry </reference/geojson/>`.
+
+- For more information about geospatial query operators, see the
+  :manual:`manual entry for geospatial queries </geospatial-queries/#geospatial-query-operators>`.

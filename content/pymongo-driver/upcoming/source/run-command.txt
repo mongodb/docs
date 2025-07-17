@@ -1,0 +1,435 @@
+.. _pymongo-run-command:
+
+======================
+Run a Database Command
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: administration, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use {+driver-short+}
+to run a database command. You can use database commands to perform a
+variety of administrative and diagnostic tasks, such as fetching server
+statistics, initializing a replica set, or running an aggregation pipeline.
+
+.. important:: Prefer Library Methods to Database Commands
+
+   The library provides wrapper methods for many database commands.
+   We recommend using these methods instead of executing database
+   commands when possible.
+   
+   To perform administrative tasks, use the :mongosh:`MongoDB Shell </>`
+   instead of {+driver-short+}. The shell provides helper methods
+   that might not be available in the driver.
+   
+   If there are no available helpers in the library or the shell, you
+   can use the ``db.runCommand()`` shell method or the driver's
+   ``command()`` method, which is described in this
+   guide.
+
+.. _pymongo-execute-command:
+
+Execute a Command
+-----------------
+
+You can use the ``command()`` method to run a database command. You must specify
+the command and any relevant arguments. If the command is simple, these can be
+passed as strings. Otherwise, they can be passed as a ``dict`` object. 
+The method will return the result of the command that was run.
+
+The following code shows how you can use the ``command()``
+method on a ``Database`` to run the ``hello``
+command, which returns information about the server. Select the :guilabel:`Synchronous` or
+:guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/run-command.py
+            :language: python
+            :start-after: start-hello
+            :end-before: end-hello
+
+         .. output::
+            :language: json
+            :visible: false
+
+            {
+                'topologyVersion': {
+                    'processId': ObjectId('...'), 
+                    'counter': 6
+                },
+                'hosts': [...], 
+                'setName': '...', 
+                'setVersion': 114, 
+                'isWritablePrimary': True, 
+                'secondary': False, 
+                'primary': '...', 
+                'tags': {...}, 
+                'me': '...', 
+                'electionId': ..., 
+                'lastWrite': {...}, 
+                'maxBsonObjectSize': 16777216, 
+                'maxMessageSizeBytes': 48000000, 
+                'maxWriteBatchSize': 100000, 
+                'localTime': ..., 
+                'logicalSessionTimeoutMinutes': 30, 
+                'connectionId': ..., 
+                'minWireVersion': 0,
+                'maxWireVersion': 21, 
+                'readOnly': False, 
+                'ok': 1.0, 
+                '$clusterTime': {...}, 
+                'operationTime': ...
+            }
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/run-command-async.py
+            :language: python
+            :start-after: start-hello
+            :end-before: end-hello
+        
+         .. output::
+            :visible: false
+
+            {
+                'topologyVersion': {
+                    'processId': ObjectId('...'), 
+                    'counter': 6
+                },
+                'hosts': [...], 
+                'setName': '...', 
+                'setVersion': 114, 
+                'isWritablePrimary': True, 
+                'secondary': False, 
+                'primary': '...', 
+                'tags': {...}, 
+                'me': '...', 
+                'electionId': ..., 
+                'lastWrite': {...}, 
+                'maxBsonObjectSize': 16777216, 
+                'maxMessageSizeBytes': 48000000, 
+                'maxWriteBatchSize': 100000, 
+                'localTime': ..., 
+                'logicalSessionTimeoutMinutes': 30, 
+                'connectionId': ..., 
+                'minWireVersion': 0,
+                'maxWireVersion': 21, 
+                'readOnly': False, 
+                'ok': 1.0, 
+                '$clusterTime': {...}, 
+                'operationTime': ...
+            }
+
+For a full list of database commands and corresponding
+parameters, see the :ref:`Additional Information section
+<pymongo-addtl-info-runcommand>`.
+
+.. _pymongo-command-response:
+
+Command Cursor
+--------------
+
+The ``command()`` method returns the result of the command that was run.
+You can also use the ``cursor_command()`` method, which issues a MongoDB 
+command and parses the response as a `CommandCursor <{+api-root+}pymongo/command_cursor.html#pymongo.command_cursor.CommandCursor>`__.
+The ``CommandCursor`` can be used to iterate over command results.
+
+The following example uses the ``cursor_command()`` method on the ``sample_mflix``
+database. It runs the ``find`` command on the ``movies`` collection to filter by
+documents in which the ``runtime`` field has a value of ``11``. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/run-command.py
+            :language: python
+            :dedent:
+            :start-after: start-cursor-command
+            :end-before: end-cursor-command
+
+         .. output::
+            :language: json
+            :visible: false
+
+            { 
+                '_id': ObjectId(...),
+                'runtime': 11, 
+                'title': 'The Great Train Robbery',
+                ...
+            },
+            {
+                {'_id': ObjectId(...),
+                'runtime': 11, 
+                'title': 'Glas',
+                ...
+            },
+            ...
+
+   .. tab:: Asynchronous
+      :tabid: async
+      
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/run-command-async.py
+            :language: python
+            :dedent:
+            :start-after: start-cursor-command
+            :end-before: end-cursor-command
+        
+         .. output::
+            :language: json
+            :visible: false
+
+            { 
+                '_id': ObjectId(...),
+                'runtime': 11, 
+                'title': 'The Great Train Robbery',
+                ...
+            },
+            {
+                {'_id': ObjectId(...),
+                'runtime': 11, 
+                'title': 'Glas',
+                ...
+            },
+            ...
+
+To learn about the response format of the command, see :manual:`Database Commands </reference/command/>`.
+
+.. note:: Read Preference
+
+   The ``command()`` and ``cursor_command()`` methods do not obey the read preference you might
+   have set on your ``Database`` instance elsewhere in your code. If a 
+   `ClientSession <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession>`__ is
+   provided by using the ``session`` parameter, and this session is in a 
+   `transaction <{+api-root+}pymongo/client_session.html#transactions>`__, the command's
+   read preference will be set to the transaction's read preference. Otherwise,
+   the command's read preference defaults to ``PRIMARY``.
+   
+   You can set a read preference for command execution by using the ``read_preference``
+   parameter. For example:
+   
+   .. literalinclude:: /includes/run-command.py
+      :language: python
+      :dedent:
+      :start-after: start-readpref
+      :end-before: end-readpref
+
+   Learn more about the ``read_preferences`` module in the `API documentation
+   <{+api-root+}pymongo/read_preferences.html#module-pymongo.read_preferences>`__.
+
+   To learn more about read preference options, see :manual:`Read
+   Preference </core/read-preference/>` in the {+mdb-server+} manual.
+
+.. _pymongo-command-example:
+
+Command Example
+---------------
+
+The following example uses the ``command()`` method to run
+the ``dbStats`` command to retrieve storage statistics for the
+``sample_mflix`` database. Select the :guilabel:`Synchronous` or
+:guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/run-command.py
+            :language: python
+            :start-after: start-runcommand
+            :end-before: end-runcommand
+        
+         .. output::
+            :visible: false
+
+            {'db': 'sample_mflix', 'collections': 9, 'views': 1, 'objects': 67662,
+            'avgObjSize': 1796.788182436227, 'dataSize': 121574282, 'storageSize': 97779712,
+            'totalFreeStorageSize': 0, 'numExtents': 0, 'indexes': 13, 'indexSize': 19423232,
+            'indexFreeStorageSize': 0, 'fileSize': 0, 'nsSizeMB': 0, 'ok': 1}
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/run-command-async.py
+            :language: python
+            :start-after: start-runcommand
+            :end-before: end-runcommand
+
+         .. output::
+            :visible: false
+
+            {'db': 'sample_mflix', 'collections': 9, 'views': 1, 'objects': 67662,
+            'avgObjSize': 1796.788182436227, 'dataSize': 121574282, 'storageSize': 97779712,
+            'totalFreeStorageSize': 0, 'numExtents': 0, 'indexes': 13, 'indexSize': 19423232,
+            'indexFreeStorageSize': 0, 'fileSize': 0, 'nsSizeMB': 0, 'ok': 1}
+
+The output of this command includes information about the collections in
+the database, and describes the amount and size of data stored across
+collections.
+
+Type Hints
+----------
+
+The ``Database.command()`` method can decode the returned BSON documents to instances
+of a specific class. To specify this class, construct a ``CodecOptions`` object and pass
+the class name. The class can be one of the following types:
+
+- ``bson.raw_bson.RawBSONDocument``. To learn more about the ``RawBSONDocument`` class,
+  see :ref:`pymongo-bson-raw`.
+- A subclass of the ``collections.abc.Mapping`` type, such as ``OrderedDict``. 
+  Depending on the strictness of your type-checking rules, you might also need to
+  specify types for the key and value.
+- A subclass of the ``TypedDict`` type. To pass a ``TypedDict`` subclass for this
+  parameter, you must also include the class in a type hint for your ``CodecOptions``
+  object.
+
+.. note:: TypedDict in Python 3.7 and Earlier
+
+   .. include:: /includes/type-hints/typeddict-availability.rst
+
+The following example decodes the BSON returned by the ``ping`` command to instances
+of the ``RawBSONDocument`` class. Select the :guilabel:`Synchronous` or
+:guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+    
+      .. code-block:: python
+         :emphasize-lines: 3, 6-7
+
+         from pymongo import MongoClient
+         from bson.raw_bson import RawBSONDocument
+         from bson import CodecOptions
+
+         client: MongoClient = MongoClient()
+         options = CodecOptions(RawBSONDocument)
+         result = client.admin.command("ping", codec_options=options)
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. code-block:: python
+         :emphasize-lines: 3, 6-7
+
+         from pymongo import AsyncMongoClient
+         from bson.raw_bson import RawBSONDocument
+         from bson import CodecOptions
+
+         client: AsyncMongoClient = AsyncMongoClient()
+         options = CodecOptions(RawBSONDocument)
+         result = await client.admin.command("ping", codec_options=options)
+
+To decode BSON to a subclass of the ``TypedDict`` class, specify the class name in
+the ``CodecOptions`` type hint, as shown in the following example. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+   
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. code-block:: python
+         :emphasize-lines: 4, 6-8, 11
+
+         from pymongo import MongoClient
+         from bson.raw_bson import RawBSONDocument
+         from bson import CodecOptions
+         from typing import TypedDict
+
+         class Movie(TypedDict):
+             name: str
+             year: int
+
+         client: MongoClient = MongoClient()
+         options: CodecOptions[Movie] = CodecOptions(Movie)
+         result = client.admin.command("ping", codec_options=options)
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. code-block:: python
+         :emphasize-lines: 4, 6-8, 11
+
+         from pymongo import AsyncMongoClient
+         from bson.raw_bson import RawBSONDocument
+         from bson import CodecOptions
+         from typing import TypedDict
+
+         class Movie(TypedDict):
+             name: str
+             year: int
+
+         client: AsyncMongoClient = AsyncMongoClient()
+         options: CodecOptions[Movie] = CodecOptions(Movie)
+         result = await client.admin.command("ping", codec_options=options)
+
+Troubleshooting
+---------------
+
+.. include:: /includes/type-hints/troubleshooting-client-type.rst
+
+.. include:: /includes/type-hints/troubleshooting-incompatible-type.rst
+
+.. _pymongo-addtl-info-runcommand:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following
+documentation in the {+mdb-server+} manual:
+
+- :manual:`db.runCommand() </reference/method/db.runCommand/>`
+- :manual:`Database Commands </reference/command/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`find Command </reference/command/find>`
+- :manual:`dbStats Command </reference/command/dbStats/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information about the ``command()`` and ``cursor_command()`` methods, 
+see the following {+driver-short+} API documentation:
+
+- `command() <{+api-root+}pymongo/database.html#pymongo.database.Database.command>`__
+- `cursor_command() <{+api-root+}pymongo/database.html#pymongo.database.Database.cursor_command>`__
