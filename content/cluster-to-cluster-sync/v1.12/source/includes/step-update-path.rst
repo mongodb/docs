@@ -7,17 +7,13 @@ your ``PATH``, do one of the following:
   ``/path/to/mongosync/bin`` to reflect the location where you
   extracted the ``tar`` file.)
 
-  .. code-block:: bash
-
-     sudo cp /path/to/mongosync/bin/mongosync /usr/local/bin/
+  .. literalinclude:: /code-examples/includes/step-update-path/1.sh
+     :language: bash
 
 - Create symbolic links to the ``mongosync`` binary from a
   directory such as ``/usr/local/bin`` that is already in your
   ``PATH``. (Update ``/path/to/mongosync/bin`` to reflect the
   location where you extracted the ``tar`` file.)
 
-  .. code-block:: bash
-
-      sudo ln -s  /path/to/mongosync/bin/mongosync /usr/local/bin/mongosync
-
-
+  .. literalinclude:: /code-examples/includes/step-update-path/2.sh
+    :language: bash
