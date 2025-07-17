@@ -5,31 +5,49 @@
    * - Datadog Tags
      - Description
 
-   * - ``organizationname``
-     - The |service| organization associated with the metric.
-  
-   * - ``projectname``
-     - The |service| project associated with the metric.
+   * - | ``organizationname`` 
+       | ``org_name``
+     - |service| organization associated with the metric.
+
+   * - | ``projectname`` 
+       | ``group_name``
+     - |service| project associated with the metric.
+
+   * - ``group_id``
+     - Unique identifier of the |service| project associated with the metric.
 
    * - ``clustername``
-     - The |service| {+cluster+} associated with the metric.
+     - |service| {+cluster+} associated with the metric.
 
    * - ``replicasetname``
-     - The replica set associated with the metric.
+     - Replica set associated with the metric.
 
    * - ``shardedclustername``
-     - The sharded cluster associated with the metric.
+     - Sharded cluster associated with the metric.
 
    * - ``databasename``
-     - The database associated with the metric.
+     - Database associated with the metric.
 
    * - ``collectionname``
-     - The collection associated with the metric.
+     - Collection associated with the metric.
 
    * - ``hostnameport``
-     - The port number associated with your |service| hostname.
+     - Port number associated with your |service| hostname.
 
    * - ``hostnamestate``
-     - The state of your |service| hostname (primary, secondary, or individual process).
+     - State of your |service| hostname (primary, secondary, or individual process).
        You can use this tag to filter collection-level latency metrics when querying 
        your sharded cluster or replica set.
+
+   * - ``processor_name``
+     - Name of the stream processor associated with the metric.
+
+   * - ``processor_id``
+     - Unique identifier of the stream processor associated with the metric.
+
+   * - ``tenant_name``
+     - Name of the {+spi+} associated with the metric.
+
+   * - ``tenant_id``
+     - Unique identifier of the {+spi+} associated with the metric.
+

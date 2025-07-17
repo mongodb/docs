@@ -588,3 +588,78 @@
      - Number of operations on the 99th percentile in the :manual:`latency histogram 
        </reference/operator/aggregation/collStats/#latencystats-document>`
        for read, write, command, and total requests.
+
+   * - | ``CHANGE_STREAM_TIME_DIFFERENCE_SECS``
+       | (mongodb.atlas.stream_processing.change_stream_time_difference_secs)
+     - Gauge
+     - Lag (in seconds) of the last read change event compared to the last event in the oplog.
+
+   * - | ``DLQ_MESSAGE_COUNT``
+       | (mongodb.atlas.stream_processing.dlq_message_count)
+     - Counter
+     - Total number of messages that were sent to the :term:`dead letter queue` (DLQ.
+
+   * - | ``DLQ_MESSAGE_SIZE``
+       | (mongodb.atlas.stream_processing.dlq_message_size)
+     - Counter
+     - Total number of bytes sent to the :term:`dead letter queue` (DLQ).
+
+   * - | ``INPUT_MESSAGE_COUNT``
+       | (mongodb.atlas.stream_processing.input_message_count)
+     - Counter
+     - Total number of input messages read, including rejected documents.
+
+   * - | ``INPUT_MESSAGE_SIZE``
+       | (mongodb.atlas.stream_processing.input_message_size)
+     - Counter
+     - Total number of input bytes read, including rejected messages.
+
+   * - | ``KAFKA_TOTAL_OFFSET_LAG``
+       | (mongodb.atlas.stream_processing.kafka_total_offset_lag)
+     - Gauge
+     - Sum of all partition lags (only applicable to stream processors using a Kafka source).
+
+   * - | ``LAST_DLQ_MESSAGE_OUT``
+       | (mongodb.atlas.stream_processing.last_dlq_message_out)
+     - Gauge
+     - Timestamp of the last document sent to the :term:`dead letter queue` (DLQ).
+
+   * - | ``LAST_MESSAGE_IN``
+       | (mongodb.atlas.stream_processing.last_message_in)
+     - Gauge
+     - Timestamp of the last document processed.
+
+   * - | ``OPERATOR_TARGET_INPUT_MESSAGE_COUNT``
+       | (mongodb.atlas.stream_processing.operator_target_input_message_count)
+     - Counter
+     - Total number of input messages read for an operator target, including rejected documents.
+
+   * - | ``OPERATOR_TARGET_OUTPUT_MESSAGE_COUNT``
+       | (mongodb.atlas.stream_processing.operator_target_output_message_count)
+     - Counter
+     - Total number of output messages emitted for an operator target.
+
+   * - | ``OUTPUT_MESSAGE_COUNT``
+       | (mongodb.atlas.stream_processing.output_message_count)
+     - Counter
+     - Total number of output messages emitted.
+
+   * - | ``OUTPUT_MESSAGE_SIZE``
+       | (mongodb.atlas.stream_processing.output_message_size)
+     - Counter
+     - Total number of output bytes emitted.
+
+   * - | ``PER_PAIR_EVENT_COUNT``
+       | (mongodb.atlas.stream_processing.per_pair_event_count)
+     - Counter
+     - Total number of events processed for an input/output pair.
+
+   * - | ``PER_PAIR_P50_LATENCY_MICROS``
+       | (mongodb.atlas.stream_processing.per_pair_p50_latency_micros)
+     - Gauge
+     - 50th percentile latency of input + output in microseconds.
+
+   * - | ``PROCESSOR_P50_MICROS``
+       | (mongodb.atlas.stream_processing.processor_p50_micros)
+     - Gauge
+     - 50th percentile latency of the processor in microseconds.
