@@ -3,15 +3,13 @@ connection string <mongodb-uri>` to connect clusters:
 
 - The SRV connection scheme has the form:
 
-  .. code-block:: none
-
-     mongodb+srv://[username:password@][host.domain.TLD][:port][/defaultauthdb][?options]
+  .. literalinclude:: /code-examples/includes/fact-connection-strings/1.txt
+     :language: text
 
 - The standard URI connection scheme has the form:
 
-  .. code-block:: none
-  
-     mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
+  .. literalinclude:: /code-examples/includes/fact-connection-strings/2.txt
+     :language: text
 
 Specify the hostnames of the :binary:`mongod` instances the same way
 that they are listed in your replica set configuration.
