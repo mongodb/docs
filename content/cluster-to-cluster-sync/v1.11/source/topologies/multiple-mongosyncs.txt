@@ -73,30 +73,15 @@ To configure multiple ``mongosync`` instances:
       To get the shard IDs, connect to the source cluster
       :binary:`mongos` and run the :dbcommand:`listShards` command.
 
-      .. code-block:: javascript
-
-         db.adminCommand( { listShards: 1 } )
+      .. literalinclude:: /code-examples/topologies/multiple-mongosyncs/1.js
+         :language: javascript
 
       The information is in the ``shards`` array.
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/topologies/multiple-mongosyncs/2.js
+         :language: javascript
          :copyable: false
          :emphasize-lines: 3,9
-
-           shards: [
-             {
-               _id: 'shard01',
-               host: 'shard01/localhost:27501,localhost:27502,localhost:27503',
-               state: 1,
-               topologyTime: Timestamp({ t: 1656612236, i: 2 })
-             },
-             {
-               _id: 'shard02',
-               host: 'shard02/localhost:27504,localhost:27505,localhost:27506',
-               state: 1,
-               topologyTime: Timestamp({ t: 1656612240, i: 4 })
-             }
-           ]
 
    .. step:: Connect the ``mongosync`` instances
 
@@ -113,12 +98,8 @@ To configure multiple ``mongosync`` instances:
 
       Run the first ``mongosync`` instance:
 
-      .. code-block:: javascript
-
-         mongosync \
-           --cluster0 "mongodb://user:password@cluster0host:27500" \
-           --cluster1 "mongodb://user:password@cluster1host:27500" \
-           --id shard01 --port 27601
+      .. literalinclude:: /code-examples/topologies/multiple-mongosyncs/3.js
+         :language: javascript
 
       When running multiple ``mongosync`` instances, the number of instances
       must equal the number of shards.  Each ``mongosync`` instance must be
@@ -129,13 +110,9 @@ To configure multiple ``mongosync`` instances:
       Edit the ``--id`` and ``--port`` fields for each additional
       ``mongosync`` instance.
 
-      .. code-block:: javascript
-        :emphasize-lines: 4
-
-         mongosync \
-           --cluster0 "mongodb://user:password@cluster0host:27500" \
-           --cluster1 "mongodb://user:password@cluster1host:27500" \
-           --id shard02 --port 27602
+      .. literalinclude:: /code-examples/topologies/multiple-mongosyncs/4.js
+         :language: javascript
+         :emphasize-lines: 4
 
       The connection strings for the :option:`--cluster0` and 
       :option:`--cluster1` options should point to ``mongos`` instances.
@@ -159,15 +136,8 @@ Start Multiple ``mongosync`` Instances
 Use ``curl`` or another HTTP client to issue the :ref:`start
 <c2c-api-start>` command to each of the ``mongosync`` instances.
 
-.. code-block:: shell
-
-   curl mongosync01Host:27601/api/v1/start -XPOST --data \
-        '{ "source": "cluster0", "destination": "cluster1", \
-           "reversible": false, "enableUserWriteBlocking": false }'
-
-   curl mongosync02Host:27602/api/v1/start -XPOST --data \
-        '{ "source": "cluster0", "destination": "cluster1", \
-           "reversible": false, "enableUserWriteBlocking": false }'
+.. literalinclude:: /code-examples/topologies/multiple-mongosyncs/5.sh
+   :language: shell
 
 The ``start`` command options must be the same for all of the ``mongosync``
 instances.
@@ -182,9 +152,8 @@ shard, use ``curl`` or another HTTP client to issue the
 :ref:`progress <c2c-api-progress>` command to the ``mongosync``
 instance syncing that shard.
 
-.. code-block:: shell
-
-   curl mongosync02Host:27602/api/v1/progress -XGET
+.. literalinclude:: /code-examples/topologies/multiple-mongosyncs/6.sh
+   :language: shell
 
 This command checks the progress of the ``mongosync`` instance that is
 running on ``mongosync02Host`` and using ``port 27602`` for
@@ -201,9 +170,8 @@ synchronization process on a single shard. It does not pause any other
 ``mongosync`` instances that may be running. Use ``curl`` or another
 HTTP client to issue the ``pause`` command to a ``mongosync`` instance.
 
-.. code-block:: shell
-
-   curl mongosync01Host:27601/api/v1/pause -XPOST --data '{}'
+.. literalinclude:: /code-examples/topologies/multiple-mongosyncs/7.sh
+   :language: shell
 
 This command pauses the ``mongosync`` instance that is running on
 ``mongosync01Host`` and using ``port 27601`` for synchronization. To
@@ -223,9 +191,8 @@ to continue syncing.
 Use ``curl`` or another HTTP client to issue the :ref:`resume
 <c2c-api-resume>` command to each ``mongosync`` instance.
 
-.. code-block:: shell
-
-   curl mongosync01Host:27601/api/v1/resume -XPOST --data '{}'
+.. literalinclude:: /code-examples/topologies/multiple-mongosyncs/8.sh
+   :language: shell
 
 This command resumes synchronization on the ``mongosync`` instance that
 is running on ``mongosync01Host`` and using ``port 27601``.  To 
@@ -254,13 +221,8 @@ The ``commit`` operation is blocking. The ``commit`` command will not
 return until ``commit`` has been called on every ``mongosync``
 instance.
 
-.. code-block:: shell
-
-   // Check progress
-   curl mongosync01Host:27601/api/v1/progress -XGET
-
-   // Commit 
-   curl mongosync01Host:27601/api/v1/commit -XPOST --data '{}'
+.. literalinclude:: /code-examples/topologies/multiple-mongosyncs/9.sh
+   :language: shell
 
 These commands only check progress and commit synchronization for the
 ``mongosync`` instance that is running on ``mongosync01Host`` and using
@@ -299,9 +261,8 @@ The ``reverse`` operation is blocking. The ``reverse`` command will not
 return until ``reverse`` has been called on every ``mongosync``
 instance.
 
-.. code-block:: shell
-
-   curl mongosync01Host:27601/api/v1/reverse -XPOST --data '{}'
+.. literalinclude:: /code-examples/topologies/multiple-mongosyncs/10.sh
+   :language: shell
 
 This command reverses synchronization on the ``mongosync``
 instance that is running on ``mongosync01Host`` and using ``port

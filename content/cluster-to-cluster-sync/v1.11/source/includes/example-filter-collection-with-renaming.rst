@@ -11,17 +11,8 @@ databases.
 The ``includeNamespaces`` array in this example defines a filter on two
 of the databases:
 
-.. code-block:: json
-
-   {
-      "source": "cluster0",
-      "destination": "cluster1",
-      "includeNamespaces":
-         [
-            { "database" : "students", "collections": ["undergrad", "graduate", "adjuncts"] },
-            { "database" : "staff" }
-         ]
-   }
+.. literalinclude:: /code-examples/includes/example-filter-collection-with-renaming/1.json
+   :language: json
 
 With this filter in place, ``mongosync`` syncs:
 
@@ -52,56 +43,41 @@ Renaming a Collection
 
 You can rename any collection in the ``staff`` database. 
 
-.. code-block:: javascript
-
-   // This code works 
-   use admin
-   db.runCommand( { renameCollection: "staff.employees", to: "staff.salaried" } )
+.. literalinclude:: /code-examples/includes/example-filter-collection-with-renaming/2.js
+   :language: javascript
 
 You can only rename a collection within the ``students`` database if the
 new and old names are both in the filter. If either of the names is not
 in the filter, ``monogsync`` reports an error and exits.
 
-.. code-block:: javascript
-
-   // This code works 
-   use admin
-   db.runCommand( { renameCollection: "students.graduate", to: "students.adjuncts" } )
+.. literalinclude:: /code-examples/includes/example-filter-collection-with-renaming/3.js
+   :language: javascript
 
 If a collection is specified in the filter, you can drop it, but you
 cannot rename it to remove it from the filter.
 
-.. code-block:: javascript
-   :copyable: false 
-
-   // This code produces an error and mongosync stops syncing 
-   use admin
-   db.runCommand( { renameCollection: "students.graduate", to: "students.notAFilteredCollection" } )
+.. literalinclude:: /code-examples/includes/example-filter-collection-with-renaming/4.js
+   :language: javascript
+   :copyable: false
 
 When the whole target database is included in the filter, you can rename
 collections to add them to the filter: 
 
 - Source collection is specified in the filter
 
-  .. code-block:: javascript
-
-     use admin
-     db.runCommand( { renameCollection: "students.adjuncts", to: "staff.adjuncts" } )
+  .. literalinclude:: /code-examples/includes/example-filter-collection-with-renaming/5.js
+     :language: javascript
 
 - Source collection is not specified in the filter
 
-  .. code-block:: javascript
-
-     use admin
-     db.runCommand( { renameCollection: "prospects.current", to: "staff.newHires" } )
+  .. literalinclude:: /code-examples/includes/example-filter-collection-with-renaming/6.js
+     :language: javascript
 
 You can also rename collections in the source database when the whole
 target database is in the filter:
 
-.. code-block:: javascript
-
-   use admin
-   db.runCommand( { renameCollection: "staff.employees", to: "staff.onPayroll" } )
+.. literalinclude:: /code-examples/includes/example-filter-collection-with-renaming/7.js
+   :language: javascript
 
 .. important::
 
