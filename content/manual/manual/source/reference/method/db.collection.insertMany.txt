@@ -84,11 +84,9 @@ syntax:
    * - ``document``
    
      - document
-   
+
      - An array of documents to insert into the collection.
-          
-          
-   
+
    * - ``writeConcern``
    
      - document
@@ -111,27 +109,48 @@ syntax:
 Behaviors
 ---------
 
-Given an array of documents, :method:`~db.collection.insertMany()`
-inserts each document in the array into the collection.
+Given an array of documents, ``insertMany()`` inserts each document in
+the array into the collection. There is no limit to the number of
+documents you can specify in the array.
 
 Execution of Operations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, documents are inserted in the order they are provided.
 
-If ``ordered`` is set to ``true`` and an insert fails, the server does 
-not continue inserting records. 
+- If ``ordered`` is set to ``true`` and an insert fails, the server does 
+  not continue inserting records. 
 
-If ``ordered`` is set to ``false`` and an insert fails, the server 
-continues inserting records. Documents may be reordered by 
-:binary:`~bin.mongod` to increase performance. Applications should not 
-depend on ordering of inserts if using an unordered 
-:method:`~db.collection.insertMany()`.
-
-.. include:: /includes/fact-bulkwrite-operation-batches.rst
+- If ``ordered`` is set to ``false`` and an insert fails, the server
+  continues inserting records. Documents may be reordered by
+  :binary:`~bin.mongod` to increase performance. Applications should not
+  depend on ordering of inserts if using an unordered ``insertMany()``.
 
 .. include:: /includes/fact-bulk-operation-sharded-cluster.rst
 
+Batching
+~~~~~~~~
+
+The driver batches documents specified in the ``insertMany()`` array
+according to the :limit:`maxWriteBatchSize <Write Command Batch Limit
+Size>`, which is 100,000 and cannot be modified. For example, if the
+``insertMany()`` operation contains 250,000 documents, the driver
+creates three batches: two with 100,000 documents and one with 50,000
+documents.
+
+.. note::
+
+   The driver only performs batching when using the high-level API. If
+   you use :method:`db.runCommand()` directly (for example, when writing
+   a driver), MongoDB throws an error when attempting to execute a write
+   batch that exceeds the ``maxWriteBatchSize`` limit.
+
+If the error report for a single batch grows too large, MongoDB
+truncates all remaining error messages. If there are at least two error
+messages with size greater than ``1MB``, those messages are truncated.
+
+The sizes and grouping mechanics are internal performance details and
+are subject to change in future versions.
 
 Collection Creation
 ~~~~~~~~~~~~~~~~~~~
