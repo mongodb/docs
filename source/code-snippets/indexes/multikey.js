@@ -29,6 +29,10 @@ async function run() {
     const cursor = movies
       .find(query)
       .project(projection);
+
+    for await (const doc of cursor) {
+      console.log(doc);
+    }
     // end-query
 
   } finally {
