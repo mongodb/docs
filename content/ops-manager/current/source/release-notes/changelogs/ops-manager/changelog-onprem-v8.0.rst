@@ -1,3 +1,42 @@
+.. _opsmgr-server-8.0.11:
+
+|onprem| Server 8.0.11
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-07-16*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the MongoDB Agent to :ref:`108.0.11.8830-1
+  <mongodb-108.0.11.8830-1>`.
+- Improves MongoDB Usage logic to represent licensing needs more 
+  accurately and splits RAM Pool category into RAM Pool (Prod) and RAM 
+  Pool (Test/QA).
+- Optimizes queries by avoiding empty array queries on
+  ``_id: {"$in": []}``.
+- Adds S3 key/bucket information to log messages for slow S3 
+  investigation.
+- Starts shard/replset queryable with 
+  wiredTigerSkipTableLoggingChecksOnStartup, improving startup 
+  reliability and performance.
+- Introduces an application setting to control S3 client chunked 
+  encoding in AWS SDK v2, allowing compatibility with S3-compatible 
+  vendors that do not support chunked uploads.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes cross-project validation for destination clusters and falls 
+  back to showing all valid clusters when switching projects during a 
+  {+pit-restore+}.
+- During partial sharded cluster upgrades to 8.0, only 8.0 processes 
+  now set security.javascriptEnabled to false, avoiding a rolling 
+  restart to all shard nodes.
+- Fixes the following CVE:
+  
+  - `CVE-2025-48976 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-48976>`__
+
 .. _opsmgr-server-8.0.10:
 
 |onprem| Server 8.0.10
