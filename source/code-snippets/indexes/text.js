@@ -34,10 +34,11 @@ async function run() {
 
     // Execute the find operation
     const cursor = myColl.find(query).project(projection);
-    // end-query
+    
     for await (const doc of cursor) {
       console.log(doc);
     }
+    // end-query
   } finally {
     await client.close();
   }
