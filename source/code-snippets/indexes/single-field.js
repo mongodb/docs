@@ -29,6 +29,10 @@ async function run() {
       .find(query)
       .sort(sort)
       .project(projection);
+
+    for await (const doc of cursor) {
+      console.log(doc);
+    }
     // end-query
   } finally {
     await client.close();
