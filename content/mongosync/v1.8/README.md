@@ -1,4 +1,4 @@
-# docs-cluster-to-cluster-sync
+# docs-mongosync
 
 Documentation for the cluster to cluster synchronization tool,
 mongosync.
