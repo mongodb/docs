@@ -1,10 +1,3 @@
-This task runs the :method:`~db.collection.explain` method on a
-sample query in an attempt to identify performance issues. In
-practice, it may be difficult to run ``explain()`` on every
-query your application runs.
-
-To narrow the list of queries sent by your application to only
-those that are slow, you can use a profiler:
 
 .. list-table::
    :header-rows: 1
