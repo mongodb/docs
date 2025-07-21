@@ -29,7 +29,7 @@ Bug Fixes
 
 - Fixes cross-project validation for destination clusters and falls 
   back to showing all valid clusters when switching projects during a 
-  {+pit-restore+}.
+  point-in-time restore.
 - During partial sharded cluster upgrades to 8.0, only 8.0 processes 
   now set security.javascriptEnabled to false, avoiding a rolling 
   restart to all shard nodes.
