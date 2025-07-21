@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.11)
+project(c-quickstart LANGUAGES C)
+add_executable (quickstart.out quickstart.c)
+find_package(mongoc <version> REQUIRED)
+target_link_libraries(quickstart.out mongoc::mongoc)
