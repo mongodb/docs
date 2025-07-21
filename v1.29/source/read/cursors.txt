@@ -1,0 +1,145 @@
+.. _c-cursors:
+
+=========================
+Access Data From a Cursor
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read, results, oplog
+
+Overview
+--------
+
+In this guide, you can learn how to access data from a **cursor** with the
+{+driver-short+}.
+
+A cursor is a mechanism that returns the results of a read operation in iterable
+batches. Because a cursor holds only a subset of documents at any given time,
+cursors reduce both memory consumption and the number of requests the driver sends to
+the server.
+
+Whenever the {+driver-short+} performs a read operation that returns multiple
+documents, it automatically returns those documents in a cursor.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _c-cursors-iterate:
+
+Access Cursor Contents Iteratively
+----------------------------------
+
+To iterate over the contents of a cursor, use a while loop. The following example retrieves
+all documents in the ``restaurants`` collection and prints each document by iterating over
+the cursor:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursors.c
+      :start-after: start-cursor-iterate
+      :end-before: end-cursor-iterate
+      :language: c
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      { "_id" : { "$oid" : "..." }, ... , "name" : "Golden Pavillion", "restaurant_id" : "40363920" }
+      { "_id" : { "$oid" : "..." }, ... , "name" : "Morris Park Bake Shop", "restaurant_id" : "30075445" }
+      { "_id" : { "$oid" : "..." }, ... , "name" : "Criminal Court Bldg Cafeteria", "restaurant_id" : "40364443" }
+      { "_id" : { "$oid" : "..." }, ... , "name" : "7B Bar", "restaurant_id" : "40364518" }
+      { "_id" : { "$oid" : "..." }, ... , "name" : "Nyac Main Dining Room", "restaurant_id" : "40364467" }
+      ...
+
+Retrieve Documents Individually
+-------------------------------
+
+Retrieve documents from a cursor individually by calling the ``mongoc_cursor_next()`` function.
+This function iterates over the cursor and sets the ``bson`` parameter to the next document in the cursor.
+
+The following example finds all documents in a collection with a ``name`` value
+of ``"Dunkin' Donuts"``. It then prints the first document in the cursor by calling the
+``mongoc_cursor_next()`` function.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursors.c
+      :start-after: start-cursor-next
+      :end-before: end-cursor-next
+      :language: c
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      { "_id" : { "$oid" : "..." }, ... , "name" : "Dunkin' Donuts", "restaurant_id" : "40392410" }
+
+Close a Cursor
+--------------
+
+To close a cursor and release all associated resources, call the
+``mongoc_cursor_destroy()`` function as shown in the following example:
+
+.. literalinclude:: /includes/read/cursors.c
+   :start-after: start-cursor-close
+   :end-before: end-cursor-close
+   :language: c
+   :dedent:
+
+Tailable Cursors
+----------------
+
+When querying on a :manual:`capped collection </core/capped-collections/>`, you
+can use a **tailable cursor** that remains open after the client exhausts the
+results in a cursor. To create a tailable cursor on a capped collection,
+specify the ``tailable`` and ``awaitData`` options when performing a find operation.
+
+The following example creates a tailable cursor on a capped collection:
+
+.. literalinclude:: /includes/read/cursors.c
+   :start-after: start-tailable-cursor
+   :end-before: end-tailable-cursor
+   :language: c
+   :copyable:
+   :dedent:
+
+To learn more about tailable cursors and their usage, see the :manual:`Tailable Cursors guide
+</core/tailable-cursors/>` in the {+mdb-server+} manual.
+
+Troubleshooting
+---------------
+
+"*CursorNotFound* cursor id not valid at server"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cursors in MongoDB can timeout on the server if they've been open for
+a long time without any operations being performed on them. This can
+lead to a ``CursorNotFound`` exception when you try to iterate through the cursor. To
+resolve this issue, open a new cursor.
+
+API Documentation
+-----------------
+
+To learn more about any of the functions discussed in this guide, see the following API
+documentation:
+
+- `mongoc_collection_find_with_opts() <{+api-libmongoc+}/mongoc_collection_find_with_opts.html>`__
+- `mongoc_cursor_next() <{+api-libmongoc+}/mongoc_cursor_next.html>`__
+- `mongoc_cursor_destroy() <{+api-libmongoc+}/mongoc_cursor_destroy.html>`__
