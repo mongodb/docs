@@ -1,0 +1,304 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _django-limitations:
+
+=================================
+Limitations and Upcoming Features
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: support, features, django
+
+Overview
+--------
+
+On this page, you can find a list of features that
+{+django-odm+} does not support. You can also find features
+currently planned for the General Availability (GA) and post-GA
+releases. We will prioritize these upcoming features
+based on user demand, and you can request support
+for a feature by :ref:`creating a JIRA issue <django-issues-and-help>`.
+
+Feature Limitations
+-------------------
+
+In this section, you can learn about the following
+types of unsupported {+framework+} and MongoDB features:
+
+- :ref:`django-limitations-transactions`
+- :ref:`django-limitations-models`
+- :ref:`django-limitations-query`
+- :ref:`django-limitations-management`
+- :ref:`django-limitations-migration`
+- :ref:`django-limitations-performance`
+
+.. _django-limitations-transactions:
+
+Transaction management
+~~~~~~~~~~~~~~~~~~~~~~
+
+Query execution uses Django and MongoDB's default behavior of autocommit mode.
+Each query is immediately committed to the database.
+
+Django's transaction management APIs are not supported.
+
+.. _django-limitations-models:
+
+Model Limitations
+~~~~~~~~~~~~~~~~~
+
+Django doesn't support MongoDB's `polymorphic pattern
+<https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/>`__
+where slightly different models share the same collection.
+
+Indexes
+```````
+
+{+django-odm+} does not support the following index functionalities:
+
+- Creating ``$vectorSearch`` and ``$search`` indexes through the Django
+  Indexes API
+- Creating geospatial indexes through the Django Indexes API
+- Updating indexes in ``EmbeddedModelFields`` after model creation
+
+.. _django-limitations-models-fields:
+
+Fields
+``````
+
+{+django-odm+} has the following limitations on the specified field types:
+
+- ``ArrayField``
+
+  - ``ArrayField`` polymorphism is not supported.
+  - Nested ``EmbeddedModelField`` values within an ``ArrayField`` are not supported.
+
+- ``EmbeddedModelField``
+
+  - ``EmbeddedModel`` schema changes do not register after creation.
+  - Embedded documents cannot take Django foreign keys.
+  - Arbitrary or untyped embedded model fields are not supported. You must
+    derive all fields from a ``EmbeddedModel`` class.
+
+- ``JSONField``
+
+  - {+django-odm+} cannot distinguish between a JSON and a SQL ``null`` value.
+    Queries that use ``Value(None, JSONField())`` or the ``isnull`` lookup
+    return both JSON and SQL ``null`` values.
+  - Some queries with ``Q`` objects, such as ``Q(value__foo="bar")``, might
+    not work as expected.
+  - Filtering for ``None`` values incorrectly returns objects in which a field
+    does not exist.
+
+- ``DateTimeField``
+
+  - Microsecond granularity for ``DateTimeField`` values is not supported.
+
+- ``DurationField``
+
+  - ``DurationField`` stores milliseconds rather than microseconds.
+
+- ``ForeignKey``
+
+  - When possible, you should use an ``EmbeddedModelField`` instead of a
+    ``ForeignKey`` field to avoid using ``$lookup`` operations. An
+    ``EmbeddedModelField`` emulates a MongoDB embedded document and performs
+    better than a ``ForeignKey`` field. To learn more about how to reduce
+    ``$lookup`` operations, see the :atlas:`Reduce $lookup Operations
+    </schema-suggestions/reduce-lookup-operations/>` guide in the Atlas
+    documentation.
+  - Performance of `CASCADE deletes <{+django-docs+}/ref/models/fields/#django.db.models.CASCADE>`__
+    on a ``ForeignKey`` field is not as performant as using an
+    ``EmbeddedModelField``.
+
+The following field types are unavailable in {+django-odm+}:
+
+- ``GeneratedField``
+- ``AutoField`` (including ``BigAutoField`` and ``SmallAutoField``)
+
+.. _django-limitations-query:
+
+Querying Limitations
+~~~~~~~~~~~~~~~~~~~~
+
+{+django-odm+} does not support the following ``QuerySet`` API methods:
+
+- ``distinct()``
+- ``dates()``
+- ``datetimes()``
+- ``prefetch_related()``
+- ``extra()``
+
+{+django-odm+} does not support ``QuerySet.delete()`` and ``update()`` queries
+that span multiple collections.
+
+Geospatial Queries
+``````````````````
+
+{+django-odm+} does not support the following geospatial query features:
+
+- ``GeoDjango``
+- Django lookup operators for MongoDB-specific geospatial queries
+
+Aggregation Operators
+`````````````````````
+
+{+django-odm+} does not include any custom Django field lookups for the MongoDB
+aggregation framework. Instead, use the ``raw_aggregate()`` method. See the
+:ref:`django-raw-queries` guide.
+
+Database Functions
+``````````````````
+
+{+django-odm+} does not support the following database functions:
+
+- ``Chr``
+- ``ExtractQuarter``
+- ``MD5``
+- ``Now``
+- ``Ord``
+- ``Pad``
+- ``Repeat``
+- ``Reverse``
+- ``Right``
+- ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``
+- ``Sign``
+
+The ``tzinfo`` parameter of the ``Trunc`` database functions doesn't work
+properly because MongoDB converts the result back to UTC.
+
+.. _django-limitations-management:
+
+Unsupported Management Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following ``django-admin`` commands are unsupported:
+
+- ``createcachetable``
+- ``inspectdb``
+
+.. _django-limitations-migration:
+
+Migration Limitations
+~~~~~~~~~~~~~~~~~~~~~
+
+{+django-odm+} does not support the following migration features:
+
+- Enforced schema validation. To learn how to enforce schema
+  validation in your application, see the :manual:`Specify JSON
+  Schema Validation </core/schema-validation/specify-json-schema/>` guide in the
+  {+mdb-server+} manual.
+- `DDL Transactions <{+django-docs+}/topics/migrations/#transactions>`__.
+- The ``migrate --fake-initial`` option.
+
+.. _django-limitations-performance:
+
+Performance
+~~~~~~~~~~~
+
+The engineering team is prioritizing feature development for the Public Preview
+release of {+django-odm+}. Because of this, you might notice performance
+limitations with certain workloads. If you encounter any performance issues,
+please report them as shown in the :ref:`Issues & Help <django-issues-and-help>`
+guide.
+
+General Availability Release Features
+-------------------------------------
+
+In this section, you can learn about the following
+types of {+framework+} and MongoDB features that
+GA and post-GA {+django-odm+} releases will likely introduce:
+
+- :ref:`django-upcoming-mongodb`
+- :ref:`django-upcoming-models`
+- :ref:`django-upcoming-management`
+- :ref:`django-upcoming-third-party`
+
+.. _django-upcoming-mongodb:
+
+MongoDB Features
+~~~~~~~~~~~~~~~~
+
+We plan to support the following MongoDB features in the GA release:
+
+- Programmatic management of Vector Search, Atlas Search,
+  and geospatial indexes by using the Django API
+- Vector Search, Atlas Search, and geospatial queries
+  by using the Django API
+- Queryable Encryption and Client-side Field Level Encryption
+- Database transactions
+- Storage of cached data in the database
+
+We plan to support the following MongoDB features in future post-GA releases:
+
+- GridFS for large file storage
+- Change streams for data monitoring
+- Schema validation
+
+.. tip::
+
+   To learn more about the MongoDB features mentioned in this section, see
+   the following resources:
+
+   - :atlas:`Atlas Vector Search </atlas-vector-search/vector-search-overview/>` in the Atlas documentation
+   - :atlas:`Atlas Search </atlas-search>` in the Atlas documentation
+   - :manual:`Geospatial Queries </geospatial-queries/>` in the {+mdb-server+}
+     manual
+   - :manual:`In-Use Encryption </core/security-in-use-encryption/>` in the {+mdb-server+}
+     manual
+   - :manual:`Transactions </core/transactions/>` in the {+mdb-server+}
+     manual
+   - :manual:`GridFS </core/gridfs/>` in the {+mdb-server+}
+     manual
+   - :manual:`Change Streams </changeStreams/>` in the {+mdb-server+}
+     manual
+
+.. _django-upcoming-models:
+
+Model Features
+~~~~~~~~~~~~~~
+
+We plan to support the following model features in the GA release:
+
+- Arrays of embedded documents
+- Polymorphic embedded documents and arrays
+- Application of changes to the embedded model schema to
+  ``EmbeddedModelField`` values
+- Multiple models within a collection
+- Improved form representation in embedded models
+
+In a future post-GA release, we plan to add a custom model field for the
+``BSONRegExp`` data type.
+
+.. _django-upcoming-management:
+
+Management Command Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Serialization support for ``EmbeddedModelField`` (i.e. Django's ``dumpdata``
+and ``loaddata`` management commands) will be added by the GA release.
+
+.. _django-upcoming-third-party:
+
+Third-Party Libraries
+~~~~~~~~~~~~~~~~~~~~~
+
+We plan to test compatibility with the following third-party libraries by the
+GA release:
+
+- `Django-filter <https://django-filter.readthedocs.io/en/stable/>`__
+- `Django Rest Framework <https://www.django-rest-framework.org/>`__
+- `Django-allauth <https://docs.allauth.org/en/latest/>`__
+- `Wagtail <https://wagtail.org/>`__
+- `Django Debug Toolbar <https://django-debug-toolbar.readthedocs.io/en/latest/>`__
