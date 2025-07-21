@@ -1,0 +1,112 @@
+.. _bson_streaming_bson:
+
+==============
+Streaming BSON
+==============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+   
+`bson_reader_t <{+api-libbson+}/bson_reader_t.html>`__ provides a streaming reader which can be initialized with a
+filedescriptor or memory region. `bson_writer_t <{+api-libbson+}/bson_writer_t.html>`__ provides a streaming writer
+which can be initialized with a memory region. (Streaming BSON to a file descriptor is
+not yet supported.)
+
+Reading from a BSON Stream
+--------------------------
+
+`bson_reader_t <{+api-libbson+}/bson_reader_t.html>`__ provides a convenient API to read sequential BSON documents from
+a file-descriptor or memory buffer. The `bson_reader_read <{+api-libbson+}/bson_reader_read.html>`__ function will read
+forward in the underlying stream and return a `bson_t <{+api-libbson+}/bson_t.html>`__ that can be inspected and
+iterated upon.
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <bson/bson.h>
+
+   int
+   main (int argc, char *argv[])
+   {
+     bson_reader_t *reader;
+     const bson_t *doc;
+     bson_error_t error;
+     bool eof;
+
+     reader = bson_reader_new_from_file ("mycollection.bson", &error);
+
+     if (!reader) {
+        fprintf (stderr, "Failed to open file.\n");
+        return 1;
+     }
+
+     while ((doc = bson_reader_read (reader, &eof))) {
+        char *str = bson_as_canonical_extended_json (doc, NULL);
+        printf ("%s\n", str);
+        bson_free (str);
+     }
+
+     if (!eof) {
+        fprintf (stderr,
+                 "corrupted bson document found at %u\n",
+                 (unsigned) bson_reader_tell (reader));
+     }
+
+     bson_reader_destroy (reader);
+
+     return 0;
+   }
+
+See `bson_reader_new_from_fd <{+api-libbson+}/bson_reader_new_from_fd.html>`__,
+`bson_reader_new_from_file <{+api-libbson+}/bson_reader_new_from_file.html>`__, and
+`bson_reader_new_from_data <{+api-libbson+}/bson_reader_new_from_data.html>`__ for more information.
+
+Writing a Sequence of BSON Documents
+------------------------------------
+
+`bson_writer_t <{+api-libbson+}/bson_writer_t.html>`__ provides a convenient API to write a sequence of BSON documents to a
+memory buffer that can grow with ``realloc()``. The `bson_writer_begin <{+api-libbson+}/bson_writer_begin.html>`__
+and `bson_writer_end <{+api-libbson+}/bson_writer_end.html>`__ functions will manage the underlying buffer while building
+the sequence of documents.
+
+This could also be useful if you want to write to a network packet while serializing the documents from
+a higher level language, (but do so just after the packets header).
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <bson/bson.h>
+   #include <assert.h>
+
+   int
+   main (int argc, char *argv[])
+   {
+     bson_writer_t *writer;
+     bson_t *doc;
+     uint8_t *buf = NULL;
+     size_t buflen = 0;
+     bool r;
+     int i;
+
+     writer = bson_writer_new (&buf, &buflen, 0, bson_realloc_ctx, NULL);
+
+     for (i = 0; i < 10000; i++) {
+        r = bson_writer_begin (writer, &doc);
+        assert (r);
+
+        r = BSON_APPEND_INT32 (doc, "i", i);
+        assert (r);
+
+        bson_writer_end (writer);
+     }
+
+     bson_free (buf);
+
+     return 0;
+   }
+
+See `bson_writer_new <{+api-libbson+}/bson_writer_new.html>`__ for more information.
+
