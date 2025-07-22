@@ -7,7 +7,7 @@
 
       You can use an embedding model provider to generate ``float``,
       ``int8``, and ``int1`` embeddings for your data and then use the
-      :driver:`MongoDB Java driver </java/sync/current/>` to
+      :driver:`MongoDB Java Driver </java/sync/current/>` to
       convert your native vector embedding to |bson| vectors. The
       following sample code uses |voyage|'s REST |api| to generate
       full-precision vectors from the data in the
@@ -29,8 +29,8 @@
            ``sample_airbnb.listingsAndReviews`` namespace.
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
            embeddings by using |voyage|'s ``voyage-3-large`` embedding model.
-         - Converts the embeddings to |bson| ``binData`` vectors by using
-           :driver:`MongoDB Java driver </java/sync/current/>`. 
+         - Converts the embeddings to |bson| ``binData`` vectors by using the
+           :driver:`MongoDB Java Driver </java/sync/current/>`. 
          - Creates a file named ``embeddings.json`` and saves
            the data with embeddings in the file. 
 
@@ -143,7 +143,7 @@
       ``int8``, and ``int1`` embeddings for your query text. The
       following sample code uses |voyage|'s REST |api| to generate
       full-precision vectors. After generating the embeddings, use the
-      :driver:`MongoDB Java driver </drivers/java/sync/current/>` to 
+      :driver:`MongoDB Java Driver </java/sync/current/>` to 
       convert your native vector embedding to |bson| vectors and run
       :pipeline:`$vectorSearch` query against the collection.
 
@@ -162,7 +162,7 @@
          - Generates the ``float32``, ``int8``, and ``ubinary`` vector
            embeddings by using |voyage|'s ``voyage-3-large`` embedding model.
          - Converts the embeddings to |bson| ``binData`` vectors by using
-           :driver:`MongoDB Java driver </java/sync/current/>`. 
+           :driver:`MongoDB Java Driver </java/sync/current/>`. 
          - Runs the query against your collection and returns the
            results. 
 
