@@ -12,7 +12,7 @@
 
      - id: compass
        content: |
-         .. figure:: /images/compass-insert-document-inventory.png
+         .. figure:: /images/compass-insert-document-inventory-new.png
             :alt: Compass insert new document into collection
 
      - id: c

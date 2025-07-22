@@ -30,9 +30,6 @@
                 { "item": "sketch pad", "qty": 95, "size": { "h": 22.85, "w": 30.5, "uom": "cm" }, "status": "A" }
             ]
 
-         For instructions on inserting documents using |compass|, see
-         :ref:`Insert Documents <write-op-insert>`.
-
      - id: c
        content: |
 

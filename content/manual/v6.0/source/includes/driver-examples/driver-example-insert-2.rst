@@ -10,19 +10,18 @@
 
      - id: compass
        content: |
-         .. figure:: /images/compass-query-collection.png
+         .. figure:: /images/compass-query-collection-new.png
             :alt: Query for matching documents in a collection
 
-         Specify a filter in the MongoDB Compass query bar and click
-         :guilabel:`Find` to execute the query.
+     - id: c
+       content: |
 
-         The above filter specifies that MongoDB Compass only return
-         documents where the ``item`` field is equal to ``canvas``.
-
-         For more information on the MongoDB Compass Query Bar, see the
-         Compass :ref:`Query Bar <compass-query-bar>`
-         documentation.
-
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 2
+            :end-before: End Example 2
+            
      - id: python
        content: |
 
@@ -56,6 +55,15 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 2
+            :end-before: End Example 2
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 2
             :end-before: End Example 2
 

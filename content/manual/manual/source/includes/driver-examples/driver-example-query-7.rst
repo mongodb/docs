@@ -11,7 +11,7 @@
      - id: compass
        content: |
 
-         .. figure:: /images/compass-select-all.png
+         .. figure:: /images/compass-select-all-new.png
             :alt: Compass select all documents in collection
 
      - id: c
