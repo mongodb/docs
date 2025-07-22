@@ -1,0 +1,279 @@
+.. _node-connection-pools:
+
+========================================
+Manage Connections with Connection Pools
+========================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about how {+driver-short+} uses connection pools to manage
+connections to a MongoDB deployment and how you can configure connection pool settings
+in your application.
+
+A connection pool is a cache of open database connections maintained by {+driver-short+}.
+When your application requests a connection to MongoDB, {+driver-short+} seamlessly
+gets a connection from the pool, performs operations, and returns the connection
+to the pool for reuse.
+
+Connection pools help reduce application latency and the number of times new connections
+are created by {+driver-short+}.
+
+.. _node-faq-connection-pool:
+
+Configure Connection Pools
+--------------------------
+
+Every ``MongoClient`` instance has a built-in connection pool for each server in
+your MongoDB topology. If you do not configure the ``minPoolSize`` option,
+connection pools open sockets on demand to support concurrent requests to
+MongoDB in your application.
+
+You can specify the following connection pool settings in your ``MongoClient``
+instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``maxPoolSize``
+     - | The maximum number of concurrent connections that the pool maintains.
+         If the number of in-use connections to a server reaches the specified
+         value, the next request to that server waits until a connection becomes
+         available.
+       |
+       | **Default**: ``100``
+
+   * - ``maxConnecting``
+     - | The maximum number of connections that each pool can establish
+         concurrently.
+
+   * - ``minPoolSize``
+     - | The minimum number of concurrent connections that the pool maintains.
+       |
+       | **Default**: ``0``
+
+   * - ``maxIdleTimeMS``
+     - | The maximum number of milliseconds that a connection can remain idle in
+         the pool.
+       |
+       | **Default**: ``0`` (no limit)
+
+   * - ``waitQueueTimeoutMS``
+     - | The maximum number of milliseconds that a request can wait for a socket
+         to become available.
+       |
+       | **Default**: ``0`` (no limit)
+
+
+.. _node-connection-pool-max-pool-size:
+
+maxPoolSize
+~~~~~~~~~~~
+
+In addition to the sockets needed to support your application's requests, each
+``MongoClient`` instance opens up to two connections per server in your
+MongoDB topology for monitoring the server's state.
+
+For example, a client connected to a three-node replica set opens six monitoring
+sockets. If the application uses the default setting for ``maxPoolSize`` and
+only queries the primary (default) node, then there can be at most ``106`` open
+sockets and ``100`` connections in the connection pool. If the application uses
+a :ref:`read preference <read-preference>` to query the secondary nodes, those
+connection pools grow and there can be ``306`` total connections including the
+open monitoring sockets.
+
+To support high numbers of concurrent MongoDB requests
+within one process, you can increase ``maxPoolSize``.
+
+The following code creates a ``MongoClient`` instance with a maximum connection
+pool size of ``200`` by specifying the ``maxPoolSize`` option in the
+``options`` object:
+
+.. code-block:: javascript
+
+   const { MongoClient } = require('mongodb');
+
+   const uri = '<connection-string>';
+   const client = new MongoClient(uri, {
+     maxPoolSize: 200
+   });
+
+.. _node-connection-pool-max-connecting:
+
+maxConnecting
+~~~~~~~~~~~~~
+
+Connection pools rate-limit connection establishment. The ``maxConnecting``
+option determines the number of connections that the pool can create in parallel
+at any time. For example, if the value of ``maxConnecting`` is ``2``, the third
+request that attempts to concurrently check out a connection succeeds only when
+one the following cases occurs:
+
+- The connection pool finishes creating a connection and there are fewer
+  than ``maxPoolSize`` connections in the pool.
+- An existing connection is checked back into the pool.
+
+The following code creates a ``MongoClient`` instance with a maximum number of
+``2`` connections to be established concurrently per pool by specifying the
+``maxConnecting`` option in the ``options`` object:
+
+.. code-block:: javascript
+
+   const { MongoClient } = require('mongodb');
+
+   const uri = '<connection-string>';
+   const client = new MongoClient(uri, {
+      maxConnecting: 2
+   });
+
+.. _node-connection-pool-min-pool-size:
+
+minPoolSize
+~~~~~~~~~~~
+
+You can set the minimum number of connections to each server with the
+``minPoolSize`` option. The driver ensures that there are always at least the
+number of connections set by the ``minPoolSize`` option in the connection pool.
+If sockets are closed, causing the total number of sockets (both in use and
+idle) to drop below the minimum, more sockets are opened until the minimum is
+reached.
+
+The following code creates a ``MongoClient`` instance with a minimum connnection
+pool size of ``10`` by specifying the ``minPoolSize`` option in the ``options``
+object:
+
+.. code-block:: javascript
+
+   const { MongoClient } = require('mongodb');
+
+   const uri = '<connection-string>';
+   const client = new MongoClient(uri, {
+     minPoolSize: 10
+   });
+
+.. _node-connection-pool-max-idle-time:
+
+maxIdleTimeMS
+~~~~~~~~~~~~~
+
+You can set the maximum number of milliseconds that a connection can
+remain idle in the pool by setting the ``maxIdleTimeMS`` option.
+Once a connection has been idle for ``maxIdleTimeMS``, the connection
+pool removes and replaces it. This option defaults to ``0`` (no limit).
+
+The following code creates a ``MongoClient`` instance with a maximum idle time
+of ``10000`` milliseconds (10 seconds) by specifying the  ``maxIdleTimeMS``
+setting in the ``options`` object:
+
+.. code-block:: javascript
+
+   const { MongoClient } = require('mongodb');
+
+   const uri = '<connection-string>';
+   const client = new MongoClient(uri, {
+     maxIdleTimeMS: 10000
+   });
+
+.. _node-connection-pool-wait-queue-timeout:
+
+waitQueueTimeoutMS
+~~~~~~~~~~~~~~~~~~
+
+``MongoClient`` supports multiple concurrent requests. For each process,
+create a client and reuse it for all operations in a process. This
+practice is more efficient than creating a client for each request.
+
+The driver does not limit the number of requests that
+can wait for sockets to become available, and it is the application's
+responsibility to limit the size of its pool to bound queuing
+during a load spike. Requests wait for the amount of time specified in
+the ``waitQueueTimeoutMS`` option, which defaults to ``0`` (no limit).
+
+A request that waits more than the length of time defined by
+``waitQueueTimeoutMS`` for a socket raises a connection error. Use this
+option if it is more important to bound the duration of operations
+during a load spike than it is to complete every operation.
+
+The following code creates a ``MongoClient`` instance with a maximum wait queue
+timeout of ``10000`` milliseconds (10 seconds) by declaring it in the
+``options`` object:
+
+.. code-block:: javascript
+
+   const { MongoClient } = require('mongodb');
+
+   const uri = '<connection-string>';
+   const client = new MongoClient(uri, {
+     waitQueueTimeoutMS: 10000
+   });
+
+Closing Connections
+--------------------
+
+When any request calls ``MongoClient.close()``, the {+driver-short+} performs
+the following actions:
+
+- Closes all idle sockets in the connection pool
+- Closes all sockets that are in use as they are returned to the pool
+- Closes all sockets that are in use only when the associated operations
+  complete
+
+Calling ``MongoClient.close()`` closes only inactive sockets and does not
+directly terminate any ongoing operations. 
+
+.. note::
+
+   The ``MongoClient.close()`` method does close existing sessions and
+   transactions, which might indirectly affect the behavior of ongoing
+   operations and open cursors.
+
+Avoid Socket Timeouts
+---------------------
+
+Having a large connection pool does not always reduce reconnection
+requests. Consider the following example scenario:
+
+- An application has a connection pool size of 5 sockets and has the
+  ``socketTimeoutMS`` option set to 5000 milliseconds. 
+- Operations occur, on average, every 3000 milliseconds, and reconnection
+  requests are frequent. 
+- Each socket times out after 5000 milliseconds, which means that all sockets
+  must do something during those 5000 milliseconds to avoid closing.
+
+In this scenario, each socket times out after 5000 milliseconds, requiring
+activity within this timeout period to avoid closure. However, one message every
+3000 milliseconds isn't enough to keep all sockets active, causing several of
+them to time out.
+
+To avoid excessive socket timeouts, reduce the number of connections that the
+driver can maintain in the connection pool by specifying the ``maxPoolSize``
+option. To learn how to set the ``maxPoolSize`` option, see the
+:ref:`node-connection-pool-max-pool-size` section.
+
+API Documentation
+-----------------
+
+For more information about creating a ``MongoClient`` object with the 
+{+driver-short+} and specifying options, see the following API documentation: 
+
+- `MongoClient <{+api+}/classes/MongoClient.html>`__
+- `MongoClientOptions <{+api+}/interfaces/MongoClientOptions.html>`__
+- `maxPoolSize <{+api+}/interfaces/MongoClientOptions.html#maxPoolSize>`__
+- `maxConnecting <{+api+}/interfaces/MongoClientOptions.html#maxConnecting>`__
+- `minPoolSize <{+api+}/interfaces/MongoClientOptions.html#minPoolSize>`__
+- `maxIdleTimeMS <{+api+}/interfaces/MongoClientOptions.html#maxIdleTimeMS>`__
+- `waitQueueTimeoutMS <{+api+}/interfaces/MongoClientOptions.html#waitQueueTimeoutMS>`__

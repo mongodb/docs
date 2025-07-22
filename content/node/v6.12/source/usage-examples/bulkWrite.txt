@@ -1,0 +1,98 @@
+.. _node-usage-bulk:
+
+=======================
+Perform Bulk Operations
+=======================
+
+.. default-domain:: mongodb
+
+The ``bulkWrite()`` method performs batch write operations against a
+*single* collection. This method reduces the number of network round trips from
+your application to the server which therefore increases the throughput and
+performance. Bulk writes return a collection of results for all operations
+only after *all* operations passed to the method complete.
+
+You can specify one or more of the following write operations in
+``bulkWrite()``:
+
+- ``insertOne``
+- ``updateOne``
+- ``updateMany``
+- ``deleteOne``
+- ``deleteMany``
+- ``replaceOne``
+
+The ``bulkWrite()`` method accepts the following parameters:
+
+- ``operations``: specifies the bulk write operations to
+  perform. Pass each operation to ``bulkWrite()`` as an object in
+  an array. For examples that show the syntax for each write operation, see
+  the `bulkWrite API documentation <{+api+}/classes/Collection.html#bulkWrite>`__.
+
+- ``options``: *optional* settings that affect the execution
+  of the operation, such as whether the write operations executes in
+  sequential order and the write concern.
+
+  By default, MongoDB executes bulk write operations one-by-one in the specified order
+  (serially). During an ordered bulk write, if an error occurs during the processing of an
+  operation, MongoDB returns without processing the remaining operations in the list. In
+  contrast, when ``ordered`` is ``false``, MongoDB continues to process remaining write
+  operations in the list. Unordered operations are theoretically faster since MongoDB can
+  execute them in parallel, but only use them if the writes do not depend on order.
+
+If you create an index with a :manual:`unique index </core/index-unique>`
+constraint, you might encounter a duplicate key write error during an
+operation in the following format:
+
+.. code-block:: sh
+
+   Error during bulkWrite, BulkWriteError: E11000 duplicate key error collection: ...
+
+Similarly, if you attempt to perform a bulk write against a collection
+that uses :manual:`schema validation </core/schema-validation>`, you may
+encounter warnings or errors related to the formatting of inserted or
+modified documents.
+
+Example
+-------
+
+The following code sample performs a bulk write operation on the
+``theaters`` collection in the ``sample_mflix`` database. The example call
+to ``bulkWrite()`` includes examples of ``insertOne``, ``updateMany``, and
+``deleteOne`` write operations:
+
+.. include:: /includes/connect-guide-note.rst
+
+.. tabs::
+
+   .. tab:: JavaScript
+      :tabid: javascript
+
+      .. literalinclude:: /code-snippets/usage-examples/bulkWrite.js
+         :language: javascript
+         :linenos:
+
+   .. tab:: TypeScript
+      :tabid: typescript
+
+      .. literalinclude:: /code-snippets/usage-examples/bulkWrite.ts
+         :language: typescript
+         :linenos:
+
+Running the preceding example results in the following output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   BulkWriteResult {
+     insertedCount: 2,
+     matchedCount: 1,
+     modifiedCount: 1,
+     deletedCount: 0,
+     upsertedCount: 0,
+     upsertedIds: {},
+     insertedIds: {
+       '0': new ObjectId("..."),
+       '1': new ObjectId("...")
+     }
+   }

@@ -1,0 +1,345 @@
+.. _node-cluster-monitoring:
+
+==================
+Cluster Monitoring
+==================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: code example, node.js, watch
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+Overview
+--------
+
+This guide shows you how to monitor topology events in a MongoDB instance,
+replica set, or sharded cluster. The driver creates topology events, also
+known as Server Discovery and Monitoring (SDAM) events, when there is
+a change in the state of the instance or cluster that you connected to.
+For example, the driver creates an event when you establish a new connection
+or if the cluster elects a new primary.
+
+The following sections demonstrate how to record topology changes in your application
+and explore the information provided in these events.
+
+Event Subscription Example
+--------------------------
+
+You can access one or more SDAM events using the driver by subscribing to them
+in your application. The following example demonstrates connecting to a
+replica set and subscribing to one of the SDAM events created by the MongoDB
+deployment:
+
+.. literalinclude:: /code-snippets/monitoring/sdam-subscribe.js
+   :language: javascript
+
+Event Descriptions
+------------------
+
+You can subscribe to any of the following SDAM events:
+
+.. list-table::
+   :widths: 33 67 
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - ``serverOpening``
+     - Created when a connection to an instance opens.
+
+   * - ``serverClosed``
+     - Created when a connection to an instance closes.
+
+   * - ``serverDescriptionChanged``
+     - Created when an instance state changes (such as from secondary to
+       primary).
+
+   * - ``topologyOpening``
+     - Created before attempting a connection to an instance.
+
+   * - ``topologyClosed``
+     - Created after all instance connections in the topology close.
+
+   * - ``topologyDescriptionChanged``
+     - Created when the topology changes, such as an election of a new
+       primary or a **mongos** proxy disconnecting.
+
+   * - ``serverHeartbeatStarted``
+     - Created before issuing a ``hello`` command to a MongoDB instance.
+
+   * - ``serverHeartbeatSucceeded``
+     - Created when the ``hello`` command returns successfully from a
+       MongoDB instance.
+
+   * - ``serverHeartbeatFailed``
+     - Created when a ``hello`` command issued to a specific MongoDB
+       instance fails to return a successful response.
+
+Example Event Documents
+-----------------------
+
+The following sections show sample output for each type of SDAM event.
+
+serverDescriptionChanged
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerDescriptionChangedEvent {
+     topologyId: 0,
+     address: 'localhost:27017',
+     previousDescription: ServerDescription {
+       address: 'localhost:27017',
+       error: null,
+       roundTripTime: 0,
+       lastUpdateTime: 1571251089030,
+       lastWriteDate: null,
+       opTime: null,
+       type: 'Unknown',
+       minWireVersion: 0,
+       maxWireVersion: 0,
+       hosts: [],
+       passives: [],
+       arbiters: [],
+       tags: []
+     },
+     newDescription: ServerDescription {
+       address: 'localhost:27017',
+       error: null,
+       roundTripTime: 0,
+       lastUpdateTime: 1571251089051,
+       lastWriteDate: 2019-10-16T18:38:07.000Z,
+       opTime: { ts: Timestamp, t: 18 },
+       type: 'RSPrimary',
+       minWireVersion: 0,
+       maxWireVersion: 7,
+       maxBsonObjectSize: 16777216,
+       maxMessageSizeBytes: 48000000,
+       maxWriteBatchSize: 100000,
+       me: 'localhost:27017',
+       hosts: [ 'localhost:27017' ],
+       passives: [],
+       arbiters: [],
+       tags: [],
+       setName: 'rs',
+       setVersion: 1,
+       electionId: ObjectID,
+       primary: 'localhost:27017',
+       logicalSessionTimeoutMinutes: 30,
+       '$clusterTime': ClusterTime
+     }
+   }
+
+The ``type`` field of the ``ServerDescription`` object in this event contains
+one of the following possible values:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Type
+     - Description
+   * - ``Unknown``
+     - Unknown instance
+   * - ``Standalone``
+     - Standalone instance
+   * - ``Mongos``
+     - Mongos proxy instance
+   * - ``PossiblePrimary``
+     - At least one server recognizes this as the primary, but is not yet
+       verified by all instances.
+   * - ``RSPrimary``
+     - Primary instance
+   * - ``RSSecondary``
+     - Secondary instance
+   * - ``RSArbiter``
+     - Arbiter instance
+   * - ``RSOther``
+     - See the `RSGhost and RSOther specification <https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#rsghost-and-rsother>`__
+       for more details
+   * - ``RSGhost``
+     - See the `RSGhost and RSOther specification <https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#rsghost-and-rsother>`__
+       for more details
+
+serverHeartbeatStarted
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerHeartbeatStartedEvent {
+     connectionId: 'localhost:27017'
+   }
+
+serverHeartbeatSucceeded
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerHeartbeatSucceededEvent {
+     duration: 1.939997,
+     reply:{
+       hosts: [ 'localhost:27017' ],
+       setName: 'rs',
+       setVersion: 1,
+       isWritablePrimary: true,
+       secondary: false,
+       primary: 'localhost:27017',
+       me: 'localhost:27017',
+       electionId: ObjectID,
+       lastWrite: {
+         opTime: { ts: [Timestamp], t: 18 },
+         lastWriteDate: 2019-10-16T18:38:17.000Z,
+         majorityOpTime: { ts: [Timestamp], t: 18 },
+         majorityWriteDate: 2019-10-16T18:38:17.000Z
+       },
+       maxBsonObjectSize: 16777216,
+       maxMessageSizeBytes: 48000000,
+       maxWriteBatchSize: 100000,
+       localTime: 2019-10-16T18:38:19.589Z,
+       logicalSessionTimeoutMinutes: 30,
+       minWireVersion: 0,
+       maxWireVersion: 7,
+       readOnly: false,
+       ok: 1,
+       operationTime: Timestamp,
+       '$clusterTime': ClusterTime
+     },
+     connectionId: 'localhost:27017'
+   }
+
+serverHeartbeatFailed
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerHeartbeatFailed {
+     duration: 20,
+     failure: MongoError('some error'),
+     connectionId: 'localhost:27017'
+   }
+
+serverOpening
+^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerOpeningEvent {
+     topologyId: 0,
+     address: 'localhost:27017'
+   }
+
+serverClosed
+^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   ServerClosedEvent {
+     topologyId: 0,
+     address: 'localhost:27017'
+   }
+
+topologyOpening
+^^^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   TopologyOpeningEvent {
+     topologyId: 0
+   }
+
+topologyClosed
+^^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   TopologyClosedEvent {
+     topologyId: 0
+   }
+
+topologyDescriptionChanged
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: javascript
+   :copyable: false
+
+   TopologyDescriptionChangedEvent {
+     topologyId: 0,
+     previousDescription: TopologyDescription {
+       type: 'ReplicaSetNoPrimary',
+       setName: null,
+       maxSetVersion: null,
+       maxElectionId: null,
+       servers: Map {
+         'localhost:27017' => ServerDescription
+       },
+       stale: false,
+       compatible: true,
+       compatibilityError: null,
+       logicalSessionTimeoutMinutes: null,
+       heartbeatFrequencyMS: 10000,
+       localThresholdMS: 15,
+       options: Object,
+       error: undefined,
+       commonWireVersion: null
+     },
+     newDescription: TopologyDescription {
+       type: 'ReplicaSetWithPrimary',
+       setName: 'rs',
+       maxSetVersion: 1,
+       maxElectionId: null,
+       servers: Map {
+         'localhost:27017' => ServerDescription
+       },
+       stale: false,
+       compatible: true,
+       compatibilityError: null,
+       logicalSessionTimeoutMinutes: 30,
+       heartbeatFrequencyMS: 10000,
+       localThresholdMS: 15,
+       options: Object,
+       error: undefined,
+       commonWireVersion: 7
+     }
+   }
+
+The ``type`` field of the ``TopologyDescription`` object in this event contains
+one of the following possible values:
+
+.. list-table::
+   :widths: 30 70 
+   :header-rows: 1
+
+   * - Type
+     - Description
+
+   * - ``Single``
+     - Standalone instance
+
+   * - ``ReplicaSetWithPrimary``
+     - Replica set with a primary
+
+   * - ``ReplicaSetNoPrimary``
+     - Replica set with no primary
+
+   * - ``Sharded``
+     - Sharded cluster
+
+   * - ``Unknown``
+     - Unknown topology

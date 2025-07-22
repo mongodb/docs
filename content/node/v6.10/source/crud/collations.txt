@@ -1,0 +1,314 @@
+.. _node-fundamentals-collations:
+
+==========
+Collations
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+*Collations are available in MongoDB 3.4 and later.*
+
+--------
+Overview
+--------
+
+This guide shows you how to use **collations**, a set of sorting rules, to
+run operations using string ordering for specific languages and locales (a
+community or region that shares common language idioms).
+
+MongoDB sorts strings using *binary collation* by default. This collation
+method uses the `ASCII standard <https://en.wikipedia.org/wiki/ASCII>`_
+character values to compare and order strings. Languages and locales
+have specific character ordering conventions that differ from the ASCII
+standard.
+
+For example, in Canadian French, the right-most accented character determines
+the ordering for strings when the other characters are the same. Consider the
+following French words: **cote**, **coté**, **côte**, and **côté**.
+
+MongoDB sorts them in the following order using the default binary collation:
+
+.. code-block:: none
+
+   cote
+   coté
+   côte
+   côté
+
+MongoDB sorts them in the following order using the Canadian French collation:
+
+.. code-block:: none
+
+   cote
+   côte
+   coté
+   côté
+
+-----
+Usage
+-----
+
+You can specify a collation when you create a new collection or new index. You
+can also specify a collation for :doc:`CRUD operations </fundamentals/crud>`
+and aggregations.
+
+When you create a new collection with a collation, you define the default
+collation for any of the :manual:`operations that support collation
+</reference/collation/#operations-that-support-collation>` called on that
+collection. You can override the collation for an operation by specifying a
+different one.
+
+.. note::
+
+   Currently, you cannot create a collation on an existing collection. To use
+   collations with an existing collection, create an index with the collation
+   and specify the same collation in your operations on it.
+
+When you create an index with a collation, you specify the sort order for
+operations that use that index. To use the collation in the index, you
+must provide a matching collation in the operation, and the operation must
+use the index. While most index types support collation, the following
+types support only binary comparison:
+
+- :manual:`text </reference/method/db.collection.createIndex/#options-for-text-indexes>`
+- :manual:`2d </reference/method/db.collection.createIndex/#options-for-2dsphere-indexes>`
+- :manual:`geoHaystack </reference/method/db.collection.createIndex/#options-for-geohaystack-indexes>`
+
+Collation Parameters
+~~~~~~~~~~~~~~~~~~~~
+
+The collation object contains the following parameters:
+
+.. code-block:: javascript
+
+   collation: {
+     locale: <string>,
+     caseLevel: <bool>,
+     caseFirst: <string>,
+     strength: <int>,
+     numericOrdering: <bool>,
+     alternate: <string>,
+     maxVariable: <string>,
+     backwards: <bool>
+   }
+
+You must specify the ``locale`` field in the collation; all other fields
+are optional. For a complete list of supported locales and the default values
+for the ``locale`` fields, see :manual:`Supported Languages and Locales
+</reference/collation-locales-defaults/#supported-languages-and-locales>`.
+For descriptions of each field, see the :manual:`Collation Document MongoDB
+manual entry </reference/collation/#collation-document>`.
+
+------------------
+Collation Examples
+------------------
+
+Set a Default Collation on a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, we create a new collection called ``souvenirs`` and
+assign a default collation with the ``"fr_CA"`` locale. The collation applies
+to all :manual:`operations that support collation
+</reference/collation/#operations-that-support-collation>` performed on that
+collection.
+
+.. literalinclude:: /code-snippets/collation/collection-collation.js
+   :language: javascript
+   :start-after: start collection collation
+   :end-before: end collection collation
+
+Any of the operations that support collations automatically apply the collation
+defined on the collection. The query below searches the ``souvenirs``
+collection and applies the ``"fr_CA"`` locale collation:
+
+.. literalinclude:: /code-snippets/collation/collection-auto-collation.js
+   :language: javascript
+   :start-after: start auto collation
+   :end-before: end auto collation
+
+You can specify a different collation as a parameter in an operation that
+supports collations. The following query specifies the ``"is"`` Iceland locale
+and ``caseFirst`` optional parameter with the value ``"upper"``:
+
+.. literalinclude:: /code-snippets/collation/collection-specify-collation.js
+   :language: javascript
+   :start-after: start specified collation
+   :end-before: end specified collation
+
+Assign a Collation to an Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, we create a new index on the ``title`` field of
+a collection with a collation set to the ``"en_US"`` locale.
+
+.. literalinclude:: /code-snippets/collation/index-collation.js
+   :language: javascript
+   :start-after: start create index collation
+   :end-before: end create index collation
+
+The following query uses the index we created:
+
+.. literalinclude:: /code-snippets/collation/query-index-collation.js
+   :language: javascript
+   :start-after: start query index collation
+   :end-before: end query index collation
+
+The following queries **do not** use the index that we created. The first
+query does not include a collation and the second contains a different
+strength value than the collation on the index.
+
+.. literalinclude:: /code-snippets/collation/query-not-indexed-collation.js
+   :language: javascript
+   :start-after: start not indexed collation
+   :end-before: end not indexed collation
+
+.. literalinclude:: /code-snippets/collation/query-index-no-collation.js
+   :language: javascript
+   :start-after: start index no collation
+   :end-before: end index no collation
+
+Collation Query Examples
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Operations that read, update, and delete documents from a collection can use
+collations. This section includes examples of a selection of these. See the
+MongoDB manual for a full list of :manual:`operations that support collation
+</reference/collation/#operations-that-support-collation>`.
+
+find() and sort() Example
+`````````````````````````
+
+The following example calls both ``find()`` and ``sort()`` on a collection
+that uses the default binary collation. We use the German collation by
+setting the value of the ``locale`` parameter to ``"de"``.
+
+.. literalinclude:: /code-snippets/collation/find-sort-collation.js
+   :language: javascript
+   :start-after: start find sort collation
+   :end-before: end find sort collation
+
+findOneAndUpdate() Example
+``````````````````````````
+
+The following example calls the ``findOneAndUpdate()`` operation on a
+collection that uses the default binary collation. The collection contains the
+following documents:
+
+.. code-block:: none
+
+   { "_id" : 1, "first_name" : "Hans" }
+   { "_id" : 2, "first_name" : "Gunter" }
+   { "_id" : 3, "first_name" : "Günter" }
+   { "_id" : 4, "first_name" : "Jürgen" }
+
+Consider the following ``findOneAndUpdate()`` operation on this collection
+which **does not** specify a collation:
+
+.. literalinclude:: /code-snippets/collation/findOneAndUpdate-default-order-collation.js
+   :language: javascript
+   :start-after: start findOneAndUpdate default order collation
+   :end-before: end findOneAndUpdate default order collation
+
+Since "Gunter" is the first sorted result when using a binary collation, none
+of the documents come lexically before and match the ``$lt`` comparison
+operator in the query document. As a result, the operation does not update any
+documents.
+
+Consider the same operation with a collation specified with the locale set to
+``de@collation=phonebook``. This locale specifies the ``collation=phonebook``
+option which contains rules for prioritizing proper nouns, identified by
+capitalization of the first letter. The ``de@collation=phonebook`` locale and
+option sorts characters with umlauts before the same characters without
+umlauts.
+
+.. literalinclude:: /code-snippets/collation/findOneAndUpdate-collation.js
+   :language: javascript
+   :start-after: start findOneAndUpdate collation
+   :end-before: end findOneAndUpdate collation 
+
+Since "Günter" lexically comes before "Gunter" using the
+``de@collation=phonebook`` collation specified in ``findOneAndUpdate()``,
+the operation returns the following updated document:
+
+.. code-block:: none
+
+   { lastErrorObject: { updatedExisting: true, n: 1 },
+     value: { _id: 3, first_name: 'Günter' },
+     ok: 1 }
+
+findOneAndDelete() Example
+``````````````````````````
+
+The following example calls the ``findOneAndDelete()`` operation on a
+collection that uses the default binary collation and contains the following
+documents:
+
+.. code-block:: none
+
+   { "_id" : 1, "a" : "16" }
+   { "_id" : 2, "a" : "84" }
+   { "_id" : 3, "a" : "179" }
+
+In this example, we set the ``numericOrdering`` collation parameter to ``true``
+to sort numeric strings based on their numerical order instead of their
+lexical order.
+
+.. literalinclude:: /code-snippets/collation/findOneAndDelete-collation.js
+   :language: javascript
+   :start-after: start findOneAndDelete collation
+   :end-before: end findOneAndDelete collation
+
+After you run the operation above, the collection contains the following
+documents:
+
+.. code-block:: none
+
+   { "_id" : 1, "a" : "16" }
+   { "_id" : 2, "a" : "84" }
+
+If you perform the same operation without collation on the original
+collection of three documents, it matches documents based on the lexical value
+of the strings (``"16"``, ``"84"``, and ``"179"``), and deletes the first
+document it finds that matches the query criteria.
+
+.. literalinclude:: /code-snippets/collation/findOneAndDelete-no-collation.js
+   :language: javascript
+   :start-after: start findOneAndDelete no collation
+   :end-before: end findOneAndDelete no collation
+
+Since all the documents contain lexical values in the ``a`` field that
+match the criteria (greater than the lexical value of ``"100"``), the operation
+removes the first result. After you run the operation above, the collection
+contains the following documents:
+
+.. code-block:: none
+
+    { "_id" : 2, "a" : "84" }
+    { "_id" : 3, "a" : "179" }
+
+Aggregation Example
+```````````````````
+
+To use collation with the `aggregate <{+api+}/classes/Collection.html#aggregate>`__
+operation, pass the collation document in the options field, after the
+array of pipeline stages.
+
+The following example shows an aggregation pipeline on a collection that uses
+the default binary collation. The aggregation groups the ``first_name`` field,
+counts the total number of results in each group, and sorts the results by
+the German phonebook (``"de@collation=phonebook"`` locale) order.
+
+.. note::
+
+   You can specify only one collation on an aggregation.
+
+.. literalinclude:: /code-snippets/collation/aggregation-collation.js
+   :language: javascript
+   :start-after: start aggregation collation
+   :end-before: end aggregation collation

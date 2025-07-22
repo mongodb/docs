@@ -1,0 +1,127 @@
+.. _node-undefined-values:
+
+================
+Undefined Values
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn to control how the driver serializes
+``undefined`` values. By default, the driver serializes ``undefined`` values
+as ``null`` values during write operations.
+
+.. _nodejs-specify-ignoreundefined:
+
+Ignore Undefined Values
+-----------------------
+
+To make the driver ignore fields with
+``undefined`` values during serialization, set the
+``ignoreUndefined`` setting to ``true``. When you specify this setting,
+the driver *does not* serialize fields with ``undefined`` values.
+
+The following example inserts two documents. The first insert operation has
+the ``ignoreUndefined`` setting set to ``true``, so the driver does not
+serialize the ``salesTax`` field in that operation. The second operation
+inserts a document that has the ``salesTax`` field with a ``null`` value:
+
+.. code-block:: javascript
+   :emphasize-lines: 6
+   
+   await myColl.insertOne(
+     {
+       state: "Montana",
+       salesTax: undefined,
+     },
+     { ignoreUndefined: true }
+   );
+
+   await myColl.insertOne({
+     state: "New Hampshire",
+     salesTax: undefined,
+   });
+
+The documents appear in the collection as follows:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: ...,
+     state: "Montana",
+   },
+   {
+     _id: ...,
+     state: "New Hampshire",
+     salesTax: null
+   }
+
+.. _nodejs-ignoreundefined-scope:
+
+Set the Scope for Serializing Undefined Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify the ``ignoreUndefined`` setting at the following levels:
+
+- The client level
+- The database level
+- The collection level
+- The operation level
+
+The ``ignoreUndefined`` setting automatically applies to the scope of the
+object instance in which you specified it and any other objects created
+from that instance.
+
+For example, if you set the ``ignoreUndefined`` setting when
+instantiating a database object, any collection instance created from
+that object inherits the setting. Furthermore, any operations that you
+call on that collection instance also inherit the setting.
+
+The following example performs an find-and-update operation that
+inherits the ``ignoreUndefined`` setting from the ``myDB`` database
+object. This operation does not produce any data changes because the
+driver ignores the ``gasTax`` field:
+
+.. code-block:: javascript
+
+   const myDB = client.db("test", { ignoreUndefined: true });
+
+   // The collection inherits the ignoreUndefined setting
+   const myColl = myDB.collection("states");
+
+   // Any write operation will not serialize undefined values
+   await myColl.findOneAndUpdate(
+     { state: "Georgia" },
+     { $set: { gasTax: undefined } }
+   );
+
+You can specify the ``ignoreUndefined`` setting again at any level to
+override any inherited settings.
+
+For example, if you set ``ignoreUndefined`` to ``true`` on your
+collection object, you can override the setting in individual write
+operations that you execute on that collection.
+
+.. code-block:: javascript
+   :emphasize-lines: 1, 12
+
+   const myColl = myDB.collection("states", { ignoreUndefined: true });
+
+   // The insert operation will not serialize undefined values
+   await myColl.insertOne({
+     state: "South Dakota",
+     capitalGainsTax: undefined,
+   });
+
+   // The insert operation will serialize undefined values
+   await myColl.insertOne(
+     { state: "Texas", capitalGainsTax: undefined },
+     { ignoreUndefined: false }
+   );

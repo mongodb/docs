@@ -1,0 +1,1 @@
+const Blog = mongoose.model('Blog', blog);

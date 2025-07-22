@@ -1,0 +1,92 @@
+.. _node-fundamentals-skip:
+
+=====================
+Skip Returned Results
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Use ``skip`` to omit documents from the beginning of the list of
+returned documents for a read operation. You can combine ``skip`` with
+:doc:`sort </fundamentals/crud/read-operations/sort>` to omit the top
+(for descending order) or bottom (for ascending order) results for a
+given query. Since the :manual:`order of documents returned
+</reference/method/cursor.sort/#result-ordering>` is not guaranteed in
+the absence of a sort, using ``skip`` without using ``sort`` omits
+arbitrary documents.
+
+If the value of ``skip`` exceeds the number of matched documents for
+a query, then that query returns no documents.
+
+Sample Documents
+~~~~~~~~~~~~~~~~
+
+To follow the examples in this guide, use the following code snippet to insert documents
+that describe fruits into the ``myDB.fruits`` collection:
+
+.. code-block:: javascript
+
+   const myDB = client.db("myDB");
+   const myColl = myDB.collection("fruits");
+
+   await myColl.insertMany([
+     { "_id": 1, "name": "apples", "qty": 5, "rating": 3 },
+     { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 },
+     { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 },
+     { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 },
+   ]);
+
+.. include:: /includes/access-cursor-note.rst
+
+Example
+-------
+
+In the following example, we query the collection with a filter that
+matches all the documents and pass options that specifies ``sort`` and
+``skip`` commands as query options. The sort option specifies that fruit
+documents that have higher ``rating`` values are returned before ones with lower
+ratings. The skip option specifies that the first 2 documents are
+omitted from the result:
+
+.. code-block:: javascript
+
+   // define an empty query document
+   const query = {};
+   const options = {
+      // sort in descending (-1) order by rating
+      sort : { rating: -1 },
+      // omit the first two documents
+      skip : 2,
+   }
+
+   const cursor = myColl.find(query, options);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+Since we specified that query skip the first ``2`` documents, the third and fourth highest
+rating documents are printed by the code snippet above:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 }
+
+
+The ``sort`` and ``skip`` options can also be specified as methods chained to
+the ``find`` method. The following two commands are equivalent:
+
+.. code-block:: javascript
+
+   myColl.find(query, { sort: { rating: -1}, skip: 2});
+   myColl.find(query).sort({rating: -1}).skip(2);
