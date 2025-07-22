@@ -1,0 +1,206 @@
+.. _php-connection-troubleshooting:
+
+==========================
+Connection Troubleshooting
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, disconnected, deployment
+
+This page offers potential solutions to issues that you might encounter
+when using the {+library-short+} to connect to a MongoDB deployment.
+
+.. note::
+
+   This page addresses only connection issues. If you encounter other
+   issues when using MongoDB or the {+library-short+}, visit the following resources:
+
+   - The :ref:`Issues & Help <php-issues-and-help>` page for
+     information about reporting bugs, contributing to the library, and
+     finding more resources
+   - The :community-forum:`MongoDB Community Forums </tag/php>` for
+     questions, discussions, or general technical support
+
+Server Connection Errors
+------------------------
+
+When an issue occurs when you attempt to connect to a server, the {+driver-short+}
+returns an error message. If this error resembles the following message, it
+indicates that the library cannot connect to a MongoDB deployment:
+
+.. code-block:: none
+   :copyable: false
+
+   No suitable servers found (`serverSelectionTryOnce` set):
+   [connection refused calling hello on 'localhost:27017']
+
+The following sections describe methods that might help resolve the issue.
+
+Check the Connection URI
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify that the hostname and port number in the connection URI are both
+accurate. In the sample error message, the hostname is ``127.0.0.1`` and the
+port is ``27017``. The default port value for a {+mdb-server+} deployment is
+``27017``, but you can configure MongoDB to listen on another port.
+
+When connecting to a replica set, include all the replica set hosts in
+your connection URI. Separate each of the hosts in the connection
+string with a comma. This enables the library to establish a connection if
+one of the hosts is unreachable.
+
+To learn how to specify multiple replica set hosts, see the
+:ref:`Replica Sets <php-connection-replica-set>` section of the
+Choose a Connection Target guide.
+
+Configure the Firewall
+~~~~~~~~~~~~~~~~~~~~~~
+
+If your MongoDB deployment is hosted behind a firewall, ensure the port
+on which MongoDB listens is open in the firewall. If your deployment
+listens on the default network port, ensure that port ``27017`` is
+open in the firewall. If your deployment listens on a different port,
+ensure that port is open on the firewall.
+
+.. warning::
+
+   Do not open a firewall port unless you are sure that it is the one
+   that your MongoDB deployment listens on.
+
+Authentication Errors
+---------------------
+
+The {+driver-short+} may be unable connect to a MongoDB deployment if
+the authorization is not configured correctly. In these cases, the library
+raises an error message similar to the following message:
+
+.. code-block:: none
+   :copyable: false
+
+   Authentication failed.
+
+The following sections describe methods that may help resolve the issue.
+
+Check the Credentials Formatting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One of the most common causes of authentication issues is invalid
+credentials formatting in the MongoDB connection URI.
+
+.. tip::
+
+   To learn more information about using connection URIs,
+   see :ref:`Connection URI <php-connection-uri>` in the
+   Create a MongoDB Client guide.
+
+If your connection URI contains a username and password, ensure that
+they are correctly formatted.
+
+.. note::
+
+   You must `percent-encode <https://tools.ietf.org/html/rfc3986#section-2.1>`__
+   the following characters if they appear in your username or password:
+
+   .. code-block:: none
+      :copyable: false
+
+      : / ? # [ ] @
+
+   Use your percent-encoded username and password in your connection URI.
+
+Verify the Authentication Mechanism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure that your credentials and authentication mechanism are correct. You can
+specify your authentication credentials in the options of your connection URI.
+
+If you use the ``$uriOptions`` parameter to specify an authentication mechanism,
+ensure that you set the ``'authMechanism'`` option to the correct mechanism. The
+following code shows how to specify the ``SCRAM-SHA-1`` authentication mechanism
+in an options parameter:
+
+.. code-block:: php
+   :copyable: false
+
+   $uriOptions = [
+      'username' => '<username>',
+      'password' => '<password>',
+      'authSource' => '<authentication database>',
+      'authMechanism' => 'SCRAM-SHA-1',
+   ];
+
+   $client = new MongoDB\Client(
+      'mongodb://<hostname>:<port>',
+      $uriOptions,
+   );
+
+To learn more about specifying authentication mechanisms, see the :ref:`php-auth`
+section.
+
+Verify User Is in Authentication Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using a username and password-based authentication method,
+the username must be defined in the authentication database.
+
+The default authentication database is the ``admin`` database.
+To use a different database for authentication, specify the
+``authSource`` option in the connection URI.
+
+The following example instructs MongoDB to use the ``users`` database
+as the authentication database:
+
+.. code-block:: php
+   :copyable: false
+
+   $uri = 'mongodb://<username>:<password>@<hostname>:<port>/?authSource=users';
+   $client = new MongoDB\Client($uri);
+
+DNS Resolution Errors
+---------------------
+
+The {+driver-short+} may be unable to resolve your DNS connection. When this
+happens, you might receive an error message similar to the following message:
+
+.. code-block:: none
+   :copyable: false
+
+   No suitable servers found (`serverSelectionTryOnce` set): [Failed to resolve '<host>'].
+
+If the library reports this error, try the methods in the following sections
+to resolve the issue.
+
+Check Database Deployment Availability
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are connecting to MongoDB Atlas and your driver cannot find the DNS
+host of the Atlas database deployment, the database deployment might be paused
+or deleted.
+
+Ensure that the database deployment exists in Atlas. If the cluster is paused,
+you can resume the cluster in the Atlas UI or the
+:atlas:`Atlas command line interface </cli/stable/>`.
+
+To learn how to resume a cluster, see
+:atlas:`Resume One Cluster </pause-terminate-cluster/#resume-one-cluster/>`
+in the Atlas documentation.
+
+Check the Network Addresses
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify that the network addresses or hostnames in your connection URI
+are accurate.
+
+If your deployment is hosted on MongoDB Atlas, you can follow the
+:atlas:`Connect to Your Cluster </tutorial/connect-to-your-cluster/>`
+tutorial to find your Atlas connection URI.

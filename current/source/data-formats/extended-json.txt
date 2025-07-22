@@ -1,0 +1,203 @@
+.. _php-extended-json:
+
+============================
+Work with Extended JSON Data
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, bson, relaxed, canonical
+
+Overview
+--------
+
+In this guide, you can learn how to use the **Extended JSON** data format
+when interacting with MongoDB documents.
+
+JSON is a human-readable data format that represents the values of objects,
+arrays, numbers, strings, booleans, and nulls. This format supports only a
+subset of BSON data types, which is the format that MongoDB uses to store data. The
+Extended JSON format supports more BSON types, defining a reserved
+set of keys prefixed with "``$``" to represent field type information that
+directly corresponds to each type in BSON.
+
+Extended JSON Formats
+---------------------
+
+MongoDB Extended JSON features two string formats to represent BSON data.
+Each format conforms to the `JSON RFC <https://www.rfc-editor.org/rfc/rfc8259>`__
+and meets specific use cases.
+
+The following table describes each Extended JSON format:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 40
+
+   * - Name
+     - Description
+
+   * - **Canonical** or **Extended**
+     - | A string format that avoids loss of BSON type information during data conversions.
+       | This format prioritizes type preservation at the loss of human-readability and
+         interoperability with older formats.
+
+   * - **Relaxed Mode**
+     - | A string format that describes BSON documents with some type information loss.
+       | This format prioritizes human-readability and interoperability at the loss of
+         certain type information.
+
+To learn more about JSON, BSON, and Extended JSON, see the
+`JSON and BSON <https://www.mongodb.com/resources/basics/json-and-bson>`__ resource
+and :manual:`Extended JSON </reference/mongodb-extended-json/>` {+mdb-server+} manual
+entry.
+
+.. _php-extended_json_example:
+
+Extended JSON Examples
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows a document containing an ``ObjectId``, date, and long
+number field represented in the Extended JSON format. Select the :guilabel:`Canonical`
+or the :guilabel:`Relaxed Mode` tab to view the sample document in each Extended
+JSON format:
+
+.. tabs::
+
+   .. tab:: Canonical
+      :tabid: canonical-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": { "$numberLong": "1601499609" }},
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+   .. tab:: Relaxed Mode
+      :tabid: relaxed-mode-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
+           "numViews": 36520312
+         }
+
+Write Extended JSON
+-------------------
+
+You can write an Extended JSON string from a BSON document object by using the
+``toRelaxedExtendedJSON()`` and ``toCanonicalExtendedJSON()`` methods.
+
+The following example outputs a BSON document in both Relaxed and Canonical
+Extended JSON formats:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/extended-json.php
+      :start-after: start-write-extended
+      :end-before: end-write-extended
+      :language: php
+      :dedent:
+
+   .. output:: 
+      :visible: false
+
+      Relaxed format: { "foo" : [ 1, 2 ], "bar" : { "hello" : "world" }, "code" :
+      { "$code" : "function x() { return 1; }", "$scope" : { } }, "date" : { } }
+      Canonical format: { "foo" : [ { "$numberInt" : "1" }, { "$numberInt" : "2" } ],
+      "bar" : { "hello" : "world" }, "code" : { "$code" : "function x() { return 1; }",
+      "$scope" : { } }, "date" : { } }
+
+Read Extended JSON
+------------------
+
+You can read an Extended JSON string into a PHP value by calling
+the ``json_decode()`` method, which converts Extended JSON to a
+PHP array or object. Pass the following arguments to ``json_decode()``:
+
+- Extended JSON string to read.
+- Boolean value that indicates whether you want to return
+  an array value. If set to ``false``, the method returns an
+  object value.
+
+The following example converts an Extended JSON string value
+to a PHP array:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/extended-json.php
+      :start-after: start-read-extended
+      :end-before: end-read-extended
+      :language: php
+      :dedent:
+
+   .. output:: 
+      :visible: false
+
+      Array
+      (
+          [foo] => Array
+              (
+                  [0] => Array
+                      (
+                        [$numberInt] => 1
+                      )
+
+                  [1] => Array
+                      (
+                          [$numberInt] => 2
+                      )
+
+              )
+
+          [bar] => Array
+              (
+                  [hello] => world
+              )
+
+          [code] => Array
+              (
+                  [$code] => function x() { return 1; }
+                  [$scope] => Array
+                      (
+                      )
+
+              )
+
+          [bin] => Array
+              (
+                  [$binary] => Array
+                      (
+                          [base64] => AQIDBA==
+                          [subType] => 00
+                      )
+  
+              )
+
+      )
+
+API Documentation
+-----------------
+
+To learn more about the methods discussed on this page, see
+the following {+extension-short+} API documentation:
+
+- :php:`MongoDB\BSON\Document::toRelaxedExtendedJSON() <mongodb-bson-document.torelaxedextendedjson>`
+- :php:`MongoDB\BSON\Document::toCanonicalExtendedJSON() <mongodb-bson-document.tocanonicalextendedjson>`
+- :php:`json_decode() <function.json-decode>`
