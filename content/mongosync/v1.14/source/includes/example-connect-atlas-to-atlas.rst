@@ -3,9 +3,8 @@ Gather Connection Information
 
 The generic connection string format is: 
 
-.. code-block:: shell
-
-   mongodb://<user>:<password>@<clusterName>.<hostname>.mongodb.net/
+.. literalinclude:: /code-examples/includes/example-connect-atlas-to-atlas/1.sh
+   :language: shell
 
 You can get the connection string for the Atlas clusters from the Atlas
 UI. To learn more, see :atlas:`Connect to a Database Deployment
@@ -14,12 +13,8 @@ UI. To learn more, see :atlas:`Connect to a Database Deployment
 The connection strings you gathered for ``cluster0`` and ``cluster1``
 should resemble the following:
 
-.. code-block:: shell
-
-   cluster0:
-   mongodb+srv://clusterAdmin:superSecret@cluster1Name.abc123.mongodb.net
-   cluster1:
-   mongodb+srv://clusterAdmin:superSecret@cluster2Name.abc123.mongodb.net
+.. literalinclude:: /code-examples/includes/example-connect-atlas-to-atlas/2.sh
+   :language: shell
 
 There is an database administrative user ``clusterAdmin`` with the
 password ``superSecret`` in the project that contains the clusters. 
@@ -31,31 +26,22 @@ The ``mongosync`` command layout below is modified for display. To
 connect ``cluster0`` to ``cluster1`` with ``mongosync``, enter the
 following command on one line:
 
-.. code-block:: shell
-
-   mongosync \
-         --cluster0 "mongodb+srv://clusterAdmin:superSecret@cluster1Name.abc123.mongodb.net" \
-         --cluster1 "mongodb+srv://clusterAdmin:superSecret@cluster2Name.abc123.mongodb.net"
+.. literalinclude:: /code-examples/includes/example-connect-atlas-to-atlas/3.sh
+   :language: shell
 
 Atlas clusters require TLS connections. To use ``mongosync`` with Atlas
 clusters, you add the :urioption:`tls=true <tls>` option. For example,
 to connect to the ``admin`` database on ``cluster0`` and ``cluster1``:
 
-.. code-block:: shell
-
-   mongosync \
-      --cluster0 "mongodb+srv://clusterAdmin:superSecret@cluster1Name.abc123.mongodb.net/admin?tls=true" \
-      --cluster1 "mongodb+srv://clusterAdmin:superSecret@cluster2Name.abc123.mongodb.net/admin?tls=true"
+.. literalinclude:: /code-examples/includes/example-connect-atlas-to-atlas/4.sh
+   :language: shell
 
 You can also use ``mongodb+srv`` connection strings with ``mongosync``.
 You do not need to add the :urioption:`tls=true <tls>` option to a
 ``mongodb+srv`` connection string. For example:
 
-.. code-block:: shell
-
-   mongosync \
-      --cluster0 "mongodb+srv://clusterAdmin:superSecret@cluster1Name.abc123.mongodb.net/" \
-      --cluster1 "mongodb+srv://clusterAdmin:superSecret@cluster2Name.abc123.mongodb.net/"
+.. literalinclude:: /code-examples/includes/example-connect-atlas-to-atlas/5.sh
+   :language: shell
 
 For more details about ``mongodb+srv`` connection strings, see
 :ref:`connections-dns-seedlist`.

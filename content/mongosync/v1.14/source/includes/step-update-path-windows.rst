@@ -8,7 +8,6 @@ your ``PATH``, do one of the following:
   replace ``<path-to-bin>`` with the actual path and execute the
   following command in a ``cmd`` shell:
 
-  .. code-block:: bash
-
-     pathman /au` <path-to-bin>
+  .. literalinclude:: /code-examples/includes/step-update-path-windows/1.sh
+     :language: bash
 
