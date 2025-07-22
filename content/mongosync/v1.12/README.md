@@ -1,6 +1,6 @@
 # docs-mongosync
 
-Documentation for the cluster to cluster synchronization tool,
+Documentation for the cluster synchronization tool,
 mongosync.
 
 Report Issues
