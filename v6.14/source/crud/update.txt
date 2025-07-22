@@ -1,0 +1,113 @@
+.. _node-fundamentals-upsert:
+.. _node-update:
+
+================
+Update Documents
+================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: code example, node.js, write, add data
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 2
+
+   Modify Documents </crud/update/modify>
+   Replace </crud/update/replace>
+   Update Arrays </crud/update/embedded-arrays>
+
+Overview
+--------
+
+If your application stores and modifies data in MongoDB, you probably use
+insert and update operations. In certain workflows, whether you perform
+an insert or update operation depends on whether the document exists.
+In these cases, you can streamline your application logic by using the
+``upsert`` option available in the following methods:
+
+- :ref:`updateOne() <node-usage-updateone>`
+- :ref:`replaceOne() <node-usage-replaceone>`
+- :ref:`updateMany() <node-usage-updatemany>`
+
+If the query filter passed to these methods does not find any matches and
+you set the ``upsert`` option to ``true``, MongoDB inserts the update
+document. Let's go through an example.
+
+Performing an Update
+--------------------
+
+Suppose your application tracks the current location of food trucks,
+storing the nearest address data in the ``myDB.foodTrucks`` collection,
+which resembles the following:
+
+.. code-block:: javascript
+
+   [
+     { name: "Haute Skillet", address: "42 Avenue B" },
+     { name: "Lady of the Latke", address: "35 Fulton Rd" },
+     ...
+   ]
+
+
+As an application user, you read about a food truck changing its regular
+location and want to apply the update. This update might resemble the
+following:
+
+.. code-block:: javascript
+   :emphasize-lines: 5
+
+   const myDB = client.db("myDB");
+   const myColl = myDB.collection("foodTrucks");
+
+   const query = { name: "Deli Llama" };
+   const update = { $set: { name: "Deli Llama", address: "3 Nassau St" }};
+   const options = {};
+   myColl.updateOne(query, update, options);
+
+If a food truck named "Deli Llama" exists, the method call above updates
+the document in the collection. However, if there are no food trucks named
+"Deli Llama" in your collection, no changes are made.
+
+.. _node-upsert:
+
+Performing an Upsert
+--------------------
+
+Consider the case in which you want to add information about the food
+truck even if it does not yet exist in your collection. Rather than
+first querying whether it exists to determine whether to insert or
+update the document, we can set ``upsert`` to ``true`` in our call to
+``updateOne()`` as follows:
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+
+   const query = { name: "Deli Llama" };
+   const update = { $set: { name: "Deli Llama", address: "3 Nassau St" }};
+   const options = { upsert: true };
+   myColl.updateOne(query, update, options);
+   
+After you run the operation above, your collection looks similar to the
+following, even if the ``"Deli Llama"`` document did not exist in your collection
+before the operation:
+
+.. code-block:: javascript
+   :emphasize-lines: 4
+
+   [
+     { name: "Haute Skillet", address: "42 Avenue B" },
+     { name: "Lady of the Latke", address: "35 Fulton Rd" },
+     { name: "Deli Llama", address: "3 Nassau St" },
+     ...
+   ]
+   
