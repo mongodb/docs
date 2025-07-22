@@ -1,0 +1,188 @@
+.. _php-client:
+
+=======================
+Create a MongoDB Client
+=======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: connection string, URI, server, Atlas, settings
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+To connect to a MongoDB deployment, you must create the following items:
+
+- **Connection URI**, also known as a *connection string*, which tells the {+library-short+}
+  which MongoDB deployment to connect to.
+- **MongoDB\\Client** object, which creates the connection to the MongoDB deployment
+  and lets you perform operations on it.
+
+You can also set options within either or both of these components to
+customize the way that the {+library-short+} behaves
+while connected to MongoDB.
+
+This guide describes the components of a connection string and shows how to
+use a ``MongoDB\Client`` object to connect to a MongoDB deployment.
+
+.. _php-connection-uri:
+
+Connection URI
+--------------
+
+A standard connection string includes the following components:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Component
+     - Description
+
+   * - ``mongodb://``
+
+     - Required. A prefix that identifies this as a string in the
+       standard connection format.
+
+   * - ``db_username:db_password``
+
+     - Optional. Authentication credentials. If you include these, the client
+       authenticates the user against the database specified in ``authSource``.
+       For more information about the ``authSource`` connection option, see
+       :ref:`php-auth`. 
+
+   * - ``host[:port]``
+
+     - Required. The host and optional port number where MongoDB is running. If you don't
+       include the port number, the driver uses the default port, ``27017``.
+
+   * - ``/defaultauthdb``
+     
+     - Optional. The authentication database to use if the
+       connection string includes ``db_username:db_password@``
+       authentication credentials but not the ``authSource`` option. If you don't include 
+       this component, the client authenticates the user against the ``admin`` database.
+
+   * - ``?<options>``
+
+     - Optional. A query string that specifies connection-specific
+       options as ``<name>=<value>`` pairs. See
+       :ref:`php-connection-options` for a full description of
+       these options.
+
+To learn more about connection strings, see
+:manual:`Connection Strings </reference/connection-string>` in the
+Server manual.
+
+Create a MongoDB\\Client
+------------------------
+
+To create a connection to MongoDB, construct a ``MongoDB\Client`` object.
+Pass the following parameters to the ``MongoDB\Client`` constructor:
+
+- ``$uri``: Sets the connection URI.
+
+- ``$uriOptions``: *(Optional)* Sets URI options to configure how the client
+  connects to MongoDB, including authentication credentials and
+  server selection settings. If you set the same options in this
+  parameter and in your connection string, the ``$uriOptions`` values
+  take precedence. To view a full list of supported options, see
+  the :ref:`php-connection-options` guide.
+
+- ``$driverOptions``: *(Optional)* Sets options to configure the behavior of the
+  underlying {+extension-short+}, including data encryption settings and certificate
+  validation options for TLS connections. To view a full list of supported options,
+  see :phpmethod:`MongoDB\Client::__construct()` in the API documentation.
+
+Example
+~~~~~~~
+
+This example constructs a client and passes the following parameters:
+
+- Connection URI, which connects to a MongoDB deployment on port ``27017``
+  of ``localhost``
+
+- URI options parameter, which instructs the {+library-short+} to wait 
+  ``10000`` milliseconds for server selection before generating an error
+
+.. literalinclude:: /includes/connect/client.php
+   :language: php
+   :copyable: true
+
+Client Persistence
+------------------
+
+The ``libmongoc`` library and the {+extension-short+} handle connections
+to a MongoDB deployment. When you construct a :phpclass:`MongoDB\Client` instance, the
+{+library-short+} creates a :php:`MongoDB\Driver\Manager <class.mongodb-driver-manager>` instance by using the
+same connection string and options. The extension also uses those constructor
+arguments to derive a hash key for persistent ``libmongoc`` clients. If
+you previously persisted a ``libmongoc`` client by using a key, it is
+reused. Otherwise, a new ``libmongoc`` client is created and persisted
+for the lifetime of the PHP worker process. To learn more about
+this process, see the :php:`{+extension-short+} documentation
+<manual/en/mongodb.connection-handling.php>`.
+
+Each ``libmongoc`` client maintains its own connections to the MongoDB deployment
+and a view of its topology. When you reuse a persistent ``libmongoc`` client, the
+{+library-short+} can avoid the overhead of establishing new connections and
+rediscovering the topology. This approach generally improves performance and is
+the driver's default behavior.
+
+Persistent ``libmongoc`` clients are not freed until the PHP worker process
+ends. As a result, connections to a MongoDB deployment might remain open
+after a ``MongoDB\Driver\Manager`` object goes out of scope. While this is
+typically not an issue for applications that connect to one MongoDB deployment,
+it might cause errors in the following situations:
+
+- PHP-FPM is configured with ``pm.max_requests=0`` so workers never respawn, and a
+  PHP application is deployed many times with small changes to its MongoDB
+  connection string or options. This could lead to an accumulation of ``libmongoc``
+  client objects in each worker process.
+
+- An application occasionally connects to a separate MongoDB deployment in a
+  backend component where request latency is not the most important aspect.
+
+In the first case, restarting PHP-FPM as part of the application deployment
+allows the application to release any unused ``libmongoc`` clients and still use
+a persistent client for the latest connection string.
+
+The second case requires a different solution. Specifying ``true`` for the
+``disableClientPersistence`` driver option instructs the {+library-short+} to
+create a new ``libmongoc`` client and ensure it is freed when the corresponding
+``MongoDB\Driver\Manager`` goes out of scope.
+
+The following code demonstrates how to set the
+``disableClientPersistence`` option to ``true`` when creating a client:
+
+.. code-block:: php
+   :emphasize-lines: 5
+
+   <?php
+
+   $client = new MongoDB\Client(
+       uri: getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/',
+       driverOptions: ['disableClientPersistence' => true],
+   );
+
+.. note:: 
+
+   If you disable client persistence, the {+library-short+} requires more
+   time to establish connections to the MongoDB deployment and discover its topology.
+
+API Documentation
+-----------------
+
+To learn more about creating a ``MongoDB\Client`` object in the {+library-short+},
+see the following API documentation:
+
+- :phpclass:`MongoDB\Client`

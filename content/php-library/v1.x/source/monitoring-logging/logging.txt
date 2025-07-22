@@ -1,0 +1,160 @@
+.. _php-logging:
+
+=================
+Log Driver Events
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: debugging, printing
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+library-short+} to
+set up and configure **logging**. Logging allows you to receive
+information about database operations, server connections, errors,
+and other events that occur while your application runs.
+
+The {+library-short+} supports `Psr\\Log\\LoggerInterface
+<https://www.php-fig.org/psr/psr-3>`__, a PSR-3
+logger interface that configures your application to receive log messages.
+You can register one or more instances of a class that implements
+``Psr\Log\LoggerInterface`` to receive log messages. The {+library-short+} is built on top of
+the MongoDB C driver and the {+extension-short+}, so the logger receives event notifications
+from each component.
+  
+Configure Logging
+-----------------
+
+To configure your application to receive messages about driver events,
+create an instance of a logger class that implements the ``Psr\Log\LoggerInterface``
+interface. Then, use the ``MongoDB\add_logger()`` function to register
+your logger.
+
+After registering a logger, the {+library-short+} generates log messages
+that resemble the following sample message:
+
+.. code-block:: none
+   :copyable: false
+
+   [0] => Array
+       (
+          [0] => debug
+          [1] => Created client with hash: ...
+          [2] => PHONGO
+       )
+
+The sample log message includes the following information:
+
+- Log level: Indicates the severity of the message. The ``debug`` level corresponds to
+  standard driver activities. To view a list of possible levels, see `PSR\\Log\\LogLevel <https://www.php-fig.org/psr/psr-3/#5-psrlogloglevel>`__.
+- Message: Describes the logged event, which signals the creation of a new client.
+- Domain string: Specifies the driver component that emitted the log message. The
+  ``PHONGO`` domain indicates that the {+extension-short+} generated the event.
+
+.. note:: Log Message Format
+
+   The preceding example shows a log message stored in an array. However,
+   the format of your log messages might differ depending on your logging
+   implementation.
+
+Create a Monolog Logger
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use `Monolog <https://packagist.org/packages/monolog/monolog>`__, a
+PHP logging library, to configure logging in your application. Monolog simplifies
+logging configuration by providing a ``Monolog\Logger`` class. This class implements
+the ``Psr\Log\LoggerInterface`` interface and provides handlers that direct logs to
+specified locations.
+
+To use Monolog, install the ``monolog/monolog`` package by running
+the following command:
+
+.. code-block:: shell
+
+   composer require monolog/monolog
+
+Then, you can create a logger by defining a ``Monolog\Logger`` object
+and registering it with the {+library-short+}.
+
+This example performs the following actions:
+
+- Creates a Monolog logger called ``mongodb-logger``
+- Uses a handler to write all logs with a severity of ``debug`` or higher
+  to a file called ``mongodb.log`` in your project directory
+- Registers the logger
+
+.. literalinclude:: /includes/monitoring-logging/logging.php
+   :language: php
+   :start-after: start-monolog-logger
+   :end-before: end-monolog-logger
+   :dedent:
+
+Create a Custom Logger
+~~~~~~~~~~~~~~~~~~~~~~
+
+To create a custom PSR-3 logger, create a class that implements the
+``Psr\Log\LoggerInterface`` interface. You can implement ``Psr\Log\LoggerInterface``
+by defining a class that extends the ``Psr\Log\AbstractLogger`` class.
+``AbstractLogger`` implements ``LoggerInterface`` and a generic ``log()`` method,
+which receives log messages at each severity level.
+
+This example performs the following actions:
+
+- Creates a logger class named ``MyLogger`` that extends the ``AbstractLogger`` class
+  and records the log level, description, and domain of each event
+- Creates a ``MyLogger`` object and registers the logger
+- Prints each log message
+
+.. literalinclude:: /includes/monitoring-logging/logging.php
+   :language: php
+   :start-after: start-custom-logger
+   :end-before: end-custom-logger
+   :dedent:
+
+Remove a Logger
+---------------
+
+To unregister a logger, pass your logger object as a parameter to the ``MongoDB\remove_logger()``
+function. After calling this function, your logger no longer receives log
+messages about your application.
+
+The following example unregisters a logger:
+
+.. literalinclude:: /includes/monitoring-logging/logging.php
+   :language: php
+   :start-after: start-remove-logger
+   :end-before: end-remove-logger
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn more about PSR-3 loggers, see `PSR-3: Logger Interface
+<https://www.php-fig.org/psr/psr-3/>`__ in the PHP-FIG documentation.
+
+To learn more about Monolog, see the :github:`monolog </Seldaek/monolog>`
+GitHub repository.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the {+library-short+} methods discussed in this guide, see the
+following API documentation:
+
+- :phpmethod:`MongoDB\add_logger()`
+- :phpmethod:`MongoDB\remove_logger()`
+
+To learn more about how the underlying C driver generates log messages, see `Logging
+<https://mongoc.org/libmongoc/current/logging.html>`__ in the ``libmongoc``
+API documentation.
