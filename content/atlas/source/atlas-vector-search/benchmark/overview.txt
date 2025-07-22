@@ -1,0 +1,302 @@
+.. _avs-benchmark-overview:
+
+======================================
+{+avs+} Benchmark Overview 
+======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas vector search, benchmark, performance
+   :description: Learn about our Atlas Vector Search performance benchmark.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page explains key performance optimization strategies for 
+{+avs+} and how we used them to create our benchmark.
+To learn how to interpret this guide, see :ref:`avs-how-to-use-benchmark`.
+
+.. collapsible:: 
+   :heading: About the Benchmark
+   :sub_heading: Information about the dataset and set-up for our benchmark.
+   :expanded: true
+
+   For our benchmark, we used the `Amazon Reviews 2023 dataset <https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023>`__,
+   a massive e-commerce dataset containing 571.54M reviews across 33 product categories, 
+   representing interactions from May 1996 to September 2023. With approximately 48.2 million 
+   unique items covered by these reviews, it provides rich multimodal data including user reviews 
+   (ratings, text, helpfulness votes), item metadata (descriptions, price, images), and user-item 
+   interaction graphs. We looked at subsets of the item dataset (5.5M and 15.3M) that contain titles 
+   and descriptions, and used |voyage|'s ``voyage-3-large`` model to embed them using the following logic:
+
+   .. code-block:: python
+
+      source = "Item: Title: " + record["title"] + " Description: " + record["description"]
+      source_embedding = vo.embed(source, model="voyage-3-large", input_type="document", output_dimension=2048)
+
+   Result quality for filters is determined by computing the Jaccard similarity 
+   (``intersection / expected number of results``) using the results from an |ann| query 
+   and the corresponding float |enn| exact results for the same text input and number of 
+   vectors requested. :term:`Recall <recall>` is computed by finding the average intersection across 50 sample 
+   queries which might be asked of an e-commerce dataset. 
+
+   .. note::
+
+      To see the source code used for benchmarking, as well as the code used to embed the
+      source dataset, see :github:`Performance Testing Repository <hweller1/avs_performance_testing>`.
+
+Factors Impacting Performance
+-----------------------------
+
+This section outlines several factors that impact performance for 
+{+avs+} and how we configured our benchmark to test them.
+
+- :ref:`Quantization <avs-benchmark-quantization>`
+- :ref:`Dimensionality <avs-benchmark-dimensionality>`
+- :ref:`Filtering <avs-benchmark-filtering>`
+- :ref:`Search node configuration <avs-benchmark-search-node-config>`
+- :ref:`binData vector compression <avs-benchmark-bindata-compression>`
+- :ref:`Concurrency <avs-benchmark-concurrency>`
+- :ref:`Sharding <avs-benchmark-sharding>`
+
+.. _avs-benchmark-quantization:
+
+Quantization
+~~~~~~~~~~~~
+
+Quantization reduces the precision of vector embeddings 
+to decrease memory usage and improve search speed, with trade-offs in search accuracy.
+
+Scalar Quantization
+```````````````````
+
+Scalar quantization converts 32-bit floating-point vectors to 8-bit integers,
+achieving a 4x reduction in memory usage. Integer vector comparisons take less 
+computation time compared to float vectors and require fewer resources, but may 
+incur a penalty in the search precision. 
+
+Binary Quantization
+```````````````````
+
+Binary quantization converts vectors to 1-bit representations, achieving a 
+32x reduction in memory usage. Binary vector comparisons involve computing 
+the Hamming distance and take even less computation time compared to int 
+vectors and fewer resources. However, the penalty in search precision is so 
+significant going from float vectors to binary vectors that to account for 
+this, we add a rescoring step, which increases latency. At query time, 
+the top ``numCandidates`` that are accumulated during search are reordered by their 
+full fidelity vectors on disk before yielding the top ``limit`` results.
+
+.. _avs-benchmark-dimensionality:
+
+Vector Dimensionality
+~~~~~~~~~~~~~~~~~~~~~
+
+We used |voyage|'s ``voyage-3-large`` model to embed the medium (5.5M) 
+and large (15.3M) vectors datasets. We chose this embedding model because of its 
+outperformance on many :abbr:`IR (Information Retrieval)` benchmarks and because it 
+is trained with both Matryoshka Representation Learning and quantization in mind. 
+Therefore, it performs well at lower dimensions with quantization enabled, even at 
+higher volumes of vectors. 
+
+We leveraged :ref:`indexing on views <avs-transform-documents-collections>` 
+to produce additional fields that slice the first N dimensions of the source 2048 
+dimension vector to produce 1024, 512, and 256 dimension vectors and index them 
+as we would the source field. 
+
+.. note::
+ 
+   You must use MongoDB version 8.1 or later in order to create a vector search index on a view.
+
+.. collapsible:: 
+   :heading: View of Dataset
+   :sub_heading: MongoDB shell command used to create the view from the larger collection.
+   :expanded: false
+
+   .. literalinclude:: /includes/avs/performance/create-view.js
+      :language: javascript
+      :copyable:
+
+.. collapsible:: 
+   :heading: Index Used
+   :sub_heading: MongoDB shell command used to create the index on the view.
+   :expanded: false
+
+   .. literalinclude:: /includes/avs/performance/create-all-dims-index.js
+      :language: javascript
+      :copyable:
+
+Similar to different representations at each position, the different 
+dimensionalities impact the representational capacity of each vector. 
+Consequently, you can achieve higher accuracy with 2048d vectors 
+compared to 256d vectors, especially when you measure against a 2048d
+float |enn| baseline.
+
+In addition to requiring more storage and memory, higher dimensional vectors 
+are somewhat slower to query compared to lower dimensional vectors, but 
+this is mitigated significantly as {+avs+} leverages :abbr:`SIMD (Single Instruction, Multiple Data)` 
+instructions when performing vector comparisons.
+
+.. _avs-benchmark-filtering:
+
+Filtering
+~~~~~~~~~
+
+We also created a separate index definition on the collection 
+containing all 15.3M items, which includes filters on two fields 
+to enable pre-filtered queries against this dataset.
+
+.. collapsible:: 
+   :heading: Index Used
+   :sub_heading: MongoDB shell command used to create the index on the larger collection.
+   :expanded: false
+
+   .. literalinclude:: /includes/avs/performance/create-large-index.js
+      :language: javascript
+      :copyable:
+
+We ran vector search queries, both unfiltered and filtered, against the large indexed dataset:
+
+.. tabs::
+
+   .. tab:: Unfiltered Query
+      :tabid: unfiltered-query
+
+      .. literalinclude:: /includes/avs/performance/unfiltered-query.py
+         :language: python
+         :copyable:
+
+   .. tab:: Filtered Query
+      :tabid: filtered-query
+
+      .. literalinclude:: /includes/avs/performance/filtered-query.py
+         :language: python
+         :copyable:
+
+.. note::
+
+   Both query patterns exclude the embedding fields in the output by using 
+   :pipeline:`$project` stage. This is always recommended to reduce 
+   latency unless you need embeddings in your results.
+
+.. _avs-benchmark-search-node-config:
+
+Search Node Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} performance scales with :ref:`dedicated Search Nodes <what-is-search-node>`, 
+which handle vector computations separately from your primary 
+database workload and make efficient use of dedicated hardware instances. 
+All tests were conducted using an ``M20`` base cluster, but depending on the type
+of test, we reconfigured the Search Nodes used to better fit our test case. 
+All tests were run using Search Nodes on |aws| us-east-1, with an EC2 instance also in 
+``us-east-1`` making requests. There are three types of Search Nodes that you can provision on AWS, 
+which vary in terms of disk, RAM, and vCPUs that they have available:
+
+.. list-table::
+   :widths: 20 30 50
+   :header-rows: 1
+
+   * - Node Type
+     - Resource Profile
+     - Recommended Usage
+
+   * - Low-CPU
+     - Low disk to memory ratio (~6:1), low vCPU 
+     - Good starting point for many vector workloads that don't leverage quantization
+
+   * - High-CPU
+     - High disk to memory ratio (~25:1), high vCPU 
+     - Performant choice for high QPS workloads or workloads that leverage quantization
+
+   * - Storage-Optimized
+     - High disk to memory ratio (~25:1), low vCPU 
+     - Cost-effective choice for workloads that leverage quantization
+
+Sizing for the Amazon Dataset
+`````````````````````````````
+
+A 768-dimension float vector occupies ~3kb of space on disk. This resource requirement scales 
+linearly with the number of vectors and the number of dimensions of each vector:
+1M 768d vectors occupies ~3GB; 1M 1536d occupies ~6kb.
+
+Using quantization, we produce representation vectors that are held in memory from the full 
+fidelity vectors stored on disk. This reduces the amount of required memory by 3.75x 
+for scalar quantization and 24x for binary quantization, but increases the amount of disk 
+needed to store the unquantized and quantized vectors. 
+
+1 scalar quantized 768d vector requires 0.8kb of memory (``3/3.75``) and ~3.8kb of disk (``3 + 3/3.75``).
+Considering these hardware options and the resource requirements for quantization, we selected the 
+following search node tiers for the different test cases:
+
+.. list-table::
+   :widths: 25 25 25 25
+   :header-rows: 1
+
+   * - Test Case
+     - Resources Required (RAM, Storage)
+     - Search Node Tier RAM, disk, vCPUs
+     - Price for 2x Nodes
+
+   * - Medium dataset (5.5M vectors, all dimensions), scalar quantization
+     - 22, 104.5 GB
+     - S50-storage-optimized 32 GB, 843 GB, 4 vCPUs
+     - $1.04/hr
+
+   * - Medium dataset (5.5M vectors, all dimensions), binary quantization
+     - 3.43, 104.5 GB
+     - S30-high-cpu 8 GB 213 GB 4 vCPUs
+     - $0.24/hr
+
+   * - Large dataset (15.3M vectors, 2048d), scalar quantization
+     - 32.64, 155.04 GB
+     - S50-storage-optimized 32 GB, 843 GB, 4 vCPUs
+     - $1.04/hr
+     
+   * - Large dataset (15.3M vectors, 2048d), binary quantization
+     - 5.1, 155.04 GB
+     - S30-high-cpu 8 GB 213 GB 4 vCPUs
+     - $0.24/hr
+
+.. _avs-benchmark-bindata-compression:
+
+``binData`` Vector Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the large dataset, we leveraged an additional feature called 
+:ref:`vector compression <avs-vector-compression>`, which reduces the 
+footprint of each vector in the source collection by about 60%. This
+accelerates the step within a query when IDs are hydrated in the source collection, 
+and this is a recommended step for all large workloads.
+
+.. _avs-benchmark-concurrency:
+
+Concurrency
+~~~~~~~~~~~
+
+We assessed not only serial query latency, but also total throughput/QPS 
+when 10 and 100 requests are issued concurrently.
+
+.. note::
+ 
+   The recommended mechanism for handling higher throughput 
+   is scaling out the number of Search Nodes horizontally, which
+   we did not measure in these tests.
+
+.. _avs-benchmark-sharding:
+
+Sharding
+~~~~~~~~
+
+We assessed the impact of :manual:`sharding </sharding>` our cluster 
+and collection on the ``_id`` field on the system's throughput , 
+focusing on request concurrency of 10 and 100 for the large binary 
+quantized index.
