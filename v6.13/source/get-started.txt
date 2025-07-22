@@ -1,0 +1,272 @@
+.. _node-get-started:
+
+===================================
+Get Started with the Node.js Driver
+===================================
+
+.. facet::
+   :name: genre
+   :values: tutorial 
+
+.. meta:: 
+   :description: Learn how to create an app to connect to MongoDB deployment by using the Node.js driver.
+   :keywords: node.js
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This guide shows you how to create an application that uses the
+{+driver-long+} to connect to a MongoDB cluster hosted on MongoDB Atlas.
+The {+driver-short+} is a library of functions that you can use to connect
+to and communicate with MongoDB.
+
+.. tip::
+
+   MongoDB Atlas is a fully managed cloud database service that hosts your
+   MongoDB deployments. You can create your own free (no credit card
+   required) MongoDB Atlas deployment by following the steps in this guide.
+
+Follow the steps in this guide to connect a sample Node.js application to
+a MongoDB Atlas deployment. If you prefer to connect to MongoDB using a different
+driver or programming language, see our :driver:`list of official drivers <>`.
+
+.. _node-quick-start-download-and-install:
+.. _node-get-started-download-and-install:
+
+Download and Install
+--------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install dependencies
+
+      Ensure you have the following dependencies installed in 
+      your development environment:
+
+      - Node.js {+min-node-version+} or later 
+      - npm (Node Package Manager)
+
+      To learn how to install Node.js and npm, see
+      `Downloading and installing Node.js and npm <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__
+      in the npm documentation.
+
+   .. step:: Create a project directory
+
+      In your shell, run the following command to create a 
+      directory called ``node_quickstart`` for this project:
+
+      .. code-block:: bash
+
+         mkdir node_quickstart
+
+      Then, run the following commands to navigate into the 
+      directory and initialize your Node.js project:
+
+      .. code-block:: bash
+
+         cd node_quickstart
+         npm init -y
+
+      When the initialization command successfully completes, you have a ``package.json`` 
+      file in your ``node_quickstart`` directory.
+
+   .. step:: Install the Node.js Driver
+
+      Run the following command from your project directory to install
+      the driver:
+
+      .. code-block:: bash
+
+         npm install mongodb@{+version+}
+
+      This command performs the following actions:
+
+      - Downloads the ``mongodb`` package and the dependencies it requires
+      - Saves the package in the ``node_modules`` directory
+      - Records the dependency information in the ``package.json`` file
+
+After you complete these steps, you have a new project directory with
+the driver dependencies installed.
+
+.. _node-quick-start-create-deployment:
+.. _node-get-started-create-deployment:
+
+Create a MongoDB Deployment
+---------------------------
+
+You can create a free tier MongoDB deployment on MongoDB Atlas
+to store and manage your data. MongoDB Atlas hosts and manages
+your MongoDB database in the cloud.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a free MongoDB deployment on Atlas
+
+      Complete the :atlas:`Get Started with Atlas </getting-started?tck=docs_driver_nodejs>`
+      guide to set up a new Atlas account and load sample data into a new free
+      tier MongoDB deployment.
+
+   .. step:: Save your credentials
+
+      After you create your database user, save that user's 
+      username and password to a safe location for use in an upcoming step.
+
+After you complete these steps, you have a new free tier MongoDB
+deployment on Atlas, database user credentials, and sample data loaded
+in your database.
+
+.. _node-quick-start-connection-string:
+.. _node-get-started-connection-string:
+
+Create a Connection String
+--------------------------
+
+You can connect to your MongoDB deployment by providing a
+**connection URI**, also called a *connection string*, which
+instructs the driver on how to connect to a MongoDB deployment
+and how to behave while connected.
+
+The connection string includes the hostname or IP address and 
+port of your deployment, the authentication mechanism, user credentials 
+when applicable, and connection options.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Find your MongoDB Atlas connection string
+
+      To retrieve your connection string for the deployment that
+      you created in the :ref:`previous section <node-get-started-create-deployment>`,
+      log into your Atlas account and navigate to the
+      :guilabel:`Clusters` section and click the :guilabel:`Connect` button
+      for your new deployment.
+
+      .. figure:: /includes/figures/atlas_connection_connect_cluster.png
+         :alt: The connect button in the clusters section of the Atlas UI
+
+   .. step:: Copy your connection string
+
+      Click the button on the right of the connection string to copy it to
+      your clipboard, as shown in the following screenshot:
+
+      .. figure:: /includes/figures/atlas_connection_copy_uri_node.png
+         :alt: The connection string copy button in the Atlas UI
+
+   .. step:: Update the placeholders
+
+      Paste your connection string into a file in your preferred text editor
+      and replace the ``username`` and ``<db_password>`` placeholders with your
+      database user's username and password.
+
+      Save this file to a safe location for use in the next section.
+
+After completing these steps, you have a connection string that
+contains your database username and password.
+
+.. _node-quick-start-connect-to-mongodb:
+.. _node-get-started-connect-to-mongodb:
+
+Connect to MongoDB
+------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create your Node.js application
+
+      In your ``node_quickstart`` directory, create a file called
+      ``index.js`` for your application.
+
+      Copy and paste the following code into the ``index.js`` file:
+
+      .. code-block:: js
+
+         const { MongoClient } = require("mongodb");
+
+         // Replace the uri string with your connection string
+         const uri = "<connection string uri>";
+
+         const client = new MongoClient(uri);
+
+         async function run() {
+           try {
+             const database = client.db('sample_mflix');
+             const movies = database.collection('movies');
+
+             // Queries for a movie that has a title value of 'Back to the Future'
+             const query = { title: 'Back to the Future' };
+             const movie = await movies.findOne(query);
+
+             console.log(movie);
+           } finally {
+             await client.close();
+           }
+         }
+         run().catch(console.dir);
+
+   .. step:: Assign the connection string
+
+      Replace the ``<connection string uri>`` placeholder with the 
+      connection string that you copied from the :ref:`node-quick-start-connection-string`
+      step of this guide.
+
+   .. step:: Run your Node.js application
+
+      From your project directory, run the following command to start
+      the application:
+
+      .. code-block:: none
+
+         node index.js
+
+      The output includes details about the retrieved movie document:
+
+      .. code-block:: none
+
+         {
+           _id: ...,
+           plot: 'A young man is accidentally sent 30 years into the past...',
+           genres: [ 'Adventure', 'Comedy', 'Sci-Fi' ],
+           ...
+           title: 'Back to the Future',
+           ...
+         }
+
+      If you encounter an error or see no output, verify that you specified the
+      proper connection string in the ``index.js`` file and that you loaded the
+      sample data.
+
+After you complete these steps, you have a working application that
+uses the driver to connect to your MongoDB deployment, query
+the sample data, and print out the result.
+
+.. _node-quick-start-next-steps:
+.. _node-get-started-next-steps:
+
+Next Steps
+----------
+
+Congratulations on completing the quick start tutorial!
+
+.. include:: /includes/quick-start/troubleshoot.rst
+
+In this tutorial, you created a Node.js application that
+connects to a MongoDB deployment hosted on MongoDB Atlas
+and retrieves a document that matches a query.
+
+Learn more about the {+driver-short+} from the following resources:
+
+- Discover how to configure your MongoDB connection in the
+  :ref:`Connect to MongoDB <node-connect>` section.
+
+- Discover how to perform read and write operations in the 
+  :ref:`CRUD Operations <node-crud-landing>` section.
+  

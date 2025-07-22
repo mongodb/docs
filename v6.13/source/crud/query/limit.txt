@@ -1,0 +1,136 @@
+.. _node-fundamentals-limit:
+
+====================================
+Limit the Number of Returned Results
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Use ``limit`` to cap the number of documents that can be returned from a
+read operation. ``limit`` functions as a cap on the maximum number of
+documents that the operation can return, but the operation can return
+a smaller number of documents if there are not enough documents present
+to reach the limit. If ``limit`` is used with the
+:doc:`skip </fundamentals/crud/read-operations/skip>` method, the skip applies
+first and the limit only applies to the documents left over after
+the skip.
+
+Sample Documents
+~~~~~~~~~~~~~~~~
+
+To follow the examples in this guide, use the following code snippet to insert documents
+that describe books into the ``myDB.books`` collection:
+
+.. code-block:: javascript
+
+   const myDB = client.db("myDB");
+   const myColl = myDB.collection("books");
+
+   await myColl.insertMany([
+     { "_id": 1, "name": "The Brothers Karamazov", "author": "Dostoyevsky", "length": 824 },
+     { "_id": 2, "name": "Les Misérables", "author": "Hugo", "length": 1462 },
+     { "_id": 3, "name": "Atlas Shrugged", "author": "Rand", "length": 1088 },
+     { "_id": 4, "name": "Infinite Jest", "author": "Wallace", "length": 1104 },
+     { "_id": 5, "name": "Cryptonomicon", "author": "Stephenson", "length": 918 },
+     { "_id": 6, "name": "A Dance With Dragons", "author": "Martin", "length": 1104 },
+   ]);
+
+.. include:: /includes/access-cursor-note.rst
+
+Limit
+-----
+
+The following example queries the collection to return the top three
+longest books. It matches all documents because the query filter is
+empty. Then, it applies a descending ``sort`` on the ``length`` field to
+return longer books before shorter books and a ``limit`` to
+return only the ``3`` first results:
+
+.. code-block:: javascript
+   :emphasize-lines: 4
+
+   // define an empty query document
+   const query = {};
+   // sort in descending (-1) order by length
+   const sort = { length: -1 };
+   const limit = 3;
+   const cursor = myColl.find(query).sort(sort).limit(limit);
+   for await (const doc of cursor) {
+       console.dir;
+   }
+
+The code example above outputs the following three documents, sorted by
+length:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 2, "title": "Les Misérables", "author": "Hugo", "length": 1462 }
+   { "_id": 6, "title": "A Dance With Dragons", "author": "Martin", "length": 1104 }
+   { "_id": 4, "title": "Infinite Jest", "author": "Wallace", "length": 1104 }
+
+.. note::
+
+   The order in which you call ``limit`` and ``sort`` does not matter
+   because the driver reorders the calls to apply the sort first and the
+   limit after it. The following two calls are equivalent:
+
+   .. code-block:: javascript
+
+      myColl.find(query).sort({ length: -1 }).limit(3);
+      myColl.find(query).limit(3).sort({ length: -1 });
+
+You can also apply ``sort`` and ``limit`` by specifying them in an
+``options`` object in your call to the ``find()`` method. The following two
+calls are equivalent:
+
+.. code-block:: javascript
+
+   myColl.find(query).sort({ length: -1 }).limit(3);
+   myColl.find(query, { sort: { length: -1 }, limit: 3 });
+
+For more information on the ``options`` settings for the ``find()``
+method, see the
+`API documentation on find() <{+api+}/classes/Collection.html#find>`__.
+
+Skip
+----
+
+To see the next three books in the results, append the ``skip()`` method,
+passing the number of documents to bypass as shown below:
+
+.. code-block:: javascript
+   :emphasize-lines: 6,7
+
+   // define an empty query document
+   const query = {};
+   // sort in descending (-1) order by length
+   const sort = { length: -1 };
+   const limit = 3;
+   const skip = 3;
+   const cursor = myColl.find(query).sort(sort).limit(limit).skip(skip);
+   for await (const doc of cursor) {
+       console.dir;
+   }
+
+This operation returns the documents that describe the fourth through sixth
+books in order of longest-to-shortest length:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 3, "title": "Atlas Shrugged", "author": "Rand", "length": 1088 }
+   { "_id": 5, "title": "Cryptonomicon", "author": "Stephenson", "length": 918 }
+   { "_id": 1, "title": "The Brothers Karamazov", "author": "Dostoyevsky", "length": 824 }
+
+You can combine skip and limit in this way to implement paging for your
+collection, returning only small "slices" of the collection at once.
