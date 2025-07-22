@@ -23,12 +23,12 @@
      - Require the following permissions:
   
        - ``get``, ``list``, ``watch``. The |k8s-op-short| reads secret objects to
-         retrieve sensitive data, such as :ref:`TLS <secure-tls-mck>` or
+         retrieve sensitive data, such as :ref:`TLS <secure-tls>` or
          :ref:`X.509 <create-x509-certs>` access information. For example, it
          reads the credentials from a secret object to connect to the |onprem|.
 
        - ``create``, ``update``. The |k8s-op-short| creates secret
-         objects holding :ref:`TLS <secure-tls-mck>` or
+         objects holding :ref:`TLS <secure-tls>` or
          :ref:`X.509 <create-x509-certs>` access information.
     
        - ``delete``. The |k8s-op-short| deletes secret objects (containing passwords)

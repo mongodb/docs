@@ -15,6 +15,73 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _mck-1.2.0-rn:
+
+|k8s-op-short| v1.2.0
+---------------------
+
+*Released 10 July 2025*
+
+New features
+~~~~~~~~~~~~
+
+- **OpenID Connect (OIDC) user authentication**
+   - Adds support for OpenID Connect (OIDC) user authentication.
+   - You can configure OIDC authentication with the 
+     :setting:`spec.security.authentication.modes` and 
+     :setting:`spec.security.authentication.oidcProviderConfigs` 
+     settings.
+   - Requires MongoDB Enterprise Server 7.0.11+ or 8.0.0+.
+   - For more information, see:
+      - :ref:`Enable Authentication <k8s-authentication>`
+      - :ref:`Manage Database Users Using OIDC Authentication 
+        <k8s-manage-db-users-oidc>`
+
+- **New ClusterMongoDBRole CRD**
+   - Adds new :ref:`ClusterMongoDBRole <mongodbrole-specification>` CRD 
+     to support reusable roles across multiple MongoDB clusters. This 
+     allows users to define roles once and reuse them in multiple 
+     MongoDB or MongoDBMultiCluster resources.
+   - You can reference this role using the 
+     :setting:`spec.security.roleRefs` 
+     field. Note that only one of 
+     :setting:`spec.security.roles` and 
+     :setting:`spec.security.roleRefs` 
+     can be used at a time.
+   - The operator treats ClusterMongoDBRole resources as custom role 
+     templates that are only used when referenced by the database 
+     resources.
+   - The operator watches the new resource by default. This means 
+     that the operator requires you to create a new ClusterRole and 
+     ClusterRoleBinding. The helm chart or the kubectl mongodb plugin 
+     create these ClusterRole and ClusterRoleBinding by default. You 
+     must create them manually if you use a different installation 
+     method.
+   - To disable this behavior in the helm chart, set the 
+     ``operator.enableClusterMongoDBRoles`` value to ``false``. This 
+     disables the creation of the necessary RBAC resources for the 
+     ClusterMongoDBRole resource, as well as disables the watch for 
+     this resource.
+   - To skip installing necessary ClusterRole and ClusterRoleBinding 
+     with the kubectl mongodb plugin, set the 
+     ``--create-mongodb-roles-cluster-role`` to ``false``.
+   - The new ClusterMongoDBRole resource is designed to be read-only, 
+     meaning it can be used by MongoDB deployments managed by 
+     different operators.
+   - You can delete the ClusterMongoDBRole resource at any time, but 
+     the operator does not delete any roles that were created using 
+     this resource. To properly remove access, you must manually 
+     remove the reference to the ClusterMongoDBRole in the MongoDB or 
+     MongoDBMultiCluster resources.
+   - The reference documentation for this resource can be found in 
+     the :ref:`ClusterMongoDBRole Resource Specification 
+     <mongodbrole-specification>`.
+
+Bug Fixes
+~~~~~~~~~
+
+* Fixes an issue where moving a MongoDBMultiCluster resource to a new project (or a new |mms| instance) would leave the deployment in a failed state.
+
 .. _mck-1.1.0-rn:
 
 |k8s-op-short| v1.1.0
