@@ -1,0 +1,368 @@
+.. _node-connection-troubleshooting:
+
+==========================
+Connection Troubleshooting
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: code example, node.js, disconnected, help
+   :description: Troubleshoot connection issues with the MongoDB Node.js Driver by checking connection strings, configuring firewalls, and adjusting settings like `maxPoolSize` and `connectTimeoutMS`.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page offers potential solutions to issues you might encounter when
+using the {+driver-long+} to connect to a MongoDB deployment.
+
+.. note::
+
+   This page addresses only connection issues. If you encounter any other issues
+   with MongoDB or the driver, visit the following resources:
+
+   - The :ref:`Issues & Help <node-issues-help>` page, which has
+     information about how to report bugs, contribute to the driver, and 
+     find more resources
+   - The `MongoDB Community Forums <https://community.mongodb.com>`__ for
+     questions, discussions, or general technical support
+
+Connection Error
+----------------
+
+If the driver cannot connect to the specified host, you might get an 
+``MongoServerSelectionError``.
+
+The following sections describe actions you can take to potentially resolve the
+issue.
+
+.. _node-troubleshooting-connection-firewall:
+
+Configure Your Firewall
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify that the ports your MongoDB deployment listens on are not blocked by a
+firewall on the same network. MongoDB uses port ``27017`` by default. To learn
+more about the default ports MongoDB uses and how to change them, see
+:manual:`Default MongoDB Port </reference/default-mongodb-port/>` in the 
+{+mdb-server+} manual.
+
+.. warning::
+
+   Do not open a port in your firewall unless you are sure it's the port
+   used by your MongoDB deployment.
+
+Check Your Network Access List
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify that your IP Address is listed in the IP Access List for your cluster.
+You can find your IP Access List in the Network Access section of 
+the Atlas UI. To learn more about how to configure your IP Access List, 
+see the :atlas:`Configure IP Access List Entries </security/ip-access-list/>` 
+guide in the Atlas documentation. 
+
+ECONNREFUSED Error
+------------------
+
+If the connection is refused when the driver attempts to connect to the MongoDB
+instance, it generates an error message similar to the following:
+
+.. code-block:: none
+   :copyable: false
+
+   MongoServerSelectionError: connect ECONNREFUSED <IPv6 address>:<port>
+
+The following sections describe actions you can take to potentially resolve the
+issue.
+
+Ensure MongoDB and Your Client Use the Same IP Address
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In Node.js v17 and later, the DNS resolver uses ``IPv6`` by default when both
+the client and host support both. For example, if MongoDB uses IPv4 and your
+client uses IPv6, the driver returns the previous error message.
+
+You can configure your MongoDB deployment to use ``IPv6`` mode when starting
+with ``mongod`` or ``mongos``. For more information about how to specify
+``IPv6`` mode, see
+:manual:`IP Binding </core/security-mongodb-configuration/>` in the server
+manual.
+
+As an alternative, you can explicitly use ``IPv4`` with your client by
+specifying ``family: 4`` as an
+`option to your MongoClient <{+api+}/interfaces/MongoClientOptions.html#family>`__.
+
+.. code-block:: js
+
+   const client = new MongoClient(uri, {
+     family: 4,
+   });
+
+ECONNRESET Error
+----------------
+
+If the connection is reset when the driver calls ``client.connect()``, it
+generates an error message similar to the following:
+
+.. code-block:: none
+   :copyable: false
+
+   MongoServerSelectionError: connect ECONNRESET ::<IP address>:<port>
+
+The following section describes a method that may help resolve the issue.
+
+Control the Number of File Descriptors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A file descriptor is a unique identifier associated with an open process. In most
+operating systems, each open connection from the driver is associated with a
+file descriptor. Operating systems typically have a limit on the number of file
+descriptors used by a single process. An ``ECONNRESET`` error can occur
+if the number of connections exceeds this limit.
+
+You can set the maximum number of connections by setting ``maxPoolSize``. To
+resolve this error, you can decrease the number of maximum allowed connections
+by setting the value of ``maxPoolSize``. Alternatively, you could increase the
+file descriptor limit in your operating system. To learn more about how to set
+``maxPoolSize``, see the API documentation for 
+`maxPoolSize <{+api+}/interfaces/MongoClientOptions.html#maxPoolSize>`__ .
+
+.. warning::
+
+   Always be cautious when changing the configuration of your operating system.
+
+Authentication Error
+--------------------
+
+The {+driver-short+} can fail to connect to a MongoDB instance if
+the authorization is not configured correctly. If you are using ``SCRAM-SHA-256``
+for authentication and the driver fails to connect, the driver might raise an
+error message similar to one of the following messages:
+
+.. code-block:: none
+   :copyable: false
+
+   MongoServerError: bad auth : authentication failed
+
+.. code-block:: none
+   :copyable: false
+
+   connection() error occurred during connection handshake: auth error:
+   sasl conversation error: unable to authenticate using mechanism
+   "SCRAM-SHA-256": (AuthenticationFailed) Authentication failed.
+
+The following sections describe actions you can take to potentially resolve the
+issue.
+
+.. _node-troubleshooting-connection-string-auth:
+
+Check Your Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An invalid connection string is the most common cause of authentication
+issues when you attempt to connect to MongoDB by using ``SCRAM-SHA-256``.
+
+.. tip::
+
+   For more information about connection strings,
+   see the :ref:`Connection URI <node-connection-uri>` section in the Connection 
+   Guide.
+
+If your connection string contains a username and password, ensure that they
+are in the correct format. If the username or password includes any of the
+following characters, they must be
+`percent encoded <https://tools.ietf.org/html/rfc3986#section-2.1>`__:
+
+.. code-block:: none
+
+    : / ? # [ ] @
+
+The following example shows how to percent encode "#MyP@assword?":
+
+.. code-block:: javascript
+
+   console.log(encodeURIComponent('#MyP@assword?'));
+
+This results in the following output:
+
+.. code-block:: none
+
+   "%23MyP%40assword%3F"
+
+.. _node-troubleshooting-connection-admin:
+
+Verify the User Is in the Authentication Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To successfully authenticate a connection by using a username and password with
+``SCRAM-SHA-256``, the username must be defined in the authentication database.
+The default authentication database is the ``admin`` database. To use a different
+database for authentication, specify the ``authSource`` in the connection string.
+The following example instructs the driver to use ``users`` as the authentication
+database:
+
+.. code-block:: javascript
+   :copyable: true
+
+   const { MongoClient } = require("mongodb");
+   const uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=users";
+   const client = new MongoClient(uri);
+
+Error Sending Message
+---------------------
+
+When the driver fails to send a command after you make a request,
+it may display the following error message:
+
+.. code-block:: none
+   :copyable: false
+
+   com.mongodb.MongoSocketWriteException: Exception sending message
+
+The following sections describe actions you can take to potentially resolve the
+issue.
+
+Check the User Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify that you've accessed the MongoDB deployment with the correct user. The
+term "message" in the error can be a command sent by the driver.
+If you are using a user that doesn't have permissions to send the command, the
+driver could generate this error.
+
+Also ensure that the user has the appropriate permissions for the message you
+are sending. MongoDB uses Role-Based Access Control (RBAC) to control access
+to a MongoDB deployment. For more information about how to configure RBAC in MongoDB,
+see :manual:`Default MongoDB Port </core/authorization/>`.
+
+Configure Your Firewall
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The firewall needs to have an open port for communicating with the MongoDB
+instance. For more information about configuring the firewall, see
+:ref:`Configure Your Firewall <node-troubleshooting-connection-firewall>` in
+the Connection Error section.
+
+.. _node-troubleshooting-connection-number-connections:
+
+Check the Number of Connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each ``MongoClient`` instance supports a maximum number of concurrent open
+connections in its connection pool. You can configure the parameter ``maxPoolSize``
+which defines this limit. The default value is ``100``. If there are already a
+number of open connections equal to ``maxPoolSize``, the server waits until
+a connection becomes available. If this wait time exceeds the ``maxIdleTimeMS``
+value, the driver responds with an error.
+
+For more information about how connection pooling works, see the
+:ref:`Connection Pool Overview <node-faq-connection-pool>`
+in the Connection Pools page.
+
+Timeout Error
+-------------
+
+When the network is not able to deliver a request from the driver to the server
+quickly enough, it can time out. When this happens, you might receive an error message
+similar to the following message:
+
+.. code-block:: none
+   :copyable: false
+
+   timed out while checking out a connection from connection pool: context canceled
+
+If you receive this error, try the following action to resolve the
+issue.
+
+Set connectTimeoutMS
+~~~~~~~~~~~~~~~~~~~~
+
+The driver may hang when it's unable to establish a connection because it
+takes too long attempting to reach unreachable replica set nodes. You can limit the
+time the driver spends attempting to establish the connection by using the
+``connectTimeoutMS`` setting. To learn more about this setting, see the
+:manual:`Timeout Options </reference/connection-string/#timeout-options>` in
+the Server manual.
+
+Ensure the ``connectTimeoutMS`` setting is not lower than
+the highest network latency you have for a member of the set. If one of the
+secondary members has a latency of 10000 milliseconds, setting the
+``connectTimeoutMS`` to 9000 prevents the driver from ever connecting to that
+member.
+
+The following example sets ``connectTimeoutMS`` to 10000 milliseconds.
+
+.. code-block:: javascript
+
+   const client = new MongoClient(uri, {
+     connectTimeoutMS: 10000,
+   });
+
+Client Disconnect While Running Operation
+-----------------------------------------
+
+Starting in {+mdb-server+} version 4.2, the server terminates
+running operations such as aggregations and find operations if the
+client disconnects.
+
+Other operations, such as write operations, continue to run on the
+{+mdb-server+} even if the client disconnects. This behavior can cause data
+inconsistencies if your application retries the operation after the
+client disconnects.
+
+Unexpected Network Behavior
+---------------------------
+
+You might experience unexpected network behavior if the firewall between
+your application and MongoDB is misconfigured. These firewalls can be
+overly aggressive in their removal of connections, which can lead to
+unexpected errors.
+
+Confirm that your firewall exhibits the following behavior:
+
+- The firewall sends a ``FIN`` packet when closing a connection,
+  informing the driver that the socket is closed.
+
+- The firewall allows keepalive messages.
+
+.. tip::
+   
+   To learn more about keepalive messages, see the :ref:`keepAlive Connection Option
+   <node-faq-keepalive>` section in the Connection Options page.
+
+Connection String Errors for Replica Sets
+-----------------------------------------
+
+The connection string passed to the driver must use exact hostnames for
+the servers, as set in the :manual:`Replica Set Config </reference/replica-configuration/>`.
+Given the following configuration settings for your replica set, in
+order for the replica set discovery and :manual:`failover
+</reference/glossary/#term-failover>` to work, the driver must have access
+to ``server1``, ``server2``, and ``server3``.
+
+.. code-block:: JSON
+
+   {
+     "_id": "testSet",
+     "version": 1,
+     "protocolVersion": 1,
+     "members": [
+       {
+         "_id": 1,
+         "host": "server1:31000"
+       },
+       {
+         "_id": 2,
+         "host": "server2:31001"
+       },
+       {
+         "_id": 3,
+         "host": "server3:31002"
+       }
+     ]
+   }
