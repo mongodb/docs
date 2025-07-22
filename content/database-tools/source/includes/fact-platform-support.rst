@@ -119,13 +119,13 @@
     - |checkmark|
     -
 
-  * - Windows 8 and later
+  * - Windows 11 and later
     - |checkmark|
     -
     -
     -
 
-  * - Windows Server 2012 and later
+  * - Windows Server 2016 and later
     - |checkmark|
     -
     -
