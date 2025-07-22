@@ -1,0 +1,215 @@
+.. _php-connection-targets:
+
+==========================
+Choose a Connection Target
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: connection string, URI, server, settings, client, stable api
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use a connection string and ``MongoDB\Client`` object
+to connect to different types of MongoDB deployments.
+
+.. _php-connection-atlas:
+
+Atlas
+-----
+
+To connect to a MongoDB deployment on Atlas, include the following elements
+in your connection string:
+
+- URI of your Atlas cluster
+- Database username
+- Database user's password
+
+Then, pass your connection string to the ``MongoDB\Client`` constructor.
+
+When you connect to Atlas, we recommend using the {+stable-api+} client option to avoid
+breaking changes when Atlas upgrades to a new version of {+mdb-server+}.
+To learn more about the {+stable-api+} feature, see the :ref:`{+stable-api+} page
+<php-stable-api>`.
+
+The following code shows how to use the {+library-short+} to connect to an Atlas cluster.
+The code also uses the ``serverApi`` option to specify a {+stable-api+} version.
+
+.. literalinclude:: /includes/connect/atlas.php
+   :copyable: true
+   :language: php
+
+.. tip::
+
+   Follow the :ref:`php-connection-string` step of the Quick Start
+   to retrieve your connection string.
+
+.. _php-connection-local:
+
+Local Deployments
+-----------------
+
+To connect to a local MongoDB deployment, use ``localhost`` as the hostname. By
+default, the ``mongod`` process runs on port 27017, though you can customize this for
+your deployment.
+
+The following code shows how to use the {+library-short+} to connect to a local MongoDB
+deployment:
+
+.. literalinclude:: /includes/connect/client.php
+   :language: php
+   :copyable: true
+
+.. _php-connection-replica-set:
+
+Replica Sets
+------------
+
+To connect to a replica set, specify the hostnames (or IP addresses) and 
+port numbers of the replica set members in your connection string.
+
+If you aren't able to provide a full list of hosts in the replica set, you can 
+specify one or more of the hosts in the replica set and instruct the {+library-short+} to 
+perform automatic discovery to find the others. To instruct the driver to perform
+automatic discovery, choose one of the following actions:
+
+- Specify the name of the replica set as the value of the ``replicaSet`` parameter.
+- Specify ``false`` as the value of the ``directConnection`` parameter.
+- Specify more than one host in the replica set.
+
+In the following example, the driver uses a sample connection URI to connect to the 
+MongoDB replica set ``sampleRS``, which is running on port ``27017`` of three different
+hosts, including ``host1``:
+
+.. literalinclude:: /includes/connect/replica-set.php
+   :language: php
+   :copyable: true
+
+Initialization
+~~~~~~~~~~~~~~
+
+To initialize a replica set, you must connect directly to a single member. To do so,
+set the ``directConnection`` connection
+option to ``true`` in the connection string. The following code example shows how to
+set this connection option: 
+
+.. literalinclude:: /includes/connect/direct-connection.php
+   :language: php
+   :copyable: true
+
+.. note:: Replica Set in Docker
+
+   .. sharedinclude:: dbx/docker-replica-set.rst
+
+.. _php-connection-dns:
+
+DNS Service Discovery
+---------------------
+
+.. sharedinclude:: dbx/srv-polling.rst
+
+   .. replacement:: srv-uri
+
+      .. code-block:: php
+
+         $uri = 'mongodb+srv://<hostname>/';
+
+Server Selection Errors
+-----------------------
+
+The following code shows possible server selection error
+messages that your application might generate: 
+
+.. code-block:: none
+   :copyable: false
+
+   No suitable servers found (`serverSelectionTryOnce` set):
+     [connection refused calling hello on 'a.example.com:27017']
+     [connection refused calling hello on 'b.example.com:27017']
+
+   No suitable servers found: `serverSelectionTimeoutMS` expired:
+     [socket timeout calling hello on 'example.com:27017']
+
+   No suitable servers found: `serverSelectionTimeoutMS` expired:
+     [connection timeout calling hello on 'a.example.com:27017']
+     [connection timeout calling hello on 'b.example.com:27017']
+     [TLS handshake failed: -9806 calling hello on 'c.example.com:27017']
+
+   No suitable servers found: `serverselectiontimeoutms` timed out:
+    [TLS handshake failed: certificate verify failed (64): IP address mismatch calling hello on 'a.example.com:27017']
+    [TLS handshake failed: certificate verify failed (64): IP address mismatch calling hello on 'b.example.com:27017']
+
+The {+extension-short+} usually represents these errors as
+:php:`MongoDB\Driver\Exception\ConnectionTimeoutException <mongodb-driver-exception-connectiontimeoutexception>`
+exceptions. However, the exception messages originate from
+``libmongoc``, which is the underlying system library used by the extension. Since
+these messages can take many forms, we recommend breaking down the structure of
+the message so you can better diagnose errors in your application.
+
+Messages typically start with "No suitable servers found". The next part of
+the message indicates *how* server selection failed. The extension
+avoids a server selection loop and makes a single attempt by default, according to
+the ``serverSelectionTryOnce`` connection string option. If the extension is
+configured to use a loop, a message that includes the phrase "serverSelectionTimeoutMS expired"
+indicates that you exhausted its time limit.
+
+The last component of the message tells us *why* server selection failed and
+includes one or more errors directly from the topology scanner, which is the
+service responsible for connecting to and monitoring each host. Any host that
+previously experienced an error during monitoring will be included in this list. These
+messages typically originate from low-level socket or TLS functions.
+
+The following list describes the possible meanings of common phrases in the last error message
+component: 
+
+- "Connection refused": The remote host might not be not listening on
+  the expected port.
+- "Connection timeout": There might be a routing problem, a firewall error, or
+  a timeout due to latency.
+- "Socket timeout": You likely established an initial connection that
+  was dropped or timed out due to latency.
+- "TLS handshake failed": TLS or OCSP verification did not succeed, and you might
+  be using misconfigured TLS certificates.
+
+In the case of a connection failure, you can use the ``connect`` tool for
+more troubleshooting information. This tool tries to connect to each host in a
+connection string by using socket functions, and then attempts to interact with
+data. If you used Composer to install the library, you can use the following command
+to start the ``connect`` tool:
+
+.. code-block:: none
+
+   php vendor/mongodb/mongodb/tools/connect.php <connection URI>
+
+If the server you are connecting to does not accept connections, the output
+resembles the following code:
+
+.. code-block:: none
+
+   Looking up MongoDB at <connection URI>
+   Found 1 host(s) in the URI. Will attempt to connect to each.
+
+   Could not connect to <host>:<port>: Connection refused
+
+.. note::
+
+   The tool supports only the ``mongodb://`` URI schema. Using the
+   ``mongodb+srv`` scheme is not supported.
+
+API Documentation
+-----------------
+
+To learn more about using the ``MongoDB\Client`` class,
+see the following API documentation:
+
+- :phpclass:`MongoDB\Client`
