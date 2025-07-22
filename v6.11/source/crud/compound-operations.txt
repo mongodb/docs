@@ -1,0 +1,142 @@
+.. _node-crud-compound-operations:
+
+===================
+Compound Operations
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: node.js, atomic operation, read, write
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Most database requests either read data from a database or write data into
+a database. However, there are instances where you may require a single
+operation that reads and writes data.
+
+**Compound operations** combine read and write operations
+in a single atomic statement, so there's no chance of data changing in
+between a read and a subsequent write.
+
+If you execute each operation separately, another request may alter the
+data between the read and write operations. These data changes may not
+prevent your operation from succeeding, but they can make error handling
+more difficult. When your application handles potential errors at
+any stage of the process, it can become brittle and difficult
+to test.
+
+.. _node-compound-operations-builtin:
+
+Built-in Methods
+----------------
+
+The {+driver-short+} provides the following methods to perform compound
+operations:
+
+- `findOneAndDelete() <{+api+}/classes/Collection.html#findOneAndDelete>`__
+- `findOneAndUpdate() <{+api+}/classes/Collection.html#findOneAndUpdate>`__
+- `findOneAndReplace() <{+api+}/classes/Collection.html#findOneAndReplace>`__
+
+These methods accept an optional ``options`` object with
+configurable :ref:`sort <node-fundamentals-sort>` and
+:ref:`projection <node-fundamentals-project>` options.
+
+You can also set the ``includeResultMetadata``
+option to specify the return type of each
+of these methods. To learn more about this option, see the
+:ref:`includeResultMetadata Option <node-compound-metadata-option>`
+section of this guide.
+
+The ``findOneAndUpdate()`` and ``findOneAndDelete()`` methods take the
+``returnDocument`` setting, which specifies if the method returns the
+pre-update or post-update version of the modified document.
+
+.. _node-compound-metadata-option:
+
+includeResultMetadata Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``includeResultMetadata`` option determines the return type of the
+compound methods.
+   
+This setting defaults to ``false``, which means that each method returns the matched
+document. If no document is matched, each method returns ``null``. If you set
+``includeResultMetadata`` to ``true``, the method returns a ``ModifyResult`` type that
+contains the found document and metadata.
+
+Suppose a collection contains only the following document:
+
+.. code-block:: json
+
+   { _id: 1, x: "on" }
+
+The following table shows how the value of the
+``includeResultMetadata`` option changes the return type of
+the ``findOneAndDelete()`` method:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Option Value
+     - Syntax and Output
+
+   * - Default: ``false``
+
+     - *Document matched*
+
+       .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: js
+
+             await coll.findOneAndDelete({ x: "on" });
+
+          .. output::
+             :language: js
+             :visible: false
+
+             { _id: 1, x: 'on' }
+
+       *No document matched*
+
+       .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: js
+
+             await coll.findOneAndDelete({ x: "off" });
+
+          .. output::
+             :language: js
+             :visible: false
+
+             null   
+
+   * - ``true``
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: js
+
+             await coll.findOneAndDelete({ x: "on" }, { includeResultMetadata: true });
+
+          .. output::
+             :language: js
+             :visible: false
+
+             { lastErrorObject: { n: 1 }, value: { _id: 1, x: 'on' }, ok: 1, ... }
