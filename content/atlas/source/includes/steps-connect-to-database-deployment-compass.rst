@@ -10,13 +10,12 @@
       
    .. step:: Choose your Connection Type.
 
-      .. note:: Enable Features to Display Connection Options
 
-         |service| displays the connection type options after you enable
-         :doc:`Private IP for Peering </security-vpc-peering>`,
-         :ref:`Private Endpoint <atlas-configure-private-endpoint>`, or
-         both. If you haven't enabled either feature, no buttons display
-         and **Connection Type** defaults to **Standard**.
+      |service| displays the connection type options after you enable
+      :doc:`Private IP for Peering </security-vpc-peering>`,
+      :ref:`Private Endpoint <atlas-configure-private-endpoint>`, or
+      both. If you haven't enabled either feature, no buttons display
+      and **Connection Type** defaults to **Standard**.
 
       Under :guilabel:`Choose Connection Type`, select one of the following connection types: 
 
@@ -71,11 +70,9 @@
             - |compass| has transitive network access to your cloud provider network
             - You want to use an :ref:`optimized connection string <optimized-connection-strings>`.
       
-            .. note::
-      
-               You can't select this option unless your configured
-               PrivateLink connection is ready to use. To learn how to
-               check the status of your {+aws-pl+}, see :ref:`atlas-troubleshoot-private-endpoint`. 
+            :red:`WARNING:` You can't select this option unless your configured
+            PrivateLink connection is ready to use. To learn how to
+            check the status of your {+aws-pl+}, see :ref:`atlas-troubleshoot-private-endpoint`. 
       
    .. step:: Choose how you want to limit connections to your {+database-deployment+}.
 
@@ -87,12 +84,10 @@
       
             :guilabel:`Add a Connection IP Address`
       
-            .. important::
-      
-               Skip this step if |service| indicates in the
-               :guilabel:`Setup connection security` step that you have
-               already configured an IP access list entry in your {+database-deployment+}.
-               To manage the IP access list, see :ref:`access-list`.
+            :gold:`IMPORTANT:` Skip this step if |service| indicates in the
+            :guilabel:`Setup connection security` step that you have
+            already configured an IP access list entry in your {+database-deployment+}.
+            To manage the IP access list, see :ref:`access-list`.
       
             |service| allows standard client connections to the {+database-deployment+}
             from entries in the project's :ref:`IP access list <access-list>`.
@@ -118,12 +113,10 @@
       
             :guilabel:`Add a Connection IP Address`
       
-            .. important::
-      
-               Skip this step if |service| indicates in the
-               :guilabel:`Setup connection security` step that you have
-               already configured an IP access list entry in your {+database-deployment+}.
-               To manage the IP access list, see :ref:`access-list`.
+            :gold:`IMPORTANT:` Skip this step if |service| indicates in the
+            :guilabel:`Setup connection security` step that you have
+            already configured an IP access list entry in your {+database-deployment+}.
+            To manage the IP access list, see :ref:`access-list`.
       
             |service| allows standard client connections to the cluster
             from entries in the :ref:`project's IP access list
@@ -161,12 +154,10 @@
       
    .. step:: Create a Database User.
       
-      .. important::
-      
-         **Skip this step** if |service| indicates in the
-         :guilabel:`Setup connection security` step that you have at least
-         one database user configured in your project. To manage existing
-         database users, see :ref:`mongodb-users`.
+      :gold:`IMPORTANT:` **Skip this step** if |service| indicates in the
+      :guilabel:`Setup connection security` step that you have at least
+      one database user configured in your project. To manage existing
+      database users, see :ref:`mongodb-users`.
       
       To access the {+database-deployment+}, you need a MongoDB user with access to the
       desired database or databases on the {+database-deployment+} in your project. If your

@@ -1,7 +1,5 @@
-.. important::
-
-   |service| truncates the cluster name to *23 characters* in
-   its internal interactions. In practice, this means:
+:gold:`IMPORTANT:` |service| truncates the cluster name to *23 characters* in
+its internal interactions. In practice, this means:
 
    - Cluster names shorter than 23 characters can't end with
      hyphen or dash (``-``).

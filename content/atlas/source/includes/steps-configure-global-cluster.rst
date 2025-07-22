@@ -45,22 +45,18 @@
       </core/zone-sharding/>`. To learn how to add shards to a zone,
       see :manual:`Manage Zones </tutorial/manage-shard-zone/>`.
       
-      .. important:: 
-      
-         You can't change between :guilabel:`Atlas-Managed Sharding` 
-         and :guilabel:`Self-Managed Sharding` after you deploy the {+cluster+}.
+      :gold:`IMPORTANT:` You can't change between :guilabel:`Atlas-Managed Sharding` 
+      and :guilabel:`Self-Managed Sharding` after you deploy the {+cluster+}.
          
       
    .. step:: Select your preferred cloud provider.
       
-      .. note::
-      
-        Each cloud provider has a selection of global regions to which
-        |service| can deploy a zone. The choice of cloud provider may
-        support or constrict your ability to deploy a zone to specific
-        geographic locations. The configuration options available and
-        the cost for running the {+cluster+} may also vary depending on
-        cloud provider selection.
+      :gold:`IMPORTANT:` Each cloud provider has a selection of global regions 
+      to which |service| can deploy a zone. The choice of cloud provider may
+      support or constrict your ability to deploy a zone to specific
+      geographic locations. The configuration options available and
+      the cost for running the {+cluster+} may also vary depending on
+      cloud provider selection.
       
    .. step:: Configure your |global-write-cluster| Zones.
       
@@ -216,13 +212,11 @@
             |service| supports no more than 70 shards per
             |global-write-cluster|.
       
-            .. important::
-      
-               Selecting a :ref:`zone template
-               <global-writes-zones>` resets any
-               configuration changes made in the :guilabel:`Zone
-               Configuration` section to the default for the selected
-               template.
+            :gold:`IMPORTANT:` Selecting a :ref:`zone template
+            <global-writes-zones>` resets any
+            configuration changes made in the :guilabel:`Zone
+            Configuration` section to the default for the selected
+            template.
       
          .. tab:: Multi-Region Zone
             :tabid: multi-region
@@ -308,28 +302,26 @@
             |service| supports no more than 70 shards per
             |global-write-cluster|.
       
-            .. important::
+            :gold:`IMPORTANT:`
       
                 Selecting a
                 :ref:`zone template <global-writes-zones>`
                 resets any configuration changes made in the
                 :guilabel:`Zone Configuration` section to the default for the
                 selected template.
-         
-            .. note:: Removing Zones from an Existing Global {+Cluster+}
       
-               If you are using the :manual:`standard connection string format
-               </reference/connection-string#connections-standard-connection-string-format>`
-               rather than the :abbr:`DNS (Domain Name Service)` seedlist format,
-               removing an entire zone from an existing global cluster may result
-               in a new connection string. 
+                If you are using the :manual:`standard connection string format
+                </reference/connection-string#connections-standard-connection-string-format>`
+                rather than the :abbr:`DNS (Domain Name Service)` seedlist format,
+                removing an entire zone from an existing global cluster may result
+                in a new connection string. 
 
-               To verify the correct connection string after deploying the changes:
+                To verify the correct connection string after deploying the changes:
                
-               a. .. include:: /includes/nav/roman-db-deployments-page.rst
-               #. Verify the connection string.
+                a. .. include:: /includes/nav/roman-db-deployments-page.rst
+                #. Verify the connection string.
 
-                  Click :guilabel:`Connect`.
+                   Click :guilabel:`Connect`.
       
    .. step:: Select the :guilabel:`{+Cluster+} Tier`.
       
@@ -536,7 +528,7 @@
       Click :guilabel:`Confirm and Deploy Cluster` below the form to deploy your
       {+cluster+}.
       
-      .. important::
+      :gold:`IMPORTANT:`
       
         .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
       

@@ -1,6 +1,10 @@
 .. step:: In |service|, go to the :guilabel:`Clusters` page for your project.
 
-   .. include:: /includes/nav/fact-nav-preview.rst
+   :red:`WARNING:` **Navigation Improvements In Progress**
+   We're currently rolling out a new and improved navigation 
+   experience. If the following steps don't match your view in the 
+   {+atlas-ui+}, see :dochub:`the preview documentation 
+   <atlas-nav-preview>`. 
 
    a. If it's not already displayed, select the organization that
       contains your desired project from the |ui-org-menu| in the
