@@ -9,7 +9,7 @@
       have :authrole:`Project Data Access Admin` or higher :ref:`access <who-can-access-project>` to your 
       |service| project.
 
-         If you create a new cluster, you have the necessary permissions by default.
+      If you create a new cluster, you have the necessary permissions by default.
 
       You can create only one ``M0`` {+Free-cluster+} per :ref:`project. <atlas-ui-auth-projects>`
 

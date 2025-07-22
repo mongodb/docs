@@ -302,26 +302,24 @@
             |service| supports no more than 70 shards per
             |global-write-cluster|.
       
-            :gold:`IMPORTANT:`
+            :gold:`IMPORTANT:` Selecting a
+            :ref:`zone template <global-writes-zones>`
+            resets any configuration changes made in the
+            :guilabel:`Zone Configuration` section to the default for the
+            selected template.
       
-                Selecting a
-                :ref:`zone template <global-writes-zones>`
-                resets any configuration changes made in the
-                :guilabel:`Zone Configuration` section to the default for the
-                selected template.
-      
-                If you are using the :manual:`standard connection string format
-                </reference/connection-string#connections-standard-connection-string-format>`
-                rather than the :abbr:`DNS (Domain Name Service)` seedlist format,
-                removing an entire zone from an existing global cluster may result
-                in a new connection string. 
+            If you are using the :manual:`standard connection string format
+            </reference/connection-string#connections-standard-connection-string-format>`
+            rather than the :abbr:`DNS (Domain Name Service)` seedlist format,
+            removing an entire zone from an existing global cluster may result
+            in a new connection string. 
 
-                To verify the correct connection string after deploying the changes:
-               
-                a. .. include:: /includes/nav/roman-db-deployments-page.rst
-                #. Verify the connection string.
+            To verify the correct connection string after deploying the changes:
+            
+            a. .. include:: /includes/nav/roman-db-deployments-page.rst
+            #. Verify the connection string.
 
-                   Click :guilabel:`Connect`.
+            Click :guilabel:`Connect`.
       
    .. step:: Select the :guilabel:`{+Cluster+} Tier`.
       
@@ -528,9 +526,7 @@
       Click :guilabel:`Confirm and Deploy Cluster` below the form to deploy your
       {+cluster+}.
       
-      :gold:`IMPORTANT:`
-      
-        .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
+      :gold:`IMPORTANT:` .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
       
    .. step:: Shard a global collection.
       
