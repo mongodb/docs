@@ -1,0 +1,154 @@
+.. _node-fundamentals-project:
+.. _node-project:
+
+==============================
+Specify Which Fields to Return
+==============================
+
+.. meta::
+   :description: Use projections with the MongoDB Node.js Driver to control which fields are returned in query results, optimizing network bandwidth by including or excluding specific fields.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+.. _mongodb-node-projection:
+
+Overview
+--------
+
+Use a projection to control which fields appear in the documents
+returned by read operations. Many requests only require certain fields,
+so projections can help you limit unnecessary network bandwidth usage.
+Projections work in two ways:
+
+- Explicitly include fields with a value of ``1``. This has the
+  side-effect of implicitly excluding all unspecified fields.
+
+- Implicitly exclude fields with a value of ``0``. This has the
+  side-effect of implicitly including all unspecified fields.
+
+These two methods of projection are mutually exclusive: if you
+explicitly include fields, you cannot explicitly exclude fields, and
+vice versa.
+
+Sample Documents
+~~~~~~~~~~~~~~~~
+
+To follow the examples in this guide, use the following code snippet to insert documents
+that describe fruits into the ``myDB.fruits`` collection:
+
+.. code-block:: javascript
+
+   const myDB = client.db("myDB");
+   const myColl = myDB.collection("fruits");
+
+   await myColl.insertMany([
+     { "_id": 1, "name": "apples", "qty": 5, "rating": 3 },
+     { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 },
+     { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 },
+     { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 },
+   ]);
+
+.. include:: /includes/access-cursor-note.rst
+
+Single Field
+------------
+
+In the following query, pass the projection to only return the ``name``
+field of each document:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   // return only* the name field
+   const projection = { name: 1 };
+   const cursor = myColl.find().project(projection);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+The projection document specifies a value of ``1`` for ``name``. This instructs
+the operation to *include* the ``name`` field of each returned document in
+the results and *exclude* the ``qty`` and ``rating`` fields. Passing this projection
+to ``find()`` with an empty query document and no sort document yields the following
+results:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 1, "name": "apples" }
+   { "_id": 2, "name": "bananas" }
+   { "_id": 3, "name": "oranges" }
+   { "_id": 4, "name": "avocados" }
+
+Although this projection only explicitly included the ``name`` field, the query returned
+the ``_id`` field as well.
+
+The ``_id`` field is a special case because it is always included in every query unless
+explicitly specified otherwise. This is because ``_id`` is a unique identifier for each
+document, a property that is often used when constructing queries. The ``movies``
+collection data demonstrates why this property is necessary: two or more movies can share
+the same title, such as movie remakes. Because of this, you need a unique ``_id`` value to
+reliably reference a specific movie. ``_id`` is the only exception to the mutually
+exclusive include-exclude behavior in projections: you *can* explicitly exclude ``_id``
+even when explicitly including other fields if you do not want ``_id`` to be present in
+returned documents.
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   // return only the name field
+   const projection = { _id: 0, name: 1 };
+   const cursor = myColl.find().project(projection);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+The projection document specifies a value of ``1`` for ``name`` and ``0`` for 
+``_id``. This instructs the operation to *include* the ``name`` field of each
+returned document in the results and *exclude* the ``_id``, ``qty``, and ``rating``
+fields. Passing this projection to ``find()`` with an empty query document and
+no sort document yields the following results:
+
+.. code-block:: json
+   :copyable: false
+
+   { "name": "apples" }
+   { "name": "bananas" }
+   { "name": "oranges" }
+   { "name": "avocados" }
+
+Multiple Fields
+---------------
+
+You can also specify multiple fields to include in your projection. Note: the
+order in which you specify the fields in the projection does not alter the
+order in which they are returned.
+
+.. code-block:: javascript
+
+   const projection = { _id: 0, rating: 1, name: 1 };
+   const cursor = myColl.find().project(projection);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+This example that identifies two fields to include in the projection yields
+the following results:
+
+.. code-block:: json
+   :copyable: false
+
+     { "name": "apples", "rating": 3 }
+     { "name": "bananas", "rating": 1 }
+     { "name": "oranges", "rating": 2 }
+     { "name": "avocados", "rating": 5 }
+
+For more projection examples, see the
+:manual:`MongoDB Manual page on Project Fields to Return from Query </tutorial/project-fields-from-query-results/>`.
