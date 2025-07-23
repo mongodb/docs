@@ -45,11 +45,11 @@
                with :atlasrole:`readWriteAnyDatabase` as well as a number
                of administrative privileges.
       
-             - Select :atlasrole:`Read and write to any database`, which
+             - Select :atlasrole:`readWriteAnyDatabase`, which
                provides the user with privileges to read and write to any
                database.
       
-             - Select :atlasrole:`Only read any database` which provides
+             - Select :atlasrole:`readAnyDatabase` which provides
                the user with privileges to read any database.
       
              - Select :guilabel:`Select Custom Role` to select a custom 
