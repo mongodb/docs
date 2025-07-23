@@ -23,11 +23,10 @@ to the ``product_name`` and ``product_variation`` fields in documents in the
 To create the ``products`` and ``orders`` collections and insert the
 sample data, add the following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+.. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.load-sample-data.py
    :language: python
    :copyable: true
-   :start-after: start-insert-sample-data
-   :end-before: end-insert-sample-data
+   :category: usage example
    :dedent:
 
 .. end-prep-steps
@@ -49,31 +48,28 @@ sample data, add the following code to your application:
       code uses aliases for the ``name`` and ``variation`` fields
       set when :ref:`creating the $lookup stage <python-multi-field-agg-lookup-stage>`:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.embedded-match-name-variation.py
          :language: python
          :copyable: true
-         :start-after: start-embedded-pl-match1
-         :end-before: end-embedded-pl-match1
+         :category: syntax example
          :dedent:
 
       Within the embedded pipeline, add another :pipeline:`$match` stage to match
       orders placed in 2020:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.embedded-match-datetime.py
          :language: python
          :copyable: true
-         :start-after: start-embedded-pl-match2
-         :end-before: end-embedded-pl-match2
+         :category: syntax example
          :dedent:
 
       Within the embedded pipeline, add an :pipeline:`$unset` stage to remove
       unneeded fields from the ``orders`` collection side of the join:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.embedded-unset.py
          :language: python
          :copyable: true
-         :start-after: start-embedded-pl-unset
-         :end-before: end-embedded-pl-unset
+         :category: syntax example
          :dedent:
 
       .. _python-multi-field-agg-lookup-stage:
@@ -83,11 +79,10 @@ sample data, add the following code to your application:
       Configure this stage to store the processed lookup fields in
       an array field called ``orders``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.lookup.py
          :language: python
          :copyable: true
-         :start-after: start-lookup
-         :end-before: end-lookup
+         :category: syntax example
          :dedent:
 
    .. step:: Add a match stage for products ordered in 2020.
@@ -96,11 +91,10 @@ sample data, add the following code to your application:
       products for which there is at least one order in 2020,
       based on the ``orders`` array calculated in the previous step:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.match.py
          :language: python
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
+         :category: syntax example
          :dedent:
 
    .. step:: Add an unset stage to remove unneeded fields.
@@ -109,11 +103,10 @@ sample data, add the following code to your application:
       ``$unset`` stage removes the ``_id`` and ``description``
       fields from the result documents:
             
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.unset.py
          :language: python
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
+         :category: syntax example
          :dedent:
 
    .. step:: Run the aggregation pipeline.
@@ -121,11 +114,10 @@ sample data, add the following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``products`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi_field_tutorial.snippet.run-agg.py
          :language: python
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
+         :category: syntax example
          :dedent:
 
       Finally, run the following command in your shell to start your
@@ -142,12 +134,12 @@ sample data, add the following code to your application:
       Each document contains an ``orders`` array field that lists details
       about each order for that product:
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/multi-field-tutorial-output.txt
+         :language: text
          :copyable: false
-         
-         {'name': 'Asus Laptop', 'variation': 'Standard Display', 'category': 'ELECTRONICS', 'orders': [{'customer_id': 'elise_smith@myemail.com', 'orderdate': datetime.datetime(2020, 5, 30, 8, 35, 52), 'value': 431.43}, {'customer_id': 'jjones@tepidmail.com', 'orderdate': datetime.datetime(2020, 12, 26, 8, 55, 46), 'value': 429.65}]}
-         {'name': 'Morphy Richards Food Mixer', 'variation': 'Deluxe', 'category': 'KITCHENWARE', 'orders': [{'customer_id': 'oranieri@warmmail.com', 'orderdate': datetime.datetime(2020, 1, 1, 8, 25, 37), 'value': 63.13}]}
-
+         :category: example return object
+         :dedent:
+      
       The result documents contain details from documents in the
       ``orders`` collection and the ``products`` collection, joined by
       the product names and variations.

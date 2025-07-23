@@ -16,11 +16,10 @@ their field values match specified criteria.
 To create the ``persons`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.py
+.. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter/filter_tutorial.snippet.filter-tutorial-create-collection.py
    :language: python
    :copyable: true
-   :start-after: start-insert-persons
-   :end-before: end-insert-persons
+   :category: usage example
    :dedent:
 
 .. end-prep-steps
@@ -35,11 +34,10 @@ following code to your application:
       In your ``Pipeline`` instance, create a :pipeline:`$match` stage that finds documents in which
       the value of the ``vocation`` field is ``"ENGINEER"``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter/filter_tutorial.snippet.match.py
          :language: python
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
+         :category: syntax example
          :dedent:
 
    .. step:: Add a sort stage to sort from youngest to oldest.
@@ -48,11 +46,10 @@ following code to your application:
       documents in descending order by the ``dateofbirth`` field to
       list the youngest people first:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter/filter_tutorial.snippet.sort.py
          :language: python
          :copyable: true
-         :start-after: start-sort
-         :end-before: end-sort
+         :category: syntax example
          :dedent:
 
    .. step:: Add a limit stage to see only three results.
@@ -61,11 +58,10 @@ following code to your application:
       stage to the pipeline to output only the first three documents in
       the results.
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter/filter_tutorial.snippet.limit.py
          :language: python
          :copyable: true
-         :start-after: start-limit
-         :end-before: end-limit
+         :category: syntax example
          :dedent:
 
    .. step:: Add an unset stage to remove unneeded fields.
@@ -73,11 +69,10 @@ following code to your application:
       Finally, create an :pipeline:`$unset` stage. The
       ``$unset`` stage removes unnecessary fields from the result documents:
             
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter/filter_tutorial.snippet.unset.py
          :language: python
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
+         :category: syntax example
          :dedent:
 
       .. tip::
@@ -91,11 +86,10 @@ following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``persons`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter/filter_tutorial.snippet.run-agg.py
          :language: python
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
+         :category: syntax example
          :dedent:
 
       Finally, run the following command in your shell to start your
@@ -112,11 +106,10 @@ following code to your application:
       ordered from youngest to oldest. The results omit the ``_id`` and ``address``
       fields.
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter/filter-tutorial-output.txt
+         :language: text
          :copyable: false
-
-         {'person_id': '7363626383', 'firstname': 'Carl', 'lastname': 'Simmons', 'dateofbirth': datetime.datetime(1998, 12, 26, 13, 13, 55), 'vocation': 'ENGINEER'}
-         {'person_id': '1723338115', 'firstname': 'Olive', 'lastname': 'Ranieri', 'dateofbirth': datetime.datetime(1985, 5, 12, 23, 14, 30), 'gender': 'FEMALE', 'vocation': 'ENGINEER'}
-         {'person_id': '6392529400', 'firstname': 'Elise', 'lastname': 'Smith', 'dateofbirth': datetime.datetime(1972, 1, 13, 9, 32, 7), 'vocation': 'ENGINEER'}
+         :category: example return object
+         :dedent:
 
 .. end-tutorial

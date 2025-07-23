@@ -16,11 +16,10 @@ field, which contains customer email addresses.
 To create the ``orders`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+.. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.create-collection.py
    :language: python
    :copyable: true
-   :start-after: start-insert-orders
-   :end-before: end-insert-orders
+   :category: usage example
    :dedent:
 
 .. end-prep-steps
@@ -35,11 +34,10 @@ following code to your application:
       In your ``Pipeline`` instance, add a :pipeline:`$match` stage that matches
       orders placed in 2020:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.match.py
          :language: python
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
+         :category: syntax example
          :dedent:
 
    .. step:: Add a sort stage to sort by order date.
@@ -48,11 +46,10 @@ following code to your application:
       ascending sort on the ``orderdate`` field to retrieve the earliest
       2020 purchase for each customer in the next stage:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.sort-orderdate.py
          :language: python
          :copyable: true
-         :start-after: start-sort1
-         :end-before: end-sort1
+         :category: syntax example
          :dedent:
 
    .. step:: Add a group stage to group by email address.
@@ -68,11 +65,10 @@ following code to your application:
       - ``orders``: the list of all the customer's purchases,
         including the date and value of each purchase
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.group.py
          :language: python
          :copyable: true
-         :start-after: start-group
-         :end-before: end-group
+         :category: syntax example
          :dedent:
 
    .. step:: Add a sort stage to sort by first order date.
@@ -80,11 +76,10 @@ following code to your application:
       Next, create another :pipeline:`$sort` stage to set an
       ascending sort on the ``first_purchase_date`` field:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.sort-first-purchase.py
          :language: python
          :copyable: true
-         :start-after: start-sort2
-         :end-before: end-sort2
+         :category: syntax example
          :dedent:
 
    .. step:: Add a set stage to display the email address.
@@ -93,11 +88,10 @@ following code to your application:
       ``customer_id`` field from the values in the ``_id`` field
       that were set during the ``$group`` stage:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.set.py
          :language: python
          :copyable: true
-         :start-after: start-set
-         :end-before: end-set
+         :category: syntax example
          :dedent:
 
    .. step:: Add an unset stage to remove unneeded fields.
@@ -106,11 +100,10 @@ following code to your application:
       ``$unset`` stage removes the ``_id`` field from the result
       documents:
             
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.unset.py
          :language: python
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
+         :category: syntax example
          :dedent:
 
    .. step:: Run the aggregation pipeline.
@@ -118,11 +111,10 @@ following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``orders`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group_tutorial.snippet.run-agg.py
          :language: python
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
+         :category: syntax example
          :dedent:
 
       Finally, run the following command in your shell to start your
@@ -137,12 +129,11 @@ following code to your application:
       The aggregation returns the following summary of customers' orders
       from 2020:
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/group/group-tutorial-output.txt
+         :language: text
          :copyable: false
-         
-         {'first_purchase_date': datetime.datetime(2020, 1, 1, 8, 25, 37), 'total_value': 63, 'total_orders': 1, 'orders': [{'orderdate': datetime.datetime(2020, 1, 1, 8, 25, 37), 'value': 63}], 'customer_id': 'oranieri@warmmail.com'}
-         {'first_purchase_date': datetime.datetime(2020, 1, 13, 9, 32, 7), 'total_value': 436, 'total_orders': 4, 'orders': [{'orderdate': datetime.datetime(2020, 1, 13, 9, 32, 7), 'value': 99}, {'orderdate': datetime.datetime(2020, 5, 30, 8, 35, 52), 'value': 231}, {'orderdate': datetime.datetime(2020, 10, 3, 13, 49, 44), 'value': 102}, {'orderdate': datetime.datetime(2020, 12, 26, 8, 55, 46), 'value': 4}], 'customer_id': 'elise_smith@myemail.com'}
-         {'first_purchase_date': datetime.datetime(2020, 8, 18, 23, 4, 48), 'total_value': 191, 'total_orders': 2, 'orders': [{'orderdate': datetime.datetime(2020, 8, 18, 23, 4, 48), 'value': 4}, {'orderdate': datetime.datetime(2020, 11, 23, 22, 56, 53), 'value': 187}], 'customer_id': 'tj@wheresmyemail.com'}
+         :category: example return object
+         :dedent:
 
       The result documents contain details from all the orders from
       a given customer, grouped by the customer's email address.

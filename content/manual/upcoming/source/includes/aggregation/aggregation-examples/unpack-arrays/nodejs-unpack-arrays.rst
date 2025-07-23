@@ -16,12 +16,10 @@ individual product order documents.
 To create the ``orders`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/unpack-arrays.js
+.. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial-setup.snippet.load-sample-data.js
    :language: javascript
    :copyable: true
-   :start-after: start-insert-orders
-   :end-before: end-insert-orders
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -35,24 +33,20 @@ following code to your application:
       First, add an :pipeline:`$unwind` stage to separate the
       entries in the ``products`` array into individual documents:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/unpack-arrays.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial.snippet.unwind.js
          :language: javascript
          :copyable: true
-         :start-after: start-unwind
-         :end-before: end-unwind
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a match stage for products that cost more than $15.
 
       Next, add a :pipeline:`$match` stage that matches
       products with a ``products.price`` value greater than ``15``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/unpack-arrays.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial.snippet.match.js
          :language: javascript
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a group stage to group by product type.
 
@@ -65,12 +59,10 @@ following code to your application:
       - ``total_value``: the total value of all the sales of the product
       - ``quantity``: the number of orders for the product
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/unpack-arrays.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial.snippet.group.js
          :language: javascript
          :copyable: true
-         :start-after: start-group
-         :end-before: end-group
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a set stage to display the product ID.
 
@@ -78,78 +70,44 @@ following code to your application:
       ``product_id`` field from the values in the ``_id`` field
       that were set during the ``$group`` stage:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/unpack-arrays.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial.snippet.set.js
          :language: javascript
          :copyable: true
-         :start-after: start-set
-         :end-before: end-set
-         :dedent:
+         :category: syntax example
 
    .. step:: Add an unset stage to remove unneeded fields.
 
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes the ``_id`` field from the result
       documents:
-            
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/unpack-arrays.js
+
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial.snippet.unset.js
          :language: javascript
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
-         :dedent:
+         :category: syntax example
 
    .. step:: Run the aggregation pipeline.
 
       Add the following code to the end of your application to perform
       the aggregation on the ``orders`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/unpack-arrays.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial.snippet.run-pipeline.js
          :language: javascript
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
-         :dedent:
+         :category: syntax example
 
-      Finally, run the following command in your shell to start your
-      application:
-
-      .. code-block:: bash
-      
-         node agg_tutorial.js
+      Finally, execute the code in the file using your IDE or the command line.
 
    .. step:: Interpret the aggregation results.
 
       The aggregation returns the following summary of customers' orders
       from 2020:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/unwind/tutorial-output.sh
+         :language: shell
          :copyable: false
-         
-         {
-           product: 'Asus Laptop',
-           total_value: 860,
-           quantity: 2,
-           product_id: 'abc12345'
-         }
-         {
-           product: 'Morphy Richards Food Mixer',
-           total_value: 431,
-           quantity: 1,
-           product_id: 'pqr88223'
-         }
-         {
-           product: 'Russell Hobbs Chrome Kettle',
-           total_value: 16,
-           quantity: 1,
-           product_id: 'xyz11228'
-         }
-         {
-           product: 'Karcher Hose Set',
-           total_value: 66,
-           quantity: 3,
-           product_id: 'def45678'
-         }
-         
+         :category: example return object
+
       The result documents contain details about the total value and
       quantity of orders for products that cost more than $15.
 

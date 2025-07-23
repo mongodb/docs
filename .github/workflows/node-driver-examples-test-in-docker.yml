@@ -1,0 +1,37 @@
+name: Node.js Driver Code Examples - Test Against Local/Docker
+
+on:
+  pull_request:
+    paths:
+      - "code-example-tests/javascript/driver/**"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Atlas CLI
+        run: |
+          curl https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_1.42.2_linux_x86_64.deb --output atlas-cli.deb
+          sudo apt install ./atlas-cli.deb
+      - name: Set up a local deployment using Atlas CLI
+        run: |
+          atlas deployments setup myLocalRs1 --type local --port 27017 --force
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: |
+          cd code-example-tests/javascript/driver/
+          npm install
+      - name: Create environment file with connection string
+        run: |
+          cd code-example-tests/javascript/driver/
+          touch .env
+          echo "CONNECTION_STRING=\"mongodb://localhost:27017/?directConnection=true\"" >> .env
+      - name: Run tests
+        run: |
+          cd code-example-tests/javascript/driver/
+          npm test

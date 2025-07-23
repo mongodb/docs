@@ -21,11 +21,10 @@ that exists in documents in both collections.
 To create the ``orders`` and ``products`` collections and insert the
 sample data, add the following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/one-to-one-join/full-files/one_to_one_join.py
+.. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/one_to_one_tutorial.snippet.load-sample-data.py
    :language: python
    :copyable: true
-   :start-after: start-insert-sample-data
-   :end-before: end-insert-sample-data
+   :category: usage example
    :dedent:
 
 .. end-prep-steps
@@ -40,11 +39,10 @@ sample data, add the following code to your application:
       Add a :pipeline:`$match` stage that matches
       orders placed in 2020:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/one-to-one-join/full-files/one_to_one_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/one_to_one_tutorial.snippet.match.py
          :language: python
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
+         :category: syntax example
          :dedent:
 
    .. step:: Add a lookup stage to link the collections.
@@ -53,11 +51,10 @@ sample data, add the following code to your application:
       ``$lookup`` stage joins the ``product_id`` field in the ``orders``
       collection to the ``id`` field in the ``products`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/one-to-one-join/full-files/one_to_one_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/one_to_one_tutorial.snippet.lookup.py
          :language: python
          :copyable: true
-         :start-after: start-lookup
-         :end-before: end-lookup
+         :category: syntax example
          :dedent:
 
    .. step:: Add set stages to create new document fields.
@@ -73,11 +70,10 @@ sample data, add the following code to your application:
       and ``product_category``, from the values in the
       ``product_mapping`` object field:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/one-to-one-join/full-files/one_to_one_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/one_to_one_tutorial.snippet.set.py
          :language: python
          :copyable: true
-         :start-after: start-set
-         :end-before: end-set
+         :category: syntax example
          :dedent:
 
       .. tip::
@@ -92,11 +88,10 @@ sample data, add the following code to your application:
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes unnecessary fields from the document:
             
-      .. literalinclude:: /includes/aggregation/aggregation-examples/one-to-one-join/full-files/one_to_one_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/one_to_one_tutorial.snippet.unset.py
          :language: python
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
+         :category: syntax example
          :dedent:
 
    .. step:: Run the aggregation pipeline.
@@ -104,11 +99,10 @@ sample data, add the following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``orders`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/one-to-one-join/full-files/one_to_one_join.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/one_to_one_tutorial.snippet.run-agg.py
          :language: python
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
+         :category: syntax example
          :dedent:
 
       Finally, run the following command in your shell to start your
@@ -124,12 +118,11 @@ sample data, add the following code to your application:
       represent customer orders that occurred in 2020, with the
       ``product_name`` and ``product_category`` of the ordered product:
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/join/one-to-one-tutorial-output.txt
+         :language: text
          :copyable: false
-         
-         {'customer_id': 'elise_smith@myemail.com', 'orderdate': datetime.datetime(2020, 5, 30, 8, 35, 52), 'value': 431.43, 'product_name': 'Asus Laptop', 'product_category': 'ELECTRONICS'}
-         {'customer_id': 'oranieri@warmmail.com', 'orderdate': datetime.datetime(2020, 1, 1, 8, 25, 37), 'value': 63.13, 'product_name': 'Morphy Richardds Food Mixer', 'product_category': 'KITCHENWARE'}
-         {'customer_id': 'jjones@tepidmail.com', 'orderdate': datetime.datetime(2020, 12, 26, 8, 55, 46), 'value': 429.65, 'product_name': 'Asus Laptop', 'product_category': 'ELECTRONICS'}
+         :category: example return object
+         :dedent:
 
       The result consists of documents that contain fields from
       documents in the ``orders`` collection and the ``products``

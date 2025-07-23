@@ -1,0 +1,36 @@
+name: PyMongo Code Examples - Test Against Local/Docker
+
+on:
+  pull_request:
+    paths:
+      - "code-example-tests/python/pymongo/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Atlas CLI
+        run: |
+          curl https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_1.42.2_linux_x86_64.deb --output atlas-cli.deb
+          sudo apt install ./atlas-cli.deb
+      - name: Set up a local deployment using Atlas CLI
+        run: |
+          atlas deployments setup myLocalRs1 --type local --port 27017 --force
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          pip install pymongo python-dotenv
+      - name: Create environment file with connection string
+        run: |
+          cd code-example-tests/python/pymongo
+          touch .env
+          echo "CONNECTION_STRING=\"mongodb://localhost:27017/?directConnection=true\"" >> .env
+      - name: Run tests
+        run: |
+          cd code-example-tests/python/pymongo
+          python -m unittest discover tests_package
