@@ -1,0 +1,94 @@
+.. _mongoid-query-async:
+
+====================
+Asynchronous Queries
+====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, memory, background tasks, execution
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform asynchronous queries in
+{+odm+}. You can run database queries asynchronously in the background,
+which can be beneficial if your application retrieves documents from
+multiple collections.
+
+Run Async Queries
+-----------------
+
+To schedule an asynchronous query, call the ``load_async`` method on
+a ``Criteria`` instance, as shown in the following code:
+
+.. code-block:: ruby
+
+   @active_bands = Band.where(active: true).load_async
+   @public_articles = Article.where(public: true).load_async
+
+The preceding code schedules the queries for asynchronous execution.
+You can then access the results of the queries in your view as you
+normally do for synchronous queries.
+
+Even if you schedule a query for asynchronous execution, it might be
+executed synchronously on the caller's thread. The following list
+describes possible scenarios in which this situation might occur:
+
+- If {+odm+} completes the scheduled asynchronous task, it returns
+  the results.
+
+- If {+odm+} starts but does not complete the task, the caller's
+  thread blocks until {+odm+} finishes the task.
+
+- If {+odm+} has not started a task yet, it is removed from the
+  execution queue, and {+odm+} runs the query synchronously on the
+  caller's thread.
+
+.. note::
+
+   Even though the ``load_async`` method returns a ``Criteria`` object,
+   do not perform any operations on this object other than accessing query results.
+   {+odm+} schedules the query for execution immediately after calling
+   ``load_async``, so later changes to the ``Criteria`` object might not
+   be applied.
+
+Configure Query Performance
+---------------------------
+
+Asynchronous queries are disabled by default. When asynchronous queries
+are disabled, the ``load_async`` method performs the query immediately
+on the current thread, blocking as required. Therefore, calling
+``load_async`` on a ``Criteria`` instance in this situation is similar
+to calling the ``to_a`` method to force query execution.
+
+To enable asynchronous query execution, you must set the following
+configuration options:
+
+.. code-block:: xml
+
+   development:
+     ...
+     options:
+       # Execute asynchronous queries using a global thread pool.
+       async_query_executor: :global_thread_pool
+       # Number of threads in the pool. The default is 4.
+       # global_executor_concurrency: 4
+
+Additional Information
+----------------------
+
+To learn more about configuring {+odm+} in your application, see the
+:ref:`mongoid-app-config` guide.
+
+To learn more about performing CRUD operations, see the
+:ref:`mongoid-data-crud` guide.

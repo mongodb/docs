@@ -1,0 +1,841 @@
+.. _mongoid-data-crud:
+
+=======================
+Perform Data Operations
+=======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, create data, edit
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+odm+} to perform CRUD (create,
+read, update, delete) operations to modify the data in your MongoDB
+collections.
+
+{+odm+} supports CRUD operations that you can perform by using other
+{+language+} mappers such as Active Record or Data Mapper.
+When using {+odm+}, general persistence operations perform atomic
+updates on only the fields that you change instead of writing the
+entire document to the database each time, as is the case with other
+ODMs.
+
+Create Operations
+-----------------
+
+You can perform create operations to add new documents to a collection. If
+the collection doesn't exist, the operation implicitly creates the
+collection. The following sections describe the methods you can use to
+create new documents.
+
+create!
+~~~~~~~
+
+Use the ``create!`` method on your model class to insert one or more
+documents into a collection. If any server or validation errors occur,
+``create!`` raises an exception.
+
+To call ``create!``, pass a hash of attributes that define the document
+you want to insert. If you want to create and insert multiple documents, 
+pass an array of hashes.
+
+This example shows multiple ways to call ``create!``. The first example
+creates one ``Person`` document, and the second example creates two ``Person``
+documents. The third example passes a ``do..end`` block to ``create!``. {+odm+}
+invokes this block with the documents passed to ``create!`` as
+arguments. The ``create!`` method attempts to save the document at the
+end of the block:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start create! example
+   :end-before: end create! example
+
+create
+~~~~~~
+
+Use the ``create`` method to insert a new document or multiple new documents into a 
+database. ``create`` does not raise an exception on validation errors,
+unlike the ``!``-suffixed version. ``create`` does raise exceptions on
+server errors, such as if you insert a document with a duplicate ``_id`` field. 
+
+If ``create`` encounters any validation errors, the document is not inserted
+but is returned with other documents that were inserted. You can use the
+``persisted?``, ``new_record?`` or ``errors`` methods to verify the
+documents that were inserted into the database.
+
+This example shows how to use ``create`` to insert new documents
+into MongoDB. The first example shows how to insert a ``Person``
+document. The second example attempts to insert two ``Post`` documents,
+but the second document fails validation because it contains a duplicate
+title. The example then uses the ``persisted?`` method to confirm which
+documents were successfully inserted into the collection:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start create example
+   :end-before: end create example
+
+To learn more about the ``persisted?`` and ``new_record?`` methods, see
+the :ref:`mongoid-persistence-attr` section of this guide.
+
+save!
+~~~~~
+
+Use the ``save!`` method to atomically save changed attributes to the collection or
+to insert a new document. ``save!`` raises an exception if there are any
+server or validation errors. You can use the ``new`` method to create a new document
+instance. Then, use ``save!`` to insert the document into the database.
+
+The following example shows how to use ``save!`` to insert a new ``Person``
+document and update the ``first_name`` field of the existing document:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start save! example
+   :end-before: end save! example
+
+save
+~~~~
+
+The ``save`` method does not raise an exception if there are any
+validation errors. ``save`` still raises an exception if there are any
+server errors. The method returns ``true`` if all changed attributes
+are saved, and ``false`` if any validation errors occur.
+
+You can pass the following options to ``save``:
+
+- ``validate: false``: To bypass validations when saving the new
+  document or updated attributes.
+
+- ``touch: false``: To not update the ``updated_at`` field when
+  updating the specified attributes. This option has no effect when
+  inserting a new document.
+
+The following code uses ``save`` to insert a new document. It then updates
+that document and applies the ``validate: false`` option.
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start save example
+   :end-before: end save example
+
+Read Operations
+---------------
+
+You can perform read operations to retrieve documents from a collection.
+To learn more about creating query filters to retrieve a subset of your documents, see the :ref:`mongoid-data-specify-query` guide.
+
+.. _mongoid-read-attributes:
+
+attributes
+~~~~~~~~~~
+
+You can use the ``attributes`` method to retrieve the attributes of a
+model instance as a hash. This hash also contains the attributes of all
+embedded documents.
+
+The following example shows how to use ``attributes``:
+
+.. io-code-block::
+
+   .. input:: /includes/interact-data/crud.rb
+      :language: ruby
+      :start-after: start attributes example
+      :end-before: end attributes example
+    
+   .. output::
+      :language: console
+      
+      { "_id" => BSON::ObjectId('...'), 
+        "first_name" => "James", 
+        "last_name" => "Nan" 
+      }
+
+reload
+~~~~~~
+
+You can use the ``reload`` method to access the most recent version of a
+document from MongoDB. When you reload a document, {+odm+} also reloads any embedded
+associations in the same query. However, {+odm+} does not reload
+referenced associations. Instead, it clears these values so that they
+are loaded from the database during the next access.
+
+When you call ``reload`` on a document, any unsaved changes to the document
+are lost. The following code shows how to call ``reload`` on a document:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start reload example
+   :end-before: end reload example
+
+The preceding example updates the ``name`` field on the ``band`` document,
+but does not save the new value. Because {+odm+} did not persist the
+change to the ``name`` value, ``name`` contains the original value saved
+to the database.
+
+.. note:: Document Not Found Errors
+
+   When {+odm+} cannot find a document in the database, by default it raises a
+   ``Mongoid::Errors::DocumentNotFound`` error. You can set the
+   ``raise_not_found_error`` configuration option to ``false`` in your ``mongoid.yml`` 
+   file to direct {+odm+} to save a new document and set its attributes to
+   default values. Generally, it also changes the value of the ``_id``
+   field. For this reason, we do not recommend using ``reload`` when
+   ``raise_not_found_error`` is set to ``false``.
+
+Reload Unsaved Documents
+++++++++++++++++++++++++
+
+When you call ``reload`` on a document that is not persisted, the method performs
+a ``find`` query on the document's ``_id`` value. 
+
+The following example calls ``reload`` on a document that has not been
+saved and prints out the ``name`` field value. ``reload`` performs a
+``find`` operation using the document's ``_id`` value, which causes
+{+odm+} to retrieve the existing document in the collection:
+
+.. io-code-block::
+   :copyable: true
+   
+   .. input:: /includes/interact-data/crud.rb
+      :language: ruby
+      :start-after: start reload unsaved example
+      :end-before: end reload unsaved example
+
+   .. output::
+      :visible: false
+      
+      Photek
+
+Update Operations
+-----------------
+
+You can perform update operations to modify existing documents in a
+collection. If you attempt to update a deleted document, {+odm+} raises
+a ``FrozenError`` exception.
+
+update_attributes!
+~~~~~~~~~~~~~~~~~~
+
+You can use the ``update_attributes!`` method to update the attributes of an
+existing model instance. This method raises an exception if it encounters
+any validation or server errors.
+
+The following example shows how to use ``update_attributes!`` to update
+the ``first_name`` and ``last_name`` attributes of an existing document:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start update attributes! example
+   :end-before: end update attributes! example
+
+.. tip::
+
+   {+odm+} provides the nested attributes feature that allows you to
+   update a document and its nested associations in one call. To learn
+   more, see the :ref:`mongoid-data-nested-attr` guide.
+
+update_attributes
+~~~~~~~~~~~~~~~~~
+
+The ``update_attributes`` method does not raise an exception on
+validation errors. The method returns ``true`` if it passes validation
+and the document is updated, and ``false`` otherwise.
+
+The following example shows how to use ``update_attributes``:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start update attributes example
+   :end-before: end update attributes example
+
+update_attribute
+~~~~~~~~~~~~~~~~
+
+You can use the ``update_attribute`` method to bypass validations and
+update a *single* attribute of a model instance.
+
+The following example shows how to use ``update_attribute`` to update
+the value of a document's ``first_name`` attribute:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start update attribute example
+   :end-before: end update attribute example
+
+upsert
+~~~~~~
+
+You can use the ``upsert`` method to update, insert, or replace a
+document.
+
+``upsert`` accepts a ``replace`` option. If you set this option to ``true``
+and the document that calls ``upsert`` already exists in the database,
+the new document replaces the one in the database. Any fields in the
+database that the new document does not replace are removed.
+
+If you set the ``replace`` option to ``false`` and the document exists in the 
+database, it is updated. {+odm+} does not change any fields other than the
+ones specified in the update document. If the document does not exist in the
+database, it is inserted with the fields and values specified in the
+update document. The ``replace`` option is set to ``false`` by default.
+
+The following example shows how to use ``upsert`` to first insert a new
+document, then replace it by setting ``replace: true``:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start upsert example
+   :end-before: end upsert example
+
+touch
+~~~~~
+
+You can use the ``touch`` method to update a document's ``updated_at``
+timestamp to the current time. ``touch`` cascades the update to any of
+the document's ``belongs_to`` associations. You can also pass another
+time-valued field as an option to also update that field.
+
+The following example uses ``touch`` to update the 
+``updated_at`` and ``audited_at`` timestamps:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start touch example
+   :end-before: end touch example
+
+Delete Operations
+-----------------
+
+You can perform delete operations to remove documents from a collection.
+
+delete
+~~~~~~
+
+You can use the ``delete`` method to delete a document from the database. When you
+use ``delete``, {+odm+} does not run any callbacks. If the document is not
+saved to the database, ``delete`` attempts to delete any document with
+the same ``_id`` value.
+
+The following example shows how to use the ``delete`` method and
+demonstrates what happens when you delete a document that is not saved
+to the database:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start delete example
+   :end-before: end delete example
+
+In the preceding example, {+odm+} raises a ``Mongoid::Errors::DocumentNotFound``
+error when you call ``reload`` because ``unsaved_person.delete`` deletes
+the ``person`` document because the two documents have the same value
+for ``_id``.
+
+destroy
+~~~~~~~
+
+The ``destroy`` method operates similarly to ``delete``, except {+odm+}
+runs callbacks when you call ``destroy``. If the document is not found
+in the database, ``destroy`` attempts to delete any document with
+the same ``_id``.
+
+The following example shows how to use ``destroy``:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start destroy example
+   :end-before: end destroy example
+
+delete_all
+~~~~~~~~~~
+
+The ``delete_all`` method deletes all documents from the collection that
+are modeled by your {+odm+} model class. ``delete_all`` does not run
+callbacks.
+
+The following example shows how to use ``delete_all`` to delete all
+``Person`` documents:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start delete all example
+   :end-before: end delete all example
+
+destroy_all
+~~~~~~~~~~~
+
+The ``destroy_all`` method deletes all documents from the collection
+that are modeled by your {+odm+} model class. This can be an expensive
+operation because {+odm+} loads all documents into memory.
+
+The following example shows how to use ``destroy_all`` to delete all
+``Person`` documents:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start destroy all example
+   :end-before: end destroy all example
+
+.. _mongoid-persistence-attr:
+
+Persistence Attributes
+----------------------
+
+The following sections describe the attributes that {+odm+} provides that
+you can use to check if a document is persisted to the database.
+
+new_record?
+~~~~~~~~~~~
+
+The ``new_record?`` attribute returns ``true`` if the model instance is
+*not saved* to the database yet, and ``false`` otherwise. It checks for
+the opposite condition as the ``persisted?`` attribute.
+
+The following example shows how to use ``new_record?``:
+
+.. io-code-block::
+
+   .. input:: /includes/interact-data/crud.rb
+      :language: ruby
+      :start-after: start new record example
+      :end-before: end new record example
+
+   .. output::
+      :visible: false
+
+      true
+
+      false
+
+persisted?
+~~~~~~~~~~
+
+The ``persisted?`` attribute returns ``true`` if {+odm+} persists the
+model instance, and ``false`` otherwise. It checks for the opposite
+condition as the ``new_record?`` attribute.
+
+The following example shows how to use ``persisted?``:
+
+.. io-code-block::
+
+   .. input:: /includes/interact-data/crud.rb
+      :language: ruby
+      :start-after: start persisted example
+      :end-before: end persisted example
+
+   .. output::
+      :visible: false
+
+      false
+
+      true
+
+Access Field Values
+-------------------
+
+{+odm+} provides several ways to access field values on a document. The
+following sections describe how you can access field values.
+
+Get and Set Field Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are multiple ways to get and set field values on a document. If you explicitly
+declare a field, you can get and set this field value on the document directly.
+The following example shows how to set and get the ``first_name`` field for a
+``Person`` instance:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start field values default
+   :end-before: end field values default
+
+The preceding example first uses the ``first_name`` attribute to set a
+value, then calls it again to retrieve the value.
+
+You can also use the ``[]`` and ``[] =`` methods on a {+odm+} model instance to
+access attributes by using hash syntax. The ``[]`` method is an alias
+for the ``read_attribute`` method and the ``[] =`` method is an alias
+for the ``write_attribute`` method. The following example shows how to
+get and set the aliased ``first_name`` field by using the ``[]`` and
+``[]=`` methods:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start field values hash
+   :end-before: end field values hash
+
+To learn more about these methods, see the following
+:ref:`mongoid-read-write-attributes` section of this guide.
+
+.. _mongoid-read-write-attributes:
+
+read_attribute and write_attribute
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``read_attribute`` and ``write_attribute`` methods to specify
+custom behavior when reading or writing fields. You can use these methods
+when defining a model or by calling them on model instances.
+
+To use ``read_attribute`` to get a field, pass the name of the field to the method.
+To use ``write_attribute`` to set a field, pass the name of the field and the
+value to assign.
+
+The following example uses ``read_attribute`` and ``write_attribute`` in
+a model definition to define ``first_name`` and ``first_name=`` as methods that
+are used to read and write to the ``fn`` attribute:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start read write attributes
+   :end-before: end read write attributes
+
+You can also call ``read_attribute`` and ``write_attribute`` directly on a
+model instance to get and set attributes. The following example uses these methods
+on a model instance to get the ``first_name`` attribute and set it to the value
+``"Pushkin"``.
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby 
+   :start-after: start read write instance
+   :end-before: end read write instance
+
+Bulk Write Attributes
+~~~~~~~~~~~~~~~~~~~~~
+
+You can write to multiple fields at the same time by using the ``attributes=``
+or ``write_attributes`` methods on a model instance.
+
+To use the ``attributes=`` method, call the method on a model instance and 
+pass a hash object that contains the fields and values that you want to set. 
+The following example shows how to use the ``attributes=`` method to set the 
+``first_name`` and ``middle_name`` fields on a ``person`` document:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby 
+   :start-after: start attributes= example
+   :end-before: end attributes= example
+
+To use the ``write_attributes`` method, call the method on a model instance 
+and pass the fields and values that you want to set. The following example
+shows how to use the ``write_attributes`` method to set the ``first_name`` and
+``middle_name`` fields on a ``person`` document:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby 
+   :start-after: start write_attributes example
+   :end-before: end write_attributes example
+
+Atomic Update Operators
+-----------------------
+
+{+odm+} provides support for the following update operators that you can
+call as methods on model instances. These methods perform operations 
+atomically and skip validations and callbacks.
+
+The following table describe the operators supported by {+odm+}:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Operator
+     - Description
+     - Example
+
+   * - ``add_to_set``
+     - Adds a specified value to an array-valued field.
+     - ``person.add_to_set(aliases: "Bond")``
+
+   * - ``bit``
+     - Performs a bitwise update of a field.
+     - ``person.bit(age: { and: 10, or: 12 })``
+
+   * - ``inc``
+     - Increments the value of a field.
+     - ``person.inc(age: 1)``
+
+   * - ``pop``
+     - Removes the first or last element of an array field.
+     - ``person.pop(aliases: 1)``
+
+   * - ``pull``
+     - Removes all instances of a value or values that match a specified
+       condition from an array field.
+     - ``person.pull(aliases: "Bond")``
+
+   * - ``pull_all``
+     - Removes all instances of the specified values from an array
+       field.
+     - ``person.pull_all(aliases: [ "Bond", "James" ])``
+
+   * - ``push``
+     - Appends a specified value to an array field.
+     - ``person.push(aliases: ["007","008"])``
+
+   * - ``rename``
+     - Renames a field in all matching documents.
+     - ``person.rename(bday: :dob)``
+
+   * - ``set``
+     - | Updates an attribute on the model instance and, if the instance
+         is already persisted, performs an atomic ``$set`` on the field, bypassing
+         validations.
+
+       | ``set`` can also deeply set values on ``Hash`` fields.
+
+       | ``set`` can also deeply set values on ``embeds_one`` associations.
+         If a model instance's ``embeds_one`` association document is ``nil``, one
+         is created before the update.
+
+       | ``set`` cannot be used with ``has_one`` associations.
+
+     -  .. code-block:: ruby
+
+          person = Person.create!(name: "Ricky Bobby")
+          # Updates `name` in the database
+          person.set(name: "Tyler Durden")
+
+   * - ``unset``
+     - Deletes a particular field in all matching documents.
+     - ``person.unset(:name)``
+
+To learn more about update operators, see :manual:`Update Operators
+</reference/operator/update>` in the MongoDB {+server-manual+}.
+
+Group Atomic Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To group atomic operations together, you can use the ``atomically`` method 
+on a model instance. {+odm+} sends all operations that you pass to an
+``atomically`` block in a single atomic command.
+
+.. note:: Use Transactions to Modify Multiple Documents Atomically
+
+   Atomic operations apply to one document at a time. Therefore, nested
+   ``atomically`` blocks cannot make changes to multiple documents in one
+   atomic operation. To make changes to multiple documents in one atomic
+   operation, use a multi-document transaction. To learn more about
+   transactions, see the :ref:`mongoid-data-txn` guide.
+
+The following example shows how to use ``atomically`` to atomically
+update multiple fields in a document:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start atomically example
+   :end-before: end atomically example
+
+You can nest ``#atomically`` blocks when updating a single document. By
+default, {+odm+} performs atomic writes defined by each block when the
+block ends. The following example shows how to nest ``atomically`` blocks:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start default block atomic example
+   :end-before: end default block atomic example
+
+In the preceding example, the ``$inc`` and ``$set`` operations are executed at
+the end of the inner ``atomically`` block.
+
+Join Contexts
++++++++++++++
+
+The ``atomically`` method accepts a ``join_context: true`` option to specify that
+operations execute at the end of the outermost ``atomically`` block. When you
+enable this option, only the outermost block, or the first block where ``join_context``
+is ``false``, writes changes to the database. The following example sets
+the ``join_context`` option to ``true``:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start join_contexts atomic
+   :end-before: end join_contexts atomic
+
+In the preceding example, {+odm+} performs the ``$inc`` and ``$set`` operations at the 
+end of the outermost ``atomically`` block. However, since an exception is raised
+before the block ends and these operations can run, the changes are not
+persisted.
+
+You can also enable context joining globally, so that operations execute in the
+outermost ``atomically`` block by default. To enable this option
+globally, set the ``join_contexts`` configuration option to ``true`` in
+your ``mongoid.yml`` file. To learn more about {+odm+} configuration
+options, see :ref:`configuration-options`.
+
+When you globally set ``join_contexts`` to ``true``, you can use the
+``join_context: false`` option on an ``atomically`` block to run
+operations at the end of the block for that block only.
+
+Dirty Tracking
+--------------
+
+You can track changed ("dirty") fields by using a {+odm+} API similar to
+the one available in Active Model. If you modify a defined field in a
+model, {+odm+} marks the model as dirty and allows you to perform
+special actions. The following sections describe how you can interact
+with dirty models.
+
+View Changes
+~~~~~~~~~~~~
+
+{+odm+} records changes from the time a model is instantiated, either as
+a new document or by retrieving one from the database, until the time it is
+saved. Any persistence operation clears the changes.
+
+{+odm+} creates model-specific methods that allow you to explore the
+changes to a model instance. The following code demonstrates ways that
+you can view changes on your model instance:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start-dirty-tracking-view
+   :end-before: end-dirty-tracking-view
+
+.. note:: Tracking Changes to Associations
+
+   Setting the associations on a document does not modify the
+   ``changes`` or ``changed_attributes`` hashes. This is true for all
+   types of associations. However, changing the
+   ``_id`` field on referenced associations causes the changes to
+   show up in the ``changes`` and the ``changed_attributes`` hashes.
+
+Reset Changes
+~~~~~~~~~~~~~
+
+You can reset a changed field to its previous value by calling the
+``reset`` method, as shown in the following code:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start-dirty-tracking-reset
+   :end-before: end-dirty-tracking-reset
+
+Persistence
+~~~~~~~~~~~
+
+{+odm+} uses dirty tracking as the basis of all persistence operations.
+It evaluates the changes on a document and atomically updates only what
+has changed, compared to other frameworks that write the entire document on
+each save. If you don't make any changes, {+odm+} does not access the
+database when you call ``Model#save``.
+
+View Previous Changes
+~~~~~~~~~~~~~~~~~~~~~
+
+After you persist a model to MongoDB, {+odm+} clears the current
+changes. However, you can still see what changes were made previously by
+calling the ``previous_changes`` method, as shown in the following
+code:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start-dirty-tracking-prev
+   :end-before: end-dirty-tracking-prev
+
+Update Container Fields
+-----------------------
+
+{+odm+} currently has an issue that prevents changes to attributes of
+container types, such as ``Set`` or ``Array``, from saving to MongoDB.
+You must assign all fields, including container types, for their values
+to save to MongoDB.
+
+For example, adding an item to a ``Set`` instance as shown in the
+following code *does not* persist changes to MongoDB:
+
+.. code-block:: ruby
+
+   person = Person.new
+   person.interests
+   # => #<Set: {}>
+
+   person.interests << 'Hiking'
+   # => #<Set: {"Hiking"}>
+   person.interests
+   # => #<Set: {}> # Change does not take effect
+
+To persist this change, you must modify the field value *outside* of the
+model and assign it back to the model as shown in the following code:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start-container-save
+   :end-before: end-container-save
+
+.. _mongoid-crud-read-only:
+
+Read-only Documents
+-------------------
+
+You can mark documents as read-only in the following ways, depending on
+the value of the ``Mongoid.legacy_readonly`` feature flag:
+
+- If this flag is turned *off*, you can mark a document as
+  read-only by calling the ``readonly!`` method on that document. The
+  resulting read-only document raises a ``ReadonlyDocument`` error if
+  you attempt to perform any persistence operation, including, but not
+  limited to, saving, updating, deleting, and destroying. Note that
+  reloading *does not* reset the read-only state.
+  
+  .. code-block:: ruby
+
+     person = Person.first
+     person.readonly? # => false
+     person.readonly! # Sets the document as read-only
+     person.readonly? # => true
+     person.name = "Larissa Shay" # Changes the document
+     person.save # => raises ReadonlyDocument error
+     person.reload.readonly? # => true
+
+- If this flag is turned ``on``, you can mark a document as read-only
+  after you project that document by using methods such as ``only`` or
+  ``without``. As a result, you can't delete or destroy the read-only
+  document because {+odm+} raises a ``ReadonlyDocument`` error, but you can
+  save and update it. The read-only status *is reset* if you reload the
+  document.
+
+  .. code-block:: ruby
+
+     person = Person.only(:name).first
+     person.readonly? # => true
+     person.destroy # => raises ReadonlyDocument error
+     person.reload.readonly? # => false
+
+  .. tip:: Projection
+  
+     To learn more about projections, see the
+     :ref:`mongoid-data-projection` section of the Modify Query
+     Results guide.
+
+You can also make a document read-only by overriding the ``readonly?``
+method, as shown in the following code:
+
+.. literalinclude:: /includes/interact-data/crud.rb
+   :language: ruby
+   :start-after: start-override-readonly
+   :end-before: end-override-readonly
+   :emphasize-lines: 5-7
+
+Additional Information
+----------------------
+
+To learn more about specifying query filters, see the
+:ref:`mongoid-data-specify-query` guide.
+
+To learn more about setting validation rules on your models, see the
+:ref:`mongoid-modeling-validation` guide.
+
+To learn more about defining callbacks, see the
+:ref:`mongoid-modeling-callbacks` guide.

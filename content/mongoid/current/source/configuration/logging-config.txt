@@ -1,0 +1,165 @@
+.. _mongoid-logging-config:
+
+=====================
+Logging Configuration
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, customize, trace
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to configure logging in your {+odm+}
+application. When configuring logging, note that {+odm+} provides a
+model layer on top of the {+ruby-driver+}, and the *driver* dispatches
+data operations to MongoDB. Therefore, some logging output in an
+application that uses {+odm+} comes from {+odm+} itself, and some comes from
+the driver.
+
+Driver Logger
+-------------
+
+The {+odm+} client is a {+ruby-driver+} client instance, so the logger
+of a {+odm+} client is the {+ruby-driver+} logger, not the {+odm+}
+logger. The following code creates a {+odm+} client logger:
+
+.. code-block:: ruby
+
+   Mongoid.client(:default).logger
+
+Depending on your application framework and how you configure {+odm+}
+and the {+ruby-driver+}, they may use the same logger
+instance or different instances, potentially with different
+configurations.
+
+{+ror+} Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When used in a {+ror+} application, {+odm+} by default inherits
+the logger and the log level from Rails. {+odm+} sets the driver's
+logger to the same logger instance:
+
+.. code-block:: ruby
+
+   Rails.logger === Mongoid.logger
+   # => true
+   
+   Mongoid.logger === Mongo::Logger.logger
+   # => true
+
+To change the log level, use the `standard Rails configuration
+<{+active-record-docs+}/debugging_rails_applications.html#log-levels>`__.
+Place the following block in one of your environment configuration
+files, such as ``config/environments/production.rb``:
+
+.. code-block:: ruby
+
+   Rails.application.configure do
+     config.log_level = :debug
+   end
+
+.. note::
+
+   The ``log_level`` {+odm+} configuration option is not used when
+   {+odm+} operates in a Rails application, because {+odm+} inherits
+   Rails' log level.
+
+To configure either the {+odm+} or driver logger differently from the
+Rails logger, use an initializer as shown in the following code:
+
+.. code-block:: ruby
+
+   Rails.application.configure do
+     config.after_initialize do
+       # Change Mongoid log destination and level
+       Mongoid.logger = Logger.new(STDERR).tap do |logger|
+         logger.level = Logger::DEBUG
+       end
+ 
+       # Change driver log destination and level
+       Mongo::Logger.logger = Logger.new(STDERR).tap do |logger|
+         logger.level = Logger::DEBUG
+       end
+     end
+   end
+
+.. note::
+
+   There is no provision in the {+language+} standard library ``Logger``
+   to return the log device, such as the ``IO`` object, that a logger is
+   using. 
+   
+   To make, for example, {+odm+} or the {+ruby-driver+} log to the
+   standard Rails log file (``log/development.log``) with a
+   different level from standard Rails logger (``Rails.logger``), you
+   must open the file separately and pass the resulting ``IO`` object to
+   the ``Logger`` constructor.
+
+Because {+odm+} sets its own logger and the driver's logger to the
+same instance as the Rails logger, modifying any of the instances affects
+all the loggers. For example, the following code changes the log level for
+all three loggers:
+
+.. code-block:: ruby
+
+   Mongoid::Logger.logger.level = Logger::DEBUG
+
+Standalone Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When not loaded in a {+ror+} application, {+odm+} respects the
+``log_level`` top-level configuration option:
+
+.. code-block:: yaml
+   :emphasize-lines: 6
+
+   development:
+     clients:
+       default:
+         ...
+     options:
+       log_level: :debug
+
+You can also configure the log level in-line:
+
+.. code-block:: ruby
+
+   Mongoid.configure do |config|
+     config.log_level = :debug
+   end
+
+The default log destination is standard error. To change the log
+destination, create a new logger instance as shown in the following
+code:
+
+.. code-block:: ruby
+
+   Mongoid.logger = Logger.new(STDERR).tap do |logger|
+     logger.level = Logger::DEBUG
+   end
+
+To change the {+ruby-driver+} log level or destination, add the
+following block to your application file:
+
+.. code-block:: ruby
+
+   Mongo::Logger.logger = Logger.new(STDERR).tap do |logger|
+     logger.level = Logger::DEBUG
+   end
+
+.. note::
+
+  {+odm+} does not change the driver's logger when running in
+  standalone mode.
+

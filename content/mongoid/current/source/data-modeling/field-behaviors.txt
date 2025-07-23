@@ -1,0 +1,300 @@
+.. _mongoid-field-behaviors:
+
+=========================
+Customize Field Behaviors
+=========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: customize, attributes, optimize, model, configure, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to customize the behavior of fields in {+odm+} models.
+
+Specify Default Values
+----------------------
+
+You can configure fields to have default values by using the ``default`` option.
+Default field values can be either fixed or ``Proc`` values.
+
+The following example specifies a fixed default value for the ``state``
+field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-default
+   :end-before: # end-field-default
+
+The following example specifies a ``Proc`` default value for the ``fulfill_by``
+field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-default-processed
+   :end-before: # end-field-default-processed
+
+.. note::
+   
+   The driver evaluates default values that are not ``Proc`` instances when the
+   class *loads*. The driver evaluates ``Proc`` values when the document is
+   *instantiated*. The following default field values do not produce equivalent outcomes:
+
+   .. code-block:: ruby
+
+      # Time.now is set to the time the class is loaded
+      field :submitted_at, type: Time, default: Time.now
+
+      # Time.now is set to the time the document is instantiated
+      field :submitted_at, type: Time, default: ->{ Time.now }
+
+You can set a default value that depends on the document's state by using the
+``self`` keyword in a ``Proc`` instance. The following example sets the
+``fulfill_by`` default value to depend on the state of the ``submitted_at``
+field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-default-self
+   :end-before: # end-field-default-self
+
+By default, {+odm+} applies ``Proc`` default values after setting and
+initializing all other attributes. To apply the default before setting the other
+attributes, set the ``pre_processed`` option to ``true``, as shown in the
+following example:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-default-pre-processed
+   :end-before: # end-field-default-pre-processed
+
+.. tip::
+
+   Always set the ``pre-processed`` option to ``true`` to set a
+   default ``Proc`` value for the ``_id`` field.
+
+.. _mongoid-field-behaviors-storage-names:
+
+Specify Storage Names
+---------------------
+
+You can specify a separate field name to store in the database, while still
+referring to the field by its original name in your application. This can save
+storage space, because MongoDB stores all field information along
+with every document.
+
+You can set an alternate storage name by using the ``as:`` keyword. The
+following example creates a field called ``name`` that {+odm+} stores in the database as
+``n``:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-as
+   :end-before: # end-field-as
+
+{+odm+} stores the ``name`` field as ``"n"``, but you can still access the field as
+``name`` in your application.
+
+.. _mongoid-field-behaviors-aliases:
+
+Field Aliases
+-------------
+
+You can create an alias for your field by using the ``alias_attribute`` option.
+Specifying an alias does not change how {+odm+} stores the field in the
+database, but it allows you to access the field by a different name in your
+application. 
+
+The following example specifies an alias for the ``name`` field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-alias
+   :end-before: # end-field-alias
+
+To remove a field alias, you can use the ``unalias_attribute`` option. The
+following example removes the alias for the ``name`` field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-unalias
+   :end-before: # end-field-unalias
+
+You can also use ``unalias_attribute`` to remove the predefined ``id`` alias from the
+``_id`` field. This can be used to store different values in the ``_id`` field
+and an ``id`` field.
+
+Field Redefinition
+------------------
+
+By default, {+odm+} allows you to redefine fields on a model. To raise an error
+when a field is redefined, set the ``duplicate_fields_exception`` configuration
+option in your ``mongoid.yml`` file to ``true``.
+
+If the ``duplicate_fields_exception`` option is set to ``true``, you can still
+redefine a specific field by setting the ``overwrite`` option to ``true`` when
+you define the field. The following example defines the ``name`` field, and then
+redefines the field by using the ``overwrite`` option:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-field-overwrite
+   :end-before: # end-field-overwrite
+
+Custom ID Field
+---------------
+
+By default, {+odm+} defines the ``_id`` field on documents to contain a
+``BSON::ObjectId`` value that {+odm+} generates automatically. You can customize
+the type or specify the default value of the ``_id`` field by specifying it in your
+model.
+
+The following example creates a ``Band`` class with a custom ``_id`` field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-id
+   :end-before: # end-custom-id
+
+You can omit the default value for the ``_id`` field. If you don't specify a
+default value for the field, {+odm+} persists the document without an ``_id``
+value. For top-level documents, the MongoDB server automatically
+assigns an ``_id`` value. However, for embedded documents, the server does not
+assign an ``_id`` value.
+
+When you don't specify a value for the ``_id`` field, {+odm+} does not retrieve
+the automatically assigned value from the server. Because of this, you cannot
+retrieve the document from the database by using the ``_id`` value.
+
+Uncastable Values
+-----------------
+
+A value is considered **uncastable** if it cannot be converted to the specified
+field type. For example, an array is considered uncastable when assigned to an
+``Integer`` field. 
+
+In v8.0 and later, {+odm+} assigns ``nil`` to values that are uncastable. The
+original uncastable value is stored in the ``attributes_before_type_cast`` hash
+with their field names.
+
+Custom Getters and Setters
+--------------------------
+
+You can override the default getter and setter methods for a field by specifying
+a method with the same name as the field and calling the ``read_attribute`` or
+``write_attribute`` method to operate on the raw attribute value.
+
+The following example creates a custom getter and setter for the ``name`` field
+of a ``Person`` class:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-getter-setter
+   :end-before: # end-custom-getter-setter
+
+Read-Only Attributes
+--------------------
+
+You can specify a field to be read-only by specifying the ``attr_readonly`` option.
+This allows you to create documents with the attributes, but not update them.
+
+The following example creates a ``Band`` class and specifies the ``name`` field
+as read-only:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-read-only
+   :end-before: # end-read-only
+
+If you call a mass-update method, such as ``update_attributes``, and pass in a
+read-only field, {+odm+} ignores the read-only field and updates all others. If
+you attempt to explicitly update a read-only field, {+odm+} raises a
+``ReadonlyAttribute`` exception.
+
+.. note::
+
+   Calls to atomic persistence operators, such as ``bit`` and ``inc``, still
+   persist changes to the read-only field.
+
+To learn about specifying entire models as read-only, see the
+:ref:`mongoid-crud-read-only` section of the Perform Data Operations
+guide.
+
+Localize Fields
+---------------
+
+{+odm+} supports localized fields by using the :github:`i18n gem
+<ruby-i18n/i18n>`. When you localize a field, {+odm+}
+stores the field as a hash of locale keys and values. Accessing the fields
+behaves in the same way as a string value. You can localize fields of any field
+type.
+
+The following example creates a ``Product`` class with a localized ``review``
+field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-localized-field
+   :end-before: # end-localized-field
+
+You can get and set all translations at once by calling the ``_translations``
+method:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-localized-translations
+   :end-before: # end-localized-translations
+
+You can specify fallbacks for localized fields by enabling the
+:github:`i18n fallbacks <ruby-i18n/i18n/wiki/Fallbacks>` feature.
+
+Enable fallbacks in a Rails application by setting the ``config.i18n.fallbacks``
+configuration setting in your environment and setting the fallback languages:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-localized-fallbacks
+   :end-before: # end-localized-fallbacks
+
+Enable fallbacks in non-Rails applications by including the module into the i18n
+backend and setting the fallback languages:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-localized-fallbacks-non-rails
+   :end-before: # end-localized-fallbacks-non-rails
+
+After enabling fallbacks, if an active language does not have have a
+translation, it is looked up in the specified fallback language.
+
+You can disable fallback languages for a specified field by setting the
+``fallbacks`` option to false when defining the field:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-localized-no-fallbacks
+   :end-before: # end-localized-no-fallbacks
+
+When querying localized fields, {+odm+} automatically alters the query criteria
+to match the current locale. The following example queries the ``Product`` class
+for a review in the ``en`` locale:
+
+.. literalinclude:: /includes/data-modeling/field-behaviors.rb
+   :language: ruby
+   :start-after: # start-localized-query
+   :end-before: # end-localized-query
+
+.. note::
+
+   If you want to query extensively on localized fields, we recommend indexing
+   each locale that you want to query on.
