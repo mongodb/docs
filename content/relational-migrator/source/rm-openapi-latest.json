@@ -6,7 +6,7 @@
     },
     "description": "OpenAPI specification for MongoDB Relational Migrator tool",
     "title": "MongoDB Relational Migrator REST API",
-    "version": "1.13.0"
+    "version": "1.14.0"
   },
   "servers": [
     {
@@ -320,6 +320,16 @@
               }
             }
           },
+          "471": {
+            "description": "Migration Job could not be started for error building the job context example - Mode not recognised or No mappings exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -562,6 +572,68 @@
         ]
       }
     },
+    "/project/import": {
+      "post": {
+        "operationId": "importProject",
+        "description": "Imports a project from an export file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDescriptor"
+                }
+              }
+            }
+          },
+          "485": {
+            "description": "Unknown issue occurred during project import",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "486": {
+            "description": "Field not found during project import",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "487": {
+            "description": "Project version invalid during import",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Project"
+        ]
+      }
+    },
     "/project/{projectId}/codegen/generate": {
       "post": {
         "operationId": "generateCode",
@@ -633,6 +705,38 @@
         },
         "tags": [
           "Codegen"
+        ]
+      }
+    },
+    "/project/{projectId}/export": {
+      "get": {
+        "operationId": "exportProject",
+        "description": "Export an existing project",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/export-file"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Project"
         ]
       }
     },
@@ -1328,6 +1432,77 @@
           "verification"
         ]
       },
+      "job-update": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "ERROR",
+              "WARNING",
+              "INFO"
+            ]
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "SNAPSHOTTING",
+              "STREAMING",
+              "VERIFICATION"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stackTrace": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "suggestion": {
+            "type": "string"
+          },
+          "locationType": {
+            "type": "string",
+            "enum": [
+              "TABLE",
+              "COLLECTION"
+            ]
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "fieldName": {
+            "type": "string"
+          },
+          "key": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "location": {
+            "$ref": "#/components/schemas/job_update_location"
+          }
+        },
+        "required": [
+          "eventType",
+          "message",
+          "timestamp"
+        ]
+      },
       "project-descriptor-summary": {
         "type": "object",
         "properties": {
@@ -1358,6 +1533,105 @@
           "id",
           "name",
           "type"
+        ]
+      },
+      "ProjectDescriptor": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProjectDescriptorBase"
+          },
+          {
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/id"
+              }
+            },
+            "required": [
+              "id"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ProjectDescriptorBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/ProjectName"
+          },
+          "type": {
+            "$ref": "#/components/schemas/database-type"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "codeId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "schemasId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "jdbcId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "mongodbId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "content": {
+            "$ref": "#/components/schemas/ProjectDescriptorContent"
+          },
+          "connectionDetails": {
+            "$ref": "#/components/schemas/ProjectDescriptorBase_connectionDetails"
+          },
+          "isSampleProject": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "content",
+          "name",
+          "schemasId",
+          "type"
+        ]
+      },
+      "ProjectName": {
+        "type": "string",
+        "maxLength": 50,
+        "minLength": 1
+      },
+      "ProjectDescriptorContent": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/migration-settings"
+          },
+          "collections": {
+            "$ref": "#/components/schemas/migration-collections"
+          },
+          "mappings": {
+            "$ref": "#/components/schemas/migration-mappings"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/migration-relationships"
+          },
+          "diagrams": {
+            "$ref": "#/components/schemas/project-diagrams"
+          },
+          "tables": {
+            "$ref": "#/components/schemas/project-tables"
+          }
+        },
+        "required": [
+          "collections",
+          "diagrams",
+          "mappings",
+          "relationships",
+          "schemas",
+          "settings",
+          "tables"
         ]
       },
       "codegen-request": {
@@ -1424,6 +1698,32 @@
         },
         "required": [
           "metadata"
+        ]
+      },
+      "export-file": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/ProjectDescriptor"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/project-descriptor-schemas"
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/query-descriptor"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "project",
+          "schema",
+          "version"
         ]
       },
       "migration-job-statistics-preview": {
@@ -1674,6 +1974,46 @@
             },
             "type": "object"
           }
+        ]
+      },
+      "project-descriptor-schemas": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "full": {
+            "$ref": "#/components/schemas/schema-descriptor"
+          },
+          "imported": {
+            "$ref": "#/components/schemas/schema-imported"
+          },
+          "all": {
+            "$ref": "#/components/schemas/schema-imported"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "full",
+          "imported"
+        ]
+      },
+      "schema-descriptor": {
+        "type": "object",
+        "properties": {
+          "databases": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/database"
+            }
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/schema_descriptor_metadata"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "databases"
         ]
       },
       "convert-query-language-type": {
@@ -2003,77 +2343,6 @@
         },
         "additionalProperties": false
       },
-      "job-update": {
-        "type": "object",
-        "properties": {
-          "eventType": {
-            "type": "string",
-            "enum": [
-              "ERROR",
-              "WARNING",
-              "INFO"
-            ]
-          },
-          "stage": {
-            "type": "string",
-            "enum": [
-              "SNAPSHOTTING",
-              "STREAMING",
-              "VERIFICATION"
-            ]
-          },
-          "message": {
-            "type": "string"
-          },
-          "details": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "stackTrace": {
-            "type": "string"
-          },
-          "errorCode": {
-            "type": "string"
-          },
-          "suggestion": {
-            "type": "string"
-          },
-          "locationType": {
-            "type": "string",
-            "enum": [
-              "TABLE",
-              "COLLECTION"
-            ]
-          },
-          "locationName": {
-            "type": "string"
-          },
-          "fieldName": {
-            "type": "string"
-          },
-          "key": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "count": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "location": {
-            "$ref": "#/components/schemas/job_update_location"
-          }
-        },
-        "required": [
-          "eventType",
-          "message",
-          "timestamp"
-        ]
-      },
       "failureError": {
         "type": "object",
         "properties": {
@@ -2112,12 +2381,12 @@
         ]
       },
       "relational-table-filters": {
-        "description": "An object where each key represents a schema name. Each schema contains tables that you can apply table filters on.",
+        "description": "An object where each key represents a schema name. Each schema contains tables you can apply table filters on.",
         "type": "object",
         "example": {
           "schema_1_name": {
             "table_1_name": {
-              "whereClause": "id > 1000 AND id <= 2000"
+              "whereClause": "id \u003E 1000 AND id \u003C= 2000"
             },
             "table_2_name": {
               "whereClause": "TRUE",
@@ -2145,6 +2414,163 @@
         "required": [
           "enabled"
         ]
+      },
+      "tableLocation": {
+        "type": "object",
+        "properties": {
+          "table": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "collectionLocation": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "collection"
+        ]
+      },
+      "documentLocation": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string"
+          },
+          "document": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "collection",
+          "document"
+        ]
+      },
+      "ddl-connection-details": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/database-type"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type"
+        ]
+      },
+      "migration-settings": {
+        "type": "object",
+        "properties": {
+          "viewMode": {
+            "type": "string",
+            "enum": [
+              "HORIZONTAL",
+              "VERTICAL",
+              "RELATIONAL",
+              "MONGODB"
+            ]
+          },
+          "shouldRecommendSchema": {
+            "type": "boolean"
+          },
+          "casing": {
+            "type": "string",
+            "enum": [
+              "CAMEL_CASE",
+              "TITLE_CASE",
+              "KEBAB_CASE",
+              "SNAKE_CASE",
+              "UPPER_SNAKE_CASE"
+            ]
+          },
+          "codegen": {
+            "$ref": "#/components/schemas/codegen-settings"
+          },
+          "keyHandling": {
+            "type": "string",
+            "enum": [
+              "WRAPPED",
+              "SINGLE",
+              "GENERATED"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "keyHandling"
+        ]
+      },
+      "migration-collections": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/collection"
+        }
+      },
+      "migration-mappings": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/mapping"
+        }
+      },
+      "migration-relationships": {
+        "type": "object",
+        "properties": {
+          "tables": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/mapping-object"
+            }
+          },
+          "collections": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/mapping-object"
+            }
+          },
+          "mappings": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/mapping-relationship"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "collections",
+          "mappings",
+          "tables"
+        ]
+      },
+      "project-diagrams": {
+        "type": "object",
+        "properties": {
+          "activeTab": {
+            "type": "string"
+          },
+          "tabs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/project-diagram"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "activeTab",
+          "tabs"
+        ]
+      },
+      "project-tables": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/project-table"
+        }
       },
       "codegen-language-type": {
         "type": "string",
@@ -2289,31 +2715,52 @@
           "stdout"
         ]
       },
-      "project-to-language-model-document": {
+      "relational-path": {
         "type": "object",
         "properties": {
-          "collectionName": {
+          "database": {
             "type": "string"
           },
-          "documentType": {
-            "type": "string"
-          },
-          "documentPath": {
+          "schema": {
             "type": "string"
           },
           "table": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "database",
+          "schema",
+          "table"
+        ]
+      },
+      "schema-imported": {
+        "type": "object",
+        "additionalProperties": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "object"
+            },
+            "type": "object"
           },
-          "fields": {
-            "$ref": "#/components/schemas/project-to-language-model-fields"
-          },
-          "children": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/project-to-language-model-document"
+          "type": "object"
+        }
+      },
+      "database": {
+        "type": "object",
+        "properties": {
+          "schemas": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schema"
             }
           }
-        }
+        },
+        "additionalProperties": false,
+        "required": [
+          "schemas"
+        ]
       },
       "migration-mode": {
         "type": "string",
@@ -2512,43 +2959,6 @@
         },
         "additionalProperties": false
       },
-      "tableLocation": {
-        "type": "object",
-        "properties": {
-          "table": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "table"
-        ]
-      },
-      "collectionLocation": {
-        "type": "object",
-        "properties": {
-          "collection": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "collection"
-        ]
-      },
-      "documentLocation": {
-        "type": "object",
-        "properties": {
-          "collection": {
-            "type": "string"
-          },
-          "document": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "collection",
-          "document"
-        ]
-      },
       "table-filter": {
         "type": "object",
         "properties": {
@@ -2564,11 +2974,183 @@
         },
         "additionalProperties": false
       },
-      "project-to-language-model-fields": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/project_to_language_model_fields_inner"
+      "codegen-settings": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "$ref": "#/components/schemas/codegen-language-type"
+          },
+          "framework": {
+            "$ref": "#/components/schemas/codegen-framework-type"
+          },
+          "withSupportingFiles": {
+            "type": "boolean"
+          },
+          "excludedCollections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
+      },
+      "collection": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "default": "REGULAR",
+            "enum": [
+              "REGULAR",
+              "TIME_SERIES"
+            ]
+          },
+          "timeSeriesOptions": {
+            "$ref": "#/components/schemas/time-series-options"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
+      },
+      "mapping": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/mapping-settings"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/field-mapping"
+            }
+          },
+          "calculatedFields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/calculated-field-mapping"
+            }
+          },
+          "collectionId": {
+            "type": "string"
+          },
+          "table": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "calculatedFields",
+          "collectionId",
+          "fields",
+          "settings",
+          "table"
+        ]
+      },
+      "mapping-object": {
+        "type": "object",
+        "properties": {
+          "mappings": {
+            "$ref": "#/components/schemas/mapping-array"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "mappings"
+        ]
+      },
+      "mapping-relationship": {
+        "type": "object",
+        "properties": {
+          "children": {
+            "$ref": "#/components/schemas/mapping-array"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "children"
+        ]
+      },
+      "project-diagram": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "relational": {
+            "$ref": "#/components/schemas/project-diagram-view"
+          },
+          "collection": {
+            "$ref": "#/components/schemas/project-diagram-view"
+          }
+        },
+        "required": [
+          "collection",
+          "id",
+          "name",
+          "relational"
+        ]
+      },
+      "project-table": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "$ref": "#/components/schemas/relational-path"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "path"
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tables": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/table"
+            }
+          },
+          "views": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schema-object"
+            }
+          },
+          "routines": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schema-object"
+            }
+          },
+          "triggers": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schema-object"
+            }
+          },
+          "packages": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schema-object"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "tables"
+        ]
       },
       "read-write-classification": {
         "type": "string",
@@ -2624,6 +3206,195 @@
           "ordinalPosition",
           "type",
           "uniqueIndexed"
+        ]
+      },
+      "time-series-options": {
+        "type": "object",
+        "properties": {
+          "timeField": {
+            "type": "string"
+          },
+          "metaField": {
+            "type": "string"
+          },
+          "expireAfterSeconds": {
+            "type": "number"
+          },
+          "granularity": {
+            "type": "string",
+            "enum": [
+              "SECONDS",
+              "MINUTES",
+              "HOURS"
+            ]
+          }
+        },
+        "required": [
+          "granularity",
+          "timeField"
+        ]
+      },
+      "mapping-settings": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/mapping-type"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "embeddedPath": {
+            "type": "string"
+          },
+          "primitive": {
+            "type": "boolean"
+          },
+          "arrayConditions": {
+            "$ref": "#/components/schemas/mapping-array-conditions"
+          },
+          "foreignKeyName": {
+            "type": "string"
+          },
+          "ruleFilter": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type"
+        ]
+      },
+      "field-mapping": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/target-field-mapping"
+          },
+          "source": {
+            "$ref": "#/components/schemas/source-field-mapping"
+          }
+        },
+        "required": [
+          "source",
+          "target"
+        ]
+      },
+      "calculated-field-mapping": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isNullExcluded": {
+            "type": "boolean",
+            "default": false
+          },
+          "type": {
+            "$ref": "#/components/schemas/migration-field-type"
+          },
+          "expression": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "expression",
+          "name"
+        ]
+      },
+      "mapping-array": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/id"
+        }
+      },
+      "project-diagram-view": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/project-diagrams-node"
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/project-diagrams-edge"
+            }
+          }
+        },
+        "required": [
+          "edges",
+          "nodes"
+        ]
+      },
+      "table": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "TABLE",
+              "VIEW"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "columns": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/column"
+            }
+          },
+          "uniqueIndexes": {
+            "type": "object",
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "nonUniqueIndexes": {
+            "type": "object",
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "filter": {
+            "$ref": "#/components/schemas/table-filter"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "columns",
+          "type"
+        ]
+      },
+      "schema-object": {
+        "type": "object",
+        "properties": {
+          "included": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "definition": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "definition",
+          "included",
+          "name"
         ]
       },
       "column-type": {
@@ -2689,6 +3460,173 @@
           "name"
         ]
       },
+      "mapping-type": {
+        "type": "string",
+        "enum": [
+          "NEW_DOCUMENT",
+          "EMBEDDED_DOCUMENT",
+          "EMBEDDED_DOCUMENT_ARRAY"
+        ]
+      },
+      "mapping-array-conditions": {
+        "type": "object",
+        "properties": {
+          "sortBy": {
+            "type": "string"
+          },
+          "order": {
+            "$ref": "#/components/schemas/sorting-order-type"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "order",
+          "sortBy"
+        ]
+      },
+      "target-field-mapping": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "included": {
+            "type": "boolean"
+          },
+          "isNullExcluded": {
+            "type": "boolean",
+            "default": false
+          },
+          "type": {
+            "$ref": "#/components/schemas/migration-field-type"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "included",
+          "name",
+          "type"
+        ]
+      },
+      "source-field-mapping": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "databaseSpecificType": {
+            "type": "string"
+          },
+          "isPrimaryKey": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "databaseSpecificType",
+          "name"
+        ]
+      },
+      "migration-field-type": {
+        "type": "string",
+        "enum": [
+          "AUTO",
+          "STRING",
+          "INTEGER",
+          "BOOL",
+          "DOUBLE",
+          "LONG",
+          "DECIMAL",
+          "ARRAY",
+          "DATE",
+          "TIMESTAMP",
+          "OBJECT",
+          "OBJECT_ID",
+          "BIN_DATA",
+          "MIN_KEY",
+          "MAX_KEY",
+          "JAVASCRIPT",
+          "REGEX",
+          "NULL"
+        ]
+      },
+      "project-diagrams-node": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "position": {
+            "$ref": "#/components/schemas/project_diagrams_node_position"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "hidden": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "hidden",
+          "id",
+          "position",
+          "type"
+        ]
+      },
+      "project-diagrams-edge": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "markerStart": {
+            "type": "string",
+            "enum": [
+              "START_ONE",
+              "START_ONE_OR_MANY"
+            ]
+          },
+          "markerEnd": {
+            "type": "string",
+            "enum": [
+              "END_ONE",
+              "END_MANY",
+              "END_ONE_OR_MANY"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "source",
+          "target"
+        ]
+      },
+      "sorting-order-type": {
+        "type": "string",
+        "enum": [
+          "ASC",
+          "DESC"
+        ]
+      },
       "migration_job_status_atlasMetadata": {
         "type": "object",
         "properties": {
@@ -2718,6 +3656,27 @@
           }
         },
         "additionalProperties": false
+      },
+      "job_update_location": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/tableLocation"
+          },
+          {
+            "$ref": "#/components/schemas/collectionLocation"
+          },
+          {
+            "$ref": "#/components/schemas/documentLocation"
+          }
+        ]
+      },
+      "ProjectDescriptorBase_connectionDetails": {
+        "type": "object",
+        "properties": {
+          "ddl": {
+            "$ref": "#/components/schemas/ddl-connection-details"
+          }
+        }
       },
       "codegen_response_files_inner": {
         "type": "object",
@@ -2786,35 +3745,31 @@
           "columnType"
         ]
       },
-      "job_update_location": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/tableLocation"
-          },
-          {
-            "$ref": "#/components/schemas/collectionLocation"
-          },
-          {
-            "$ref": "#/components/schemas/documentLocation"
-          }
-        ]
-      },
-      "project_to_language_model_fields_inner": {
+      "schema_descriptor_metadata": {
         "type": "object",
         "properties": {
-          "columnName": {
-            "type": "string"
+          "databaseType": {
+            "$ref": "#/components/schemas/database-type"
           },
-          "columnType": {
-            "type": "string"
-          },
-          "fieldName": {
-            "type": "string"
-          },
-          "fieldType": {
+          "databaseVersion": {
             "type": "string"
           }
         }
+      },
+      "project_diagrams_node_position": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
       }
     }
   },
