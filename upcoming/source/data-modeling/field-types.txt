@@ -1,0 +1,573 @@
+.. _mongoid-field-types:
+
+===========
+Field Types
+===========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: fields, data types, type conversion, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about the field types supported in
+{+odm+} that you can use to define the schema for your MongoDB documents. 
+
+MongoDB uses :manual:`BSON types </reference/bson-types/>` to represent the data
+types stored in document fields. To use BSON data in a {+odm+} application,
+{+odm+} must convert the BSON types to {+language+} types at runtime. For example,
+when retrieving a document from the database, {+odm+} translates a BSON
+``double`` type to use the {+language+} ``Float`` type. When you save the
+document again, {+odm+} converts the field back to a BSON ``double``.
+
+To learn more about modeling documents in {+odm+}, see the
+:ref:`mongoid-modeling-documents` guide.
+
+.. note::
+
+   Modifying the field definition in a model class does not change any data
+   stored in the database. To change the data type of a field in the
+   database, you must re-save the data again.
+
+Field Types
+-----------
+
+You can define field names and types in model classes by using the ``field``
+and ``type`` macros. The following example defines the fields of a ``Person``
+class:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-define-fields
+   :end-before: # end-define-fields
+
+The following list provides the field types that you can use in {+odm+}:
+
+- ``Array``
+- ``Bson::Binary``
+- ``BigDecimal``
+- ``Mongoid::Boolean`` or ``Boolean``
+- ``Date``
+- ``DateTime``
+- ``Float``
+- ``Hash``
+- ``Integer``
+- ``Object``
+- ``Bson::ObjectId``
+- ``Range``
+- ``Regexp``
+- ``Set``
+- ``String``
+- ``Mongoid::StringifiedSymbol``
+- ``Time``
+- ``ActiveSupport::TimeWithZone``
+
+.. note::
+
+   {+odm+} does not support ``BSON::Int64`` or ``BSON::Int32`` as field types.
+   {+odm+} saves these values to the database correctly, but when you retrieve
+   the documents, the fields are returned as ``Integer`` types.
+   
+   Similarly, when querying fields with the ``BSON::Decimal128`` type, {+odm+}
+   returns the fields as ``BigDecimal`` types.
+
+Untyped Fields
+~~~~~~~~~~~~~~
+
+If you don't specify a type for a field, {+odm+} interprets it as the default ``Object``
+type. An untyped field can store values of any type that is directly
+serializable to BSON. You can leave a field untyped if the field might contain
+different types of data, or if the type of the field's value is not known.
+
+The following example defines a ``Product`` class with an untyped field:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-define-untyped
+   :end-before: # end-define-untyped
+
+The type of the ``properties`` field is ``Object`` but varies depending on
+the type of data stored in that field. The following example saves data into the
+``properties`` field in two different ways:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-untyped
+   :end-before: # end-untyped
+
+Because {+odm+} doesn't perform any type conversions on untyped fields when
+reading from the database, values that require special handling might not be retrieved
+correctly in as the value of an untyped field. Do not store the following BSON data types
+in untyped fields:
+
+- ``Date``: Returns as ``Time`` in untyped fields
+- ``DateTime``: Returns as ``Time`` in untyped fields
+- ``Range``: Returns as ``Hash`` in untyped fields
+
+Hash
+~~~~
+
+You can store ``Hash`` data in a field by using the ``Hash`` type. When you specify
+a field as a ``Hash``, ensure that you follow the MongoDB :manual:`Naming
+Restrictions </reference/limits/#naming-restrictions>` to ensure that the values
+store properly in the database.
+
+The following example creates a ``Person`` class and specifies the ``url`` field
+as a ``Hash``. 
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-hash
+   :end-before: # end-hash
+
+Time
+~~~~
+
+You can store values as BSON ``Time`` instances by using the ``Time`` field value.
+``Time`` fields are stored in the time zone configured for your application. To
+learn more about configuring time zones, see the :ref:`mongoid-config-time-zones`
+section of the Application Configuration guide.
+
+The following example creates a ``Voter`` class and specifies that the value of the
+``registered_at`` field is a ``Time`` type:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-time
+   :end-before: # end-time
+
+.. note::
+
+   Storing a ``Date`` or ``DateTime`` value in a field specified as ``Time``
+   converts the value to ``Time`` when assigned. If you store a string in a
+   ``Time`` field, {+odm+} parses the string by using the ``Time.parse``
+   method. To learn more about how {+odm+} converts queries, see the
+   :ref:`mongoid-query-field-type-conversions` section of the Specify a
+   Query guide.
+
+Date
+~~~~
+
+You can store the following value types in a field specified as a ``Date``:
+
+- ``Date``: Stores the value as provided.
+- ``Time``: Stores the date portion of the value in the value's time zone.
+- ``DateTime``: Stores the date portion of the value in the value's time zone.
+- ``ActiveSupport::TimeWithZone``: Stores the date portion of the value in the
+  value's time zone.
+- ``String``: Stores the date specified in the string.
+- ``Integer``: Takes the value as if it is a UTC timestamp and
+  converts it into your application's configured time zone. {+odm+} then stores
+  the date taken from that timestamp.
+- ``Float``: Takes the value as if it is a UTC timestamp and
+  converts it into your application's configured time zone. {+odm+} then stores
+  the date taken from that timestamp.
+
+Because converting a ``Time`` or ``DateTime`` discards the time portion, we
+recommend explicitly converting ``String``, ``Time``, and ``DateTime``, objects
+to ``Date`` before assigning them to the field.
+
+.. note::
+
+   When a database contains a string value for a ``Date`` field, the driver
+   parses the value by using the ``Time.parse`` method, then discards the time
+   portion. ``Time.parse`` considers values without time zones to be in local
+   time. To learn more about how {+odm+} converts queries, see the
+   :ref:`mongoid-query-field-type-conversions` section of the Specify a
+   Query guide.
+
+DateTime
+~~~~~~~~
+
+When you assign a value to a field defined as a ``DateTime`` or query on these fields, {+odm+} converts
+the value to a UTC ``Time`` value before sending it to the MongoDB server.
+{+odm+} saves the value with the time zone embedded in the ``DateTime`` object. When
+you retrieve the value, {+odm+} converts the UTC time to the time zone
+configured for your application.
+
+The following example creates a ``Ticket`` class and specifies the ``purchased_at``
+field as a ``DateTime`` field:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-datetime
+   :end-before: # end-datetime
+
+If you save an integer or float value to a ``DateTime`` field, the value is treated as
+a Unix timestamp in UTC. The following example saves an integer value to the
+``purchased_at`` field:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-datetime-int
+   :end-before: # end-datetime-int
+
+If you save a string value to a ``DateTime`` field, {+odm+} saves the ticket
+with the time zone specified. If a time zone is not specified, {+odm+} saves the
+value by using the timezone configured as the default for your application:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-datetime-string
+   :end-before: # end-datetime-string
+
+To learn more about configuring time zones, see the :ref:`mongoid-config-time-zones`
+section of the Application Configuration guide.
+
+.. note::
+
+   {+odm+} parses string values into ``DateTime`` by using the ``Time.parse``
+   method, which considers values without time zones to be in local time.
+
+Timestamps
+~~~~~~~~~~
+
+You can include timestamp fields in a class by including the ``Mongoid::Timestamps``
+module when you create your class. When you include the ``Mongoid::Timestamps``,
+{+odm+} creates the following fields in your class:
+
+- ``created_at``: Stores the time the document was created.
+- ``updated_at``: Stores the time the document was last updated.
+
+The following example creates a ``Post`` class with timestamp fields:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-timestamps
+   :end-before: # end-timestamps
+
+You can also choose to include only the ``created_at`` or ``updated_at`` fields
+by including only the ``Created`` or ``Updated`` modules. The following example
+creates a ``Post`` class with only the ``created_at`` field, and a ``Post``
+class with only the ``updated_at`` field:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-timestamps-specific
+   :end-before: # end-timestamps-specific
+
+You can shorten the timestamp field names to ``c_at`` and ``u_at`` by setting
+the ``::Short`` option when including the module:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-timestamps-short
+   :end-before: # end-timestamps-short
+
+You can disable creating the timestamp field for specific operations by calling
+the ``timeless`` method on the method call. The following example disables the
+timestamps for the ``save`` operation:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-timestamps-disable
+   :end-before: # end-timestamps-disable
+
+Regexp
+~~~~~~
+
+You can store regular expressions in a field by using the ``Regexp`` type. 
+
+While MongoDB implements `Perl Compatible Regular Expressions (PCRE) <https://www.pcre.org/>`__,
+{+odm+} uses {+language+}'s :github:`Onigmo <k-takata/Onigmo>` library. PCRE and
+Onigmo provide generally similar functionality, but there are several syntax
+differences. For example, Onigmo uses ``\A`` and ``\z`` to match the beginning and
+end of a string, while PCRE uses ``^`` and ``$``.
+
+When you declare a field as a ``Regexp``, {+odm+} converts {+language+} regular
+expressions to BSON regular expressions when storing the result into your
+database. The database returns the field as a ``Bson::Regexp::Raw`` instance.
+You can use the ``compile`` method on ``BSON::Regexp::Raw`` instances to convert
+the data back to a {+language+} regular expression.
+
+The following example creates a ``Token`` class and specifies the ``pattern``
+field as a ``Regexp``:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-regexp
+   :end-before: # end-regexp
+
+.. important::
+
+   Converting a BSON regular expression to a {+language+} regular expression might
+   produce a different regular expression than the original. This difference is
+   due to the differences between the Onigmo and PCRE syntaxes. To learn
+   more about regular expressions in {+odm+}, see the
+   :ref:`mongoid-query-regex` section of the Specify a Query guide.
+
+BigDecimal
+~~~~~~~~~~
+
+You can use the ``BigDecimal`` type to store numbers with increased precision.
+{+odm+} stores ``BigDecimal`` values in two different ways, depending on the
+value you set for the ``Mongoid.map_big_decimal_to_decimal128`` configuration property:
+
+- If set to ``true``, {+odm+} stores ``BigDecimal`` values as BSON ``Decimal128``
+  values.
+- If set to ``false`` (default), {+odm+} stores ``BigDecimal`` values as strings.
+
+Consider the following limitations when setting the
+``Mongoid.map_big_decimal_to_decimal128`` option to ``true``:
+
+- ``Decimal128`` has a limited range and precision.
+  ``Decimal128`` has a maximum value of approximately ``10^6145`` and a minimum
+  of approximately ``-10^6145``, with a maximum of 34 bits of precision. If you
+  are storing values that are outside of these limits, we recommend storing them
+  as strings instead.
+- ``Decimal128`` accepts signed ``NaN`` values, but ``BigDecimal`` does not.
+  Retrieving signed ``NaN`` ``Decimal128`` values from the database as
+  ``BigDecimal`` returns the value unsigned.
+- ``Decimal128`` maintains trailing zeroes, but ``BigDecimal`` does not.
+  Because of this, retrieving ``Decimal128`` values from the database as
+  ``BigDecimal`` might result in a loss of precision.
+
+.. note::
+   
+   When you set the ``Mongoid.map_big_decimal_to_decimal128`` option to ``false``
+   and store a ``BigDecimal`` into an untyped field, you cannot query the field 
+   as a ``BigDecimal``. Because the value is stored as a string, querying 
+   the untyped field for a ``BigDecimal`` value does not find the value in the
+   database. To find the value, you must first convert the query value to a string.
+
+   You can avoid this issue by specifying the field as a ``BigDecimal`` type,
+   instead of as untyped.
+
+StringifiedSymbol
+~~~~~~~~~~~~~~~~~
+
+Use the ``StringifiedSymbol`` field type to store values that should be exposed
+as symbols to {+language+} applications. ``StringifiedSymbol`` allows you to use symbols
+while ensuring interoperability with other drivers. This type stores all data on
+the database as strings, and converts the strings to symbols when read by the
+application. Values that cannot be directly converted to symbols, such as
+integers and arrays, are converted into strings and then into symbols.
+
+The following example defines the ``status`` field as a ``StringifiedSymbol`` and
+demonstrates how the field is stored and returned:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-stringified-symbol
+   :end-before: # end-stringified-symbol
+
+Specify Field Types as Strings or Symbols
+-----------------------------------------
+
+You can use strings or symbols to specify certain field types in {+odm+}, instead of
+using their class names. The following example specifies the ``order_num`` field by
+using the class name, a string, and a symbol:
+
+.. code-block:: ruby
+
+   class Order
+     include Mongoid::Document
+     
+     # Class Name
+     field :order_num, type: Integer
+
+     # Symbol
+     field :order_num, type: :integer
+     
+     # String
+     field :order_num, type: "integer"
+   end
+
+The following table provides the field types that can you can specify as strings or symbols:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Class Name
+     - Symbol
+     - String
+
+   * - ``Array``
+     - ``:array``
+     - ``"Array"``
+   
+   * - ``BigDecimal``
+     - ``:big_decimal``
+     - ``"BigDecimal"``
+   
+   * - ``BSON::Binary``
+     - ``:binary``
+     - ``"BSON::Binary"``
+   
+   * - ``Mongoid::Boolean``
+     - ``:boolean``
+     - ``"Mongoid::Boolean"``
+   
+   * - ``Date``
+     - ``:date``
+     - ``"Date"``
+   
+   * - ``DateTime``
+     - ``:date_time``
+     - ``"DateTime"``
+   
+   * - ``Float``
+     - ``:float``
+     - ``"Float"``
+   
+   * - ``Hash``
+     - ``:hash``
+     - ``"Hash"``
+   
+   * - ``Integer``
+     - ``:integer``
+     - ``"Integer"``
+   
+   * - ``BSON::ObjectId``
+     - ``:object_id``
+     - ``"BSON::ObjectId"``
+   
+   * - ``Range``
+     - ``:range``
+     - ``"Range"``
+   
+   * - ``Regexp``
+     - ``:regexp``
+     - ``"Regexp"``
+   
+   * - ``Set``
+     - ``:set``
+     - ``"Set"``
+   
+   * - ``String``
+     - ``:string``
+     - ``"String"``
+   
+   * - ``StringifiedSymbol``
+     - ``:stringified_symbol``
+     - ``"StringifiedSymbol"``
+   
+   * - ``Symbol``
+     - ``:symbol``
+     - ``"Symbol"``
+   
+   * - ``Time``
+     - ``:time``
+     - ``"Time"``
+
+Custom Field Types
+------------------
+
+You can create custom field types and define how {+odm+} serializes and
+deserializes them. To create a custom field type, define a class that
+implements the following methods:
+
+- ``mongoize``: Takes an instance of your custom type and converts it to
+  an object that MongoDB can store.
+- ``demongoize``: Takes an object from MongoDB and converts it to an
+  instance of your custom type.
+- ``evolve``: Takes an instance of your custom type and converts it to a
+  criteria that MongoDB can use to query the database.
+
+The following example creates a custom field type called ``Point`` and
+implements the preceding methods:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-custom-field-type
+   :end-before: # end-custom-field-type
+
+In the preceding example, the ``mongoize`` *instance method* accepts an instance
+of your custom type object and converts it to an ``Array`` to store in the
+database. The ``mongoize`` *class method* accepts objects of all types and
+converts them to similar types that can be stored in the database. {+odm+} uses
+the ``mongoize`` class method when it calls the getter and setter methods.
+
+The ``demongoize`` method converts the stored ``Array`` value into the custom
+``Point`` type. The {+odm+} uses this method when it calls the getter.
+
+The ``evolve`` method converts the custom ``Point`` type into a queryable
+``Array`` type, and converts all other types to ``object``. {+odm+} uses this
+method when it calls a method that queries the database.
+
+Phantom Custom Field Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create a custom field type that saves a different value to the database
+than the value assigned in the application. This can be useful to have
+descriptive values in the application while storing more compact values in the
+database.
+
+The following example creates a ``ColorMapping`` type that uses the name of the
+color in the application, but stores the color as an integer in the database:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-phantom-field-type
+   :end-before: # end-phantom-field-type
+
+.. _mongoid-field-types-dynamic:
+
+Dynamic Fields
+--------------
+
+You can instruct {+odm+} to create fields dynamically by including the
+``Mongoid::Attributes::Dynamic`` module in your model. This allows {+odm+} to
+create fields based on an arbitrary hash, or based on the documents already
+stored in the database.
+
+The following example creates a ``Person`` class with dynamic fields:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-dynamic-field
+   :end-before: # end-dynamic-field
+
+.. tip::
+
+   You can specify both fixed fields and dynamic fields within the same class.
+   In this case, {+odm+} treats all attributes for properties with field definitions
+   according to their field type, and all other attributes as dynamic.
+
+When using dynamic fields in your application, you must initially set the value in one of the
+following ways:
+
+- Pass the attribute hash to the constructor.
+- Assign values by using the ``attributes=`` method.
+- Assign values by using the ``[]=`` method.
+- Assign values by using the ``write_attribute`` method.
+- Work with values that are already present in the database.
+
+If you don't initially set the value by using one of the preceding options,
+invoking the attribute returns a ``NoMethodError``.
+
+Reserved Characters
+-------------------
+
+Both {+odm+} and the MongoDB Query API reserve the ``.`` character to separate field
+names in nested documents and the ``$`` character at the beginning of a
+string to indicate a query operator. Because of this, you should avoid using these
+characters in your field names. 
+
+If your application requires the use of these characters, you can access the
+fields by calling the ``send`` method. The following example creates a ``User``
+class with fields that contain reserved characters. It then accesses the fields
+by using the ``send`` method:
+
+.. literalinclude:: /includes/data-modeling/field-types.rb
+   :language: ruby
+   :start-after: # start-reserved-characters
+   :end-before: # end-reserved-characters
+
+You can also access these fields by calling the ``read_attribute`` method.
+
+.. important::
+
+   Because updating and replacing fields containing these reserved characters
+   requires special operators, calling getters and setters on these fields
+   raises an ``InvalidDotDollarAssignment`` exception.
