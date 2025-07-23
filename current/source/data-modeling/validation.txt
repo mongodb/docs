@@ -1,0 +1,343 @@
+.. _mongoid-modeling-validation:
+
+===================
+Document Validation
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, schema, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to define **validation rules** in your
+{+odm+} models. After you implement validation into your models, {+odm+}
+prevents you from running write operations that violate the validation
+rules. Use document validation to restrict data types and value ranges
+of document fields in your collections.
+
+{+odm+} includes ``ActiveModel::Validations`` from Active Record to
+provide validation functionality, including an associated and uniqueness
+validator. To learn more, see the `Active Record Validations
+<{+active-record-docs+}/active_record_validations.html>`__
+Rails guide and `ActiveModel::Validations
+<https://api.rubyonrails.org/classes/ActiveModel/Validations.html>`__
+Rails API documentation.
+
+.. note:: Comparing {+odm+} and MongoDB Validation
+
+   Validation in {+odm+} applies only in the context of your
+   application and differs from creating schema validation rules in
+   MongoDB. This means that your validation rules do not apply to write
+   operations that are performed outside of your application. To learn
+   more about MongoDB schema validation, see :manual:`Schema Validation
+   </core/schema-validation/>` in the {+server-manual+}.
+
+Validation Helpers
+------------------
+
+{+odm+} supports Active Record validation helpers that you can use when defining your
+model classes. You can use these helpers to set common validation rules
+in your application, such as checking for the presence of a field,
+comparing a field value to a specified value, or ensuring that a field
+has a unique value.
+
+Define a Validation Rule
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``validates`` macro to create a validation rule, then include
+the validation helper and the required specifications for the rule.
+
+.. tip::
+    
+   Each validation helper accepts one or more field names, which allows you
+   to define the same rule for multiple fields.
+
+The following code demonstrates how to use the ``presence`` validation
+helper to require that ``Person`` instances contain a value for the
+``name`` field:
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-simple-val
+   :end-before: end-simple-val
+   :language: ruby
+   :emphasize-lines: 5
+   :dedent:
+
+You can learn about other useful validation helpers in the
+:ref:`mongoid-common-validations` section of this guide.
+
+.. _mongoid-common-validations:
+
+Common Validations
+------------------
+
+In this section, you can learn about the following common validation
+rules and view examples that use validation helpers:
+
+- :ref:`mongoid-compare-validation`
+- :ref:`mongoid-format-validation`
+- :ref:`mongoid-inclusion-exclusion-validation`
+- :ref:`mongoid-presence-absence-validation`
+- :ref:`mongoid-uniqueness-validation`
+- :ref:`mongoid-association-validation`
+- :ref:`mongoid-other-validation`
+
+.. _mongoid-compare-validation:
+
+Comparison Rule
+~~~~~~~~~~~~~~~
+
+You can use the ``comparison`` helper to validate a document based on
+the value of a specified field.
+
+The ``comparison`` helper supports the following options:
+
+- ``greater_than``: The value must be greater than the supplied value.
+- ``greater_than_or_equal_to``: The value must be greater than or equal to the supplied value.
+- ``equal_to``: The value must be equal to the supplied value.
+- ``less_than``: The value must be less than the supplied value.
+- ``less_than_or_equal_to``: The value must be less than or equal to the supplied value.
+- ``other_than``: The value must be different than the supplied value.
+
+This example defines the following comparison validation rules on the
+``Order`` model:
+
+- ``delivery_date``: Must be after (greater than) the value of ``order_date``
+- ``quantity``: Must be less than ``5``
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-comparison
+   :end-before: end-comparison
+   :language: ruby
+   :emphasize-lines: 8-9
+   :dedent:
+
+.. _mongoid-format-validation:
+
+Formatting Rule
+~~~~~~~~~~~~~~~
+
+You can use the ``format`` helper to validate a document based on
+whether a field value matches a regular expression. Use the ``with``
+option to specify the regular expression.
+
+This example defines a format validation rule on the
+``User`` model to ensure that the ``username`` field contains only
+letters:
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-fmt
+   :end-before: end-fmt
+   :language: ruby
+   :emphasize-lines: 6
+   :dedent:
+
+.. tip:: Alternative Helper Method
+
+   The ``Mongoid::Document`` module provides macro methods for certain
+   validations. Instead of using the ``format`` validation helper in the
+   ``validates`` macro statement, you can use the
+   ``validates_format_of`` method, as shown in the following code:
+
+   .. code-block:: ruby
+
+      validates_format_of :username, with: /\A[a-zA-Z]+\z/
+
+.. _mongoid-inclusion-exclusion-validation:
+
+Inclusion or Exclusion Rule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``inclusion`` and ``exclusion`` helpers to validate a
+document based on whether a field value is in a specified list
+of values. Use the ``in`` option to specify the list of values.
+
+This example defines an inclusion validation rule on the
+``Order`` model to ensure that the ``shipping`` field value is one of
+the accepted values:
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-inclusion
+   :end-before: end-inclusion
+   :language: ruby
+   :emphasize-lines: 6
+   :dedent:
+
+.. _mongoid-presence-absence-validation:
+
+Presence or Absence Rule
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``presence`` and ``absence`` helpers to validate a
+document based on whether a field value is present or absent (empty).
+
+This example defines an absence validation rule on the
+``Order`` model to ensure that the ``delivery_date`` field value is
+either ``nil`` or an empty string:
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-absence
+   :end-before: end-absence
+   :language: ruby
+   :emphasize-lines: 6
+   :dedent:
+
+.. tip:: Alternative Helper Method
+
+   The ``Mongoid::Document`` module provides macro methods for certain
+   validations. Instead of using the ``presence`` validation helper in the
+   ``validates`` macro statement, you can use the
+   ``validates_presence_of`` method, as shown in the following code:
+
+   .. code-block:: ruby
+
+      validates_presence_of :delivery_date
+
+.. _mongoid-uniqueness-validation:
+
+Uniqueness Rule
+~~~~~~~~~~~~~~~
+
+You can use the ``uniqueness`` helper to validate a
+document based on whether a field value is unique from other values in
+the collection. You can use the ``scope`` option to specify one or more
+field names that {+odm+} uses to limit the uniqueness check.
+
+This example defines a uniqueness validation rule on the
+``Person`` model to ensure that the ``first_name`` field value is
+unique within documents that have the same ``last_name`` value:
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-unique
+   :end-before: end-unique
+   :language: ruby
+   :emphasize-lines: 7
+   :dedent:
+
+.. tip:: Alternative Helper Method
+
+   The ``Mongoid::Document`` module provides macro methods for certain
+   validations. Instead of using the ``uniqueness`` validation helper in the
+   ``validates`` macro statement, you can use the
+   ``validates_uniqueness_of`` method, as shown in the following code:
+
+   .. code-block:: ruby
+
+      validates_uniqueness_of :first_name
+   
+   {+odm+} uses a ``primary`` read preference when you use the
+   ``validates_uniqueness_of`` method on a model, because if it
+   queries a secondary member of the replica set, it might read stale data.
+
+   This method takes a ``conditions`` option that allows you to specify
+   conditions to add when {+odm+} checks for uniqueness:
+
+   .. code-block:: ruby
+
+      validates_uniqueness_of :name, conditions: -> { where(:age.gte => 10) }
+
+.. _mongoid-association-validation:
+
+Validate Associations
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``validates_associated`` helper to validate any
+associations that your model has. When you include this validation rule,
+{+odm+} validates any association documents any time you try to
+save an instance. To learn more about associations, see the
+:ref:`mongoid-associations` guide.
+
+This example defines an association validation rule on the
+``Author`` model to run the validation rules for the embedded ``Book``
+instances:
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-assoc
+   :end-before: end-assoc
+   :language: ruby
+   :emphasize-lines: 6
+   :dedent:
+
+.. important::
+
+   Don't use the ``validates_associated`` helper on both ends of your
+   associations because this causes {+odm+} to perform validations in an
+   infinite loop.
+
+.. _mongoid-other-validation:
+
+Custom Validation Rules
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``validates_each`` and ``validates_with`` helpers to
+create custom validators. To learn more about these helpers and view
+examples, see the `validates_each
+<{+active-record-docs+}/active_record_validations.html#validates-each>`__
+and `validates_with
+<{+active-record-docs+}/active_record_validations.html#validates-with>`__
+references in the Active Record documentation.
+
+To learn more about custom validators, see `Performing Custom
+Validations
+<{+active-record-docs+}/active_record_validations.html#performing-custom-validations>`__
+in the Active Record documentation.
+
+Behavior
+--------
+
+{+odm+} performs validation when you persist, or save, a document to the
+database. The following methods trigger your validation rules, so
+{+odm+} saves the object to the database only if it passes validation:
+
+- ``create``
+- ``save``
+- ``update``
+
+When you use the ``!``-suffixed version of the preceding methods,
+{+odm+} returns an ``Mongoid::Errors::Validations`` exception if
+validation fails for an object.
+
+Trigger Validation
+~~~~~~~~~~~~~~~~~~
+
+You can run validations manually by using the ``valid?`` method. This
+method returns ``true`` if the object passes validation, and
+``false`` otherwise:
+
+.. literalinclude:: /includes/data-modeling/validation.rb
+   :start-after: start-valid
+   :end-before: end-valid
+   :language: ruby
+   :emphasize-lines: 7, 11, 14
+   :dedent:
+
+{+odm+} behaves differently from Active Record when running ``valid?``
+on persisted data. Active Record's ``valid?`` runs all
+validations, but {+odm+}'s ``valid?`` runs validations only on
+documents that are in memory to optimize performance.
+
+Additional Information
+----------------------
+
+To learn more about the field types that you can use in {+odm+} models, see
+the :ref:`mongoid-field-types` guide.
+
+To learn more about validation methods and macros in {+odm+}, see the
+:mongoid-api:`Mongoid::Validatable <Mongoid/Validatable.html>` module
+reference in the API documentation.
+
+To view a full list of validations helpers in Active Record, see the
+`ActiveModel::Validations::HelperMethods
+<https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html>`__
+reference in the Rails API documentation.
