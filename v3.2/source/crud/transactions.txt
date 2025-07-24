@@ -1,0 +1,331 @@
+.. _csharp-transactions:
+
+================================
+Batch Operations in Transactions
+================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, multi-document, atomic, acid
+   :description: Learn to perform transactions using the MongoDB .NET/C# Driver, ensuring data consistency and handling errors with session-based operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-long+} to perform
+**transactions**. :manual:`Transactions </core/transactions/>` allow
+you to run a series of operations that do not change any data until the
+transaction is committed. If any operation in the transaction returns an
+error, the driver cancels the transaction and discards all data changes
+before they ever become visible.
+
+MongoDB guarantees that the data involved in your transaction operations remains
+consistent, even if the operations encounter unexpected errors.
+
+Sessions
+--------
+
+In MongoDB, transactions run within logical **sessions**. A
+:manual:`session </reference/server-sessions/>` is a grouping of related
+read or write operations that you intend to run sequentially. Sessions
+enable causal consistency for a
+group of operations or allow you to execute operations in an
+:website:`ACID transaction </basics/acid-transactions>`.
+
+When using the {+driver-short+}, you can create a new session from a
+``MongoClient`` instance as an ``IClientSession`` type. We recommend that you reuse
+your client for multiple sessions and transactions instead of
+instantiating a new client each time.
+
+The following example shows how to create a session by calling the ``StartSession()``
+method:
+
+.. code-block:: csharp
+   :copyable: true
+
+   var client = new MongoClient("mongodb://localhost:27017");
+   var session = client.StartSession();
+
+.. warning::
+
+   Use an ``IClientSession`` only with the ``MongoClient`` (or associated
+   ``MongoDatabase`` or ``MongoCollection``) that created it. Using an
+   ``IClientSession`` with a different ``MongoClient`` results in operation
+   errors.
+
+ClientSessionOptions
+~~~~~~~~~~~~~~~~~~~~
+
+You can customize the behavior of your session by passing an instance of the
+``ClientSessionOptions`` class to the ``StartSession()`` method. The following table
+describes the properties that you can set on a ``ClientSessionOptions`` object:
+
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``CausalConsistency``
+     - | Specifies whether the session is causally consistent. In a causally consistent session,
+         the driver executes operations in the order they were issued. To learn more, see
+         :ref:`<csharp-causal-consistency>`.
+       |
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``true``
+
+   * - ``DefaultTransactionOptions``
+     - | Specifies the default transaction options for the session. This includes the maximum commit
+         time, read concern, read preference, and write concern.
+       |
+       | **Data Type**: `TransactionOptions <{+api-root+}/MongoDB.Driver/MongoDB.Driver.TransactionOptions.html>`__ 
+       | **Default**: ``null``
+   
+   * - ``Snapshot``
+     - | Specifies whether the driver performs snapshot reads. To learn more about snapshot
+         reads, see :manual:`Read Concern "snapshot" </reference/read-concern-snapshot/>`
+         in the {+mdb-server+} manual.
+       |
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+The following code example shows how to create a session with custom options:
+
+.. code-block:: csharp
+   :copyable: true
+
+   var client = new MongoClient("mongodb://localhost:27017");
+   var sessionOptions = new ClientSessionOptions
+   {
+       CausalConsistency = true,
+       DefaultTransactionOptions = new TransactionOptions(
+            readConcern:  ReadConcern.Available,
+            writeConcern:   WriteConcern.Acknowledged)
+   };
+
+   var session = client.StartSession(sessionOptions); 
+
+.. _csharp-causal-consistency:
+
+Causal Consistency
+~~~~~~~~~~~~~~~~~~
+
+.. sharedinclude:: dbx/causal-consistency.rst
+
+   .. replacement:: insert-one-method
+
+      ``InsertOne()``
+
+   .. replacement:: update-one-method
+
+      ``UpdateOne()``
+
+   .. replacement:: find-one-method
+
+      ``Find()``
+
+   .. replacement:: delete-one-method
+
+      ``DeleteOne()``
+
+   .. replacement:: majority-rc
+
+      ``ReadConcern.Majority``
+
+   .. replacement:: majority-wc
+
+      ``WriteConcern.WMajority``
+
+Methods
+-------
+
+Create an ``IClientSession`` by using either the synchronous ``StartSession()`` or
+the asynchronous ``StartSessionAsync()`` method on your ``MongoClient`` instance. 
+You can then modify the session state by using the method set
+provided by the ``IClientSession`` interface. Select from the following
+:guilabel:`Synchronous Methods` and :guilabel:`Asynchronous Methods`
+tabs to learn about the methods to manage your transaction:
+
+.. tabs::
+
+    .. tab:: Synchronous Methods
+        :tabid: synchronous-methods
+
+        .. list-table::
+            :widths: 30 70
+            :header-rows: 1
+
+            * - Method
+              - Description
+
+            * - ``StartTransaction()``
+              - | Starts a new transaction, configured with the given options, on
+                  this session. Throws an exception if there is already
+                  a transaction in progress for the session. To learn more about
+                  this method, see the :manual:`startTransaction() page
+                  </reference/method/Session.startTransaction/>`  in the Server manual.
+                |
+                | **Parameter**: ``TransactionOptions`` (optional)
+
+            * - ``AbortTransaction()``
+              - | Ends the active transaction for this session. Throws an exception
+                  if there is no active transaction for the session or the
+                  transaction has been committed or ended. To learn more about
+                  this method, see the :manual:`abortTransaction() page
+                  </reference/method/Session.abortTransaction/>`  in the Server manual.
+                |
+                | **Parameter**: ``CancellationToken``
+
+            * - ``CommitTransaction()``
+              - | Commits the active transaction for this session. Throws an exception
+                  if there is no active transaction for the session or if the
+                  transaction was ended. To learn more about
+                  this method, see the :manual:`commitTransaction() page
+                  </reference/method/Session.commitTransaction/>`  in the Server manual.
+                |
+                | **Parameter**: ``CancellationToken``
+
+            * - ``WithTransaction()``
+              - | Starts a transaction on this session and runs the given callback. To
+                  learn more about this method, see the :manual:`withTransaction() page
+                  </reference/method/Session.withTransaction/>` in the Server manual.
+
+                :gold:`IMPORTANT:` When catching exceptions within the
+                callback function used by
+                ``WithTransaction()``, you  **must** rethrow the exception before
+                exiting the try-catch block. Failing to do so can result in an
+                infinite loop. For further details on how to handle exceptions in this
+                case, see :manual:`Transactions </core/transactions/>` in the Server
+                manual and select :guilabel:`C#` from the language dropdown to view 
+                the example.
+
+                |
+                | **Parameters**: ``Func <IClientSessionHandle, CancellationToken, Task<TResult>>``, ``TransactionOptions``, ``CancellationToken``
+                | **Return Type**: ``Task <TResult>``
+
+    .. tab:: Asynchronous Methods
+        :tabid: asynchronous-methods
+
+        .. list-table::
+            :widths: 40 60
+            :header-rows: 1
+
+            * - Method
+              - Description
+
+            * - ``StartTransaction()``
+              - | Starts a new transaction, configured with the given options, on
+                  this session. Throws an exception if there is already
+                  a transaction in progress for the session. To learn more about
+                  this method, see the :manual:`startTransaction() page
+                  </reference/method/Session.startTransaction/>`  in the Server manual.
+                |
+                | **Parameter**: ``TransactionOptions`` (optional)
+
+            * - ``AbortTransactionAsync()``
+              - | Ends the active transaction for this session. Throws an exception
+                  if there is no active transaction for the session or the
+                  transaction has been committed or ended. To learn more about
+                  this method, see the :manual:`abortTransaction() page
+                  </reference/method/Session.abortTransaction/>`  in the Server manual.
+                |
+                | **Parameter**: ``CancellationToken``
+                | **Return Type**: ``Task``
+
+
+            * - ``CommitTransactionAsync()``
+              - | Commits the active transaction for this session. Throws an
+                  exception if there is no active transaction for the session or if the
+                  transaction was ended. To learn more about
+                  this method, see the :manual:`commitTransaction() page
+                  </reference/method/Session.commitTransaction/>`  in the Server manual.
+                |
+                | **Parameter**: ``CancellationToken``
+                | **Return Type**: ``Task``
+
+            * - ``WithTransactionAsync()``
+              - | Starts a transaction on this session and runs the given callback. To
+                  learn more about this method, see the :manual:`withTransaction() page
+                  </reference/method/Session.withTransaction/>` in the Server manual.
+
+                :gold:`IMPORTANT:` When catching exceptions within the callback function used by
+                ``WithTransactionAsync()``, you  **must** rethrow the exception
+                before exiting the try-catch block. Failing to do so can result in an
+                infinite loop. For further details on how to handle exceptions in this
+                case, see :manual:`Transactions </core/transactions/>` in the Server
+                manual and select :guilabel:`C#` from the language dropdown to view 
+                the example.
+
+                |
+                | **Parameters**: ``Func <IClientSessionHandle, CancellationToken, Task<TResult>>``, ``TransactionOptions``, ``CancellationToken``
+                | **Return Type**: ``Task <TResult>``
+
+Example
+-------
+
+This example shows how you can create a session, create a
+transaction, and insert documents into multiple collections within the transaction
+through the following steps:
+
+1. Create a session from the client by using the ``StartSession()`` method.
+#. Use the ``StartTransaction()`` method to start a transaction.
+#. Insert documents into the ``books`` and ``films`` collections.
+#. Commit the transaction by using the ``CommitTransaction()`` method.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-examples/Transaction.cs
+      :language: csharp
+      :dedent:
+      :start-after: begin-transaction
+      :end-before: end-transaction
+  
+   .. output::
+      :language: console
+      :visible: false
+
+      Successfully committed transaction!
+
+.. sharedinclude:: dbx/transactions-parallelism.rst
+
+   .. replacement:: driver-specific-content
+
+      If you're using {+mdb-server+} v8.0 or later, you can perform
+      write operations on multiple namespaces within a single transaction by using
+      the ``BulkWrite()`` or ``BulkWriteAsync()`` method. For more information,
+      see :ref:`<csharp-bulk-write>`.
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following pages in the Server manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions/>`
+- :manual:`Read Isolation, Consistency, and Recency </core/read-isolation-consistency-recency/#causal-consistency>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the types or methods discussed in this
+guide, see the following API Documentation:
+
+- `IClientSession <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.html>`__
+- `MongoClient <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClient.html>`__
+- `StartTransaction() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.StartTransaction.html>`__
+- `AbortTransaction() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.AbortTransaction.html>`__ / `AbortTransactionAsync() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.AbortTransactionAsync.html>`__
+- `CommitTransaction() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.CommitTransaction.html>`__ / `CommitTransactionAsync() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.CommitTransactionAsync.html>`__
+- `WithTransaction() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.WithTransaction.html>`__ / `WithTransactionAsync() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.IClientSession.WithTransactionAsync.html>`__
+- `TransactionOptions <{+api-root+}/MongoDB.Driver/MongoDB.Driver.TransactionOptions.html>`__
+- `CausalConsistency <{+api-root+}/MongoDB.Driver/MongoDB.Driver.ClientSessionOptions.CausalConsistency.html>`__
