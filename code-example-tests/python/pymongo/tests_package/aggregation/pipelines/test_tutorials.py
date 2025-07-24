@@ -15,7 +15,6 @@ from pymongo import MongoClient
 class TestTutorialApp(unittest.TestCase):
     CONNECTION_STRING = None
     client = None
-    filter_collection = None
 
     @classmethod
     def setUpClass(cls):
