@@ -9,16 +9,19 @@ const exec = promisify(childExec);
 // ------ CONFIGURATION: Set these values for your language/project ----------
 // Add specific files or folders to IGNORE_PATTERNS to keep them from being processed by this script
 const IGNORE_PATTERNS = new Set([
-  'node_modules',
-  'example-folder',
-  'example-stub.js',
+  'bin',
+  'Examples.csproj',
+  'ExampleStub.cs',
+  'Program.cs',
+  'obj'
 ]);
+
 // Add file extensions to COPY and SNIP to designate what types should be copied or snipped
-const COPY_PATTERNS = new Set(['.json', '.txt', '.sh']);
-const SNIP_PATTERNS = new Set(['.js']);
+const COPY_PATTERNS = new Set(['.json', '.txt']);
+const SNIP_PATTERNS = new Set(['.cs', '.sh']);
 
 // Change to match the language and product specific path
-const LANGUAGE_PATH = 'javascript/driver';
+const LANGUAGE_PATH = 'csharp/driver';
 // ------ END CONFIGURATION --------------------------------------------------
 
 // Get the filename and directory path of the current script

@@ -1,21 +1,32 @@
-using MongoDB.Driver;
+//	:replace-start: {
+//	  "terms": {
+//	    "_persons": "persons",
+//      "_aggDB": "aggDB"
+//	  }
+//	}
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
-class FilteredSubset
+namespace Examples.Aggregation.Pipelines.Filter;
+
+public class Tutorial
 {
-  public void PerformFilteredSubset()
-  {
+    private IMongoDatabase? _aggDB;
+    private IMongoCollection<Person>? _persons;
 
-    var uri = "<connection string>";
-    var client = new MongoClient(uri);
-    var aggDB = client.GetDatabase("agg_tutorials_db");
+    public void LoadSampleData()
+    {
+        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var client = new MongoClient(uri);
+        _aggDB = client.GetDatabase("agg_tutorials_db");
+        _persons = _aggDB.GetCollection<Person>("persons");
+        // :snippet-start: load-sample-data
+        // :uncomment-start:
 
-    // start-insert-persons
-    var persons = aggDB.GetCollection<Person>("persons");
-    persons.DeleteMany(Builders<Person>.Filter.Empty);
+        //var _persons = _aggDB.GetCollection<Person>("persons");
+        // :uncomment-end:
 
-    persons.InsertMany(new List<Person>
+        _persons.InsertMany(new List<Person>
         {
             new Person
             {
@@ -103,51 +114,34 @@ class FilteredSubset
                 }
             }
         });
-    // end-insert-persons
-
-    // start-match
-    var results = persons.Aggregate()
-        .Match(p => p.Vocation == "ENGINEER")
-        // end-match
-        // start-sort
-        .Sort(Builders<Person>.Sort.Descending(p => p.DateOfBirth))
-        // end-sort
-        // start-limit
-        .Limit(3)
-        // end-limit
-        // start-project
-        .Project(Builders<Person>.Projection
-            .Exclude(p => p.Address)
-            .Exclude(p => p.Id)
-        );
-    // end-project
-
-    foreach (var result in results.ToList())
-    {
-      Console.WriteLine(result);
+        // :snippet-end:
     }
-  }
-}
 
-// start-pocos
-public class Person
-{
-  [BsonId]
-  public ObjectId Id { get; set; }
-  public string PersonId { get; set; }
-  public string FirstName { get; set; }
-  public string LastName { get; set; }
-  public DateTime DateOfBirth { get; set; }
-  [BsonIgnoreIfNull]
-  public string? Gender { get; set; }
-  public string Vocation { get; set; }
-  public Address Address { get; set; }
-}
+    public List<BsonDocument> PerformAggregation()
+    {
+        if (_aggDB == null || _persons == null)
+        {
+            throw new InvalidOperationException("You must call LoadSampleData before performing aggregation.");
+        }
 
-public class Address
-{
-  public int Number { get; set; }
-  public string Street { get; set; }
-  public string City { get; set; }
+        // :snippet-start: match
+        var results = _persons.Aggregate()
+            .Match(p => p.Vocation == "ENGINEER")
+            // :snippet-end:
+            // :snippet-start: sort
+            .Sort(Builders<Person>.Sort.Descending(p => p.DateOfBirth))
+            // :snippet-end:
+            // :snippet-start: limit
+            .Limit(3)
+            // :snippet-end:
+            // :snippet-start: project
+            .Project(Builders<Person>.Projection
+                .Exclude(p => p.Address)
+                .Exclude(p => p.Id)
+            );
+        // :snippet-end:
+
+        return results.ToList();
+    }
 }
-// end-pocos
+// :replace-end:

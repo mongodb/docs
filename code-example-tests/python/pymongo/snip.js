@@ -3,18 +3,22 @@ const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
 const path = require('path');
 
+// ------ CONFIGURATION: Set these values for your language/project ----------
 // If you wish to ignore any files or folders, add their names to IGNORE_PATTERNS
 const INGORE_PATTERNS = new Set(["__pycache__", "example_folder", "example_stub.py",
     "pylint-config.toml"]);
+
 // Add file extensions to COPY and SNIP to designate what types should be copied or snipped
-const COPY_PATTERNS = new Set([".json", ".txt", ".sh"]);
-const SNIP_PATTERNS = new Set([".py"]);
+const COPY_PATTERNS = new Set([".json", ".txt"]);
+const SNIP_PATTERNS = new Set([".py", ".sh"]);
 
 // Change to match the language and product specific path
 const LANGUAGE_PATH = "python/pymongo";
+// ------ END CONFIGURATION --------------------------------------------------
+
 // Finds the root directory by taking the current dir and walking back to root
 const ROOT_DIR = __dirname.replace("code-example-tests/" + LANGUAGE_PATH, "");
-// Output files will be written to this full output path 
+// Output files will be written to this full output path
 const OUTPUT_PATH = ROOT_DIR + "content/code-examples/tested/" + LANGUAGE_PATH + "/";
 
 function getAllFiles(dirPath, arrayOfFiles = []) {
@@ -71,7 +75,7 @@ async function checkIfContainsSnipMarkup(filePath) {
     return fileContents.includes('snippet-start');
 }
 
-// Snips or copies a file based on its type to the given output path 
+// Snips or copies a file based on its type to the given output path
 async function excerptExamples(filePath) {
     let fileExt = path.extname(filePath);
 

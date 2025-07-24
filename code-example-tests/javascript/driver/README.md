@@ -364,7 +364,7 @@ npm test -- -t '<text string from the 'it()' block you want to run>'
 A GitHub workflow runs these tests in CI automatically when you change any
 files in the `examples` directory:
 
-- `.github/workflows/test-node-driver-examples-in-docker.yml`
+- `.github/workflows/node-driver-examples-test-in-docker.yml`
 
 GitHub reports the results as passing or failing checks on any PR that changes
 an example.

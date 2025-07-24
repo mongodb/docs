@@ -16,22 +16,18 @@ their field values match specified criteria.
 First, create C# classes to model the data in the ``persons``
 collection:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.cs
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/Person.snippet.model.cs
    :language: csharp
    :copyable: true
-   :start-after: start-pocos
-   :end-before: end-pocos
-   :dedent:
+   :category: usage example
 
 To create the ``persons`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.cs
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/Tutorial.snippet.load-sample-data.cs
    :language: csharp
    :copyable: true
-   :start-after: start-insert-persons
-   :end-before: end-insert-persons
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -46,12 +42,10 @@ following code to your application:
       chain a :pipeline:`$match` stage that finds documents in which the
       value of the ``Vocation`` field is ``"ENGINEER"``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/Tutorial.snippet.match.cs
          :language: csharp
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a sort stage to sort from youngest to oldest.
 
@@ -59,37 +53,31 @@ following code to your application:
       documents in descending order by the ``DateOfBirth`` field to
       list the youngest people first:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/Tutorial.snippet.sort.cs
          :language: csharp
          :copyable: true
-         :start-after: start-sort
-         :end-before: end-sort
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a limit stage to see only three results.
 
       Next, add a :pipeline:`$limit` stage to the pipeline to output
       only the first three documents in the results.
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/Tutorial.snippet.limit.cs
          :language: csharp
          :copyable: true
-         :start-after: start-limit
-         :end-before: end-limit
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a projection stage to remove unneeded fields.
 
       Finally, add a :pipeline:`$project` stage. The
       ``$project`` stage excludes unnecessary fields from the result
       documents:
-            
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.cs
+
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/Tutorial.snippet.project.cs
          :language: csharp
          :copyable: true
-         :start-after: start-project
-         :end-before: end-project
-         :dedent:
+         :category: syntax example
 
    .. step:: Run the aggregation and interpret the results.
 
@@ -100,11 +88,9 @@ following code to your application:
       ordered from youngest to oldest. The results omit the ``_id`` and ``Address``
       fields.
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/TutorialOutput.txt
+         :language: text
          :copyable: false
-
-         { "PersonId" : "7363626383", "FirstName" : "Carl", "LastName" : "Simmons", "DateOfBirth" : { "$date" : "1998-12-26T13:13:55Z" }, "Vocation" : "ENGINEER" }
-         { "PersonId" : "1723338115", "FirstName" : "Olive", "LastName" : "Ranieri", "DateOfBirth" : { "$date" : "1985-05-12T23:14:30Z" }, "Gender" : "FEMALE", "Vocation" : "ENGINEER" }
-         { "PersonId" : "6392529400", "FirstName" : "Elise", "LastName" : "Smith", "DateOfBirth" : { "$date" : "1972-01-13T09:32:07Z" }, "Vocation" : "ENGINEER" }
+         :category: example return object
 
 .. end-tutorial
