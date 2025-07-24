@@ -4093,9 +4093,11 @@ Sharding Parameters
 
 .. parameter:: orphanCleanupDelaySecs
 
+   .. versionchanged:: 8.2
+
    |mongod-only|
 
-   Default: 900 (15 minutes)
+   Default: 3600 (60 minutes)
 
    Minimum delay before a migrated :term:`chunk` is deleted from the source
    shard.
@@ -4104,20 +4106,11 @@ Sharding Parameters
    in-progress queries involving the chunk to complete on the shard primary 
    and then waits an additional :parameter:`orphanCleanupDelaySecs` seconds.
 
-   However, because the shard primary has no knowledge of in-progress queries
-   run on the shard secondaries, queries that use the chunk but are run on
-   secondaries may see documents disappear if these queries take longer than
-   the time to complete the shard primary queries and the
-   :parameter:`orphanCleanupDelaySecs`.
-
-   .. note::
-
-      This behavior only affects in-progress queries that start before the
-      chunk migration. Queries that start after the chunk migration starts
-      will not use the migrating chunk.
+   Starting in 8.2, the behavior of in-progress queries on shard secondaries 
+   is determined by :parameter:`terminateSecondaryReadsOnOrphanCleanup`.
 
    If a shard has storage constraints, consider reducing this value
-   temporarily. If running queries that exceed 15 minutes on shard
+   temporarily. If running queries that exceed 60 minutes on shard
    secondaries, consider increasing this value.
 
    .. include:: /includes/fact-runtime-startup-parameter
@@ -5019,6 +5012,65 @@ Sharding Parameters
 
       - :parameter:`ShardingTaskExecutorPoolMaxSize`
       - :parameter:`ShardingTaskExecutorPoolMinSize`
+
+.. parameter:: terminateSecondaryReadsOnOrphanCleanup
+
+   |mongod-only|
+   
+   .. versionadded:: 8.2
+
+   Type: boolean
+   
+   *Default*: true
+
+   Controls whether long-running read operations on secondary nodes  
+   automatically terminate before :term:`orphaned document` 
+   deletion following a :term:`chunk` migration.
+
+   In sharded clusters, when a chunk successfully migrates from the source
+   shard to the destination shard, MongoDB does not immediately remove the 
+   migrated documents from the source shard. Instead, the primary of the 
+   source shard waits for any in-progress reads involving the namespace 
+   of the migrated chunk to complete, and after that, waits an additional 
+   period controlled by :parameter:`orphanCleanupDelaySecs` (default: 1 hour). 
+   This additional delay allows any long-running secondary reads to finish 
+   before orphaned documents are deleted from the source shard.
+
+   After the orphaned documents are deleted from the source shard, any ongoing 
+   reads running on secondary nodes that started before the chunk migration 
+   may silently miss documents without returning an error unless 
+   ``terminateSecondaryReadsOnOrphanCleanup`` is set to ``true``.
+   
+   When ``terminateSecondaryReadsOnOrphanCleanup`` is set to ``true``, read 
+   operations on secondary nodes that began before the chunk migration commit 
+   are automatically terminated before the orphaned documents are 
+   removed from the secondary node. This prevents long-running secondary reads 
+   from silently missing documents that were moved during migration.
+
+   When set to ``false``, read operations on secondary nodes continue executing 
+   even after orphaned documents are deleted. Operations may silently miss documents 
+   without returning an error. This matches the behavior in MongoDB versions before 8.2.
+
+   .. note::
+
+      This behavior only affects read operations that start before the
+      chunk migration commit. It applies to all read operations on secondaries, 
+      including queries, aggregations, and operations spanning multiple namespaces.
+   
+   .. include:: /includes/fact-runtime-startup-parameter
+   
+   Error Response
+   ``````````````
+   
+   When a read operation terminates due to ``terminateSecondaryReadsOnOrphanCleanup``, 
+   MongoDB returns the following error:
+
+   .. literalinclude:: /code-examples/reference/parameters/terminateSecondaryReadsOnOrphanCleanup-error-message.sh
+      :language: shell
+      :copyable: false
+   
+   This error is not retryable by design.
+   
 
 .. parameter:: warmMinConnectionsInShardingTaskExecutorPoolOnStartup
 
