@@ -46,4 +46,4 @@
    .. step:: Create an |service| account.
 
       If you don't already have an existing |service| account, run ``atlas setup`` in your terminal
-      or `create a new account <https://account.mongodb.com/account/register?tck=docs_atlas>`__.
+      or `create a new account <https://account.mongodb.com/account/register>`__.

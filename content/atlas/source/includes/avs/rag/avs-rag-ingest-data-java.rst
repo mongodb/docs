@@ -7,7 +7,7 @@
 #. Split the parsed data into chunks.
 
    Process, or :website:`chunk 
-   </developer/products/atlas/choosing-chunking-strategy-rag/?tck=docs#what-is-chunking-and-why-is-it-important-for-rag->`,
+   </developer/products/atlas/choosing-chunking-strategy-rag/>`,
    your data. Chunking involves splitting your data into smaller parts
    to improve performance.
 

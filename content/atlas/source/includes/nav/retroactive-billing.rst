@@ -15,4 +15,4 @@ days in the past) unless:
 
 To subscribe to the Enterprise support plan, to pay with an 
 alternative payment method, or for additional information about 
-support plans, :contact:`contact MongoDB </atlas?jmp=app-cta>`.
+support plans, :contact:`contact MongoDB </atlas>`.

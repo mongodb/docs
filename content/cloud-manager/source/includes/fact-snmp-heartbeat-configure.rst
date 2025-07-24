@@ -28,7 +28,7 @@ Traps:
 To configure the |application| to send SNMPv2c Heartbeat or Alert
 Traps:
 
-1. Download the `MIB file <http://downloads.mongodb.com/on-prem-monitoring/MMS-MONGODB-MIB.txt?jmp=docs>`__.
+1. Download the `MIB file <http://downloads.mongodb.com/on-prem-monitoring/MMS-MONGODB-MIB.txt>`__.
 
 2. To configure SNMPv2c Traps:
 

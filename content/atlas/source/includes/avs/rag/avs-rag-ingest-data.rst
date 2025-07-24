@@ -1,7 +1,7 @@
 1. Prepare your data.
 
    Load, process, and :website:`chunk 
-   </developer/products/atlas/choosing-chunking-strategy-rag/?tck=docs#what-is-chunking-and-why-is-it-important-for-rag->`,
+   </developer/products/atlas/choosing-chunking-strategy-rag/>`,
    your data to prepare it for your |rag| application. 
    Chunking involves splitting your data into smaller parts
    for optimal retrieval.

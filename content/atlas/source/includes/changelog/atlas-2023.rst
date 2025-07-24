@@ -217,7 +217,7 @@
 
 - Introduces generally available |service| integrations for |aws| 
   CloudFormation and the |aws| Cloud Development Kit (CDK). To learn 
-  more, see `MongoDB Atlas Integrations for AWS CloudFormation and CDK are now Generally Available <https://www.mongodb.com/blog/post/atlas-integrations-aws-cloud-formation-cdk-now-generally-available?tck=aws_cloudformation_banner>`__.
+  more, see `MongoDB Atlas Integrations for AWS CloudFormation and CDK are now Generally Available <https://www.mongodb.com/blog/post/atlas-integrations-aws-cloud-formation-cdk-now-generally-available>`__.
 
 .. _atlas_2023_02_15:
 

@@ -1,4 +1,4 @@
-`MongoDB Enterprise <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_
+`MongoDB Enterprise <http://www.mongodb.com/products/mongodb-enterprise>`_
 supports:
 
 - Proxying authentication requests to a Lightweight Directory Access
