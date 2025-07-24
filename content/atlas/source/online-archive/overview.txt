@@ -1,0 +1,246 @@
+.. _online-archive-overview:
+
+=======================
+Online Archive Overview
+=======================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas online archive, archive standard collection, archive time series collection
+   :description: Manage Online Archive in Atlas to move infrequently accessed data to a read-only Federated Database Instance, optimizing storage and query costs.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/flex-serverless-dont-use.rst
+
+
+|service| Online Archive is a feature designed to help organizations optimize
+their data storage and query costs by archiving infrequently accessed data 
+from their MongoDB |service| cluster to a cloud object storage. 
+With Online Archive, you gain the ability to manage the lifecycle of your data, 
+maintain a unified query experience across live and archived datasets, 
+and reduce operational complexity while ensuring data remains accessible when needed.
+
+Key Considerations for Using Online Archive
+-------------------------------------------
+
+Consider the following requirements, expectations and limitations when using 
+|service| {+Online-Archive+}.
+
+.. _online-archive-cluster-reqs:
+
+Cluster Requirements
+~~~~~~~~~~~~~~~~~~~~
+
+{+Online-Archive+} in |service| is available only on ``M10`` and
+greater clusters.
+
+.. _online-archive-permissions:
+
+Required Permissions
+~~~~~~~~~~~~~~~~~~~~
+
+To create or delete an {+Online-Archive+}, you must have one of these
+roles:
+
+- :authrole:`Project Data Access Admin` role
+- :authrole:`Project Cluster Manager` role
+- :authrole:`Project Owner` role
+
+.. _adf-oa-performance-expectations:
+
+Performance Expectations
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following performance expectations when working with {+Online-Archive+}: 
+
+- Archival Jobs: MongoDB runs archival jobs periodically to move data from your 
+  cluster to cloud storage. These jobs operate asynchronously and are designed to 
+  minimize performance impact on your cluster.
+- Cluster Capacity: Archiving jobs consume cluster resources. Ensure your Atlas cluster
+  has sufficient capacity to support both active workloads and archiving tasks to 
+  avoid resource constraints.
+- Query Performance: Archived data resides in read-optimized cloud object storage, 
+  which might have slower query performance compared to querying live data on your Atlas cluster.
+
+
+.. _adf-oa-limitations:
+
+Limitations
+~~~~~~~~~~~
+
+{+Online-Archive+} doesn't support the following:
+
+- Writing to the {+Online-Archive+}.
+- :ref:`Configuring <config-adf>` or
+  :ref:`administering <adf-cli>` the {+Online-Archive+} {+fdi+} through
+  the |service| console, {+adf+} :ref:`CLI <adf-cli>`, or {+adf+} API.
+- Archiving a capped collection.
+- Archiving data below the size of 5 MiB after 7 days. To learn more, see 
+  :ref:`Limitations <config-online-archive-limitations>`.
+- :manual:`GridFS </core/gridfs>`.
+- Deleting individual documents.
+
+
+Online Archive & Atlas Data Federation
+--------------------------------------
+
+When you configure an {+Online-Archive+} for a collection, 
+|service| uses {+adf+} to create a read-only :ref:`Federated Database Instance <atlas-data-federation>`. 
+This enables unified queries across both your live {+cluster+} and your archived data, 
+using the same collection and database names.
+
+You define archiving rules based on time fields or custom filters. Atlas evaluates these 
+rules continuously and automatically transfers matching documents to a 
+cloud object storage managed by Atlas (e.g., AWS S3, Azure Blob).
+
+.. tabs:: 
+
+   .. tab:: AWS 
+      :tabid: aws
+
+      .. include:: /includes/list-table-adf-supported-aws-regions.rst
+
+      .. important::
+
+         |service| encrypts your archived data using :aws:`Amazon's
+         server-side encryption S3-managed keys (SSE-S3)
+         </AmazonS3/latest/userguide/UsingServerSideEncryption.html>`
+         for archived data. |service| can't use any encryption-at-rest
+         encryption keys that you used on your {+cluster+} data.
+
+   .. tab:: Azure 
+      :tabid: azure
+
+      .. include:: /includes/list-table-adf-supported-azure-regions.rst
+
+      .. important:: 
+
+         |service| encrypts your archived data using :azure:`Azure Storage
+         service-side encryption </storage/common/storage-service-encryption#about-azure-storage-service-side-encryption)>`.
+         |service| can't use any encryption-at-rest encryption keys that you
+         used on your {+cluster+} data. 
+
+   .. tab:: GCP 
+      :tabid: gcp
+
+      .. include:: /includes/list-table-adf-supported-gcp-regions.rst
+
+      .. important:: 
+
+         |service| encrypts your archived data using :gcp:`Google Cloud Storage
+         service-side encryption </storage/docs/encryption>`.
+         |service| can't use any encryption-at-rest encryption keys that you
+         used on your {+cluster+} data. 
+
+|service| archives data based on the criteria you specify in an
+archiving rule. The criteria vary based on the type of collection 
+you want to archive:  
+
+.. tabs:: 
+
+   .. tab:: Standard Collection
+      :tabid: standard
+
+      For standard collections, the criteria can be one of the 
+      following:
+
+      - A combination of a date field to archive data and number of 
+        days to keep data on the |service| cluster. When the current 
+        date exceeds the value of the specified date field, |service| 
+        subtracts the number of days from the current time and then 
+        archives data after the time.
+      - A custom query. |service| runs the query specified in the 
+        archiving rule to select the documents to archive.
+
+   .. tab:: Time Series Collection 
+      :tabid: timeseries 
+
+      For :manual:`time series </core/timeseries-collections/>` 
+      collections, the criteria is a combination of a time field and 
+      number of days to keep data on the |service| cluster. When the 
+      current time exceeds the value of the specified time field, 
+      |service| subtracts the number of days from the current time and 
+      then archives data after that many days, hours, and minutes.
+
+When you configure an {+Online-Archive+} on your {+cluster+}, |service|
+creates two {+fdi+}\s: 
+
+- {+FDI+} for your archive that allows you to query data on your
+  archive only. 
+- {+FDI+} for your {+cluster+} and archive that allows you to query both
+  your {+cluster+} and archived data.
+
+
+Use Cases
+---------
+
+You can use {+Online-Archive+} to reduce storage costs and manage cold data while preserving access 
+through queries. Typical use cases include:
+
+- :guilabel:`Large-scale historical datasets`: Your cluster stores high volumes of data, 
+  such as logs, metrics, or transaction records, and you need to reduce operational 
+  storage costs without deleting data. {+Online-Archive+} helps by relocating cold data to 
+  a cheaper cloud object storage while keeping it accessible via queries.
+
+- :guilabel:`Time series archiving`: Your application ingests high-frequency time series data 
+  from sources like IoT devices, industrial sensors, or financial systems. {+Online-Archive+} allows 
+  you to retain this data for compliance, auditing, or analytics while minimizing impact on your 
+  cluster’s performance.
+
+- :guilabel:`Cold operational data`: You manage application data (e.g., order histories, completed 
+  service requests, old invoices) that is rarely accessed after a certain age but 
+  must be retained for reference or regulatory requirements.
+
+- :guilabel:`Long-term customer records`: Your system retains archived customer profiles, 
+  subscription history, or user activity logs for legal retention periods or post-analysis, 
+  but these documents no longer require frequent access.
+
+- :guilabel:`Compliance and audit`: Your organization must retain data for regulatory or audit 
+  purposes (e.g., financial transactions, medical logs, access logs). Archiving enables 
+  cost-effective long-term storage without modifying your query interface.
+
+- :guilabel:`Archiving for analytics`: You archive data that’s not required for day-to-day 
+  operations but is occasionally analyzed for trends, reports, or forecasting—without 
+  adding overhead to your primary cluster.
+
+{+Online-Archive+} helps isolate cold data from hot workloads while maintaining a 
+unified interface to both. This enables operational efficiency, cost savings, and 
+retention compliance—all without application changes.
+
+Next Steps
+------------
+
+For a hands-on experience you can create an {+Online-Archive+} for a collection on your
+{+cluster+} through your |service| console and |api|. Once created, you can:
+
+- :ref:`Configure an Online Archive </online-archive/configure-online-archive>` 
+- :ref:`View the list of Online Archives <view-online-archive>`.
+- :doc:`Configure the connection method, standard or private endpoint, 
+  for your Online Archive </online-archive/connect-to-online-archive>`
+- :ref:`Edit an archiving rule <edit-online-archive>`.
+- :ref:`Delete your Online Archive <delete-online-archive>`.
+- :doc:`Pause archiving </online-archive/pause-resume-online-archive>`.
+- :doc:`Restore archived data </online-archive/restore-archived-data>`.
+
+.. toctree::
+   :titlesonly:
+
+   Configure Online Archive </online-archive/configure-online-archive>
+   Set Up a Private Endpoint </online-archive/config-private-endpoint>
+   Connect to Online Archive </online-archive/connect-to-online-archive>
+   Manage Online Archives </online-archive/query-online-archive>
+   Manage Private Endpoints </online-archive/view-private-endpoints>
+   Pause and Resume </online-archive/pause-resume-online-archive>
+   Back Up Online Archive </online-archive/config-backup-online-archive>
+   Restore Archived Data </online-archive/restore-archived-data>
+   Download Query Logs </online-archive/download-query-logs>

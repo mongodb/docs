@@ -62,7 +62,7 @@ Currently, {+Serverless-instances+} don't support the following actions:
 
 - Use :doc:`Atlas Search </atlas-search>`.
 
-- Use :doc:`Online Archive </online-archive/manage-online-archive>`.
+- Use :doc:`Online Archive </online-archive/overview>`.
 
 - Use :ref:`atlas-triggers`.
 
