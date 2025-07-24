@@ -326,7 +326,7 @@ public class AtlasSearchExamples
 
         var searchDefinition = Builders<Guitar>.Search.Text(g => g.Description, "classic");
         var searchOptions = new SearchOptions<Guitar>
-        { IndexName = "default", Sort = Builders<Guitar>.Sort.Ascending(g => g.Id) }
+        { IndexName = "default", Sort = Builders<Guitar>.Sort.Ascending(g => g.Id) };
 
         // Runs the base search operation
         var baseSearchResults = guitarsCollection.Aggregate()
@@ -339,7 +339,6 @@ public class AtlasSearchExamples
 
         var result = guitarsCollection.Aggregate()
             .Search(searchDefinition, searchOptions)
-            .Project<Guitar>(projection)
             .ToList();
         // end-pagination-options
 
