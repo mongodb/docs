@@ -1,0 +1,1 @@
+Enables retryable reads. The default value is ``true``.
