@@ -1,0 +1,238 @@
+.. _rust-cluster-monitoring:
+
+==================
+Cluster Monitoring
+==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+Overview
+--------
+
+This guide shows you how to use the {+driver-short+} to monitor topology
+events in a MongoDB instance, replica set, or sharded cluster. The
+driver creates topology events, also known as Server Discovery and
+Monitoring (SDAM) events, when there are any changes in the state of the
+instance or cluster that you are connected to. 
+
+You can use information about topology changes in your
+application, or you can monitor cluster changes to learn more about
+how they affect your application.
+
+This guide includes the following sections:
+
+- :ref:`Event Descriptions <rust-cluster-monitoring-descriptions>` describes
+  the SDAM events that the driver can generate
+
+- :ref:`Event Subscription Example <rust-cluster-monitoring-example>`
+  provides sample code that shows how to subscribe to an SDAM event
+
+- :ref:`Example Event Documents <rust-cluster-monitoring-documents>`
+  provides samples of each SDAM event
+  
+- :ref:`Additional Information <rust-cluster-addtl-info>`
+  provides links to resources and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-cluster-monitoring-descriptions:
+
+Event Descriptions
+------------------
+
+You can subscribe to one or more of the following SDAM events:
+
+.. list-table::
+   :widths: 33 67 
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - `ServerDescriptionChangedEvent <{+api+}/event/sdam/struct.ServerDescriptionChangedEvent.html>`__
+     - Created when an instance state changes, such as when a replica set
+       member changes from a secondary to a primary.
+
+   * - `ServerOpeningEvent <{+api+}/event/sdam/struct.ServerOpeningEvent.html>`__
+     - Created when a connection to an instance, such as a replica set member, opens.
+
+   * - `ServerClosedEvent <{+api+}/event/sdam/struct.ServerClosedEvent.html>`__
+     - Created when a connection to an instance, such as a replica set member, closes.
+
+   * - `TopologyDescriptionChangedEvent <{+api+}/event/sdam/struct.TopologyDescriptionChangedEvent.html>`__
+     - Created when the topology description changes, such as when there
+       is an election of a new primary or when a ``mongos`` proxy disconnects.
+
+   * - `TopologyOpeningEvent <{+api+}/event/sdam/struct.TopologyOpeningEvent.html>`__
+     - Created before the driver attempts to connect to an instance.
+
+   * - `TopologyClosedEvent <{+api+}/event/sdam/struct.TopologyClosedEvent.html>`__
+     - Created after all instance connections in the topology close.
+
+   * - `ServerHeartbeatStartedEvent <{+api+}/event/sdam/struct.ServerHeartbeatStartedEvent.html>`__
+     - Created before the driver issues a ``hello`` command to an instance.
+
+   * - `ServerHeartbeatSucceededEvent <{+api+}/event/sdam/struct.ServerHeartbeatSucceededEvent.html>`__
+     - Created when the ``hello`` command returns successfully from a
+       MongoDB instance.
+
+   * - `ServerHeartbeatFailedEvent <{+api+}/event/sdam/struct.ServerHeartbeatFailedEvent.html>`__
+     - Created when a ``hello`` command to a MongoDB instance does not
+       return a successful response.
+
+.. _rust-cluster-monitoring-example:
+
+Event Subscription Example
+--------------------------
+
+You can access one or more SDAM events by
+subscribing to them in your application. The following example connects
+to a MongoDB deployment and subscribes to the ``ServerOpeningEvent`` event type:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/monitoring/sdam-subscribe.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-sdam
+   :end-before: end-sdam
+
+.. _rust-cluster-monitoring-documents:
+
+Example Event Documents
+-----------------------
+
+The following sections show sample output for each type of SDAM event.
+
+ServerDescriptionChangedEvent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   ServerDescriptionChangedEvent {
+       address: ...,
+       topology_id: ...,
+       previous_description: ...,
+       new_description: ...,
+   }
+
+ServerOpeningEvent
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+   
+   ServerOpeningEvent {
+       address: ...,
+       topology_id: ...,
+   }
+
+ServerClosedEvent
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   ServerClosedEvent {
+       address: ...,
+       topology_id: ...,
+   }
+
+TopologyDescriptionChangedEvent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   TopologyDescriptionChangedEvent {
+       topology_id: ...,
+       previous_description: ...,
+       new_description: ...,
+   }
+
+TopologyOpeningEvent
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   TopologyOpeningEvent {
+       topology_id: ...,
+   }
+
+TopologyClosedEvent
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   TopologyClosedEvent {
+       topology_id: ...,
+   }
+
+ServerHeartbeatStartedEvent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   ServerHeartbeatStartedEvent {
+       server_address: ...,
+       awaited: false,
+       driver_connection_id: 12,
+       server_connection_id: ...,
+   }
+
+ServerHeartbeatSucceededEvent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   ServerHeartbeatSucceededEvent {
+       duration: ...,
+       reply: ...,
+       server_address: ...,
+       awaited: false,
+       driver_connection_id: 12,
+       server_connection_id: ...,
+   }
+
+ServerHeartbeatFailedEvent
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   ServerHeartbeatFailedEvent {
+       duration: ...,
+       failure: ...,
+       server_address: ...,
+       awaited: false,
+       driver_connection_id: 12,
+       server_connection_id: ...,
+   }
+
+.. _rust-cluster-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about monitoring a MongoDB deployment, see the :website:`How
+to Monitor MongoDB
+</basics/how-to-monitor-mongodb-and-what-metrics-to-monitor>` article.
+
+To learn more about connecting to MongoDB, see the
+:ref:`rust-connect-to-mongodb`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `SdamEventHandler <{+api+}/event/sdam/trait.SdamEventHandler.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `Client::with_options() <{+api+}/struct.Client.html#method.with_options>`__
