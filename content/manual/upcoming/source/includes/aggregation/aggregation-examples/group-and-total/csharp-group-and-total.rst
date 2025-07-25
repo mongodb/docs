@@ -16,22 +16,18 @@ field, which contains customer email addresses.
 First, create a C# class to model the data in the ``orders``
 collection:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/GroupTotal.cs
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Group/Order.snippet.model.cs
    :language: csharp
    :copyable: true
-   :start-after: start-pocos
-   :end-before: end-pocos
-   :dedent:
+   :category: usage example
 
 To create the ``orders`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/GroupTotal.cs
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Group/Tutorial.snippet.load-sample-data.cs
    :language: csharp
    :copyable: true
-   :start-after: start-insert-orders
-   :end-before: end-insert-orders
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -46,12 +42,10 @@ following code to your application:
       chain a :pipeline:`$match` stage that matches orders placed in
       2020:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/GroupTotal.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Group/Tutorial.snippet.match.cs
          :language: csharp
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a sort stage to sort by order date.
 
@@ -59,12 +53,10 @@ following code to your application:
       ascending sort on the ``OrderDate`` field to retrieve the earliest
       2020 purchase for each customer in the next stage:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/GroupTotal.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Group/Tutorial.snippet.sort-order-date.cs
          :language: csharp
          :copyable: true
-         :start-after: start-sort1
-         :end-before: end-sort1
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a group stage to group by email address.
 
@@ -80,24 +72,20 @@ following code to your application:
       - ``Orders``: the list of all the customer's purchases,
         including the date and value of each purchase
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/GroupTotal.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Group/Tutorial.snippet.group.cs
          :language: csharp
          :copyable: true
-         :start-after: start-group
-         :end-before: end-group
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a sort stage to sort by first order date.
-            
+
       Next, add another :pipeline:`$sort` stage to set an
       ascending sort on the ``FirstPurchaseDate`` field:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/GroupTotal.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Group/Tutorial.snippet.sort-first-purchase.cs
          :language: csharp
          :copyable: true
-         :start-after: start-sort2
-         :end-before: end-sort2
-         :dedent:
+         :category: syntax example
 
       The preceding code also converts the output documents to
       ``BsonDocument`` instances for printing.
@@ -109,13 +97,11 @@ following code to your application:
       The aggregation returns the following summary of customers' orders
       from 2020:
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Group/TutorialOutput.txt
+         :language: text
          :copyable: false
-         
-         { "CustomerId" : "oranieri@warmmail.com", "FirstPurchaseDate" : { "$date" : "2020-01-01T08:25:37Z" }, "TotalValue" : 63, "TotalOrders" : 1, "Orders" : [{ "OrderDate" : { "$date" : "2020-01-01T08:25:37Z" }, "Value" : 63 }] }
-         { "CustomerId" : "elise_smith@myemail.com", "FirstPurchaseDate" : { "$date" : "2020-01-13T09:32:07Z" }, "TotalValue" : 436, "TotalOrders" : 4, "Orders" : [{ "OrderDate" : { "$date" : "2020-01-13T09:32:07Z" }, "Value" : 99 }, { "OrderDate" : { "$date" : "2020-05-30T08:35:52Z" }, "Value" : 231 }, { "OrderDate" : { "$date" : "2020-10-03T13:49:44Z" }, "Value" : 102 }, { "OrderDate" : { "$date" : "2020-12-26T08:55:46Z" }, "Value" : 4 }] }
-         { "CustomerId" : "tj@wheresmyemail.com", "FirstPurchaseDate" : { "$date" : "2020-08-18T23:04:48Z" }, "TotalValue" : 191, "TotalOrders" : 2, "Orders" : [{ "OrderDate" : { "$date" : "2020-08-18T23:04:48Z" }, "Value" : 4 }, { "OrderDate" : { "$date" : "2020-11-23T22:56:53Z" }, "Value" : 187 }] }
-         
+         :category: example return object
+
       The result documents contain details from all the orders from
       a given customer, grouped by the customer's email address.
 
