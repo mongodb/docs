@@ -1,0 +1,341 @@
+.. _javars-pojo-qs:
+
+============================
+POJO CRUD Operation Examples
+============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: code example, get started, connect, change data, POJO
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This guide uses Plain Old Java Objects, or POJOs, to
+model documents instead of the generic ``Document`` class.
+
+The code examples in this guide come from the `PojoQuickTour.java
+<{+driver-source-gh+}/blob/master/driver-reactive-streams/src/examples/reactivestreams/tour/PojoQuickTour.java>`__
+file in the driver source code GitHub repository.
+   
+.. include:: /includes/subscriber-note.rst
+
+Prerequisites
+-------------
+
+You must set up the following components to run the code examples in
+this guide:
+
+- MongoDB server running on the default port for MongoDB (``27017``)
+- Driver dependency installed in your project
+- The following import statements:
+
+  .. code-block:: java
+  
+     import com.mongodb.client.result.InsertOneResult;
+     import com.mongodb.client.result.InsertManyResult;
+     import com.mongodb.client.result.DeleteResult;
+     import com.mongodb.client.result.UpdateResult;
+     import com.mongodb.reactivestreams.client.MongoClient;
+     import com.mongodb.reactivestreams.client.MongoClients;
+     import com.mongodb.reactivestreams.client.MongoCollection;
+     import com.mongodb.reactivestreams.client.MongoDatabase;
+      
+     import org.bson.codecs.configuration.CodecRegistry;
+     import org.bson.codecs.pojo.PojoCodecProvider;
+      
+     import java.util.List;
+      
+     import static com.mongodb.client.model.Filters.*;
+     import static com.mongodb.client.model.Updates.*;
+     import static java.util.Arrays.asList;
+     import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+     import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
+- POJO class definitions. Copy the full code for the ``Person`` and
+  ``Address`` POJOs from the driver source repository on
+  GitHub:
+  
+  - `Person class <{+driver-source-gh+}/blob/master/driver-reactive-streams/src/examples/reactivestreams/tour/Person.java>`__
+  - `Address class <{+driver-source-gh+}/blob/master/driver-reactive-streams/src/examples/reactivestreams/tour/Address.java>`__
+
+Creating a Custom CodecRegistry
+-------------------------------
+
+Before you can use a POJO with the driver, you need to configure the
+``CodecRegistry`` to include a codec that handles the translation to and
+from BSON for your POJOs. The simplest way to do that is to use
+the ``PojoCodecProvider.builder()`` method to create and configure a
+``CodecProvider``.
+
+The following example combines the default codec registry with
+the ``PojoCodecProvider`` configured to automatically create POJO
+``Codec`` instances:
+
+.. code-block:: java
+
+   CodecRegistry pojoCodecRegistry = fromRegistries(
+       MongoClientSettings.getDefaultCodecRegistry(),
+       fromProviders(PojoCodecProvider.builder().automatic(true).build())
+   );
+
+.. note::
+ 
+   The registries are checked in order until one returns a codec for the
+   requested class. The ``DefaultCodecRegistry`` should be first in the
+   list, and the ``PojoCodecProvider`` should always be the last
+   ``CodecProvider`` since it can provide a codec for almost any class.
+
+Using the CodecRegistry
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following list describes ways to set the ``pojoCodecRegistry`` for
+use:
+
+- Set it when instantiating a ``MongoClient`` object:
+
+  .. code-block:: java
+  
+     MongoClientSettings settings = MongoClientSettings.builder()
+         .codecRegistry(pojoCodecRegistry)
+         .build();
+     MongoClient mongoClient = MongoClients.create(settings);
+
+- Use an alternative ``CodecRegistry`` with a ``MongoDatabase``:
+
+  .. code-block:: java
+  
+     database = database.withCodecRegistry(pojoCodecRegistry);
+
+- Use an alternative ``CodecRegistry`` with a ``MongoCollection``:
+
+  .. code-block:: java
+  
+     collection = collection.withCodecRegistry(pojoCodecRegistry);
+
+Inserting a POJO into MongoDB
+-----------------------------
+
+The codec registry automatically tries to create a POJO ``Codec`` for
+unknown classes. This allows you to use POJOs out of the box without
+any extra configuration.
+
+Before you can insert a POJO into MongoDB, create a
+``MongoCollection`` instance configured with the POJO class:
+
+.. code-block:: java
+
+   MongoCollection<Person> collection = database.getCollection("people", Person.class);
+
+Insert a Person Instance
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _javars-pojo-insertone:
+
+To insert a ``Person`` into the collection, use the collection's
+``insertOne()`` method:
+
+.. code-block:: java
+
+   Person ada = new Person("Ada Byron", 20, new Address("St James Square", "London", "W1"));
+   collection.insertOne(ada).subscribe(new OperationSubscriber<InsertOneResult>());
+
+Insert Multiple Person Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To insert multiple ``Person`` instances, you can use the collection's
+``insertMany()`` method, which takes a list of ``Person`` instances as a
+parameter.
+
+The following example will add multiple ``Person`` instances into the
+collection:
+
+.. code-block:: java
+
+   List<Person> people = asList(
+       new Person("Charles Babbage", 45, new Address("5 Devonshire Street", "London", "W11")),
+       new Person("Alan Turing", 28, new Address("Bletchley Hall", "Bletchley Park", "MK12")),
+       new Person("Timothy Berners-Lee", 61, new Address("Colehill", "Wimborne", null))
+   );
+   collection.insertMany(people).subscribe(new OperationSubscriber<InsertManyResult>());
+
+Query the Collection
+--------------------
+
+To query the collection, you can use the ``find()`` method.
+
+The following example prints all the ``Person`` instances in the
+collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: java
+
+      collection.find().subscribe(new PrintToStringSubscriber<>());
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Person{id='...', name='Ada Byron', age=20, address=Address{street='St James Square', city='London', zip='W1'}}
+      Person{id='...', name='Charles Babbage', age=45, address=Address{street='5 Devonshire Street', city='London', zip='W11'}}
+      Person{id='...', name='Alan Turing', age=28, address=Address{street='Bletchley Hall', city='Bletchley Park', zip='MK12'}}
+      Person{id='...', name='Timothy Berners-Lee', age=61, address=Address{street='Colehill', city='Wimborne', zip='null'}}
+
+Specify a Query Filter
+----------------------
+
+To query for ``Person`` instances that match certain conditions, pass a
+filter object to the ``find()`` method. To facilitate creating
+filter objects, the driver provides ``Filters`` helper methods.
+
+.. important::
+
+   When querying POJOs, you *must* query against the document field name
+   and not the POJO property name. They are the same by default, but it
+   is possible to change how POJO property names are mapped.
+
+Get a Single Person That Matches a Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example finds the first ``Person`` in the database that
+has an ``address.city`` value of ``Wimborne`` by passing an ``eq()``
+filter object to specify the equality condition:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: java
+
+      collection.find(eq("address.city", "Wimborne"))
+          .first()
+          .subscribe(new PrintToStringSubscriber<>());
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Person{id='591dbc2550852fa685b3ad1a', name='Timothy Berners-Lee', age=61, address=Address{street='Colehill', city='Wimborne', zip='null'}}
+
+Get All Person Instances That Match a Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prints every document in which the value of
+``age`` is greater than ``30``:
+
+.. code-block:: java
+
+   collection.find(gt("age", 30)).subscribe(new PrintToStringSubscriber<>());
+
+Update Documents
+----------------
+
+To update documents in a collection, you can use the collection's
+``updateOne()`` and ``updateMany()`` methods.
+
+Pass the following parameters to the methods:
+
+- Filter object to determine the document or documents to update. To
+  specify an empty filter and match all ``Person`` instances, use an
+  empty ``Document`` object.
+- Update document that specifies the modifications. To view a list of
+  the available operators, see :manual:`Update Operators
+  </reference/operator/update/>` in the Server manual.
+
+The update methods return an ``UpdateResult`` type that provides
+information about the operation, including the number of documents
+modified by the update.
+
+Update a Single Person
+~~~~~~~~~~~~~~~~~~~~~~
+
+To update a single ``Person``, use the ``updateOne()`` method.
+
+The following example updates a ``Person`` named ``"Ada Byron"`` by
+setting their age to ``23`` and name to ``"Ada Lovelace"``:
+
+.. code-block:: java
+
+   collection.updateOne(
+       eq("name", "Ada Byron"), 
+       combine(set("age", 23), set("name", "Ada Lovelace"))
+   ).subscribe(new OperationSubscriber<>());
+
+Update Multiple Person Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update all ``Person``  instances that match a filter, use the
+``updateMany()`` method.
+
+The following example sets the ``zip`` field to ``null`` for all documents
+that have a ``zip`` value:
+
+.. code-block:: java
+
+   collection.updateMany(not(eq("zip", null)), set("zip", null))
+            .subscribe(new OperationSubscriber<>());
+
+Replace a Single Person
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Another way to change an existing ``Person`` instance is to use
+the ``replaceOne()`` method.
+
+The following example replaces a ``Person`` named ``"Ada Lovelace"``
+with the ``Person`` instance referenced by the ``ada`` variable in the
+:ref:`preceding insertOne example <javars-pojo-insertone>`:
+
+.. code-block:: java
+
+   collection.replaceOne(eq("name", "Ada Lovelace"), ada)
+       .subscribe(new OperationSubscriber<>());
+
+Delete Documents
+----------------
+
+To delete documents from a collection, you can use the collection's ``deleteOne()`` and ``deleteMany()`` methods.
+
+Pass a filter object to match the document or
+documents to delete. To specify an empty filter, use an empty
+``Document`` object.
+
+The delete methods return a ``DeleteResult`` type that provides
+information about the operation, including the number of documents
+deleted.
+
+Delete a Single Person That Matches a Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete a single ``Person`` that matches a filter, use the
+``deleteOne()`` method.
+
+The following example deletes one ``Person`` that has an
+``address.city`` value of ``Wimborne``:
+
+.. code-block:: java
+
+   collection.deleteOne(eq("address.city", "Wimborne"))
+       .subscribe(new OperationSubscriber<>());
+
+Delete All Person Instances That Match a Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete multiple ``Person`` instances that match a filter, use the
+``deleteMany()`` method.
+
+The following example deletes all ``Person`` instances that have an
+``address.city`` value of ``London``:
+
+.. code-block:: java
+
+   collection.deleteMany(eq("address.city", "London"))
+       .subscribe(new OperationSubscriber<>());
