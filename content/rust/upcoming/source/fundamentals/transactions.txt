@@ -1,0 +1,201 @@
+.. _rust-transactions:
+
+============
+Transactions
+============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, ACID compliance, multi-document
+   :description: Learn to perform transactions  with the MongoDB Rust Driver, ensuring atomicity and ACID compliance for operations within logical sessions.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**transactions**. Transactions allow you to perform a series of operations
+that change data only if the entire transaction is committed.
+If any operation in the transaction does not succeed, the driver stops the
+transaction and discards all data changes before they ever become
+visible. This feature is called **atomicity**.
+
+In MongoDB, transactions run within logical sessions. A
+session is a grouping of related read or write operations that you
+want to run sequentially. Sessions enable causal consistency for a group
+of operations and allow you to run operations in an **ACID-compliant**
+transaction, which is a transaction that meets an expectation of
+atomicity, consistency, isolation, and durability. MongoDB guarantees
+that the data involved in your transaction operations remains
+consistent, even if the operations encounter unexpected errors.
+
+When using the {+driver-short+}, you can create a new session from a
+``Client`` instance as a ``ClientSession`` type. You can improve your
+app's performance by reusing your client for multiple sessions and
+transactions instead of instantiating a new client each time.
+
+.. warning::
+
+   Use a ``ClientSession`` only in operations running on the
+   ``Client`` that created it. Using a ``ClientSession`` with a
+   different ``Client`` results in operation errors.
+
+Methods
+-------
+
+Create a ``ClientSession`` by using the ``start_session()`` method on your
+``Client`` instance. You can then modify the session state using the
+methods provided by the ``ClientSession`` type. The following table
+describes these methods:
+
+.. list-table::
+   :widths: 25 75
+   :stub-columns: 1
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``start_transaction()``
+     - | Starts a new transaction on this session. The session
+         must be passed into each operation within the transaction, or
+         the operation will run outside of the transaction.
+       |
+       | You can set transaction options by chaining ``TransactionOptions``
+         option builder methods to ``start_transaction()``.
+       |
+       | Errors returned from operations run within the transaction
+         might include a ``TRANSIENT_TRANSACTION_ERROR`` label, which
+         indicates that the entire transaction can be ended, then retried
+         with the expectation that it will succeed.
+
+   * - ``commit_transaction()``
+     - | Commits the active transaction for this session. This method returns an
+         error if there is no active transaction for the session or the
+         transaction was previously ended.
+       |
+       | This method might return an error that includes an
+         ``UNKNOWN_TRANSACTION_COMMIT_RESULT`` label, which 
+         indicates that it is unknown if the committed transaction
+         satisfies the set write concern. If you encounter this error,
+         it is safe to retry the commit until the write concern is
+         satisfied or the method returns an error without the label.
+
+   * - ``abort_transaction()``
+     - | Ends the active transaction for this session. This method returns an
+         error if there is no active transaction for the session or if the
+         transaction was committed or ended.
+
+   * - ``and_run()``
+     - | Runs the given callback, then commits or ends the transaction. The
+         driver retries callbacks and commits that raise an error with a
+         ``TRANSIENT_TRANSACTION_ERROR`` label. If they raise any
+         other error, the driver ends the transaction and returns the error
+         to the caller. When you use this method to perform a transaction,
+         the driver automatically handles any errors, so you can choose to omit
+         error handling code.
+       |
+       | Because the callback returns a future and can be run multiple
+         times, the Rust language closure borrowing rules for captured
+         values can be restrictive. So, the ``and_run()``
+         method accepts a context parameter that is passed to the callback.
+       |
+       | **Parameters**: context ``C``, callback ``FnMut(&'a mut
+         ClientSession, &'a mut C)``
+
+.. important:: Methods That Can Run in Transactions
+
+   To run MongoDB operations within transactions, you must chain the
+   ``session()`` method to the operation. This method accepts a
+   ``ClientSession`` instance as a parameter.
+
+   For example, to delete a document, you can generally use the
+   ``delete_one()`` method. However, to delete a document within
+   a transaction, you must chain the ``session()`` method to
+   ``delete_one()`` and pass the session as a parameter.
+
+Example
+-------
+
+The following code defines the ``insert_media()`` callback function that
+inserts data into the ``books`` and ``films`` collections:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/transaction.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-callback
+   :end-before: end-callback
+
+The following code completes the following actions to perform the
+transaction:
+
+1. Creates a session from the client by using the ``start_session()`` method.
+#. Calls the ``start_transaction()`` method to start a transaction.
+#. Calls the ``and_run()`` method to run the ``insert_media()`` callback function
+   within the transaction.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/transaction.rs
+      :language: rust
+      :dedent:
+      :start-after: begin-session
+      :end-before: end-session
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Successfully committed transaction!
+
+If you require more control over your transactions, see the `ClientSession API
+documentation <{+api+}/struct.ClientSession.html#transactions>`__
+to find an example that shows how to manually create and commit a transaction.
+
+.. sharedinclude:: dbx/transactions-parallelism.rst
+
+   .. replacement:: driver-specific-content
+
+      If you're using {+server+} v8.0 or later, you can perform
+      write operations on multiple namespaces within a single transaction by using
+      bulk write operations. For more information, see the :ref:`<rust-bulk-guide>`
+      guide.
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following pages in the Server manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions/>`
+- :manual:`Read Isolation, Consistency, and Recency </core/read-isolation-consistency-recency/#causal-consistency>`
+
+To learn more about ACID compliance, see the :website:`What are ACID
+Properties in Database Management Systems? </basics/acid-transactions>`
+article on the MongoDB website.
+
+To learn more about insert operations, see the
+:ref:`rust-insert-guide` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `ClientSession <{+api+}/struct.ClientSession.html#>`__
+- `start_session() <{+api+}/struct.Client.html#method.start_session>`__
+- `start_transaction() <{+api+}/struct.ClientSession.html#method.start_transaction>`__
+- `commit_transaction() <{+api+}/struct.ClientSession.html#method.commit_transaction>`__
+- `abort_transaction() <{+api+}/struct.ClientSession.html#method.abort_transaction>`__
+- `and_run() <{+api+}/struct.ClientSession.html#method.and_run>`__
+- `TransactionOptions <{+api+}/options/struct.TransactionOptions.html>`__
