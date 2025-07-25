@@ -68,22 +68,30 @@ The following table shows the MCP Server configuration options:
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 20 50
+   :widths: 20 30 10 10 30
 
-   * - Option
+   * - CLI Option Name
+     - OS Environment Variable Name
      - Type
+     - Default
      - Description
 
    * - ``apiClientId``
+     - ``MDB_MCP_API_CLIENT_ID``
      - string
+     - Not set
      - Atlas API client ID for authentication.
 
    * - ``apiClientSecret``
+     - ``MDB_MCP_API_CLIENT_SECRET``
      - string
+     - Not set
      - Atlas API client secret for authentication.
 
    * - ``connectionString``
+     - ``MDB_MCP_CONNECTION_STRING``
      - string
+     - Not set
      - Connection string for a direct database connection.
 
        Sets the connection string at runtime to allow the client to
@@ -104,17 +112,56 @@ The following table shows the MCP Server configuration options:
        Therefore, you only need to call the connect or swtich connection
        tool once or if you need to switch to a different connection.
 
-   * - ``logPath``
+   * - ``loggers``
+     - ``MDB_MCP_LOGGERS``
      - string
+     - ``disk mcp``
+     - Specifies where the MCP Server sends the logs.
+     
+       Set ``loggers`` to one or more of the following options:
+
+       - ``disk``, which writes logs to disk files located in the path
+         specified in the ``logPath`` option.
+       - ``mcp``, which sends the logs to the AI client, if the client
+         supports logging and transport protocol.
+       - ``stderr``, which sends the logs to the standard error output.
+         This setting is useful for debugging or when running MCP in a
+         container.
+
+       For example, to set ``loggers`` to ``mcp`` and ``stderr`` in the
+       AI client JSON configuration file or the operating system command
+       line, use ``--loggers mcp stderr``.
+        
+       To set the ``MDB_MCP_LOGGERS`` operating system environment
+       variable to ``disk`` and ``stderr``, use ``export
+       MDB_MCP_LOGGERS="disk,stderr"``.
+
+       For more information about the logging options, see
+       :ref:`mcp-server-configuration-troubleshooting`.
+
+   * - ``logPath``
+     - ``MDB_MCP_LOG_PATH``
+     - string
+     - Depends on the operating system
      - Directory that stores the MCP Server logs.
 
+       For more information about the log path and operating system
+       specifics, see :ref:`mcp-server-configuration-troubleshooting`.
+
    * - ``disabledTools``
+     - ``MDB_MCP_DISABLED_TOOLS``
      - array
+     - Not set
      - An array of MCP tool names, operation types, or tool
        categories to disable.
 
+       For more information, see
+       :ref:`mcp-server-configuration-disable-tools`.
+
    * - ``readOnly``
+     - ``MDB_MCP_READ_ONLY``
      - boolean
+     - ``false``
      - To disable cluster write operations, set ``--readOnly`` in the
        configuration file or command line, or set the
        ``MDB_MCP_READ_ONLY`` operating system environment variable to
@@ -126,10 +173,69 @@ The following table shows the MCP Server configuration options:
        For more information, see
        :ref:`mcp-server-configuration-read-only-mode`.
 
+   * - ``indexCheck``
+     - ``MDB_MCP_INDEX_CHECK``
+     - boolean
+     - ``false``
+     - If ``true``, enforces that query operations must use an
+       index and reject queries that perform a collection scan.
+
    * - ``telemetry``
+     - ``MDB_MCP_TELEMETRY``
      - string
+     - ``enabled``
      - If ``disabled``, MCP Server usage data collection is stopped.
-       Default is ``enabled``.
+
+       For more information, see
+       :ref:`mcp-server-configuration-telemetry`.
+
+   * - ``transport``
+     - ``MDB_MCP_TRANSPORT``
+     - string
+     - ``stdio``
+     - Transport protocol for communications with the MCP Server.
+
+       Set ``transport`` to one of the following options:
+
+       - ``stdio``, which is the default. Uses the standard input and
+         output for communications with the MCP Server. ``stdio`` is
+         suitable for most AI clients.
+       - ``http``, which enables HTTP communications with the MCP
+         Server. You can then use HTTP to interact with the MCP Server
+         from a Web client or communicate with the MCP Server on a
+         specific HTTP IP port.
+
+         .. warning::
+
+            HTTP transport is **NOT** recommended for production use
+            without implementing proper authentication and security
+            measures.
+
+   * - ``httpPort``
+     - ``MDB_MCP_HTTP_PORT``
+     - integer
+     - ``3000``
+     - IP port number for HTTP communications with the MCP Server.
+
+   * - ``httpHost``
+     - ``MDB_MCP_HTTP_HOST``
+     - string
+     - ``127.0.0.1``
+     - IP address for HTTP communications with the MCP Server.
+
+   * - ``idleTimeoutMs``
+     - ``MDB_MCP_IDLE_TIMEOUT_MS``
+     - integer
+     - ``600000``
+     - Idle timeout for a client to disconnect. Only applies to HTTP
+       transport.
+
+   * - ``notificationTimeoutMs``
+     - ``MDB_MCP_NOTIFICATION_TIMEOUT_MS``
+     - integer
+     - ``540000``
+     - Notification timeout for a client to be aware of disconnect. Only
+       applies to HTTP transport.
 
 MCP Server Configuration Methods
 --------------------------------
@@ -371,11 +477,18 @@ When you enable read-only mode, a message is added to the MCP Server log
 that indicates the tools that perform write operations are prevented
 from running.
 
+.. _mcp-server-configuration-troubleshooting:
+
 Troubleshooting MCP Server
 --------------------------
 
-If you have issues with the MCP Server, examine the log files for
-information that can help you troubleshoot the problem.
+If you have issues with the MCP Server, examine the MCP Server logs for
+information that can help troubleshoot the problem.
+
+By default, the MCP Server writes the logs to disk and also sends the
+logs to the MCP client. You can change the ``loggers`` option to specify
+where the logs are sent. For details about the MCP Server options, see
+:ref:`mcp-server-configuration-options`.
 
 The following table shows the default directories where the MCP
 Server stores the log files:
@@ -396,6 +509,8 @@ You can change the log path if required. To do that, set one of these:
 
 - ``logPath`` option in a JSON configuration file or command line
 - ``MDB_MCP_LOG_PATH`` environment variable
+
+.. _mcp-server-configuration-disable-tools:
 
 Disabling MCP Server Tools
 --------------------------
@@ -475,6 +590,8 @@ variable, use a comma-separated string. For example:
 .. code-block:: bash
 
    export MDB_MCP_DISABLED_TOOLS="create,update,delete,atlas"
+
+.. _mcp-server-configuration-telemetry:
 
 Disabling MCP Server Telemetry
 ------------------------------
