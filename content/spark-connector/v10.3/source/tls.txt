@@ -1,0 +1,113 @@
+.. _spark-configure-tls:
+
+=================
+Configure TLS/SSL
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, authenticate
+
+Overview
+--------
+
+In this guide, you can learn how to configure :wikipedia:`TLS/SSL
+<Transport_Layer_Security>` to secure communications between the
+{+connector-long+} and your MongoDB deployment.
+
+To use TLS/SSL, your application and each of your Spark
+workers must have access to cryptographic certificates that prove their
+identity. Store the certificates in your JVM trust store and your JVM
+key store. You can configure access to these certificates through your Spark
+configuration file, or when launching a Spark job from the command line.
+
+Create a JVM Trust Store
+------------------------
+
+The JVM trust store saves certificates that securely identify other applications
+with which your application interacts. Using these certificates, your
+application can prove that the connection to another application is genuine and
+secure.
+
+Create a trust store with the `keytool <https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html>`__ command line tool provided as part of the
+JDK:
+
+.. code-block:: sh
+
+   keytool -importcert -trustcacerts -file <path to certificate authority file>
+           -keystore <path to trust store> -storepass <password>
+
+Create a JVM Key Store
+----------------------
+
+The JVM key store saves certificates that securely identify your application to
+other applications. Using these certificates, other
+applications can prove that the connection to your application is genuine and
+secure.
+
+Create a key store by using the `keytool
+<https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html>`__, or
+`openssl <https://www.openssl.org/docs/>`__ command line tools.
+
+Enable TLS/SSL
+--------------
+
+You can enable TLS/SSL for the connection to your MongoDB instance through the
+``tls`` parameter in your connection URI.
+
+The following example shows a connection URI with the ``tls`` option assigned
+to ``true`` to enable TLS/SSL:
+
+.. code-block:: none
+
+   "mongodb+srv://<username>:<password>@<cluster-url>?tls=true"
+
+For more information about creating a connection string, see the
+:manual:`Connection String guide <reference/connection-string/>` on the server
+manual.
+
+Configure Access to Certificate Stores
+--------------------------------------
+
+To configure your Spark application to access the certificates stored in your
+JVM trust store and JVM key store, the following system properties must be set:
+
+- javax.net.ssl.trustStore
+- javax.net.ssl.trustStorePassword
+- javax.net.ssl.keyStore
+- javax.net.ssl.keyStorePassword
+
+Set the Properties in Your Spark Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set the system properties in your Spark configuration file as follows:
+
+.. code-block:: none
+
+   spark.executor.extraJavaOptions=-Djavax.net.ssl.trustStore=<Path to your trust store> -Djavax.net.ssl.trustStorePassword=<Your trust store password> -Djavax.net.ssl.keyStore=<Path to your key store> -Djavax.net.ssl.keyStorePassword=<Your key store password>"
+
+   spark.driver.extraJavaOptions=-Djavax.net.ssl.trustStore=<Path to your trust store> -Djavax.net.ssl.trustStorePassword=<Your trust store password> -Djavax.net.ssl.keyStore=<Path to your key store> -Djavax.net.ssl.keyStorePassword=<Your key store password>"
+
+Set the Properties From the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set the system properties from the command line by adding them with the
+``--conf`` flag when you submit a Spark job:
+
+.. code-block:: sh
+
+   ./bin/spark-submit --name "<Your app name>" \
+                      --master "<Master URL>" \
+                      --conf "spark.executor.extraJavaOptions=-Djavax.net.ssl.trustStore=<Path to your trust store> -Djavax.net.ssl.trustStorePassword=<Your trust store password> -Djavax.net.ssl.keyStore=<Path to your key store> -Djavax.net.ssl.keyStorePassword=<Your key store password>" \
+                      sparkApplication.jar \
+                      --conf "spark.driver.extraJavaOptions=-Djavax.net.ssl.trustStore=<Path to your trust store> -Djavax.net.ssl.trustStorePassword=<Your trust store password> -Djavax.net.ssl.keyStore=<Path to your key store> -Djavax.net.ssl.keyStorePassword=<Your key store password>" \
+                      sparkApplication.jar
