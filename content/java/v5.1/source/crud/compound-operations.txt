@@ -1,0 +1,329 @@
+.. _java-compound-operations:
+
+===================
+Compound Operations
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform **compound operations** with
+the MongoDB Java driver. 
+
+Compound operations consist of a read and write operation performed as one
+**atomic operation**. An atomic operation is an operation which either completes
+entirely, or does not complete at all. Atomic operations cannot partially complete.
+
+Atomic operations can help you avoid **race conditions** in your code. A
+race condition occurs when your code's behavior is dependent on the order of
+uncontrollable events.
+
+MongoDB supports the following compound operations:
+
+- Find and update one document
+- Find and replace one document
+- Find and delete one document
+
+If you must perform more complex tasks atomically, such as reading and
+writing to more than one document, use **transactions**. Transactions are a
+feature of MongoDB and other databases that lets you define an arbitrary
+sequence of database commands as an atomic operation.  
+
+For more information about atomic operations and atomicity, see 
+:manual:`the MongoDB manual entry for atomicity and transactions </core/write-operations-atomicity/>`.
+
+For more information about transactions, 
+:manual:`see the MongoDB manual entry for transactions </core/transactions/>`.
+
+How to Use Compound Operations
+------------------------------
+
+This section shows how to use each compound operation with the MongoDB Java Driver.
+
+The following examples use a collection containing these two sample documents.
+
+.. code-block:: json
+   :copyable: false
+
+    {"_id": 1, "food": "donut", "color": "green"}
+    {"_id": 2, "food": "pear", "color": "yellow"}
+
+`The full code for the following examples is available on Github here. <https://github.com/mongodb/docs-java/blob/master/source/includes/fundamentals/code-snippets/CompoundOperatorsIndividualExamples.java>`__
+
+.. note:: Before or After the Write?
+
+   By default, each compound operation returns your found document in the state
+   before your write operation. You can retrieve your found document in the
+   state after your write operation by using the options class corresponding to
+   your compound operation. You can see an example of this configuration in the 
+   :ref:`Find and Replace example below <java-find-and-replace-example>`.
+
+Find and Update
+~~~~~~~~~~~~~~~
+
+To find and update one document, use the ``findOneAndUpdate()`` method of the
+``MongoCollection`` class. The ``findOneAndUpdate()`` method returns your found
+document or ``null`` if no documents match your query.
+
+Example
+^^^^^^^
+
+The following example uses the ``findOneAndUpdate()`` method to find a
+document with the ``color`` field set to ``"green"`` and update the
+``food`` field in that document to ``"pizza"``. 
+
+The example also uses a ``FindOneAndUpdateOptions`` instance to specify the
+following options:
+
+- Exclude the ``_id`` field from the found document with a projection.
+- Specify an upsert, which inserts the document specified by the query filter if no documents match the query.
+- Set a maximum execution time of 5 seconds for this operation on the MongoDB
+  instance. If the operation takes longer, the ``findOneAndUpdate()`` method
+  will throw a ``MongoExecutionTimeoutException``.  
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CompoundOperatorsIndividualExamples.java
+   :language: java
+   :dedent:
+   :start-after: start findOneAndUpdate-example
+   :end-before: end findOneAndUpdate-example
+
+The output of the preceding code resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {"food": "pizza", "color": "green"}
+
+For more information about the ``Projections`` class, see our
+:doc:`guide on the Projections builder </builders/projections/>`.
+
+For more information about the upsert operation, see our 
+:doc:`guide on upserts </crud/write-operations/upsert/>`.
+
+For more information about the methods and classes mentioned in this section,
+see the following API Documentation:
+
+- `findOneAndUpdate() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#findOneAndUpdate(org.bson.conversions.Bson,java.util.List,com.mongodb.client.model.FindOneAndUpdateOptions)>`__
+- `FindOneAndUpdateOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/FindOneAndUpdateOptions.html>`__
+- `MongoExecutionTimeoutException <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoExecutionTimeoutException.html>`__
+
+
+.. _java-find-and-replace-example:
+
+Find and Replace
+~~~~~~~~~~~~~~~~
+
+To find and replace one document, use the ``findOneAndReplace()`` method of the
+``MongoCollection`` class. The ``findOneAndReplace()`` method returns your found
+document or ``null`` if no documents match your query.
+
+Example
+^^^^^^^
+
+The following example uses the ``findOneAndReplace()`` method to find a
+document with the ``color`` field set to ``"green"`` and  replace it
+with the following document:
+
+.. code-block:: json
+   :copyable: false
+
+   {"music": "classical", "color": "green"}
+
+The example also uses a ``FindOneAndReplaceOptions`` instance to specify that
+the returned document should be in the state after our replace operation.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CompoundOperatorsIndividualExamples.java
+   :language: java
+   :dedent:
+   :start-after: start findOneAndReplace-example
+   :end-before: end findOneAndReplace-example
+
+The output of the preceding code resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": 1, "music": "classical", "color": "green"}
+
+For more information about the methods and classes mentioned in this section,
+see the following API Documentation:
+
+- `findOneAndReplace() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#findOneAndReplace(org.bson.conversions.Bson,TDocument,com.mongodb.client.model.FindOneAndReplaceOptions)>`__
+- `FindOneAndReplaceOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/FindOneAndReplaceOptions.html>`__
+
+Find and Delete
+~~~~~~~~~~~~~~~
+
+To find and delete one document, use the ``findOneAndDelete()`` method of the
+``MongoCollection`` class. The ``findOneAndDelete()`` method returns your found
+document or ``null`` if no documents match your query.
+
+Example
+^^^^^^^
+
+The following example uses the ``findOneAndDelete()`` method to find and
+delete the document with the largest value in the ``_id`` field.
+
+The example uses a ``FindOneAndDeleteOptions`` instance to specify a
+descending sort on the ``_id`` field.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CompoundOperatorsIndividualExamples.java
+   :language: java
+   :dedent:
+   :start-after: start findOneAndDelete-example
+   :end-before: end findOneAndDelete-example
+
+The output of the preceding code resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": 2, "food": "pear", "color": "yellow"}
+
+For more information about the ``Sorts`` class, see our
+:doc:`guide on the Sorts builder </builders/sort/>`.
+
+For more information about the methods and classes mentioned in this section,
+see the following API Documentation:
+
+- `findOneAndDelete() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#findOneAndDelete(org.bson.conversions.Bson,com.mongodb.client.model.FindOneAndDeleteOptions)>`__
+- `FindOneAndDeleteOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/FindOneAndDeleteOptions.html>`__
+
+Avoiding a Race Condition
+-------------------------
+
+In this section we explore two examples. The first example contains a
+race condition, the second example uses a compound operation to
+avoid the race condition present in the first example.
+
+For both examples, let's imagine that we run a hotel with one room and that we
+have a small Java program to help us checkout this room to a guest.  
+
+The following document in MongoDB represents the room:
+
+.. code-block:: json
+   :copyable: false
+
+    {"_id": 1, "guest": null, "room": "Blue Room", "reserved": false}
+
+`The full code for this example is available on Github here. <https://github.com/mongodb/docs-java/blob/master/source/includes/fundamentals/code-snippets/CompoundOperators.java>`__
+
+Example With Race Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Let's say our app uses this ``bookARoom`` method to checkout our room to
+a guest:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CompoundOperators.java
+   :language: java
+   :dedent:
+   :emphasize-lines: 3,12
+   :start-after: start the-unsafe-book-a-room
+   :end-before: end the-unsafe-book-a-room
+
+Imagine two separate guests, Jan and Pat, try to book the room with this method
+at the same time.
+
+Jan sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   You got the Blue Room Jan
+
+And Pat sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   You got the Blue Room Pat
+
+When we look at our database, we see the following: 
+
+.. code-block:: json
+   :copyable: false
+
+    {"_id": 1, "guest": "Jan", "room": "Blue Room", "reserved": true}
+
+Pat will be unhappy. When Pat shows up to our hotel, Jan will be
+occupying her room. What went wrong?
+
+Here is the sequence of events that happened from the perspective of our MongoDB
+instance:
+
+- Find and return an empty room for Jan
+- Find and return an empty room for Pat
+- Update the room to booked for Pat
+- Update the room to booked for Jan
+
+Notice that for a brief moment Pat had reserved the room, but as Jan's update
+operation was the last to execute our document has ``"Jan"`` as the guest. 
+
+Example Without Race Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Let's use a compound operation to avoid the race condition and
+always give our users the correct message. 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CompoundOperators.java
+   :language: java
+   :dedent:
+   :emphasize-lines: 4
+   :start-after: start the-safe-book-a-room
+   :end-before: end the-safe-book-a-room
+
+Imagine two separate guests, Jan and Pat, try to book the room with this method
+at the same time.
+
+Jan sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   You got the Blue Room Jan
+
+And Pat sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   Sorry, we are booked Pat
+
+When we look at our database, we see the following: 
+
+.. code-block:: json
+   :copyable: false
+
+    {"_id":1, "guest":"Jan", "room":"Blue Room", "reserved":true}
+ 
+Pat got the correct message. While she might be sad she didn't get the
+reservation, at least she knows not to travel to our hotel.
+
+Here is the sequence of events that happened from the perspective of our MongoDB
+instance:
+
+- Find an empty room for Jan and reserve it.
+- Try to find an empty room for Pat and reserve it. As there are not any rooms
+  left, return ``null``. 
+
+.. important:: Write Lock
+
+   Your MongoDB instance places a write lock on the document you are modifying
+   for the duration of your compound operation. 
+
+For information on the ``Updates`` class, see our
+:doc:`guide on the Updates builder </builders/updates/>`.
+
+For more information of the ``Filters`` class, see our
+:doc:`guide on the Filters builder </builders/filters/>`.
+
+For more information about the ``findOneAndUpdate()`` method, see 
+the API Documentation for the `MongoCollection class <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#findOneAndUpdate(org.bson.conversions.Bson,java.util.List,com.mongodb.client.model.FindOneAndUpdateOptions)>`__.

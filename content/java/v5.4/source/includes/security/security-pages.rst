@@ -1,0 +1,5 @@
+- :ref:`Authentication <authentication-mechanisms>`
+- :ref:`In-Use Encryption <java-fle>`
+- :ref:`TLS/SSL <tls-ssl>`
+- :ref:`SOCKS5 Proxy <java-connect-socks>`
+- :ref:`Validate Driver Artifact Signatures <java-validate-signatures>`

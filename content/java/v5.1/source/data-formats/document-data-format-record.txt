@@ -1,0 +1,236 @@
+.. _fundamentals-records:
+
+=============================
+Document Data Format: Records
+=============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: annotations, abstraction, codec
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to store and retrieve data in the
+{+driver-long+} using **Java records**. Java records are a type of Java class
+often used to model data and separate business logic from data representation.
+
+.. tip::
+
+   You can declare Java records in Java 16 or later. Learn more about the
+   functionality and restrictions of records from `Java 17 Language Updates: Record Classes <https://docs.oracle.com/en/java/javase/17/language/records.html>`__.
+
+   If you are using an earlier version of Java, you can use plain old Java
+   objects instead. See the :ref:`<fundamentals-pojos>` guide for
+   implementation details.
+
+.. note::
+
+   If you are using the driver in an OSGi container and your application
+   uses the driver to encode or decode Java records, you must add an
+   explicit dependency on the ``org.bson.codecs.record`` module. Learn
+   more about defining dependencies for OSGi containers in the `IBM OSGi
+   documentation <https://www.ibm.com/docs/en/cics-ts/6.1?topic=server-guidance-using-osgi>`__.
+
+Serialize and Deserialize a Record
+----------------------------------
+
+The driver natively supports encoding and decoding Java records for
+MongoDB read and write operations using the **default codec registry**. The
+default codec registry is a collection of classes called **codecs** that
+define how to convert encode and decode Java types. Learn more about
+codecs and the default codec registry in the guide on :ref:`<fundamentals-codecs>`.
+
+.. _fundamentals-example-record:
+
+Example Record
+~~~~~~~~~~~~~~
+
+The code examples in this section reference the following sample record, which
+describes a data storage device:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/records/DataStorageRecord.java
+   :language: java
+   :start-after: start dataStorageRecord
+   :end-before: end dataStorageRecord
+
+Insert a Record
+~~~~~~~~~~~~~~~
+
+You can insert a ``DataStorageRecord`` instance as shown in the following code:
+
+.. code-block:: java
+
+   MongoCollection<DataStorageRecord> collection = database.getCollection("data_storage_devices", DataStorageRecord.class);
+
+   // insert the record
+   collection.insertOne(new DataStorageRecord("2TB SSD", 1.71));
+
+Retrieve a Record
+~~~~~~~~~~~~~~~~~
+
+You can retrieve documents as ``DataStorageRecord`` instances and print them
+as shown in the following code:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: java
+
+      MongoCollection<DataStorageRecord> collection = database.getCollection("data_storage_devices", DataStorageRecord.class);
+
+      // retrieve and print the records
+      List<DataStorageRecord> records = new ArrayList<DataStorageRecord>();
+      collection.find().into(records);
+      records.forEach(System.out::println);
+
+   .. output::
+      :language: none
+
+      DataStorageRecord[productName=1TB SSD, capacity=1.71]
+
+
+.. _fundamentals-records-annotations:
+
+Specify Component Conversion Using Annotations
+----------------------------------------------
+
+This section describes how to configure the serialization behavior of record components
+by using annotations. For a full list of supported annotations, see the
+`org.bson.codecs.pojo.annotations package API documentation.
+<{+api+}/apidocs/bson/org/bson/codecs/pojo/annotations/package-summary.html>`__
+
+.. note::
+
+   The driver supports annotations for Java records, but only if you include them
+   when you define the component as shown in the following example record. You
+   cannot use the annotations inside the record constructor.
+
+Example Annotated Record
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The code examples in this section reference the following sample record, which
+describes a network device:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/records/NetworkDeviceRecord.java
+   :language: java
+   :start-after: start networkDeviceRecord
+   :end-before: end networkDeviceRecord
+
+Insert an Annotated Record
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert a ``DataStorageRecord`` instance as shown in the following code:
+
+.. code-block:: java
+
+   MongoCollection<NetworkDeviceRecord> collection = database.getCollection("network_devices", NetworkDeviceRecord.class);
+
+   // insert the record
+   String deviceId = new ObjectId().toHexString();
+   collection.insertOne(new NetworkDeviceRecord(deviceId, "Enterprise Wi-fi", "router"));
+
+The inserted document in MongoDB resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     _id: ObjectId("fedc..."),
+     name: 'Enterprise Wi-fi',
+     type: 'router'
+   }
+
+Retrieve an Annotated Record
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can retrieve documents as ``NetworkDeviceRecord`` instances and print them
+as shown in the following code:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: java
+
+      MongoCollection<NetworkDeviceRecord> collection = database.getCollection("network_devices", NetworkDeviceRecord.class);
+
+      // return all documents in the collection as records
+      List<NetworkDeviceRecord> records = new ArrayList<NetworkDeviceRecord>();
+      collection.find().into(records);
+      records.forEach(System.out::println);
+
+   .. output::
+      :language: none
+
+      NetworkDeviceRecord[deviceId=fedc..., name=Enterprise Wi-fi, deviceType=router]
+
+.. note::
+
+   The ``org.bson.codecs.records.annotations`` package is deprecated. Use the equivalent
+   annotations from the `org.bson.codecs.pojo.annotations
+   <{+api+}/apidocs/bson/org/bson/codecs/pojo/annotations/package-summary.html>`__ package
+   instead.
+
+Operations with Recursive Types
+-------------------------------
+
+The driver natively supports encoding and decoding of recursively
+defined records without causing runtime recursion. This support extends
+to cycles of multiple record types in type definitions. The following
+code provides an example of a recursive record design:
+
+.. code-block:: java
+
+   public record RecordTree(
+           String content,
+           RecordTree left,
+           RecordTree right
+   ) {}
+
+You can perform read and write operations on recursively defined records the same
+way you would for other records. The following code shows how you can
+execute a find operation on a collection of ``RecordTree`` types:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: java
+
+      MongoDatabase database = mongoClient.getDatabase("myDB");
+      MongoCollection<RecordTree> collection = database.getCollection("myCollection", RecordTree.class);
+      
+      Bson filter = Filters.eq("left.left.right.content", "Ikatere");
+      collection.find(filter).forEach(doc -> System.out.println(doc));
+
+   .. output::
+      :language: sh
+
+      RecordTree[content=Ranginui, left=RecordTree[content=..., left=RecordTree[content=..., right=RecordTree[content=Ikatere...]]
+
+.. _fundamentals-records-get-codec:
+
+Retrieve the Record Codec
+-------------------------
+
+You can use the ``RecordCodecProvider`` to retrieve the
+record codec. You should use this interface when you want to customize the codec to encode
+and decode Java record objects to and from corresponding BSON types while
+minimizing duplicate code. To learn more about codecs and their usage,
+see :ref:`Codecs <fundamentals-codecs>`.
+
+You can't create a record codec directly, but you can use the
+``RecordCodecProvider`` to implement the record codec in your code. Learn more
+about the ``RecordCodecProvider``, see the
+`API documentation <{+api+}/apidocs/bson-record-codec/org/bson/codecs/record/RecordCodecProvider.html>`__.

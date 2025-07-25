@@ -1,0 +1,3 @@
+- :ref:`Logging <java-fundamentals-logging>`
+- :ref:`Monitoring <java-monitoring>`
+- :ref:`Change Streams <java-fundamentals-change-streams>`

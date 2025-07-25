@@ -1,0 +1,573 @@
+================
+Updates Builders
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _updates-builders:
+
+Overview
+--------
+
+In this guide, you can learn how to specify **updates** by using
+:ref:`builders <java-builders>` in the {+driver-short+}.
+
+The ``Updates`` builder provides helper methods to simplify the following
+tasks:
+
+- :ref:`field_updates`: Updating or removing the value of a particular field
+- :ref:`array_updates`: Updating values in an array-valued field
+- :ref:`multiple_updates`: Performing multiple updates at once, such as setting or changing more than one field
+
+Some methods that expect update documents are:
+
+- ``updateOne()``
+- ``updateMany()``
+- ``bulkWrite()``
+
+The ``Updates`` class provides static factory methods for all the MongoDB update
+operators. Each method returns an instance of the :ref:`BSON <bson>`
+type, which you can pass to any method that expects an update argument.
+
+.. tip::
+
+   For brevity, you can choose to import the methods of the `Updates
+   <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html>`__
+   class statically:
+
+   .. code-block:: java
+
+      import static com.mongodb.client.model.Updates.*;
+
+   The following examples assume this static import.
+
+The examples in this guide use the following document:
+
+.. code-block:: json
+
+   {
+       "_id": 1,
+       "color": "red",
+       "qty": 5,
+       "vendor": [ "A", "D", "M" ],
+       "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+.. _field_updates:
+
+Field Updates
+-------------
+
+Set
+~~~
+
+Use the `set() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#set(java.lang.String,TItem)>`__
+method to assign the value of a field in an update operation.
+
+The following example sets the value of the ``qty`` field to "11":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin setUpdate
+   :end-before: end setUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 11,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+The following example adds two new fields to the original document:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin combineSet
+   :end-before: end combineSet
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" },
+      "width": 6.5,
+      "height": 10,
+   }
+
+Unset
+~~~~~
+Use the `unset() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#unset(java.lang.String)>`__ method
+to delete the value of a field in an update operation.
+
+The following example deletes the ``qty`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin unsetUpdate
+   :end-before: end unsetUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Set On Insert
+~~~~~~~~~~~~~
+Use the `setOnInsert() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#setOnInsert(java.lang.String,TItem)>`__
+method to assign the value of a field in an update operation on an
+insert of a document.
+
+The following example sets the value of the ``qty`` field to "5"
+if an upsert resulted in the insert of a document:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin setOnInsertUpdate
+   :end-before: end setOnInsertUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+.. note::
+
+   If the document is not inserted, no change will occur.
+
+Increment
+~~~~~~~~~
+Use the `inc() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#inc(java.lang.String,java.lang.Number)>`__
+method to increment the value of a numeric field in an update operation.
+
+The following example increments the value of the ``qty`` field by
+"3":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin incUpdate
+   :end-before: end incUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 8,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Multiply
+~~~~~~~~
+Use the `mul() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#mul(java.lang.String,java.lang.Number)>`__
+method to multiply the value of a numeric field in an update operation.
+
+The following example multiplies the value of the ``qty`` field by
+"2":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin mulUpdate
+   :end-before: end mulUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 10,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Rename
+~~~~~~
+Use the `rename() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#rename(java.lang.String,java.lang.String)>`__
+method to rename the value of a field in an update operation.
+
+The following example renames the ``qty`` field to "quantity":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin renameUpdate
+   :end-before: end renameUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" },
+      "quantity": 5
+   }
+
+Min
+~~~
+Use the `min() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#min(java.lang.String,TItem)>`__
+method to update the value of a field with the smaller number of the two
+specified in an update operation.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin minUpdate
+   :end-before: end minUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 2,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Max
+~~~
+Use the `max() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#max(java.lang.String,TItem)>`__
+method to update the value of a field with the larger number of the two
+specified in an update operation.
+
+The following example sets the value of the ``qty`` field to the
+maximum of its current value and "8":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin maxUpdate
+   :end-before: end maxUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 8,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Current Date
+~~~~~~~~~~~~
+Use the `currentDate() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#currentDate(java.lang.String)>`__
+method to assign the value of a field in an update operation to the
+current date as a :manual:`BSON date </reference/bson-types/#date>`.
+
+The following example sets the value of the ``lastModified`` field to
+the current date as a BSON date:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin currentDateUpdate
+   :end-before: end currentDateUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-22T21:01:20.027Z" }
+   }
+
+Current Timestamp
+~~~~~~~~~~~~~~~~~
+Use the `currentTimestamp() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#currentTimestamp(java.lang.String)>`__
+method to assign the value of a field in an update operation to the
+current date as a :manual:`timestamp </reference/bson-types/#timestamps>`.
+
+The following example sets the value of the ``lastModified`` field to
+the current date as a BSON timestamp:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin currentTimestampUpdate
+   :end-before: end currentTimestampUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$timestamp": { "t": 1616446880, "i": 5 } }
+   }
+
+Bit
+~~~
+Use the `bitwiseOr() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#bitwiseOr(java.lang.String,int)>`__,
+`bitwiseAnd() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#bitwiseAnd(java.lang.String,int)>`__,
+and `bitwiseXor() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#bitwiseXor(java.lang.String,int)>`__
+methods to perform a bitwise update of the integer value of a field in
+an update operation.
+
+The following example performs a bitwise ``AND`` between the number
+"10" and the integer value of the ``qty`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin bitwiseOrUpdate
+   :end-before: end bitwiseOrUpdate
+
+The bitwise operation results in 15:
+
+.. code-block:: none
+   :copyable: false
+
+   0101
+   1010
+   ----
+   1111
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 15,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+.. _array_updates:
+
+Array Updates
+-------------
+
+Add to Set
+~~~~~~~~~~
+Use the `addToSet() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#addToSet(java.lang.String,TItem)>`__
+method to append a value to an array if the value is not already present
+in an update operation.
+
+The following example adds the value "C" to the array value of
+the ``vendor`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin addToSetUpdate
+   :end-before: end addToSetUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "A", "D", "M", "C" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Pop
+~~~
+Use the `popFirst() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#popFirst(java.lang.String)>`__
+method to remove the first element of an array and the
+`popLast() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#popLast(java.lang.String)>`__
+method to remove the last element of an array in an update operation.
+
+The following example pops the first element off of the array value
+of the ``vendor`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin popFirstUpdate
+   :end-before: end popFirstUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Pull All
+~~~~~~~~
+Use the `pullAll() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#pullAll(java.lang.String,java.util.List)>`__
+method to remove all instances of values from an existing array in
+an update operation.
+
+The following example removes vendor "A" and "M" from the ``vendor`` array:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin pullAllUpdate
+   :end-before: end pullAllUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "D" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Pull
+~~~~
+Use the `pull() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#pull(java.lang.String,TItem)>`__
+method to remove all instances of a value from an existing array in
+an update operation.
+
+The following example removes the value "D" from the ``vendor``
+array:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin pullUpdate
+   :end-before: end pullUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "A", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+Push
+~~~~
+Use the `push() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#push(java.lang.String,TItem)>`__
+method to append a value to an array in an update operation.
+
+The following examples pushes "C" to the ``vendor`` array:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin pushUpdate
+   :end-before: end pushUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 5,
+      "vendor": [ "A", "D", "M", "C" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+.. _multiple_updates:
+
+Combining Multiple Update Operators
+-----------------------------------
+An application can update multiple fields of a single document by
+combining two or more of the update operators described in the preceding
+sections.
+
+The following example increments the value of the ``qty`` field by "6", sets
+the value of the ``color`` field to "purple", and pushes "R" to
+the ``vendor`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Updates.java
+   :language: java
+   :dedent:
+   :start-after: begin combineUpdate
+   :end-before: end combineUpdate
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "purple",
+      "qty": 11,
+      "vendor": [ "A", "D", "M", "R" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
