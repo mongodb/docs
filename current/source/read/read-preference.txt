@@ -1,0 +1,170 @@
+.. _java-rs-read-preference:
+
+===============
+Read Preference
+===============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, preference, option
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+To choose which member of a replica set to read from, you can use the {+driver-short+} to configure read
+preferences. You can additionally control the consistency and isolation
+properties of the data read from replica sets and sharded clusters by
+configuring read concerns. In this guide, you can learn how to use the {+driver-long+} to
+configure read preferences and read concerns.
+
+You can configure the read preference and read concern at the following levels:
+
+- For your MongoDB deployment
+- For your database
+- For your collection
+
+Configure the Read Preference at the Deployment Level
+-----------------------------------------------------
+
+You can configure the read preference at the deployment level in the following ways:
+  
+- By creating a ``MongoClientSettings`` instance, as shown in the following code:
+
+  .. code-block:: java
+
+     MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
+         .applyConnectionString(new ConnectionString("mongodb://host1,host2"))
+         .readPreference(ReadPreference.secondary())
+         .build());
+
+- By creating a ``ConnectionString`` instance, as shown in the following code:
+
+  .. code-block:: java
+
+     MongoClient mongoClient =
+     MongoClients.create("mongodb://host1:27017,host2:27017/?readPreference=secondary");
+
+Configure the Read Preference at the Database or Collection Level
+-----------------------------------------------------------------
+
+You can configure the read preference at the database or collection level in the following
+ways:
+
+- In a ``MongoDatabase`` by using the ``withReadPreference()`` method, as shown in the following code:
+
+  .. code-block:: java
+
+     MongoDatabase database = mongoClient.getDatabase("test")
+         .withReadPreference(ReadPreference.secondary());
+
+- In a ``MongoCollection`` by using the ``withReadPreference()`` method, as
+  shown in the following code:
+
+  .. code-block:: java
+    
+     MongoCollection<Document> collection = database.getCollection("restaurants")
+         .withReadPreference(ReadPreference.secondary());
+
+``MongoDatabase`` and ``MongoCollection`` instances are immutable. Calling
+``withReadPreference()`` on an existing ``MongoDatabase`` or
+``MongoCollection`` instance returns a new instance and does not affect
+the instance on which the method is called.
+
+In the following example, the ``collectionWithReadPref`` instance
+has the read preference of ``primaryPreferred`` while the read
+preference of the ``collection`` is unaffected:
+
+.. code-block:: java
+
+   MongoCollection<Document> collectionWithReadPref = collection.withReadPreference(ReadPreference.primaryPreferred());
+
+Configure the Read Concern at the Deployment Level
+--------------------------------------------------
+
+You can configure the read concern at the deployment level in the following
+ways:
+
+- By creating a ``MongoClientSettings`` instance, as shown in the following code:
+
+  .. code-block:: java
+
+     MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
+         .applyConnectionString(new ConnectionString("mongodb://host1,host2"))
+         .readConcern(ReadConcern.MAJORITY)
+         .build());
+
+- By creating a ``ConnectionString`` instance, as shown in the following code:
+
+  .. code-block:: java
+
+     MongoClient mongoClient =
+     MongoClients.create("mongodb://host1:27017,host2:27017/?readConcernLevel=majority");
+
+Configure the Read Concern at the Database or Collection Level
+--------------------------------------------------------------
+
+You can configure the read concern at the database or collection level in the following
+ways:
+
+- In a ``MongoDatabase`` by using the ``withReadConcern()`` method, as shown in
+  the following code:
+
+  .. code-block:: java
+  
+     MongoDatabase database = mongoClient.getDatabase("test")
+         .withReadConcern(ReadConcern.MAJORITY);
+
+- In a ``MongoCollection`` by using the ``withReadConcern()`` method, as shown
+  in the following code:
+
+  .. code-block:: java
+  
+     MongoCollection<Document> collection = database.getCollection("restaurants")
+         .withReadConcern(ReadConcern.MAJORITY);
+
+``MongoDatabase`` and ``MongoCollection`` instances are immutable. Calling
+``withReadConcern()`` on an existing ``MongoDatabase`` or
+``MongoCollection`` instance returns a new instance and does not affect
+the instance on which the method is called.
+
+In the following example, the ``collWithReadConcern`` instance has
+an ``AVAILABLE`` read concern whereas the read concern of the ``collection``
+is unaffected:
+
+.. code-block:: java
+
+   MongoCollection<Document> collWithReadConcern =
+   collection.withReadConcern(ReadConcern.AVAILABLE);
+
+Combine Read Concern, Read Preference, and Write Concern
+--------------------------------------------------------
+
+You can build ``MongoClientSettings``, ``MongoDatabase``, or
+``MongoCollection`` instances to include combinations of read concerns, read
+preferences, and write concerns.
+
+For example, the following code sets all three at the collection level:
+
+.. code-block:: java
+
+   collection = database.getCollection("restaurants")
+       .withReadPreference(ReadPreference.primary())
+       .withReadConcern(ReadConcern.MAJORITY)
+       .withWriteConcern(WriteConcern.MAJORITY);
+
+Additional Information
+----------------------
+
+To learn more about read preference, see the :manual:`Read Preference guide
+</core/read-preference/>` in the {+mdb-server+} manual. To learn more about read
+concern, see the :manual:`Read Concern guide </reference/read-concern/>` in the
+{+mdb-server+} manual.
