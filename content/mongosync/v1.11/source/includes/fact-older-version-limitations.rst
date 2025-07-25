@@ -37,6 +37,6 @@
   <c2c-api-start-sharding>`. Instead, create an index to support your shard key 
   on the source cluster. 
 
-- If there are any indexes with inconsistent specs or that are missing 
-  ``mongosync`` returns an error. To check for index inconsistencies, see 
-  :ref:`manage-indexes-find-inconsistent-indexes`.
+- If there are any indexes with inconsistent specs or that are missing on one or 
+  more shards, ``mongosync`` returns an error. To check for index 
+  inconsistencies, see :ref:`manage-indexes-find-inconsistent-indexes`.
