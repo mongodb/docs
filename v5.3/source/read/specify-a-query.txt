@@ -1,0 +1,369 @@
+.. _scala-specify-query:
+
+===============
+Specify a Query
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: expressions, operations, read, write, filter
+
+Overview
+--------
+
+In this guide, you can learn how to specify a query by using the {+driver-short+}.
+
+You can refine the set of documents that a query returns by creating a
+**query filter**. A query filter is an expression that specifies the search
+criteria that MongoDB uses to match documents in a read or write operation.
+
+You can use **query operators** to express more complex matching criteria in
+a query filter. The {+driver-short+} includes a ``Filters`` class that provides
+helper methods for applying query operators. 
+
+.. tip::
+    
+    To view a full list of ``Filters`` helper methods, see the `Filters
+    <{+api+}/org/mongodb/scala/model/Filters$.html>`__ API documentation.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide run operations on the ``fruits`` collection,
+which contains documents representing fruits. The following
+code example shows how to create a database and collection, then
+insert the sample documents into your collection:
+
+.. literalinclude:: /includes/read/specify-queries.scala
+   :start-after: start-setup
+   :end-before: end-setup
+   :language: scala
+   :dedent:
+   :copyable:
+
+Exact Match
+-----------
+
+Literal value queries return documents that have an exact match to your query filter.
+
+The following example specifies a query filter as a parameter to the ``find()``
+method. The code returns all documents in which the value of the ``color`` field
+is ``"yellow"``:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/read/specify-queries.scala
+      :start-after: start-find-exact
+      :end-before: end-find-exact
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false    
+
+      {"_id": 2, "name": "bananas", "qty": 7, "rating": 4, "color": "yellow", "type": ["cavendish"]}
+      {"_id": 4, "name": "pineapples", "qty": 3, "rating": 5, "color": "yellow"}
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, call the ``find()`` method
+   without passing any parameters:
+
+   .. code-block:: scala
+
+      collection.find()
+
+Comparison Operators
+--------------------
+
+Comparison operators evaluate a document field value against a specified value
+in your query filter. The following list defines common comparison operators and
+their corresponding ``Filters`` helper methods:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Query Operator
+     - Helper Method
+     - Description
+
+   * - ``$gt``
+     - ``gt()``
+     - | Matches documents in which the value of the given field is *greater than*
+         the specified value.
+
+   * - ``$lte``
+     - ``lte()``
+     - | Matches documents in which the value of the given field is *less than or
+         equal to* the specified value.
+
+   * - ``$ne``
+     - ``ne()``
+     - | Matches documents in which the value of the given field *does not equal* the
+         specified value.
+
+.. tip::
+
+   To view a full list of comparison operators, see the :manual:`Comparison Query Operators
+   </reference/operator/query-comparison/>` guide in the {+mdb-server+} manual. 
+
+The following example passes a query filter to the ``find()`` method and uses the
+``gt()`` method to apply the ``$gt`` comparison operator. The code returns all documents
+in which the value of the ``rating`` field is greater than ``2``:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/read/specify-queries.scala
+      :start-after: start-find-comparison
+      :end-before: end-find-comparison
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id": 1, "name": "apples", "qty": 5, "rating": 3, "color": "red", "type": ["fuji", "honeycrisp"]}
+      {"_id": 2, "name": "bananas", "qty": 7, "rating": 4, "color": "yellow", "type": ["cavendish"]}
+      {"_id": 4, "name": "pineapples", "qty": 3, "rating": 5, "color": "yellow"}
+
+Logical Operators
+-----------------
+
+Logical operators match documents by using logic applied to the results of two or
+more sets of expressions. The following table describes each logical operator and
+its corresponding ``Filters`` helper method: 
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Query Operator
+     - Helper Method
+     - Description
+
+   * - ``$and``
+     - ``and()``
+     - | Matches documents that satisfy the conditions of *all* clauses
+
+   * - ``$or``
+     - ``or()``
+     - | Matches documents that satisfy the conditions of *one* clause
+
+   * - ``$nor``
+     - ``nor()``
+     - | Matches documents that *do not* satisfy the conditions of any clause
+
+   * - ``$not``
+     - ``not()``
+     - | Matches documents that *do not* match the expression
+
+.. tip::
+
+   To learn more about logical operators, see the :manual:`Logical Query Operators
+   </reference/operator/query-logical/>` guide in the {+mdb-server+} manual.
+
+The following example passes a query filter to the ``find()`` method and uses
+the ``or()`` method to apply the ``$or`` logical operator. The code returns all documents
+in which the ``qty`` field value is greater than ``5`` **or** the ``color`` field
+value is ``"yellow"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.scala
+      :start-after: start-find-logical
+      :end-before: end-find-logical
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id": 2, "name": "bananas", "qty": 7, "rating": 4, "color": "yellow", "type": ["cavendish"]}
+      {"_id": 3, "name": "oranges", "qty": 6, "rating": 2, "type": ["naval", "mandarin"]}
+      {"_id": 4, "name": "pineapples", "qty": 3, "rating": 5, "color": "yellow"}
+
+Array Operators
+---------------
+
+Array operators match documents based on the value or quantity of elements in an
+array field. The following table describes each array operator and its
+corresponding ``Filters`` helper method: 
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Query Operator
+     - Helper Method
+     - Description
+
+   * - ``$all``
+     - ``all()``
+     - | Matches documents that have arrays containing all elements in the query
+
+   * - ``$elemMatch``
+     - ``elemMatch()``
+     - | Matches documents if an element in their array field satisfies all
+         conditions in the query
+
+   * - ``$size``
+     - ``size()``
+     - | Matches documents that have arrays of a specified size
+
+.. tip::
+
+    To learn more about array operators, see the :manual:`Array Query Operators
+    </reference/operator/query-array/>` guide in the {+mdb-server+} manual.
+
+The following example passes a query filter to the ``find()`` method and uses
+the ``size()`` method to apply the ``$size`` array operator. The code returns all
+documents in which the ``type`` array field contains ``2`` elements:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.scala
+      :start-after: start-find-array
+      :end-before: end-find-array
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id": 1, "name": "apples", "qty": 5, "rating": 3, "color": "red", "type": ["fuji", "honeycrisp"]}
+      {"_id": 3, "name": "oranges", "qty": 6, "rating": 2, "type": ["naval", "mandarin"]}
+
+Element Operators
+-----------------
+
+Element operators query data based on the presence or type of a field. The
+following table describes each element operator and its corresponding ``Filters``
+helper method: 
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Query Operator
+     - Helper Method
+     - Description
+
+   * - ``$exists``
+     - ``exists()``
+     - | Matches documents that have the specified field
+
+   * - ``$type``
+     - ``type()``
+     - | Matches documents if a field has the specified type
+
+.. tip::
+
+    To learn more about element operators, see the :manual:`Element Query Operators
+    </reference/operator/query-element/>` guide in the {+mdb-server+} manual.
+
+The following example passes a query filter to the ``find()`` method and uses
+the ``exists()`` method to apply the ``$exists`` element operator. The code returns all
+documents that have a ``color`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.scala
+      :start-after: start-find-element
+      :end-before: end-find-element
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id": 1, "name": "apples", "qty": 5, "rating": 3, "color": "red", "type": ["fuji", "honeycrisp"]}
+      {"_id": 2, "name": "bananas", "qty": 7, "rating": 4, "color": "yellow", "type": ["cavendish"]}
+      {"_id": 4, "name": "pineapples", "qty": 3, "rating": 5, "color": "yellow"}
+
+Evaluation Operators
+--------------------
+
+Evaluation operators return data based on evaluations of either individual
+fields or the entire collection's documents. The following table describes
+common element operators and their corresponding ``Filters`` helper methods: 
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Query Operator
+     - Helper Method
+     - Description
+
+   * - ``$text``
+     - ``text()``
+     - | Performs a text search on documents
+
+   * - ``$regex``
+     - ``regex()``
+     - | Matches documents that have values satisfying a specified
+         regular expression
+
+   * - ``$mod``
+     - ``mod()``
+     - | Performs a modulo operation on the value of a field
+         and matches documents with a specified result
+
+.. tip::
+
+    To view a full list of evaluation operators, see the :manual:`Evaluation Query Operators
+    </reference/operator/query-evaluation/>` guide in the {+mdb-server+} manual.
+
+The following example passes a query filter to the ``find()`` method and uses
+the ``regex()`` method to apply the ``$regex`` evaluation operator. The code uses a regular
+expression to return all documents in which the ``name`` field value has at least
+two consecutive ``'p'`` characters:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.scala
+      :start-after: start-find-evaluation
+      :end-before: end-find-evaluation
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id": 1, "name": "apples", "qty": 5, "rating": 3, "color": "red", "type": ["fuji", "honeycrisp"]}
+      {"_id": 4, "name": "pineapples", "qty": 3, "rating": 5, "color": "yellow"}
+
+Additional Information
+----------------------
+
+To learn more about querying documents, see the :manual:`Query Documents
+</tutorial/query-documents/>` guide in the {+mdb-server+} manual.
+
+To learn more about retrieving documents with the {+driver-short+}, see the
+:ref:`scala-retrieve` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `find() <{+api+}/org/mongodb/scala/MongoCollection.html#find[C](filter:org.mongodb.scala.bson.conversions.Bson)(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.FindObservable[C]>`__
+- `Filters <{+api+}/org/mongodb/scala/model/Filters$.html>`__
+- `insertMany() <{+api+}/org/mongodb/scala/MongoCollection.html#insertMany(documents:Seq[_\<:TResult]):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.InsertManyResult]>`__
