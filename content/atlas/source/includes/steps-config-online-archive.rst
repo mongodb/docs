@@ -262,7 +262,7 @@
       #. (Optional) Specify a :guilabel:`Schedule Archiving Window`.
       
          By default, |service| periodically :ref:`runs a query to archive 
-         data <online-archive-job>`. However, you can toggle the 
+         data <adf-oa-performance-expectations>`. However, you can toggle the
          :guilabel:`Schedule Archiving Window` to explicitly schedule the 
          time window during which you want |service| to archive data. You 
          can specify the following: 

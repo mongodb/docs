@@ -9,7 +9,7 @@
        that meet the criteria for archiving are being archived. 
    * - Idle
      - Indicates online archive is waiting for the next archival 
-       :ref:`job <online-archive-job>` to start.
+       :ref:`job <adf-oa-performance-expectations>` to start.
    * - Pausing 
      - Indicates that you have requested to pause archiving. In this 
        state, |service| is finishing the running archiving operation 

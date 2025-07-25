@@ -54,7 +54,7 @@
         You can also disable the schedule by toggling :guilabel:`Schedule 
         Archive Window`. If you disable the schedule, |service| reverts to 
         the default schedule and :ref:`runs the archiving job periodically 
-        <online-archive-job>`.
+        <adf-oa-performance-expectations>`.
       
         |service| starts using the new data archiving schedule immediately 
         after you change it. However, if an archiving job is currently 
