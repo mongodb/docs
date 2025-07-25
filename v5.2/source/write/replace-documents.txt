@@ -1,0 +1,219 @@
+.. _java-rs-write-replace:
+
+=================
+Replace Documents
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code examples, write, replace, change
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to replace
+a document in a MongoDB collection by performing a **replace operation**.
+
+A replace operation replaces one document in a MongoDB collection with new
+fields and values that you specify. You can perform a replace operation by using
+the ``replaceOne()`` method.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. 
+
+To learn how to create a free MongoDB Atlas cluster and load the sample
+datasets, see the :ref:`<java-rs-getting-started>` tutorial.
+
+.. include:: /includes/reactor-note.rst
+
+Replace Operation
+-----------------
+
+You can perform a replace operation by using the ``replaceOne()``
+method on a ``MongoCollection`` instance. This method removes all fields except the ``_id`` field from the first
+document that matches the search criteria, then adds the fields and values
+you specify to the empty document.
+
+Required Parameters
+~~~~~~~~~~~~~~~~~~~
+
+The ``replaceOne()`` method requires the following parameters:
+
+- **Query filter** document, which determines which documents to replace.
+
+For more information about query filters, see the :ref:`<java-rs-specify-query>`
+guide.
+
+- **Replace** document, which specifies the fields and values to insert in the new 
+  document.
+
+Replace Example
+---------------
+
+To replace a single document in a MongoDB collection, call the ``replaceOne()`` method
+and pass the query filter document and the replace document as parameters. Then, 
+pass the ``replaceOne()`` result to the static ``Mono.from()`` method from
+``Mono``. ``Mono`` is a class from the {+pr+} library. In {+java-rs+}, 
+the driver methods return cold ``Publisher`` instances, which means that the
+corresponding operation does not happen unless you subscribe to the returned
+``Publisher``. This guide uses the {+pr+} library to consume them. To learn more
+about ``Mono``, see `Mono <https://projectreactor.io/docs/core/release/reference/#mono>`__ in the
+{+pr+} documentation.
+
+The following example uses the ``replaceOne()`` method to replace the fields and values of a
+document with a ``name`` field value of ``"Pizza Town"``. The ``replaceOne()``
+method replaces the original document with a document that has a ``name`` field
+value of ``"Mongo's Pizza"`` and a ``cuisine`` field value of ``"Pizza"``.
+
+.. code-block:: java
+   :copyable: true
+
+    Publisher<UpdateResult> replacePublisher = restaurants.replaceOne(
+            eq("name", "Pizza Town"),
+            new Document().append("name", "Mongo's Pizza")
+                    .append("cuisine", "Pizza"));
+    Mono.from(replacePublisher).block();
+
+Modify Replace Behavior
+-----------------------
+
+You can optionally modify the behavior of the ``replaceOne()`` method by calling
+an options method. The ``ReplaceOptions`` class provides methods that modify
+the behavior of the ``replaceOne()`` method. To use the ``ReplaceOptions``
+class, construct a new instance of the class, then call one or more of its methods
+to modify the replace operation. You can chain these method calls together.
+To modify the behavior of the replace operation, pass the class instance and
+chained method calls as the last argument to the
+``replaceOne()`` method.
+
+You can use the following methods in the ``ReplaceOptions`` class
+to modify the ``replaceOne()`` method.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``bypassDocumentValidation(Boolean bypass)``
+     - | Specifies whether the replace operation bypasses document validation. This lets you 
+         update documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+      
+   * - ``collation(Collation collation)``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the MongoDB Server manual.  
+
+   * - ``comment(BsonValue comment)``
+     - | Attaches a ``BsonValue`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         MongoDB Server manual.  
+
+   * - ``comment(String comment)``
+     - | Attaches a ``String`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         MongoDB Server manual.  
+
+   * - ``hint(Bson hint)``
+     - | Sets the index for the operation as a ``Bson`` value. 
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the MongoDB Server manual.
+
+   * - ``hintString(String hint)``
+     - | Sets the index for the operation as a ``String`` value.
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the MongoDB Server manual.
+
+   * - ``let(Bson variables)``
+     - | Specifies a map of parameter names and values. Values must be constant or closed
+         expressions that don't reference document fields. For more information,
+         see the :manual:`let statement
+         </reference/command/update/#std-label-update-let-syntax>` in the
+         MongoDB Server manual.
+
+   * - ``upsert(Boolean upsert)``
+     - | Specifies whether the replace operation performs an upsert operation if no 
+         documents match the query filter. For more information, see the :manual:`upsert
+         statement </reference/command/update/#std-label-update-command-upsert>`
+         in the MongoDB Server manual.
+
+Modify Replace Example
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following code uses the ``replaceOne()`` method to replace a document in the
+``restaurants`` collection. It also sets the ``upsert(true)`` option
+so that the driver inserts a new document if the query filter doesn't 
+match any existing documents.
+
+.. code-block:: java
+
+    Publisher<UpdateResult> replacePublisher = restaurants.replaceOne(
+            eq("name", "Food Town"),
+            new Document().append("name", "Food World")
+                    .append("cuisine", "Mixed"),
+            new ReplaceOptions().upsert(true));
+    Mono.from(replacePublisher).block();
+
+Return Value
+------------
+
+The ``replaceOne()`` method returns an ``UpdateResult`` 
+object. Use the following methods from the ``UpdateResult`` type to access
+the corresponding information:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``getMatchedCount()``
+     - | The number of documents that matched the query filter, regardless of
+         how many were replaced.
+
+   * - ``getModifiedCount()``
+     - | The number of documents modified by the replace operation. If a replaced
+         document is identical to the original, it is not included in this
+         count.
+
+   * - ``getUpsertedId()``
+     - | The ID of the document that was inserted into the database, if the driver
+         performed an upsert. If no document was inserted, this value is ``null``.
+         
+   * - ``wasAcknowledged()``
+     - | An acknowledgement of the replacement.
+
+Additional Information
+----------------------
+
+For runnable code examples of replacing documents with the {+driver-short+}, see the
+:ref:`<java-rs-write>` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `replaceOne() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#replaceOne(org.bson.conversions.Bson,TDocument)>`__
+- `ReplaceOptions
+  <{+api+}/mongodb-driver-core/com/mongodb/client/model/ReplaceOptions.html>`__
+- `UpdateResult <{+api+}/mongodb-driver-core/com/mongodb/client/result/UpdateResult.html>`__
+- `BsonValue <{+api+}/bson/org/bson/BsonValue.html>`__
