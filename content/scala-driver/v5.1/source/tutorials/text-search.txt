@@ -1,0 +1,128 @@
+.. _scala-text-search:
+
+===========
+Text Search
+===========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, full text search, phrases, match score
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB supports query operations that perform a text search on
+string content in documents. To perform a text search, MongoDB uses a text index
+and the ``$text`` query operator. To learn more about text searches, see
+:manual:`Text Search </text-search/>` in the Server manual.
+
+The driver provides the ``Filters.text()`` helper method to facilitate
+the creation of text search query filters.
+
+Prerequisites
+-------------
+
+.. include:: /includes/prereq-restaurants.rst
+
+.. code-block:: scala
+
+   import org.mongodb.scala._
+   import org.mongodb.scala.model._
+
+.. include:: /includes/obs-note.rst
+
+Connect to a MongoDB Deployment
+-------------------------------
+
+.. include:: /includes/connect-section.rst
+
+Create the Text Index
+---------------------
+
+To create a text index, use the ``Indexes.text()`` static helper to
+create a specification for a text index and pass the specification to the
+``MongoCollection.createIndex()`` method to create the index.
+
+The following example creates a text index on the ``name`` field in
+documents in the collection:
+
+.. code-block:: scala
+
+   collection.createIndex(Indexes.text("name")).printResults()
+
+Perform Text Search
+-------------------
+
+To perform text search, use the ``Filters.text()`` helper method to specify
+the text search query filter.
+
+For example, the following code performs a text search on the ``name``
+field to match the strings ``"bakery"`` or ``"coffee"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: scala
+
+      collection.countDocuments(Filters.text("bakery coffee")).printResults("Text search matches: ")
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Text search matches: [2]
+
+Text Score
+~~~~~~~~~~
+
+For each matching document, text search assigns a score that represents
+the relevance of a document to the specified text search query filter.
+To return and sort by score, use the ``$meta`` operator in the
+projection document and the sort expression:
+
+.. code-block:: scala
+
+   collection.find(Filters.text("bakery cafe"))
+                          .projection(Projections.metaTextScore("score"))
+                          .sort(Sorts.metaTextScore("score"))
+                          .printResults()
+
+Specify a Text Search Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``Filters.text()`` helper can accept various text search
+options. The driver provides the ``TextSearchOptions`` class to
+specify these options.
+
+For example, the following text search specifies the text search
+language option when performing a text search for the word ``"cafe"``:
+
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: scala
+
+      collection.countDocuments(Filters.text("cafe", TextSearchOptions().language("english")))
+                                       .printResults("Text search matches (english): ")
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Text search matches (english): [1]
+
+To learn more about text search, see the following sections in
+the MongoDB Server manual:
+
+- :manual:`$text </reference/operator/query/text/#mongodb-query-op.-text>`
+- :manual:`Text Indexes </core/indexes/index-types/index-text/>`
+- :manual:`Specify the Default Language for a Text Index </core/indexes/index-types/index-text/specify-text-index-language/>`

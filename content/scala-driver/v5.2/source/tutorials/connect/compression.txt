@@ -1,0 +1,137 @@
+.. _scala-compression:
+
+===========
+Compression
+===========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, optimization, server
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The {+driver-short+} supports compression of messages to and from MongoDB
+servers. The driver implements the three algorithms that are supported
+by MongoDB servers:
+
+- `Snappy <https://google.github.io/snappy/>`__: Snappy compression can
+  be used when connecting to MongoDB servers running version 3.4 and later.
+- `Zlib <https://zlib.net/>`__: Zlib compression can be used when
+  connecting to MongoDB servers running version 3.6 and later.
+- `Zstandard <https://github.com/facebook/zstd/>`__: Zstandard
+  compression can be used when connecting to MongoDB servers running
+  version 4.2 and later.
+
+The driver will negotiate which, if any, compression algorithm is used
+based on capabilities advertised by the server in the ``hello`` command
+response.
+
+Specify Compression By Using ConnectionString
+---------------------------------------------
+
+Include the following import statements:
+
+.. code-block:: scala
+
+   import org.mongodb.scala._
+
+To specify compression within a ``ConnectionString``, specify
+compressors as part of the connection string.
+
+The following code specifies the Snappy compression algorithm:
+
+.. code-block:: scala
+
+   val mongoClient: MongoClient = MongoClient("mongodb://localhost/?compressors=snappy")
+
+The following code specifies the Zlib compression algorithm:
+
+.. code-block:: scala
+
+   val mongoClient: MongoClient = MongoClient("mongodb://localhost/?compressors=zlib")
+
+The following code specifies the Zstandard compression algorithm:
+
+.. code-block:: scala
+
+   val mongoClient: MongoClient = MongoClient("mongodb://localhost/?compressors=zstd")
+
+The following code specifies multiple compression algorithms:
+
+.. code-block:: scala
+
+   val mongoClient: MongoClient = MongoClient("mongodb://localhost/?compressors=snappy,zlib,zstd")
+
+In all cases, the driver uses the first compressor in the list for which
+the server has support.
+
+Specify Compression By Using MongoClientSettings
+------------------------------------------------
+
+Include the following import statements:
+
+.. code-block:: scala
+
+   import org.mongodb.scala._
+
+   import scala.collection.JavaConverters._
+
+To specify compression within a ``MongoClientSettings`` instance, set the ``compressors``
+property to a list of ``MongoCompressor`` instances.
+
+The following code specifies the Snappy compression algorithm:
+
+.. code-block:: scala
+
+   val settings = MongoClientSettings.builder()
+     .compressorList(List(MongoCompressor.createSnappyCompressor).asJava)
+     .build()
+   val client = MongoClient(settings)
+
+The following code specifies the Zlib compression algorithm:
+
+.. code-block:: scala
+
+   val settings = MongoClientSettings.builder()
+     .compressorList(List(MongoCompressor.createZlibCompressor).asJava)
+     .build()
+   val client = MongoClient(settings)
+
+The following code specifies the Zstandard compression algorithm:
+
+.. code-block:: scala
+
+   val settings = MongoClientSettings.builder()
+     .compressorList(List(MongoCompressor.createZstdCompressor).asJava)
+     .build()
+   val client = MongoClient(settings)
+
+The following code specifies multiple compression algorithms:
+
+.. code-block:: scala
+
+   val settings = MongoClientSettings.builder()
+     .compressorList(List(MongoCompressor.createSnappyCompressor,
+                          MongoCompressor.createZlibCompressor,
+                          MongoCompressor.createZstdCompressor).asJava)
+     .build()
+   val client = MongoClient(settings)
+
+As with configuration that uses the connection string, the driver uses the first
+compressor in the list for which the server has support.
+
+Dependencies
+------------
+
+As the JDK has no built-in support for Snappy or Zstandard, the driver
+takes a dependency on existing open-source Snappy and Zstandard
+implementations. See the `snappy-java GitHub repository
+<https://github.com/xerial/snappy-java>`__ and the `zstd-java GitHub
+repository <https://github.com/luben/zstd-jni>`__ for details.
