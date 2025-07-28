@@ -181,70 +181,21 @@ Transactions
 
 ``$collStats`` is not allowed in :doc:`transactions </core/transactions>`.
 
+Output
+------
+
 .. _latency-stats-document:
 
-``latencyStats`` Document
-~~~~~~~~~~~~~~~~~~~~~~~~~
+latencyStats Document
+~~~~~~~~~~~~~~~~~~~~~
 
 The ``latencyStats`` embedded document only exists in the output if
 you specify the ``latencyStats`` option.
 
 .. include:: /includes/fact-latencystats-reference.rst
 
-For example, if you run ``$collStats`` with the ``latencyStats: {}`` option
-on a ``matrices`` collection:
-
-.. code-block:: javascript
-
-   db.matrices.aggregate( [ { $collStats: { latencyStats: { histograms: true } } } ] )
-
-This query returns a result similar to the following:
-
-.. code-block:: javascript
-
-   { "ns" : "test.matrices",
-     "host" : "mongo.example.net:27017",
-     "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
-     "latencyStats" :
-       { "reads" :
-           { "histogram" : [
-               { "micros" : Long(16),
-                 "count" : Long(3) },
-               { "micros" : Long(32),
-                 "count" : Long(1) },
-               { "micros" : Long(128),
-                 "count" : Long(1) } ],
-             "latency" : Long(264),
-             "ops" : Long(5) },
-         "writes" :
-           { "histogram" : [
-               { "micros" : Long(32),
-                 "count" : Long(1) },
-               { "micros" : Long(64),
-                 "count" : Long(3) },
-               { "micros" : Long(24576),
-                 "count" : Long(1) } ],
-             "latency" : Long(27659),
-             "ops" : Long(5) },
-         "commands" :
-           { "histogram" : [ 
-               {
-                  "micros" : Long(196608),
-                  "count" : Long(1)
-               } 
-             ],
-             "latency" : Long(0),
-             "ops" : Long(0) },
-         "transactions" : {
-            "histogram" : [ ],
-            "latency" : Long(0),
-            "ops" : Long(0)
-         }
-       }
-   }
-
-High-Latency ``$lookup`` Operations 
-```````````````````````````````````
+High-Latency $lookup Operations 
+```````````````````````````````
 
 Some high-latency :pipeline:`$lookup` operations may not generate a slow 
 query log for the foreign collection. This can occur because slow query logs 
@@ -261,8 +212,8 @@ counts, but does not generate a slow query log for the foreign collection.
 
 .. _storage-stats-document:
 
-``storageStats`` Document
-~~~~~~~~~~~~~~~~~~~~~~~~~
+storageStats Document
+~~~~~~~~~~~~~~~~~~~~~
 
 The ``storageStats`` embedded document only exists in the output if you
 specify the ``storageStats`` option.
@@ -270,135 +221,27 @@ specify the ``storageStats`` option.
 The contents of this document are dependent on the storage engine in use.
 See :ref:`collStats-output` for a reference on this document.
 
-For example, if you run ``$collStats`` with the ``storageStats: {}``
-option on a ``matrices`` collection using the :ref:`storage-wiredtiger`:
-
-.. code-block:: javascript
-
-   db.matrices.aggregate( [ { $collStats: { storageStats: { } } } ] )
-
-This query returns a result similar to the following:
-
-.. code-block:: javascript
-
-   {
-     "ns" : "test.matrices",
-     "host" : "mongo.example.net:27017",
-     "localTime" : ISODate("2020-03-06T01:44:57.437Z"),
-     "storageStats" : {
-       "size" : 608500363,
-       "count" : 1104369,
-       "avgObjSize" : 550,
-       "storageSize" : 352878592,
-       "freeStorageSize" : 2490380, 
-       "capped" : false,
-       "wiredTiger" : {
-         ...
-       },
-       "nindexes" : 2,
-       "indexDetails" : {
-         ...
-       },
-       "indexBuilds" : [    // Starting in MongoDB 4.2
-          "_id_1_abc_1"
-       ],
-       "totalIndexSize" : 260337664,
-       "totalSize" : 613216256,  
-       "indexSizes" : {
-         "_id_" : 9891840,
-         "_id_1_abc_1" : 250445824
-       },
-       "scaleFactor" : 1    // Starting in MongoDB 4.2
-     }
-   }
-
 .. _storage-stats-time-series:
 
-``storageStats`` Output on Time Series Collections
-``````````````````````````````````````````````````
+storageStats Output on Time Series Collections
+``````````````````````````````````````````````
 
 When you run ``$collStats`` on a time series collection with the ``storageStats: {}``
-option, the output includes time series data. For example, the following command
-runs ``$collStats`` with the ``storageStats: {}`` option on a ``weather`` time series
-collection using the :ref:`storage-wiredtiger` and filters for only time series data:
-
-.. code-block:: javascript
-
-   db.weather.aggregate( [ { $collStats: { storageStats: { } } } ] ).toArray()[0].storageStats.timeseries
-
-This query returns a result similar to the following, which includes time series data for
-internal diagnostic use:
-
-.. code-block:: javascript
-
-   {
-      bucketsNs: 'test.system.buckets.weather',
-      bucketCount: 0,
-      numBucketInserts: 0,
-      numBucketUpdates: 0,
-      numBucketsOpenedDueToMetadata: 0,
-      numBucketsClosedDueToCount: 0,
-      numBucketsClosedDueToSchemaChange: 0,
-      numBucketsClosedDueToSize: 0,
-      numBucketsClosedDueToTimeForward: 0,
-      numBucketsClosedDueToTimeBackward: 0,
-      numBucketsClosedDueToMemoryThreshold: 0,
-      numCommits: 0,
-      numWaits: 0,
-      numMeasurementsCommitted: 0,
-      numMeasurementsGroupCommitted: 0,
-      numBytesUncompressed: 0,
-      numBytesCompressed: 0,
-      numSubObjCompressionRestart: 0,
-      numCompressedBuckets: 0,
-      numUncompressedBuckets: 0,
-      numFailedDecompressBuckets: 0
-   }
+option, the output includes time series data.
 
 To learn more about the fields returned in the ``timeseries: {}`` document, see
 :ref:`server-status-bucketcatalog`. 
 
-See :ref:`collStats-output` for field and subdocument descriptions.
-
-.. note:: In-progress Indexes
-
-   Starting in MongoDB 4.2, the returned ``storageStats`` includes
-   information on indexes being built. For details, see:
-
-   - :data:`collStats.nindexes`
-   - :data:`collStats.indexDetails`
-   - :data:`collStats.indexBuilds`
-   - :data:`collStats.totalIndexSize`
-   - :data:`collStats.indexSizes`
-
 Performing ``$collStats`` with the ``storageStats`` option on a
-:doc:`view </core/views>` results in an error.
+view results in an error.
 
 .. _collstat-count:
 
-``count`` Field
-~~~~~~~~~~~~~~~
+count Field
+~~~~~~~~~~~
 
 The ``count`` field only exists in the output if you specify the
 ``count`` option.
-
-For example, if you run ``$collStats`` with the ``count: {}`` option on
-a ``matrices`` collection:
-
-.. code-block:: javascript
-
-   db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
-
-The query returns a result similar to the following:
-
-.. code-block:: javascript
-
-   {
-     "ns" : "test.matrices",
-     "host" : "mongo.example.net:27017",
-     "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
-     "count" : 1103869
-   }
 
 .. note::
 
@@ -411,70 +254,351 @@ information, see :ref:`storage-stats-document`.
 
 .. _collstat-queryexecstats:
 
-``queryExecStats`` Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+queryExecStats Document
+~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``queryExecStats`` embedded document only exists in the output if
-you specify the ``queryExecStats`` option.
+you specify the ``queryExecStats`` option. It includes an embedded
+``collectionScans`` document with the following fields:
 
-.. include:: /includes/fact-queryexecstats-reference.rst
+.. list-table::
+    :header-rows: 1
+    :widths: 30 70
 
-For example, if you run ``$collStats`` with the ``queryExecStats: {}``
-option on a ``matrices`` collection:
+    * - Field Name
+      - Description
 
-.. code-block:: javascript
+    * - ``total``
+      - The total number of queries that performed a collection scan.
 
-   db.matrices.aggregate( [ { $collStats: { queryExecStats: { } } } ] )
+    * - ``nonTailable``
+      - The number of queries that performed a collection scan, but didn't use
+        a :ref:`tailable cursor <tailable-cursors-landing-page>`.
 
-The query returns a result similar to the following:
+Examples
+--------
 
-.. code-block:: javascript
+.. tabs-drivers::
+   
+   .. tab::
+      :tabid: shell 
 
-   {
-     "ns": "test.matrices",
-     "host": "mongo.example.net:27017",
-     "localTime": ISODate("2020-06-03T14:23:29.711Z"),
-     "queryExecStats": {
-         "collectionScans": {
-             "total": Long(33),
-             "nonTailable": Long(31)
+      latencyStats
+      ~~~~~~~~~~~~
+
+      If you run ``$collStats`` with the ``latencyStats: {}`` option on a
+      ``matrices`` collection:
+
+      .. code-block:: javascript
+
+        db.matrices.aggregate( [ { $collStats: { latencyStats: { histograms: true } } } ] )
+
+      The query returns a result similar to the following:
+
+      .. code-block:: javascript
+
+        { "ns" : "test.matrices",
+          "host" : "mongo.example.net:27017",
+          "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
+          "latencyStats" :
+            { "reads" :
+                { "histogram" : [
+                    { "micros" : Long(16),
+                      "count" : Long(3) },
+                    { "micros" : Long(32),
+                      "count" : Long(1) },
+                    { "micros" : Long(128),
+                      "count" : Long(1) } ],
+                  "latency" : Long(264),
+                  "ops" : Long(5) },
+              "writes" :
+                { "histogram" : [
+                    { "micros" : Long(32),
+                      "count" : Long(1) },
+                    { "micros" : Long(64),
+                      "count" : Long(3) },
+                    { "micros" : Long(24576),
+                      "count" : Long(1) } ],
+                  "latency" : Long(27659),
+                  "ops" : Long(5) },
+              "commands" :
+                { "histogram" : [ 
+                    {
+                        "micros" : Long(196608),
+                        "count" : Long(1)
+                    } 
+                  ],
+                  "latency" : Long(0),
+                  "ops" : Long(0) },
+              "transactions" : {
+                  "histogram" : [ ],
+                  "latency" : Long(0),
+                  "ops" : Long(0)
+              }
+            }
+        }
+
+      storageStats
+      ~~~~~~~~~~~~
+
+      If you run ``$collStats`` with the ``storageStats: {}``
+      option on a ``matrices`` collection using the :ref:`storage-wiredtiger`:
+
+      .. code-block:: javascript
+
+        db.matrices.aggregate( [ { $collStats: { storageStats: { } } } ] )
+
+      The query returns a result similar to the following:
+
+      .. code-block:: javascript
+
+         {
+          "ns" : "test.matrices",
+          "host" : "mongo.example.net:27017",
+          "localTime" : ISODate("2020-03-06T01:44:57.437Z"),
+          "storageStats" : {
+            "size" : 608500363,
+            "count" : 1104369,
+            "avgObjSize" : 550,
+            "storageSize" : 352878592,
+            "freeStorageSize" : 2490380, 
+            "capped" : false,
+            "wiredTiger" : {
+              ...
+            },
+            "nindexes" : 2,
+            "indexDetails" : {
+              ...
+            },
+            "indexBuilds" : [    // Starting in MongoDB 4.2
+                "_id_1_abc_1"
+            ],
+            "totalIndexSize" : 260337664,
+            "totalSize" : 613216256,  
+            "indexSizes" : {
+              "_id_" : 9891840,
+              "_id_1_abc_1" : 250445824
+            },
+            "scaleFactor" : 1    // Starting in MongoDB 4.2
+          }
+
+      storageStats on Time Series Collections
+      ```````````````````````````````````````
+      The following command runs ``$collStats`` with the ``storageStats: {}``
+      option on a ``weather`` time series collection using the
+      :ref:`storage-wiredtiger`, and filters for only time series data:
+
+      .. code-block:: javascript
+
+        db.weather.aggregate( [ { $collStats: { storageStats: { } } } ] ).toArray()[0].storageStats.timeseries
+
+      The query returns a result similar to the following, which includes time series data for
+      internal diagnostic use:
+
+      .. code-block:: javascript
+
+         {
+            bucketsNs: 'test.system.buckets.weather',
+            bucketCount: 12,
+            avgBucketSize: 300,
+            numActiveBuckets: 1,
+            numBucketInserts: 12,
+            numBucketUpdates: 0,
+            numBucketsOpenedDueToMetadata: 1,
+            numBucketsClosedDueToCount: 0,
+            numBucketsClosedDueToSchemaChange: 0,
+            numBucketsClosedDueToSize: 0,
+            numBucketsClosedDueToTimeForward: 11,
+            numBucketsClosedDueToMemoryThreshold: 0,
+            numCommits: 12,
+            numMeasurementsGroupCommitted: 0,
+            numWaits: 0,
+            numMeasurementsCommitted: 12,
+            avgNumMeasurementsPerCommit: 1,
+            numBucketsClosedDueToReopening: 0,
+            numBucketsArchivedDueToMemoryThreshold: 0,
+            numBucketsArchivedDueToTimeBackward: 0,
+            numBucketsReopened: 0,
+            numBucketsKeptOpenDueToLargeMeasurements: 0,
+            numBucketsClosedDueToCachePressure: 0,
+            numBucketsFrozen: 0,
+            numCompressedBucketsConvertedToUnsorted: 0,
+            numBucketsFetched: 0,
+            numBucketsQueried: 0,
+            numBucketFetchesFailed: 0,
+            numBucketQueriesFailed: 1,
+            numBucketReopeningsFailed: 0,
+            numDuplicateBucketsReopened: 0
          }
-     }
-   }
 
-``$collStats`` on Sharded Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. note:: In-progress Indexes
 
-``$collStats`` outputs one document per shard when run on
-:ref:`sharded collections<sharded-vs-non-sharded-collections>`. Each
-output document contains a ``shard`` field with the name of the shard
-the document corresponds to.
+        The returned ``storageStats`` includes information about indexes being
+        built. For details, see:
 
-For example, if you run ``$collStats`` on a sharded collection with the
-``count: {}`` option on a collection named ``matrices``:
+        - :data:`collStats.nindexes`
+        - :data:`collStats.indexDetails`
+        - :data:`collStats.indexBuilds`
+        - :data:`collStats.totalIndexSize`
+        - :data:`collStats.indexSizes`
 
-.. code-block:: javascript
+      count
+      ~~~~~
 
-   db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
+      If you run ``$collStats`` with the ``count: {}`` option on a ``matrices``
+      collection:
 
-The query returns a result similar to the following:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+        db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
 
-   {
-     "ns" : "test.matrices",
-     "shard" : "s1",
-     "host" : "s1-mongo1.example.net:27017",
-     "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
-     "count" : 661705
-   }
-   {
-     "ns" : "test.matrices",
-     "shard" : "s2",
-     "host" : "s2-mongo1.example.net:27017",
-     "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
-     "count" : 442164
-   }
+      The query returns a result similar to the following:
+
+      .. code-block:: javascript
+
+        {
+          "ns" : "test.matrices",
+          "host" : "mongo.example.net:27017",
+          "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
+          "count" : 1103869
+        }
+
+      queryExecStats
+      ~~~~~~~~~~~~~~
+
+      If you run ``$collStats`` with the ``queryExecStats: {}`` option on a
+      ``matrices`` collection:
+
+      .. code-block:: javascript
+
+        db.matrices.aggregate( [ { $collStats: { queryExecStats: { } } } ] )
+
+      The query returns a result similar to the following:
+
+      .. code-block:: javascript
+
+        {
+          "ns": "test.matrices",
+          "host": "mongo.example.net:27017",
+          "localTime": ISODate("2020-06-03T14:23:29.711Z"),
+          "queryExecStats": {
+              "collectionScans": {
+                  "total": Long(33),
+                  "nonTailable": Long(31)
+              }
+          }
+        }
+
+      $collStats on Sharded Collections
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      ``$collStats`` outputs one document per shard when run on
+      :ref:`sharded collections<sharded-vs-non-sharded-collections>`. Each
+      output document contains a ``shard`` field with the name of the shard
+      the document corresponds to.
+
+      For example, if you run ``$collStats`` on a sharded collection with the
+      ``count: {}`` option on a collection named ``matrices``:
+
+      .. code-block:: javascript
+
+        db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
+
+      The query returns a result similar to the following:
+
+      .. code-block:: javascript
+
+        {
+          "ns" : "test.matrices",
+          "shard" : "s1",
+          "host" : "s1-mongo1.example.net:27017",
+          "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
+          "count" : 661705
+        }
+        {
+          "ns" : "test.matrices",
+          "shard" : "s2",
+          "host" : "s2-mongo1.example.net:27017",
+          "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
+          "count" : 442164
+        }
+
+   .. tab::
+      :tabid: nodejs
+
+      To use the {+node-driver-full+} to add a ``$collStats`` stage to an
+      aggregation pipeline, use the ``$collStats`` operator in a pipeline
+      object.
+
+      The following examples demonstrate how to use the options available for
+      the ``$collStats`` stage.
+
+      latencyStats
+      ~~~~~~~~~~~~
+
+      The following example creates and runs a ``$collStats`` pipeline stage
+      with the :ref:`latencyStats <latency-stats-document>` option:
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start CSLatency
+         :end-before: //end CSLatency
+         :language: javascript
+         :dedent: 2
+
+      storageStats
+      ~~~~~~~~~~~~
+
+      The following example creates and runs a ``$collStats`` pipeline stage
+      with the :ref:`storageStats <storage-stats-document>` option:
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start CSStorage
+         :end-before: //end CSStorage
+         :language: javascript
+         :dedent: 2
+
+      storageStats on Time Series Collections
+      ```````````````````````````````````````
+
+      The following example creates and runs a ``$collStats`` pipeline stage
+      with the :ref:`storageStats <storage-stats-time-series>` option on a time
+      series collection and filters for only time series data:
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start CSTimeSeries
+         :end-before: //end CSTimeSeries
+         :language: javascript
+         :dedent: 2
+
+      count
+      ~~~~~
+
+      The following example runs a ``$collStats`` pipeline stage with the
+      :ref:`count <collstat-count>` option on a collection:
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start CSCount
+         :end-before: //end CSCount
+         :language: javascript
+         :dedent: 2
+
+      queryExecStats
+      ~~~~~~~~~~~~~~
+
+      The following example creates and runs a ``$collStats`` pipeline stage
+      with the :ref:`queryExecStats <collstat-queryexecstats>` option:
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start queryExecStats
+         :end-before: //end queryExecStats
+         :language: javascript
+         :dedent: 2
+
+      .. note:: Sharded Collections
+
+         ``$collStats`` outputs one document per shard when run on :ref:`sharded
+         collections <sharded-vs-non-sharded-collections>`. Each output document contains
+         a shard field with the name of the shard the document corresponds to.
 
 .. seealso::
 

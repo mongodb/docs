@@ -69,187 +69,225 @@ Definition
 Examples
 --------
 
-The examples in this section use the
-:method:`db.collection.aggregate()` helper.
+.. tabs-drivers::
 
-Evaluate Access at Every Document Level
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. tab::
+      :tabid: shell
 
-A ``forecasts`` collection contains documents of the following form
-where the ``tags`` field lists the different access values for that
-document/embedded document level; i.e. a value of ``[ "G", "STLW" ]``
-specifies either ``"G"`` or ``"STLW"`` can access the data:
+      The examples in this section use the
+      :method:`db.collection.aggregate()` helper.
 
-.. code-block:: javascript
+      Evaluate Access at Every Document Level
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      A ``forecasts`` collection contains documents of the following form
+      where the ``tags`` field lists the different access values for that
+      document/embedded document level; i.e. a value of ``[ "G", "STLW" ]``
+      specifies either ``"G"`` or ``"STLW"`` can access the data:
+
+      .. code-block:: javascript
 
 
-   db.forecasts.insertOne( 
-      {
-         _id: 1,
-         title: "123 Department Report",
-         tags: [ "G", "STLW" ],
-         year: 2014,
-         subsections: [
+         db.forecasts.insertOne( 
             {
-            subtitle: "Section 1: Overview",
-            tags: [ "SI", "G" ],
-            content:  "Section 1: This is the content of section 1."
-            },
-            {
-            subtitle: "Section 2: Analysis",
-            tags: [ "STLW" ],
-            content: "Section 2: This is the content of section 2."
-            },
-            {
-            subtitle: "Section 3: Budgeting",
-            tags: [ "TK" ],
-            content: {
-               text: "Section 3: This is the content of section 3.",
-               tags: [ "HCS" ]
+               _id: 1,
+               title: "123 Department Report",
+               tags: [ "G", "STLW" ],
+               year: 2014,
+               subsections: [
+                  {
+                  subtitle: "Section 1: Overview",
+                  tags: [ "SI", "G" ],
+                  content:  "Section 1: This is the content of section 1."
+                  },
+                  {
+                  subtitle: "Section 2: Analysis",
+                  tags: [ "STLW" ],
+                  content: "Section 2: This is the content of section 2."
+                  },
+                  {
+                  subtitle: "Section 3: Budgeting",
+                  tags: [ "TK" ],
+                  content: {
+                     text: "Section 3: This is the content of section 3.",
+                     tags: [ "HCS" ]
+                  }
+                  }
+               ]
             }
-            }
-         ]
-      }
-   )
+         )
 
-A user has access to view information with either the tag ``"STLW"`` or
-``"G"``. To run a query on all documents with year ``2014`` for this
-user, include a :pipeline:`$redact` stage as in the following:
+      A user has access to view information with either the tag ``"STLW"`` or
+      ``"G"``. To run a query on all documents with year ``2014`` for this
+      user, include a :pipeline:`$redact` stage as in the following:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   var userAccess = [ "STLW", "G" ];
-   db.forecasts.aggregate(
-      [
-        { $match: { year: 2014 } },
-        { $redact: {
-           $cond: {
-              if: { $gt: [ { $size: { $setIntersection: [ "$tags", userAccess ] } }, 0 ] },
-              then: "$$DESCEND",
-              else: "$$PRUNE"
-            }
-          }
-        }
-      ]
-   );
-
-The aggregation operation returns the following "redacted" document:
-
-.. code-block:: javascript
-   :copyable: false
-
-  {
-    _id: 1,
-    title: "123 Department Report",
-    tags: [ "G", "STLW" ],
-    year: 2014,
-    subsections: [
-      {
-        subtitle: "Section 1: Overview",
-        tags: [ "SI", "G" ],
-        content: "Section 1: This is the content of section 1."
-      },
-      {
-        subtitle: "Section 2: Analysis",
-        tags: [ "STLW" ],
-        content : "Section 2: This is the content of section 2."
-      }
-    ]
-  }
-
-.. seealso::
-
-   - :expression:`$size`
-   - :expression:`$setIntersection`
-
-Exclude All Fields at a Given Level
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A collection ``accounts`` contains the following document:
-
-.. code-block:: javascript
-
-   db.accounts.insertOne(
-      {
-         _id: 1,
-         level: 1,
-         acct_id: "xyz123",
-         cc: {
-            level: 5,
-            type: "yy",
-            num: 000000000000,
-            exp_date: ISODate("2015-11-01T00:00:00.000Z"),
-            billing_addr: {
-            level: 5,
-            addr1: "123 ABC Street",
-            city: "Some City"
-            },
-            shipping_addr: [
-            {
-               level: 3,
-               addr1: "987 XYZ Ave",
-               city: "Some City"
-            },
-            {
-               level: 3,
-               addr1: "PO Box 0123",
-               city: "Some City"
+         var userAccess = [ "STLW", "G" ];
+         db.forecasts.aggregate(
+            [
+            { $match: { year: 2014 } },
+            { $redact: {
+               $cond: {
+                  if: { $gt: [ { $size: { $setIntersection: [ "$tags", userAccess ] } }, 0 ] },
+                  then: "$$DESCEND",
+                  else: "$$PRUNE"
+                  }
+               }
             }
             ]
-         },
-         status: "A"
-      }
-   )
+         );
 
-In this example document, the ``level`` field determines the access
-level required to view the data.
+      The aggregation operation returns the following "redacted" document:
 
-To run a query on all documents with status ``A`` and exclude *all*
-fields contained in a document/embedded document at level ``5``, include a
-:pipeline:`$redact` stage that specifies the system variable
-``"$$PRUNE"`` in the ``then`` field:
+      .. code-block:: javascript
+         :copyable: false
 
-.. code-block:: javascript
-
-   db.accounts.aggregate(
-     [
-       { $match: { status: "A" } },
-       {
-         $redact: {
-           $cond: {
-             if: { $eq: [ "$level", 5 ] },
-             then: "$$PRUNE",
-             else: "$$DESCEND"
-           }
+         {
+            _id: 1,
+            title: "123 Department Report",
+            tags: [ "G", "STLW" ],
+            year: 2014,
+            subsections: [
+               {
+               subtitle: "Section 1: Overview",
+               tags: [ "SI", "G" ],
+               content: "Section 1: This is the content of section 1."
+               },
+               {
+               subtitle: "Section 2: Analysis",
+               tags: [ "STLW" ],
+               content : "Section 2: This is the content of section 2."
+               }
+            ]
          }
-       }
-     ]
-   );
 
-The :pipeline:`$redact` stage evaluates the ``level`` field to
-determine access. If the ``level`` field equals ``5``, then exclude all
-fields at that level, even if the excluded field contains embedded documents
-that may have different ``level`` values, such as the ``shipping_addr``
-field.
+      .. seealso::
 
-The aggregation operation returns the following "redacted" document:
+         - :expression:`$size`
+         - :expression:`$setIntersection`
 
-.. code-block:: json
-   :copyable; false
+      Exclude All Fields at a Given Level
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  {
-    _id: 1,
-    level: 1,
-    acct_id: "xyz123",
-    status: "A"
-  }
+      A collection ``accounts`` contains the following document:
 
-The result set shows that the :pipeline:`$redact` stage excluded
-the field ``cc`` as a whole, including the ``shipping_addr`` field
-which contained embedded documents that had ``level`` field values equal to
-``3`` and not ``5``.
+      .. code-block:: javascript
 
-.. seealso::
+         db.accounts.insertOne(
+            {
+               _id: 1,
+               level: 1,
+               acct_id: "xyz123",
+               cc: {
+                  level: 5,
+                  type: "yy",
+                  num: 000000000000,
+                  exp_date: ISODate("2015-11-01T00:00:00.000Z"),
+                  billing_addr: {
+                  level: 5,
+                  addr1: "123 ABC Street",
+                  city: "Some City"
+                  },
+                  shipping_addr: [
+                  {
+                     level: 3,
+                     addr1: "987 XYZ Ave",
+                     city: "Some City"
+                  },
+                  {
+                     level: 3,
+                     addr1: "PO Box 0123",
+                     city: "Some City"
+                  }
+                  ]
+               },
+               status: "A"
+            }
+         )
 
-   :doc:`/tutorial/implement-field-level-redaction` for
-   steps to set up multiple combinations of access for the same data.
+      In this example document, the ``level`` field determines the access
+      level required to view the data.
+
+      To run a query on all documents with status ``A`` and exclude *all*
+      fields contained in a document/embedded document at level ``5``, include a
+      :pipeline:`$redact` stage that specifies the system variable
+      ``"$$PRUNE"`` in the ``then`` field:
+
+      .. code-block:: javascript
+
+         db.accounts.aggregate(
+            [
+               { $match: { status: "A" } },
+               {
+                  $redact: {
+                  $cond: {
+                     if: { $eq: [ "$level", 5 ] },
+                     then: "$$PRUNE",
+                     else: "$$DESCEND"
+                  }
+                  }
+               }
+            ]
+         );
+
+      The :pipeline:`$redact` stage evaluates the ``level`` field to
+      determine access. If the ``level`` field equals ``5``, then exclude all
+      fields at that level, even if the excluded field contains embedded documents
+      that may have different ``level`` values, such as the ``shipping_addr``
+      field.
+
+      The aggregation operation returns the following "redacted" document:
+
+      .. code-block:: json
+         :copyable; false
+
+         {
+            _id: 1,
+            level: 1,
+            acct_id: "xyz123",
+            status: "A"
+         }
+
+      The result set shows that the :pipeline:`$redact` stage excluded
+      the field ``cc`` as a whole, including the ``shipping_addr`` field
+      which contained embedded documents that had ``level`` field values equal to
+      ``3`` and not ``5``.
+
+      .. seealso::
+
+         :doc:`/tutorial/implement-field-level-redaction` for
+         steps to set up multiple combinations of access for the same data.
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/driver-examples/node/aggregation/sample-mflix.rst
+
+      .. include:: /includes/driver-examples/node/aggregation/stage-intro.rst
+
+         .. replacement:: stage-name
+      
+            ``$redact``
+
+         .. replacement:: stage-specific-info
+
+         .. replacement:: method-description
+
+            keeps documents in which the value of the ``imdb.rating`` field is
+            greater than or equal to ``9``. The stage excludes all other
+            documents
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start redact
+         :end-before: //end redact
+         :language: javascript
+         :dedent: 2
+
+Learn More
+----------
+
+To learn more about the system variables in this guide, see the
+:ref:`Aggregation Variables <aggregation-variables>` page.
