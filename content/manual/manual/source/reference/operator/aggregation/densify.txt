@@ -242,7 +242,7 @@ Examples
 --------
 
 .. tabs-drivers::
-
+   
    .. tab::
       :tabid: shell
 
@@ -256,28 +256,28 @@ Examples
 
       .. code-block:: javascript
 
-        db.weather.insertMany( [
-           {
+         db.weather.insertMany( [
+            {
                "metadata": { "sensorId": 5578, "type": "temperature" },
                "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
                "temp": 12
-           },
-           {
+            },
+            {
                "metadata": { "sensorId": 5578, "type": "temperature" },
                "timestamp": ISODate("2021-05-18T04:00:00.000Z"),
                "temp": 11
-           },
-           {
+            },
+            {
                "metadata": { "sensorId": 5578, "type": "temperature" },
                "timestamp": ISODate("2021-05-18T08:00:00.000Z"),
                "temp": 11
-           },
-           {
+            },
+            {
                "metadata": { "sensorId": 5578, "type": "temperature" },
                "timestamp": ISODate("2021-05-18T12:00:00.000Z"),
                "temp": 12
-           }
-        ] )
+            }
+         ] )
 
       This example uses the :pipeline:`$densify` stage to fill in the gaps
       between the four-hour intervals to achieve hourly granularity for the
@@ -285,18 +285,18 @@ Examples
 
       .. code-block:: javascript
 
-        db.weather.aggregate( [
-           {
+         db.weather.aggregate( [
+            {
               $densify: {
-                 field: "timestamp",
-                 range: {
+                  field: "timestamp",
+                  range: {
                     step: 1,
                     unit: "hour",
                     bounds:[ ISODate("2021-05-18T00:00:00.000Z"), ISODate("2021-05-18T08:00:00.000Z") ]
-                 }
+                  }
               }
-           }
-        ] )
+            }
+         ] )
 
       In the example:
 
@@ -305,23 +305,23 @@ Examples
 
         - ``field: "timestamp"`` densifies the ``timestamp`` field.
 
-        - ``range:``
+      - ``range:``
 
-          - ``step: 1`` increments the ``timestamp`` field by 1 unit.
+        - ``step: 1`` increments the ``timestamp`` field by 1 unit.
 
-          - ``unit: hour`` densifies the ``timestamp`` field by the hour.
+        - ``unit: hour`` densifies the ``timestamp`` field by the hour.
 
-          - ``bounds: [ ISODate("2021-05-18T00:00:00.000Z"), ISODate("2021-05-18T08:00:00.000Z") ]``
-            sets the range of time that is densified.
+        - ``bounds: [ ISODate("2021-05-18T00:00:00.000Z"), ISODate("2021-05-18T08:00:00.000Z") ]``
+          sets the range of time that is densified.
 
       In the following output, the :pipeline:`$densify` stage fills in the gaps of time
       between the hours of ``00:00:00`` and ``08:00:00``.
 
       .. code-block:: javascript
-        :emphasize-lines: 8-10, 17-19
-        :copyable: false
+         :emphasize-lines: 8-10, 17-19
+         :copyable: false
 
-        [
+         [
           {
             _id: ObjectId("618c207c63056cfad0ca4309"),
             metadata: { sensorId: 5578, type: 'temperature' },
@@ -352,7 +352,7 @@ Examples
             timestamp: ISODate("2021-05-18T12:00:00.000Z"),
             temp: 12
           }
-        ]
+         ]
 
       .. _densify-examples-partitions:
 
@@ -365,33 +365,33 @@ Examples
       .. code-block:: javascript
 
          db.coffee.insertMany( [
-            {
-               "altitude": 600,
-               "variety": "Arabica Typica",
-               "score": 68.3
-            },
-            {
-               "altitude": 750,
-               "variety": "Arabica Typica",
-               "score": 69.5
-            },
-            {
-               "altitude": 950,
-               "variety": "Arabica Typica",
-               "score": 70.5
-            },
-            {
-               "altitude": 1250,
-               "variety": "Gesha",
-               "score": 88.15
-            },
-            {
+           {
+              "altitude": 600,
+              "variety": "Arabica Typica",
+              "score": 68.3
+           },
+           {
+              "altitude": 750,
+              "variety": "Arabica Typica",
+              "score": 69.5
+           },
+           {
+              "altitude": 950,
+              "variety": "Arabica Typica",
+              "score": 70.5
+           },
+           {
+              "altitude": 1250,
+              "variety": "Gesha",
+              "score": 88.15
+           },
+           {
               "altitude": 1700,
               "variety": "Gesha",
               "score": 95.5,
               "price": 1029
-            }
-         ] )
+           }
+          ] )
 
       Densify the Full Range of Values
       ````````````````````````````````
@@ -403,16 +403,16 @@ Examples
          :emphasize-lines: 7
 
          db.coffee.aggregate( [
-            {
-               $densify: {
-                  field: "altitude",
-                  partitionByFields: [ "variety" ],
-                  range: {
-                     bounds: "full",
-                     step: 200
-                  }
-               }
-            }
+           {
+              $densify: {
+                field: "altitude",
+                partitionByFields: [ "variety" ],
+                range: {
+                    bounds: "full",
+                    step: 200
+                }
+              }
+          }
          ] )
 
       The example aggregation:
@@ -433,49 +433,49 @@ Examples
          :copyable: false
 
          [
-            {
-              _id: ObjectId("618c031814fbe03334480475"),
-              altitude: 600,
-              variety: 'Arabica Typica',
-              score: 68.3
-            },
-            {
-              _id: ObjectId("618c031814fbe03334480476"),
-              altitude: 750,
-              variety: 'Arabica Typica',
-              score: 69.5
-            },
-            { variety: 'Arabica Typica', altitude: 800 },
-            {
-              _id: ObjectId("618c031814fbe03334480477"),
-              altitude: 950,
-              variety: 'Arabica Typica',
-              score: 70.5
-            },
-            { variety: 'Gesha', altitude: 600 },
-            { variety: 'Gesha', altitude: 800 },
-            { variety: 'Gesha', altitude: 1000 },
-            { variety: 'Gesha', altitude: 1200 },
-            {
-              _id: ObjectId("618c031814fbe03334480478"),
-              altitude: 1250,
-              variety: 'Gesha',
-              score: 88.15
-            },
-            { variety: 'Gesha', altitude: 1400 },
-            { variety: 'Gesha', altitude: 1600 },
-            {
-              _id: ObjectId("618c031814fbe03334480479"),
-              altitude: 1700,
-              variety: 'Gesha',
-              score: 95.5,
-              price: 1029
-            },
-            { variety: 'Arabica Typica', altitude: 1000 },
-            { variety: 'Arabica Typica', altitude: 1200 },
-            { variety: 'Arabica Typica', altitude: 1400 },
-            { variety: 'Arabica Typica', altitude: 1600 }
-          ]
+          {
+            _id: ObjectId("618c031814fbe03334480475"),
+            altitude: 600,
+            variety: 'Arabica Typica',
+            score: 68.3
+          },
+          {
+            _id: ObjectId("618c031814fbe03334480476"),
+            altitude: 750,
+            variety: 'Arabica Typica',
+            score: 69.5
+          },
+          { variety: 'Arabica Typica', altitude: 800 },
+          {
+            _id: ObjectId("618c031814fbe03334480477"),
+            altitude: 950,
+            variety: 'Arabica Typica',
+            score: 70.5
+          },
+          { variety: 'Gesha', altitude: 600 },
+          { variety: 'Gesha', altitude: 800 },
+          { variety: 'Gesha', altitude: 1000 },
+          { variety: 'Gesha', altitude: 1200 },
+          {
+            _id: ObjectId("618c031814fbe03334480478"),
+            altitude: 1250,
+            variety: 'Gesha',
+            score: 88.15
+          },
+          { variety: 'Gesha', altitude: 1400 },
+          { variety: 'Gesha', altitude: 1600 },
+          {
+            _id: ObjectId("618c031814fbe03334480479"),
+            altitude: 1700,
+            variety: 'Gesha',
+            score: 95.5,
+            price: 1029
+          },
+          { variety: 'Arabica Typica', altitude: 1000 },
+          { variety: 'Arabica Typica', altitude: 1200 },
+          { variety: 'Arabica Typica', altitude: 1400 },
+          { variety: 'Arabica Typica', altitude: 1600 }
+         ]
 
       This image visualizes the documents created with :pipeline:`$densify`:
 
@@ -495,16 +495,16 @@ Examples
          :emphasize-lines: 7
 
          db.coffee.aggregate( [
-            {
-               $densify: {
-                  field: "altitude",
-                  partitionByFields: [ "variety" ],
-                  range: {
-                     bounds: "partition",
-                     step: 200
-                  }
-               }
-            }
+          {
+              $densify: {
+                field: "altitude",
+                partitionByFields: [ "variety" ],
+                range: {
+                    bounds: "partition",
+                    step: 200
+                }
+              }
+          }
          ] )
 
       The example aggregation:
@@ -529,41 +529,41 @@ Examples
          :copyable: false
 
          [
-            {
-              _id: ObjectId("618c031814fbe03334480475"),
-              altitude: 600,
-              variety: 'Arabica Typica',
-              score: 68.3
-            },
-            {
-              _id: ObjectId("618c031814fbe03334480476"),
-              altitude: 750,
-              variety: 'Arabica Typica',
-              score: 69.5
-            },
-            { variety: 'Arabica Typica', altitude: 800 },
-            {
-              _id: ObjectId("618c031814fbe03334480477"),
-              altitude: 950,
-              variety: 'Arabica Typica',
-              score: 70.5
-            },
-            {
-              _id: ObjectId("618c031814fbe03334480478"),
-              altitude: 1250,
-              variety: 'Gesha',
-              score: 88.15
-            },
-            { variety: 'Gesha', altitude: 1450 },
-            { variety: 'Gesha', altitude: 1650 },
-            {
-              _id: ObjectId("618c031814fbe03334480479"),
-              altitude: 1700,
-              variety: 'Gesha',
-              score: 95.5,
-              price: 1029
-            }
-          ]
+          {
+            _id: ObjectId("618c031814fbe03334480475"),
+            altitude: 600,
+            variety: 'Arabica Typica',
+            score: 68.3
+          },
+          {
+            _id: ObjectId("618c031814fbe03334480476"),
+            altitude: 750,
+            variety: 'Arabica Typica',
+            score: 69.5
+          },
+          { variety: 'Arabica Typica', altitude: 800 },
+          {
+            _id: ObjectId("618c031814fbe03334480477"),
+            altitude: 950,
+            variety: 'Arabica Typica',
+            score: 70.5
+          },
+          {
+            _id: ObjectId("618c031814fbe03334480478"),
+            altitude: 1250,
+            variety: 'Gesha',
+            score: 88.15
+          },
+          { variety: 'Gesha', altitude: 1450 },
+          { variety: 'Gesha', altitude: 1650 },
+          {
+            _id: ObjectId("618c031814fbe03334480479"),
+            altitude: 1700,
+            variety: 'Gesha',
+            score: 95.5,
+            price: 1029
+          }
+         ]
 
       This image visualizes the documents created with :pipeline:`$densify`:
 
@@ -625,3 +625,52 @@ Examples
          Document{{ position=Document{{coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 08:30:00 EST 1984 }}
          Document{{ position=Document{{coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 08:45:00 EST 1984 }}
          Document{{ _id=5553b..., position=Document{{type=Point, coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 09:00:00 EST 1984, ... }}
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/driver-examples/node/aggregation/sample-weather.rst
+
+      The ``sample_weatherdata.data`` collection contains the following documents,
+      which contain measurements for the same ``position`` field, one hour apart:
+
+      .. code-block:: none
+         :copyable: false
+
+         {_id: new ObjectId(...), ts: 1984-03-05T13:00:00.000Z, position: {type: 'Point', coordinates: [-47.9, 47.6]}, ... },
+         {_id: new ObjectId(...), ts: 1984-03-05T14:00:00.000Z, position: {type: 'Point', coordinates: [-47.9, 47.6]}, ... }
+
+      .. include:: /includes/driver-examples/node/aggregation/stage-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$densify``
+
+         .. replacement:: stage-specific-info
+
+         .. replacement:: method-description
+
+            adds a document at every 15-minute interval between the previous two
+            documents. The code then groups these documents by the values of
+            their ``position.coordinates`` field
+      
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start densify
+         :end-before: //end densify
+         :language: javascript
+         :dedent: 2
+    
+      The previous aggregation stage generates the following highlighted
+      documents in the collection:
+
+      .. code-block:: none
+         :emphasize-lines: 2-4
+         :copyable: false
+
+         { _id: new ObjectId(...), ts: 1984-03-05T13:00:00.000Z, position: {type: 'Point', coordinates: [-47.9, 47.6]}, ... },
+         { position: { coordinates: [-47.9, 47.6] }, ts: 1984-03-05T13:15:00.000Z },
+         { position: { coordinates: [-47.9, 47.6] }, ts: 1984-03-05T13:30:00.000Z },
+         { position: { coordinates: [-47.9, 47.6] }, ts: 1984-03-05T13:45:00.000Z },
+         { _id: new ObjectId(...), ts: 1984-03-05T14:00:00.000Z, position: {type: 'Point', coordinates: [-47.9, 47.6]}, ... }

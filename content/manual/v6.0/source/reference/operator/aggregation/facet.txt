@@ -128,11 +128,11 @@ will not trigger a ``COLLSCAN``.
 
 For optimization suggestions, see: :ref:`agg-pipeline-optimization`.
 
-Example
--------
+Examples
+--------
 
 .. tabs-drivers::
-
+   
    .. tab::
       :tabid: shell
 
@@ -157,7 +157,7 @@ Example
            "price" : Decimal128("483.00"),
            "tags" : [ "Surrealism", "painting", "oil" ] }
          { "_id" : 6, "title" : "Composition VII", "artist" : "Kandinsky", "year" : 1913,
-           "price" : Decimal128("385.00"),
+          "price" : Decimal128("385.00"),
            "tags" : [ "oil", "painting", "abstract" ] }
          { "_id" : 7, "title" : "The Scream", "artist" : "Munch", "year" : 1893,
            "tags" : [ "Expressionism", "painting", "oil" ] }
@@ -177,37 +177,37 @@ Example
       .. code-block:: javascript
 
          db.artwork.aggregate( [
-           {
-             $facet: {
-               "categorizedByTags": [
-                 { $unwind: "$tags" },
-                 { $sortByCount: "$tags" }
-               ],
-               "categorizedByPrice": [
-                 // Filter out documents without a price e.g., _id: 7
-                 { $match: { price: { $exists: 1 } } },
-                 {
-                   $bucket: {
-                     groupBy: "$price",
-                     boundaries: [  0, 150, 200, 300, 400 ],
-                     default: "Other",
-                     output: {
-                       "count": { $sum: 1 },
-                       "titles": { $push: "$title" }
-                     }
-                   }
-                 }
-               ],
-               "categorizedByYears(Auto)": [
-                 {
-                   $bucketAuto: {
-                     groupBy: "$year",
-                     buckets: 4
-                   }
-                 }
-               ]
-             }
-           }
+          {
+            $facet: {
+              "categorizedByTags": [
+                { $unwind: "$tags" },
+                { $sortByCount: "$tags" }
+              ],
+              "categorizedByPrice": [
+                // Filter out documents without a price e.g., _id: 7
+                { $match: { price: { $exists: 1 } } },
+                {
+                  $bucket: {
+                    groupBy: "$price",
+                    boundaries: [  0, 150, 200, 300, 400 ],
+                    default: "Other",
+                    output: {
+                      "count": { $sum: 1 },
+                      "titles": { $push: "$title" }
+                    }
+                  }
+                }
+              ],
+              "categorizedByYears(Auto)": [
+                {
+                  $bucketAuto: {
+                    groupBy: "$year",
+                    buckets: 4
+                  }
+                }
+              ]
+            }
+          }
          ])
 
       The operation returns the following document:
@@ -215,65 +215,65 @@ Example
       .. code-block:: javascript
 
          {
-           "categorizedByYears(Auto)" : [
-             // First bucket includes the document without a year, e.g., _id: 4
-             { "_id" : { "min" : null, "max" : 1902 }, "count" : 2 },
-             { "_id" : { "min" : 1902, "max" : 1918 }, "count" : 2 },
-             { "_id" : { "min" : 1918, "max" : 1926 }, "count" : 2 },
-             { "_id" : { "min" : 1926, "max" : 1931 }, "count" : 2 }
-           ],
-           "categorizedByPrice" : [
-             {
-               "_id" : 0,
-               "count" : 2,
-               "titles" : [
-                 "Dancer",
-                 "Blue Flower"
-               ]
-             },
-             {
-               "_id" : 150,
-               "count" : 2,
-               "titles" : [
-                 "The Pillars of Society",
-                 "The Great Wave off Kanagawa"
-               ]
-             },
-             {
-               "_id" : 200,
-               "count" : 1,
-               "titles" : [
-                 "Melancholy III"
-               ]
-             },
-             {
-               "_id" : 300,
-               "count" : 1,
-               "titles" : [
-                 "Composition VII"
-               ]
-             },
-             {
-               // Includes document price outside of bucket boundaries, e.g., _id: 5
-               "_id" : "Other",
-               "count" : 1,
-               "titles" : [
-                 "The Persistence of Memory"
-               ]
-             }
-           ],
-           "categorizedByTags" : [
-             { "_id" : "painting", "count" : 6 },
-             { "_id" : "oil", "count" : 4 },
-             { "_id" : "Expressionism", "count" : 3 },
-             { "_id" : "Surrealism", "count" : 2 },
-             { "_id" : "abstract", "count" : 2 },
-             { "_id" : "woodblock", "count" : 1 },
-             { "_id" : "woodcut", "count" : 1 },
-             { "_id" : "ukiyo-e", "count" : 1 },
-             { "_id" : "satire", "count" : 1 },
-             { "_id" : "caricature", "count" : 1 }
-           ]
+          "categorizedByYears(Auto)" : [
+            // First bucket includes the document without a year, e.g., _id: 4
+            { "_id" : { "min" : null, "max" : 1902 }, "count" : 2 },
+            { "_id" : { "min" : 1902, "max" : 1918 }, "count" : 2 },
+            { "_id" : { "min" : 1918, "max" : 1926 }, "count" : 2 },
+            { "_id" : { "min" : 1926, "max" : 1931 }, "count" : 2 }
+          ],
+          "categorizedByPrice" : [
+            {
+              "_id" : 0,
+              "count" : 2,
+              "titles" : [
+                "Dancer",
+                "Blue Flower"
+              ]
+            },
+            {
+              "_id" : 150,
+              "count" : 2,
+              "titles" : [
+                "The Pillars of Society",
+                "The Great Wave off Kanagawa"
+              ]
+            },
+            {
+              "_id" : 200,
+              "count" : 1,
+              "titles" : [
+                "Melancholy III"
+              ]
+            },
+            {
+              "_id" : 300,
+              "count" : 1,
+              "titles" : [
+                "Composition VII"
+              ]
+            },
+            {
+              // Includes document price outside of bucket boundaries, e.g., _id: 5
+              "_id" : "Other",
+              "count" : 1,
+              "titles" : [
+                "The Persistence of Memory"
+              ]
+            }
+          ],
+          "categorizedByTags" : [
+            { "_id" : "painting", "count" : 6 },
+            { "_id" : "oil", "count" : 4 },
+            { "_id" : "Expressionism", "count" : 3 },
+            { "_id" : "Surrealism", "count" : 2 },
+            { "_id" : "abstract", "count" : 2 },
+            { "_id" : "woodblock", "count" : 1 },
+            { "_id" : "woodcut", "count" : 1 },
+            { "_id" : "ukiyo-e", "count" : 1 },
+            { "_id" : "satire", "count" : 1 },
+            { "_id" : "caricature", "count" : 1 }
+          ]
          }
 
    .. tab::
@@ -307,3 +307,40 @@ Example
          :end-before: // end facet
          :language: csharp
          :dedent: 8
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/driver-examples/node/aggregation/sample-mflix.rst
+
+      .. include:: /includes/driver-examples/node/aggregation/stage-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$facet``
+
+         .. replacement:: stage-specific-info
+
+         .. replacement:: method-description
+
+            executes two parallel aggregations. The first aggregation distributes
+            incoming documents into five groups by the value of their ``runtime``
+            field by using the :pipeline:`$bucketAuto` stage. The second
+            aggregation counts each value in the ``rated`` field and returns the
+            count of the top five values by using the :pipeline:`$sortByCount`
+            and :pipeline:`$limit` stages
+
+         .. replacement:: more-method-description
+  
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start facet
+         :end-before: //end facet
+         :language: javascript
+         :dedent: 2
+
+Learn More
+----------
+
+To learn more about related pipeline stages, see the :pipeline:`$bucketAuto`,
+:pipeline:`$sortByCount`, and :pipeline:`$limit` guides. 
+

@@ -223,353 +223,403 @@ When using :ref:`Queryable Encryption <qe-manual-feature-qe>`,
 Examples
 --------
 
-The following examples show how to use the ``$currentOp`` aggregation
-stage.
+.. tabs-drivers::
 
-Inactive Sessions 
-~~~~~~~~~~~~~~~~~
+   .. tab:: 
+      :tabid: shell
 
-This example returns information on inactive sessions that are
-holding locks as part of a transaction. Specifically:
+      Inactive Sessions 
+      ~~~~~~~~~~~~~~~~~
 
-- The first stage returns documents for all active operations as well
-  as inactive sessions that are holding locks as part of a transaction.
+      This example creates the following stages to return information on
+      inactive sessions that are holding locks as part of a transaction:
 
-- The second stage filters for documents related to inactive
-  sessions that are holding locks as part of a transaction.
+      - The first stage returns documents for all active operations as well as
+        inactive sessions that are holding locks as part of a transaction.
 
-.. code-block:: javascript
-
-   db.getSiblingDB("admin").aggregate( [
-      { $currentOp : { allUsers: true, idleSessions: true } },
-      { $match : { active: false, transaction : { $exists: true } } }
-   ] )
-
-You can use :data:`$currentOp.type` to specify
-an equivalent filter:
-
-.. code-block:: javascript
-
-   db.getSiblingDB("admin").aggregate( [ 
-      { $currentOp : { allUsers: true, idleSessions: true } },
-      { $match : { type: "idleSession" } }
-   ] )
-
-.. tip::
-
-   For transactions on a sharded cluster, include 
-   :ref:`localOps:true <currentOp-stage-localOps>` in the previous 
-   examples for a composite view of the transactions.
-
-Both operations return documents of the form:
-
-.. tabs::
-
-   .. tab:: Replica Set
-      :tabid: currentOp-rs
-
-      When run on a :binary:`~bin.mongod` that is part of a replica set:
+      - The second stage filters for documents related to inactive sessions that
+        are holding locks as part of a transaction.
 
       .. code-block:: javascript
 
-         {
-            "type" : "idleSession",
-            "host" : "example.mongodb.com:27017",
-            "desc" : "inactive transaction",
-            "client" : "198.51.100.1:50428",
-            "connectionId" : Long(32),
-            "appName" : "",
-            "clientMetadata" : {
-               "driver" : {
-                  "name" : "PyMongo",
-                  "version" : "3.9.0"
-               },
-               "os" : {
-                  "type" : "Darwin",
-                  "name" : "Darwin",
-                  "architecture" : "x86_64",
-                  "version" : "10.14.5"
-               },
-               "platform" : "CPython 3.7.1.final.0"
-            },
-            "lsid" : {
-               "id" : UUID("ff21e1a9-a130-4fe0-942f-9e6b6c67ea3c"),
-               "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
-            },
-            "transaction" : {
-               "parameters" : {
-                  "txnNumber" : Long(4),
-                  "autocommit" : false,
-                  "readConcern" : {
-                     "level" : "snapshot",
-                     "afterClusterTime" : Timestamp(1563892246, 1)
-                  }
-               },
-               "readTimestamp" : Timestamp(0, 0),
-               "startWallClockTime" : "2019-07-23T10:30:49.461-04:00",
-               "timeOpenMicros" : Long(1913590),
-               "timeActiveMicros" : Long(55),
-               "timeInactiveMicros" : Long(1913535),
-               "expiryTime" : "2019-07-23T10:31:49.461-04:00"
-            },
-            "waitingForLock" : false,
-            "active" : false,
-            "locks" : {
-               "ReplicationStateTransition" : "w",
-               "Global" : "w",
-               "Database" : "w",
-               "Collection" : "w"
-            },
-            "lockStats" : {
-               "ReplicationStateTransition" : {
-                  "acquireCount" : {
-                     "w" : Long(5)
-                  }
-               },
-               "Global" : {
-                  "acquireCount" : {
-                     "r" : Long(3),
-                     "w" : Long(1)
-                  }
-               },
-               "Database" : {
-                  "acquireCount" : {
-                     "r" : Long(2),
-                     "w" : Long(1)
-                  }
-               },
-               "Collection" : {
-                  "acquireCount" : {
-                     "w" : Long(1)
-                  }
-               },
-               "Mutex" : {
-                  "acquireCount" : {
-                     "r" : Long(3)
-                  }
-               },
-               "oplog" : {
-                  "acquireCount" : {
-                     "r" : Long(2)
-                  }
-               }
-            },
-            "waitingForFlowControl" : false,
-            "flowControlStats" : {},
-         }
+         db.getSiblingDB("admin").aggregate( [
+            { $currentOp : { allUsers: true, idleSessions: true } },
+            { $match : { active: false, transaction : { $exists: true } } }
+         ] )
 
-
-   .. tab:: Sharded Cluster (localOps: true)
-      :tabid: currentOp-mongos-localops
-
-      Running ``$currentOp`` with 
-      :ref:`localOps:true <currentOp-stage-localOps>` provides a
-      composite view (rather than per shard information) of the
-      in-progress transactions run on that :binary:`~bin.mongos`.
+      You can use :data:`$currentOp.type` to specify an equivalent filter:
 
       .. code-block:: javascript
 
          db.getSiblingDB("admin").aggregate( [ 
-            { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
+            { $currentOp : { allUsers: true, idleSessions: true } },
             { $match : { type: "idleSession" } }
-         ] );
-         
-         // or 
+         ] )
+
+      .. tip::
+
+         For transactions on a sharded cluster, include 
+         :ref:`localOps:true <currentOp-stage-localOps>` in the previous 
+         examples for a composite view of the transactions.
+
+      Both operations return documents of the following form:
+
+      .. tabs::
+
+         .. tab:: Replica Set
+            :tabid: currentOp-rs
+
+            When run on a :binary:`~bin.mongod` that is part of a replica set:
+
+            .. code-block:: javascript
+
+               {
+                  "type" : "idleSession",
+                  "host" : "example.mongodb.com:27017",
+                  "desc" : "inactive transaction",
+                  "client" : "198.51.100.1:50428",
+                  "connectionId" : Long(32),
+                  "appName" : "",
+                  "clientMetadata" : {
+                     "driver" : {
+                        "name" : "PyMongo",
+                        "version" : "3.9.0"
+                     },
+                     "os" : {
+                        "type" : "Darwin",
+                        "name" : "Darwin",
+                        "architecture" : "x86_64",
+                        "version" : "10.14.5"
+                     },
+                     "platform" : "CPython 3.7.1.final.0"
+                  },
+                  "lsid" : {
+                     "id" : UUID("ff21e1a9-a130-4fe0-942f-9e6b6c67ea3c"),
+                     "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
+                  },
+                  "transaction" : {
+                     "parameters" : {
+                        "txnNumber" : Long(4),
+                        "autocommit" : false,
+                        "readConcern" : {
+                           "level" : "snapshot",
+                           "afterClusterTime" : Timestamp(1563892246, 1)
+                        }
+                     },
+                     "readTimestamp" : Timestamp(0, 0),
+                     "startWallClockTime" : "2019-07-23T10:30:49.461-04:00",
+                     "timeOpenMicros" : Long(1913590),
+                     "timeActiveMicros" : Long(55),
+                     "timeInactiveMicros" : Long(1913535),
+                     "expiryTime" : "2019-07-23T10:31:49.461-04:00"
+                  },
+                  "waitingForLock" : false,
+                  "active" : false,
+                  "locks" : {
+                     "ReplicationStateTransition" : "w",
+                     "Global" : "w",
+                     "Database" : "w",
+                     "Collection" : "w"
+                  },
+                  "lockStats" : {
+                     "ReplicationStateTransition" : {
+                        "acquireCount" : {
+                           "w" : Long(5)
+                        }
+                     },
+                     "Global" : {
+                        "acquireCount" : {
+                           "r" : Long(3),
+                           "w" : Long(1)
+                        }
+                     },
+                     "Database" : {
+                        "acquireCount" : {
+                           "r" : Long(2),
+                           "w" : Long(1)
+                        }
+                     },
+                     "Collection" : {
+                        "acquireCount" : {
+                           "w" : Long(1)
+                        }
+                     },
+                     "Mutex" : {
+                        "acquireCount" : {
+                           "r" : Long(3)
+                        }
+                     },
+                     "oplog" : {
+                        "acquireCount" : {
+                           "r" : Long(2)
+                        }
+                     }
+                  },
+                  "waitingForFlowControl" : false,
+                  "flowControlStats" : {},
+               }
+
+
+         .. tab:: Sharded Cluster (localOps: true)
+            :tabid: currentOp-mongos-localops
+
+            Running ``$currentOp`` with :ref:`localOps:true
+            <currentOp-stage-localOps>` provides a composite view of the
+            in-progress transactions run on that :binary:`~bin.mongos`, rather
+            than information on individual shards. 
+
+            .. code-block:: javascript
+
+               db.getSiblingDB("admin").aggregate( [ 
+                  { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
+                  { $match : { type: "idleSession" } }
+               ] );
+               
+               // or 
+
+               db.getSiblingDB("admin").aggregate( [
+                  { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
+                  { $match : { active: false, transaction : { $exists: true } } }
+               ] )
+            
+            .. code-block:: javascript
+            
+               {
+                  "type" : "idleSession",
+                  "host" : "example.mongodb.com:27017",
+                  "desc" : "inactive transaction",
+                  "client" : "198.51.100.1:49618",
+                  "connectionId" : Long(48),
+                  "appName" : "",
+                  "clientMetadata" : {
+                     "driver" : {
+                        "name" : "PyMongo",
+                        "version" : "3.9.0"
+                     },
+                     "os" : {
+                        "type" : "Darwin",
+                        "name" : "Darwin",
+                        "architecture" : "x86_64",
+                        "version" : "10.14.6"
+                     },
+                     "platform" : "CPython 3.7.1.final.0",
+                     "mongos" : {
+                        "host" : "example.mongodb.com:27017",
+                        "client" : "198.51.100.1:53268",
+                        "version" : "4.2.1"
+                     }
+                  },
+                  "lsid" : {
+                     "id" : UUID("2c9ce111-133e-45b7-a00f-a7871005cae1"),
+                     "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
+                  },
+                  "active" : false,
+                  "transaction" : {
+                     "parameters" : {
+                        "txnNumber" : Long(2),
+                        "autocommit" : false,
+                        "readConcern" : {
+                           "level" : "snapshot",
+                           "afterClusterTime" : Timestamp(1571869019, 2)
+                        }
+                     },
+                     "globalReadTimestamp" : Timestamp(1571869019, 2),
+                     "startWallClockTime" : "2019-10-23T18:16:59.341-04:00",
+                     "timeOpenMicros" : Long(169244639),
+                     "timeActiveMicros" : Long(535),
+                     "timeInactiveMicros" : Long(169244104),
+                     "numParticipants" : 2,
+                     "participants" : [
+                        {
+                           "name" : "shardB",
+                           "coordinator" : true,
+                           "readOnly" : false
+                        },
+                        {
+                           "name" : "shardA",
+                           "coordinator" : false,
+                           "readOnly" : false
+                        }
+                     ],
+                     "numReadOnlyParticipants" : 0,
+                     "numNonReadOnlyParticipants" : 2
+                  }
+               }
+
+            When run without :ref:`localOps:true <currentOp-stage-localOps>` on
+            the :binary:`~bin.mongos`, the transaction information is per
+            shard.
+
+         .. tab:: Sharded Cluster
+            :tabid: currentOp-mongos
+
+            When run on a :binary:`~bin.mongos` without :ref:`localOps:true
+            <currentOp-stage-localOps>`, the transaction information is per
+            shard.
+
+            .. code-block:: javascript
+
+               {
+                  "shard" : "shardB",
+                  "type" : "idleSession",
+                  "host" : "shardB.mongodb.com:27018",
+                  "desc" : "inactive transaction",
+                  "client_s" : "198.51.100.1:53961",
+                  "connectionId" : Long(63),
+                  "appName" : "",
+                  "clientMetadata" : {
+                     "driver" : {
+                        "name" : "PyMongo",
+                        "version" : "3.9.0"
+                     },
+                     "os" : {
+                        "type" : "Darwin",
+                        "name" : "Darwin",
+                        "architecture" : "x86_64",
+                        "version" : "10.14.6"
+                     },
+                     "platform" : "CPython 3.7.1.final.0",
+                     "mongos" : {
+                        "host" : "example.mongodb.com:27017",
+                        "client" : "198.51.100.1:53976",
+                        "version" : "4.2.0"
+                     }
+                  },
+                  "lsid" : {
+                     "id" : UUID("720d403c-8daf-40bb-b61e-329e20b0493b"),
+                     "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
+                  },
+                  "transaction" : {
+                     "parameters" : {
+                        "txnNumber" : Long(1),
+                        "autocommit" : false,
+                        "readConcern" : {
+                           "level" : "snapshot"
+                        }
+                     },
+                     "readTimestamp" : Timestamp(0, 0),
+                     "startWallClockTime" : "2019-10-21T18:31:12.192-04:00",
+                     "timeOpenMicros" : Long(24137008),
+                     "timeActiveMicros" : Long(52),
+                     "timeInactiveMicros" : Long(24136956),
+                     "expiryTime" : "2019-10-21T18:32:12.192-04:00"
+                  },
+                  "waitingForLock" : false,
+                  "active" : false,
+                  "locks" : {
+                     "ReplicationStateTransition" : "w",
+                     "Global" : "w",
+                     "Database" : "w",
+                     "Collection" : "w"
+                  },
+                  "lockStats" : {
+                     "ReplicationStateTransition" : {
+                        "acquireCount" : {
+                           "w" : Long(3)
+                        }
+                     },
+                     "Global" : {
+                        "acquireCount" : {
+                           "r" : Long(1),
+                           "w" : Long(1)
+                        }
+                     },
+                     "Database" : {
+                        "acquireCount" : {
+                           "r" : Long(1),
+                           "w" : Long(1)
+                        }
+                     },
+                     "Collection" : {
+                        "acquireCount" : {
+                           "r" : Long(1),
+                           "w" : Long(1)
+                        }
+                     },
+                     "Mutex" : {
+                        "acquireCount" : {
+                           "r" : Long(6)
+                        }
+                     }
+                  }
+               }
+               {
+                  "shard" : "shardA",
+                  "type" : "idleSession",
+                  ...
+               }
+
+      .. _sampled-queries-currentOp-stage:
+
+      Sampled Queries
+      ~~~~~~~~~~~~~~~
+
+      This example returns information on query sampling progress. 
+
+      - The first stage returns documents for all active operations.
+
+      - The second stage filters for documents related to the query analyzer.
+
+      .. code-block:: javascript
 
          db.getSiblingDB("admin").aggregate( [
-            { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
-            { $match : { active: false, transaction : { $exists: true } } }
+            { $currentOp: { allUsers: true, localOps: true } },
+            { $match: { desc: "query analyzer" } } 
          ] )
-      
-      .. code-block:: javascript
-      
-         {
-            "type" : "idleSession",
-            "host" : "example.mongodb.com:27017",
-            "desc" : "inactive transaction",
-            "client" : "198.51.100.1:49618",
-            "connectionId" : Long(48),
-            "appName" : "",
-            "clientMetadata" : {
-               "driver" : {
-                  "name" : "PyMongo",
-                  "version" : "3.9.0"
-               },
-               "os" : {
-                  "type" : "Darwin",
-                  "name" : "Darwin",
-                  "architecture" : "x86_64",
-                  "version" : "10.14.6"
-               },
-               "platform" : "CPython 3.7.1.final.0",
-               "mongos" : {
-                  "host" : "example.mongodb.com:27017",
-                  "client" : "198.51.100.1:53268",
-                  "version" : "4.2.1"
-               }
-            },
-            "lsid" : {
-               "id" : UUID("2c9ce111-133e-45b7-a00f-a7871005cae1"),
-               "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
-            },
-            "active" : false,
-            "transaction" : {
-               "parameters" : {
-                  "txnNumber" : Long(2),
-                  "autocommit" : false,
-                  "readConcern" : {
-                     "level" : "snapshot",
-                     "afterClusterTime" : Timestamp(1571869019, 2)
-                  }
-               },
-               "globalReadTimestamp" : Timestamp(1571869019, 2),
-               "startWallClockTime" : "2019-10-23T18:16:59.341-04:00",
-               "timeOpenMicros" : Long(169244639),
-               "timeActiveMicros" : Long(535),
-               "timeInactiveMicros" : Long(169244104),
-               "numParticipants" : 2,
-               "participants" : [
-                  {
-                     "name" : "shardB",
-                     "coordinator" : true,
-                     "readOnly" : false
-                  },
-                  {
-                     "name" : "shardA",
-                     "coordinator" : false,
-                     "readOnly" : false
-                  }
-               ],
-               "numReadOnlyParticipants" : 0,
-               "numNonReadOnlyParticipants" : 2
-            }
-         }
 
-      When run without :ref:`localOps:true <currentOp-stage-localOps>` on
-      the :binary:`~bin.mongos`, the transaction information is per
-      shard.
+      This pipeline returns output similar to the following:
 
-   .. tab:: Sharded Cluster
-      :tabid: currentOp-mongos
+      .. include:: /includes/currentOp-query-analyzer-output.rst
 
-      When run on a :binary:`~bin.mongos` without :ref:`localOps:true
-      <currentOp-stage-localOps>`, the transaction information is per
-      shard.
+   .. tab::
+      :tabid: nodejs
 
-      .. code-block:: javascript
+      To use the {+node-driver-full+} to add a ``$currentOp`` stage to an
+      aggregation pipeline, use the ``$currentOp`` operator in a pipeline
+      object.
 
-         {
-            "shard" : "shardB",
-            "type" : "idleSession",
-            "host" : "shardB.mongodb.com:27018",
-            "desc" : "inactive transaction",
-            "client_s" : "198.51.100.1:53961",
-            "connectionId" : Long(63),
-            "appName" : "",
-            "clientMetadata" : {
-               "driver" : {
-                  "name" : "PyMongo",
-                  "version" : "3.9.0"
-               },
-               "os" : {
-                  "type" : "Darwin",
-                  "name" : "Darwin",
-                  "architecture" : "x86_64",
-                  "version" : "10.14.6"
-               },
-               "platform" : "CPython 3.7.1.final.0",
-               "mongos" : {
-                  "host" : "example.mongodb.com:27017",
-                  "client" : "198.51.100.1:53976",
-                  "version" : "4.2.0"
-               }
-            },
-            "lsid" : {
-               "id" : UUID("720d403c-8daf-40bb-b61e-329e20b0493b"),
-               "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
-            },
-            "transaction" : {
-               "parameters" : {
-                  "txnNumber" : Long(1),
-                  "autocommit" : false,
-                  "readConcern" : {
-                     "level" : "snapshot"
-                  }
-               },
-               "readTimestamp" : Timestamp(0, 0),
-               "startWallClockTime" : "2019-10-21T18:31:12.192-04:00",
-               "timeOpenMicros" : Long(24137008),
-               "timeActiveMicros" : Long(52),
-               "timeInactiveMicros" : Long(24136956),
-               "expiryTime" : "2019-10-21T18:32:12.192-04:00"
-            },
-            "waitingForLock" : false,
-            "active" : false,
-            "locks" : {
-               "ReplicationStateTransition" : "w",
-               "Global" : "w",
-               "Database" : "w",
-               "Collection" : "w"
-            },
-            "lockStats" : {
-               "ReplicationStateTransition" : {
-                  "acquireCount" : {
-                     "w" : Long(3)
-                  }
-               },
-               "Global" : {
-                  "acquireCount" : {
-                     "r" : Long(1),
-                     "w" : Long(1)
-                  }
-               },
-               "Database" : {
-                  "acquireCount" : {
-                     "r" : Long(1),
-                     "w" : Long(1)
-                  }
-               },
-               "Collection" : {
-                  "acquireCount" : {
-                     "r" : Long(1),
-                     "w" : Long(1)
-                  }
-               },
-               "Mutex" : {
-                  "acquireCount" : {
-                     "r" : Long(6)
-                  }
-               }
-            }
-         }
-         {
-            "shard" : "shardA",
-            "type" : "idleSession",
-            ...
-         }
+      Inactive Sessions
+      ~~~~~~~~~~~~~~~~~
 
-.. _sampled-queries-currentOp-stage:
+      This example creates the following pipeline stages that return information
+      on inactive sessions that are holding locks as part of a transaction.
 
-Sampled Queries
-~~~~~~~~~~~~~~~
+      - The first stage returns documents for all active operations and inactive
+        sessions that are holding locks as part of a transaction.
+      - The second stage filters for documents related to inactive sessions that
+        are holding locks as part of a transaction.
 
-This example returns information on query sampling progess. 
+      Then, the example runs the following aggregation pipeline:
 
-- The first stage returns documents for all active operations.
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start currentOp
+         :end-before: //end currentOp
+         :language: javascript
+         :dedent: 2
 
-- The second stage filters for documents related to the query
-  analyzer.
+      You can use :data:`$currentOp.type` to specify an equivalent filter in the
+      :pipeline:`$match` stage:
 
-.. code-block:: javascript
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start currentOpFilter
+         :end-before: //end currentOpFilter
+         :language: javascript
+         :dedent: 2
+   
+      Sampled Queries
+      ~~~~~~~~~~~~~~~
 
-   db.getSiblingDB("admin").aggregate( [
-      { $currentOp: { allUsers: true, localOps: true } },
-      { $match: { desc: "query analyzer" } } 
-   ] )
+      This example creates the following stages to return information on query
+      sampling.
 
-This pipeline returns output similar to the following:
+      - The first stage returns documents for all active operations.
+      - The second stage filters for documents related to the query analyzer.
 
-.. include:: /includes/currentOp-query-analyzer-output.rst
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start currentOpQuery
+         :end-before: //end currentOpQuery
+         :language: javascript
+         :dedent: 2
 
 .. _currentOp-stage-output-fields:
 
@@ -653,41 +703,40 @@ relevant for the operation:
 
    - .. _agg-current-op-commit-coord-metrics:
    
-     The commit coordination metrics for a :ref:`transaction whose
-     write operations span multiple shards <transactions>`.
+   The commit coordination metrics for a :ref:`transaction whose
+   write operations span multiple shards <transactions>`.
    
-     Commit coordination is handled by a shard, and
-     ``$currentOp`` (run either on a :binary:`~bin.mongos` or a
-     shard member) returns a shard's coordination information only for
-     transactions the shard is currently coordinating.
+   Commit coordination is handled by a shard, and
+   ``$currentOp`` (run either on a :binary:`~bin.mongos` or a
+   shard member) returns a shard's coordination information only for
+   transactions the shard is currently coordinating.
 
-     To filter for only the commit coordination metrics:
+   The following example filters for only the commit coordination metrics:
 
-     .. code-block:: javascript
+   .. code-block:: javascript
 
-        db.getSiblingDB("admin").aggregate( [ 
+      db.getSiblingDB("admin").aggregate( [ 
             { $currentOp: { allUsers: true, idleSessions: true } }, 
             { $match: { desc: "transaction coordinator" } }
-        ] )
+      ] )
 
    - .. _agg-current-op-commit-coord-operation:
 
-     A specific commit coordination operation (i.e.
-     :data:`~$currentOp.type` is ``op`` and :data:`~$currentOp.desc` is
-     ``"TransactionCoordinator"``) spawned by the transaction
-     coordinator.
+   A specific commit coordination operation (i.e.
+   :data:`~$currentOp.type` is ``op`` and :data:`~$currentOp.desc` is
+   ``"TransactionCoordinator"``) spawned by the transaction
+   coordinator.
 
    .. note::
 
-      - If run with :ref:`idleSessions: false
-        <currentOp-stage-idleSessions>`, ``$currentOp`` does not
-        return the :data:`$currentOp.twoPhaseCommitCoordinator`
-        information in ``inactive``
+      - If run with :ref:`idleSessions: false <currentOp-stage-idleSessions>`,
+        ``$currentOp`` does not return the
+        :data:`$currentOp.twoPhaseCommitCoordinator` information in ``inactive``
         :data:`~$currentOp.twoPhaseCommitCoordinator.state`
 
       - If access control is enabled and :ref:`allUsers: false
-        <currentOp-stage-allUsers>`, ``$currentOp`` does not
-        return :data:`$currentOp.twoPhaseCommitCoordinator` information.
+        <currentOp-stage-allUsers>`, ``$currentOp`` does not return
+        :data:`$currentOp.twoPhaseCommitCoordinator` information.
 
    .. data:: $currentOp.twoPhaseCommitCoordinator.lsid
 
@@ -760,26 +809,21 @@ relevant for the operation:
            - Not actively part of a commit.
 
          * - ``writingParticipantList``
-         
-           - Writing a local record of the list of shards that are part
-             of this multi-shard transaction.
+           - Writing a local record of the list of shards that are part of this
+             multi-shard transaction.
 
          * - ``waitingForVotes``
-         
            - Waiting for the participants to respond with vote to commit or abort.
 
          * - ``writingDecision``
-         
            - Writing a local record of the coordinator's decision to commit or
              abort based on votes.
 
          * - ``waitingForDecisionAck``
- 
-           - Waiting for participants to acknowledge the coordinator's
-             decision to commit or abort.
+           - Waiting for participants to acknowledge the coordinator's decision
+             to commit or abort.
 
          * - ``deletingCoordinatorDoc``
-         
            - Deleting the local record of commit decision.
 
       Only available for the :ref:`commit coordination metrics
@@ -852,25 +896,25 @@ relevant for the operation:
 
       - For a commit decision:
 
-        .. code-block:: javascript
+      .. code-block:: javascript
 
-           "decision" : {
-              "decision" : "commit",
-              "commitTimestamp" : Timestamp(1572034669, 3)
-           }
+         "decision" : {
+            "decision" : "commit",
+            "commitTimestamp" : Timestamp(1572034669, 3)
+         }
 
       - For an abort decision:
 
-        .. code-block:: javascript
+      .. code-block:: javascript
 
-           "decision" : {
-              "decision" : "abort",
-              "abortStatus" : {
-                 "code" : 282,
-                 "codeName" : "TransactionCoordinatorReachedAbortDecision",
-                 "errmsg" : "Transaction exceeded deadline"
-              }
-           }
+         "decision" : {
+            "decision" : "abort",
+            "abortStatus" : {
+               "code" : 282,
+               "codeName" : "TransactionCoordinatorReachedAbortDecision",
+               "errmsg" : "Transaction exceeded deadline"
+            }
+         }
 
       Only available for the :ref:`commit coordination metrics
       <agg-current-op-commit-coord-metrics>`.
@@ -955,13 +999,12 @@ relevant for the operation:
 
    - On a replica set.
 
-   - On a sharded cluster if ``$currentOp`` is run *without* 
-     :ref:`localOps:true <currentOp-stage-localOps>`. The transaction 
-     information is per shard.
+   - On a sharded cluster if ``$currentOp`` is run *without* :ref:`localOps:true
+     <currentOp-stage-localOps>`. The transaction information is per shard.
 
    - On a sharded cluster if ``$currentOp`` is run with :ref:`localOps:true
-     <currentOp-stage-localOps>`. The transaction information is a
-     composite view rather than per shard.
+     <currentOp-stage-localOps>`. The transaction information is a composite
+     view rather than per shard.
 
    .. data:: $currentOp.transaction.parameters
 
@@ -1019,13 +1062,12 @@ relevant for the operation:
          Only present if the operation is part of a multi-document
          transaction. However, the field is not returned if:
          
-         - the transaction is on a sharded cluster and uses
-           :ref:`"snapshot" read concern
-           <transactions-read-concern-snapshot>`, and
+         - the transaction is on a sharded cluster and uses :ref:`"snapshot"
+           read concern <transactions-read-concern-snapshot>`, and
    
          - ``$currentOp`` is run with :ref:`localOps: true
            <currentOp-stage-localOps>`. 
-           
+         
          Instead, :data:`$currentOp.transaction.globalReadTimestamp` is
          returned.
 
@@ -1080,9 +1122,9 @@ relevant for the operation:
          transaction.
 
       .. data:: $currentOp.transaction.numParticipants
-       
+      
          Number of shards participating in this transaction.
-       
+      
          Only present if the operation is part of a transaction on a
          sharded cluster and ``$currentOp`` is run with
          :ref:`localOps: true <currentOp-stage-localOps>`
@@ -1625,31 +1667,30 @@ relevant for the operation:
         - Description
 
       * - ``unused``
-        - The resharding operation is about to start or recovering from
-          a primary failover.
+        - The resharding operation is about to start or recovering from a
+          primary failover.
 
       * - ``preparing-to-donate``
-        - The donor shard is preparing to donate data to the recipient
-          shards.
+        - The donor shard is preparing to donate data to the recipient shards.
 
       * - ``donating-initial-data``
         - The donor shard is donating data to the recipient shards.
 
       * - ``donating-oplog-entries``
-        - The donor shard is donating :term:`oplog` entries to the
-          recipient shards.
+        - The donor shard is donating :term:`oplog` entries to the recipient
+          shards.
 
       * - ``preparing-to-block-writes``
-        - The donor shard is about to prevent new incoming write
-          operations to the collection that is being resharded.
+        - The donor shard is about to prevent new incoming write operations to
+          the collection that is being resharded.
 
       * - ``error``
         - An error occurred during the resharding operation.
 
       * - ``blocking-writes``
-        - The donor shard is preventing new incoming write operations
-          and the donor shard has notified all recipient shards that new
-          incoming writes are prevented.
+        - The donor shard is preventing new incoming write operations and the
+          donor shard has notified all recipient shards that new incoming writes
+          are prevented.
 
       * - ``done``
         - The donor shard has dropped the old sharded collection and the
@@ -1674,12 +1715,12 @@ relevant for the operation:
         - Description
 
       * - ``unused``
-        - The resharding operation is about to start or recovering from
-          a primary failover.
+        - The resharding operation is about to start or recovering from a
+          primary failover.
 
       * - ``awaiting-fetch-timestamp``
-        - The recipient shard is waiting for the donor shards to be
-          prepared to donate their data.
+        - The recipient shard is waiting for the donor shards to be prepared to
+          donate their data.
 
       * - ``creating-collection``
         - The recipient shard is creating the new sharded collection.
@@ -1688,9 +1729,8 @@ relevant for the operation:
         - The recipient shard is receiving data from the donor shards.
 
       * - ``applying``
-        - The recipient shard is applying :term:`oplog` entries to
-          modify its copy of the data based on the new incoming writes
-          from donor shards.
+        - The recipient shard is applying :term:`oplog` entries to modify its
+          copy of the data based on the new incoming writes from donor shards.
 
       * - ``error``
         - An error occurred during the :ref:`resharding operation
@@ -1723,57 +1763,53 @@ relevant for the operation:
         - Description
 
       * - ``unused``
-        - The resharding operation is about to start or recovering from
-          a primary failover.
+        - The resharding operation is about to start or recovering from a
+          primary failover.
 
       * - ``initializing``
-        - The resharding coordinator has inserted the coordinator
-          document into ``config.reshardingOperations`` and has added
-          the ``reshardingFields`` to the ``config.collections`` entry
-          for the original collection.
+        - The resharding coordinator has inserted the coordinator document into
+          ``config.reshardingOperations`` and has added the ``reshardingFields``
+          to the ``config.collections`` entry for the original collection.
 
       * - ``preparing-to-donate``
         - The resharding coordinator
 
           - has created a ``config.collections`` entry for the temporary
-            resharding collection.
-          - has inserted entries into ``config.chunks`` for ranges based
-            on the new shard key.
-          - has inserted entries into ``config.tags`` for any zones
-            associated with the new shard key.
+             resharding collection.
+          - has inserted entries into ``config.chunks`` for ranges based on the
+             new shard key.
+          - has inserted entries into ``config.tags`` for any zones associated
+             with the new shard key.
 
-          The coordinator informs participant shards to begin the
-          resharding operation. The coordinator then waits until all
-          donor shards have picked a ``minFetchTimestamp`` and are ready
-          to donate.
+          The coordinator informs participant shards to begin the resharding
+          operation. The coordinator then waits until all donor shards have
+          picked a ``minFetchTimestamp`` and are ready to donate.
 
       * - ``cloning``
-        - The resharding coordinator informs donor shards to donate data
-          to recipient shards. The coordinator waits for all recipients
-          to finish cloning the data from the donor.
+        - The resharding coordinator informs donor shards to donate data to
+          recipient shards. The coordinator waits for all recipients to finish
+          cloning the data from the donor.
 
       * - ``applying``
-        - The resharding coordinator informs recipient shards to modify
-          their copies of data based on new incoming writes from donor
-          shards. The coordinator waits for all recipients to finish
-          applying :term:`oplog` entries.
+        - The resharding coordinator informs recipient shards to modify their
+          copies of data based on new incoming writes from donor shards. The
+          coordinator waits for all recipients to finish applying :term:`oplog`
+          entries.
 
       * - ``blocking-writes``
         - The resharding coordinator informs donor shards to prevent new
-          incoming write operations to the collection being resharded.
-          The coordinator then waits for all recipients to have all data
-          changes.
+          incoming write operations to the collection being resharded. The
+          coordinator then waits for all recipients to have all data changes.
 
       * - ``aborting``
-        - An unrecoverable error occurred during the resharding
-          operation or the :dbcommand:`abortReshardCollection` command
-          (or the :method:`sh.abortReshardCollection()` method) was run.
+        - An unrecoverable error occurred during the resharding operation or the
+          :dbcommand:`abortReshardCollection` command (or the
+          :method:`sh.abortReshardCollection()` method) was run.
 
       * - ``committing``
-        - The resharding coordinator removes the ``config.collections``
-          entry for the temporary resharding collection. The coordinator
-          then adds the ``recipientFields`` to the source collection's
-          entry.
+        - The resharding coordinator removes the ``config.collections`` entry
+          for the temporary resharding collection. The coordinator then adds the
+          ``recipientFields`` to the source collection's entry.
 
    .. versionadded:: 5.0
 
