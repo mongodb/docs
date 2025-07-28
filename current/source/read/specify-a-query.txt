@@ -1,0 +1,280 @@
+.. _ruby-specify-query:
+
+===============
+Specify a Query
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: expressions, operations, read, filter, code example
+
+Overview
+--------
+
+In this guide, you can learn how to specify a query by using the {+driver-short+}.
+
+You can refine the set of documents that a query returns by creating a
+**query filter**. A query filter is an expression that specifies the search
+criteria that MongoDB uses to match documents in a read or write operation.
+In a query filter, you can prompt the driver to search for documents that have
+an exact match to your query, or you can compose query filters to express more
+complex matching criteria.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide run operations on the ``fruits`` collection,
+which contains documents representing fruits. The following
+code example shows how to create a database and collection, and then
+insert the sample documents into your collection:
+
+.. literalinclude:: /includes/read/specify-queries.rb
+   :start-after: start-setup
+   :end-before: end-setup
+   :language: ruby
+   :dedent:
+   :copyable:
+
+Exact Match
+-----------
+
+Literal value queries return documents that have an exact match to your query filter.
+
+The following example specifies a query filter as a parameter to the ``find``
+method. The code returns all documents in which the value of the ``color`` field
+is ``'yellow'``:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/read/specify-queries.rb
+      :start-after: start-find-exact
+      :end-before: end-find-exact
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false    
+
+      {"_id"=>2, "name"=>"bananas", "qty"=>7, "rating"=>4, "color"=>"yellow", "type"=>["cavendish"]}
+      {"_id"=>4, "name"=>"pineapples", "qty"=>3, "rating"=>5, "color"=>"yellow"}
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, call the ``find`` method
+   without passing any parameters:
+
+   .. code-block:: ruby
+
+      results = collection.find
+
+Comparison Operators
+--------------------
+
+Comparison operators evaluate a document field value against a specified value
+in your query filter. The following list describes common comparison operators:
+
+- ``$gt``: Returns documents in which the value of the given field is *greater than*
+  the specified value
+- ``$lte``: Returns documents in which the value of the given field is *less than or
+  equal to* the specified value
+- ``$ne``: Returns documents in which the value of the given field *does not equal* the
+  specified value
+
+.. tip::
+
+   To view a full list of comparison operators, see the :manual:`Comparison Query Operators
+   </reference/operator/query-comparison/>` guide in the {+mdb-server+} manual. 
+
+The following example specifies a comparison operator in a query filter as a
+parameter to the ``find`` method. The code returns all documents that have a
+``rating`` field value greater than ``2``:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/read/specify-queries.rb
+      :start-after: start-find-comparison
+      :end-before: end-find-comparison
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>1, "name"=>"apples", "qty"=>5, "rating"=>3, "color"=>"red", "type"=>["fuji", "honeycrisp"]}
+      {"_id"=>2, "name"=>"bananas", "qty"=>7, "rating"=>4, "color"=>"yellow", "type"=>["cavendish"]}
+      {"_id"=>4, "name"=>"pineapples", "qty"=>3, "rating"=>5, "color"=>"yellow"}
+
+Logical Operators
+-----------------
+
+Logical operators match documents by using logic applied to the results of two or
+more sets of expressions. The following list describes each logical operator: 
+
+- ``$and``: Returns documents that match the conditions of *all* clauses
+- ``$or``: Returns documents that match the conditions of *one* clause
+- ``$nor``: Returns documents that *do not* match the conditions of any clause
+- ``$not``: Returns documents that *do not* match the expression
+
+.. tip::
+
+   To learn more about logical operators, see the :manual:`Logical Query Operators
+   </reference/operator/query-logical/>` guide in the {+mdb-server+} manual.
+
+The following example specifies a logical operator in a query filter as a
+parameter to the ``find`` method. The code returns all documents that have a
+``qty`` field value greater than ``5`` **or** a ``color`` field value of
+``'yellow'``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.rb
+      :start-after: start-find-logical
+      :end-before: end-find-logical
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>2, "name"=>"bananas", "qty"=>7, "rating"=>4, "color"=>"yellow", "type"=>["cavendish"]}
+      {"_id"=>3, "name"=>"oranges", "qty"=>6, "rating"=>2, "type"=>["naval", "mandarin"]}
+      {"_id"=>4, "name"=>"pineapples", "qty"=>3, "rating"=>5, "color"=>"yellow"}
+
+Array Operators
+---------------
+
+Array operators match documents based on the value or quantity of elements in an
+array field. The following list describes each array operator:
+
+- ``$all``: Returns documents with arrays that contain all elements in the query
+- ``$elemMatch``: Returns documents if an element in their array field matches
+  all conditions in the query
+- ``$size``: Returns documents with arrays of a specified size
+
+.. tip::
+
+    To learn more about array operators, see the :manual:`Array Query Operators
+    </reference/operator/query-array/>` guide in the {+mdb-server+} manual.
+
+The following example specifies an array operator in a query filter as a
+parameter to the ``find`` method. The code returns all documents in which the
+``type`` array field contains ``2`` elements:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.rb
+      :start-after: start-find-array
+      :end-before: end-find-array
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>1, "name"=>"apples", "qty"=>5, "rating"=>3, "color"=>"red", "type"=>["fuji", "honeycrisp"]}
+      {"_id"=>3, "name"=>"oranges", "qty"=>6, "rating"=>2, "type"=>["naval", "mandarin"]}
+
+Element Operators
+-----------------
+
+Element operators query data based on the presence or type of a field. The following
+list describes each element operator: 
+
+- ``$exists``: Returns documents that contain the specified field
+- ``$type``: Returns documents that contain a field of the specified type
+
+.. tip::
+
+    To learn more about element operators, see the :manual:`Element Query Operators
+    </reference/operator/query-element/>` guide in the {+mdb-server+} manual.
+
+The following example specifies an element operator in a query filter as a
+parameter to the ``find`` method. The code returns all documents that have a
+``color`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.rb
+      :start-after: start-find-element
+      :end-before: end-find-element
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>1, "name"=>"apples", "qty"=>5, "rating"=>3, "color"=>"red", "type"=>["fuji", "honeycrisp"]}
+      {"_id"=>2, "name"=>"bananas", "qty"=>7, "rating"=>4, "color"=>"yellow", "type"=>["cavendish"]}
+      {"_id"=>4, "name"=>"pineapples", "qty"=>3, "rating"=>5, "color"=>"yellow"}
+
+Evaluation Operators
+--------------------
+
+Evaluation operators return data based on evaluations of either individual
+fields or the entire collection's documents. The following list describes
+common element operators: 
+
+- ``$text``: Performs a text search on the documents
+- ``$regex``: Returns documents that match a specified regular expression
+- ``$mod``: Performs a modulo operation on the value of a field and
+  returns documents where the remainder is a specified value
+
+.. tip::
+
+    To view a full list of evaluation operators, see the :manual:`Evaluation Query Operators
+    </reference/operator/query-evaluation/>` guide in the {+mdb-server+} manual.
+
+The following example specifies an evaluation operator in a query filter as a
+parameter to the ``find`` method. The code uses a regular expression to return
+all documents in which the ``name`` field value has at least two consecutive
+``'p'`` characters:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.rb
+      :start-after: start-find-evaluation
+      :end-before: end-find-evaluation
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>1, "name"=>"apples", "qty"=>5, "rating"=>3, "color"=>"red", "type"=>["fuji", "honeycrisp"]}
+      {"_id"=>4, "name"=>"pineapples", "qty"=>3, "rating"=>5, "color"=>"yellow"}
+
+.. note::
+
+    The {+driver-short+} implicitly uses the ``$regex`` operator
+    when a query filter includes a regular expression value, as shown
+    in the preceding example.
+
+Additional Information
+----------------------
+
+To learn more about querying documents, see :manual:`Query Documents
+</tutorial/query-documents/>` in the {+mdb-server+} manual.
+
+To learn more about retrieving documents by using the {+driver-short+}, see the
+:ref:`ruby-retrieve` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the ``find`` method, see the
+:ruby-api:`API documentation. <Collection.html#find-instance_method>`

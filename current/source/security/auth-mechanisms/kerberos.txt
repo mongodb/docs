@@ -1,0 +1,136 @@
+.. _ruby-authentication-kerberos:
+
+=================
+Kerberos (GSSAPI)
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example
+
+Overview
+--------
+
+The Generic Security Services API (GSSAPI) authentication mechanism allows you to
+use your principal name to authenticate to a Kerberos service.
+You can use this mechanism only when authenticating to MongoDB Enterprise Advanced.
+
+Code Placeholders
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``<username>``: LDAP username.
+- ``<hostname>``: Network address of your MongoDB deployment.
+- ``<port>``: Port number of your MongoDB deployment. If you omit this parameter,
+  the driver uses the default port number (``27017``). Specifying a port number is optional
+  when connecting to a MongoDB Atlas cluster.
+- ``<authentication_db>``: MongoDB database that contains the user's LDAP credentials.
+  If you omit this parameter, the driver uses the default database (``admin``).
+
+To use the code examples on this page, replace these placeholders with your own values.
+
+Using GSSAPI Authentication in Your Application
+-----------------------------------------------
+
+To configure {+mdb-server+} to use Kerberos, see the
+:manual:`{+mdb-server+} Kerberos documentation
+</tutorial/control-access-to-mongodb-with-kerberos-authentication/>`.
+
+To use the Kerberos authentication mechanism with the {+driver-short+},
+you must install and load the `mongo_kerberos <https://rubygems.org/gems/mongo_kerberos>`__
+library. To do so, add the following lines to your ``Gemfile``:
+
+.. code-block:: ruby
+
+   gem 'mongo', '~> 2'
+   gem 'mongo_kerberos', '~> 2'
+
+Then, add the following lines to your application code:
+
+.. code-block:: ruby
+
+   require 'mongo'
+   require 'mongo_kerberos'
+
+.. note::
+
+   When using Kerberos authentication, you must specify the fully qualified domain name
+   (FQDN) of the host.
+
+The following sections describe how to use Kerberos authentication with Ruby MRI and
+JRuby.
+
+Using Kerberos Authentication with Ruby MRI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're using Kerberos authentication with **Ruby MRI**, you must perform the following
+steps:
+
+- Establish a Kerberos session on the driver. The driver uses this session to prove the user's identity to
+  the server. 
+  
+- You must ensure that the host system is
+  configured for Kerberos authentication. To learn more about configuring the host system
+  to use Kerberos, see the `Kerberos documentation <https://web.mit.edu/kerberos/krb5-latest/doc/admin/install_clients.html>`__
+  or your operating system documentation for details.
+
+Use the `kinit utility <https://web.mit.edu/kerberos/krb5-latest/doc/user/user_commands/kinit.html>`__
+to establish a Kerberos session.
+
+Using Kerberos Authentication with JRuby
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're using Kerberos authentication with **JRuby**, you can externally establish the Kerberos
+session to the driver by using the process described above for MRI. You can also provide the
+path to a keytab file by storing the configuration in the ``java.security.auth.login.config`` system property.
+You must also configure the Java Runtime Environment to use Kerberos. To learn more, see the 
+:driver:`MongoDB Java Driver Kerberos documentation </java/sync/current/fundamentals/enterprise-auth/#kerberos--gssapi->`
+for more information.
+
+Kerberos Authentication Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Select the :guilabel:`Connection String` or :guilabel:`Client Options` tab to
+see the corresponding syntax for connecting to MongoDB with Kerberos authentication:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: ruby
+
+         client = Mongo::Client.new("mongodb://<username>@<hostname>[:<port>]/<authentication_db>?authMechanism=GSSAPI")
+
+
+   .. tab:: Client Options
+      :tabid: mongo-credential
+
+      .. code-block:: ruby
+
+         client = Mongo::Client.new(['<hostname>[:<port>]'],
+                                    auth_mech: :gssapi,
+                                    user: '<username>')
+
+.. note::
+
+   If you use a connection string to connect to MongoDB, ensure that you percent-encode any
+   special characters that appear in the username.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed on this
+page, see the following API documentation:
+
+- :ruby-api:`Mongo::Client <Client.html>`

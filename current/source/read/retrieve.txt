@@ -1,0 +1,243 @@
+.. _ruby-retrieve:
+
+=============
+Retrieve Data
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, read, query, cursor
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to retrieve
+data from a MongoDB collection by using **read operations**. You can call the
+``find`` method on a collection to retrieve documents that match a set of
+criteria.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``companies`` collection in the ``sample_training``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your {+language+} application, create a ``Mongo::Client`` object that connects to
+an Atlas cluster and assign the following values to your ``database`` and ``collection``
+variables:
+
+.. literalinclude:: /includes/read/retrieve.rb
+    :language: ruby
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _ruby-retrieve-find:
+
+Find Documents
+--------------
+
+To retrieve documents from a collection, use the ``find`` method. This method
+takes a **query filter** parameter and returns a ``Mongo::Collection::View`` object,
+which represents the query. The driver defers the query execution until you
+fetch the results by using methods like ``first`` or ``each``. After you request
+the results, the driver sends the query to the server and returns a ``Mongo::Cursor``
+object from which you can access the results.
+
+You can chain option methods to the ``find`` method to refine the results of the operation.
+
+.. tip::
+
+   To learn more about query filters, see the :ref:`ruby-specify-query` guide.
+
+.. _ruby-retrieve-find-multiple:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents in a collection, pass a query filter to the
+``find`` method that specifies the criteria of the documents you want to retrieve. 
+
+The following example uses the ``find`` method to find all documents in which
+the ``founded_year`` field has the value ``1970``:
+
+.. literalinclude:: /includes/read/retrieve.rb
+    :language: ruby
+    :dedent:
+    :start-after: start-find-many
+    :end-before: end-find-many
+
+When you call the ``each`` method on the ``Mongo::Collection::View`` object representing
+the query, the driver returns a ``Mongo::Cursor`` object. A cursor is a mechanism that allows an
+application to iterate over database results while holding only a subset of them in
+memory at a given time. Cursors are useful when your ``find`` method returns a large
+amount of documents.
+
+The following code calls the ``each`` method to iterate over the query results:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.rb
+      :start-after: start-cursor
+      :end-before: end-cursor
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>BSON::ObjectId('...'), "name"=>"Mitsubishi Motors", "permalink"=>"mitsubishi-motors",
+      "crunchbase_url"=>"http://www.crunchbase.com/company/mitsubishi-motors",
+      "homepage_url"=>"http://www.mitsubishi-motors.com", ...}
+      {"_id"=>BSON::ObjectId('...'), "name"=>"Western Digital", "permalink"=>"western-digital",
+      "crunchbase_url"=>"http://www.crunchbase.com/company/western-digital",
+      "homepage_url"=>"http://www.wdc.com/en", ...}
+      {"_id"=>BSON::ObjectId('...'), "name"=>"Celarayn", "permalink"=>"celarayn",
+      "crunchbase_url"=>"http://www.crunchbase.com/company/celarayn",
+      "homepage_url"=>"http://www.celarayn.es", ...}
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, call the ``find`` method
+   without passing a query filter:
+
+   .. code-block:: ruby
+
+      results = collection.find
+
+.. _ruby-retrieve-find-one:
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find a single document in a collection, call the ``find`` method and pass a query
+filter that specifies the criteria of the document you want to find. Then, chain
+the ``first`` method to ``find``.
+
+If the query filter matches more than one document, the ``first`` method retrieves the *first*
+matching document from the operation results.
+
+The following example chains the ``first`` method to ``find`` to find the first
+document in which the ``name`` field has the value ``'LinkedIn'``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.rb
+      :start-after: start-find-one
+      :end-before: end-find-one
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>BSON::ObjectId('...'), "name"=>"LinkedIn", "permalink"=>"linkedin",
+      "crunchbase_url"=>"http://www.crunchbase.com/company/linkedin",
+      "homepage_url"=>"http://linkedin.com", "blog_url"=>"http://blog.linkedin.com",
+      ...}
+   
+.. tip:: Sort Order
+
+   The ``first`` method returns the first document in 
+   :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   on disk if no sort criteria is specified.
+
+.. _ruby-retrieve-modify:
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can chain option methods to the ``find`` method to modify the operation
+results. The following table describes some of these options:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``batch_size`` 
+     - | The number of documents to return per batch. The default value is ``101``.
+       | **Type**: ``Integer``
+
+   * - ``collation`` 
+     - | The collation to use for the operation. The default value is the collation
+         specified for the collection.
+       | **Type**: ``Hash``
+
+   * - ``comment`` 
+     - | The comment to attach to the operation.
+       | **Type**: ``Object``
+
+   * - ``limit`` 
+     - | The maximum number of documents the operation can return.
+       | **Type**: ``Integer``
+
+   * - ``skip`` 
+     - | The number of documents to skip before returning results.
+       | **Type**: ``Integer``
+
+   * - ``sort`` 
+     - | The order in which the operation returns matching documents.
+       | **Type**: ``Hash``
+
+The following example uses the ``find`` method to find all documents in which
+the ``number_of_employees`` field has the value ``1000``. The example uses the
+``limit`` option to return a maximum of ``2`` results:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.rb
+      :start-after: start-modify
+      :end-before: end-modify
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>BSON::ObjectId('...'), "name"=>"Akamai Technologies", "permalink"=>"akamai-technologies",
+      "crunchbase_url"=>"http://www.crunchbase.com/company/akamai-technologies",
+      "homepage_url"=>"http://www.akamai.com", ...}
+      {"_id"=>BSON::ObjectId('...'), "name"=>"Yodle", "permalink"=>"yodle",
+      "crunchbase_url"=>"http://www.crunchbase.com/company/yodle",
+      "homepage_url"=>"http://www.yodle.com", ...}
+
+For a full list of options, see the API documentation for the
+:ruby-api:`find <Collection.html#find-instance_method>` 
+method.
+
+.. _ruby-retrieve-additional-information:
+
+Additional Information
+----------------------
+
+To learn more about query filters, see the :ref:`ruby-specify-query` guide.
+
+To view code examples that retrieve documents by using the {+driver-short+},
+see :ref:`ruby-read`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- :ruby-api:`find <Collection.html#find-instance_method>` 
+- :ruby-api:`Mongo::Collection::View <Collection/View.html>` 
+- :ruby-api:`Mongo::Cursor <Cursor.html>` 
