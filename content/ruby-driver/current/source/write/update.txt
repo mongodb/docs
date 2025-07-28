@@ -1,0 +1,247 @@
+.. _ruby-write-update:
+
+================
+Update Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: modify, change, operator, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to update
+documents in a MongoDB collection by using the ``update_one`` and
+``update_many`` methods.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your {+language+} application, create a ``Mongo::Client`` object that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/update.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Update Operations
+-----------------
+
+You can update documents in MongoDB by using the following methods:
+
+- ``update_one``: Updates *the first document* that matches the search criteria
+- ``update_many``: Updates *all documents* that match the search criteria
+
+Each update method requires the following parameters:
+
+- **Query filter**, which matches the documents you want to update. To learn
+  more about query filters, see the :ref:`ruby-specify-query`
+  guide.
+
+- **Update document**, which specifies the update operator and the fields and values to be
+  updated. The update operator specifies the type of update to perform. To view a list of
+  update operators and learn about their usages, see the
+  :manual:`Field Update Operators guide page</reference/operator/update-field/>` in the
+  {+mdb-server+} manual.
+
+Update One Document Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``update_one`` method to find the first document
+where the value of the ``name`` field is ``"Happy Garden"``. It then uses the ``$set``
+operator to update the ``name`` field value to ``"Mountain House"``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/update.rb
+      :start-after: start-update-one
+      :end-before: end-update-one
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      1 document(s) updated
+
+Update Many Documents Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``update_many`` method to update all documents
+where the value of the ``name`` field is ``"Starbucks"``. The update document uses the
+``$rename`` operator to change the name of the ``address`` field to ``location``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/update.rb
+      :start-after: start-update-many
+      :end-before: end-update-many
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      11 document(s) updated
+
+Customize the Update Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``update_one`` and ``update_many`` methods accept options to configure the update
+operation. You can pass these options individually as parameters, or you can create a
+``Hash`` object that contains the options and pass the object as a parameter.
+If you don't specify any options, the driver performs the update
+operation with default settings.
+
+The following table describes the options that you can use to
+configure the update operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``upsert``
+     - | Whether the update operation performs an upsert operation if no 
+         documents match the query filter. For more information, see the :manual:`upsert
+         statement </reference/command/update/#std-label-update-command-upsert>`
+         in the {+mdb-server+} manual.
+       | Default: ``false``
+
+   * - ``bypass_document_validation``
+     - | Whether the update operation bypasses document validation. This lets you 
+         update documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+       | Default: ``false``
+
+   * - ``collation``
+     - | Language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.
+
+   * - ``array_filters``
+     - | List of filters that you specify to select which
+         array elements the update applies to.
+
+   * - ``hint``
+     - | Index to use when matching documents. 
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``let``
+     - | Map of parameter names and values to set top-level
+         variables for the operation. Values must be constant or closed
+         expressions that don't reference document fields. For more information,
+         see the :manual:`let statement
+         </reference/command/update/#std-label-update-let-syntax>` in the
+         {+mdb-server+} manual.
+
+Modify Update Example
+`````````````````````
+
+The example uses the ``$equal`` operator to match documents
+where the value of the ``name`` field is ``"Sunrise Pizzeria"``. It then uses the ``$set`` 
+operator to set the ``borough`` field value in the first matching document to
+``"Queens"`` and the ``cuisine`` field value to ``"Italian"``.
+
+Because the ``upsert`` option is set to ``true``, if the query filter
+doesn't match any existing documents, the driver inserts a new document that
+contains the fields and values in the filter and update documents.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/update.rb
+      :start-after: start-update-options
+      :end-before: end-update-options
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      1 document(s) updated
+
+Return Value
+~~~~~~~~~~~~
+
+The ``update_one`` and ``update_many`` methods each return a ``Result`` 
+object. You can access the following methods from a ``Result`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``matched_count``
+     - | Number of documents that matched the query filter, regardless of
+         how many updates were performed.
+
+   * - ``modified_count``
+     - | Number of documents modified by the update operation. If an updated
+         document is identical to the original, it is not included in this
+         count.
+         
+   * - ``acknowledged?``
+     - | Returns ``true`` if the server acknowledged the result.
+
+   * - ``upserted_count``
+     - | Returns the number of documents that were upserted in the database, if the driver
+         performed an upsert.
+
+   * - ``upserted_ids``
+     - | Returns the ``_id`` value of the document that was upserted
+         in the database, if the driver performed an upsert.
+
+.. tip::
+
+   Check the value of the ``acknowledged?`` method before you try
+   to call any other ``Result`` methods. If the ``acknowledged?``
+   method returns ``false``, the driver throws an ``InvalidOperation``
+   exception if you try to call any other method on the ``Result`` object.
+   The driver cannot determine these values if the server does not acknowledge the write
+   operation.
+
+Additional Information 
+----------------------
+
+To view runnable code examples that demonstrate how to update documents by
+using the {+driver-short+}, see :ref:`ruby-write`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- :ruby-api:`update_one <Collection.html#update_one-instance_method>`
+- :ruby-api:`update_many <Collection.html#update_many-instance_method>`
+- :ruby-api:`Result <Operation/Update/Result.html>`
