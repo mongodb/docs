@@ -1,0 +1,453 @@
+.. _filters-builders:
+
+================
+Filters Builders
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use **builders** to specify
+**filters** for your queries in the MongoDB Kotlin driver.
+
+Builders are classes provided by the MongoDB Kotlin driver that help you
+construct :ref:`BSON <bson>` objects. To learn more, see our :doc:`guide
+on builders </fundamentals/builders/>`.
+
+Filters are operations used to limit the results of a query based on 
+specified conditions. Filters are a helpful tool to locate
+information that matches search conditions in a collection.
+
+You can use filters in the following places:
+
+- As a parameter to the ``find()`` method
+- In a match stage of an aggregation pipeline
+- As a parameter to the ``deleteOne()`` or ``deleteMany()`` method
+- As a parameter to the ``updateOne()`` or ``updateMany()`` method
+
+Some examples of results from queries with filters are:
+
+- Items that cost more than $0 but less than $25.
+- Foods that are both gluten-free and less than 500 calories.
+- A food critic review that mentions "spicy".
+
+This guide shows you how to use builders with examples of the following
+types of operators:
+
+- :ref:`Comparison <comparison>`
+- :ref:`Logical <logical>`
+- :ref:`Arrays <arrays>`
+- :ref:`Elements <elements>`
+- :ref:`Evaluation <evaluation>`
+- :ref:`Bitwise <bitwise>`
+- :ref:`Geospatial <geospatial>`
+
+The ``Filters`` class provides static factory methods for all the MongoDB query
+operators. Each method returns an instance of the :ref:`BSON <bson>`
+type, which you can pass to any method that expects a query filter.
+
+.. tip::
+
+   For brevity, you may choose to import all methods of the
+   `Filters <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html>`__
+   class statically:
+
+   .. code-block:: kotlin
+
+      import com.mongodb.client.model.Filters.*
+
+Most of the ``Filter`` examples in this guide use the following sample collection ``paints``:
+
+.. code-block:: json
+
+   { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 3, "color": "blue", "qty": 8, "vendor": ["B", "A"] }
+   { "_id": 4, "color": "white", "qty": 6, "vendor": ["D"] }
+   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+   { "_id": 7, "color": "green", "qty": 8,"vendor": ["B", "C"] }
+   { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+
+These documents in the ``paints`` collection are modeled by the following data class for use
+with the Kotlin driver:
+
+.. literalinclude:: /examples/generated/FiltersBuildersTest.snippet.paint-order-data-class.kt
+    :language: kotlin
+
+.. _comparison:
+
+Comparison
+----------
+
+The comparison filters include all operators that compare the value in a
+document to a specified value.
+
+The ``Filters`` comparison operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Comparison Method
+     - Matches
+
+   * - `eq() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#eq(java.lang.String,TItem)>`__
+     - values equal to a specified value.
+
+   * - `gt() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#gt(java.lang.String,TItem)>`__
+     - values greater than a specified value.
+
+   * - `gte() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#gte(java.lang.String,TItem)>`__
+     - values greater than or equal to a specified value.
+
+   * - `lt() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#lt(java.lang.String,TItem)>`__
+     - values less than a specified value.
+
+   * - `lte() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#lte(java.lang.String,TItem)>`__
+     - values less than or equal to a specified value.
+
+   * - `ne() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#ne(java.lang.String,TItem)>`__
+     - values not equal to a specified value.
+
+   * - `in() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#in(java.lang.String,java.lang.Iterable)>`__
+     - any of the values specified in an array.
+
+   * - `nin() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#nin(java.lang.String,java.lang.Iterable)>`__
+     - none of the values specified in an array.
+
+   * - `empty() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#empty()>`__
+     - all the documents.
+
+The following example creates a filter that matches all documents where
+the value of the ``qty`` field equals "5" in the ``paints`` collection:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.equalComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=1, qty=5, color=red, vendors=[A])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
+
+The following example creates a filter that matches all documents where
+the value of the ``qty`` field is greater than or equal to "10" in the
+``paints`` collection:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.gteComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
+
+The following example creates a filter that matches all documents in
+the ``paints`` collection because the predicate is empty:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.emptyComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=1, qty=5, color=red, vendors=[A])
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=3, qty=8, color=blue, vendors=[B, A])
+      PaintOrder(id=4, qty=6, color=white, vendors=[D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
+      PaintOrder(id=7, qty=8, color=green, vendors=[B, C])
+      PaintOrder(id=8, qty=7, color=orange, vendors=[A, D])
+
+.. _logical:
+
+Logical
+-------
+The logical operators perform logical operations based on the conditions of the specified method.
+
+The ``Filters`` logical operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Logical Method
+     - Matches
+      
+   * - `and() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#and(java.lang.Iterable)>`__
+     - documents with the conditions of all the filters. This operator joins filters with a logical ``AND``.
+
+   * - `or() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#or(org.bson.conversions.Bson...)>`__
+     - documents with the conditions of either filter. This operator joins filters with a logical ``OR``.
+      
+   * - `not() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#not(org.bson.conversions.Bson)>`__
+     - documents that do not match the filter.
+     
+   * - `nor() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#nor(org.bson.conversions.Bson...)>`__
+     - documents that fail to match both filters. This operator joins filters with a logical ``NOR``.
+
+The following example creates a filter that matches documents where
+the value of the ``qty`` field is greater than "8" or the value
+of the ``color`` field equals "pink" in the ``paints`` collection:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.orComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
+
+.. _arrays:
+
+Arrays
+------
+
+The array operators evaluate the array field in a document.
+
+The ``Filters`` array operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Array Method
+     - Matches
+      
+   * - `all() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#all(java.lang.String,java.lang.Iterable)>`__
+     - documents if the array field contains every element specified in the query.
+
+   * - `elemMatch() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#elemMatch(java.lang.String,org.bson.conversions.Bson)>`__
+     - documents if an element in the array field matches all the specified conditions.
+      
+   * - `size() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#size(java.lang.String,int)>`__
+     - documents if the array field is a specified number of elements.
+
+The following example matches documents with a ``vendors`` array
+containing both "A" and "D" in the ``paints`` collection:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.allComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=8, qty=7, color=orange, vendors=[A, D])
+
+
+.. _elements:
+
+Elements
+--------
+
+The elements operators evaluate the nature of a specified field.
+
+The ``Filters`` elements operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Elements Method
+     - Matches
+      
+   * - `exists() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#exists(java.lang.String)>`__
+     - documents that have the specified field.
+
+   * - `type() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#type(java.lang.String,java.lang.String)>`__
+     - documents if a field is of the specified type.
+
+The following example matches documents that have a ``qty`` field and
+its value does not equal "5" or "8" in the ``paints`` collection:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.existsComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=4, qty=6, color=white, vendors=[D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
+      PaintOrder(id=8, qty=7, color=orange, vendors=[A, D])
+
+.. _evaluation:
+
+Evaluation
+----------
+
+The evaluation operators evaluate the value of any field in a document.
+
+The ``Filters`` evaluation operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Evaluation Method
+     - Matches
+      
+   * - `mod() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#mod(java.lang.String,long,long)>`__
+     - documents where a modulo operation on the value of a field contain a specified result.
+
+   * - `regex() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#regex(java.lang.String,java.lang.String)>`__
+     - documents where values contain a specified regular expression.
+      
+   * - `text() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#text(java.lang.String)>`__
+     - documents which contain a specified full-text search expression.
+     
+   * - `where() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#where(java.lang.String)>`__
+     - documents which contain a specified JavaScript expression.
+
+The following example matches documents that have a ``color`` field
+starting with the letter "p" in the ``paints`` collection:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.regexComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
+
+.. _bitwise:
+
+Bitwise
+-------
+
+The bitwise operators convert a number into its binary value to
+evaluate its bits.
+
+The ``Filters`` bitwise operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Bitwise Method
+     - Matches
+      
+   * - `bitsAllSet() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#bitsAllSet(java.lang.String,long)>`__
+     - documents where the specified bits of a field are set (i.e. "1").
+
+   * - `bitsAllClear() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#bitsAllClear(java.lang.String,long)>`__
+     - documents where the specified bits of a field are clear (i.e. "0").
+      
+   * - `bitsAnySet() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#bitsAnySet(java.lang.String,long)>`__
+     - documents where at least one of the specified bits of a field are set (i.e. "1").
+     
+   * - `bitsAnyClear() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#bitsAnyClear(java.lang.String,long)>`__
+     - documents where at least one of the specified bits of a field are clear (i.e. "0").
+
+The following example matches documents that have a ``decimalValue`` field
+with bits set at positions of the corresponding bitmask "34" (i.e.
+"00100010") in this ``binary_numbers`` collection:
+
+.. code-block:: json
+
+   { "_id": 9, "decimalValue": 54, "binaryValue": "00110110" }
+   { "_id": 10, "decimalValue": 20, "binaryValue": "00010100" }
+   { "_id": 11, "decimalValue": 68, "binaryValue": "1000100" }
+   { "_id": 12, "decimalValue": 102, "binaryValue": "01100110" }
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.bitsComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      BinaryNumber(id=1, decimalValue=54, binaryValue=00110110)
+      BinaryNumber(id=4, decimalValue=102, binaryValue=01100110)
+
+.. _geospatial:
+
+Geospatial
+----------
+
+The geospatial operators evaluate a specified coordinate and its
+relation to a shape or location.
+
+The ``Filters`` geospatial operator methods include:
+
+.. list-table::
+   :widths: 30, 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Geospatial Method
+     - Matches
+      
+   * - `geoWithin() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#geoWithin(java.lang.String,org.bson.conversions.Bson)>`__
+     - documents containing a GeoJSON geometry value that falls within a bounding GeoJSON geometry.
+
+   * - `geoWithinBox() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#geoWithinBox(java.lang.String,double,double,double,double)>`__
+     - documents containing a coordinates value that exist within the specified box.
+      
+   * - `geoWithinPolygon() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#geoWithinPolygon(java.lang.String,java.util.List)>`__
+     - documents containing a coordinates value that exist within the specified polygon.
+
+   * - `geoWithinCenter() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#geoWithinCenter(java.lang.String,double,double,double)>`__
+     - documents containing a coordinates value that exist within the specified circle.
+
+   * - `geoWithinCenterSphere() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#geoWithinCenterSphere(java.lang.String,double,double,double)>`__
+     - geometries containing a geospatial data value (GeoJSON or legacy coordinate pairs) that exist within the specified circle, using spherical geometry.
+
+   * - `geoIntersects() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#geoIntersects(java.lang.String,org.bson.conversions.Bson)>`__
+     - geometries that intersect with a GeoJSON geometry. The ``2dsphere`` index supports ``$geoIntersects``.
+
+   * - `near() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#near(java.lang.String,org.bson.conversions.Bson,java.lang.Double,java.lang.Double)>`__
+     - geospatial objects in proximity to a point. Requires a geospatial index. The ``2dsphere`` and ``2d`` indexes support ``$near``.
+
+   * - `nearSphere() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#nearSphere(java.lang.String,org.bson.conversions.Bson,java.lang.Double,java.lang.Double)>`__
+     - geospatial objects in proximity to a point on a sphere. Requires a geospatial index. The ``2dsphere`` and ``2d`` indexes support ``$nearSphere``.
+
+The following example creates a filter that matches documents in which
+the ``point`` field contains a GeoJSON geometry that falls within
+the given :manual:`Polygon </reference/geojson/#polygon>`
+in this ``stores`` collection:
+
+.. code-block:: json
+
+   { "_id": 13, "coordinates": { "type": "Point", "coordinates": [2.0, 2.0] } }
+   { "_id": 14, "coordinates": { "type": "Point", "coordinates": [5.0, 6.0] } }
+   { "_id": 15, "coordinates": { "type": "Point", "coordinates": [1.0, 3.0] } }
+   { "_id": 16, "coordinates": { "type": "Point", "coordinates": [4.0, 7.0] } }
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.geoWithinComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Store(id=13, name=Store 13, coordinates=Point{coordinate=Position{values=[2.0, 2.0]}})
+      Store(id=15, name=Store 15, coordinates=Point{coordinate=Position{values=[1.0, 3.0]}})

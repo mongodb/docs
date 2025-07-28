@@ -1,0 +1,168 @@
+.. _kotlin-sorts-builders:
+.. _sorts-builders:
+
+==============
+Sorts Builders
+==============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to specify **sort criteria** for your
+queries using **builders** in the {+driver-long+}.
+
+Sort criteria are the rules MongoDB uses to sort your data. Some
+examples of sort criteria are:
+
+- Smallest number to largest number
+- Earliest time of day to latest time of day
+- Alphabetical order by first name
+
+Builders are classes provided by the {+driver-short+} that help you
+construct :ref:`BSON <bson>` objects. To learn more, see the
+:ref:`builders <kotlin-builders-landing>` guide.
+
+You should read this guide if you want to learn how to use builders to
+specify sort criteria for your queries.
+
+To learn the fundamentals of sorting in the {+driver-short+}, see the
+:ref:`sorting <kotlin-fundamentals-sort>` guide.
+
+.. _sorts-builders-sort-sample:
+
+The examples on this page use a sample collection that
+contains the following documents:
+
+.. code-block:: json
+
+   { "_id": 1, "date": "2022-01-03", "orderTotal": 17.86, "description": "1/2 lb cream cheese and 1 dozen bagels" },
+   { "_id": 2, "date": "2022-01-11", "orderTotal": 83.87, "description": "two medium vanilla birthday cakes" },
+   { "_id": 3, "date": "2022-01-11", "orderTotal": 19.49, "description": "1 dozen vanilla cupcakes" },
+   { "_id": 4, "date": "2022-01-15", "orderTotal": 43.62, "description": "2 chicken lunches and a diet coke" },
+   { "_id": 5, "date": "2022-01-23", "orderTotal": 60.31, "description": "one large vanilla and chocolate cake" },
+   { "_id": 6, "date": "2022-01-23", "orderTotal": 10.99, "description": "1 bagel, 1 orange juice, 1 muffin" }
+
+This data is modeled with the following Kotlin data class:
+
+.. literalinclude:: /examples/generated/SortTest.snippet.sort-data-model.kt
+   :language: kotlin
+
+The Sorts Class
+---------------
+
+The ``Sorts`` class is a builder that provides static factory methods for all sort
+criteria operators supported by MongoDB. These methods return a ``Bson`` object
+that you can pass to the  ``sort()`` method of a ``FindFlow`` instance or to
+``Aggregates.sort()``.
+
+To learn more about the ``Aggregates``
+class, see the :ref:`Aggregates builder <aggregates-builders>` guide.
+
+For more information about the classes and interfaces in this section, see the
+following API Documentation:
+
+- `Sorts <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Sorts.html>`__
+- `BSON <{+api+}/apidocs/bson/org/bson/conversions/Bson.html>`__
+- `FindFlow <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-find-flow/index.html>`__
+- `Aggregates <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html>`__
+
+Ascending
+---------
+
+To specify an ascending sort, use the ``Sorts.ascending()`` static
+factory method. Pass the name of the field you want to sort on to
+``Sorts.ascending()``.
+
+The following example sorts the documents in the
+:ref:`sample collection <sorts-builders-sort-sample>` by ascending order
+on the ``orderTotal`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.ascending-sort.kt
+      :language: kotlin
+
+   .. output::
+      :language:  console
+
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+
+Descending
+----------
+
+To specify a descending sort, use the ``Sorts.descending()`` static factory
+method. Pass the name of the field you want to sort on to ``Sorts.descending()``.
+
+The following example sorts the documents in the
+:ref:`sample collection <sorts-builders-sort-sample>` in descending order
+on the ``orderTotal`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.descending-sort.kt
+      :language:  kotlin
+
+   .. output::
+      :language:  console
+
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+
+Combining Sort Criteria
+-----------------------
+
+To combine sort criteria, use the ``Sorts.orderBy()`` static factory
+method. This method constructs an object containing an ordered list of sort
+criteria. When performing the sort, if the previous sort criteria result in a
+tie, the sort uses the next sort criteria in the list to determine the order.
+
+The following example sorts the documents in the
+:ref:`sample collection <sorts-builders-sort-sample>` in descending order
+on the ``date`` field, and in the event of a tie, ascending order on the
+``orderTotal`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.combine-sort.kt
+      :language:  kotlin
+
+   .. output::
+      :language:  console
+
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+
+Text Score
+----------
+
+You can sort text search results by their text score, a value that indicates how
+closely a search result matches your search string. To specify a sort by the
+text score of a text search, use the ``Sorts.metaTextScore()`` static factory
+method.
+
+For a detailed example showing how to specify sort criteria using
+the ``Sorts.metaTextScore()`` method, see
+:ref:`the text search section <sorts-crud-text-search>`  of the sorting guide.
+
+For more information, see the `Sorts class
+<{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Sorts.html>`__
+API Documentation.
