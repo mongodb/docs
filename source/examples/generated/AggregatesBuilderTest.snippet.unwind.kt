@@ -1,1 +1,0 @@
-Aggregates.unwind("\$${"lowestRatedTwoMovies"}")
