@@ -536,6 +536,11 @@ representative. Your output may differ significantly.
                         ...
                         executionTimeMillisEstimate: <int>,
                         ...
+                        spills: <long long>,
+                        spilledBytes: <long long>,
+                        spilledRecords: <long long>,
+                        spilledDataStorageSize: <long long>,
+                        ...
                         inputStage: {
                            ...
                         }
@@ -619,6 +624,11 @@ representative. Your output may differ significantly.
                                  stage: <STAGE3>,
                                  ...
                                  numReads: <int>, // Starting in MongoDB 5.1
+                                 ...
+                                 spills: <long long>,
+                                 spilledBytes: <long long>,
+                                 spilledRecords: <long long>,
+                                 spilledDataStorageSize: <long long>,
                                  ...
                                  inputStage: {
                                     ...
@@ -844,6 +854,8 @@ representative. Your output may differ significantly.
          Each ``inputStage`` can have another ``inputStage`` as a field.
          See :ref:`explain-output-structure`.
 
+         .. _explain-results-table:
+
          .. list-table::                                    
             :widths: 30,40,30
             :header-rows: 1
@@ -879,25 +891,44 @@ representative. Your output may differ significantly.
               - The number of times that we had to seek the index cursor to
                 a new position in order to complete the index scan.
               - ``IXSCAN``
-            
-            * - ``spilledBytesApprox``
-              - The approximate number of in-memory bytes spilled to disk in 
-                the stage.
-
-                .. versionadded:: 5.3
-              - ``GROUP``
-
-            * - ``spilledRecords``
-              - The number of produced records spilled to disk in the stage.
-                
-                .. versionadded:: 5.3
-              - ``GROUP``
 
             * - ``usedDisk``
               - Whether the stage wrote to disk.
 
                 .. versionadded:: 5.3
               - ``GROUP``
+
+            * - ``spills``
+              - .. _explain-results-spills-table:
+
+                The number of times the stage spilled to disk.
+
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
+
+            * - ``spilledBytes``
+              - .. _explain-results-spilledBytes-table:
+
+                The total amount of data written to disk in bytes.
+                
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
+
+            * - ``spilledRecords``
+              - .. _explain-results-spilledRecords-table:
+
+                The total number of individual records spilled to disk.
+
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
+
+            * - ``spilledDataStorageSize``
+              - .. _explain-results-spilledDataStorageSize-table:
+
+                The total disk space, in bytes, used by the spilled data.
+
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
 
    .. data:: explain.executionStats.allPlansExecution
 
@@ -1191,14 +1222,38 @@ additional output.
 
      - Whether the :pipeline:`$sort` stage wrote to disk. 
 
-   * - :pipeline:`$group`
+   * - :pipeline:`$sort` 
 
-     - ``totalOutputDataSizeBytes``
+     - ``spills``
+
+     - long long
+
+     - The number of times the :pipeline:`$sort` stage spilled to disk.
+
+   * - :pipeline:`$sort` 
+   
+     - ``spilledBytes``
+
+     - long long
      
-     - long
+     - An estimate of the number of bytes written to disk in the 
+       :pipeline:`$sort` stage before compression.
 
-     - An estimate of the total size of all documents output by the 
-       :pipeline:`$group` stage in bytes.
+   * - :pipeline:`$sort` 
+   
+     - ``spilledRecords``
+
+     - long long
+     
+     - The total number of individual records spilled to disk.
+      
+   * - :pipeline:`$sort`
+ 
+     - ``spilledDataStorageSize``
+
+     - long long
+
+     - The total disk space, in bytes, used by the spilled data.
 
    * - :pipeline:`$group`
  
@@ -1210,22 +1265,36 @@ additional output.
 
    * - :pipeline:`$group`
    
-     - ``spillFileSizeBytes``
+     - ``spills``
 
-     - long 
+     - long long
 
-     - The size of the spill file written to disk in the :pipeline:`$group` 
-       stage. Due to compression, the value of ``spillFileSizeBytes`` should be 
-       less than or equal to ``numBytesSpilledEstimate``.
+     - The number of times the :pipeline:`$group` stage spilled to disk.
 
    * - :pipeline:`$group` 
    
-     - ``numBytesSpilledEstimate``
+     - ``spilledBytes``
 
-     - long 
+     - long long
      
      - An estimate of the number of bytes written to disk in the 
        :pipeline:`$group` stage before compression.
+
+   * - :pipeline:`$group` 
+   
+     - ``spilledRecords``
+
+     - long long
+     
+     - The total number of individual records spilled to disk.
+
+   * - :pipeline:`$group` 
+   
+     - ``spilledDataStorageSize``
+
+     - long long
+
+     - The total disk space, in bytes, used by the spilled data.
 
 .. _explain-output-sort:
 
