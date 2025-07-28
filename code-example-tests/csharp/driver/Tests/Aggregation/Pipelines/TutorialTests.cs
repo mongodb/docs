@@ -51,6 +51,21 @@ public class TutorialTests
         }
     }
 
+    [Test]
+    public void TestUnwindOutputMatchesDocs()
+    {
+        var example = new Examples.Aggregation.Pipelines.Unwind.Tutorial();
+        example.LoadSampleData();
+        var results = example.PerformAggregation();
+        var serializedActualResults = TestUtils.SerializeResultsToStrings(results);
+
+        var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var outputLocation = "Examples/Aggregation/Pipelines/Unwind/TutorialOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var expectedLines = TestUtils.ReadLinesAsStrings(fullPath);
+        TestUtils.ValidateUnorderedResults(expectedLines, serializedActualResults);
+    }
+
     [TearDown]
     public void TearDown()
     {

@@ -16,22 +16,18 @@ individual product order documents.
 First, create C# classes to model the data in the ``orders``
 collection:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/UnpackArrays.cs
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Unwind/Models.snippet.models.cs
    :language: csharp
    :copyable: true
-   :start-after: start-pocos
-   :end-before: end-pocos
-   :dedent:
+   :category: usage example
 
 To create the ``orders`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/UnpackArrays.cs
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Unwind/Tutorial.snippet.load-sample-data.cs
    :language: csharp
    :copyable: true
-   :start-after: start-insert-orders
-   :end-before: end-insert-orders
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -46,24 +42,20 @@ following code to your application:
       chain an :pipeline:`$unwind` stage to separate the
       entries in the ``Products`` array into individual documents:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/UnpackArrays.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Unwind/Tutorial.snippet.unwind.cs
          :language: csharp
          :copyable: true
-         :start-after: start-unwind
-         :end-before: end-unwind
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a match stage for products that cost more than $15.
 
       Next, add a :pipeline:`$match` stage that matches
       products with a ``Products.Price`` value greater than ``15``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/UnpackArrays.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Unwind/Tutorial.snippet.match.cs
          :language: csharp
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a group stage to group by product type.
 
@@ -77,12 +69,10 @@ following code to your application:
       - ``TotalValue``: the total value of all the sales of the product
       - ``Quantity``: the number of orders for the product
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/unpack-arrays/full-files/UnpackArrays.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Unwind/Tutorial.snippet.group.cs
          :language: csharp
          :copyable: true
-         :start-after: start-group
-         :end-before: end-group
-         :dedent:
+         :category: syntax example
 
    .. step:: Run the aggregation and interpret the results.
 
@@ -91,14 +81,11 @@ following code to your application:
       The aggregation returns the following summary of customers' orders
       from 2020:
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Unwind/TutorialOutput.txt
+         :language: text
          :copyable: false
-         
-         { ProductId = pqr88223, Product = Morphy Richards Food Mixer, TotalValue = 431, Quantity = 1 }
-         { ProductId = xyz11228, Product = Russell Hobbs Chrome Kettle, TotalValue = 16, Quantity = 1 }
-         { ProductId = abc12345, Product = Asus Laptop, TotalValue = 860, Quantity = 2 }
-         { ProductId = def45678, Product = Karcher Hose Set, TotalValue = 66, Quantity = 3 }
-         
+         :category: example return object
+
       The result documents contain details about the total value and
       quantity of orders for products that cost more than $15.
 

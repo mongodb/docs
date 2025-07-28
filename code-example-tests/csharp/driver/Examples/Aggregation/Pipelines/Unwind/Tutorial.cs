@@ -1,20 +1,32 @@
-using MongoDB.Driver;
+//	:replace-start: {
+//	  "terms": {
+//	    "_orders": "orders",
+//      "_aggDB": "aggDB",
+//      "GroupedResult": ""
+//	  }
+//	}
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
-class UnpackArrays
+namespace Examples.Aggregation.Pipelines.Unwind;
+
+public class Tutorial
 {
-  public void PerformUnpackArrays()
-  {
-    var uri = "<connection string>";
-    var client = new MongoClient(uri);
-    var aggDB = client.GetDatabase("agg_tutorials_db");
+    private IMongoDatabase? _aggDB;
+    private IMongoCollection<Order>? _orders;
 
-    // start-insert-orders
-    var orders = aggDB.GetCollection<Order>("orders");
-    orders.DeleteMany(Builders<Order>.Filter.Empty);
+    public void LoadSampleData()
+    {
+        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var client = new MongoClient(uri);
+        _aggDB = client.GetDatabase("agg_tutorials_db");
+        _orders = _aggDB.GetCollection<Order>("orders");
+        // :snippet-start: load-sample-data
+        // :uncomment-start:
+        //var _orders = _aggDB.GetCollection<Order>("orders");
+        // :uncomment-end:
 
-    orders.InsertMany(new List<Order>
+        _orders.InsertMany(new List<Order>
         {
             new Order
             {
@@ -93,54 +105,36 @@ class UnpackArrays
                 }
             }
         });
-    // end-insert-orders
-
-    // start-unwind
-    var results = orders.Aggregate()
-        .Unwind<Order, OrderUnwound>(o => o.Products)
-        // end-unwind
-        // start-match
-        .Match(o => o.Products.Price > 15)
-        // end-match
-        // start-group
-        .Group(
-            id: o => o.Products.ProductId,
-            group: g => new
-            {
-              ProductId = g.Key,
-              Product = g.First().Products.Name,
-              TotalValue = g.Sum(o => o.Products.Price),
-              Quantity = g.Count(),
-            }
-        );
-    // end-group
-
-    foreach (var result in results.ToList())
-    {
-      Console.WriteLine(result);
+        // :snippet-end:
     }
-  }
-}
 
-// start-pocos
-public class Order
-{
-  [BsonId]
-  public ObjectId Id { get; set; }
-  public long OrderId { get; set; }
-  public List<Product> Products { get; set; }
-}
+    public List<GroupedResult> PerformAggregation()
+    {
+        if (_aggDB == null || _orders == null)
+        {
+            throw new InvalidOperationException("You must call LoadSampleData before performing aggregation.");
+        }
 
-public class OrderUnwound
-{
-  public long OrderId { get; set; }
-  public Product Products { get; set; }
+        // :snippet-start: unwind
+        var results = _orders.Aggregate()
+            .Unwind<Order, OrderUnwound>(o => o.Products)
+            // :snippet-end:
+            // :snippet-start: match
+            .Match(o => o.Products.Price > 15)
+            // :snippet-end:
+            // :snippet-start: group
+            .Group(
+                id: o => o.Products.ProductId,
+                group: g => new GroupedResult
+                {
+                    ProductId = g.Key,
+                    Product = g.First().Products.Name,
+                    TotalValue = g.Sum(o => o.Products.Price),
+                    Quantity = g.Count(),
+                }
+            );
+        // :snippet-end:
+        return results.ToList();
+    }
 }
-
-public class Product
-{
-  public string ProductId { get; set; }
-  public string Name { get; set; }
-  public int Price { get; set; }
-}
-// end-pocos
+// :replace-end:
