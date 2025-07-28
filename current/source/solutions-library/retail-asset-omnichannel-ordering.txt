@@ -1,0 +1,302 @@
+.. _arch-center-is-omnichannel-ordering:
+
+===============================================
+Building Modern Omnichannel Ordering on MongoDB
+===============================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: Catalog, Omnichannel, Retail, Real-time analytics 
+   :description: Learn how to build an omnichannel order management system using MongoDB Atlas, Change Streams, and Triggers.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Build fast, reliable omnichannel ordering by leveraging real-time
+updates using Atlas Change Streams and TriggersAtlas. 
+
+**Use cases:** `Catalog
+<https://www.mongodb.com/solutions/use-cases/catalog>`__,
+`Omnichannel Ordering
+<https://www.mongodb.com/blog/post/improving-omnichannel-ordering-bopis-delivery-with-mongodb>`__
+
+**Industries:** `Retail
+<https://www.mongodb.com/industries/retail>`__
+
+**Products:** `MongoDB Atlas
+<https://www.mongodb.com/products/platform/atlas-database>`__, `Change
+Streams <https://www.mongodb.com/docs/manual/changeStreams/>`__,
+`MongoDB Atlas Triggers
+<https://www.mongodb.com/docs/atlas/atlas-ui/triggers/>`__
+
+Solution Overview
+-----------------
+
+Customers today expect seamless shopping experiences that blend online
+and offline channels. Yet, retailers struggle to implement these
+omnichannel solutions that deliver consistent experiences across all
+touchpoints.
+
+While offering convenient options like *Buy Online, Pick Up In Store*
+(BOPIS) and *Buy Online, Get Delivery at Home* are essential for
+remaining competitive, implementing an omnichannel strategy presents
+additional technical challenges. Retailers need a flexible system that
+can provide real-time visibility, handle dynamic traffic patterns, and
+enable modern integrations across all customer touchpoints.
+
+This solution demonstrates how to build an omnichannel e-commerce
+website using MongoDB Atlas. The demo showcases a customer journey where
+users can choose their preferred shipping method (BOPIS or home
+delivery) and track their order progress in real time until delivery. By
+leveraging key MongoDB features including `Change Streams
+<https://www.mongodb.com/docs/manual/changeStreams/>`__, `Atlas Triggers
+<https://www.mongodb.com/docs/atlas/atlas-ui/triggers/#std-label-atlas-triggers>`__,
+and the flexible `document model
+<https://www.mongodb.com/docs/manual/core/document/>`__, you'll learn
+how to create a robust, scalable omnichannel ordering system.
+
+.. video:: https://www.youtube.com/watch?v=iFdrlttUozk
+   
+Reference Architectures
+-----------------------
+
+At its core, this solution leverages MongoDB's `Change Streams
+<https://www.mongodb.com/docs/manual/changeStreams/>`__ and `Atlas
+Triggers
+<https://www.mongodb.com/docs/atlas/atlas-ui/triggers/#std-label-atlas-triggers>`__
+to enable real-time data operations across multiple applications. The
+architecture consists of two main components: Real-Time Apps and MongoDB
+Atlas.
+
+The Real-Time Apps side includes any application that responds to the
+database changes, such as e-commerce, distribution center, warehouse,
+and inventory apps.
+
+Within MongoDB Atlas, the workflow is as follows:
+
+1. An action produces a data modification, for example an order status
+   update.
+
+#. The event is registered in the *Orders* collection.
+
+#. These changes are recorded in the *Operations Log* (oplog.rs).
+
+#. The Change Streams API monitors these changes.
+
+#. Based on your architecture needs, you can choose to:
+
+   - Perform the update on the application side.
+
+   - Trigger an automated task through Atlas Functions. 
+
+Beyond our current implementation, this architecture provides a
+foundation for various real-time scenarios, such as:
+
+- **Real-time notifications:** Automatic customer alerts for order
+  pickup readiness.
+
+- **Reactive systems:** Smart inventory management with automatic
+  restocking.
+
+- **Event-driven architecture:** Real-time microservices synchronization
+  with optional Kafka integration.
+
+- **Change data capture:** Immediate system-wide product price updates.
+
+- **Real-time analytics:** Instant fraud risk recalculation using ML
+  models.
+
+.. figure:: /includes/images/industry-solutions/omnichannel-architecture.svg
+   :figwidth: 1200px
+   :alt: Inventory management workflow with Triggers and Change Streams.
+
+   Figure 1. Database modifications are logged in the oplog as events.
+   The Change Streams API monitors changes, detects watched events, and
+   triggers real-time responses in applications or Atlas Triggers
+
+The simplicity of this process comes from MongoDB’s `replication
+<https://www.mongodb.com/resources/products/capabilities/replication>`__
+feature and the underlying operations log (`oplog
+<https://www.mongodb.com/docs/manual/core/replica-set-oplog/>`__), which
+records all database changes. This mechanism allows Change Streams to
+efficiently push updates to your application without adding extra layers
+or complexity. Replication primarily ensures `high availability
+<https://www.mongodb.com/resources/basics/high-availability>`__ by
+maintaining multiple copies of data across nodes and enables real-time
+updates. Applications can monitor changes at different scopes
+(collection, database, or cluster-wide) and filter specific changes
+using the `Aggregation Framework
+<https://www.mongodb.com/docs/manual/aggregation/>`__.
+
+Data Model Approach
+-------------------
+
+When a developer writes an algorithm, complexity doesn’t have to mean
+complication. More lines of code don’t always equate to a better
+solution. The key is simplicity. Simple solutions are easier to
+understand and quicker to implement, allowing you to focus on what truly
+matters—innovation.
+
+Our solution's data model revolves around two primary collections, which are
+products and orders. Each collection uses a *field : value* format,
+providing an organized representation of the stored data. Let's examine
+how each collection is structured.
+
+Products Collection
+~~~~~~~~~~~~~~~~~~~
+
+- Stores comprehensive product information including ID, name, and a
+  unique product identifier (such as SKUs).
+
+- Contains categorization fields (masterCategory, subCategory,
+  articleType).
+
+- Features nested objects for pricing with amount and currency fields.
+
+- Includes product-specific attributes like autoreplenishment status and
+  base color.
+
+- Maintains inventory-related fields and product metadata.
+
+.. figure:: /includes/images/industry-solutions/omnichannel-code-1.svg
+   :figwidth: 1200px
+   :alt: Products collection overview.
+
+   Figure 2. MongoDB documents of the products collection
+
+Orders Collection
+~~~~~~~~~~~~~~~~~
+
+- Tracks order details with unique identifiers for orders and users.
+
+- Contains an array of products for each order.
+
+- Features a status_history array that captures the progression of order
+  states with timestamps.
+
+- Differentiates between order types (Buy Online, Pick up in Store vs
+  Buy Online, Get Delivery at Home).
+
+- Stores shipping addresses specific to each order.
+
+- Adapts status workflows based on delivery type:
+
+  - BOPIS orders show statuses like In process → Ready for pickup.
+
+  - Home delivery orders progress through states like In process →
+    Ready for delivered → Picked up from warehouse → In Transit →
+    Delivered.
+
+The value of this model lies in its flexibility. By enabling the data
+structure to evolve with the user workflow, it allows the business to
+easily adapt to both current needs and future challenges that may arise.
+For instance, a product MongoDB document includes a field named *price*,
+which holds an array of values allowing for representation in multiple
+currencies, such as 12 USD.
+
+.. figure:: /includes/images/industry-solutions/omnichannel-code-2.svg
+   :figwidth: 1200px
+   :alt: Orders collection document overview
+
+   Figure 3. MongoDB documents of the orders collection
+
+Building the Solution
+---------------------
+
+Building this solution can be broken down in three major steps.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Replicate the demo database
+
+      Provision a cluster within your Atlas account and populate your
+      database with the data required for the demo. A data dump can be
+      found `inside the repository
+      <https://github.com/mongodb-industry-solutions/retail-store-v2/tree/main/dump/leafy_popup_store>`__
+      to quickly replicate the database with all the necessary data and
+      metadata with one quick `mongorestore
+      <https://www.mongodb.com/docs/database-tools/mongorestore/>`__
+      command.
+      
+   .. step:: Add the order status trigger
+
+      Create a `database trigger
+      <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/database-triggers/>`__
+      that listens to the orders collection for any insert and update
+      event. This will run a function that you can copy from the `github
+      repository
+      <https://github.com/mongodb-industry-solutions/retail-store-v2/blob/main/microservices/atlas-trigger-omnichannel/updateorderStatus.js>`__.
+      Because the use case of this demo focuses on the experience of the
+      customer ordering from an e-commerce website, this trigger helps
+      us mimic the behind-the-scenes processes needed to update the
+      order status every 10 seconds, progressing the order through each
+      stage until the order is marked as delivered. Some of the backend
+      processes we mimic are workers from the warehouse managing the
+      order, postal services delivering packages, or store employees
+      packing an order. 
+
+   .. step:: Configure your app frontend
+
+      Obtain the demo code by cloning the `GitHub repository
+      <https://github.com/mongodb-industry-solutions/retail-store-v2>`__
+      to your local machine, configure the environment variables and
+      install the dependencies. Finally, run the app locally at
+      http://localhost:8080/cart.
+
+For complete implementation details, including code samples,
+configuration files, and tutorial videos, visit the `GitHub repository
+<https://github.com/mongodb-industry-solutions/retail-store-v2>`__.
+
+Key Learnings
+-------------
+
+This solution demonstrates three core capabilities of MongoDB that make
+it well-suited for omnichannel retail applications:
+
+- **Flexibility and speed:** MongoDB’s flexible document model is not
+  only intuitive for developers but also easy to implement and run. This
+  flexibility allows businesses to adapt quickly to changes, ensuring that
+  your solutions can evolve with ease. As a result, developers can focus
+  on building solutions rather than dealing with complex data structures,
+  leading to faster time to market and a consistent omnichannel
+  experience.
+
+- **Real-time capabilities:** Features like Change Streams and Atlas
+  Triggers enhance customer interactions through dynamic, real-time data
+  processing, essential for tasks like order tracking and inventory
+  updates.
+
+- **Smart architecture:** MongoDB’s high availability and scalable
+  architecture provide a strong foundation for delivering interconnected
+  customer experiences, essential in the omnichannel era. Tools like
+  Change Streams and Atlas Triggers can easily integrate into your
+  application without an extra layer, making it simple to implement these
+  changes thanks to MongoDB's underlying architecture.
+
+Each of these capabilities contributes to building a robust omnichannel
+ordering system that can scale with your business needs while
+maintaining performance and reliability.
+
+Technologies and Products Used
+------------------------------
+
+MongoDB Developer Data Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `MongoDB Atlas <https://www.mongodb.com/atlas>`__
+- `Change Streams <https://www.mongodb.com/docs/manual/changeStreams/>`__
+- `MongoDB Atlas Triggers <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/>`__
+- `MongoDB Node.js driver <https://www.mongodb.com/docs/drivers/node/current/>`__
+
+Author
+------
+
+- Angie Guemes, MongoDB
+- Florencia Arin, MongoDB 

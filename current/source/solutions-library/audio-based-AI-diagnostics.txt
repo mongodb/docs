@@ -1,0 +1,260 @@
+.. _arch-center-is-audio-based-ai-diagnostics:
+
+====================================
+Real-Time Audio-Based AI Diagnostics
+====================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Find out how AI is being used in renewable energy by leveraging MongoDB Atlas
+Vector Search to drive efficiency through real-time, audio diagnostics.
+
+**Use cases:** `IoT
+<https://www.mongodb.com/solutions/use-cases/internet-of-things>`__, `Gen AI
+<https://www.mongodb.com/use-cases/artificial-intelligence>`__
+
+**Industries:** Energy and Environmental, `Manufacturing and Mobility
+<https://www.mongodb.com/solutions/industries/manufacturing>`__
+
+**Products:** `Atlas <http://mongodb.com/atlas>`__, `Atlas Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+Solution Overview
+-----------------
+
+The renewable energy sector is rapidly evolving with advancements in AI and
+`machine learning <https://www.mongodb.com/basics/machine-learning>`__ ,
+offering significant potential for efficiency gains and cost reductions, yet
+much innovation remains untapped. By integrating AI into renewable energy
+systems, new opportunities for efficiency gains and cost reductions emerge.
+
+Companies are increasingly turning to predictive maintenance to increase
+efficiency and reduce costs. However, this strategy comes with significant
+challenges:
+
+- The integration of heterogeneous data of diverse formats and sources.
+
+- Scalability becomes an issue due to the volume of IoT signals generated.
+
+- Real-time analysis of vast data sets.
+
+- Acquiring and effectively utilizing `unstructured data
+  <https://www.mongodb.com/resources/basics/unstructured-data/unstructured-data>`__,
+  hindering the development of robust predictive maintenance models.
+
+Our solution explores the application of AI in real-time anomaly detection
+using sound input, highlighting the impact of MongoDB Atlas Vector Search.
+This approach offers several benefits:
+
+- **Document data model:** MongoDB's `BSON <https://www.mongodb.com/basics/bson>`__
+  (binary JSON) format stores diverse data types, including unstructured data,
+  simplifying maintenance and enabling faster responses to changes.
+
+- **Time series collections:** MongoDB efficiently handles time-series data, crucial
+  for real-time monitoring in predictive maintenance, ensuring timely
+  interventions.
+
+- **Real-time data processing:** MongoDB enables immediate diagnostics and
+  responses, vital for proactive maintenance to prevent costly repairs.
+
+- **Data aggregation:** MongoDB's powerful aggregation capabilities provide
+  comprehensive insights into fleet-wide performance trends.
+
+- **Atlas Vector Search:** MongoDB Atlas facilitates effortless search of
+  unstructured data, enabling robust predictive maintenance solutions
+  with features like vector indexing and retrieval. Visit the `Atlas
+  Vector Search Quick Start guide
+  <https://www.mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/?tck=ai_as_web>`__
+  and create your first index in minutes.
+
+Other Applicable Industries and Use Cases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Manufacturing**: Implementing real-time anomaly detection in manufacturing
+plants to predict equipment failures and optimize production processes, leading
+to reduced downtime and increased productivity.
+
+**Transportation**: Utilizing AI and Atlas Vector Search for predictive
+maintenance in vehicles, aircraft, and logistics equipment to anticipate
+maintenance needs, minimize disruptions, and improve fleet management.
+
+**Healthcare**: Applying real-time anomaly detection in medical devices and
+equipment to identify potential issues early, ensuring patient safety, and
+optimizing healthcare operations.
+
+.. video:: https://youtu.be/-FCyBZlA2_8
+
+A fun and quick demo of MongoDB's Vector Search capabilities for anomaly
+detection through sound input, using a basic handheld fan as our makeshift wind
+turbine. This demo enables real-time diagnosis by analyzing the emitted audio,
+allowing us to diagnose its condition—whether it's operating normally, stopped,
+or experiencing any issues.
+
+Reference Architectures
+-----------------------
+
+With MongoDB
+~~~~~~~~~~~~ 
+
+The solution demo is divided in two parts.
+
+Audio Preparation
+~~~~~~~~~~~~~~~~~
+
+We begin by capturing the audio from the equipment in different situations
+(normal operation, high/low load, equipment obstructed, not operating).
+
+Once each sound is collected, we use an embedding model to process the audio
+data and convert it to vector embeddings (numerical representations of data).
+This step is crucial — by generating embeddings for each audio track, which are
+high-dimensional vector representations, we are essentially capturing the unique
+characteristics of the sound.
+
+We then upload these vectors to MongoDB Atlas, which is where the vector search
+magic begins. With just a few examples of sounds in our database, they are ready
+to be searched (and essentially compared) with the sound emitted by our
+equipment during its operation in real-time.
+
+Audio-based Diagnosis
+~~~~~~~~~~~~~~~~~~~~~
+
+Next we put our equipment through normal operation and start capturing the sound
+it is making in real time. In this demonstration we capture one-second clips of
+audio. Then, with the same embedding model used before, we take our audio clips
+and convert them to vector embeddings in real-time. This process happens in
+milliseconds, allowing us to have real-time monitoring of the audio. The
+one-second audio clips now converted to vector embeddings are then sent to
+MongoDB Atlas Vector Search. At this step, the Atlas Vector Search algorithm
+searches for what is the most similar sound from the ones we previously recorded
+in our audio preparation phase. The result is given back with a percentage of
+similarity and it enables a very accurate diagnosis of the current status of the
+operation of the wind turbine.
+
+These steps are performed repeatedly every second, leveraging fast embedding of
+vector data and quick searches, allowing for real-time monitoring based on
+sound.
+
+.. figure:: /includes/images/industry-solutions/Wind-Turbine-Diagnosis-Demo.svg
+   :figwidth: 1200px
+   :alt: Real-time wind turbine diagnosis
+   
+   Figure 1. Real-time wind turbine diagnosis by analyzing the emitted audio, allowing us to
+   diagnose its status — whether it's operating normally, stopped, or experiencing
+   any issues
+
+Data Model Approach
+-------------------
+
+The data model for the vectorized audio collection is simple, we have our audio
+preparation collection called “sounds,” which contains documents including a
+status and the url of the related GIF to be displayed on the UI. Once the
+reference audio for each status is vectorized, the embedding is added to the
+document as an array alongside existing fields.
+
+.. figure:: /includes/images/industry-solutions/wind-diagnosis.svg
+   :figwidth: 1200px
+   :alt: Screenshot of documents including a status and the url of the related GIF to be displayed on the UI.
+
+On the reading end, the one-second audio clips we record in real-time are
+vectorized and sent to MongoDB Atlas Vector Search to be compared against
+embeddings from the “sounds” collection above.
+
+Building the Solution
+---------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: `MongoDB Atlas connection <https://github.com/mongodb-industry-solutions/Wind-Turbine-Diagnostics/blob/main/README.md#1-mongodb-atlas-connection>`__
+
+      Create a file called .env in the main directory alongside the add_audio.py file
+      and add your atlas connection string in the following format:
+
+      - MONGO_CONNECTION_STRING="mongodb+srv://connectionstringfromatlas"
+
+      Then copy this file into the nodeUI directory.
+
+   .. step:: `Install Python modules <https://github.com/mongodb-industry-solutions/Wind-Turbine-Diagnostics/blob/main/README.md#2-install-python-modules>`__
+
+      Install the required python modules listed in the Github repo.
+
+   .. step:: `Record audio files <https://github.com/mongodb-industry-solutions/Wind-Turbine-Diagnostics/blob/main/README.md#3-record-audio-files>`__
+
+      1. Run python3 add_audio.py.
+      2. Select the audio input by typing the relevant number and then press enter. Record each sound in sequence.
+
+   .. step:: `Create an Atlas Search index <https://github.com/mongodb-industry-solutions/Wind-Turbine-Diagnostics/blob/main/README.md#4-create-a-search-index>`__
+
+      Go to MongoDB Atlas and create an Atlas Search Index in the audio database
+      sounds collection using the content of searchindex.json.
+
+      .. code-block:: sh
+
+         {
+            "mappings": {
+               "dynamic": true,
+               "fields": {
+                  "emb": {
+                     "dimensions": 2048,
+                     "similarity": "cosine",
+                     "type": "knnVector"
+                  }
+               }
+            }
+         }
+
+   .. step:: `Query the database <https://github.com/mongodb-industry-solutions/Wind-Turbine-Diagnostics/blob/main/README.md#5-query-the-database>`__
+
+      Run python3 live_query.py and place your microphone next to the fan.
+
+   .. step:: `Run the frontend <https://github.com/mongodb-industry-solutions/Wind-Turbine-Diagnostics/blob/main/README.md#6-run-the-frontend>`__
+
+      1. Switch to a new console and cd to the 'nodeUI' directory.
+      2. Run ``npm install``.
+      3. Run ``node nodeui.js``.
+      4. Use a browser to open the link http://localhost:3000/.
+
+Key Learnings
+-------------
+
+- Understand the role of AI and machine learning in revolutionizing predictive
+  maintenance in the renewable energy industry.
+- Explore how MongoDB Atlas Vector Search facilitates real-time anomaly
+  detection and addresses challenges faced by businesses and development teams.
+- Creation of a Vector Search index in Atlas — It is now possible to create
+  indexes for `local deployments
+  <https://www.mongodb.com/docs/atlas/cli/stable/atlas-cli-deploy-local/#std-label-atlas-cli-deploy-local-avs>`__. 
+  
+Technologies and Products Used
+------------------------------
+
+MongoDB Developer Data Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `Atlas Database <https://www.mongodb.com/atlas/database>`__
+- `Atlas Vector Search
+  <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+Partner Technologies
+~~~~~~~~~~~~~~~~~~~~
+
+- Audio embedding generation with `panns-inference
+  <https://github.com/qiuqiangkong/panns_inference>`__.
+
+
+Authors
+-------
+
+- Ainhoa Múgica, MongoDB
+- Arnaldo Vera, MongoDB
+- Dr. Humza Akhtar, MongoDB
+- Dr. Han Heloir, MongoDB
+- Ralph Johnson, MongoDB

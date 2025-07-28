@@ -1,0 +1,573 @@
+.. _arch-center-is-car-assistant:
+
+==============================================================
+Transforming the Driver Experience with MongoDB & Google Cloud
+==============================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: car assistant, manufacturing, gen AI, automotive
+   :description: Discover how MongoDB and Google Cloud are powering
+                 generative AI-driven, hyper-personalized in-car experiences built for
+                 automotive innovation at scale.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Learn how to create real-time, voice-driven automotive experiences using
+MongoDB Atlas and the Google Cloud tool suite. Combine vehicle data,
+user context, and car manual embeddings into a smart, scalable in-car
+assistant that adapts to driver needs.
+
+**Use cases:** `Gen AI
+<https://www.mongodb.com/use-cases/artificial-intelligence>`__,
+`Personalization
+<https://www.mongodb.com/solutions/use-cases/personalization>`__
+
+**Industries:** `Manufacturing & Mobility
+<https://www.mongodb.com/solutions/industries/manufacturing>`__
+
+**Products:** `MongoDB Atlas Database
+<https://www.mongodb.com/products/platform/atlas-database>`__, `MongoDB
+Atlas Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+**Partners:** `Google Cloud <https://cloud.google.com/>`__, `PowerSync
+<https://cloud.mongodb.com/ecosystem/powersync>`__ 
+
+Solution Overview
+-----------------
+
+As automakers race to deliver next-generation driving experiences, they
+face growing pressure to differentiate with intelligent, user-friendly
+digital systems. In-car voice assistants have emerged as a key
+opportunity—yet most still fall short, limited to basic commands like
+setting navigation or controlling music. With the rise of generative AI,
+there’s a clear path to move beyond these limitations and deliver truly
+personalized, dynamic interactions behind the wheel.
+
+This solution demonstrates how automotive teams can build a scalable,
+real-time voice assistant powered by gen AI and backed by MongoDB Atlas.
+The architecture integrates vehicle telemetry, user preferences, and car
+manual embeddings to create an in-car assistant capable of adapting to
+each driver’s needs. By using MongoDB Atlas’s flexible document model
+and built-in vector search, developers can streamline data complexity
+and deliver features faster for a better, more intuitive in-car
+experience.
+
+.. figure:: /includes/images/industry-solutions/car-assistant-demo.gif
+   :figwidth: 1200px
+   :alt: Gif demonstrating how the demo works
+   
+   Figure 1. Gen AI in-car assistant in action
+
+Along the way, teams will learn how to: 
+
+- Unify structured and unstructured data to augment the context of AI
+  systems. 
+
+- Enable real-time interactions with a scalable, cloud-native
+  architecture. 
+
+- Deliver personalized experiences with semantic search powered by Atlas
+  Vector Search.
+
+While this solution focuses on the automotive industry, its potential
+extends far beyond. Industries like transportation, healthcare,
+hospitality, and consumer electronics are exploring gen AI voice
+interfaces to enhance customer engagement, reduce friction, and
+streamline support. Whether it’s a smart home assistant, a digital
+concierge, or an AI-enabled medical triage system, this architecture
+provides a foundation to build voice-forward, data-driven experiences
+that feel intuitive and relevant. Companies across industries are
+harnessing `the power of voice with generative AI and MongoDB
+<https://www.mongodb.com/blog/post/building-ai-mongodb-giving-your-apps-voice>`__
+to transform user experiences.
+
+Reference Architectures
+-----------------------
+
+To bring a smarter in-car assistant to life, we designed an architecture
+that blends cloud and edge technologies into one seamless experience. At
+the heart of it is MongoDB Atlas, which acts as the data layer, paired
+with Google Cloud’s AI capabilities. This architecture ensures fast,
+personalized, and reliable interactions.
+
+.. figure:: /includes/images/industry-solutions/car-assistant-architecture.svg
+   :figwidth: 1200px
+   :alt: Reference architecture for car assistant solution
+   
+   Figure 2. A reference architecture of a Gen AI In-Car Assistant
+
+Let’s break down how it works.
+
+On-board Components
+~~~~~~~~~~~~~~~~~~~
+
+These run in the vehicle, close to the driver, and enable real-time
+voice interaction.
+
+- **Car console:** The in-car interface where users speak to the assistant
+  and get responses. It’s a web app in this demo, but represents the
+  embedded system in a real vehicle.
+
+- **Local data storage:** Vehicles store key signals locally using
+  PowerSync SDK, a lightweight edge database built on SQLite. This ensures
+  fast access to diagnostic data and keeps data synced with MongoDB Atlas.
+
+- **Assistant backend:** This component manages the conversation. It
+  handles voice transcription using Google Cloud Speech-to-Text and reads
+  the driver’s intent. Depending on the query, it may respond directly or
+  call tools to fetch more data or take action. For the demo version, we
+  included four sample tools: 
+  
+  - Consult manual: Uses Atlas Vector Search to retrieve relevant info
+    from the car manual. 
+
+  - Run diagnostics: Fetches current diagnostic codes from local vehicle
+    data. 
+    
+  - Recalculate route: Adjusts the trip if the driver adds a stop. 
+  
+  - Close chat: Ends the conversation gracefully.
+
+.. code-block:: javascript  
+   :copyable: true  
+  
+   const functionDeclarations = [  
+     {  
+       functionDeclarations: [  
+         {  
+           name: "closeChat",  
+           description:  
+             "Closes the chat window when the conversation is finished. By default it always returns to the navigation view. Ask the user to confirm this action before executing.",  
+           parameters: {  
+             type: FunctionDeclarationSchemaType.OBJECT,  
+             properties: {  
+               view: {  
+                 type: FunctionDeclarationSchemaType.STRING,  
+                 enum: ["navigation"],  
+                 description:  
+                   "The next view to display after closing the chat.",  
+               },  
+             },  
+             required: ["view"],  
+           },  
+         },  
+         {  
+           name: "recalculateRoute",  
+           description:  
+             "Recalculates the route when a new stop is added. By default this function will find the nearest service station. Ask the user to confirm this action before executing.",  
+           parameters: {  
+             type: FunctionDeclarationSchemaType.OBJECT,  
+             properties: {},  
+           },  
+         },  
+         {  
+           name: "consultManual",  
+           description:  
+             "Retrieves relevant information from the car manual.",  
+           parameters: {  
+             type: FunctionDeclarationSchemaType.OBJECT,  
+             properties: {  
+               query: {  
+                 type: FunctionDeclarationSchemaType.STRING,  
+                 description:  
+                   "A question that represents an enriched version of what the user wants to retrieve from the manual. It must be in the form of a question.",  
+               },  
+             },  
+             required: ["query"],  
+           },  
+         },  
+         {  
+           name: "runDiagnostic",  
+           description:  
+             "Fetches active Diagnostic Trouble Codes (DTCs) in the format OBD II (SAE-J2012DA_201812) from the vehicle to assist with troubleshooting.",  
+           parameters: {  
+             type: FunctionDeclarationSchemaType.OBJECT,  
+             properties: {},  
+           },  
+         },  
+       ],  
+     },  
+   ]; 
+
+Cloud Components
+~~~~~~~~~~~~~~~~
+
+These provide AI intelligence, scalable storage, and data processing
+capabilities.
+
+- **Data ingestion:** Unstructured content like car manuals is uploaded
+  to Google Cloud Storage. This triggers a pipeline using Pub/Sub, Cloud
+  Run, and Document AI to split the PDFs into chunks. Vertex AI generates
+  embeddings for these chunks, which are then stored in MongoDB Atlas for
+  semantic search. 
+
+- **Serving speech APIs:** Google Cloud’s Text-to-Speech and
+  Speech-to-Text handle natural voice interaction. Vertex AI: Provides
+  text embeddings for search queries and powers the LLM (Gemini) used by
+  the assistant.
+
+- **Data storage and retrieval:** MongoDB Atlas stores:
+  
+  - Manual chunk embeddings for retrieval via Atlas Vector Search.
+
+  - User preferences and session data.
+
+  - Vehicle signals—both latest values and full time series telemetry.
+
+Atlas Vector Search is used to match user questions with the most
+relevant manual sections, enabling a Retrieval-Augmented Generation
+(RAG) flow. MongoDB’s native support for structured, semi-structured,
+and vector data in one place simplifies the assistant logic and speeds
+up development.
+
+- **Data sync:** We use PowerSync for two-way sync between the vehicle
+  and cloud: 
+  
+  - Vehicle to cloud: Vehicle sends telemetry data like diagnostic
+    codes, speed, or acceleration. A cloud run function processes
+    and stores this in Atlas. 
+
+  - Cloud to vehicle: Enables updates or actions sent remotely to the
+    car—like OTA updates or remote locking.
+
+The Role of MongoDB in Conversational AI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB Atlas is the developer data platform that powers this solution.
+Here's how it improves the architecture:
+
+- **Unifies operational and vector data:** Vehicle signals, vector
+  embeddings, and user sessions are stored together in a single,
+  consistent platform. 
+
+- **Enables more relevant responses:** Atlas Vector Search retrieves the
+  right chunks from large documents instantly, fueling accurate and
+  context-rich responses. 
+
+- **Built for the enterprise scale:** Whether it's one model or a global
+  fleet, MongoDB Atlas offers built-in horizontal scalability,
+  high-availability and enterprise-grade security. 
+
+- **Simplifies edge and cloud sync:** PowerSync and MongoDB work together to
+  bridge in-car and cloud environments without friction.
+
+This architecture is designed to scale, evolve, and adapt—just like the
+vehicles it supports. With MongoDB at the core, automakers can focus
+less on data plumbing and more on delivering smart, helpful in-car
+experiences that truly make a difference on the road.
+
+Data Model Approach
+-------------------
+
+Data is at the heart of any AI-powered experience. The quality,
+structure, and accessibility of your data are what make or break the
+experience. In this solution, MongoDB’s document model plays a central
+role—enabling flexibility, speed, and scale for developers building
+intelligent in-car assistants.
+
+Unlike traditional relational databases that rely on rigid tables and
+complex joins, MongoDB stores data as flexible documents. This makes it
+easier to represent real-world data structures, like vehicle telemetry
+or embedded knowledge chunks, exactly as they are used in code. It also
+means you can iterate faster, adapt your model without downtime, and
+build new capabilities as your application evolves.
+
+Built for Innovation and Speed 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The document model is designed for how developers think. Need to add
+metadata to your diagnostic data? Or associate multiple content types
+with a single manual section? In MongoDB, that’s just a few lines of
+code—not a schema rewrite. And because each document is self-contained,
+queries are faster and simpler. Fewer joins, fewer moving parts, and
+more time to build.
+
+This flexibility also unlocks faster innovation cycles. As new vehicle
+features roll out or user expectations shift, teams can evolve the data
+model on the fly without expensive migrations or app downtime.
+
+The Natural Choice for AI Workloads 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Generative AI thrives on rich, diverse, and unstructured data.
+Embeddings, contextual metadata, structured references—all of it plays a
+part in making AI systems smarter. MongoDB is uniquely suited for these
+kinds of applications: 
+
+- Store vector embeddings, metadata, and source content in a single
+  document. 
+
+- Combine structured and vector data without jumping between systems. 
+
+- Query vector and non-vector fields together for contextual, accurate
+  results.
+
+The result? Simpler architecture, better performance, and more relevant
+AI responses.
+
+Example 1: Car Manual Embeddings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using a retrieval-augmented generation (RAG) approach, the quality
+of the chunking and embeddings directly impacts the quality of the AI’s
+responses. Poorly segmented content or missing context can lead to vague
+or inaccurate answers. Technical manuals are inherently complex. They
+often contain dense text, diagrams, and domain-specific
+terminology—making it challenging to retrieve the right information.
+
+To address this, we represent each chunk of the manual as a document.
+The document includes not just the text and its vector embedding, but
+also metadata such as content type (e.g., safety, diagnostics), page
+numbers, chunk length, and links to related chunks. This additional
+context helps the system understand how pieces of information relate to
+one another—especially important in highly technical or interdependent
+topics.
+
+MongoDB’s flexible document model makes it straightforward to capture
+this complexity. As the manual evolves or as new needs emerge, we can
+incrementally add fields or adjust structure without requiring a full
+schema migration. This enables more precise retrieval and ultimately
+more helpful AI responses.
+
+.. code-block:: javascript  
+   :copyable: true  
+  
+   {  
+     "_id": {  
+       "$oid": "67cc4b09c128338a8133b59a"  
+     },  
+     "text": "Oil Pressure Warning Lamp. If it illuminates when the engine is running this indicates a malfunction. Stop your vehicle as soon as it is safe to do so and switch the engine off. Check the engine oil level. If the oil level is sufficient, this indicates a system malfunction.",  
+     "page_numbers": [  
+       23  
+     ],  
+     "content_type": [  
+       "safety",  
+       "diagnostic"  
+     ],  
+     "metadata": {  
+       "page_count": 1,  
+       "chunk_length": 1045  
+     },  
+     "id": "chunk_0053",  
+     "prev_chunk_id": "chunk_0052",  
+     "next_chunk_id": "chunk_0054",  
+     "related_chunks": [  
+       {  
+         "id": "chunk_0048",  
+         "content_type": [  
+           "safety"  
+         ],  
+         "relation_type": "same_context"  
+       },  
+       {  
+         "id": "chunk_0049",  
+         "content_type": [  
+           "safety"  
+         ],  
+         "relation_type": "same_context"  
+       },  
+       ...  
+     ],  
+     "embedding": [  
+       -0.002636542310938239,  
+       -0.005587903782725334,  
+       ...  
+     ],  
+     "embedding_timestamp": "2025-03-08T13:50:00.887107"  
+   }  
+
+Example 2: Vehicle Signal Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For vehicle signals, we modeled our data using the COVESA Vehicle Signal
+Specification (VSS). VSS provides a standardized, hierarchical structure
+to describe real-time signals—like speed, acceleration, or diagnostic
+trouble codes (DTCs). It’s an open, extensible format that enables
+easier collaboration, system integration, and data reuse across vehicle
+platforms.
+
+MongoDB document model natively handles nested structures, representing
+the VSS hierarchy is straightforward. Signals can be grouped logically,
+just like they appear in the VSS model, which aligns perfectly with the
+tree-based structure of the spec.
+
+.. figure:: /includes/images/industry-solutions/car-assistant-vss.svg
+   :figwidth: 1200px
+   :alt: Reference architecture for car assistant solution
+   
+   Figure 3. The VSS data model is a hierarchical tree structure built with modules that can be flexibly combined. 
+   Source: https://covesa.global/vehicle-signal-specification/ 
+
+This structure not only accelerates development but also ensures that AI
+tools and workflows have consistent access to clean, structured, and
+meaningful data.
+
+.. code-block:: javascript  
+   :copyable: true  
+  
+   {  
+     "_id": {  
+       "$oid": "67e58d5f672b23090e57d478"  
+     },  
+     "VehicleIdentification": {  
+       "VIN": "1HGCM82633A004352"  
+     },  
+     "Speed": 0,  
+     "TraveledDistance": 0,  
+     "CurrentLocation": {  
+       "Timestamp": "2020-01-01T00:00:00Z",  
+       "Latitude": 0,  
+       "Longitude": 0,  
+       "Altitude": 0  
+     },  
+     "Acceleration": {  
+       "Lateral": 0,  
+       "Longitudinal": 0,  
+       "Vertical": 0  
+     },  
+     "Diagnostics": {  
+       "DTCCount": 0,  
+       "DTCList": []  
+     }  
+   }  
+
+MongoDB’s document model doesn’t just store your data. It mirrors the
+complexity of the real world—making it easier to build smarter systems
+that respond in real time, adapt to user needs, and grow with your
+platform. Whether you’re storing vehicle diagnostics or vector-encoded
+manuals, MongoDB gives you the tools to build intelligent experiences
+faster.
+
+Building the Solution
+---------------------
+
+Building this solution can be broken down into five major steps. You’ll
+use MongoDB Atlas to host your data, Google Cloud for AI services,
+PowerSync to stream vehicle data, and a full-stack app to tie everything
+together. You’ll find all required assets and resources inside the
+`GitHub repository
+<https://github.com/mongodb-industry-solutions/genai-in-car-voice-assistant/tree/main>`__.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Replicate the demo database
+
+      Provision a cluster within your `Atlas account
+      <https://www.mongodb.com/cloud/atlas/register>`__ and populate
+      your database with the data required for the demo. A data dump can
+      be found inside the repository to quickly replicate the database
+      with all the necessary data and metadata with one quick
+      `mongorestore
+      <https://www.mongodb.com/docs/database-tools/mongorestore/>`__
+      command.
+
+   .. step:: Configure your Google Cloud environment
+
+      Create a Google Cloud project and enable the required APIs:
+      `Speech-to-Text <https://cloud.google.com/speech-to-text>`__,
+      `Text-to-Speech <https://cloud.google.com/text-to-speech>`__,
+      `Document AI <https://cloud.google.com/document-ai>`__, and
+      `Vertex AI <https://cloud.google.com/vertex-ai>`__. For local
+      development, configure Application Default Credentials so the app
+      can authenticate seamlessly with Google services. Detailed
+      instructions are provided in the `Google Cloud documentation
+      <https://cloud.google.com/docs/authentication/application-default-credentials>`__.
+
+   .. step:: (Optional) Create your own document embeddings
+
+      The demo includes a precomputed set of embeddings for the car
+      manual. However, you can generate your own embeddings by parsing
+      PDF files using Document AI and embedding them with Vertex AI.
+      This gives you flexibility to extend the assistant with custom
+      documents or additional manuals as needed.
+
+   .. step:: Configure PowerSync for real-time vehicle data
+
+      Create a PowerSync account and link your MongoDB database using your
+      connection string. PowerSync acts as a data bridge, syncing MongoDB data
+      to client applications in real-time. Define sync rules for the
+      *vehicleData* collection. 
+
+   .. step:: Run the application
+
+      Clone the repository locally and create a *.env* file using the template
+      provided. Once your environment is configured, run *npm install* to
+      install dependencies and then start the development server with *npm run
+      dev*. The app will be available at http://localhost:3000.
+
+For full implementation details—including code samples, data dumps, and
+helper scripts—visit the `GitHub repository
+<https://github.com/mongodb-industry-solutions/genai-in-car-voice-assistant/tree/main>`__.
+
+Key Learnings 
+-------------
+
+As automotive experiences evolve to become more intelligent and
+personalized, this solution demonstrates how auto manufacturers can
+leverage generative AI and MongoDB to deliver meaningful in-car
+interactions. Here are the key takeaways:
+
+- **Conversational AI starts with the right data foundation:** Rich,
+  contextual, and accessible data is what powers intelligent voice
+  assistants. MongoDB Atlas unifies structured telemetry, unstructured
+  manuals, and vector embeddings in a single developer-friendly
+  platform—eliminating data silos and making it easier to serve relevant,
+  real-time responses.
+
+- **MongoDB accelerates innovation from the factory to the finish
+  line:** Modern automotive applications demand flexibility and speed,
+  from predictive maintenance and diagnostics to digital cockpit systems.
+  MongoDB’s flexible schema, real-time sync capabilities, and horizontal
+  scalability help teams move faster, collaborate more effectively, and
+  deliver features that set their vehicles apart.
+
+- **Drivers are ready for the next generation of voice assistants:**
+  With electric vehicles, autonomy, and smart safety systems reshaping the
+  industry, the expectations for in-car systems have never been higher.
+  Generative AI enables assistants to go beyond simple commands and
+  deliver nuanced, interactive conversations—and MongoDB gives developers
+  the tools to build these experiences at scale.
+
+Technologies and Products Used
+------------------------------
+
+MongoDB Developer Data Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `MongoDB Atlas Database
+  <https://www.mongodb.com/products/platform/atlas-database>`__ 
+
+- `MongoDB Atlas Vector Search
+  <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+- `MongoDB Node Driver
+  <https://www.mongodb.com/docs/drivers/node/current/>`__
+
+- `Aggregation Pipeline
+  <https://www.mongodb.com/docs/manual/core/aggregation-pipeline/>`__
+
+- `Change Streams
+  <https://www.mongodb.com/docs/manual/changeStreams/>`__
+
+Partner Technologies
+~~~~~~~~~~~~~~~~~~~~
+
+- `Google Cloud <https://cloud.google.com/>`__
+- `PowerSync <https://cloud.mongodb.com/ecosystem/powersync>`__
+- `Vercel <https://cloud.mongodb.com/ecosystem/vercel>`__
+
+Authors
+-------
+
+- Dr. Humza Akhtar, MongoDB
+- Rami Pinto, MongoDB
