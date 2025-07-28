@@ -1,0 +1,293 @@
+.. _arch-center-is-retail-as-you-type:
+
+=====================================================
+Relevant As-You-Type Suggestions
+=====================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: code example,
+   :description: Use this solution to implement an as-you-type solution that leverages Atlas Search with the MongoDB developer data platform.
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Add fast and relevant as-you-type suggestions to your application, incorporating user context and domain-specific ranking factors.
+
+**Use cases:** `Content Management <https://www.mongodb.com/solutions/use-cases/content-management>`__,
+`Catalog <https://www.mongodb.com/solutions/use-cases/catalog>`__
+
+**Industries:** `Retail <https://www.mongodb.com/industries/retail>`__
+
+**Products:** `Atlas <http://mongodb.com/atlas>`__, `Atlas Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+
+Solution Overview
+-----------------
+
+The quicker a user can navigate to desired, relevant content, the sooner
+they can leverage that knowledge, buy that product, help that customer,
+and make those critical decisions. Picture getting to “The Matrix” by
+only typing “matr,” or finding replacement air filters for the ones you
+bought a few months ago by typing only “fi” in the search box, and your
+previous order is the top suggestion. These are examples of as-you-type
+suggestions. Vector Search and full-text search are great at matching
+content semantically and fuzzily, when there is a complete query or very
+close word matches. But as-you-type functionality can return relevant
+results with even fewer characters and where there's even more distance
+between the inputted text and the target keyword. Only a lexical-based
+solution that facilitates partial matching like as-you-type suggestions
+can provide this level of relevant, context-sensitive results.
+
+**As-you-type functionality — also known as
+autocomplete, autosuggest, typeahead, search-ahead, and predictive
+search — often refers to low-level character matching, as opposed to a
+purpose-built, comprehensive solution. As demonstrated here, we use
+“as-you-type suggestions” to refer to a complete solution encompassing
+tunable relevancy, filtering, and highlighting.**
+
+With this solution, you’ll be able to add fast and relevant as-you-type
+suggestions to your application, incorporating user context and
+domain-specific ranking factors.
+
+
+Reference Architectures
+-----------------------
+
+This as-you-type suggestion solution is architecturally straightforward
+— as a user types, requests are sent to Atlas Search, which returns
+relevant results. The heart of the architecture is a specialized
+``entities`` collection and the corresponding queries.
+
+.. figure:: /includes/images/industry-solutions/retail-as-you-type-architecture.png
+   :figwidth: 1200px
+   :alt: As-you-type solution architecture
+
+   Figure 1. As-you-type solution architecture
+
+Data Model Approach
+-------------------
+
+Each suggestion presented to the user represents a unique entity of your
+domain. A requirement of this solution is that entities must be modeled
+as individual documents in a specialized collection tuned for
+as-you-type suggestibility. 
+
+It's often the case that your main collection represents one type of
+entity as documents, and other domain entities as metadata fields or
+embedded documents. For example, let’s take the sample movies data
+available within Atlas: as a user types, movie titles certainly should
+be suggested. But what about cast member names? Can I find movies
+starring Keanu Reeves by typing only "kea"? What about documentaries by
+only typing "doc"?
+
+It’s a simple model with the following basic schema:
+
+- ``_id:`` unique id for this collection in the form ``<type>-<natural id>``. 
+- ``type:`` entity/object type, e.g. movie, brand, person product, and category.
+- ``name:`` the name or title of the entity, which would generally be unique per type.
+
+It’s important that entity documents have stable, unique identifiers, as
+the entities will be regularly refreshed from the main collection.
+Assigning a ``type`` to each entity allows for filtering (only suggest cast
+members, say, in an actor-specific lookup), grouping (organize the
+suggestions by type), or boosting by type (movie titles could have a
+higher weighting than cast member names).
+
+Modeling entities directly as individual documents allows each to carry
+optional metadata fields to assist in ranking, displaying, filtering, or
+grouping them. 
+
+At the heart of this solution, the straightforward document model feeds
+the ``name`` field through a sophisticated index configuration, which slices
+and dices the values in a multitude of ways suitable for querying in
+several ways. The power of this solution comes from the synergy of
+multiple indexing and querying strategies.
+
+.. code-block:: javascript  
+
+   {
+      "_id":"title-The Matrix",
+      "name":"The Matrix",
+      "type":"title"
+   }
+   
+
+Building the Solution
+---------------------
+
+First, identify the entities in your data that are to be suggestible. In
+the movies scenario, these would include movie titles, cast member
+names, and perhaps genres and director names too.  
+
+The basis of this as-you-type suggestion system can be achieved in a few
+steps:
+
+1. Create an “entities” collection and populate it using the schema modeled above. As often as warranted, refresh the “entities” collection. 
+2. Create an Atlas Search “entities_index” using an index configuration as described below. 
+3. Craft a robust set of query clauses, along with any pertinent boosting factors, within a $search-using aggregation pipeline.
+
+Importing Entities 
+~~~~~~~~~~~~~~~~~~
+
+While there are multiple ways to populate the
+“entities” collection, one straightforward way to populate it is with a
+short and sweet `aggregation pipeline <https://www.mongodb.com/basics/aggregation-pipeline>`__ run on the main collection to bring
+in the unique titles across all movies:
+
+.. code-block:: javascript  
+
+   [
+      {
+         $group: {
+            _id: "$title",
+         },
+      },
+      {
+         $project: {
+            _id: {$concat: [ "title", "-", "$_id" ]},
+            type: "title",
+            name: "$_id"
+         }
+      },
+      { $merge: { into: "entities" } }
+   ]
+
+The ``$project`` converts each unique movie title into the necessary
+“entities” schema. Because this collection types each document, the ``type``
+is encoded as a prefix of the generated ``_id`` and appended with the actual
+movie title creating a reproducible identifier for each unique title.
+Including ``type`` in the entity identifiers allows different types of
+entities with the same name to be independent from one another (there
+could be a movie named “Adventure” as well as the “Adventure” genre). 
+
+And finally, the handy ``$merge`` stage adds all new titles and leaves the
+existing ones untouched.
+
+The resulting title-typed document for “The Matrix” comes out simply as:
+
+.. code-block:: javascript
+
+   {
+      "_id":"title-The Matrix",
+      "name":"The Matrix",
+      "type":"title"
+   }
+
+Each entity type potentially needs its own technique for merging into
+the “entities” collection, as in the case of the "genre" and "cast"
+entities, which need to be unwound from their nested arrays using
+``$unwind``. 
+
+This cast-specific entities import brings in “Keanu Reeves” as:
+
+.. code-block:: javascript
+
+   {
+      "_id":"cast-Keanu Reeves", 
+      "name":"Keanu Reeves", 
+      "type":"cast",
+      "weight": 6.637
+   }
+
+Indexing Entities 
+~~~~~~~~~~~~~~~~~
+The ``name`` field is indexed in a multitude of ways, which will
+facilitate partial matching and ranking at query time.
+
+.. figure:: /includes/images/industry-solutions/retail-as-you-type-indexing.png
+   :figwidth: 1200px
+   :alt: Multiple indexing strategies
+   
+   Figure 2. Multiple indexing strategies
+
+Atlas Search index configuration enables a single document field to be
+indexed in a multitude ("multi") of ways (the feature is called
+“multi”-analyzers).
+
+The ``type`` field is indexed as both a ``token`` field, for ``equals`` or ``in``
+filtering, and a ``stringFacet`` field to provide a means to get counts
+across the results of each entity type.
+
+Any other fields added beyond ``_id``, ``type``, and ``name`` are handled by the
+index definition, either through dynamic mapping or the static
+definitions you provide. In this example, ``weight`` is custom and handled
+dynamically as a numeric type.
+
+Searching for Suggestions 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The resulting specialized search index provides the foundation for
+as-you-type queries. The ``name`` field is indexed in a number of ways and
+matched against users typing with various tunable query operators. The
+idea is to throw the query operators against these differently analyzed
+mappings and see what sticks — the more ways they stick, the higher the
+suggestion is ranked. Each of the query clauses can be independently
+boosted and summed giving a relevancy score for the matching entity.
+These scores could be further boosted by other factors such as an
+optional entity ``weight`` field. 
+
+
+.. figure:: /includes/images/industry-solutions/retail-as-you-type-querying.png
+   :figwidth: 1200px
+   :alt: Example query and relevancy scoring computation
+
+   Figure 3. Example query and relevancy scoring computation
+
+Generally, the behavior of a user selecting a suggestion is to then
+perform a targeted traditional search for the selected item, which would
+in turn surface all matching items.
+
+.. code-block:: javascript
+
+   [
+      {
+         $group: {
+            _id: "$title",
+         },
+      },
+      {
+         $project: {
+            _id: {$concat: [ "title", "-", "$_id" ]},
+            type: "title",
+            name: "$_id"
+         }
+      },
+      { $merge: { into: "entities" } }
+   ]
+
+Visit the `GitHub repo <https://github.com/mongodb-developer/atlas-search-as-you-type-suggest>`__ to this solution. 
+
+Key Considerations
+------------------
+
+Model suggestible entities as documents with a specialized index
+configuration: This could be done as described above in a separate
+collection containing entities from any source. Or, if your main
+collection models all suggestible entities as top-level documents
+already, an index can be created or an existing one augmented to use the
+index configuration techniques described here.
+
+Craft clever queries: Leverage the index structure, generating rich and
+nuanced queries to match entities and rank suggestions as desired.
+
+Technology and Products
+-----------------------
+
+MongoDB Developer Data Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `Atlas <http://mongodb.com/atlas>`__
+- `Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+Author
+------
+
+- Erik Hatcher, MongoDB

@@ -1,0 +1,232 @@
+.. _arch-center-is-personalization:
+
+=======================================================
+Enabling Real-Time Pricing with MongoDB and Databricks
+=======================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: Real-time analytics
+   :description: Orchestrate real-time analytics with Atlas App Services and serverless functions to create dynamic pricing strategies on the fly.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Orchestrate real-time analytics with Atlas App Services and serverless functions to create dynamic pricing strategies on the fly.
+
+**Use cases:** `Analytics <https://www.mongodb.com/use-cases/analytics>`__,
+`Catalog Management <https://www.mongodb.com/use-cases/catalog>`__,
+`Personalization <https://www.mongodb.com/use-cases/personalization>`__
+
+**Industries:** `Retail
+<https://www.mongodb.com/industries/retail>`__
+
+**Products:** `Aggregation Pipeline <https://www.mongodb.com/basics/aggregation-pipeline>`__, 
+`Atlas Triggers <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/>`__, 
+`Atlas Functions <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/functions/>`__,
+`Atlas Charts <https://www.mongodb.com/products/charts>`__
+
+**Partners:** `Databricks <https://www.mongodb.com/partners/databricks>`__
+
+Solution Overview
+-----------------
+
+Deploying real-time analytics solutions with the right tech stack can
+transform a retail pricing strategy. Retailers want to grow their brand
+name and improve customer experience with value-based pricing while
+remaining competitive and cost effective. 
+
+
+With real-time pricing strategies, businesses can change product prices
+on the fly — both online and in-store through digital price tags — by
+leveraging data points across a wide variety of systems, such as
+inventory, marketing performance, and even regional and digital trends.
+Imagine dynamically lowering prices in response to excess inventory or
+new promotions, or increasing the price on something trending, without
+manual intervention.
+
+
+Despite their ambition to become “data driven” operations, companies
+often fail in their endeavors because they struggle performing real-time
+analytics.
+
+
+By the end of this demo you will get a detailed view of how to leverage
+MongoDB Atlas App Services in addition to Databricks model building and
+deployment capabilities to fuel data-driven strategies with real-time
+events data. 
+
+Other Applicable Industries and Use Cases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Transport**: Transportation companies, such as airlines, taxis, and ride-sharing services, can use real-time pricing to adjust fares based on factors like demand, supply, and external events. This enables them to optimize revenue and manage passenger demand during peak hours or special occasions.
+- **Telecommunications**: Telecom companies can use real-time pricing for data plans, international calling, and roaming charges. They can adjust prices based on network capacity and demand to manage traffic and ensure optimal service levels.
+- **Insurance**: Insurance companies can implement real-time pricing for usage-based insurance products, such as pay-as-you-drive or pay-as-you-live. Premiums can be adjusted based on actual customer behavior or risk factors.
+
+
+Reference Architectures
+-----------------------
+
+.. figure:: /includes/images/industry-solutions/retail-dynamic-pricing-reference-architecture.svg
+   :alt: Bob Ross - Dynamic Pricing - Ref arch
+   
+   Figure 1. Dynamic pricing reference architecture 
+
+Data Model Approach
+-------------------
+
+The event-driven architecture is very simple. It is made up of only four different events that a user can perform on the e-commerce site:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - event_type
+     - description
+
+   * - "view"
+     - A customer views a product on the product detail page.
+
+   * - "cart"
+     - A customer adds a product to the cart.
+
+   * - "remove_from_cart"
+     - A customer removes a product from the cart.
+
+   * - "purchase"
+     - A customer completes a transaction of a specific product.
+
+Event Schema
+~~~~~~~~~~~~~
+
+.. code-block:: javascript
+   :copyable: true
+
+   {
+      "_id": {
+        "$oid": "63c557ddcc552f591375062d"
+    },
+      "event_time": {
+         "$date": {
+            "$numberLong": "1572566410000"
+        }
+    },
+      "event_type": "view",
+      "product_id": "5837166",
+      "category_id": "1783999064103190764",
+      "brand": "pnb",
+      "price": 22.22,
+      "user_id": "556138645",
+      "user_session": "57ed222e-a54a-4907-9944-5a875c2d7f4f"
+   }
+
+Purchase Log
+~~~~~~~~~~~~~
+
+.. code-block:: javascript
+   :copyable: true
+
+   {
+      "_id": {
+         "$numberInt": "5837183"
+    },
+      "product_id": {
+        "$numberInt": "5837183"
+    },
+      "event_time": [
+        "2023-05-17"
+    ],
+      "price": [
+        {
+            "$numberDouble": "6.4"
+        }
+    ],
+      "brand": [
+        "runail"
+    ],
+      "category_code": [],
+      "total_sales": [
+        {
+            "$numberLong": "101"
+        }
+    ],
+      "revenue": [
+        {
+            "$numberDouble": "646.4000000000001"
+        }
+    ]
+      “price_elasticity”: [
+       {
+           “$numberDouble”:”-20.667872769488664”
+       }
+    ]
+   }
+
+Building the Solution
+---------------------
+
+Follow this step-by-step guide and learn how to orchestrate MongoDB
+Atlas through MongoDB App Services triggers and serverless functions in
+conjunction with Databricks to create a real-time analytics and pricing
+solution for the retail industry.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Data ingestion
+
+      `The GitHub repo
+      <https://github.com/mongodb-industry-solutions/Real-Time-Pricing/tree/main/Part-1-dataIngestion>`__
+      contains the eventsGenerator directory, in which you will find a
+      generator.py file. Edit the file with the connection string,
+      database and collection parameters to mimic the purchase events
+      happening on an ecommerce storefront in real time.
+      
+   .. step:: Data transformations
+
+      In `this GitHub directory
+      <https://github.com/mongodb-industry-solutions/Real-Time-Pricing/tree/main/Part-2-dataTransformation>`__
+      you'll find instructions on how to use triggers and functions to: 
+
+      - Compute a historic purchase log per product in your collection.
+      - Send an HTTP POST request to a Databricks-deployed endpoint.
+
+   .. step:: ML/AI
+
+      In `this GitHub folder
+      <https://github.com/mongodb-industry-solutions/Real-Time-Pricing/tree/main/Part-3-ML>`__
+      you will find a test code to run on a Databricks notebook. The
+      code computes a simple calculation of the price elasticity of
+      demand per product, receiving as input the purchase log per
+      product and giving as output the price elasticity.
+
+Key Learnings
+-------------
+
+- **Data transformation**: Recognizing the importance of transforming raw data into a more usable format or structure. In this project, triggers and functions are used to compute a historic purchase log and send data to external systems like Databricks. 
+- **Serverles architecture**: Gaining insights into the benefits and workings of serverless functions and triggers, which can automatically respond to changes in data and execute predefined actions without the need for a dedicated server. 
+- **Real-time data processing**: Understanding the importance and mechanisms of processing data in real-time, especially in the context of the retail industry where timely insights can drive immediate actions, such as dynamic pricing.
+
+Technologies and Products Used
+------------------------------
+
+MongoDB Developer Data Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `Atlas Database <http://mongodb.com/atlas>`__
+- `Aggregation Pipeline <https://www.mongodb.com/docs/manual/core/aggregation-pipeline/>`__
+- `Atlas Charts <https://www.mongodb.com/products/charts>`__
+- `Atlas Triggers <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/>`__
+- `Atlas Functions <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/functions/>`__
+
+Partner Technologies
+~~~~~~~~~~~~~~~~~~~~
+
+- `Databricks <https://www.mongodb.com/partners/databricks>`__
