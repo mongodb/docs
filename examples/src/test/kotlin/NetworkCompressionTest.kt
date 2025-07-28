@@ -16,7 +16,7 @@ import kotlin.test.assertEquals
 // :replace-start: {
 //    "terms": {
 //       "CONNECTION_URI_PLACEHOLDER": "\"<connection string>\"",
-//       "${uri}&": "mongodb+srv://<user>:<password>@<cluster-url>/?"
+//       "${uri}&": "mongodb+srv://<db_username>:<db_password>@<cluster-url>/?"
 //    }
 // }
 
