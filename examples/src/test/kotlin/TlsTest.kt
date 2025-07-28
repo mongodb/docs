@@ -30,7 +30,7 @@ internal class TlsTest {
     @Disabled("Disabled because host does not exist")
     fun tlsConnectionStringTest() = runBlocking {
         // :snippet-start: tls-connection-string
-        val mongoClient = MongoClient.create("mongodb+srv://<user>:<password>@<cluster-url>?tls=true")
+        val mongoClient = MongoClient.create("mongodb+srv://<db_username>:<db_password>@<cluster-url>?tls=true")
         // :snippet-end:
         mongoClient.close()
     }

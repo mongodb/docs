@@ -1,5 +1,5 @@
 val connectionString = ConnectionString(
-    "mongodb+srv://<user>:<password>@<cluster-url>/?" +
+    "mongodb+srv://<db_username>:<db_password>@<cluster-url>/?" +
         "proxyHost=<proxyHost>" +
         "&proxyPort=<proxyPort>" +
         "&proxyUsername=<proxyUsername>" +
