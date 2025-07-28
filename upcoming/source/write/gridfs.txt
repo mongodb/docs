@@ -1,0 +1,201 @@
+.. _ruby-gridfs:
+
+=================================
+Store Large Files by Using GridFS
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: binary large object, blob, storage
+
+Overview
+--------
+
+In this guide, you can learn how to store and retrieve large files in
+MongoDB by using **GridFS**. GridFS is a specification that describes how to split files
+into chunks when storing them and reassemble those files when retrieving them. The {+driver-short+}'s
+implementation of GridFS is an abstraction that manages the operations and organization of
+the file storage. 
+
+Use GridFS if the size of your files exceeds the BSON document
+size limit of 16MB. For more detailed information on whether GridFS is
+suitable for your use case, see :manual:`GridFS </core/gridfs>` in the
+{+mdb-server+} manual.
+
+The following sections describe GridFS operations and how to
+perform them.
+
+How GridFS Works
+----------------
+
+GridFS organizes files in a **bucket**, a group of MongoDB collections
+that contain the chunks of files and information describing them. The
+bucket contains the following collections, named using the convention
+defined in the GridFS specification:
+
+- The ``chunks`` collection stores the binary file chunks.
+- The ``files`` collection stores the file metadata.
+
+When you create a new GridFS bucket, the driver creates the ``fs.chunks`` and ``fs.files``
+collections, unless you specify a different name in the ``Mongo::Database#fs`` method options. The
+driver also creates an index on each collection to ensure efficient retrieval of the files and related
+metadata. The driver creates the GridFS bucket, if it doesn't exist, only when the first write
+operation is performed. The driver creates indexes only if they don't exist and when the
+bucket is empty. For more information about
+GridFS indexes, see :manual:`GridFS Indexes </core/gridfs/#gridfs-indexes>`
+in the {+mdb-server+} manual.
+
+When storing files with GridFS, the driver splits the files into smaller
+chunks, each represented by a separate document in the ``chunks`` collection.
+It also creates a document in the ``files`` collection that contains
+a file ID, file name, and other file metadata. You can upload the file from
+memory or from a stream. The following diagram shows how GridFS splits
+the files when they're uploaded to a bucket.
+
+.. figure:: /includes/figures/GridFS-upload.png
+   :alt: A diagram that shows how GridFS uploads a file to a bucket
+
+When retrieving files, GridFS fetches the metadata from the ``files``
+collection in the specified bucket and uses the information to reconstruct
+the file from documents in the ``chunks`` collection. You can read the file
+into memory or output it to a stream.
+
+Create a GridFS Bucket
+----------------------
+
+To store or retrieve files from GridFS, create a GridFS bucket by calling the
+``fs`` method on a ``Mongo::Database`` instance.
+You can use the ``FSBucket`` instance to
+perform read and write operations on the files in your bucket.
+
+.. literalinclude:: /includes/write/gridfs.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-create-bucket
+   :end-before: end-create-bucket
+
+To create or reference a bucket with a name other than the default name
+``fs``, pass the bucket name as an optional parameter to the ``fs``
+method, as shown in the following example:
+
+.. literalinclude:: /includes/write/gridfs.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-create-custom-bucket
+   :end-before: end-create-custom-bucket
+
+Upload Files
+------------
+
+The ``upload_from_stream`` method reads the contents of an
+upload stream and saves it to the ``GridFSBucket`` instance.
+
+You can pass a ``Hash`` as an optional parameter to configure the chunk size or include
+additional metadata.
+
+The following example uploads a file into ``FSBucket`` and specifies metadata for the
+uploaded file:
+
+.. literalinclude:: /includes/write/gridfs.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-upload-files
+   :end-before: end-upload-files
+
+Retrieve File Information
+-------------------------
+
+In this section, you can learn how to retrieve file metadata stored in the
+``files`` collection of the GridFS bucket. The metadata contains information
+about the file it refers to, including:
+
+- The ``_id`` of the file
+- The name of the file
+- The size of the file
+- The upload date and time
+- A ``metadata`` document in which you can store any other information
+
+To learn more about fields you can retrieve from the ``files`` collection, see the
+:manual:`GridFS Files Collection </core/gridfs/#the-files-collection>` documentation in the
+{+mdb-server+} manual.
+
+To retrieve files from a GridFS bucket, call the ``find`` method on the ``FSBucket``
+instance. The following code example retrieves and prints file metadata from all files in
+a GridFS bucket:
+
+.. literalinclude:: /includes/write/gridfs.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-retrieve-file-info
+   :end-before: end-retrieve-file-info
+
+To learn more about querying MongoDB, see :ref:`<ruby-retrieve>`.
+
+Download Files
+--------------
+
+The ``download_to_stream`` method downloads the contents of a file.
+
+To download a file by its file ``_id``, pass the ``_id`` to the method. The ``download_to_stream``
+method writes the contents of the file to the provided object.
+The following example downloads a file by its file ``_id``:
+
+.. literalinclude:: /includes/write/gridfs.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-download-files-id
+   :end-before: end-download-files-id
+
+If you a file's name but not its ``_id``, you can use the ``download_to_stream_by_name``
+method. The following example downloads a file named ``mongodb-tutorial``:
+
+.. literalinclude:: /includes/write/gridfs.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-download-files-name
+   :end-before: end-download-files-name
+
+.. note::
+
+   If there are multiple documents with the same ``filename`` value,
+   GridFS fetches the most recent file with the given name (as
+   determined by the ``uploadDate`` field).
+
+Delete Files
+------------
+
+Use the ``delete`` method to remove a file's collection document and associated
+chunks from your bucket. You must specify the file by its ``_id`` field rather than its
+file name.
+
+The following example deletes a file by its ``_id``:
+
+.. literalinclude:: /includes/write/gridfs.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-delete-files
+   :end-before: end-delete-files
+
+.. note::
+
+   The ``delete`` method supports deleting only one file at a time. To
+   delete multiple files, retrieve the files from the bucket, extract
+   the ``_id`` field from the files you want to delete, and pass each value
+   in separate calls to the ``delete`` method.
+
+API Documentation
+-----------------
+
+To learn more about using GridFS to store and retrieve large files,
+see the following API documentation:
+
+- :ruby-api:`Mongo::Grid::FSBucket <Grid/FSBucket.html>`
