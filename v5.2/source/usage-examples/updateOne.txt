@@ -1,0 +1,110 @@
+.. _kotlin-usage-updateone:
+
+=================
+Update a Document
+=================
+
+You can update a single document using the ``updateOne()`` method on
+a ``MongoCollection`` object. The method accepts a **filter** that matches the
+document you want to update and an **update** statement that instructs the
+driver how to change the matching document. The ``updateOne()`` method only
+updates the first document that matches the filter.
+
+To perform an update with the ``updateOne()`` method, you must pass
+a query filter and an update document. The query filter specifies the criteria
+for which document to perform the update on and the update document provides
+instructions on what changes to make to it.
+
+You can optionally pass an instance of ``UpdateOptions`` to the ``updateOne()`` method in
+order to specify the method's behavior. For example, if you set the ``upsert`` field of
+the ``UpdateOptions`` object to ``true``, the operation inserts a new
+document from the fields in both the query and update document if no documents 
+match the query filter. See the link to the ``UpdateOptions`` API 
+documentation at the bottom of this page for more information.
+
+Upon successful execution, the ``updateOne()`` method returns an instance
+of ``UpdateResult``.  You can retrieve information such as the number of
+documents modified by calling the ``getModifiedCount()`` method, or the
+value of the ``_id`` field by calling the ``getUpsertedId()`` method if you
+specified ``upsert(true)`` in an ``UpdateOptions`` instance.
+
+If your update operation fails, the driver raises an exception.
+For example, if you try to set a value for the immutable field ``_id`` in
+your update document, the method throws a ``MongoWriteException`` with the
+message:
+
+.. code-block:: none
+   :copyable: false
+
+   Performing an update on the path '_id' would modify the immutable field '_id'
+
+If your update document contains a change that violates unique index
+rules, the method throws a ``MongoWriteException`` with an error
+message that should look something like this:
+
+.. code-block:: none
+   :copyable: false
+
+   E11000 duplicate key error collection: ...
+
+For more information on the types of exceptions raised under specific
+conditions, see the ``updateOne()`` API documentation linked at the
+bottom of this page.
+
+Example
+-------
+
+In this example, we use a ``Filter`` builder to query the collection for
+a movie with the title "Cool Runnings 2". 
+
+Next, we perform the following updates to the first match for our query
+in the ``movies`` collection of the ``sample_mflix`` database:
+
+#. Set the value of ``runtime`` to ``99``
+#. Add ``Sports`` to the array of ``genres`` only if it does not already exist
+#. Set the value of ``lastUpdated`` to the current time
+
+We use the ``Updates`` builder, a factory class that contains static
+helper methods, to construct the update document. While you can pass an update
+document instead of using the builder, the builder provides type checking and
+simplified syntax. See the :doc:`guide on the Updates builder </fundamentals/builders/updates/>` 
+for more information.
+
+.. include:: /includes/connect-guide-note.rst
+
+.. literalinclude:: /examples/generated/Update.snippet.update-usage-example.kt
+   :language: kotlin
+
+After you run the example, you should see output that looks something like this:
+
+.. code-block:: none
+   :copyable: false
+
+   Modified document count: 1
+   Upserted id: null
+
+Or if the example resulted in an upsert:
+
+.. code-block:: none
+   :copyable: false
+
+   Modified document count: 0
+   Upserted id: BsonObjectId{value=...}
+
+If you query the updated document, it should look something like this:
+
+.. code-block:: none
+   :copyable: false
+
+   Movie(title=Cool Runnings 2, runtime=99, genres=[ ... Sports], lastUpdated= ... )
+
+For additional information on the classes and methods mentioned on this
+page, see the following API Documentation:
+
+- `UpdateOne <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/update-one.html>`__
+- `UpdateOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateOptions.html>`__
+- `combine() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#combine(org.bson.conversions.Bson...)>`__
+- `set() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#set(java.lang.String,TItem)>`__
+- `addToSet() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#addToSet(java.lang.String,TItem)>`__
+- `currentDate() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html#currentDate(java.lang.String)>`__
+- `UpdateResult <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/result/UpdateResult.html>`__
