@@ -64,18 +64,15 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources`
         see :atlas:`Add Trust Relationships to an Existing Role 
         </security/set-up-unified-aws-access/#procedure>` . 
 
-      .. important::
+      :gold:`IMPORTANT:` If you modify your custom |aws| role |arn| in 
+      the future, verify that the access policy for the role includes the 
+      appropriate access to the |s3| resources for the {+fdi+}.
 
-         If you modify your custom |aws| role |arn| in the future, 
-         ensure that the access policy of the role includes the 
-         appropriate access to the |s3| resources for the {+fdi+}.
-
-      .. seealso:: 
-
-         - :atlas:`Set Up Unified AWS Access 
-           </security/set-up-unified-aws-access/>`
-         - :oas-atlas-op:`Create a Cloud Provider Access Role 
-           </createCloudProviderAccessRole>`
+      For further information, see
+        - :atlas:`Set Up Unified AWS Access 
+          </security/set-up-unified-aws-access/>`
+        - :oas-atlas-op:`Create a Cloud Provider Access Role 
+          </createCloudProviderAccessRole>`
 
    #. Click :guilabel:`Next`.
 
@@ -105,10 +102,8 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources`
       Corresponds to :datalakeconf-aws:`stores.[n].region` |json| 
       configuration setting.
 
-      .. note::
-
-         You can't create a {+fdi+} if {+adf+} is unable to retrieve the  
-         region of the specified |s3| bucket.
+      :gold:`IMPORTANT:` You can't create a {+fdi+} if {+adf+} is unable 
+      to retrieve the region of the specified |s3| bucket.
   
    #. **Optional**. Specify a prefix that {+df+} should use when 
       searching the files in the |s3| bucket. If omitted, {+df+} 
