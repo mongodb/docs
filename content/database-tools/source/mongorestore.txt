@@ -67,7 +67,7 @@ See :ref:`mongorestore-options` for what options you can use when you run
 
 When you run ``mongorestore`` with no arguments, the default setting is to
 restore data from a local ``./dump`` directory to a local :binary:`~bin.mongod`
-instance running on port ``27027``:
+instance running on port ``27017``:
 
 .. code-block:: sh
 
@@ -136,40 +136,108 @@ Options
 This section includes information about all available options for 
 ``mongorestore``.
 
-.. option:: --help
 
-   Returns information on the options and use of ``mongorestore``.
+.. option:: --archive=<file>
 
+   Restores from an archive created by :option:`mongodump --archive`.
+   ``mongorestore`` restores from the specified archive file or, if you
+   do not specify a file, from the standard input (``stdin``).
 
-.. option:: --verbose, -v
-
-   Increases the amount of internal reporting returned on standard output
-   or in log files. Increase the verbosity with the ``-v`` form by
-   including the option multiple times, (e.g. ``-vvvvv``.)
+   To restore from an archive file, run ``mongorestore`` with the
+   ``--archive`` option and the archive filename. 
    
+   To restore from the standard input, run ``mongorestore`` with the 
+   ``--archive`` option and omit the filename.
 
+   The following example shows how to restore from the standard input:
 
-.. option:: --quiet
+   .. code-block:: shell
 
-   Runs ``mongorestore`` in a quiet mode that attempts to limit the amount
-   of output.
+      mongodump --archive | mongorestore --archive
 
-   This option suppresses:
+   This command pipeline first runs ``mongodump`` with the ``--archive`` flag,
+   which prints its output to ``stdout``, or standard output. Then, the input
+   is piped to ``mongorestore``'s standard input by using the ``|`` pipe operator.
 
-   - errors
+   .. important::
    
-   - output from :term:`database commands <database command>`
+      - You cannot use the ``--archive`` option with the :option:`--dir`
+        option, which specifies the dump directory.
+
+      - The :option:`--db` and :option:`--collection` options are
+        deprecated when restoring from an archive file. To restore a specific
+        database or collection, use :option:`--nsInclude`.
    
-   - replication activity
-   
-   - connection accepted events
-   
-   - connection closed events
+      - If you use the ``--archive`` option with the :option:`\<path\>`
+        parameter, ``mongorestore`` ignores ``<path>``.
 
 
-.. option:: --version
+.. option:: --authenticationDatabase=<dbname>
 
-   Returns the ``mongorestore`` release number.
+   Specifies the authentication database where the specified 
+   :option:`--username <mongorestore --username>` has been created.
+   Use in conjunction with the :option:`--username <mongorestore --username>` and 
+   :option:`--password <mongorestore --password>` options.
+
+   For more information on authentication databases, see :ref:`user-authentication-database`.
+
+   .. include:: /includes/fact-auth-database-use-external.rst
+   
+   .. include:: /includes/extracts/uri-used-with-authenticationDatabase.rst
+
+
+.. option:: --authenticationMechanism=<name>
+
+   *Default*: SCRAM-SHA-1
+
+   Specifies the authentication mechanism the ``mongorestore`` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+
+   .. versionchanged:: 100.1.0
+   
+      Starting in version ``100.1.0``, ``mongorestore`` adds support
+      for the ``MONGODB-AWS`` authentication mechanism when connecting
+      to a :atlas:`MongoDB Atlas <?tck=docs_server>` cluster.
+
+   .. include:: /includes/list-table-auth-mechanisms.rst
+   
+   .. include:: /includes/extracts/uri-used-with-authenticationMechanism.rst
+
+
+.. option:: --awsSessionToken=<AWS Session Token>
+
+   .. include:: /includes/extracts/mongodb-aws-session-token-mongorestore.rst
+
+
+.. option:: --bypassDocumentValidation
+
+   Enables ``mongorestore`` to bypass :manual:`document validation </core/schema-validation>`
+   during the operation. This lets you insert documents that do not
+   meet the validation requirements.
+
+
+.. option:: --collection=<collection>, -c=<collection>
+
+   .. important::
+
+      .. include:: /includes/fact-db-collection-deprecated.rst
+  
+   Specifies the name of the destination collection for ``mongorestore`` to
+   restore data *into* when restoring from a BSON file. If
+   you do not specify :option:`--collection`, ``mongorestore`` takes
+   the collection name from the input filename. If the input file has an
+   extension, MongoDB omits the extension of the file from the collection
+   name.
+   
+   .. code-block:: sh
+      :copyable: false
+   
+      mongorestore --db=reporting --collection=employeesalaries dump/test/salaries.bson 
+
+
+.. option:: --compressors=<string>
+
+   .. include:: /includes/fact-compressors-option-desc.rst
 
 
 .. option:: --config=<filename>
@@ -179,27 +247,145 @@ This section includes information about all available options for
    .. include:: /includes/fact-config-file-option.rst
 
 
-.. option:: --uri=<connectionString>
-   
-   Specifies the resolvable :manual:`URI connection string
-   </reference/connection-string/>` of the MongoDB deployment, enclosed
-   in quotes:
-   
-   .. code-block:: none
-   
-      --uri="mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]"
-   
-   .. include:: /includes/extracts/uri-positional-mongorestore.rst
+.. option:: --convertLegacyIndexes
 
-   For information on the components of the connection string, see
-   the :manual:`Connection String URI Format
-   </reference/connection-string/>` documentation. 
+   .. versionadded:: 100.0.0
 
-   .. include:: /includes/fact-uri-with-conflicting-info.rst      
+   Removes any invalid index options specified in the corresponding
+   :binary:`~bin.mongodump` output, and rewrites any legacy index key
+   values to use valid values.
 
-   .. include:: /includes/fact-ubuntu-dns-error.rst
+   - *Invalid index options* are any options specified to an index that
+     are not listed as a :ref:`valid field<createIndexes-method-options>` for
+     the :dbcommand:`createIndexes` command. For example, ``name`` and 
+     ``collation`` are valid, but an arbitrary ``custom_field`` is not.
+     With ``--convertLegacyIndexes`` specified, any invalid index
+     options found are dropped.
 
-   .. include:: /includes/fact-warning-uri-config.rst
+   - *Legacy index key values* are any values for
+     :ref:`index type <index-types>` that are
+     no longer supported. For example,
+     ``1`` and ``-1`` are valid index key values, but ``0`` or an empty
+     string are legacy values. With ``--convertLegacyIndexes``
+     specified, any legacy index key values found are rewritten as
+     ``1``. Non-empty string values are not replaced.
+
+   Without the ``--convertLegacyIndexes`` option specified, the presence
+   of invalid index options or legacy index key values could cause the
+   index build to fail.
+
+   If the :option:`--noIndexRestore <mongorestore --noIndexRestore>`
+   option is specified to ``mongorestore``, the
+   ``--convertLegacyIndexes`` option is ignored.
+
+
+.. option:: --db=<database>, -d=<database>
+
+   .. important::
+
+      .. include:: /includes/fact-db-collection-deprecated.rst
+
+   Specifies the destination database for ``mongorestore`` to restore data
+   *into* when restoring from a BSON file. If the database does not
+   exist, ``mongorestore`` creates the database. For example, the following
+   example restores the ``salaries`` collection into the ``reporting`` database.
+   
+   .. code-block:: sh
+      :copyable: false
+   
+      mongorestore --db=reporting dump/test/salaries.bson 
+   
+   If you do not specify :option:`--db`, ``mongorestore`` reads the database name
+   from the data files.
+   
+   .. include:: /includes/extracts/uri-used-with-db.rst
+
+
+.. option:: --dir=string
+
+   Specifies the dump directory.
+   
+   - You cannot specify both the ``--dir`` option and the ``<path>``
+     argument, which also specifies the dump directory, to ``mongorestore``.
+   
+   - You cannot use the ``--archive`` option with the ``--dir`` option.
+
+
+.. option:: --drop
+
+   Before restoring the collections from the dumped backup, drops the
+   collections from the target database. :option:`--drop <mongorestore --drop>` does not drop
+   collections that are not in the backup.
+   
+   When the restore includes the ``admin`` database, ``mongorestore`` with
+   :option:`--drop <mongorestore --drop>` removes all user credentials and replaces them with the
+   users defined in the dump file. Therefore, in systems with
+   :setting:`~security.authorization` enabled, ``mongorestore`` must be able
+   to authenticate to an existing user *and* to a user defined in the
+   dump file. If ``mongorestore`` can't authenticate to a user defined in the
+   dump file, the restoration process will fail, leaving an empty
+   database.
+
+   If a collection is dropped and recreated as part of the restore, the
+   newly created collection has a different UUID unless 
+   :option:`--drop <mongorestore --drop>` is used with 
+   :option:`--preserveUUID <mongorestore --preserveUUID>`.
+
+
+.. option:: --dryRun
+
+   Runs ``mongorestore`` without actually importing any data, returning the
+   ``mongorestore`` summary information. Use with ``--verbose`` to produce
+   more detailed summary information.
+
+
+.. option:: --fixDottedHashIndex 
+
+   Creates all :manual:`hashed indexes 
+   </core/indexes/index-types/index-hashed/>` on dotted fields as 
+   single field ascending indexes on the destination database.
+
+
+.. option:: --gssapiHostName=<hostname>
+
+   Specify the hostname of a service using :manual:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+.. option:: --gssapiServiceName=<serviceName>
+
+   Specify the name of the service using :manual:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+
+
+.. option:: --gzip
+
+   Restores from compressed files or data stream created by
+   :option:`mongodump --gzip`.
+   
+   To restore from a dump directory that contains compressed files, run
+   ``mongorestore`` with the ``--gzip`` option.
+   
+   To restore from a compressed archive file, run ``mongorestore`` with
+   both the ``--gzip`` and the :option:`--archive <mongorestore
+   --archive>` options.
+
+   .. note::
+
+      You can use the :option:`--nsFrom <mongorestore --nsFrom>` and
+      :option:`--nsTo <mongorestore --nsTo>` options with the ``--gzip`` option to 
+      change the namespace of the collection that you are restoring.
+
+
+.. option:: --help
+
+   Returns information on the options and use of ``mongorestore``.
 
 
 .. option:: --host=<hostname><:port>, -h=<hostname><:port>
@@ -235,230 +421,42 @@ This section includes information about all available options for
    .. include:: /includes/extracts/uri-used-with-host.rst
 
 
-.. option:: --port=<port>
+.. option:: --keepIndexVersion
 
-   *Default*: 27017
+   Prevents ``mongorestore`` from upgrading the index to the latest
+   version during the restoration process.
 
-   Specifies the TCP port on which the MongoDB instance listens for
-   client connections.
-   
-   .. include:: /includes/extracts/uri-used-with-port.rst
 
+.. option:: --maintainInsertionOrder
 
-.. option:: --ssl
-
-   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
-   TLS/SSL support enabled.
-   
-   .. include:: /includes/extracts/uri-used-with-ssl.rst
-
-   .. include:: /includes/extracts/ssl-facts-see-more.rst
-   
-
-.. option:: --sslCAFile=<filename>
-
-   Specifies the :file:`.pem` file that contains the root certificate chain
-   from the Certificate Authority. Specify the file name of the
-   :file:`.pem` file using relative or absolute paths.
-   
-   .. include:: /includes/extracts/uri-used-with-sslcafile.rst
-
-   .. include:: /includes/extracts/ssl-facts-see-more.rst
-
-
-.. option:: --sslPEMKeyFile=<filename>
-
-   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
-   and key. Specify the file name of the :file:`.pem` file using relative
-   or absolute paths.
-   
-   This option is required when using the :option:`--ssl` option to connect
-   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
-   :setting:`~net.tls.CAFile` enabled *without*
-   :setting:`~net.tls.allowConnectionsWithoutCertificates`.
-   
-   .. include:: /includes/extracts/uri-used-with-sslpemkeyfile.rst
-
-   .. include:: /includes/extracts/ssl-facts-see-more.rst
-   
-
-
-.. option:: --sslPEMKeyPassword=<value>
-
-   Specifies the password to de-crypt the certificate-key file (i.e.
-   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
-   certificate-key file is encrypted. In all cases, the ``mongorestore`` will
-   redact the password from all logging and reporting output.
-   
-   If the private key in the PEM file is encrypted and you do not specify
-   the :option:`--sslPEMKeyPassword` option, the ``mongorestore`` will prompt for a passphrase. See
-   :ref:`ssl-certificate-password`.
-   
-   .. include:: /includes/extracts/uri-used-with-sslpemkeypassword.rst
-
-   .. include:: /includes/extracts/ssl-facts-see-more.rst
-
-   .. include:: /includes/fact-warning-sslpemkeypassword-config.rst
-
-
-.. option:: --sslCRLFile=<filename>
-
-   Specifies the :file:`.pem` file that contains the Certificate Revocation
-   List. Specify the file name of the :file:`.pem` file using relative or
-   absolute paths.
-   
-   .. include:: /includes/extracts/ssl-facts-see-more.rst
-   
-
-
-.. option:: --sslAllowInvalidCertificates
-
-   Bypasses the validation checks for server certificates and allows
-   the use of invalid certificates. When using the
-   :setting:`~net.tls.allowInvalidCertificates` setting, MongoDB logs as a
-   warning the use of the invalid certificate.
-   
-   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
-   
-   .. include:: /includes/extracts/uri-used-with-sslallowinvalidcertificates.rst
-
-   .. include:: /includes/extracts/ssl-facts-see-more.rst
-   
-
-
-.. option:: --sslAllowInvalidHostnames
-
-   Disables the validation of the hostnames in TLS/SSL certificates. Allows
-   ``mongorestore`` to connect to MongoDB instances even if the hostname in their
-   certificates do not match the specified hostname.
-   
-   .. include:: /includes/extracts/uri-used-with-sslallowinvalidhostnames.rst
-   
-   .. include:: /includes/extracts/ssl-facts-see-more.rst
-
-
-.. option:: --username=<username>, -u=<username>
-
-   Specifies a username with which to authenticate to a MongoDB database
-   that uses authentication. Use in conjunction with the :option:`--password <mongorestore --password>` and
-   :option:`--authenticationDatabase <mongorestore --authenticationDatabase>` options.
-
-   .. include:: /includes/extracts/uri-used-with-username.rst
-
-   .. include:: /includes/extracts/mongodb-aws-username-mongorestore.rst
-
-
-.. option:: --password=<password>, -p=<password>
-
-   Specifies a password with which to authenticate to a MongoDB database
-   that uses authentication. Use in conjunction with the :option:`--username <mongorestore --username>` and
-   :option:`--authenticationDatabase <mongorestore --authenticationDatabase>` options.
-
-   To prompt the user for the password, pass the :option:`--username <mongorestore --username>`
-   option without :option:`--password <mongorestore --password>` or specify an empty string as the
-   :option:`--password <mongorestore --password>` value, as in ``--password=""`` .
-
-   .. include:: /includes/extracts/uri-used-with-password.rst
-
-   .. include:: /includes/extracts/mongodb-aws-password-mongorestore.rst
-
-   .. include:: /includes/fact-warning-password-config.rst
-
-
-.. option:: --authenticationDatabase=<dbname>
-
-   Specifies the authentication database where the specified 
-   :option:`--username <mongorestore --username>` has been created.
-   Use in conjunction with the :option:`--username <mongorestore --username>` and 
-   :option:`--password <mongorestore --password>` options.
-
-   For more information on authentication databases, see :ref:`user-authentication-database`.
-
-   .. include:: /includes/fact-auth-database-use-external.rst
-   
-   .. include:: /includes/extracts/uri-used-with-authenticationDatabase.rst
-
-
-.. option:: --awsSessionToken=<AWS Session Token>
-
-   .. include:: /includes/extracts/mongodb-aws-session-token-mongorestore.rst
-
-.. option:: --authenticationMechanism=<name>
-
-   *Default*: SCRAM-SHA-1
-
-   Specifies the authentication mechanism the ``mongorestore`` instance uses to
-   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
-
-   .. versionchanged:: 100.1.0
-   
-      Starting in version ``100.1.0``, ``mongorestore`` adds support
-      for the ``MONGODB-AWS`` authentication mechanism when connecting
-      to a :atlas:`MongoDB Atlas <?tck=docs_server>` cluster.
-
-   .. include:: /includes/list-table-auth-mechanisms.rst
-   
-   .. include:: /includes/extracts/uri-used-with-authenticationMechanism.rst
-
-
-.. option:: --gssapiServiceName=<serviceName>
-
-   Specify the name of the service using :manual:`GSSAPI/Kerberos
-   </core/kerberos>`. Only required if the service does not use the
-   default name of ``mongodb``.
-   
-   This option is available only in MongoDB Enterprise.
-   
-
-
-.. option:: --gssapiHostName=<hostname>
-
-   Specify the hostname of a service using :manual:`GSSAPI/Kerberos
-   </core/kerberos>`. *Only* required if the hostname of a machine does
-   not match the hostname resolved by DNS.
-   
-   This option is available only in MongoDB Enterprise.
-   
-
-
-.. option:: --db=<database>, -d=<database>
-
-   .. important::
-
-      .. include:: /includes/fact-db-collection-deprecated.rst
-
-   Specifies the destination database for ``mongorestore`` to restore data
-   *into* when restoring from a BSON file. If the database does not
-   exist, ``mongorestore`` creates the database. For example, the following
-   example restores the ``salaries`` collection into the ``reporting`` database.
-   
-   .. code-block:: sh
-      :copyable: false
-   
-      mongorestore --db=reporting dump/test/salaries.bson 
-   
-   If you do not specify :option:`--db`, ``mongorestore`` reads the database name
-   from the data files.
-   
-   .. include:: /includes/extracts/uri-used-with-db.rst
-
-.. option:: --collection=<collection>, -c=<collection>
-
-   .. important::
-
-      .. include:: /includes/fact-db-collection-deprecated.rst
+   *Default*: false
   
-   Specifies the name of the destination collection for ``mongorestore`` to
-   restore data *into* when restoring from a BSON file. If
-   you do not specify :option:`--collection`, ``mongorestore`` takes
-   the collection name from the input filename. If the input file has an
-   extension, MongoDB omits the extension of the file from the collection
-   name.
+   If specified, ``mongorestore`` inserts the documents in the
+   order of their appearance in the input source. That is, both the
+   bulk write batch order and document order within the batches are
+   maintained.
    
-   .. code-block:: sh
-      :copyable: false
+   Specifying :option:`--maintainInsertionOrder` also enables
+   :option:`--stopOnError <mongorestore --stopOnError>` and sets
+   :option:`numInsertionWorkersPerCollection 
+   <mongorestore --numInsertionWorkersPerCollection>` to 1.
    
-      mongorestore --db=reporting --collection=employeesalaries dump/test/salaries.bson 
+   If unspecified, ``mongorestore`` may perform the insertions in
+   an arbitrary order.
+
+
+.. option:: --noIndexRestore
+
+   Prevents ``mongorestore`` from restoring and building indexes as
+   specified in the corresponding :binary:`~bin.mongodump` output.
+
+
+.. option:: --noOptionsRestore
+
+   Prevents ``mongorestore`` from setting the collection options,
+   such as those specified by the :dbcommand:`collMod` :term:`database
+   command`, on restored collections.
+
 
 .. option:: --nsExclude=<namespace pattern>
    
@@ -472,6 +470,17 @@ This section includes information about all available options for
    patterns.
 
    .. include:: /includes/fact-nsExclude-precedence.rst
+
+
+.. option:: --nsFrom=<namespace pattern>
+
+   Use with :option:`--nsTo` to rename a :term:`namespace` during the
+   restore operation. :option:`--nsFrom` specifies the collection in the
+   dump file, while :option:`--nsTo` specifies the name that should be
+   used in the restored database.
+
+   .. include:: /includes/extracts/ns-pattern-complex-from.rst
+
 
 .. option:: --nsInclude=<namespace pattern>
 
@@ -499,16 +508,6 @@ This section includes information about all available options for
 
    .. include:: /includes/fact-nsExclude-precedence.rst
 
-.. option:: --nsFrom=<namespace pattern>
-
-   Use with :option:`--nsTo` to rename a :term:`namespace` during the
-   restore operation. :option:`--nsFrom` specifies the collection in the
-   dump file, while :option:`--nsTo` specifies the name that should be
-   used in the restored database.
-
-   .. include:: /includes/extracts/ns-pattern-complex-from.rst
-   
-
 
 .. option:: --nsTo=<namespace pattern>
 
@@ -518,7 +517,28 @@ This section includes information about all available options for
    :option:`--nsFrom` specifies the name in the dump file.
 
    .. include:: /includes/extracts/ns-pattern-complex-to.rst
-   
+
+
+.. option:: --numInsertionWorkersPerCollection=<int>
+
+   *Default*: 1
+
+   Specifies the number of insertion workers to run concurrently per collection.
+
+   For large imports, increasing the number of insertion workers
+   may increase the speed of the import.
+
+
+.. option:: --numParallelCollections=<int>, -j=<int>
+
+   *Default*: 4
+
+   Number of collections ``mongorestore`` should restore
+   in parallel.
+
+   If you specify ``-j`` when restoring a *single* collection, ``-j``
+   maps to the :option:`--numInsertionWorkersPerCollection` option rather than
+   :option:`--numParallelCollections`.
 
 
 .. option:: --objcheck
@@ -529,40 +549,39 @@ This section includes information about all available options for
    :option:`--objcheck <mongorestore --objcheck>` can have a small impact on performance.
 
 
-.. option:: --drop
+.. option:: --oplogFile=<path>
 
-   Before restoring the collections from the dumped backup, drops the
-   collections from the target database. :option:`--drop <mongorestore --drop>` does not drop
-   collections that are not in the backup.
+   Specifies the path to the oplog file containing oplog data for the
+   restore. Use with :option:`--oplogReplay`. 
    
-   When the restore includes the ``admin`` database, ``mongorestore`` with
-   :option:`--drop <mongorestore --drop>` removes all user credentials and replaces them with the
-   users defined in the dump file. Therefore, in systems with
-   :setting:`~security.authorization` enabled, ``mongorestore`` must be able
-   to authenticate to an existing user *and* to a user defined in the
-   dump file. If ``mongorestore`` can't authenticate to a user defined in the
-   dump file, the restoration process will fail, leaving an empty
-   database.
+   If you specify :option:`--oplogFile` and there is an :file:`oplog.bson`
+   file at the top level of the dump directory, ``mongorestore`` returns an 
+   error.
 
-   If a collection is dropped and recreated as part of the restore, the
-   newly created collection has a different UUID unless 
-   :option:`--drop <mongorestore --drop>` is used with 
-   :option:`--preserveUUID <mongorestore --preserveUUID>`.
-   
-.. option:: --preserveUUID
+   .. warning::
 
-   Restored collections use the UUID from the restore data instead of
-   creating a new UUID for collections that are dropped and recreated
-   as part of the restore.
+      Use ``oplogFile`` with caution: manually specifying the oplog
+      entries to apply might cause corruption and inconsistencies in the
+      restored data.
 
-   To use :option:`--preserveUUID <mongorestore --preserveUUID>`, you
-   must also include the :option:`--drop <mongorestore --drop>` option.
 
-.. option:: --dryRun
+.. option:: --oplogLimit=<timestamp>
 
-   Runs ``mongorestore`` without actually importing any data, returning the
-   ``mongorestore`` summary information. Use with ``--verbose`` to produce
-   more detailed summary information.
+   Prevents ``mongorestore`` from applying :term:`oplog` entries
+   with timestamp newer than or equal to ``<timestamp>``. Specify
+   ``<timestamp>`` values in the form of ``<time_t>:<ordinal>``, where
+   ``<time_t>`` is the seconds since the UNIX epoch, and ``<ordinal>``
+   represents a counter of operations in the oplog that occurred in the
+   specified second.
+
+   .. warning::
+
+      Use ``oplogLimit`` with caution: manually specifying the oplog
+      entries to apply might cause corruption and inconsistencies in the
+      restored data.
+
+   You must use :option:`--oplogLimit` in conjunction with the
+   :option:`--oplogReplay` option.
 
 
 .. option:: --oplogReplay
@@ -636,95 +655,69 @@ This section includes information about all available options for
       - :option:`mongodump --oplog`
 
 
-.. option:: --oplogLimit=<timestamp>
+.. option:: --password=<password>, -p=<password>
 
-   Prevents ``mongorestore`` from applying :term:`oplog` entries
-   with timestamp newer than or equal to ``<timestamp>``. Specify
-   ``<timestamp>`` values in the form of ``<time_t>:<ordinal>``, where
-   ``<time_t>`` is the seconds since the UNIX epoch, and ``<ordinal>``
-   represents a counter of operations in the oplog that occurred in the
-   specified second.
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--username <mongorestore --username>` and
+   :option:`--authenticationDatabase <mongorestore --authenticationDatabase>` options.
 
-   .. warning::
+   To prompt the user for the password, pass the :option:`--username <mongorestore --username>`
+   option without :option:`--password <mongorestore --password>` or specify an empty string as the
+   :option:`--password <mongorestore --password>` value, as in ``--password=""`` .
 
-      Use ``oplogLimit`` with caution: manually specifying the oplog
-      entries to apply might cause corruption and inconsistencies in the
-      restored data.
+   .. include:: /includes/extracts/uri-used-with-password.rst
 
-   You must use :option:`--oplogLimit` in conjunction with the
-   :option:`--oplogReplay` option.
+   .. include:: /includes/extracts/mongodb-aws-password-mongorestore.rst
+
+   .. include:: /includes/fact-warning-password-config.rst
 
 
-.. option:: --oplogFile=<path>
+.. _mongorestore-path-option:
 
-   Specifies the path to the oplog file containing oplog data for the
-   restore. Use with :option:`--oplogReplay`. 
+.. option:: <path>
    
-   If you specify :option:`--oplogFile` and there is an :file:`oplog.bson`
-   file at the top level of the dump directory, ``mongorestore`` returns an 
-   error.
-
-   .. warning::
-
-      Use ``oplogFile`` with caution: manually specifying the oplog
-      entries to apply might cause corruption and inconsistencies in the
-      restored data.
+   The directory path or BSON file name from which to restore data.
    
-.. option:: --convertLegacyIndexes
-
-   .. versionadded:: 100.0.0
-
-   Removes any invalid index options specified in the corresponding
-   :binary:`~bin.mongodump` output, and rewrites any legacy index key
-   values to use valid values.
-
-   - *Invalid index options* are any options specified to an index that
-     are not listed as a :ref:`valid field<createIndexes-method-options>` for
-     the :dbcommand:`createIndexes` command. For example, ``name`` and 
-     ``collation`` are valid, but an arbitrary ``custom_field`` is not.
-     With ``--convertLegacyIndexes`` specified, any invalid index
-     options found are dropped.
-
-   - *Legacy index key values* are any values for
-     :ref:`index type <index-types>` that are
-     no longer supported. For example,
-     ``1`` and ``-1`` are valid index key values, but ``0`` or an empty
-     string are legacy values. With ``--convertLegacyIndexes``
-     specified, any legacy index key values found are rewritten as
-     ``1``. Non-empty string values are not replaced.
-
-   Without the ``--convertLegacyIndexes`` option specified, the presence
-   of invalid index options or legacy index key values could cause the
-   index build to fail.
-
-   If the :option:`--noIndexRestore <mongorestore --noIndexRestore>`
-   option is specified to ``mongorestore``, the
-   ``--convertLegacyIndexes`` option is ignored.
+   You cannot specify both the ``<path>`` argument and the ``--dir``
+   option, which also specifies the dump directory, to ``mongorestore``.
 
 
-.. option:: --keepIndexVersion
+.. option:: --port=<port>
 
-   Prevents ``mongorestore`` from upgrading the index to the latest
-   version during the restoration process.
+   *Default*: 27017
 
-
-.. option:: --noIndexRestore
-
-   Prevents ``mongorestore`` from restoring and building indexes as
-   specified in the corresponding :binary:`~bin.mongodump` output.
+   Specifies the TCP port on which the MongoDB instance listens for
+   client connections.
+   
+   .. include:: /includes/extracts/uri-used-with-port.rst
 
 
-.. option:: --fixDottedHashIndex 
+.. option:: --preserveUUID
 
-   Creates all :manual:`hashed indexes 
-   </core/indexes/index-types/index-hashed/>` on dotted fields as 
-   single field ascending indexes on the destination database.
+   Restored collections use the UUID from the restore data instead of
+   creating a new UUID for collections that are dropped and recreated
+   as part of the restore.
 
-.. option:: --noOptionsRestore
+   To use :option:`--preserveUUID <mongorestore --preserveUUID>`, you
+   must also include the :option:`--drop <mongorestore --drop>` option.
 
-   Prevents ``mongorestore`` from setting the collection options,
-   such as those specified by the :dbcommand:`collMod` :term:`database
-   command`, on restored collections.
+
+.. option:: --quiet
+
+   Runs ``mongorestore`` in a quiet mode that attempts to limit the amount
+   of output.
+
+   This option suppresses:
+
+   - errors
+   
+   - output from :term:`database commands <database command>`
+   
+   - replication activity
+   
+   - connection accepted events
+   
+   - connection closed events
 
 
 .. option:: --restoreDbUsersAndRoles
@@ -745,6 +738,153 @@ This section includes information about all available options for
         users and roles. You cannot use ``--restoreDbUsersAndRoles`` 
         on the ``admin`` database, and attempting to do so results in an error. 
 
+
+.. option:: --ssl
+
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/uri-used-with-ssl.rst
+
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+.. option:: --sslAllowInvalidCertificates
+
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates. When using the
+   :setting:`~net.tls.allowInvalidCertificates` setting, MongoDB logs as a
+   warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   .. include:: /includes/extracts/uri-used-with-sslallowinvalidcertificates.rst
+
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+.. option:: --sslAllowInvalidHostnames
+
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   ``mongorestore`` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/extracts/uri-used-with-sslallowinvalidhostnames.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCAFile=<filename>
+
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/uri-used-with-sslcafile.rst
+
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCRLFile=<filename>
+
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+.. option:: --sslPEMKeyFile=<filename>
+
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the :option:`--ssl` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.tls.CAFile` enabled *without*
+   :setting:`~net.tls.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/extracts/uri-used-with-sslpemkeyfile.rst
+
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+.. option:: --sslPEMKeyPassword=<value>
+
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the ``mongorestore`` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not specify
+   the :option:`--sslPEMKeyPassword` option, the ``mongorestore`` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/uri-used-with-sslpemkeypassword.rst
+
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+   .. include:: /includes/fact-warning-sslpemkeypassword-config.rst
+
+
+.. option:: --stopOnError
+
+   Forces ``mongorestore`` to halt the restore when it encounters an
+   error.
+
+   By default, ``mongorestore`` continues when it encounters
+   duplicate key and document validation errors. To ensure that the
+   program stops on these errors, specify
+   :option:`--stopOnError <mongorestore --stopOnError>`.
+
+
+.. option:: --uri=<connectionString>
+   
+   Specifies the resolvable :manual:`URI connection string
+   </reference/connection-string/>` of the MongoDB deployment, enclosed
+   in quotes:
+   
+   .. code-block:: none
+   
+      --uri="mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]"
+   
+   .. include:: /includes/extracts/uri-positional-mongorestore.rst
+
+   For information on the components of the connection string, see
+   the :manual:`Connection String URI Format
+   </reference/connection-string/>` documentation. 
+
+   .. include:: /includes/fact-uri-with-conflicting-info.rst      
+
+   .. include:: /includes/fact-ubuntu-dns-error.rst
+
+   .. include:: /includes/fact-warning-uri-config.rst
+
+
+.. option:: --username=<username>, -u=<username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--password <mongorestore --password>` and
+   :option:`--authenticationDatabase <mongorestore --authenticationDatabase>` options.
+
+   .. include:: /includes/extracts/uri-used-with-username.rst
+
+   .. include:: /includes/extracts/mongodb-aws-username-mongorestore.rst
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+
+
+.. option:: --version
+
+   Returns the ``mongorestore`` release number.
+
+
 .. option:: --writeConcern=<document>
 
    *Default*: majority
@@ -763,138 +903,6 @@ This section includes information about all available options for
    connection string <--uri>`, the command-line
    :option:`--writeConcern` overrides the write concern specified in
    the URI string.
-
-
-.. option:: --maintainInsertionOrder
-
-   *Default*: false
-  
-   If specified, ``mongorestore`` inserts the documents in the
-   order of their appearance in the input source. That is, both the
-   bulk write batch order and document order within the batches are
-   maintained.
-   
-   Specifying :option:`--maintainInsertionOrder` also enables
-   :option:`--stopOnError <mongorestore --stopOnError>` and sets
-   :option:`numInsertionWorkersPerCollection 
-   <mongorestore --numInsertionWorkersPerCollection>` to 1.
-   
-   If unspecified, ``mongorestore`` may perform the insertions in
-   an arbitrary order.
-
-
-.. option:: --numParallelCollections=<int>, -j=<int>
-
-   *Default*: 4
-
-   Number of collections ``mongorestore`` should restore
-   in parallel.
-
-   If you specify ``-j`` when restoring a *single* collection, ``-j``
-   maps to the :option:`--numInsertionWorkersPerCollection` option rather than
-   :option:`--numParallelCollections`.
-
-
-.. option:: --numInsertionWorkersPerCollection=<int>
-
-   *Default*: 1
-
-   Specifies the number of insertion workers to run concurrently per collection.
-
-   For large imports, increasing the number of insertion workers
-   may increase the speed of the import.
-
-.. option:: --stopOnError
-
-   Forces ``mongorestore`` to halt the restore when it encounters an
-   error.
-
-   By default, ``mongorestore`` continues when it encounters
-   duplicate key and document validation errors. To ensure that the
-   program stops on these errors, specify
-   :option:`--stopOnError <mongorestore --stopOnError>`.
-
-
-.. option:: --bypassDocumentValidation
-
-   Enables ``mongorestore`` to bypass :manual:`document validation </core/schema-validation>`
-   during the operation. This lets you insert documents that do not
-   meet the validation requirements.
-
-.. _mongorestore-path-option:
-
-.. option:: --gzip
-
-   Restores from compressed files or data stream created by
-   :option:`mongodump --gzip`.
-   
-   To restore from a dump directory that contains compressed files, run
-   ``mongorestore`` with the ``--gzip`` option.
-   
-   To restore from a compressed archive file, run ``mongorestore`` with
-   both the ``--gzip`` and the :option:`--archive <mongorestore
-   --archive>` options.
-
-   .. note::
-
-      You can use the :option:`--nsFrom <mongorestore --nsFrom>` and
-      :option:`--nsTo <mongorestore --nsTo>` options with the ``--gzip`` option to 
-      change the namespace of the collection that you are restoring.
-
-.. option:: --archive=<file>
-
-   Restores from an archive created by :option:`mongodump --archive`.
-   ``mongorestore`` restores from the specified archive file or, if you
-   do not specify a file, from the standard input (``stdin``).
-
-   To restore from an archive file, run ``mongorestore`` with the
-   ``--archive`` option and the archive filename. 
-   
-   To restore from the standard input, run ``mongorestore`` with the 
-   ``--archive`` option and omit the filename.
-
-   The following example shows how to restore from the standard input:
-
-   .. code-block:: shell
-
-      mongodump --archive | mongorestore --archive
-
-   This command pipeline first runs ``mongodump`` with the ``--archive`` flag,
-   which prints its output to ``stdout``, or standard output. Then, the input
-   is piped to ``mongorestore``'s standard input by using the ``|`` pipe operator.
-
-   .. important::
-   
-      - You cannot use the ``--archive`` option with the :option:`--dir`
-        option, which specifies the dump directory.
-
-      - The :option:`--db` and :option:`--collection` options are
-        deprecated when restoring from an archive file. To restore a specific
-        database or collection, use :option:`--nsInclude`.
-   
-      - If you use the ``--archive`` option with the :option:`\<path\>`
-        parameter, ``mongorestore`` ignores ``<path>``.
-
-.. option:: <path>
-   
-   The directory path or BSON file name from which to restore data.
-   
-   You cannot specify both the ``<path>`` argument and the ``--dir``
-   option, which also specifies the dump directory, to ``mongorestore``.
-
-
-.. option:: --dir=string
-
-   Specifies the dump directory.
-   
-   - You cannot specify both the ``--dir`` option and the ``<path>``
-     argument, which also specifies the dump directory, to ``mongorestore``.
-   
-   - You cannot use the ``--archive`` option with the ``--dir`` option.
-
-.. option:: --compressors=<string>
-
-   .. include:: /includes/fact-compressors-option-desc.rst
 
 
 Learn More
