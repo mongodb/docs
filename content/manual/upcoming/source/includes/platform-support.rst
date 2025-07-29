@@ -547,14 +547,14 @@
      - Enterprise
      - |checkmark|
      - |checkmark|
-     - |checkmark|
+     - 6.0.0 - 6.0.20
 
    * - RHEL/CentOS 7
      - ppc64le
      - Enterprise
      - 
      - 
-     - 6.0.7+
+     - 6.0.7 - 6.0.20
 
    * - RHEL/Rocky/Alma 9
      - s390x
