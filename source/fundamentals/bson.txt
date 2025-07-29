@@ -348,11 +348,63 @@ user-defined struct by using methods from the ``bson`` package:
    You can use the ``Raw`` type to retrieve elements from a BSON
    document byte slice without unmarshalling it to a Go type. This type
    allows you to look up individual elements without unmarshalling
-   the entire BSON document.
+   the entire BSON document. For more information about how to use the ``Raw`` type, see
+   the :ref:`golang-bson-raw` section.
 
 To learn more about the marshalling and unmarshalling methods used with the
-``Cursor`` type, see the `Cursor API documentation <{+api+}/mongo#Cursor>`__
+``Cursor`` type, see the `Cursor API documentation <{+api+}/mongo#Cursor>`__.
 
 To learn more about the marshalling and unmarshalling methods in the
 ``bson`` package, see the `bson API documentation
-<{+api+}/bson#hdr-Marshalling_and_Unmarshalling>`_
+<{+api+}/bson#hdr-Marshalling_and_Unmarshalling>`_.
+
+.. _golang-bson-raw:
+
+Work with Raw BSON Data
+-----------------------
+
+The {+driver-short+} supports working with raw BSON documents through the ``Raw`` type. The ``Raw`` 
+type allows you to validate and retrieve elements from a slice of bytes without unmarshalling 
+the entire BSON document. This is useful in the following situations:
+
+- Performing lookups on specific fields without converting the entire document
+- Reducing memory overhead by avoiding full document unmarshalling 
+- Working directly with binary BSON data received from the database
+
+The ``Raw`` type provides methods to validate the BSON document and look up individual 
+elements by their keys. The following example demonstrates how to validate a raw BSON document and retrieve
+a specific field from it:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      collection := client.Database("sample_restaurants").Collection("restaurants")
+      findOptions := options.FindOne()
+      var raw bson.Raw
+      err = collection.FindOne(
+          context.TODO(), 
+          bson.D{{"name", "Mongo's Pizza"}},
+          findOptions,
+      ).Decode(&raw)
+      if err != nil {
+          log.Fatalf("Failed to find document: %v", err)
+      }
+      
+      // Print the document type
+      fmt.Printf("Document type: %T\n", raw)
+      
+      // Access a field from the raw document
+      name := raw.Lookup("name").StringValue()
+      fmt.Println("Restaurant name:", name)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Document type: bson.Raw
+      Restaurant name: Mongo's Pizza
+
+To learn more about the ``Raw`` family of types, see the `Raw BSON API documentation <{+api+}/bson#hdr-Raw_BSON>`__.
