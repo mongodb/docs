@@ -91,7 +91,7 @@ Run the following command in your virtual environment to install the required
 dependencies:
 
 ```
-pip install pymongo python-dotenv pylint
+pip install -r requirements.txt
 ```
 
 ## To create a new code example
