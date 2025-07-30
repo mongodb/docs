@@ -7,7 +7,6 @@
 import { cache } from "react";
 import { Filter, FindOptions, MongoClient } from "mongodb";
 import { ASTDocument } from "@/services/db/types";
-import { assertTrailingSlash } from "@/utils/assert-trailing-slash";
 import envConfig, { type Environments } from "@/utils/env-config";
 import { log } from "@/utils/logger";
 
@@ -58,7 +57,7 @@ const getPageAST = cache(
     const collection = await getPagesDocumentCollection();
     const pathString = typeof path === "string" ? path : path.join("/");
     const query: Filter<ASTDocument> = {
-      page_path: assertTrailingSlash(pathString),
+      page_path: pathString,
     };
     if (prId) {
       query["pr_id"] = prId;

@@ -7,14 +7,18 @@ Docs-Nextjs is a [Next.js](https://nextjs.org) application using app router feat
 ### Prereq - Node
 
 This project uses node as specified in the `.nvmrc` file.
+Use the above file with `nvm install` and `nvm use`.
 
+We will also use pnpm as the under the platform/ repository.
+Install with `npm install -g pnpm`
 
 ### Compatiblity
 This project uses Next.js@15 with React@18 to ensure compatiblity with LeafyGreen components.
 
-### NPM
+### PNPM
 
-Use `npm install` to install dependencies
+Use `pnpm install` to install dependencies. This means that you will need to explicitly
+define dependent packages within each project, without a package.lock.json.
 
 
 ### Env files
@@ -56,8 +60,6 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deploy on Netlify
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This application is deployed on Netlify at [Docs on Next](https://app.netlify.com/projects/docs-on-nextjs/overview). Branch and preview deploys can be managed via the UI, under [Project Configuration -> Build & Deploy](https://app.netlify.com/projects/docs-on-nextjs/configuration/deploys#content).

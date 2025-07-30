@@ -28,6 +28,7 @@ pnpm install
 The monorepo is organized as follows:
 - `tools/`: Contains various tools and utilities
   - `ingest-mongodb-docs/`: Tool for ingesting MongoDB docs from Snooty Data API, check [README](/platform/tools/ingest-mongodb-docs/README.md) for more info
+- `docs-nextjs`: Contains the Next.js server for servering MDB docs
 
 ## Available Commands
 

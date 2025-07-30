@@ -5,11 +5,13 @@ import envConfig, { type Environments } from "./env-config";
 let logger: Logger | null = null;
 
 const getEnvLevel = (env: Environments) => {
+  console.log(`env is: ${env}, returning debug for now`);
   switch (env) {
     case "production":
       return "warn";
-    case "dotcomstg":
-      return "warn";
+      case "dotcomstg":
+      // TODO: revert to less verbose
+      return "debug";
     case "dotcomprd":
       return "warn";
     default:
