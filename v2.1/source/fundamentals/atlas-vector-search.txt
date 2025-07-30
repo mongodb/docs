@@ -1,0 +1,174 @@
+.. _golang-atlas-vector-search:
+
+================================
+Run an Atlas Vector Search Query
+================================
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code example, semantic, nearest
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the :atlas:`Atlas Vector Search
+</atlas-vector-search/vector-search-overview/>` feature
+in the {+driver-short+} by using the :atlas:`$vectorSearch </atlas-vector-search/vector-search-stage/>`
+pipeline stage. This pipeline stage allows you to perform a **semantic
+search** on your documents. A semantic search is a type of search which
+locates information that is similar in meaning, but not necessarily
+identical, to your provided search term or phrase.
+
+.. important:: Feature Compatibility
+
+   To learn what versions of MongoDB Atlas support this feature, see
+   :atlas:`Limitations </atlas-vector-search/vector-search-stage/#limitations>`
+   in the MongoDB Atlas documentation.
+
+Sample Data
+~~~~~~~~~~~
+
+The example on this page queries the ``plot_embedding`` field from the 
+``embedded_movies`` collection, found in the 
+:atlas:`sample_mflix </sample-data/sample-mflix>` database of the Atlas sample 
+datasets.  
+
+The ``plot_embedding`` field contains vector embeddings with 1536 dimensions,
+created using OpenAI's ``text-embedding-ada-002`` embedding model.
+
+To learn how to create a free MongoDB Atlas cluster and
+load the sample datasets, see the :atlas:`Get Started with Atlas
+</getting-started>` guide.
+
+Perform a Vector Search
+-----------------------
+
+To use this feature, you must create a vector search index and index your
+vector embeddings. To learn about how to programmatically create a
+vector search index, see the :ref:`golang-atlas-search-indexes` section in the
+Indexes guide. To learn more about vector embeddings, see
+:atlas:`How to Index Vector Embeddings for Vector Search
+</atlas-search/field-types/knn-vector/>` in the Atlas documentation.
+
+After you create a vector search index on your vector embeddings, you
+can reference this index in your aggregation pipeline to run your vector 
+search query.
+
+The following sections demonstrate how to create a BSON binary vector
+for your query vector and how to use your vector search index to run a 
+vector search query by using the ``plot_embedding`` field. 
+
+Create a BSON Binary Vector
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this example, you can create a 1536 dimensional vector to use as the query 
+vector for your vector search query on the ``plot_embedding`` field. 
+The query searches the ``plot_embedding`` field by using a vector 
+embedding for the string "time travel". 
+
+The following example shows how to translate this vector embedding to a BSON 
+binary vector that you can use as the query vector:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/vectorSearchQuery.go
+   :language: go
+   :start-after: start-binary-vector
+   :end-before: end-binary-vector
+   :dedent:
+
+If you need to access a slice of the original vector, you can also deserialize 
+your query vector back to a BSON vector. 
+
+The following example shows how to convert the query vector from a BSON binary 
+vector to a BSON vector by using the ``NewVectorFromBinary()`` method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/vectorSearchQuery.go
+   :language: go
+   :start-after: start-convert-back-vector
+   :end-before: end-convert-back-vector
+   :dedent:
+
+.. tip:: Query Vector Type
+
+   The preceding example creates an instance of a BSON binary vector to
+   serve as the query vector, but you can also use an array of BSON ``double`` 
+   values. However, we recommend that you use a BSON binary vector to improve 
+   storage efficiency.
+
+Run the Vector Search Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to build an aggregation pipeline that uses the
+``$vectorSearch`` and ``$project`` methods to perform an Approximate Nearest 
+Neighbor (ANN) vector search with the following specifications:
+
+- Queries the ``plot_embedding`` field with the BSON binary ``queryVector``
+- Sets the number of nearest neighbors used in the search to 150 by using the 
+  ``numCandidates`` option
+- Uses the ``vector_search`` index created on the ``plot_embedding`` field
+- Returns 5 documents with the specified ``plot``, ``title``, and ``score`` fields
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/vectorSearchQuery.go
+      :language: go
+      :start-after: start-aggregation
+      :end-before: end-aggregation
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Title: Thrill Seekers 
+      Plot: A reporter, learning of time travelers visiting 20th century disasters, tries to change the history they know by averting upcoming disasters. 
+      Score: 0.92730712890625 
+
+      Title: About Time 
+      Plot: At the age of 21, Tim discovers he can travel in time and change what happens and has happened in his own life. His decision to make his world a better place by getting a girlfriend turns out not to be as easy as you might think. 
+      Score: 0.926605224609375 
+
+      Title: The Time Machine 
+      Plot: Hoping to alter the events of the past, a 19th century inventor instead travels 800,000 years into the future, where he finds humankind divided into two warring races. 
+      Score: 0.9239959716796875 
+
+      Title: Timecop 
+      Plot: An officer for a security agency that regulates time travel, must fend for his life against a shady politician who has a tie to his past. 
+      Score: 0.923583984375 
+
+      Title: Crusade in Jeans 
+      Plot: After using his mother's newly built time machine, Dolf gets stuck involuntary in the year 1212. He ends up in a children's crusade where he confronts his new friends with modern techniques... 
+      Score: 0.9222412109375 
+
+Additional Information
+----------------------
+
+To learn more about Atlas Vector Search, see the :atlas:`Atlas Vector Search
+</atlas-vector-search/vector-search-overview/>` guides in 
+the MongoDB Atlas documentation.
+
+To learn more about the syntax of the ``$vectorSearch`` pipeline stage,
+see the Syntax and Fields sections of the 
+:atlas:`Create and Run Queries </atlas-vector-search/vector-search-stage/#syntax>`
+guide in the Atlas Vector Search section of the MongoDB Atlas documentation.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `NewVector() <{+api+}/bson#NewVector>`__
+- `NewVectorfromBinary() <{+api+}/bson#NewVectorFromBinary>`__
+- `Vector <{+api+}/bson#Vector>`__
+- `Aggregate() <{+api+}/mongo#Collection.Aggregate>`__
+- `Pipeline <{+api+}/mongo#Pipeline>`__
