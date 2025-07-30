@@ -1,0 +1,1 @@
+// TODO: make SEO content of this page dynamic
