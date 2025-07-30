@@ -85,6 +85,25 @@ public class TutorialTests
         }
     }
 
+    [Test]
+    public void TestJoinMultiFieldOutputMatchesDocs()
+    {
+        var example = new Examples.Aggregation.Pipelines.JoinMultiField.Tutorial();
+        example.LoadSampleData();
+        var results = example.PerformAggregation();
+
+        var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var outputLocation = "Examples/Aggregation/Pipelines/JoinMultiField/TutorialOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var fileData = TestUtils.ReadBsonDocumentsFromFile(fullPath);
+
+        Assert.That(results.Count, Is.EqualTo(fileData.Length), $"Result count {results.Count} does not match output example length {fileData.Length}.");
+        for (var i = 0; i < fileData.Length; i++)
+        {
+            Assert.That(fileData[i], Is.EqualTo(results[i]), $"Mismatch at index {i}: expected {fileData[i]}, got {results[i]}.");
+        }
+    }
+
     [TearDown]
     public void TearDown()
     {
