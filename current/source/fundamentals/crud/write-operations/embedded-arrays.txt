@@ -1,0 +1,219 @@
+.. _golang-update-arrays:
+
+===========================
+Update Arrays in a Document
+===========================
+
+.. meta::
+   :description: Learn how to update array elements in documents using positional operators and the findOneAndUpdate() method in the MongoDB Go Driver.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to update array elements in one or more
+documents.
+
+To update elements in an array, perform the following actions:
+
+- Provide an :ref:`update document <golang-update-document>` that specifies the update.
+- Specify which array elements to update.
+- Perform the update using an update operation with these specifications.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the following ``Drink`` struct as a model for documents
+in the ``drinks`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/updateArray.go
+   :start-after: start-drink-struct
+   :end-before: end-drink-struct
+   :language: go
+   :dedent:
+
+The ``truncate`` :ref:`struct tag<golang-struct-tags>` allows the driver
+to truncate types such as ``float64`` to ``int32`` when unmarshalling.
+
+To run the examples in this guide, load the sample data into the
+``db.drinks`` collection with the following snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/updateArray.go
+   :language: go
+   :dedent:
+   :start-after: begin insertDocs
+   :end-before: end insertDocs
+
+Each document contains a description of a drink that
+includes the drink's description, available sizes in ounces, and available
+preparation styles, corresponding to the ``description``, ``sizes``, and
+``styles`` fields in each document.
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+The following examples use the ``FindOneAndUpdate()`` method to
+retrieve and update a document and to return the state of the document
+after the update occurs. If you want to update multiple documents with
+an array field, use the ``UpdateMany()`` method.
+
+Specify Array Elements
+----------------------
+
+To specify which array elements to update, use a **positional
+operator**. Positional operators can specify the :ref:`first <golang-first-element>`,
+:ref:`multiple <golang-multiple-elements>`, or :ref:`all <golang-all-elements>`
+array elements to update.
+
+To specify array elements with a positional operator, use **dot
+notation**. Dot notation is a property access syntax for navigating
+array elements and fields of an embedded document.
+
+.. _golang-first-element:
+
+First Array Element
+~~~~~~~~~~~~~~~~~~~
+
+To update the first array element that matches your query filter, use
+the positional ``$`` operator. The query filter must be for the array
+field.
+
+Example
+```````
+
+This example performs the following actions:
+
+- Matches array elements in ``sizes`` where the value is less than or
+  equal to ``16``.
+- Decrements the first matching array value by ``2``.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/fundamentals/code-snippets/CRUD/updateArray.go
+      :start-after: begin positional
+      :end-before: end positional
+      :emphasize-lines: 2
+      :language: go
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"description":"Matcha Latte","sizes":[10,16,20],"styles":["iced","hot","extra hot"]}
+
+.. note::
+
+   In the preceding example, the query filter matches the values ``12``
+   and ``16``. Because the operation matches ``12`` first, it is
+   the target of the update. To learn how to to update 
+   both matched values, see :ref:`golang-multiple-elements`.
+
+.. _golang-multiple-elements:
+
+Multiple Array Elements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To update multiple array elements that match your query filter, use the
+filtered positional ``$[<identifier>]`` operator. You must include an
+array filter in your update operation to specify which array elements to
+update.
+
+The ``<identifier>`` is the name you use within your array filter. This
+value must begin with a lowercase letter and only contain alphanumeric
+characters.
+
+Example
+```````
+
+This example performs the following actions:
+
+- Creates an array filter with an identifier called ``hotOptions`` to match
+  array elements that contain the string ``"hot"``.
+- Applies the array filter by using the ``SetArrayFilters()`` method
+  when creating a ``FindOneAndUpdateOptions`` instance.
+- Removes the values of these array elements by using the
+  ``FindOneAndUpdate()`` method.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/CRUD/updateArray.go
+      :start-after: begin filtered positional
+      :end-before: end filtered positional
+      :emphasize-lines: 2, 4
+      :language: go
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"description":"Matcha Latte","sizes":[12,16,20],"styles":["iced","",""]}
+
+.. _golang-all-elements:
+
+All Array Elements
+~~~~~~~~~~~~~~~~~~
+
+To update all the array elements, use the all positional ``$[]`` operator.
+
+.. note::
+
+   If you specify a query filter for the array field, the positional
+   ``$[]`` operator ignores the query filter and updates all the array
+   elements.
+
+Example
+```````
+
+This example multiplies every array element in ``sizes`` by ``29.57``
+to convert from ounces to milliliters:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/CRUD/updateArray.go
+      :start-after: begin filtered positional
+      :end-before: end filtered positional
+      :emphasize-lines: 1-2
+      :language: go
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"description":"Matcha Latte","sizes":[354,473,591],"styles":["iced","hot","extra hot"]}
+
+Additional Information
+----------------------
+
+To learn more about the operations discussed in this guide, see the
+following guides:
+
+- :ref:`golang-query-document`
+- :ref:`golang-compound-operations`
+- :ref:`golang-change-document`
+- :manual:`Positional $ Operator </reference/operator/update/positional/>`
+- :manual:`Positional $[] Operator </reference/operator/update/positional-all/>`
+- :manual:`Positional $[\<identifier\>] Operator </reference/operator/update/positional-filtered/>`
+- :manual:`Dot Notation </core/document/#std-label-document-dot-notation>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `FindOneAndUpdate() <{+api+}/mongo#Collection.FindOneAndUpdate>`__
+- `FindOneAndUpdateOptionsBuilder.SetReturnDocument()
+  <{+api+}/mongo/options#FindOneAndUpdateOptionsBuilder.SetReturnDocument>`__
+- `FindOneAndUpdateOptionsBuilder.SetArrayFilters()
+  <{+api+}/mongo/options#FindOneAndUpdateOptionsBuilder.SetArrayFilters>`__
+- `UpdateMany() <{+api+}/mongo#Collection.UpdateMany>`__

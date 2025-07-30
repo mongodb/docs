@@ -1,0 +1,261 @@
+.. _golang-count-documents:
+
+===============
+Count Documents
+===============
+
+.. meta::
+   :description: Learn to count documents in a MongoDB collection using Go, including accurate, estimated, and aggregation-based methods.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to get an :ref:`accurate
+<golang-accurate-count>` and :ref:`estimated <golang-estimated-count>` count of
+the number of documents in your collection.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this section use the following ``Tea`` struct as a model for documents
+in the ``tea`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/countAndEstimate.go
+   :start-after: start-tea-struct
+   :end-before: end-tea-struct
+   :language: go
+   :dedent:
+
+To run the examples in this guide, load the sample data into the ``tea`` collection in the ``db``
+database with the following snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/countAndEstimate.go
+   :language: go
+   :dedent:
+   :start-after: begin insert docs
+   :end-before: end insert docs
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document describes a tea type and its rating. These items
+correspond to the ``type`` and ``rating`` fields.
+
+.. _golang-accurate-count:
+
+Accurate Count
+--------------
+
+To count the number of documents that match your query filter, use the
+``CountDocuments()`` method. If you pass an empty query filter, this method
+returns the total number of documents in the collection.
+
+.. tip::
+
+   When you use ``CountDocuments()`` to return the total number of documents in a
+   collection, MongoDB performs a collection scan. You can avoid a collection scan and
+   improve the performance of this method by using a :manual:`hint
+   </reference/method/cursor.hint>` to take advantage of the built-in index on
+   the ``_id`` field. Use this technique only when calling ``CountDocuments()``
+   with an empty query parameter.
+
+   .. code-block:: go
+      :emphasize-lines: 1, 3
+
+      opts := options.Count().SetHint("_id_")
+
+      count, err := coll.CountDocuments(context.TODO(), bson.D{}, opts)
+      if err != nil {
+   	   panic(err)
+      }
+
+Modify Behavior
+~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``CountDocuments()`` by passing in a
+``CountOptions`` type. If you don't specify any options, the driver uses
+its default values.
+
+The ``CountOptions`` type allows you to configure options with the
+following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``SetCollation()``
+     - | The type of language collation to use when sorting results.  
+       | Default: ``nil``
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents to count. 
+       | Default: ``nil``
+
+   * - ``SetLimit()`` 
+     - | The maximum number of documents to count. 
+       | Default: ``0`` 
+
+   * - ``SetSkip()`` 
+     - | The number of documents to skip before counting.
+       | Default: ``0``
+
+Example 
+```````
+
+The following example counts the number of documents where the
+``rating`` is less than ``6``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"rating", bson.D{{"$lt", 6}}}}
+      
+      count, err := coll.CountDocuments(context.TODO(), filter)
+      if err != nil {
+          panic(err)
+      }
+      fmt.Printf("Number of documents with a rating less than six: %d\n", count)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Number of documents with a rating less than six: 4
+
+.. _golang-count-aggregation:
+
+Aggregation
+-----------
+
+You can also include the :manual:`$count </reference/operator/aggregation/count/>`
+stage to count the number of documents in an aggregation pipeline.
+
+Example
+~~~~~~~
+
+The following example performs the following actions:
+
+- Counts the number of documents in which the value of the ``rating`` field is greater
+  than ``5``
+- Assigns the count to the ``counted_documents`` field
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      matchStage := bson.D{{"$match", bson.D{{"rating", bson.D{{"$gt", 5}}}}}}
+      countStage := bson.D{{"$count", "counted_documents"}}
+
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage, countStage})
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      [{counted_documents 5}]
+
+.. _golang-estimated-count:
+
+Estimated Count
+---------------
+
+To estimate the number of documents in your collection, use the
+``EstimatedDocumentCount()`` method. 
+
+.. note:: 
+
+    The ``EstimatedDocumentCount()`` method is quicker than the
+    ``CountDocuments()`` method because it uses the collection's
+    metadata rather than scanning the entire collection. 
+
+Modify Behavior
+~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``EstimatedDocumentCount()`` by passing
+in an ``EstimatedDocumentCountOptions`` type. If you don't specify any
+options, the driver uses its default values.
+
+The ``EstimatedDocumentCountOptions`` type allows you to configure
+options by using the following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``SetComment()``
+     - | Sets a comment to attach to the count operation.
+       | Default: ``nil``
+
+Example
+```````
+
+The following example estimates the number of documents in the
+``tea`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      count, err := coll.EstimatedDocumentCount(context.TODO())
+      if err != nil {
+         panic(err)
+      }
+      fmt.Printf("Estimated number of documents in the tea collection: %d\n", count)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Estimated number of documents in the tea collection: 9
+
+Additional Information
+----------------------
+
+To learn more about the operations mentioned, see the following
+guides:
+
+- :ref:`golang-query-document`
+- :ref:`golang-skip`
+- :ref:`golang-limit`
+- :ref:`golang-aggregation` 
+- :ref:`golang-collations`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `CountDocuments() <{+api+}/mongo#Collection.CountDocuments>`__
+- `CountOptions <{+api+}/mongo/options#CountOptions>`__
+- `EstimatedDocumentCount() <{+api+}/mongo#Collection.EstimatedDocumentCount>`__
+- `EstimatedDocumentCountOptions <{+api+}/mongo/options#EstimatedDocumentCountOptions>`__
