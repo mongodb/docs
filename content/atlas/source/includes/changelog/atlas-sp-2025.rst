@@ -1,3 +1,10 @@
+.. _atlas-sp-20250602:
+
+2 June 2025 Release
+-------------------
+
+- Adds support for :ref:`atlas-sp-s3-connection`.
+
 .. _atlas-sp-20250430:
 
 30 April 2025 Release
