@@ -105,3 +105,32 @@ class Movie(models.Model):
     def __str__(self):
         return self.title
 # end-embedded-array-field
+
+# start-polymorphic-embedded-field
+from django.db import models
+from django_mongodb_backend.models import EmbeddedModel
+from django_mongodb_backend.fields import PolymorphicEmbeddedModelField
+
+class Oscar(EmbeddedModel):
+    wins = models.IntegerField(default=0)
+    nominations = models.IntegerField(default=0)
+    best_picture = models.BooleanField(default=False)
+
+class GoldenGlobe(EmbeddedModel):
+    wins = models.IntegerField(default=0)
+    nominations = models.IntegerField(default=0)
+
+class Movie(models.Model):
+    title = models.CharField(max_length=200)
+    plot = models.TextField(blank=True)
+    runtime = models.IntegerField(default=0)
+    released = models.DateTimeField("release date", null=True, blank=True)
+    awards = PolymorphicEmbeddedModelField(["Oscar", "GoldenGlobe"], null=True, blank=True)
+
+    class Meta:
+        db_table = "movies"
+        managed = False
+    
+    def __str__(self):
+        return self.title
+# end-polymorphic-embedded-field

@@ -72,6 +72,14 @@ Movie.objects.filter(genres=["Crime", "Comedy"]).first()
 Movie.objects.filter(awards__wins__gt=150)
 # end-filter-relationships
 
+# start-polymorphic-embedded
+Movie.objects.filter(awards__wins=10)
+# end-polymorphic-embedded
+
+# start-polymorphic-embedded-unique
+Movie.objects.filter(awards__best_picture=True)
+# end-polymorphic-embedded-unique
+
 # start-array
 Movie.objects.filter(genres__overlap=["Adventure", "Family"])
 # end-array
