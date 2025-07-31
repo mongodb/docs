@@ -15,7 +15,7 @@
    .. step:: Add a new connection.
 
       To create a new connection to an {+service+}
-      :manual:`change stream <changeStreams>`:
+      :manual:`change stream </changeStreams>`:
 
       a. Select an :guilabel:`{+service+} Database` 
 	 connection.
