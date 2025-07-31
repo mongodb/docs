@@ -452,6 +452,39 @@ function limit() {
   //end limit
 }
 
+function listClusterCatalog(){
+  //start listClusterCatalog
+  const pipeline = [{ $listClusterCatalog: {} }];
+
+  const db = client.db("sample_mflix");
+
+  const cursor = db.aggregate(pipeline);
+  return cursor;
+  //end listClusterCatalog
+}
+
+function listClusterCatalogAdmin(){
+  //start listClusterCatalogAdmin
+  const pipeline = [{ $listClusterCatalog: {} }];
+
+  const adminDB = client.db("admin");
+
+  const cursor = adminDB.aggregate(pipeline);
+  return cursor;
+  //end listClusterCatalogAdmin
+}
+
+function listCCColl(){
+  //start listSpecCC
+  const db = client.db("sample_mflix");
+
+  const pipeline = [{ $listClusterCatalog: {balancingConfiguration: true} }];
+
+  const cursor = db.aggregate(pipeline);
+  return cursor;
+  //end listSpecCC
+}
+
 function listLocalSessionsAll() {
   //start listLocalSessionsAll
   const pipeline = [{ $listLocalSessions: { allUsers: true } }];
@@ -716,6 +749,54 @@ function queryStatsTransformed() {
   const cursor = adminDb.aggregate(pipeline);
   return cursor;
   //end queryStatsTransformed
+}
+
+function rankFusion(){
+  //start rf index
+  const index = {
+    name: "default",
+    definition: {
+      mappings: { dynamic: true }
+    }
+  }
+
+  const result = collection.createSearchIndex(index);
+  //end rf index
+  
+  //start rankFusion
+  const pipeline = [
+    {
+      $rankFusion: { 
+        input: {
+          pipelines: {
+            searchPlot: [
+              {
+                $search: {
+                  index: "default",
+                  text: { query: "space", path: "plot"}
+                }
+              }
+            ],
+            searchGenre: [
+              {
+                $search: {
+                  index: "default",
+                  text: { query: "adventure", path: "genres" }
+                }
+              }
+            ] 
+          }
+        },
+        combination: { weights: {searchPlot: 0.6, searchGenre: 0.4} },
+        scoreDetails: true                  
+      }
+    },
+    { $addFields: { scoreDetails: { $meta: "searchScoreDetails" } } }
+  ];
+            
+  const cursor = collection.aggregate(pipeline);  
+  return cursor;
+  //end rankFusion
 }
 
 function redact() {

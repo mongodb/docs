@@ -446,117 +446,162 @@ Limitations
 You cannot use ``$rankFusion`` on a :ref:`view <views-landing-page>` or within a view
 definition. 
 
-Example
--------
+Examples
+--------
 
-This example uses a collection with embeddings and text fields. Create 
-``search`` and ``vectorSearch`` type indexes on the collection. 
+.. tabs-drivers::
 
-The following index definition automatically indexes all the 
-dynamically indexable fields in the collection for running
-:pipeline:`$search` queries against the indexed fields.
+   .. tab::
+      :tabid: shell
 
-.. code-block:: js
-   :caption: search Index
+      This example uses a collection with embeddings and text fields. Create 
+      ``search`` and ``vectorSearch`` type indexes on the collection. 
 
-   db.embedded_movies.createSearchIndex(
-      "search_rental",
-      {
-         mappings: { dynamic: true }
-      }
-   )
+      The following index definition automatically indexes all the 
+      dynamically indexable fields in the collection for running
+      :pipeline:`$search` queries against the indexed fields.
 
-The following index definition indexes the field with the embeddings in
-the collection for running :pipeline:`$vectorSearch` queries against
-that field. 
+      .. code-block:: js
+         :caption: search Index
 
-.. code-block:: js 
-   :caption: vectorSearch Index
-
-   db.embedded_movies.createSearchIndex(
-      "vector_index", 
-      "vectorSearch", 
-      {
-         "fields": [
+         db.embedded_movies.createSearchIndex(
+            "search_rental",
             {
-               "type": "vector",
-               "path": "<FIELD_NAME>",
-               "numDimensions": <NUMBER_OF_DIMENSIONS>,
-               "similarity": "dotProduct"
+               mappings: { dynamic: true }
             }
-         ]
-      }
-   );
+         )
 
-The following aggregation pipeline uses ``$rankFusion`` with the following input
-pipelines:
+      The following index definition indexes the field with the embeddings in
+      the collection for running :pipeline:`$vectorSearch` queries against
+      that field. 
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 20 60
- 
-   * - Pipeline
+      .. code-block:: js 
+         :caption: vectorSearch Index
 
-     - Number of Documents Returned
- 
-     - Description
+         db.embedded_movies.createSearchIndex(
+            "vector_index", 
+            "vectorSearch", 
+            {
+               "fields": [
+                  {
+                     "type": "vector",
+                     "path": "<FIELD_NAME>",
+                     "numDimensions": <NUMBER_OF_DIMENSIONS>,
+                     "similarity": "dotProduct"
+                  }
+               ]
+            }
+         );
 
-   * - ``searchOne``
+      The following aggregation pipeline uses ``$rankFusion`` with the following input
+      pipelines:
 
-     - 20
- 
-     - Runs a vector search on the field indexed as ``vector`` type for
-       the term specified as embeddings. The query considers up to 500
-       nearest neighbors, but limits the results to 20 documents.
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 20 60
+      
+         * - Pipeline
+  
+           - Number of Documents Returned
 
-   * - ``searchTwo``
+           - Description
 
-     - 20
- 
-     - Runs a full-text search for the same term and limits the results
-       to 20 documents. 
+         * - ``searchOne``
 
-.. code-block:: js
-   :linenos:
+           - 20
 
-   db.embedded_movies.aggregate( [
-      {
-         $rankFusion: {
-            input: {
-               pipelines: {
-                  searchOne: [
-                     {
-                        "$vectorSearch": {
-                           "index": "<INDEX_NAME>",
-                           "path": "<FIELD_NAME>",
-                           "queryVector": <QUERY_EMBEDDINGS>,
-                           "numCandidates": 500,
-                           "limit": 20
-                        }
-                     }
-                  ],
-                  searchTwo: [
-                     {
-                        "$search": {
-                           "index": "<INDEX_NAME>",
-                           "text": {
-                              "query": "<QUERY_TERM>",
-                              "path": "<FIELD_NAME>"
+           - Runs a vector search on the field indexed as ``vector`` type for
+             the term specified as embeddings. The query considers up to 500
+             nearest neighbors, but limits the results to 20 documents.
+
+         * - ``searchTwo``
+
+           - 20
+
+           - Runs a full-text search for the same term and limits the results to
+             20 documents. 
+
+      .. code-block:: js
+         :linenos:
+
+         db.embedded_movies.aggregate( [
+            {
+               $rankFusion: {
+                  input: {
+                     pipelines: {
+                        searchOne: [
+                           {
+                              "$vectorSearch": {
+                                 "index": "<INDEX_NAME>",
+                                 "path": "<FIELD_NAME>",
+                                 "queryVector": <QUERY_EMBEDDINGS>,
+                                 "numCandidates": 500,
+                                 "limit": 20
+                              }
                            }
-                        }
-                     },
-                     { "$limit": 20 }
-                  ],
+                        ],
+                        searchTwo: [
+                           {
+                              "$search": {
+                                 "index": "<INDEX_NAME>",
+                                 "text": {
+                                    "query": "<QUERY_TERM>",
+                                    "path": "<FIELD_NAME>"
+                                 }
+                              }
+                           },
+                           { "$limit": 20 }
+                        ],
+                     }
+                  }
                }
-            }
-         }
-      },
-      { $limit: 20 }
-   ] )
+            },
+            { $limit: 20 }
+         ] )
 
-This operation performs the following actions:
+      This operation performs the following actions:
 
-- Executes the ``input`` pipelines 
-- Combines the returned results
-- Outputs the first 20 documents which are the top 20 ranked results of the
-  ``$rankFusion`` pipeline
+      - Executes the ``input`` pipelines 
+      - Combines the returned results
+      - Outputs the first 20 documents which are the top 20 ranked results of
+        the ``$rankFusion`` pipeline
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/driver-examples/node/aggregation/sample-mflix.rst
+
+      .. include:: /includes/driver-examples/node/aggregation/stage-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$rankFusion`` 
+        
+         .. replacement:: stage-specific-info
+
+            Before running the following example, you must create an Atlas
+            Search index named ``default``. Include the following code in your
+            application to create a search index on the ``movies`` collection:
+
+            .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+               :start-after: //start rf index
+               :end-before: //end rf index
+               :language: javascript
+               :dedent: 2 
+
+         .. replacement:: method-description
+
+            executes two pipelines, ``searchPlot`` and ``searchGenre``, that
+            perform :pipeline:`$search` operations by using the ``default``
+            search index. The ``$rankFusion`` stage then ranks the search
+            results based on each ``$search`` pipeline's assigned weight and
+            returns the ordered results. The :pipeline:`$addFields` stage
+            includes the ``scoreDetails`` field in the return documents
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start rankFusion
+         :end-before: //end rankFusion
+         :language: javascript
+         :dedent: 2
