@@ -261,7 +261,16 @@ stream, the ``$source`` stage has the following prototype form:
 	  },
 	  . . .
 	}],
-	"maxAwaitTimeMS": <time-ms>
+	"maxAwaitTimeMS": <time-ms>,
+	"readPreference": "<read-preference>",
+	"readPreferenceTags": [
+	  {"<key>": "<value>"},
+	  . . .
+	]
+      },
+      "initialSync": {
+        "enable": <boolean>,
+	"parallelism": <integer>
       }
     }
   }
@@ -322,7 +331,7 @@ The ``$source`` stage takes a document with the following fields:
        instance specified by ``connectionName``. The change stream of
        these collections act as the streaming data source. If you omit
        this field, your stream processor will source from a
-       :ref:`streams-agg-db-change-stream`.
+       :ref:`atlas-sp-agg-source-syntax-db`.
 
    * - ``config``
      - document 
@@ -417,6 +426,20 @@ The ``$source`` stage takes a document with the following fields:
 
        .. include:: /includes/atlas-stream-processing/change-event-time.rst
 
+   * - ``config.readPreference``
+     - document
+     - Optional
+     - :manual:`Read preference </core/read-preference>` for
+       ``initialSync`` operations.
+
+       Defaults to ``primary``.
+       
+   * - ``config.readPreferenceTags``
+     - document
+     - Optional
+     - :manual:`Read preference tags </core/read-preference-tags>` for
+       ``initialSync`` operations.
+       
    * - ``config.maxAwaitTimeMS``
      - integer
      - Optional
@@ -426,7 +449,41 @@ The ``$source`` stage takes a document with the following fields:
 
        Defaults to ``1000``. 
 
-.. _streams-agg-db-change-stream:
+   * - ``initialSync``
+     - document 
+     - Optional
+     - Document containing fields pertaining to ``initialSync``
+       functionality.
+
+       {+atlas-sp+} ``initialSync`` allows you to ingest preexisting
+       documents in an {+service+} collection as though they were
+       ``changeEvent`` documents. If you enable ``initialSync``, when you start
+       your stream processor, it will first ingest and process all
+       existing documents in the collection before proceeding to
+       ingest and process new incoming ``changeEvent`` documents. Once the
+       ``initialSync`` is complete, it doesn't repeat.
+
+       .. important::
+
+	  You can only use ``initialSync`` on collections where the
+	  ``_id`` value of the incoming documents are default generated
+	  :manual:`ObjectId </reference/bson-types/#objectid>` values or
+	  ordered ``int``/``long`` values. All ``_id`` values must be of the
+	  same type.
+
+   * - ``initialSync.enable``
+     - boolean
+     - Conditional
+     - Determines whether or not to enable ``initialSync``. If you
+       declare an ``initialSync`` field, you must set this field.
+
+   * - ``initialSync.parallelism``
+     - integer
+     - Optional
+     - Determines the level of parallelism with which to process the
+       ``initialSync`` operation. If you do not specify a value, it
+       defaults to ``1``.
+
 .. _atlas-sp-agg-source-syntax-db:
 
 MongoDB Database Change Stream
