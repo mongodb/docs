@@ -37,22 +37,6 @@
             granularity: "seconds"
          }
 
-      **OR** specify custom granularity:
-
-      .. versionadded:: 6.3
-
-      .. code-block:: javascript
-         :copyable: true
-         :emphasize-lines: 4,5
-
-         timeseries: {
-            timeField: "date",
-            metaField: "ticker",
-            granularity: "seconds",
-            bucketMaxSpanSeconds: "300",
-            bucketRoundingSeconds: "300"
-         }
-
    #. Create the collection using the :method:`db.createCollection()` method:
 
       .. code-block:: bash
