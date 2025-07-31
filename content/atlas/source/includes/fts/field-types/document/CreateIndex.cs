@@ -1,0 +1,43 @@
+using MongoDB.Bson;
+using MongoDB.Driver;
+
+// Replace the connection string with your MongoDB deployment's connection string
+var uri = "<connection-string>";
+
+var client = new MongoClient(uri);
+
+var db = client.GetDatabase("<database>");
+var collection = db.GetCollection<BsonDocument>("<collection>");
+
+// Create the Atlas Search index definition for the document field
+var index =  new CreateSearchIndexModel(
+  "default", new BsonDocument
+  {
+    { "mappings", new BsonDocument
+      {
+        { "dynamic", true|false },
+        { "fields", new BsonDocument
+          {
+            { "<field-name>", new BsonDocument
+              {
+                { "type", "document" },
+                { "dynamic", true|false },
+                { "fields", new BsonDocument
+                  {
+                    { "<sub-field-name>", new BsonDocument
+                      {
+                        // Add field mapping definitions here
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+var result = collection.SearchIndexes.CreateOne(index);
+Console.WriteLine($"New index name: {result}");

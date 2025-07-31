@@ -22,7 +22,7 @@
       
       #. Specify the |json| |fts| index definition. 
 
-         .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-advanced.json
+         .. literalinclude:: /includes/fts/field-types/string/index-definition-compass.json
             :language: json
             :linenos:
             :copyable: true

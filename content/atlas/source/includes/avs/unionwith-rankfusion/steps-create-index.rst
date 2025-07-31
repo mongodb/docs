@@ -24,7 +24,7 @@
 
               switched to db sample_mflix
 
-   .. step:: Run the :method:`db.collection.createSearchIndex()` method.
+   .. step:: Run the ``db.collection.createSearchIndex()`` method.
 
       .. literalinclude:: /includes/avs/unionwith-rankfusion/index-definition.sh
          :language: shell

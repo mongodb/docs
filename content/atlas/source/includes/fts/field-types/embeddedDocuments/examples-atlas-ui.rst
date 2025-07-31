@@ -1,0 +1,122 @@
+Try an Example for the |fts-field-type| Type  
+--------------------------------------------
+
+.. include:: /includes/fts/field-types/try-an-example.rst
+
+.. include:: /includes/fts/field-types/configure-and-run.rst
+
+.. tabs::  
+
+   .. tab:: Basic Example
+      :tabid: example-1
+
+      .. include:: /includes/fts/field-types/embeddedDocuments/basic-example-description.rst
+
+      .. collapsible::
+         :heading: Visual Editor
+         :sub_heading: For a guided experience, select Visual Editor. 
+         :expanded: false
+
+         1. In the :guilabel:`Add Field Mapping` window, select
+            :guilabel:`items` from the :guilabel:`Field Name`
+            dropdown. 
+         #. Click the :guilabel:`Data Type` dropdown and select
+            :guilabel:`EmbeddedDocuments`.  
+         #. Toggle :guilabel:`Enable Dynamic Mapping` to enable
+            dynamic mapping, if needed.
+         #. Click :guilabel:`Add`.
+
+      .. collapsible::
+         :heading: JSON Editor
+         :sub_heading: To edit the raw index definition, select JSON Editor. 
+         :expanded:
+
+         .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-basic-ui.json
+            :language: json
+            :linenos:
+            :copyable: true 
+
+   .. tab:: Dynamic Index Example
+      :tabid: example-2
+
+      .. include:: /includes/fts/field-types/embeddedDocuments/dynamic-example-description.rst
+
+      .. collapsible::
+         :heading: Visual Editor
+         :sub_heading: For a guided experience, select Visual Editor. 
+         :expanded: false
+
+         Click :guilabel:`Add Field` in the :guilabel:`Field
+         Mappings` section and add the following fields by
+         clicking :guilabel:`Add` after configuring the
+         settings for each field in the :guilabel:`Add
+         Field Mapping` window. 
+               
+         .. list-table:: 
+            :header-rows: 1
+
+            * - :guilabel:`Field Name`
+              - :guilabel:`Data Type`
+                     
+            * - ``items``
+              - Click the dropdown and select ``EmbeddedDocuments``. 
+
+            * - ``purchaseMethod``
+              - Click the dropdown and select ``Token``.
+
+      .. collapsible::
+         :heading: JSON Editor
+         :sub_heading: To edit the raw index definition, select JSON Editor. 
+         :expanded: false
+
+         .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-dynamic-ui.json
+            :language: json
+            :linenos:
+            :copyable: true 
+
+   .. tab:: Specified Fields Example
+      :tabid: example-3
+
+      .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
+
+      .. collapsible::
+         :heading: Visual Editor
+         :sub_heading: For a guided experience, select Visual Editor. 
+         :expanded: false
+
+         1. In the :guilabel:`Add Field Mapping` window, select
+            :guilabel:`items` from the :guilabel:`Field Name` dropdown. 
+         #. Click the :guilabel:`Data Type` dropdown and select
+            :guilabel:`EmbeddedDocuments`.  
+         #. Disable :guilabel:`Enable Dynamic Mapping`.
+         #. Click :guilabel:`Add`.
+         #. Click :guilabel:`Add Embedded Field` for the
+            :guilabel:`items` field in the :guilabel:`Field Mappings`
+            table and add the following fields by clicking
+            :guilabel:`Add` after configuring the settings for each
+            field in the :guilabel:`Add Embedded Field Mapping`
+            window.
+            
+            .. list-table:: 
+               :header-rows: 1
+
+               * - :guilabel:`Field Name`
+                 - :guilabel:`Data Type`
+
+               * - :guilabel:`items.name`
+                 - Click the :guilabel:`Data Type` dropdown and select
+                   :guilabel:`String`. 
+
+               * - :guilabel:`items.tags`
+                 - Click the :guilabel:`Data Type` dropdown and select
+                   :guilabel:`String`.
+
+      .. collapsible::
+         :heading: JSON Editor
+         :sub_heading: To edit the raw index definition, select JSON Editor. 
+         :expanded: false
+
+         .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-specified-ui.json
+            :language: json
+            :linenos:
+            :copyable: true

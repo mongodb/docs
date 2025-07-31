@@ -43,8 +43,7 @@
       #. Run your package manager to install the dependencies to your project.
 
       For more detailed installation instructions and version compatibility, see
-      the :driver:`MongoDB Java Driver documentation
-      </java/sync/current/quick-start/#std-label-add-mongodb-dependency>`.
+      the :driver:`MongoDB Java Driver documentation </java/sync/current/get-started/>`.
 
    .. step:: Define the index.
 

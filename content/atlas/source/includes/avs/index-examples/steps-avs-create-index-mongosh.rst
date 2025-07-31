@@ -22,7 +22,7 @@
 
               switched to db sample_mflix
 
-   .. step:: Run the :method:`db.collection.createSearchIndex()` method. 
+   .. step:: Run the ``db.collection.createSearchIndex()`` method. 
 
       The :method:`db.collection.createSearchIndex()` method has the
       following syntax:   

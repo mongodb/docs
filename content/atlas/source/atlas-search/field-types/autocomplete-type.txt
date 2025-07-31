@@ -20,559 +20,344 @@ How to Index Fields for Autocompletion
    :depth: 2
    :class: singlecol
 
-.. |data-type| replace:: string 
+.. |data-type| replace:: ``string``
 .. |fts-ui-field-type| replace:: :guilabel:`Autocomplete`
 .. |fts-field-type| replace:: ``autocomplete``
 .. |properties-link| replace:: :ref:`Field Properties <fts-field-types-autocomplete-options>` 
-.. |sample-collection| replace:: :ref:`sample_mflix.movies <sample-mflix>`
-
-.. include:: /includes/fts/facts/fact-autocomplete-field-type.rst 
-
-You can also use the |fts-field-type| type to index:
-
-- Fields whose value is an array of strings. To learn more, see 
-  :ref:`fts-array-ref`.
-
-- String fields inside an array of documents indexed as the
-  :ref:`embeddedDocuments <bson-data-types-embedded-documents>` type.
-
-.. tip:: 
-  
-   If you have a large number of documents and a wide range of data 
-   against which you want to run |fts| queries using the 
-   :ref:`autocomplete <autocomplete-ref>` operator, building this index can take 
-   some time. Alternatively, you can create a separate index with only 
-   the ``autocomplete`` type to reduce the impact on other indexes and 
-   queries while the index builds. 
-
-   To learn more, see |fts| :ref:`Index Performance Considerations
-   <index-size-and-config>`. 
-
-.. include:: /includes/fts/extracts/fts-ib-static-mappings.rst 
-
-.. _fts-field-types-autocomplete-vib-jsonib:
-
-Define the Index for the |fts-field-type| Type 
-----------------------------------------------
-
-.. include:: /includes/fts/extracts/fts-index-definition-intro.rst 
-
-.. tabs:: 
-
-   .. tab:: Visual Editor 
-      :tabid: vib
-
-      1. Click :guilabel:`Refine Your Index` to configure your index.  
-      #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add 
-         Field` to open the :guilabel:`Add Field Mapping` window. 
-      #. Click :guilabel:`Customized Configuration`.
-      #. Select the field to index from the :guilabel:`Field Name`
-         dropdown.  
-
-         .. note:: 
-
-            .. include:: /includes/fts/facts/fact-fts-field-name-restriction.rst
-
-         For field names that contain the term ``email`` or ``url``, the 
-         |fts| :guilabel:`Visual Editor` recommends using a custom analyzer 
-         with the :ref:`uaxUrlEmail <uaxUrlEmail-tokenizer-ref>` tokenizer
-         for indexing email addresses or URL values. Click :guilabel:`Create
-         urlEmailAnalyzer` to create and  apply the custom analyzer to the
-         :guilabel:`Autocomplete Properties` for the field.
-
-      #. Click the :guilabel:`Data Type` dropdown and select
-         :guilabel:`Autocomplete`. 
-      #. (Optional) Expand and configure the :guilabel:`Token
-         Properties` for the field. To learn more, see
-         :ref:`fts-field-types-token-options`. 
-      #. Click :guilabel:`Add`. 
-
-   .. tab:: JSON Editor 
-      :tabid: jsonib
-
-      .. include:: /includes/fts/extracts/fts-jsonib-index-definition.rst 
-
-      .. code-block:: json
-         :copyable: true 
-         :linenos: 
-         :emphasize-lines: 6-11
-
-         {
-           "mappings": {
-             "dynamic": true|false,
-             "fields": {
-               "<field-name>": {
-                 "type": "autocomplete",
-                 "analyzer": "<lucene-analyzer>",
-                 "tokenization": "edgeGram|rightEdgeGram|nGram",
-                 "minGrams": <2>,
-                 "maxGrams": <15>,
-                 "foldDiacritics": true|false
-               }
-             }
-           }
-         }
 
 .. _fts-field-types-autocomplete-options:
 
-Configure |fts-field-type| Field Properties    
--------------------------------------------
+.. composable-tutorial::
+   :options:  deployment-type, interface, language
+   :defaults: atlas, driver, nodejs
 
-The |fts| |fts-field-type| type takes the following parameters: 
+   .. selected-content:: 
+      :selections: atlas, atlas-admin-api, None
 
-.. list-table::
-   :widths: 18 12 8 51 11
-   :header-rows: 1
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-   * - Option
-     - Type
-     - Necessity
-     - Description
-     - Default
+      .. _define-index-autocomplete-admin-api:
 
-   * - ``type``
-     - string 
-     - required
-     - Human-readable label that identifies this field type. Value must
-       be |data-type|. 
-     - 
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-admin-api>`
 
-   * - ``analyzer``
-     - string
-     - optional
-     - Name of the :ref:`analyzer <analyzers-ref>` to use with this 
-       autocomplete mapping. You can use any |fts| analyzer except the 
-       ``lucene.kuromoji`` :ref:`language analyzer 
-       <ref-language-analyzers>` and the following :ref:`custom 
-       analyzer <custom-analyzers>` tokenizers and token filters: 
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-admin-api.rst
 
-       - :ref:`nGram <nGram-tokenizer-ref>` Tokenizer
-       - :ref:`edgeGram <edgeGram-tokenizer-ref>` Tokenizer
-       - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>` 
-         Token Filter
-       - :ref:`nGram <ngram-tf-ref>` Token Filter 
-       - :ref:`edgeGram <edgegram-tf-ref>` Token Filter 
-       - :ref:`shingle <shingle-tf-ref>` Token Filter
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-     - ``lucene.standard``
+      .. include:: /includes/fts/field-types/autocomplete/examples-admin-api.rst
+
+   .. selected-content::
+      :selections: atlas, atlas-cli, None
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. _define-index-autocomplete-atlas-cli:
       
-   * - ``maxGrams``
-     - int
-     - optional
-     - Maximum number of characters per indexed sequence. The 
-       value limits the character length of indexed tokens. When you 
-       search for terms longer than the ``maxGrams`` value, |fts| 
-       truncates the tokens to the ``maxGrams`` length.
-     - ``15``
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-atlas-cli>`
 
-   * - ``minGrams``
-     - int
-     - optional
-     - Minimum number of characters per indexed sequence. We 
-       recommend ``4`` for the minimum value. A value that is less 
-       than ``4`` could impact performance because the size of the 
-       index can become very large. We recommend the default value of 
-       ``2`` for ``edgeGram`` only.
-     - ``2``
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-atlas-cli.rst
 
-   * - ``tokenization``
-     - enum
-     - optional
-     - .. _autocomplete-tokenization:
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-atlas-cli.rst
+
+   .. selected-content::
+      :selections: atlas, compass, None
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. _define-index-autocomplete-compass:
+
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-compass>`
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-compass.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-compass.rst
+
+   .. selected-content::
+      :selections: atlas, mongosh, None
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. _define-index-autocomplete-mongosh:
+
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-mongosh>`
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-mongosh.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-mongosh.rst
+
+   .. selected-content::
+      :selections: atlas, atlas-ui, None
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-atlas-ui.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. _examples-atlas-ui.rst:
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-atlas-ui.rst
+
+   .. selected-content::
+      :selections: atlas, driver, c
       
-       Tokenization strategy to use when indexing the field for 
-       autocompletion. Value can be one of the following: 
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-       - ``edgeGram`` - create indexable tokens, referred to as 
-         ``grams``, from variable-length character sequences starting 
-         at the left side of the words as delimited by the analyzer 
-         used with this autocomplete mapping.
+      .. _define-index-autocomplete-c:
 
-       - ``rightEdgeGram`` -  create indexable tokens, referred to 
-         as ``grams``, from variable-length character sequences 
-         starting at the right side of the words as delimited by the 
-         analyzer used with this autocomplete mapping.
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-c>`
 
-       - ``nGram`` - create indexable tokens, referred to as 
-         ``grams``, by sliding a variable-length character window over 
-         a word. |fts| creates more tokens for ``nGram`` than 
-         ``edgeGram`` or ``rightEdgeGram``. Therefore, ``nGram`` takes 
-         more space and time to index the field. ``nGram`` is better 
-         suited for querying languages with long, compound words or 
-         languages that don't use spaces.
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-c.rst
 
-       ``edgeGram``, ``rightEdgeGram``, and ``nGram`` are applied at 
-       the letter-level. For example, consider the following sentence: 
-         
-       .. code-block:: none
-          :copyable: false 
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-          The quick brown fox jumps over the lazy dog. 
+      .. include:: /includes/fts/field-types/autocomplete/examples-c.rst
 
-       When tokenized with a ``minGrams`` value of ``2`` and a ``maxGrams`` 
-       value of ``5``, |fts| indexes the following sequence of 
-       characters based on the ``tokenization`` value you choose: 
+   .. selected-content::
+      :selections: atlas, driver, csharp
 
-       .. tabs:: 
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-          .. tab:: edgeGram
-             :tabid: edgegram
+      .. _define-index-autocomplete-csharp:
 
-             .. code-block:: none
-                :copyable: false 
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-csharp>`
 
-                th
-                the
-                the{SPACE}
-                the q
-                qu
-                qui
-                quic
-                uick
-                ...
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-csharp.rst
 
-          .. tab:: rightEdgeGram 
-             :tabid: rightedgegram
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-             .. code-block:: none
-                :copyable: false 
+      .. include:: /includes/fts/field-types/autocomplete/examples-csharp.rst
 
-                og
-                dog
-                {SPACE}dog
-                y dog
-                zy
-                azy
-                lazy
-                {SPACE}lazy
-                he
-                the
-                {SPACE}the
-                r the
-                er
-                ver
-                over
-                {SPACE}over
-                ...
+   .. selected-content::
+      :selections: atlas, driver, cpp
 
-          .. tab:: nGram
-             :tabid: ngram
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-             .. code-block:: none 
-                :copyable: false 
+      .. _define-index-autocomplete-cpp:
 
-                th
-                the
-                the{SPACE}
-                the q
-                he
-                he{SPACE}
-                he q
-                he qu
-                e{SPACE}
-                e q
-                e qu
-                e qui
-                {SPACE}q
-                {SPACE}qu
-                {SPACE}qui
-                {SPACE}quic
-                qu
-                qui
-                quic
-                quick
-                ...
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-cpp>`
 
-       Indexing a field for autocomplete with an ``edgeGram``, 
-       ``rightEdgeGram``, or ``nGram`` tokenization strategy is more
-       computationally expensive than indexing a string field. The 
-       index takes more space than an index with regular string
-       fields.
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-cpp.rst
 
-       For the specified tokenization strategy, |fts| applies the
-       following process to concatenate sequential tokens before
-       emitting them. This process is sometimes referred to as
-       "shingling". |fts| emits tokens between ``minGrams`` and 
-       ``maxGrams`` characters in length:    
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-       - Keeps tokens less than ``minGrams``.
-       - Joins tokens greater than ``minGrams`` but less than
-         ``maxGrams`` to subsequent tokens to create tokens up to the
-         specified maximum number of characters in length. 
+      .. include:: /includes/fts/field-types/autocomplete/examples-cpp.rst    
 
-     - ``edgeGram``
+   .. selected-content::
+      :selections: atlas, driver, go
 
-   * - ``foldDiacritics``
-     - boolean
-     - optional
-     - Flag that indicates whether to perform :github:`normalizations
-       </apache/lucene/blob/main/lucene/analysis/icu/src/java/org/apache/lucene/analysis/icu/ICUFoldingFilter.java#L26-L55>`
-       such as including or removing diacritics from the indexed text.
-       Value can be one of the following: 
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-       - ``true`` - perform normalizations such as ignoring diacritic
-         marks in the index and query text. For example, a search for
-         ``cafè`` returns results with the characters ``cafè`` and
-         ``cafe`` because |fts| returns results with and without
-         diacritics.  
-       - ``false`` - don't perform normalizations such as ignoring
-         diacritic marks in the index and query text. So, |fts|
-         returns only results that match the strings with or without
-         diacritics in the query. For example, a search for ``cafè``
-         returns results only with the characters ``cafè``. A search for
-         ``cafe`` returns results only with the characters ``cafe``.
+      .. _define-index-autocomplete-go:
 
-     - ``true``
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-go>`
 
-.. _fts-field-types-autocomplete-egs:
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-go.rst
 
-Try an Example for the |fts-field-type| Type  
---------------------------------------------
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-.. tabs::  
+      .. include:: /includes/fts/field-types/autocomplete/examples-go.rst
 
-   .. tab:: Basic Example
-      :tabid: basic
+   .. selected-content::
+      :selections: atlas, driver, java-sync
 
-      .. include:: /includes/fts/extracts/fts-index-definition-egs-intro.rst 
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-      The following index definition example indexes only the ``title``
-      field as the ``autocomplete`` type to support search-as-you-type
-      queries against that field using the :ref:`autocomplete <autocomplete-ref>`
-      operator. The index definition also specifies the following: 
+      .. _define-index-autocomplete-java:
 
-      - Use the :ref:`standard <ref-standard-analyzer>` analyzer to divide
-        text values into terms based on word boundaries.
-      - Use the ``edgeGram`` tokenization strategy to index characters
-        starting at the left side of the words .
-      - Index a minimum of ``3`` characters per indexed sequence.
-      - Index a maximum of ``5`` characters per indexed sequence.
-      - Include diacritic marks in the index and query text.
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-java>`          
 
-      .. tabs::
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-java.rst
 
-         .. tab:: Visual Editor 
-            :tabid: vib
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-            1. In the :guilabel:`Add Field Mapping` window, select
-               :guilabel:`title` from the :guilabel:`Field Name` 
-               dropdown. 
-            #. Click the :guilabel:`Data Type` dropdown and select
-               :guilabel:`Autocomplete`.   
-            #. Make the following changes to the :guilabel:`Autocomplete
-               Properties`:
+      .. include:: /includes/fts/field-types/autocomplete/examples-java.rst      
 
-               .. list-table::
-                  :stub-columns: 1
+   .. selected-content::
+      :selections: atlas, driver, nodejs
 
-                  * - Max Grams 
-                    - Set value to ``5``.
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-                  * - Min Grams 
-                    - Set value to ``3``.
+      .. _define-index-autocomplete-node:
 
-                  * - Tokenization
-                    - Select ``edgeGram`` from dropdown.
-                
-                  * - Fold Diacritics 
-                    - Select ``false`` from dropdown.
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-node>`
 
-            #. Click :guilabel:`Add`.
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-node.rst
 
-         .. tab:: JSON Editor 
-            :tabid: jsonib
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-            Replace the default index definition with the following index
-            definition. 
+      .. include:: /includes/fts/field-types/autocomplete/examples-node.rst     
 
-            .. code-block:: json 
-               :copyable: true
-               :linenos:
+   .. selected-content::
+      :selections: atlas, driver, python
 
-               {
-                 "mappings": {
-                   "dynamic": false,
-                   "fields": {
-                     "title": {
-                       "type": "autocomplete",
-                       "analyzer": "lucene.standard",
-                       "tokenization": "edgeGram",
-                       "minGrams": 3,
-                       "maxGrams": 5,
-                       "foldDiacritics": false
-                     }
-                   }
-                 }
-               }
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-   .. tab:: Multiple Types Example
-      :tabid: multitype 
+      .. _define-index-autocomplete-python:
 
-      .. include:: /includes/fts/extracts/fts-index-definition-egs-intro.rst 
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-python>`
+            
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-python.rst
 
-      You can index a field as other types also by specifying the other 
-      types in the array. For example, the following index definition 
-      indexes the ``title`` field as the following types: 
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-python.rst
       
-      - ``autocomplete`` type to support autocompletion for queries using
-        the :ref:`autocomplete <autocomplete-ref>` operator.
-      - ``string`` type to support text search using operators such
-        :ref:`text <text-ref>`, :ref:`phrase <phrase-ref>`, and so on.
+      .. include:: /includes/fts/field-types/configure-and-run.rst 
 
-      .. tabs::
+   .. selected-content::
+      :selections: local, atlas-cli, None
 
-         .. tab:: Visual Editor 
-            :tabid: vib
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-            1. In the :guilabel:`Add Field Mapping` window, select
-               :guilabel:`title` from the :guilabel:`Field Name` 
-               dropdown. 
-            #. Click the :guilabel:`Data Type` dropdown and select
-               :guilabel:`Autocomplete`.   
-            #. Make the following changes to the :guilabel:`Autocomplete
-               Properties`:
+      .. _define-index-autocomplete-atlas-cli-local:
 
-               .. list-table::
-                  :stub-columns: 1
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-atlas-cli-local>`
 
-                  * - Max Grams 
-                    - Set value to ``15``.
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-atlas-cli-local.rst
 
-                  * - Min Grams 
-                    - Set value to ``2``.
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-                  * - Tokenization
-                    - Select ``edgeGram`` from dropdown.
-                
-                  * - Fold Diacritics 
-                    - Select ``false`` from dropdown.
+   .. selected-content::
+      :selections: local, compass, None
 
-            #. Click :guilabel:`Add`.
-            #. Repeat steps **b** through **d**. 
-            #. Click the :guilabel:`Data Type` dropdown and select
-               :guilabel:`String`.
-            #. Accept the default :guilabel:`String Properties` settings
-               and click :guilabel:`Add`.
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-         .. tab:: JSON Editor 
-            :tabid: jsonib
+      .. _define-index-autocomplete-compass-local:
 
-            Replace the default index definition with the following index
-            definition. 
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-compass-local>`
 
-            .. code-block:: json 
-               :copyable: true
-               :linenos:
-         
-               {
-                 "mappings": {
-                   "dynamic": true|false,
-                   "fields": {
-                     "title": [
-                       {
-                         "type": "autocomplete",
-                         "analyzer": "lucene.standard",
-                         "tokenization": "edgeGram",
-                         "minGrams": 2,
-                         "maxGrams": 15,
-                         "foldDiacritics": false
-                       },
-                       {
-                         "type": "string"
-                       }
-                     ]
-                   }
-                 }
-               }
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-compass.rst
 
-   .. tab:: Email Example
-      :tabid: Email
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-      The following index definition example uses the 
-      :ref:`sample_mflix.users <sample-mflix>` collection. If you have 
-      the :ref:`sample data <sample-data>` already loaded on your 
-      {+cluster+}, you can use the Visual Editor or |json| Editor
-      in the {+atlas-ui+} to configure the index. After you select your
-      preferred configuration method, select the database and 
-      collection, and refine your index to add field mappings.
+      .. include:: /includes/fts/field-types/autocomplete/examples-compass.rst
 
-      The following index definition example indexes only the ``email``
-      field as the ``autocomplete`` type to support search-as-you-type
-      queries against that field using the :ref:`autocomplete <autocomplete-ref>`
-      operator. The index definition specifies the following: 
+   .. selected-content::
+      :selections: local, mongosh, None
 
-      - Use the :ref:`keyword <ref-keyword-analyzer>` analyzer to 
-        accept a string or array of strings as a parameter and index 
-        them as a single term (token).
-      - Use the :ref:`nGram <nGram-tokenizer-ref>` tokenizer to 
-        tokenize text into chunks, or "n-grams", of given sizes.
-      - Index a minimum of ``3`` characters per indexed sequence.
-      - Index a maximum of ``15`` characters per indexed sequence.
-      - Include diacritic marks in the index and query text.
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-      You can also use the ``uaxUrlEmail`` tokenizer to tokenizes 
-      |url|\s and email addresses. To learn more, see 
-      :ref:`uaxUrlEmail-tokenizer-ref`.
+      .. _define-index-autocomplete-mongosh-local:
 
-      .. tabs::
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-mongosh-local>`
 
-         .. tab:: Visual Editor 
-            :tabid: vib
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-mongosh.rst
 
-            1. In the :guilabel:`Add Field Mapping` window, select
-               :guilabel:`email` from the :guilabel:`Field Name` 
-               dropdown. 
-            #. Click the :guilabel:`Data Type` dropdown and select
-               :guilabel:`Autocomplete`.   
-            #. Make the following changes to the :guilabel:`Autocomplete
-               Properties`:
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-               .. list-table::
-                  :stub-columns: 1
+      .. include:: /includes/fts/field-types/autocomplete/examples-mongosh.rst
 
-                  * - Analyzer
-                    - Select :guilabel:`lucene.keyword` from the 
-                      dropdown.
+   .. selected-content::
+      :selections: local, driver, c
+      
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-                  * - Max Grams 
-                    - Set value to ``15``.
+      .. _define-index-autocomplete-c-local:
 
-                  * - Min Grams 
-                    - Set value to ``3``.
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-c-local>`
 
-                  * - Tokenization
-                    - Select :guilabel:`nGram` from the dropdown.
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-c.rst
 
-                  * - Fold Diacritics 
-                    - Select ``false`` from dropdown.
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
 
-            #. Click :guilabel:`Add`.
+      .. include:: /includes/fts/field-types/autocomplete/examples-c.rst
 
-         .. tab:: JSON Editor 
-            :tabid: jsonib
+   .. selected-content::
+      :selections: local, driver, csharp
 
-            Replace the default index definition with the following index
-            definition. 
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
 
-            .. code-block:: json 
-               :copyable: true
-               :linenos:
+      .. _define-index-autocomplete-csharp-local:
 
-               {
-                 "mappings": {
-                   "dynamic": true,
-                   "fields": {
-                     "email": {
-                       "type": "autocomplete",
-                       "analyzer": "lucene.keyword",
-                       "tokenization": "nGram",
-                       "minGrams": 3,
-                       "maxGrams": 15,
-                       "foldDiacritics": false
-                     }
-                   }
-                 }
-               }
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-csharp-local>`
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-csharp.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-csharp.rst
+
+   .. selected-content::
+      :selections: local, driver, cpp
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. _define-index-autocomplete-cpp-local:
+
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-cpp-local>`
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-cpp.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-cpp.rst    
+
+   .. selected-content::
+      :selections: local, driver, go
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. _define-index-autocomplete-go-local:
+
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-go-local>`
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-go.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-go.rst
+
+   .. selected-content::
+      :selections: local, driver, java-sync
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. _define-index-autocomplete-java-local:
+      
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-java-local>`            
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-java.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-java.rst      
+
+   .. selected-content::
+      :selections: local, driver, nodejs
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+
+      .. _define-index-autocomplete-nodejs-local:
+
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-nodejs-local>`
+
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-node.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-node.rst     
+
+   .. selected-content::
+      :selections: local, driver, python
+
+      .. include:: /includes/fts/field-types/autocomplete/introduction-limitations.rst
+      
+      .. _define-index-autocomplete-python-local:
+
+      .. |define-index-link| replace:: :ref:`Define the Index for the autocomplete Type <define-index-autocomplete-python-local>`
+           
+      .. include:: /includes/fts/field-types/autocomplete/steps-create-index-python.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/field-properties-table.rst
+
+      .. include:: /includes/fts/field-types/autocomplete/examples-python.rst
 
 Learn More
 ----------

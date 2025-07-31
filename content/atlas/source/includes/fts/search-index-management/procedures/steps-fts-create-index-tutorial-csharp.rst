@@ -16,7 +16,7 @@ a. Set up and initialize the .NET/C# project for the query.
       dotnet add package MongoDB.Driver
 
    For more detailed installation instructions, see the 
-   :ref:`MongoDB C# Driver documentation </csharp/current/>`.
+   :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
    
 #. Copy and paste the query into the ``Program.cs`` file.
 

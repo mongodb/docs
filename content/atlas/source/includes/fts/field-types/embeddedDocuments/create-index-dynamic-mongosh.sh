@@ -1,0 +1,17 @@
+db.sales.createSearchIndex(
+  "default", 
+  {
+    "mappings": {
+      "dynamic": true,
+      "fields": {
+        "items": {
+          "dynamic": true,
+          "type": "embeddedDocuments"
+        },
+        "purchaseMethod": {
+          "type": "token"
+        }
+      }
+    }
+  }
+)

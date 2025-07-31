@@ -1,0 +1,1 @@
+The following index definition examples define the |fts-field-type| type:

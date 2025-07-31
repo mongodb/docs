@@ -24,7 +24,7 @@
 
               switched to db sample_mflix
 
-   .. step:: Run the :method:`db.collection.createSearchIndex()` method. 
+   .. step:: Run the ``db.collection.createSearchIndex()`` method. 
 
       .. include:: /includes/avs/tutorial/avs-openai-index-description-filter.rst
 
