@@ -1,0 +1,34 @@
+name: Java Driver - Sync - Code Examples - Test Against Local/Docker
+
+on:
+  pull_request:
+    paths:
+      - "code-example-tests/java/driver-sync/**"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Atlas CLI
+        run: |
+          curl https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_1.42.2_linux_x86_64.deb --output atlas-cli.deb
+          sudo apt install ./atlas-cli.deb
+      - name: Set up a local deployment using Atlas CLI
+        run: |
+          atlas deployments setup myLocalRs1 --type local --port 27017 --force
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Install dependencies
+        run: |
+          cd code-example-tests/java/driver-sync/
+          mvn install -DskipTests
+      - name: Run Tests
+        run: |
+          export CONNECTION_STRING="mongodb://localhost:27017/?directConnection=true"
+          cd code-example-tests/java/driver-sync/
+          mvn test

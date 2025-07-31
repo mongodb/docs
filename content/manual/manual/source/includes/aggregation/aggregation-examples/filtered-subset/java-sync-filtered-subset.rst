@@ -16,12 +16,10 @@ their field values match specified criteria.
 To create the ``persons`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.java
+.. literalinclude:: /code-examples/tested/java/driver-sync/aggregation/pipelines/filter/Tutorial.snippet.load-sample-data.java
    :language: java
    :copyable: true
-   :start-after: start-insert-persons
-   :end-before: end-insert-persons
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -35,12 +33,10 @@ following code to your application:
       First, add a :pipeline:`$match` stage that finds documents in which
       the value of the ``vocation`` field is ``"ENGINEER"``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/aggregation/pipelines/filter/Tutorial.snippet.match.java
          :language: java
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a sort stage to sort from youngest to oldest.
 
@@ -48,12 +44,10 @@ following code to your application:
       documents in descending order by the ``dateofbirth`` field to
       list the youngest people first:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/aggregation/pipelines/filter/Tutorial.snippet.sort.java
          :language: java
          :copyable: true
-         :start-after: start-sort
-         :end-before: end-sort
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a limit stage to see only three results.
 
@@ -61,24 +55,20 @@ following code to your application:
       stage to the pipeline to output only the first three documents in
       the results.
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/aggregation/pipelines/filter/Tutorial.snippet.limit.java
          :language: java
          :copyable: true
-         :start-after: start-limit
-         :end-before: end-limit
-         :dedent:
+         :category: syntax example
 
    .. step:: Add an unset stage to remove unneeded fields.
 
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes unnecessary fields from the result documents:
-            
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.java
+
+      .. literalinclude:: /code-examples/tested/java/driver-sync/aggregation/pipelines/filter/Tutorial.snippet.unset.java
          :language: java
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
-         :dedent:
+         :category: syntax example
 
       .. tip::
 
@@ -91,12 +81,10 @@ following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``persons`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/FilteredSubset.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/aggregation/pipelines/filter/Tutorial.snippet.run-pipeline.java
          :language: java
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
-         :dedent:
+         :category: syntax example
 
       Finally, run the application in your IDE.
 
@@ -107,11 +95,9 @@ following code to your application:
       ordered from youngest to oldest. The results omit the ``_id`` and ``address``
       fields.
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/java/driver-sync/aggregation/pipelines/filter/TutorialOutput.txt
+         :language: text
          :copyable: false
-
-         {"person_id": "7363626383", "firstname": "Carl", "lastname": "Simmons", "dateofbirth": {"$date": "1998-12-26T13:13:55Z"}, "vocation": "ENGINEER"}
-         {"person_id": "1723338115", "firstname": "Olive", "lastname": "Ranieri", "dateofbirth": {"$date": "1985-05-12T23:14:30Z"}, "gender": "FEMALE", "vocation": "ENGINEER"}
-         {"person_id": "6392529400", "firstname": "Elise", "lastname": "Smith", "dateofbirth": {"$date": "1972-01-13T09:32:07Z"}, "vocation": "ENGINEER"}
+         :category: example return object
 
 .. end-tutorial
