@@ -69,7 +69,7 @@
                role applies to all non-``system`` collections in the
                database.
       
-             For information on the built-in |service| privileges, see
+             For more information on the built-in |service| privileges, see
              :ref:`atlas-user-privileges`.
       
              For more information on authorization, see :manual:`Role-Based
