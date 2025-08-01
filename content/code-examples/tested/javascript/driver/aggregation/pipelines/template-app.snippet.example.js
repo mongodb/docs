@@ -2,7 +2,7 @@ const { MongoClient } = require("mongodb");
 // Replace the placeholder with your connection string.
 const uri = "<connection-string>";
 const client = new MongoClient(uri);
-export async function runTemplateApp() {
+export async function run() {
   try {
     const aggDB = client.db('agg_tutorials_db');
 

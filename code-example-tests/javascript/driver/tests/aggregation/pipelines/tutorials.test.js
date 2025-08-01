@@ -3,7 +3,7 @@ import { loadGroupSampleData } from '../../../examples/aggregation/pipelines/gro
 import { loadUnwindSampleData } from '../../../examples/aggregation/pipelines/unwind/tutorial-setup.js';
 import { loadJoinOneToOneSampleData } from '../../../examples/aggregation/pipelines/join-one-to-one/tutorial-setup.js';
 import { loadJoinMultiFieldSampleData } from '../../../examples/aggregation/pipelines/join-multi-field/tutorial-setup.js';
-import { runTemplateApp } from '../../../examples/aggregation/pipelines/template-app.js';
+import { run } from '../../../examples/aggregation/pipelines/template-app.js';
 import { runFilterTutorial } from '../../../examples/aggregation/pipelines/filter/tutorial.js';
 import { runGroupTutorial } from '../../../examples/aggregation/pipelines/group/tutorial.js';
 import { runUnwindTutorial } from '../../../examples/aggregation/pipelines/unwind/tutorial.js';
@@ -23,7 +23,7 @@ describe('Aggregation pipeline filter tutorial tests', () => {
   });
 
   it('Should return a basic document when executing the template app', async () => {
-    const result = await runTemplateApp();
+    const result = await run();
     expect(result[0]['name']).toStrictEqual('sample2');
   });
 
