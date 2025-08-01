@@ -3,5 +3,5 @@ your pipeline, used to specify which fields to return to the client.
 
 Using a ``$project`` stage at the beginning or middle of a pipeline to
 reduce the number of fields passed to subsequent pipeline stages is
-unlikely to improve performance, as the database performs this
+unlikely to improve performance, because the database performs this
 optimization automatically.
