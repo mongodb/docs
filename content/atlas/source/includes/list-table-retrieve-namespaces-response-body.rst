@@ -46,8 +46,7 @@
        - ``false`` - if custom shard key is not hashed (default)
 
        Default value is ``false``. If ``false``, |service| uses 
-       :manual:`ranged sharding </core/ranged-sharding/>`. This is only 
-       available for |service| clusters with MongoDB v5.0 and later.
+       :manual:`ranged sharding </core/ranged-sharding/>`.
 
    * - ``managedNamespaces[n].isShardKeyUnique``
      - boolean
@@ -63,8 +62,7 @@
        empty collection with a :manual:`hashed shard key 
        </core/hashed-sharding/#std-label-sharding-hashed>`. To learn 
        more, see :ref:`Global Cluster Sharding Reference 
-       <global-cluster-sharding>`. This is only available for 
-       |service| clusters with MongoDB v5.0 and later.
+       <global-cluster-sharding>`.
 
    * - ``managedNamespaces[n].presplitHashedZones``
      - boolean
@@ -77,5 +75,4 @@
        - ``false`` - to not perform initial chunk creation and 
          distribution (default)
        
-       Default value is ``false``. This is only available for 
-       |service| clusters with MongoDB v5.0 and later.
+       Default value is ``false``.

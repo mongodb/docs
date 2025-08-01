@@ -11,8 +11,7 @@
 
    * - :guilabel:`Use hashed index as the shard key`
      - |service| distributes the sharded data evenly by hashing the 
-       second field of the shard key. This option is only available for 
-       |service| clusters running MongoDB v5.0 or later.
+       second field of the shard key.
        
        You can optionally select :guilabel:`Pre-split data for even 
        distribution` to specify whether to perform initial chunk 

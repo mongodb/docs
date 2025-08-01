@@ -17,11 +17,6 @@
      name: AWS IAM
      content: |
 
-       .. note::
-
-          AWS IAM authentication is available only on {+database-deployments+} which use
-          MongoDB version 5.0 and higher.
-
        .. include:: /includes/steps-add-aws-iam-user.rst
 
        AWS IAM Connection String Example

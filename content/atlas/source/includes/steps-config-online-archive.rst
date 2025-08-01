@@ -214,12 +214,7 @@
                         If you use :manual:`$expr </reference/operator/query/expr/#mongodb-query-op.-expr>` 
                         in the custom filter, sometimes the |service| 
                         cluster might be unable to use an index for 
-                        archiving data. 
-      
-                        .. note:: 
-      
-                           ``$NOW`` is only supported on |service| 
-                           clusters running MongoDB 6.0 or later.
+                        archiving data.
       
             .. tab:: Time Series Collection 
                :tabid: timeseries
