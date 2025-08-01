@@ -67,4 +67,17 @@ public class TutorialTests {
 
         assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
     }
+
+    @Test
+    @DisplayName("Test that unwind aggregation pipeline matches output")
+    void TestUnwind() {
+        var example = new aggregation.pipelines.unwind.Tutorial();
+        example.loadSampleData();
+        var output = example.runTutorial();
+
+        // Read the expected output file
+        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/unwind/TutorialOutput.txt");
+        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
+        TestUtils.validateUnorderedResults(expected, output);
+    }
 }
