@@ -53,4 +53,18 @@ public class TutorialTests {
 
         assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
     }
+
+    @Test
+    @DisplayName("Test that group aggregation pipeline matches output")
+    void TestGroup() {
+        var example = new aggregation.pipelines.group.Tutorial();
+        example.loadSampleData();
+        var output = example.runTutorial();
+
+        // Read the expected output file
+        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/group/TutorialOutput.txt");
+        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
+
+        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+    }
 }
