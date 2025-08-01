@@ -13,12 +13,12 @@ documents returned by {+avs+}.
       .. code-block:: go
 
          import (
-                // Other imports...
-                "strings"
+           // Other imports...
+           "strings"
 
-                "github.com/tmc/langchaingo/chains"
-                "github.com/tmc/langchaingo/prompts"
-		"github.com/tmc/langchaingo/vectorstores"
+           "github.com/tmc/langchaingo/chains"
+           "github.com/tmc/langchaingo/prompts"
+           "github.com/tmc/langchaingo/vectorstores"
          )
 
    .. step:: Add the following code to the end of your main function and save the file.

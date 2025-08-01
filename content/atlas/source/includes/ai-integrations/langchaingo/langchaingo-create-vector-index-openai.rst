@@ -11,11 +11,11 @@ Add the following imports to the top of your ``main.go`` file:
 .. code-block:: go
 
    import (
-          // Other imports...
-          "fmt"
-          "time"
-   
-          "go.mongodb.org/mongo-driver/v2/bson"
+     // Other imports...
+     "fmt"
+     "time"
+
+     "go.mongodb.org/mongo-driver/v2/bson"
    )
 
 Define the following functions in your ``main.go`` file outside of your

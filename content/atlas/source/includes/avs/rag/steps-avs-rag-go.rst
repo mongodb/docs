@@ -27,21 +27,22 @@
             go get github.com/tmc/langchaingo/documentloaders
             go get github.com/tmc/langchaingo/embeddings/huggingface
             go get github.com/tmc/langchaingo/embeddings/voyageai
-            go get github.com/tmc/langchaingo/llms/huggingface
+            go get github.com/tmc/langchaingo/llms/openai
             go get github.com/tmc/langchaingo/prompts
             go get github.com/tmc/langchaingo/vectorstores/mongovector
 
       #. Create a ``.env`` file.
 
          In your project, create a ``.env`` file to store your |service| connection
-         string and Hugging Face access token.
+         string and any API keys that you need to access the models.
 
          .. code-block::
             :caption: .env
 
-            HUGGINGFACEHUB_API_TOKEN = "<access-token>"
-            VOYAGEAI_API_KEY = "<api-key>" # If using Voyage AI
             ATLAS_CONNECTION_STRING = "<connection-string>"
+            VOYAGEAI_API_KEY = "<voyage-api-key>"   # If using Voyage AI embedding model
+            HUGGINGFACEHUB_API_TOKEN = "<hf-token>" # If using Hugging Face embedding model
+            OPENAI_API_KEY = "<openai-api-key>"
 
          Replace the placeholder values with your credentials.
 
@@ -111,7 +112,7 @@
                   :language: go
                   :caption: ingest-data.go
 
-            .. tab:: Open Source
+            .. tab:: Open-Source
                :tabid: open-source
 
                This code uses the `mxbai-embed-large-v1
@@ -181,7 +182,7 @@
                   :language: go
                   :caption: get-query-results.go
 
-            .. tab:: Open Source
+            .. tab:: Open-Source
                :tabid: open-source
 
                This code uses the `mxbai-embed-large-v1
@@ -220,12 +221,10 @@
    .. step:: Generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>` 
-      responses by prompting an LLM to use the retrieved documents 
+      responses by prompting an LLM from OpenAI to use the retrieved documents 
       as context. This example uses the function you just defined to retrieve
       matching documents from the database, and additionally:
       
-      - Accesses the `Mistral 7B Instruct <https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3>`__ 
-        model from Hugging Face's model hub.
       - Instructs the LLM to include the user's question and retrieved
         documents in the prompt.
       - Prompts the LLM about MongoDB's latest AI announcements.
@@ -248,6 +247,6 @@
       
                go run generate-responses.go
 
-            .. output:: /includes/avs/rag/generate-responses-output-go.sh
+            .. output:: /includes/avs/rag/generate-responses-output-openai.sh
                :language: console
                :visible: false

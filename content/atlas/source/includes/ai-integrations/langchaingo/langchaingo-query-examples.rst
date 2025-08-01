@@ -66,10 +66,10 @@
 
             .. code-block:: go
 
-                  import (
-                        // Other imports... 
-                        "github.com/tmc/langchaingo/vectorstores"
-                  )
+               import (
+                 // Other imports... 
+                 "github.com/tmc/langchaingo/vectorstores"
+               )
 
          .. step:: Add the following code to your main function and save the file. 
 

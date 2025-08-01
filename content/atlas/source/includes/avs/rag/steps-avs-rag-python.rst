@@ -14,18 +14,19 @@
 
       .. code-block:: shell
 
-         pip install --quiet --upgrade pymongo sentence_transformers voyageai einops langchain langchain_community pypdf huggingface_hub
+         pip install --quiet --upgrade pymongo sentence_transformers voyageai huggingface_hub openai einops langchain langchain_community pypdf
       
-      Then, run the following code with your Hugging Face access token 
-      specified. This allows you to access the open-source LLM 
-      you will use in this tutorial.
+      Then, run the following code to set the environment variables
+      for this tutorial, replacing the placeholders with any API keys 
+      that you need to access the models.
 
       .. code-block:: python
         
          import os
 
-         # Specify your Hugging Face access token
-         os.environ["HF_TOKEN"] = "<token>"
+         os.environ["VOYAGE_API_KEY"] = "<voyage-api-key>" # If using Voyage AI embedding model
+         os.environ["HF_TOKEN"] = "<hf-token>"             # If using Hugging Face embedding or generative model
+         os.environ["OPENAI_API_KEY"] = "<openai-api-key>" # If using OpenAI generative model
 
    .. step:: Ingest data into |service|.
 
@@ -41,6 +42,15 @@
             
          .. tabs::
             
+            .. tab:: Voyage AI
+               :tabid: voyage-ai
+
+               .. include:: /includes/avs/extracts/avs-voyage-model-description.rst
+
+               .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.py
+                  :language: python
+                  :copyable:
+
             .. tab:: Open-Source
                :tabid: open-source
 
@@ -57,15 +67,6 @@
                   :language: python
                   :copyable:
             
-            .. tab:: Voyage AI
-               :tabid: voyage-ai
-
-               .. include:: /includes/avs/extracts/avs-voyage-model-description.rst
-
-               .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.py
-                  :language: python
-                  :copyable:
-
       #. Load and split the data.
 
          Run this code to load and split sample data by using the
@@ -296,6 +297,7 @@
                      pprint.pprint(get_query_results("AI technology"))
 
                   .. output::
+                     :visible: false
                      
                      [{'text': 'more of our customers. We also see a tremendous opportunity to win '
                                'more legacy workloads, as AI has now become a catalyst to modernize '
@@ -366,6 +368,7 @@
                      pprint.pprint(get_query_results("AI technology"))
 
                   .. output::
+                     :visible: false
                      
                      [{'text': 'more of our customers. We also see a tremendous opportunity to win '
                                'more legacy workloads, as AI has now become a catalyst to modernize '
@@ -397,64 +400,97 @@
 
       In this section, you :ref:`generate <rag-ingestion>` 
       responses by prompting an LLM to use the retrieved documents 
-      as context. 
-      
-      Replace ``<token>`` in the following code with your Hugging Face 
-      access token, and then run the code in your notebook.
-      This code does the following:
+      as context. For this tutorial, you can use a model from OpenAI or an 
+      open-source model from Hugging Face. This code does the following:
 
       - Uses the ``get_query_results`` function you defined to retrieve 
         relevant documents from |service|.
       - Creates a prompt using the user's question and retrieved
         documents as context.
-      - Accesses an LLM from `Mistral <https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1>`__ 
-        on Hugging Face.
       - Prompts the LLM about MongoDB's latest AI announcements. 
         The generated response might vary.
 
-      ..
-         NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
+      .. tabs::
 
-      .. io-code-block:: 
-         :copyable: true 
+         .. tab:: OpenAI
+            :tabid: openai
 
-         .. input:: 
-            :language: python
+            .. io-code-block:: 
+               :copyable: true 
 
-            from huggingface_hub import InferenceClient
+               .. input:: 
+                  :language: python
 
-            # Specify search query, retrieve relevant documents, and convert to string
-            query = "What are MongoDB's latest AI announcements?"
-            context_docs = get_query_results(query)
-            context_string = " ".join([doc["text"] for doc in context_docs])
+                  from openai import OpenAI
 
-            # Construct prompt for the LLM using the retrieved documents as the context
-            prompt = f"""Use the following pieces of context to answer the question at the end.
-                {context_string}
-                Question: {query}
-            """
+                  # Specify search query, retrieve relevant documents, and convert to string
+                  query = "What are MongoDB's latest AI announcements?"
+                  context_docs = get_query_results(query)
+                  context_string = " ".join([doc["text"] for doc in context_docs])
 
-            # Use a model from Hugging Face
-            llm = InferenceClient(
-                "mistralai/Mixtral-8x22B-Instruct-v0.1",
-                provider = "fireworks-ai"
-                token = os.getenv("HF_TOKEN"))
+                  # Construct prompt for the LLM using the retrieved documents as the context
+                  prompt = f"""Use the following pieces of context to answer the question at the end.
+                      {context_string}
+                      Question: {query}
+                  """
 
-            # Prompt the LLM (this code varies depending on the model you use)
-            output = llm.chat_completion(
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=150
-            )
-            print(output.choices[0].message.content)
+                  openai_client = OpenAI()
 
-         .. output:: 
-            
-            MongoDB's latest AI announcements include the 
-            MongoDB AI Applications Program (MAAP), a program designed 
-            to help customers build AI-powered applications more efficiently. 
-            Additionally, they have announced significant performance 
-            improvements in MongoDB 8.0, featuring faster reads, updates, 
-            bulk inserts, and time series queries. Another announcement is the 
-            general availability of Atlas Stream Processing to build sophisticated, 
-            event-driven applications with real-time data.
+                  # OpenAI model to use
+                  model_name = "gpt-4o"
+
+                  completion = openai_client.chat.completions.create(
+                  model=model_name,
+                  messages=[{"role": "user",
+                      "content": prompt
+                    }]
+                  )
+                  print(completion.choices[0].message.content)
+
+               .. output:: /includes/avs/rag/generate-responses-output-openai.sh
+
+         .. tab:: Open-Source
+            :tabid: open-source
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: 
+                  :language: python
+
+                  from huggingface_hub import InferenceClient
+
+                  # Specify search query, retrieve relevant documents, and convert to string
+                  query = "What are MongoDB's latest AI announcements?"
+                  context_docs = get_query_results(query)
+                  context_string = " ".join([doc["text"] for doc in context_docs])
+
+                  # Construct prompt for the LLM using the retrieved documents as the context
+                  prompt = f"""Use the following pieces of context to answer the question at the end.
+                      {context_string}
+                      Question: {query}
+                  """
+
+                  # Use a model from Hugging Face
+                  llm = InferenceClient(
+                      "mistralai/Mixtral-8x22B-Instruct-v0.1",
+                      provider = "fireworks-ai"
+                      token = os.getenv("HF_TOKEN"))
+
+                  # Prompt the LLM (this code varies depending on the model you use)
+                  output = llm.chat_completion(
+                      messages=[{"role": "user", "content": prompt}],
+                      max_tokens=150
+                  )
+                  print(output.choices[0].message.content)
+
+               .. output:: 
+                  
+                  MongoDB's latest AI announcements include the 
+                  MongoDB AI Applications Program (MAAP), a program designed 
+                  to help customers build AI-powered applications more efficiently. 
+                  Additionally, they have announced significant performance 
+                  improvements in MongoDB 8.0, featuring faster reads, updates, 
+                  bulk inserts, and time series queries. Another announcement is the 
+                  general availability of Atlas Stream Processing to build sophisticated, 
+                  event-driven applications with real-time data.

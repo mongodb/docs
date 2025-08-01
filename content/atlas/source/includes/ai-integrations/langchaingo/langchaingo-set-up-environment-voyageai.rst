@@ -36,8 +36,8 @@
       .. code-block::
 
          OPENAI_API_KEY="<openai-api-key>"
-	 VOYAGEAI_API_KEY="<voyage-api-key>"
-	 ATLAS_CONNECTION_STRING="<connection-string>"
+         VOYAGEAI_API_KEY="<voyage-api-key>"
+         ATLAS_CONNECTION_STRING="<connection-string>"
 
       Replace the placeholder values with your OpenAI API Key,
       Voyage AI API Key, and the |srv| :manual:`connection string

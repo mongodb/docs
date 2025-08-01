@@ -1,8 +1,7 @@
 import os
 import voyageai
 
-# Specify your Voyage API key and embedding model
-os.environ["VOYAGE_API_KEY"] = "<api-key>"
+# Specify the embedding model
 model = "voyage-3-large"
 vo = voyageai.Client()
 

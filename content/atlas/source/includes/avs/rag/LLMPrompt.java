@@ -1,4 +1,3 @@
-
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -6,11 +5,12 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.search.FieldSearchPath;
 import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.huggingface.HuggingFaceChatModel;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.bson.BsonArray;
 import org.bson.BsonValue;
 import org.bson.Document;
@@ -108,7 +108,7 @@ public class LLMPrompt {
 
     /**
      * Creates a templated prompt from a submitted question string and any retrieved documents,
-     * then generates a response using the Hugging Face chat model.
+     * then generates a response using the OpenAI chat model.
      */
     public static void createPrompt(String question, MongoCollection<Document> collection) {
 
@@ -122,8 +122,6 @@ public class LLMPrompt {
             System.out.println("Generating a response from the retrieved documents. This may take a few moments.");
 
         // define a prompt template
-        EmbeddingProvider embeddingProvider = new EmbeddingProvider();
-        HuggingFaceChatModel huggingFaceChatModel = embeddingProvider.getChatModel();
         PromptTemplate promptBuilder = PromptTemplate.from("""
                 Answer the following question based on the given context:
                 Question: {{question}}
@@ -147,9 +145,20 @@ public class LLMPrompt {
         ChatRequest chatRequest = ChatRequest.builder()
                 .messages(Collections.singletonList(prompt.toUserMessage()))
                 .build();
-        ChatResponse chatResponse = huggingFaceChatModel.chat(chatRequest);
-        AiMessage aiMessage = chatResponse.content();
 
+        String openAIApiKey = System.getenv("OPENAI_API_KEY");
+        if (openAIApiKey == null || openAIApiKey.isEmpty()) {
+            throw new IllegalStateException("OPENAI_API_KEY env variable is not set or is empty.");
+        }
+
+        ChatModel chatModel = OpenAiChatModel.builder()
+                .apiKey(openAIApiKey)
+                .modelName("gpt-4o")
+                .build();
+
+        ChatResponse chatResponse = chatModel.chat(chatRequest);
+
+        AiMessage aiMessage = chatResponse.aiMessage();
 
         // extract the generated text to output a formatted response
         String responseText = aiMessage.text();

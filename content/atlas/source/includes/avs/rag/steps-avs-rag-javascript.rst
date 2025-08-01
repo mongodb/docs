@@ -16,16 +16,6 @@
 
       .. tabs::
          
-         .. tab:: Open-Source
-            :tabid: open-source
-
-            .. literalinclude:: /includes/avs/rag/get-embeddings.js
-               :language: javascript
-
-            The ``getEmbedding`` function generates vector embeddings by 
-            using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
-            from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
-         
          .. tab:: Voyage AI
             :tabid: voyage-ai
 
@@ -41,7 +31,17 @@
 
                To learn more, see `Voyage AI Typescript Library 
                <https://www.npmjs.com/package/voyageai>`__.
-               
+
+         .. tab:: Open-Source
+            :tabid: open-source
+
+            .. literalinclude:: /includes/avs/rag/get-embeddings.js
+               :language: javascript
+
+            The ``getEmbedding`` function generates vector embeddings by 
+            using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
+            from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
+         
    .. step:: Ingest data into |service|.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
@@ -154,16 +154,17 @@
 
             .. output:: /includes/avs/rag/retrieve-data-output.sh
                :language: console
+               :visible: false
 
    .. step:: Generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>` 
       responses by prompting an LLM to use the retrieved documents 
-      as context. This example uses the function you just defined to retrieve
-      matching documents from the database, and additionally:
+      as context. For this tutorial, you can use a model from OpenAI or an 
+      open-source model from Hugging Face. This example uses the 
+      function you just defined to retrieve matching documents from the 
+      database, and additionally:
 
-      - Accesses an LLM from `Mistral <https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1>`__ 
-        on Hugging Face.
       - Instructs the LLM to include the user's question and retrieved
         documents in the prompt.
       - Prompts the LLM about MongoDB's latest AI announcements.
@@ -171,8 +172,19 @@
       Create a new file called ``generate-responses.js``, and paste the following
       code into it:
 
-      .. literalinclude:: /includes/avs/rag/generate-responses.js
-         :language: javascript
+      .. tabs::
+
+         .. tab:: OpenAI
+            :tabid: openai
+
+            .. literalinclude:: /includes/avs/rag/generate-responses-openai.js
+               :language: javascript
+
+         .. tab:: Open-Source
+            :tabid: open-source
+
+            .. literalinclude:: /includes/avs/rag/generate-responses-hf.js
+               :language: javascript
 
       Then, run this command to execute the code. The generated response might
       vary.

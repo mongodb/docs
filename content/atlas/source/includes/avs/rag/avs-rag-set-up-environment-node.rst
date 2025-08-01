@@ -16,7 +16,7 @@ a. Initialize your Node.js project.
 
    .. code-block::
 
-      npm install mongodb voyageai langchain @langchain/community @xenova/transformers @huggingface/inference pdf-parse
+      npm install mongodb voyageai openai @huggingface/inference @xenova/transformers langchain @langchain/community pdf-parse
 
 #. Update your ``package.json`` file.
 
@@ -35,18 +35,14 @@ a. Initialize your Node.js project.
 #. Create a ``.env`` file.
 
    In your project, create a ``.env`` file to store your |service| connection
-   string and Hugging Face access token.
+   string and API keys for the models that you want to use:
 
    .. code-block::
 
-      HUGGING_FACE_ACCESS_TOKEN = "<access-token>"
-      VOYAGE_API_KEY = "<api-key>" # optional
       ATLAS_CONNECTION_STRING = "<connection-string>"
-
-   Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
-   Optionally, you can replace the ``<api-key>`` placeholder value with your
-   `Voyage API key <https://docs.voyageai.com/docs/api-key-and-installation>`__
-   if you have one.
+      VOYAGE_API_KEY = "<voyage-api-key>"       # If using Voyage AI embedding model
+      HUGGING_FACE_ACCESS_TOKEN = "<hf-token>"  # If using Hugging Face embedding or generative model
+      OPENAI_API_KEY = "<openai-api-key>"       # If using OpenAI generative model
 
    .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 

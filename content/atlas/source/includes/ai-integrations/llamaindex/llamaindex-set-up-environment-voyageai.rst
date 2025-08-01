@@ -49,7 +49,7 @@
       .. code-block:: python
 
          os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
-	 os.environ["VOYAGEAI_API_KEY"] = "<voyageai-api-key>"
+         os.environ["VOYAGEAI_API_KEY"] = "<voyageai-api-key>"
          ATLAS_CONNECTION_STRING = "<connection-string>"
 
       .. note:: 

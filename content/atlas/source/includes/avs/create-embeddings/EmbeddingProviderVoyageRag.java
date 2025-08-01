@@ -5,7 +5,6 @@ import dev.langchain4j.model.voyageai.VoyageAiEmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import org.bson.BsonArray;
 import org.bson.BsonDouble;
-import dev.langchain4j.model.huggingface.HuggingFaceChatModel;
 import java.util.List;
 import static java.time.Duration.ofSeconds;
 
@@ -57,30 +56,6 @@ public class EmbeddingProvider {
                 response.content().vectorAsList().stream()
                         .map(BsonDouble::new)
                         .toList());
-    }
-
-    /**
-     * Returns the Hugging Face chat model interface used by the createPrompt() method
-     * to process queries and generate responses.
-     */
-    private static HuggingFaceChatModel chatModel;
-    public static HuggingFaceChatModel getChatModel() {
-        String accessToken = System.getenv("HUGGING_FACE_ACCESS_TOKEN");
-        if (accessToken == null || accessToken.isEmpty()) {
-            throw new IllegalStateException("HUGGING_FACE_ACCESS_TOKEN env variable is not set or is empty.");
-        }
-
-        if (chatModel == null) {
-            chatModel = HuggingFaceChatModel.builder()
-                    .timeout(ofSeconds(25))
-                    .modelId("mistralai/Mistral-7B-Instruct-v0.3")
-                    .temperature(0.1)
-                    .maxNewTokens(150)
-                    .accessToken(accessToken)
-                    .waitForModel(true)
-                    .build();
-        }
-        return chatModel;
     }
 }
 

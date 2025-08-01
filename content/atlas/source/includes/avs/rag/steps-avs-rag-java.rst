@@ -31,16 +31,21 @@
                           <groupId>dev.langchain4j</groupId>
                           <artifactId>langchain4j</artifactId>
                       </dependency>
-                      <!-- Hugging Face integration -->
-                      <dependency>
-                          <groupId>dev.langchain4j</groupId>
-                          <artifactId>langchain4j-hugging-face</artifactId>
-                      </dependency>
                       <!-- Voyage AI integration -->
                       <dependency>
                           <groupId>dev.langchain4j</groupId>
                           <artifactId>langchain4j-voyage-ai</artifactId>
                       </dependency>
+                      <!-- Hugging Face integration -->
+                      <dependency>
+                          <groupId>dev.langchain4j</groupId>
+                          <artifactId>langchain4j-hugging-face</artifactId>
+                      </dependency>
+                      <!-- Open AI integration -->
+                      <dependency>
+                          <groupId>dev.langchain4j</groupId>
+                          <artifactId>langchain4j-open-ai</artifactId>
+                      </dependency>                 
                       <!-- Apache PDFBox Document Parser -->
                       <dependency>
                           <groupId>dev.langchain4j</groupId>
@@ -77,11 +82,14 @@
                      // MongoDB Java Sync Driver v5.2.0 or later
                      implementation 'org.mongodb:mongodb-driver-sync:5.2.0'
 
+                     // Java library for Voyage AI models
+                     implementation 'dev.langchain4j:langchain4j-voyage-ai'
+
                      // Java library for Hugging Face models
                      implementation 'dev.langchain4j:langchain4j-hugging-face'
 
-                     // Java library for Voyage AI models
-                     implementation 'dev.langchain4j:langchain4j-voyage-ai'
+                     // Java library for Open AI models
+                     implementation 'dev.langchain4j:langchain4j-open-ai'
 
                      // Java library for URL Document Loader
                      implementation 'dev.langchain4j:langchain4j'
@@ -100,14 +108,17 @@
          applications might manage environment variables through a deployment
          configuration, CI/CD pipeline, or secrets manager, but you can adapt
          the provided code to fit your use case.
+         
+         Set only the environment variables that you need for your project.
 
       .. include:: /includes/avs/shared/avs-set-env-java.rst
 
       .. code-block:: shell
          :caption: Environment variables
 
-            HUGGING_FACE_ACCESS_TOKEN=<access-token>
-            VOYAGE_AI_KEY=<api-key>
+            VOYAGE_AI_KEY=<voyage-api-key> # If using Voyage AI embedding models
+            HUGGING_FACE_ACCESS_TOKEN=<access-token> # If using Hugging Face embedding models
+            OPENAI_API_KEY=<openai-api-key>
             ATLAS_CONNECTION_STRING=<connection-string>
 
       Update the placeholders with the following values:
@@ -167,7 +178,7 @@
                :language: java
                :caption: EmbeddingProvider.java
 
-         .. tab:: Open Source
+         .. tab:: Open-Source
             :tabid: open-source
 
             This code defines two methods to generate embeddings for a given input using the
@@ -274,9 +285,7 @@
 
          To learn more, refer to :ref:`return-vector-search-results`.
 
-      #. Accesses the `Mistral 7B Instruct
-         <https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3>`__ model
-         from Hugging Face's model hub, and creates a templated prompt using a
+      #. Accesses an LLM from OpenAI, and creates a templated prompt using a
          ``createPrompt`` method.
 
          The method instructs the LLM to include the user's question
