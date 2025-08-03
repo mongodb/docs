@@ -156,4 +156,4 @@ format applies to all AWS IAM authentication mechanisms.
 
 .. seealso:: 
 
-   :aws:`IAM roles for service accounts <eks/latest/userguide/iam-roles-for-service-accounts.html>`
+   :aws:`IAM roles for service accounts </eks/latest/userguide/iam-roles-for-service-accounts.html>`
