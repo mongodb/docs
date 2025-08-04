@@ -1,0 +1,962 @@
+.. _mongoimport-guide:
+
+=========================
+mongoimport Example Guide
+=========================
+
+.. meta::
+   :description: Details how to use `mongoimport` for importing JSON and CSV data.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. |arrow| unicode:: U+27A4
+.. |tool-binary| replace:: ``mongoimport``
+
+MongoDB provides the :binary:`~bin.mongoimport` tool to import JSON and CSV
+files into your main dataset. This guide explains how to effectively use
+:binary:`~bin.mongoimport` to move your data into your MongoDB database.
+
+Before You Begin
+----------------
+
+- :ref:`atlas-getting-started`.
+
+- Follow the :ref:`Database Tools Installation Guide <dbtools_installation>` to install :binary:`~bin.mongoimport`.
+
+- Create the example files.
+
+  .. tabs-platforms::
+
+     tabs:
+       - id: macos
+         content: |
+
+           .. procedure::
+              :style: normal
+
+              .. step:: Create and Move to the ``test-datasets`` Directory
+               
+                 .. code-block:: sh
+                    :copyable: true
+                    
+                    mkdir test-datasets
+                    
+                    cd test-datasets
+
+              .. step:: Create ``.json`` Example Files
+
+                 .. code-block:: sh
+                    :copyable: true
+                        
+                    echo '{
+                        "tripduration": 602,
+                        "starttime": "2019-12-01 00:00:05.5640",
+                        "stoptime": "2019-12-01 00:10:07.8180",
+                        "start station id": 3382,
+                        "start station name": "Carroll St & Smith St",
+                        "start station latitude": 40.680611,
+                        "start station longitude": -73.99475825,
+                        "end station id": 3304,
+                        "end station name": "6 Ave & 9 St",
+                        "end station latitude": 40.668127,
+                        "end station longitude": -73.98377641,
+                        "bikeid": 41932,
+                        "usertype": "Subscriber",
+                        "birth year": 1970,
+                        "gender": "male"
+                    }' > ride_01.json
+
+                    echo '{
+                        "tripduration": 1206,
+                        "starttime": "2019-12-01 00:00:10.9630",
+                        "stoptime": "2019-12-01 00:20:17.8820",
+                        "start station id": 362,
+                        "start station name": "Broadway & W 37 St",
+                        "start station latitude": 40.75172632,
+                        "start station longitude": -73.98753523,
+                        "end station id": 500,
+                        "end station name": "Broadway & W 51 St",
+                        "end station latitude": 40.76228826,
+                        "end station longitude": -73.98336183,
+                        "bikeid": 18869,
+                        "usertype": "Customer",
+                        "birth year": 1999,
+                        "gender": "male"
+                    }' > ride_02.json
+
+                    echo '{
+                        "tripduration": 723,
+                        "starttime": "2019-12-01 00:00:11.8180",
+                        "stoptime": "2019-12-01 00:12:14.8310",
+                        "start station id": 146,
+                        "start station name": "Hudson St & Reade St",
+                        "start station latitude": 40.71625008,
+                        "start station longitude": -74.0091059,
+                        "end station id": 238,
+                        "end station name": "Bank St & Washington St",
+                        "end station latitude": 40.7361967,
+                        "end station longitude": -74.00859207,
+                        "bikeid": 15334,
+                        "usertype": "Subscriber",
+                        "birth year": 1997,
+                        "gender": "male"
+                    }' > ride_03.json
+
+                    echo '[
+                        {
+                           "tripduration": 602,
+                           "starttime": "2019-12-01 00:00:05.5640",
+                           "stoptime": "2019-12-01 00:10:07.8180",
+                           "start station id": 3382,
+                           "start station name": "Carroll St & Smith St",
+                           "start station latitude": 40.680611,
+                           "start station longitude": -73.99475825,
+                           "end station id": 3304,
+                           "end station name": "6 Ave & 9 St",
+                           "end station latitude": 40.668127,
+                           "end station longitude": -73.98377641,
+                           "bikeid": 41932,
+                           "usertype": "Subscriber",
+                           "birth year": 1970,
+                           "gender": "male"
+                        },
+
+                        {
+                           "tripduration": 1206,
+                           "starttime": "2019-12-01 00:00:10.9630",
+                           "stoptime": "2019-12-01 00:20:17.8820",
+                           "start station id": 362,
+                           "start station name": "Broadway & W 37 St",
+                           "start station latitude": 40.75172632,
+                           "start station longitude": -73.98753523,
+                           "end station id": 500,
+                           "end station name": "Broadway & W 51 St",
+                           "end station latitude": 40.76228826,
+                           "end station longitude": -73.98336183,
+                           "bikeid": 18869,
+                           "usertype": "Customer",
+                           "birth year": 1999,
+                           "gender": "male"
+                        },
+
+                        {
+                           "tripduration": 723,
+                           "starttime": "2019-12-01 00:00:11.8180",
+                           "stoptime": "2019-12-01 00:12:14.8310",
+                           "start station id": 146,
+                           "start station name": "Hudson St & Reade St",
+                           "start station latitude": 40.71625008,
+                           "start station longitude": -74.0091059,
+                           "end station id": 238,
+                           "end station name": "Bank St & Washington St",
+                           "end station latitude": 40.7361967,
+                           "end station longitude": -74.00859207,
+                           "bikeid": 15334,
+                           "usertype": "Subscriber",
+                           "birth year": 1997,
+                           "gender": "male"
+                        }
+                    ]' > rides.json
+
+                    echo '602,"2019-12-01 00:00:05.5640","2019-12-01 00:10:07.8180",3382,"Carroll St & Smith St",40.680611,-73.99475825,3304,"6 Ave & 9 St",40.668127,-73.98377641,41932,"Subscriber",1970,1
+                        1206,"2019-12-01 00:00:10.9630","2019-12-01 00:20:17.8820",362,"Broadway & W 37 St",40.75172632,-73.98753523,500,"Broadway & W 51 St",40.76228826,-73.98336183,18869,"Customer",1999,1
+                        723,"2019-12-01 00:00:11.8180","2019-12-01 00:12:14.8310",146,"Hudson St & Reade St",40.71625008,-74.0091059,238,"Bank St & Washington St",40.7361967,-74.00859207,15334,"Subscriber",1997,1 
+                    ' > rides_no_header.json
+
+       - id: windows
+         content: |
+
+           .. procedure::
+              :style: normal
+
+              .. step:: Create and Move to the ``test-datasets`` Directory
+               
+                 .. code-block:: sh
+                    :copyable: true
+                    
+                    mkdir test-datasets
+                    
+                    cd test-datasets
+
+              .. step:: Create ``.json`` Example Files
+
+                 .. code-block:: sh
+                    :copyable: true
+                        
+                    @'
+                     {
+                        "tripduration": 602,
+                        "starttime": "2019-12-01 00:00:05.5640",
+                        "stoptime": "2019-12-01 00:10:07.8180",
+                        "start station id": 3382,
+                        "start station name": "Carroll St & Smith St",
+                        "start station latitude": 40.680611,
+                        "start station longitude": -73.99475825,
+                        "end station id": 3304,
+                        "end station name": "6 Ave & 9 St",
+                        "end station latitude": 40.668127,
+                        "end station longitude": -73.98377641,
+                        "bikeid": 41932,
+                        "usertype": "Subscriber",
+                        "birth year": 1970,
+                        "gender": "male"
+                     }
+                    '@ | Set-Content -Path ride_01.json
+
+                    @'
+                     {
+                        "tripduration": 1206,
+                        "starttime": "2019-12-01 00:00:10.9630",
+                        "stoptime": "2019-12-01 00:20:17.8820",
+                        "start station id": 362,
+                        "start station name": "Broadway & W 37 St",
+                        "start station latitude": 40.75172632,
+                        "start station longitude": -73.98753523,
+                        "end station id": 500,
+                        "end station name": "Broadway & W 51 St",
+                        "end station latitude": 40.76228826,
+                        "end station longitude": -73.98336183,
+                        "bikeid": 18869,
+                        "usertype": "Customer",
+                        "birth year": 1999,
+                        "gender": "male"
+                     }
+                    '@ | Set-Content -Path ride_02.json
+
+                    @'
+                     {
+                        "tripduration": 723,
+                        "starttime": "2019-12-01 00:00:11.8180",
+                        "stoptime": "2019-12-01 00:12:14.8310",
+                        "start station id": 146,
+                        "start station name": "Hudson St & Reade St",
+                        "start station latitude": 40.71625008,
+                        "start station longitude": -74.0091059,
+                        "end station id": 238,
+                        "end station name": "Bank St & Washington St",
+                        "end station latitude": 40.7361967,
+                        "end station longitude": -74.00859207,
+                        "bikeid": 15334,
+                        "usertype": "Subscriber",
+                        "birth year": 1997,
+                        "gender": "male"
+                     }
+                    '@ | Set-Content -Path ride_03.json
+
+                    @'
+                     [
+                        {
+                           "tripduration": 602,
+                           "starttime": "2019-12-01 00:00:05.5640",
+                           "stoptime": "2019-12-01 00:10:07.8180",
+                           "start station id": 3382,
+                           "start station name": "Carroll St & Smith St",
+                           "start station latitude": 40.680611,
+                           "start station longitude": -73.99475825,
+                           "end station id": 3304,
+                           "end station name": "6 Ave & 9 St",
+                           "end station latitude": 40.668127,
+                           "end station longitude": -73.98377641,
+                           "bikeid": 41932,
+                           "usertype": "Subscriber",
+                           "birth year": 1970,
+                           "gender": "male"
+                        },
+
+                        {
+                           "tripduration": 1206,
+                           "starttime": "2019-12-01 00:00:10.9630",
+                           "stoptime": "2019-12-01 00:20:17.8820",
+                           "start station id": 362,
+                           "start station name": "Broadway & W 37 St",
+                           "start station latitude": 40.75172632,
+                           "start station longitude": -73.98753523,
+                           "end station id": 500,
+                           "end station name": "Broadway & W 51 St",
+                           "end station latitude": 40.76228826,
+                           "end station longitude": -73.98336183,
+                           "bikeid": 18869,
+                           "usertype": "Customer",
+                           "birth year": 1999,
+                           "gender": "male"
+                        },
+
+                        {
+                           "tripduration": 723,
+                           "starttime": "2019-12-01 00:00:11.8180",
+                           "stoptime": "2019-12-01 00:12:14.8310",
+                           "start station id": 146,
+                           "start station name": "Hudson St & Reade St",
+                           "start station latitude": 40.71625008,
+                           "start station longitude": -74.0091059,
+                           "end station id": 238,
+                           "end station name": "Bank St & Washington St",
+                           "end station latitude": 40.7361967,
+                           "end station longitude": -74.00859207,
+                           "bikeid": 15334,
+                           "usertype": "Subscriber",
+                           "birth year": 1997,
+                           "gender": "male"
+                        }
+                     ]
+                    '@ | Set-Content -Path rides.json
+
+                    @'
+                     602,"2019-12-01 00:00:05.5640","2019-12-01 00:10:07.8180",3382,"Carroll St & Smith St",40.680611,-73.99475825,3304,"6 Ave & 9 St",40.668127,-73.98377641,41932,"Subscriber",1970,1
+                     1206,"2019-12-01 00:00:10.9630","2019-12-01 00:20:17.8820",362,"Broadway & W 37 St",40.75172632,-73.98753523,500,"Broadway & W 51 St",40.76228826,-73.98336183,18869,"Customer",1999,1
+                     723,"2019-12-01 00:00:11.8180","2019-12-01 00:12:14.8310",146,"Hudson St & Reade St",40.71625008,-74.0091059,238,"Bank St & Washington St",40.7361967,-74.00859207,15334,"Subscriber",1997,1
+                    '@ | Set-Content -Path rides_no_header.json
+
+       - id: linux
+         content: |
+
+           .. procedure::
+              :style: normal
+
+              .. step:: Create and Move to the ``test-datasets`` Directory
+               
+                 .. code-block:: sh
+                    :copyable: true
+                    
+                    mkdir test-datasets
+                    
+                    cd test-datasets
+
+              .. step:: Create ``.json`` Example Files
+
+                 .. code-block:: sh
+                    :copyable: true
+
+                    cat << 'EOF' > ride_01.json
+                     {
+                        "tripduration": 602,
+                        "starttime": "2019-12-01 00:00:05.5640",
+                        "stoptime": "2019-12-01 00:10:07.8180",
+                        "start station id": 3382,
+                        "start station name": "Carroll St & Smith St",
+                        "start station latitude": 40.680611,
+                        "start station longitude": -73.99475825,
+                        "end station id": 3304,
+                        "end station name": "6 Ave & 9 St",
+                        "end station latitude": 40.668127,
+                        "end station longitude": -73.98377641,
+                        "bikeid": 41932,
+                        "usertype": "Subscriber",
+                        "birth year": 1970,
+                        "gender": "male"
+                     }
+                    EOF
+
+                    cat << 'EOF' > ride_02.json
+                     {
+                        "tripduration": 1206,
+                        "starttime": "2019-12-01 00:00:10.9630",
+                        "stoptime": "2019-12-01 00:20:17.8820",
+                        "start station id": 362,
+                        "start station name": "Broadway & W 37 St",
+                        "start station latitude": 40.75172632,
+                        "start station longitude": -73.98753523,
+                        "end station id": 500,
+                        "end station name": "Broadway & W 51 St",
+                        "end station latitude": 40.76228826,
+                        "end station longitude": -73.98336183,
+                        "bikeid": 18869,
+                        "usertype": "Customer",
+                        "birth year": 1999,
+                        "gender": "male"
+                     }
+                    EOF
+
+                    cat << 'EOF' > ride_03.json
+                     {
+                        "tripduration": 723,
+                        "starttime": "2019-12-01 00:00:11.8180",
+                        "stoptime": "2019-12-01 00:12:14.8310",
+                        "start station id": 146,
+                        "start station name": "Hudson St & Reade St",
+                        "start station latitude": 40.71625008,
+                        "start station longitude": -74.0091059,
+                        "end station id": 238,
+                        "end station name": "Bank St & Washington St",
+                        "end station latitude": 40.7361967,
+                        "end station longitude": -74.00859207,
+                        "bikeid": 15334,
+                        "usertype": "Subscriber",
+                        "birth year": 1997,
+                        "gender": "male"
+                     }
+                    EOF
+
+                    cat << 'EOF' > rides.json
+                     [
+                        {
+                           "tripduration": 602,
+                           "starttime": "2019-12-01 00:00:05.5640",
+                           "stoptime": "2019-12-01 00:10:07.8180",
+                           "start station id": 3382,
+                           "start station name": "Carroll St & Smith St",
+                           "start station latitude": 40.680611,
+                           "start station longitude": -73.99475825,
+                           "end station id": 3304,
+                           "end station name": "6 Ave & 9 St",
+                           "end station latitude": 40.668127,
+                           "end station longitude": -73.98377641,
+                           "bikeid": 41932,
+                           "usertype": "Subscriber",
+                           "birth year": 1970,
+                           "gender": "male"
+                        },
+
+                        {
+                           "tripduration": 1206,
+                           "starttime": "2019-12-01 00:00:10.9630",
+                           "stoptime": "2019-12-01 00:20:17.8820",
+                           "start station id": 362,
+                           "start station name": "Broadway & W 37 St",
+                           "start station latitude": 40.75172632,
+                           "start station longitude": -73.98753523,
+                           "end station id": 500,
+                           "end station name": "Broadway & W 51 St",
+                           "end station latitude": 40.76228826,
+                           "end station longitude": -73.98336183,
+                           "bikeid": 18869,
+                           "usertype": "Customer",
+                           "birth year": 1999,
+                           "gender": "male"
+                        },
+
+                        {
+                           "tripduration": 723,
+                           "starttime": "2019-12-01 00:00:11.8180",
+                           "stoptime": "2019-12-01 00:12:14.8310",
+                           "start station id": 146,
+                           "start station name": "Hudson St & Reade St",
+                           "start station latitude": 40.71625008,
+                           "start station longitude": -74.0091059,
+                           "end station id": 238,
+                           "end station name": "Bank St & Washington St",
+                           "end station latitude": 40.7361967,
+                           "end station longitude": -74.00859207,
+                           "bikeid": 15334,
+                           "usertype": "Subscriber",
+                           "birth year": 1997,
+                           "gender": "male"
+                        }
+                     ]
+                    EOF
+
+                    cat << 'EOF' > rides_no_header.json
+                     602,"2019-12-01 00:00:05.5640","2019-12-01 00:10:07.8180",3382,"Carroll St & Smith St",40.680611,-73.99475825,3304,"6 Ave & 9 St",40.668127,-73.98377641,41932,"Subscriber",1970,1
+                     1206,"2019-12-01 00:00:10.9630","2019-12-01 00:20:17.8820",362,"Broadway & W 37 St",40.75172632,-73.98753523,500,"Broadway & W 51 St",40.76228826,-73.98336183,18869,"Customer",1999,1
+                     723,"2019-12-01 00:00:11.8180","2019-12-01 00:12:14.8310",146,"Hudson St & Reade St",40.71625008,-74.0091059,238,"Bank St & Washington St",40.7361967,-74.00859207,15334,"Subscriber",1997,1
+                    EOF
+
+
+- :ref:`Find Your MongoDB Connection String <find-connection-string>`.
+
+  .. important::
+
+     Your MongoDB Atlas connection string resembles the following example:
+
+     .. code-block:: sh
+       
+        mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority
+
+Get Started with mongoimport
+----------------------------
+
+:binary:`~bin.mongoimport` is a command-line tool for importing data from JSON,
+CSV, and TSV files into MongoDB collections. :binary:`~bin.mongoimport` can be
+combined with other command-line tools such as :ref:`JQ <mongoimport-jq>` for
+JSON manipulation, :ref:`CSVKit <mongoimport-csvkit>` for CSV manipulation, or
+``curl`` for dynamically downloading data files from servers on the internet.
+
+Choose a Source Data Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+JSON is both a hierarchical data format, like MongoDB documents, and is also
+explicit about the types of data it encodes.
+
+CSV (and TSV) data is tabular, and each row will be imported into MongoDB as a
+separate document. This means that these formats cannot support hierarchical
+data in the same way as a MongoDB document can. When importing CSV data into
+MongoDB, :binary:`~bin.mongoimport` attempts to make sensible choices when
+identifying the type of specific field. This behavior can be overridden with
+flags or type specification.
+
+Connect mongoimport to Your Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use your MongoDB Atlas connection string to connect :binary:`~bin.mongoimport` to the
+``test`` database and ``test-collection`` collection.
+  
+.. code-block:: sh
+   :copyable: false
+
+   mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+      --db=test \
+      --collection=test-collection 
+   
+Successful connection to your database collection resembles the following:
+   
+.. code-block:: sh
+   :copyable: false
+
+   2025-07-14T10:22:58.317-0400	connected to: mongodb+srv://cluster0.zoikgns.mongodb.net/
+   2025-07-14T10:23:01.318-0400	test.test-collection	0B
+   2025-07-14T10:23:04.318-0400	test.test-collection	0B
+   ...
+
+After you successfully connect to your database collection, follow the examples
+to learn how to use :binary:`~bin.mongoimport` to import data into MongoDB.
+
+Steps
+-----
+
+The following examples show you how to:
+
+- :ref:`mongoimport-guide-import-one`
+
+- :ref:`mongoimport-guide-import-many`
+
+- :ref:`mongoimport-guide-import-json-array`
+
+- :ref:`mongoimport-guide-import-mongodb-specific-types`
+
+- :ref:`mongoimport-guide-import-csv-with-fields`
+
+- :ref:`mongoimport-guide-import-csv-with-fields-and-types`
+
+.. _mongoimport-guide-import-one:
+
+Import Documents with --file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the :option:`--file` option to specify the location and name of the file
+containing the data to import into a MongoDB collection.
+
+The following example imports the ``ride_01.json`` file into the new collection,
+``test-collection``, in the ``test`` database by providing the file's path
+``--file=ride_01.json``.
+
+.. code-block:: sh
+   :copyable: false
+
+   mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+     --db=test \
+     --collection=test-collection \
+     --file=ride_01.json
+
+Successful import resembles the following:
+   
+.. code-block:: sh
+   :copyable: false
+   
+   2025-07-14T11:47:01.303-0400	connected to: mongodb+srv://[**REDACTED**]@cluster0.zoikgns.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+   2025-07-14T11:47:01.391-0400	1 document(s) imported successfully. 0 document(s) failed to import.
+
+To view the successful data import, you can use the 
+:ref:`Atlas UI <atlas-ui-view-collections>`.
+
+.. figure:: /images/import-one-json-doc-mongoimport.png
+   :figwidth: 1200px
+   :alt: Import one document with mongoimport Atlas UI data
+
+.. note::
+   
+   For each imported document, MongoDB generates a required unique 
+   :ref:`_id <document-id-field>` value.
+
+If you do not specify a file, :binary:`~bin.mongoimport` reads data from
+standard input (e.g. ``stdin``). The following example demonstrates how to
+import multiple documents by piping them to :binary:`~bin.mongoimport`, which
+then reads the data from ``stdin``.
+
+.. code-block:: sh
+   :copyable: false
+
+   echo "{\"bikeid\":\"1234\"}\n{\"bikeid\":\"5678\"}" | mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+     --db=test \
+     --collection=test-collection-stdin
+
+Successful import resembles the following:
+   
+.. code-block:: sh
+   :copyable: false
+   
+   2025-07-14T11:08:08.884-0600	connected to: mongodb+srv://[**REDACTED**]@cluster0.zoikgns.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+   2025-07-14T11:08:09.095-0600	2 document(s) imported successfully. 0 document(s) failed to import.
+
+.. _mongoimport-guide-import-many:
+
+Import Documents with Piping
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can pipe multiple JSON documents from another tool, such as ``cat``, to
+import multiple files with :binary:`~bin.mongoimport`. From the directory that
+contains the JSON files for import, you can run the following command to import
+the documents.
+
+.. code-block:: sh
+   :copyable: false
+
+   cat *_*.json | mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+     --db=test \
+     --collection=test-collection-many
+
+Successful import resembles the following:
+   
+.. code-block:: sh
+   :copyable: false
+   
+   2025-07-21T16:48:23.519-0400	connected to: mongodb+srv://[**REDACTED**]@cluster0.zoikgns.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+   2025-07-21T16:48:23.627-0400	3 document(s) imported successfully. 0 document(s) failed to import.
+
+.. _mongoimport-guide-import-json-array:
+
+Import a JSON Array
+~~~~~~~~~~~~~~~~~~~
+
+To import a JSON array of documents, you can use the :option:`--jsonArray
+<mongoimport --jsonArray>` option to specify the format of the data. You specify
+the data source, which can be a file or standard input, separately. The
+following example imports the ``rides.json`` file containing a single JSON
+array.
+
+.. code-block:: sh
+   :copyable: false
+
+   mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+     --db=test \
+     --collection=test-collection-array \
+     --file=rides.json \
+     --jsonArray
+
+Successful import resembles the following:
+   
+.. code-block:: sh
+   :copyable: false
+   
+   2025-07-14T11:48:10.829-0400	connected to: mongodb+srv://[**REDACTED**]@cluster0.zoikgns.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+   2025-07-14T11:48:10.899-0400	3 document(s) imported successfully. 0 document(s) failed to import.
+
+If you do not add the :option:`--jsonArray <mongoimport --jsonArray>` option, :binary:`~bin.mongoimport`
+will fail with the error ``cannot decode array into a Document`` because MongoDB
+documents are comparable to JSON objects, not arrays.
+
+.. note::
+
+   You can store an array as a value in a document, but a document cannot be
+   an array.
+
+.. _mongoimport-guide-import-mongodb-specific-types:
+
+Import MongoDB-Specific Types with JSON
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since MongoDB stores data as :ref:`BSON <bson-types>`, you must use
+:ref:`Extended JSON <mongodb-extended-json-v2>` to recognize fields imported as
+JSON as specific BSON types. This means you can provide a field MongoDB
+originally recognizes as a ``string`` in the following nested structure to have
+MongoDB recognize it as a ``date`` type.
+
+.. code-block:: sh
+   :copyable: false
+
+   "starttime": {
+      "$date": "2019-12-01T00:00:05.5640Z"
+   }
+
+To transform your existing data, see the section on :ref:`<mongoimport-jq>`.
+
+.. _mongoimport-guide-import-csv-with-fields:
+
+Import CSV or TSV Into a Collection with Specified Field Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have CSV or TSV files to import, use the :option:`--type=csv <mongoimport
+--type>` or :option:`--type=tsv <mongoimport --type>`, respectively, to tell
+:binary:`~bin.mongoimport` the format to expect.
+
+If your CSV or TSV file has a header row, use the :option:`--headerline
+<mongoimport --headerline>` option to tell :binary:`~bin.mongoimport` the first
+line should not be imported as a document.
+
+Since CSV and TSV data does not include type information, you can solve this by
+specifying field types when you call :binary:`~bin.mongoimport`. The first way
+to provide :binary:`~bin.mongoimport` with type information is if you list the
+field names on the command line with the :option:`--fields <mongoimport
+--fields>` option.
+
+.. code-block:: sh
+   :copyable: false
+
+   mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+      --db=test \
+      --collection=test-field-file \
+      --file=rides_no_header.csv \
+      --type=csv \
+      --fields="tripduration","starttime","stoptime","start station id","start station name","start station latitude","start station longitude","end station id","end station name","end station latitude","end station longitude","bikeid","usertype","birth year","gender"
+
+Another way to provide :binary:`~bin.mongoimport` with type information is if
+you put the field names in a file, such as ``field_file.txt``, and point to it with the :option:`--fieldFile
+<mongoimport --fieldFile>` option.
+
+.. tabs-platforms::
+
+   tabs:
+     - id: macos
+       content: |
+
+        .. code-block:: sh
+           :copyable: true
+
+           echo 'tripduration
+           starttime
+           stoptime
+           start station id
+           start station name
+           start station latitude
+           start station longitude
+           end station id
+           end station name
+           end station latitude
+           end station longitude
+           bikeid
+           usertype
+           birth year
+           gender' > field_file.txt
+
+     - id: linux
+       content: |
+
+        .. code-block:: sh
+           :copyable: true
+
+           cat << 'EOF' > field_file.txt
+           tripduration
+           starttime
+           stoptime
+           start station id
+           start station name
+           start station latitude
+           start station longitude
+           end station id
+           end station name
+           end station latitude
+           end station longitude
+           bikeid
+           usertype
+           birth year
+           gender
+           EOF
+
+     - id: windows
+       content: |
+
+        .. code-block:: sh
+           :copyable: true
+
+           @"
+           tripduration
+           starttime
+           stoptime
+           start station id
+           start station name
+           start station latitude
+           start station longitude
+           end station id
+           end station name
+           end station latitude
+           end station longitude
+           bikeid
+           usertype
+           birth year
+           gender
+           "@ | Set-Content -Path field_file.txt
+
+.. code-block:: sh
+   :copyable: false
+
+   mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+      --db=test \
+      --collection=test-field-file \
+      --file=rides_no_header.csv \
+      --type=csv \
+      --fieldFile=field_file.txt
+
+Successful import for the :option:`--fields <mongoimport --fields>` and
+:option:`--fieldFile <mongoimport --fieldFile>` options resemble the following:
+   
+.. code-block:: sh
+   :copyable: false
+   
+   2025-07-14T11:48:10.829-0400	connected to: mongodb+srv://[**REDACTED**]@cluster0.zoikgns.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+   2025-07-14T11:48:10.899-0400	3 document(s) imported successfully. 0 document(s) failed to import.
+
+To view the successful data import, you can use the 
+:ref:`Atlas UI <atlas-ui-view-collections>`.
+
+.. figure:: /images/import-test-field-file-mongoimport.png
+   :figwidth: 1200px
+   :alt: Import a CSV file with field types
+
+.. _mongoimport-guide-import-csv-with-fields-and-types:
+
+Import CSV or TSV Into a Collection with Specified Field and Data Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Above, you can see that :binary:`~bin.mongoimport` automatically makes decisions
+on data types. To instead specify the type of some or all of your fields, you
+can use the :option:`--columnsHaveTypes <mongoimport --columnsHaveTypes>`
+option, or add types to the file you use with the :option:`--fieldFile
+<mongoimport --fieldFile>` option.
+
+.. tabs-platforms::
+
+   tabs:
+     - id: macos
+       content: |
+
+        .. code-block:: sh
+           :copyable: true
+
+           echo 'tripduration.auto()
+           starttime.date(2006-01-02 15:04:05)
+           stoptime.date(2006-01-02 15:04:05)
+           start station id.auto()
+           start station name.auto()
+           start station latitude.auto()
+           start station longitude.auto()
+           end station id.auto()
+           end station name.auto()
+           end station latitude.auto()
+           end station longitude.auto()
+           bikeid.auto()
+           usertype.auto()
+           birth year.auto()
+           gender.auto()' > field_file_with_types.txt
+
+     - id: linux
+       content: |
+
+        .. code-block:: sh
+           :copyable: true
+
+           cat << 'EOF' > field_file_with_types.txt
+           tripduration.auto()
+           starttime.date(2006-01-02 15:04:05)
+           stoptime.date(2006-01-02 15:04:05)
+           start station id.auto()
+           start station name.auto()
+           start station latitude.auto()
+           start station longitude.auto()
+           end station id.auto()
+           end station name.auto()
+           end station latitude.auto()
+           end station longitude.auto()
+           bikeid.auto()
+           usertype.auto()
+           birth year.auto()
+           gender.auto()
+           EOF
+
+     - id: windows
+       content: |
+
+        .. code-block:: sh
+           :copyable: true
+
+           @"
+           tripduration.auto()
+           starttime.date(2006-01-02 15:04:05)
+           stoptime.date(2006-01-02 15:04:05)
+           start station id.auto()
+           start station name.auto()
+           start station latitude.auto()
+           start station longitude.auto()
+           end station id.auto()
+           end station name.auto()
+           end station latitude.auto()
+           end station longitude.auto()
+           bikeid.auto()
+           usertype.auto()
+           birth year.auto()
+           gender.auto()
+           "@ | Set-Content -Path field_file_with_types.txt
+
+.. code-block:: sh
+   :copyable: false
+
+   mongoimport --uri 'mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/?retryWrites=true&w=majority' \
+      --db=test \
+      --collection=test-field-file \
+      --file=test-datasets/rides_no_header.csv \
+      --type=csv \
+      --fieldFile=field_file_with_types.txt
+
+Successful import resembles the following:
+   
+.. code-block:: sh
+   :copyable: false
+   
+   2025-07-14T11:48:10.829-0400	connected to: mongodb+srv://[**REDACTED**]@cluster0.zoikgns.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+   2025-07-14T11:48:10.899-0400	3 document(s) imported successfully. 0 document(s) failed to import.
+
+To view the successful data import, you can use the 
+:ref:`Atlas UI <atlas-ui-view-collections>`.
+
+.. figure:: /images/import-field-file-with-types-mongoimport.png
+   :figwidth: 1200px
+   :alt: Import a CSV file with field types and data types
+
+Now, you can see that :binary:`~bin.mongoimport` uses the data types you provide
+to store the imported file.
+
+Useful Command-line Tools
+-------------------------
+
+You can use other command-line programs alongside :binary:`~bin.mongoimport` to
+further streamline your data import.
+
+.. _mongoimport-jq:
+
+JQ
+~~
+
+JQ is a processor for JSON data. It incorporates a powerful filtering and
+scripting language for filtering, manipulating, and generating JSON data. You
+can use a multi-stage pipe to pipe data into :binary:`~bin.mongoimport` via JQ.
+To learn more about how to use JQ, see the `JQ Manual
+<https://jqlang.org/manual/>`__. 
+
+.. _mongoimport-csvkit:
+
+CSVKit
+~~~~~~
+
+CSVKit is a collection of tools for filtering and manipulating CSV data. CSVKit
+tools such as ``csvgrep``, which filters rows based on expressions, and
+``csvcut``, which removes whole columns from CSV input, are useful tools for
+slicing data before providing it to :binary:`~bin.mongoimport`. To learn
+more about how to use CSVKit, see the 
+`CSVKit Documentation <https://csvkit.readthedocs.io/en/latest/index.html>`__.
+
+Learn More
+----------
+
+- See our :ref:`mongoimport` documentation for more details on possible options.
