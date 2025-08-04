@@ -218,7 +218,6 @@ The ``$source`` stage takes a document with the following fields:
        - ``dlq``, which writes the document to your :ref:`Dead Letter Queue <atlas-sp-dlq>`.
        - ``passThrough``, which sends the document to the next stage without key data.
 
-
 .. note::
 
    {+atlas-sp+} requires that documents in the source data stream be
@@ -249,6 +248,10 @@ stream, the ``$source`` stage has the following prototype form:
       "tsFieldName": "<string> (optional)",
       "db" : "<source-db>",
       "coll" : ["<source-coll>",...],
+      "initialSync": {
+        "enable": <boolean>,
+	"parallelism": <integer>
+      },
       "config": { 
         "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
         "fullDocument": "<full-doc-condition>",
@@ -267,10 +270,6 @@ stream, the ``$source`` stage has the following prototype form:
 	  {"<key>": "<value>"},
 	  . . .
 	]
-      },
-      "initialSync": {
-        "enable": <boolean>,
-	"parallelism": <integer>
       }
     }
   }
@@ -332,6 +331,45 @@ The ``$source`` stage takes a document with the following fields:
        these collections act as the streaming data source. If you omit
        this field, your stream processor will source from a
        :ref:`atlas-sp-agg-source-syntax-db`.
+
+   * - ``initialSync``
+     - document 
+     - Optional
+     - Document containing fields pertaining to ``initialSync``
+       functionality.
+
+       {+atlas-sp+} ``initialSync`` allows you to ingest preexisting
+       documents in an {+service+} collection as though they were insert
+       ``changeEvent`` documents. If you enable ``initialSync``, when you start
+       your stream processor, it will first ingest and process all
+       existing documents in the collection before proceeding to
+       ingest and process new incoming ``changeEvent`` documents. Once the
+       ``initialSync`` is complete, it doesn't repeat.
+
+       If you enable ``initialSync``, you can't use
+       ``$hoppingWindow``, ``$sessionWindow``, or ``$tumblingWindow``
+       stages in your pipeline.
+
+       .. important::
+
+	  You can only use ``initialSync`` on collections where the
+	  ``_id`` value of the incoming documents are default generated
+	  :manual:`ObjectId </reference/bson-types/#objectid>` values or
+	  ordered ``int``/``long`` values. All ``_id`` values must be of the
+	  same type.
+
+   * - ``initialSync.enable``
+     - boolean
+     - Conditional
+     - Determines whether or not to enable ``initialSync``. If you
+       declare an ``initialSync`` field, you must set this field.
+
+   * - ``initialSync.parallelism``
+     - integer
+     - Optional
+     - Determines the level of parallelism with which to process the
+       ``initialSync`` operation. If you do not specify a value, it
+       defaults to ``1``.
 
    * - ``config``
      - document 
@@ -448,41 +486,6 @@ The ``$source`` stage takes a document with the following fields:
        batch.
 
        Defaults to ``1000``. 
-
-   * - ``initialSync``
-     - document 
-     - Optional
-     - Document containing fields pertaining to ``initialSync``
-       functionality.
-
-       {+atlas-sp+} ``initialSync`` allows you to ingest preexisting
-       documents in an {+service+} collection as though they were
-       ``changeEvent`` documents. If you enable ``initialSync``, when you start
-       your stream processor, it will first ingest and process all
-       existing documents in the collection before proceeding to
-       ingest and process new incoming ``changeEvent`` documents. Once the
-       ``initialSync`` is complete, it doesn't repeat.
-
-       .. important::
-
-	  You can only use ``initialSync`` on collections where the
-	  ``_id`` value of the incoming documents are default generated
-	  :manual:`ObjectId </reference/bson-types/#objectid>` values or
-	  ordered ``int``/``long`` values. All ``_id`` values must be of the
-	  same type.
-
-   * - ``initialSync.enable``
-     - boolean
-     - Conditional
-     - Determines whether or not to enable ``initialSync``. If you
-       declare an ``initialSync`` field, you must set this field.
-
-   * - ``initialSync.parallelism``
-     - integer
-     - Optional
-     - Determines the level of parallelism with which to process the
-       ``initialSync`` operation. If you do not specify a value, it
-       defaults to ``1``.
 
 .. _atlas-sp-agg-source-syntax-db:
 
