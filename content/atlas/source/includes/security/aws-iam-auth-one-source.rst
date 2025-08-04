@@ -1,18 +1,3 @@
-========================
-AWS IAM Authentication
-========================
-
-.. default-domain:: mongodb
-
-.. meta::
-   :keywords: passwordless auth, passwordless, saml, federated identity management, iam roles
-   :description: Set up AWS IAM authentication for database users to connect to Atlas clusters using IAM roles, reducing authentication mechanisms and secret management.
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 2
-   :class: singlecol
 
 Use an |aws| |iam| User or Role :abbr:`ARN (Amazon Resource Name)` to authenticate a
 database user. Using |aws| |iam| reduces the number of authentication mechanisms and
