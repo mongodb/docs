@@ -1,3 +1,4 @@
+import { Root } from "@/types/ast";
 import { WithId } from "mongodb";
 
 interface StaticAsset {
@@ -7,13 +8,6 @@ interface StaticAsset {
 
 interface UpdatedAsset extends StaticAsset {
   updated_at?: Date;
-}
-
-interface PageAst {
-  options?: {
-    template?: string;
-  }
-  [key: string]: unknown;
 }
 
 interface Facet {
@@ -27,7 +21,7 @@ export interface ASTDocument extends WithId<Document> {
   page_id: string;
   page_path: string;
   filename: string;
-  ast: PageAst;
+  ast: Root;
   static_assets: UpdatedAsset[];
   facets?: Facet[];
 }

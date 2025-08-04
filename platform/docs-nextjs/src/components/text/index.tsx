@@ -1,7 +1,10 @@
-import type { TextNode } from '@/types/ast';
 import React from 'react';
 
-const Text = ({ value }: { value: TextNode['value'] }) => (
+export type TextProps = {
+  value: string;
+}; 
+
+const Text = ({ value }: TextProps) => (
   <React.Fragment>{value}</React.Fragment>
 );
 

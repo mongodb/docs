@@ -1,5 +1,5 @@
+import ComponentFactory from "@/components/component-factory";
 import { getPageDocFromParams } from "@/services/db";
-import Link from "next/link";
 
 export default async function Page({
   params,
@@ -12,9 +12,5 @@ export default async function Page({
     // TODO: create a default 404 page
     return <div>404</div>;
   }
-  return <div>Page here
-    <Link href={`/docs/drivers/csharp/current/compatibility/`}>
-      Go to /docs/drivers/csharp/current/compatibility
-    </Link>
-  </div>;
+  return <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />;
 }
