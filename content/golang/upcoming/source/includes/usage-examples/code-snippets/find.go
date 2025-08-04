@@ -20,9 +20,9 @@ type Restaurant struct {
 	Name         string
 	RestaurantId string `bson:"restaurant_id"`
 	Cuisine      string
-	Address      interface{}
+	Address      any
 	Borough      string
-	Grades       interface{}
+	Grades       any
 }
 
 // end-restaurant-struct

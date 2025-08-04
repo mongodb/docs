@@ -42,7 +42,7 @@ func main() {
 
 	// begin insertDocs
 	coll := client.Database("db").Collection("plants")
-	docs := []interface{}{
+	docs := []any{
 		Plant{Species: "Polyscias fruticosa", PlantID: 1, Height: 27.6},
 		Plant{Species: "Polyscias fruticosa", PlantID: 2, Height: 34.9},
 		Plant{Species: "Ledebouria socialis", PlantID: 1, Height: 11.4},

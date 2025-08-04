@@ -39,7 +39,7 @@ func main() {
 
 	// begin insert docs
 	coll := client.Database("db").Collection("courses")
-	docs := []interface{}{
+	docs := []any{
 		Course{Title: "World Fiction", Department: "English", Enrollment: 35},
 		Course{Title: "Abstract Algebra", Department: "Mathematics", Enrollment: 60},
 		Course{Title: "Modern Poetry", Department: "English", Enrollment: 12},

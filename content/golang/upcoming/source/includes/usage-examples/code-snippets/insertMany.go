@@ -17,9 +17,9 @@ type Restaurant struct {
 	Name         string
 	RestaurantId string        `bson:"restaurant_id,omitempty"`
 	Cuisine      string        `bson:"cuisine,omitempty"`
-	Address      interface{}   `bson:"address,omitempty"`
+	Address      any           `bson:"address,omitempty"`
 	Borough      string        `bson:"borough,omitempty"`
-	Grades       []interface{} `bson:"grades,omitempty"`
+	Grades       []any         `bson:"grades,omitempty"`
 }
 
 // end-restaurant-struct
@@ -48,7 +48,7 @@ func main() {
 	coll := client.Database("sample_restaurants").Collection("restaurants")
 
 	// Creates two sample documents describing restaurants
-	newRestaurants := []interface{}{
+	newRestaurants := []any{
 		Restaurant{Name: "Rule of Thirds", Cuisine: "Japanese"},
 		Restaurant{Name: "Madame Vo", Cuisine: "Vietnamese"},
 	}

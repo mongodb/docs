@@ -47,12 +47,12 @@ func main() {
 	bookColl := client.Database("db").Collection("books")
 	poemColl := client.Database("db").Collection("poems")
 
-	books := []interface{}{
+	books := []any{
 		Book{Title: "My Brilliant Friend", Author: "Elena Ferrante", Length: 331},
 		Book{Title: "Lucy", Author: "Jamaica Kincaid", Length: 103},
 	}
 
-	poems := []interface{}{
+	poems := []any{
 		Poem{Title: "Song of Myself", Author: "Walt Whitman", Year: 1855},
 		Poem{Title: "The Raincoat", Author: "Ada Limon", Year: 2018},
 	}
@@ -282,7 +282,7 @@ func main() {
 		client.Database("db").Collection("books").Drop(context.TODO())
 
 		bookColl := client.Database("db").Collection("books")
-		docs := []interface{}{
+		docs := []any{
 			Book{Title: "My Brilliant Friend", Author: "Elena Ferrante", Length: 331},
 			Book{Title: "Lucy", Author: "Jamaica Kincaid", Length: 103},
 		}

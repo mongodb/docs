@@ -42,7 +42,7 @@ func main() {
 
 	// begin insertDocs
 	coll := client.Database("db").Collection("books")
-	docs := []interface{}{
+	docs := []any{
 		Book{Title: "Atonement", Author: "Ian McEwan", Length: 351},
 		Book{Title: "My Brilliant Friend", Author: "Elena Ferrante", Length: 331},
 		Book{Title: "Lucy", Author: "Jamaica Kincaid", Length: 103},

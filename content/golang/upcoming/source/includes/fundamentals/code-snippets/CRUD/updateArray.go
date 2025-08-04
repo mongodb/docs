@@ -42,7 +42,7 @@ func main() {
 
 	// begin insertDocs
 	coll := client.Database("db").Collection("drinks")
-	docsToInsert := []interface{}{
+	docsToInsert := []any{
 		Drink{Description: "Matcha Latte", Sizes: []int32{12, 16, 20}, Styles: []string{"iced", "hot", "extra hot"}},
 	}
 
@@ -95,7 +95,7 @@ func main() {
 		// Creates a filter and update document to match "sizes" array
 		// values and remove those values
 		// begin filtered positional
-		identifier := []interface{}{bson.D{{"hotOptions", bson.D{{"$regex", "hot"}}}}}
+		identifier := []any{bson.D{{"hotOptions", bson.D{{"$regex", "hot"}}}}}
 		update := bson.D{{"$unset", bson.D{{"styles.$[hotOptions]", ""}}}}
 		opts := options.FindOneAndUpdate().
 			SetArrayFilters(identifier).
