@@ -80,4 +80,17 @@ public class TutorialTests {
         List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
         TestUtils.validateUnorderedResults(expected, output);
     }
+
+    @Test
+    @DisplayName("Test that one-to-one join aggregation pipeline matches output")
+    void TestJoinOneToOne() {
+        var example = new aggregation.pipelines.join1to1.Tutorial();
+        example.loadSampleData();
+        var output = example.runTutorial();
+
+        // Read the expected output file
+        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/join1to1/TutorialOutput.txt");
+        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
+        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+    }
 }
