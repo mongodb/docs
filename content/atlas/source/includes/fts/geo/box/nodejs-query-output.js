@@ -1,0 +1,36 @@
+{
+  name: 'Surry Hills Studio - Your Perfect Base in Sydney',
+  address: {
+    street: 'Surry Hills, NSW, Australia',
+    suburb: 'Darlinghurst',
+    government_area: 'Sydney',
+    market: 'Sydney',
+    country: 'Australia',
+    country_code: 'AU',
+    location: { type: 'Point', coordinates: [Array], is_location_exact: true }
+  }
+}
+{
+  name: 'Sydney Hyde Park City Apartment (checkin from 6am)',
+  address: {
+    street: 'Darlinghurst, NSW, Australia',
+    suburb: 'Darlinghurst',
+    government_area: 'Sydney',
+    market: 'Sydney',
+    country: 'Australia',
+    country_code: 'AU',
+    location: { type: 'Point', coordinates: [Array], is_location_exact: false }
+  }
+}
+{
+  name: "THE Place to See Sydney's FIREWORKS",
+  address: {
+    street: 'Rozelle, NSW, Australia',
+    suburb: 'Lilyfield/Rozelle',
+    government_area: 'Leichhardt',
+    market: 'Sydney',
+    country: 'Australia',
+    country_code: 'AU',
+    location: { type: 'Point', coordinates: [Array], is_location_exact: true }
+  }
+}

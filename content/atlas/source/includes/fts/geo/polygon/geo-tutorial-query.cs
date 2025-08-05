@@ -37,13 +37,12 @@ public class GeoQuery
         // define and run pipeline
         var results = airbnbCollection.Aggregate()
             .Search(Builders<AirbnbDocument>.Search.Compound()
-                .Must(Builders<AirbnbDocument>.Search.GeoWithin(airbnb => airbnb.Address.Location, polygon))
-                .Should((Builders<AirbnbDocument>.Search.Text(airbnb => airbnb.PropertyType, property_type))),
-                indexName: "<INDEX-NAME>")
+                .Must(Builders<AirbnbDocument>.Search.GeoWithin(airbnb => airbnb.Address!.Location, polygon))
+                .Should((Builders<AirbnbDocument>.Search.Text(airbnb => airbnb.PropertyType, property_type))))
             .Limit (10)
             .Project<AirbnbDocument>(Builders<AirbnbDocument>.Projection
                 .Include(airbnb => airbnb.PropertyType)
-                .Include(airbnb => airbnb.Address.Location)
+                .Include(airbnb => airbnb.Address!.Location)
                 .Include(airbnb => airbnb.Name)
                 .Exclude(airbnb => airbnb.Id)
                 .MetaSearchScore(airbnb => airbnb.Score))
@@ -60,14 +59,14 @@ public class AirbnbDocument
 {
     [BsonIgnoreIfDefault]
     public ObjectId Id { get; set; }
-    public String Name { get; set; }
+    public string? Name { get; set; }
     [BsonElement("property_type")] 
-    public string PropertyType { get; set; }
-    public Address Address { get; set; }
+    public string? PropertyType { get; set; }
+    public Address? Address { get; set; }
     public double Score { get; set; }
 }
 [BsonIgnoreExtraElements]
 public class Address 
 {
-    public GeoJsonPoint<GeoJson2DCoordinates> Location { get; set; }
+    public GeoJsonPoint<GeoJson2DCoordinates>? Location { get; set; }
 }

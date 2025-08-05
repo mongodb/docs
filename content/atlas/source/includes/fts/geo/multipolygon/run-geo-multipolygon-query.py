@@ -1,0 +1,60 @@
+# run-geo-multipolygon-query.py
+
+# establish connection and set namespace
+import pymongo
+
+client = pymongo.MongoClient("<connection-string>")
+database = client["sample_airbnb"]
+collection = database["listingsAndReviews"]
+
+# define query
+query = [
+  {
+    "$search": {
+      "geoWithin": {
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [-157.8412413882, 21.2882235819],
+                [-157.8607925468, 21.2962046205],
+                [-157.8646640634, 21.3077019651],
+                [-157.862776699, 21.320776283],
+                [-157.8341758705, 21.3133826738],
+                [-157.8349985678, 21.3000822569],
+                [-157.8412413882, 21.2882235819]
+              ]
+            ],
+            [
+              [
+                [-157.852898124, 21.301208833],
+                [-157.8580050499, 21.3050871833],
+                [-157.8587346108, 21.3098050385],
+                [-157.8508811028, 21.3119240258],
+                [-157.8454308541, 21.30396767],
+                [-157.852898124, 21.301208833]
+              ]
+            ]
+          ]
+        },
+        "path": "address.location"
+      }
+    }
+  },
+  {
+    "$limit": 3
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "name": 1,
+      "address": 1
+    }
+  }
+]
+
+# run query and print results
+results = collection.aggregate(query)
+for document in results:
+    print(document)

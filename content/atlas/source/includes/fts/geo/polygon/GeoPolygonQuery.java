@@ -1,5 +1,4 @@
 import java.util.Arrays;
-import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Aggregates.limit;
 import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Projections.computed;
@@ -12,7 +11,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-public class GeoQuery {
+public class GeoPolygonQuery {
         public static void main( String[] args ) {
                 Document agg = new Document( "$search",
                 new Document( "index", "<INDEX-NAME>")

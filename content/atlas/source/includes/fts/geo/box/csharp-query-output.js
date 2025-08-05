@@ -1,0 +1,3 @@
+{ "name" : "Surry Hills Studio - Your Perfect Base in Sydney", "address" : { "location" : { "type" : "Point", "coordinates" : [151.21554, -33.880290000000002], "is_location_exact" : true }, "street" : "Surry Hills, NSW, Australia", "country" : "Australia" } }
+{ "name" : "Sydney Hyde Park City Apartment (checkin from 6am)", "address" : { "location" : { "type" : "Point", "coordinates" : [151.21346, -33.87603], "is_location_exact" : false }, "street" : "Darlinghurst, NSW, Australia", "country" : "Australia" } }
+{ "name" : "THE Place to See Sydney's FIREWORKS", "address" : { "location" : { "type" : "Point", "coordinates" : [151.17956000000001, -33.862960000000001], "is_location_exact" : true }, "street" : "Rozelle, NSW, Australia", "country" : "Australia" } }
