@@ -36,7 +36,7 @@ Define the Index for the |fts-field-type| Type
       To configure your application, create a ``CMakeLists.txt`` file in
       your project directory. Then, add the following code to the file:
 
-      .. literalinclude:: /includes/fts/field-types/initialize-cmake-c.txt
+      .. literalinclude:: /includes/fts/field-types/initialize-cmake-c.rst
          :caption: CMakeLists.txt
          :language: txt
          :linenos:
