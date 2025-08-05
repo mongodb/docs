@@ -24,10 +24,10 @@
                {+atlas-ui+} by either:
          
                - Clicking :guilabel:`Upload` and selecting a ``.pem`` file from
-               your filesystem and clicking :guilabel:`Save`.
-         
+                 your filesystem and clicking :guilabel:`Save`.
+            
                - Copying the contents of a ``.pem`` file into the provided text
-               area and clicking :guilabel:`Save`.
+                 area and clicking :guilabel:`Save`.
          
                You can concatenate multiple CAs in the same ``.pem`` file or
                in the text area. Users can authenticate with certificates
