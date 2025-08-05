@@ -1,6 +1,5 @@
 - You cannot run |analyzeShardKey| on Atlas
-  :ref:`flex clusters <flex--cluster>` and
-  serverless instances.
+  :ref:`flex clusters <flex--cluster>`.
 - You cannot run |analyzeShardKey| on standalone deployments.
 - You cannot run |analyzeShardKey| directly against a
   :option:`--shardsvr <mongod --shardsvr>` replica set.
