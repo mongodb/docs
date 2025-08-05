@@ -138,13 +138,15 @@ Behavior
 --------
 
 Document Pre- and Post-Images
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. include:: /includes/change-stream-pre-and-post-images-change-events.rst
 
 .. include:: /includes/change-stream-pre-and-post-images-additional-information.rst
 
 Path Disambiguation
-^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~
+
 
 .. versionadded:: 6.1
 
@@ -220,6 +222,171 @@ numeric field:
 * When the numeric string field has leading zeroes (i.e., ``0001``).  
   This is not ambiguous since an integer cannot have leading zeroes.
 
+Update Operations
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-modify-change-event
+
+Array Updates
+~~~~~~~~~~~~~
+
+Updates to arrays produce ``update`` change events, but the
+``updateDescription.updateFields`` can show different values.
+
+For example, consider the following document and updates:
+
+.. code-block:: javascript
+
+   db.students.insertOne( { student_id: 1, scores: [ ] } )
+
+   db.students.updateOne( 
+      { student_id: 1 }, 
+      { $push: { scores: 0.85 } }
+   )
+
+   db.students.updateOne( 
+      { student_id: 1 }, 
+      { $push: { scores: 0.94 } } 
+   )
+
+   db.students.updateOne( 
+      { student_id: 1 }, 
+      { $pull: { scores: 0.94 } } 
+   )
+
+The first update operates on an empty array. Here, the
+:update:`$push` produces an ``update`` change event where the
+field is replaced by single-entry array with the given value:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8
+
+   {
+      _id: { _data: '82642AD66B000000012B022C0100296E5A10045DC4B11BEA5F4319A8E7CAF46816ED71461E5F6964002B060004' },
+      operationType: 'update',
+      clusterTime: Timestamp({ t: 1680529003, i: 1 }),
+      ns: { db: 'communication_chat', coll: 'students' },
+      documentKey: { student_id: 1 },
+      updateDescription: {
+         updatedFields: { scores: [ 0.85 ] },
+         removedFields: [],
+         truncatedArrays: []
+      }
+   }
+
+In the second update operation, the array now contains values.
+The :update:`$push` adds a new entry in the array. The
+``update`` change event then shows it as a change on the new
+position in the array (that is, ``scores.1``):
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8
+
+   {
+     _id: { _data: '82642AD673000000012B022C0100296E5A10045DC4B11BEA5F4319A8E7CAF46816ED71461E5F6964002B060004' },
+     operationType: 'update',
+     clusterTime: Timestamp({ t: 1680529011, i: 1 }),
+     ns: { db: 'communication_chat', coll: 'students' },
+     documentKey: { student_id: 1 },
+     updateDescription: {
+       updatedFields: { 'scores.1': 0.94 },    
+       removedFields: [],
+       truncatedArrays: []
+     }
+   }
+
+If you run the update operation again to add a third score to
+the student's record, it would produce an ``update`` change
+event that modifies ``scores.2``.
+
+Removal of array items with the :update:`$pull` operator
+produces a change event that shows the new array:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8
+
+   {
+     _id: { _data: '82642AD673000000012B022C0100296E5A10045DC4B11BEA5F4319A8E7CAF46816ED71461E5F6964002B060004' },
+     operationType: 'update',
+     clusterTime: Timestamp({ t: 1680529011, i: 1 }),
+     ns: { db: 'communication_chat', coll: 'students' },
+     documentKey: { student_id: 1 },
+     updateDescription: {
+       updatedFields: { scores: [ 0.85 ] },
+       removedFields: [],
+       truncatedArrays: []
+     }
+   }
+
+Array Truncation
+~~~~~~~~~~~~~~~~
+
+Update operations that reduce the number of elements in arrays
+through the :ref:`pipeline updates <updates-agg-pipeline>`, such
+as with the :pipeline:`$addFields` or :pipeline:`$set`
+aggregation stages, show the updated array and new size in the
+``truncatedArrays`` field.
+
+.. code-block:: javascript
+
+   db.students.insertOne( { student_id: 2, scores: [ 0.85, 0.94, 0.78 ] } )
+
+   db.students.updateOne( 
+      { student_id: 2 }, 
+      [ { $addFields: { scores: [ 0.85, 0.94 ] } } ]
+   )
+
+   db.students.updateOne( 
+      { student_id: 2 }, 
+      [ { $addFields: { scores: [ 0.85, 0.94, 0.78 ] } } ]
+   )
+
+The change event from the first update, which used the
+:pipeline:`$addFields` stage to remove a value from the
+``scores`` field shows the change in the ``truncatedArrays``
+field:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 10
+
+   {
+     _id: { _data: '82642AD673000000012B022C0100296E5A10045DC4B11BEA5F4319A8E7CAF46816ED71461E5F6964002B060004' },
+     operationType: 'update',
+     clusterTime: Timestamp({ t: 1680529011, i: 1 }),
+     ns: { db: 'communication_chat', coll: 'students' },
+     documentKey: { student_id: 2 },
+     updateDescription: {
+       updatedFields: {},
+       removedFields: [],
+       truncatedArrays: [ { fields: "scores", newSize: 2 } ]
+     }
+   }
+
+The change event from the second update, which used the
+:pipeline:`$addFields` stage to add a value back to the
+``scores`` field, shows the update in the ``updatedFields``
+field:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8
+
+   {
+     _id: { _data: '82642AD673000000012B022C0100296E5A10045DC4B11BEA5F4319A8E7CAF46816ED71461E5F6964002B060004' },
+     operationType: 'update',
+     clusterTime: Timestamp({ t: 1680529011, i: 1 }),
+     ns: { db: 'communication_chat', coll: 'students' },
+     documentKey: { student_id: 2 },
+     updateDescription: {
+       updatedFields: { scores.2: 0.78 },
+       removedFields: [],
+       truncatedArrays: []
+     }
+   }
 
 Example
 -------
