@@ -15,9 +15,10 @@
 
    #. Add the credentials to your MCP server configuration file.
 
-      Add your Atlas API client ID and secret as arguments 
-      in your MCP server configuration. Replace the placeholder 
-      values with your actual Atlas service account credentials:
+      Add your Atlas API client ID and secret as arguments in the
+      ``"args"`` section of your MCP server configuration. Replace the
+      placeholder values with your specific Atlas service account
+      credentials:
 
       .. list-table::
          :widths: 30 70
@@ -33,20 +34,18 @@
            - Atlas API client secret for authentication.
 
       .. code-block:: json
-         :emphasize-lines: 8-11
+          :emphasize-lines: 7-10
 
-         "MongoDB": {
-           "command": "npx",
-           "args": [
-             "-y",
-             "mongodb-mcp-server",
-             "--connectionString",
-             "<connection-string>",
-             "--apiClientId",
-             "<client-id>",
-             "--apiClientSecret",
-             "<client-secret>",
-             "--readOnly"
-           ]
-         }
-         
+          ...
+          "args": [
+            "-y",
+            "mongodb-mcp-server",
+            "--connectionString",
+            "<connection-string>",
+            "--apiClientId",
+            "<client-id>",
+            "--apiClientSecret",
+            "<client-secret>",
+            "--readOnly"
+          ]
+          ...

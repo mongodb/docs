@@ -6,7 +6,8 @@
    LLM's context, or if you want to persist the connection across sessions, add your 
    connection string to the configuration.
 
-   Replace the placeholder value with your actual connection string.
+   Replace the placeholder value with your specific connection string in
+   the ``"args"`` section of your configuration file.
 
    .. list-table::
       :widths: 30 70
@@ -23,15 +24,14 @@
           <find-connection-string>` and :ref:`Examples <connections-connection-examples>`.
 
    .. code-block:: json
-      :emphasize-lines: 6-7
+      :emphasize-lines: 5-6
 
-      "MongoDB": {
-        "command": "npx",
-        "args": [
-          "-y",
-          "mongodb-mcp-server",
-          "--connectionString",
-          "<connection-string>",
-          "--readOnly"
-        ]
-      }
+      ...
+      "args": [
+         "-y",
+         "mongodb-mcp-server",
+         "--connectionString",
+         "<connection-string>",
+         "--readOnly"
+      ]
+      ...

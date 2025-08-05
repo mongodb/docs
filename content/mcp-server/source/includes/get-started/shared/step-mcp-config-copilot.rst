@@ -14,6 +14,8 @@
    how to configure servers for separate workspaces, see 
    `MCP servers in VS Code <https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server>`__.
 
-   .. literalinclude:: /includes/get-started/shared/common-mcp-config.json
+   .. literalinclude:: /includes/get-started/shared/mcp-config-copilot.json
       :language: json
-      :emphasize-lines: 3-9
+      :emphasize-lines: 3-14
+
+   .. include:: /includes/get-started/shared/connection-string-mcp-config.rst

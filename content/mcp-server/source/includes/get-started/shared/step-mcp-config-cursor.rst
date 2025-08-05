@@ -15,4 +15,6 @@
 
    .. literalinclude:: /includes/get-started/shared/common-mcp-config.json
       :language: json
-      :emphasize-lines: 3-9
+      :emphasize-lines: 4-11
+  
+   .. include:: /includes/get-started/shared/connection-string-mcp-config.rst
