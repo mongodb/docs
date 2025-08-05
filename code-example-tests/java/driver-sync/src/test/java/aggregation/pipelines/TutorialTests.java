@@ -93,4 +93,17 @@ public class TutorialTests {
         List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
         assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
     }
+
+    @Test
+    @DisplayName("Test that multi-field join aggregation pipeline matches output")
+    void TestJoinMultiField() {
+        var example = new aggregation.pipelines.joinMultiField.Tutorial();
+        example.loadSampleData();
+        var output = example.runTutorial();
+
+        // Read the expected output file
+        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/joinMultiField/TutorialOutput.txt");
+        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
+        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+    }
 }

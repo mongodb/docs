@@ -7,6 +7,7 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Field;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.Variable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
