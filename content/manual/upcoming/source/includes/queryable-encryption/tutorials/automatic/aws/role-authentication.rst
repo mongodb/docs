@@ -68,5 +68,14 @@
                 doc! {},
                 None,
             )];
+   
+      .. tab::
+         :tabid: php   
+         
+         .. code-block:: php
+
+            $kmsProviders = [
+               'aws' => [],
+            ];
 
    You cannot automatically retrieve credentials if you are using a named KMS provider.
