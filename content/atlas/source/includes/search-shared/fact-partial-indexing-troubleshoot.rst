@@ -1,3 +1,6 @@
+Indexes Change to ``FAILED``
+----------------------------
+
 Indexes change to the ``FAILED`` status in the following scenarios:
 
 - You create an index on a View that is incompatible with 
@@ -17,7 +20,10 @@ Indexes change to the ``FAILED`` status in the following scenarios:
      of other Views. For example, you can't change or remove 
      the source collection that all descendents originate from.
 
-Indexes stall in the following scenarios:
+Indexes Change to ``STALE``
+---------------------------
+
+Indexes change to the ``STALE`` status in the following scenarios:
 
 .. warning::
 
@@ -30,9 +36,9 @@ Indexes stall in the following scenarios:
 - If the View definition causes an aggregation failure 
   while an index is ``READY``, the index becomes ``STALE``. The 
   index will return to ``READY`` after you resolve the document or 
-  change the view definition so that it doesn't fail anymore. However,
-  the index is queryable until the replication is automatically 
-  removed from the :term:`oplog`.
+  change the view definition so that it doesn't fail anymore. When 
+  ``STALE``, the index remains queryable. If the index falls off the 
+  :term:`oplog`, an index rebuild is triggered.
 
 - If the View definition causes an aggregation pipeline
   failure while the index is ``BUILDING``, the index build is stuck 
@@ -42,3 +48,17 @@ Indexes stall in the following scenarios:
 
 You can view index statuses in the {+atlas-ui+} on the 
 :ref:`index status details <queryable-index>` page.
+
+Error: ``$search`` is only valid as the first stage in a pipeline
+-----------------------------------------------------------------
+
+This error appears when you query a view using a MongoDB version 
+before 8.1.
+
+- If you use a MongoDB version before 8.0, we recommend you upgrade to
+  8.1+ to query the view directly. You can upgrade to 8.0 to query the 
+  source collection.
+
+- If you use MongoDB 8.0, you must query the view index against the 
+  source collection. For example, run ``.aggregate()`` on the 
+  collection instead of the view.

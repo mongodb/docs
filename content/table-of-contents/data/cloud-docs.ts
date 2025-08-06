@@ -2044,9 +2044,9 @@ const tocData: TocItem[] = [
                 ],
               },
               {
-                label: "Transform Documents & Filter Collections",
+                label: "MongoDB Views Compatibility",
                 contentSite: "cloud-docs",
-                url: "/docs/atlas/atlas-search/transform-documents-collections",
+                url: "/docs/atlas/atlas-search/view-support",
               },
               {
                 label: "Search Playground",
@@ -2217,9 +2217,9 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: "Transform Documents & Filter Collections",
+            label: "MongoDB Views Compatibility",
             contentSite: "cloud-docs",
-            url: "/docs/atlas/atlas-vector-search/transform-documents-collections",
+            url: "/docs/atlas/atlas-vector-search/view-support",
           },
           {
             label: "Vector Quantization",
