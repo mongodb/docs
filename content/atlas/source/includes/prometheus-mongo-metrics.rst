@@ -4578,7 +4578,6 @@
             "query": "prometheus",
             "queryValue": "",
             "refresh": 1,
-            "regex": "/thanos.*/",
             "skipUrlSync": false,
             "type": "datasource"
           },
