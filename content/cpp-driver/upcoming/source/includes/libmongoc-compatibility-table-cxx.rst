@@ -7,7 +7,7 @@
      - Minimum libmongoc Version
 
    * - 4.2.x
-     - 2.0.2
+     - 2.1.0
 
    * - 4.1.x
      - 2.0.0
