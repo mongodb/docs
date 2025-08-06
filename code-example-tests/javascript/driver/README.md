@@ -272,6 +272,29 @@ in your code example, expect an exact match:
 expect(rawExpectedOutput).toStrictEqual(result);
 ```
 
+If your output contains MongoDB data types that require special handling when
+reading from file, you can use the provided helper function to read the output.
+
+Import the helper function at the top of the test file:
+
+```javascript
+import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
+```
+
+And then use this function to verify the output, providing the `'ordered'` parameter:
+
+```javascript
+const arraysMatch = outputMatchesExampleOutput(
+  outputFilepath,
+  result,
+  'ordered'
+);
+expect(arraysMatch).toBeTruthy();
+```
+
+The function returns `true` if all elements are present and in the correct order, or
+`false` if they're not.
+
 ##### Verify unordered output
 
 If you expect the output to be in a random order, as when you are not performing
@@ -281,13 +304,17 @@ of the output is present in your output file.
 Import the helper function at the top of the test file:
 
 ```javascript
-import unorderedArrayOutputMatches from '../../../utils/outputMatchesExampleOutput.js';
+import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
 ```
 
-And then use this function to verify the output:
+And then use this function to verify the output, providing the `'unordered'` parameter:
 
 ```javascript
-const arraysMatch = unorderedArrayOutputMatches(outputFilepath, result);
+const arraysMatch = outputMatchesExampleOutput(
+  outputFilepath,
+  result,
+  'unordered'
+);
 expect(arraysMatch).toBeTruthy();
 ```
 
@@ -306,14 +333,19 @@ for how to create a local deployment.
 ### Create a .env file
 
 Create a file named `.env` at the root of the `/javascript/driver` directory.
-Add your connection string as an environment value named `CONNECTION_STRING`:
+Add the following environment variables:
 
 ```
 CONNECTION_STRING="<your-connection-string>"
+TZ=UTC
 ```
 
 Replace the `<your-connection-string>` placeholder with the connection
 string from the Atlas cluster or local deployment you created in the prior step.
+
+The `TZ` variable sets the Node.js environment to use the UTC time zone. This
+is required to enforce time zone consistency between dates across different
+local environments and CI when running the test suite.
 
 ### Run All Tests from the command line
 
