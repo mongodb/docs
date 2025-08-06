@@ -220,3 +220,48 @@ The ``$externalFunction`` stage takes a document with the following fields:
        - ``$addFields``
        - ``$replaceRoot``
        - ``$set``
+
+Behavior
+~~~~~~~~
+
+The :pipeline:`$externalFunction` stage sends a request to the specified AWS Lambda
+resource. If the request is synchronous, the response is returned in the specified field
+and the pipeline continues processing. If the request is asynchronous, the
+pipeline continues processing without waiting for the response.
+
+If a synchronous request fails, the pipeline's error handling behavior is determined 
+by the ``onError`` field. If the request is asynchronous, the ``onError`` field 
+only applied to AWS API errors, as opposed to AWS Lambda function errors. If the 
+``onError`` field is not specified, the default behavior is to send the affected
+document to the :term:`dead letter queue`. 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - ``onError`` Value
+     - Behavior
+
+   * - ``"dlq"``
+     - The affected document is sent to the dead letter queue.
+
+   * - ``"ignore"``
+     - The affected document is ignored.
+
+   * - ``"fail"``
+     - The stream processor is terminated on error.
+
+If the pipeline can't convert the document to proper JSON, or the configured 
+pipeline does not create a valid bson object as a product of the final stage, 
+the document is sent to the :term:`dead letter queue` regardless of the 
+``onError`` setting.
+
+Errors arising from incorrect configuration of the ``$externalFunction`` operator 
+itself, such as invalid expressions, do not trigger the ``onError`` behavior. 
+Instead, the stream processor fails with an error message. The {+atlas-sp+} pipeline 
+retries failed requests that may be the result of transient errors.
+
+.. note:: 
+
+   The ``$externalFunction`` stage is not supported in the :ref:`Atlas Data Lake <atlas-data-lake>`.
+ 
