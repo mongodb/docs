@@ -18,7 +18,7 @@ Building Continuously Updating RAG Applications
    :depth: 1
    :class: singlecol
 
-Use native stream processing and vector search in MongoDB Atlas to continuously
+Use MongoDB Atlas Stream Processing and Vector Search to continuously
 update, store, and search embeddings through a unified interface.
 
 **Use cases:** `Gen AI
@@ -29,92 +29,83 @@ update, store, and search embeddings through a unified interface.
 `Healthcare <https://www.mongodb.com/industries/healthcare>`__, `Retail
 <https://www.mongodb.com/industries/retail>`__
 
-**Products:** `Atlas <http://mongodb.com/atlas>`__, `Atlas Vector Search
-<https://www.mongodb.com/products/platform/atlas-vector-search>`__, `Atlas
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, `MongoDB Atlas Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__, `MongoDB Atlas
 Stream Processing
 <https://www.mongodb.com/products/platform/atlas-stream-processing>`__
 
-**Partners:** `Confluent <http://confluent.io/>`__, `AWS <http://aws.com/>`__
+**Partners:** `Confluent <http://confluent.io/>`__, `AWS <https://aws.amazon.com/>`__
 
 Solution Overview
 -----------------
 
-Whether organizations leverage AI to optimize business processes or enhance
-customer-facing applications, providing AI models with up-to-date data is
-essential to delivering a differentiated experience. While retrieval-augmented
-generation (`RAG
-<https://www.mongodb.com/basics/retrieval-augmented-generation>`__) systems
-enable organizations to ground large language models (`LLMs
-<https://www.mongodb.com/basics/large-language-models>`__) easily
-and foundational models with the truth of their proprietary data, keeping that
-data fresh adds another level of complexity.
+Providing models with up-to-date data is essential so that they can use relevant
+context when offering recommendations beyond a one-size-fits-all AI approach.
+`Retrieval-augmented generation
+<https://www.mongodb.com/basics/retrieval-augmented-generation>`__ (RAG) systems
+enable organizations to ground `large language models
+<https://www.mongodb.com/basics/large-language-models>`__ (LLMs) and other
+foundational models in the truth of their proprietary data. However, maintaining
+the underlying data is complex. To ensure that models provide accurate answers,
+it is essential to continuously update the vector embeddings that form the core
+of RAG systems to represent the latest information available. 
 
-By continuously updating vector embeddings, the core of RAG systems, AI models
-have up-to-date data to provide pertinent and accurate answers. Additionally,
-different embedding models may offer higher levels of accuracy depending on
-their primary purpose. Take, for example, an embedding model trained primarily
-on a specific language, such as Japanese or Simplified Chinese, instead of a
-more popular model that might have general knowledge of several languages. The
-specialized model will likely create embeddings that enable the foundation 
-model or LLM to output content more accurately.
+Furthermore, the choice of embedding model impacts the quality of AI outputs
+because different models are optimized for different purposes and data types.
+For example, an embedding model trained on a particular language will create
+more contextually appropriate embeddings for that language than a
+general-purpose model trained across many languages.
 
-This solution addresses the issue of continuously updating and routing the
-creation of vector embeddings in a RAG system. By leveraging `MongoDB Atlas
-Stream Processing
+By leveraging MongoDB Atlas' native `Stream Processing
 <https://www.mongodb.com/products/platform/atlas-stream-processing>`__ and
-`MongoDB Atlas Vector Search
-<https://www.mongodb.com/products/platform/atlas-vector-search>`__, both native
-capabilities in MongoDB Atlas, this solution walks developers through
-continuously updating, storing, and searching embeddings with a single 
-interface.
+`Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__ capabilities,
+this solution allows developers to continuously update, store, and search
+embeddings within a single interface.
 
-While this solution demonstrates creating vector embeddings of song lyrics in
-different languages, the scenario is relevant to many industries and use cases,
-including:
+This solution is relevant to many industries and use cases, including:
 
 - **Financial services:** Financial documents, legal policies, and contracts
   often use multiple languages and differ based on country regulations.
-  Empowering loan officers with an AI-powered interface for expediting loan
-  creation can optimize banking workflows; however, the optimization will only
-  benefit as much as the data is relevant and fresh.
+  Empowering loan officers with an AI-powered interface using relevant and fresh
+  data for expediting loan creation can optimize banking workflows.
 
-- **Healthcare and Insurance:** From constantly updating patient records to 
-  AI-powered underwriting of insurance policies, it’s important that any RAG 
-  system that optimizes these processes has access to the latest information.
+- **Healthcare and Insurance:** RAG systems that help update patient records or
+  underwrite insurance policies need access to up-to-date information.
 
-- **Retail:** Personalizing retail experiences by delivering the right offer at
-  the right time to the right customer is critical. However, consider the many
-  languages that shoppers might use and product descriptions that have to
-  match. Routing up-to-date, contextual data to the most accurate embedding
-  model can improve these experiences.
+- **Retail:** Up-to-date contextual data is crucial for RAG systems to select
+  the right embedding model, enabling personalized experiences for customers
+  regardless of the language they use.
 
 Reference Architectures
 -----------------------
 
-With MongoDB
-~~~~~~~~~~~~
+This solution uses the following components:
 
-- **MongoDB:** With a MongoDB cluster deployed in Atlas, it allows you to store
-  the lyrics and related information under the same document (tags, vectors,
-  etc.). Additionally, Atlas provides a vector index to support semantic 
-  searches using the `MongoDB Aggregation Framework <https://www.mongodb.com/basics/aggregation>`__.
-- **Atlas Stream Processing:** This Stream Processing Instance subscribes to
-  the events generated by MongoDB, filters the relevant information, transforms
-  the events, and emits them to the corresponding Kafka topic. Additionally, it
-  will subscribe to the Kafka cluster to update the documents that change.
-- **Confluent Kafka cluster:** This managed Kafka cluster will receive the new
-  documents and updates from current documents to be processed. Additionally,
-  the events received by the processor will be directed to Atlas Stream 
+- **MongoDB Atlas Cluster:** Enables the flexible storage of various data types
+  including text, associated metadata, and corresponding vector embeddings in
+  documents. Vector index in Atlas directly supports efficient semantic search
+  queries within the database, which you can use with the `MongoDB
+  Aggregation Framework <https://www.mongodb.com/basics/aggregation>`__.
+
+- **Confluent Kafka Cluster:** Receives document updates and new documents from
+  producers and makes them available for further processing by Atlas Stream
   Processing.
 
-- **Metadata service:**
+- **Atlas Stream Processing:** Subscribes to the event streams generated by
+  MongoDB, filters relevant information, transforms events, and emits them to
+  the corresponding Kafka topic. It also subscribes to the Kafka cluster to
+  process updates and propagate changes back to the database.
 
-  - **Embedding generator:** Python script that subscribes to the Kafka input
-    topics (both Spanish and English). For each message received, it reads the
-    lyrics and generates an embedding using a model specific for each 
-    language.
-  - **Tags extractor:** Python script that extracts the tags from the lyrics
-    (the 10 most common nouns) and adds it to the resulting event.
+- **Metadata Service:**
+
+  - **Embedding Generator:** Python script that subscribes to the Kafka input
+    topics. For each message received, it generates an embedding using a
+    specialized machine learning model.
+
+  - **Tags Extractor:** Python script that analyzes incoming data to identify
+    relevant structured metadata to enrich the document for indexing, search, or
+    analysis.
 
 .. figure:: /includes/images/industry-solutions/RefArchitecture_StreamProcessing_WithMongoDB.svg
    :figwidth: 1200px
@@ -125,154 +116,114 @@ With MongoDB
 Data Model Approach
 -------------------
 
+In the demo solution, the data model is a collection of documents that
+encapsulate all relevant information about a song. MongoDB's document data model
+stores diverse data types alongside their embeddings, allowing for easy and fast
+data retrieval. 
+
+The `sample data
+<https://github.com/dsdlt/mongodb-scalable-document-embeddings/tree/main/dataset>`__
+has two datasets available for import: ``archive_lyrics_small1`` and
+``archive_lyrics_small2``. The documents in these datasets have the following
+structure:
+
 .. code-block:: javascript
    :copyable: true
+   :emphasize-lines: 9-10
 
    {
       "title": "Hurricane",
-      "genre": "rock",
       "artist": "Bob Dylan",
       "year": 1976,
-      "views": 307418,
       "lyrics": "...",
       "language": "en",
+      "genre": "rock",
       "duration": 61,
       "lyrics_embeddings_en": [...],
-      "tags": ["man", "story", "night"]
+      "tags": ["man", "story", "night"]   // only in archive_lyrics_small1
    }
 
-The data we currently have about the song consists of the following fields:
+In this solution, Atlas Stream Processing uses the following data fields for the
+output topic:
 
-- **Title:** Name of the song
-- **Genre:** a single-worded string containing a music style from a list of 6 
-  genres
-- **Artist:** Name of the artist
-- **Year:** The year in which the song was written
-- **Views:** Number of times the song has been listened to
-- **Lyrics:** A string field containing the lyrics with each line separated by 
-  a new line delimiter
-- **Language:** The language of the lyrics in ISO-369. We are only storing 
-  songs in English and Spanish.
-- **Duration:** Duration of the song in seconds
-- **Lyrics embedding vector:** language-specific embeddings vector
-- **Tags:** A list of tags associated with the lyrics
+- ``lyrics_embeddings_en``/``lyrics_embeddings_es``: Language-specific lyrics
+  embedding vector
 
-The benefit of using the document data model is that it allows you to store all
-the related information of a song in a single document for easy and fast 
-retrieval.
+- ``tags``: Only in the ``archive_lyrics_small1`` dataset, lists
+  frequently-occurring words in the lyrics
 
-Building the Solution
----------------------
+Build the Solution
+------------------
 
-In the `GitHub repository
-<https://github.com/dsdlt/mongodb-scalable-document-embeddings>`__ you will
-find detailed instructions on how to build the solution to update your 
-embeddings asynchronously and at scale, leveraging MongoDB Atlas.
+The `GitHub repository
+<https://github.com/dsdlt/mongodb-scalable-document-embeddings>`__ contains
+detailed instructions for replicating this solution, allowing you to update your
+embeddings asynchronously and at scale with MongoDB Atlas.
+
+The ``README`` guides you through the following steps:
 
 .. procedure::
    :style: normal
 
-   .. step:: Create a MongoDB cluster
+   .. step:: Set up the Environment
 
-      The first step is to create a MongoDB cluster. If you don't have an 
-      Atlas account, create one following the steps in this link: https://www.mongodb.com/docs/guides/atlas/account/.
+      Clone the repository, set up a virtual environment, and install necessary dependencies.
 
-      We will create a cluster in Atlas using AWS as our cloud provider and
-      us-east-1 as our region. Additionally, create an Atlas Stream Processing
-      Instance (SPI) following the instructions in the documentation:
-      https://www.mongodb.com/docs/atlas/atlas-sp/manage-processing-instance/.
+   .. step:: Load the Dataset
       
-   .. step:: Create a Kafka cluster in Confluent
+      .. important:: 
 
-      To create a Kafka cluster in Confluent Cloud follow the instructions in 
-      their documentation: https://docs.confluent.io/cloud/current/clusters/create-cluster.html#create-ak-clusters.
+         If you don't already have an Atlas account, :ref:`join now
+         <atlas-getting-started>` and :ref:`create a cluster
+         <deploy-atlas-m0-cluster>`.
 
-      Once you have created the cluster, go to cluster settings and copy the
-      bootstrap URL.
+      Use the `provided script
+      <https://github.com/dsdlt/mongodb-scalable-document-embeddings/blob/main/dataset/data_load.sh>`__
+      to load the data with :ref:`<mongoimport>`.
 
-      .. figure:: /includes/images/industry-solutions/createkafkacluster1.png
-         :figwidth: 750px
-         :alt: Kafka cluster settings
+   .. step:: Configure a Kafka Cluster in Confluent
 
-         Figure 2. Kafka cluster settings
+      Follow the instructions in the `Confluent documentation
+      <https://docs.confluent.io/cloud/current/clusters/create-cluster.html#create-ak-clusters>`__
+      to create a Kafka Cluster.
+
+      .. _is-copy-bootstrap-URL:
       
-      Then, create an API key to connect to your cluster.
+      Copy your bootstrap URL from the ``Cluster Settings`` tab on Confluent and
+      use the Kafka REST API to create an API key to connect to your cluster.
 
-      .. figure:: /includes/images/industry-solutions/createkafkacluster2.png
-         :figwidth: 750px
-         :alt: API key settings
+      Create the topics ``SpanishInputTopic``, ``EnglishInputTopic``, and
+      ``OutputTopic`` in the ``Topics`` tab on Confluent.
 
-         Figure 3. API key settings
+   .. step:: Configure the Stream Processing Connection Registry
 
-      The next step is to configure the topics for use in this solution:
-      SpanishInputTopic, EnglishInputTopic, and OutputTopic.
-      
-      .. figure:: /includes/images/industry-solutions/createkafkacluster3.png
-         :figwidth: 1200px
-         :alt: Topic settings
+      Use the :ref:`Confluent bootstrap URL <is-copy-bootstrap-URL>` in the
+      connection registry to configure a new connection between the :ref:`Atlas
+      Stream Processing Instance <atlas-sp-tutorial>` and the Kafka Cluster.
 
-         Figure 4. Topic settings
+      Connect the Atlas Stream Processing Instance to the Atlas cluster.
 
-   .. step:: Configure the Stream Processing connection registry
+   .. step:: Configure Atlas Stream Processing
 
-      To configure a new connection, click the configure button in the Stream
-      Processing Instance, then click Connection Registry and add a new 
-      connection.
+      Copy your `connection string
+      <https://www.mongodb.com/docs/atlas/atlas-stream-processing/tutorial/#get-the-stream-processing-instance-connection-string.>`__
+      for connecting to the Stream Processing Instance.
 
-      You will use this to connect the Atlas Stream Processing Instance with 
-      the Kafka Cluster.
+      Use the :ref:`MongoDB Shell (mongosh) <mdb-shell-overview>` to configure
+      the pipelines and connections in the Stream Processing Instance.
 
-      Once you have created your Kafka cluster, Confluent will provide you with
-      the bootstrap server URL, username, and password for the Connection
-      Registry.
-      
-      .. figure:: /includes/images/industry-solutions/configurespconnection1.png
-         :figwidth: 1200px
-         :alt: Stream Processing connection registry settings
+   .. step:: Launch the Processor Scripts
 
-         Figure 5. Stream Processing connection registry settings
+      Execute the metadata service to subscribe to the input topics, create the
+      tags and embeddings for the corresponding language according to the
+      information received in the event, and write the event to the output
+      topic.
 
-      Next, create a connection from the Atlas Stream Processing Instance to
-      the MongoDB Atlas cluster.
-      
-      .. figure:: /includes/images/industry-solutions/configurespconnection2.png
-         :figwidth: 1200px
-         :alt: Stream Processing to Atlas settings
+   .. step:: Create an Atlas Vector Search Index
 
-         Figure 6. Stream Processing to Atlas settings
-
-   .. step:: Connect to the Stream Processing instance
-
-      To configure the pipelines and connections in the Stream Processing 
-      Instance, you can connect to the cluster using the Mongo Shell (mongosh).
-
-      When clicking on the Connect button in the Stream Processing Instance, 
-      the Atlas UI provides instructions on connecting to the instance.
-
-      .. figure:: /includes/images/industry-solutions/connectstreamprocessing1.png
-         :figwidth: 1200px
-         :alt: Connect to Stream Processing
-
-         Figure 7. Connect to Stream Processing
-
-   .. step:: Configuring Atlas Stream Processing
-
-      You can follow the steps to configure Atlas Stream Processing in the
-      README file in the GitHub repo. There you will learn how to create the
-      pipelines to subscribe to changes in MongoDB, emit to each
-      language-specific topic, and merge the events containing the processed
-      data with the embeddings received from the Kafka cluster into MongoDB 
-      using a MongoDB aggregation stage.
-
-   .. step:: Create the Atlas Vector Search indexes
-
-      Next, you will create language-specific vector indexes in Atlas Search.
-
-      Visit the `Atlas Vector Search Quick Start guide <https://www.mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/?tck=ai_as_web>`__ 
-      and start building smarter searches.
-
-      The definition for the Atlas Vector Search Index for Spanish is as 
-      follows:
+      Create and configure an :ref:`Atlas Vector Search index
+      <avs-create-index>` for ``lyrics_embeddings_es``. You must structure the
+      search index as follows:
 
       .. code-block:: javascript
          :copyable: true
@@ -288,8 +239,9 @@ embeddings asynchronously and at scale, leveraging MongoDB Atlas.
             ]
          }
 
-      The definition for the Atlas Vector Search Index for English is as
-      follows:
+      Create and configure an :ref:`Atlas Vector Search index
+      <avs-create-index>` for ``lyrics_embeddings_en``. You must structure the
+      search index as follows:
       
       .. code-block:: javascript
          :copyable: true
@@ -305,58 +257,45 @@ embeddings asynchronously and at scale, leveraging MongoDB Atlas.
             ]
          }
 
-   .. step:: Run the metadata service
+   .. step:: Search and Analyze Large-Scale Documents using Vector Search
 
-      The metadata service is a Python script that will subscribe to the input
-      topics, create the tags and embeddings for the corresponding language
-      according to the information received in the event, and write the event 
-      to the output topic.
-
-   .. step:: Run a semantic search
-
-      We created a script in Python to help you interactively run semantic
-      queries. You can find the script in the repository under the client 
-      folder.
+      Use the provided `query_client.py
+      <https://github.com/dsdlt/mongodb-scalable-document-embeddings/blob/main/client/query_client.py>`__
+      script to run semantic queries using Atlas Vector Search in a chat
+      interface.
 
 Key Learnings
 -------------
 
-- **Maintain embedding relevancy:** Regularly update data embeddings to ensure
-  your semantic searches remain accurate, especially if your documents change 
-  frequently.
-- **Optimize language-model pairing:** To maximize semantic search accuracy,
-  ensure your large language model (LLM) closely aligns with the language of
-  your data to significantly enhance the relevance and precision of your search results.
-- **Embrace flexible embeddings:** MongoDB's flexible data model eliminates the
-  need for rigid schema definitions. This flexibility allows you to store
-  embeddings directly alongside your data, regardless of their length or the 
+- **Maintain embedding relevance:** Regularly update data embeddings to ensure
+  your semantic searches remain accurate.
+  
+- **Optimize language-model pairing:** Ensure that your LLM closely aligns with
+  the language of your data to enhance the relevance and precision of your
+  search results.
+
+- **Embrace flexible embeddings:** MongoDB's flexible data model allows you to store
+  embeddings directly alongside your data, regardless of their length or the
   model used to generate them.
+
 - **Choose the right similarity function:** The effectiveness of your semantic
   searches depends on the chosen similarity function. Tailor your selection to 
   your specific use case.
-- **Asynchronous embedding generation:** Generating embeddings can be
-  computationally expensive. Consider running this task asynchronously to avoid
-  impacting your application's performance. Leverage the cloud's elasticity by
-  horizontally scaling the functions responsible for embedding generation to 
-  handle bursts in workload.
 
-Technologies and Products Used
-------------------------------
+- **Generate asynchronous embeddings:** Create embeddings asynchronously to
+  maintain your application performance and scale generation functions
+  horizontally.
 
-MongoDB Developer Data Platform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- `Atlas Database <http://mongodb.com/atlas>`__
-- `Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
-- `Atlas Stream Processing <https://www.mongodb.com/products/platform/atlas-stream-processing>`__
-
-Partner Technologies
-~~~~~~~~~~~~~~~~~~~~
-
-- Confluent Cloud
-- AWS EC2
-
-Author
-------
+Authors
+-------
 
 David Sanchez, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-claim-management`
+
+- :ref:`arch-center-is-rag-chatbot`
+
+- :ref:`arch-center-is-fireworks-rag`
