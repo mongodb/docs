@@ -1,6 +1,6 @@
 - **Configuration file**
 
-  ``~/Migrator/user.properties``
+  ``~/.mongodb/relational-migrator/user.properties``
 
 - **Downloaded JDBC Drivers**
 
@@ -8,4 +8,4 @@
 
 - **Log files**
 
-  ``~/Migrator/Logs/migrator.log``
+  ``~/.mongodb/relational-migrator/migrator.log``
