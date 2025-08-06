@@ -7,19 +7,13 @@
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
-     - MongoDB 5.0
-     - MongoDB 4.2
 
    * - 5.2 to 5.5
-     - ✓
-     - ✓
      - ✓
      - ✓
      - ✓
 
    * - 4.10 to 5.1
      - ⊛
-     - ✓
-     - ✓
      - ✓
      - ✓
