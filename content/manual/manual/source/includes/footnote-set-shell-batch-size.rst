@@ -1,4 +1,4 @@
-.. [#set-shell-batch-size] You can set the ``DBQuery.shellBatchSize``
-   attribute to change the number of documents from the default value of
-   ``20``.
+.. [#set-shell-batch-size] You can use :ref:`config.set("displayBatchSize")
+   <mongosh-configure-api-params>` to change the number of documents from 
+   the default value of ``20``.
 
