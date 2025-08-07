@@ -95,6 +95,8 @@ Improvements
   in a gap.
 - Improves agent discovery to avoid project-wide failures after config
   node is removed.
+- Ops Manager now allows users to download logs for a specific time range 
+  via UI, CLI, and API
 
 Bug Fixes 
 ~~~~~~~~~

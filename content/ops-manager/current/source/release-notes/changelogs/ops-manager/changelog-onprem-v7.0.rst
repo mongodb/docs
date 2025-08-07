@@ -23,6 +23,8 @@
 - Improved backup daemon configuration so ``emptyDaemonFilter`` arrays match as intended.
 - Cache S3 custom keystore creation and reduce excessive log calls in OEM S3 operations.
 - Added and improved validations in Automation and various workflows.
+- Ops Manager now allows users to download logs for a specific time range 
+  via UI, CLI, and API
 
 Bug Fixes
 ```````````
