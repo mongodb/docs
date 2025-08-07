@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.11)
+project(atlas-search-project LANGUAGES C)
+add_executable (query.out synonyms_equivalent_query.c)
+find_package(mongoc <version> REQUIRED)
+target_link_libraries(query.out mongoc::mongoc)

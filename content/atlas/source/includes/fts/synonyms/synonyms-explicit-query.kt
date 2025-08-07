@@ -16,7 +16,7 @@ fun main() {
         // define query
         val agg = Document(
             "\$search",
-            Document("index", "synonyms-tutorial")
+            Document("index", "default")
                 .append(
                     "text",
                     Document("query", "boat")

@@ -3,47 +3,58 @@ const assert = require("assert");
 
 const agg = [
   {
-    '$search': {
-      'index': 'synonyms-tutorial',
-      'compound': {
-        'should': [
+    $search: {
+      index: "default",
+      compound: {
+        should: [
           {
-            'text': {
-              'path': 'title',
-              'query': 'boat',
-              'synonyms': 'transportSynonyms'
+            text: {
+              path: "title",
+              query: "boat",
+              synonyms: "transportSynonyms"
             }
-          }, {
-            'text': {
-              'path': 'title',
-              'query': 'hat',
-              'synonyms': 'attireSynonyms'
+          }, 
+          {
+            text: {
+              path: "title",
+              query: "hat",
+              synonyms: "attireSynonyms"
             }
           }
         ]
       }
     }
-  }, {
-    '$limit': 10
-  }, {
-    '$project': {
-      '_id': 0,
-      'title': 1,
-      'score': {
-        '$meta': 'searchScore'
+  }, 
+  {
+    $limit: 10
+  }, 
+  {
+    $project: {
+      _id: 0,
+      title: 1,
+      score: {
+        $meta: "searchScore"
       }
     }
   }
 ];
 
-MongoClient.connect(
-  "<connection-string>",
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  async function (connectErr, client) {
-    assert.equal(null, connectErr);
+// Connection URI
+const uri = "<connection-string>";
+
+MongoClient.connect(uri)
+  .then((client) => {
     const coll = client.db("sample_mflix").collection("movies");
-    let cursor = await coll.aggregate(agg);
-    await cursor.forEach((doc) => console.log(doc));
-    client.close();
-  }
-);
+    return coll
+      .aggregate(agg)
+      .toArray()
+      .then((results) => {
+        console.log(results);
+        client.close();
+        process.exit(0);
+      });
+  })
+  .catch((err) => {
+    console.error("Error:", err);
+    process.exit(1);
+  });

@@ -27,19 +27,22 @@ func main() {
 	// set namespace
 	collection := client.Database("sample_mflix").Collection("movies")
 	// define pipeline
-	searchStage := bson.D{{"$search", bson.D{{"text", bson.D{{"index", "synonyms-tutorial"}, {"path", "title"}, {"query", "boat"}, {"synonyms", "transportSynonyms"}}}}}}
+	searchStage := bson.D{{"$search", bson.D{{"index", "default"}, {"text", bson.D{{"path", "title"}, {"query", "boat"}, {"synonyms", "transportSynonyms"}}}}}}
 	limitStage := bson.D{{"$limit", 10}}
 	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
 	// specify the amount of time the operation can run on the server
-	opts := options.Aggregate().SetMaxTime(5 * time.Second)
-	// run pipeline
+	opts := options.Aggregate()
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{searchStage, limitStage, projectStage}, opts)
 	if err != nil {
 		panic(err)
 	}
 	// print results
 	var results []bson.D
-	if err = cursor.All(context.TODO(), &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		panic(err)
 	}
 	for _, result := range results {

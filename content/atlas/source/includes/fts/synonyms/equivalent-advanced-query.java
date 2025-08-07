@@ -15,7 +15,7 @@ import org.bson.Document;
 public class SynonymsEquivalentQuery {
 	public static void main( String[] args ) {
 		Document agg = new Document("$search",
-			new Document("index", "synonyms-tutorial")
+			new Document("index", "default")
 			.append("compound", 
 				new Document("should", Arrays.asList(new Document("text", 
                 	new Document("path", "title")

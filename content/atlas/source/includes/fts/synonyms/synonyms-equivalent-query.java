@@ -16,7 +16,7 @@ public class SynonymsEquivalentQuery {
   public static void main( String[] args ) {
     // define query
     Document agg = new Document("$search",
-        new Document("index", "synonyms-tutorial")
+        new Document("index", "default")
         .append("text", 
             new Document("query", "automobile")
             .append("path","title")
