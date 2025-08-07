@@ -1,6 +1,6 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient } = require('mongodb');
 // Replace the placeholder with your connection string.
-const uri = "<connection-string>";
+const uri = '<connection-string>';
 const client = new MongoClient(uri);
 export async function run() {
   try {

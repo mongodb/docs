@@ -1,6 +1,6 @@
 .Group(
     id: o => o.Products.ProductId,
-    group: g => new 
+    group: g => new
     {
         ProductId = g.Key,
         Product = g.First().Products.Name,

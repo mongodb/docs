@@ -1,13 +1,12 @@
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import { promisify } from 'util';
-import { exec as childExec } from 'child_process';
+import { processFiles } from "../../processFiles.js";
+import { exec as childExec, execSync } from "child_process";
+import fs from "fs/promises";
+import { promisify } from "util";
+import path from "path";
 
 const exec = promisify(childExec);
 
 // ------ CONFIGURATION: Set these values for your language/project ----------
-// Add specific files or folders to IGNORE_PATTERNS to keep them from being processed by this script
 const IGNORE_PATTERNS = new Set([
   'bin',
   'Examples.csproj',
@@ -16,171 +15,136 @@ const IGNORE_PATTERNS = new Set([
   'obj'
 ]);
 
-// Add file extensions to COPY and SNIP to designate what types should be copied or snipped
-const COPY_PATTERNS = new Set(['.json', '.txt']);
-const SNIP_PATTERNS = new Set(['.cs', '.sh']);
-
-// Change to match the language and product specific path
-const LANGUAGE_PATH = 'csharp/driver';
+const START_DIRECTORY = "code-example-tests/csharp/driver/Examples";
+const OUTPUT_DIRECTORY = "content/code-examples/tested/csharp/driver";
 // ------ END CONFIGURATION --------------------------------------------------
 
-// Get the filename and directory path of the current script
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// Finds the root directory by taking the current dir and walking back to root
-const ROOT_DIR = __dirname.replace('code-example-tests/' + LANGUAGE_PATH, '');
-// Output files will be written to this full output path
-const OUTPUT_PATH =
-  ROOT_DIR + 'content/code-examples/tested/' + LANGUAGE_PATH + '/';
-
-function getAllFiles(dirPath, arrayOfFiles = []) {
-  // Reads the files in the given directory
-  const files = fs.readdirSync(dirPath);
-
-  files.forEach((file) => {
-    // Gets the full path of the item
-    const absolutePath = path.join(dirPath, file);
-    if (!IGNORE_PATTERNS.has(file)) {
-      if (fs.statSync(absolutePath).isDirectory()) {
-        // If it's a directory, recursively call the function
-        arrayOfFiles = getAllFiles(absolutePath, arrayOfFiles);
-      } else {
-        // If it's a file, add its path to the array
-        arrayOfFiles.push(absolutePath);
-      }
-    }
-  });
-  return arrayOfFiles;
-}
-
-// Finds the last / in a filepath and returns the remaining string.
-function getFileName(filepath) {
-  const lastSlashIndex = filepath.lastIndexOf('/');
-  if (lastSlashIndex === -1 || lastSlashIndex === filepath.length - 1) {
-    throw new Error(
-      'File path has no /, perhaps a root directory was given by mistake?'
-    );
-  }
-  return filepath.substring(lastSlashIndex);
-}
-
-// Compress the verbose Bluehawk output into a concise report
-async function addNumFilesProcessedAndWritten(stdoutLines) {
-  // Iterate through stdout until finding the line that starts with "Processed X files:"
-  let i = 0;
-  while (
-    i < stdoutLines.length - 1 &&
-    !stdoutLines[i].startsWith('Processed')
-  ) {
-    i++;
-  }
-
-  // Matches one or more digits
-  const regex = /\d+/;
-  // Goes to the processed X files line and gets the digit
-  let numProcessed = stdoutLines[i].match(regex)[0];
-  // Goes to the Wrote X files line and gets the digit
-  let numWritten = stdoutLines[i + 4].match(regex)[0];
-  // Adds to total
-  numFilesProcessedAndWritten[0] += parseInt(numProcessed);
-  numFilesProcessedAndWritten[1] += parseInt(numWritten);
-}
-
-// Check if the text of the file contains any Bluehawk `snippet-start` tags
-async function checkIfContainsSnipMarkup(filePath) {
-  const outputFilePath = path.resolve(__dirname, filePath);
-  const fileContents = fs.readFileSync(outputFilePath, 'utf8');
-  return fileContents.includes('snippet-start');
-}
-
-// Snips or copies a file based on its type to the given output path
-async function snip(filePath) {
-  let fileExt = path.extname(filePath);
-
-  if (!fileExt) {
-    throw new Error(
-      'File has no extension type. Please check file path: ' + filePath
-    );
-  }
-
-  let fileName = getFileName(filePath);
-  let relPath = filePath.substring(startDirectory.length - 1);
-  let outputDir = (OUTPUT_PATH + relPath).replace(fileName, '');
-  let command = '';
-  const snipCommand = 'bluehawk snip --output ' + outputDir + ' ' + filePath;
-  const copyCommand = 'bluehawk copy --output ' + outputDir + ' ' + filePath;
-
-  // Ensure the output directory exists
+// Resolves relative paths to absolute paths based on the Git repository root.
+function resolvePathFromGitRoot(relativePath) {
+  let gitRoot;
   try {
-    await fs.promises.mkdir(outputDir, { recursive: true }); // Create the directory if it doesn't exist
+    gitRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8" }).trim();
   } catch (error) {
-    console.error(`Failed to create directory: ${outputDir}`, error);
-    return;
+    console.error("Error: Unable to determine the Git repository root. Ensure this script is run within a Git repository.");
+    throw error;
   }
+  return path.resolve(gitRoot, relativePath);
+}
 
-  // If the file is a copy-only file type - i.e. JSON can't contain comments for Bluehawk snip markup - just copy it
-  if (COPY_PATTERNS.has(fileExt)) {
-    command = copyCommand;
+// Check if dotnet CLI is installed
+function isDotnetInstalled() {
+  try {
+    execSync("dotnet --version", { stdio: "ignore" }); // Check dotnet CLI availability
+    return true;
+  } catch {
+    console.log("Dotnet CLI is not installed. Skipping formatting step...");
+    return false;
+  }
+}
 
-    // If the file could contain Bluehawk snip markup, do additional processing to decide whether to snip or copy
-  } else if (SNIP_PATTERNS.has(fileExt)) {
-    // If the file contains any Bluehawk `snippet-start` tags, snip it. Otherwise, copy it.
-    const containsSnipMarkup = await checkIfContainsSnipMarkup(filePath);
-    if (containsSnipMarkup) {
-      command = snipCommand;
-    } else {
-      command = copyCommand;
+// Helper to run dotnet format
+async function runFormatter(tempDirectory) {
+  const tempCsprojPath = path.join(tempDirectory, "TempFormattingProject.csproj");
+
+  try {
+    // Create temporary `.csproj` file
+    const tempCsprojContent = `
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="**/*.cs" />
+  </ItemGroup>
+</Project>
+    `;
+    await fs.writeFile(tempCsprojPath, tempCsprojContent);
+
+    // Run dotnet format on the temp `.csproj` file with quiet verbosity
+    const command = `dotnet format "${tempCsprojPath}" --verbosity quiet`;
+    const { stdout, stderr } = await exec(command); // Use `exec` directly for Promise-based execution
+
+    // Log only errors if present
+    if (stderr && stderr.trim()) {
+      console.error(`Formatter Errors:\n${stderr}`);
     }
-  } else {
-    throw new Error('Unrecognized file type found: ' + relPath);
+  } catch (error) {
+    console.error(`Error running dotnet format: ${error.message}`);
+    throw error;
+  } finally {
+    // Cleanup: Remove temp `.csproj` file
+    await fs.rm(tempCsprojPath);
   }
+}
 
-  if (command.startsWith('bluehawk')) {
-    try {
-      const { stdout, stderr } = await exec(command);
-
-      const lines = stdout.split('\n');
-      await addNumFilesProcessedAndWritten(lines);
-
-      if (
-        stderr !== '' &&
-        !stderr.startsWith(
-          'Error: Unable to use "first char" lexer optimizations:'
-        )
-      ) {
-        // Saves the parsed file path, written to path, and error message
-        errorLog.push([lines[0], lines[1], stderr]);
+// Helper to move files recursively from source to target directory
+async function moveFiles(sourceDirectory, targetDirectory) {
+  try {
+    const files = await fs.readdir(sourceDirectory, { withFileTypes: true });
+    for (const file of files) {
+      if (IGNORE_PATTERNS.has(file.name)) {
+        continue; // Skip the file or directory
       }
-    } catch (error) {
-      console.error(`exec error: ${error}`);
+
+      const sourceFilePath = path.join(sourceDirectory, file.name);
+      const targetFilePath = path.join(targetDirectory, file.name);
+
+      if (file.isDirectory()) {
+        await fs.mkdir(targetFilePath, { recursive: true });
+        await moveFiles(sourceFilePath, targetFilePath, IGNORE_PATTERNS); // Recursively handle subdirectories
+      } else {
+        await fs.rename(sourceFilePath, targetFilePath); // Move file
+      }
     }
+  } catch (error) {
+    console.error(`Error moving files from ${sourceDirectory} to ${targetDirectory}: ${error.message}`);
+    throw error;
   }
 }
 
-const errorLog = [];
-let numFilesProcessedAndWritten = [0, 0];
-const startDirectory = './examples';
+// Snip code example files, format them, and write them to the output directory
+async function main() {
+  try {
+    const resolvedStartDirectory = resolvePathFromGitRoot(START_DIRECTORY);
+    const resolvedOutputDirectory = resolvePathFromGitRoot(OUTPUT_DIRECTORY);
 
-async function processFiles() {
-  const files = getAllFiles(startDirectory);
+    // If the person running the script has dotnet CLI installed, use it to
+    // run the formatting tool
+    const dotnetInstalled = isDotnetInstalled();
 
-  for (const file of files) {
-    await snip(file);
+    if (dotnetInstalled) {
+      // Hard-coded temp directory inside .NET project scope
+      const resolvedTempDirectory = resolvePathFromGitRoot("code-example-tests/csharp/driver/tempFormat");
+
+      // Ensure the temp directory exists
+      await fs.mkdir(resolvedTempDirectory, { recursive: true });
+
+      // Snip the code example files into the temp directory
+      console.log(`Snipping files to temporary directory: ${resolvedTempDirectory}`);
+      await processFiles(resolvedStartDirectory, resolvedTempDirectory, IGNORE_PATTERNS);
+
+      // Run dotnet format
+      console.log(`Running formatter`);
+      await runFormatter(resolvedTempDirectory);
+      console.log("Formatting completed.");
+
+      // Move formatted files to the output directory
+      console.log(`Moving formatted files to output directory: ${resolvedOutputDirectory}`);
+      await moveFiles(resolvedTempDirectory, resolvedOutputDirectory);
+
+      // Cleanup: Remove temp directory and intermediate files
+      await fs.rm(resolvedTempDirectory, { recursive: true, force: true });
+      console.log(`Temporary directory cleaned up: ${resolvedTempDirectory}`);
+    } else {
+      // If the user does not have dotnet CLI installed, snip files directly
+      // to the output directory without formatting them.
+      console.log(`Dotnet CLI not found. Processing files directly to output directory.`);
+      await processFiles(resolvedStartDirectory, resolvedOutputDirectory, IGNORE_PATTERNS);
+    }
+  } catch (error) {
+    console.error("Error during processing, formatting, or moving files:", error);
   }
-
-  if (errorLog.length > 0) {
-    errorLog.forEach((error) => {
-      let parsedPath = error[0];
-      let writtenPath = error[1];
-      let err = error[2];
-      console.error(`Bluehawk ${err}\nAt ${parsedPath}\n${writtenPath}`);
-    });
-  }
-
-  console.log(`Processed ${numFilesProcessedAndWritten[0]} file(s)`);
-  console.log(
-    `Wrote ${numFilesProcessedAndWritten[1]} file(s) to ${OUTPUT_PATH}`
-  );
 }
 
-processFiles().catch(console.dir);
+main();
