@@ -72,6 +72,18 @@ Movie.objects.filter(genres=["Crime", "Comedy"]).first()
 Movie.objects.filter(awards__wins__gt=150)
 # end-filter-relationships
 
+# start-embedded-array-length
+Movie.objects.filter(cast__len__gt=5)
+# end-embedded-array-length
+
+# start-embedded-array-index
+Movie.objects.filter(cast__0__last_name="Winslet")
+# end-embedded-array-index
+
+# start-embedded-array-slice
+Movie.objects.filter(cast__0_2__last_name="Winslet")
+# end-embedded-array-slice
+
 # start-array
 Movie.objects.filter(genres__overlap=["Adventure", "Family"])
 # end-array
