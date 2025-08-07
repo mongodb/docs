@@ -1,6 +1,16 @@
-import { ASTNode, ComponentType, NodeName, NodeType, RoleName, Root as RootNode, TextNode } from '@/types/ast';
+import {
+  ASTNode,
+  ComponentType,
+  NodeName,
+  NodeType,
+  ParagraphNode,
+  RoleName,
+  Root as RootNode,
+  TextNode,
+} from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Text, { type TextProps } from '@/components/text';
+import Paragraph, { ParagraphProps } from '../paragraph';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -16,11 +26,19 @@ const IGNORED_NAMES = new Set([
   'facet',
 ]);
 
-const IGNORED_TYPES = new Set(['comment', 'inline_target', 'named_reference', 'substitution_definition']);
+const IGNORED_TYPES = new Set([
+  'comment',
+  'inline_target',
+  'named_reference',
+  'substitution_definition',
+]);
 // TODO: reinsert when developing adomnitions
 // const DEPRECATED_ADMONITIONS = new Set(['admonition', 'caution', 'danger']);
 
-const roleMap: Record<RoleName, React.ComponentType<SupportedComponentProps>> = {
+const roleMap: Record<
+  RoleName,
+  React.ComponentType<SupportedComponentProps>
+> = {
   // abbr: RoleAbbr,
   // class: RoleClass,
   // command: RoleCommand,
@@ -48,11 +66,17 @@ const roleMap: Record<RoleName, React.ComponentType<SupportedComponentProps>> = 
   // 'link-new-tab': RoleLinkNewTab,
 };
 
-type validComponentKey = Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>
+type validComponentKey = Exclude<
+  ComponentType,
+  'toctree' | 'role' | 'tab' | 'selected-content'
+>;
 
 const getComponent = (() => {
   let componentMap:
-    | Record<Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>, React.ComponentType<SupportedComponentProps>>
+    | Record<
+        Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>,
+        React.ComponentType<SupportedComponentProps>
+      >
     | Record<string, React.ComponentType<SupportedComponentProps>>
     | undefined = undefined;
   return (key: validComponentKey) => {
@@ -106,7 +130,7 @@ const getComponent = (() => {
         // 'method-selector': MethodSelector,
         // only: Cond,
         // 'openapi-changelog': OpenAPIChangelog,
-        // paragraph: Paragraph,
+        paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
         // procedure: Procedure,
         // ref_role: RefRole,
         // reference: Reference,
@@ -137,9 +161,13 @@ const getComponent = (() => {
   };
 })();
 
-function getComponentType(type: NodeType, name?: NodeName): React.ComponentType<SupportedComponentProps> | undefined {
+function getComponentType(
+  type: NodeType,
+  name?: NodeName
+): React.ComponentType<SupportedComponentProps> | undefined {
   const lookup = (type === 'directive' ? name : type) as validComponentKey;
-  let ComponentType: React.ComponentType<SupportedComponentProps> | undefined = lookup ? getComponent(lookup) : undefined;
+  let ComponentType: React.ComponentType<SupportedComponentProps> | undefined =
+    lookup ? getComponent(lookup) : undefined;
 
   if (name) {
     if (type === 'role' && isRoleName(name)) {
@@ -160,7 +188,6 @@ function getComponentType(type: NodeType, name?: NodeName): React.ComponentType<
   return ComponentType;
 }
 
-
 export type ComponentFactoryProps = {
   nodeData: ASTNode;
   slug?: string;
@@ -169,7 +196,7 @@ export type ComponentFactoryProps = {
   [key: string]: unknown;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | TextProps;
+type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -180,6 +207,9 @@ const renderComponentWithProps = (
   if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
+  } else if (ComponentType === getComponent('paragraph')) {
+    const paragraphNode = nodeData as ParagraphNode;
+    return <ComponentType nodeChildren={paragraphNode.children} {...props} />
   }
 
   // Default: spread all props for other components
@@ -204,25 +234,28 @@ const ComponentFactory = (props: ComponentFactoryProps) => {
     // Warn on unexpected usage of domains, but don't break
     const validDomains = ['mongodb', 'std', 'landing'];
     if (domain && !validDomains.includes(domain)) {
-      console.warn(`Domain '${domain}' not yet implemented ${name ? `for '${name}'` : ''}`);
+      console.warn(
+        `Domain '${domain}' not yet implemented ${name ? `for '${name}'` : ''}`
+      );
     }
 
     const ComponentType = getComponentType(type, name);
 
     // TODO: remove this when we have all components implemented
     if (!ComponentType) {
-      return <div className={'component-container'} style={{ paddingTop: '3rem' }}>
-        Component for {type} {name ? `"${name}" ` : ''}not yet implemented
-        <br />
-        <div>
-          {isParentNode(nodeData) && nodeData.children.length > 0 && nodeData.children.map((child, index) => (
-            <>
-              Rendering children: {JSON.stringify(Object.entries(child).map(([key, value]) => key !== 'children' ? `${key}: ${value}` : undefined))}
-              <ComponentFactory nodeData={child} key={`${slug}-${index}`} />
-            </>
-          ))}
+      return (
+        <div className={'component-container'} style={{ paddingTop: '3rem' }}>
+          Component for {type} {name ? `"${name}" ` : ''}not yet implemented
+          <br />
+          <div>
+            {isParentNode(nodeData) &&
+              nodeData.children.length > 0 &&
+              nodeData.children.map((child, index) => (
+                <ComponentFactory nodeData={child} key={`${slug}-${index}`} />
+              ))}
+          </div>
         </div>
-      </div>
+      );
       // console.warn(`${type} ${name ? `"${name}" ` : ''}not yet implemented${slug ? ` on page ${slug}` : ''}`);
       // return null;
     }

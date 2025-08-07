@@ -9,6 +9,8 @@ import {
   FootnoteReferenceNode,
   WayfindingOptionNode,
   WayfindingDescriptionNode,
+  ReferenceNode,
+  RefRoleNode,
 } from './ast';
 
 const isTextNode = (node: unknown): node is TextNode => {
@@ -19,6 +21,14 @@ const isTextNode = (node: unknown): node is TextNode => {
     'value' in node &&
     isString(node.value)
   );
+};
+
+const isReferenceNode = (node: unknown): node is ReferenceNode => {
+  return isObject(node) && 'type' in node && node.type === 'reference';
+};
+
+const isRefRoleNode = (node: unknown): node is RefRoleNode => {
+  return isObject(node) && 'type' in node && node.type === 'ref_role';
 };
 
 const isParentNode = (node: unknown): node is ParentNode => {
@@ -66,6 +76,8 @@ export {
   isParentNode,
   isDirectiveNode,
   isFootnoteReferenceNode,
+  isReferenceNode,
+  isRefRoleNode,
   isRoleName,
   isHeadingNode,
   isWayfindingOptionNode,

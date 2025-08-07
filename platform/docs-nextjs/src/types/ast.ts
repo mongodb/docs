@@ -167,6 +167,7 @@ type NodeType =
   | 'only'
   | 'paragraph'
   | 'reference'
+  | 'ref_role'
   | 'release_specification'
   | 'role'
   | 'root'
@@ -217,6 +218,11 @@ type DirectiveOptions = {
 
 interface Node {
   type: NodeType;
+  position: {
+    start: {
+      line: number | { $numberInt: string };
+    };
+  };
 }
 
 interface TextParentNode extends Node {
@@ -871,10 +877,13 @@ interface ReleaseSpecificationNode extends ParentNode {
 }
 
 interface RefRoleNode extends ParentNode {
-  name: 'ref_role';
+  type: 'ref_role';
+  name: string;
   domain: string;
-  fileid: string[];
+  target: string;
   url: string;
+  fileid?: string[];
+  flag?: string;
 }
 
 type InstruqtOptions = {
