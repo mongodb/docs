@@ -13,7 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// start-restaurant-struct
 type Restaurant struct {
 	Name         string
 	RestaurantId string        `bson:"restaurant_id,omitempty"`
@@ -23,8 +22,6 @@ type Restaurant struct {
 	Grades       []interface{} `bson:"grades,omitempty"`
 }
 
-// end-restaurant-struct
-
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -32,7 +29,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/connect/mongoclient/#environment-variable")
 	}
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -45,23 +42,21 @@ func main() {
 		}
 	}()
 
-	// begin replace
 	coll := client.Database("sample_restaurants").Collection("restaurants")
-	filter := bson.D{{"name", "Madame Vo"}}
+	filter := bson.D{{"name", "Rizzo's Fine Pizza"}}
 
 	// Creates a new document containing "Name" and "Cuisine" fields
-	replacement := Restaurant{Name: "Monsieur Vo", Cuisine: "Asian Fusion"}
+	replacement := Restaurant{Name: "Rizzo's Pizza", Cuisine: "Pizza/American"}
 
 	// Replaces the first document that matches the filter with a new document
 	result, err := coll.ReplaceOne(context.TODO(), filter, replacement)
 	if err != nil {
 		panic(err)
 	}
-	// end replace
 
 	// Prints the number of modified documents
 	if result.MatchedCount != 0 {
-		fmt.Println("Number of documents replaced: %d\n", result.ModifiedCount)
+		fmt.Println("Number of documents replaced:", result.ModifiedCount)
 	}
 
 	// When you run this file for the first time, it should print:

@@ -1,0 +1,260 @@
+.. _golang-extended-json:
+
+===================================
+Document Data Format: Extended JSON
+===================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code example, bson, relaxed, canonical, legacy
+
+Overview
+--------
+
+JSON is a data format that represents the values of objects, arrays, numbers,
+strings, booleans, and nulls. The **Extended JSON** format defines a reserved
+set of keys prefixed with the ``$`` character to represent field type
+information that directly corresponds to each type in BSON, the format
+that MongoDB uses to store data.
+
+Extended JSON Formats
+---------------------
+
+MongoDB Extended JSON features different string formats to represent
+BSON data. Each of the formats conforms to the `JSON RFC
+<https://datatracker.ietf.org/doc/html/rfc8259>`__ and meets specific
+use cases.
+
+The **Extended** format, also known as the **Canonical**
+format, features specific representations for every BSON type for
+bidirectional conversion without loss of information. The **Relaxed**
+format is more concise and closer to ordinary JSON, but does not
+represent all the type information such as the specific byte size of
+number fields.
+
+The following table provides descriptions of the JSON formats:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 40
+
+   * - Name
+     - Description
+
+   * - **Extended**
+     - | Also known as the *canonical* format, this JSON representation avoids loss of
+         BSON type information.
+       | This format prioritizes type preservation at the loss of human-readability and
+         interoperability with older formats.
+
+   * - **Relaxed Mode**
+     - | JSON representation that describes BSON documents with some type information loss.
+       | This format prioritizes human-readability and interoperability at the loss of
+         certain type information.
+
+   * - **Shell**
+     - | JSON representation that matches the syntax used in the MongoDB shell.
+       | This format prioritizes compatibility with the MongoDB shell, which often uses
+         JavaScript functions to represent types.
+
+   * - **Strict**
+     - | *Deprecated* This representation is the legacy format that fully conforms to
+         the JSON RFC and allows any JSON parser to read the type information.
+
+To learn more about JSON, BSON, and Extended JSON, see our
+:website:`article about JSON and BSON </resources/basics/json-and-bson>`
+and the :manual:`Extended JSON </reference/mongodb-extended-json/>`
+reference in the {+mdb-server+} manual.
+
+.. _golang-extended_json_examples:
+
+Extended JSON Examples
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following tabs show a document containing an ObjectId, date, and long
+number field represented in each Extended JSON format. Select from the
+tabs to see the same data presented in each JSON format:
+
+.. tabs::
+
+   .. tab:: Extended
+      :tabid: extended-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": { "$numberLong": "1601499609" }},
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+   .. tab:: Relaxed Mode
+      :tabid: relaxed-mode-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
+           "numViews": 36520312
+         }
+
+   .. tab:: Shell
+      :tabid: shell-format
+
+      .. code-block:: json
+
+         {
+           "_id": ObjectId("573a1391f29313caabcd9637"),
+           "createdAt": ISODate("2020-09-30T18:22:51.648Z"),
+           "numViews": NumberLong("36520312")
+         }
+
+   .. tab:: Strict
+      :tabid: strict-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": 1601499609 },
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+Read Extended JSON
+------------------
+
+You can read an Extended JSON string into a {+language+} struct by
+calling the ``bson.UnmarshalExtJSON()`` method. This method parses an
+Extended JSON string and stores the result in the specified value parameter.
+
+This example shows how you can read an Extended JSON string
+into the following ``Person`` struct:
+
+.. literalinclude:: /includes/data-formats/ejson.go
+   :start-after: begin-person-struct
+   :end-before: end-person-struct
+   :language: go
+   :dedent:
+
+The following code uses the ``UnmarshalExtJSON()`` method to read an
+Extended JSON string and unmarshal the data into an instance of ``Person``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/ejson.go
+      :start-after: begin-unmarshal
+      :end-before: end-unmarshal
+      :language: go
+      :emphasize-lines: 4
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Go Struct Representation:
+      {ID:ObjectID("578f6fa2df35c7fbdbaed8c5") Name:Liana Ruiz Age:46 Birthday:569203200000 Address:{Street:500 Slippery Rock Road City:Round Rock State:AR} Hobbies:[cycling baking]}
+
+Write Extended JSON
+-------------------
+
+You can produce an Extended JSON string from an instance of a
+{+language+} struct by calling the ``bson.MarshalExtJSON()`` method. 
+The following example creates an Extended JSON string in the Relaxed
+format from an instance of ``Person``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/ejson.go
+      :start-after: begin-marshal
+      :end-before: end-marshal
+      :language: go
+      :emphasize-lines: 10
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Extended JSON Representation:
+      {"_id":{"$oid":"686688fa7c1a2e75405f4697"},"name":"Matteo Carisi","age":49,"birthday":{"$date":"1975-10-30T00:00:00Z"},"address":{"street":"14a Corner Court","city":"Springfield","state":"IL"},"hobbies":["cooking","birdwatching"]}
+
+The second parameter to ``MarshalExtJSON()`` determines if the output
+string is in Canonical (Extended) format or Relaxed format. The
+preceding example passes ``false`` as the ``canonical`` parameter, so
+the output is Relaxed JSON.
+
+.. note:: Dates Before Epoch Time
+
+   When you marshal a date value that is before January 1, 1970,
+   00:00:00 UTC (Epoch time), it appears as a Unix timestamp in Relaxed
+   JSON. If the date is after the Epoch time, it appears in a readable
+   date format.
+
+Format Extended JSON
+~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``bson.MarshalExtJSONIndent()`` method to print a
+formatted Extended JSON string that includes newlines, prefixes, and
+indentation.
+
+The following code uses the ``MarshalExtJSONIndent()`` method to print
+the JSON string from the preceding example formatted with two spaces of
+indentation:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/ejson.go
+      :start-after: begin-marshal-fmt
+      :end-before: end-marshal-fmt
+      :language: go
+      :emphasize-lines: 10
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {
+        "_id": {
+          "$oid": "686688fa7c1a2e75405f4697"
+        },
+        "name": "Matteo Carisi",
+        "age": 49,
+        "birthday": {
+          "$date": "1975-10-30T00:00:00Z"
+        },
+        "address": {
+          "street": "14a Corner Court",
+          "city": "Springfield",
+          "state": "IL"
+        },
+        "hobbies": [
+          "cooking",
+          "birdwatching"
+        ]
+      }
+
+API Documentation
+-----------------
+
+To learn more about the methods and types used in this guide, see the
+following API documentation:
+
+- `UnmarshalExtJSON() <{+api+}/bson#UnmarshalExtJSON>`__
+- `MarshalExtJSON() <{+api+}/bson#MarshalExtJSON>`__
+- `MarshalExtJSONIndent() <{+api+}/bson#MarshalExtJSONIndent>`__

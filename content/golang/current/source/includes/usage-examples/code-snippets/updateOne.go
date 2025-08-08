@@ -13,6 +13,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+// Defines a Restaurant struct as a model for documents in the "restaurants" collection
+type Restaurant struct {
+	ID            bson.ObjectID `bson:"_id"`
+	Name          string        `bson:"name"`
+	AverageRating float64       `bson:"avg_rating,omitempty"`
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -20,7 +27,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/connect/mongoclient/#environment-variable")
 	}
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -33,9 +40,9 @@ func main() {
 		}
 	}()
 
-	// begin updateone
 	coll := client.Database("sample_restaurants").Collection("restaurants")
-	id, _ := bson.ObjectIDFromHex("5eb3d668b31de5d588f42a7a")
+
+	id, _ := bson.ObjectIDFromHex("5eb3d668b31de5d588f4292b")
 	filter := bson.D{{"_id", id}}
 
 	// Creates instructions to add the "avg_rating" field to documents
@@ -46,11 +53,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// end updateone
 
 	// Prints the number of updated documents
 	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 
-	// When you run this file for the first time, it should print:
-	// Number of documents replaced: 1
+	// When you run this file for the first time, it should print output similar to the following:
+	// Documents updated: 1
 }
