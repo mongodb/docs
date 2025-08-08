@@ -1,5 +1,5 @@
 import { processFiles } from "../../processFiles.js";
-import { exec as childExec, execSync } from "child_process";
+import { exec as childExec, execSync, spawnSync } from "child_process";
 import fs from "fs/promises";
 import { promisify } from "util";
 import path from "path";
@@ -18,6 +18,23 @@ const IGNORE_PATTERNS = new Set([
 const START_DIRECTORY = "code-example-tests/csharp/driver/Examples";
 const OUTPUT_DIRECTORY = "content/code-examples/tested/csharp/driver";
 // ------ END CONFIGURATION --------------------------------------------------
+
+// Check if Bluehawk is installed
+function isBluehawkInstalled() {
+  const errorString = 'This script requires Bluehawk. Please run "npm install -g bluehawk" in the terminal, and then re-run this script.';
+
+  const result = spawnSync("which", ["bluehawk"], { encoding: "utf-8" });
+
+  // If the spawnSync operation returns an exit code of 1, there was an error
+  // running 'which bluehawk' and we can assume Bluehawk isn't installed
+  if (result.status == 1) {
+    console.error(
+      errorString
+    );
+    return false;
+  }
+  return true;
+}
 
 // Resolves relative paths to absolute paths based on the Git repository root.
 function resolvePathFromGitRoot(relativePath) {
@@ -105,6 +122,14 @@ async function moveFiles(sourceDirectory, targetDirectory) {
 
 // Snip code example files, format them, and write them to the output directory
 async function main() {
+  // First, confirm the user has Bluehawk installed. If not, exit early.
+  const bluehawkInstalled = isBluehawkInstalled();
+
+  if (!bluehawkInstalled) {
+    process.exit(1);
+  }
+
+  // If the user does have Bluehawk installed, process the code example files.
   try {
     const resolvedStartDirectory = resolvePathFromGitRoot(START_DIRECTORY);
     const resolvedOutputDirectory = resolvePathFromGitRoot(OUTPUT_DIRECTORY);

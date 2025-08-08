@@ -1,5 +1,5 @@
 import { processFiles } from '../../processFiles.js';
-import { exec, execSync } from 'child_process';
+import { exec, execSync, spawnSync } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -17,6 +17,23 @@ const OUTPUT_DIRECTORY = 'content/code-examples/tested/javascript/driver';
 // Resolve the absolute path of the `.prettierrc` colocated with this script
 const SCRIPT_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
 const PRETTIER_CONFIG_PATH = path.resolve(SCRIPT_DIRECTORY, '.prettierrc');
+
+// Check if Bluehawk is installed
+function isBluehawkInstalled() {
+  const errorString = 'This script requires Bluehawk. Please run "npm install -g bluehawk" in the terminal, and then re-run this script.';
+
+  const result = spawnSync("which", ["bluehawk"], { encoding: "utf-8" });
+
+  // If the spawnSync operation returns an exit code of 1, there was an error
+  // running 'which bluehawk' and we can assume Bluehawk isn't installed
+  if (result.status == 1) {
+    console.error(
+      errorString
+    );
+    return false;
+  }
+  return true;
+}
 
 // Resolves relative paths to absolute paths based on the Git repository root.
 function resolvePathFromGitRoot(relativePath) {
@@ -63,6 +80,14 @@ function runFormatter(directory) {
 
 // Snip code example files, and then run the formatting tool on the output
 async function main() {
+  // First, confirm the user has Bluehawk installed. If not, exit early.
+  const bluehawkInstalled = isBluehawkInstalled();
+
+  if (!bluehawkInstalled) {
+    process.exit(1);
+  }
+
+  // If the user does have Bluehawk installed, process the code example files.
   try {
     // Snip the code example files to the output directory
     await processFiles(START_DIRECTORY, OUTPUT_DIRECTORY, IGNORE_PATTERNS);
