@@ -92,6 +92,10 @@ Movie.objects.filter(awards__wins=10)
 Movie.objects.filter(awards__best_picture=True)
 # end-polymorphic-embedded-unique
 
+# start-polymorphic-embedded-array
+Movie.objects.filter(awards__year__lt=2000)
+# end-polymorphic-embedded-array
+
 # start-array
 Movie.objects.filter(genres__overlap=["Adventure", "Family"])
 # end-array
