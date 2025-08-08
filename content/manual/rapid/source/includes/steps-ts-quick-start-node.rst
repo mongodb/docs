@@ -1,21 +1,21 @@
 .. step:: Copy the template app and connect to your deployment.
 
-   a. Paste the following code into a new ``.py`` file.
+   a. Paste the following code into a new ``.js`` file.
 
    #. Replace ``"<connection-string>"`` with your copied connection string.
 
    As you work with time series code examples, add them between the
-   ``# start example code here`` and ``# end example code here`` comments.
+   ``// start example code here`` and ``// end example code here`` comments.
 
-   .. literalinclude:: /code-examples/tested/python/pymongo/sample_app.snippet.app.py
-      :language: python
+   .. literalinclude:: /code-examples/tested/javascript/driver/time-series/sample-app.snippet.example.js
+      :language: javascript
       :copyable: true
       :category: usage example
 
 .. step:: Create a new database.
 
-   .. literalinclude:: /code-examples/tested/python/pymongo/timeseries/ts_quick_start.snippet.create-db.py
-      :language: python
+   .. literalinclude:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start-setup.snippet.create-db.js
+      :language: javascript
       :copyable: true
       :category: syntax example
 
@@ -31,15 +31,15 @@
 
    a. Set the ``timeField``, ``metaField``, and ``granularity``:
 
-      .. literalinclude:: /code-examples/tested/python/pymongo/timeseries/ts_quick_start.snippet.set-ts-options.py
-         :language: python
+      .. literalinclude:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start-setup.snippet.set-coll-options.js
+         :language: javascript
          :copyable: true
          :category: syntax example
 
-   #. Create the collection using the ``db.create_collection()`` method:
+   #. Create the collection using the ``db.createCollection()`` method:
 
-      .. literalinclude:: /code-examples/tested/python/pymongo/timeseries/ts_quick_start.snippet.create-coll.py
-         :language: python
+      .. literalinclude:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start-setup.snippet.create-collection.js
+         :language: javascript
          :copyable: true
          :category: syntax example
 
@@ -47,11 +47,11 @@
 
 .. step:: Add sample documents.
 
-   Use the ``db.collection.insert_many()`` method to add the
+   Use the ``db.collection.insertMany()`` method to add the
    following sample documents to the collection:
 
-   .. literalinclude:: /code-examples/tested/python/pymongo/timeseries/ts_quick_start.snippet.add-sample-docs.py
-      :language: python
+   .. literalinclude:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start-setup.snippet.load-sample-data.js
+      :language: javascript
       :copyable: true
       :category: usage example
 
@@ -73,21 +73,21 @@
    .. io-code-block::
       :copyable: true
 
-      .. input:: /code-examples/tested/python/pymongo/timeseries/ts_quick_start.snippet.query-meta.py
-         :language: python
+      .. input:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start.snippet.meta-field-query.js
+         :language: javascript
          :category: syntax example
 
-      .. output:: /code-examples/tested/python/pymongo/timeseries/ts-quick-start-metafield-output.txt
-         :language: text
+      .. output:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start-meta-field-output.sh
+         :language: shell
 
    To query the ``timeField`` for a time span:
 
    .. io-code-block::
       :copyable: true
 
-      .. input:: /code-examples/tested/python/pymongo/timeseries/ts_quick_start.snippet.query-time.py
-         :language: python
+      .. input:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start.snippet.time-field-query.js
+         :language: javascript
          :category: syntax example
 
-      .. output:: /code-examples/tested/python/pymongo/timeseries/ts-quick-start-timefield-output.txt
-         :language: text
+      .. output:: /code-examples/tested/javascript/driver/time-series/quick-start/quick-start-time-field-output.sh
+         :language: shell

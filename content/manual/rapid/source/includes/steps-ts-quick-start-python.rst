@@ -4,14 +4,13 @@
 
    #. Replace ``"<connection-string>"`` with your copied connection string.
 
-   #. As you work with time series code examples, add them between the
-      ``# start example code here`` and ``# end example code here`` comments.
+   As you work with time series code examples, add them between the
+   ``# start example code here`` and ``# end example code here`` comments.
 
    .. literalinclude:: /code-examples/tested/python/pymongo/sample_app.snippet.app.py
       :language: python
       :copyable: true
       :category: usage example
-      :dedent:
 
 .. step:: Create a new database.
 
@@ -19,15 +18,14 @@
       :language: python
       :copyable: true
       :category: syntax example
-      :dedent:
 
    This creates a reference to an empty "timeseries" database.
 
 .. step:: Create an empty time series collection.
 
    .. note::
-   
-      This exercise uses :ref:`stock ticker sample data  
+
+      This exercise uses :ref:`stock ticker sample data
       <ts-quick-start-sample-data>`. The ``date`` field stores time data, and
       the ``ticker`` field identifies the individual stock.
 
@@ -37,7 +35,6 @@
          :language: python
          :copyable: true
          :category: syntax example
-         :dedent:
 
    #. Create the collection using the ``db.create_collection()`` method:
 
@@ -45,7 +42,6 @@
          :language: python
          :copyable: true
          :category: syntax example
-         :dedent:
 
       This creates an empty time series collection named ``stocks``.
 
@@ -58,9 +54,8 @@
       :language: python
       :copyable: true
       :category: usage example
-      :dedent:
 
-   If you are running MongoDB on Atlas, you can click 
+   If you are running MongoDB on Atlas, you can click
    :guilabel:`Browse collections` to view the sample data.
 
 .. step:: Query the data.
@@ -68,11 +63,11 @@
    You query a time series collection like any other MongoDB collection. For
    more information, see :ref:`About Querying Time Series Data
    <timeseries-querying>`.
-   
+
    Common queries for time series data are querying the ``metaField``
    to get data for a single time series, or using a range query on the
-   ``timeField`` to get data for a given time span. 
-   
+   ``timeField`` to get data for a given time span.
+
    To query the ``metaField`` for a single time series:
 
    .. io-code-block::
@@ -83,7 +78,7 @@
          :category: syntax example
 
       .. output:: /code-examples/tested/python/pymongo/timeseries/ts-quick-start-metafield-output.txt
-         :language: python
+         :language: text
 
    To query the ``timeField`` for a time span:
 
@@ -95,4 +90,4 @@
          :category: syntax example
 
       .. output:: /code-examples/tested/python/pymongo/timeseries/ts-quick-start-timefield-output.txt
-         :language: python
+         :language: text
