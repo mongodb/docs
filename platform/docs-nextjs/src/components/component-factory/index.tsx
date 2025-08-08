@@ -1,4 +1,4 @@
-import {
+import type {
   ASTNode,
   ComponentType,
   NodeName,
@@ -6,11 +6,13 @@ import {
   ParagraphNode,
   RoleName,
   Root as RootNode,
+  StrongNode,
   TextNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
-import Text, { type TextProps } from '@/components/text';
-import Paragraph, { ParagraphProps } from '../paragraph';
+import Text, { type TextProps } from '../text';
+import Paragraph, { type ParagraphProps } from '../paragraph';
+import Strong from '../strong';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -141,7 +143,7 @@ const getComponent = (() => {
         // section: Section,
         // seealso: SeeAlso,
         // sharedinclude: Include,
-        // strong: Strong,
+        strong: Strong as React.ComponentType<SupportedComponentProps>,
         // superscript: Superscript,
         // subscript: Subscript,
         // substitution_reference: SubstitutionReference,
@@ -192,8 +194,9 @@ export type ComponentFactoryProps = {
   nodeData: ASTNode;
   slug?: string;
   sectionDepth?: string | number;
+  parentNode?: string;
+  skipPTag?: boolean;
   page?: RootNode;
-  [key: string]: unknown;
 };
 
 type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps;
@@ -207,9 +210,12 @@ const renderComponentWithProps = (
   if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
+  } else if (ComponentType === getComponent('strong')) {
+    const strongNode = nodeData as StrongNode;
+    return <ComponentType value={strongNode.children[0].value} />;
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
-    return <ComponentType nodeChildren={paragraphNode.children} {...props} />
+    return <ComponentType nodeChildren={paragraphNode.children} parentNode={props.parentNode} skipPTag={props.skipPTag} />
   }
 
   // Default: spread all props for other components
