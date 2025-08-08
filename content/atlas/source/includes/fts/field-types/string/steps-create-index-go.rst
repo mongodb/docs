@@ -16,7 +16,7 @@ Define the Index for the |fts-field-type| Type
          :copyable: true
 
       For more detailed installation instructions, see the
-      :ref:`MongoDB Go Driver documentation <golang-quickstart>`.
+      :ref:`MongoDB Go Driver documentation <go-get-started>`.
 
    .. step:: Define the index.
 

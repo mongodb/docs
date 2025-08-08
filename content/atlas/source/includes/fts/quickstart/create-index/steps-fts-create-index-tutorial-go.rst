@@ -12,7 +12,7 @@ a. Set up and initialize the Go module.
       go get go.mongodb.org/mongo-driver/v2/mongo
 
    For more detailed installation instructions, see the
-   :ref:`MongoDB Go Driver documentation <golang-quickstart>`.
+   :ref:`MongoDB Go Driver documentation <go-get-started>`.
 
 #. Define the index.
 
