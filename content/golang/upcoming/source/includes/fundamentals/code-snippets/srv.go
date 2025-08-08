@@ -18,11 +18,13 @@ func main() {
 		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
 	}
 
-	// Use the SetServerAPIOptions() method to set the Stable API version to 1
+	// Uses the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+
+	// Defines the options for the MongoDB client
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
-	// Create a new client and connect to the server
+	// Creates a new client and connects to the server
 	client, err := mongo.Connect(opts)
 
 	if err != nil {
@@ -34,7 +36,7 @@ func main() {
 		}
 	}()
 
-	// Send a ping to confirm a successful connection
+	// Sends a ping to confirm a successful connection
 	var result bson.M
 	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
 		panic(err)

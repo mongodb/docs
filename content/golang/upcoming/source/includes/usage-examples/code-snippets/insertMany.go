@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// start-restaurant-struct
+// Defines the structure of a restaurant document
 type Restaurant struct {
 	Name         string
 	RestaurantId string        `bson:"restaurant_id,omitempty"`
@@ -22,8 +22,6 @@ type Restaurant struct {
 	Grades       []any         `bson:"grades,omitempty"`
 }
 
-// end-restaurant-struct
-
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -31,7 +29,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/connect/mongoclient/#environment-variable")
 	}
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -44,7 +42,6 @@ func main() {
 		}
 	}()
 
-	// begin insertMany
 	coll := client.Database("sample_restaurants").Collection("restaurants")
 
 	// Creates two sample documents describing restaurants
@@ -58,7 +55,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// end insertMany
 
 	// Prints the IDs of the inserted documents
 	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
@@ -66,6 +62,9 @@ func main() {
 		fmt.Printf("\t%s\n", id)
 	}
 
-	// When you run this file, it should print:
-	// 2 documents inserted with IDs: ObjectID("..."), ObjectID("...")
+	// When you run this file for the first time, it should print output similar
+	// to the following:
+	// 2 documents inserted with IDs:
+	// ObjectID("...")
+	// ObjectID("...")
 }

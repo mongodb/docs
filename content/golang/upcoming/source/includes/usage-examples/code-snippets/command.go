@@ -21,7 +21,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/connect/mongoclient/#environment-variable")
 	}
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -35,7 +35,6 @@ func main() {
 	}()
 
 	{
-		// begin runCommand
 		db := client.Database("sample_restaurants")
 
 		// Retrieves statistics about the specified database
@@ -49,7 +48,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		// end runCommand
 
 		/* When you run this file, it should print something similar to the following:
 		{

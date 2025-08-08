@@ -1,0 +1,149 @@
+.. _golang-mongodb-aws:
+.. _golang-authentication-aws:
+
+================================
+AWS IAM Authentication Mechanism
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas, amazon web services, code example
+
+Overview
+--------
+
+The ``MONGODB-AWS`` authentication mechanism uses Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate a user to MongoDB.
+You can use this mechanism only when authenticating to MongoDB Atlas.
+
+.. tip:: Configure Atlas for AWS IAM Authentication
+
+   To learn more about configuring MongoDB Atlas for AWS IAM authentication, see
+   :atlas:`Set Up Authentication with AWS IAM </security/aws-iam-authentication/>` in
+   the Atlas documentation.
+
+Specify MONGODB-AWS Authentication
+----------------------------------
+
+To connect to a MongoDB instance with ``MONGODB-AWS`` authentication enabled,
+specify the ``MONGODB-AWS`` authentication mechanism.
+
+The driver checks for your credentials in the following sources in the
+order listed:
+
+1. Connection string.
+#. Environment variables.
+#. Web identity token file.
+#. AWS ECS endpoint specified in the
+   ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`` environment variable.
+#. AWS EC2 endpoint. To learn more, see `IAM Roles for Tasks
+   <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`__
+   in the AWS documentation.
+
+.. important::
+   
+   The driver obtains the credentials only from the first source in which they are found.
+   For example, if you specify your AWS credentials in the connection string, the
+   driver ignores any credentials that you specify in environment variables.
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection string
+
+      .. tip::
+
+         The following examples set the appropriate credentials by using the ``SetAuth()`` 
+         method. You can also specify these credentials by using the ``ApplyURI()`` 
+         method. If you use the ``ApplyURI()`` method you must URL encode the username 
+         and password to ensure they are correctly parsed.
+   
+      To connect to your MongoDB instance using your AWS IAM credentials, perform the
+      following steps:
+
+      - Assign the ``AuthMechanism`` option the value ``MONGODB-AWS``
+      - Assign the ``Username`` option the value of your ``accessKeyID``
+      - Assign the ``Password`` option the value of your ``secretAccessKey``
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-connection-string.go
+         :language: go
+
+      If you must specify an AWS session token, use the temporary
+      credentials returned from an `assume role request <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__.
+      
+      To use temporary credentials, assign the value of your ``sessionToken`` to 
+      the ``AuthMechanismProperties`` option:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-connection-string-session-token.go
+         :language: go
+
+   .. tab:: Environment Variables
+      :tabid: environment variables
+
+      To authenticate to your MongoDB instance using AWS credentials stored in
+      environment variables, use a shell to set the variables as follows:
+
+      .. code-block:: bash
+
+         export AWS_ACCESS_KEY_ID=<awsKeyId>
+         export AWS_SECRET_ACCESS_KEY=<awsSecretKey>
+         export AWS_SESSION_TOKEN=<awsSessionToken>
+
+      .. note::
+
+         If you don't require an AWS session token for the role you're
+         authenticating with, omit the line containing ``AWS_SESSION_TOKEN``.
+
+      After you've set the preceding environment variables, specify the ``MONGODB-AWS``
+      authentication mechanism as shown in the following example:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-environment-variables.go
+         :language: go
+
+   .. tab:: Web Identity Token File
+      :tabid: web-identity-token-file
+
+      You can use the OpenID Connect (OIDC) token obtained from a web
+      identity provider to authenticate to Amazon Elastic Kubernetes
+      Service (EKS) or other services. To use an OIDC token, create or
+      locate the file that contains your token. Then, set the following
+      environment variables:
+
+      - ``AWS_WEB_IDENTITY_TOKEN_FILE``: Set to the absolute path of the
+        file that contains your OIDC token.
+
+      - ``AWS_ROLE_ARN``: Set to the IAM role used to connect to your
+        cluster. For example: ``arn:aws:iam::111122223333:role/my-role``.
+     
+      The following shell command sets these environment variables:      
+
+      .. code-block:: bash
+
+         export AWS_WEB_IDENTITY_TOKEN_FILE=<absolute path to file that contains OIDC token>
+         export AWS_ROLE_ARN=<IAM role name>
+
+      After you set the preceding environment variables, specify the ``MONGODB-AWS``
+      authentication mechanism as shown in the following example:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-environment-variables.go
+         :language: go
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed on this
+page, see the following API documentation:
+
+- `Client <{+api+}/mongo#Client>`__
+- `Credential <{+api+}/mongo/options#Credential>`__
+- `SetAuth() <{+api+}/mongo/options#ClientOptions.SetAuth>`__
+- `ClientOptions <{+api+}/mongo/options#ClientOptions>`__

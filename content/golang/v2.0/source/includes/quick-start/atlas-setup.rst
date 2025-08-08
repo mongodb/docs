@@ -43,26 +43,14 @@ when applicable, and connection options.
    .. step:: Retrieve your MongoDB Atlas connection string
 
       To retrieve your connection string for the cluster you created in the
-      previous section, log in to your Atlas account. Navigate to the
-      :guilabel:`Database` section and click :guilabel:`Clusters`. Click the
-      :guilabel:`Connect` button for the cluster that you want to connect to as
-      shown below:
-
-      .. figure:: /includes/figures/atlas_connection_select_cluster.png
-         :alt: Atlas Connection GUI cluster selection screen
-
-      Then, select the :guilabel:`Drivers` option under the :guilabel:`Connect
-      to your application` header. Select "Go" from the :guilabel:`Driver`
-      selection menu and the version that best matches the version you installed
-      from the :guilabel:`Version` selection menu.
-
-   .. step:: Copy your connection string
-
-      Click the button to the right of the connection string to copy it to your
-      clipboard, as shown in the following screenshot:
-
-      .. figure:: /includes/figures/atlas_connection_copy_string_go.png
-         :alt: Atlas Connection GUI connection string screen
+      previous section, do the following:
+      
+      1. Log in to your Atlas account. 
+      2. Navigate to the :guilabel:`Database` section on the sidebar and select :guilabel:`Clusters`. 
+      3. Find the cluster you would like to connect to and click the :guilabel:`Connect` button.
+      4. Under :guilable:`Connect to your application`, click the :guilabel:`Drivers` option. 
+      5. Select "Go" from the :guilabel:`Driver` selection menu and the appropriate version from the :guilabel:`Version` selection menu.
+      6. Copy the connection string clipboard.
 
    .. step:: Update the placeholders
 
@@ -75,6 +63,5 @@ when applicable, and connection options.
 After completing these steps, you have a connection string that corresponds your
 Atlas cluster.
 
-To learn more about connecting to the {+driver-long+} through Atlas, see
-the :atlas:`Atlas driver connection guide </driver-connection>`
-and select **Go** from the :guilabel:`Select your language` dropdown.
+To learn more about connecting to Atlas by using the {+driver-long+} and applying
+connection options, see the :atlas:`Atlas driver connection guide </driver-connection>`.

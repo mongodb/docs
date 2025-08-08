@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// start-restaurant-struct
+// Creates a Restaurant struct as a model for documents in the restaurants collection
 type Restaurant struct {
 	ID           bson.ObjectID `bson:"_id"`
 	Name         string
@@ -25,8 +25,6 @@ type Restaurant struct {
 	Grades       []interface{}
 }
 
-// end-restaurant-struct
-
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -34,7 +32,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/connect/mongoclient/#environment-variable")
 	}
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -47,7 +45,6 @@ func main() {
 		}
 	}()
 
-	// begin findOne
 	coll := client.Database("sample_restaurants").Collection("restaurants")
 
 	// Creates a query filter to match documents in which the "name" is
@@ -66,7 +63,6 @@ func main() {
 		}
 		panic(err)
 	}
-	// end findOne
 
 	output, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {

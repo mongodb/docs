@@ -13,6 +13,7 @@ import (
 
 func main() {
 
+	// start-tls
 	caFile := "<path to CA certificate>"
 	certFile := "<path to public client certificate>"
 	keyFile := "<path to private client key>"
@@ -43,6 +44,7 @@ func main() {
 
 	// Sets TLS options in options instance
 	opts := options.Client().ApplyURI(uri).SetTLSConfig(tlsConfig)
+	// end-tls
 
 	// Connects to MongoDB with TLS enabled
 	client, err := mongo.Connect(opts)

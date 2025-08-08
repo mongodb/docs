@@ -1,0 +1,128 @@
+.. _golang-kerberos:
+.. _golang-authentication-kerberos:
+
+==========================================
+Kerberos (GSSAPI) Authentication Mechanism
+==========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example
+
+Overview
+--------
+
+The Generic Security Services API (GSSAPI) authentication mechanism allows you to
+use your principal name to authenticate to a Kerberos service.
+You can use this mechanism only when authenticating to MongoDB Enterprise Advanced.
+
+Code Placeholders 
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``kerberos_principal``: Your Kerberos principal. A sample username is ``myuser@KERBEROS.EXAMPLE.COM``.
+- ``password``: Your Kerberos user's password. You can also store your
+  password in a ``keytab`` file to avoid exposing your
+  password in your code.
+- ``connection_uri``: Your connection string URI.
+
+Specify Kerberos (GSSAPI) Authentication
+----------------------------------------
+
+You must use the ``gssapi`` `build tag <https://pkg.go.dev/go/build#hdr-Build_Constraints>`__
+and specify `cgo support <https://pkg.go.dev/cmd/cgo>`__ during
+compilation to use Kerberos authentication. ``cgo`` support is enabled by
+default unless you previously set environment variables to
+cross-compile to a different platform. To use the ``gssapi`` build tag,
+compile your code with the following command:
+
+.. code-block:: sh
+   
+   go build -tags gssapi
+
+The following code shows how you can define a ``Credential`` struct to
+authenticate to Kerberos and create a client with your authentication
+preferences:
+
+.. code-block:: go
+
+   credential := options.Credential{
+           AuthMechanism: "GSSAPI",
+           Username:      "<kerberos_principal>",
+           Password:      "<password>",
+           PasswordSet:   true,
+   }
+
+   uri := "<connection_uri>"
+   clientOpts := options.Client().ApplyURI(uri).SetAuth(credential)
+   
+   client, err := mongo.Connect(clientOpts)
+
+You can omit a password or the ``PasswordSet`` field in
+your ``Credential`` struct if you store authentication keys in
+``keytab`` files. You can initialize a credential cache for
+authenticating the Kerberos principal using the ``kinit`` binary. To
+learn more about the ``kinit`` binary, see the `Oracle documentation
+<https://docs.oracle.com/javase/7/docs/technotes/tools/windows/kinit.html>`__.
+
+The following command shows how you can invoke a credential cache for a
+sample username:
+
+.. code-block:: sh
+   
+   kinit myuser@KERBEROS.EXAMPLE.COM
+
+You can alternatively authenticate using a connection string URI,
+specifying your :wikipedia:`URL-encoded <Percent-encoding>` Kerberos
+principal, password, and ``hostname``, the network address of your
+MongoDB server:
+
+.. code-block:: go
+   
+   uri := "mongodb://<kerberos_principal>:<password>@<hostname>/?authMechanism=GSSAPI"
+
+Set Custom SERVICE_NAME and SERVICE_REALM Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify more properties with your authentication
+mechanism using the ``AuthMechanismProperties`` field in the
+``Credential`` struct. The default service name for Kerberos is
+"mongodb". The following code shows how you can set custom values
+for the ``SERVICE_NAME`` and ``SERVICE_REALM`` fields when defining a
+``Credential`` struct:
+
+.. code-block:: go
+
+   credential := options.Credential{
+           AuthMechanism: "GSSAPI",
+           Username:      "<kerberos_principal>",
+           Password:      "<password>",
+           AuthMechanismProperties: map[string]string{
+                   "SERVICE_REALM": "<kerberos_service_realm>",
+                   "SERVICE_NAME":  "<service_name>",
+           },
+   }
+
+For more properties, see the
+:manual:`Server manual entry on authentication properties </reference/connection-string/#mongodb-urioption-urioption.authMechanismProperties>`.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed on this
+page, see the following API documentation:
+
+- `Client <{+api+}/mongo#Client>`__
+- `Credential <{+api+}/mongo/options#Credential>`__
+- `SetAuth() <{+api+}/mongo/options#ClientOptions.SetAuth>`__
+- `ClientOptions <{+api+}/mongo/options#ClientOptions>`__

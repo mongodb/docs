@@ -13,6 +13,16 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+type Restaurant struct {
+	ID           bson.ObjectID `bson:"_id"`
+	Name         string
+	RestaurantId string `bson:"restaurant_id"`
+	Cuisine      string
+	Address      interface{}
+	Borough      string
+	Grades       interface{}
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -33,12 +43,11 @@ func main() {
 		}
 	}()
 
-	// begin countDocuments
-	coll := client.Database("sample_mflix").Collection("movies")
+	coll := client.Database("sample_restaurants").Collection("restaurants")
 
-	// Specifies a filter to match documents where the "countries" array
-	// includes a value of "China"
-	filter := bson.D{{"countries", "China"}}
+	// Specifies a filter to match documents where the "cuisine" field
+	// has a value of "American"
+	filter := bson.D{{"cuisine", "American"}}
 
 	// Retrieves and prints the estimated number of documents in the collection
 	estCount, estCountErr := coll.EstimatedDocumentCount(context.TODO())
@@ -46,17 +55,15 @@ func main() {
 		panic(estCountErr)
 	}
 
-	// Retrieves and prints the number of documents in the collection
-	// that match the filter
+	// Retrieves and prints the number of matching documents in the collection
 	count, err := coll.CountDocuments(context.TODO(), filter)
 	if err != nil {
 		panic(err)
 	}
-	// end countDocuments
 
 	// When you run this file, it should print:
-	// Estimated number of documents in the movies collection: 23541
-	// Number of movies from China: 303
-	fmt.Printf("Estimated number of documents in the movies collection: %d\n", estCount)
-	fmt.Printf("Number of movies from China: %d\n", count)
+	// Estimated number of documents in the movies collection: 25359
+	// Number of restaurants with American cuisine: 6183
+	fmt.Printf("Estimated number of documents in the restaurants collection: %d\n", estCount)
+	fmt.Printf("Number of restaurants with American cuisine: %d\n", count)
 }

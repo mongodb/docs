@@ -1,1 +1,1 @@
-The {+driver-long+} requires Go 1.18 or later.
+The {+driver-long+} requires Go {+min-lang-version+} or later.

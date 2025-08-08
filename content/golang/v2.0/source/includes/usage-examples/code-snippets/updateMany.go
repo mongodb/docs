@@ -13,6 +13,14 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+// Defines a Restaurant struct as a model for documents in the "restaurants" collection
+type Restaurant struct {
+	ID            bson.ObjectID `bson:"_id"`
+	Name          string        `bson:"name"`
+	Cuisine       string        `bson:"cuisine"`
+	AverageRating float64       `bson:"avg_rating,omitempty"`
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -20,7 +28,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/connect/mongoclient/#environment-variable")
 	}
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -33,24 +41,23 @@ func main() {
 		}
 	}()
 
-	// begin updatemany
-	coll := client.Database("sample_airbnb").Collection("listingsAndReviews")
-	filter := bson.D{{"address.market", "Sydney"}}
+	coll := client.Database("sample_restaurants").Collection("restaurants")
+	filter := bson.D{{"cuisine", "Pizza"}, {"borough", "Brooklyn"}}
 
-	// Creates instructions to update the values of the "price" field
-	update := bson.D{{"$mul", bson.D{{"price", 1.15}}}}
+	// Creates instructions to update the values of the "avg_rating" field
+	update := bson.D{{"$set", bson.D{{"avg_rating", 4.5}}}}
 
-	// Updates documents in which the value of the "address.market"
-	// field is "Sydney"
+	// Updates documents in which the value of the "Cuisine"
+	// field is "Pizza"
 	result, err := coll.UpdateMany(context.TODO(), filter, update)
 	if err != nil {
 		panic(err)
 	}
-	// end updatemany
 
 	// Prints the number of updated documents
 	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
+	// end updatemany
 
-	// When you run this file for the first time, it should print:
-	// Number of documents replaced: 609
+	// When you run this file for the first time, it should print output similar to the following:
+	// Documents updated: 296
 }

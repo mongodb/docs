@@ -13,6 +13,16 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+type Restaurant struct {
+	ID           bson.ObjectID `bson:"_id"`
+	Name         string
+	RestaurantId string `bson:"restaurant_id"`
+	Cuisine      string
+	Address      interface{}
+	Borough      string
+	Grades       interface{}
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -33,25 +43,25 @@ func main() {
 		}
 	}()
 
-	// begin distinct
-	coll := client.Database("sample_mflix").Collection("movies")
-	filter := bson.D{{"directors", "Natalie Portman"}}
+	// Filters the collection for documents where the value of cuisine is "Tapas"
+	coll := client.Database("sample_restaurants").Collection("restaurants")
+	filter := bson.D{{"cuisine", "Tapas"}}
 
-	// Retrieves the distinct values of the "title" field in documents
+	// Retrieves the distinct values of the "borough" field in documents
 	// that match the filter
 	var arr []string
-	err = coll.Distinct(context.TODO(), "title", filter).Decode(&arr)
+	err = coll.Distinct(context.TODO(), "borough", filter).Decode(&arr)
 	if err != nil {
 		panic(err)
 	}
-	// end distinct
 
-	// Prints the distinct "title" values
+	// Prints the distinct "borough" values
 	for _, result := range arr {
 		fmt.Println(result)
 	}
 
 	// When you run this file, it should print:
-	// A Tale of Love and Darkness
-	// New York, I Love You
+	// Brooklyn
+	// Manhattan
+	// Queens
 }
