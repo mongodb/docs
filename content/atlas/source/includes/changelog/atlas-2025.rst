@@ -1,3 +1,35 @@
+
+.. _atlas_2025_07_16:
+
+16 July 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+-  Makes the ability to :ref:`send resource tags to Datadog <datadog-tags>` an
+   opt-in feature. 
+
+.. _atlas_2025_06_04:
+
+4 June 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds line items detailing :ref:`support subscription charges
+  <view-subscription-charges>`, per project simplifying cost visualization for customers
+  with multiple projects and reducing manual effort.   
+
+.. _atlas_2025_05_07:
+
+7 May 2025 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Adds shareable URL support for the :ref:`Query Profiler <query-profiler>`, enabling
+  copying and pasting Query Profiler URLs for an easier workflow when working with slow
+  logs.
+
+- Implements General UX fixes and improvements to Query Profiler, including: 
+  
+  - Increased log retention from five to seven days. 
+  - Improved available filter selections.
+
 .. _atlas_2025_04_23:
 
 23 April 2025 Release
