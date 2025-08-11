@@ -1,3 +1,45 @@
+.. _atlas-sp-20250806:
+
+6 August 2025 Release
+---------------------
+
+- Adds support for Cross Atlas Project for ``$source`` and ``$merge``.
+  To learn more, see `Atlas Connection <https://www.mongodb.com/docs/atlas/atlas-stream-processing/atlas-connection/>`__.
+
+.. _atlas-sp-20250731:
+
+31 July 2025 Release
+--------------------
+
+- Adds support for ``$source`` to support Initial Sync when reading from Atlas collections.
+  To learn more, see `MongoDB Collection Change Stream <https://www.mongodb.com/docs/atlas/atlas-stream-processing/sp-agg-source/#mongodb-collection-change-stream>`__.
+
+.. _atlas-sp-20250725:
+
+25 July 2025 Release
+--------------------
+
+- Adds support for Stream Processing Instances to deploy on Google Cloud. 
+  To learn more, see `Google Cloud (GCP) Stream Processing Regions <https://www.mongodb.com/docs/atlas/reference/google-gcp/#std-label-gcp-stream-processing-regions>`__.
+
+
+.. _atlas-sp-20250627:
+
+27 June 2025 Release
+---------------------
+
+- Adds support for ``$merge`` to be able to delete documents in collections. 
+  To learn more, see `$merge (Stream Processing) <https://www.mongodb.com/docs/atlas/atlas-stream-processing/sp-agg-merge/#definition>`__.
+
+
+.. _atlas-sp-20250616:
+
+16 June 2025 Release
+---------------------
+
+- Adds support for Datadog Metrics. 
+  To learn more, see `Datadog Metrics <https://www.mongodb.com/docs/atlas/atlas-stream-processing/monitoring/#stream-processor-metrics-in-datadog>`__.
+
 .. _atlas-sp-20250602:
 
 2 June 2025 Release
