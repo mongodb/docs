@@ -3,9 +3,7 @@
 [PR Reviewing Guidelines](https://github.com/mongodb/docs-golang/blob/master/REVIEWING.md)
 
 JIRA - <https://jira.mongodb.org/browse/DOCSP-NNNNN>
-
-### Staging Links
-<!-- start insert-links --><!-- end insert-links -->
+Staging - <https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-xlarge/NNNNN/>
 
 ## Self-Review Checklist
 
