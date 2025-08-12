@@ -63,6 +63,17 @@ Token Filter Types
 
 .. include:: /includes/fts/analyzers/custom-analyzer-examples-intro.rst
 
+.. tabs-selector:: drivers
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the example on this page.
+
+----------
+
 .. _asciiFolding-tf-ref: 
 
 asciiFolding
@@ -126,96 +137,36 @@ a. Apply the :ref:`standard tokenizer <standard-tokenizer-ref>` to
    values to their :abbr:`ASCII (American Standard Code for
    Information Interchange)` equivalent.  
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``asciiConverter``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter| replace:: :guilabel:`asciiFolding`
-      .. |minutes-collection-field| replace:: **page_updated_by.first_name**
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/asciifolding_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-asciifolding-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json 
+      .. literalinclude:: /includes/fts/analyzers/token-filters/asciifolding_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "page_updated_by": {
-                 "type": "document",
-                 "dynamic": false,
-                 "fields": {
-                   "first_name": {
-                     "type": "string",
-                     "analyzer": "asciiConverter"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "asciiConverter",
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "asciiFolding"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``first_name`` field in the
 :ref:`minutes <custom-analyzers-eg-coll>` collection for names 
 using their ASCII equivalent.
 
-.. io-code-block:: 
-   :copyable: true
+.. tabs-drivers::
 
-   .. input:: 
-      :language: json  
+   .. tab::
+      :tabid: atlas-ui
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "Sian",
-              "path": "page_updated_by.first_name"
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "page_updated_by.last_name": 1,
-            "page_updated_by.first_name": 1
-          }
-        }
-      ])
+      .. include:: /includes/fts/analyzers/token-filters/asciifolding_query_ui.rst
 
-   .. output:: 
-      :language: json 
+   .. tab::
+      :tabid: shell
 
-      [
-       {
-          _id: 1,
-          page_updated_by: { last_name: 'AUERBACH', first_name: 'Siân'}
-       }
-      ]
+      .. include:: /includes/fts/analyzers/token-filters/asciifolding_query.rst
 
 |fts| returns document with ``_id: 1`` in the results because |fts|
 created the following tokens (searchable terms) for the
@@ -305,95 +256,36 @@ a. Apply the :ref:`standard tokenizer <standard-tokenizer-ref>` to
 #. Apply the ``daitchMokotoffSoundex`` token filter to encode the
    tokens for words that sound the same.
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``dmsAnalyzer`` 
-      .. |fts-tokenizer| replace:: :guilabel:`standard` 
-      .. |fts-token-filter| replace:: :guilabel:`daitchMokotoffSoundex` 
-      .. |fts-token-filter-option-name| replace:: :guilabel:`originalTokens` 
-      .. |minutes-collection-field| replace:: **page_updated_by.last_name** 
-      .. |fts-field-type| replace:: **String** 
+      .. include:: /includes/fts/analyzers/token-filters/daitchmokotoffsoundex_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-daitchmokotoffsoundex-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json 
-        :copyable: true
-
-        {
-          "mappings": {
-            "dynamic": false,
-            "fields": {
-              "page_updated_by": {
-                "type": "document",
-                "dynamic": false,
-                "fields": {
-                  "last_name": {
-                    "type": "string",
-                    "analyzer": "dmsAnalyzer"
-                  }
-                }
-              }
-            }
-          },
-          "analyzers": [
-            {
-              "name": "dmsAnalyzer",
-              "tokenizer": {
-                "type": "standard"
-              },
-              "tokenFilters": [
-                {
-                  "type": "daitchMokotoffSoundex",
-                  "originalTokens": "include"
-                }
-              ]
-            }
-          ]
-        }
+      .. literalinclude:: /includes/fts/analyzers/token-filters/daitchmokotoffsoundex_mongosh.js
+         :language: javascript
+         :linenos:
+         :copyable: true
 
 The following query searches for terms that sound similar to 
 ``AUERBACH`` in the ``page_updated_by.last_name`` field of 
 the :ref:`minutes <custom-analyzers-eg-coll>` collection.
 
-.. io-code-block:: 
-   :copyable: true
+.. tabs-drivers::
 
-   .. input:: 
-      :language: json  
+   .. tab::
+      :tabid: atlas-ui
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-           "index": "default",
-           "text": {
-              "query": "AUERBACH",
-              "path": "page_updated_by.last_name"
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "page_updated_by.last_name": 1
-          }
-        }
-      ])
+      .. include:: /includes/fts/analyzers/token-filters/daitchmokotoffsoundex_query_ui.rst
 
-   .. output:: 
-      :language: json 
+   .. tab::
+      :tabid: shell
 
-      [
-       { "_id" : 1, "page_updated_by" : { "last_name" : "AUERBACH" } }
-       { "_id" : 2, "page_updated_by" : { "last_name" : "OHRBACH" } }
-      ]
+      .. include:: /includes/fts/analyzers/token-filters/daitchmokotoffsoundex_query.rst
 
 |fts| returns documents with ``_id: 1`` and ``_id: 2`` because the
 terms in both documents are phonetically similar, and are coded using
@@ -500,95 +392,36 @@ a. Apply the :ref:`standard tokenizer <standard-tokenizer-ref>` to
    - ``edgeGram`` token filter to create 4 to 7 character long tokens
      from the left side.  
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``titleAutocomplete``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`icuFolding`
-      .. |fts-token-filter-b| replace:: :guilabel:`edgeGram`
-      .. |minutes-collection-field| replace:: **title**
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/edgegram_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-edgegram-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/edgegram_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {
-           "analyzer": "titleAutocomplete",
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "title": {
-                 "type": "string",
-                 "analyzer": "titleAutocomplete"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "titleAutocomplete",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "icuFolding"
-                 },
-                 {
-                   "type": "edgeGram",
-                   "minGram": 4,
-                   "maxGram": 7
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``title`` field of the :ref:`minutes
 <custom-analyzers-eg-coll>` collection for terms that begin with
 ``mee``, followed by any number of other characters. 
 
-.. io-code-block:: 
-   :copyable: true
+.. tabs-drivers::
 
-   .. input:: 
-      :language: json  
+   .. tab::
+      :tabid: atlas-ui
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "wildcard": {
-              "query": "mee*",
-              "path": "title",
-              "allowAnalyzedField": true
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "title": 1
-          }
-        }
-      ])
+      .. include:: /includes/fts/analyzers/token-filters/edgegram_query_ui.rst
 
-   .. output:: 
-      :language: json 
+   .. tab::
+      :tabid: shell
 
-      [
-        { _id: 1, title: 'The team's weekly meeting' },
-        { _id: 3, title: 'The regular board meeting' }
-      ]
+      .. include:: /includes/fts/analyzers/token-filters/edgegram_query.rst
 
 |fts| returns documents with ``_id: 1`` and ``_id: 3`` because the
 documents contain the term ``meeting``, which matches the query
@@ -652,93 +485,36 @@ a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
    token filter to remove possessives (trailing ``'s``) from the
    tokens. 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``englishPossessiveStemmer``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter| replace:: :guilabel:`englishPossessive`
-      .. |minutes-collection-field| replace:: **title**
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/englishpossessive_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-englishpossessive-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/englishpossessive_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {  
-           "mappings": {
-             "fields": {
-               "title": {
-                 "type": "string",
-                 "analyzer": "englishPossessiveStemmer"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "englishPossessiveStemmer",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "englishPossessive"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``title`` field in the 
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the term 
 ``team``.
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "team",
-              "path": "title"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "title": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/englishpossessive_query_ui.rst
 
-      [
-        {
-          _id: 1,
-          title: 'The team's weekly meeting'
-        },
-        { 
-          _id: 2,
-          title: 'The check-in with sales team'
-        }
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/englishpossessive_query.rst
 
 |fts| returns results that contain the term ``team`` in the 
 ``title`` field. |fts| returns the document with ``_id: 1`` because 
@@ -809,103 +585,36 @@ a. Apply the :ref:`whitespace <whitespace-tokenizer-ref>` tokenizer
    - :ref:`flattenGraph <flattenGraph-tf-ref>` token filter to
      flatten the tokens to a flat form.
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``wordDelimiterGraphFlatten``
-      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
-      .. |fts-token-filter-a| replace:: :guilabel:`wordDelimiterGraph`
-      .. |fts-token-filter-b| replace:: :guilabel:`flattenGraph`
-      .. |minutes-collection-field| replace:: **message**
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/flattengraph_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-flattengraph-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/flattengraph_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {  
-           "mappings": {
-             "fields": {
-               "message": {
-                 "type": "string",
-                 "analyzer": "wordDelimiterGraphFlatten"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "wordDelimiterGraphFlatten",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "whitespace"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "wordDelimiterGraph",
-                   "delimiterOptions" : {
-                     "generateWordParts" : true,
-                     "preserveOriginal" : true
-                   },
-                   "protectedWords": {
-                     "words": [
-                       "SIGN_IN"
-                     ],
-                     "ignoreCase": false
-                   }
-                 },
-                 {
-                   "type": "flattenGraph"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``message`` field in the 
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the term 
 ``sign``.
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "sign",
-              "path": "message"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "message": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/flattengraph_query_ui.rst
 
-      [
-        {
-          _id: 3,
-          message: 'try to sign-in'
-        }  
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/flattengraph_query.rst
 
 |fts| returns the document with ``_id: 3`` in the results for the 
 query term ``sign`` even though the document contains the 
@@ -969,57 +678,20 @@ a. Apply the :ref:`keyword tokenizer <keyword-tokenizer-ref>` to
    accent removal, case folding, canonical duplicates folding, and so  
    on. 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``diacriticFolder``
-      .. |fts-tokenizer| replace:: :guilabel:`keyword`
-      .. |fts-token-filter| replace:: :guilabel:`icuFolding`
-      .. |minutes-collection-field| replace:: **text.sv_FI** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/icufolding_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-icufolding-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/icufolding_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {
-           "analyzer": "diacriticFolder",
-           "mappings": {
-             "fields": {
-               "text": {
-                 "type": "document",
-                 "fields": {
-                   "sv_FI": {
-                     "analyzer": "diacriticFolder",
-                     "type": "string"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "diacriticFolder",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "keyword"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "icuFolding"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query uses the the :ref:`wildcard <wildcard-ref>` operator to search
 the ``text.sv_FI`` field in the :ref:`minutes
@@ -1027,44 +699,17 @@ the ``text.sv_FI`` field in the :ref:`minutes
 term ``avdelning``, preceded and followed by any number of other
 characters.   
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "wildcard": {
-              "query": "*avdelning*",
-              "path": "text.sv_FI",
-              "allowAnalyzedField": true
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.sv_FI": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/icufolding_query_ui.rst
 
-      [
-        {
-          _id: 1,
-          text: { sv_FI: 'Den här sidan behandlar avdelningsmöten' }
-        },
-        {
-          _id: 2,
-          text: { sv_FI: 'Först talade chefen för försäljningsavdelningen' }
-        }
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/icufolding_query.rst
 
 |fts| returns the document with ``_id: 1`` and ``_id: 2`` in the results
 because the documents contain the query term ``avdelning`` followed by
@@ -1144,86 +789,36 @@ a. Use the :ref:`whitespace tokenizer <whitespace-tokenizer-ref>` to
 #. Use the ``icuNormalizer`` token filter to normalize tokens by
    Compatibility Decomposition, followed by Canonical Composition.
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``textNormalizer``
-      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
-      .. |fts-token-filter| replace:: :guilabel:`icuNormalizer`
-      .. |minutes-collection-field| replace:: **message** 
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/icunormalizer_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-icunormalizer-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/icunormalizer_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {
-           "analyzer": "textNormalizer",
-           "mappings": {
-             "fields": {
-               "message": {
-                 "type": "string",
-                 "analyzer": "textNormalizer"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "textNormalizer",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "whitespace"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "icuNormalizer",
-                   "normalizationForm": "nfkc"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``message`` field in the
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the term 
 ``1``.
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "1",
-              "path": "message"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "message": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/icunormalizer_query_ui.rst
 
-      [ { _id: 2, message: 'do not forget to SIGN-IN. See ① for details.' } ] 
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/icunormalizer_query.rst 
 
 |fts| returns the document with ``_id: 2`` in the results for the 
 query term ``1`` even though the document contains the circled number
@@ -1307,90 +902,36 @@ a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
      using a combination of algorithmic stemming and a built-in 
      dictionary for the english language.
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``kStemmer``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`lowercase`
-      .. |fts-token-filter-b| replace:: :guilabel:`kStemming`
-      .. |minutes-collection-field| replace:: **text.en_US** nested 
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/kstemming_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-kstemming-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/kstemming_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-   
-         {  
-           "analyzer": "kStemmer", 
-           "mappings": {
-             "dynamic": true
-           },
-           "analyzers": [
-             {
-               "name": "kStemmer",
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "lowercase"
-                 },
-                 {
-                   "type": "kStemming"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``text.en_US`` field in the
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the term 
 ``Meeting``. 
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-       {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "Meeting",
-              "path": "text.en_US"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.en_US": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/kstemming_query_ui.rst
 
-      [
-        {
-          _id: 1,
-          text: {
-            en_US: '<head> This page deals with department meetings. </head>'
-          }
-        }
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/kstemming_query.rst
 
 |fts| returns the document with ``_id: 1``, which contains the plural
 term ``meetings`` in lowercase. |fts| matches the query term to the 
@@ -1469,102 +1010,36 @@ a. Use the :ref:`standard tokenizer <standard-tokenizer-ref>` to
    - ``length`` token filter to index only tokens that are at
      least 20 UTF-16 code units long after tokenizing. 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``longOnly``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`icuFolding`
-      .. |fts-token-filter-b| replace:: :guilabel:`length`
-      .. |minutes-collection-field| replace:: **text.sv.FI** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/length_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-length-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/length_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {
-           "mappings": {
-             "fields": {
-               "text": {
-                 "type": "document",
-                 "dynamic": true,
-                 "fields": {
-                   "sv_FI": {
-                     "type": "string",
-                     "analyzer": "longOnly"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "longOnly",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "icuFolding"
-                 },
-                 {
-                   "type": "length",
-                   "min": 20
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``text.sv_FI`` field in the
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the term  
 ``forsaljningsavdelningen``.
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "forsaljningsavdelningen",
-              "path": "text.sv_FI"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.sv_FI": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/length_query_ui.rst
 
-      [
-        {
-          _id: 2,
-          text: {
-            sv_FI: 'Först talade chefen för försäljningsavdelningen'
-          }
-        }
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/length_query.rst
 
 |fts| returns the document with ``_id: 2``, which contains the term
 ``försäljningsavdelningen``. |fts| matches the document to the query
@@ -1632,86 +1107,36 @@ Examples
       #. Apply the ``lowercase`` token filter to convert token text
          to lowercase. 
 
-      .. tabs:: 
+      .. tabs-drivers::
 
-         .. tab:: Visual Editor 
-            :tabid: vib 
+         .. tab::
+            :tabid: atlas-ui
 
-            .. |analyzer-name| replace:: ``keywordLowerer``
-            .. |fts-tokenizer| replace:: :guilabel:`keyword`
-            .. |fts-token-filter| replace:: :guilabel:`lowercase`
-            .. |minutes-collection-field| replace:: **title** 
-            .. |fts-field-type| replace:: **Autocomplete**
-            .. |fts-autocomplete-tokenization| replace:: **nGram**
+            .. include:: /includes/fts/analyzers/token-filters/lowercase_simple_ui.rst
 
-            .. include:: /includes/fts/extracts/fts-token-filter-lowercase-config-simple.rst 
+         .. tab::
+            :tabid: shell
 
-         .. tab:: JSON Editor 
-            :tabid: jsoneditor
-
-            Replace the default index definition with the following:
-
-            .. code-block:: json
+            .. literalinclude:: /includes/fts/analyzers/token-filters/lowercase_simple_mongosh.js 
+               :language: javascript
+               :linenos:
                :copyable: true
-
-               {
-                 "mappings": {
-                   "fields": {
-                     "title": {
-                       "analyzer": "keywordLowerer",
-                       "tokenization": "nGram",
-                       "type": "autocomplete"
-                     }
-                   }
-                 },
-                 "analyzers": [
-                   {
-                     "name": "keywordLowerer",
-                     "charFilters": [],
-                     "tokenizer": {
-                       "type": "keyword"
-                     },
-                     "tokenFilters": [
-                       {
-                         "type": "lowercase"
-                       }
-                     ]
-                   }
-                 ]
-               }
 
       The following query searches the ``title`` field using the
       :ref:`autocomplete <autocomplete-ref>` operator for the
       characters ``standup``. 
 
-      .. io-code-block:: 
-         :copyable: true
-   
-         .. input::
-            :language: json
+      .. tabs-drivers::
 
-            db.minutes.aggregate([
-              {
-                "$search": {
-                  "index": "default",
-                  "autocomplete": {
-                    "query": "standup",
-                    "path": "title"
-                  }
-                }
-              },
-              {
-                "$project": {
-                  "_id": 1,
-                  "title": 1
-                }
-              }
-            ])
+         .. tab::
+            :tabid: atlas-ui
 
-         .. output:: 
-            :language: json 
+            .. include:: /includes/fts/analyzers/token-filters/lowercase_simple_query_ui.rst
 
-            [ { _id: 4, title: 'The daily huddle on tHe StandUpApp2' } ]
+         .. tab::
+            :tabid: shell
+
+            .. include:: /includes/fts/analyzers/token-filters/lowercase_simple_query.rst
                
       |fts| returns the document with ``_id: 4`` in the results
       because the document contains the query term ``standup``. |fts|
@@ -1757,90 +1182,35 @@ Examples
            standard Unicode Normalization Mode. 
          - ``lowercase`` token filter to convert token text to lowercase.
 
-      .. tabs:: 
+      .. tabs-drivers::
 
-         .. tab:: Visual Editor 
-            :tabid: vib 
+         .. tab::
+            :tabid: atlas-ui
 
-            .. |analyzer-name| replace:: ``lowerCaser``
-            .. |fts-tokenizer| replace:: :guilabel:`standard`
-            .. |fts-token-filter-a| replace:: :guilabel:`icuNormalizer`
-            .. |fts-token-filter-b| replace:: :guilabel:`lowercase`
-            .. |minutes-collection-field| replace:: **message** 
-            .. |fts-field-type| replace:: **String**
+            .. include:: /includes/fts/analyzers/token-filters/lowercase_advanced_ui.rst
 
-            .. include:: /includes/fts/extracts/fts-token-filter-lowercase-config-advanced.rst 
+         .. tab::
+            :tabid: shell
 
-         .. tab:: JSON Editor 
-            :tabid: jsoneditor
-
-            .. code-block:: json
+            .. literalinclude:: /includes/fts/analyzers/token-filters/lowercase_advanced_mongosh.js
+               :language: javascript
+               :linenos:
                :copyable: true
-
-               {
-                 "mappings": {
-                   "fields": {
-                     "message": {
-                       "type": "string",
-                       "analyzer": "lowerCaser"
-                     }
-                   }
-                 },
-                 "analyzers": [
-                   {
-                     "name": "lowerCaser",
-                     "charFilters": [],
-                     "tokenizer": {
-                       "type": "standard"
-                     },
-                     "tokenFilters": [
-                       {
-                         "type": "icuNormalizer",
-                         "normalizationForm": "nfkd"
-                       },
-                       {
-                         "type": "lowercase"
-                       }
-                     ]
-                   }
-                 ]
-               }
 
       The following query searches the ``message`` field for the term
       ``sign-in``. 
 
-      .. io-code-block::
-         :copyable: true
-   
-         .. input::
-            :language: json
+      .. tabs-drivers::
 
-            db.minutes.aggregate([
-              {
-                "$search": {
-                  "index": "default",
-                  "text": {
-                    "query": "sign-in",
-                    "path": "message"
-                  }
-                } 
-              },
-              {
-                "$project": {
-                  "_id": 1,
-                  "message": 1
-                }
-              }
-            ])
+         .. tab::
+            :tabid: atlas-ui
 
-         .. output::
-            :language: json
+            .. include:: /includes/fts/analyzers/token-filters/lowercase_advanced_query_ui.rst
 
-            [
-              { _id: 1, message: 'try to siGn-In' },
-              { _id: 3, message: 'try to sign-in' },
-              { _id: 2, message: 'do not forget to SIGN-IN. See ① for details.' }
-            ]
+         .. tab::
+            :tabid: shell
+
+            .. include:: /includes/fts/analyzers/token-filters/lowercase_advanced_query.rst
 
       |fts| returns the documents with ``_id: 1``, ``_id: 3``, and ``_id: 
       2`` in the results for the query term ``sign-in`` because the
@@ -1941,95 +1311,37 @@ a. Apply the :ref:`standard  <standard-tokenizer-ref>` tokenizer to
      from words. 
    - ``nGram`` to tokenize words into 4 to 7 characters in length. 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``titleAutocomplete``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`englishPossessive`
-      .. |fts-token-filter-b| replace:: :guilabel:`nGram`
-      .. |minutes-collection-field| replace:: **title** 
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/ngram_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-ngram-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/ngram_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {
-          "mappings": {
-             "fields": {
-               "title": {
-                 "type": "string",
-                 "analyzer": "titleAutocomplete"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "titleAutocomplete",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "englishPossessive"
-                 },
-                 {
-                   "type": "nGram",
-                   "minGram": 4,
-                   "maxGram": 7
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query uses the :ref:`wildcard <wildcard-ref>` operator to search 
 the ``title`` field in the :ref:`minutes <custom-analyzers-eg-coll>`
 collection for the term ``meet`` followed by any number of other
 characters after the term.  
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "wildcard": {
-              "query": "meet*",
-              "path": "title",
-              "allowAnalyzedField": true
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "title": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/ngram_query_ui.rst
 
-      [
-        { _id: 1, title: 'The team's weekly meeting' },
-        { _id: 3, title: 'The regular board meeting' }
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/ngram_query.rst
 
 |fts| returns the documents with ``_id: 1`` and ``_id: 3`` because
 the documents contain the term ``meeting``, which |fts| matches to
@@ -2111,95 +1423,34 @@ a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
      remove the common morphological and inflectional suffixes from
      the words. 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``porterStemmer``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`lowercase`
-      .. |fts-token-filter-b| replace:: :guilabel:`porterStemming`
-      .. |minutes-collection-field| replace:: **title** 
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/porterstemming_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-porterstemming-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/porterStemming_mongosh.js
+         :language: javascript
          :copyable: true
-
-         {  
-           "mappings": {
-             "fields": {
-               "title": {
-                 "type": "string",
-                 "analyzer": "porterStemmer"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "porterStemmer",
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "lowercase"
-                 },
-                 {
-                   "type": "porterStemming"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``title`` field in the :ref:`minutes
 <custom-analyzers-eg-coll>` collection for the term ``Meet``. 
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "Meet",
-              "path": "title"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "title": 1
-          }
-        }
-      ])
+   .. tab::
+      :tabid: atlas-ui
 
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/porterStemming_query_ui.rst
 
-      [
-        {
-          _id: 1,
-          title: 'The team's weekly meeting'
-        },
-        {
-          _id: 3,
-          title: 'The regular board meeting'
-        }
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/porterStemming_query.rst
 
 |fts| returns the documents with ``_id: 1`` and ``_id: 3`` because 
 the :ref:`lowercase <lowercase-tf-ref>` token filter normalizes 
@@ -2321,65 +1572,19 @@ a. Apply the :ref:`keyword tokenizer <keyword-tokenizer-ref>` to
      addresses in the tokens and replace them with the word
      ``redacted``. 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab:: Atlas UI
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``emailRedact``
-      .. |fts-tokenizer| replace:: :guilabel:`keyword`
-      .. |fts-token-filter-a| replace:: :guilabel:`lowercase`
-      .. |fts-token-filter-b| replace:: :guilabel:`regex`
-      .. |minutes-collection-field| replace:: **page_updated_by.email** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/regex_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-regex-config.rst 
+   .. tab:: MongoDB Shell
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/regex_mongosh.js
+         :language: javascript
          :copyable: true
- 
-         {
-           "analyzer": "lucene.standard",
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "page_updated_by": {
-                 "type": "document",
-                 "fields": {
-                   "email": {
-                     "type": "string",
-                     "analyzer": "emailRedact"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "charFilters": [],
-               "name": "emailRedact",
-               "tokenizer": {
-                 "type": "keyword"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "lowercase"
-                 },
-                 {
-                   "matches": "all",
-                   "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
-                   "replacement": "redacted",
-                   "type": "regex"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``page_updated_by.email`` field
 in the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
@@ -2454,48 +1659,19 @@ specifies the following:
   tokenize entire strings as single terms.
 - Apply the ``reverse`` token filter to reverse the string tokens.
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab:: Atlas UI
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``keywordReverse``
-      .. |fts-tokenizer| replace:: :guilabel:`keyword`
-      .. |fts-token-filter| replace:: :guilabel:`reverse`
-      .. |minutes-collection-field| replace:: **page_updated_by.email** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/reverse_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-reverse-config.rst 
+   .. tab:: MongoDB Shell
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/reverse_mongosh.js
+         :language: javascript
          :copyable: true
-         :emphasize-lines: 14-16
-
-         {
-           "analyzer": "keywordReverse",
-           "mappings": {
-             "dynamic": true
-           },
-           "analyzers": [
-             {
-               "name": "keywordReverse",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "keyword"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "reverse"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``page_updated_by.email`` field in 
 the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
@@ -2503,26 +1679,19 @@ the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
 characters ``@example.com`` in reverse order. The ``reverse`` token
 filter can speed up leading wildcard queries.
 
-.. code-block:: json 
+.. tabs-drivers::
 
-   db.minutes.aggregate([
-     {
-       "$search": {
-         "index": "default",
-         "wildcard": {
-           "query": "*@example.com",
-           "path": "page_updated_by.email",
-           "allowAnalyzedField": true
-         }
-       }
-     },
-     {
-       "$project": {
-         "_id": 1,
-         "page_updated_by.email": 1,
-       }
-     }
-   ])
+   .. tab:: Atlas UI
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/analyzers/token-filters/reverse_query_ui.rst
+
+   .. tab:: MongoDB Shell
+      :tabid: shell
+
+      .. literalinclude:: /includes/fts/analyzers/token-filters/reverse_query.rst
+         :language: javascript
+         :copyable: true
 
 For the preceding query, |fts| applies the custom analyzer to the 
 wildcard query to transform the query as follows: 
@@ -2533,19 +1702,7 @@ wildcard query to transform the query as follows:
    moc.elpmaxe@*
 
 |fts| then runs the query against the indexed tokens, which are also 
-reversed. The query returns the following documents:
-
-.. code-block:: json
-   :copyable: false 
-
-   [
-     { _id: 1, page_updated_by: { email: 'auerbach@example.com' } },
-     { _id: 2, page_updated_by: { email: 'ohrback@example.com' } },
-     { _id: 3, page_updated_by: { email: 'lewinsky@example.com' } },
-     { _id: 4, page_updated_by: { email: 'levinski@example.com' } }
-   ]
-
-Specifically, |fts| creates the following tokens (searchable terms)
+reversed. Specifically, |fts| creates the following tokens (searchable terms)
 for the documents in the results, which it then matches to the query
 term ``moc.elpmaxe@*``: 
 
@@ -2631,128 +1788,35 @@ index creation to:
 - Create tokens with the :ref:`whitespace tokenizer
   <whitespace-tokenizer-ref>` tokenizer 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name-a| replace:: ``emailAutocompleteIndex``
-      .. |analyzer-name-b| replace:: ``emailAutocompleteSearch``
-      .. |fts-char-filter| replace:: :guilabel:`mapping`
-      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
-      .. |fts-token-filter-a| replace:: :guilabel:`shingle`
-      .. |fts-token-filter-b| replace:: :guilabel:`edgeGram`
-      .. |minutes-collection-field| replace:: **page_updated_by.email** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/shingle_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-shingle-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/shingle_mongosh.js
+         :language: javascript
          :copyable: true
-         :linenos:
-         :emphasize-lines: 34-38
-
-         {
-           "analyzer": "lucene.keyword",
-           "mappings": {
-             "dynamic": true,
-             "fields": {
-               "page_updated_by": {
-                 "type": "document",
-                 "fields": {
-                   "email": {
-                     "type": "string",
-                     "analyzer": "emailAutocompleteIndex",
-                     "searchAnalyzer": "emailAutocompleteSearch"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "emailAutocompleteIndex",
-               "charFilters": [
-                 {
-                   "mappings": {
-                     "@": "AT"
-                   },
-                   "type": "mapping"
-                 }
-               ],
-               "tokenizer": {
-                 "maxTokenLength": 15,
-                 "type": "whitespace"
-               },
-               "tokenFilters": [
-                 {
-                   "maxShingleSize": 3,
-                    **** "minShingleSize": 2,
-                   "type": "shingle"
-                 },
-                 {
-                   "maxGram": 15,
-                   "minGram": 2,
-                   "type": "edgeGram"
-                 }
-               ]
-             },
-             {
-               "name": "emailAutocompleteSearch",
-               "charFilters": [
-                 {
-                   "mappings": {
-                     "@": "AT"
-                   },
-                   "type": "mapping"
-                 }
-               ],
-               "tokenizer": {
-                 "maxTokenLength": 15,
-                 "type": "whitespace"
-               }
-             }
-           ]
-         }
 
 The following query searches for an email address in the 
 ``page_updated_by.email`` field of the :ref:`minutes
 <custom-analyzers-eg-coll>` collection: 
 
-.. io-code-block:: 
-   :copyable: true
-    
-   .. input:: 
-      :language: json 
+.. tabs-drivers::
 
+   .. tab::
+      :tabid: atlas-ui
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "auerbach@ex",
-               "path": "page_updated_by.email"
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "page_updated_by.email": 1
-          }
-        }
-      ])
+      .. include:: /includes/fts/analyzers/token-filters/shingle_query_ui.rst
 
-   .. output:: 
-      :language: json 
+   .. tab::
+      :tabid: shell
 
-      [ { _id: 1, page_updated_by: { email: 'auerbach@example.com' } } ]
+      .. include:: /includes/fts/analyzers/token-filters/shingle_query.rst
 
 |fts| creates search tokens using the ``emailAutocompleteSearch``
 analyzer, which it then matches to the index tokens that it created
@@ -2847,98 +1911,35 @@ a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
    - ``french`` variant of the ``snowballStemming`` token filter to
      stem words.
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``frenchStemmer``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`lowercase`
-      .. |fts-token-filter-b| replace:: :guilabel:`snowballStemming`
-      .. |minutes-collection-field| replace:: **text.fr_CA** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/snowballstemming_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-snowballstemming-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/snowballStemming_mongosh.js
+         :language: javascript
          :copyable: true
-
-         {
-           "mappings": {
-             "fields": {
-               "text": {
-                 "type": "document",
-                 "fields": {
-                   "fr_CA": {
-                     "type": "string",
-                     "analyzer": "frenchStemmer"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "frenchStemmer",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "lowercase"
-                 },
-                 {
-                   "type": "snowballStemming",
-                   "stemmerName": "french"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``text.fr_CA`` field in the
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the term
 ``réunion``. 
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input:: 
-      :language:  json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "text": {
-              "query": "réunion",
-              "path": "text.fr_CA"
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.fr_CA": 1
-          }
-        }
-      ])
-   
-   .. output:: 
-      :language:  json
-         
-      [
-        {
-          _id: 1,
-          text: { fr_CA: 'Cette page traite des réunions de département' }
-        }
-      ]
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/fts/analyzers/token-filters/snowballStemming_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/snowballStemming_query.rst
 
 |fts| returns document with ``_id: 1``  in the results. |fts| matches
 the query term to the document because it creates the following
@@ -2999,102 +2000,35 @@ a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
    - ``spanishPluralStemming`` token filter to stem plural spanish
      words in the tokens into their singular form. 
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``spanishPluralStemmer``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`lowercase`
-      .. |fts-token-filter-b| replace:: :guilabel:`spanishPluralStemming`
-      .. |minutes-collection-field| replace:: **text.es_MX** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/spanishpluralstemming_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-spanishpluralstemming-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/spanishPluralStemming_mongosh.js
+         :language: javascript
          :copyable: true
-
-         {  
-           "analyzer": "spanishPluralStemmer", 
-           "mappings": {
-             "fields": {
-               "text: { 
-                 "type": "document",
-                 "fields": {
-                   "es_MX": {
-                     "analyzer": "spanishPluralStemmer",
-                     "searchAnalyzer": "spanishPluralStemmer",
-                     "type": "string"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "spanishPluralStemmer",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "lowercase"
-                 },
-                 {
-                   "type": "spanishPluralStemming"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``text.es_MX`` field in the 
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the spanish 
 term ``punto``.
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "punto",
-              "path": "text.es_MX"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.es_MX": 1
-          }
-        }
-      ])
-   
-   .. output::
-      :language: json
+   .. tab::
+      :tabid: atlas-ui
 
-      [
-        {
-          _id: 4,
-          text : {
-            es_MX: 'La página ha sido actualizada con los puntos de la agenda.',
-          }
-        }
-      ]
+      .. include:: /includes/fts/analyzers/token-filters/spanishPluralStemming_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/spanishPluralStemming_query.rst
 
 |fts| returns the document with ``_id: 4`` because the ``text.es_MX``
 field in the document contains the plural term ``puntos``. |fts|
@@ -3159,98 +2093,35 @@ a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
    - :ref:`stempel <stempel-tf-ref>` token filter to stem the Polish
      words.  
 
-.. tabs:: 
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``stempelStemmer``
-      .. |fts-tokenizer| replace:: :guilabel:`standard`
-      .. |fts-token-filter-a| replace:: :guilabel:`lowercase`
-      .. |fts-token-filter-b| replace:: :guilabel:`stempel`
-      .. |minutes-collection-field| replace:: **text.pl_PL** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/stempel_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-stempel-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/stempel_mongosh.js
+         :language: javascript
          :copyable: true
-
-         {  
-           "analyzer": "stempelStemmer", 
-           "mappings": {
-             "dynamic": true,
-             "fields": {
-               "text.pl_PL": {
-                 "analyzer": "stempelStemmer",
-                 "searchAnalyzer": "stempelStemmer",
-                 "type": "string"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "stempelStemmer",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "standard"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "lowercase"
-                 },
-                 {
-                   "type": "stempel"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``text.pl_PL`` field in the 
 :ref:`minutes <custom-analyzers-eg-coll>` collection for the Polish 
 term ``punkt``.
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input::
-      :language: json
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "punkt",
-              "path": "text.pl_PL"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.pl_PL": 1
-          }
-        }
-      ])
-   
-   .. output::
-      :language: json
+   .. tab::
+      :tabid: atlas-ui
 
-      [
-        {
-          _id: 4,
-          text: {
-            pl_PL: 'Strona została zaktualizowana o punkty porządku obrad.'
-          }
-        }
-      ]
+      .. include:: /includes/fts/analyzers/token-filters/stempel_query_ui.rst 
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/stempel_query.rst
 
 |fts| returns the document with ``_id: 4`` because the ``text.pl_PL``
 field in the document contains the plural term ``punkty``. |fts| matches
@@ -3334,96 +2205,36 @@ a. Apply the :ref:`whitespace tokenizer <whitespace-tokenizer-ref>`
    token filter is case-insensitive and will remove all tokens that
    match the specified stopwords. 
 
-.. tabs::
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``stopwordRemover``
-      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
-      .. |fts-token-filter| replace:: :guilabel:`stopword`
-      .. |minutes-collection-field| replace:: **text.en_US** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/stopword_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-stopword-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/stopword_mongosh.js
+         :language: javascript
+         :linenos:
          :copyable: true
-
-         {  
-           "mappings": {
-             "fields": {
-               "text": {
-                 "type" : "document",
-                 "fields": {
-                   "en_US": {
-                     "type": "string",
-                     "analyzer": "stopwordRemover"
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "stopwordRemover",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "whitespace"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "stopword",
-                   "tokens": ["is", "the", "at"]
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches for the phrase ``head of the sales``
 in the ``text.en_US`` field in the :ref:`minutes
 <custom-analyzers-eg-coll>` collection.   
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input:: 
-      :language: json
-      :linenos: 
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "phrase": {
-              "query": "head of the sales",
-              "path": "text.en_US"
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.en_US": 1
-          }
-        }
-      ])
-   
-   .. output::
-      :language: json
-      :linenos: 
+   .. tab::
+      :tabid: atlas-ui
 
-      [
-        {
-          _id: 2,
-          text: { en_US: 'The head of the sales department spoke first.' }
-        }
-      ]
+      .. include:: /includes/fts/analyzers/token-filters/stopword_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/stopword_query.rst
    
 |fts| returns the document with ``_id: 2`` because the ``en_US`` field
 contains the query term. |fts| doesn't create tokens for the stopword
@@ -3487,101 +2298,36 @@ the following:
 - Apply the ``trim`` token filter to remove leading and trailing
   whitespace in the tokens. 
 
-.. tabs::
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``tokenTrimmer``
-      .. |fts-char-filter| replace:: :guilabel:`htmlStrip`
-      .. |fts-tokenizer| replace:: :guilabel:`keyword`
-      .. |fts-token-filter| replace:: :guilabel:`trim`
-      .. |minutes-collection-field| replace:: **text.en_US** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/trim_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-trim-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/trim_mongosh.js
+         :language: javascript
          :copyable: true
-
-         {
-           "mappings": {
-             "fields": {
-               "text": {
-                 "type": "document",
-                 "fields": {
-                   "en_US": {
-                     "type": "string",
-                     "analyzer": "tokenTrimmer" 
-                   }
-                 }
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "tokenTrimmer",
-               "charFilters": [{
-                 "type": "htmlStrip",
-                 "ignoredTags": ["a"]
-               }],
-               "tokenizer": {
-                 "type": "keyword"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "trim"
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches for the phrase ``*department meetings*``
 preceded and followed by any number of other characters in the
 ``text.en_US`` field in the :ref:`minutes <custom-analyzers-eg-coll>`
 collection. 
 
-.. io-code-block::
-   :copyable: true
-   
-   .. input:: 
-      :language: json
-      :linenos: 
+.. tabs-drivers::
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "wildcard": {
-              "query": "*department meetings*",
-              "path": "text.en_US",
-              "allowAnalyzedField": true
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "text.en_US": 1
-          }
-        }
-      ])
-   
-   .. output::
-      :language: json
-      :linenos: 
+   .. tab::
+      :tabid: atlas-ui
 
-      [
-        {
-          _id: 1,
-          text: { en_US: '<head> This page deals with department meetings. </head>' }
-        }
-      ]
+      .. include:: /includes/fts/analyzers/token-filters/trim_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/trim_query.rst
 
 |fts| returns the document with ``_id: 1`` because the ``en_US`` field
 contains the query term ``department meetings``. |fts| creates the
@@ -3781,96 +2527,34 @@ a. Apply the :ref:`whitespace <whitespace-tokenizer-ref>` tokenizer to
    - Split tokens on case changes and remove tokens that contain only 
      alphabetical letters from the English alphabet. 
 
-.. tabs::
+.. tabs-drivers::
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+   .. tab::
+      :tabid: atlas-ui
 
-      .. |analyzer-name| replace:: ``wordDelimiterGraphAnalyzer``
-      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
-      .. |fts-token-filter| replace:: :guilabel:`wordDelimiterGraph`
-      .. |minutes-collection-field| replace:: **title** nested
-      .. |fts-field-type| replace:: **String**
+      .. include:: /includes/fts/analyzers/token-filters/worddelimitergraph_ui.rst
 
-      .. include:: /includes/fts/extracts/fts-token-filter-worddelimitergraphanalyzer-config.rst 
+   .. tab::
+      :tabid: shell
 
-   .. tab:: JSON Editor 
-      :tabid: jsoneditor
-
-      Replace the default index definition with the following example:
-
-      .. code-block:: json
+      .. literalinclude:: /includes/fts/analyzers/token-filters/wordDelimiterGraph_mongosh.js
+         :language: javascript
          :copyable: true
-
-         {  
-           "mappings": {
-             "fields": {
-               "title": {
-                 "type": "string",
-                 "analyzer": "wordDelimiterGraphAnalyzer"
-               }
-             }
-           },
-           "analyzers": [
-             {
-               "name": "wordDelimiterGraphAnalyzer",
-               "charFilters": [],
-               "tokenizer": {
-                 "type": "whitespace"
-               },
-               "tokenFilters": [
-                 {
-                   "type": "wordDelimiterGraph",
-                   "protectedWords": {
-                     "words": ["is", "the", "at"],
-                     "ignoreCase": false
-                   },
-                   "delimiterOptions" : {
-                     "generateWordParts" : false,
-                     "splitOnCaseChange" : true
-                   }
-                 }
-               ]
-             }
-           ]
-         }
 
 The following query searches the ``title`` field in the :ref:`minutes
 <custom-analyzers-eg-coll>` collection for the term ``App2``.
 
-.. io-code-block::
-   :copyable: true
+.. tabs-drivers::
 
-   .. input::
-      :language: json
+   .. tab::
+      :tabid: atlas-ui
 
-      db.minutes.aggregate([
-        {
-          "$search": {
-            "index": "default",
-            "text": {
-              "query": "App2",
-              "path": "title"
-            }
-          } 
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "title": 1
-          }
-        }
-      ])
-   
-   .. output::
-      :language: json
+      .. include:: /includes/fts/analyzers/token-filters/wordDelimiterGraph_query_ui.rst
 
-      [
-        {
-          _id: 4,
-          title: 'The daily huddle on tHe StandUpApp2'
-        }
-      ]
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fts/analyzers/token-filters/wordDelimiterGraph_query.rst
 
 |fts| returns the document with ``_id: 4`` because the ``title`` field
 in the document contains ``App2``. |fts| splits tokens on case changes
