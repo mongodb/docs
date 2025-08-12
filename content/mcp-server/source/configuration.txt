@@ -337,6 +337,8 @@ example:
    ]
    ...
 
+.. _mcp-server-configuration-environment-variables:
+
 Defining MCP Server Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -611,7 +613,7 @@ Enabling Index Check
 --------------------
 
 To ensure query operations use an index, enable the index check option.
-When enabled, the MCP server rejects queries that perform a collection
+When enabled, the MCP Server rejects queries that perform a collection
 scan to improve performance and ensure queries are optimized.
 
 To enable the index check with a command line option, use:
@@ -626,8 +628,96 @@ To enable the index check with an environment variable, use:
 
    export MDB_MCP_INDEX_CHECK=true
 
-If you enable the index check, MCP server logs an error message if a
+If you enable the index check, the MCP Server logs an error message if a
 query is rejected because it doesn't use an index.
+
+Starting MCP Server as Standalone Service Using npx Command
+-----------------------------------------------------------
+
+To start the MCP Server as a standalone service, use the ``npx``
+command.
+
+Standalone Service Using Command Line Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example starts the MCP Server with ``npx`` and sets the
+command line options to connect to an Atlas cluster:
+
+.. code-block:: bash
+
+   npx -y mongodb-mcp-server@latest \
+      --apiClientId="<atlas-service-accounts-client-id>" \
+      --apiClientSecret="<atlas-service-accounts-client-secret>" \
+      --connectionString="mongodb+srv://<user-name>:<password>@<cluster-name>.mongodb.net/<database-name>" \
+      --logPath=</path/to/logs> --readOnly --indexCheck --loggers mcp stderr
+
+Replace the option values with your connection information and other
+details. To examine the list of MCP Server options, see
+:ref:`mcp-server-configuration-options`.
+
+To create an Atlas service account, see :ref:`mcp-server-prerequisites`.
+
+Standalone Service Using Environment Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use ``npx`` to start the MCP Server and use environment
+variables. You must have already defined the environment variables
+before running ``npx``.
+
+To define environment variables in a configuration file or the operating
+system, see :ref:`mcp-server-configuration-environment-variables`.
+
+The following example assumes environment variables have been defined
+with the connection information, and also sets read-only mode as a
+command line option:
+
+.. code-block:: bash
+
+   npx -y mongodb-mcp-server@latest --readOnly
+
+Standalone Service Running as an HTTP Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default MCP Server transport protocol is ``stdio``, which is
+suitable for integration with most MCP clients.
+
+You can also use the HTTP transport protocol with the MCP Server. HTTP
+is useful if you want to interact with the MCP Server from a Web client
+or to configure the MCP Server to respond to requests on a specific
+port.
+
+.. note::
+
+   HTTP transport is not recommended for production use without
+   implementing authentication and security measures. Only use HTTP
+   transport if you must use HTTP to interact with the MCP Server.
+
+Security guidelines:
+
+- Implement authentication. For example, use an API gateway or a reverse
+  proxy.
+- Use HTTPS/TLS encryption.
+- Deploy the MCP Server behind a firewall or in a private network.
+- Implement rate limiting.
+- Never expose connection credentials.
+
+A complete security guide will be available shortly.
+
+To start the MCP Server with HTTP transport, use ``--transport http``.
+For example:
+
+.. code-block:: bash
+
+   npx -y mongodb-mcp-server@latest --transport http --readOnly
+
+By default, the MCP Server responds to requests on
+``http://127.0.0.1:3000``. To change the host and port, use the
+``--httpHost`` and ``--httpPort`` options. For example:
+
+.. code-block:: bash
+
+   npx -y mongodb-mcp-server@latest \
+      --transport http --httpHost=324.1.5.7 --httpPort=8080 --readOnly
 
 Learn More
 ----------
