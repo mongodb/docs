@@ -1,8 +1,8 @@
 .. procedure::
    :style: normal
-
+	   
    .. include:: /includes/nav/steps-stream-processing.rst
-
+		
    .. step:: Go to the :guilabel:`Connection Registry`.
 
       a. Locate the overview panel of the {+spi+} you want to 
@@ -25,9 +25,11 @@
 	 This is the name used to reference the connection in 
 	 {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
 
-      #. From the dropdown menu, select an 
-	 :guilabel:`{+service+} {+Cluster+}`. {+atlas-sp+}
-	 is only available on dedicated-tier {+clusters+}.
+      #. From the dropdown menu, select an :guilabel:`{+service+}
+         {+Cluster+}`. {+atlas-sp+} can connect only to
+	 dedicated-tier {+clusters+}. If you enable cross-project
+	 support, the available {+clusters+} appear grouped by
+	 project.
 
       #. Click :guilabel:`Add connection`.
       
