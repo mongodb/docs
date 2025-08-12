@@ -58,7 +58,8 @@ pipeline stage with the following prototype form:
          "headers": "<expression>",
          "key": "<key-string>" | { key-document },
          "keyFormat": "<deserialization-type>",
-         "outputFormat": "<json-format>"
+         "outputFormat": "<json-format>",
+         "tombstoneWhen": <expression>
        }
      }
    }
@@ -223,6 +224,27 @@ The ``$emit`` stage takes a document with the following fields:
        - ``"canonicalJson"``
 
        Defaults to ``"relaxedJson"``.
+
+   * - ``config.tombstoneWhen``
+     - expression
+     - Optional 
+     - Expression that determines when to emit ``null`` to
+       Kafka. The expression must evaluate to either boolean ``true``
+       or ``false``. When the expression evaluates to ``true`` for a
+       given document, {+atlas-sp+} emits a ``null`` in its place
+       to your Kafka sink. When the expression evaluates to false,
+       {+atlas-sp+} emits the document as it exists when it reaches the
+       ``$emit`` stage.
+
+       If the expression fails to evaluate to a boolean value, or
+       can't be evaluated, {+atlas-sp+} writes the document to the
+       :ref:`DLQ <atlas-sp-dlq>`.
+
+       This setting can be used to enable topic compaction if you
+       provide ``$emit.config.key`` and ``$emit.config.keyFormat``
+       values. If you don't provide these values, {+atlas-sp+} still
+       emits ``null`` when this expression evaluates to ``true``, but
+       these don't trigger Kafka topic compaction.
 
 .. _sp-emit-timeseries:
 
