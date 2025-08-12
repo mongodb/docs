@@ -188,19 +188,21 @@ The MongoDB C Driver supports the Windows native TLS library (Secure Channel, or
 (Cryptography API: Next Generation, or CNG).
 
 When compiled against the Windows native libraries, the ``ca_dir`` option of a `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__ is not supported
-and will issue an error if used.
+and issues an error if used. Encrypted PEM files, set by using the ``tlsCertificateKeyPassword`` URI option, are also
+not supported and issue errors when you attempt to load them.
 
-Encrypted PEM files, set by using the ``tlsCertificateKeyPassword`` URI option, are also not supported and will result in error when
-attempting to load them.
+The ``tlsCertificateKeyFile`` URI option can refer to a certificate encoded in either the PKCS#8 or
+PKCS#1 format. Starting with version 2.1.0 of the C driver, the driver imports the private
+key as a persistent key to support modern signature algorithms. In earlier versions, the
+driver imported the key as ephemeral. To learn more about managing imported keys, see
+:ref:`managing-imported-keys`.
 
-When ``tlsCAFile`` is set, the driver will import the file to the ``System Local Machine Root`` certificate store.
-When no ``tlsCAFile`` is set, the driver will look up the Certificate Authority using the ``System Local Machine Root``
+When ``tlsCAFile`` is set, the driver imports the Certificate Authority file to the ``System Local Machine Root`` certificate store.
+When no ``tlsCAFile`` is set, the driver looks up the Certificate Authority file using the ``System Local Machine Root``
 certificate store to confirm the provided certificate.
 
-When ``crl_file`` is set with `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__, the driver will import the revocation list to the
-``System Local Machine Root`` certificate store.
-
-Setting ``tlsDisableOCSPEndpointCheck`` has no effect.
+When ``crl_file`` is set with `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__, the driver imports the revocation list to
+the ``System Local Machine Root`` certificate store. Setting ``tlsDisableOCSPEndpointCheck`` has no effect.
 
 The Online Certificate Status Protocol (OCSP) is partially supported
 with the following notes:
@@ -214,7 +216,46 @@ with the following notes:
 
 .. tip::
  
-   For more information about OCSP, see `RFC 6960 <https://tools.ietf.org/html/rfc6960>`__.
+   For more information about OCSP, see `RFC 6960
+   <https://tools.ietf.org/html/rfc6960>`__.
+   
+.. _managing-imported-keys:
+
+Managing Imported Keys
+```````````````````````
+
+The C Driver imports PKCS#8 keys into the CNG KSP: ``Microsoft Software Key Storage
+Provider`` and imports PKCS#1 keys into the legacy CryptoAPI CSP: ``Microsoft Enhanced
+Cryptographic Provider v1.0``. To learn more about key imports, see `Key Storage and
+Retrieval <https://learn.microsoft.com/en-us/windows/win32/seccng/key-storage-and-retrieval#key-directories-and-files>`__
+in the Microsoft documentation.
+
+After you import keys, you might need to compute the key name and provider, view the key,
+or delete the key. The following PowerShell code computes the key name and providers:
+
+.. literalinclude:: /includes/connect/manage-imported-keys.ps1
+   :language: powershell 
+   :start-after: #start-manage-imported-keys
+   :end-before: #end-manage-imported-keys
+   :dedent:
+
+The following PowerShell code displays details about the key:
+
+.. literalinclude:: /includes/connect/manage-imported-keys.ps1
+   :language: powershell 
+   :start-after: #start-view-key
+   :end-before: #end-view-key
+   :copyable:
+   :dedent:
+
+The following PowerShell code deletes the key:
+
+.. literalinclude:: /includes/connect/manage-imported-keys.ps1
+   :language: powershell 
+   :start-after: #start-view-key
+   :end-before: #end-view-key
+   :copyable:
+   :dedent:
 
 .. _secure-transport:
 
