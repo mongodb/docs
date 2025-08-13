@@ -1,17 +1,14 @@
-package aggregation.pipelines;
-
 //	:replace-start: {
 //	  "terms": {
 //	    "ArrayList<Document>": "void",
 //      "runExample": "main",
-//      "System.getenv(\"CONNECTION_STRING\");": "\"<connection string>\""
+//      "System.getenv(\"CONNECTION_STRING\")": "\"<connection string>\"",
+//      "aggregation.pipelines": "org.example"
 //	  }
 //	}
 
 // :snippet-start: example
-// :uncomment-start:
-//package org.example;
-// :uncomment-end:
+package aggregation.pipelines;
 
 // Modify imports for each tutorial as needed.
 import com.mongodb.client.*;

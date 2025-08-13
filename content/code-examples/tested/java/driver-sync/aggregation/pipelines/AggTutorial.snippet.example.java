@@ -20,7 +20,7 @@ import java.util.List;
 public class AggTutorial {
     public static void main(String[] args) {
         // Replace the placeholder with your connection string.
-        String uri = "<connection string>"
+        String uri = "<connection string>";
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
             MongoDatabase aggDB = mongoClient.getDatabase("agg_tutorials_db");
