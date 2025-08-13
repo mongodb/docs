@@ -3,7 +3,7 @@
 This project contains the infrastructure to test and extract MongoDB Shell code
 examples for use across MongoDB documentation.
 
-The structure of this JavaScript project is as follows:
+The structure of this project is as follows:
 
 - `/examples`: This directory contains example code and output to validate.
 - `/tests`: This directory contains the test infrastructure to actually run
@@ -38,7 +38,7 @@ do not yet have Node installed, refer to
 [the Node.js installation page](https://nodejs.org/en/download/) for details.
 We recommend using Node Version Manager (NVM) to manage your Node versions.
 
-From the root of the `/javascript/driver` directory, run the following command
+From the root of the `/command-line/mongosh` directory, run the following command
 to install dependencies:
 
 ```sh
