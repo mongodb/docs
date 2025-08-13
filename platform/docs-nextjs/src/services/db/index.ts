@@ -66,7 +66,6 @@ const getPageAST = cache(
     try {
       log({ message: `Querying db ${collection.namespace} for query ${JSON.stringify(query)}` });
       const pageRes: ASTDocument | null = await collection.findOne(query, DEFAULT_SORT);
-      log({ message: `Query result: ${JSON.stringify(pageRes)}` });
       return pageRes;
     } catch (e) {
       log({ message: String(e), level: "error" });

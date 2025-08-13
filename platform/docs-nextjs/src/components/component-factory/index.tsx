@@ -1,6 +1,7 @@
 import type {
   ASTNode,
   ComponentType,
+  Directive,
   NodeName,
   NodeType,
   ParagraphNode,
@@ -13,6 +14,7 @@ import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Text, { type TextProps } from '../text';
 import Paragraph, { type ParagraphProps } from '../paragraph';
 import Strong from '../strong';
+import Kicker, { KickerProps } from '../kicker';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -34,7 +36,7 @@ const IGNORED_TYPES = new Set([
   'named_reference',
   'substitution_definition',
 ]);
-// TODO: reinsert when developing adomnitions
+// TODO: reinsert when developing admonitions
 // const DEPRECATED_ADMONITIONS = new Set(['admonition', 'caution', 'danger']);
 
 const roleMap: Record<
@@ -120,7 +122,7 @@ const getComponent = (() => {
         // image: Image,
         // include: Include,
         // introduction: Introduction,
-        // kicker: Kicker,
+        kicker: Kicker as React.ComponentType<SupportedComponentProps>,
         // line: Line,
         // line_block: LineBlock,
         // list: List,
@@ -192,20 +194,26 @@ function getComponentType(
 
 export type ComponentFactoryProps = {
   nodeData: ASTNode;
+  page?: RootNode;
   slug?: string;
   sectionDepth?: string | number;
-  parentNode?: string;
   skipPTag?: boolean;
-  page?: RootNode;
+  /** Only used in Paragraph */
+  parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps;
+type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | KickerProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
   nodeData: ASTNode,
   props: ComponentFactoryProps
 ): React.ReactElement => {
+  // Add all props that are needed at unknown depths
+  const propsToDrill = {
+    skipPTag: props.skipPTag,
+  }
+
   // Special handling for Text component
   if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
@@ -215,7 +223,16 @@ const renderComponentWithProps = (
     return <ComponentType value={strongNode.children[0].value} />;
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
-    return <ComponentType nodeChildren={paragraphNode.children} parentNode={props.parentNode} skipPTag={props.skipPTag} />
+    return (
+      <ComponentType
+        nodeChildren={paragraphNode.children}
+        parentNode={props.parentNode}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('kicker')) {
+    const kickerNode = nodeData as Directive;
+    return <ComponentType argument={kickerNode.argument} {...propsToDrill} />;
   }
 
   // Default: spread all props for other components
