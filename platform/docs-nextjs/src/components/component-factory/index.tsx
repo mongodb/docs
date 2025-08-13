@@ -17,6 +17,7 @@ import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Text, { type TextProps } from '../text';
 import Paragraph, { type ParagraphProps } from '../paragraph';
 import Kicker, { type KickerProps } from '../kicker';
+import Time, { type TimeProps } from '../time';
 import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
@@ -158,7 +159,7 @@ const getComponent = (() => {
         // 'tabs-selector': TabSelectors,
         // target: Target,
         text: Text as React.ComponentType<SupportedComponentProps>,
-        // time: Time,
+        time: Time as React.ComponentType<SupportedComponentProps>,
         // title_reference: TitleReference,
         // transition: Transition,
         // versionadded: VersionModified,
@@ -207,7 +208,7 @@ export type ComponentFactoryProps = {
   parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | KickerProps;
+type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | KickerProps | TimeProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -250,6 +251,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('kicker')) {
     const kickerNode = nodeData as Directive;
     return <ComponentType argument={kickerNode.argument} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('time')) {
+    const timeNode = nodeData as Directive;
+    return <ComponentType argument={timeNode.argument} />;
   }
 
   // Default: spread all props for other components
