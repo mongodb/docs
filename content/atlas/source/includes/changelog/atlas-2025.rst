@@ -1,4 +1,17 @@
 
+.. _atlas_2025_08_06:
+
+6 August 2025 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+-  Adds a **total namespaces** count to the :guilabel:`Catalog` cluster
+   metric that displays the total number of collections and indexes
+   across all non-system databases, and adds a new default alert that
+   warns users when **total namespaces** exceeds ``10k``. 
+
+- Makes the ability to :ref:`send resource tags to Prometheus
+  <prometheus-integration>` an opt-in feature. 
+
 .. _atlas_2025_07_16:
 
 16 July 2025 Release
