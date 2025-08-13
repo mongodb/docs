@@ -8,13 +8,18 @@ import type {
   RoleName,
   Root as RootNode,
   StrongNode,
+  SubscriptNode,
+  SuperscriptNode,
   TextNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
+
 import Text, { type TextProps } from '../text';
 import Paragraph, { type ParagraphProps } from '../paragraph';
+import Kicker, { type KickerProps } from '../kicker';
 import Strong from '../strong';
-import Kicker, { KickerProps } from '../kicker';
+import Subscript from '../subscript';
+import Superscript from '../superscript';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -63,10 +68,10 @@ const roleMap: Record<
   // red: RoleRed,
   // gold: RoleGold,
   // required: RoleRequired,
-  // sub: Subscript,
-  // subscript: Subscript,
-  // sup: Superscript,
-  // superscript: Superscript,
+  sub: Subscript as React.ComponentType<SupportedComponentProps>,
+  subscript: Subscript as React.ComponentType<SupportedComponentProps>,
+  sup: Superscript as React.ComponentType<SupportedComponentProps>,
+  superscript: Superscript as React.ComponentType<SupportedComponentProps>,
   // 'link-new-tab': RoleLinkNewTab,
 };
 
@@ -212,9 +217,8 @@ const renderComponentWithProps = (
   // Add all props that are needed at unknown depths
   const propsToDrill = {
     skipPTag: props.skipPTag,
-  }
+  };
 
-  // Special handling for Text component
   if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
@@ -227,6 +231,19 @@ const renderComponentWithProps = (
       <ComponentType
         nodeChildren={paragraphNode.children}
         parentNode={props.parentNode}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === roleMap.subscript) {
+    const subscriptNode = nodeData as SubscriptNode;
+    return (
+      <ComponentType nodeChildren={subscriptNode.children} {...propsToDrill} />
+    );
+  } else if (ComponentType === roleMap.superscript) {
+    const superscriptNode = nodeData as SuperscriptNode;
+    return (
+      <ComponentType
+        nodeChildren={superscriptNode.children}
         {...propsToDrill}
       />
     );
