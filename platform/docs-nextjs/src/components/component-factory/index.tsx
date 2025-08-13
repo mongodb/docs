@@ -284,17 +284,17 @@ const ComponentFactory = (props: ComponentFactoryProps) => {
     // TODO: remove this when we have all components implemented
     if (!ComponentType) {
       return (
-        <div className={'component-container'} style={{ paddingTop: '3rem' }}>
+        <span className={'component-container'} style={{ paddingTop: '3rem' }}>
           Component for {type} {name ? `"${name}" ` : ''}not yet implemented
           <br />
-          <div>
+          <span>
             {isParentNode(nodeData) &&
               nodeData.children.length > 0 &&
               nodeData.children.map((child, index) => (
                 <ComponentFactory nodeData={child} key={`${slug}-${index}`} />
               ))}
-          </div>
-        </div>
+          </span>
+        </span>
       );
       // console.warn(`${type} ${name ? `"${name}" ` : ''}not yet implemented${slug ? ` on page ${slug}` : ''}`);
       // return null;
