@@ -12,6 +12,3 @@ your new {+cluster+} if your old {+cluster+} was deployed on |gcp| or
 applications with the new connection string 
 <atlas-faq-migrate-providers>` to resume connectivity to the {+cluster+}. 
 |service| migrates data to the new {+cluster+}. 
-
-You can't modify the cloud provider or cloud provider region if you
-deployed Search Nodes on your |service| {+cluster+}.
