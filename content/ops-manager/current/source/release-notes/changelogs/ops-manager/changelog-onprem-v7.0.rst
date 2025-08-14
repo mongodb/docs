@@ -1,3 +1,61 @@
+.. _opsmgr-server-7.0.17:
+
+|onprem| Server 7.0.17
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-08-08*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.17.8771-1
+  <mongodb-107.0.17.8771-1>`.
+- Supports |bic-full| 2.14.24.
+- Updates JDK to ``jdk-17.0.16+8``.
+- Updates {+mongosh+} to 2.5.6.
+- Improves MongoDB Usage logic to represent licensing needs more
+  accurately. Splits RAM Pool category into RAM Pool (Prod) and RAM Pool
+  (Test/QA).
+- Implements skip migration when |onprem| version is not changing to
+  improve efficiency.
+- Adds {+mdbagent+}, Automation, and UI support for MongoDB on RHEL 9
+  (s390x).
+- Backports and aligns golangci-lint configuration across OM branches.
+- Removes ``AutomationConfigDeploymentView`` and ``Mapper`` for improved
+  code clarity.
+- Creates a new JSON Based Redaction Logic framework.
+- Adds timeout to SMTP server connections to prevent hangs and improve
+  error diagnosis.
+- Updates |onprem| logic to use single task release-distros in
+  Evergreen.
+- Updates PACKAGE_OPS_MANAGER to stub out ``sign_artifact`` when
+  Garasign credentials aren't available, allowing patch builds without
+  Garasign credentials.
+- Generates new certs for KMIP server and re-enables related tests.
+- Improves shard/replset startup with
+  ``wiredTigerSkipTableLoggingChecksOnStartup``.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where ``auditLog.auditEncryptionKeyIdentifier`` could not
+  be set through the UI.
+- Fixes a bug where the Miscellaneous |onprem| Config tab always showed
+  a "Changes you made may not be saved" warning, even when no changes
+  were made.
+- Fixes an Agent bug that caused crashes when modifying a process's
+  storage fields. Now includes ENCRYPTION_CIPHER_MODE in removed fields
+  for ephemeral standalone runs to prevent crashes.
+- {+mdbagent+} now ensures that global update operations for PSSSA
+  replica sets do not attempt to take down two data bearing nodes at
+  once.
+
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-48924 <https://nvd.nist.gov/vuln/detail/CVE-2025-48924>`__ 
+  - `CVE-2025-48976 <https://nvd.nist.gov/vuln/detail/CVE-2025-48976>`__ 
+  - `CVE-2025-7783 <https://nvd.nist.gov/vuln/detail/CVE-2025-7783>`__ 
+
 .. _opsmgr-server-7.0.16:
 
 |onprem| Server 7.0.16
