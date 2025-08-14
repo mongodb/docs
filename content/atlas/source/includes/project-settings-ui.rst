@@ -144,7 +144,7 @@ M40+ {+clusters+} with greater maximum storage than the standard limit.
 Only {+clusters+} which meet the following criteria support extended storage:
 
 - The {+cluster+} is on |azure|, |aws|, or |gcp|
-- If the {+cluster+} is on |azure|, it is configured in one of the
+- If the {+cluster+} is on |azure|, it is configured with enhanced type disks and in one of the
   following :ref:`regions that support extended storage <microsoft-azure-storage-supported-regions>`
 - The {+cluster+} is either :guilabel:`General` or :guilabel:`Low-CPU` class
 - The {+cluster+} is single-region.
