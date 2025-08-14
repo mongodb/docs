@@ -5,6 +5,7 @@ import type {
   NodeName,
   NodeType,
   ParagraphNode,
+  ParentNode,
   RoleName,
   Root as RootNode,
   StrongNode,
@@ -18,6 +19,7 @@ import Text, { type TextProps } from '../text';
 import Paragraph, { type ParagraphProps } from '../paragraph';
 import Kicker, { type KickerProps } from '../kicker';
 import Time, { type TimeProps } from '../time';
+import Introduction, { IntroductionProps } from '../introduction';
 import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
@@ -127,7 +129,8 @@ const getComponent = (() => {
         // hlist: HorizontalList,
         // image: Image,
         // include: Include,
-        // introduction: Introduction,
+        introduction:
+          Introduction as React.ComponentType<SupportedComponentProps>,
         kicker: Kicker as React.ComponentType<SupportedComponentProps>,
         // line: Line,
         // line_block: LineBlock,
@@ -208,7 +211,7 @@ export type ComponentFactoryProps = {
   parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | KickerProps | TimeProps;
+type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -232,6 +235,14 @@ const renderComponentWithProps = (
       <ComponentType
         nodeChildren={paragraphNode.children}
         parentNode={props.parentNode}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('introduction')) {
+    const introductionNode = nodeData as ParentNode;
+    return (
+      <ComponentType
+        nodeChildren={introductionNode.children}
         {...propsToDrill}
       />
     );
