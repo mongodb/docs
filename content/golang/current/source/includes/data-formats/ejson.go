@@ -50,12 +50,12 @@ func main() {
 		Hobbies:  []string{"cooking", "birdwatching"},
 	}
 
-	newExtJsonString, err := bson.MarshalExtJSON(person, false, true)
+	newExtJsonStringFromStruct, err := bson.MarshalExtJSON(person, false, true)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Extended JSON Representation:\n%s\n", newExtJsonString)
+	fmt.Printf("Extended JSON Representation:\n%s\n", newExtJsonStringFromStruct)
 	// end-marshal
 
 	// begin-marshal-fmt
@@ -67,4 +67,14 @@ func main() {
 	fmt.Printf("%s\n", formattedString)
 	// end-marshal-fmt
 
+	// begin-marshal-bson-v
+	bsonDocument := bson.D{{"hello", "world"}, {"number", 1}}
+
+	newExtJsonStringFromBson, err := bson.MarshalExtJSON(bsonDocument, false, true)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Extended JSON Representation:\n%s\n", newExtJsonStringFromBson)
+	// end-marshal-bson-v
 }
