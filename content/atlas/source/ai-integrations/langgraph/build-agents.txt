@@ -1,8 +1,8 @@
 .. _langgraph-build-agents:
 
-===========================================================
-Build an AI Agent with LangGraph and {+avs+}
-===========================================================
+==================================================
+Build an AI Agent with LangGraph and MongoDB Atlas
+==================================================
 
 .. default-domain:: mongodb
 
@@ -27,63 +27,93 @@ Build an AI Agent with LangGraph and {+avs+}
    :depth: 1
    :class: singlecol
 
-You can integrate {+avs+} with :ref:`LangGraph <langgraph>`
-to build AI agents. This tutorial demonstrates how to build a simple
-agent with LangGraph that answers questions about some sample data in 
-|service|. You can use the code in this tutorial as a starting point to 
-build more complex AI agents.
+You can integrate |service-fullname| with :ref:`LangGraph <langgraph>`
+to build AI agents. This tutorial demonstrates how to build an AI
+agent that answers questions about sample data in |service|. 
 
-Specifically, you perform the following actions:
-
-1. Set up the environment.
-2. Use |service| as a vector database.
-3. Define tools for the agent.
-4. Build and run the graph.
-5. Add memory to the agent.
+Specifically, the agent uses the integration to implement 
+:ref:`agentic RAG <agentic-rag>` and :ref:`agent memory <avs-agent-memory>`.
+It uses semantic search and full-text search tools to retrieve relevant
+information and answer questions about the data. It also implements
+both short and long-term memory using MongoDB by storing
+conversation history and important interactions in separate 
+collections.
 
 .. cta-banner::
    :url: https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langgraph.ipynb
    :icon: Code
 
-   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langgraph.ipynb>`.
+   The code on this page builds a complete sample application.
+   You can also work through the code as a
+   :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langgraph.ipynb>`
+   if you prefer to learn step-by-step.
 
 Prerequisites
 -------------
 
 To complete this tutorial, you must have the following:
 
-.. include:: /includes/avs/shared/avs-python-voyage-openai-prerequisites.rst
+.. include:: /includes/avs/shared/avs-python-voyage-openai-prerequisites-without-notebook.rst
+
+.. note::
+
+   .. include:: /includes/ai-integrations/langchain/note-python-version-langchain-voyageai.rst
 
 Set Up the Environment
 ----------------------
 
-.. include:: /includes/avs/shared/set-up-python-notebook-environment.rst
+To set up the environment, complete the following steps:
 
-.. include:: /includes/ai-integrations/langgraph/set-up-environment.rst
+.. include:: /includes/ai-integrations/langgraph/python/set-up-environment.rst
+
+.. note::
+
+   Your project will use the following structure:
+
+   .. code-block:: text
+
+      langgraph-mongodb-ai-agent
+      ├── .env
+      ├── config.py
+      ├── search-tools.py
+      ├── memory-tools.py
+      ├── agent.py
+      ├── main.py
 
 Use |service| as a Vector Database
 ----------------------------------
 
-You will use |service| as the vector database to 
-store and retrieve documents for the agent. To
-quickly start using |service| as a vector database:
+To configure |service| as a vector database
+for storage and retrieval, complete the following steps:
 
-.. include:: /includes/ai-integrations/langgraph/steps-vector-database.rst
+.. include:: /includes/ai-integrations/langgraph/python/steps-vector-database.rst
 
-Define Agent Tools
-------------------
+Define Search Tools
+-------------------
 
-In this section, you define tools that the agent
-can use to perform specific tasks, and then bind 
-these tools to the |llm|. You define the following tools:
+Create a ``search_tools.py`` file in your project.
+In this file, you define the search tools that the agent
+uses to perform :ref:`agentic RAG <agentic-rag>`.
 
-- **Vector search tool** to retrieve movies that are semantically similar to the user query.
+.. collapsible::
+   :heading: search_tools.py
+   :sub_heading: Copy and paste the following code into your search_tools.py file.
+   :expanded: false
 
-- **Full-text search tool** to find a specific movie title and retrieve its plot.
-
-Paste and run the following code in your notebook to define and test the tools:
-
-.. include:: /includes/ai-integrations/langgraph/steps-define-agent-tools.rst
+   - ``plot_search``: This tool uses the vector store object as a `retriever 
+     <https://python.langchain.com/docs/how_to/vectorstore_retriever/>`__.
+     Under the hood, the retriever runs an {+avs+} query 
+     to retrieve semantically similar documents. The tool then
+     returns the titles and plots of the retrieved movie documents.
+   
+   - ``title_search``: This tool uses the :ref:`full-text search retriever
+     <langchain-fts-retriever>` to retrieve movie documents that
+     match the specified movie title. Then, the tool returns the
+     plot of the specified movie.
+      
+   .. literalinclude:: /includes/ai-integrations/langgraph/python/search_tools.py
+      :language: python
+      :copyable:    
 
 .. note:: 
 
@@ -92,53 +122,216 @@ Paste and run the following code in your notebook to define and test the tools:
    methods, such as :ref:`hybrid search <langchain-hybrid-search>` 
    or :ref:`parent-document retrieval <langchain-parent-document>`. 
 
-Build the Graph
----------------
+.. _langgraph-long-term-memory:
 
-In this section, you build a `graph <https://langchain-ai.github.io/langgraph/concepts/low_level/#graphs>`__
-to orchestrate the agent's workflow. The graph defines the sequence of steps that
-the agent takes to respond to a query.
+Define Memory Tools
+-------------------
 
-This agent uses the following workflow:
+Create a ``memory_tools.py`` file in your project.
+In this file, you define the tools that the agent
+can use to store and retrieve important interactions
+across sessions to implement :ref:`long-term memory 
+<avs-agent-memory>`.
+    
+.. collapsible::
+   :heading: memory_tools.py
+   :sub_heading: Copy and paste the following code into your memory_tools.py file.
+   :expanded: false
 
-1. The agent receives a user query.
+   - ``store_memory``: This tool uses the :ref:`LangGraph MongoDB store <langgraph-mongodb-store>`
+     to store important interactions in a MongoDB collection.
 
-#. In the **agent node**, the tool-bound LLM generates a response based on the query. 
-   
-   This response includes information about whether the agent should use a tool.
-   If the agent determines a tool is needed, it adds the tool configuration to the 
-   graph state and proceeds to the **tools node**. Otherwise, the agent generates an
-   answer directly without using a tool.
+   - ``retrieve_memory``: This tool uses the LangGraph MongoDB store to 
+     retrieve relevant interactions based on the query by using 
+     semantic search.
 
-#. If the response indicates a tool is needed, the workflow continues to the **tools node**.
+   .. literalinclude:: /includes/ai-integrations/langgraph/python/memory_tools.py
+      :language: python
+      :copyable:        
 
-   In this node, the agent reads the tool configuration from the graph state.
+.. _langgraph-short-term-memory:
 
-#. Back in the agent node, the LLM receives the retrieved context
-   and generates a final response.
+Build the Agent with Persistence
+--------------------------------
+
+Create a ``agent.py`` file in your project.
+In this file, you build the `graph <https://langchain-ai.github.io/langgraph/concepts/low_level/#graphs>`__
+that orchestrates the agent's workflow. This agent uses 
+the :ref:`MongoDB Checkpointer <mongodb-checkpointer-python>` 
+component to implement :ref:`short-term memory 
+<avs-agent-memory>`, allowing for
+multiple concurrent conversations with separate histories.
+
+The agent uses the following workflow to respond to queries:
+
+1. **Start**: The agent receives a user query.
+2. **Agent Node**: The tool-bound LLM analyzes the query and determines if tools are needed.
+3. **Tools Node** (if needed): Executes the appropriate search or memory tools.
+4. **End**: The LLM generates a final response using the output from the tools.
 
 .. figure:: /images/avs/langgraph-agent-workflow.svg
    :alt: Diagram that shows the workflow of the LangGraph-MongoDB agent.
    :figwidth: 500px
 
-Paste and run the following code in your 
-notebook to build and run the graph:
+.. collapsible::
+   :heading: agent.py
+   :sub_heading: Copy and paste the following code into your agent.py file.
+   :expanded: false
 
-.. include:: /includes/ai-integrations/langgraph/steps-build-graph.rst
+   The agent implementation consists of several components:
 
-.. _langgraph-add-memory:
+   - ``LangGraphAgent``: Main agent class that orchestrates the workflow
+   - ``build_graph``: Constructs the LangGraph workflow and configures the 
+     ``MongoDBSaver`` checkpointer for short-term memory persistence
+   - ``agent_node``: Main decision-maker that processes messages and determines tool usage
+   - ``tools_node``: Executes requested tools and returns results
+   - ``route_tools``: Conditional routing function that determines workflow direction
+   - ``execute``: Main entry point that accepts a ``thread_id`` parameter 
+     for conversation thread tracking
 
-Add Memory
-----------
+   .. literalinclude:: /includes/ai-integrations/langgraph/python/agent.py
+      :emphasize-lines: 67-69
+      :language: python
+      :copyable:
 
-To improve the agent's performance, you can persist its state.
-Persistence allows the agent to store information about previous interactions,
-which the agent can use in future interactions to provide more contextually
-relevant responses.
+.. collapsible::
+   :heading: About the Workflow
+   :sub_heading: Expand this section for details about the LangGraph components used in the agent.
+   :expanded: false
+
+   This graph includes the following key components:
+
+   - `Graph State <https://langchain-ai.github.io/langgraph/concepts/low_level/#graphs>`__:
+     maintains shared data throughout the workflow, tracking the agent's `messages 
+     <https://langchain-ai.github.io/langgraph/concepts/low_level/#working-with-messages-in-graph-state>`__
+     including user queries, |llm| responses, and tool call results.
+
+   - `Nodes <https://langchain-ai.github.io/langgraph/concepts/low_level/#nodes>`__:
+     
+     - **Agent node**: Processes messages, invokes the LLM, and updates state with |llm| responses
+     - **Tools node**: Processes tool calls and updates conversation history with results
+
+   - `Edges <https://langchain-ai.github.io/langgraph/concepts/low_level/#edges>`__, which connect nodes:
+     
+     - `Normal edges <https://langchain-ai.github.io/langgraph/concepts/low_level/#normal-edges>`__: Route from start to agent node and agent to tools node
+     - `Conditional edge <https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges>`__: Routes conditionally depending on whether tools are needed
+
+   - `Persistence <https://langchain-ai.github.io/langgraph/concepts/persistence/>`__:
+     Uses the ``MongoDBSaver`` checkpointer to save conversation state to specific threads,
+     enabling short-term memory across sessions. You can find the thread data in the 
+     ``checkpoints`` and ``checkpoint_writes`` collections.
 
 .. tip::
+   
+   To learn more about persistence, short-term memory, and the MongoDB checkpointer, 
+   see the following resources:
 
    - `MongoDB Checkpointer Documentation <https://langchain-ai.github.io/langgraph/how-tos/persistence_mongodb/>`__
    - `API reference <https://langchain-mongodb.readthedocs.io/en/latest/langgraph_checkpoint_mongodb/api_docs.html>`__
 
-.. include:: /includes/ai-integrations/langgraph/steps-add-memory.rst
+Run the Agent
+-------------
+
+Finally, create a file named ``main.py`` in your project. This file
+runs the agent and allows you to interact with it. 
+
+.. collapsible::
+   :heading: main.py
+   :sub_heading: Copy and paste the following code into your main.py file.
+   :expanded: false
+
+   .. literalinclude:: /includes/ai-integrations/langgraph/python/main.py
+      :language: python
+      :copyable:      
+
+Save your project, then run the following command. When you run the agent:
+
+- The agent initializes the vector store and creates the indexes if 
+  they don't already exist.
+- You can enter a session ID to start a new session or continue an existing session.
+  Each session is persisted and you can always resume a previous conversation.
+- Ask questions about movies. The agent generates a response based on your tools and 
+  previous interactions.
+
+The following output demonstrates a sample interaction:
+
+.. io-code-block::
+
+   .. input:: 
+      :language: shell
+
+      python main.py
+
+   .. output::
+      :language: none
+      :emphasize-lines: 9, 19, 26, 36, 44
+
+      Creating vector search index...
+      Vector search index created successfully!
+      Creating search index...
+      Search index created successfully!
+      Enter a session ID: 123
+
+      Ask me about movies! Type 'quit' to exit.
+
+      Your query: What are some movies that take place in the ocean?
+      🔧 Agent chose to use tool(s): plot_search
+         → Executing plot_search
+
+      Answer: Here are some movies that take place in the ocean:
+
+      1. **20,000 Leagues Under the Sea** - A marine biologist, his daughter, and a mysterious Captain Nemo explore the ocean aboard an incredible submarine.
+      2. **Deep Rising** - A group of armed hijackers board a luxury ocean liner in the South Pacific Ocean, only to fight man-eating, tentacled sea creatures.
+      ... (truncated)
+
+      Your query: What is the plot of the Titanic?
+      🔧 Agent chose to use tool(s): title_search
+         → Executing title_search
+
+      Answer: The plot of *Titanic* involves the romantic entanglements of two couples aboard the doomed ship's maiden voyage
+      ... (truncated)
+
+      Your query: What movies are like the movie I just mentioned?
+      🔧 Agent chose to use tool(s): plot_search
+         → Executing plot_search
+
+      Answer: Here are some movies similar to *Titanic*:
+
+      1. **The Poseidon Adventure** - A group of passengers struggles to survive when their ocean liner capsizes at sea.
+      2. **Pearl Harbor** - Focused on romance and friendship amidst the backdrop of a historical tragedy, following two best friends and their love lives during wartime.
+      ... (truncated)
+
+      Your query: I don't like sad movies.
+      🔧 Agent chose to use tool(s): save_memory
+         → Executing save_memory
+
+      Answer: Got it—I'll keep that in mind. Let me know if you'd like recommendations that focus more on uplifting or happy themes!
+
+      (In different session)
+      Enter a session ID: 456
+      Your query: Recommend me a movie based on what you know about me.
+      🔧 Agent chose to use tool(s): retrieve_memories
+         → Executing retrieve_memories
+
+      Answer: Based on what I know about you—you don't like sad movies—I'd recommend a fun, uplifting, or action-packed film. Would you be interested in a comedy, adventure, or family-friendly movie?
+
+      Your query: Sure!
+      🔧 Agent chose to use tool(s): plot_search, plot_search, plot_search
+         → Executing plot_search
+         → Executing plot_search
+         → Executing plot_search
+
+      Answer: Here are some movie recommendations from various uplifting genres that suit your preferences:
+
+      ### Comedy:
+      1. **Showtime** (2002): A spoof of buddy cop movies where two very different cops are forced to team up on a new reality-based TV cop show. It's packed with laughs and action!
+      2. **The Big Bus** (1976): A hilarious disaster film parody featuring a nuclear-powered bus going nonstop from New York to Denver, plagued by absurd disasters.
+
+      ### Adventure:
+      1. **Journey to the Center of the Earth** (2008): A scientist, his nephew, and their mountain guide discover a fantastic and dangerous lost world at the earth's core.
+      2. **Jason and the Argonauts** (1963): One of the most legendary adventures in mythology, brought to life in this epic saga of good versus evil.
+
+      ### Family-Friendly:
+      1. **The Incredibles** (2004): A family of undercover superheroes is forced into action to save the world while living in quiet suburban life.
+      2. **Mary Poppins** (1964): A magical nanny brings joy and transformation to a cold banker's unhappy family.
+      3. **Chitty Chitty Bang Bang** (1968): A whimsical adventure featuring an inventor, his magical car, and a rescue mission filled with fantasy.
