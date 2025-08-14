@@ -7,8 +7,14 @@
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
+     - MongoDB 5.0
+     - MongoDB 4.4
+     - MongoDB 4.2
 
    * - ext + lib 1.20 to 2.1
+     - ✓
+     - ✓
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -17,8 +23,14 @@
      - ⊛
      - ✓
      - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - ext + lib 1.15
      - ⊛
      - ⊛
+     - ✓
+     - ✓
+     - ✓
      - ✓
