@@ -24,4 +24,14 @@
       .. output:: 
         :language: js
 
-        
+        SCORE: 1  _id:  "1"
+          message: "try to siGn-In"
+          page_updated_by: Object
+          text: Object
+          title: "The team's weekly meeting"
+
+        SCORE: 1  _id:  "3"
+          message: "try to sign-in"
+          page_updated_by: Object
+          text: Object
+          title: "The regular board meeting"

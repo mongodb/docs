@@ -5,7 +5,8 @@ db.minutes.createSearchIndex(
       "fields": {
         "title": {
           "type": "string",
-          "analyzer": "titleAutocomplete"
+          "analyzer": "titleAutocomplete",
+          "searchAnalyzer": "lucene.keyword"
         }
       }
     },

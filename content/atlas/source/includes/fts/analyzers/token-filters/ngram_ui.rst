@@ -25,7 +25,8 @@
              "fields": {
                "title": {
                  "type": "string",
-                 "analyzer": "titleAutocomplete"
+                 "analyzer": "titleAutocomplete",
+                 "searchAnalyzer": "lucene.keyword"
                }
              }
            },
