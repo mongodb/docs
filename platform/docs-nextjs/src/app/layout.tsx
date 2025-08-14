@@ -7,6 +7,7 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { LeafyGreenProvider } from "./emotion";
 import layoutStyles from "./layout.module.scss";
+import Tag from "@/components/tag";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -29,15 +30,22 @@ export default function RootLayout({
           <LeafyGreenProvider>
             <Header />
             {/* TODO: return a sidenav here */}
-            <div className={'sidenav-container'} style={{
-              gridArea: 'sidenav',
-              width: '268px'
-            }}>REPLACE WITH SIDENAV</div>
+            <div
+              className={'sidenav-container'}
+              style={{
+                gridArea: 'sidenav',
+                width: '268px',
+              }}
+            >
+              REPLACE WITH SIDENAV
+              <Tag variant={'blue'}>Tag time!</Tag>
+              <Tag variant={'green'}>Greenie time!</Tag>
+            </div>
             {children}
             <Footer />
           </LeafyGreenProvider>
         </div>
       </body>
-    </html >
+    </html>
   );
 }
