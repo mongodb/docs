@@ -1,3 +1,57 @@
+.. _opsmgr-server-8.0.12:
+
+|onprem| Server 8.0.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-08-07*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the MongoDB Agent to :ref:`108.0.12.8846-1
+  <mongodb-108.0.12.8846-1>`.
+- Supports |bic-full| 2.14.24.
+- Updates JDK to ``jdk-21.0.8+9``.
+- Updates {+mongosh+} to 2.5.6.
+- Updates PACKAGE_OPS_MANAGER to stub out ``sign_artifact`` when
+  Garasign credentials aren't available, allowing patch builds without
+  Garasign.
+- Adds ``pendingRangeDeletion`` state to shard removal Automation Status
+  logs.
+- Adds {+mdbagent+}, Automation, and UI support for MongoDB on RHEL 9
+  (s390x).
+- Implements skip migration logic when |onprem| version is not changing.
+- Allows custom/development/quarterly server builds for easier
+  integration of new features like Live Restore, behind config params.
+- Removes ``AutomationConfigDeploymentView`` and
+  ``AutomationConfigDeploymentMapper`` as part of code clean-up.
+- Updates and generates new certificates for KMIP server and re-enables
+  related tests.
+- Documents and provides clear messages when ``OplogSnapshot`` fails due
+  to missing oplogs.
+- Adds a retry loop around deletion operations in the filesystem groom,
+  improving success on async/lazy filesystems.
+- Adds timeout handling to SMTP connections, preventing hung job threads
+  and easier diagnostics.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where ``auditLog.auditEncryptionKeyIdentifier`` could not
+  be set through the UI.
+- Fixes a bug where the Miscellaneous |onprem| Config tab always showed
+  a "Changes you made may not be saved" warning, even when no changes
+  were made.
+- Fixes an Agent bug that caused crashes when modifying a process's
+  storage fields. Now includes ENCRYPTION_CIPHER_MODE  in removed fields
+  for ephemeral standalone instances to prevent crashes.
+- Adds a retry loop when setting group config to inactive during
+  terminate job operations to enhance reliability.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-48924 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-48924>`__
+  - `CVE-2025-7783 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-7783>`__
+
 .. _opsmgr-server-8.0.11:
 
 |onprem| Server 8.0.11
@@ -141,6 +195,9 @@ Improvements
 - Supports :bic:`MongoDB Connector for BI </>` 2.14.23.
 - Supports :dbtools:`MongoDB Database Tools 100.12.1 </release-notes/database-tools-changelog>`.
 - Updates {+mongosh+} to 2.5.2.
+- Introduces |aws| SDK v2 as default |aws| SDK version. |aws| SDK v1 is
+  still available, but must be set manually in the |onprem|
+  configuration.
 - Ubuntu 24.04 Agent binaries are now included in Ops Manager 8.0.
 - Improves indication and reporting when Feature Compatibility Version 
   (FCV) is undergoing a transition.
