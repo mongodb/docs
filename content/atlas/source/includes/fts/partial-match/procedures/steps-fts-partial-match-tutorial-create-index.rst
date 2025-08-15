@@ -21,9 +21,9 @@
             #. In the :guilabel:`Index Configurations` section, toggle to
                disable :guilabel:`Dynamic Mapping`.
             #. In the :guilabel:`Field Mappings` section, click
-            #. :guilabel:`Add Field` to display the :guilabel:`Add Field
+               :guilabel:`Add Field` to display the :guilabel:`Add Field
                Mapping` window.
-            #.
+            #. Configure the field mapping based on the operator you intend to use:
 
                .. tabs::
 
