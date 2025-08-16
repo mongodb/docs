@@ -1,0 +1,127 @@
+.. meta::
+   :keywords: atlas ui, atlas api
+   :description: Configure and manage Atlas cluster sharding.
+
+.. _atlas-cluster-sharding:
+
+=======================
+Manage Cluster Sharding 
+=======================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can horizontally scale your |service| deployment by sharding your
+cluster. Sharding allows you to distribute your data across multiple
+nodes or shards to efficiently handle growing data and workloads. To
+learn more, see :ref:`sharding-introduction`. If your shard reaches
+capacity, you can :ref:`configure autoscaling <cluster-autoscaling>` to
+:ref:`independently scale your shards <independently-scaling-shards>`. 
+
+Considerations
+--------------
+
+When you configure shard scaling, keep the following in mind: 
+
+- The number of electable, read-only, and analytic nodes on all shards
+  must be the same.  
+
+  For Global clusters, you can have a different number of nodes per zone. 
+
+- The storage capacity on all shards must be the same.
+- The NVME tier on all shards must be the same.
+- If you enable compute auto-scaler: 
+  
+  - The minimum and maximum tier applies at the cluster level.
+  - The |service| auto-scaler only allows a maximum of 2 tier gap
+    between the shard with the highest cluster tier and the shard with
+    the lowest cluster tier.
+
+  .. note:: 
+
+     You can't configure auto-scaling for each shard if the shards are
+     on different cluster class. For example, you can't enable
+     auto-scaling if one shard is on ``M30`` (General) and another shard
+     is on ``M40`` (Low-CPU).
+
+Independent Shard Scaling 
+-------------------------
+
+Independent shard scaling allows you to configure each shard separately
+to better meet the workload requirements of each shard. You can
+configure the cluster tier of each individual shard for a customized and
+optimized allocation of resources and cost for each shard. That is, on
+each shard, your electable and read-only nodes can be on a different
+cluster tier than analytic nodes. On |aws| and |azure|, you can also
+configure :ref:`disk performance <atlas-shard-iops>` for each shard.
+
+For example, for one shard, you can configure your electable and
+read-only nodes (3 nodes) on ``M30`` and analytics nodes (1 node) on
+``M40`` while for another shard, you can configure your electable and
+read-only nodes (3 nodes) on ``M40`` and analytics nodes (1 node) on
+``M30``.  
+
+You can use the |service| Cluster Builder UI to shard your cluster. Once
+your cluster is sharded, you can use the latest version of the
+:oas-bump-atlas-tag:`Atlas Admin API <clusters>`, :atlascli:`Atlas CLI 
+</>`, or |terraform-atlas-provider| to scale each shard 
+independently. You can't use the {+atlas-ui+} to scale each shard
+independently. However, you can enable compute auto-scaling in the
+{+atlas-ui+} for shards to scale independently. 
+
+After you scale each shard independently using the {+atlas-admin-api+},
+{+atlas-cli+}, or Terraform, you can't manage your cluster by using the
+|service| Cluster Builder UI.
+
+Cluster Tier Scaling 
+~~~~~~~~~~~~~~~~~~~~
+
+You can use the {+atlas-admin-api+}, {+atlas-cli+}, or Terraform to
+choose a different tier per shard. Analytics Nodes can also have
+independently selected tiers on all shards.
+
+When you edit a sharded cluster with multiple shard tiers from the
+{+atlas-ui+}, changing the tier will change the tier of all shards.
+
+.. _atlas-shard-iops:
+
+IOPS 
+~~~~
+
+You can use the {+atlas-admin-api+} to specify different IOPS for each 
+shard. 
+
+If your cluster is on |aws|, choose between Standard IOPS and Provisioned
+IOPS for each shard. If a shard uses Provisioned IOPS, you can provision
+different IOPS for each shard. If a shard uses Standard IOPS, the 
+Standard IOPS is tied to the storage size of the cluster. 
+
+If your cluster is on |azure| in regions that support :ref:`Extended
+Standard IOPS <microsoft-azure>`, you can provision different Standard
+IOPS for each shard. Otherwise, the Standard IOPS is tied to the storage
+size of the cluster's disk. 
+
+Cluster-Wide Shard Scaling 
+--------------------------
+
+All shards in an |service| cluster can scale uniformly to the
+same cluster tier. By default, sharded clusters created before Dec 9,
+2024 use cluster-wide shard scaling. If you manage your cluster using
+{+atlas-admin-api+}, {+atlas-cli+}, or Terraform, upgrade your
+{+atlas-admin-api+}, {+atlas-cli+}, or Terraform to independently scale
+your shards. If you use the {+atlas-ui+} and you enabled compute
+autoscaling, to independently scale your shards, contact MongoDB
+support. 
+
+To learn more about sharding your ``M30`` or larger cluster, see
+:ref:`Deploy a Sharded Cluster <scale-cluster-sharding>` and
+:ref:`Modify the Number of Shards <scale-cluster-shardNum>`.  
