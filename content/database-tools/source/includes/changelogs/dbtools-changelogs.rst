@@ -9,7 +9,11 @@ releases.
   * - Versions
     - Release Dates
     - MongoDB Server Support
-  
+
+  * - :ref:`Database Tools 100.13.0 <dbtools-100.13.0-changelog>`
+    - August 2025
+    - MongoDB Server 8.2
+
   * - :ref:`Database Tools 100.12.0 - 100.12.2<dbtools-100.12.0-changelog>`
     - April - June 2025
     - MongoDB Server 8.1
