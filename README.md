@@ -7,6 +7,7 @@ When creating a pull request, you can automatically populate the description wit
 - Platform changes: Use `?template=platform.md`
 - Content changes: Use `?template=content.md`
 - Drivers changes: Use `?template=drivers.md`
+- Cloud Docs changes: Use `?template=cloud.md`
 
 For example:
 
