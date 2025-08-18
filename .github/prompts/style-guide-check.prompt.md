@@ -6,6 +6,8 @@ Important:
 - You can fix any typos or grammatical errors.
 - Add line breaks to the content at 72 characters.
 
+Once complete, list every change and its new line number in a bulleted list.
+
 Here is the style guide:
 
 # Use Active Voice
