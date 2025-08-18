@@ -18,7 +18,7 @@
 
             { 'instock.0.qty': { $lte: 20 } }
 
-         .. figure:: /images/compass-find-array-index-embedded-doc.png
+         .. figure:: /images/compass-find-embedded-field-arr-index.png
             :alt: Query for array element matching single condition
 
      - id: c

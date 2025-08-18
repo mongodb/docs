@@ -17,6 +17,9 @@
 
             { "instock": { $elemMatch: { qty: 5, warehouse: "A" } } }
 
+         .. figure:: /images/compass-multiple-query-conditions-nested-fields.png
+            :alt: A single nested document meets multiple query conditions on nested fields
+
      - id: c
        content: |
 

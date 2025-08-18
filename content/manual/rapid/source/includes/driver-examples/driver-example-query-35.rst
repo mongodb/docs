@@ -16,6 +16,9 @@
          .. code-block:: javascript
 
             { "instock": { $elemMatch: { qty: { $gt: 10, $lte: 20 } } } }
+
+         .. figure:: /images/compass-multiple-query-conditions-nested-fields-2.png
+            :alt: A single nested document meets multiple query conditions on nested fields
      
      - id: c
        content: |

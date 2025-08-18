@@ -8,6 +8,13 @@
 
             db.inventory.find( { "instock": { qty: 5, warehouse: "A" } } )
 
+     - id: compass
+       content: |
+
+         .. code-block:: javascript
+
+            instock: { qty: 5, warehouse: 'A' }
+
      - id: python
        content: |
 
