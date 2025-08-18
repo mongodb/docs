@@ -12,7 +12,7 @@
    .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
    
    To learn more about naming the secrets that contain your |tls| 
-   certificates, see the topic in :ref:`secure-tls-mck` that applies to your 
+   certificates, see the topic in :ref:`secure-tls` that applies to your 
    deployment.
 
 
