@@ -105,3 +105,60 @@ class Movie(models.Model):
     def __str__(self):
         return self.title
 # end-embedded-array-field
+
+# start-polymorphic-embedded-field
+from django.db import models
+from django_mongodb_backend.models import EmbeddedModel
+from django_mongodb_backend.fields import PolymorphicEmbeddedModelField
+
+class Oscars(EmbeddedModel):
+    wins = models.IntegerField(default=0)
+    nominations = models.IntegerField(default=0)
+    best_picture = models.BooleanField(default=False)
+
+class GoldenGlobes(EmbeddedModel):
+    wins = models.IntegerField(default=0)
+    nominations = models.IntegerField(default=0)
+
+class Movie(models.Model):
+    title = models.CharField(max_length=200)
+    plot = models.TextField(blank=True)
+    runtime = models.IntegerField(default=0)
+    released = models.DateTimeField("release date", null=True, blank=True)
+    awards = PolymorphicEmbeddedModelField(["Oscars", "GoldenGlobes"], null=True, blank=True)
+
+    class Meta:
+        db_table = "movies"
+        managed = False
+    
+    def __str__(self):
+        return self.title
+# end-polymorphic-embedded-field
+
+# start-polymorphic-embedded-array-field
+from django.db import models
+from django_mongodb_backend.models import EmbeddedModel
+from django_mongodb_backend.fields import PolymorphicEmbeddedModelArrayField
+
+class Oscar(EmbeddedModel):
+    category = models.CharField(max_length=200)
+    year = models.IntegerField(default=0)
+
+class GoldenGlobe(EmbeddedModel):
+    category = models.CharField(max_length=200)
+    year = models.IntegerField(default=0)
+
+class Movie(models.Model):
+    title = models.CharField(max_length=200)
+    plot = models.TextField(blank=True)
+    runtime = models.IntegerField(default=0)
+    released = models.DateTimeField("release date", null=True, blank=True)
+    awards = PolymorphicEmbeddedModelArrayField(["Oscar", "GoldenGlobe"], null=True, blank=True)
+
+    class Meta:
+        db_table = "movies"
+        managed = False
+    
+    def __str__(self):
+        return self.title
+# end-polymorphic-embedded-array-field
