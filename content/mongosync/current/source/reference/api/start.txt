@@ -87,17 +87,38 @@ Request Body Parameters
    * - ``buildIndexes``
      - string
      - Optional
-     - Configures index builds during sync.
+     - .. _mongosync-build-indexes:
+       
+       Configures index builds during sync.
 
        Supported Options:
 
        - ``beforeDataCopy`` (the default) causes ``mongosync`` to build indexes
-         on the destination cluster. These include existing indexes, hashed
-         indexes, and any indexes created during migration on the source cluster.
+         on the destination cluster during initialization. This includes indexes
+         that exist on the source cluster at the point of initialization and 
+         indexes that are created during migration.
+
+       - ``afterDataCopy`` causes ``mongosync`` to build indexes on the destination
+         cluster after :ref:`collection copy <c2c-collection-copy>`. This includes 
+         indexes that exist on the source cluster at the point of initialization and 
+         indexes that are created during migration. This results
+         in a faster migration for indexed databases.
+
+         .. |build-index-param| replace:: ``afterDataCopy``
+         .. include:: /includes/fact-build-indexes-after-copy.rst
 
        - ``excludeHashed`` causes ``mongosync`` to skip building hashed indexes
          during sync. This can `improve performance <https://www.mongodb.com/docs/manual/tutorial/drop-a-hashed-shard-key-index/>`__
          for large collections.
+
+       - ``excludeHashedAfterCopy`` causes ``mongosync`` to build non-hashed indexes 
+         on the destination cluster after :ref:`collection copy <c2c-collection-copy>`.
+         ``excludeHashedAfterCopy`` also skips building hashed indexes.
+         This results in a faster migration for indexed databases, due to both
+         building indexes after initial data copy and skipping building hashed indexes.
+
+         .. |build-index-param| replace:: ``excludeHashedAfterCopy``
+         .. include:: /includes/fact-build-indexes-after-copy.rst
 
        - ``never`` causes ``mongosync`` to skip building unnecessary indexes
          during sync. This can improve migration performance, especially with
@@ -171,6 +192,24 @@ Request Body Parameters
        .. include:: /includes/api/facts/namespace-explanation.rst
 
        .. versionadded:: 1.6
+
+   * - ``copyInNaturalOrder``
+     - array of documents
+     - Optional
+     - .. _c2c-copy-natural-order:
+
+       Copies a list of databases and collections in their natural order to the destination cluster.
+       The natural order is the order in which you previously inserted the documents into the database.
+       You must pass in an array of documents that each represent a database and its collections. 
+       For a syntax example, see :ref:`Natural Scan Capability <c2c-natural-scan-capability>`.
+
+       :gold:`IMPORTANT:` Only use the ``copyInNaturalOrder`` option for collections that explicitly set a 
+       random ``_id`` field. Using this option for collections of size 30GB or greater significantly reduces 
+       the time that the :ref:`collection copy <c2c-collection-copy>` phase takes.
+
+       :red:`WARNING:` If you ``/resume`` a ``mongosync`` migration after a ``/pause`` or interruption that 
+       has the ``copyInNaturalOrder`` option enabled for collections greather that 500GB in size, 
+       the migration can take multiple hours to complete.
 
    * - ``preExistingDestinationData``
      - boolean
@@ -337,12 +376,18 @@ The ``sharding`` option has the following parameters:
 
    * - ``createSupportingIndexes``
      - boolean
-     - Optional. Sets whether sync creates a supporting index
+     - .. _mongosync-create-supporting-indexes-param:
+
+       Optional. Sets whether sync creates a supporting index
        for the shard key, if none exists. The default is ``false``.
+       
+       .. |build-index-param| replace:: ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
+       .. include:: /includes/fact-build-indexes-after-copy.rst
 
        If you set this parameter to ``true`` and set ``buildIndexes`` 
-       to ``"excludeHashed"``, then ``mongosync`` does not create
-       supporting hashed indexes for hashed shard keys on the destination
+       to ``"excludeHashed"`` or ``"excludeHashedAfterCopy"``, 
+       then ``mongosync`` does not create supporting hashed indexes 
+       for hashed shard keys on the destination
        cluster. ``mongosync`` still builds non-hashed supporting
        indexes for non-hashed shard keys.
 
@@ -560,6 +605,9 @@ When ``sharding.createSupportingIndexes`` is ``false`` (the default):
   that does not contain the requested shard key as a prefix on the destination,
   can cause ``mongosync`` to fail.
 
+* .. |build-index-param| replace:: ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
+  .. include:: /includes/fact-build-indexes-after-copy.rst
+
 When ``sharding.createSupportingIndexes`` is ``true``: 
 
 * If the supporting indexes exist on the source cluster, ``mongosync`` 
@@ -629,3 +677,53 @@ Endpoint Protection
 
 .. |endpoint| replace:: ``start``
 .. include:: /includes/fact-api-endpoint
+
+
+.. _c2c-natural-scan-capability:
+
+Natural Scan Capability
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When you call ``/start`` with the ``copyInNaturalOrder`` option, you must specify the databases and collections by using documents, such as in the following example.
+
+Request:
+
+.. literalinclude:: /code-examples/includes/api/requests/start-natural-order-multiple.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /code-examples/includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+:red:`WARNING:` If you enable the migration for collections with non-random ``_id`` 
+fields, the :ref:`collection copy <c2c-collection-copy>` phase can take 
+longer to complete when you specify ``copyInNaturalOrder``.
+
+You can use ``copyInNaturalOrder`` to copy all collections in multiple databases in their natural order,
+such as in the following example.
+
+Request:
+
+.. literalinclude:: /code-examples/includes/api/requests/start-natural-order-all-collections.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /code-examples/includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+You can use ``copyInNaturalOrder`` to copy **all** databases and their collections in their natural order.  
+
+Request:
+
+.. literalinclude:: /code-examples/includes/api/requests/start-natural-order-all-databases.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /code-examples/includes/api/responses/success.json
+   :language: json
+   :copyable: false

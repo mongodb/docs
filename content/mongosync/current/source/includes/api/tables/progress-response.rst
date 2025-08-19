@@ -17,7 +17,10 @@
      - boolean
      - If ``true``, indicates that a :ref:`commit <c2c-api-commit>`
        request will succeed. This also means that the initial sync has
-       completed and is applying change events.
+       completed and is applying change events. If you set :ref:`buildIndexes
+       <mongosync-build-indexes>` to ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
+       when calling ``start``, ``{canCommit: true}`` also indicates that 
+       index builds are complete.
 
    * - ``canWrite``
      - boolean
