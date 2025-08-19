@@ -9,41 +9,40 @@
      - MongoDB 5.0
      - MongoDB 4.4
      - MongoDB 4.2
-     - MongoDB 4.0
-     - MongoDB 3.6
-   * - 2.7 [#2.5-onwards-limitation]_
+
+   * - 3.1 to 3.2 [#2.5-onwards-limitation]_
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 2.6 to 3.0 [#2.5-onwards-limitation]_
      - ⊛
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
-     - ✓
-   * - 2.6 [#2.5-onwards-limitation]_
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
+
    * - 2.5 [#2.5-onwards-limitation]_
      - ⊛
      - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓
-     - ✓
-     - ✓
+
    * - 2.4 [#2.4-limitation]_
      - ⊛
      - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓
-     - ✓
-     - ✓
-   * - 2.3 [#2.2-2.3-limitation]_
+
+   * - 2.2 to 2.3 [#2.2-2.3-limitation]_
      - ⊛
      - ⊛
      - ✓
@@ -57,27 +56,25 @@
      - ✓
      - ✓
      - ✓
-     - ✓
-     - ✓
+
    * - 2.1 [#2.1-limitation]_
      - ⊛
      - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓
-     - ✓
-     - ✓
+
    * - 2.0 [#2.0-limitation]_
      - ⊛
      - ⊛
-     - ✓
-     - ✓
+     - ⊛
      - ✓
      - ✓
      - ✓
 
 The {+driver-short+} is not compatible with {+server+} versions
-older than 3.6.
+older than 4.2.
 
 .. [#2.5-onwards-limitation] This {+driver-short+} version does not support
    :manual:`OCSP </core/security-transport-encryption/#ocsp--online-certificate-status-protocol->`.
