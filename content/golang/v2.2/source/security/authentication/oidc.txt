@@ -1,0 +1,386 @@
+.. _golang-mongodb-oidc:
+.. _golang-authentication-oidc:
+
+=============================
+OIDC Authentication Mechanism
+=============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: oidc, encryption, tls
+   :description: Explore sample code for connecting to MongoDB using the enterprise authentication mechanism MONGODB-OIDC with the MongoDB Go Driver.
+
+Overview
+--------
+
+.. important::
+
+   The MONGODB-OIDC authentication mechanism requires {+mdb-server+}
+   v7.0 or later running on a Linux platform.
+
+The {+driver-short+} supports OpenID Connect (**OIDC**) authentication for **workload
+identities**. A workload identity is an identity you assign to a
+software workload, such as an application, service, script, or
+container, to authenticate and access other services and resources.
+
+The following sections describe how to use the MONGODB-OIDC
+authentication mechanism to authenticate to various platforms.
+
+To learn more about the MONGODB-OIDC authentication mechanism, see
+:manual:`OpenID Connect Authentication </core/security-oidc/>` and
+:manual:`MongoDB Server Parameters </reference/parameters/#mongodb-parameter-param.oidcIdentityProviders>`
+in the {+mdb-server+} manual.
+
+.. _golang-mongodb-oidc-azure-imds:
+
+Azure IMDS
+~~~~~~~~~~
+
+If your application runs on an Azure VM, or otherwise uses the
+`Azure Instance Metadata Service <https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service>`__
+(IMDS), you can authenticate to MongoDB by using the {+driver-short+}'s
+built-in Azure support.
+
+You can configure OIDC for Azure IMDS in the following ways:
+
+- Create a ``Credential`` struct and pass it to the
+  ``SetAuth()`` method when you create a client
+- Set parameters in your connection string
+
+.. include:: /includes/authentication/auth-properties-commas.rst
+
+.. tabs::
+
+   .. tab:: Credential
+      :tabid: credential struct
+
+      First, create a map to store your authentication
+      mechanism properties, as shown in the following example. Replace
+      the ``<audience>`` placeholder with the value of the ``audience``
+      parameter configured on your MongoDB deployment.
+
+      .. code-block:: go
+
+         props := map[string]string{
+         	"ENVIRONMENT":    "azure",
+         	"TOKEN_RESOURCE": "<audience>",
+         }
+
+      Then, set the following ``Credential`` struct fields:
+
+      - ``Username``: If you're using an Azure managed identity, set this to the client ID
+        of the managed identity. If you're using a service principal to represent an
+        enterprise application, set this to the application ID of the service principal. 
+      - ``AuthMechanism``: Set to ``"MONGODB-OIDC"``.
+      - ``AuthMechanismProperties``: Set to the ``props`` map that you
+        previously created.
+
+      The following code example shows how to set these options when creating a
+      ``Client``:
+
+      .. literalinclude:: /includes/authentication/azure-imds-client.go
+            :dedent:
+            :language: go
+            :copyable: true
+            :start-after: start-azure-imds-client
+            :end-before: end-azure-imds-client
+            :emphasize-lines: 9-11
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      Include the following connection options in your connection string:
+
+      - ``username``: If you're using an Azure managed identity, set this to the client ID
+        of the managed identity. If you're using a service principal to represent an
+        enterprise application, set this to the application ID of the service principal. 
+      - ``authMechanism``: Set to ``MONGODB-OIDC``.
+      - ``authMechanismProperties``: Set to
+        ``ENVIRONMENT:azure,TOKEN_RESOURCE:<audience>``.
+        Replace the ``<audience>`` placeholder with the
+        value of the ``audience`` parameter configured on your MongoDB deployment. 
+        
+      The following code example shows how to set these options in
+      your connection string:
+        
+      .. code-block:: go
+
+	      uri := "mongodb://<hostname>:<port>/?" +
+	      	   "username=<Azure client ID or application ID>" +
+	      	   "&authMechanism=MONGODB-OIDC" +
+	      	   "&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:<percent-encoded audience>"
+      
+	      client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	      if err != nil {
+	      	panic(err)
+	      }
+
+.. tip::
+   
+   If your application is running on an Azure VM, and only one managed identity is
+   associated with the VM, you can omit the ``username`` connection option.
+
+.. _golang-mongodb-oidc-gcp-imds:
+
+GCP IMDS
+~~~~~~~~
+
+If your application runs on a Google Compute Engine VM, or otherwise uses the
+`GCP Instance Metadata Service <https://cloud.google.com/compute/docs/metadata/querying-metadata>`__,
+you can authenticate to MongoDB by using the {+driver-short+}'s built-in GCP
+support.
+
+You can configure OIDC for GCP IMDS in the following ways:
+
+- Create a ``Credential`` struct and pass it to the
+  ``SetAuth()`` method when you create a client
+- Set parameters in your connection string
+
+.. include:: /includes/authentication/auth-properties-commas.rst
+   
+.. tabs::
+
+   .. tab:: Credential
+      :tabid: credential struct
+
+      First, create a map to store your authentication
+      mechanism properties, as shown in the following example. Replace
+      the ``<audience>`` placeholder with the value of the ``audience``
+      parameter configured on your MongoDB deployment.
+
+      .. code-block:: go
+
+         props := map[string]string{
+         	"ENVIRONMENT":    "gcp",
+         	"TOKEN_RESOURCE": "<audience>",
+         }
+
+      Then, set the following ``Credential`` struct fields:
+ 
+      - ``AuthMechanism``: Set to ``"MONGODB-OIDC"``.
+      - ``AuthMechanismProperties``: Set to the ``props`` map that you
+        previously created.
+
+      The following code example shows how to set these options when creating a
+      ``Client``:
+
+      .. literalinclude:: /includes/authentication/gcp-imds-client.go
+            :language: go
+            :dedent:
+            :copyable: true
+            :start-after: start-gcp-imds-client
+            :end-before: end-gcp-imds-client
+            :emphasize-lines: 9-10
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      Include the following connection options in your connection string:
+
+      - ``authMechanism``: Set to ``MONGODB-OIDC``.
+      - ``authMechanismProperties``: Set to
+        ``ENVIRONMENT:gcp,TOKEN_RESOURCE:<audience>``.
+        Replace the ``<audience>`` placeholder with the
+        value of the ``audience`` parameter configured on your MongoDB deployment.
+
+      The following code example shows how to set these options in your connection string:
+      
+      .. code-block:: go
+
+	      uri := "mongodb://<hostname>:<port>/?" +
+	      	   "&authMechanism=MONGODB-OIDC" +
+	      	   "&authMechanismProperties=ENVIRONMENT:gcp,TOKEN_RESOURCE:<percent-encoded audience>"
+      
+	      client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	      if err != nil {
+	      	panic(err)
+	      }
+
+.. _golang-mongodb-oidc-custom-callback:
+
+Custom Callback
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} doesn't offer built-in support for all platforms,
+including the AWS Elastic Kubernetes Service (EKS). To authenticate
+against unsupported platforms, you must define a custom callback
+function to use OIDC to authenticate. In the driver, you can define an
+``options.OIDCCallback`` function and set it as the value of the
+``OIDCMachineCallback`` struct field in your ``Credential`` struct.
+
+The following example defines a custom callback for an EKS
+cluster with a configured IAM OIDC provider. The access token is 
+read from a path set in the ``AWS_WEB_IDENTITY_TOKEN_FILE``
+environment variable:
+
+.. literalinclude:: /includes/authentication/eks-custom-callback.go
+      :language: go
+      :dedent:
+      :copyable: true
+      :start-after: start-custom-callback
+      :end-before: end-custom-callback
+
+Then, you can create a ``Credential`` struct that uses the EKS callback
+function that you defined:
+
+.. literalinclude:: /includes/authentication/eks-custom-callback.go
+      :language: go
+      :dedent:
+      :copyable: true
+      :start-after: start-credential-callback
+      :end-before: end-credential-callback
+      :emphasize-lines: 6
+
+.. _golang-mongodb-oidc-azure-envs:
+
+Other Azure Environments
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application runs on Azure Functions, App Service Environment (ASE), or Azure
+Kubernetes Service (AKS), you can use the `azidentity
+<https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity>`__
+module to fetch authentication credentials. 
+
+First, install the ``azidentity`` module by running the
+following command:
+
+.. code-block:: sh
+
+   go get -u github.com/Azure/azure-sdk-for-go/sdk/azidentity
+
+Your ``OIDCCallback`` function must return an ``OIDCCredential``
+instance that uses the ``AccessToken`` generated from the ``azidentity``
+package. See the preceding :ref:`golang-mongodb-oidc-custom-callback`
+section for an example that implements a custom callback to retrieve an
+access token and then creates a ``Credential``.
+
+.. _golang-mongodb-oidc-gcp-gke:
+
+GCP GKE
+~~~~~~~
+
+If your application runs on a GCP Google Kubernetes Engine (GKE) cluster with a
+`configured service account
+<https://cloud.google.com/kubernetes-engine/docs/how-to/service-accounts>`__,
+you can read the OIDC token from the standard service-account token-file location.
+
+First, define the ``OIDCCallback`` function. This function reads the
+OIDC token and returns an ``OIDCCredential`` instance.
+
+The following example defines a callback function named ``gkeCallback``.
+The function retrieves an OIDC token from a file in the standard
+service-account token-file location:
+
+.. literalinclude:: /includes/authentication/gke-callback.go
+   :language: go
+   :copyable: true
+   :dedent:
+   :start-after: start-callback
+   :end-before: end-callback
+
+Then, you can create a ``Credential`` struct that uses the the GKE
+callback function that you defined:
+
+.. literalinclude:: /includes/authentication/gke-callback.go
+   :language: go
+   :copyable: true
+   :dedent:
+   :start-after: start-credential-callback
+   :end-before: end-credential-callback
+   :emphasize-lines: 6
+
+.. _golang-kubernetes-oidc:
+
+Kubernetes
+~~~~~~~~~~
+
+If your application runs on a Kubernetes cluster with a configured service account, 
+you can authenticate to MongoDB by using the {+driver-short+}'s built-in Kubernetes 
+support. To learn more about how to configure a service account, see the 
+`Managing Service Accounts <https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/>`__ 
+guide in the Kubernetes documentation. 
+
+You can configure OIDC for Kubernetes in the following ways:
+
+- Create a ``Credential`` struct and pass it to the
+  ``SetAuth()`` method when you create a client
+- Set parameters in your connection string
+
+.. include:: /includes/authentication/auth-properties-commas.rst
+   
+.. tabs::
+
+   .. tab:: Credential
+      :tabid: credential struct
+
+      First, create a map to store your authentication
+      mechanism properties, as shown in the following example:
+
+      .. code-block:: go
+
+         props := map[string]string{
+         	"ENVIRONMENT":    "k8s",
+         }
+
+      Then, set the following ``Credential`` struct fields:
+ 
+      - ``AuthMechanism``: Set to ``"MONGODB-OIDC"``.
+      - ``AuthMechanismProperties``: Set to the ``props`` map that you
+        previously created.
+
+      The following code example shows how to set these options when creating a
+      ``Client``:
+
+      .. literalinclude:: /includes/authentication/kubernetes.go
+            :language: go
+            :dedent:
+            :copyable: true
+            :start-after: start-kubernetes
+            :end-before: end-kubernetes
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      Include the following connection options in your connection string:
+
+      - ``authMechanism``: Set to ``MONGODB-OIDC``.
+      - ``authMechanismProperties``: Set to ``ENVIRONMENT:k8s``.
+
+      The following code example shows how to set these options in your connection string:
+      
+      .. code-block:: go
+         
+         uri := "mongodb://<hostname>:<port>/?" +
+                  "&authMechanism=MONGODB-OIDC" +
+                  "&authMechanismProperties=ENVIRONMENT:k8s"
+                  
+         client, err := mongo.Connect(options.Client().ApplyURI(uri))
+         if err != nil {
+         	panic(err)
+         }
+
+Additional Information
+----------------------
+
+To learn more about the concepts in this guide, see the following documentation:
+
+- :manual:`MongoDB Server Support for Kerberos Authentication </core/kerberos/>`
+- :manual:`MongoDB Server Support for LDAP Proxy Authentication </core/security-ldap/>`
+- :atlas:`Authentication and Authorization with OIDC/OAuth 2.0 </security-oidc/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `Credential <{+api+}/mongo/options#Credential>`__ type
+- `SetAuth() <{+api+}/mongo/options#ClientOptions.SetAuth>`__ method
+- `OIDCCredential <{+api+}/mongo/options#OIDCCredential>`__ type
+- `OIDCCallback <{+api+}/mongo/options#OIDCCallback>`__ function

@@ -38,7 +38,7 @@ func main() {
 
 	// begin insert docs
 	coll := client.Database("db").Collection("tea")
-	docs := []interface{}{
+	docs := []any{
 		Tea{Type: "Masala", Rating: 10},
 		Tea{Type: "Matcha", Rating: 7},
 		Tea{Type: "Assam", Rating: 4},

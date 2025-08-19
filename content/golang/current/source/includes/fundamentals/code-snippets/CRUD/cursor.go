@@ -37,7 +37,7 @@ func main() {
 	}()
 
 	coll := client.Database("db").Collection("sample_data")
-	docs := []interface{}{
+	docs := []any{
 		MyStruct{MyProperty: "abc"},
 		MyStruct{MyProperty: "def"},
 		MyStruct{MyProperty: "ghi"},

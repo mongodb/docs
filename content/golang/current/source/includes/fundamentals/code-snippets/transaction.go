@@ -43,8 +43,8 @@ func main() {
 
 	// Inserts multiple documents into a collection within a transaction,
 	// then commits or ends the transaction
-	result, err := session.WithTransaction(context.TODO(), func(ctx context.Context) (interface{}, error) {
-		result, err := coll.InsertMany(ctx, []interface{}{
+	result, err := session.WithTransaction(context.TODO(), func(ctx context.Context) (any, error) {
+		result, err := coll.InsertMany(ctx, []any{
 			bson.D{{"title", "The Bluest Eye"}, {"author", "Toni Morrison"}},
 			bson.D{{"title", "Sula"}, {"author", "Toni Morrison"}},
 			bson.D{{"title", "Song of Solomon"}, {"author", "Toni Morrison"}},
@@ -72,7 +72,7 @@ func main() {
 	// 		return err
 	// 	}
 
-	// 	docs := []interface{}{
+	// 	docs := []any{
 	// 		bson.D{{"title", "The Year of Magical Thinking"}, {"author", "Joan Didion"}},
 	// 		bson.D{{"title", "Play It As It Lays"}, {"author", "Joan Didion"}},
 	// 		bson.D{{"title", "The White Album"}, {"author", "Joan Didion"}},

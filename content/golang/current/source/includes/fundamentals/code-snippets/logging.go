@@ -77,7 +77,7 @@ type CustomLogger struct {
 
 // Creates functions to specify how the logger generates messages
 // start-customlogger-funcs
-func (logger *CustomLogger) Info(level int, msg string, _ ...interface{}) {
+func (logger *CustomLogger) Info(level int, msg string, _ ...any) {
 	logger.mu.Lock()
 	defer logger.mu.Unlock()
 	if options.LogLevel(level+1) == options.LogLevelDebug {
@@ -87,7 +87,7 @@ func (logger *CustomLogger) Info(level int, msg string, _ ...interface{}) {
 	}
 }
 
-func (logger *CustomLogger) Error(err error, msg string, _ ...interface{}) {
+func (logger *CustomLogger) Error(err error, msg string, _ ...any) {
 	logger.mu.Lock()
 	defer logger.mu.Unlock()
 	fmt.Fprintf(logger, "error: %v, message: %s\n", err, msg)
@@ -174,7 +174,7 @@ func thirdPartyLogging(uri string) {
 	}
 
 	coll := client.Database("db").Collection("testColl")
-	docs := []interface{}{
+	docs := []any{
 		Item{Name: "starfruit"},
 		Item{Name: "kiwi"},
 		Item{Name: "cantaloupe"},

@@ -1,0 +1,237 @@
+.. _golang-timeout-setting:
+.. _golang-csot:
+
+===========================
+Limit Server Execution Time
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: error, blocking, thread, task, code example
+
+Overview
+--------
+
+In this guide, you can learn about the single timeout setting in the
+{+driver-short+}, also known as the **client-side operation timeout (CSOT)**.
+
+When you use the {+driver-short+} to perform a server operation, you can also
+limit the amount of time in which the server can finish the operation.
+The timeout applies to all steps needed to complete the operation,
+including server selection, connection checkout, and server-side
+execution. When the timeout expires, the {+driver-short+} raises a
+timeout exception.
+
+.. note:: Experimental Feature
+
+   The CSOT feature is experimental and might change in future driver
+   releases.
+
+timeoutMS Option
+----------------
+
+To specify a timeout when connecting to a MongoDB deployment, set the
+``timeoutMS`` connection option to the timeout length in milliseconds. You can
+set the ``timeoutMS`` option in the following ways:
+
+- Calling the ``SetTimeout()`` method when
+  specifying options for your ``Client`` instance
+- Setting the ``timeoutMS`` parameter in your connection string
+
+The following code examples set a client-level timeout of ``200`` milliseconds.
+Select the :guilabel:`Client` or :guilabel:`Connection
+String` tab to see the corresponding code.
+
+.. tabs::
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      .. literalinclude:: /includes/connect/csot.go
+         :language: go
+         :start-after: start-client-opts
+         :end-before: end-client-opts
+         :dedent:
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: go
+         :copyable: true
+         
+         uri := "<connection string>/?timeoutMS=200"
+         client, err := mongo.Connect(options.Client().ApplyURI(uri))
+
+.. note:: Retries Under Timeout Specification
+
+   If you set a timeout on your ``Client`` or in an operation-level
+   Context and the server returns a retryable error, the driver retries the
+   operation as many times as possible before the timeout expires.
+   
+   Once the timeout expires, the driver returns a timeout error.
+   See the Server manual for more information about :ref:`retryable
+   reads <retryable-reads>` and :manual:`retryable writes
+   </core/retryable-writes/>`.
+
+Accepted Timeout Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes the timeout behavior corresponding to the
+accepted values for ``timeoutMS``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Value
+     - Behavior
+
+   * - Positive integer
+     - Sets the timeout to use for operation completion.
+
+   * - ``0``
+     - Specifies that operations never time out.
+
+   * - ``null`` or unset
+     - | Defers the timeout behavior to the following settings:
+
+       - :manual:`waitQueueTimeoutMS </reference/connection-string-options/#mongodb-urioption-urioption.waitQueueTimeoutMS>`
+       - :manual:`socketTimeoutMS </reference/connection-string-options/#mongodb-urioption-urioption.socketTimeoutMS>`   
+       - :manual:`wTimeoutMS </reference/connection-string-options/#mongodb-urioption-urioption.wtimeoutMS>`
+       - :manual:`maxTimeMS </reference/method/cursor.maxTimeMS/>`
+
+       | These settings are deprecated and are ignored if you set ``timeoutMS``.
+
+If you specify the ``timeoutMS`` option, the driver automatically applies the
+specified timeout to each server operation.
+
+Timeout Inheritance
+~~~~~~~~~~~~~~~~~~~
+
+By default, all operations in your application inherit the
+``Timeout`` option from ``Client`` if you do not set a different timeout
+on specific operations in the operation's Context.
+
+If you set a timeout on a Context passed into an operation, the driver uses
+that value for the operation. If you do not specify a Context timeout,
+the operation Context derives the timeout from the ``Client`` instance.
+
+The following table describes how the timeout value is inherited at each level:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Level
+     - Inheritance Description
+
+   * - Operation
+     - Takes the highest precedence and overrides the timeout
+       options that you set at any other level.
+
+   * - Transaction
+     - Takes precedence over the timeout value that you set at the
+       client level.
+
+   * - Client
+     - Applies to all databases, collections, sessions, transactions, and
+       operations within that client that do not otherwise specify a
+       Context timeout.
+
+For more information on overrides and specific options, see the following
+:ref:`golang-csot-overrides` section.
+
+.. _golang-csot-overrides:
+
+Overrides
+---------
+
+The {+driver-short+} supports various levels of configuration to control the
+behavior and performance of database operations. 
+
+You can specify a ``timeoutMS`` option at a more specific level to override the
+client-level configuration. The table in the preceding section describes
+the levels at which you can specify a timeout setting. This allows you
+to customize timeouts based on the needs of individual operations.
+
+The following example shows how to set an operation-level timeout in a
+Context, which takes priority over the client-level timeout:
+
+.. literalinclude:: /includes/connect/csot.go
+   :language: go
+   :start-after: start-override
+   :end-before: end-override
+   :dedent:
+   :emphasize-lines: 9, 12
+
+.. _go-csot-transaction:
+
+Transactions
+~~~~~~~~~~~~
+
+When you perform a transaction by using the `WithTransaction()
+<{+api+}/mongo#Session.WithTransaction>`__ method, you can apply a
+timeout to the transaction operations by setting a timeout within the
+Context.
+
+The following code demonstrates how to set a Context timeout when
+calling the ``WithTransaction()`` method to perform a transaction:
+
+.. literalinclude:: /includes/connect/csot.go
+   :language: go
+   :start-after: start-txn-context
+   :end-before: end-txn-context
+   :dedent:
+   :emphasize-lines: 1, 4
+
+If you do not specify a Context timeout, the driver inherits the timeout
+value set on the parent ``Client``.
+
+You can also pass Context timeouts to the following session
+methods:
+
+- ``AbortTransaction()``
+- ``CommitTransaction()``
+- ``EndSession()``
+
+To learn more about transactions, see the :ref:`golang-transactions`
+guide.
+
+.. _go-csot-cursor:
+
+Cursors
+-------
+
+Cursors offer configurable timeout settings when using the CSOT feature. You can
+adjust cursor timeouts by passing Contexts that have timeout
+specifications to `Cursor <{+api+}/mongo#Cursor>`__ methods.
+
+For operations that create cursors, the timeout setting can either limit
+the lifetime of the cursor or be applied separately to the original
+operation and all subsequent calls.
+
+For example, if you pass a Context timeout to the ``Cursor.Next()``
+method, the timeout applies to each action to fetch a result document.
+If you pass a Context timeout to the ``Cursor.All()`` method, the
+timeout applies to the entire lifetime of the cursor.
+
+To learn more about cursors, see the :ref:`golang-cursor` guide.
+
+API Documentation
+-----------------
+
+To learn more about using timeouts with the {+driver-short+}, see the following
+API documentation:
+
+- `ClientOptions <{+api+}/mongo/options#ClientOptions>`__
+- `SetTimeout() <{+api+}/mongo/options#ClientOptions.SetTimeout>`__
+- `Context.WithTimeout() <https://pkg.go.dev/context#WithTimeout>`__

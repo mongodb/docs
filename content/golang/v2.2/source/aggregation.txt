@@ -1,0 +1,209 @@
+.. _golang-aggregation:
+
+===========
+Aggregation
+===========
+
+.. meta::
+   :description: Explore how to use aggregation operations in the MongoDB Go Driver, including examples of grouping, sorting, and filtering data in collections.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use **aggregation operations** in the
+{+driver-long+}.
+
+Aggregation operations process data in your MongoDB collections based on
+your specifications in the **aggregation pipeline**. An aggregation
+pipeline consists of one or more **stages**. Each stage performs an
+operation based on its expression operators. After the driver executes
+the aggregation pipeline, it returns an aggregated result.
+
+.. sharedinclude:: dbx/agg-tutorials-manual-tip.rst
+
+   .. replacement:: language
+
+      :guilabel:`{+language+}`
+
+Analogy
+~~~~~~~
+
+Aggregation operations operate similarly to a car factory. Car factories
+have an assembly line. The assembly lines have assembly stations with
+specialized tools to perform a specific task. To build a car, you send
+raw parts to the factory. Then, the assembly line transforms and
+assembles the parts into a car.
+
+The assembly line resembles the **aggregation pipeline**, the assembly
+stations in the assembly line resemble the **aggregation stages**, the
+specialized tools represent the **expression operators**, and the
+finished product resembles the **aggregated result**. 
+
+Compare Operations
+------------------
+
+The following table lists the tasks you can perform by using find and aggregation operations.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Find Operations
+     - Aggregation Operations
+
+   * - | Select *what* documents to return
+       | Select *which* fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+     - | Select *what* documents to return
+       | Select *which* fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+       | Rename fields
+       | Calculate fields
+       | Summarize data
+       | Group values
+
+Limitations
+-----------
+
+Aggregation operations have limitations. When performing aggregation
+operations, keep the following in mind:
+
+- Returned documents must not violate the :manual:`BSON document size
+  limit </reference/limits/#BSON-Document-Size>` of 16 megabytes.
+- Pipeline stages have a memory limit of 100 megabytes by default. If
+  required, you may exceed this limit by using the `allowDiskUse()
+  <{+api+}/mongo/options#AggregateOptionsBuilder.SetAllowDiskUse>`__
+  method.
+- The :manual:`$graphLookup
+  </reference/operator/aggregation/graphLookup/>` stage
+  has a strict memory limit of 100 megabytes and ignores the
+  ``allowDiskUse`` setting.
+
+Examples
+--------
+
+The examples in this section use the following ``Tea`` struct as a model for documents
+in the ``tea`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/aggregation.go
+   :start-after: start-tea-struct
+   :end-before: end-tea-struct
+   :language: go
+   :dedent:
+
+To run the examples in this section, load the sample data into the
+``tea`` collection in the ``db`` database by using the following snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/aggregation.go
+   :start-after: begin insert docs
+   :end-before: end insert docs
+   :language: go
+   :dedent:
+
+Each document contains information about the tea type, the available toppings, and
+the price.
+
+Average Rating
+~~~~~~~~~~~~~~
+
+The following example calculates and displays the average rating and
+number of ratings for each tea category.
+
+The aggregation pipeline uses the ``$group`` stage to group the
+documents by the ``category`` field, calculates the average using the
+``$avg`` expression operator, and counts the number of documents using
+the ``$sum`` expression operator.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/aggregation.go
+      :start-after: begin average
+      :end-before: end average
+      :language: go
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Average price of black tea options: $6.075
+      Number of black tea options: 4 
+
+      Average price of green tea options: $5.70
+      Number of green tea options: 4  
+
+Omit Fields in Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following example matches documents where you can get milk foam as a
+topping and lists the two cheapest options.
+
+The aggregation pipeline contains the following stages:
+
+- ``$match`` stage to match documents where the ``toppings`` field contains "milk foam"
+- ``$unset`` stage to omit the ``_id`` and ``category`` fields
+- ``$sort`` stage to sort the ``price`` and ``toppings`` in ascending order
+- ``$limit`` stage to show the first two documents
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/aggregation.go
+      :start-after: begin unset
+      :end-before: end unset
+      :language: go
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Tea: Hojicha 
+      Toppings: lemon, ginger, milk foam 
+      Price: $5.55 
+      
+      Tea: Gyokuro 
+      Toppings: berries, milk foam 
+      Price: $5.65 
+
+Additional Information
+----------------------
+
+To learn more about the terms mentioned, see the following
+guides:
+
+- :manual:`Expression Operators </reference/operator/aggregation/>`
+- :manual:`Aggregation Pipeline </core/aggregation-pipeline/>`
+- :manual:`Aggregation Stages </meta/aggregation-quick-reference/#stages>`
+- :manual:`Operator Expressions </meta/aggregation-quick-reference/#operator-expressions>`
+- :manual:`Aggregation Pipeline Limits </core/aggregation-pipeline-limits/>`
+
+To view more aggregation examples, see the following guides:
+
+- :ref:`Count <golang-count-aggregation>`
+- :ref:`Limit <golang-limit-aggregation>`
+- :ref:`Skip <golang-skip-aggregation>`
+- :ref:`Text <golang-search-text-aggregation>`
+
+To learn more about the ``Aggregate()`` method and its behavior, see
+:ref:`Retrieve Data <golang-retrieve-aggregation>`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `Aggregate() <{+api+}/mongo#Collection.Aggregate>`__
+- `AggregateOptions <{+api+}/mongo/options#AggregateOptions>`__

@@ -39,7 +39,7 @@ func main() {
 
 	// begin insert docs
 	coll := client.Database("db").Collection("menu")
-	docs := []interface{}{
+	docs := []any{
 		Dish{Name: "Shepherd’s Pie", Description: "A vegetarian take on the classic dish that uses lentils as a base. Serves 2."},
 		Dish{Name: "Green Curry", Description: "A flavorful Thai curry, made vegetarian with fried tofu. Vegetarian and vegan friendly."},
 		Dish{Name: "Herbed Whole Branzino", Description: "Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4."},
