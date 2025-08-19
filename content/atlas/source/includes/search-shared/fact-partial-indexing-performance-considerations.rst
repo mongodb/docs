@@ -1,10 +1,6 @@
-For indexes created on views, |product-name| applies the transformations
-or filters that you define in the view pipeline at query-time and at
-replication-time. While trivial transformations or filters in the view
-pipeline typically result in negligible performance impact, complex
-transformations or highly selective filters in the view pipeline might
-significantly slow down querying or replication. If you want to perform
-a heavy transformation on the documents or apply a highly selective
-filter, consider creating a materialized view with already transformed
-or filtered documents. You can evaluate view performance by comparing
-query latency executed against the view and against its source collection. 
+Highly complex view transformations can lead to slower performance when |service| reads
+the view to filter and transform the source collection. In this scenario, consider
+creating a :ref:`materialized view<manual-materialized-views>` to avoid additional
+replication load on |service|. To avoid query latency caused by the view transformation,
+you can query the source collection directly to retrieve the original documents.  
+
