@@ -113,7 +113,7 @@
 
     - ``MX_CENTRAL_1``, Querétaro, Mexico
     - ``AP_SOUTHEAST_5``, Malaysia
-    - ``AP_SOUTHEAST_7``, Taiwan
+    - ``AP_SOUTHEAST_7``, Thailand
 
     In the second half of 2025, the IP addresses of nodes deployed to
     ``AP-SOUTHEAST-7`` and  ``MX-CENTRAL-1`` might change to accommodate
