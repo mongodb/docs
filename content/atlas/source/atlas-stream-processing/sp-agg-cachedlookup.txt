@@ -1,16 +1,14 @@
-.. _streams-agg-pipeline-lookup:
-.. _atlas-sp-agg-lookup:
+.. _atlas-sp-agg-cachedlookup:
 
 ===============================
-``$lookup`` (Stream Processing)
+``$cachedLookup``
 ===============================
 
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas stream processing, $lookup aggregation pipeline stage 
-   :description: Learn how to use the $lookup stage to perform joins across 
-                 disparate data sources
+   :keywords: atlas stream processing, $cachedLookup aggregation pipeline stage 
+   :description: Learn how to use the $cachedLookup stage to perform joins across disparate data sources, caching the results of the queries.
 
 .. facet::
    :name: genre
@@ -22,33 +20,28 @@
    :depth: 2
    :class: singlecol
 
-.. _atlas-sp-agg-lookup-def:
+.. _atlas-sp-agg-cachedlookup-def:
 
 Definition
 ~~~~~~~~~~
 
-The :ref:`$lookup <streams-agg-pipeline-lookup>` stage performs a left outer
-join of the stream of messages from your :pipeline:`$source` to an
-{+service+} collection in your :ref:`Connection Registry <atlas-sp-manage-connections>`.
+.. pipeline:: $cachedLookup
 
-Depending on your use case, a ``$lookup`` pipeline stage uses one of 
-the following three syntaxes:
+The :pipeline:`$cachedLookup` stage performs a left outer join of the
+stream of messages from your :pipeline:`$source` to an {+service+}
+collection in your :ref:`Connection Registry
+<atlas-sp-manage-connections>`.
 
-- :manual:`Equality Match with a Single Join Collection 
-  </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
-- :manual:`Join Conditions and Subqueries on a Joined Collection
-  </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
-- :manual:`Correlated Subqueries Using Concise Syntax
-  </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+This stage functions similarly to the :ref:`$lookup
+<atlas-sp-agg-lookup>` stage, but caches the results of your queries
+according to configurable parameters.
+
+.. important::
+
+	 ``$cachedLookup`` doesn't support the ``let`` or ``pipeline`` fields.
 
 To learn more, see :manual:`$lookup Syntax 
 </reference/operator/aggregation/lookup/#syntax>`.
-
-.. warning::
-
-   Using ``$lookup`` to enrich a stream can reduce stream processing
-   speed. Consider whether :pipeline:`$cachedLookup` may better suit
-   your use case.
 
 The following prototype form illustrates all available fields:
 
@@ -56,6 +49,11 @@ The following prototype form illustrates all available fields:
 
   {
     "$lookup": {
+      "ttl": {
+        "size": <int>,
+	"unit": "ms" | "second" | "minute" | "hour" | "day"
+      },
+      "maxMemUsageBytes": <int>,
       "from": {
         "connectionName": "<registered-atlas-connection>",
         "db": "<registered-database-name>",
@@ -63,15 +61,6 @@ The following prototype form illustrates all available fields:
       },
       "localField": "<field-in-source-messages>",
       "foreignField": "<field-in-from-collection>",
-      "let": { 
-        <var_1>: <expression>, 
-        <var_2>: <expression>, 
-        …, 
-        <var_n>: <expression> 
-      },
-      "pipeline": [ 
-        <pipeline to run> 
-      ],
       "as": "<output-array-field>"
     }  
   } 
@@ -81,7 +70,12 @@ The following prototype form illustrates all available fields:
 Syntax
 ~~~~~~
 
-The ``$lookup`` stage takes a document with the following fields:
+The :pipeline:`$cachedLookup` uses some of the same fields as the
+generalized version of :pipeline:`$lookup`. ``$cachedLookup`` includes
+fields for configuring query caching behavior, and provides a
+modified syntax for the ``from`` field for querying data over a
+:ref:`connection <atlas-sp-manage-connections>` from your connection
+registry.
 
 .. list-table:: 
    :header-rows: 1
@@ -92,9 +86,44 @@ The ``$lookup`` stage takes a document with the following fields:
      - Necessity 
      - Description
 
+   * - ttl
+     - document
+     - Required
+     - Document that specifies the TTL of your cached queries.
+
+   * - ttl.size
+     - int
+     - Required
+     - Size of the TTL of your cached queries in ``units``.
+
+   * - ttl.unit
+     - string
+     - Required
+     - Unit of time in which to measure the TTL of your cached
+       queries. Must be one of the following:
+
+       - "ms"
+       - "second"
+       - "minute"
+       - "hour"
+       - "day"
+
+   * - maxMemUsageBytes
+     - int
+     - Required
+     - Maximum memory, in bytes, to allocate to query caching. If the
+       size of the cache exceeds this value, {+atlas-sp+} first evicts older
+       results to free space. If there are not enough expired results to 
+			 get below this threshold, {+atlas-sp+} randomly evicts cached queries
+			 until the cache size is below the threshold.
+
+       Defaults to 10% of the available RAM in your {+spi+}.
+       You can't set ``maxMemUsageBytes`` to more than
+			 12.5% of the available RAM in your {+spi+}.
+
    * - from
      - document 
-     - Conditional
+     - Required
      - Document that specifies a collection in an {+service+} database
        to join to messages from your :pipeline:`$source`. You must 
        specify a collection only from your Connection Registry.
@@ -102,80 +131,31 @@ The ``$lookup`` stage takes a document with the following fields:
        If you specify this field, you must specify values for all
        fields in this document.
 
-       This field is not required if you specify a ``pipeline`` field.
-
    * - from.connectionName
      - string 
-     - Conditional
+     - Required
      - Name of the connection in your Connection Registry.
-
-       This field is not required if you specify a ``pipeline`` field.
 
    * - from.db
      - string 
-     - Conditional
+     - Required
      - Name of the {+service+} database that contains the 
        collection you want to join.
 
-       This field is not required if you specify a ``pipeline`` field.
-
    * - from.coll
      - string 
-     - Conditional
+     - Required
      - Name of the collection you want to join.
-
-       This field is not required if you specify a ``pipeline`` field.
 
    * - localField
      - string
-     - Conditional
+     - Required
      - Field from your ``$source`` messages to join on.
-
-       This field is part of the following syntaxes:
-
-       - :manual:`Equality Match with a Single Join Collection 
-         </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
-       - :manual:`Correlated Subqueries Using Concise Syntax
-         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
 
    * - foreignField
      - string
-     - Conditional
+     - Required
      - Field from documents in the ``from`` collection to join on.
-
-       This field is part of the following syntaxes:
-
-       - :manual:`Equality Match with a Single Join Collection 
-         </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
-       - :manual:`Correlated Subqueries Using Concise Syntax
-         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
-
-   * - let
-     - document
-     - Conditional
-     - Specifies the variables to use in the 
-       :ref:`pipeline <lookup-subquery-pipeline>` stages. To learn more,
-       see :ref:`let <lookup-subquery-let>`.
-
-       This field is part of the following syntaxes:
-
-       - :manual:`Join Conditions and Subqueries on a Joined Collection
-         </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
-       - :manual:`Correlated Subqueries Using Concise Syntax
-         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
-
-   * - pipeline
-     - document
-     - Conditional
-     - Specifies the ``pipeline`` to run on the joined collection. To
-       learn more, see :ref:`pipeline <lookup-subquery-pipeline>`.
-
-       This field is part of the following syntaxes:
-
-       - :manual:`Join Conditions and Subqueries on a Joined Collection
-         </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
-       - :manual:`Correlated Subqueries Using Concise Syntax
-         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
 
    * - as
      - string
@@ -190,84 +170,21 @@ The ``$lookup`` stage takes a document with the following fields:
 Behavior
 ~~~~~~~~
 
-The {+atlas-sp+} version of :ref:`$lookup <streams-agg-pipeline-lookup>` 
-performs a left outer join of messages from your ``$source`` and the 
-documents in a specified {+service+} collection. This version behaves 
-similarly to the :pipeline:`$lookup` stage available in a standard 
-MongoDB database. However, this version requires that you specify an 
-{+service+} collection from your 
-:ref:`Connection Registry <atlas-sp-manage-connections>` as the value for
-the ``from`` field.
+:pipeline:`$cachedLookup` performs a left outer join of messages from
+your ``$source`` and the documents in a specified {+service+}
+collection. This version behaves similarly to the :pipeline:`$lookup`
+stage available in a standard MongoDB database. However, this version
+requires that you specify an {+service+} collection from your
+:ref:`Connection Registry <atlas-sp-manage-connections>` as the value
+for the ``from`` field.
 
-The :ref:`pipeline <lookup-subquery-pipeline>` can contain a nested 
-:pipeline:`$lookup` stage. If you include a nested :pipeline:`$lookup` 
-stage in your pipeline, you must use the standard ``from`` syntax to
-specify a collection in the same remote {+service+} connection as the
-outer :pipeline:`$lookup` stage.
-
-.. example::
-
-   .. code-block:: json
-
-      $lookup : {
-        from: {connectionName: "dbsrv1", db: "db1", coll: "coll1"},
-          …,
-        pipeline: [
-          …,
-          {
-            $lookup: {
-              from: "coll2",
-              …,
-            }
-          },
-          …,
-        ]
-      }
-
-If your pipeline has both :pipeline:`$lookup` and :pipeline:`$merge`
-on the same collection, {+atlas-sp+} results might vary if you
-try to maintain an incremental view. {+atlas-sp+} processes
-multiple source messages simultaneously and then merges them all
-together. If multiple messages have the same ID, which both
-:pipeline:`$lookup` and :pipeline:`$merge` use, {+atlas-sp+} might 
-return results that haven't yet materialized. 
-
-.. example:: 
-
-   Consider the following input stream:
-
-   .. code-block:: shell
-      :copyable: false 
-
-      { _id: 1, count: 2 }
-      { _id: 1, count: 3 }
-
-   Suppose your query contains the following inside the pipeline: 
-
-   .. code-block:: js
-      :copyable: false 
-
-      {
-        ...,
-        pipeline: [
-          { $lookup on _id == foreignDoc._id from collection A }
-          { $project: { _id: 1, count: $count + $foreignDoc.count } }
-          { $merge: { into collection A } }
-        ]
-      }
-
-   If you are trying to maintain an incremental view, you might expect a
-   result similar to the following:
-
-   .. code-block:: shell
-      :copyable: false 
-
-      { _id: 1, count: 5 } 
-
-   However, {+atlas-sp+} might return a count of ``5`` or ``3``
-   depending on whether {+atlas-sp+} has processed the documents.
-
-For more information, see :pipeline:`$lookup`.
+Additionally, ``$cachedLookup`` caches the results of your queries for
+a configurable length of time. Use this functionality for queries
+against infrequently-changed data to improve efficiency. When a cached
+entry's TTL elapses, {+atlas-sp+} evicts that entry. If the total size
+of cached entries equals ``maxMemoryUsageBytes`` when you make a new
+query, {+atlas-sp+} evicts entries until there is space to cache the
+new query.
 
 .. _atlas-sp-agg-lookup-examples:
 
@@ -291,7 +208,7 @@ Weather Dataset <sample-weather>`. A collection named
 Where the ``relative_humidity`` field describes the relative humidity at
 room temperature (20 Celsius), and ``condition`` lists verbal
 descriptors appropriate to that level of humidity. You can use the
-:ref:`$lookup <atlas-sp-agg-lookup>` stage to enrich the streaming
+:ref:`$cachedLookup <atlas-sp-agg-cachedlookup>` stage to enrich the streaming
 weather reports with suggested descriptors for meteorologists to use
 in weather broadcasts.
 
@@ -304,9 +221,10 @@ The following aggregation has four stages:
    of the timestamp field it projects, setting it to
    ``ingestionTime``.
 
-2. The ``$lookup`` stage joins the records from the
+2. The ``$cachedLookup`` stage joins the records from the
    ``humidity_descriptions`` database into the weather reports on the
-   ``dewPoint`` field.
+   ``dewPoint`` field. Each query has a ``5 minute`` TTL, and
+   {+atlas-sp+} stores up to 200 MB of results.
 
 3. The :pipeline:`$match` stage excludes documents that have an empty
    ``humidity_info`` field, and passes along documents with a populated
@@ -328,7 +246,13 @@ The following aggregation has four stages:
      }
    },
    {
-     '$lookup': {
+     '$cachedLookup': {
+      "ttl": {
+        "size": 5,
+	"unit": "minute"
+      },
+      "maxMemUsageBytes": 209715200,
+     
        from: {
          connectionName: 'weatherStream',
          db: 'humidity',
