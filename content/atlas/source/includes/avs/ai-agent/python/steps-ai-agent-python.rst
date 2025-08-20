@@ -43,10 +43,9 @@
             Replace the placeholder values with your |service| connection
             string and your Voyage AI and OpenAI API keys.
 
-            .. literalinclude:: /includes/avs/ai-agent/shared/ai-agent-env-variables
+            .. literalinclude:: /includes/avs/ai-agent/shared/ai-agent-env-variables.js
                :language: none
                :copyable:
-
             
             .. note::
 
