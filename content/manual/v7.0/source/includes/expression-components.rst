@@ -15,7 +15,7 @@ following components:
      - ``"$<path.to.field>"``
 
 For example, ``{ $add: [ 3, "$inventory.total" ] }`` is an expression
-consisting of the ``$add`` operator and two input expressions:
+that consists of the ``$add`` operator and two operands:
 
 - The constant ``3``
 - The :ref:`field path expression <agg-quick-ref-field-paths>`

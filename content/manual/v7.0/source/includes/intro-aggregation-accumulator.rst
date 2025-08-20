@@ -1,19 +1,9 @@
-Aggregation accumulator operators:
+Accumulators calculate aggregated values like sums, maxima, and minima
+across a variable number of input values. You can use accumulators in
+these aggregation pipeline stages:
 
-- Maintain their state as documents progress through the aggregation
-  pipeline.
+- :pipeline:`$bucket`
 
-- Return totals, maxima, minima, and other values.
+- :pipeline:`$bucketAuto`
 
-- Can be used in these aggregation pipeline stages:
-
-  - :pipeline:`$bucket`
-
-  - :pipeline:`$bucketAuto`
-
-  - :pipeline:`$group`
-
-  - :pipeline:`$setWindowFields` starting in MongoDB 5.0 (except when
-    you are using the :group:`$accumulator` or
-    :expression:`$mergeObjects` operators, which cannot be used with
-    :pipeline:`$setWindowFields`)
+- :pipeline:`$group`
