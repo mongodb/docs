@@ -7,5 +7,5 @@ Index` page in the {+atlas-ui+} following the steps in the :ref:`Create
 an {+fts+} Index <create-fts-index>` tutorial. 
 
 Then, using the ``movies`` collection as your data source, follow
-the example procedure to create an index using {+mongosh+} or the
-{+atlas-ui+}. :guilabel:`Visual Editor` or :guilabel:`JSON editor` 
+the example procedure to create an index from {+mongosh+} or the
+{+atlas-ui+} :guilabel:`Visual Editor` or :guilabel:`JSON editor`. 
