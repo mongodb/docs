@@ -39,7 +39,12 @@
       </createEncryptionAtRestPrivateEndpoint>` with the |azure|
       region in which you want |service| to create the private
       endpoint. You must send a separate request for each region
-      in which you want |service| to create a private endpoint. 
+      in which you want |service| to create a private endpoint.
+
+      .. important::
+         
+         If you are using a multi-region cluster, you must create a private endpoint for 
+         your |akv| in **each region** where your cluster is deployed.
 
       .. example:: 
 

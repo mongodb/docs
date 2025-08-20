@@ -23,6 +23,12 @@
       {+cluster+} regions. Otherwise, to add regions, do the following: 
 
       a. Select the |azure| regions from the dropdown.
+
+         .. important::
+
+            For multi-region clusters, you must select **each region** where the 
+            cluster is deployed.
+
       #. Click :guilabel:`Continue`.
 
          |service| automatically creates private endpoints in these
