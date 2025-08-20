@@ -18,6 +18,10 @@
      :manual:`maximum number of text indexes 
      </core/index-text/#one-text-index-per-collection>`
 
+   Building an index in a rolling fashion reduces the resiliency of your cluster and
+   increases index build times. We only recommend using rolling index builds when regular
+   index builds do not meet your needs.
+
 .. note::
 
    Data Explorer doesn't support building indexes in a rolling fashion

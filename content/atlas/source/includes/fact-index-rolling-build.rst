@@ -1,7 +1,11 @@
 .. important::
 
-   Rolling index builds succeed only when they meet certain conditions. 
-   To ensure your index build succeeds, avoid the following design 
+   Building an index in a rolling fashion reduces the resiliency of your cluster and
+   increases index build times. We only recommend using rolling index builds when regular
+   index builds do not meet your needs.
+
+   If you decide to continue with a rolling index, consider that they must meet certain
+   conditions to succeed. To ensure your index build succeeds, avoid the following design
    patterns that commonly trigger a restart loop:
 
    - Index key exceeds the :manual:`index key limit 
@@ -18,7 +22,7 @@
 
 .. note::
 
-   the {+atlas-ui+} doesn't support building indexes with a rolling build
+   The {+atlas-ui+} doesn't support building indexes with a rolling build
    for ``M0`` {+Free-clusters+} and {+Flex-clusters+}. You can't build
    indexes with a rolling build for {+Serverless-instances+}.
 
