@@ -4,10 +4,11 @@
 6 August 2025 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
--  Adds a **total namespaces** count to the :guilabel:`Catalog` cluster
+-  Adds a :guilabel:`total namespaces` count to the :guilabel:`Catalog` cluster
    metric that displays the total number of collections and indexes
-   across all non-system databases, and adds a new default alert that
-   warns users when **total namespaces** exceeds ``10k``. 
+   across all non-system databases, and adds a new :ref:`default alert 
+   <default-alert-settings>` that warns users when :alert:`Total Namespaces is` 
+   over 10,000.
 
 - Makes the ability to :ref:`send resource tags to Prometheus
   <prometheus-integration>` an opt-in feature. 
