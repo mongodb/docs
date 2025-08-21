@@ -6,7 +6,7 @@
     },
     "description": "OpenAPI specification for MongoDB Relational Migrator tool",
     "title": "MongoDB Relational Migrator REST API",
-    "version": "1.14.0"
+    "version": "1.14.1"
   },
   "servers": [
     {
@@ -620,6 +620,48 @@
           },
           "487": {
             "description": "Project version invalid during import",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Project"
+        ]
+      }
+    },
+    "/project/{projectId}/collections": {
+      "get": {
+        "operationId": "getCollections",
+        "description": "Get all collections belonging to a project",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/project-collections"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1363,9 +1405,6 @@
           "mongoDbConnectionString": {
             "type": "string"
           },
-          "atlasMetadata": {
-            "$ref": "#/components/schemas/migration_job_status_atlasMetadata"
-          },
           "submittedAt": {
             "type": "string",
             "format": "date-time"
@@ -1421,6 +1460,9 @@
           },
           "relationalTableFilters": {
             "$ref": "#/components/schemas/relational-table-filters"
+          },
+          "collectionFilters": {
+            "$ref": "#/components/schemas/collection-filters"
           }
         },
         "additionalProperties": false,
@@ -1462,12 +1504,12 @@
             "format": "date-time"
           },
           "stackTrace": {
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "errorCode": {
-            "type": "string"
-          },
-          "suggestion": {
             "type": "string"
           },
           "locationType": {
@@ -1633,6 +1675,13 @@
           "settings",
           "tables"
         ]
+      },
+      "project-collections": {
+        "description": "List of collections in a project",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
       },
       "codegen-request": {
         "type": "object",
@@ -2386,7 +2435,7 @@
         "example": {
           "schema_1_name": {
             "table_1_name": {
-              "whereClause": "id \u003E 1000 AND id \u003C= 2000"
+              "whereClause": "id > 1000 AND id <= 2000"
             },
             "table_2_name": {
               "whereClause": "TRUE",
@@ -2414,6 +2463,24 @@
         "required": [
           "enabled"
         ]
+      },
+      "collection-filters": {
+        "description": "Include or exclude collections for this migration.\n- include only: Only collections matching the specified include filter will be migrated.\n- exclude only: All collections will be migrated, except those matching the exclude filter.\n- include and exclude: Migrate collections that match the include filter, excluding those that also match the exclude filter. \n- No filters: All collections will be migrated.\n",
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       },
       "tableLocation": {
         "type": "object",
@@ -2493,12 +2560,7 @@
             "$ref": "#/components/schemas/codegen-settings"
           },
           "keyHandling": {
-            "type": "string",
-            "enum": [
-              "WRAPPED",
-              "SINGLE",
-              "GENERATED"
-            ]
+            "$ref": "#/components/schemas/migration-settings-key-handling-enum"
           }
         },
         "additionalProperties": false,
@@ -2571,6 +2633,14 @@
         "additionalProperties": {
           "$ref": "#/components/schemas/project-table"
         }
+      },
+      "migration-settings-key-handling-enum": {
+        "type": "string",
+        "enum": [
+          "WRAPPED",
+          "SINGLE",
+          "GENERATED"
+        ]
       },
       "codegen-language-type": {
         "type": "string",
@@ -3400,6 +3470,9 @@
       "column-type": {
         "type": "object",
         "properties": {
+          "defaultMongoFieldType": {
+            "$ref": "#/components/schemas/migration-field-type"
+          },
           "databaseSpecificType": {
             "type": "string"
           },
@@ -3626,20 +3699,6 @@
           "ASC",
           "DESC"
         ]
-      },
-      "migration_job_status_atlasMetadata": {
-        "type": "object",
-        "properties": {
-          "mongoDbProjectName": {
-            "type": "string"
-          },
-          "mongoDbProjectId": {
-            "type": "string"
-          },
-          "mongoDbClusterName": {
-            "type": "string"
-          }
-        }
       },
       "migration_job_status_metadata": {
         "type": "object",
