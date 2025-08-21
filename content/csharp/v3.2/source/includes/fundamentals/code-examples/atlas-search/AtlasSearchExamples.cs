@@ -375,17 +375,9 @@ public class Guitar
     [BsonElement("in_stock_location")]
     public Location InStockLocation { get; set; }
     public int? Rating { get; set; }
-<<<<<<< HEAD
-    [BsonElement("paginationToken")]
-    public string PaginationToken { get; set; }
-=======
-<<<<<<< HEAD
-=======
     public double Score {get; set;}
     [BsonElement("paginationToken")]
     public string PaginationToken { get; set; }
->>>>>>> bd69fc6 (DOCSP-28393 C# new atlas search examples (#521))
->>>>>>> 38fabc7 (DOCSP-28393 C# new atlas search examples (#521))
 }
 // end-guitar-class
 
