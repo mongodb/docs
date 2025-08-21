@@ -2,9 +2,11 @@
 
 .. important::
 
-   Rolling index builds succeed only when they meet certain conditions. 
-   To ensure your index build succeeds, avoid the following design 
-   patterns that commonly trigger a restart loop:
+   .. include:: /includes/facts/fact-avoid-rolling-indexes.rst
+
+   Consider that rolling indexes must meet certain conditions to succeed. To ensure your
+   index build succeeds, avoid the following design patterns that commonly trigger a
+   restart loop:
 
    - Index key exceeds the :manual:`index key limit 
      </reference/limits/#mongodb-limit-Index-Key-Limit>`
