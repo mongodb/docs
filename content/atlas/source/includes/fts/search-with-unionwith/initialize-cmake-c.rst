@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.11)
+project(search-with-unionwith LANGUAGES C)
+add_executable (index.out create_indexes.c)
+find_package(mongoc <version> REQUIRED)
+target_link_libraries(index.out mongoc::mongoc)

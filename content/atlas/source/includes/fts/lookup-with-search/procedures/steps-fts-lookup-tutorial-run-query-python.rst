@@ -1,17 +1,17 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a file named ``lookup-with-search-query.py``.
+   .. step:: Create a file named ``lookup-with-search-query.py`` in your project directory.
 
    .. step:: Copy and paste the query into the ``lookup-with-search-query.py`` file.
 
       .. include:: /includes/fts/lookup-with-search/query-intro.rst
 
       .. literalinclude:: /includes/fts/lookup-with-search/query.py
-         :language: go
+         :language: python
          :linenos:
          :dedent:
-         :emphasize-lines: 5
+         :emphasize-lines: 4
 
    .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 
@@ -32,8 +32,8 @@
             :language: json
             :visible: true
             
-            {'name': 'Elizabeth Ray', 'email': 'arroyocolton@gmail.com', 'active': True, 'accounts': [371138, 324287, 276528, 332179, 422649, 387979], 'purchases': [{'account_id': 422649, 'limit': 10000, 'products': ['CurrencyService', 'InvestmentStock']}, {'account_id': 324287, 'limit': 10000, 'products': ['Commodity', 'CurrencyService', 'Derivatives', 'InvestmentStock']}, {'account_id': 332179, 'limit': 10000, 'products': ['Commodity', 'CurrencyService', 'InvestmentFund', 'Brokerage', 'InvestmentStock']}]}
             {'name': 'Lindsay Cowan', 'email': 'cooperalexis@hotmail.com', 'accounts': [116508], 'purchases': []}
-            {'name': 'Katherine David', 'email': 'timothy78@hotmail.com', 'accounts': [462501, 228290, 968786, 515844, 377292], 'purchases': [{'account_id': 228290, 'limit': 10000, 'products': ['CurrencyService', 'InvestmentStock', 'InvestmentFund', 'Brokerage']}, {'account_id': 515844, 'limit': 10000, 'products': ['Commodity', 'CurrencyService', 'InvestmentFund', 'Brokerage', 'InvestmentStock']}]}
-            {'name': 'Leslie Martinez', 'email': 'tcrawford@gmail.com', 'accounts': [170945, 951849], 'purchases': []}
-            {'name': 'Brad Cardenas', 'email': 'dustin37@yahoo.com', 'accounts': [721914, 817222, 973067, 260799, 87389], 'purchases': [{'account_id': 87389, 'limit': 10000, 'products': ['CurrencyService', 'InvestmentStock']}, {'account_id': 260799, 'limit': 10000, 'products': ['Brokerage', 'InvestmentStock', 'Commodity', 'CurrencyService']}]}
+            {'name': 'Dr. Angela Brown', 'email': 'michaelespinoza@gmail.com', 'accounts': [571880], 'purchases': []}
+            {'name': 'Brian Flores', 'email': 'april04@gmail.com', 'accounts': [550665, 321695], 'purchases': [{'account_id': 321695, 'limit': 10000, 'products': ['Derivatives', 'Commodity', 'CurrencyService', 'Brokerage', 'InvestmentStock']}]}
+            {'name': 'Shirley Rodriguez', 'email': 'jonathan95@yahoo.com', 'accounts': [784245, 896066, 991412, 951840], 'purchases': [{'account_id': 991412, 'limit': 10000, 'products': ['CurrencyService', 'Commodity', 'InvestmentFund', 'InvestmentStock']}, {'account_id': 951840, 'limit': 10000, 'products': ['InvestmentFund', 'Commodity', 'CurrencyService', 'InvestmentStock']}, {'account_id': 896066, 'limit': 10000, 'products': ['Derivatives', 'InvestmentFund', 'Brokerage', 'CurrencyService', 'InvestmentStock']}]}
+            {'name': 'Clinton Shelton', 'email': 'acook@gmail.com', 'accounts': [602560, 986196, 51080, 690617, 225602], 'purchases': []}

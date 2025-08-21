@@ -1,6 +1,6 @@
 import pymongo
 
-# connect to your Atlas cluster
+# connect to your MongoDB deployment
 client = pymongo.MongoClient('<connection-string>')
 
 # define pipeline

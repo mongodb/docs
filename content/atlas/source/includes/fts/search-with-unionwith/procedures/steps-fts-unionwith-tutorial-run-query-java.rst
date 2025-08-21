@@ -1,20 +1,6 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Ensure that your ``CLASSPATH`` contains the following libraries.
-
-      .. list-table::
-         :widths: 30 70 
-
-         * - ``junit``
-           - 4.11 or higher version 
-
-         * - ``mongodb-driver-sync``
-           - 4.3.0 or higher version
-
-         * - ``slf4j-log4j12``
-           - 1.7.30 or higher version
-
    .. step:: Create a file named ``SearchWithUnionwithQuery.java``.
 
    .. step:: Copy and paste the query into the ``SearchWithUnionwithQuery.java`` file.
@@ -28,7 +14,7 @@
 
             .. include:: /includes/fts/extracts/search-with-unionwith-basic-query-desc.rst
 
-            .. literalinclude:: /includes/fts/search-with-unionwith/basic-query.java 
+            .. literalinclude:: /includes/fts/search-with-unionwith/SearchWithUnionwith.java 
                :language: java
                :linenos:
                :dedent:
@@ -44,15 +30,6 @@
                :linenos:
                :dedent:
                :emphasize-lines: 9
-
-      .. note:: 
-
-         To run the sample code in your Maven environment, add the 
-         following code above the import statements in your file.
-
-         .. code-block:: 
-
-            package com.mongodb.drivers;
 
    .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 

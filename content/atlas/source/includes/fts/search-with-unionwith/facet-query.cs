@@ -5,7 +5,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        // connect to your Atlas cluster
+        // connect to your MongoDB deployment
         var client = new MongoClient("<connection-string>");
 
         // define namespace

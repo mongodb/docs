@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a file named ``lookup-with-search-query.js``.
+   .. step:: Create a file named ``lookup-with-search-query.js`` in your project directory.
 
    .. step:: Copy and paste the sample query into the ``lookup-with-search-query.js`` file.
 
@@ -11,7 +11,7 @@
          :language: go
          :linenos:
          :dedent:
-         :emphasize-lines: 56
+         :emphasize-lines: 55
 
    .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 
@@ -35,43 +35,38 @@
             :visible: true
 
             {
-              name: 'Elizabeth Ray',
-              email: 'arroyocolton@gmail.com',
-              active: true,
-              accounts: [ 371138, 324287, 276528, 332179, 422649, 387979 ],
-              purchases: [
-                { account_id: 422649, limit: 10000, products: [Array] },
-                { account_id: 324287, limit: 10000, products: [Array] },
-               { account_id: 332179, limit: 10000, products: [Array] }
-              ]
-            }
-            {
               name: 'Lindsay Cowan',
               email: 'cooperalexis@hotmail.com',
               accounts: [ 116508 ],
               purchases: []
             }
             {
-              name: 'Katherine David',
-              email: 'timothy78@hotmail.com',
-              accounts: [ 462501, 228290, 968786, 515844, 377292 ],
-              purchases: [
-                { account_id: 228290, limit: 10000, products: [Array] },
-                { account_id: 515844, limit: 10000, products: [Array] }
-              ]
-            }
-            {
-              name: 'Leslie Martinez',
-              email: 'tcrawford@gmail.com',
-              accounts: [ 170945, 951849 ],
+              name: 'Dr. Angela Brown',
+              email: 'michaelespinoza@gmail.com',
+              accounts: [ 571880 ],
               purchases: []
             }
             {
-              name: 'Brad Cardenas',
-              email: 'dustin37@yahoo.com',
-              accounts: [ 721914, 817222, 973067, 260799, 87389 ],
+              name: 'Brian Flores',
+              email: 'april04@gmail.com',
+              accounts: [ 550665, 321695 ],
               purchases: [
-                { account_id: 87389, limit: 10000, products: [Array] },
-                { account_id: 260799, limit: 10000, products: [Array] }
+                { account_id: 321695, limit: 10000, products: [Array] }
               ]
+            }
+            {
+              name: 'Shirley Rodriguez',
+              email: 'jonathan95@yahoo.com',
+              accounts: [ 784245, 896066, 991412, 951840 ],
+              purchases: [
+                { account_id: 991412, limit: 10000, products: [Array] },
+                { account_id: 951840, limit: 10000, products: [Array] },
+                { account_id: 896066, limit: 10000, products: [Array] }
+              ]
+            }
+            {
+              name: 'Clinton Shelton',
+              email: 'acook@gmail.com',
+              accounts: [ 602560, 986196, 51080, 690617, 225602 ],
+              purchases: []
             }

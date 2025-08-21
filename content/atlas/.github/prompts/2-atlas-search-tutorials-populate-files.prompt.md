@@ -266,7 +266,7 @@ Create the |fts| Index
          :copyable: true
 
       For more detailed installation instructions, see the
-      :ref:`MongoDB Go Driver documentation <golang-quickstart>`.
+      :ref:`MongoDB Go Driver documentation <go-get-started>`.
 
    .. step:: Define the index.
       

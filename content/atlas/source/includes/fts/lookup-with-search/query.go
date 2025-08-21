@@ -12,7 +12,7 @@ import (
 
 func main() {
 	var err error
-	// connect to the Atlas cluster
+	// connect to the MongoDB deployment
 	ctx := context.Background()
 	clOpts := options.Client().ApplyURI("<connection-string>").SetTimeout(5 * time.Second)
 	client, err := mongo.Connect(clOpts)

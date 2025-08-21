@@ -55,7 +55,7 @@ Define the Index for the |fts-field-type| Type
          
             dyld[54430]: Library not loaded: @rpath/libmongocxx._noabi.dylib
 
-         To resolve this error, use the ``-Wl``, ``-rpath`` linker option to set 
+         To resolve this error, use the ``-Wl,-rpath`` linker option to set 
          the ``@rpath``, as shown in the following code:
 
          .. code-block:: sh

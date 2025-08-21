@@ -1,22 +1,5 @@
 .. procedure:: 
-   :style: normal 
-
-   .. step:: Set up and initialize the .NET/C# project for the query.
-
-      a. Create a new directory called ``search-with-unionwith`` and
-         initialize your project with the dotnet new command. 
-  
-         .. code-block:: bash
-
-            mkdir search-with-unionwith
-            cd search-with-unionwith
-            dotnet new console
-
-      #. Add the .NET/C# Driver to your project as a dependency.
-
-         .. code-block:: bash
-
-            dotnet add package MongoDB.Driver
+   :style: normal
 
    .. step:: Copy and paste the query into the ``Program.cs`` file.
 

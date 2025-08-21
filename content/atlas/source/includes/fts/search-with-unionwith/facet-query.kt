@@ -4,7 +4,7 @@ import org.bson.Document
 import java.util.*
 
 fun main() {
-    // connect to Atlas cluster
+    // connect to your MongoDB deployment
     val uri = "<connection-string>"
     val mongoClient = MongoClient.create(uri)
 

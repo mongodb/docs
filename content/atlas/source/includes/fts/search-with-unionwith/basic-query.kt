@@ -3,7 +3,7 @@ import kotlinx.coroutines.runBlocking
 import org.bson.Document
 
 fun main() {
-    // connect to Atlas cluster
+    // connect to your MongoDB deployment
     val uri = "<connection-string>"
     val mongoClient = MongoClient.create(uri)
 

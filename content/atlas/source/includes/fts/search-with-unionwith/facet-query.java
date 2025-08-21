@@ -5,7 +5,7 @@ import org.bson.Document;
 
 public class SearchWithUnionwith {
   public static void main(String[] args) {
-    // connect to Atlas cluster
+    // connect to your MongoDB deployment
     try (MongoClient mongoClient = MongoClients.create("<connection-string>")) {
       // define namespace
       MongoCollection<Document> collection = mongoClient.getDatabase("sample_training").getCollection("companies");

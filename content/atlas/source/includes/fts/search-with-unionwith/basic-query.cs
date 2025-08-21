@@ -6,7 +6,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        // connect to your Atlas cluster
+        // connect to your MongoDB deployment
         string connectionString = "<connection-string>";
         var client = new MongoClient(connectionString);
         

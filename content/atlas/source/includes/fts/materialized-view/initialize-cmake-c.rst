@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.11)
+project(search-materialized-view LANGUAGES C)
+add_executable (collection.out create-collection.c)
+find_package(mongoc <version> REQUIRED)
+target_link_libraries(collection.out mongoc::mongoc)

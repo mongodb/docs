@@ -11,7 +11,7 @@ public class LookupWithSearch{
     var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
     ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-    // connect to your Atlas cluster
+    // connect to your MongoDB deployment
     var mongoClient = new MongoClient("<connection-string>");
     
     // define namespace

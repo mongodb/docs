@@ -1,5 +1,4 @@
-const MongoClient = require("mongodb").MongoClient;
-const assert = require("assert");
+const { MongoClient } = require("mongodb");
 
 const agg = [
     {
@@ -40,14 +39,20 @@ const agg = [
     }
   ];
 
-MongoClient.connect(
-  "<connection-string>",
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  async function (connectErr, client) {
-    assert.equal(null, connectErr);
+async function run() {
+  const client = new MongoClient("<connection-string>");
+  
+  try {
+    await client.connect();
     const coll = client.db("sample_training").collection("companies");
-    let cursor = await coll.aggregate(agg);
-    await cursor.forEach((doc) => console.log(doc));
-    client.close();
+    const cursor = await coll.aggregate(agg);
+    const results = await cursor.toArray();
+    console.log(JSON.stringify(results, null, 2));
+  } catch (err) {
+    console.error("Error:", err);
+  } finally {
+    await client.close();
   }
-);
+}
+
+run().catch(console.dir);

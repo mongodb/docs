@@ -1,0 +1,47 @@
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Set up and initialize the .NET/C# project.
+
+      In your terminal, navigate to where you want to create your application, 
+      then run the following command to create a directory called 
+      ``search-with-unionwith`` and initialize your project in that directory: 
+
+      .. code-block:: shell
+         :copyable: true
+
+         mkdir search-with-unionwith
+         cd search-with-unionwith
+         dotnet new console
+         dotnet add package MongoDB.Driver
+
+      For more detailed installation instructions, see the 
+      :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
+   
+   .. step:: Define the index.
+   
+      Paste the following code into the ``Program.cs`` file.
+
+      .. literalinclude:: /includes/fts/search-with-unionwith/CreateIndexExample.cs
+         :caption: Program.cs
+         :language: csharp
+         :linenos:
+         :copyable:
+
+      .. include:: /includes/fts/field-types/find-connection-string.rst
+   
+   .. step:: Create the index.
+   
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            dotnet run Program.cs
+
+         .. output::
+            :visible: false
+
+            New index name for companies: default
+            New index name for inspections: default
