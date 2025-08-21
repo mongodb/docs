@@ -2,6 +2,7 @@ import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Filters.*
 import com.mongodb.client.model.Updates.*
 import com.mongodb.kotlin.client.MongoClient
+import com.mongodb.kotlin.client.model.Filters.eq
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -90,6 +91,11 @@ fun main() {
     val mongoClient = MongoClient.create(uri)
     val database = mongoClient.getDatabase("sample_db")
     val collection = database.getCollection<PaintOrder>("orders")
+
+    // start-query
+    val queryFilter = eq(PaintOrder::manufacturer, "Sherwin-Williams")
+    val results = collection.find(queryFilter).toList()
+    // end-query
 
     // start-codec
     val myCustomCodec = KotlinSerializerCodec.create<PaintOrder>(
