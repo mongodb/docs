@@ -92,9 +92,9 @@ public class AtlasSearchExamples
         // start-facet-search
         var result = guitarsCollection.Aggregate()
             .SearchMeta(
-            	Builders<Guitar>.Search.Facet(
-            	          Builders<Guitar>.Search.Equals(g => g.InStock, true),
-            	          Builders<Guitar>.SearchFacet.String("string", g => g.Make, 100)), 
+                Builders<Guitar>.Search.Facet(
+                          Builders<Guitar>.Search.Equals(g => g.InStock, true),
+                          Builders<Guitar>.SearchFacet.String("string", g => g.Make, 100)),
                 indexName: "guitarfacetsearch")
              .Single()
              .Facet["string"].Buckets.Count();
@@ -332,7 +332,7 @@ public class AtlasSearchExamples
             .Search(searchDefinition, searchOptions)
             .Project<Guitar>(projection)
             .ToList();
-        
+
         // Sets the starting point for the next search
         searchOptions.SearchAfter = baseSearchResults[0].PaginationToken;
 
@@ -375,7 +375,7 @@ public class Guitar
     [BsonElement("in_stock_location")]
     public Location InStockLocation { get; set; }
     public int? Rating { get; set; }
-    public double Score {get; set;}
+    public double Score { get; set; }
     [BsonElement("paginationToken")]
     public string PaginationToken { get; set; }
 }
