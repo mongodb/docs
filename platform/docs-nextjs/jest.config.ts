@@ -13,6 +13,8 @@ const config: Config = {
 
   setupFilesAfterEnv: ['<rootDir>/src/tests/testSetup.ts'],
 
+  snapshotSerializers: ['@emotion/jest/serializer'],
+
   moduleNameMapper: {
     // CSS Modules (mock with identity-obj-proxy)
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',

@@ -5,7 +5,7 @@
 import { ReactNode } from 'react';
 import { cx, css } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
-import { H1 } from '@leafygreen-ui/typography';
+import Link from '@/components/link';
 
 
 const RightColumn = ({
@@ -23,13 +23,14 @@ const RightColumn = ({
         min-width: ${hasDismissibleSkillsCard ? '250px' : '180px'};
         max-width: 250px;
         z-index: ${theme.zIndexes.content + 2};
-
         `)}
     // TODO: for right column component
     >
       <div className={cx(css``)}
-      ><H1 className={cx('heading-class', css`font-size: 60px;`)}
-        as={'h1'} >This is a heading</H1>
+      >
+        <Link to="/docs/atlas/getting-started">This is a link</Link>
+        <br />
+        <Link to="https://google.com">This is a external link</Link>
 
         {children}
       </div>
