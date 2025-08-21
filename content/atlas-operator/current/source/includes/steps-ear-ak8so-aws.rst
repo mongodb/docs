@@ -33,7 +33,7 @@ a. Add the :setting:`spec.encryptionAtRest.awsKms` object to
 
    You must use a |k8s-secret| that contains the values 
    for ``AccessKeyID``, ``SecretAccessKey``, ``CustomerMasterKeyID``, 
-   and ``RoleId``.
+   and ``RoleID``.
 
 #. Run the following command:
 
@@ -49,7 +49,7 @@ a. Add the :setting:`spec.encryptionAtRest.awsKms` object to
         encryptionAtRest:
           awsKms: 
             enabled: true
-            region: us-east-1
+            region: US_EAST_1
             secretRef:
               name: aws-ear-creds
               namespace: mongodb-atlas-system
