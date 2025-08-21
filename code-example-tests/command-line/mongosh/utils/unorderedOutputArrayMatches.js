@@ -24,30 +24,6 @@ function singleToDoubleQuotes(str) {
 }
 
 /**
- * Wraps multiple top-level objects in an array if needed.
- *
- * @param {string} str - The string to process.
- * @returns {string} The processed string, possibly wrapped in an array.
- */
-function wrapObjectsInArray(str) {
-  const trimmed = str.trim();
-  if (
-    (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
-    (trimmed.startsWith("{") &&
-      trimmed.endsWith("}") &&
-      trimmed.indexOf("\n{") === -1)
-  ) {
-    return trimmed;
-  }
-  const objectRegex = /{[\s\S]*?}(?=\s*($|\n))/g;
-  const matches = trimmed.match(objectRegex);
-  if (matches && matches.length > 1) {
-    return `[${matches.join(",\n")}]`;
-  }
-  return trimmed;
-}
-
-/**
  * Rewrites MongoDB constructor calls to use the `new` keyword.
  *
  * @param {string} str - The string to process.
@@ -61,40 +37,75 @@ function rewriteMongoConstructors(str) {
 }
 
 /**
+ * Extracts all top-level JavaScript object literals from a string by tracking curly brace depth,
+ * removes comments, and wraps the objects in a single array literal.
+ * This is robust to newlines, comments, and nested objects/arrays, and is used to parse
+ * output files containing multiple object literals separated by whitespace or newlines.
+ *
+ * @param {string} str - The raw string containing one or more JavaScript object literals.
+ * @returns {string} A string representing an array of the extracted objects, suitable for evaluation.
+ * @throws {Error} If the input contains mismatched curly braces.
+ */
+function wrapObjectsInArrayByBraces(str) {
+  // Remove comments and trim
+  const cleaned = str
+    .replace(/^\s*\/\/.*$/gm, "")
+    .replace(/^\s*#.*$/gm, "")
+    .trim();
+
+  let objects = [];
+  let braceDepth = 0;
+  let current = '';
+  for (let i = 0; i < cleaned.length; i++) {
+    const char = cleaned[i];
+    if (char === '{') {
+      if (braceDepth === 0 && current.trim()) {
+        // Ignore any text between objects
+        current = '';
+      }
+      braceDepth++;
+    }
+    if (braceDepth > 0) current += char;
+    if (char === '}') {
+      braceDepth--;
+      if (braceDepth === 0) {
+        objects.push(current.trim());
+        current = '';
+      }
+    }
+  }
+  if (braceDepth !== 0) {
+    throw new Error("Mismatched braces in expected output file.");
+  }
+  return `[${objects.join(',\n')}]`;
+}
+
+/**
  * Attempts to parse the expected output from a string, handling JSON, JS object literals, and MongoDB constructors.
  *
  * @param {string} raw - The raw expected output string.
  * @returns {any} The parsed expected output, or undefined if parsing fails.
  */
 function parseExpectedOutput(raw) {
-  // Try JSON first
-  try {
-    return JSON.parse(raw);
-  } catch {}
-  // Preprocess: single quotes, unquoted keys, MongoDB constructors
-  let preprocessed = raw;
+  let preprocessed = wrapObjectsInArrayByBraces(raw);
   preprocessed = singleToDoubleQuotes(preprocessed);
   preprocessed = quoteUnquotedKeys(preprocessed);
-  preprocessed = wrapObjectsInArray(preprocessed);
   preprocessed = rewriteMongoConstructors(preprocessed);
-  // Try JSON again
+
+  // Try JSON first
   try {
     return JSON.parse(preprocessed);
   } catch {}
-  // Fallback: evaluate as JS object/array
+
+  // Fallback: evaluate as JS array
   try {
-    let code = preprocessed.trim();
-    code = wrapObjectsInArray(code); // <--- Ensure array wrapping before eval
-    if (code[0] === "{" && code[code.length - 1] === "}") {
-      code = `(${code})`;
-    }
-    return vm.runInNewContext(code, {
+    return vm.runInNewContext(preprocessed, {
       Decimal128,
       ObjectId,
       ISODate: (v) => new Date(v),
     });
   } catch (error) {
-    console.error("Failed to parse expected output:", error);
+    console.error("Failed to parse expected output as array of objects:", error, preprocessed.slice(0, 500));
     return undefined;
   }
 }
