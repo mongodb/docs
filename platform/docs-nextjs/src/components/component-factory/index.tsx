@@ -25,6 +25,7 @@ import Introduction, { IntroductionProps } from '../introduction';
 import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
+import Cond, { CondProps } from '../cond';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -109,9 +110,8 @@ const getComponent = (() => {
         // 'community-driver': CommunityPillLink,
         // 'composable-tutorial': ComposableTutorial,
         // 'io-code-block': CodeIO,
-        // cond: Cond,
+        cond: Cond as React.ComponentType<SupportedComponentProps>,
         // container: Container,
-        // cta: CTA,
         // 'cta-banner': CTABanner,
         // definitionList: DefinitionList,
         // definitionListItem: DefinitionListItem,
@@ -143,7 +143,7 @@ const getComponent = (() => {
         // literal_block: LiteralBlock,
         // literalinclude: LiteralInclude,
         // 'method-selector': MethodSelector,
-        // only: Cond,
+        only: Cond as React.ComponentType<SupportedComponentProps>,
         // 'openapi-changelog': OpenAPIChangelog,
         paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
         // procedure: Procedure,
@@ -214,7 +214,7 @@ export type ComponentFactoryProps = {
   parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps;
+type SupportedComponentProps = ComponentFactoryProps | CondProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -269,6 +269,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('time')) {
     const timeNode = nodeData as Directive;
     return <ComponentType argument={timeNode.argument} />;
+  } else if (ComponentType === getComponent('cond')) {
+    const condNode = nodeData as Directive;
+    return <ComponentType nodeData={condNode} />;
   }
 
   // Default: spread all props for other components
