@@ -12,12 +12,14 @@ import type {
   SubscriptNode,
   SuperscriptNode,
   TextNode,
+  TitleReferenceNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 
 import Text, { type TextProps } from '../text';
 import Paragraph, { type ParagraphProps } from '../paragraph';
 import Kicker, { type KickerProps } from '../kicker';
+import TitleReference, { type TitleReferenceProps } from '../title-reference';
 import Time, { type TimeProps } from '../time';
 import Introduction, { IntroductionProps } from '../introduction';
 import Strong from '../strong';
@@ -163,7 +165,8 @@ const getComponent = (() => {
         // target: Target,
         text: Text as React.ComponentType<SupportedComponentProps>,
         time: Time as React.ComponentType<SupportedComponentProps>,
-        // title_reference: TitleReference,
+        title_reference:
+          TitleReference as React.ComponentType<SupportedComponentProps>,
         // transition: Transition,
         // versionadded: VersionModified,
         // versionchanged: VersionModified,
@@ -211,7 +214,7 @@ export type ComponentFactoryProps = {
   parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps;
+type SupportedComponentProps = ComponentFactoryProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -226,9 +229,10 @@ const renderComponentWithProps = (
   if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
-  } else if (ComponentType === getComponent('strong')) {
-    const strongNode = nodeData as StrongNode;
-    return <ComponentType value={strongNode.children[0].value} />;
+  } else if (ComponentType === getComponent('strong') || ComponentType === getComponent('title_reference')) {
+    // All nodes that pass on first child's text value
+    const node = nodeData as StrongNode | TitleReferenceNode;
+    return <ComponentType value={node.children[0].value} />;
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
     return (
