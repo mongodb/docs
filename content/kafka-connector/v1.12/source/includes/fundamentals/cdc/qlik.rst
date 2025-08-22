@@ -1,5 +1,8 @@
 .. _cdc-qlik-replicate-example:
 
+Configure Qlik Replicate CDC Handlers
+-------------------------------------
+
 Your sink connector can replicate Qlik Replicate CDC events originating from these
 datastores:
 

@@ -1,5 +1,8 @@
 .. _cdc-mongodb-example:
 
+Configure MongoDB CDC Handlers
+------------------------------
+
 The following properties file configures a sink connector to replicate
 MongoDB change event documents:
 

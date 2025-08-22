@@ -1,5 +1,8 @@
 .. _cdc-debezium-example:
 
+Configure Debezium CDC Handlers
+-------------------------------
+
 Your sink connector can replicate Debezium CDC events originating from these datastores:
 
 - MongoDB
