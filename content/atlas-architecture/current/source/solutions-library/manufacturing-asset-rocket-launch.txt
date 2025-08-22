@@ -29,12 +29,12 @@ Monitoring a rocket launch using MongoDB Atlas and real-time IoT data.
 **Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, 
 `MongoDB Aggregation Pipeline <https://www.mongodb.com/docs/v7.0/core/aggregation-pipeline/>`__,
 `MongoDB Time Series <https://www.mongodb.com/products/capabilities/time-series>`__,
-`Atlas Charts <https://www.mongodb.com/products/platform/atlas-charts>`__,
-`Atlas Database <https://www.mongodb.com/products/platform/atlas-database>`__,
-`Atlas Data Federation <https://www.mongodb.com/products/platform/atlas-data-federation>`__,
-`Atlas Search <https://www.mongodb.com/products/platform/atlas-search>`__,
-`Atlas SQL Interface <https://www.mongodb.com/products/platform/atlas-sql-interface>`__,
-`Atlas Triggers <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/>`__
+`MongoDB Atlas Charts <https://www.mongodb.com/products/platform/atlas-charts>`__,
+`MongoDB Atlas Database <https://www.mongodb.com/products/platform/atlas-database>`__,
+`MongoDB Atlas Data Federation <https://www.mongodb.com/products/platform/atlas-data-federation>`__,
+`MongoDB Atlas Search <https://www.mongodb.com/products/platform/atlas-search>`__,
+`MongoDB Atlas SQL Interface <https://www.mongodb.com/products/platform/atlas-sql-interface>`__,
+`MongoDB Atlas Triggers <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/>`__
 
 **Partners:** `Amazon S3 <https://www.mongodb.com/products/platform/atlas-cloud-providers/aws>`__,
 `Tableau <https://www.mongodb.com/try/download/tableau-connector>`__
@@ -42,110 +42,70 @@ Monitoring a rocket launch using MongoDB Atlas and real-time IoT data.
 Solution Overview
 -----------------
 
-From manufacturing and transportation to logistics and supply chain, the
-ability to perform real-time analysis on live IoT data during operation,
-and combine it with other data sources post-operation, is valuable
-across many industries. This demo shows how to leverage the MongoDB
-modern, multi-cloud database platform to go from zero to lift-off in a
-rocket launch example.
+This solution uses MongoDB's multi-cloud database platform to analyze 
+IoT data from a rocket launch. It uses an open-source data
+set from a Blue Origin rocket launch, along with fictional data. 
 
-A typical rocket launch spans an eight-hour period from the time the
-initial countdown begins until the rocket payload is in orbit. During
-this window, approximately one million metrics are generated per second
-by sensors capturing the rocket’s performance. While the metrics make up
-the bulk of the data in this scenario, there are two other sources of
-data: notes and weather data.
+A typical rocket launch spans an eight-hour period from when the
+initial countdown begins to when the rocket payload is in orbit. During
+this window, approximately one million datapoints are generated per second
+by sensors that capture the rocket's performance. 
 
-- Notes are created by both rocket engineers and an automated system. The
-  rocket engineers create notes when they want to mark a time period or
-  situation that they want to remember to revisit after the launch. An
-  automated system is continuously watching the metrics as they stream in,
-  creating notes whenever parameters reach thresholds that are out of
-  bounds.
+While the metrics from the rocket make up the bulk of the data in this 
+use case, there are two other sources of data:
 
-- Weather data is retrieved from a third party, and stored in an Amazon S3
+- **Notes** are created by rocket engineers and an automated system.
+  Rocket engineers create notes when they want to mark anything to remember
+  after launch. Additionally, an automated system watches metrics as they
+  stream in and creates notes whenever values are outside of their
+  expected threshold.
+
+- **Weather data** is retrieved from a third party, stored in an Amazon S3
   bucket, and analyzed in combination with the launch data post-launch.
-
-This solution shows how the various components of MongoDB's modern,
-multi-cloud database platform can be used together to support
-application-driven analytics on IoT data by highlighting a rocket
-launch, with analysis happening during the launch and after. It uses an
-open source data set from a Blue Origin rocket launch along with
-fictional data.
 
 Other Applicable Industries and Use Cases
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Other industries that leverage IoT sensor data for both real-time and
-post-event analytics include:
+The ability to perform real-time analysis on live IoT data is valuable
+across many industries, such as:
 
-- **Manufacturing:** Oftentimes manufacturing machinery is loaded with IoT
-  sensors that operate for hours at a time, similar to a rocket launch.
-  It’s important that analysis can be done while the machinery is
-  operating and post-operation.
+- **Manufacturing:** Manufacturing machinery is loaded with IoT sensors that
+  operate for hours at a time, similar to a rocket launch. Analysis must be done
+  both during and after the machinery operates.
 
-- **Logistics:** From the modes of transportation to the packages themselves,
-  IoT sensors enable supply chain optimization both while in-transit and
-  post-transit.
+- **Supply chain logistics:** IoT sensors enable supply chain optimization
+  in-transit and post-transit, from modes of transportation to the packages
+  themselves.
 
-- **eCommerce:** In addition to warehouses and shipping logistics, retailers
+- **E-commerce:** In addition to warehouses and shipping logistics, retailers
   use real-time insights to drive personalization or improve business
   processes.
 
 Reference Architectures
 -----------------------
 
-Without MongoDB
-~~~~~~~~~~~~~~~
-
-Without MongoDB, this solution often requires a variety of bolt-on or
-disparate databases to support the variety of data types being
-generated, and data needs to be moved and transformed to reach the
-systems that are used to action this data (like a BI tool).
-
-.. figure:: /includes/images/industry-solutions/rocket-launch-without-MongoDB.svg
-   :figwidth: 1200px
-   :alt: reference architecture without MongoDB
-
-   Figure 1. Reference architecture without MongoDB
-
-With MongoDB
-~~~~~~~~~~~~
+The following diagram displays this solution's architecture. MongoDB's
+flexible document model and Atlas tools streamline how you can store and
+interact with your data. Real-time sensor data, engineer observations,
+and real-time weather data can all be combined in MongoDB Atlas.
 
 .. figure:: /includes/images/industry-solutions/rocket-launch-with-MongoDB.svg
    :figwidth: 1200px
    :alt: reference architecture with MongoDB
 
-   Figure 2. Reference architecture with MongoDB
+   Figure 1. Reference architecture with MongoDB
 
 Data Model Approach
 -------------------
 
-Review of the Atlas cluster deployed for the demonstration, and overview
-of the document model for two main Atlas collections used to store the
-launch data: launchData and notes. There are two main collections used
-in the demo:
+This solution stores launch data in two Atlas collections: ``launchData``
+and ``notes``. 
 
-- LaunchData
-
-- Notes
-
-In general, the rocket metrics are produced by the rockets in 4-element
-tuples having the structure below:
-
-- device, timestamp, metric, value
-
-In the real-world scenario that inspired this demonstration, an
-intermediate app server collected these tuples and aggregated them by
-device and timestamp. When all the metrics for a given device and
-timestamp were received, these metrics were written to the launchData
-collection as a single document. This document model groups the metrics
-into documents that match the way the data is read and analyzed by the
-application (by device and time). This follows the MongoDB schema design
-principle that data that is accessed together is stored together. This
-document model also was designed to work with MongoDB time-series
-collections. The time and metrics fields are top-level fields and the
-meta data (device name) is encapsulated in a field called “meta”.
+Initially, the rockets produce metrics as 4-element tuples
+with the following structure: ``(device, timestamp, metric, value)``. These
+values are then aggregated and written to the ``launchData`` collection
+as a single document that represents metrics from a specific device at a
+specific time, like in the following example document:
 
 .. code-block:: javascript  
    :copyable: true  
@@ -167,98 +127,77 @@ meta data (device name) is encapsulated in a field called “meta”.
       truth_quat_CON2ECEF4: 0.7049953208872
    }
 
-This data can be found in the file `aerospace.archive.gz
+This document model also works with MongoDB time series collections. 
+
+This data can be found in the `aerospace.archive.gz
 <https://github.com/mongodb-developer/rocket-analytics/blob/main/data-Atlas/aerospace.archive.gz>`__
-and restored to an Atlas cluster using mongorestore as below.
+file in the solution GitHub repository.
 
-Building the Solution
----------------------
+Build the Solution
+------------------
 
-This rocket launch solution was recorded over a three-part livestream.
-This `GitHub <https://github.com/jayrunkel/rocketLivestream>`__ provides
-all the code, data, and links to recordings you need to get started
-building out application-driven analytics that revolve around
-time-stamped IoT sensor data.
+The solution's `GitHub <https://github.com/jayrunkel/rocketLivestream>`__ 
+repository provides the data and code necessary for you to get started. Additionally,
+the repository includes links to a three-part livestream recording that goes
+over this solution in detail.
+
+To get started with this solution, perform the following steps.
 
 .. procedure::
    :style: normal
 
-   .. step:: Development environment setup
+   .. step:: Set up your development environment
 
-      Prior to watching any of the livestreams, you’ll want to go
-      through the setup steps listed in  `GitHub readme
-      <https://github.com/jayrunkel/rocketLivestream>`__. This will help
-      you get started with an Atlas free tier account (if you don’t
-      already have one) and download Compass.
+      Follow the setup steps listed in the GitHub repository's ``README``.
+      This helps you get started with an Atlas free tier account and download
+      Compass. 
 
-   .. step:: Pre-launch: Rocket launch setup and basic analytical queries with MongoDB Aggregation Framework
+   .. step:: Set up rocket launch and queries pre-launch
+      
+      The `first livestream recording <https://www.youtube.com/live/RUTsdqehWjo>`__
+      walks you through the data captured in a rocket launch and how to write
+      basic aggregation queries with the MongoDB query API. Then, you can perform
+      basic analytics on the IoT sensor data with Atlas Charts.
 
-      The `Livestream 1 <https://www.youtube.com/live/RUTsdqehWjo>`__
-      recording will walk you through the data captured in a rocket
-      launch and how to write basic aggregation queries with MongoDB’s
-      query API. Then you’ll perform basic analytics on the IoT sensor
-      data with Atlas Charts. `GitHub folder
-      <https://github.com/jayrunkel/rocketLivestream/tree/main/liveStream1>`__.
+   .. step:: Analyze data during launch
+      
+      The `second livestream recording <https://www.youtube.com/live/-jSQhlkaBCc>`__
+      shows you how to embed charts into a React app for real-time analytics,
+      and how to search for specific notes.
 
-   .. step:: During launch: Embedding visualizations and building search capabilities in a React app for real-time analytics
-
-      `Livestream 2 <https://www.youtube.com/live/-jSQhlkaBCc>`__ will
-      show you how to embed charts into a React app for real-time
-      analytics, and how to create a search capability for finding
-      insights for specific notes, automated or manually generated, of
-      interest. `GitHub folder
-      <https://github.com/jayrunkel/rocketLivestream/tree/main/liveStream2>`__.
-
-   .. step:: Post-launch: Finding insights across multiple application and third-party data sources
-
-      Lastly, `Livestream 3
-      <https://www.youtube.com/watch?v=VOxy5VRk4g0>`__ will show you how
-      to find post-operation insights by combining rocket launch data
-      with weather data from the same time frame and analyzing it in
-      Tableau. `GitHub folder
-      <https://github.com/jayrunkel/rocketLivestream/tree/main/liveStream3>`__.
+   .. step:: Find insights post-launch
+      
+      Finally, the `third livestream recording <https://www.youtube.com/watch?v=VOxy5VRk4g0>`__
+      shows you how to combine rocket launch data and weather data to
+      create post-launch insights and analyze them in Tableau.
 
 Key Learnings
 -------------
 
-MongoDB's modern, multi-cloud database platform enables
+MongoDB's flexible database platform enables
 application-driven IoT analytics by providing the following
 capabilities:
 
-- Modeling data across multiple data types.
+- **Modeling data across multiple data types:** MongoDB's flexible document
+  model allows you to store multiple types of data in one document, collection,
+  or database, streamlining how you interact with your data and reducing the need
+  for different tables.
 
-- Analyzing time series data with window functions.
+- **Integrating functions to react to real-time data:** MongoDB's fast query
+  capability allows you to analyze data in real-time.
 
-- Leveraging search indexes.
-
-- Doing in-place aggregation pipelines for minimizing ETL processes.
-
-- Finding insights from hot data (live application) and cold data (third party in Amazon S3).
-
-- Integrating functions to react to real-time data.
-
-Technologies and Products Used
-------------------------------
-
-MongoDB Developer Data Platform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- `Atlas Charts <https://www.mongodb.com/products/platform/atlas-charts>`__ with embedded charts
-- `Atlas Database <https://www.mongodb.com/products/platform/atlas-database>`__ with dedicated analytics nodes
-- `Atlas Data Federation <https://www.mongodb.com/products/platform/atlas-data-federation>`__
-- `Atlas Search <https://www.mongodb.com/products/platform/atlas-search>`__
-- `Atlas SQL Interface <https://www.mongodb.com/products/platform/atlas-sql-interface>`__
-- `Atlas Triggers <https://www.mongodb.com/docs/atlas/atlas-ui/triggers/>`__
-- `MongoDB Aggregation Pipeline <https://www.mongodb.com/docs/v7.0/core/aggregation-pipeline/>`__
-- `MongoDB Time Series <https://www.mongodb.com/products/capabilities/time-series>`__ with window functions
-
-Partner Technologies
-~~~~~~~~~~~~~~~~~~~~
-
-- `Amazon S3 <https://www.mongodb.com/products/platform/atlas-cloud-providers/aws>`__ 
-- `Tableau <https://www.mongodb.com/try/download/tableau-connector>`__
+- **Minimizing ETL processes with in-place aggregation:** MongoDB's aggregation 
+  pipelines enable you to transform your data into computed results and store 
+  them in a new collection.
 
 Authors
 -------
 
 - Jay Runkel, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-manufacturing-iot-data-hub-solution`
+- :ref:`arch-center-is-power-smart-meter-analysis`
+- :ref:`arch-center-is-audio-based-ai-diagnostics`
