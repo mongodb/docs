@@ -60,4 +60,8 @@
             :tabid: python
 
             .. include:: /includes/fts/quickstart/create-index/steps-fts-create-index-tutorial-python.rst
-             
+
+         .. tab::
+            :tabid: rust
+
+            .. include:: /includes/fts/quickstart/create-index/steps-fts-create-index-tutorial-rust.rst             
