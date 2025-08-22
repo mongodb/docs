@@ -41,3 +41,7 @@
 - If there are any indexes with inconsistent specs or that are missing on one or 
   more shards, ``mongosync`` returns an error. To check for index 
   inconsistencies, see :ref:`manage-indexes-find-inconsistent-indexes`.
+
+- The source cluster cannot have :term:`orphaned documents <orphaned document>`.
+  To clean up any orphaned documents, run the :dbcommand:`cleanupOrphaned`
+  command on your source cluster.
