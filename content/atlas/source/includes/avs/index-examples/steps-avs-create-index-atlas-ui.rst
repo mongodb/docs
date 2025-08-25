@@ -86,7 +86,7 @@
 
             .. example:: 
 
-               .. include:: /includes/avs/tutorial/avs-openai-index-description.rst
+               .. include:: /includes/avs/tutorial/avs-voyageai-index-description.rst
 
                .. tabs:: 
 

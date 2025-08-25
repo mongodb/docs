@@ -26,7 +26,7 @@
 
    .. step:: Run the ``db.collection.createSearchIndex()`` method. 
 
-      .. include:: /includes/avs/tutorial/avs-openai-index-description-filter.rst
+      .. include:: /includes/avs/tutorial/avs-voyageai-index-description-filter.rst
 
       .. literalinclude:: /includes/avs/index-management/create-index/filter-example-mongosh.sh  
          :language: shell
