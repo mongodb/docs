@@ -26,12 +26,21 @@ fun main() {
     val results = collection.find(eq(Restaurant::cuisine.name, "Spanish"))
     // end-find
 
+    // start-find-one
+    val results = collection.find(eq(Restaurant::cuisine.name, "Spanish")).first()
+    // end-find-one
+
     // start-find-iterate
     val results = collection.find(eq(Restaurant::cuisine.name, "Spanish"))
     results.forEach { result ->
         println(result)
     }
     // end-find-iterate
+
+    // start-find-one-print
+    val results = collection.find(eq(Restaurant::cuisine.name, "Spanish")).first()
+    println(results)
+    // end-find-one-print
 
     // start-find-all
     val results = collection.find()
@@ -41,5 +50,6 @@ fun main() {
     val results = collection
         .find(eq(Restaurant::cuisine.name, "Spanish"))
         .limit(10)
+        .maxTime(10000)
     // end-modified-find
 }

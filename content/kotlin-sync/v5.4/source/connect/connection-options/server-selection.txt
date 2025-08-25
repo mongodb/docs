@@ -1,0 +1,145 @@
+.. _kotlin-sync-server-selection:
+
+==========================
+Customize Server Selection
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read preference, write, server selection
+
+Overview
+--------
+
+All MongoDB drivers follow a defined algorithm when selecting a server to read or write
+from. By using the ``ClusterSettings`` property of a ``MongoClientSettings`` object, you can
+customize this algorithm to choose the server that works best for your application.
+
+.. important::
+
+   Customizing the server selection algorithm might have unintended consequences,
+   such as degraded read or write performance.
+
+Server Selection Algorithm
+--------------------------
+
+When the {+driver-short+} executes a read operation, it performs the following steps,
+in order, to select a MongoDB deployment:
+
+1. Selects all servers from the list of known servers suitable for the requested
+   operation, barring those that the driver considers unavailable or problematic
+
+   1. For reads, selects all servers that match the active read preference
+
+   #. For writes, selects all writeable servers
+
+#. Calls the user-defined server-selector function, if the user provides one, and passes in
+   the list from the previous step
+
+#. Applies the ``localThreshold`` connection setting to the list of
+   servers returned from the function
+
+#. Selects at most two random servers from the list of servers that match the
+   preceding criteria, then selects the server with fewer outstanding concurrent operations
+
+When the {+driver-short+} executes a write operation, it begins by selecting all writeable
+servers from the list of known servers, not just those that match the active read preference.
+The remaining steps are identical to the preceding list.
+
+To learn more about the MongoDB server selection algorithm, see
+:manual:`Server Selection Algorithm </core/read-preference-mechanics/>` in the
+{+mdb-server+} manual.
+
+Implement Custom Server Selection Logic
+---------------------------------------
+
+You can implement your own custom server selection logic by creating a class that
+implements the ``ServerSelector`` interface. The following
+example shows a simple custom server selection class that selects servers with a ``type``
+value of ``ServerType.REPLICA_SET_SECONDARY``:
+
+.. literalinclude:: /includes/connect/ServerSelection.kt
+   :language: kotlin
+   :copyable: true
+   :start-after: // start-custom-selector
+   :end-before: // end-custom-selector
+
+Use the ``applyToClusterSettings()`` method to pass an instance of this class to your
+``MongoClientSettings``. The following example shows how to create
+a ``MongoClient`` with an instance of the custom server selector class from the preceding example:
+
+.. literalinclude:: /includes/connect/ServerSelection.kt
+   :language: kotlin
+   :copyable: true
+   :start-after: // start-selector
+   :end-before: // end-selector
+   :dedent:
+
+Use Settings to Configure Server Selection
+------------------------------------------
+
+You can specify the following server selection settings in your ``MongoClient`` object or
+in your connection URI:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``localThreshold``
+     - | The latency window for server eligibility. If a server's round trip takes longer
+       | than the fastest server's round-trip time plus this value, the server isn't
+       | eligible for selection. You can specify this setting to a ``ClusterSettings`` object
+         in addition to the connection URI.
+       |
+       | **Data Type**: ``Integer``
+       | **Default**: 15 milliseconds
+       | **Connection URI Example**: ``localThresholdMS=0``
+       
+   * - ``readPreference``
+     - | The client's default read-preference settings. For more information on read preference
+         options, see :manual:`Read Preference </core/read-preference/>` in the {+mdb-server+} manual.
+         You can specify this setting to a ``MongoClientSettings`` object in addition to the
+         connection URI.
+       |
+       | **Data Type**: `ReadPreference <{+core-api+}/ReadPreference.html>`__
+       | **Default**: ``ReadPreference.primary()``
+       | **Connection URI Example**:
+
+       .. code-block:: none
+          :copyable: false
+
+          readPreference=primaryPreferred
+          &maxStalenessSeconds=90
+          &readPreferenceTags=dc:ny,rack:1
+
+   * - ``serverSelectionTimeout``
+     - | The length of time the driver tries to select a server before timing out.
+         You can specify this setting to a ``ClusterSettings`` object in addition to the 
+         connection URI.
+       |
+       | **Data Type**: ``Long``
+       | **Default**: 30 seconds
+       | **Connection URI Example**: ``serverSelectionTimeoutMS=15000``
+
+API Documentation
+-----------------
+
+To learn more about the classes and methods used in this guide, see the following API
+documentation:
+
+- `MongoClient <{+driver-api+}/-mongo-client/index.html>`__
+- `MongoClientSettings <{+core-api+}/MongoClientSettings.html>`__
+- `ServerSelector <{+core-api+}/selector/ServerSelector.html>`__
+- `ReadPreference <{+core-api+}/ReadPreference.html>`__
