@@ -1,0 +1,120 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _ios-encrypt-a-realm:
+
+===========================
+Encrypt a Realm - Swift SDK
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can encrypt the realm file on disk with AES-256 +
+SHA-2 by supplying a 64-byte encryption key when :ref:`opening a
+realm <ios-open-a-local-realm>`.
+
+Realm transparently encrypts and decrypts data with standard
+:wikipedia:`AES-256 encryption <Advanced_Encryption_Standard>` using the
+first 256 bits of the given 512-bit encryption key. Realm
+uses the other 256 bits of the 512-bit encryption key to validate
+integrity using a :wikipedia:`hash-based message authentication code
+(HMAC) <HMAC>`.
+
+.. include:: /includes/encrypt-use-strong-cryptographic-hash.rst
+
+.. note:: Cannot Encrypt an Existing Unencrypted Realm
+
+    You must encrypt a realm the first time you open it. 
+    If you try to open an existing unencrypted realm using a configuration
+    that contains an encryption key, Realm throws an error.
+
+    .. update with writeCopy API when available
+
+Considerations
+--------------
+
+The following are key impacts to consider when encrypting a realm.
+
+Storing & Reusing Keys
+~~~~~~~~~~~~~~~~~~~~~~
+
+You **must** pass the same encryption key every time you open the encrypted realm. 
+If you don't provide a key or specify the wrong key for an encrypted
+realm, the Realm SDK throws an error.
+
+Apps should store the encryption key in the Keychain so that other apps
+cannot read the key.
+
+Performance Impact
+~~~~~~~~~~~~~~~~~~
+
+Reads and writes on encrypted realms can be up to 10% slower than unencrypted realms.
+
+Encryption and Atlas Device Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can encrypt a :ref:`synced realm <ios-sync-changes-between-devices>`. 
+
+.. include:: /includes/encrypt-atlas-device-sync.rst
+
+If you need unique keys for each user of your application, you can use an OAuth provider or
+use one of the :ref:`Realm authentication providers <users-and-authentication>` 
+and an :ref:`authentication trigger<authentication-triggers>`
+to create a 64-bit key and store that key in a :ref:`user object <user-objects>`.
+
+Accessing an Encrypted Realm from Multiple Processes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 10.38.0
+
+Starting with Realm Swift SDK version 10.38.0, Realm supports opening
+the same encrypted realm in multiple processes. 
+
+If your app uses Realm Swift SDK version 10.37.2 or earlier, attempting to 
+open an encrypted realm from multiple processes throws this error:
+``Encrypted interprocess sharing is currently unsupported.``
+
+Apps using earlier SDK versions have two options to work with realms in
+multiple processes:
+
+- Use an unencrypted realm.
+- Store data that you want to encrypt as ``NSData`` properties on realm 
+  objects. Then, you can encrypt and decrypt individual fields. 
+
+One possible tool to encrypt and decrypt fields is :apple:`Apple's 
+CryptoKit framework <documentation/cryptokit>`. You can use :github:`Swift 
+Crypto <apple/swift-crypto>` to simplify app 
+development with CryptoKit.
+
+Example
+-------
+
+The following code demonstrates how to generate an encryption key and
+open an encrypted realm:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: swift
+
+      .. literalinclude:: /examples/generated/code/start/Encrypt.snippet.encrypt.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      .. literalinclude:: /examples/generated/code/start/Encrypt.snippet.encrypt.m
+         :language: objectivec
+
+The following Swift example demonstrates how to store and retrieve a
+generated key from the Keychain:
+
+.. literalinclude:: /examples/generated/code/start/Encrypt.snippet.store-in-keychain.swift
+   :language: swift

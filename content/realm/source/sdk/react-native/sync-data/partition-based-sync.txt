@@ -1,0 +1,198 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-partition-realms:
+
+=======================================
+Partition-Based Sync - React Native SDK
+=======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Partition-Based Sync is an older mode for using Atlas Device Sync with the 
+Realm React Native SDK. We recommend using 
+:ref:`Flexible Sync <react-native-flexible-sync-fundamentals>` 
+for new apps. The information on this page is for users who are still 
+using Partition-Based Sync.
+
+For more information about Partition-Based Sync and how to configure it
+in Atlas App Services, refer to :ref:`Partition-Based Sync <partition-based-sync>`
+in the App Services documentation.
+
+.. _react-native-partition-based-sync-fundamentals:
+
+Partition Value
+---------------
+
+When you select :ref:`Partition-Based Sync <partition-based-sync>` for your 
+backend App configuration, your client implementation must include a 
+partition value. This is the value of the :ref:`partition key 
+<partition-key>` field you select when you configure Partition-Based Sync.
+
+The partition value determines which data the client application can access.
+
+You pass in the partition value when you open a synced realm.
+
+.. _react-native-partition-sync-open-realm:
+
+Configure a Partition-Based Sync Realm
+--------------------------------------
+
+To open a Flexible Sync realm, use ``@realm/react``'s ``createRealmContext()`` 
+function and its returned ``RealmProvider``.
+
+In a ``RealmProvider`` that's nested in a ``UserProvider``, add a ``sync`` 
+property with a :js-sdk:`SyncConfiguration <Realm.App.Sync.html#~SyncConfiguration>` 
+object that contains ``flexible: true``.
+
+Note that ``UserProvider`` automatically passes an authenticated user
+to ``RealmProvider``.
+
+.. literalinclude:: /examples/generated/react-native/ts/configure-realm-sync.test.snippet.partition-based-config.tsx
+   :language: javascript
+
+.. _react-native-open-existing-realm-different-configuration:
+.. _react-native-copy-data-and-open-new-realm:
+
+Copy Data and Open a New Realm
+------------------------------
+
+.. versionadded:: ``realm@10.14.0``
+
+To copy data from an existing realm to a new realm with different
+configuration options, pass the new configuration the
+:js-sdk:`Realm.writeCopyTo() <Realm.html#writeCopyTo>` method.
+
+.. include:: /includes/note-writecopy-same-type-sync-only.rst
+
+In the new realm's configuration, you *must* specify the ``path``. 
+
+If you write the copied realm to a realm file that already exists, the data is written object by object.
+The copy operation replaces objects if there already exists objects for given primary keys.
+The schemas of the realm you copy and the realm you are writing to must be 
+compatible for the copy operation to succeed.
+Only objects in the schemas of both configurations are copied over.
+
+The configuration change can include modifications to :js-sdk:`SyncConfiguration
+<Realm.App.Sync.html#~SyncConfiguration>`: 
+
+- Local realm to synced realm
+- Synced Realm to local realm
+
+The configuration change can also include changes to ``encryptionKey`` 
+property of the ``Configuration``: 
+
+- Encrypted realm to unencrypted realm
+- Unencrypted realm to encrypted realm
+
+.. example:: Convert Local Realm to Synced Realm
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: typescript
+
+         .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.open-local-as-synced.ts
+            :language: typescript
+
+      .. tab::
+         :tabid: javascript
+
+         .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.open-local-as-synced.js
+            :language: javascript
+
+You can also combine changes to configuration. For example, you can open a
+local encrypted realm as a synced unencrypted realm or a unencrypted synced realm
+as an encrypted synced realm.
+
+.. example:: Convert Synced Encrypted to Local Unencrypted Realm
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: typescript
+
+         .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.sync-encrypted-to-local-unencrypted.ts
+            :language: typescript
+
+      .. tab::
+         :tabid: javascript
+
+         .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.sync-encrypted-to-local-unencrypted.js
+            :language: javascript
+
+.. _react-native-migrate-pbs-to-fs:
+
+Migrate from Partition-Based Sync to Flexible Sync
+--------------------------------------------------
+
+You can migrate your App Services Device Sync Mode from Partition-Based Sync 
+to Flexible Sync. Migrating is an automatic process that does not require 
+any changes to your application code. Automatic migration requires Realm 
+Node.js SDK version 11.10.0 or newer. 
+
+Migrating enables you to keep your existing App Services users and 
+authentication configuration. Flexible Sync provides more versatile permissions
+configuration options and more granular data synchronization.
+
+For more information about how to migrate your App Services App from 
+Partition-Based Sync to Flexible Sync, refer to :ref:`Migrate Device Sync Modes 
+<realm-sync-migrate-modes>`.
+
+.. _react-native-update-client-code-after-pbs-to-fs-migration:
+
+Updating Client Code After Migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The automatic migration from Partition-Based Sync to Flexible Sync does not
+require any changes to your client code. However, to support this 
+functionality, Realm automatically handles the differences between the two 
+Sync Modes by:
+
+- Automatically creating Flexible Sync subscriptions for each object type 
+  where ``partitionKey == partitionValue``.
+- Injecting a ``partitionKey`` field into every object if one does not already 
+  exist. This is required for the automatic Flexible Sync subscription.
+
+If you need to make updates to your client code after migration, consider 
+updating your client codebase to remove hidden migration functionality.
+You might want update your client codebase when:
+
+- You add a new model or change a model in your client codebase
+- You add or change functionality that involves reading or writing Realm objects
+- You want to implement more fine-grained control over what data you sync
+
+Make these changes to convert your Partition-Based Sync client code to use 
+Flexible Sync:
+
+- Add ``flexible:true`` to your 
+  :js-sdk:`SyncConfiguration <Realm.App.Sync.html#~SyncConfiguration>` object 
+  where you :ref:`open a synced realm <react-native-flexible-sync-open-realm>`.
+- Add relevant properties to your object models to use in your Flexible Sync 
+  subscriptions. For example, you might add an ``ownerId`` property to enable
+  a user to sync only their own data.
+- Remove automatic Flexible Sync subscriptions and manually create the 
+  relevant subscriptions.
+
+For examples of Flexible Sync permissions strategies, including examples of 
+how to model data for these strategies, refer to :ref:`flexible-sync-permissions-guide`.
+
+Remove and Manually Create Subscriptions
+````````````````````````````````````````
+
+When you migrate from Partition-Based Sync to Flexible Sync, Realm
+automatically creates hidden Flexible Sync subscriptions for your app. The 
+next time you add or change subscriptions, we recommend that you:
+
+1. :ref:`Remove the automatically-generated subscriptions <react-native-remove-subscription>`. 
+2. :ref:`Manually add the relevant subscriptions in your client codebase <react-native-sync-add-subscription>`.
+
+This enables you to see all of your subscription logic together in your 
+codebase for future iteration and debugging.
+
+For more information about the automatically-generated Flexible Sync 
+subscriptions, refer to :ref:`realm-sync-migrate-client`.

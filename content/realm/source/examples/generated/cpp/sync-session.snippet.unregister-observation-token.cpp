@@ -1,0 +1,1 @@
+syncSession->unregister_connection_change_observer(connectionToken);

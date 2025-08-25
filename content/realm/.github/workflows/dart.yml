@@ -1,0 +1,36 @@
+name: Dart SDK Tests
+
+on:
+  pull_request:
+    paths:
+      - examples/dart/**
+
+defaults:
+  run:
+    working-directory: examples/dart # The working directory path
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Install dart
+      - uses: dart-lang/setup-dart@v1.3
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Install Realm into application
+        run: dart run realm_dart install
+
+      - name: Run Realm SDK tests
+        run: |
+          if ./scripts/test.sh --concurrency=1 2>&1 | grep "Some tests failed."
+          then
+            exit 1
+          fi
+        

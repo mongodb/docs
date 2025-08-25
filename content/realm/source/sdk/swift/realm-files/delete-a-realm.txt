@@ -1,0 +1,99 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swift-delete-a-realm:
+.. _ios-delete-a-client-realm-file:
+
+===============================
+Delete a Realm File - Swift SDK
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In some cases, you may want to completely delete a realm file from disk.
+
+Realm avoids copying data into memory except when absolutely required.
+As a result, all objects managed by a realm have references to the file
+on disk. Before you can safely delete the file, you must ensure the
+deallocation of these objects:
+
+- All objects read from or added to the realm
+- All List and Results objects
+- All ThreadSafeReference objects
+- The realm itself
+
+.. warning:: Don't delete files while realms are open
+
+   If you delete a realm file or any of its auxiliary files while one or
+   more instances of the realm are open, you might corrupt the realm or
+   disrupt :ref:`sync <sync>`.
+
+Delete a Realm File to Avoid Migration
+--------------------------------------
+
+If you iterate rapidly as you develop your app, you may want to delete a 
+realm file instead of migrating it when you make schema changes. The Realm 
+configuration provides a :swift-sdk:`deleteRealmIfMigrationNeeded 
+<Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV06deleteA17IfMigrationNeededSbvp>` 
+parameter to help with this case. 
+
+When you set this property to ``true``, the SDK deletes the realm file when 
+a migration would be required. Then, you can create objects that match the 
+new schema instead of writing migration blocks for development or test data.
+
+.. literalinclude:: /examples/generated/code/start/DeleteRealmFiles.snippet.delete-if-migration-needed.swift
+   :language: swift
+
+Delete a Realm File
+-------------------
+
+In practice, there are two safe times to delete the realm file:
+
+1. On application startup before ever opening the realm.
+#. After only having opened the realm within an explicit ``autorelease`` pool, which ensures deallocation of all of objects within it.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      You can delete the ``.realm``, ``.note`` and ``.management`` files
+      for a given configuration with the
+      :swift-sdk:`Realm.deleteFiles(for:)
+      <Structs/Realm.html#/s:10RealmSwift0A0V11deleteFiles3forSbAC13ConfigurationV_tKFZ>`
+      class method.
+
+      .. literalinclude:: /examples/generated/code/start/DeleteRealmFiles.snippet.delete-client-realm-file.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      You can delete the ``.realm``, ``.note`` and ``.management`` files
+      for a given configuration with the :objc-sdk:`+[RLMRealm
+      deleteFilesForConfiguration:error:]
+      <Classes/RLMRealm.html#/c:objc(cs)RLMRealm(cm)deleteFilesForConfiguration:error:>`
+      class method.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.reset-client-realm-file.m
+         :language: objectivec
+
+Delete a Realm File During a Client Reset
+-----------------------------------------
+
+When you use Device Sync, you may encounter a **client reset error**. 
+During a client reset, your app must delete the local copy of the realm 
+and download an updated version from the Atlas App Services backend.
+
+Because Synced realms are stored locally and can be used offline, deleting
+a Synced realm could lose data. If the client has written to the realm and 
+the realm has not uploaded those changes, the client loses that data when 
+you delete the Synced realm. The realm may be unable to upload changes when 
+the client doesn't have a network connection for a long period of time, or 
+in the event of a Sync error that requires you to restart Sync.
+
+For more details on how to handle this scenario, see :ref:`ios-client-reset`.

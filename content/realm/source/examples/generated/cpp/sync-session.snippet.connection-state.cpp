@@ -1,0 +1,1 @@
+syncSession->connection_state();

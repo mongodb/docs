@@ -1,0 +1,303 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-open-and-close-a-realm:
+
+=====================================
+Configure & Open a Realm - Kotlin SDK
+=====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes realm files and how to configure, open, and close a realm 
+that only persists data locally. To open a realm that synchronizes data with Atlas 
+using Device Sync, refer to :ref:`Open a Synced Realm 
+<kotlin-open-a-synced-realm>`.
+
+A **realm** is the core data structure used to organize data in
+Realm. Each realm is a collection of Realm objects: the objects 
+that you use in your application as well as additional metadata that 
+describe those objects. Each Realm object type has an object schema
+based on your :ref:`defined object model <kotlin-define-object-model>`.
+
+.. _kotlin-realm-schema:
+
+A **realm schema** is a list of the valid object schemas that a realm 
+may contain. You specify the schema when you open the realm. 
+If a realm already contains data when you open it, Realm
+validates each object to ensure that an object schema was provided 
+for its type and that it meets all of the constraints specified in 
+the schema.
+
+.. _kotlin-realm-files:
+.. _kotlin-realm-file:
+
+Realm Files
+-----------
+
+Realm stores a binary-encoded version of every object and type in a realm 
+in a single ``.realm`` file. When you open a realm, Realm creates the 
+``.realm`` file if it doesn't already exist. The file is located at a specific 
+path, which you can define when you open the realm.
+
+.. tip:: Work with Realm Files in Realm Studio
+  
+  You can open, view, and edit the contents of realm files with 
+  :ref:`Realm Studio <realm-studio>`.
+
+If you don't want to create a ``.realm`` file or its associated auxiliary 
+files, you can open an in-memory realm.
+Refer to the :ref:`<kotlin-open-an-in-memory-realm>` section for 
+more information.
+
+Auxiliary Files
+~~~~~~~~~~~~~~~
+
+Realm creates additional files for each realm:
+
+- **realm files**, suffixed with "realm", e.g. :file:`default.realm`:
+  contain object data.
+- **lock files**, suffixed with "lock", e.g. :file:`default.realm.lock`:
+  keep track of which versions of data in a realm are
+  actively in use. This prevents realm from reclaiming storage space
+  that is still used by a client application. 
+- **note files**, suffixed with "note", e.g. :file:`default.realm.note`:
+  enable inter-thread and inter-process notifications.
+- **management files**, suffixed with "management", e.g. :file:`default.realm.management`:
+  internal state management.
+
+Deleting these files has important implications.
+For more information about deleting ``.realm`` or auxiliary files, see: 
+:ref:`Delete a Realm <kotlin-delete-a-realm>`.
+
+.. _kotlin-open-a-realm:
+
+Open a Realm
+------------
+
+To open a realm, create a `RealmConfiguration 
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm-configuration/index.html>`__ 
+object that defines the details of a realm. Then, pass the resulting 
+``RealmConfiguration`` to `Realm.open()
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm/-companion/open.html>`__.
+
+You can open a realm with default configuration values or you can build a 
+``RealmConfiguration`` with additional configuration options. However, you 
+*must* pass a `schema 
+<{+kotlin-local-prefix+}io.realm.kotlin/-configuration/schema.html>`__
+parameter that includes all :ref:`object classes <kotlin-define-a-new-object-type>`
+that you want to use in the realm. 
+
+After you open the realm with the desired configuration, you can 
+:ref:`read and write data <kotlin-read-write-data>` based on your defined schema.
+
+The examples on this page refer to the following Realm objects:
+
+.. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.open-realm-object-schemas.kt
+   :language: kotlin
+
+Open a Default Realm
+~~~~~~~~~~~~~~~~~~~~
+
+To open a realm with default configuration values, use the 
+`RealmConfiguration.create() 
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm-configuration/-companion/create.html>`__.
+method. You only need to define a set of object classes as the realm schema. 
+Then, pass the ``RealmConfiguration`` to `Realm.open()
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm/-companion/open.html>`__.
+
+The following example opens a ``default.realm`` file at the default path with 
+a schema that includes the ``Frog`` and ``Person`` classes:
+
+.. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.open-a-default-realm.kt
+   :language: kotlin
+
+Default File Location
+`````````````````````
+
+If you don't define a directory for the realm file, the default app storage 
+location for the platform is used. You can find the default directory for your 
+platform with the following:
+
+- Android: ``Context.getFiles()``
+- JVM: ``System.getProperty("user.dir")``
+- macOS: ``platform.Foundation.NSFileManager.defaultManager.currentDirectoryPath``
+- iOS: 
+  
+  .. code-block::
+
+    NSFileManager.defaultManager.URLForDirectory(
+       NSDocumentDirectory,
+       NSUserDomainMask,
+       null,
+       true,
+       null
+    )
+
+.. _kotlin-open-an-in-memory-realm:
+
+Open an In-Memory Realm
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can open a realm entirely in memory, which does not create a 
+``.realm`` file or its associated auxiliary files. Instead, the SDK stores 
+objects in memory while the realm is open, and then discards the data 
+when all instances are closed.
+
+To open a realm that runs without being written to a file, build a 
+``RealmConfiguration`` with the 
+`RealmConfiguration.Builder 
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm-configuration/-builder/index.html>`__
+using the `inMemory 
+<{+kotlin-local-prefix+}io.realm.kotlin/-configuration/in-memory.html>`__
+property.
+Then, pass the resulting ``RealmConfiguration`` to `Realm.open() 
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm/-companion/open.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.open-an-in-memory-realm.kt
+   :language: kotlin
+   :emphasize-lines: 5
+
+.. note:: In-Memory Realms are Not Persisted
+
+  Because in-memory realms are not persisted, ensure you have at least one open 
+  instance of the realm for as long as you want to access the data. After you 
+  :ref:`close <kotlin-close-a-realm>` the last instance of an in-memory realm, 
+  the data is no longer available.
+
+Customize a Realm Configuration
+-------------------------------
+
+You can add optional arguments to the ``RealmConfiguration`` to control the 
+specifics of the realm that you would like to open, including:
+
+- Defining a custom file name and file path 
+- Passing an encryption key to :ref:`encrypt a realm <kotlin-encrypt-a-realm>`
+- :ref:`Compacting a realm <kotlin-compact-realm>` to reduce its file size
+- Specifying a schema version or migration block when 
+  :ref:`making schema changes <kotlin-change-object-model>`
+- Flagging whether Realm should :ref:`delete the realm file 
+  <kotlin-delete-to-avoid-migration>` if a migration is required
+
+For more information on specific configuration implementations, refer to 
+:ref:`<kotlin-manage-realm-files>`.
+
+To configure a realm with non-default values, create the ``RealmConfiguration`` 
+through `RealmConfiguration.Builder.build() 
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm-configuration/-builder/index.html>`__ 
+and pass any properties you want to set. Then, pass the resulting 
+``RealmConfiguration`` to `Realm.open() 
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm/-companion/open.html>`__. 
+
+In the following example, the ``RealmConfiguration`` specifies a custom 
+name and directory ("my-directory-path/myRealmName.realm") and encryption key:
+
+.. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.open-a-realm.kt
+   :language: kotlin
+
+Add Initial Data to Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add initial data to a realm by using an `initialDataCallback 
+<{+kotlin-local-prefix+}io.realm.kotlin/-configuration/initial-data-callback.html>`__.
+The callback is triggered when the realm is opened for the first time. 
+
+.. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.initial-data-callback.kt
+   :language: kotlin
+   :emphasize-lines: 4-7
+
+Find a Realm File Path
+----------------------
+
+To find the file path for a ``.realm`` file, use the `realm.configuration.path 
+<{+kotlin-local-prefix+}io.realm.kotlin/-configuration/path.html>`__ property:
+
+.. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.find-realm-path.kt
+   :language: kotlin
+
+.. _kotlin-close-a-realm:
+
+Close a Realm
+-------------
+
+You close a realm with `realm.close() 
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm/close.html>`__. This method 
+blocks until all write transactions on the realm have completed.
+
+.. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.close-a-realm.kt
+   :language: kotlin
+
+.. warning:: Close Realms to Prevent Memory Leaks
+
+  It's important to close your realm instance to free resources. Failing to close
+  realms can lead to an ``OutOfMemoryError``. 
+
+.. _kotlin-copy-data-to-realm:
+
+Copy Data into a New Realm
+--------------------------
+
+To copy data from an existing realm to a new realm with different
+configuration options, pass the new configuration to the
+`Realm.writeCopyTo() <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write-copy-to.html>`__
+method.
+For example, you might copy data as a way to backup a local realm or to convert
+a synced realm to a local realm.
+
+You can copy data to a realm that uses the same configuration:  
+
+- Local realm to local realm
+- In-memory realm to in-memory realm
+- Synced realm to synced realm
+
+You can copy data to a realm that uses different sync configurations:
+
+- Local realm to Partition-Based Sync realm 
+- Synced realm to local realm
+- Synced realm to a synced realm for a different user
+
+.. warning:: 
+
+  You *cannot* copy data from a local realm to a Flexible Sync realm. You
+  cannot copy between different sync configuration types, for example
+  Partition-Based Sync to Flexible Sync.
+
+You can also combine changes to the configuration. For example, you can copy data from an 
+unencrypted, in-memory synced realm to an encrypted local realm.
+
+Some additional considerations to keep in mind while using 
+``Realm.writeCopyTo()``: 
+
+- The destination file cannot already exist.
+- Copying a realm is not allowed within a write transaction or during
+  a :ref:`migration <kotlin-migrations>`.
+- When using :ref:`Device Sync <sync>`, you must sync all local changes with the
+  server before the copy is written. This ensures that the file can 
+  be used as a starting point for a newly installed application. 
+  Realm throws an error if there are pending uploads.
+
+  You can use `uploadAllLocalChanges() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/upload-all-local-changes.html>`__ 
+  and `downloadAllServerChanges() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/download-all-server-changes.html>`__ 
+  to ensure all sync processes are completed.
+
+.. example:: Copy Data from Flexible Sync Realm to Local Realm
+
+  .. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.sync-to-local-realm.kt
+    :language: kotlin
+
+You can also :ref:`include a new encryption key <kotlin-encrypt-a-realm>`
+in the copied realm's configuration or remove the encryption key from the new configuration.
+
+.. example:: Copy Data from Unencrypted to Encrypted Realm
+
+  .. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.unencrypted-to-encrypted-realm.kt
+    :language: kotlin
+
+.. example:: Copy Data from In-Memory to Local Realm
+
+  .. literalinclude:: /examples/generated/kotlin/OpenARealmTest.snippet.in-memory-to-local-realm.kt
+    :language: kotlin

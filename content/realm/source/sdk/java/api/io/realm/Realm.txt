@@ -1,0 +1,6104 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+
+Class Realm
+^^^^^^^^^^^
+
+.. _io_realm_Realm:
+
+
+
+io.realm
+========
+
+
+ | `java.lang.Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__ 
+ | 		**io.realm.BaseRealm**
+ | 					io.realm.Realm
+
+
+The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating instances of your RealmObjects. Objects within a Realm can be queried and read at any time. Creating, modifying, and deleting objects must be done while inside a transaction. See :ref:`executeTransaction(Transaction) <io_realm_Realm_executeTransaction_Transaction_>` 
+
+The transactions ensure that multiple instances (on multiple threads) can access the same objects in a consistent state with full ACID guarantees.
+
+It is important to remember to call the **close()** method when done with a Realm instance. Failing to do so can lead to `java.lang.OutOfMemoryError <https://docs.oracle.com/javase/7/docs/api/java/lang/OutOfMemoryError.html>`__  as the native resources cannot be freed.
+
+
+
+Realm instances cannot be used across different threads. This means that you have to open an instance on each thread you want to use Realm. Realm instances are cached automatically per thread using reference counting, so as long as the reference count doesn't reach zero, calling :ref:`getInstance(RealmConfiguration) <io_realm_Realm_getInstance_RealmConfiguration_>`  will just return the cached Realm and should be considered a lightweight operation.
+
+
+
+For the UI thread this means that opening and closing Realms should occur in either onCreate/onDestroy or onStart/onStop.
+
+Realm instances coordinate their state across threads using the `android.os.Handler <https://developer.android.com/reference/android/os/Handler>`__  mechanism. This also means that Realm instances on threads without an `android.os.Looper <https://developer.android.com/reference/android/os/Looper>`__  cannot receive updates unless **refresh()** is manually called.
+
+
+
+A standard pattern for working with Realm in Android activities can be seen below:
+
+
+
+.. code-block:: java
+
+    public class RealmApplication extends Application {
+   
+        @Override
+        public void onCreate() {
+            super.onCreate();
+   
+            // The Realm file will be located in package's "files" directory.
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
+            Realm.setDefaultConfiguration(realmConfig);
+        }
+    }
+   
+    public class RealmActivity extends Activity {
+   
+      private Realm realm;
+   
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.layout_main);
+        realm = Realm.getDefaultInstance();
+      }
+   
+      @Override
+      protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
+      }
+    }
+    
+
+Realm supports String and byte fields containing up to 16 MB.
+
+
+
+
+.. seealso::
+
+
+   
+   - `ACID <http://en.wikipedia.org/wiki/ACID>`__ 
+      
+      
+      
+      
+   - `Examples using Realm <https://github.com/realm/realm-java/tree/master/examples>`__ 
+      
+      
+      
+      
+   
+   
+   
+
+
+
+Nested Class Summary
+====================
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Modifier and Type
+     - Class and Description
+   
+   * - ``public static interface`` 
+     - :ref:`Realm.Transaction <io_realm_Realm_Transaction>` 
+       
+   
+   * - ``public abstract static`` 
+     - :ref:`Realm.Callback <io_realm_Realm_Callback>` 
+       
+   
+   
+
+
+Field Summary
+=============
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Modifier and Type
+     - Field and Description
+   
+   * - public static final `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__ 
+       
+       
+     - :ref:`DEFAULT_REALM_NAME <io_realm_Realm_DEFAULT_REALM_NAME>` 
+       
+       
+       
+   
+   * - public static final **int**
+       
+       
+     - :ref:`ENCRYPTION_KEY_LENGTH <io_realm_Realm_ENCRYPTION_KEY_LENGTH>` 
+       
+       The required length for encryption keys used to encrypt Realm data.
+       
+   
+   
+
+
+Method Summary
+==============
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Modifier and Type
+     - Method and Description
+   
+   * - public **void**
+     - | :ref:`addChangeListener <io_realm_Realm_addChangeListener>` (
+       |  :ref:`io.realm.RealmChangeListener\<io.realm.Realm> <io_realm_RealmChangeListener>`  listener
+       | )
+       
+       
+       Adds a change listener to the Realm.
+       
+       
+       
+   
+   * - public **<any>**
+     - | :ref:`asFlowable <io_realm_Realm_asFlowable>` ()
+       | 
+       
+       
+       Returns an RxJava Flowable that monitors changes to this Realm.
+       
+       
+       
+   
+   * - public static **boolean**
+     - | :ref:`compactRealm <io_realm_Realm_compactRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       Compacts a Realm file.
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  **E** realmObject, 
+       |  **int** maxDepth
+       | )
+       
+       
+       Makes an unmanaged in-memory copy of an already persisted :ref:`RealmObject <io_realm_RealmObject>` .
+       
+       
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  **E** realmObject
+       | )
+       
+       
+       Makes an unmanaged in-memory copy of an already persisted :ref:`RealmObject <io_realm_RealmObject>` .
+       
+       
+       
+       
+       
+   
+   * - public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__ 
+     - | :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  realmObjects, 
+       |  **int** maxDepth
+       | )
+       
+       
+       Makes an unmanaged in-memory copy of already persisted RealmObjects.
+       
+       
+       
+   
+   * - public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__ 
+     - | :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  realmObjects
+       | )
+       
+       
+       Makes an unmanaged in-memory copy of already persisted RealmObjects.
+       
+       
+       
+   
+   * - public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__ 
+     - | :ref:`copyToRealm <io_realm_Realm_copyToRealm>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  objects, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       Copies a collection of RealmObjects to the Realm instance and returns their copy.
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`copyToRealm <io_realm_Realm_copyToRealm>` <**E** >(
+       |  **E** object, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       Copies a RealmObject to the Realm instance and returns the copy.
+       
+       
+       
+   
+   * - public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__ 
+     - | :ref:`copyToRealmOrUpdate <io_realm_Realm_copyToRealmOrUpdate>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  objects, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       Updates a list of existing RealmObjects that is identified by their :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  or creates a new copy if no existing object could be found.
+       
+       
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`copyToRealmOrUpdate <io_realm_Realm_copyToRealmOrUpdate>` <**E** >(
+       |  **E** object, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       Updates an existing RealmObject that is identified by the same :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  or creates a new copy if no existing object could be found.
+       
+       
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`createAllFromJson <io_realm_Realm_createAllFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONArray** json
+       | )
+       
+       
+       Creates a Realm object for each object in a JSON array.
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`createEmbeddedObject <io_realm_Realm_createEmbeddedObject>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  :ref:`RealmModel <io_realm_RealmModel>`  parentObject, 
+       |  `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__  parentProperty
+       | )
+       
+       
+       Instantiates and adds a new embedded object to the Realm.
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`createObject <io_realm_Realm_createObject>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__  primaryKeyValue
+       | )
+       
+       
+       Instantiates and adds a new object to the Realm with the primary key value already set.
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`createObject <io_realm_Realm_createObject>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz
+       | )
+       
+       
+       Instantiates and adds a new object to the Realm.
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`createObjectFromJson <io_realm_Realm_createObjectFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONObject** json
+       | )
+       
+       
+       Creates a Realm object pre-filled with data from a JSON object.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`createOrUpdateAllFromJson <io_realm_Realm_createOrUpdateAllFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONArray** json
+       | )
+       
+       
+       Tries to update a list of existing objects identified by their primary key with new JSON data.
+       
+       
+       
+   
+   * - public **E**
+     - | :ref:`createOrUpdateObjectFromJson <io_realm_Realm_createOrUpdateObjectFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONObject** json
+       | )
+       
+       
+       Tries to update an existing object defined by its primary key with new JSON data.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`delete <io_realm_Realm_delete>` (
+       |  `java.lang.Class\<? extends io.realm.RealmModel> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz
+       | )
+       
+       
+       Deletes all objects of the specified class from the Realm.
+       
+       
+       
+   
+   * - public static **boolean**
+     - | :ref:`deleteRealm <io_realm_Realm_deleteRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       Deletes the Realm file along with the related temporary files specified by the given :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  from the filesystem.
+       
+       
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`executeTransaction <io_realm_Realm_executeTransaction>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction
+       | )
+       
+       
+       Executes a given transaction on the Realm.
+       
+       
+       
+   
+   * - public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>` 
+     - | :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction, 
+       |  :ref:`Realm.Transaction.OnSuccess <io_realm_Realm_Transaction_OnSuccess>`  onSuccess, 
+       |  :ref:`Realm.Transaction.OnError <io_realm_Realm_Transaction_OnError>`  onError
+       | )
+       
+       
+       Similar to :ref:`executeTransactionAsync(Transaction) <io_realm_Realm_executeTransactionAsync_Transaction_>` , but also accepts an OnSuccess and OnError callbacks.
+       
+       
+       
+       
+       
+   
+   * - public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>` 
+     - | :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction, 
+       |  :ref:`Realm.Transaction.OnError <io_realm_Realm_Transaction_OnError>`  onError
+       | )
+       
+       
+       Similar to :ref:`executeTransactionAsync(Transaction) <io_realm_Realm_executeTransactionAsync_Transaction_>` , but also accepts an OnError callback.
+       
+       
+       
+       
+       
+   
+   * - public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>` 
+     - | :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction, 
+       |  :ref:`Realm.Transaction.OnSuccess <io_realm_Realm_Transaction_OnSuccess>`  onSuccess
+       | )
+       
+       
+       Similar to :ref:`executeTransactionAsync(Transaction) <io_realm_Realm_executeTransactionAsync_Transaction_>` , but also accepts an OnSuccess callback.
+       
+       
+       
+       
+       
+   
+   * - public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>` 
+     - | :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction
+       | )
+       
+       
+       Similar to :ref:`executeTransaction(Transaction) <io_realm_Realm_executeTransaction_Transaction_>`  but runs asynchronously on a worker thread.
+       
+       
+       
+       
+       
+   
+   * - public :ref:`Realm <io_realm_Realm>` 
+     - | :ref:`freeze <io_realm_Realm_freeze>` ()
+       | 
+       
+       
+       Returns a frozen snapshot of the current Realm.
+       
+       
+       
+   
+   * - public static **Context**
+     - | :ref:`getApplicationContext <io_realm_Realm_getApplicationContext>` ()
+       | 
+       
+       
+       Get the application context used when initializing Realm with :ref:`Realm.init(Context) <io_realm_Realm_init_Context_>`  or :ref:`Realm.init(Context, String) <io_realm_Realm_init_Context__String_>` .
+       
+       
+       
+       
+       
+   
+   * - public static :ref:`RealmConfiguration <io_realm_RealmConfiguration>` 
+     - | :ref:`getDefaultConfiguration <io_realm_Realm_getDefaultConfiguration>` ()
+       | 
+       
+       
+       Returns the default configuration for :ref:`getDefaultInstance() <io_realm_Realm_getDefaultInstance__>` .
+       
+       
+       
+       
+       
+   
+   * - public static :ref:`Realm <io_realm_Realm>` 
+     - | :ref:`getDefaultInstance <io_realm_Realm_getDefaultInstance>` ()
+       | 
+       
+       
+       Realm static constructor that returns the Realm instance defined by the :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>`  set by :ref:`setDefaultConfiguration(RealmConfiguration) <io_realm_Realm_setDefaultConfiguration_RealmConfiguration_>` 
+       
+       
+       
+       
+       
+   
+   * - public static `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__ 
+     - | :ref:`getDefaultModule <io_realm_Realm_getDefaultModule>` ()
+       | 
+       
+       
+       Returns the default Realm module.
+       
+       
+       
+   
+   * - public static **int**
+     - | :ref:`getGlobalInstanceCount <io_realm_Realm_getGlobalInstanceCount>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       Returns the current number of open Realm instances across all threads in current process that are using this configuration.
+       
+       
+       
+   
+   * - public static :ref:`Realm <io_realm_Realm>` 
+     - | :ref:`getInstance <io_realm_Realm_getInstance>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       Realm static constructor that returns the Realm instance defined by provided :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>` 
+       
+       
+       
+       
+       
+   
+   * - public static :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>` 
+     - | :ref:`getInstanceAsync <io_realm_Realm_getInstanceAsync>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration, 
+       |  :ref:`Realm.Callback <io_realm_Realm_Callback>`  callback
+       | )
+       
+       
+       The creation of the first Realm instance per :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  in a process can take some time as all initialization code need to run at that point (setting up the Realm, validating schemas and creating initial data).
+       
+       
+       
+       
+       
+   
+   * - public static **int**
+     - | :ref:`getLocalInstanceCount <io_realm_Realm_getLocalInstanceCount>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       Returns the current number of open Realm instances on the thread calling this method.
+       
+       
+       
+   
+   * - public :ref:`RealmSchema <io_realm_RealmSchema>` 
+     - | :ref:`getSchema <io_realm_Realm_getSchema>` ()
+       | 
+       
+       
+       Returns the schema for this Realm.
+       
+       
+       
+   
+   * - public static synchronized **void**
+     - | :ref:`init <io_realm_Realm_init>` (
+       |  **Context** context, 
+       |  `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__  userAgent
+       | )
+       
+       
+       Initializes the Realm library and creates a default configuration that is ready to use.
+       
+       
+       
+   
+   * - public static synchronized **void**
+     - | :ref:`init <io_realm_Realm_init>` (
+       |  **Context** context
+       | )
+       
+       
+       Initializes the Realm library and creates a default configuration that is ready to use.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`insert <io_realm_Realm_insert>` (
+       |  :ref:`RealmModel <io_realm_RealmModel>`  object
+       | )
+       
+       
+       Inserts an unmanaged RealmObject.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`insert <io_realm_Realm_insert>` (
+       |  `java.util.Collection\<? extends io.realm.RealmModel> <https://docs.oracle.com/javase/7/docs/api/java/util/Collection.html>`__  objects
+       | )
+       
+       
+       Inserts a list of an unmanaged RealmObjects.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`insertOrUpdate <io_realm_Realm_insertOrUpdate>` (
+       |  :ref:`RealmModel <io_realm_RealmModel>`  object
+       | )
+       
+       
+       Inserts or updates an unmanaged RealmObject.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`insertOrUpdate <io_realm_Realm_insertOrUpdate>` (
+       |  `java.util.Collection\<? extends io.realm.RealmModel> <https://docs.oracle.com/javase/7/docs/api/java/util/Collection.html>`__  objects
+       | )
+       
+       
+       Inserts or updates a list of unmanaged RealmObjects.
+       
+       
+       
+   
+   * - public **boolean**
+     - | :ref:`isEmpty <io_realm_Realm_isEmpty>` ()
+       | 
+       
+       
+       Checks if this :ref:`io.realm.Realm <io_realm_Realm>`  contains any objects.
+       
+       
+       
+       
+       
+   
+   * - public static **void**
+     - | :ref:`migrateRealm <io_realm_Realm_migrateRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration, 
+       |  :ref:`RealmMigration <io_realm_RealmMigration>`  migration
+       | )
+       
+       
+       Manually triggers a migration on a RealmMigration.
+       
+       
+       
+   
+   * - public static **void**
+     - | :ref:`migrateRealm <io_realm_Realm_migrateRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       Manually triggers the migration associated with a given RealmConfiguration.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`removeAllChangeListeners <io_realm_Realm_removeAllChangeListeners>` ()
+       | 
+       
+       
+       Removes all user-defined change listeners.
+       
+       
+       
+   
+   * - public **void**
+     - | :ref:`removeChangeListener <io_realm_Realm_removeChangeListener>` (
+       |  :ref:`io.realm.RealmChangeListener\<io.realm.Realm> <io_realm_RealmChangeListener>`  listener
+       | )
+       
+       
+       Removes the specified change listener.
+       
+       
+       
+   
+   * - public static **void**
+     - | :ref:`removeDefaultConfiguration <io_realm_Realm_removeDefaultConfiguration>` ()
+       | 
+       
+       
+       Removes the current default configuration (if any).
+       
+       
+       
+   
+   * - public static **void**
+     - | :ref:`setDefaultConfiguration <io_realm_Realm_setDefaultConfiguration>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       Sets the :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>`  used when calling :ref:`getDefaultInstance() <io_realm_Realm_getDefaultInstance__>` .
+       
+       
+       
+       
+       
+   
+   * - public :ref:`RealmQuery <io_realm_RealmQuery>` 
+     - | :ref:`where <io_realm_Realm_where>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz
+       | )
+       
+       
+       Returns a typed RealmQuery, which can be used to query for specific objects of this type
+       
+       
+       
+   
+   
+
+
+Inherited Methods
+=================
+
+
+
+- Methods inherited from class `java.lang.Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__ : ``getClass`` , ``hashCode`` , ``equals`` , ``clone`` , ``toString`` , ``notify`` , ``notifyAll`` , ``wait`` , ``wait`` , ``wait`` , ``finalize`` 
+- Methods inherited from class **io.realm.BaseRealm**: ``setAutoRefresh`` , ``isAutoRefresh`` , ``refresh`` , ``isInTransaction`` , ``addListener`` , ``removeListener`` , ``asFlowable`` , ``removeAllListeners`` , ``writeCopyTo`` , ``writeEncryptedCopyTo`` , ``waitForChange`` , ``stopWaitForChange`` , ``beginTransaction`` , ``commitTransaction`` , ``cancelTransaction`` , ``freeze`` , ``isFrozen`` , ``getNumberOfActiveVersions`` , ``checkIfValid`` , ``checkAllowQueriesOnUiThread`` , ``checkAllowWritesOnUiThread`` , ``checkIfInTransaction`` , ``checkIfValidAndInTransaction`` , ``getPath`` , ``getConfiguration`` , ``getVersion`` , ``close`` , ``isClosed`` , ``isEmpty`` , ``getSchema`` , ``getSubscriptions`` , ``deleteAll`` , ``migrateRealm`` , ``finalize`` 
+
+
+
+
+Field Detail
+============
+
+.. _io_realm_Realm_DEFAULT_REALM_NAME:
+
+
+
+``DEFAULT_REALM_NAME`` 
+-----------------------
+
+
+
+
+.. _io_realm_Realm_ENCRYPTION_KEY_LENGTH:
+
+
+
+``ENCRYPTION_KEY_LENGTH`` 
+--------------------------
+
+The required length for encryption keys used to encrypt Realm data.
+
+
+
+
+Method Detail
+=============
+
+.. _addChangeListener:
+
+.. _addChangeListener__:
+
+.. _Realm_addChangeListener:
+
+.. _Realm_addChangeListener__:
+
+.. _io_realm_Realm_addChangeListener:
+
+.. _io_realm_Realm_addChangeListener__:
+
+
+
+addChangeListener
+-----------------
+
+.. _io_realm_Realm_addChangeListener_io_realm_RealmChangeListener_:
+
+.. _io_realm_Realm_addChangeListener_RealmChangeListener_:
+
+.. _addChangeListener_io_realm_RealmChangeListener_:
+
+.. _addChangeListener_RealmChangeListener_:
+
+.. _Realm_addChangeListener_io_realm_RealmChangeListener_:
+
+.. _Realm_addChangeListener_RealmChangeListener_:
+
+.. _io_realm_Realm_addChangeListener_RealmChangeListener_Realm__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`addChangeListener <io_realm_Realm_addChangeListener>` (
+       |  :ref:`io.realm.RealmChangeListener\<io.realm.Realm> <io_realm_RealmChangeListener>`  listener
+       | )
+       
+       
+       
+   
+   * - Adds a change listener to the Realm.The listeners will be executed when changes are committed by this or another thread.
+       
+       Realm instances are per thread singletons and cached, so listeners should be removed manually even if calling **close()**. Otherwise there is a risk of memory leaks.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``listener`` - the change listener.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the change listener is ``null`` .
+          
+          
+          
+          
+          
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if you try to register a listener from a non-Looper or **IntentService** thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`io.realm.RealmChangeListener <io_realm_RealmChangeListener>` 
+             
+             
+             
+          - :ref:`removeChangeListener(RealmChangeListener) <io_realm_Realm_removeChangeListener_RealmChangeListener_>` 
+             
+             
+             
+          - :ref:`removeAllChangeListeners() <io_realm_Realm_removeAllChangeListeners__>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _asFlowable:
+
+.. _asFlowable__:
+
+.. _Realm_asFlowable:
+
+.. _Realm_asFlowable__:
+
+.. _io_realm_Realm_asFlowable:
+
+.. _io_realm_Realm_asFlowable__:
+
+
+
+asFlowable
+----------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **<any>** :ref:`asFlowable <io_realm_Realm_asFlowable>` ()
+       | 
+       
+       
+       
+   
+   * - Returns an RxJava Flowable that monitors changes to this Realm. It will emit the current state when subscribed to. Items will continually be emitted as the Realm is updated - ``onComplete``  will never be called.
+       
+       Items emitted from Realm Flowables are frozen (See **freeze()**. This means that they are immutable and can be read on any thread.
+       
+       
+       
+       Realm Flowables always emit items from the thread holding the live Realm. This means that if you need to do further processing, it is recommend to observe the values on a computation scheduler:
+       
+       
+       
+       .. code-block:: java
+       
+          realm.asFlowable()
+           .observeOn(Schedulers.computation())
+           .map(rxRealm -> doExpensiveWork(rxRealm))
+           .observeOn(AndroidSchedulers.mainThread())
+           .subscribe( ... );
+           
+       
+       
+       
+       
+       
+       If you would like the ``asFlowable()``  to stop emitting items, you can instruct RxJava to only emit only the first item by using the ``first()``  operator:
+       
+       
+       
+        
+       
+       .. code-block:: java
+       
+          
+           realm.asFlowable().first().subscribe( ... ); // You only get the results once
+           
+       
+       
+        
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       RxJava Observable that only calls ``onNext`` . It will never call ``onComplete``  or ``OnError`` .
+       
+       
+       
+       
+       
+       
+       
+       
+       **Overrides**
+       
+       ``asFlowable`` in class **BaseRealm**
+       
+       
+   
+   
+
+
+.. _compactRealm:
+
+.. _compactRealm__:
+
+.. _Realm_compactRealm:
+
+.. _Realm_compactRealm__:
+
+.. _io_realm_Realm_compactRealm:
+
+.. _io_realm_Realm_compactRealm__:
+
+
+
+compactRealm
+------------
+
+.. _io_realm_Realm_compactRealm_io_realm_RealmConfiguration_:
+
+.. _io_realm_Realm_compactRealm_RealmConfiguration_:
+
+.. _compactRealm_io_realm_RealmConfiguration_:
+
+.. _compactRealm_RealmConfiguration_:
+
+.. _Realm_compactRealm_io_realm_RealmConfiguration_:
+
+.. _Realm_compactRealm_RealmConfiguration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **boolean** :ref:`compactRealm <io_realm_Realm_compactRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       
+   
+   * - Compacts a Realm file. A Realm file usually contain free/unused space. This method removes this free space and the file size is thereby reduced. Objects within the Realm files are untouched.The file must be closed before this method is called, otherwise ``false``  will be returned.
+       
+       
+       | The file system should have free space for at least a copy of the Realm file.
+       | The Realm file is left untouched if any file operation fails.
+       | 
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - a :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  pointing to a Realm file.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       ``true``  if successful, ``false``  if any file operation failed.
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _copyFromRealm:
+
+.. _copyFromRealm__:
+
+.. _Realm_copyFromRealm:
+
+.. _Realm_copyFromRealm__:
+
+.. _io_realm_Realm_copyFromRealm:
+
+.. _io_realm_Realm_copyFromRealm__:
+
+
+
+copyFromRealm
+-------------
+
+.. _io_realm_Realm_copyFromRealm_E_int_:
+
+.. _io_realm_Realm_copyFromRealm_E__int_:
+
+.. _io_realm_Realm_copyFromRealm_RealmModel_int_:
+
+.. _io_realm_Realm_copyFromRealm_RealmModel__int_:
+
+.. _copyFromRealm_E_int_:
+
+.. _copyFromRealm_E__int_:
+
+.. _copyFromRealm_RealmModel_int_:
+
+.. _copyFromRealm_RealmModel__int_:
+
+.. _Realm_copyFromRealm_E_int_:
+
+.. _Realm_copyFromRealm_E__int_:
+
+.. _Realm_copyFromRealm_RealmModel_int_:
+
+.. _Realm_copyFromRealm_RealmModel__int_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  **E** realmObject, 
+       |  **int** maxDepth
+       | )
+       
+       
+       
+   
+   * - Makes an unmanaged in-memory copy of an already persisted :ref:`RealmObject <io_realm_RealmObject>` . This is a deep copy that will copy all referenced objects up to the defined depth.
+       
+       The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+       
+       \*WARNING\*: Any changes to copied objects can be merged back into Realm using :ref:`copyToRealmOrUpdate(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____>` , but all fields will be overridden, not just those that were changed. This includes references to other objects even though they might be ``null``  due to ``maxDepth``  being reached. This can also potentially override changes made by other threads. This behaviour can be modified using :ref:`ImportFlag <io_realm_ImportFlag>` s.
+       
+       
+       
+       
+       
+       
+       **Type Parameters**
+       
+       - ``E`` - type of object.
+          
+          
+          
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``realmObject`` - :ref:`RealmObject <io_realm_RealmObject>`  to copy.
+          
+          
+          
+          
+          
+       - ``maxDepth`` - limit of the deep copy. All references after this depth will be ``null`` . Starting depth is ``0`` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       an in-memory detached copy of the managed :ref:`RealmObject <io_realm_RealmObject>` .
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if ``maxDepth < 0`` , the RealmObject is no longer accessible or it is a :ref:`DynamicRealmObject <io_realm_DynamicRealmObject>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`copyToRealmOrUpdate(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+.. _io_realm_Realm_copyFromRealm_E_:
+
+.. _io_realm_Realm_copyFromRealm_RealmModel_:
+
+.. _copyFromRealm_E_:
+
+.. _copyFromRealm_RealmModel_:
+
+.. _Realm_copyFromRealm_E_:
+
+.. _Realm_copyFromRealm_RealmModel_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  **E** realmObject
+       | )
+       
+       
+       
+   
+   * - Makes an unmanaged in-memory copy of an already persisted :ref:`RealmObject <io_realm_RealmObject>` . This is a deep copy that will copy all referenced objects.
+       
+       The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+       
+       \*WARNING\*: Any changes to copied objects can be merged back into Realm using :ref:`copyToRealmOrUpdate(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____>` , but all fields will be overridden, not just those that were changed. This includes references to other objects, and can potentially override changes made by other threads. This behaviour can be modified using :ref:`ImportFlag <io_realm_ImportFlag>` s.
+       
+       
+       
+       
+       
+       
+       **Type Parameters**
+       
+       - ``E`` - type of object.
+          
+          
+          
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``realmObject`` - :ref:`RealmObject <io_realm_RealmObject>`  to copy.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       an in-memory detached copy of the managed :ref:`RealmObject <io_realm_RealmObject>` .
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the RealmObject is no longer accessible or it is a :ref:`DynamicRealmObject <io_realm_DynamicRealmObject>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`copyToRealmOrUpdate(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+.. _io_realm_Realm_copyFromRealm_java_lang_Iterable_int_:
+
+.. _io_realm_Realm_copyFromRealm_java_lang_Iterable__int_:
+
+.. _io_realm_Realm_copyFromRealm_Iterable_int_:
+
+.. _io_realm_Realm_copyFromRealm_Iterable__int_:
+
+.. _copyFromRealm_java_lang_Iterable_int_:
+
+.. _copyFromRealm_java_lang_Iterable__int_:
+
+.. _copyFromRealm_Iterable_int_:
+
+.. _copyFromRealm_Iterable__int_:
+
+.. _Realm_copyFromRealm_java_lang_Iterable_int_:
+
+.. _Realm_copyFromRealm_java_lang_Iterable__int_:
+
+.. _Realm_copyFromRealm_Iterable_int_:
+
+.. _Realm_copyFromRealm_Iterable__int_:
+
+.. _io_realm_Realm_copyFromRealm_Iterable_E___int_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__  :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  realmObjects, 
+       |  **int** maxDepth
+       | )
+       
+       
+       
+   
+   * - Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all referenced objects up to the defined depth.The copied objects are all detached from Realm and they will no longer be automatically updated. This means that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+       
+       \*WARNING\*: Any changes to copied objects can be merged back into Realm using :ref:`copyToRealmOrUpdate(Iterable, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_Iterable__ImportFlag____>` , but all fields will be overridden, not just those that were changed. This includes references to other objects even though they might be ``null``  due to ``maxDepth``  being reached. This can also potentially override changes made by other threads. This behaviour can be modified using :ref:`ImportFlag <io_realm_ImportFlag>` s.
+       
+       
+       
+       
+       
+       
+       **Type Parameters**
+       
+       - ``E`` - type of object.
+          
+          
+          
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``realmObjects`` - RealmObjects to copy.
+          
+          
+          
+       - ``maxDepth`` - limit of the deep copy. All references after this depth will be ``null`` . Starting depth is ``0`` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       an in-memory detached copy of the RealmObjects.
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if ``maxDepth < 0`` , the RealmObject is no longer accessible or it is a :ref:`DynamicRealmObject <io_realm_DynamicRealmObject>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`copyToRealmOrUpdate(Iterable, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_Iterable__ImportFlag____>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+.. _io_realm_Realm_copyFromRealm_java_lang_Iterable_:
+
+.. _io_realm_Realm_copyFromRealm_Iterable_:
+
+.. _copyFromRealm_java_lang_Iterable_:
+
+.. _copyFromRealm_Iterable_:
+
+.. _Realm_copyFromRealm_java_lang_Iterable_:
+
+.. _Realm_copyFromRealm_Iterable_:
+
+.. _io_realm_Realm_copyFromRealm_Iterable_E__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__  :ref:`copyFromRealm <io_realm_Realm_copyFromRealm>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  realmObjects
+       | )
+       
+       
+       
+   
+   * - Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all referenced objects.The copied objects are all detached from Realm and they will no longer be automatically updated. This means that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+       
+       \*WARNING\*: Any changes to copied objects can be merged back into Realm using :ref:`copyToRealmOrUpdate(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____>` , but all fields will be overridden, not just those that were changed. This includes references to other objects, and can potentially override changes made by other threads. This behaviour can be modified using :ref:`ImportFlag <io_realm_ImportFlag>` s.
+       
+       
+       
+       
+       
+       
+       **Type Parameters**
+       
+       - ``E`` - type of object.
+          
+          
+          
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``realmObjects`` - RealmObjects to copy.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       an in-memory detached copy of managed RealmObjects.
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the RealmObject is no longer accessible or it is a :ref:`DynamicRealmObject <io_realm_DynamicRealmObject>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`copyToRealmOrUpdate(Iterable, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_Iterable__ImportFlag____>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _copyToRealm:
+
+.. _copyToRealm__:
+
+.. _Realm_copyToRealm:
+
+.. _Realm_copyToRealm__:
+
+.. _io_realm_Realm_copyToRealm:
+
+.. _io_realm_Realm_copyToRealm__:
+
+
+
+copyToRealm
+-----------
+
+.. _io_realm_Realm_copyToRealm_java_lang_Iterable_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_java_lang_Iterable__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_java_lang_Iterable_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_java_lang_Iterable__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_java_lang_Iterable_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealm_java_lang_Iterable__ImportFlag____:
+
+.. _io_realm_Realm_copyToRealm_Iterable_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_Iterable__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_Iterable_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_Iterable__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_Iterable_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealm_Iterable__ImportFlag____:
+
+.. _copyToRealm_java_lang_Iterable_io_realm_ImportFlag_:
+
+.. _copyToRealm_java_lang_Iterable__io_realm_ImportFlag_:
+
+.. _copyToRealm_java_lang_Iterable_ImportFlag_:
+
+.. _copyToRealm_java_lang_Iterable__ImportFlag_:
+
+.. _copyToRealm_java_lang_Iterable_ImportFlag____:
+
+.. _copyToRealm_java_lang_Iterable__ImportFlag____:
+
+.. _copyToRealm_Iterable_io_realm_ImportFlag_:
+
+.. _copyToRealm_Iterable__io_realm_ImportFlag_:
+
+.. _copyToRealm_Iterable_ImportFlag_:
+
+.. _copyToRealm_Iterable__ImportFlag_:
+
+.. _copyToRealm_Iterable_ImportFlag____:
+
+.. _copyToRealm_Iterable__ImportFlag____:
+
+.. _Realm_copyToRealm_java_lang_Iterable_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_java_lang_Iterable__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_java_lang_Iterable_ImportFlag_:
+
+.. _Realm_copyToRealm_java_lang_Iterable__ImportFlag_:
+
+.. _Realm_copyToRealm_java_lang_Iterable_ImportFlag____:
+
+.. _Realm_copyToRealm_java_lang_Iterable__ImportFlag____:
+
+.. _Realm_copyToRealm_Iterable_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_Iterable__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_Iterable_ImportFlag_:
+
+.. _Realm_copyToRealm_Iterable__ImportFlag_:
+
+.. _Realm_copyToRealm_Iterable_ImportFlag____:
+
+.. _Realm_copyToRealm_Iterable__ImportFlag____:
+
+.. _io_realm_Realm_copyToRealm_Iterable_E___ImportFlag____:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__  :ref:`copyToRealm <io_realm_Realm_copyToRealm>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  objects, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       
+   
+   * - Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes to the original RealmObjects will not be reflected in the Realm copies. This is a deep copy i.e., all referenced objects will be copied. Objects already in this Realm will be ignored.Please note, copying an object will copy all field values. Any unset field in the objects and child objects will be set to their default value if not provided.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``objects`` - the RealmObjects to copy to the Realm.
+          
+          
+          
+       - ``flags`` - any flag that modifies the behaviour of inserting the data into the Realm.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a list of the the converted RealmObjects that all has their properties managed by the Realm.
+       
+       
+       
+       
+       **Throws**
+       
+       - :ref:`io.realm.exceptions.RealmException <io_realm_exceptions_RealmException>`  - if any of the objects has already been added to Realm.
+          
+          
+          
+       - `java.lang.IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if any of the elements in the input collection is ``null`` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_copyToRealm_E_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_E__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_E_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_E__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_E_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealm_E__ImportFlag____:
+
+.. _io_realm_Realm_copyToRealm_RealmModel_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_RealmModel__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_RealmModel_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_RealmModel__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealm_RealmModel_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealm_RealmModel__ImportFlag____:
+
+.. _copyToRealm_E_io_realm_ImportFlag_:
+
+.. _copyToRealm_E__io_realm_ImportFlag_:
+
+.. _copyToRealm_E_ImportFlag_:
+
+.. _copyToRealm_E__ImportFlag_:
+
+.. _copyToRealm_E_ImportFlag____:
+
+.. _copyToRealm_E__ImportFlag____:
+
+.. _copyToRealm_RealmModel_io_realm_ImportFlag_:
+
+.. _copyToRealm_RealmModel__io_realm_ImportFlag_:
+
+.. _copyToRealm_RealmModel_ImportFlag_:
+
+.. _copyToRealm_RealmModel__ImportFlag_:
+
+.. _copyToRealm_RealmModel_ImportFlag____:
+
+.. _copyToRealm_RealmModel__ImportFlag____:
+
+.. _Realm_copyToRealm_E_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_E__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_E_ImportFlag_:
+
+.. _Realm_copyToRealm_E__ImportFlag_:
+
+.. _Realm_copyToRealm_E_ImportFlag____:
+
+.. _Realm_copyToRealm_E__ImportFlag____:
+
+.. _Realm_copyToRealm_RealmModel_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_RealmModel__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealm_RealmModel_ImportFlag_:
+
+.. _Realm_copyToRealm_RealmModel__ImportFlag_:
+
+.. _Realm_copyToRealm_RealmModel_ImportFlag____:
+
+.. _Realm_copyToRealm_RealmModel__ImportFlag____:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`copyToRealm <io_realm_Realm_copyToRealm>` <**E** >(
+       |  **E** object, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       
+   
+   * - Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects already in this Realm will be ignored.Please note, copying an object will copy all field values. Any unset field in this and child objects will be set to their default value if not provided.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``object`` - the :ref:`io.realm.RealmObject <io_realm_RealmObject>`  to copy to the Realm.
+          
+          
+          
+          
+          
+       - ``flags`` - any flag that modifies the behaviour of inserting the data into the Realm.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a managed RealmObject with its properties backed by the Realm.
+       
+       
+       
+       
+       **Throws**
+       
+       - `java.lang.IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the object is ``null``  or it belongs to a Realm instance in a different thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _copyToRealmOrUpdate:
+
+.. _copyToRealmOrUpdate__:
+
+.. _Realm_copyToRealmOrUpdate:
+
+.. _Realm_copyToRealmOrUpdate__:
+
+.. _io_realm_Realm_copyToRealmOrUpdate:
+
+.. _io_realm_Realm_copyToRealmOrUpdate__:
+
+
+
+copyToRealmOrUpdate
+-------------------
+
+.. _io_realm_Realm_copyToRealmOrUpdate_java_lang_Iterable_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_java_lang_Iterable__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_java_lang_Iterable_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_java_lang_Iterable__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_java_lang_Iterable_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_java_lang_Iterable__ImportFlag____:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_Iterable_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_Iterable__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_Iterable_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_Iterable__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_Iterable_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_Iterable__ImportFlag____:
+
+.. _copyToRealmOrUpdate_java_lang_Iterable_io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_java_lang_Iterable__io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_java_lang_Iterable_ImportFlag_:
+
+.. _copyToRealmOrUpdate_java_lang_Iterable__ImportFlag_:
+
+.. _copyToRealmOrUpdate_java_lang_Iterable_ImportFlag____:
+
+.. _copyToRealmOrUpdate_java_lang_Iterable__ImportFlag____:
+
+.. _copyToRealmOrUpdate_Iterable_io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_Iterable__io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_Iterable_ImportFlag_:
+
+.. _copyToRealmOrUpdate_Iterable__ImportFlag_:
+
+.. _copyToRealmOrUpdate_Iterable_ImportFlag____:
+
+.. _copyToRealmOrUpdate_Iterable__ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_java_lang_Iterable_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_java_lang_Iterable__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_java_lang_Iterable_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_java_lang_Iterable__ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_java_lang_Iterable_ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_java_lang_Iterable__ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_Iterable_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_Iterable__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_Iterable_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_Iterable__ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_Iterable_ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_Iterable__ImportFlag____:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_Iterable_E___ImportFlag____:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public `List <https://docs.oracle.com/javase/7/docs/api/java/util/List.html>`__  :ref:`copyToRealmOrUpdate <io_realm_Realm_copyToRealmOrUpdate>` <**E** >(
+       |  `java.lang.Iterable\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html>`__  objects, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       
+   
+   * - Updates a list of existing RealmObjects that is identified by their :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  or creates a new copy if no existing object could be found. This is a deep copy or update i.e., all referenced objects will be either copied or updated.
+       
+       Please note, copying an object will copy all field values. Any unset field in the objects and child objects will be set to their default value if not provided.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``objects`` - a list of objects to update or copy into Realm.
+          
+          
+          
+       - ``flags`` - any flag that modifies the behaviour of inserting the data into the Realm.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a list of all the new or updated RealmObjects.
+       
+       
+       
+       
+       **Throws**
+       
+       - `java.lang.IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if RealmObject is ``null``  or doesn't have a Primary key defined.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`copyToRealm(Iterable, ImportFlag...) <io_realm_Realm_copyToRealm_Iterable__ImportFlag____>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+.. _io_realm_Realm_copyToRealmOrUpdate_E_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_E__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_E_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_E__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_E_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_E__ImportFlag____:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_RealmModel_io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_RealmModel__io_realm_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_RealmModel_ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag_:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_RealmModel_ImportFlag____:
+
+.. _io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____:
+
+.. _copyToRealmOrUpdate_E_io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_E__io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_E_ImportFlag_:
+
+.. _copyToRealmOrUpdate_E__ImportFlag_:
+
+.. _copyToRealmOrUpdate_E_ImportFlag____:
+
+.. _copyToRealmOrUpdate_E__ImportFlag____:
+
+.. _copyToRealmOrUpdate_RealmModel_io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_RealmModel__io_realm_ImportFlag_:
+
+.. _copyToRealmOrUpdate_RealmModel_ImportFlag_:
+
+.. _copyToRealmOrUpdate_RealmModel__ImportFlag_:
+
+.. _copyToRealmOrUpdate_RealmModel_ImportFlag____:
+
+.. _copyToRealmOrUpdate_RealmModel__ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_E_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_E__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_E_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_E__ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_E_ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_E__ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_RealmModel_io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_RealmModel__io_realm_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_RealmModel_ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_RealmModel__ImportFlag_:
+
+.. _Realm_copyToRealmOrUpdate_RealmModel_ImportFlag____:
+
+.. _Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`copyToRealmOrUpdate <io_realm_Realm_copyToRealmOrUpdate>` <**E** >(
+       |  **E** object, 
+       |  :ref:`io.realm.ImportFlag[] <io_realm_ImportFlag>`  flags
+       | )
+       
+       
+       
+   
+   * - Updates an existing RealmObject that is identified by the same :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  or creates a new copy if no existing object could be found. This is a deep copy or update i.e., all referenced objects will be either copied or updated.
+       
+       Please note, copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``object`` - :ref:`io.realm.RealmObject <io_realm_RealmObject>`  to copy or update.
+          
+          
+          
+          
+          
+       - ``flags`` - any flag that modifies the behaviour of inserting the data into the Realm.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       the new or updated RealmObject with all its properties backed by the Realm.
+       
+       
+       
+       
+       **Throws**
+       
+       - `java.lang.IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the object is ``null``  or doesn't have a Primary key defined or it belongs to a Realm instance in a different thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`copyToRealm(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealm_RealmModel__ImportFlag____>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _createAllFromJson:
+
+.. _createAllFromJson__:
+
+.. _Realm_createAllFromJson:
+
+.. _Realm_createAllFromJson__:
+
+.. _io_realm_Realm_createAllFromJson:
+
+.. _io_realm_Realm_createAllFromJson__:
+
+
+
+createAllFromJson
+-----------------
+
+.. _io_realm_Realm_createAllFromJson_java_lang_Class_JSONArray_:
+
+.. _io_realm_Realm_createAllFromJson_java_lang_Class__JSONArray_:
+
+.. _io_realm_Realm_createAllFromJson_Class_JSONArray_:
+
+.. _io_realm_Realm_createAllFromJson_Class__JSONArray_:
+
+.. _createAllFromJson_java_lang_Class_JSONArray_:
+
+.. _createAllFromJson_java_lang_Class__JSONArray_:
+
+.. _createAllFromJson_Class_JSONArray_:
+
+.. _createAllFromJson_Class__JSONArray_:
+
+.. _Realm_createAllFromJson_java_lang_Class_JSONArray_:
+
+.. _Realm_createAllFromJson_java_lang_Class__JSONArray_:
+
+.. _Realm_createAllFromJson_Class_JSONArray_:
+
+.. _Realm_createAllFromJson_Class__JSONArray_:
+
+.. _io_realm_Realm_createAllFromJson_Class_E___JSONArray_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`createAllFromJson <io_realm_Realm_createAllFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONArray** json
+       | )
+       
+       
+       
+   
+   * - Creates a Realm object for each object in a JSON array. This must be done within a transaction.JSON properties with unknown properties will be ignored. If a :ref:`RealmObject <io_realm_RealmObject>`  field is not present in the JSON object the :ref:`RealmObject <io_realm_RealmObject>`  field will be set to the default value for that type.
+       
+       
+       
+       This method currently does not support value list field.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - type of Realm objects to create.
+          
+          
+          
+       - ``json`` - an array where each JSONObject must map to the specified class.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if mapping from JSON fails.
+          
+          
+          
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the JSON object doesn't have a primary key property but the corresponding :ref:`RealmObjectSchema <io_realm_RealmObjectSchema>`  has a :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  defined.
+          
+          
+          
+          
+          
+       - `UnsupportedOperationException <https://docs.oracle.com/javase/7/docs/api/java/lang/UnsupportedOperationException.html>`__  - if the object to insert contains a :ref:`RealmDictionary <io_realm_RealmDictionary>`  or a :ref:`RealmSet <io_realm_RealmSet>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`RealmSet <io_realm_RealmSet>` 
+             
+             
+             
+          - :ref:`RealmDictionary <io_realm_RealmDictionary>` 
+             
+             
+             
+          - :ref:`RealmMap <io_realm_RealmMap>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _createEmbeddedObject:
+
+.. _createEmbeddedObject__:
+
+.. _Realm_createEmbeddedObject:
+
+.. _Realm_createEmbeddedObject__:
+
+.. _io_realm_Realm_createEmbeddedObject:
+
+.. _io_realm_Realm_createEmbeddedObject__:
+
+
+
+createEmbeddedObject
+--------------------
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class_io_realm_RealmModel_java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class__io_realm_RealmModel__java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class_io_realm_RealmModel_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class__io_realm_RealmModel__String_:
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class_RealmModel_java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class__RealmModel__java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class_RealmModel_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_java_lang_Class__RealmModel__String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class_io_realm_RealmModel_java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class__io_realm_RealmModel__java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class_io_realm_RealmModel_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class__io_realm_RealmModel__String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class_RealmModel_java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class__RealmModel__java_lang_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class_RealmModel_String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class__RealmModel__String_:
+
+.. _createEmbeddedObject_java_lang_Class_io_realm_RealmModel_java_lang_String_:
+
+.. _createEmbeddedObject_java_lang_Class__io_realm_RealmModel__java_lang_String_:
+
+.. _createEmbeddedObject_java_lang_Class_io_realm_RealmModel_String_:
+
+.. _createEmbeddedObject_java_lang_Class__io_realm_RealmModel__String_:
+
+.. _createEmbeddedObject_java_lang_Class_RealmModel_java_lang_String_:
+
+.. _createEmbeddedObject_java_lang_Class__RealmModel__java_lang_String_:
+
+.. _createEmbeddedObject_java_lang_Class_RealmModel_String_:
+
+.. _createEmbeddedObject_java_lang_Class__RealmModel__String_:
+
+.. _createEmbeddedObject_Class_io_realm_RealmModel_java_lang_String_:
+
+.. _createEmbeddedObject_Class__io_realm_RealmModel__java_lang_String_:
+
+.. _createEmbeddedObject_Class_io_realm_RealmModel_String_:
+
+.. _createEmbeddedObject_Class__io_realm_RealmModel__String_:
+
+.. _createEmbeddedObject_Class_RealmModel_java_lang_String_:
+
+.. _createEmbeddedObject_Class__RealmModel__java_lang_String_:
+
+.. _createEmbeddedObject_Class_RealmModel_String_:
+
+.. _createEmbeddedObject_Class__RealmModel__String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class_io_realm_RealmModel_java_lang_String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class__io_realm_RealmModel__java_lang_String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class_io_realm_RealmModel_String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class__io_realm_RealmModel__String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class_RealmModel_java_lang_String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class__RealmModel__java_lang_String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class_RealmModel_String_:
+
+.. _Realm_createEmbeddedObject_java_lang_Class__RealmModel__String_:
+
+.. _Realm_createEmbeddedObject_Class_io_realm_RealmModel_java_lang_String_:
+
+.. _Realm_createEmbeddedObject_Class__io_realm_RealmModel__java_lang_String_:
+
+.. _Realm_createEmbeddedObject_Class_io_realm_RealmModel_String_:
+
+.. _Realm_createEmbeddedObject_Class__io_realm_RealmModel__String_:
+
+.. _Realm_createEmbeddedObject_Class_RealmModel_java_lang_String_:
+
+.. _Realm_createEmbeddedObject_Class__RealmModel__java_lang_String_:
+
+.. _Realm_createEmbeddedObject_Class_RealmModel_String_:
+
+.. _Realm_createEmbeddedObject_Class__RealmModel__String_:
+
+.. _io_realm_Realm_createEmbeddedObject_Class_E___RealmModel__String_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`createEmbeddedObject <io_realm_Realm_createEmbeddedObject>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  :ref:`RealmModel <io_realm_RealmModel>`  parentObject, 
+       |  `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__  parentProperty
+       | )
+       
+       
+       
+   
+   * - Instantiates and adds a new embedded object to the Realm.This method should only be used to create objects of types marked as embedded.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - the Class of the object to create. It must be marked with ``@RealmClass(embedded = true)`` .
+          
+          
+          
+          
+          
+       - ``parentObject`` - The parent object which should hold a reference to the embedded object.
+          
+          
+          
+       - ``parentProperty`` - the property in the parent class which holds the reference. If the parent property is a list the embedded object will be added to the end of that list.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       the newly created embedded object.
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if ``clazz``  is not an embedded class or if the property in the parent class cannot hold objects of the appropriate type.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`RealmClass.embedded() <io_realm_annotations_RealmClass_embedded__>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _createObject:
+
+.. _createObject__:
+
+.. _Realm_createObject:
+
+.. _Realm_createObject__:
+
+.. _io_realm_Realm_createObject:
+
+.. _io_realm_Realm_createObject__:
+
+
+
+createObject
+------------
+
+.. _io_realm_Realm_createObject_java_lang_Class_java_lang_Object_:
+
+.. _io_realm_Realm_createObject_java_lang_Class__java_lang_Object_:
+
+.. _io_realm_Realm_createObject_java_lang_Class_Object_:
+
+.. _io_realm_Realm_createObject_java_lang_Class__Object_:
+
+.. _io_realm_Realm_createObject_Class_java_lang_Object_:
+
+.. _io_realm_Realm_createObject_Class__java_lang_Object_:
+
+.. _io_realm_Realm_createObject_Class_Object_:
+
+.. _io_realm_Realm_createObject_Class__Object_:
+
+.. _createObject_java_lang_Class_java_lang_Object_:
+
+.. _createObject_java_lang_Class__java_lang_Object_:
+
+.. _createObject_java_lang_Class_Object_:
+
+.. _createObject_java_lang_Class__Object_:
+
+.. _createObject_Class_java_lang_Object_:
+
+.. _createObject_Class__java_lang_Object_:
+
+.. _createObject_Class_Object_:
+
+.. _createObject_Class__Object_:
+
+.. _Realm_createObject_java_lang_Class_java_lang_Object_:
+
+.. _Realm_createObject_java_lang_Class__java_lang_Object_:
+
+.. _Realm_createObject_java_lang_Class_Object_:
+
+.. _Realm_createObject_java_lang_Class__Object_:
+
+.. _Realm_createObject_Class_java_lang_Object_:
+
+.. _Realm_createObject_Class__java_lang_Object_:
+
+.. _Realm_createObject_Class_Object_:
+
+.. _Realm_createObject_Class__Object_:
+
+.. _io_realm_Realm_createObject_Class_E___Object_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`createObject <io_realm_Realm_createObject>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__  primaryKeyValue
+       | )
+       
+       
+       
+   
+   * - Instantiates and adds a new object to the Realm with the primary key value already set.If the value violates the primary key constraint, no object will be added and a :ref:`RealmException <io_realm_exceptions_RealmException>`  will be thrown. The default value for primary key provided by the model class will be ignored.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - the Class of the object to create.
+          
+          
+          
+       - ``primaryKeyValue`` - value for the primary key field.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       the new object.
+       
+       
+       
+       
+       **Throws**
+       
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if object could not be created due to the primary key being invalid.
+          
+          
+          
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if the model class does not have an primary key defined.
+          
+          
+          
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the ``primaryKeyValue``  doesn't have a value that can be converted to the expected value.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_createObject_java_lang_Class_:
+
+.. _io_realm_Realm_createObject_Class_:
+
+.. _createObject_java_lang_Class_:
+
+.. _createObject_Class_:
+
+.. _Realm_createObject_java_lang_Class_:
+
+.. _Realm_createObject_Class_:
+
+.. _io_realm_Realm_createObject_Class_E__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`createObject <io_realm_Realm_createObject>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz
+       | )
+       
+       
+       
+   
+   * - Instantiates and adds a new object to the Realm.This method is only available for model classes with no \@PrimaryKey annotation. If you like to create an object that has a primary key, use :ref:`createObject(Class, Object) <io_realm_Realm_createObject_Class__Object_>`  or :ref:`copyToRealm(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealm_RealmModel__ImportFlag____>`  instead.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - the Class of the object to create.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       the new object.
+       
+       
+       
+       
+       **Throws**
+       
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if the primary key is defined in the model class or an object cannot be created.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`createObject(Class, Object) <io_realm_Realm_createObject_Class__Object_>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _createObjectFromJson:
+
+.. _createObjectFromJson__:
+
+.. _Realm_createObjectFromJson:
+
+.. _Realm_createObjectFromJson__:
+
+.. _io_realm_Realm_createObjectFromJson:
+
+.. _io_realm_Realm_createObjectFromJson__:
+
+
+
+createObjectFromJson
+--------------------
+
+.. _io_realm_Realm_createObjectFromJson_java_lang_Class_JSONObject_:
+
+.. _io_realm_Realm_createObjectFromJson_java_lang_Class__JSONObject_:
+
+.. _io_realm_Realm_createObjectFromJson_Class_JSONObject_:
+
+.. _io_realm_Realm_createObjectFromJson_Class__JSONObject_:
+
+.. _createObjectFromJson_java_lang_Class_JSONObject_:
+
+.. _createObjectFromJson_java_lang_Class__JSONObject_:
+
+.. _createObjectFromJson_Class_JSONObject_:
+
+.. _createObjectFromJson_Class__JSONObject_:
+
+.. _Realm_createObjectFromJson_java_lang_Class_JSONObject_:
+
+.. _Realm_createObjectFromJson_java_lang_Class__JSONObject_:
+
+.. _Realm_createObjectFromJson_Class_JSONObject_:
+
+.. _Realm_createObjectFromJson_Class__JSONObject_:
+
+.. _io_realm_Realm_createObjectFromJson_Class_E___JSONObject_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`createObjectFromJson <io_realm_Realm_createObjectFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONObject** json
+       | )
+       
+       
+       
+   
+   * - Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON properties with unknown properties will be ignored. If a :ref:`RealmObject <io_realm_RealmObject>`  field is not present in the JSON object the :ref:`RealmObject <io_realm_RealmObject>`  field will be set to the default value for that type.
+       
+       This method currently does not support value list field.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - type of Realm object to create.
+          
+          
+          
+       - ``json`` - the JSONObject with object data.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       created object or ``null``  if no JSON data was provided.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if the mapping from JSON fails.
+          
+          
+          
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the JSON object doesn't have a primary key property but the corresponding :ref:`RealmObjectSchema <io_realm_RealmObjectSchema>`  has a :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  defined.
+          
+          
+          
+          
+          
+       - `UnsupportedOperationException <https://docs.oracle.com/javase/7/docs/api/java/lang/UnsupportedOperationException.html>`__  - if the object to insert contains a :ref:`RealmDictionary <io_realm_RealmDictionary>`  or a :ref:`RealmSet <io_realm_RealmSet>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - **createOrUpdateObjectFromJson(Class, org.json.JSONObject)**
+             
+             
+             
+          - :ref:`RealmSet <io_realm_RealmSet>` 
+             
+             
+             
+          - :ref:`RealmDictionary <io_realm_RealmDictionary>` 
+             
+             
+             
+          - :ref:`RealmMap <io_realm_RealmMap>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _createOrUpdateAllFromJson:
+
+.. _createOrUpdateAllFromJson__:
+
+.. _Realm_createOrUpdateAllFromJson:
+
+.. _Realm_createOrUpdateAllFromJson__:
+
+.. _io_realm_Realm_createOrUpdateAllFromJson:
+
+.. _io_realm_Realm_createOrUpdateAllFromJson__:
+
+
+
+createOrUpdateAllFromJson
+-------------------------
+
+.. _io_realm_Realm_createOrUpdateAllFromJson_java_lang_Class_JSONArray_:
+
+.. _io_realm_Realm_createOrUpdateAllFromJson_java_lang_Class__JSONArray_:
+
+.. _io_realm_Realm_createOrUpdateAllFromJson_Class_JSONArray_:
+
+.. _io_realm_Realm_createOrUpdateAllFromJson_Class__JSONArray_:
+
+.. _createOrUpdateAllFromJson_java_lang_Class_JSONArray_:
+
+.. _createOrUpdateAllFromJson_java_lang_Class__JSONArray_:
+
+.. _createOrUpdateAllFromJson_Class_JSONArray_:
+
+.. _createOrUpdateAllFromJson_Class__JSONArray_:
+
+.. _Realm_createOrUpdateAllFromJson_java_lang_Class_JSONArray_:
+
+.. _Realm_createOrUpdateAllFromJson_java_lang_Class__JSONArray_:
+
+.. _Realm_createOrUpdateAllFromJson_Class_JSONArray_:
+
+.. _Realm_createOrUpdateAllFromJson_Class__JSONArray_:
+
+.. _io_realm_Realm_createOrUpdateAllFromJson_Class_E___JSONArray_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`createOrUpdateAllFromJson <io_realm_Realm_createOrUpdateAllFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONArray** json
+       | )
+       
+       
+       
+   
+   * - Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing object could not be found in the Realm, a new object will be created. This must happen within a transaction. If updating a :ref:`RealmObject <io_realm_RealmObject>`  and a field is not found in the JSON object, that field will not be updated. If a new :ref:`RealmObject <io_realm_RealmObject>`  is created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
+       
+       This method currently does not support value list field.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - type of :ref:`io.realm.RealmObject <io_realm_RealmObject>`  to create or update. It must have a primary key defined.
+          
+          
+          
+          
+          
+       - ``json`` - array with object data.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if trying to update a class without a :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>` .
+          
+          
+          
+          
+          
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the JSON object doesn't have a primary key property but the corresponding :ref:`RealmObjectSchema <io_realm_RealmObjectSchema>`  has a :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  defined.
+          
+          
+          
+          
+          
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if unable to map JSON.
+          
+          
+          
+       - `UnsupportedOperationException <https://docs.oracle.com/javase/7/docs/api/java/lang/UnsupportedOperationException.html>`__  - if the object to insert contains a :ref:`RealmDictionary <io_realm_RealmDictionary>`  or a :ref:`RealmSet <io_realm_RealmSet>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - **createAllFromJson(Class, org.json.JSONArray)**
+             
+             
+             
+          - :ref:`RealmSet <io_realm_RealmSet>` 
+             
+             
+             
+          - :ref:`RealmDictionary <io_realm_RealmDictionary>` 
+             
+             
+             
+          - :ref:`RealmMap <io_realm_RealmMap>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _createOrUpdateObjectFromJson:
+
+.. _createOrUpdateObjectFromJson__:
+
+.. _Realm_createOrUpdateObjectFromJson:
+
+.. _Realm_createOrUpdateObjectFromJson__:
+
+.. _io_realm_Realm_createOrUpdateObjectFromJson:
+
+.. _io_realm_Realm_createOrUpdateObjectFromJson__:
+
+
+
+createOrUpdateObjectFromJson
+----------------------------
+
+.. _io_realm_Realm_createOrUpdateObjectFromJson_java_lang_Class_JSONObject_:
+
+.. _io_realm_Realm_createOrUpdateObjectFromJson_java_lang_Class__JSONObject_:
+
+.. _io_realm_Realm_createOrUpdateObjectFromJson_Class_JSONObject_:
+
+.. _io_realm_Realm_createOrUpdateObjectFromJson_Class__JSONObject_:
+
+.. _createOrUpdateObjectFromJson_java_lang_Class_JSONObject_:
+
+.. _createOrUpdateObjectFromJson_java_lang_Class__JSONObject_:
+
+.. _createOrUpdateObjectFromJson_Class_JSONObject_:
+
+.. _createOrUpdateObjectFromJson_Class__JSONObject_:
+
+.. _Realm_createOrUpdateObjectFromJson_java_lang_Class_JSONObject_:
+
+.. _Realm_createOrUpdateObjectFromJson_java_lang_Class__JSONObject_:
+
+.. _Realm_createOrUpdateObjectFromJson_Class_JSONObject_:
+
+.. _Realm_createOrUpdateObjectFromJson_Class__JSONObject_:
+
+.. _io_realm_Realm_createOrUpdateObjectFromJson_Class_E___JSONObject_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **E** :ref:`createOrUpdateObjectFromJson <io_realm_Realm_createOrUpdateObjectFromJson>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz, 
+       |  **JSONObject** json
+       | )
+       
+       
+       
+   
+   * - Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be found a new object will be saved in the Realm. This must happen within a transaction. If updating a :ref:`RealmObject <io_realm_RealmObject>`  and a field is not found in the JSON object, that field will not be updated. If a new :ref:`RealmObject <io_realm_RealmObject>`  is created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
+       
+       This method currently does not support value list field.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - Type of :ref:`io.realm.RealmObject <io_realm_RealmObject>`  to create or update. It must have a primary key defined.
+          
+          
+          
+          
+          
+       - ``json`` - **org.json.JSONObject** with object data.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       created or updated :ref:`io.realm.RealmObject <io_realm_RealmObject>` .
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if trying to update a class without a :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>` .
+          
+          
+          
+          
+          
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the JSON object doesn't have a primary key property but the corresponding :ref:`RealmObjectSchema <io_realm_RealmObjectSchema>`  has a :ref:`io.realm.annotations.PrimaryKey <io_realm_annotations_PrimaryKey>`  defined.
+          
+          
+          
+          
+          
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if JSON data cannot be mapped.
+          
+          
+          
+       - `UnsupportedOperationException <https://docs.oracle.com/javase/7/docs/api/java/lang/UnsupportedOperationException.html>`__  - if the object to insert contains a :ref:`RealmDictionary <io_realm_RealmDictionary>`  or a :ref:`RealmSet <io_realm_RealmSet>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - **createObjectFromJson(Class, org.json.JSONObject)**
+             
+             
+             
+          - :ref:`RealmSet <io_realm_RealmSet>` 
+             
+             
+             
+          - :ref:`RealmDictionary <io_realm_RealmDictionary>` 
+             
+             
+             
+          - :ref:`RealmMap <io_realm_RealmMap>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _delete:
+
+.. _delete__:
+
+.. _Realm_delete:
+
+.. _Realm_delete__:
+
+.. _io_realm_Realm_delete:
+
+.. _io_realm_Realm_delete__:
+
+
+
+delete
+------
+
+.. _io_realm_Realm_delete_java_lang_Class_:
+
+.. _io_realm_Realm_delete_Class_:
+
+.. _io_realm_Realm_delete_RealmModel__:
+
+.. _delete_java_lang_Class_:
+
+.. _delete_Class_:
+
+.. _delete_RealmModel__:
+
+.. _Realm_delete_java_lang_Class_:
+
+.. _Realm_delete_Class_:
+
+.. _Realm_delete_RealmModel__:
+
+.. _io_realm_Realm_delete_Class___extends_RealmModel__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`delete <io_realm_Realm_delete>` (
+       |  `java.lang.Class\<? extends io.realm.RealmModel> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz
+       | )
+       
+       
+       
+   
+   * - Deletes all objects of the specified class from the Realm.
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - the class which objects should be removed.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if the Realm is closed or called from an incorrect thread.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _deleteRealm:
+
+.. _deleteRealm__:
+
+.. _Realm_deleteRealm:
+
+.. _Realm_deleteRealm__:
+
+.. _io_realm_Realm_deleteRealm:
+
+.. _io_realm_Realm_deleteRealm__:
+
+
+
+deleteRealm
+-----------
+
+.. _io_realm_Realm_deleteRealm_io_realm_RealmConfiguration_:
+
+.. _io_realm_Realm_deleteRealm_RealmConfiguration_:
+
+.. _deleteRealm_io_realm_RealmConfiguration_:
+
+.. _deleteRealm_RealmConfiguration_:
+
+.. _Realm_deleteRealm_io_realm_RealmConfiguration_:
+
+.. _Realm_deleteRealm_RealmConfiguration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **boolean** :ref:`deleteRealm <io_realm_Realm_deleteRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       
+   
+   * - Deletes the Realm file along with the related temporary files specified by the given :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  from the filesystem. Temporary file with ".lock" extension won't be deleted.
+       
+       All Realm instances must be closed before calling this method.
+       
+       WARNING: For synchronized Realm, there is a chance that an internal Realm instance on the background thread is not closed even all the user controlled Realm instances are closed. This will result an ``IllegalStateException`` . See issue https://github.com/realm/realm-java/issues/5416 .
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - a :ref:`RealmConfiguration <io_realm_RealmConfiguration>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       ``false``  if the Realm file could not be deleted. Temporary files deletion failure won't impact the return value. All of the failing file deletions will be logged.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if there are Realm instances opened on other threads or other processes.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _executeTransaction:
+
+.. _executeTransaction__:
+
+.. _Realm_executeTransaction:
+
+.. _Realm_executeTransaction__:
+
+.. _io_realm_Realm_executeTransaction:
+
+.. _io_realm_Realm_executeTransaction__:
+
+
+
+executeTransaction
+------------------
+
+.. _io_realm_Realm_executeTransaction_io_realm_Realm_Transaction_:
+
+.. _io_realm_Realm_executeTransaction_Transaction_:
+
+.. _io_realm_Realm_executeTransaction_Realm_Transaction_:
+
+.. _executeTransaction_io_realm_Realm_Transaction_:
+
+.. _executeTransaction_Transaction_:
+
+.. _executeTransaction_Realm_Transaction_:
+
+.. _Realm_executeTransaction_io_realm_Realm_Transaction_:
+
+.. _Realm_executeTransaction_Transaction_:
+
+.. _Realm_executeTransaction_Realm_Transaction_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`executeTransaction <io_realm_Realm_executeTransaction>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction
+       | )
+       
+       
+       
+   
+   * - Executes a given transaction on the Realm. **beginTransaction()** and **commitTransaction()** will be called automatically. If any exception is thrown during the transaction **cancelTransaction()** will be called instead of **commitTransaction()**.
+       
+       Calling this method from the UI thread will throw a :ref:`RealmException <io_realm_exceptions_RealmException>` . Doing so may result in a drop of frames or even ANRs. We recommend calling this method from a non-UI thread or using :ref:`executeTransactionAsync(Transaction) <io_realm_Realm_executeTransactionAsync_Transaction_>`  instead.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``transaction`` - the :ref:`io.realm.Realm.Transaction <io_realm_Realm_Transaction>`  to execute.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the ``transaction``  is ``null`` .
+          
+          
+          
+          
+          
+       - :ref:`RealmMigrationNeededException <io_realm_exceptions_RealmMigrationNeededException>`  - if the latest version contains incompatible schema changes.
+          
+          
+          
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if called from the UI thread, unless an explicit opt-in has been declared in :ref:`RealmConfiguration.Builder.allowWritesOnUiThread(boolean) <io_realm_RealmConfiguration_Builder_allowWritesOnUiThread_boolean_>` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _executeTransactionAsync:
+
+.. _executeTransactionAsync__:
+
+.. _Realm_executeTransactionAsync:
+
+.. _Realm_executeTransactionAsync__:
+
+.. _io_realm_Realm_executeTransactionAsync:
+
+.. _io_realm_Realm_executeTransactionAsync__:
+
+
+
+executeTransactionAsync
+-----------------------
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_Transaction__OnSuccess__OnError_:
+
+.. _executeTransactionAsync_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__OnSuccess__OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__OnSuccess__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess__Realm_Transaction_OnError_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction, 
+       |  :ref:`Realm.Transaction.OnSuccess <io_realm_Realm_Transaction_OnSuccess>`  onSuccess, 
+       |  :ref:`Realm.Transaction.OnError <io_realm_Realm_Transaction_OnError>`  onError
+       | )
+       
+       
+       
+   
+   * - Similar to :ref:`executeTransactionAsync(Transaction) <io_realm_Realm_executeTransactionAsync_Transaction_>` , but also accepts an OnSuccess and OnError callbacks.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``transaction`` - :ref:`io.realm.Realm.Transaction <io_realm_Realm_Transaction>`  to execute.
+          
+          
+          
+          
+          
+       - ``onSuccess`` - callback invoked when the transaction succeeds.
+          
+          
+          
+       - ``onError`` - callback invoked when the transaction fails.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  representing a cancellable task.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the ``transaction``  is ``null`` , or if the realm is opened from another thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnError_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__OnError_:
+
+.. _executeTransactionAsync_Transaction_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Transaction__Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnError_:
+
+.. _executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnError_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnError_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction, 
+       |  :ref:`Realm.Transaction.OnError <io_realm_Realm_Transaction_OnError>`  onError
+       | )
+       
+       
+       
+   
+   * - Similar to :ref:`executeTransactionAsync(Transaction) <io_realm_Realm_executeTransactionAsync_Transaction_>` , but also accepts an OnError callback.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``transaction`` - :ref:`io.realm.Realm.Transaction <io_realm_Realm_Transaction>`  to execute.
+          
+          
+          
+          
+          
+       - ``onError`` - callback invoked when the transaction fails.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  representing a cancellable task.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the ``transaction``  is ``null`` , or if the realm is opened from another thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Transaction__OnSuccess_:
+
+.. _executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Realm_Transaction__OnSuccess_:
+
+.. _executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__OnSuccess_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Transaction__OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Transaction__Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_io_realm_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__io_realm_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_Realm_Transaction_OnSuccess_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction__Realm_Transaction_OnSuccess_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction, 
+       |  :ref:`Realm.Transaction.OnSuccess <io_realm_Realm_Transaction_OnSuccess>`  onSuccess
+       | )
+       
+       
+       
+   
+   * - Similar to :ref:`executeTransactionAsync(Transaction) <io_realm_Realm_executeTransactionAsync_Transaction_>` , but also accepts an OnSuccess callback.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``transaction`` - :ref:`io.realm.Realm.Transaction <io_realm_Realm_Transaction>`  to execute.
+          
+          
+          
+          
+          
+       - ``onSuccess`` - callback invoked when the transaction succeeds.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  representing a cancellable task.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the ``transaction``  is ``null`` , or if the realm is opened from another thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_executeTransactionAsync_io_realm_Realm_Transaction_:
+
+.. _io_realm_Realm_executeTransactionAsync_Transaction_:
+
+.. _io_realm_Realm_executeTransactionAsync_Realm_Transaction_:
+
+.. _executeTransactionAsync_io_realm_Realm_Transaction_:
+
+.. _executeTransactionAsync_Transaction_:
+
+.. _executeTransactionAsync_Realm_Transaction_:
+
+.. _Realm_executeTransactionAsync_io_realm_Realm_Transaction_:
+
+.. _Realm_executeTransactionAsync_Transaction_:
+
+.. _Realm_executeTransactionAsync_Realm_Transaction_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  :ref:`executeTransactionAsync <io_realm_Realm_executeTransactionAsync>` (
+       |  :ref:`Realm.Transaction <io_realm_Realm_Transaction>`  transaction
+       | )
+       
+       
+       
+   
+   * - Similar to :ref:`executeTransaction(Transaction) <io_realm_Realm_executeTransaction_Transaction_>`  but runs asynchronously on a worker thread.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``transaction`` - :ref:`io.realm.Realm.Transaction <io_realm_Realm_Transaction>`  to execute.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  representing a cancellable task.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the ``transaction``  is ``null`` , or if the Realm is opened from another thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _freeze:
+
+.. _freeze__:
+
+.. _Realm_freeze:
+
+.. _Realm_freeze__:
+
+.. _io_realm_Realm_freeze:
+
+.. _io_realm_Realm_freeze__:
+
+
+
+freeze
+------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public :ref:`Realm <io_realm_Realm>`  :ref:`freeze <io_realm_Realm_freeze>` ()
+       | 
+       
+       
+       
+   
+   * - Returns a frozen snapshot of the current Realm. This Realm can be read and queried from any thread without throwing an `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__ . A frozen Realm has its own lifecycle and can be closed by calling **close()**, but fully closing the Realm that spawned the frozen copy will also close the frozen Realm.
+       
+       Frozen data can be queried as normal, but trying to mutate it in any way or attempting to register any listener will throw an `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__ .
+       
+       
+       
+       Note: Keeping a large number of Realms with different versions alive can have a negative impact on the filesize of the Realm. In order to avoid such a situation, it is possible to set :ref:`RealmConfiguration.Builder.maxNumberOfActiveVersions(long) <io_realm_RealmConfiguration_Builder_maxNumberOfActiveVersions_long_>` .
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       a frozen copy of this Realm.
+       
+       
+       
+       
+       
+       
+       **Overrides**
+       
+       ``freeze`` in class **BaseRealm**
+       
+       
+   
+   
+
+
+.. _getApplicationContext:
+
+.. _getApplicationContext__:
+
+.. _Realm_getApplicationContext:
+
+.. _Realm_getApplicationContext__:
+
+.. _io_realm_Realm_getApplicationContext:
+
+.. _io_realm_Realm_getApplicationContext__:
+
+
+
+getApplicationContext
+---------------------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **Context** :ref:`getApplicationContext <io_realm_Realm_getApplicationContext>` ()
+       | 
+       
+       
+       
+   
+   * - Get the application context used when initializing Realm with :ref:`Realm.init(Context) <io_realm_Realm_init_Context_>`  or :ref:`Realm.init(Context, String) <io_realm_Realm_init_Context__String_>` .
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       the application context used when initializing Realm with :ref:`Realm.init(Context) <io_realm_Realm_init_Context_>`  or :ref:`Realm.init(Context, String) <io_realm_Realm_init_Context__String_>` , or null if Realm has not been initialized yet.
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _getDefaultConfiguration:
+
+.. _getDefaultConfiguration__:
+
+.. _Realm_getDefaultConfiguration:
+
+.. _Realm_getDefaultConfiguration__:
+
+.. _io_realm_Realm_getDefaultConfiguration:
+
+.. _io_realm_Realm_getDefaultConfiguration__:
+
+
+
+getDefaultConfiguration
+-----------------------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  :ref:`getDefaultConfiguration <io_realm_Realm_getDefaultConfiguration>` ()
+       | 
+       
+       
+       
+   
+   * - Returns the default configuration for :ref:`getDefaultInstance() <io_realm_Realm_getDefaultInstance__>` .
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       default configuration object or ``null``  if no default configuration is specified.
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _getDefaultInstance:
+
+.. _getDefaultInstance__:
+
+.. _Realm_getDefaultInstance:
+
+.. _Realm_getDefaultInstance__:
+
+.. _io_realm_Realm_getDefaultInstance:
+
+.. _io_realm_Realm_getDefaultInstance__:
+
+
+
+getDefaultInstance
+------------------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`Realm <io_realm_Realm>`  :ref:`getDefaultInstance <io_realm_Realm_getDefaultInstance>` ()
+       | 
+       
+       
+       
+   
+   * - Realm static constructor that returns the Realm instance defined by the :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>`  set by :ref:`setDefaultConfiguration(RealmConfiguration) <io_realm_Realm_setDefaultConfiguration_RealmConfiguration_>` 
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       an instance of the Realm class.
+       
+       
+       
+       
+       **Throws**
+       
+       - `java.lang.NullPointerException <https://docs.oracle.com/javase/7/docs/api/java/lang/NullPointerException.html>`__  - if no default configuration has been defined.
+          
+          
+          
+       - :ref:`RealmMigrationNeededException <io_realm_exceptions_RealmMigrationNeededException>`  - if no migration has been provided by the default configuration and the
+          
+          
+          
+       - :ref:`RealmFileException <io_realm_exceptions_RealmFileException>`  - if an error happened when accessing the underlying Realm file. was set and the thread opening the Realm was interrupted while the download was in progress.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _getDefaultModule:
+
+.. _getDefaultModule__:
+
+.. _Realm_getDefaultModule:
+
+.. _Realm_getDefaultModule__:
+
+.. _io_realm_Realm_getDefaultModule:
+
+.. _io_realm_Realm_getDefaultModule__:
+
+
+
+getDefaultModule
+----------------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__  :ref:`getDefaultModule <io_realm_Realm_getDefaultModule>` ()
+       | 
+       
+       
+       
+   
+   * - Returns the default Realm module. This module contains all Realm classes in the current project, but not those from library or project dependencies. Realm classes in these should be exposed using their own module.
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       the default Realm module or ``null``  if no default module exists.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - :ref:`RealmException <io_realm_exceptions_RealmException>`  - if unable to create an instance of the module.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`io.realm.RealmConfiguration.Builder.modules(Object, Object...) <io_realm_RealmConfiguration_Builder_modules_Object__Object____>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _getGlobalInstanceCount:
+
+.. _getGlobalInstanceCount__:
+
+.. _Realm_getGlobalInstanceCount:
+
+.. _Realm_getGlobalInstanceCount__:
+
+.. _io_realm_Realm_getGlobalInstanceCount:
+
+.. _io_realm_Realm_getGlobalInstanceCount__:
+
+
+
+getGlobalInstanceCount
+----------------------
+
+.. _io_realm_Realm_getGlobalInstanceCount_io_realm_RealmConfiguration_:
+
+.. _io_realm_Realm_getGlobalInstanceCount_RealmConfiguration_:
+
+.. _getGlobalInstanceCount_io_realm_RealmConfiguration_:
+
+.. _getGlobalInstanceCount_RealmConfiguration_:
+
+.. _Realm_getGlobalInstanceCount_io_realm_RealmConfiguration_:
+
+.. _Realm_getGlobalInstanceCount_RealmConfiguration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **int** :ref:`getGlobalInstanceCount <io_realm_Realm_getGlobalInstanceCount>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       
+   
+   * - Returns the current number of open Realm instances across all threads in current process that are using this configuration. This includes both dynamic and normal Realms.
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - the :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>`  for the Realm.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       number of open Realm instances across all threads.
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _getInstance:
+
+.. _getInstance__:
+
+.. _Realm_getInstance:
+
+.. _Realm_getInstance__:
+
+.. _io_realm_Realm_getInstance:
+
+.. _io_realm_Realm_getInstance__:
+
+
+
+getInstance
+-----------
+
+.. _io_realm_Realm_getInstance_io_realm_RealmConfiguration_:
+
+.. _io_realm_Realm_getInstance_RealmConfiguration_:
+
+.. _getInstance_io_realm_RealmConfiguration_:
+
+.. _getInstance_RealmConfiguration_:
+
+.. _Realm_getInstance_io_realm_RealmConfiguration_:
+
+.. _Realm_getInstance_RealmConfiguration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`Realm <io_realm_Realm>`  :ref:`getInstance <io_realm_Realm_getInstance>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       
+   
+   * - Realm static constructor that returns the Realm instance defined by provided :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>` 
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  used to open the Realm
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       an instance of the Realm class
+       
+       
+       
+       
+       **Throws**
+       
+       - :ref:`RealmMigrationNeededException <io_realm_exceptions_RealmMigrationNeededException>`  - if no migration has been provided by the configuration and the RealmObject classes or version has has changed so a migration is required.
+          
+          
+          
+       - :ref:`RealmFileException <io_realm_exceptions_RealmFileException>`  - if an error happened when accessing the underlying Realm file.
+          
+          
+          
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if a null :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  is provided.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`RealmConfiguration for details on how to configure a Realm. <io_realm_RealmConfiguration>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _getInstanceAsync:
+
+.. _getInstanceAsync__:
+
+.. _Realm_getInstanceAsync:
+
+.. _Realm_getInstanceAsync__:
+
+.. _io_realm_Realm_getInstanceAsync:
+
+.. _io_realm_Realm_getInstanceAsync__:
+
+
+
+getInstanceAsync
+----------------
+
+.. _io_realm_Realm_getInstanceAsync_io_realm_RealmConfiguration_io_realm_Realm_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_io_realm_RealmConfiguration__io_realm_Realm_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_io_realm_RealmConfiguration_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_io_realm_RealmConfiguration__Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_io_realm_RealmConfiguration_Realm_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_io_realm_RealmConfiguration__Realm_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_RealmConfiguration_io_realm_Realm_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_RealmConfiguration__io_realm_Realm_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_RealmConfiguration_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_RealmConfiguration__Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_RealmConfiguration_Realm_Callback_:
+
+.. _io_realm_Realm_getInstanceAsync_RealmConfiguration__Realm_Callback_:
+
+.. _getInstanceAsync_io_realm_RealmConfiguration_io_realm_Realm_Callback_:
+
+.. _getInstanceAsync_io_realm_RealmConfiguration__io_realm_Realm_Callback_:
+
+.. _getInstanceAsync_io_realm_RealmConfiguration_Callback_:
+
+.. _getInstanceAsync_io_realm_RealmConfiguration__Callback_:
+
+.. _getInstanceAsync_io_realm_RealmConfiguration_Realm_Callback_:
+
+.. _getInstanceAsync_io_realm_RealmConfiguration__Realm_Callback_:
+
+.. _getInstanceAsync_RealmConfiguration_io_realm_Realm_Callback_:
+
+.. _getInstanceAsync_RealmConfiguration__io_realm_Realm_Callback_:
+
+.. _getInstanceAsync_RealmConfiguration_Callback_:
+
+.. _getInstanceAsync_RealmConfiguration__Callback_:
+
+.. _getInstanceAsync_RealmConfiguration_Realm_Callback_:
+
+.. _getInstanceAsync_RealmConfiguration__Realm_Callback_:
+
+.. _Realm_getInstanceAsync_io_realm_RealmConfiguration_io_realm_Realm_Callback_:
+
+.. _Realm_getInstanceAsync_io_realm_RealmConfiguration__io_realm_Realm_Callback_:
+
+.. _Realm_getInstanceAsync_io_realm_RealmConfiguration_Callback_:
+
+.. _Realm_getInstanceAsync_io_realm_RealmConfiguration__Callback_:
+
+.. _Realm_getInstanceAsync_io_realm_RealmConfiguration_Realm_Callback_:
+
+.. _Realm_getInstanceAsync_io_realm_RealmConfiguration__Realm_Callback_:
+
+.. _Realm_getInstanceAsync_RealmConfiguration_io_realm_Realm_Callback_:
+
+.. _Realm_getInstanceAsync_RealmConfiguration__io_realm_Realm_Callback_:
+
+.. _Realm_getInstanceAsync_RealmConfiguration_Callback_:
+
+.. _Realm_getInstanceAsync_RealmConfiguration__Callback_:
+
+.. _Realm_getInstanceAsync_RealmConfiguration_Realm_Callback_:
+
+.. _Realm_getInstanceAsync_RealmConfiguration__Realm_Callback_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  :ref:`getInstanceAsync <io_realm_Realm_getInstanceAsync>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration, 
+       |  :ref:`Realm.Callback <io_realm_Realm_Callback>`  callback
+       | )
+       
+       
+       
+   
+   * - The creation of the first Realm instance per :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  in a process can take some time as all initialization code need to run at that point (setting up the Realm, validating schemas and creating initial data). This method places the initialization work in a background thread and deliver the Realm instance to the caller thread asynchronously after the initialization is finished.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  used to open the Realm.
+          
+          
+          
+          
+          
+       - ``callback`` - invoked to return the results.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a :ref:`RealmAsyncTask <io_realm_RealmAsyncTask>`  representing a cancellable task.
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if a null :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  or a null :ref:`Callback <io_realm_Realm_Transaction_Callback>`  is provided.
+          
+          
+          
+          
+          
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if it is called from a non-Looper or **IntentService** thread.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`Callback for more details. <io_realm_Realm_Transaction_Callback>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _getLocalInstanceCount:
+
+.. _getLocalInstanceCount__:
+
+.. _Realm_getLocalInstanceCount:
+
+.. _Realm_getLocalInstanceCount__:
+
+.. _io_realm_Realm_getLocalInstanceCount:
+
+.. _io_realm_Realm_getLocalInstanceCount__:
+
+
+
+getLocalInstanceCount
+---------------------
+
+.. _io_realm_Realm_getLocalInstanceCount_io_realm_RealmConfiguration_:
+
+.. _io_realm_Realm_getLocalInstanceCount_RealmConfiguration_:
+
+.. _getLocalInstanceCount_io_realm_RealmConfiguration_:
+
+.. _getLocalInstanceCount_RealmConfiguration_:
+
+.. _Realm_getLocalInstanceCount_io_realm_RealmConfiguration_:
+
+.. _Realm_getLocalInstanceCount_RealmConfiguration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **int** :ref:`getLocalInstanceCount <io_realm_Realm_getLocalInstanceCount>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       
+   
+   * - Returns the current number of open Realm instances on the thread calling this method. This include both dynamic and normal Realms.
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - the :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>`  for the Realm.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       number of open Realm instances on the caller thread.
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _getSchema:
+
+.. _getSchema__:
+
+.. _Realm_getSchema:
+
+.. _Realm_getSchema__:
+
+.. _io_realm_Realm_getSchema:
+
+.. _io_realm_Realm_getSchema__:
+
+
+
+getSchema
+---------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public :ref:`RealmSchema <io_realm_RealmSchema>`  :ref:`getSchema <io_realm_Realm_getSchema>` ()
+       | 
+       
+       
+       
+   
+   * - Returns the schema for this Realm. The schema is immutable. Any attempt to modify it will result in an `UnsupportedOperationException <https://docs.oracle.com/javase/7/docs/api/java/lang/UnsupportedOperationException.html>`__ .
+       
+       The schema can only be modified using :ref:`DynamicRealm.getSchema() <io_realm_DynamicRealm_getSchema__>`  or through an migration.
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       The :ref:`RealmSchema <io_realm_RealmSchema>`  for this Realm.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Overrides**
+       
+       ``getSchema`` in class **BaseRealm**
+       
+       
+   
+   
+
+
+.. _init:
+
+.. _init__:
+
+.. _Realm_init:
+
+.. _Realm_init__:
+
+.. _io_realm_Realm_init:
+
+.. _io_realm_Realm_init__:
+
+
+
+init
+----
+
+.. _io_realm_Realm_init_Context_java_lang_String_:
+
+.. _io_realm_Realm_init_Context__java_lang_String_:
+
+.. _io_realm_Realm_init_Context_String_:
+
+.. _io_realm_Realm_init_Context__String_:
+
+.. _init_Context_java_lang_String_:
+
+.. _init_Context__java_lang_String_:
+
+.. _init_Context_String_:
+
+.. _init_Context__String_:
+
+.. _Realm_init_Context_java_lang_String_:
+
+.. _Realm_init_Context__java_lang_String_:
+
+.. _Realm_init_Context_String_:
+
+.. _Realm_init_Context__String_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static synchronized **void** :ref:`init <io_realm_Realm_init>` (
+       |  **Context** context, 
+       |  `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__  userAgent
+       | )
+       
+       
+       
+   
+   * - Initializes the Realm library and creates a default configuration that is ready to use. It is required to call this method before interacting with any other of the Realm API's.A good place is in an `android.app.Application <https://developer.android.com/reference/android/app/Application>`__  subclass:
+       
+       
+       
+        
+       
+       .. code-block:: java
+       
+          
+           public class MyApplication extends Application {
+             @Override
+             public void onCreate() {
+               super.onCreate();
+               Realm.init(this, "MyApp/" + BuildConfig.VERSION_NAME);
+             }
+           }
+           
+       
+       
+        
+       
+       Remember to register it in the ``AndroidManifest.xml``  file:
+       
+       
+       
+        
+       
+       .. code-block:: java
+       
+          
+           <?xml version="1.0" encoding="utf-8"?>
+           <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.realm.example">
+           <application android:name=".MyApplication">
+             // ...
+           </application>
+           </manifest>
+           
+       
+       
+        
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``context`` - the Application Context.
+          
+          
+          
+       - ``userAgent`` - optional user defined string that will be sent to the Realm Object Server as part of a ``User-Agent``  header when a session is established. This setting will not be used by non-synchronized Realms.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if a ``null``  context or userAgent is provided.
+          
+          
+          
+          
+          
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if **Context.getFilesDir()** could not be found.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`getDefaultInstance() <io_realm_Realm_getDefaultInstance__>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+.. _io_realm_Realm_init_Context_:
+
+.. _init_Context_:
+
+.. _Realm_init_Context_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static synchronized **void** :ref:`init <io_realm_Realm_init>` (
+       |  **Context** context
+       | )
+       
+       
+       
+   
+   * - Initializes the Realm library and creates a default configuration that is ready to use. It is required to call this method before interacting with any other of the Realm API's.A good place is in an `android.app.Application <https://developer.android.com/reference/android/app/Application>`__  subclass:
+       
+       
+       
+        
+       
+       .. code-block:: java
+       
+          
+           public class MyApplication extends Application {
+             @Override
+             public void onCreate() {
+               super.onCreate();
+               Realm.init(this);
+             }
+           }
+           
+       
+       
+        
+       
+       Remember to register it in the ``AndroidManifest.xml``  file:
+       
+       
+       
+        
+       
+       .. code-block:: java
+       
+          
+           <?xml version="1.0" encoding="utf-8"?>
+           <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.realm.example">
+           <application android:name=".MyApplication">
+             // ...
+           </application>
+           </manifest>
+           
+       
+       
+        
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``context`` - the Application Context.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if a ``null``  context is provided.
+          
+          
+          
+          
+          
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if **Context.getFilesDir()** could not be found.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`getDefaultInstance() <io_realm_Realm_getDefaultInstance__>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _insert:
+
+.. _insert__:
+
+.. _Realm_insert:
+
+.. _Realm_insert__:
+
+.. _io_realm_Realm_insert:
+
+.. _io_realm_Realm_insert__:
+
+
+
+insert
+------
+
+.. _io_realm_Realm_insert_io_realm_RealmModel_:
+
+.. _io_realm_Realm_insert_RealmModel_:
+
+.. _insert_io_realm_RealmModel_:
+
+.. _insert_RealmModel_:
+
+.. _Realm_insert_io_realm_RealmModel_:
+
+.. _Realm_insert_RealmModel_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`insert <io_realm_Realm_insert>` (
+       |  :ref:`RealmModel <io_realm_RealmModel>`  object
+       | )
+       
+       
+       
+   
+   * - Inserts an unmanaged RealmObject. This is generally faster than :ref:`copyToRealm(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealm_RealmModel__ImportFlag____>`  since it doesn't return the inserted elements, and performs minimum allocations and checks. After being inserted any changes to the original object will not be persisted.
+       
+       Please note:
+       
+       
+       
+       - We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it. Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+          
+          
+       - We don't create (nor return) a managed :ref:`RealmObject <io_realm_RealmObject>`  for each element
+          
+          
+          
+          
+       - Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided
+          
+          
+       
+       
+       If you want the managed :ref:`RealmObject <io_realm_RealmObject>`  returned, use :ref:`copyToRealm(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealm_RealmModel__ImportFlag____>` , otherwise if you have a large number of object this method is generally faster.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``object`` - RealmObjects to insert.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if the corresponding Realm is closed, called from an incorrect thread or not in a transaction.
+          
+          
+          
+       - :ref:`io.realm.exceptions.RealmPrimaryKeyConstraintException <io_realm_exceptions_RealmPrimaryKeyConstraintException>`  - if two objects with the same primary key is inserted or if a primary key value already exists in the Realm.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_insert_java_util_Collection_:
+
+.. _io_realm_Realm_insert_Collection_:
+
+.. _io_realm_Realm_insert_RealmModel__:
+
+.. _insert_java_util_Collection_:
+
+.. _insert_Collection_:
+
+.. _insert_RealmModel__:
+
+.. _Realm_insert_java_util_Collection_:
+
+.. _Realm_insert_Collection_:
+
+.. _Realm_insert_RealmModel__:
+
+.. _io_realm_Realm_insert_Collection___extends_RealmModel__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`insert <io_realm_Realm_insert>` (
+       |  `java.util.Collection\<? extends io.realm.RealmModel> <https://docs.oracle.com/javase/7/docs/api/java/util/Collection.html>`__  objects
+       | )
+       
+       
+       
+   
+   * - Inserts a list of an unmanaged RealmObjects. This is generally faster than :ref:`copyToRealm(Iterable, ImportFlag...) <io_realm_Realm_copyToRealm_Iterable__ImportFlag____>`  since it doesn't return the inserted elements, and performs minimum allocations and checks. After being inserted any changes to the original objects will not be persisted.
+       
+       Please note:
+       
+       
+       
+       - We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it. Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+          
+          
+       - We don't create (nor return) a managed :ref:`RealmObject <io_realm_RealmObject>`  for each element
+          
+          
+          
+          
+       - Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided
+          
+          
+       
+       
+       If you want the managed :ref:`RealmObject <io_realm_RealmObject>`  returned, use :ref:`copyToRealm(Iterable, ImportFlag...) <io_realm_Realm_copyToRealm_Iterable__ImportFlag____>` , otherwise if you have a large number of object this method is generally faster.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``objects`` - RealmObjects to insert.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if the corresponding Realm is closed, called from an incorrect thread or not in a transaction.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _insertOrUpdate:
+
+.. _insertOrUpdate__:
+
+.. _Realm_insertOrUpdate:
+
+.. _Realm_insertOrUpdate__:
+
+.. _io_realm_Realm_insertOrUpdate:
+
+.. _io_realm_Realm_insertOrUpdate__:
+
+
+
+insertOrUpdate
+--------------
+
+.. _io_realm_Realm_insertOrUpdate_io_realm_RealmModel_:
+
+.. _io_realm_Realm_insertOrUpdate_RealmModel_:
+
+.. _insertOrUpdate_io_realm_RealmModel_:
+
+.. _insertOrUpdate_RealmModel_:
+
+.. _Realm_insertOrUpdate_io_realm_RealmModel_:
+
+.. _Realm_insertOrUpdate_RealmModel_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`insertOrUpdate <io_realm_Realm_insertOrUpdate>` (
+       |  :ref:`RealmModel <io_realm_RealmModel>`  object
+       | )
+       
+       
+       
+   
+   * - Inserts or updates an unmanaged RealmObject. This is generally faster than :ref:`copyToRealmOrUpdate(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_RealmModel__ImportFlag____>`  since it doesn't return the inserted elements, and performs minimum allocations and checks. After being inserted any changes to the original object will not be persisted.
+       
+       Please note:
+       
+       
+       
+       - We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it. Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+          
+          
+       - We don't create (nor return) a managed :ref:`RealmObject <io_realm_RealmObject>`  for each element
+          
+          
+          
+          
+       - Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided
+          
+          
+       
+       
+       If you want the managed :ref:`RealmObject <io_realm_RealmObject>`  returned, use :ref:`copyToRealm(RealmModel, ImportFlag...) <io_realm_Realm_copyToRealm_RealmModel__ImportFlag____>` , otherwise if you have a large number of object this method is generally faster.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``object`` - RealmObjects to insert.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if the corresponding Realm is closed, called from an incorrect thread or not in a transaction.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_insertOrUpdate_java_util_Collection_:
+
+.. _io_realm_Realm_insertOrUpdate_Collection_:
+
+.. _io_realm_Realm_insertOrUpdate_RealmModel__:
+
+.. _insertOrUpdate_java_util_Collection_:
+
+.. _insertOrUpdate_Collection_:
+
+.. _insertOrUpdate_RealmModel__:
+
+.. _Realm_insertOrUpdate_java_util_Collection_:
+
+.. _Realm_insertOrUpdate_Collection_:
+
+.. _Realm_insertOrUpdate_RealmModel__:
+
+.. _io_realm_Realm_insertOrUpdate_Collection___extends_RealmModel__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`insertOrUpdate <io_realm_Realm_insertOrUpdate>` (
+       |  `java.util.Collection\<? extends io.realm.RealmModel> <https://docs.oracle.com/javase/7/docs/api/java/util/Collection.html>`__  objects
+       | )
+       
+       
+       
+   
+   * - Inserts or updates a list of unmanaged RealmObjects. This is generally faster than :ref:`copyToRealmOrUpdate(Iterable, ImportFlag...) <io_realm_Realm_copyToRealmOrUpdate_Iterable__ImportFlag____>`  since it doesn't return the inserted elements, and performs minimum allocations and checks. After being inserted any changes to the original objects will not be persisted.
+       
+       Please note:
+       
+       
+       
+       - We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it. Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+          
+          
+       - We don't create (nor return) a managed :ref:`RealmObject <io_realm_RealmObject>`  for each element
+          
+          
+          
+          
+       - Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided
+          
+          
+       
+       
+       If you want the managed :ref:`RealmObject <io_realm_RealmObject>`  returned, use :ref:`copyToRealm(Iterable, ImportFlag...) <io_realm_Realm_copyToRealm_Iterable__ImportFlag____>` , otherwise if you have a large number of object this method is generally faster.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``objects`` - RealmObjects to insert.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if the corresponding Realm is closed, called from an incorrect thread or not in a transaction.
+          
+          
+          
+       - :ref:`io.realm.exceptions.RealmPrimaryKeyConstraintException <io_realm_exceptions_RealmPrimaryKeyConstraintException>`  - if two objects with the same primary key is inserted or if a primary key value already exists in the Realm.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _isEmpty:
+
+.. _isEmpty__:
+
+.. _Realm_isEmpty:
+
+.. _Realm_isEmpty__:
+
+.. _io_realm_Realm_isEmpty:
+
+.. _io_realm_Realm_isEmpty__:
+
+
+
+isEmpty
+-------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **boolean** :ref:`isEmpty <io_realm_Realm_isEmpty>` ()
+       | 
+       
+       
+       
+   
+   * - Checks if this :ref:`io.realm.Realm <io_realm_Realm>`  contains any objects.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       ``true``  if empty, \@{code false} otherwise.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Overrides**
+       
+       ``isEmpty`` in class **BaseRealm**
+       
+       
+   
+   
+
+
+.. _migrateRealm:
+
+.. _migrateRealm__:
+
+.. _Realm_migrateRealm:
+
+.. _Realm_migrateRealm__:
+
+.. _io_realm_Realm_migrateRealm:
+
+.. _io_realm_Realm_migrateRealm__:
+
+
+
+migrateRealm
+------------
+
+.. _io_realm_Realm_migrateRealm_io_realm_RealmConfiguration_io_realm_RealmMigration_:
+
+.. _io_realm_Realm_migrateRealm_io_realm_RealmConfiguration__io_realm_RealmMigration_:
+
+.. _io_realm_Realm_migrateRealm_io_realm_RealmConfiguration_RealmMigration_:
+
+.. _io_realm_Realm_migrateRealm_io_realm_RealmConfiguration__RealmMigration_:
+
+.. _io_realm_Realm_migrateRealm_RealmConfiguration_io_realm_RealmMigration_:
+
+.. _io_realm_Realm_migrateRealm_RealmConfiguration__io_realm_RealmMigration_:
+
+.. _io_realm_Realm_migrateRealm_RealmConfiguration_RealmMigration_:
+
+.. _io_realm_Realm_migrateRealm_RealmConfiguration__RealmMigration_:
+
+.. _migrateRealm_io_realm_RealmConfiguration_io_realm_RealmMigration_:
+
+.. _migrateRealm_io_realm_RealmConfiguration__io_realm_RealmMigration_:
+
+.. _migrateRealm_io_realm_RealmConfiguration_RealmMigration_:
+
+.. _migrateRealm_io_realm_RealmConfiguration__RealmMigration_:
+
+.. _migrateRealm_RealmConfiguration_io_realm_RealmMigration_:
+
+.. _migrateRealm_RealmConfiguration__io_realm_RealmMigration_:
+
+.. _migrateRealm_RealmConfiguration_RealmMigration_:
+
+.. _migrateRealm_RealmConfiguration__RealmMigration_:
+
+.. _Realm_migrateRealm_io_realm_RealmConfiguration_io_realm_RealmMigration_:
+
+.. _Realm_migrateRealm_io_realm_RealmConfiguration__io_realm_RealmMigration_:
+
+.. _Realm_migrateRealm_io_realm_RealmConfiguration_RealmMigration_:
+
+.. _Realm_migrateRealm_io_realm_RealmConfiguration__RealmMigration_:
+
+.. _Realm_migrateRealm_RealmConfiguration_io_realm_RealmMigration_:
+
+.. _Realm_migrateRealm_RealmConfiguration__io_realm_RealmMigration_:
+
+.. _Realm_migrateRealm_RealmConfiguration_RealmMigration_:
+
+.. _Realm_migrateRealm_RealmConfiguration__RealmMigration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **void** :ref:`migrateRealm <io_realm_Realm_migrateRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration, 
+       |  :ref:`RealmMigration <io_realm_RealmMigration>`  migration
+       | )
+       
+       
+       
+   
+   * - Manually triggers a migration on a RealmMigration.
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - the:ref:`RealmConfiguration <io_realm_RealmConfiguration>` .
+          
+          
+          
+          
+          
+       - ``migration`` - the :ref:`RealmMigration <io_realm_RealmMigration>`  to run on the Realm. This will override any migration set on the configuration.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `FileNotFoundException <https://docs.oracle.com/javase/7/docs/api/java/io/FileNotFoundException.html>`__  - if the Realm file doesn't exist.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_Realm_migrateRealm_io_realm_RealmConfiguration_:
+
+.. _io_realm_Realm_migrateRealm_RealmConfiguration_:
+
+.. _migrateRealm_io_realm_RealmConfiguration_:
+
+.. _migrateRealm_RealmConfiguration_:
+
+.. _Realm_migrateRealm_io_realm_RealmConfiguration_:
+
+.. _Realm_migrateRealm_RealmConfiguration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **void** :ref:`migrateRealm <io_realm_Realm_migrateRealm>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       
+   
+   * - Manually triggers the migration associated with a given RealmConfiguration. If Realm is already at the latest version, nothing will happen.
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - :ref:`RealmConfiguration <io_realm_RealmConfiguration>` 
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `FileNotFoundException <https://docs.oracle.com/javase/7/docs/api/java/io/FileNotFoundException.html>`__  - if the Realm file doesn't exist.
+          
+          
+          
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _removeAllChangeListeners:
+
+.. _removeAllChangeListeners__:
+
+.. _Realm_removeAllChangeListeners:
+
+.. _Realm_removeAllChangeListeners__:
+
+.. _io_realm_Realm_removeAllChangeListeners:
+
+.. _io_realm_Realm_removeAllChangeListeners__:
+
+
+
+removeAllChangeListeners
+------------------------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`removeAllChangeListeners <io_realm_Realm_removeAllChangeListeners>` ()
+       | 
+       
+       
+       
+   
+   * - Removes all user-defined change listeners.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if you try to remove listeners from a non-Looper Thread.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`io.realm.RealmChangeListener <io_realm_RealmChangeListener>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _removeChangeListener:
+
+.. _removeChangeListener__:
+
+.. _Realm_removeChangeListener:
+
+.. _Realm_removeChangeListener__:
+
+.. _io_realm_Realm_removeChangeListener:
+
+.. _io_realm_Realm_removeChangeListener__:
+
+
+
+removeChangeListener
+--------------------
+
+.. _io_realm_Realm_removeChangeListener_io_realm_RealmChangeListener_:
+
+.. _io_realm_Realm_removeChangeListener_RealmChangeListener_:
+
+.. _removeChangeListener_io_realm_RealmChangeListener_:
+
+.. _removeChangeListener_RealmChangeListener_:
+
+.. _Realm_removeChangeListener_io_realm_RealmChangeListener_:
+
+.. _Realm_removeChangeListener_RealmChangeListener_:
+
+.. _io_realm_Realm_removeChangeListener_RealmChangeListener_Realm__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public **void** :ref:`removeChangeListener <io_realm_Realm_removeChangeListener>` (
+       |  :ref:`io.realm.RealmChangeListener\<io.realm.Realm> <io_realm_RealmChangeListener>`  listener
+       | )
+       
+       
+       
+   
+   * - Removes the specified change listener.
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``listener`` - the change listener to be removed.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if the change listener is ``null`` .
+          
+          
+          
+          
+          
+       - `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  - if you try to remove a listener from a non-Looper Thread.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`io.realm.RealmChangeListener <io_realm_RealmChangeListener>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _removeDefaultConfiguration:
+
+.. _removeDefaultConfiguration__:
+
+.. _Realm_removeDefaultConfiguration:
+
+.. _Realm_removeDefaultConfiguration__:
+
+.. _io_realm_Realm_removeDefaultConfiguration:
+
+.. _io_realm_Realm_removeDefaultConfiguration__:
+
+
+
+removeDefaultConfiguration
+--------------------------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **void** :ref:`removeDefaultConfiguration <io_realm_Realm_removeDefaultConfiguration>` ()
+       | 
+       
+       
+       
+   
+   * - Removes the current default configuration (if any). Any further calls to :ref:`getDefaultInstance() <io_realm_Realm_getDefaultInstance__>`  will fail until a new default configuration has been set using :ref:`setDefaultConfiguration(RealmConfiguration) <io_realm_Realm_setDefaultConfiguration_RealmConfiguration_>` .
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _setDefaultConfiguration:
+
+.. _setDefaultConfiguration__:
+
+.. _Realm_setDefaultConfiguration:
+
+.. _Realm_setDefaultConfiguration__:
+
+.. _io_realm_Realm_setDefaultConfiguration:
+
+.. _io_realm_Realm_setDefaultConfiguration__:
+
+
+
+setDefaultConfiguration
+-----------------------
+
+.. _io_realm_Realm_setDefaultConfiguration_io_realm_RealmConfiguration_:
+
+.. _io_realm_Realm_setDefaultConfiguration_RealmConfiguration_:
+
+.. _setDefaultConfiguration_io_realm_RealmConfiguration_:
+
+.. _setDefaultConfiguration_RealmConfiguration_:
+
+.. _Realm_setDefaultConfiguration_io_realm_RealmConfiguration_:
+
+.. _Realm_setDefaultConfiguration_RealmConfiguration_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static **void** :ref:`setDefaultConfiguration <io_realm_Realm_setDefaultConfiguration>` (
+       |  :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  configuration
+       | )
+       
+       
+       
+   
+   * - Sets the :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>`  used when calling :ref:`getDefaultInstance() <io_realm_Realm_getDefaultInstance__>` .
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``configuration`` - the :ref:`io.realm.RealmConfiguration <io_realm_RealmConfiguration>`  to use as the default configuration.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       **Throws**
+       
+       - `IllegalArgumentException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalArgumentException.html>`__  - if a null :ref:`RealmConfiguration <io_realm_RealmConfiguration>`  is provided.
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`RealmConfiguration for details on how to configure a Realm. <io_realm_RealmConfiguration>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+.. _where:
+
+.. _where__:
+
+.. _Realm_where:
+
+.. _Realm_where__:
+
+.. _io_realm_Realm_where:
+
+.. _io_realm_Realm_where__:
+
+
+
+where
+-----
+
+.. _io_realm_Realm_where_java_lang_Class_:
+
+.. _io_realm_Realm_where_Class_:
+
+.. _where_java_lang_Class_:
+
+.. _where_Class_:
+
+.. _Realm_where_java_lang_Class_:
+
+.. _Realm_where_Class_:
+
+.. _io_realm_Realm_where_Class_E__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public :ref:`RealmQuery <io_realm_RealmQuery>`  :ref:`where <io_realm_Realm_where>` <**E** >(
+       |  `java.lang.Class\<E> <https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html>`__  clazz
+       | )
+       
+       
+       
+   
+   * - Returns a typed RealmQuery, which can be used to query for specific objects of this type
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``clazz`` - the class of the object which is to be queried for.
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       a typed RealmQuery, which can be used to query for specific objects of this type.
+       
+       
+       
+       
+       
+       
+       
+       
+       .. seealso::
+       
+       
+          
+          - :ref:`io.realm.RealmQuery <io_realm_RealmQuery>` 
+             
+             
+             
+          
+          
+          
+       
+       
+   
+   
+
+
+

@@ -1,0 +1,650 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-filter-data:
+
+======================
+Filter Data - Java SDK
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _java-client-query-engine:
+
+Query Engine
+------------
+
+To filter data in your realm, use the Realm query engine. 
+
+There are two ways to access the query engine with the Java SDK:
+
+- :ref:`Fluent interface <java-query-fluent-interface>`
+- :ref:`Realm Query Language <java-realm-query-language>`
+
+.. _java-query-fluent-interface:
+
+Fluent Interface
+----------------
+
+The Java SDK uses a :wikipedia:`Fluent interface <Fluent_interface>`
+to construct multi-clause queries that are passed to the query engine.
+
+See `RealmQuery API
+<https://realm.io/docs/java/latest/api/io/realm/RealmQuery.html>`__
+for a complete list of available methods.
+
+There are several types of operators available to filter a
+:ref:`Realm collection <java-client-collections>`.
+Filters work by **evaluating** an operator expression for
+every object in the collection being
+filtered. If the expression resolves to ``true``, Realm
+Database includes the object in the results collection.
+
+An **expression** consists of one of the following:
+
+- The name of a property of the object currently being evaluated.
+- An operator and up to two argument expression(s).
+- A literal string, number, or date.
+
+About the Examples In This Section
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The examples in this section use a simple data set for a
+task list app. The two Realm object types are ``Project``
+and ``Task``. A ``Task`` has a name, assignee's name, and
+completed flag. There is also an arbitrary number for
+priority (higher is more important) and a count of
+minutes spent working on it. A ``Project`` has zero or more
+``Tasks``.
+
+See the schema for these two classes, ``Project`` and
+``Task``, below:
+
+.. tabs-realm-languages::
+  
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/ProjectTask.snippet.projecttask.kt
+         :language: kotlin
+         :caption: ProjectTask.kt
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/Project.snippet.project.kt
+         :language: kotlin
+         :caption: Project.kt
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/ProjectTask.snippet.projecttask.java
+         :language: java
+         :caption: ProjectTask.java
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/Project.snippet.project.java
+         :language: java
+         :caption: Project.java
+         :copyable: false
+
+Comparison Operators
+~~~~~~~~~~~~~~~~~~~~
+
+The most straightforward operation in a search is to compare
+values.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - ``between``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is between or equal to the right-hand range. For dates, this evaluates to ``true`` if the left-hand date is within the right-hand date range.
+
+   * - | ``equalTo``
+     - Evaluates to ``true`` if the left-hand expression is equal to the right-hand expression.
+
+   * - | ``greaterThan``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is greater than the right-hand numerical or date expression. For dates, this evaluates to ``true`` if the left-hand date is later than the right-hand date.
+
+   * - | ``greaterThanOrEqualTo``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is greater than or equal to the right-hand numerical or date expression. For dates, this evaluates to ``true`` if the left-hand date is later than or the same as the right-hand date.
+
+   * - ``in``
+     - Evaluates to ``true`` if the left-hand expression is in the right-hand list.
+
+   * - | ``lessThan``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is less than the right-hand numerical or date expression. For dates, this evaluates to ``true`` if the left-hand date is earlier than the right-hand date.
+
+   * - | ``lessThanOrEqualTo``
+     - Evaluates to ``true`` if the left-hand numeric expression is less than or equal to the right-hand numeric expression. For dates, this evaluates to ``true`` if the left-hand date is earlier than or the same as the right-hand date.
+
+   * - | ``notEqualTo``
+     - Evaluates to ``true`` if the left-hand expression is not equal to the right-hand expression.
+
+.. example::
+
+   The following example uses the query engine's
+   comparison operators to:
+
+   - Find high priority tasks by comparing the value of the ``priority`` property value with a threshold number, above which priority can be considered high.
+   - Find just-started or short-running tasks by seeing if the ``progressMinutes`` property falls within a certain range.
+   - Find unassigned tasks by finding tasks where the ``assignee`` property is equal to ``null``.
+   - Find tasks assigned to specific teammates Ali or Jamie by seeing if the ``assignee`` property is in a list of names.
+
+   .. tabs-realm-languages::
+     
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.comparison-operators.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.comparison-operators.java
+            :language: java
+            :copyable: false
+
+Logical Operators
+~~~~~~~~~~~~~~~~~
+
+You can make compound predicates using logical operators.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - | ``and``
+     - Evaluates to ``true`` if both left-hand and right-hand expressions are ``true``.
+
+   * - | ``not``
+     - Negates the result of the given expression.
+
+   * - | ``or``
+     - Evaluates to ``true`` if either expression returns ``true``.
+
+.. example::
+
+   We can use the query language's logical operators to find
+   all of Ali's completed tasks. That is, we find all tasks
+   where the ``assignee`` property value is equal to 'Ali' AND
+   the ``isComplete`` property value is ``true``:
+
+   .. tabs-realm-languages::
+     
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.logical-operators.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.logical-operators.java
+            :language: java
+            :copyable: false
+
+.. _java-string-operators:
+
+String Operators
+~~~~~~~~~~~~~~~~
+
+You can compare string values using these string operators.
+Regex-like wildcards allow more flexibility in search.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Operator
+     - Description
+
+   * - | ``beginsWith``
+     - Evaluates to ``true`` if the left-hand string expression begins with the right-hand string expression. This is similar to ``contains``, but only matches if the left-hand string expression is found at the beginning of the right-hand string expression.
+
+   * - ``contains``
+     - Evaluates to ``true`` if the left-hand string expression is found anywhere in the right-hand string expression.
+
+   * - | ``endsWith``
+     - Evaluates to ``true`` if the left-hand string expression ends with the right-hand string expression. This is similar to ``contains``, but only matches if the left-hand string expression is found at the very end of the right-hand string expression.
+
+   * - | ``like``
+     - Evaluates to ``true`` if the left-hand string expression
+       matches the right-hand string wildcard string
+       expression. A wildcard string expression is a string
+       that uses normal characters with two special wildcard
+       characters:
+
+       - The ``*`` wildcard matches zero or more of any character
+       - The ``?`` wildcard matches any character.
+
+       For example, the wildcard string "d?g" matches "dog",
+       "dig", and "dug", but not "ding", "dg", or "a dog".
+
+   * - | ``equalTo``
+     - Evaluates to ``true`` if the left-hand string is lexicographically equal to the right-hand string.
+
+.. example::
+
+   We use the query engine's string operators to find
+   projects with a name starting with the letter 'e' and
+   projects with names that contain 'ie':
+
+   .. tabs-realm-languages::
+     
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.string-operators.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.string-operators.java
+            :language: java
+            :copyable: false
+
+.. note:: Case-insensitive Character Limitations
+
+   Case-insensitive string operators only support the
+   ``Latin Basic``, ``Latin Supplement``, ``Latin Extended A``, and
+   ``Latin Extended B (UTF-8 range 0–591)`` character sets. Setting
+   the case insensitive flag in queries when using ``equalTo``,
+   ``notEqualTo``, ``contains``, ``endsWith``, ``beginsWith``, or
+   ``like`` only works on English locale characters.
+
+Aggregate Operators
+~~~~~~~~~~~~~~~~~~~
+
+You can apply an aggregate operator to a collection property
+of a Realm object. Aggregate operators traverse a
+:ref:`collection <java-client-collections>` and reduce it
+to a single value.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Operator
+     - Description
+
+   * - | ``average``
+     - Evaluates to the average value of a given numerical property across a collection.
+
+   * - | ``count``
+     - Evaluates to the number of objects in the given collection.
+
+   * - | ``max``
+     - Evaluates to the highest value of a given numerical property across a collection.
+
+   * - | ``min``
+     - Evaluates to the lowest value of a given numerical property across a collection.
+
+   * - | ``sum``
+     - Evaluates to the sum of a given numerical property across a collection.
+
+.. example::
+
+   We create a couple of filters to show different facets of
+   the data:
+
+   - Projects with average tasks priority above 5.
+   - Long running projects.
+
+   .. tabs-realm-languages::
+     
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.aggregate-operators.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.aggregate-operators.java
+            :language: java
+            :copyable: false
+
+Filter, Sort, Limit, Unique, and Chain Queries
+----------------------------------------------
+
+About the Examples in This Section
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The examples in this section use two Realm object types: ``Teacher``
+and ``Student``.
+
+See the schema for these two classes below:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/TeacherKt.snippet.complete.kt
+         :language: kotlin
+         :caption: Teacher.kt
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/local/StudentKt.snippet.complete.kt
+         :language: kotlin
+         :caption: Student.kt
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/Teacher.snippet.complete.java
+         :language: java
+         :caption: Teacher.java
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/local/Student.snippet.complete.java
+         :language: java
+         :caption: Student.java
+         :copyable: false
+
+.. _java-client-filters:
+
+Filters
+~~~~~~~
+
+You can build filters using the operator methods of the
+:wikipedia:`fluent interface <Fluent_interface>` exposed by the
+:java-sdk:`RealmQuery <io/realm/RealmQuery.html>` class:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.filters.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.filters.java
+         :language: java
+         :copyable: false
+
+This gives you a new instance of the class :java-sdk:`RealmResults <io/realm/RealmResults.html>`,
+containing teachers with the name "Ms. Langtree" or "Mrs. Jacobs".
+
+``RealmQuery`` includes several methods that can execute queries:
+
+- :java-sdk:`findAll() <io/realm/RealmQuery.html#findAll-->` blocks until
+  it finds all objects that meet the query conditions
+
+- :java-sdk:`findAllAsync() <io/realm/RealmQuery.html#findAllAsync-->`
+  returns immediately and finds all objects that meet the query
+  conditions asynchronously on a background thread
+
+- :java-sdk:`findFirst() <io/realm/RealmQuery.html#findFirst-->` blocks
+  until it finds the first object that meets the query conditions
+
+- :java-sdk:`findFirstAsync() <io/realm/RealmQuery.html#findFirstAsync-->`
+  returns immediately and finds the first object that meets the query
+  conditions asynchronously on a background thread
+
+Queries return a list of references to the matching Realm
+objects using the :ref:`RealmResults <java-results-collections>` type.
+
+.. _java-link-queries:
+
+Link Queries
+`````````````
+
+When referring to an object property, you can use **dot notation** to refer
+to child properties of that object. You can refer to the properties of
+:ref:`embedded objects <java-embedded-objects>` and :ref:`relationships
+<java-client-relationships>` with dot notation.
+
+For example, consider a query for all teachers with a student named
+"Wirt" or "Greg":
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.link-queries.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.link-queries.java
+         :language: java
+         :copyable: false
+
+You can even use dot notation to query inverse relationships:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.link-queries-inverse.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.link-queries-inverse.java
+         :language: java
+         :copyable: false
+
+.. _java-sort-results:
+
+Sort Results
+~~~~~~~~~~~~
+
+.. important::
+
+   Realm applies the ``distinct()``, ``sort()`` and
+   ``limit()`` methods in the order you specify. Depending on the
+   data set this can alter the query result. Generally, you should
+   apply ``limit()`` last to avoid unintended result sets.
+
+You can define the order of query results using the
+:java-sdk:`sort() <io/realm/RealmQuery.html#sort-java.lang.String->`
+method:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.sort.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.sort.java
+         :language: java
+         :copyable: false
+
+Sorts organize results in ascending order by default. To organize results
+in descending order, pass ``Sort.DESCENDING`` as a second argument.
+You can resolve sort order ties between identical property values
+by passing an array of properties instead of a single property: in the
+event of a tie, Realm sorts the tied objects by subsequent
+properties in order.
+
+.. note:: String Sorting Limitations
+
+   Realm uses non-standard sorting for upper and lowercase
+   letters, sorting them together rather than sorting uppercase first.
+   As a result, ``'- !"#0&()*,./:;?_+<=>123aAbBcC...xXyYzZ`` is the
+   actual sorting order in Realm. Additionally, sorting
+   strings only supports the ``Latin Basic``, ``Latin Supplement``,
+   ``Latin Extended A``, and ``Latin Extended B (UTF-8 range 0–591)``
+   character sets.
+
+.. _java-limit-results:
+
+Limit Results
+~~~~~~~~~~~~~
+
+You can cap the number of query results to a specific maximum number
+using the :java-sdk:`limit() <io/realm/RealmQuery.html#limit-long->`
+method:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.limit.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.limit.java
+         :language: java
+         :copyable: false
+
+Limited result collections automatically update like any other query
+result. Consequently, objects might drop out of the collection as
+underlying data changes.
+
+.. tip:: Pagination is Not Necessary for Realm Optimization
+
+   Some databases encourage paginating results with limits to avoid
+   reading unnecessary data from disk or using too much memory.
+
+   Since Realm queries are lazy, there is no need to
+   take such measures. Realm only loads objects from query
+   results when they are explicitly accessed.
+
+.. tip:: Deleted Notifications in Limited Results
+
+   :ref:`Collection notifications <java-collection-notifications>`
+   report objects as deleted when they drop out of the result set.
+   This does not necessarily mean that they have been deleted from the
+   underlying realm, just that they are no longer part of the
+   query result.
+
+.. _java-unique-results:
+
+Unique Results
+~~~~~~~~~~~~~~
+
+You can reduce query results to unique values for a given field or fields
+using the :java-sdk:`distinct()
+<io/realm/RealmQuery.html#distinct-java.lang.String->` method:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.unique.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.unique.java
+         :language: java
+         :copyable: false
+
+You can only call ``distinct()`` on integer, long, short, and ``String``
+fields; other field types will throw an exception. As with sorting,
+you can specify multiple fields to resolve ties.
+
+.. _java-chain-queries:
+
+Chain Queries
+~~~~~~~~~~~~~
+
+You can apply additional filters to a results collection by calling the
+:java-sdk:`where() <io/realm/RealmResults.html#where-->` method:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.chain-queries.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.chain-queries.java
+         :language: java
+         :copyable: false
+
+The ``where()`` method returns a ``RealmQuery`` that you can resolve into
+a ``RealmResults`` using a ``find`` method. Filtered results can only
+return objects of the same type as the original results set, but are
+otherwise able to use any :ref:`filters <java-client-filters>`.
+
+.. _java-filter-with-realm-query-language:
+.. _java-realm-query-language:
+
+Query with Realm Query Language
+-------------------------------
+
+.. versionadded:: 10.4.0
+
+You can also query realms using Realm Query Language, a string-based
+query language to constrain searches when retrieving objects from a realm.
+
+You can use :java-sdk:`RealmQuery.rawPredicate()
+<io/realm/RealmQuery.html#rawPredicate-java.lang.String->`.
+For more information about syntax, usage and limitations,
+refer to the :ref:`Realm Query Language reference <rql>`.
+
+Realm Query Language can use either the class and property names defined
+in your Realm Model classes or the internal names defined with ``@RealmField``.
+You can combine raw predicates with other raw predicates or type-safe
+predicates created with ``RealmQuery``:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.realm-query-language.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/local/FilterDataTest.snippet.realm-query-language.java
+         :language: java
+         :copyable: false
+
+.. include:: /includes/tip-realm-query-language-reference-examples.rst

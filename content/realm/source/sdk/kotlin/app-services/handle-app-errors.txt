@@ -1,0 +1,142 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-app-errors:
+
+==============================
+Handle App Errors - Kotlin SDK
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+App errors fall into two major categories: 
+
+- **service errors** occur when an Atlas App Services request fails at the HTTP level. 
+  These errors generate a 
+  `ServiceException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-service-exception/index.html>`__
+- **sync errors** occur when Device Sync fails. These errors generate a 
+  `SyncException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-sync-exception/index.html>`__.
+  For more information on sync exceptions, refer to :ref:`Handle Sync Errors <kotlin-handle-sync-errors>`.
+
+.. _kotlin-ephemeral-errors:
+
+However, some errors are **ephemeral**: they occur because of failures outside of
+the client or SDK's control. For example, a failed login attempt due to a network error.
+
+Other errors require logic fixes. For example, a failed login attempt due to incorrect credentials.
+
+When an ephemeral error occurs, you should retry the operation that
+caused the error. 
+If the operation still fails when you retry it, investigate logic fixes.
+
+Service Errors
+--------------
+
+A `ServiceException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-service-exception/index.html>`__
+occurs when an Atlas App Services request fails at the HTTP level, i.e. the HTTP request returned, but the HTTP Status code was not 200 (OK). 
+
+Connection Errors
+~~~~~~~~~~~~~~~~~
+
+A `ConnectionException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-connection-exception/index.html>`__
+occurs when HTTP communication fails between the SDK
+and the App Services backend, ie. the HTTP request isn't able to receive a status code.
+
+Because these errors stem from network layers outside of the SDK's
+control, you should consider these errors :ref:`ephemeral <kotlin-ephemeral-errors>`. Retry the operation,
+then investigate the error if the retry fails. If the operation fails
+because the client device is offline, you can ask
+the app user to retry the operation when they reconnect to the internet.
+
+Bad Request Errors
+~~~~~~~~~~~~~~~~~~
+
+A `BadRequestException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-bad-request-exception/index.html>`__
+occurs from malformed App Services requests.
+
+When you get a bad request error:
+
+- Check the inputs for the operation.
+- Check your App logs for more information about what went wrong.
+
+.. _kotlin-auth-errors:
+
+Auth Errors
+~~~~~~~~~~~
+
+An `AuthException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-auth-exception/index.html>`__ 
+occurs when a user account action, such as login, logout,
+or registration, fails. Usually, you'll get a more specific subtype that
+helps you identify a solution.
+
+User Already Confirmed Errors
+`````````````````````````````
+
+A `UserAlreadyConfirmedException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-user-already-confirmed-exception/index.html>`__
+occurs when you attempt to
+`confirm <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.auth/-email-password-auth/confirm-user.html>`__
+a user who you have already confirmed.
+
+When you get a user already confirmed error, it's best to not disrupt
+the application flow. Since the user is confirmed, you can safely proceed
+to log in. There is no need to retry confirmation.  
+
+User Not Found Errors
+`````````````````````
+
+A `UserNotFoundException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-user-not-found-exception/index.html>`__
+occurs when the App Services backend cannot find a
+user with the supplied username. This is commonly caused by typos in
+email/password usernames.
+
+When you experience this error, prompt the user to re-enter their
+username and try again. 
+
+User Already Exists Errors
+``````````````````````````
+
+A `UserAlreadyExistsException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-user-already-exists-exception/index.html>`__ 
+occurs when a client attempts to register a
+user with a username that is already in use in that App.
+
+When you experience this error, prompt users to:
+
+- use a different username
+- login with their existing username if they already have an account
+
+Invalid Credentials Errors
+``````````````````````````
+
+An `InvalidCredentialsException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-invalid-credentials-exception/index.html>`__
+occurs when a JWT, email/password, or API Key
+user login fails due to invalid credentials. Other authentication
+providers throw an :ref:`Auth Error <kotlin-auth-errors>` instead.
+
+Example
+-------
+
+You can handle errors in the SDK with Kotlin's built-in
+`runCatching <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/run-catching.html>`__
+API. Use the ``onSuccess`` and ``onFailure`` callbacks of the returned
+`Result <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-result/>`__
+to handle successful SDK API calls and error cases. The following example
+logs an anonymous user into an App. If the login attempt succeeds, we
+log the successful authentication attempt and transition the
+user to another screen. If the login attempt fails, we handle each
+potential error case individually:
+
+- If the user supplied invalid credentials, we log the attempt and
+  display a popup toast encouraging the user to check their
+  credentials.
+- If there was a problem with the network connection, we log the
+  problem to the error log and display a popup toast encouraging
+  the user to check their network connection and try again.
+- For all other errors, we log the problem to the error log and display
+  a popup toast informing the user that the login attempt failed.
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.handle-errors.kt
+   :language: kotlin

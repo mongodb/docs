@@ -1,0 +1,1 @@
+@property MyEmbeddedObject *optEmbeddedObjectPropertyName;

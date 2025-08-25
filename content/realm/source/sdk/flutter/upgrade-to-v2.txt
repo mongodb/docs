@@ -1,0 +1,207 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-upgrade-v2:
+
+=============================
+Upgrade to Flutter SDK v2.0.0
+=============================
+
+.. meta::
+  :description: Upgrade your existing Flutter or Dart app to Flutter SDK version 2.0.0 or later.
+  :keywords: code example, migration, migrate
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Atlas Device SDK for Flutter version 2.0.0 introduces several breaking changes
+that impact existing apps upgrading from an earlier version.
+
+Notably, this version of the SDK:
+
+- Changes the part builder and how the SDK generates files for
+  your data model classes. This change impacts all apps upgrading from an
+  earlier version of the SDK. Refer to the :ref:`flutter-v2-builder-breaking-changes`
+  section on this page for information and instructions.
+
+- Removes or replaces several classes and members. These changes may or may not impact your
+  app. Refer to the :ref:`flutter-v2-removed-classes` section
+  on this page for information and instructions for impacted apps.
+
+.. _flutter-v2-builder-breaking-changes:
+
+Builder Changes
+---------------
+
+.. important::
+
+   This change impacts all apps upgrading from an earlier version of the SDK.
+
+Flutter SDK version 2.0.0 updates the SDK's ``realm_generator`` to use a
+``PartBuilder`` instead of a ``SharedPartBuilder``.
+This updated builder generates ``RealmModel`` data model files with a new
+``.realm.dart`` file extension:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
+
+   * - Version
+     - File Extension
+     - Example Part Directive
+
+   * - SDK v2.0.0 and later
+     - ``.realm.dart``
+     - .. literalinclude:: /examples/generated/flutter/migrate_parts.snippet.part-directive-new.dart
+        :language: dart
+
+   * - SDK v1.9.0 and earlier
+     - ``.g.dart``
+     - .. literalinclude:: /examples/generated/flutter/migrate_parts.snippet.part-directive-old.dart
+        :language: dart
+
+.. tip::
+
+    The update from ``SharedPartBuilder`` to ``PartBuilder`` makes it easier
+    to use multiple builders in your app. For example, combining ``realm_dart``
+    with a serialization package builder such as ``dart_mappable`` or
+    ``json_serializable``.
+
+.. _flutter-v2-what-do-i-need-to-do:
+
+What Do I Need to Do?
+~~~~~~~~~~~~~~~~~~~~~
+
+When you upgrade an existing app from an earlier version of the Flutter SDK to
+version 2.0.0 or later, you *must* update any existing part declarations, then
+regenerate the object models with the new ``.realm.dart`` file extension:
+
+.. procedure::
+
+    .. step:: Update Your Existing Part Declarations
+
+       Update all of the ``RealmObject`` part declarations in your app to
+       use the new naming convention:
+
+       .. literalinclude:: /examples/generated/flutter/migrate_parts.snippet.migrate-model-dart-new.dart
+           :language: dart
+           :emphasize-lines: 3-5
+
+    .. step:: Regenerate Your Object Models
+
+       .. tabs::
+
+          .. tab:: Flutter
+              :tabid: flutter
+
+              After you update all of your declarations, regenerate your
+              object models with the new ``.realm.dart`` file extension.
+              You can safely delete any ``.g.dart`` files from your project.
+
+              .. code-block::
+
+                dart run realm generate
+
+          .. tab:: Dart Standalone
+              :tabid: dart
+
+              After you update all of your declarations, regenerate your
+              object models with the new ``.realm.dart`` file extension.
+              You can safely delete any ``.g.dart`` files from your project.
+
+              .. code-block::
+
+                dart run realm_dart generate
+
+.. _flutter-v2-removed-classes:
+
+Removed Classes and Members
+---------------------------
+
+Flutter SDK version 2.0.0 also removed or replaced several classes, members, and properties
+from the SDK. These changes may or may not impact your app.
+
+The following table outlines what was removed and why, as well as a recommended solution
+when upgrading an app that used the removed class or member, if any:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 33 33 33
+
+   * - Removed Class or Member
+     - Reason
+     - Solution
+
+   * - ``AppConfiguration.localAppName`` and ``AppConfiguration.localAppVersion``
+     - Unused in SDK.
+     - Remove any instances.
+
+   * - ``ClientResetError.isFatal``
+     - Not needed. Always ``true``.
+     - Remove any instances.
+
+   * - ``ClientResetError.sessionErrorCode``
+     - Consolidated into ``SyncErrorCode`` in SDK v1.6.0.
+     - Use ``SyncErrorCode`` enum. See also the
+       :flutter-sdk:`SyncError <realm/SyncErrorCode.html>` API reference.
+
+   * - ``Realm.logger.level``
+     - Replaced by ``Realm.logger.setLogLevel``.
+     - Replace any instances. See also :ref:`flutter-logging`.
+
+   * - ``RealmProperty.indexed``
+     - Replaced by ``RealmProperty.indexType``.
+     - Replace any instances.
+
+   * - ``RealmValue.type``
+     - Changed to an enum of ``RealmValueType``.
+     - Replace any instances. See also :ref:`RealmValue Data Type <flutter-realm-value>`.
+
+   * - ``RealmValue.uint8List``
+     - Renamed to ``RealmValue.binary``.
+     - Replace any instances. See also :ref:`RealmValue Data Type <flutter-realm-value>`.
+
+   * - ``SchemaObject.properties``
+     - ``SchemaObject`` changed to an iterable collection of ``SchemaProperty``.
+     - Replace any instances. See also the
+       :flutter-sdk:`SchemaObject <realm/SchemaObject-class.html>` API reference.
+
+   * - ``SyncError`` constructor and ``SyncError.create`` factory
+     - Sync errors should only be created internally by the SDK.
+     - Remove any instances.
+
+   * - ``SyncClientError``, ``SyncConnectionError``, ``SyncSessionError``,
+       ``SyncResolveError``, ``SyncWebSocketError``, and ``GeneralSyncError``
+     - Consolidated into ``SyncError`` in SDK v1.6.0.
+     - Use ``SyncError`` or its subclasses. See also the
+       :flutter-sdk:`SyncError <realm/SyncErrorCode.html>` API reference.
+
+   * - ``SyncErrorCategory``, ``SyncClientErrorCode``, ``SyncConnectionErrorCode``,
+       ``SyncSessionErrorCode``, ``SyncResolveErrorCode``,``SyncWebsocketErrorCode``,
+       and ``GeneralSyncErrorCode``
+     - Consolidated into ``SyncErrorCode`` in SDK v1.6.0.
+     - Use ``SyncErrorCode`` enum. See also the
+       :flutter-sdk:`SyncError <realm/SyncErrorCode.html>` API reference.
+
+   * - ``SyncError.codeValue``, ``SyncError.category``, and ``SyncError.detailedMessage``
+     - Consolidated into ``SyncError`` in SDK v1.6.0. Messages were unused.
+     - Remove any category or message instances. Replace ``SyncError.codeValue``
+       with ``SyncError.code.code``. See also the
+       :flutter-sdk:`SyncError <realm/SyncErrorCode.html>` API reference.
+
+   * - ``SyncProgress.transferredBytes`` and ``SyncProgress.transferableBytes``
+     - Reported transferred and transferable values were incorrect. Consolidated
+       into a new ``SyncProgress.progressEstimate`` metric.
+     - Use ``SyncProgress.progressEstimate``. See also :ref:`flutter-monitor-sync-progress`.
+
+   * - ``User.provider``
+     - Provider is associated with each identity, so value was incorrect
+       for users with more than one identity.
+     - Remove any instances.

@@ -1,0 +1,1 @@
+@property int intName;

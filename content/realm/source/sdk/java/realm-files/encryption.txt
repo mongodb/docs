@@ -1,0 +1,182 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-encrypt-a-realm:
+
+==========================
+Encrypt a Realm - Java SDK
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+You can encrypt your realms to ensure that the data stored to disk can't be
+read outside of your application. You encrypt the realm file on disk with AES-256 +
+SHA-2 by supplying a 64-byte encryption key when :ref:`opening a
+realm <java-open-a-local-realm>`.
+
+Realm transparently encrypts and decrypts data with standard
+:wikipedia:`AES-256 encryption <Advanced_Encryption_Standard>` using the
+first 256 bits of the given 512-bit encryption key. Realm
+uses the other 256 bits of the 512-bit encryption key to validate
+integrity using a :wikipedia:`hash-based message authentication code
+(HMAC) <HMAC>`.
+
+.. include:: /includes/encrypt-use-strong-cryptographic-hash.rst
+
+Considerations
+--------------
+
+The following are key impacts to consider when encrypting a realm.
+
+Storing & Reusing Keys
+~~~~~~~~~~~~~~~~~~~~~~
+
+You **must** pass the same encryption key to :java-sdk:`RealmConfiguration.Builder.encryptionKey()
+<io/realm/RealmConfiguration.Builder.html#encryptionKey-byte:A->` each
+time you open the realm. 
+If you don't provide a key or specify the wrong key for an encrypted
+realm, the Realm SDK throws an error.
+
+Apps should store the encryption key in the
+:android:`Android KeyStore <training/articles/keystore.html>` so
+that other apps cannot read the key.
+
+Performance Impact
+~~~~~~~~~~~~~~~~~~
+
+Reads and writes on encrypted realms can be up to 10% slower than unencrypted realms.
+
+Encryption and Atlas Device Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can encrypt a :ref:`synced realm <java-sync-data>`.
+
+.. include:: /includes/encrypt-atlas-device-sync.rst
+
+If you need unique keys for each user of your application, you can use an OAuth provider or
+use one of the :ref:`Realm authentication providers <users-and-authentication>` 
+and an :ref:`authentication trigger<authentication-triggers>`
+to create a 64-bit key and store that key in a :ref:`user object <user-objects>`.
+
+Accessing an Encrypted Realm from Multiple Processes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 10.14.0
+
+Starting with Realm Java SDK version 10.14.0, Realm supports opening
+the same encrypted realm in multiple processes. 
+
+If your app uses Realm Java SDK version 10.14.0 or earlier, attempting to 
+open an encrypted realm from multiple processes throws this error:
+``Encrypted interprocess sharing is currently unsupported.``
+
+Example
+-------
+
+The following steps describe the recommended way to use the 
+:android:`Android KeyStore <training/articles/keystore.html>` for encryption with
+Realm:
+
+1. Generate an asymmetric RSA key that Android can securely store and
+   retrieve using the Android KeyStore.
+
+   .. note:: Android Version M and Above: Keystore Security
+
+      Versions M and above require user PIN or fingerprint to unlock
+      the KeyStore.
+
+#. Generate a symmetric key (AES) you can use to encrypt the realm.
+
+#. Encrypt the symmetric AES key using your private RSA key.
+
+#. Store the encrypted AES key on filesystem (in a
+   ``SharedPreferences``, for example).
+
+When you need to use your encrypted realm:
+
+1. Retrieve your encrypted AES key.
+#. Decrypt your encrypted AES key using the public RSA key.
+#. Use the decrypted AES key in the ``RealmConfiguration`` to open the
+   encrypted realm.
+
+.. seealso::
+
+   For an end-to-end example of storing and reusing encryption keys, see
+   the `store_password <https://github.com/realm/realm-java/tree/feature/example/store_password/examples/StoreEncryptionPassword>`__ example project, which demonstrates the
+   fingerprint API.
+
+Generate and Store an Encryption Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code demonstrates how to securely generate and store an
+encryption key for a realm:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/EncryptTest.snippet.encrypt-key.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/EncryptTest.snippet.encrypt-key.java
+         :language: java
+         :copyable: false
+
+Access an Existing Encryption Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code demonstrates how to access and decrypt a securely
+stored encryption key for a realm:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/EncryptTest.snippet.decrypt-key.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/EncryptTest.snippet.decrypt-key.java
+         :language: java
+         :copyable: false
+
+Open an Encrypted Realm
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code demonstrates how to open an encrypted realm with
+the :java-sdk:`encryptionKey() <io/realm/mongodb/sync/SyncConfiguration.Builder.html#encryptionKey-byte:A->`
+method:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/EncryptTest.snippet.read-and-write-encrypted-realm.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/EncryptTest.snippet.read-and-write-encrypted-realm.java
+         :language: java
+         :copyable: false
+

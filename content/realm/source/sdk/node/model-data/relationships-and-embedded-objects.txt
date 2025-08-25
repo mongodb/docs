@@ -1,0 +1,218 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-relationships-and-embedded-objects:
+
+==============================================
+Relationships & Embedded Objects - Node.js SDK
+==============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _node-to-one-relationship:
+
+To-One Relationship
+-------------------
+
+A **to-one** relationship means that an object is related to no more than 
+one other object in an :ref:`object schema <node-object-schemas>`. 
+To define a to-one relationship, specify the property type as the related
+Realm object type.
+
+.. example::
+
+   An application could use the following object schemas to indicate
+   that a ``Manufacturer`` may make a single ``Car``:
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: typescript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-one-to-one.ts
+            :language: javascript
+
+      .. tab::
+          :tabid: javascript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-one-to-one.js
+            :language: javascript
+
+.. _node-to-many-relationship:
+
+To-Many Relationship
+--------------------
+
+A **to-many** relationship means that an object is related in a specific
+way to multiple objects. 
+To define a to-many relationship, specify a property where the type is a list
+or array of the related Realm object type in its
+:ref:`object schema <node-object-schemas>`.
+
+.. example::
+   
+   An application could use the following object schemas to indicate
+   that a ``Manufacturer`` may make many ``Car`` models:
+   
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: typescript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-one-to-many.ts
+            :language: javascript
+
+      .. tab::
+          :tabid: javascript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-one-to-many.js
+            :language: javascript
+
+.. _node-inverse-relationship:
+
+Inverse Relationship
+--------------------
+
+An inverse relationship links an object back to any other objects that refer
+to it in a defined to-one or to-many relationship.
+Relationship definitions are unidirectional by default.
+You must explicitly define a property in the object's model as an inverse relationship.
+
+For example, the to-many relationship "Manufacturer has many Cars" does not automatically
+create the inverse relationship "Car belongs to Manufacturer".
+If you don't specify the inverse relationship in the object model,
+you need to run a separate query to look up the manufacturer who makes a car.
+
+To define an inverse relationship, define a ``linkingObjects`` property in your
+object model. ``linkingObjects`` specifies the object type and
+property name of the relationship that it inverts.
+
+You cannot manually set the value of an inverse relationship property.
+Realm automatically updates implicit relationships whenever 
+you add or remove a related object.
+
+.. example::
+   
+   An application could use the following object schemas to indicate: 
+   
+   #. A ``Manufacturer`` may make many ``Car`` models. 
+   #. Each ``Car`` should automatically link back to the ``Manufacturer`` 
+      who makes it.
+   
+   The ``Manufacturer`` object's ``cars`` property is defined as a to-many 
+   relationship with a :js-sdk:`Realm.List <classes/List.html>` of 
+   ``Car`` objects. It contains all of a given manufacturer's cars. 
+     
+   The ``Car`` object's ``manufacturer`` property inverts this relationship.
+   The ``manufacturer`` property automatically updates to refer back to any 
+   ``Manufacturer`` object that contains the ``Car`` in its ``cars`` property.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: typescript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-inverse.ts
+            :language: javascript
+
+      .. tab::
+          :tabid: javascript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-inverse.js
+            :language: javascript
+
+.. _node-inverse-relationship-dynamically:
+
+Dynamically Obtain an Inversely Linked Object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can dynamically retrieve an object with an inverse relationship without
+defining a ``linkingObjects`` type in its schema. Remove the
+``linkingObjects`` type from your schema, so your schemas look like a standard
+**to-many** relationship. When you need to retrieve the linked object, call the
+:js-sdk:`Realm.Object.linkingObjects() <classes/Object.html#linkingObjects>`
+query.
+
+.. example::
+   
+   In the following continuation from the inverse relationship example, we 
+   have removed the ``manufacturer`` field with type 'linkingObjects' from 
+   the ``Car`` schema. An application developer creates several manufacturers 
+   and car objects, and the application pushes the newly-created cars into a 
+   manufacturer's ``cars`` field. 
+   
+   To find the manufacturer who makes a specific car object, call ``.linkingObjects()``
+   and pass the "Manufacturer" class name and "cars" field as parameters.
+
+   The ``.linkingObjects()`` method returns a :ref:`Results collection 
+   <node-realm-results>` of objects whose property inverts the relationship. 
+   In this example, only one manufacturer makes the Sentra car model, so we 
+   can expect that manufacturer to be named Nissan.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: typescript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.obtain-inverse-relationship-dynamically.ts
+            :language: javascript
+
+      .. tab::
+          :tabid: javascript
+           
+          .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.obtain-inverse-relationship-dynamically.js
+            :language: javascript
+          
+.. _node-embedded-objects:
+
+Embedded Objects
+----------------
+
+An embedded object is a special type of :ref:`Realm object <node-object-schemas>`
+that models complex data. 
+They also map more naturally to the :manual:`MongoDB document model </core/data-modeling-introduction/>`.
+Embedded objects are similar to :ref:`relationships <node-client-relationships>`,
+but provide additional constraints.
+
+Realm treats each embedded object as nested data inside of a parent object.
+An embedded object inherits the lifecycle of its parent object.
+It cannot exist as an independent Realm object.
+This means that embedded objects cannot have a primary key.
+Realm also automatically deletes embedded objects if their parent object is deleted.
+
+.. tip:: Embedded object types are reusable and composable
+
+   You can use the same embedded object type in multiple parent object types.
+   You can also embed objects inside of other embedded objects.
+   You can even recursively reference an embedded object type as
+   an optional property in its own definition.
+
+Realm Object Models
+~~~~~~~~~~~~~~~~~~~
+
+To specify that a Realm object model defines an embedded object, set ``embedded``
+to ``true``. Reference an embedded object type from parent object types 
+as you would define a relationship:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+        
+      .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-embedded-property-model-classes.ts
+        :language: javascript
+
+   .. tab::
+      :tabid: javascript
+        
+      .. literalinclude:: /examples/generated/node/v12/relationships.test.snippet.define-embedded-object.js
+        :language: javascript
+
+JSON Schema
+~~~~~~~~~~~
+
+.. include:: /includes/embedded-object-json-schema.rst

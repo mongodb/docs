@@ -1,0 +1,384 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-authenticate-users:
+
+=====================================
+Authenticate Users - React Native SDK
+=====================================
+
+.. meta::
+  :description: Learn how to use authentication providers with the Atlas Device SDK for React Native.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+``@realm/react`` has hooks for user authentication. :realm-react-sdk:`useAuth 
+<functions/useAuth.html>` and :realm-react-sdk:`useEmailPasswordAuth 
+<functions/useEmailPasswordAuth.html>` handle authentication with enabled
+authentication providers.
+
+For a quick ``useAuth`` reference, refer to :ref:`useAuth Hook 
+<react-native-auth-hook>` on this page. For a quick ``useEmailPasswordAuth``
+reference, refer to :ref:`useEmailPasswordAuth Hook 
+<react-native-email-pass-hook>` on the Manage Email/Password Users page.
+
+You can also use the Realm.js APIs directly. Instantiate a
+:js-sdk:`Credentials <classes/Credentials.html>` object and pass it to
+:js-sdk:`App.logIn() <classes/App.html#logIn>` to authenticate and obtain a
+:js-sdk:`User <classes/User.html>` object.
+
+Prerequisites
+-------------
+
+Before you can authenticate a user, you must:
+
+- :ref:`Create an App Services App <create-a-realm-app>`
+- Enable one or more :ref:`authentication providers <authentication-providers>`
+  in the App.
+- :ref:`Install the React Native SDK <react-native-install>`
+
+.. _react-native-configure-authentication:
+
+Configure User Authentication in Client
+---------------------------------------
+
+``@realm/react`` has providers and hooks for user authentication. To configure
+user authentication:
+
+#. Set up ``@realm/react`` providers.
+#. Write a fallback component for ``UserProvider``.
+
+Set up @realm/react Providers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Components wrapped by :realm-react-sdk:`AppProvider <functions/AppProvider.html>`
+can access the :realm-react-sdk:`useApp <functions/useApp.html>` and
+:realm-react-sdk:`useAuth <functions/useAuth.html>` hooks. These components only
+render if ``AppProvider`` successfully connects to your App Services backend.
+
+Components wrapped by :realm-react-sdk:`UserProvider <functions/UserProvider.html>`
+can access authenticated users with the :realm-react-sdk:`useUser 
+<functions/useUser.html>` hook. These components only render if your app has an
+authenticated user
+
+To configure user authentication:
+
+#. Wrap all components that need to access App Services in ``AppProvider``.
+#. Inside of ``AppProvider``, wrap all components that you want to have access
+   to an authenticated user with ``UserProvider``.
+#. In ``UserProvider``, include a ``fallback`` prop with a component
+   that logs a user in. The app renders this component if there
+   is no authenticated user.
+
+.. include:: /examples/generated/react-native/v12/RealmWrapper.snippet.configure-user-provider.tsx.rst
+
+Write a Fallback Component for UserProvider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your app doesn't have an authenticated and logged-in user, ``UserProvider``
+and its children will not render. To handle this case, you can pass a fallback
+component to ``UserProvider``. This is commonly the login screen for apps.
+
+The following example uses anonymous authentication, but you could use any of
+the ``useAuth`` methods.
+
+To write an authentication fallback component for ``UserProvider``:
+
+#. Create a functional component.
+#. Destructure ``logInWithAnonymous`` and ``result`` from the ``useAuth`` hook.
+#. Call ``logInWithAnonymous()`` within a ``useEffect`` block that has an empty
+   dependency array.
+#. Handle ``result``. If the authentication operation doesn't succeed, you can
+   write error handling based on ``result``.
+
+.. include:: /examples/generated/react-native/v12/Login.snippet.user-provider-fallback.tsx.rst
+
+User Sessions
+-------------
+
+The React Native SDK communicates with Atlas App Services to manage sessions
+with access tokens and refresh tokens.
+
+To learn more about session management, refer to  :ref:`<user-sessions>`
+in the App Services documentation.
+
+.. _react-native-anonymous-login:
+.. _react-native-login-anonymous:
+
+Authentication Providers and Client Authentication
+--------------------------------------------------
+
+After you configure user authentication in your client and authentication
+providers in your App Services App, you can log users in.
+
+Anonymous User
+~~~~~~~~~~~~~~
+
+The :ref:`Anonymous <anonymous-authentication>` provider allows users to log in
+to your application with temporary accounts that have no associated information.
+
+Calling an authentication method when a user is currently logged in, switches
+the current user to the new user.
+
+If you call ``logInWithAnonymous()`` in the fallback of the ``UserProvider``,
+then ``UserProvider``'s children render as soon as the anonymous log in succeeds.
+
+To log in an anonymous user:
+
+#. Destructure ``logInWithAnonymous`` and ``result`` from the ``useAuth`` hook.
+#. Call ``logInWithAnonymous()`` without any arguments.
+#. Handle the ``result``.
+
+.. include:: /examples/generated/react-native/v12/LoginWithAnonymous.snippet.login-anonymous.tsx.rst
+
+.. _react-native-email-password-login:
+.. _react-native-login-email-password:
+
+Email/Password User
+~~~~~~~~~~~~~~~~~~~
+
+The :ref:`email/password <email-password-authentication>` authentication
+provider allows users to log in to your application with an email address and a
+password.
+
+You can use the ``useEmailPasswordAuth`` hook to handle user log in your
+client. For a quick ``useEmailPasswordAuth`` reference, refer to
+:ref:`useEmailPasswordAuth Hook <react-native-email-pass-hook>` on the Manage
+Email/Password Users page.
+
+To log a user in with email and password:
+
+#. Destructure ``logIn`` and ``result`` from the ``useEmailPasswordAuth`` hook.
+#. Pass the user's email and password to ``LogIn()`` as an object.
+#. Handle the ``result``.
+
+.. include:: /examples/generated/react-native/v12/LoginWithEmail.snippet.email-password-login.tsx.rst
+
+.. _react-native-api-key-login:
+.. _react-native-login-api-key:
+
+API Key User
+~~~~~~~~~~~~
+
+The :ref:`API key <api-key-authentication>` authentication provider allows
+server processes to access your app directly or on behalf of a user.
+
+Before you can log a user in with an API key, you need to
+:ref:`create an API key <react-native-create-a-user-api-key>`.
+
+To log in with an API key:
+
+#. Destructure ``loginWithApiKey`` and ``result`` from the ``useAuth`` hook.
+#. Pass your API key to ``loginWithApiKey()``.
+
+.. include:: /examples/generated/react-native/v12/LoginManager.snippet.api-key-login.tsx.rst
+
+.. _react-native-custom-jwt-login:
+.. _react-native-login-custom-jwt:
+
+Custom JWT User
+~~~~~~~~~~~~~~~
+
+The :ref:`Custom JWT <custom-jwt-authentication>` authentication provider
+handles user authentication with any authentication system that returns a
+:ref:`JSON web token <json-web-tokens>`.
+
+To log in a custom JWT user:
+
+#. Set up the JWT authentication provider in your App Services backend.
+#. Get a JWT from an external system.
+#. Destructure ``logInWithJWT`` and ``result`` from the ``useAuth`` hook.
+#. Pass the JWT to ``logInWithJWT()``.
+#. Handle the ``result``.
+
+.. include:: /examples/generated/react-native/v12/LoginWithJwt.snippet.login-jwt.tsx.rst
+
+.. _react-native-custom-function-login:
+.. _react-native-login-custom-function:
+
+Custom Function User
+~~~~~~~~~~~~~~~~~~~~
+
+The Custom Function authentication
+provider allows you to handle user authentication by running a :ref:`function
+<functions>` that receives a payload of arbitrary information about a user. Refer
+to :ref:`Custom Function Authentication <custom-function-authentication>` for
+details.
+
+To log in a user with the custom function provider:
+
+#. Create an App Services function to handle your authentication needs.
+#. Enable the Custom Function Provider for your App Services App and configure
+   it to use the function you created earlier.
+#. Destructure ``logInWithFunction`` and ``result`` from the ``useAuth`` hook.
+#. Pass any relevant user data (like a username) to ``logInWithFunction()``.
+#. Handle the ``result``.
+
+.. include:: examples/generated/react-native/v12/LoginWithFunction.snippet.login-function.tsx.rst
+
+.. _react-native-facebook-login:
+.. _react-native-login-facebook:
+
+Facebook User
+~~~~~~~~~~~~~
+
+The :ref:`Facebook <facebook-authentication>` authentication provider allows
+you to authenticate users through a Facebook app using their existing Facebook
+account.
+
+To log a user in with an existing Facebook account, you must configure and
+enable the :ref:`Facebook authentication provider <facebook-authentication>`
+for your App Services App.
+
+.. include:: /includes/note-facebook-profile-picture-url.rst
+
+You can use the :facebook:`official Facebook SDK <docs/facebook-login/overview>`
+to handle the user authentication and redirect flow from a client application.
+Once authenticated, the Facebook SDK returns an access token that you can send
+to your React Native app and use to finish logging the user in to your app.
+
+.. code-block:: javascript
+
+   export const LogInWithFacebook = () => {
+     const {logInWithFacebook, result} = useAuth();
+
+     const performLogin = () => {
+       // Get an access token using the Facebook SDK.
+       // You must define this function.
+       const token = getFacebookToken();
+
+       logInWithFacebook(token);
+     };
+
+     // Handle `result`...
+   };
+
+.. _react-native-google-login:
+.. _react-native-login-google:
+
+Google User
+~~~~~~~~~~~
+
+The :ref:`Google <google-authentication>` authentication provider allows you to
+authenticate users with their existing Google account.
+
+To authenticate a Google user, you must configure the :ref:`Google
+authentication provider <google-authentication>` for your App Services App.
+
+There is no official Sign in With Google integration for React Native. The
+simplest approach to integrating Sign in With Google into your React Native app
+with Realm authentication is to use a third-party library. You can also build
+your own solution using :google:`Google Identity Services <identity>` to handle
+the user authentication and redirect flow from a client application.
+
+Regardless of implementation, you must retrieve an ID token from the Google
+Authorization server. Use that ID token to log into Realm.
+
+.. _example-auth-google-react-native:
+
+.. code-block:: javascript
+
+   export const LogInWithGoogle = () => {
+     const {logInWithGoogle, result} = useAuth();
+
+     const performLogin = () => {
+       // Get an access token using a third-party library
+       // or build your own solution. You must define this function.
+       const token = getGoogleToken();
+
+       logInWithGoogle(token);
+     };
+
+     // Handle `result`...
+   };
+
+.. _react-native-apple-login:
+.. _react-native-login-apple:
+
+Apple User
+~~~~~~~~~~
+
+The :ref:`Apple <apple-id-authentication>` authentication provider allows you to
+authenticate users through Sign-in With Apple.
+
+To authenticate an Apple user, you must configure the :ref:`Apple
+authentication provider <apple-id-authentication>` for your App Services App.
+
+You can use the :apple:`official Sign in with Apple JS SDK
+<documentation/sign_in_with_apple/sign_in_with_apple_js>` to handle the user
+authentication and redirect flow from a client application. Once authenticated,
+the Apple JS SDK returns an ID token that you can send to your React Native app and
+use to finish logging the user in to your app.
+
+.. code-block:: javascript
+
+   export const LogInWithApple = () => {
+     const {logInWithApple, result} = useAuth();
+
+     const performLogin = () => {
+       // Get an access token using the Apple SDK.
+       // You must define this function.
+       const token = getAppleToken();
+
+       logInWithApple(token);
+     };
+
+     // Handle `result`...
+   };
+
+.. include:: /includes/authorization-appleidcredential-string.rst
+
+.. _react-native-offline-login:
+
+Offline Login
+-------------
+
+.. include:: /includes/offline-login.rst
+
+.. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.use-cached-user.ts
+   :language: javascript
+
+To learn how to use the cached user in the Sync Configuration and access a
+realm while offline, read the :ref:`Open a Synced Realm While Offline
+<react-native-open-synced-realm-offline>` docs.
+
+.. _react-native-get-user-access-token:
+
+Get a User Access Token
+-----------------------
+
+.. include:: /includes/user-access-token.rst
+
+.. include:: /examples/generated/react-native/v12/RealmWrapper.snippet.refresh-access-token.tsx.rst
+
+Refresh Token Expiration
+------------------------
+
+.. include:: /includes/refresh-token-expiry.rst
+
+.. _react-native-logout:
+
+Log a User Out
+--------------
+
+To log any user out, call the ``User.logOut()`` method on their user instance.
+
+.. include:: /includes/log-out-queries-in-progress.rst
+
+.. include:: /examples/generated/react-native/v12/RealmWrapper.snippet.log-user-out.tsx.rst
+
+.. _react-native-auth-hook:
+
+useAuth Hook Reference
+----------------------
+
+The ``useAuth`` hook has an authentication method for every App Services
+authentication provider. It also has state related to authentication. Refer to
+the :ref:`useAuth <react-native-use-auth>` reference for details.
+
+You can also check out the ``@realm/react`` API documentation for
+:realm-react-sdk:`useAuth <functions/useAuth.html>`.

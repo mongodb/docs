@@ -1,0 +1,287 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-open-a-synced-realm:
+.. _node-sync-changes-between-devices:
+
+=============================================
+Configure & Open a Synced Realm - Node.js SDK
+=============================================
+
+.. meta:: 
+  :description: Learn how to configure a synced realm using the Atlas Device
+    SDK for Node.js.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _node-synced-realm:
+
+Synced Realms
+-------------
+
+You can configure a realm to automatically synchronize data between many devices
+that each have their own local copy of the data. Synced realms use a different
+configuration than local-only realms and require an Atlas App Services backend to handle
+the synchronization process.
+
+Applications can always create, modify, and delete synced realm objects locally,
+even when offline. Whenever a network connection is available, the Realm SDK
+opens a connection to an application server and syncs changes to and from other
+clients. The :ref:`Atlas Device Sync protocol <sync-protocol>` and server-side
+operational transforms guarantee that all fully synced instances of a realm see
+exactly the same data, even if some changes occurred offline and/or were
+received out of order.
+
+.. tip:: Learn How to Configure and Use Sync
+   
+   For more information on synced realms, including directions on how to set up
+   sync in a Realm app, see :ref:`Atlas Device Sync Overview <sync>`.
+
+.. _node-sync-changes-prereq:
+
+Prerequisites
+-------------
+
+Before you configure a realm with Flexible Sync in a Node.js application:
+
+#. :ref:`Enable Flexible Sync on the backend <enable-flexible-sync>`.
+   You must configure Flexible Sync in the backend before you can use it with your
+   client application.
+#. :ref:`Initialize the App client <node-connect-to-mongodb-realm-backend-app>`.
+#. :ref:`Authenticate a user <node-authenticate-users>` in your client project.
+
+Open a Synced Realm
+-------------------
+
+The first step in implementing Device Sync is to open the synced Realm. The following
+information pertains to an app using Flexible Sync. If your existing app uses the
+older Partition-Based Sync, refer to :ref:`Open a Partition-Based Synced Realm <node-partition-based-sync>`.
+If you have not yet decided or are unsure which to use, read the :ref:`Choose Your
+Sync Mode <sync-modes>` page.
+
+.. _node-flexible-sync-open-realm:
+
+To open a realm using Flexible Sync, call :js-sdk:`Realm.open() <classes/Realm-1.html#open>`. 
+Pass in a :js-sdk:`ConfigurationWithSync <types/ConfigurationWithSync.html>`
+object, which must include the ``sync`` property defining a 
+:js-sdk:`SyncConfiguration <types/FlexibleSyncConfiguration.html>` object. 
+In the SyncConfiguration, you must include include a ``user`` and ``flexible:true``.
+
+.. literalinclude:: /examples/generated/node/flexible-sync.snippet.open-flexible-sync-realm.js
+   :language: javascript
+
+By default, Realm syncs all data from the server before returning.
+If you want to sync data in the background, read the :ref:`Open a Synced Realm
+While Offline <node-sync-changes-in-the-background>` section.
+
+.. important:: Flexible Sync Requires a Subscription
+
+   You can't use a Flexible Sync realm until you add at least one subscription.
+   To learn how to add subscriptions, see: :ref:`<node-sync-add-subscription>`.
+
+Open Synced Realm at Specific Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: ``realm@11.6.0``
+
+Using :js-sdk:`AppConfiguration.baseFilePath <types/AppConfiguration.html>`,
+and :js-sdk:`Realm.Configuration.path <types/BaseConfiguration.html>`, you can
+control where Realm and metadata files are stored on client devices.
+
+To do so, set ``<AppProvider>.baseFilePath``. If ``baseFilePath`` is not set, the
+current work directory is used. You can also set ``<RealmProvider>.sync.path``
+for more control.
+
+.. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.set-absolute-path.ts
+   :language: typescript
+   :emphasize-lines: 1
+
+If ``baseFilePath`` is set, metadata is always stored in
+``<baseFilePath>/mongodb-realm/``. If ``baseFilePath`` isn't set, then metadata
+is stored in ``<Realm.defaultPath>/mongodb-realm``.
+
+Where exactly your Realm file is stored can vary depending
+on how you set :js-sdk:`Realm.Configuration.path <types/BaseConfiguration.html>`:
+
+- ``Realm.Configuration.path`` is not set and ``baseFilePath`` is set. Your
+  Realm file is stored at ``baseFilePath``.
+- ``Realm.Configuation.path`` is set to a relative path. Your Realm file is
+  stored relative to ``baseFilePath``.
+- ``Realm.Configuration.path`` is an absolute path. Your Realm file is stored
+  at ``Realm.Configuration.path``.
+
+.. _node-open-synced-realm-offline:
+
+Open a Synced Realm While Offline
+---------------------------------
+
+.. include:: /includes/offline-login.rst
+
+.. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.use-cached-user.ts
+   :language: typescript
+
+The following subsections show how to use background synchronization to access a
+realm while offline. To do this, use the cached user and an
+:js-sdk:`OpenRealmBehaviorConfiguration
+<types/OpenRealmBehaviorConfiguration.html>` object. 
+
+Within your Sync Configuration, set the optional ``newRealmFileBehavior`` and
+``existingRealmFileBehavior`` fields to your ``OpenRealmBehaviorConfiguration`` object
+to enable background synchronization. 
+
+.. important:: Offline Login is Supported for Both Flexible and Partition-Based Sync Configurations
+
+   You can open a realm immediately with background sync or after a timeout
+   elapses using Flexible Sync or the older Partition-Based Sync.
+   
+   Partition-Based Sync is an outdated sync mode. See the :ref:`Partition-Based Sync - Node.js
+   SDK <node-partition-based-sync>` page for details on using Partition-Based Sync for your application.
+
+.. _node-open-immediately-with-background-sync:
+
+Open Immediately with Background Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the user's device is not connected to the internet or you're uncertain of
+it's connection status, set the realm behavior's type to ``openImmediately``. This 
+syncs data from the server in the background.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.open-synced-background.ts
+        :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.open-synced-background.js
+        :language: javascript
+
+.. _node-open-after-timeout-with-background-sync:
+
+Open After Timeout with Background Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to sync data but you're in an environment where it's uncertain if
+the user has an Internet connection, specify a ``timeOut``. This
+automatically opens the realm when either: 
+
+- the timeout period elapses.
+- the realm has completely downloaded.
+
+If the realm doesn't finish downloading before the timeout, the initial
+realm sync continues in the background.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.open-synced-offline.ts
+        :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/open-and-close-a-realm.snippet.open-synced-offline.js
+        :language: javascript
+
+.. _node-sync-changes-in-the-background:
+
+Sync Changes in the Background
+------------------------------
+
+You may want to sync changes in the background to display partial data to the
+user while the synced realm downloads data from the server, preventing the
+user experience from being blocked. We recommend syncing changes in the
+background for applications in which the user's device may go offline. To sync
+changes in the background, open a synced realm synchronously.
+
+Create a :js-sdk:`OpenRealmBehaviorConfiguration
+<types/OpenRealmBehaviorConfiguration.html>` object and set its
+``type`` to ``"openImmediately"``. 
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.background-sync-behavior.ts
+        :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.background-sync-behavior.js
+        :language: javascript
+
+Create a :js-sdk:`Configuration <types/BaseConfiguration.html>` object, which must
+include the ``sync`` property defining a :js-sdk:`SyncConfiguration
+<types/BaseSyncConfiguration.html>` object. Set this
+``OpenRealmBehaviorConfiguration`` object as the value for
+the ``newRealmFileBehavior`` and ``existingRealmFileBehavior`` fields of the
+``SyncConfiguration``.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.background-sync-configuration.ts
+        :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.background-sync-configuration.js
+        :language: javascript
+
+Finally,  call :js-sdk:`Realm.open() <classes/Realm-1.html#open>`
+to open a synced realm. This will create a sync session and begin
+downloading any existing data from the server in the background.
+
+.. literalinclude:: /examples/generated/node/device-sync.snippet.open-realm.ts
+   :language: javascript
+
+.. _node-cancel-async-after-timeout:
+
+Cancel Asynchronous Operations after a Timeout
+----------------------------------------------
+
+.. versionadded:: 12.0.0
+
+You can specify a ``cancelWaitsOnNonFatalErrors`` property in your 
+:js-sdk:`BaseSyncConfiguration <types/BaseSyncConfiguration.html>` object.
+
+When ``true``, the Node.js SDK cancels asynchronous operations, such as 
+waiting for uploads or downloads, when a timeout period elapses. You can 
+define the timeout for this option on the 
+:js-sdk:`AppConfiguration <types/AppConfiguration.html>`.
+For an example, refer to :ref:`node-app-client-configure-timeout`.
+
+This property defaults to ``false`` if you do not specify a value.
+
+.. tabs-realm-languages::
+
+  .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/v12/configure-and-open-synced-realm.test.snippet.cancel-waits-on-non-fatal-error.ts
+        :language: typescript
+
+  .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/v12/configure-and-open-synced-realm.test.snippet.cancel-waits-on-non-fatal-error.js
+        :language: javascript

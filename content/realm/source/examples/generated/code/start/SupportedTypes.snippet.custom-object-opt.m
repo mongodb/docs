@@ -1,0 +1,1 @@
+@property MyObject *optObjectPropertyName;

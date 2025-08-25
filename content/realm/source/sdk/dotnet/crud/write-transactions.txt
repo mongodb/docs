@@ -1,0 +1,95 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-write-transactions:
+.. _dotnet-transactions:
+
+=============================
+Write Transactions - .NET SDK
+=============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In addition to reading objects, you can create, update, and delete 
+objects from a realm. Because these operations modify the 
+state of the realm, we call them "writes", and **all writes to Realm 
+must be within a transaction**.
+
+A transaction is a list of read and write operations that 
+Realm treats as a single indivisible operation. A transaction is an 
+*all or nothing* operation: either all of the operations in the transaction 
+succeed or none of the operations in the transaction take effect. 
+
+A realm allows only one open transaction at a time. Realm 
+blocks other writes on other threads until the open 
+transaction is complete. This ensures that there is no race 
+condition when reading values from the realm within a 
+transaction.
+
+When all operations in a transaction complete, Realm either
+commits it or cancels the transaction:
+
+- When Realm commits a transaction, Realm writes
+  all changes to disk. For synced realms, the SDK queues the change
+  for synchronization with Atlas App Services.
+- When Realm cancels a write transaction (as when an operation in
+  the transaction causes an error), all changes are discarded
+  (or "rolled back").
+
+.. _dotnet-open-a-transaction:
+
+Initiate a Transaction
+----------------------
+
+The .NET SDK provides a simple API you can use for most writes.  The 
+:dotnet-sdk:`Write() <reference/Realms.Realm.html#Realms_Realm_Write__1_System_Func___0__>` and
+:dotnet-sdk:`WriteAsync() <reference/Realms.Realm.html#Realms_Realm_WriteAsync_System_Action_System_Threading_CancellationToken_>` and
+methods wrap all commands into a single transaction and then commit the 
+transaction. 
+
+The ``Write()`` and ``WriteAsync()`` methods are shorthand for using the 
+:dotnet-sdk:`BeginWrite() <reference/Realms.Realm.html#Realms_Realm_BeginWrite>` and
+:dotnet-sdk:`Transaction.Commit() <reference/Realms.Transaction.html#Realms_Transaction_Commit>`
+methods, and their ``Async`` counterparts. In most cases, either of these two write 
+methods will meet your needs. If you need finer control over the transaction, 
+use ``BeginWrite()`` with one of these ``Transaction`` methods:
+
+- :dotnet-sdk:`Commit() <reference/Realms.Transaction.html#Realms_Transaction_Commit>`
+- :dotnet-sdk:`Dispose() <reference/Realms.Transaction.html#Realms_Transaction_Dispose>`
+- :dotnet-sdk:`Rollback() <reference/Realms.Transaction.html#Realms_Transaction_Rollback>`
+
+The following code shows how to use both approaches:
+
+.. literalinclude:: /examples/generated/dotnet/WriteExamples.snippet.create.cs
+   :language: csharp
+
+.. literalinclude:: /examples/generated/dotnet/WriteExamples.snippet.create-long-hand.cs
+   :language: csharp
+
+.. note:: CancellationTokens
+
+   As with most C# async methods, the 
+   :dotnet-sdk:`WriteAsync <reference/Realms.Realm.html#Realms_Realm_WriteAsync_System_Action_System_Threading_CancellationToken_>`,
+   :dotnet-sdk:`BeginWriteAsync <reference/Realms.Realm.html#Realms_Realm_BeginWriteAsync_System_Threading_CancellationToken_>`,
+   and :dotnet-sdk:`CommitAsync <reference/Realms.Transaction.html#Realms_Transaction_CommitAsync_System_Threading_CancellationToken_>`
+   methods can take a 
+   `CancellationToken <https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken?view=net-6.0>`_ 
+   as a parameter, providing you with the option to cancel the operation before 
+   the process completes.
+
+Check the Status of a Transaction
+---------------------------------
+
+The SDK provides a :dotnet-sdk:`TransactionState <reference/Realms.Transaction.html#Realms_TransactionState>` 
+property with the current transaction status. You can use ``TransactionState`` 
+to ensure you don't commit or rollback a transaction twice:
+
+.. literalinclude:: /examples/generated/dotnet/WriteExamples.snippet.create-long-hand.cs
+   :language: csharp

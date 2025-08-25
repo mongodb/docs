@@ -1,0 +1,96 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-mac-catalyst:
+
+========================
+Build using Mac Catalyst
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page details steps required for building your Realm application when
+using `Mac Catalyst <https://developer.apple.com/mac-catalyst/>`_ with `React
+Native version 0.64 and below <https://reactnative.dev/versions>`_.
+
+.. note::
+
+   Version 10.6.0 and above of the Realm React Native SDK supports Mac Catalyst.
+
+.. important::
+
+   Version 0.65 and above of React Native do not require these additional steps to build using Mac Catalyst.
+
+.. seealso::
+
+   :ref:`react-native-install`
+
+Procedure
+---------
+
+.. procedure::
+
+   .. step:: Update Your Build Phase Settings
+
+      Before you can use Mac Catalyst in your React Native application, you must
+      specify the platform name. Click :guilabel:`Build Phases` in XCode, and within
+      the :guilabel:`Bundle React Native code and images` tab, add the following to
+      specify "ios" as the platform name.
+
+      .. code-block:: none
+
+       export PLATFORM_NAME=ios
+
+
+   .. step:: Update Your Podfile
+
+
+      .. note::
+
+       This is a temporary step that will not be necessary when the following Cocoapods issue is solved:
+       :github:`[Catalyst] Podspec Resource Bundle requires a development team <CocoaPods/CocoaPods/issues/8891>`
+
+      Currently, there is a :github:`Cocoapods bug
+      <CocoaPods/CocoaPods/issues/8891>` that causes XCode to require a development
+      team when building for Mac Catalyst. This bug prevents signing locally. As a
+      workaround, you can alter your Podfile to fix your bundle target's signing
+      certificate to sign to run locally.
+
+      Replace the post-install script in your Podfile by removing the following lines:
+
+      .. code-block:: none
+         :caption: /ios/Podfile
+
+       post_install do |installer|
+         react_native_post_install(installer)
+       end
+
+      And copy the following lines where your previous post-install script was:
+
+      .. code-block:: none
+         :caption: /ios/Podfile
+
+       post_install do |installer|
+         react_native_post_install(installer)
+         installer.pods_project.targets.each do |target|
+           # Fix bundle targets' 'Signing Certificate' to 'Sign to Run Locally'
+           if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
+             target.build_configurations.each do |config|
+               config.build_settings['CODE_SIGN_IDENTITY[sdk=macosx*]'] = '-'
+             end
+           end
+         end
+       end
+
+
+   .. step:: Activate and Test Catalyst in Your Project
+
+      To test out Catalyst in your project, activate Mac in the :guilabel:`general`
+      tab of your XCode project workspace. To do this, click :guilabel:`Mac` in the
+      :guilabel:`Deployment Info` section. Select :guilabel:`"Scale Interface to Match iPad"`.
+      This makes "My Mac" selectable, allowing you to run your application on your Mac.
+

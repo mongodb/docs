@@ -1,0 +1,203 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _ios-open-realm-swiftui:
+
+====================================
+Configure and Open a Realm - SwiftUI
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The Swift SDK provides property wrappers to open a realm in a 
+SwiftUI-friendly way. 
+
+You can:
+
+- :ref:`Implicitly open a realm <ios-open-realm-with-configuration-swiftui>` 
+  with a ``defaultConfiguration`` or specify a different configuration. 
+  This works for both non-synced and synced realms.
+- :ref:`Always download changes before opening a synced realm 
+  <swiftui-async-open-synced-realm>`, which times out when the user is offline.
+- :ref:`Open a synced realm even when a user is offline 
+  <swiftui-auto-open-synced-realm>`. The realm may lack the most recent data.
+
+.. _ios-open-realm-with-configuration-swiftui:
+
+Open a Realm with a Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you use :swift-sdk:`@ObservedRealmObject <Structs/ObservedRealmObject.html>` 
+or :swift-sdk:`@ObservedResults <Structs/ObservedResults.html>`, these 
+property wrappers implicitly open a realm and retrieve the specified 
+objects or results.
+
+.. literalinclude:: /examples/generated/swiftui/PassObjectsToView.snippet.implicitly-open-realm.swift
+   :language: swift
+
+.. include:: /includes/note-observedresults-swiftui-view.rst
+
+When you do not specify a configuration, these property wrappers use the 
+:swift-sdk:`defaultConfiguration <Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV07defaultC0AEvpZ>`. 
+You can :ref:`set the defaultConfiguration <ios-default-and-file-url-realm>`
+globally, and property wrappers across the app can use that configuration 
+when they implicitly open a realm.
+
+You can provide alternative configurations that the property wrappers use 
+to implicitly open the realm. You might want to do this when using 
+multiple configurations in your app, as in cases where you have both
+a :swift-sdk:`SyncConfiguration <Structs/SyncConfiguration.html>` and 
+a local :swift-sdk:`Configuration <Structs/Realm/Configuration.html>`.
+To do this, :ref:`create explicit configurations <ios-configure-and-open-a-realm>`. 
+Then, :ref:`use environment injection to pass the respective configurations 
+to the views that need them <ios-swiftui-inject-realm-configuration>`.
+Passing a configuration to a view where property wrappers open a realm 
+uses the passed configuration instead of the ``defaultConfiguration``.
+
+.. _ios-open-synced-realm-swiftui:
+
+Open a Synced Realm
+~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 10.12.0
+
+These SwiftUI property wrappers open synced realms and populate views.
+The main difference between these property wrappers is whether the user 
+must be online:
+
+- To download updates from your Atlas App Services app before opening a realm, use the 
+  :ref:`@AsyncOpen <swiftui-async-open-synced-realm>` property wrapper. This 
+  requires the user to have a network connection. 
+- To open a synced realm regardless of whether the user has a network 
+  connection, use the :ref:`@AutoOpen <swiftui-auto-open-synced-realm>` 
+  property wrapper. This property wrapper enables developers to design 
+  offline-first capabilities into their apps.
+
+.. include:: /includes/tip-swift-migrate-to-flexible-sync.rst
+
+.. _swiftui-async-open-synced-realm:
+
+Download Changes Before Opening a Synced Realm
+``````````````````````````````````````````````
+
+Use the :swift-sdk:`@AsyncOpen <Structs/AsyncOpen.html>` property wrapper 
+for apps that require up-to-date information from the server, such as game 
+apps with live leaderboards that the user can play on multiple devices. This 
+ensures the user is never using the app with stale data.
+
+.. tabs::
+
+   .. tab:: Flexible Sync
+      :tabid: flex-sync
+
+      .. versionadded:: 10.27.0
+
+      Realm Swift SDK version 10.27.0 adds :ref:`Flexible Sync <flexible-sync>` 
+      versions of the property wrappers to open Realm with SwiftUI. You can 
+      add subscription queries in ``.onAppear`` after opening the realm.
+
+      .. literalinclude:: /examples/generated/swiftui/OpenRealm.snippet.fs-property-wrapper-sans-config-comment.swift
+         :language: swift
+
+      .. versionadded:: 10.28.0
+
+      You can create a :swift-sdk:`flexibleSyncConfiguration() 
+      <Extensions/User.html#/s:So7RLMUserC10RealmSwiftE25flexibleSyncConfigurationAC0B0V0F0VyF>` 
+      with the ``initialSubscriptions`` parameter. You can use this parameter 
+      to :ref:`subscribe to Flexible Sync queries 
+      <ios-sync-subscribe-to-queryable-fields>` in the configuration. If 
+      this runs more than once - for example, if it's in a view that 
+      reloads regularly - check whether the subscription exists already
+      before adding it. Adding the same subscription again throws an error.
+      
+      .. literalinclude:: /examples/generated/swiftui/Authenticate.snippet.flexible-sync-config.swift
+         :language: swift
+
+      Then, pass the configuration to the view that contains the property 
+      wrappers as an environment object.
+
+      .. literalinclude:: /examples/generated/swiftui/Authenticate.snippet.inject-flex-sync-config-as-environment-object.swift
+         :language: swift
+
+      For a complete example, see the :ref:`SwiftUI Quick Start <swiftui-integrate-with-sync>`.
+
+   .. tab:: Partition-Based Sync
+      :tabid: pbs
+
+      To open a realm with :ref:`Partition-Based Sync <partition-based-sync>`, 
+      add a ``partitionValue`` to the property wrapper:
+
+      .. literalinclude:: /examples/generated/swiftui/OpenRealm.snippet.pbs-async-open-property-wrapper.swift
+         :language: swift
+
+This SwiftUI property wrapper initiates ``Realm.asyncOpen()`` for the current 
+user. The property wrapper publishes states, represented by the :swift-sdk:`AsyncOpenState 
+enum <Enums/AsyncOpenState.html#/s:10RealmSwift14AsyncOpenStateO5erroryACs5Error_pcACmF>`,
+which you can use to update the view. 
+
+.. example::
+
+   This example illustrates one way you might use ``@AsyncOpen`` to 
+   open a realm in a view. First, check for a user, or log them in.
+   Then, attempt to open the realm, switching on the ``AsyncOpenState``
+   to display an appropriate view. When the realm opens successfully,
+   inject it as an environment value to populate the view.
+
+   .. tabs::
+
+      .. tab:: Flexible Sync
+         :tabid: flex-sync
+
+         .. literalinclude:: /examples/generated/swiftui/OpenRealm.snippet.open-realm-view-flex-sync.swift
+            :language: swift
+
+      .. tab:: Partition-Based Sync
+         :tabid: pbs
+
+         .. literalinclude:: /examples/generated/swiftui/OpenRealm.snippet.async-open-synced-realm.swift
+            :language: swift
+
+.. _swiftui-auto-open-synced-realm:
+
+Open a Synced Realm Offline
+```````````````````````````
+
+Like ``@AsyncOpen``, :swift-sdk:`@AutoOpen <Structs/AutoOpen.html>` attempts 
+to download updates before opening the realm. However, if a network 
+connection is not available, this method instead opens a realm with 
+data on the device.
+
+Use this property wrapper for apps where it's not a problem for the user 
+to work with potentially stale data, such as note-taking apps where users 
+should be able to work with data on the device
+
+.. tabs::
+
+   .. tab:: Flexible Sync
+      :tabid: flex-sync
+
+      .. code-block:: swift
+
+         @AutoOpen(appId: "app_id") var autoOpen
+
+   .. tab:: Partition-Based Sync
+      :tabid: pbs
+
+      .. code-block:: swift
+
+         @AutoOpen(appId: "app_id", partitionValue: <partition_value>) var autoOpen
+
+This SwiftUI property wrapper attempts to download updates before opening a 
+realm for the current user. If there is no internet connection, this property 
+wrapper instead returns the most up-to-date version of the local realm file 
+for the given ``appId`` and Flexible Sync or Partition-Based Sync 
+configuration.
+
+The property wrapper publishes states, represented by the :swift-sdk:`AsyncOpenState 
+enum <Enums/AsyncOpenState.html#/s:10RealmSwift14AsyncOpenStateO5erroryACs5Error_pcACmF>`,
+which you can use to update the view. For a full example, see the ``@AsyncOpen``
+code examples above.

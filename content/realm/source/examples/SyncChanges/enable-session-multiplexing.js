@@ -1,0 +1,1 @@
+Realm.App.Sync.enableSessionMultiplexing(app);

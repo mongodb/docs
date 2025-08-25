@@ -1,0 +1,609 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-define-a-realm-object-schema:
+.. _java-object-schema:
+
+======================================
+Define a Realm Object Model - Java SDK
+======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Define a Realm Object
+---------------------
+
+To define a Realm object in your application,
+create a subclass of :java-sdk:`RealmObject <io/realm/RealmObject.html>`
+or implement :java-sdk:`RealmModel <io/realm/RealmModel.html>`.
+
+.. important::
+
+   - All Realm objects must provide an empty constructor.
+   - All Realm objects must use the ``public`` visibility modifier in Java
+     or the ``open`` visibility modifier in Kotlin.
+
+.. include:: /includes/note-class-char-limit.rst
+
+Extend ``RealmObject``
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following code block shows a Realm object that
+describes a Frog. This Frog class can be stored in
+Realm because it ``extends`` the ``RealmObject`` class.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogObjectExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogObjectExample.snippet.complete.java.rst
+
+Implement ``RealmModel``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code block shows a Realm object that
+describes a Frog. This Frog class can
+be stored in Realm because it ``implements`` the
+``RealmModel`` class and uses the ``@RealmClass`` annotation:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogRealmModelExampleKt.snippet.complete.kt.rst
+
+      .. important::
+
+         All Realm objects must use the ``open``
+         visibility modifier.
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogRealmModelExample.snippet.complete.java.rst
+
+      .. important::
+
+         All Realm objects must use the ``public``
+         visibility modifier.
+
+.. tip:: Using ``RealmObject`` Methods
+
+   When you create a Realm object by extending the ``RealmObject``
+   class, you can access ``RealmObject`` class methods dynamically on
+   instances of your Realm object. Realm objects
+   created by implementing ``RealmModel`` can access those same methods
+   statically through the ``RealmObject`` class:
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/local/RealmObjectVsRealmModelTest.snippet.realm-object-vs-realm-model.kt
+            :language: kotlin
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/local/RealmObjectVsRealmModelTest.snippet.realm-object-vs-realm-model.java
+            :language: java
+
+.. _java-field-relationships-lists-example:
+
+Lists
+-----
+
+Realm objects can contain lists of non-Realm-object data
+types:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogListExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      Unlike lists of Realm objects, these lists can contain
+      null values. If null values shouldn't be allowed, use the
+      :ref:`@Required <java-required-field>` annotation.
+
+      .. include:: /examples/generated/java/local/FrogListExample.snippet.complete.java.rst
+
+.. seealso::
+
+   :ref:`Data Types: Lists <java-field-relationships-lists>`
+
+.. _java-define-an-embedded-object-property:
+.. _java-field-relationships-embedded:
+
+Define an Embedded Object Field
+-------------------------------
+
+Realm provides the ability to nest objects within other
+objects. This has several advantages:
+
+- If using Sync, objects translate into MongoDB documents that
+  follow a :manual:`denormalized data model </core/data-modeling-introduction/>`.
+
+- When you delete an object that contains another object, the delete
+  operation removes both objects from the realm, so unused objects
+  don't accumulate in your realm file, taking up valuable space on
+  user's mobile devices.
+
+To embed an object, set the ``embedded`` property of the
+:java-sdk:`@RealmClass <io/realm/annotations/RealmClass.html#embedded-->`
+annotation to ``true`` on the class that you'd like to nest within
+another class:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FlyEmbeddedExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FlyEmbeddedExample.snippet.complete.java.rst
+
+Then, any time you reference that class from another class,
+Realm will embed the referenced class within the enclosing
+class, as in the following example:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogEmbeddedExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogEmbeddedExample.snippet.complete.java.rst
+
+.. seealso::
+
+   :ref:`Data Types: Embedded Objects <java-embedded-objects>`
+
+.. _java-property-annotations:
+
+Annotations
+-----------
+
+Use annotations to customize your Realm object models.
+
+.. _java-primary-key:
+
+Primary Key
+~~~~~~~~~~~
+
+.. _java-primary-key-fundamentals:
+
+.. versionadded:: 10.6.0
+
+   Realm automatically :ref:`indexes <java-indexes-fundamentals>`
+   primary key fields. Previously, Realm only indexed ``String`` primary
+   keys automatically.
+
+Realm treats fields marked with the
+:java-sdk:`@PrimaryKey <io/realm/annotations/PrimaryKey.html>` annotation
+as primary keys for their corresponding object schema. Primary keys are
+subject to the following limitations:
+
+- You can define only one primary key per object schema.
+
+- Primary key values must be unique across all instances of an object
+  in a realm. Attempting to insert a duplicate primary key value
+  results in a :java-sdk:`RealmPrimaryKeyConstraintException
+  <io/realm/exceptions/RealmPrimaryKeyConstraintException.html>`.
+
+- Primary key values are immutable. To change the primary key value of
+  an object, you must delete the original object and insert a new object
+  with a different primary key value.
+
+- :ref:`Embedded objects <java-embedded-objects>` cannot define a
+  primary key.
+
+You can create a primary key with any of the following types:
+
+- ``String``
+- ``UUID``
+- ``ObjectId``
+- ``Integer`` or ``int``
+- ``Long`` or ``long``
+- ``Short`` or ``short``
+- ``Byte`` or ``byte[]``
+
+Non-primitive types can contain a value of ``null`` as a primary key
+value, but only for one object of a particular type, since each primary
+key value must be unique. Attempting to insert an object with an existing
+primary key into a realm will result in a
+:java-sdk:`RealmPrimaryKeyConstraintException <io/realm/exceptions/RealmPrimaryKeyConstraintException.html>`.
+
+Realm automatically :ref:`indexes <java-index-field>`
+primary key fields, which allows you to efficiently read and modify
+objects based on their primary key.
+
+You cannot change the primary key field for an object type after adding
+any object of that type to a realm. If you are using Sync,
+you cannot change the primary key field for an object after defining the
+primary key in your backend :ref:`schema <schemas>`.
+
+Embedded objects cannot contain primary keys.
+
+You may optionally define a primary key for an object type as part of
+the :ref:`object schema <java-object-schema>` with the
+:java-sdk:`@PrimaryKey <io/realm/annotations/PrimaryKey.html>` annotation:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogPrimaryKeyExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogPrimaryKeyExample.snippet.complete.java.rst
+
+.. _java-required-field:
+
+Required Fields
+~~~~~~~~~~~~~~~
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogRequiredExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogRequiredExample.snippet.complete.java.rst
+
+.. _java-optional-field:
+.. _java-optionality:
+
+Optional Fields
+~~~~~~~~~~~~~~~
+
+Fields marked with Java object types and Kotlin nullable types
+(ending with ``?``) are nullable by default. All other types
+(primitives, non-nullable Kotlin object types) are required by default.
+You can mark a nullable field with the :java-sdk:`@Required <io/realm/annotations/Required.html>`
+annotation to prevent that field from holding a null value.
+:java-sdk:`RealmLists <io/realm/RealmList.html>` are never nullable, but
+you can use the ``@Required`` annotation to prevent objects in a list
+from holding a null value, even if the base type would otherwise allow it.
+You cannot mark a ``RealmList`` of ``RealmObject`` subtypes as required.
+
+You can make any of the following types required:
+
+- ``String``
+- ``UUID``
+- ``ObjectId``
+- ``Integer``
+- ``Long``
+- ``Short``
+- ``Byte`` or ``byte[]``
+- ``Boolean``
+- ``Float``
+- ``Double``
+- ``Date``
+- ``RealmList``
+
+Primitive types such as ``int`` and the ``RealmList`` type are
+implicitly required. Fields with the ``RealmObject`` type are always
+nullable, and cannot be made required.
+
+.. important:: Kotlin Types and Nullability
+
+   In Kotlin, types are non-nullable by default unless you explicitly
+   add a ``?`` suffix to the type. You can only annotate
+   :ref:`nullable types <java-optional-field>`. Using the
+   ``@Required`` annotation on non-nullable types will fail compilation.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      In Kotlin, fields are considered nullable only if a field is
+      marked nullable with the Kotlin `? operator
+      <https://kotlinlang.org/docs/reference/null-safety.html>`__ except
+      for the following types:
+
+      - ``String``
+      - ``Date``
+      - ``UUID``
+      - ``ObjectId``
+      - ``Decimal128``
+      - ``RealmAny``
+
+      You can require any type that ends with the Kotlin ``?``
+      operator, such as ``Int?``.
+
+      The ``RealmList`` type is non-nullable by default and cannot be
+      made nullable.
+
+   .. tab::
+      :tabid: java
+
+      Nullable fields are optional by default in Realm, unless
+      otherwise specified with the :ref:`@Required <java-required-field>`
+      annotation. The following types are nullable:
+
+      - ``String``
+      - ``Date``
+      - ``UUID``
+      - ``ObjectId``
+      - ``Integer``
+      - ``Long``
+      - ``Short``
+      - ``Byte`` or ``byte[]``
+      - ``Boolean``
+      - ``Float``
+      - ``Double``
+
+      Primitive types like ``int`` and ``long`` are non-nullable by
+      default and cannot be made nullable, as they cannot be set to a
+      null value.
+
+.. _java-default-field-values:
+
+Default Field Values
+~~~~~~~~~~~~~~~~~~~~
+
+To assign a default value to a field, use the built-in language features
+to assign default values.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      Assign default values in the field declaration:
+
+      .. include:: /examples/generated/java/local/FrogDefaultValueExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      Use the class constructor(s) to assign default values:
+
+      .. include:: /examples/generated/java/local/FrogDefaultValueExample.snippet.complete.java.rst
+
+.. note:: Default Values and Nullability
+
+   While default values ensure that a newly created object cannot contain
+   a value of ``null`` (unless you specify a default value of ``null``),
+   they do not impact the nullability of a field. To make a field
+   non-nullable, see :ref:`Required Fields <java-required-field>`.
+
+.. _java-index-a-property:
+.. _java-index-field:
+.. _java-indexes-fundamentals:
+
+Index a Field
+~~~~~~~~~~~~~
+
+**Indexes** support the efficient execution of queries in
+Realm. Without indexes, Realm must perform a
+*collection scan*, i.e. scan every document in a collection, to select
+those documents that match a query. If an appropriate index exists for a
+query, Realm can use the index to limit the number of
+documents that it must inspect.
+
+Indexes are special data structures that store a small portion of a
+realm's data in an easy to traverse form. The index stores the value
+of a specific field ordered by the value of the field. The ordering of
+the index entries supports efficient equality matches and range-based
+query operations.
+
+Adding an index can speed up some queries at the cost of slightly slower write
+times and additional storage and memory overhead. Indexes require space in your
+realm file, so adding an index to a property will increase disk space consumed
+by your realm file. Each index entry is a minimum of 12 bytes.
+
+You can index fields with the following types:
+
+- ``String``
+- ``UUID``
+- ``ObjectId``
+- ``Integer`` or ``int``
+- ``Long`` or ``long``
+- ``Short`` or ``short``
+- ``Byte`` or ``byte[]``
+- ``Boolean`` or ``bool``
+- ``Date``
+- ``RealmAny``
+
+Realm creates indexes for fields annotated with
+:java-sdk:`@Index <io/realm/annotations/Index.html>`.
+
+To index a field, use the :java-sdk:`@Index <io/realm/annotations/Index.html>`
+annotation:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogIndexExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogIndexExample.snippet.complete.java.rst
+
+.. _java-ignore-a-property:
+.. _java-ignore-a-field:
+.. _java-ignore-field:
+
+Ignore a Field
+~~~~~~~~~~~~~~
+
+If you don't want to save a field in your model to a realm, you can
+ignore a field.
+
+Ignore a field from a Realm object model with the
+:java-sdk:`@Ignore <io/realm/annotations/Ignore.html>` annotation:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogIgnoreExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogIgnoreExample.snippet.complete.java.rst
+
+.. note:: The SDK ignores ``static`` and ``transient`` Fields
+
+   Fields marked ``static`` or ``transient`` are always ignored, and do
+   not need the ``@Ignore`` annotation.
+
+.. _java-rename-field:
+
+Rename a Field
+~~~~~~~~~~~~~~
+
+By default, Realm uses the name defined in the model class
+to represent fields internally. In some cases you might want to change
+this behavior:
+
+- To make it easier to work across platforms, since naming conventions differ.
+- To change a field name in Kotlin without forcing a migration.
+
+Choosing an internal name that differs from the name used in model classes
+has the following implications:
+
+- Migrations must use the internal name when creating classes and fields.
+- Schema errors reported will use the internal name.
+
+Use the :java-sdk:`@RealmField <io/realm/annotations/RealmField.html>`
+annotation to rename a field:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogRenameAFieldExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogRenameAFieldExample.snippet.complete.java.rst
+
+Alternatively, you can also assign a naming policy at the module or
+class levels to change the way that Realm interprets field
+names.
+
+You can define a
+:java-sdk:`naming policy <io/realm/annotations/RealmNamingPolicy.html>`
+at the :ref:`module level <java-realm-modules>`,
+which will affect all classes included in the module:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/RenameModuleExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/RenameModuleExample.snippet.complete.java.rst
+
+You can also define a
+:java-sdk:`naming policy <io/realm/annotations/RealmNamingPolicy.html>`
+at the class level, which overrides module level settings:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogClassRenamePolicyExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogClassRenamePolicyExample.snippet.complete.java.rst
+
+.. _java-rename-object:
+
+Rename a Class
+~~~~~~~~~~~~~~
+
+By default, Realm uses the name defined in the model class
+to represent classes internally. In some cases you might want to change
+this behavior:
+
+- To support multiple model classes with the same simple name in different packages.
+- To make it easier to work across platforms, since naming conventions differ.
+- To use a class name that is longer than the 57 character limit enforced by Realm.
+- To change a class name in Kotlin without forcing a migration.
+
+Use the :java-sdk:`@RealmClass <io/realm/annotations/RealmClass.html>`
+annotation to rename a class:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogRenameClassExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogRenameClassExample.snippet.complete.java.rst
+
+.. _java-omit-classes-from-schema:
+
+Omit Classes from your Realm Schema
+-----------------------------------
+
+By default, your application's Realm Schema includes all
+classes that extend ``RealmObject``. If you only want to include a
+subset of classes that extend ``RealmObject`` in your Realm
+Schema, you can include that subset of classes in a module and open
+your realm using that module:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/OmitModuleExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/OmitModuleExample.snippet.complete.java.rst

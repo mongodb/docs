@@ -1,0 +1,234 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-client-resets:
+.. _dotnet-reset-a-client-realm-file:
+
+========================
+Client Resets - .NET SDK
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Overview
+--------
+
+.. versionadded:: 10.17.0
+
+A client reset error is a scenario where a client realm cannot sync 
+data with the application backend. Clients in this state may continue to 
+run and save data locally but cannot send or receive sync changesets 
+until they perform a client reset. The Realm SDKs provide methods to 
+automatically handle client resets under most scenarios.
+
+Client Reset Strategies
+-----------------------
+
+Client reset scenarios occur when the server's history is incompatible with the 
+client's history. The most common causes of client resets are described in 
+:ref:`client-resets`.
+
+In the .NET SDK, you can specify a client 
+reset strategy in your :dotnet-sdk:`FlexibleSyncConfiguration <reference/Realms.Sync.FlexibleSyncConfiguration.html>`
+and :dotnet-sdk:`PartitionSyncConfiguration <reference/Realms.Sync.PartitionSyncConfiguration.html>`.
+The :dotnet-sdk:`ClientResetHandler <reference/Realms.Sync.SyncConfigurationBase.html#Realms_Sync_SyncConfigurationBase_ClientResetHandler>` 
+property can be set to one of the following:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 50
+   
+   * - Handler
+     - Strategy
+     - Notes
+
+   * - :dotnet-sdk:`RecoverOrDiscardUnsyncedChangesHandler <reference/Realms.Sync.ErrorHandling.RecoverOrDiscardUnsyncedChangesHandler.html>`
+       (Default)
+     - Recover all unsynced local changes
+     - If recovery fails, this handler falls back to the ``DiscardUnsyncedChangesHandler``, 
+       which deletes all unsynced local changes. If the ``DiscardUnsyncedChangesHandler`` 
+       recovery fails, the handler falls back to a ``ManualRecoveryHandler``, which
+       requires you to implement a manual recovery strategy.
+
+   * - :dotnet-sdk:`RecoverUnsyncedChangesHandler <reference/Realms.Sync.ErrorHandling.RecoverUnsyncedChangesHandler.html>`
+     - Recover all unsynced local changes
+     - If recovery fails, this handler falls back to a ``ManualRecoveryHandler``, 
+       which requires you to implement a manual recovery strategy.
+
+   * - :dotnet-sdk:`DiscardUnsyncedChangesHandler <reference/Realms.Sync.ErrorHandling.DiscardUnsyncedChangesHandler.html>`
+     - Discard unsynced changes
+     - This strategy *permanently deletes* all local unsynced changes made since 
+       the last successful sync.
+
+   * - :dotnet-sdk:`ManualRecoveryHandler <reference/Realms.Sync.ErrorHandling.ManualRecoveryHandler.html>`
+     - Manual recovery
+     - Provides a way for you to implement your own recovery strategy.
+
+
+The following sections describe the different strategies for handling a client 
+reset and how you can use each of the ``ClientResetHandlers``.
+
+Recover Unsynced Local Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In a client reset that does not involve a breaking schema change, the SDK 
+integrates objects created locally that did not sync before the client reset. 
+The following rules determine how conflicts are resolved when both the backend 
+and the client make changes to the same object:
+
+- If an object is deleted on the server, but is modified on the recovering 
+  client, the delete takes precedence and the client discards the update.
+- If an object is deleted on the recovering client, but not the server, 
+  then the client applies the delete instruction.
+- In the case of conflicting updates to the same field, the client update 
+  is applied.
+
+.. important:: Breaking Changes
+
+   The recovery process cannot handle a breaking schema change. For 
+   example, if you make a non-additive change to one or more of your Realm object 
+   classes, the recovery process will fail. In this case, users will be 
+   required to update their client app. For more information on breaking 
+   changes, see :ref:`<breaking-change-quick-reference>`.
+
+There are two client reset handlers that try to automatically recover the unsycned 
+local data: ``RecoverOrDiscardUnsyncedChangesHandler`` and ``RecoverUnsyncedChangesHandler``. 
+
+RecoverOrDiscardUnsyncedChangesHandler
+``````````````````````````````````````
+This is the default handler, as it provides the most robust recovery process. If 
+the automatic recovery process fails, it falls back to the ``DiscardLocalReset`` 
+strategy explained in the :ref:`Discard Unsynced Changes section <dotnet-client-reset-discard-unsynced-changes>`. 
+If that process fails, it falls back again to a manual reset strategy explained 
+in the :ref:`Manual Recovery section <dotnet-client-reset-manual-recovery>`. 
+This handler provides the following callback methods:
+
+- :dotnet-sdk:`OnBeforeReset 
+  <reference/Realms.Sync.ErrorHandling.RecoverOrDiscardUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_RecoverOrDiscardUnsyncedChangesHandler_OnBeforeReset>`, 
+  which the SDK invokes prior to the client reset. You can use this callback to notify 
+  the user before the client reset begins.
+
+- :dotnet-sdk:`OnAfterRecovery
+  <reference/Realms.Sync.ErrorHandling.RecoverOrDiscardUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_RecoverOrDiscardUnsyncedChangesHandler_OnAfterRecovery>`, 
+  which the SDK invokes if *and only if* the automatic reset completes successfully. 
+  You can use it to notify the user that the client reset is complete.
+
+- :dotnet-sdk:`OnAfterDiscard 
+  <reference/Realms.Sync.ErrorHandling.RecoverOrDiscardUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_RecoverOrDiscardUnsyncedChangesHandler_OnAfterDiscard>`, 
+  which the SDK invokes only if the automatic client reset fails *and* the discard 
+  local strategy succeeds. If the discard strategy fails, this callback is not 
+  invoked.
+
+- :dotnet-sdk:`ManualResetFallback 
+  <reference/Realms.Sync.ErrorHandling.DiscardUnsyncedChangesHandler.html>`, 
+  which the SDK invokes only if the automatic 
+  recovery and the discard strategy have failed. You implement this callback to 
+  handle the reset failure. Your logic here should 
+  be similar to that described for a 
+  :ref:`ManualRecoveryHandler <dotnet-client-reset-manual-recovery>`.
+
+The following example shows using each of these callbacks:
+
+.. literalinclude:: /examples/generated/dotnet/ClientResetExamples.snippet.RecoverOrDiscardUnsyncedChangesHandler.cs
+   :language: csharp
+
+RecoverUnsyncedChangesHandler
+`````````````````````````````
+
+Like the ``RecoverOrDiscardUnsyncedChangesHandler``, this handler attempts to 
+recover all unsynced local changes automatically. However, unlike  
+``RecoverOrDiscardUnsyncedChangesHandler``, this handler does not fall back to a
+``DiscardUnsyncedChangesHandler`` if the automatic recovery fails. Instead, it 
+falls back to a manual reset strategy explained in the 
+:ref:`Manual Recovery section <dotnet-client-reset-manual-recovery>`. The handler 
+provides the following callback methods:
+
+- :dotnet-sdk:`OnBeforeReset 
+  <reference/Realms.Sync.ErrorHandling.RecoverUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_RecoverUnsyncedChangesHandler_OnBeforeReset>`, 
+  which you can use to notify the user before the reset begins.
+
+- :dotnet-sdk:`OnAfterReset 
+  <reference/Realms.Sync.ErrorHandling.RecoverUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_RecoverUnsyncedChangesHandler_OnAfterReset>`, 
+  which you can use to notify the user when the reset has completed successfully.
+
+- :dotnet-sdk:`ManualResetFallback 
+  <reference/Realms.Sync.ErrorHandling.RecoverUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_RecoverUnsyncedChangesHandler_ManualResetFallback>`, 
+  which you implement to handle a reset failure. Your logic here should  
+  be similar to that described for a 
+  :ref:`ManualRecoveryHandler <dotnet-client-reset-manual-recovery>`.
+
+The following example shows using each of these callbacks:
+
+.. literalinclude:: /examples/generated/dotnet/ClientResetExamples.snippet.RecoverUnsyncedChangesHandler.cs
+   :language: csharp
+
+.. _dotnet-client-reset-discard-unsynced-changes:
+
+Discard Unsynced Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This strategy **permanently deletes** all local unsynced changes 
+made since the last successful sync. If you choose to use a 
+``DiscardUnsyncedChangesHandler``, the SDK restores your local realm file 
+to a syncable state without closing the realm and while keeping notifications 
+fully working. If this process fails, it falls back to a manual reset 
+strategy explained in the 
+:ref:`Manual Recovery section <dotnet-client-reset-manual-recovery>`. 
+This handler provides the following callback methods:
+
+- :dotnet-sdk:`OnBeforeReset 
+  <reference/Realms.Sync.ErrorHandling.DiscardUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_DiscardUnsyncedChangesHandler_OnBeforeReset>`, 
+  which the SDK invokes prior to the client reset. You can use this callback to 
+  notify the user before the reset begins.
+
+- :dotnet-sdk:`OnAfterReset 
+  <reference/Realms.Sync.ErrorHandling.DiscardUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_DiscardUnsyncedChangesHandler_OnAfterReset>`, 
+  which the SDK invokes if *and only if* the reset completes successfully. 
+  You can use it to notify the user when the reset is complete.
+
+- :dotnet-sdk:`ManualResetFallback <reference/Realms.Sync.ErrorHandling.DiscardUnsyncedChangesHandler.html#Realms_Sync_ErrorHandling_DiscardUnsyncedChangesHandler_ManualResetFallback>`,
+  which the SDK invokes if the reset fails. Your logic here should  
+  be similar to that described for a 
+  :ref:`ManualRecoveryHandler <dotnet-client-reset-manual-recovery>`.
+
+The following example shows how you might implement a 
+``DiscardUnsyncedChangesHandler``:
+
+.. literalinclude:: /examples/generated/dotnet/ClientResetExamples.snippet.DiscardUnsyncedChangesHandler.cs
+   :language: csharp
+
+.. _dotnet-client-reset-manual-recovery:
+
+Manual Recovery
+~~~~~~~~~~~~~~~
+
+In most cases, you should use one of the other strategies for client resets. For 
+those infrequent cases where you need to customize your data recovery process, 
+select the 
+:dotnet-sdk:`ManualRecoveryHandler <reference/Realms.Sync.ErrorHandling.ManualRecoveryHandler.html#Realms_Sync_ErrorHandling_ManualRecoveryHandler__ctor_Realms_Sync_ErrorHandling_ClientResetHandlerBase_ClientResetCallback_>` 
+handler. 
+
+.. note:: Fallbacks
+
+   While the manual strategy should only be used in edge cases, the other 
+   client reset handlers might fall back to a manual strategy. The logic you use 
+   in those handlers is similar to the logic described here.
+
+Within the ``ManualRecoveryHandler``, you dispose the existing realm, and then 
+call the :dotnet-sdk:`InitiateClientReset() <reference/Realms.Sync.Exceptions.ClientResetException.html#Realms_Sync_Exceptions_ClientResetException_InitiateClientReset>` 
+method.
+
+The following example demonstrates implementing the ``ManualRecoveryHandler``:
+
+.. literalinclude:: /examples/generated/dotnet/ClientResetExamples.snippet.ManualClientReset.cs
+   :language: csharp
+
+.. _dotnet-test-client-reset-handling:
+
+Test Client Reset Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/test-client-reset.rst

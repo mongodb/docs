@@ -1,0 +1,1 @@
+await app.removeUser(user!);

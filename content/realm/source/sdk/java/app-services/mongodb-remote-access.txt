@@ -1,0 +1,1027 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-mongodb-data-access:
+
+========================
+Query MongoDB - Java SDK
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can query data stored in MongoDB Atlas directly from your Android application code
+by using the Realm Java SDK's :ref:`MongoClient <io_realm_mongodb_mongo_MongoClient>`
+with the :manual:`Query API </tutorial/query-documents>`.
+Atlas App Services provides data access :ref:`rules <mongodb-rules>` on
+collections to securely retrieve results based on the logged-in user or the
+content of each document.
+
+The following actions enable access to a linked MongoDB Atlas cluster
+from an Android application using the Realm SDK.
+
+.. include:: /includes/mongodb-data-access-query-filter-indeterminate-order-note.rst
+
+Use Cases
+---------
+
+There are a variety of reasons you might want to query a MongoDB data source. 
+Working with data in your client via Atlas Device Sync is not always practical or 
+possible. You might want to query MongoDB when:
+
+- The data set is large or the client device has constraints against loading 
+  the entire data set
+- You are :ref:`creating or updating custom user data 
+  <java-custom-user-data>`
+- You are retrieving documents that are not modeled in Realm
+- Your app needs to access collections that don't have strict schemas
+- A non-Realm service generates collections that you want to access
+
+While not exhaustive, these are some common use cases for querying MongoDB 
+directly.
+
+Prerequisites
+-------------
+
+Before you can query MongoDB from your Android application, you must set up
+MongoDB Data Access in your App Services App. To learn how to set up your
+backend App to let the Realm SDK query Atlas,
+refer to :ref:`Set Up MongoDB Data Access <client-data-access>`
+in the App Services documentation.
+
+.. _java-mongodb-set-up:
+
+Set Up Your Project
+-------------------
+
+.. procedure::
+
+   .. step:: Set Up Your Project
+
+      Follow the steps in the :ref:`Install the Realm Java SDK <java-install>`
+      guide.
+
+
+   .. step:: Link a MongoDB Atlas Service Cluster
+
+      Follow the steps in the :ref:`Link a MongoDB data source <data-sources>`
+      guide. Assign your service a meaningful name -- you'll need it to connect to
+      the cluster using the Realm SDK.
+
+
+   .. step:: Import Realm Dependencies
+
+      For CRUD operations on a remote MongoDB collection, you will use one
+      or more of the following ``import`` statements:
+
+      .. tabs-realm-languages::
+
+         .. tab::
+            :tabid: java
+
+            .. code-block:: java
+               :copyable: false
+
+               // Base Realm Packages
+               import io.realm.mongodb.App;
+               import io.realm.mongodb.AppConfiguration;
+               // Realm Authentication Packages
+               import io.realm.mongodb.User;
+               import io.realm.mongodb.Credentials;
+
+               // MongoDB Service Packages
+               import io.realm.mongodb.mongo.MongoClient;
+               import io.realm.mongodb.mongo.MongoDatabase;
+               import io.realm.mongodb.mongo.MongoCollection;
+               // Utility Packages
+               import org.bson.Document;
+
+         .. tab::
+            :tabid: kotlin
+
+            .. code-block:: kotlin
+               :copyable: false
+
+               // Base Realm Packages
+               import io.realm.mongodb.App
+               import io.realm.mongodb.AppConfiguration
+               // Realm Authentication Packages
+               import io.realm.mongodb.User
+               import io.realm.mongodb.Credentials
+
+               // MongoDB Service Packages
+               import io.realm.mongodb.mongo.MongoClient
+               import io.realm.mongodb.mongo.MongoDatabase
+               import io.realm.mongodb.mongo.MongoCollection
+               // Utility Packages
+               import org.bson.Document
+
+
+   .. step:: Instantiate a MongoDB Collection Handle
+
+      To connect to an instance of MongoDB, you'll need a user with access
+      to a MongoDB collection. :ref:`Log in to your application
+      <java-authenticate>` as such a user, then use the following code
+      to instantiate a local MongoDB collection handle.
+
+      .. tabs-realm-languages::
+
+         .. tab::
+            :tabid: kotlin
+
+            .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.instantiate-a-mongodb-collection-handle.kt
+               :language: kotlin
+               :copyable: false
+
+         .. tab::
+            :tabid: java
+
+            .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.instantiate-a-mongodb-collection-handle.java
+               :language: java
+               :copyable: false
+
+      .. note:: Using Custom Classes with MongoDB
+
+         To use classes other than the built-in ``Document`` class with
+         MongoDB, you can add *codecs* to your ``MongoCollection`` instances.
+         In the above example, we add the ``PojoCodecProvider`` to support
+         Plain Old Java Objects (POJOs). Custom object support requires two
+         *codec providers*:
+
+         - the default codec provider, which provides support for built-in
+           Java types (accessed through
+           ``AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY``)
+
+         - ``PojoCodecProvider``, which automatically creates new codecs to
+           support POJO classes
+
+         The SDK checks registries in order until one returns a codec for
+         the requested class. As a result, you should list the default codec
+         registry first, and the ``PojoCodecProvider`` should always be the
+         last CodecProvider since it can provide a codec for almost any
+         class.
+
+.. _java-mongodb-example-dataset:
+
+Example Data
+------------
+
+The following examples operate on a MongoDB collection that describes
+inventory in a chain of plant stores. Consider the following collection
+of documents describing various plants for sale in a store:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/Plant.snippet.plant.kt
+         :language: kotlin
+         :caption: Plant.kt
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.example-data.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/Plant.snippet.plant.java
+         :language: java
+         :caption: Plant.java
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.example-data.java
+         :language: java
+         :copyable: false
+
+.. _java-mongodb-create-documents:
+
+Create Documents
+----------------
+
+These code snippets demonstrate how to insert one or more
+documents into a MongoDB collection from a mobile application. Insert
+operations take a document or documents to add to MongoDB as an argument
+and return a :java-sdk:`RealmResultTask
+<io/realm/mongodb/RealmResultTask.html>` that resolves to an object that
+contains the results of the execution of the operation.
+
+.. _java-mongodb-insertOne:
+
+Insert a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert a single document using
+:java-sdk:`collection.insertOne()
+<io/realm/mongodb/mongo/MongoCollection.html#insertOne-DocumentT->`.
+
+The following snippet inserts a single document describing a "lily of the
+valley" plant into a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>`:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.insert-a-single-document.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.insert-a-single-document.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully inserted a document with id: BsonObjectId{value=5f19...}
+
+.. _java-mongodb-insertMany:
+
+Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert multiple documents at the same time using
+:java-sdk:`collection.insertMany()
+<io/realm/mongodb/mongo/MongoCollection.html#insertMany-java.util.List->`.
+
+The following snippet inserts three documents describing plants into a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>`:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.insert-multiple-documents.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.insert-multiple-documents.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully inserted 3 documents into the collection.
+
+.. _java-mongodb-read-documents:
+
+Read Documents
+--------------
+
+These code snippets demonstrate how to read data stored in a MongoDB
+collection from a mobile application. Read operations use :manual:`queries
+</core/document/#document-query-filter>` to specify which documents to
+return from the database. Read operations return a
+:android:`Task <reference/com/google/android/play/core/tasks/Task>` that resolves to
+either a single matched document (in the case of ``findOne()``), a ``long``
+numeric value (in the case of ``count()``) or an iterator that allows you to
+traverse the collection of matched documents (in the case of ``find()``).
+
+.. _java-mongodb-findOne:
+
+Find a Single Document
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can find a single document using :java-sdk:`collection.findOne()
+<io/realm/mongodb/mongo/MongoCollection.html#findOne-->`.
+
+The following snippet finds a single document from the a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>` where the plant document's ``type``
+field contains the string value "perennial":
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.find-a-single-document.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.find-a-single-document.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output similar to the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully found a document: Plant [id=5f18..., name=venus flytrap, sunlight=full, color=white, type=perennial, partition=Store 42]
+
+.. _java-mongodb-findMany:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can find multiple documents using :java-sdk:`collection.find()
+<io/realm/mongodb/mongo/MongoCollection.html#find-->`.
+
+The following snippet finds all documents in a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>` that contain a field named
+``_partition`` with a value of "Store 42":
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.find-multiple-documents.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.find-multiple-documents.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully found all plants for Store 42:
+   V/EXAMPLE: Plant [id=5f18..., name=venus flytrap, sunlight=full, color=white, type=perennial, partition=Store 42]
+   V/EXAMPLE: Plant [id=5f18..., name=sweet basil, sunlight=partial, color=green, type=annual, partition=Store 42]
+   V/EXAMPLE: Plant [id=5f18..., name=thai basil, sunlight=partial, color=green, type=perennial, partition=Store 42]
+   V/EXAMPLE: Plant [id=5f18..., name=helianthus, sunlight=full, color=yellow, type=annual, partition=Store 42]
+
+.. _java-mongodb-count:
+
+Count Documents in the Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can count documents in a collection using
+:java-sdk:`collection.count()
+<io/realm/mongodb/mongo/MongoCollection.html#count-->`.
+You can specify an optional query to
+determine which documents to count. If you don't specify a query, the
+action counts all documents in the collection.
+
+The following snippet counts the number of documents in a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>`:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.count-documents.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.count-documents.java
+         :language: java
+         :copyable: false
+
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully counted, number of documents in the collection: 5
+
+.. _java-mongodb-update-documents:
+
+Update Documents
+----------------
+
+These code snippets demonstrate how to update data stored in a MongoDB
+collection from a mobile application. Update operations use queries
+to specify which documents to update and :manual:`update operators
+</reference/operator/update>` to describe how to mutate documents that
+match the query. Update operations return a :android:`Task
+<reference/com/google/android/play/core/tasks/Task>` that resolves to an object
+that contains the results of the execution of the operation.
+
+.. _java-mongodb-updateOne:
+
+Update a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update a single document using
+:java-sdk:`collection.updateOne()
+<io/realm/mongodb/mongo/MongoCollection.html#updateOne-Bson-Bson->`.
+
+The following snippet updates a single document in a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>`. This operation queries for a document
+where the ``name`` field contains the value "petunia" and changes the value
+of the first matched document's ``sunlight`` field to "partial":
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.update-a-single-document.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.update-a-single-document.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully updated a document.
+
+.. _java-mongodb-updateMany:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update multiple documents using
+:java-sdk:`collection.updateMany()
+<io/realm/mongodb/mongo/MongoCollection.html#updateMany-Bson-Bson->`.
+
+The following snippet updates multiple documents in a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>`. This operation queries for documents
+where the ``_partition`` field contains the value "Store 47" and changes
+the value of the ``_partition`` field of each matching document to "Store 51":
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.update-multiple-documents.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.update-multiple-documents.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully updated 2 documents.
+
+.. _java-mongodb-upsert:
+
+Upsert Documents
+~~~~~~~~~~~~~~~~
+
+If an update operation does not match any document in the collection,
+you can automatically insert a single new document into the collection
+that matches the update query by setting the ``upsert`` option to
+``true``.
+
+The following snippet updates a document in a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>` or inserts a
+new document if no document matches the query. This operation
+queries for documents where:
+
+- the ``sunlight`` field has a value of "full"
+- the ``type`` field has a value of "perennial"
+- the ``color`` field has a value of "green"
+- the ``_partition`` field has a value of "Store 47"
+
+Because this snippet sets the ``upsert`` option to ``true``, if no
+document matches the query, MongoDB creates a new document that includes
+both the query and specified updates:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.upsert-a-single-document.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.upsert-a-single-document.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully upserted a document with id: BsonObjectId{value=5f19...}
+
+.. _java-mongodb-delete-documents:
+
+Delete Documents
+----------------
+
+These code snippets demonstrate how to delete documents that
+are stored in a MongoDB collection from a mobile application.
+Delete operations use a query to specify which documents to delete
+and return a :android:`Task <reference/com/google/android/play/core/tasks/Task>`
+that resolves to an object that contains the results of the execution
+of the operation.
+
+.. _java-mongodb-deleteOne:
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can delete a single document from a collection using
+:java-sdk:`collection.deleteOne()
+<io/realm/mongodb/mongo/MongoCollection.html#deleteOne-Bson->`.
+
+The following snippet deletes one document in a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>`. This operation queries for a
+document where the ``color`` field has a value of "green" and deletes
+the first document that matches the query:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.delete-a-single-document.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.delete-a-single-document.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully deleted a document.
+
+.. _java-mongodb-deleteMany:
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can delete multiple items from a collection using
+:java-sdk:`collection.deleteMany()
+<io/realm/mongodb/mongo/MongoCollection.html#deleteMany-Bson->`.
+
+The following snippet deletes all documents in a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<java-mongodb-example-dataset>`
+that match the query that matches documents containing both
+a ``sunlight`` field value of "full" and a ``type`` field value of
+"annual".
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.delete-documents.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.delete-documents.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: succcessfully deleted 2 documents.
+
+.. _java-mongodb-watch:
+
+Watch for Changes
+-----------------
+
+These code snippets demonstrate how to configure and run
+:manual:`watch </reference/method/db.collection.watch/>` operations on a
+collection.
+
+.. include:: /includes/serverless-watch-note.rst
+
+Watch for Changes in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can open a stream of changes made to a collection by calling
+:java-sdk:`collection.watch()
+<io/realm/mongodb/mongo/MongoCollection.html#watch-->` or
+:java-sdk:`collection.watchAsync()
+<io/realm/mongodb/mongo/MongoCollection.html#watchAsync-->`. You can
+watch for changes to specific documents in a collection by passing the
+object ids of the objects you would like to monitor as a
+`variable number of arguments
+<https://kotlinlang.org/docs/reference/functions.html#variable-number-of-arguments-varargs>`__.
+
+The following snippet watches for changes to any documents in the
+``plants`` collection:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.watch-documents.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.watch-documents.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully inserted a document with id BsonObjectId{value=5f6bb...}
+   V/EXAMPLE: Event type: INSERT full document: Plant [id=5f6bb..., name=triffid, sunlight=low, color=green, type=perennial, partition=Store 47]
+
+.. _java-mongodb-watch-with-filter:
+
+Watch for Changes in a Collection with a Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can open a stream of changes made to documents in a collection that
+fulfill certain criteria by calling :java-sdk:`collection.watchWithFilter()
+<io/realm/mongodb/mongo/MongoCollection.html#watchWithFilter-BsonDocument->` or
+:java-sdk:`collection.watchWithFilterAsync()
+<io/realm/mongodb/mongo/MongoCollection.html#watchWithFilterAsync-Document->`.
+Both methods accept a ``Document`` or ``BsonDocument`` parameter that is
+used as the query of a :manual:`$match operator
+</reference/operator/aggregation/match/>` to process each
+:ref:`database event <database-events>` that occurs while watching the
+collection.
+
+The following snippet watches for changes to documents in the
+``plants`` collection, but only triggers the provided callback for
+events corresponding to documents belonging to the partition named
+"Store 42":
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.watch-documents-with-filter.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.watch-documents-with-filter.java
+         :language: java
+         :copyable: false
+
+Running this snippet produces output resembling the following:
+
+.. code-block:: text
+   :copyable: false
+
+   V/EXAMPLE: successfully inserted 2 documents into the collection
+   V/EXAMPLE: Event type: INSERT full document: Plant [id=5f6bb..., name=venomous tentacula, sunlight=low, color=brown, type=annual, partition=Store 42]
+
+.. _java-mongodb-aggregation-stages:
+.. _java-mongodb-aggregate:
+.. _java-mongodb-aggregation-pipelines:
+
+Aggregate Documents in a Collection
+-----------------------------------
+
+Aggregation operations run all documents in a collection through a
+series of data aggregation stages called an :manual:`aggregation
+pipeline </core/aggregation-pipeline>`. Aggregation allows you to filter
+and transform documents, collect summary data about groups of related
+documents, and other complex data operations.
+
+You can execute an aggregation pipeline using
+:java-sdk:`collection.aggregate()
+<io/realm/mongodb/mongo/MongoCollection.html#aggregate-java.util.List->`.
+
+An aggregation operation accepts a list of aggregation stages as input
+and returns a
+:android:`Task <reference/com/google/android/play/core/tasks/Task>` that
+resolves to a collection of documents processed by the pipeline.
+
+.. _java-mongodb-aggregation-filter-documents:
+
+Filter Documents
+~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$match
+</reference/operator/aggregation/match/>` stage to filter
+documents according to a Query API :manual:`query filter
+</tutorial/query-documents>`.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "$match": {
+       "<Field Name>": <Query Expression>,
+       ...
+     }
+   }
+
+.. example::
+
+   The following ``$match`` stage filters documents to include
+   only those where the ``type`` field has a value equal to "perennial":
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-filter.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-filter.java
+            :language: java
+            :copyable: false
+
+.. _java-mongodb-aggregation-group-documents:
+
+Group Documents
+~~~~~~~~~~~~~~~
+
+You can use the :manual:`$group
+</reference/operator/aggregation/group/>` stage to aggregate summary
+data for one or more documents. MongoDB groups documents based
+on the expression defined in the ``_id`` field value of the ``$group``
+stage. You can reference a specific document field by prefixing the
+field name with a ``$``.
+
+The following snippet groups all documents in the ``plants``
+collection by their ``type`` value and aggregates a count of the
+number of each type:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-group.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-group.java
+         :language: java
+         :copyable: false
+
+.. _java-mongodb-aggregation-project-document-fields:
+
+Project Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$project
+</reference/operator/aggregation/project/>` stage to include or omit
+specific fields from documents. Additionally, you can calculate new
+fields using :manual:`aggregation operators
+</reference/operator/aggregation>`. Projections work in two ways:
+
+- Explicitly include fields with a value of 1. This has the side-effect
+  of implicitly excluding all unspecified fields.
+
+- Implicitly exclude fields with a value of 0. This has the side-effect
+  of implicitly including all unspecified fields.
+
+These two methods of projection are mutually exclusive: if you
+explicitly include fields, you cannot explicitly exclude fields, and
+vice versa.
+
+.. note::
+
+   The ``_id`` field is a special case: it is always included in every
+   query unless explicitly specified otherwise. For this reason, you
+   *can* exclude the ``_id`` field with a ``0`` value while simultaneously
+   including other fields, like ``_partition``, with a ``1``. Only the
+   special case of exclusion of the ``_id`` field allows both exclusion
+   and inclusion in one ``$project`` stage.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "$project": {
+       "<Field Name>": <0 | 1 | Expression>,
+       ...
+     }
+   }
+
+.. example::
+
+   The following ``$project`` stage omits the ``_id`` field, includes
+   the ``name`` field, and creates a new field named ``storeNumber``.
+   The ``storeNumber`` is generated using two aggregation operators:
+
+   1. ``$split`` separates the ``_partition`` value into two string
+      segments surrounding the space character. For example, the value
+      "Store 42" split in this way returns an array with two elements:
+      "Store" and "42".
+
+   2. ``$arrayElemAt`` selects a specific element from an array based
+      on the second argument. In this case, the value ``1`` selects the
+      second element from the array generated by the ``$split`` operator
+      since arrays index from ``0``. For example, the value ["Store", "42"]
+      passed to this operation would return a value of "42".
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-project.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-project.java
+            :language: java
+            :copyable: false
+
+.. _java-mongodb-aggregation-add-fields-to-documents:
+
+Add Fields to Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$addFields
+</reference/operator/aggregation/addFields/>` stage to add new fields
+with calculated values using :manual:`aggregation operators
+</reference/operator/aggregation>`.
+
+.. note::
+
+   ``$addFields`` is similar to :manual:`$project
+   </reference/operator/aggregation/project/>` but does not allow you to
+   include or omit fields.
+
+.. example::
+
+   The following ``$addFields`` stage creates a new field named
+   ``storeNumber`` where the value is the output of two aggregate operators
+   that transform the value of the ``_partition`` field.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-addfields.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-addfields.java
+            :language: java
+            :copyable: false
+
+.. _java-mongodb-aggregation-unwind-array-values:
+
+Unwind Array Values
+~~~~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$unwind
+</reference/operator/aggregation/unwind/>` stage to transform a single
+document containing an array into multiple documents containing individual
+values from that array. When you unwind an array field,
+MongoDB copies each document once for each element of the array field
+but replaces the array value with the array element in each copy.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     $unwind: {
+       path: <Array Field Path>,
+       includeArrayIndex: <string>,
+       preserveNullAndEmptyArrays: <boolean>
+     }
+   }
+
+.. example::
+
+   The following ``$unwind`` stage creates a new document for each
+   element of the ``items`` array in each document. It also adds a field
+   called ``itemIndex`` to each new document that specifies the
+   element's position index in the original array:
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: kotlin
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-unwind-arrays.kt
+            :language: kotlin
+            :copyable: false
+
+      .. tab::
+         :tabid: java
+
+         .. literalinclude:: /examples/generated/java/sync/MongoDBDataAccessTest.snippet.aggregate-documents-unwind-arrays.java
+            :language: java
+            :copyable: false
+
+Consider the following document from the a collection of purchases:
+
+.. code-block:: javascript
+   :copyable: false
+
+      {
+        _id: 123,
+        customerId: 24601,
+        items: [
+          { name: "Baseball", quantity: 5 },
+          { name: "Baseball Mitt", quantity: 1 },
+          { name: "Baseball Bat", quantity: 1 },
+        ]
+      }
+
+If we apply the example ``$unwind`` stage to this document, the stage
+outputs the following three documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+      {
+        _id: 123,
+        customerId: 24601,
+        itemIndex: 0,
+        items: { name: "Baseball", quantity: 5 }
+      }, {
+        _id: 123,
+        customerId: 24601,
+        itemIndex: 1,
+        items: { name: "Baseball Mitt", quantity: 1 }
+      }, {
+        _id: 123,
+        customerId: 24601,
+        itemIndex: 2,
+        items: { name: "Baseball Bat", quantity: 1 }
+      }

@@ -1,0 +1,1 @@
+part 'car.g.dart';

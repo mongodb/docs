@@ -1,0 +1,365 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-crud-read:
+.. _flutter-read-data:
+.. _flutter-read-operations:
+.. _flutter-live-queries:
+
+=========================
+CRUD - Read - Flutter SDK
+=========================
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. meta::
+   :description: Read objects using the Atlas Device SDK for Flutter.
+   :keywords: code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can read back the data that you have stored
+in the database by finding, filtering, and sorting objects.
+
+A read from the database generally consists of the following steps:
+
+- Get all objects of a certain type from the database.
+- Optionally, filter the results.
+
+Query operations return a 
+:flutter-sdk:`results collection <realm/RealmResults-class.html>`. These 
+collections are live, meaning they always contain the latest results of the 
+associated query.
+
+.. _flutter-realm-read-characteristics:
+
+Read Characteristics
+--------------------
+
+Design your app's data access patterns around these three key 
+read characteristics to read data as efficiently as possible.
+
+.. _flutter-results-are-not-copies:
+
+Results Are Not Copies
+~~~~~~~~~~~~~~~~~~~~~~
+
+Results to a query are not copies of your data. Modifying
+the results of a query modifies the data on disk
+directly. This memory mapping also means that results are
+**live**: that is, they always reflect the current state on
+disk.
+
+.. _flutter-results-are-lazy:
+.. _flutter-lazy-evaluated-results:
+
+Results Are Lazy
+~~~~~~~~~~~~~~~~
+
+The SDK only runs a query when you actually request the
+results of that query. This lazy evaluation enables you to write
+highly performant code for handling large data sets and complex
+queries. You can chain several filter operations without requiring 
+extra work to process the intermediate state.
+
+.. _flutter-references-retained:
+
+References Are Retained
+~~~~~~~~~~~~~~~~~~~~~~~
+
+One benefit of the SDK's object model is that
+the SDK automatically retains all of an object's
+:ref:`relationships <flutter-client-relationships>` as direct
+references. This enables you to traverse your graph of relationships
+directly through the results of a query.
+
+A **direct reference**, or pointer, allows you to access a
+related object's properties directly through the reference.
+
+Other databases typically copy objects from database storage
+into application memory when you need to work with them
+directly. Because application objects contain direct
+references, you are left with a choice: copy the object
+referred to by each direct reference out of the database in
+case it's needed, or just copy the foreign key for each
+object and query for the object with that key if it's
+accessed. If you choose to copy referenced objects into
+application memory, you can use up a lot of resources for
+objects that are never accessed, but if you choose to only
+copy the foreign key, referenced object lookups can cause
+your application to slow down.
+
+The SDK bypasses all of this using zero-copy
+live objects. The SDK's object accessors point
+directly into database storage using memory mapping, so there is no
+distinction between the objects in the database and the results
+of your query in application memory. Because of this, you can traverse
+direct references across an entire database from any query result.
+
+.. _flutter-limiting-results:
+
+Limiting Query Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+As a result of lazy evaluation, you do not need any special mechanism to
+limit query results with the SDK. For example, if your query
+matches thousands of objects, but you only want to load the first ten,
+simply access only the first ten elements of the results collection.
+
+.. _flutter-pagination:
+
+Pagination
+~~~~~~~~~~
+
+Thanks to lazy evaluation, the common task of pagination becomes quite
+simple. For example, suppose you have a results collection associated
+with a query that matches thousands of objects in your database. You
+display one hundred objects per page. To advance to any page, simply
+access the elements of the results collection starting at the index that
+corresponds to the target page.
+
+Read Objects
+------------
+
+Unless noted otherwise, the examples on this page use two object types, ``Person`` and ``Team``.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.models.dart
+    :language: dart
+
+.. _flutter-find-object-by-primary-key:
+
+Find Object by Primary Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Find an object by its primary key with :flutter-sdk:`Realm.find() <realm/Realm/find.html>`.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.query-object-by-pk.dart
+   :language: dart
+
+.. _flutter-query-objects:
+
+Query All Objects
+~~~~~~~~~~~~~~~~~
+
+Retrieve a collection of all objects of a data model in the database with the
+:flutter-sdk:`Realm.all() <realm/Realm/all.html>` method.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.query-all-objects.dart
+   :language: dart
+
+.. _flutter-get-backlinks:
+
+Query Related Objects
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.8.0
+
+If your data model includes objects that reference other objects, you can 
+query the :ref:`relationship <flutter-client-relationships>` 
+using the :flutter-sdk:`getBacklinks() <realm/RealmObjectBase/getBacklinks.html>` method.
+
+This method returns a :flutter-sdk:`results collection <realm/RealmResults-class.html>` 
+of all objects that link to the given object through a to-one, to-many, or inverse 
+relationship. The following examples use the models defined on the 
+:ref:`Relationships <flutter-client-relationships>` page.
+
+- **To-one relationship:** In this example, we have a ``Bike`` object model 
+  with a to-one relationship with a ``Person`` object. 
+  
+  We use the ``getBacklinks()`` method to find any ``Bike`` objects that link 
+  to the specified person through the ``owner`` property:
+
+  .. literalinclude:: /examples/generated/flutter/backlinks_test.snippet.query-backlink-to-one-relationship.dart
+   :language: dart
+
+- **To-many relationship:** In this example, we have a ``Scooter`` object model 
+  with a to-many relationship with a ``ScooterShop`` object. 
+
+  We use the ``getBacklinks()`` method to find any ``ScooterShops`` objects 
+  that link to the specified scooter through the ``scooters`` list property:
+
+  .. literalinclude:: /examples/generated/flutter/backlinks_test.snippet.query-backlinks-to-many-relationship.dart
+   :language: dart
+
+- **Inverse relationship:** In this example, we have a ``Task`` object model 
+  with an inverse relationship with a ``User`` object. 
+
+  We use the ``getBacklinks()`` method to find any ``User`` objects that link 
+  to the specified tasks through the ``tasks`` backlinks property:
+
+  .. literalinclude:: /examples/generated/flutter/backlinks_test.snippet.query-backlink-inverse-relationship.dart
+   :language: dart
+
+.. _flutter-query-list-realm-objects:
+
+Query Lists
+~~~~~~~~~~~
+
+You can query any list of :flutter-sdk:`RealmObjects <realm/RealmObjectBase-mixin.html>`
+or primitives.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.query-realm-list.dart
+   :language: dart
+
+.. _flutter-filter-nested-collections-mixed:
+
+Query Nested Collections of Mixed Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.0.0
+
+In Flutter SDK v2.0.0 and later, :ref:`RealmValue <flutter-realm-value>` 
+properties can contain collections (a list or map) of mixed data. These 
+collections can be nested within collections and can contain other 
+collections of mixed data. 
+
+You can query these using the same syntax as you would for a  
+normal list or dictionary collection. Refer to the :ref:`rql` documentation for more
+information on supported operators and list comparisons.  
+
+For nested collections, you can also use: 
+
+- Bracket notation, which provides the following collection query operators: 
+
+  - ``[FIRST]`` and [``LAST``]: match the first or last elements within the collection.
+  - ``[<int>]``: match the element at the specific index. 
+  - ``[*]``: match any element within the collection (this operator assumes a
+    collection type at that path). 
+  - ``[SIZE]``: match the collection length. 
+
+- The ``@type`` operator, which supports the following values: 
+
+  - ``array`` and ``list``: match a list collection.
+  - ``dictionary`` and ``object``: match a map collection.
+  - ``collection``: match a list or a map collection.  
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.filter-nested-collections.dart
+   :language: dart
+
+.. TODO Link to RQL documentation when available
+
+.. _flutter-as-results:
+
+Convert Lists or Sets to Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can convert a ``RealmList`` or ``RealmSet`` to an instance of ``RealmResults``
+using their respective methods:
+
+- :flutter-sdk:`RealmList.asResults() <realm/RealmList/asResults.html>`
+- :flutter-sdk:`RealmSet.asResults() <realm/RealmSet/asResults.html>`
+
+These methods support lists and sets of ``RealmObjects`` as well as primitive 
+values.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.list-as-results.dart
+   :language: dart
+   :emphasize-lines: 22,26
+
+.. _flutter-filter-results:
+
+Filter Results
+~~~~~~~~~~~~~~
+
+Filter a ``RealmList`` to retrieve a specific segment
+of objects with the :flutter-sdk:`Realm.query() <realm/Realm/query.html>` method.
+In the ``query()`` method's argument, use Realm Query Language to perform filtering.
+Realm Query Language is a string-based query language that you can use to retrieve
+objects from the database.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.filter.dart
+   :language: dart
+
+You can use iterable arguments in your filter. For example:
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.filter-iterable.dart
+   :language: dart
+
+.. _flutter-filter-inverse-relationships:
+
+Filter Inverse Relationships
+````````````````````````````
+
+You can also filter by inverse relationships using the
+``@links.<Type>.<Property>`` syntax. For example, a filter can match 
+a ``Task`` object based on properties of the ``User``
+object that references it: 
+
+.. literalinclude:: /examples/generated/flutter/backlinks_test.snippet.filter-backlinks-rql.dart
+   :language: dart
+
+For more information on constructing queries, refer to the
+:ref:`Realm Query Language reference documentation <rql>`.
+
+.. _flutter-fts:
+
+Filter with Full-Text Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use Realm Query Language (RQL) to query on properties that have a
+:ref:`Full-Text Search Index <flutter-fts-annotation>` (FTS) annotation. 
+To query these properties, use the ``TEXT`` predicate in your query.
+
+Exclude results for a word by placing the ``-`` character in front of the word. 
+For example, a search for ``-sheep wool`` would include all search results for 
+``wool`` excluding those with ``sheep``.
+
+In Flutter SDK version 1.6.0 and later, you can specify prefixes by placing 
+the ``*`` character at the end of a word. For example, ``wo*`` would include 
+all search results for ``wool`` and ``woven``. The Flutter SDK does *not* 
+currently support suffix searches.
+
+In the following example, we query on the ``Rug.pattern`` and ``Rug.material``
+fields:
+
+.. literalinclude:: /examples/generated/flutter/full_text_search_test.snippet.flutter-fts-query.dart
+   :language: dart
+
+.. _flutter-fts-details:
+
+Full-Text Search Tokenizer Details
+``````````````````````````````````
+
+Full-Text Search (FTS) indexes support:
+
+- Boolean match word searches, not searches for relevance.
+- Tokens are diacritics- and case-insensitive.
+- Tokens can only consist of characters from ASCII and the Latin-1 supplement (western languages).
+- All other characters are considered whitespace. Words split by a hyphen (-) like full-text are split into two tokens.
+
+For more information on features of the FTS index, see the API reference for 
+`RealmIndexType <https://pub.dev/documentation/realm_common/latest/realm_common/RealmIndexType.html>`__.
+
+.. _flutter-sort-results:
+
+Sort Results
+~~~~~~~~~~~~
+
+Sort query results using the :ref:`Realm Query Language SORT() operator
+<rql-sort-distinct-limit>` in the ``query()`` method's argument.
+
+Note that you can't use :ref:`parameterized queries <rql-parameterized-queries>`
+in RQL SORT() clauses. Instead, use strings or string interpolation.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.sort.dart
+   :language: dart
+
+.. _flutter-limit-results:
+
+Limit Results
+~~~~~~~~~~~~~
+
+Limit query results using the :ref:`Realm Query Language LIMIT() operator
+<rql-sort-distinct-limit>` in the ``query()`` method's argument.
+
+Note that you can't use :ref:`parameterized queries <rql-parameterized-queries>`
+in RQL LIMIT() clauses. Instead, use strings or string interpolation.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.limit.dart
+   :language: dart

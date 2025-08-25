@@ -1,0 +1,426 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _ios-swiftui-combine-quick-start:
+.. _ios-swiftui-quick-start:
+
+=============================
+Realm with SwiftUI QuickStart
+=============================
+
+.. meta:: 
+   :description: Learn how to use Atlas Device SDK with SwiftUI property wrappers. 
+   :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Prerequisites
+-------------
+
+- Have Xcode 12.4 or later (minimum Swift version 5.3.1).
+- Create a new Xcode project using the SwiftUI "App" template with a minimum iOS target of 15.0.
+- :ref:`Install the Swift SDK. <ios-install>` This SwiftUI app requires a minimum
+  SDK version of 10.19.0.
+
+Overview
+--------
+
+.. seealso:: Use Realm with SwiftUI
+
+   This page provides a small working app to get you up and running with
+   Realm and SwiftUI quickly. If you'd like to see additional examples,
+   including more explanation about Realm's SwiftUI features, see:
+   :ref:`<ios-swiftui-examples>`.
+
+This page contains all of the code for a working Realm and SwiftUI app.
+The app starts on the ``ItemsView``, where you can edit a list of items:
+
+- Press the ``Add`` button on the bottom right of the screen to add 
+  randomly-generated items.
+- Press the ``Edit`` button on the top right to modify the list order, 
+  which the app persists in the realm.
+- You can also swipe to delete items.
+
+When you have items in the list, you can press one of the items to
+navigate to the ``ItemDetailsView``. This is where you can modify the
+item name or mark it as a favorite:
+
+- Press the text field in the center of the screen and type a new name.
+  When you press Return, the item name should update across the app.
+- You can also toggle its favorite status by pressing the heart toggle in the 
+  top right.
+
+.. tip::
+
+   This guide optionally integrates with :ref:`Device Sync <sync>`. See
+   :ref:`swiftui-integrate-with-sync` below.
+
+Get Started
+~~~~~~~~~~~
+
+We assume you have created an Xcode project with the SwiftUI "App"
+template. Open the main Swift file and delete all of the code inside,
+including any ``@main`` ``App`` classes that Xcode generated for you. At
+the top of the file, import the Realm and SwiftUI frameworks:
+
+.. literalinclude:: /examples/generated/swiftui/local/SwiftUIFlexSyncExampleApp.snippet.imports.swift
+   :language: swift
+
+.. tip::
+
+   Just want to dive right in with the complete code? Jump to
+   :ref:`swiftui-complete-code` below.
+
+.. _swiftui_quickstart-define-models:
+
+Define Models
+~~~~~~~~~~~~~
+
+A common Realm data modeling use case is to have "things" and
+"containers of things". This app defines two related Realm object models: item
+and itemGroup.
+
+An item has two user-facing properties:
+
+- A randomly generated-name, which the user can edit.
+- An ``isFavorite`` boolean property, which shows whether the user "favorited" 
+  the item.
+
+An itemGroup contains items. You can extend the itemGroup to have a name and an
+association with a specific user, but that's out of scope of this guide.
+
+Paste the following code into your main Swift file to define the models:
+
+Because Flexible Sync does not automatically include linked objects,
+we must add ``ownerId`` to both objects. You can omit ``ownerId`` if you
+only want to use a local realm.
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.flexible-sync-models.swift
+   :language: swift
+
+Views and Observed Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The entrypoint of the app is the ``ContentView`` class that derives from
+``SwiftUI.App``. For now, this always displays the
+``LocalOnlyContentView``. Later, this will show the ``SyncContentView``
+when Device Sync is enabled.
+
+.. literalinclude:: /examples/generated/swiftui/local/SwiftUIFlexSyncExampleApp.snippet.content-view.swift
+   :language: swift
+
+.. tip::
+
+   You can use a realm other than the default realm by passing
+   an environment object from higher in the View hierarchy:
+   
+   .. code-block:: swift
+   
+      LocalOnlyContentView()
+        .environment(\.realmConfiguration, Realm.Configuration( /* ... */ ))
+
+The LocalOnlyContentView has an :swift-sdk:`@ObservedResults
+<Structs/ObservedResults.html>` itemGroups. This implicitly uses the default
+realm to load all itemGroups when the view appears.
+
+This app only expects there to ever be one itemGroup. If there is an itemGroup 
+in the realm, the LocalOnlyContentView renders an ``ItemsView`` for
+that itemGroup.
+
+If there is no itemGroup already in the realm, then the
+LocalOnlyContentView displays a ProgressView while it adds one. Because
+the view observes the itemGroups thanks to the ``@ObservedResults`` property
+wrapper, the view immediately refreshes upon adding that first itemGroup and
+displays the ItemsView.
+
+.. literalinclude:: /examples/generated/swiftui/local/SwiftUIFlexSyncExampleApp.snippet.local-only-content-view.swift
+   :language: swift
+
+.. tip::
+
+   Starting in SDK version 10.12.0, you can use an optional key path parameter
+   with ``@ObservedResults`` to filter change notifications to only those
+   occurring on the provided key path or key paths. For example:
+
+   .. code-block::
+   
+      @ObservedResults(MyObject.self, keyPaths: ["myList.property"])
+
+The ItemsView receives the itemGroup from the parent view and stores it in
+an :swift-sdk:`@ObservedRealmObject <Structs/ObservedRealmObject.html>`
+property. This allows the ItemsView to "know" when the object has
+changed regardless of where that change happened.
+
+The ItemsView iterates over the itemGroup's items and passes each item to an
+``ItemRow`` for rendering as a list. 
+
+To define what happens when a user deletes or moves a row, we pass the
+``remove`` and ``move`` methods of the Realm
+:swift-sdk:`List <Classes/List.html>` as the handlers of the respective
+remove and move events of the SwiftUI List. Thanks to the
+``@ObservedRealmObject`` property wrapper, we can use these methods
+without explicitly opening a write transaction. The property wrapper
+automatically opens a write transaction as needed.
+
+.. literalinclude:: /examples/generated/swiftui/local/SwiftUIFlexSyncExampleApp.snippet.items-view.swift
+   :language: swift
+
+Finally, the ``ItemRow`` and ``ItemDetailsView`` classes use the
+``@ObservedRealmObject`` property wrapper with the item passed in from
+above. These classes demonstrate a few more examples of how to use the
+property wrapper to display and update properties.
+
+.. literalinclude:: /examples/generated/swiftui/local/SwiftUIFlexSyncExampleApp.snippet.item-row-and-details.swift
+   :language: swift
+
+.. tip::
+
+   ``@ObservedRealmObject`` is a frozen object. If you want to :ref:`modify 
+   the properties <ios-modify-frozen-object>` of an ``@ObservedRealmObject`` 
+   directly in a write transaction, you must ``.thaw()`` it first.
+
+At this point, you have everything you need to work with
+Realm and SwiftUI. Test it out and see if everything is
+working as expected. Read on to learn how to integrate this app with
+Device Sync.
+
+.. _swiftui-integrate-with-sync:
+
+Integrate Atlas Device Sync
+---------------------------
+
+Now that we have a working Realm app, we can optionally
+integrate with Device Sync. Sync allows you to you see the changes you make
+across devices. Before you can add sync to this app, make sure to:
+
+- :ref:`Create an App Services App <create-a-realm-app>`.
+- :ref:`Enable anonymous authentication <anonymous-authentication-configuration>`.
+- :ref:`Enable Device Sync <enable-sync>`.
+
+  1. Choose :ref:`Flexible Sync <flexible-sync>`
+  #. Specify a cluster and database.
+  #. Turn on Development Mode.
+  #. Use ``ownerId`` as the queryable field.
+  #. Enable Sync.
+
+- :ref:`Define the rules <define-roles-and-permissions>` that determine which 
+  permissions users have when using Device Sync. For this example, we assign 
+  a default role, which applies to any collection that does not have a 
+  collection-specific role. In this example, a user can read and write data 
+  where the ``user.id`` of the logged-in user matches the ``ownerId`` of the 
+  object:
+
+  .. literalinclude:: /includes/swiftui-tutorial-default-role.json
+     :language: json
+
+Now, deploy your application updates.
+
+.. tip::
+
+   The Sync version of this app changes the app flow a bit. The first
+   screen becomes the ``LoginView``. When you press the :guilabel:`Log
+   in` button, the app navigates to the ItemsView, where you see the
+   synced list of items in a single itemGroup.
+
+At the top of the source file, initialize an optional :swift-sdk:`Realm
+app <Extensions/App.html>` with :ref:`your App ID
+<find-your-app-id>`:
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.mongodb-realm.swift
+   :language: swift
+
+.. tip::
+
+   You can change the app reference to ``nil`` to switch back to
+   local-only (non-Device Sync) mode.
+
+Let's update the main ContentView to show the ``SyncContentView`` if the
+app reference is not ``nil``:
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.content-view.swift
+   :language: swift
+
+We define the SyncContentView below. 
+
+The SyncContentView observes the Realm app instance. The app instance is
+the interface to the App Services backend, which provides the user
+authentication required for Sync. By observing the app instance, the
+SyncContentView can react when a user logs in or out.
+
+This view has two possible states:
+
+- If the Realm app does not have a currently logged-in user, show the ``LoginView``.
+- If the app does have a logged-in user, show the ``OpenSyncedRealmView``.
+
+In this view, after confirming we have a user, we create a 
+:swift-sdk:`flexibleSyncConfiguration() 
+<Extensions/User.html#/s:So7RLMUserC10RealmSwiftE25flexibleSyncConfigurationAC0B0V0F0VyF>` 
+that includes the ``initialSubscriptions`` parameter. We can use this
+parameter to :ref:`subscribe to queryable fields 
+<ios-sync-subscribe-to-queryable-fields>`. These initial subscriptions
+search for data that matches the queries, and syncs that data to the
+realm. If no data matches the queries, the realm opens with an initial
+empty state. 
+
+Your client application can only write objects that match the 
+subscription query to a realm opened with a ``flexibleSyncConfiguration``. 
+Trying to write objects that don't match the query causes the app to 
+perform a compensating write to undo the illegal write operation.
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.flex-sync-content-view.swift
+   :language: swift
+
+In our subscriptions, we're querying for ``ItemGroup`` and ``Item`` objects 
+where the ``ownerId`` matches the logged-in user's ``user.id``. 
+Together with the permissions we used when we enabled Device Sync
+above, this means that the user can only read and write their own
+data. 
+
+Flexible Sync does not automatically provide access to linked objects.
+Because of this, we must add subscriptions for both the ``ItemGroup`` and
+``Item`` objects - we can't just query for one or the other and get
+the related objects.
+
+From here, we pass the flexibleSyncConfiguration to the 
+OpenSyncedRealmView as a ``realmConfiguration`` using an environment
+object. This is the view responsible for opening a realm and working
+with the data. Sync uses this configuration to search for data
+that should sync to the realm.
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.realm-config-environment-object.swift
+   :language: swift
+
+Once logged in, we open the realm asynchronously with the :swift-sdk:`AsyncOpen
+<Structs/AsyncOpen.html>` property wrapper. 
+
+Because we've injected a ``flexibleSyncConfiguration()`` into the 
+view as an environment value, the property wrapper uses this 
+configuration to initiate Sync and download any matching data before 
+opening the realm. If we had not provided a configuration, the property
+wrapper would create a default ``flexibleSyncConfiguration()`` for us,
+and we could :ref:`subscribe to queries <ios-sync-add-subscription>` 
+in ``.onAppear``.
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.flex-sync-property-wrapper.swift
+   :language: swift
+
+The OpenSyncedRealmView switches on the :swift-sdk:`AsyncOpenState 
+enum<Enums/AsyncOpenState.html>`, which lets us show different views 
+based on the state. In our example, we show a ``ProgressView`` while we're 
+connecting to the App and the realm is syncing. We then open the 
+realm, passing the ``itemGroup`` to the ``ItemsView``, or show an 
+``ErrorView`` if we can't open the realm.
+
+.. tip::
+
+   When opening a synced realm, use the :swift-sdk:`AsyncOpen 
+   <Structs/AsyncOpen.html>` property wrapper to always download synced changes 
+   before opening the realm, or the :swift-sdk:`AutoOpen 
+   <Structs/AutoOpen.html>` property wrapper to open a realm while syncing
+   in the background. ``AsyncOpen`` requires the user to be online, 
+   while ``AutoOpen`` opens a realm even if the user is offline.
+
+This view has a few different states:
+
+- While connecting or waiting for login, show a ``ProgressView``.
+- While downloading changes to the realm, show a ``ProgressView`` with a 
+  progress indicator.
+- When the realm opens, check for an itemGroup object. If one does not exist 
+  yet, create one. Then, show the ItemsView for the itemGroup in the realm. 
+  Provide a ``LogoutButton`` that the ItemsView can display on the top left 
+  of the navigation bar.
+- If there is an error loading the realm, show an error view containing
+  the error.
+
+When you run the app and see the main UI, there are no items in the view. 
+That's because we're using anonymous login, so this is the first time this 
+specific user logs in.
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.open-realm-view-flex-sync.swift
+   :language: swift
+      
+In our subscriptions, we're querying for ``ItemGroup`` and ``Item`` objects 
+where the ``ownerId`` matches the logged-in user's ``user.id``. 
+Together with the permissions we used when we created the Flexible Sync
+app above, this means that the user can only read and write their own
+data. 
+
+Flexible Sync does not automatically provide access to linked objects.
+Because of this, we must add subscriptions for both the ``ItemGroup`` and
+``Item`` objects - we can't just query for one or the other and get
+the related objects.
+
+With this in mind, we must also update the view here where we are 
+creating a ``ItemGroup`` object. We must set the ``ownerId`` as the ``user.id``
+of the logged-in user.
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.add-ownerid-to-group.swift
+   :language: swift
+
+And we must also update the ``ItemsView`` to add ``ownerId`` when we 
+create ``Item`` objects:
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.add-ownerid-to-create-button-code.swift
+   :language: swift
+
+Authenticate Users with Atlas App Services
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The LoginView maintains some state in order to display an activity
+indicator or error. It uses a reference to the Realm app instance passed
+in from above to log in when the :guilabel:`Log in anonymously` button
+is clicked.
+
+.. tip::
+
+   In the LoginView, you can implement :ref:`email/password
+   authentication <ios-manage-email-password-users>` or :ref:`another
+   authentication provider <authentication-providers>`. For simplicity,
+   this example uses :ref:`Anonymous authentication
+   <anonymous-authentication>`.
+
+Once login is complete, the LoginView itself doesn't need to do anything
+more. Because the parent view is observing the Realm app, it will notice
+when the user authentication state has changed and decide to show
+something other than the LoginView.
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.login-view.swift
+   :language: swift
+
+The LogoutButton works just like the LoginView, but logs out instead of
+logging in:
+
+.. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.logout-button.swift
+   :language: swift
+
+Once logged in, the app follows the same flow as the local-only version.
+
+.. _swiftui-complete-code:
+
+Complete Code
+-------------
+
+If you would like to copy and paste or examine the complete code with or 
+without Device Sync, see below.
+
+.. tabs::
+
+   .. tab:: Without Sync
+      :tabid: local
+
+      .. literalinclude:: /examples/generated/swiftui/local/SwiftUIFlexSyncExampleApp.snippet.complete-swiftui-flex-sync-quickstart.swift
+         :language: swift
+
+   .. tab:: With Flexible Sync
+      :tabid: flex-sync
+
+      .. literalinclude:: /examples/generated/swiftui/flex-sync/SwiftUIFlexSyncExampleApp.snippet.complete-swiftui-flex-sync-quickstart.swift
+         :language: swift

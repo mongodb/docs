@@ -1,0 +1,591 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swift-object-models:
+.. _ios-define-a-realm-object-schema:
+
+=======================================
+Define a Realm Object Model - Swift SDK
+=======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. _ios-define-a-new-object-type:
+
+Define a New Object Type
+------------------------
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      You can define a Realm object by deriving from the
+      :swift-sdk:`Object <Extensions/Object.html>` or
+      :swift-sdk:`EmbeddedObject <Extensions/EmbeddedObject.html>`
+      class. The name of the class becomes the table name in the realm,
+      and properties of the class persist in the database. This makes it
+      as easy to work with persisted objects as it is to work with
+      regular Swift objects.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.define-a-model.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      You can define a Realm object by deriving from the
+      :objc-sdk:`RLMObject <Classes/RLMObject.html>` or
+      :objc-sdk:`RLMEmbeddedObject
+      <Classes/RLMEmbeddedObject.html>` class. The name of the
+      class becomes the table name in the realm, and properties of the
+      class persist in the database. This makes it as easy to work with
+      persisted objects as it is to work with regular Objective-C
+      objects.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.define-a-model.m
+         :language: objectivec
+
+.. include:: /includes/note-class-char-limit.rst
+
+.. _ios-declare-a-property:
+
+Declare Properties
+------------------
+
+When you declare the property attributes of a class, you can specify whether
+or not those properties should be managed by the realm. **Managed properties**
+are stored or updated in the database. **Ignored properties** are not
+stored to the database. You can mix managed and ignored properties
+within a class.
+
+The syntax to mark properties as managed or ignored varies depending on which
+version of the SDK you use.
+
+.. _persisted-property-attributes:
+
+Persisted Property Attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 10.10.0
+   The ``@Persisted`` declaration style replaces the ``@objc dynamic``,
+   ``RealmOptional``, and ``RealmProperty`` declaration notations from older
+   versions of the SDK. For an older version of the SDK, see:
+   :ref:`Objective-C Dynamic Property Attributes <objc-dynamic-property-attributes>`.
+
+Declare model properties that you want to store to the database as
+``@Persisted``. This enables them to access the underlying database data.
+
+When you declare any properties as ``@Persisted`` within a class, the other
+properties within that class are automatically ignored.
+
+If you mix ``@Persisted`` and ``@objc dynamic`` property declarations within
+a class definition, any property attributes marked as ``@objc dynamic`` will
+be ignored.
+
+.. seealso::
+
+   Our :ref:`Supported Property Types <ios-supported-property-types>`
+   page contains a property declaration cheatsheet.
+
+.. _objc-dynamic-property-attributes:
+
+Objective-C Dynamic Property Attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. versionchanged:: 10.10.0
+   This property declaration information is for versions of the SDK before
+   10.10.0.
+
+Declare dynamic Realm model properties in the Objective-C runtime. This
+enables them to access the underlying database data.
+
+You can either:
+
+- Use ``@objc dynamic var`` to declare individual properties
+- Use ``@objcMembers`` to declare a class. Then, declare individual
+  properties with ``dynamic var``.
+
+Use ``let`` to declare ``LinkingObjects``, ``List``, ``RealmOptional`` and
+``RealmProperty``. The Objective-C runtime cannot represent these
+generic properties.
+
+.. versionchanged:: 10.8.0
+   ``RealmProperty`` replaces ``RealmOptional``
+
+.. seealso::
+
+   Our :ref:`Supported Property Types <ios-supported-property-types>`
+   page contains a property declaration cheatsheet.
+
+.. tip::
+
+   For reference on which types Realm supports for use as
+   properties, see :ref:`ios-supported-property-types`.
+
+.. tabs::
+
+   .. tab:: Swift
+      :tabid: swift
+
+      When declaring non-generic properties, use the ``@Persisted`` annotation.
+      The ``@Persisted`` attribute turns Realm model properties into accessors
+      for the underlying database data.
+
+   .. tab:: Objective C
+      :tabid: objective-c
+
+      Declare properties on your object type as you would on a normal
+      Objective-C interface.
+
+      In order to use your interface in a Realm array, pass your
+      interface name to the ``RLM_COLLECTION_TYPE()`` macro. You can put this
+      at the bottom of your interface's header file. The
+      ``RLM_COLLECTION_TYPE()`` macro creates a protocol that allows you to
+      tag :objc-sdk:`RLMArray <Classes/RLMArray.html>` with your type:
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.array-declaration.m
+         :language: objectivec
+
+   .. tab:: Swift pre-10.10.0
+      :tabid: swift-pre-10.10.0
+
+      When declaring non-generic properties, use the ``@objc dynamic
+      var`` annotation. The ``@objc dynamic var`` attribute turns Realm
+      model properties into accessors for the underlying database data.
+      If the class is declared as ``@objcMembers`` (Swift 4 or later),
+      you can declare properties as ``dynamic var`` without ``@objc``.
+
+      To declare properties of generic types ``LinkingObjects``,
+      ``List``, and ``RealmProperty``, use ``let``. Generic properties
+      cannot be represented in the Objective‑C runtime, which
+      Realm uses for dynamic dispatch of dynamic
+      properties.
+
+.. note::
+
+   Property names are limited to a maximum of 63 UTF-8 characters.
+
+.. _ios-specify-an-optional-required-property:
+
+Specify an Optional/Required Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: Swift
+      :tabid: swift
+
+      You can declare properties as optional or required (non-optional) using
+      standard Swift syntax.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.optional-required-properties.swift
+         :language: swift
+
+   .. tab:: Objective C
+      :tabid: objective-c
+
+      To declare a given property as required, implement the
+      :objc-sdk:`requiredProperties
+      <Classes/RLMObject.html#/c:objc(cs)RLMObject(cm)requiredProperties>`
+      method and return an array of required property names.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.optional-required-properties.m
+         :language: objectivec
+
+   .. tab:: Swift pre-10.10.0
+      :tabid: swift-pre-10.10.0
+
+      .. versionchanged:: 10.8.0
+         ``RealmProperty`` replaces ``RealmOptional``
+
+      You can declare ``String``, ``Date``, ``Data``, and
+      :swift-sdk:`ObjectId <Classes/ObjectId.html>` properties as
+      optional or required (non-optional) using standard Swift syntax.
+      Declare optional numeric types using the :swift-sdk:`RealmProperty
+      <Classes/RealmProperty.html>`
+      type.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.optional-required-properties-objc-dynamic.swift
+         :language: swift
+
+      RealmProperty supports ``Int``, ``Float``, ``Double``, ``Bool``,
+      and all of the sized versions of ``Int`` (``Int8``, ``Int16``,
+      ``Int32``, ``Int64``).
+
+.. _ios-specify-a-primary-key:
+.. _ios-primary-keys:
+.. _swift-primary-keys:
+
+Specify a Primary Key
+~~~~~~~~~~~~~~~~~~~~~
+
+You can designate a property as the **primary key** of your class.
+
+Primary keys allow you to efficiently :ref:`find
+<ios-find-a-specific-object-by-primary-key>`, update, and :ref:`upsert
+<ios-upsert-an-object>` objects.
+
+Primary keys are subject to the following limitations:
+
+- You can define only one primary key per object model.
+
+- Primary key values must be unique across all instances of an object
+  in a realm. Realm throws an error if you try to
+  insert a duplicate primary key value.
+
+- Primary key values are immutable. To change the primary key value of
+  an object, you must delete the original object and insert a new object
+  with a different primary key value.
+
+- :ref:`Embedded objects <ios-embedded-objects>` cannot define a
+  primary key.
+
+.. tabs::
+
+   .. tab:: Swift
+      :tabid: swift
+
+      Declare the property with :swift-sdk:`primaryKey: true
+      <Structs/Persisted.html#/s:10RealmSwift9PersistedVA2A11_PrimaryKey01_A5ValueRpzrlE07primaryE0ACyxGSb_tcfc>`
+      on the ``@Persisted`` notation to set the model's primary key.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.specify-a-primary-key.swift
+         :language: swift
+
+   .. tab:: Objective C
+      :tabid: objective-c
+
+      Override :objc-sdk:`+[RLMObject primaryKey]
+      <Classes/RLMObject.html#/c:objc(cs)RLMObject(cm)primaryKey>` to
+      set the model's primary key.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.specify-a-primary-key.m
+         :language: objectivec
+
+   .. tab:: Swift pre-10.10.0
+      :tabid: swift-pre-10.10.0
+
+      Override `Object.primaryKey()
+      <https://www.mongodb.com/docs/realm-sdks/swift/10.9.0/Extensions/Object.html#/c:@CM@RealmSwift@@objc(cs)RealmSwiftObject(cm)primaryKey>`_
+      to set the model's primary key.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.specify-a-primary-key-objc-dynamic.swift
+         :language: swift
+
+.. _ios-index-a-property:
+.. _swift-index-a-property:
+
+Index a Property
+~~~~~~~~~~~~~~~~
+
+You can create an index on a given property of your model. Indexes speed up
+queries using equality and IN operators. They make insert and update operation
+speed slightly slower. Indexes use memory and take up more space in the realm
+file. Each index entry is a minimum of 12 bytes. It's best to only add indexes
+when optimizing the read performance for specific situations.
+
+Realm supports indexing for string, integer, boolean, ``Date``, ``UUID``,
+``ObjectId``, and ``AnyRealmValue`` properties.
+
+.. versionadded:: 10.8.0
+   ``UUID`` and ``AnyRealmValue`` types
+
+.. tabs::
+
+   .. tab:: Swift
+      :tabid: swift
+
+      To index a property, declare the property with
+      :swift-sdk:`indexed:true
+      <Extensions/Object.html#/c:@CM@RealmSwift@@objc(cs)RealmSwiftObject(cm)indexedProperties>`
+      on the ``@Persisted`` notation.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.index-a-property.swift
+         :language: swift
+
+   .. tab:: Objective C
+      :tabid: objective-c
+
+      To index a property, override :objc-sdk:`+[RLMObject
+      indexedProperties]
+      <Classes/RLMObject.html#/c:objc(cs)RLMObject(cm)indexedProperties>`
+      and return a list of indexed property names.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.index-a-property.m
+         :language: objectivec
+
+   .. tab:: Swift pre-10.10.0
+      :tabid: swift-pre-10.10.0
+
+      To index a property, override
+      `Object.indexedProperties()
+      <https://www.mongodb.com/docs/realm-sdks/swift/10.9.0/Extensions/Object.html#/c:@CM@RealmSwift@@objc(cs)RealmSwiftObject(cm)indexedProperties>`_
+      and return a list of indexed property names.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.index-a-property-objc-dynamic.swift
+         :language: swift
+
+.. _ios-ignore-a-property:
+
+Ignore a Property
+~~~~~~~~~~~~~~~~~
+
+Ignored properties behave exactly like normal properties. They can't be
+used in queries and won't trigger Realm notifications. You can still
+observe them using :apple:`KVO
+<library/archive/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html>`.
+
+.. tip::
+
+   Realm automatically ignores read-only properties.
+
+.. tabs::
+
+   .. tab:: Swift
+      :tabid: swift
+
+      .. deprecated:: 10.10.0
+         ``ignoredProperties()``
+
+      If you don't want to save a field in your model to its realm,
+      leave the ``@Persisted`` notation off the property attribute.
+
+      Additionally, if you mix ``@Persisted`` and ``@objc dynamic``
+      property declarations within a class, the ``@objc dynamic``
+      properties will be ignored.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.ignore-a-property.swift
+         :language: swift
+
+   .. tab:: Objective C
+      :tabid: objective-c
+
+      If you don't want to save a field in your model to its realm,
+      override :objc-sdk:`+[RLMObject ignoredProperties]
+      <Classes/RLMObject.html#/c:objc(cs)RLMObject(cm)ignoredProperties>`
+      and return a list of ignored property names.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.ignore-a-property.m
+         :language: objectivec
+
+   .. tab:: Swift pre-10.10.0
+      :tabid: swift-pre-10.10.0
+
+      If you don't want to save a field in your model to its realm,
+      override `Object.ignoredProperties()
+      <https://www.mongodb.com/docs/realm-sdks/swift/10.9.0/Extensions/Object.html#/c:@CM@RealmSwift@@objc(cs)RealmSwiftObject(cm)ignoredProperties>`_
+      and return a list of ignored property names.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.ignore-a-property-objc-dynamic.swift
+         :language: swift
+
+.. _ios-realm-enum:
+
+Declare Enum Properties
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: Swift
+      :tabid: swift
+
+      .. versionchanged:: 10.10.0
+         Protocol is now ``PersistableEnum`` rather than ``RealmEnum``.
+
+      You can use enums with ``@Persisted`` by marking them as complying with the
+      :swift-sdk:`PersistableEnum <Protocols.html#/s:10RealmSwift15PersistableEnumP>`
+      protocol. A ``PersistableEnum`` can be any ``RawRepresentable`` enum
+      whose raw type is a type that :ref:`Realm supports <swift-supported-types>`.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.realm-object-enum.swift
+         :language: swift
+
+   .. tab:: Swift pre-10.10.0
+      :tabid: swift-pre-10.10.0
+
+      Realm supports only ``Int``-backed ``@objc`` enums.
+
+      .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.realm-object-enum-objc-dynamic.swift
+         :language: swift
+
+      .. seealso::
+
+         `RealmEnum <https://www.mongodb.com/docs/realm-sdks/swift/10.9.0/Protocols.html#/s:10RealmSwift0A4EnumP>`_
+
+.. _swift-rename-property:
+
+Remap a Property Name
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 10.33.0
+
+You can map the public name of a property in your object model to a different
+private name to store in the realm. You might want to do this if your
+Device Sync schema property names use snake case, for example, while your
+project uses Swift-idiomatic camel case.
+
+Declare the name you want to use in your project as the ``@Persisted``
+property on the object model. Then, pass a dictionary containing the
+public and private values for the property names via the
+``propertiesMapping()`` function.
+
+In this example, ``firstName`` is the public property name we use in the code
+throughout the project to perform CRUD operations. Using the ``propertiesMapping()``
+function, we map that to store values using the private property name
+``first_name`` in the realm. If we write to a synced realm, the Sync
+schema sees the values stored using the private property name ``first_name``.
+
+.. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.rename-a-property.swift
+   :language: swift
+
+.. _ios-define-and-use-class-projections:
+.. _swift-define-class-projection:
+
+Define a Class Projection
+-------------------------
+
+.. _ios-class-projection-object-model:
+
+About These Examples
+~~~~~~~~~~~~~~~~~~~~
+
+The examples in this section use a simple data set. The two Realm object
+types are ``Person`` and an embedded object ``Address``. A ``Person`` has
+a first and last name, an optional ``Address``, and a list of friends
+consisting of other ``Person`` objects. An ``Address`` has a city and country.
+
+See the schema for these two classes, ``Person`` and ``Address``, below:
+
+.. literalinclude:: /examples/generated/code/start/ClassProjection.snippet.models.swift
+   :language: swift
+
+.. _ios-define-a-class-projection:
+
+How to Define a Class Projection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 10.21.0
+
+Define a class projection by creating a class of type :swift-sdk:`Projection
+<Classes/Projection.html>`. Specify the :swift-sdk:`Object <Extensions/Object.html>`
+or :swift-sdk:`EmbeddedObject <Extensions/EmbeddedObject.html>` base whose
+properties you want to use in the class projection. Use the ``@Projected``
+property wrapper to declare a property that you want to project from a
+``@Persisted`` property on the base object.
+
+.. note::
+
+   When you use a :ref:`List <ios-list-collections>` or a :ref:`MutableSet
+   <ios-mutableset-data-type>` in a class projection, the type in the
+   class projection should be :swift-sdk:`ProjectedCollection <>`.
+
+.. literalinclude:: /examples/generated/code/start/ClassProjection.snippet.declare-class-projection.swift
+   :language: swift
+
+When you define a class projection, you can transform the original ``@Persisted``
+property in several ways:
+
+- Passthrough: the property is the same name and type as the original object
+- Rename: the property has the same type as the original object, but a
+  different name
+- Keypath resolution: use keypath resolution to access properties of the
+  original object, including embedded object properties
+- Collection mapping: Project :ref:`lists <ios-list-collections>` or
+  :ref:`mutable sets <ios-mutableset-data-type>` of ``Object`` s or
+  ``EmbeddedObject`` s as a collection of primitive values
+- Exclusion: when you use a class projection, the underlying object's
+  properties that are not ``@Projected`` through the class projection are
+  excluded. This enables you to watch for changes to a class projection
+  and not see changes for properties that are not part of the class
+  projection.
+
+.. _swift-define-asymmetric-object:
+
+Define an Asymmetric Object
+---------------------------
+
+.. versionadded:: 10.29.0
+
+If your app uses Flexible Sync, you can use :ref:`Data Ingest
+<optimize-data-ingest>` to sync an object unidirectionally
+from your device to the database linked to your Atlas App Services App.
+Define an asymmetric object by inheriting from :swift-sdk:`AsymmetricObject
+<Extensions/AsymmetricObject.html>`.
+
+.. literalinclude:: /examples/generated/code/start/AsymmetricSync.snippet.asymmetric-model.swift
+   :language: swift
+
+.. versionchanged:: 10.42.4 Asymmetric objects can link to non-embedded objects.
+
+``AsymmetricObject`` broadly supports the same property types as ``Object``,
+with a few exceptions:
+
+- Asymmetric objects can only link to embedded objects
+   - ``Object`` and ``List<Object>`` properties are not supported in Swift SDK
+     versions 10.42.3 and earlier. In Swift SDK versions 10.42.4 and later,
+     asymmetric objects can link to non-embedded objects.
+   - ``EmbeddedObject`` and ``List<EmbeddedObject>`` are supported.
+
+You cannot link to an ``AsymmetricObject`` from within an ``Object``. Doing so
+throws an error.
+
+Asymmetric objects do not function in the same way as other Realm Objects.
+You cannot:
+
+- Add an asymmetric object to a realm
+- Remove an asymmetric object from a realm
+- Query an asymmetric object
+
+You can only create an Asymmetric object, which then syncs unidirectionally
+to the Atlas database linked to your App with Device Sync.
+
+For more information, see: :ref:`Create an Asymmetric Object
+<swift-create-asymmetric-object>`.
+
+
+.. _ios-model-unstructured-data:
+
+Define Unstructured Data
+------------------------
+
+.. versionadded:: 10.51.0
+
+Starting in SDK version 10.51.0, you can store :ref:`collections of mixed data <ios-nested-collections-realmanyvalue>`
+within a ``AnyRealmValue`` property. You can use this feature to model complex data
+structures, such as JSON or MongoDB documents, without having to define a
+strict data model.
+
+**Unstructured data** is data that doesn't easily conform to an expected
+schema, making it difficult or impractical to model to individual
+data classes. For example, your app might have highly variable data or dynamic
+data whose structure is unknown at runtime.
+
+Storing collections in a mixed property offers flexibility without sacrificing
+functionality, including performant synchronization when using Device Sync. And
+you can work with them the same way you would a non-mixed
+collection:
+
+- You can nest mixed collections up to 100 levels.
+- You can query on and :ref:`react to changes
+  <ios-react-to-changes>` on mixed collections.
+- You can find and update individual mixed collection elements.
+
+However, storing data in mixed collections is less performant than using a structured
+schema or serializing JSON blobs into a single string property.
+
+To model unstructured data in your app, define the appropriate properties in
+your schema as :ref:`AnyRealmValue <ios-mixed-data-type>` types. You can then
+set these ``AnyRealmValue`` properties as a list or a
+dictionary collection of ``AnyRealmValue`` elements.
+Note that ``AnyRealmValue`` *cannot* represent a ``MutableSet`` or an embedded
+object.
+
+.. tip::
+
+   - Use a map of mixed data types when the type is unknown but each value will have a unique identifier.
+   - Use a list of mixed data types when the type is unknown but the order of
+     objects is meaningful.

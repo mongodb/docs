@@ -1,0 +1,3 @@
+public IEnumerable<Employee> Employees { get; }
+...
+Employees = realm.All<Employee>();

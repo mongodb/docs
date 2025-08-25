@@ -1,0 +1,251 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-livedata-quick-start:
+
+====================================
+Quick Start with LiveData - Java SDK
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page contains instructions to quickly get Realm integrated
+into an example Android application that uses :android:`LiveData
+<reference/androidx/lifecycle/LiveData>`. This example application
+allows a user to increment a counter using a button.
+
+Prerequisites
+-------------
+
+This quick start guide uses :ref:`Sync <sync>` to synchronize data
+changes between clients. Before you begin, ensure you have:
+
+- :ref:`Installed the Java SDK <java-install>`.
+- :ref:`Created an App <create-a-realm-app>`.
+- :ref:`Enabled anonymous authentication <anonymous-authentication-configuration>`.
+- :ref:`Enabled Sync <enable-sync>`.
+
+.. note:: Using LiveData without Sync
+
+   To use this quick start without Sync, disable the sync features
+   in the SDK. You can do this by removing the following lines from your
+   app-level :file:`build.gradle` file:
+
+   .. code-block:: gradle
+
+      realm {
+         syncEnabled = true
+      }
+
+   After removing the lines, re-synchronize the Gradle configuration to
+   reload the Java SDK in an offline-only state. Remove the lines
+   related to importing and using Sync Configuration, user login, and
+   partition values from the ``CounterModel`` file to use the Java SDK
+   without Sync.
+
+Clone the LiveData Quick Start Repository
+-----------------------------------------
+
+To get started, copy the `example repo
+<https://github.com/mongodb-university/realm-android-livedata>`__
+into your local environment.
+
+We've already put together an Android application that has
+most of the code you'll need. You can clone the client application
+repository directly from GitHub:
+
+.. code-block:: console
+
+   git clone https://github.com/mongodb-university/realm-android-livedata.git
+
+The repository contains two branches:
+``final`` and ``start``. The ``final`` branch is a finished version
+of the app as it should look *after* you complete this tutorial.
+To walk through this tutorial, please check out the ``start``
+branch:
+
+.. code-block:: console
+
+   git checkout start
+
+Import Dependencies
+-------------------
+
+Now that you've cloned the repo, you need to add the dependencies you'll
+need to run the Java SDK and Android LiveData. Begin by adding
+the Java SDK dependency to the ``buildscript.dependencies``
+block of your project level :file:`build.gradle` file:
+
+.. literalinclude:: /examples/generated/java/sync/build.snippet.realm-dependency.gradle
+   :language: gradle
+   :emphasize-lines: 10
+   :copyable: false
+
+You'll also have to add the Android LiveData Dependency to the
+``dependencies`` block of your app level :file:`build.gradle` file:
+
+.. literalinclude:: /examples/generated/java/sync/build.snippet.livedata-dependency.gradle
+   :language: gradle
+   :emphasize-lines: 10
+   :copyable: false
+
+Next, enable Sync in the SDK by creating the
+following top-level block in your app level :file:`build.gradle` file:
+
+.. literalinclude:: /examples/generated/java/sync/build.snippet.sync-enable.gradle
+   :language: gradle
+   :copyable: false
+
+Then, enable DataBinding by creating the following block in the
+``android`` block of your app level :file:`build.gradle` file:
+
+.. literalinclude:: /examples/generated/java/sync/build.snippet.databinding-enable.gradle
+   :language: gradle
+   :emphasize-lines: 15-17
+   :copyable: false
+
+Finally, click the "Sync" button or select :guilabel:`Build > Rebuild Project`
+in the application menu to reconfigure your Gradle configuration with
+these changes and fetch the dependencies.
+
+LiveRealmObject
+---------------
+
+With all of the dependencies in place, it's time to create a
+LiveData-compatible interface for our Realm objects. To do so, we'll
+have to handle a few events:
+
+- The ``onActive()`` method enables an observer to subscribe to changes
+  to the underlying Realm object by adding a change listener.
+
+  .. literalinclude:: /examples/generated/java/sync/LiveRealmObject.snippet.onactive.kt
+     :language: kotlin
+     :copyable: false
+
+- The ``onInactive()`` method enables an observer to unsubscribe to
+  changes to the underlying Realm object by removing the change listener.
+
+  .. literalinclude:: /examples/generated/java/sync/LiveRealmObject.snippet.oninactive.kt
+     :language: kotlin
+     :copyable: false
+
+- When a change occurs, the ``listener`` member uses the ``setValue()``
+  method of the ``LiveData`` parent class to pass the Realm object's
+  value to the UI unless the object was deleted, in which case the
+  change listener passes a value of ``null`` instead of passing along
+  a reference to an invalid, deleted object.
+
+  .. literalinclude:: /examples/generated/java/sync/LiveRealmObject.snippet.listener.kt
+     :language: kotlin
+     :copyable: false
+
+.. seealso:: Using LiveData with ``RealmResults``
+
+   This example only uses LiveData to display ``RealmObjects`` in the UI.
+   For a sample implementation displaying ``RealmResults``,
+   see `LiveRealmResults <https://github.com/mongodb-university/realm-android-livedata/blob/final/app/src/main/java/com/mongodb/realm/livedataquickstart/model/LiveRealmResults.kt>`__.
+
+Instantiating LiveData in the ViewModel
+---------------------------------------
+
+This application stores all of its logic and core data within a ViewModel
+called ``CounterModel``. When the application runs, it creates an instance
+of ``CounterModel`` that is used until the application closes. That
+instance contains the LiveData that displays on the UI of the application.
+To create an instance of LiveData, we need to access a ``Counter`` object
+stored in a realm and pass it to the ``LiveRealmObject`` constructor.
+To accomplish this:
+
+1. Connect to your App *with your* **App ID**.
+
+2. Authenticate a user.
+
+3. Connect to a specific realm using Sync.
+
+4. Query the realm for a ``Counter``, inserting a new ``Counter`` if
+   one hasn't already been created in this realm.
+
+5. Instantiate a ``LiveRealmObject`` using the ``Counter`` instance and
+   store it in the ``counter`` member of ``CounterModel``.
+
+The following code snippet implements this behavior:
+
+.. literalinclude:: /examples/generated/java/sync/CounterModel.snippet.constructor.kt
+   :language: kotlin
+
+.. important:: Don't Read or Write on the UI Thread
+
+   Database reads and writes are computationally expensive, so
+   the SDK disables reads and writes by default on the UI thread.
+   For simplicity, this example enables UI thread reads and writes with
+   the ``allowWritesOnUiThread()`` and ``allowQueriesOnUiThread()``
+   config builder methods. In production applications, you should almost
+   always defer reads and writes to a background thread using
+   asynchronous methods.
+
+Connecting the ViewModel to the UI
+----------------------------------
+
+To display the data stored in the ``CounterModel`` on the application UI,
+we'll need to access the ``CounterModel`` singleton using the
+:android:`viewModels() <topic/libraries/architecture/viewmodel#kotlin>`
+method when the application creates ``CounterFragment``. Once we've
+instantiated the model, we can use the :android:`Android Data Binding
+<topic/libraries/data-binding>` library to display the model's
+data in UI elements.
+
+To access the ``CounterModel`` singleton when the application creates
+``CounterFragment``, place the following code in the ``onCreateView()``
+method of ``CounterFragment``:
+
+.. literalinclude:: /examples/generated/java/sync/CounterFragment.snippet.getcountermodel.kt
+   :language: kotlin
+   :copyable: false
+
+Next, set up the Data Binding hooks in the UI for the counter fragment:
+
+.. literalinclude:: /examples/generated/java/sync/counter_fragment.xml
+   :language: kotlin
+   :copyable: false
+
+Finally, connect the model to the binding so that the UI can display the
+counter and iterate the counter on button press with the following code
+in the ``onCreateView()`` method of ``CounterFragment``:
+
+.. literalinclude:: /examples/generated/java/sync/CounterFragment.snippet.binding.kt
+   :language: kotlin
+   :copyable: false
+
+Run the Application
+-------------------
+
+Now you should be able to run the sample application. You should see an
+interface that looks something like this:
+
+.. image:: /images/android-livedata-quickstart-app.png
+   :alt: The LiveData QuickStart Counter app.
+
+Clicking the "ADD" button should add one to the value of your counter.
+With Sync, you can view your App logs to see individual increment
+events. Android LiveData is lifecycle-aware, so rotating the screen or
+freeing the application's state by clearing your device's RAM should
+have no effect on the application state, which should seamlessly resume
+and automatically resubscribe to events on resume using the state stored
+in the model singleton and the encapsulated LiveData instance.
+
+Summary
+-------
+
+- Use the the ``LiveRealmObject`` and ``LiveRealmResults`` classes as a template for encapsulating live Realm data in Android LiveData.
+- Use a ViewModel to separate underlying data from the UI elements that display that data.
+- DataBinding lets you declare relationships between model data and UI elements without explicitly setting values in an Activity or Fragment.
+
+Feedback
+--------
+
+Did you find this quick start guide helpful? Please let us know with the
+feedback form on the right side of the page!

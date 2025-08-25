@@ -1,0 +1,254 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-handle-sync-errors:
+
+============================
+Handle Sync Errors - C++ SDK
+============================
+
+.. meta:: 
+  :keywords: code example
+   :description: Atlas Device Sync error handling and client reset errors.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _cpp-sync-error-handler:
+
+Handle Sync Errors
+------------------
+
+While developing an application that uses Device Sync, you should set an error
+handler. This error handler detects and can respond to any failed sync-related
+API calls.
+
+Set an error handler on the :cpp-sdk:`sync_config 
+<structrealm_1_1internal_1_1bridge_1_1realm_1_1sync__config.html>`. When
+an error occurs, the C++ SDK calls the error handler with the 
+:cpp-sdk:`sync_error <structrealm_1_1internal_1_1bridge_1_1sync__error.html>` 
+object and the :cpp-sdk:`sync_session 
+<structrealm_1_1internal_1_1bridge_1_1sync__session.html>` where the error
+occurred.
+
+.. literalinclude:: /examples/generated/cpp/sync-errors.snippet.create-error-handler.cpp
+   :language: cpp
+
+.. include:: /includes/sync-errors-in-app-services.rst
+
+.. _cpp-client-reset:
+
+Client Reset
+------------
+
+When using :ref:`Device Sync <sync>`, a **client reset** is an
+error recovery task that your client app must perform when the server can 
+no longer sync with the device database. In this case, the device must reset 
+its database to a state that matches the server in order to restore the 
+ability to sync.
+
+When this occurs, the unsyncable database on the device may contain data that 
+has not yet synced to the server. The SDK can attempt to recover or 
+discard that data during the client reset process.
+
+For more information about what might cause a client reset to occur, go to
+:ref:`Client Resets in the App Services documentation <client-resets>`.
+
+.. _cpp-automatic-vs-manual-client-reset:
+
+Automatic vs. Manual Client Reset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The SDK provides :ref:`client reset modes <cpp-specify-client-reset-mode>` 
+that automatically handle most client reset errors. Automatic client 
+reset modes restore your device's database file to a syncable state 
+without closing the database or missing notifications.
+
+All the client reset modes except ``manual()`` perform an automatic client 
+reset. The differences between the modes are based on how they handle 
+changes on the device that have not yet synced to the backend.
+
+Choose ``recover_unsynced_changes()`` to handle most client reset 
+scenarios automatically. This attempts to recover unsynced changes when a 
+client reset occurs.
+
+In some cases, you may want or need to :ref:`set a manual client reset handler 
+<cpp-manual-client-reset-handler>`. You may want to do this if your app 
+requires specific client reset logic that can't be handled automatically.
+
+.. _cpp-specify-client-reset-mode:
+
+Specify a Client Reset Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The C++ SDK provides the option to specify a client reset handler in your 
+:cpp-sdk:`database configuration <structrealm_1_1internal_1_1bridge_1_1realm_1_1config.html>`. 
+This client reset handler can take a 
+:cpp-sdk:`client_reset_mode_base <structrealm_1_1internal_1_1bridge_1_1client__reset__mode__base.html>`.
+This struct allows you to specify:
+
+- A block to execute before the client reset
+- A block to execute after the client reset
+- The mode to use when handling the client reset
+
+.. literalinclude:: /examples/generated/cpp/client-reset.snippet.recover-unsynced-changes.cpp
+   :language: cpp
+
+You can use one of the available client reset modes to specify how the SDK 
+should attempt to resolve any unsynced data on the device during a client reset: 
+
+- ``recover_unsynced_changes()``
+- ``recover_or_discard_unsynced_changes()``
+- ``discard_unsynced_changes()`` 
+- ``manual()``
+
+You can specify a before and after block to execute during the automatic client 
+reset process. You might use this to perform recovery logic that is important 
+to your application.
+
+.. literalinclude:: /examples/generated/cpp/client-reset.snippet.before-after-blocks.cpp
+   :language: cpp
+
+If your app has specific client recovery needs, you 
+can specify the ``manual()`` client reset mode and set a :ref:`manual client
+reset handler <cpp-manual-client-reset-handler>`. You might do this if 
+you have specific custom logic your app must perform during a client reset,
+or if the :ref:`client recovery rules <cpp-client-recovery-rules>` do not 
+work for your app.
+
+.. _cpp-handle-schema-changes:
+
+Handle Schema Changes
+~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Client Recovery <enable-or-disable-recovery-mode>` is a feature that is
+enabled by default when you :ref:`configure Device Sync <enable-sync>`. When 
+Client Recovery is enabled, the SDK can automatically manage the 
+client reset process in most cases. When you make schema changes:
+
+- The client can :ref:`recover unsynced changes <cpp-recover-unsynced-changes>` 
+  when there are no schema changes, or non-breaking schema changes.
+- When you make breaking schema changes, the automatic client reset modes fall
+  back to a manual error handler. You can set a :ref:`manual client 
+  reset error handler <cpp-manual-client-reset-handler>` for this case. 
+  Automatic client recovery cannot occur when your app makes breaking 
+  schema changes.
+
+For information on breaking vs. non-breaking schema changes, see 
+:ref:`breaking-change-quick-reference`.
+
+.. _cpp-recover-unsynced-changes:
+
+Recover Unsynced Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+During a client reset, client applications can attempt to recover data 
+in the synced database on the device that has not yet synced to the backend. 
+To recover unsynced changes, :ref:`Client Recovery <recover-unsynced-changes>` 
+must be :ref:`enabled in your App Services App <enable-or-disable-recovery-mode>`, 
+which it is by default.
+
+If you want your app to recover changes that have not yet synced, use one 
+of these client recovery modes:
+
+- ``recover_unsynced_changes()``: The client attempts to recover unsynced 
+  changes. Choose this mode when you do not want to fall through to discard 
+  unsynced changes. 
+- ``recover_or_discard_unsynced_changes()``: The client first attempts to 
+  recover changes that have not yet synced. If the client cannot recover 
+  unsynced data, it falls through to :ref:`discard unsynced changes 
+  <cpp-discard-local-changes>` but continues to automatically perform the 
+  client reset. Choose this mode when you want to enable automatic client 
+  recovery to fall back to discard unsynced changes. 
+
+.. literalinclude:: /examples/generated/cpp/client-reset.snippet.recover-unsynced-changes.cpp
+   :language: cpp
+
+There may be times when the client reset operation cannot complete in 
+``recover_unsynced_changes()`` mode, like when there are breaking schema 
+changes or :ref:`Client Recovery <recover-unsynced-changes>` is disabled in 
+the Device Sync configuration. To handle this case, your app can handle a 
+client reset error in the Sync error handler. For more information, refer to 
+the :ref:`manual client reset mode <cpp-manual-client-reset-handler>` section
+on this page.
+
+.. _cpp-client-recovery-rules:
+
+Client Recovery Rules
+`````````````````````
+
+.. include:: /includes/client-recovery-rules.rst
+
+.. _cpp-discard-local-changes:
+
+Discard Unsynced Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``discard_unsynced_changes()`` client reset mode permanently deletes all 
+unsynced changes on the device since the last successful sync. You might 
+use this mode when your app requires client recovery logic that is not 
+consistent with the Device Sync :ref:`client recovery rules 
+<cpp-client-recovery-rules>`, or when you don't want to recover unsynced data.
+
+Do not use discard unsynced changes mode if your application cannot lose 
+device data that has not yet synced to the backend.
+
+To perform an automatic client reset that discards unsynced changes, use the 
+``discard_unsynced_changes()`` client reset mode.
+
+.. literalinclude:: /examples/generated/cpp/client-reset.snippet.discard-unsynced-changes.cpp
+   :language: cpp
+
+.. note:: Discard with Recovery
+
+   If you'd like to attempt to recover unsynced changes, but discard 
+   any changes that cannot be recovered, refer to the 
+   ``recover_or_discard_unsynced_changes()`` documentation in the 
+   :ref:`cpp-recover-unsynced-changes` section on this page.
+
+There may be times when the client reset operation cannot complete in 
+``discard_unsynced_changes()`` mode, like when there are breaking schema 
+changes. To handle this case, your app can handle a client reset error in the 
+Sync error handler. For more information, refer to the 
+:ref:`cpp-manual-client-reset-handler` section on this page.
+
+.. _cpp-manual-client-reset-handler:
+.. _cpp-manual-mode:
+
+Manual Client Reset Mode
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you use ``manual()`` client reset mode, you must implement 
+a custom client reset handler in the Sync error handler. We recommend using the
+:ref:`automatic client recovery modes <cpp-automatic-vs-manual-client-reset>` 
+when possible, and only choosing ``manual()`` mode if the automatic recovery 
+logic is not suitable for your app.
+
+.. literalinclude:: /examples/generated/cpp/client-reset.snippet.manual-client-reset.cpp
+   :language: cpp
+
+If the client reset operation cannot complete automatically, like when there 
+are breaking schema changes, the client reset process falls through to the 
+manual error handler. This may occur in any of these automatic client reset modes:
+
+- ``recover_unsynced_changes()``
+- ``recover_or_discard_unsynced_changes()``
+- ``discard_unsynced_changes()`` 
+
+We recommend treating the manual handler as a tool for fatal error 
+recovery situations where you advise users to update the app or perform some 
+other action. 
+
+.. _cpp-test-client-reset-handling:
+
+Test Client Reset Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/test-client-reset.rst

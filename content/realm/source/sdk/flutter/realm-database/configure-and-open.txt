@@ -1,0 +1,245 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-open-close-realm:
+
+======================================
+Configure & Open a Realm - Flutter SDK
+======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _flutter-open-realm:
+
+Open a Realm
+------------
+
+Use the :flutter-sdk:`Configuration <realm/Configuration-class.html>` class
+to control the specifics of the realm you
+would like to open, including the schema.
+
+.. _flutter-open-local-only-realm:
+
+Open a Local-Only Realm
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a realm that only persists data locally,
+create a configuration with :flutter-sdk:`Configuration.local() <realm/Realm-class.html>`.
+You must provide a list of schemas as an argument.
+
+Pass the ``Configuration`` to the :flutter-sdk:`Realm <realm/Realm-class.html>` constructor.
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.open-realm.dart
+   :language: dart
+
+You can now use that realm instance to work with objects in the database.
+
+Open a Synced Realm
+~~~~~~~~~~~~~~~~~~~
+
+To open a realm that synchronizes data with Atlas using Device Sync,
+refer to :ref:`Open a Synced Realm <flutter-open-synced-realm>`.
+
+.. _flutter-in-memory-realm:
+
+Open an In-Memory Realm
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a realm that runs in memory without being persisted,
+create your ``Configuration`` with :flutter-sdk:`Configuration.inMemory() <realm/Configuration/inMemory.html>`.
+You must provide a list of schemas as an argument.
+In-memory realms **cannot** also be read-only.
+
+Pass the ``Configuration`` to the :flutter-sdk:`Realm <realm/Realm-class.html>` constructor.
+
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.in-memory-realm.dart
+   :language: dart
+
+.. _flutter-configure-realm:
+
+Configure a Realm
+-----------------
+
+You can add optional properties to the realm's ``Configuration``.
+
+.. _flutter-open-read-only-realm:
+
+Open a Read-Only Realm
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can open an existing realm in read-only mode. To open a read-only realm,
+add ``readOnly: true`` to your ``Configuration`` object.
+
+You can only open *existing* realms in read-only mode.
+If you try to write to a read-only realm, it throws an error.
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.read-only-realm.dart
+   :language: dart
+
+.. _flutter-set-custom-fifo:
+
+Set Custom FIFO Special Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set a value for Realm's `FIFO special files
+<https://www.ibm.com/docs/en/zos/2.3.0?topic=csf-fifo-special-files>`_ location.
+Opening a realm creates a number of lightweight FIFO special files
+that coordinate access to the realm across threads and processes.
+If the realm file is in a location that doesn't allow for the creation of
+FIFO special files (such as FAT32 filesystems), then the realm cannot be opened.
+In this case, Realm needs a different location to store these files.
+Add ``fifoFilesFallbackPath: <Your Custom FIFO File Path>`` to your ``Configuration`` object.
+
+This property is ignored if the directory for the realm file allows
+FIFO special files.
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.fifo-file.dart
+   :language: dart
+
+.. _flutter-initial-data-callback:
+
+Add Initial Data to Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :flutter-sdk:`initialDataCallback() <realm/InitialDataCallback.html>` to invoke
+a callback function the first time that you open a realm.
+The function only executes the first time you open that realm on the device.
+The realm instance passed to the callback function already has a write transaction open,
+so you do not need to wrap write operations in a ``Realm.write()`` transaction block.
+``initialDataCallback`` can be useful for adding initial data to your application
+the first time that it is opened on a device.
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.initial-data-callback.dart
+   :language: dart
+   :emphasize-lines: 1-3, 5-6
+
+.. _flutter-customize-default-configuration:
+
+Customize Default Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can customize the default path where Realm stores database files
+and the default name given to database files.
+
+Use the static :flutter-sdk:`Configuration.defaultRealmName <realm/Configuration/defaultRealmName.html>`
+and :flutter-sdk:`Configuration.defaultRealmPath <realm/Configuration/defaultRealmPath.html>`
+to set default configuration for all realms opened within an application.
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.default-realm-name-path.dart
+   :language: dart
+
+You can also check where realm stores the files by default using the static getter
+:flutter-sdk:`Configuration.defaultStoragePath <realm/Configuration/defaultStoragePath.html>`.
+The value for this property varies depending on the platform you are using the SDK
+on and whether you are using the Dart or Flutter versions of Realm.
+Check the value of ``Configuration.defaultStoragePath`` in your application
+to see where realm files are stored in your environment.
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.default-storage-path.dart
+   :language: dart
+
+Manage Schema Changes
+~~~~~~~~~~~~~~~~~~~~~
+
+For more information about managing schema changes when configuring a realm,
+refer to the :ref:`Update a Realm Object Schema documentation
+<flutter-update-realm-object-schema>`.
+
+Encrypt a Realm
+~~~~~~~~~~~~~~~
+
+You can encrypt your local realm to ensure data security. For more information,
+see :ref:`Encrypt a Realm <flutter-encrypt>`.
+
+Compact a Realm
+~~~~~~~~~~~~~~~
+
+You can reduce the local realm file size to improve performance and manage file
+size in a resource-constrained environment. For more information, refer to 
+:ref:`Compact a Realm <flutter-compact>`.
+
+.. _flutter-close-realm:
+
+Close a Realm
+-------------
+
+.. tabs::
+
+   .. tab:: Flutter
+      :tabid: flutter
+
+      Once you've finished working with a realm, close it to prevent memory leaks.
+
+      .. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.close-realm.dart
+         :language: dart
+
+   .. tab:: Dart
+      :tabid: dart
+
+      Once you've finished working with a realm, close it to prevent memory leaks.
+
+      .. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.close-realm.dart
+         :language: dart
+
+      If you're running a Dart CLI application, to prevent the process from hanging
+      call :flutter-sdk:`Realm.shutdown() <realm/Realm/shutdown.html>`.
+
+      .. code-block:: dart
+
+         Realm.shutdown();
+
+.. _flutter-copy-data-into-new-realm:
+
+Copy Data into a New Realm
+--------------------------
+
+To copy data from an existing realm to a new realm with different
+configuration options, pass the new configuration to
+:flutter-sdk:`Realm.writeCopy() <realm/Realm/writeCopy.html>`.
+
+In the new realm's configuration, you *must* specify the ``path``.
+You **cannot** write to a path that already contains a file.
+
+Using ``Realm.writeCopy()``, you can convert between the following
+:flutter-sdk:`Configuration <realm/Configuration-class.html>`
+types:
+
+- ``LocalConfiguration`` to ``LocalConfiguration``
+- ``FlexibleSyncConfiguration`` to ``FlexibleSyncConfiguration``
+- ``InMemoryConfiguration`` to ``InMemoryConfiguration``
+- ``LocalConfiguration`` to read-only ``LocalConfiguration`` and vice versa
+- ``InMemoryConfiguration`` to ``LocalConfiguration`` and vice versa
+- ``FlexibleSyncConfiguration`` to ``LocalConfiguration``
+- ``FlexibleSyncConfiguration`` to ``InMemoryConfiguration``
+
+You **cannot** convert from a ``LocalConfiguration`` or a ``InMemoryConfiguration``
+to a ``FlexibleSyncConfiguration``.
+
+Some additional considerations to keep in mind while using ``Realm.writeCopy()``:
+
+#. The destination file  cannot already exist.
+#. Copying a realm is not allowed within a write transaction or during migration.
+#. When using  Device Sync, you must sync all local changes with the server
+   before the copy is written. This ensures that the file can be used
+   as a starting point for a newly-installed application.
+   The ``Realm.writeCopy()`` throws if there are pending uploads.
+
+The following example copies the data from a realm with a ``InMemoryConfiguration``
+to a new realm with a ``LocalConfiguration``.
+
+.. literalinclude:: /examples/generated/flutter/write_copy_test.snippet.in-memory-to-local.dart
+   :language: dart
+
+You can also :ref:`include a new encryption key <flutter-encrypt>`
+in the copied realm's configuration or remove the encryption key from the new configuration.
+
+The following example copies data from an **unencrypted** realm with a ``LocalConfiguration``
+to an **encrypted** realm with a ``LocalConfiguration``.
+
+.. literalinclude:: /examples/generated/flutter/write_copy_test.snippet.unencrypted-to-encrypted.dart
+   :language: dart

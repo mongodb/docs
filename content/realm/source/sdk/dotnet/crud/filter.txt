@@ -1,0 +1,364 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-filter-data:
+.. _dotnet-filter-queries-based-on-object-properties:
+.. _dotnet-filter-results:
+.. _dotnet-client-query-engine:
+
+===============================
+Filter and Sort Data - .NET SDK
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To query, filter, and sort data in a realm, use the Realm query engine. 
+There are two ways to use the query engine with the .NET SDK:
+
+- :ref:`LINQ Syntax <dotnet-linq-syntax>`
+- :ref:`Realm Query Language <dotnet-realm-query-language>`
+
+You should use LINQ syntax for querying when possible, as it aligns with 
+.NET conventions.  
+
+.. note:: About the examples on this page
+
+   The examples in this page use a simple data set for a
+   task list app. The two Realm object types are ``Project``
+   and ``Task``. A ``Task`` has a name, assignee's name, and
+   completed flag. There is also an arbitrary number for
+   priority -- higher is more important -- and a count of
+   minutes spent working on it. A ``Project`` has zero or more
+   ``Tasks``.
+
+   See the schema for these two classes, ``Project`` and
+   ``Task``, below:
+
+   .. literalinclude:: /examples/generated/dotnet/QueryEngineExamples.snippet.classes.cs
+      :language: csharp
+
+.. _dotnet-linq-syntax:
+
+Query with LINQ
+---------------
+
+Realm's query engine implements standard `LINQ
+<https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/introduction-to-linq-queries>`__
+syntax.
+
+There are several operators available to filter a 
+:ref:`Realm collection <dotnet-client-collections>` with LINQ. 
+Filters work by evaluating an operator expression for every object in the 
+collection being filtered. If the expression resolves to ``true``, realm 
+includes the object in the results collection.
+
+An expression consists of one of the following:
+
+- The name of a property of the object currently being evaluated
+- An operator
+- A value of any type used by realm (string, date, number, boolean, etc.)
+
+.. note:: 
+
+   The Realm .NET SDK does not currently support all of the LINQ operators. Refer 
+   to the :ref:`<dotnet-unsupported-linq>` section for a list of those unsupported 
+   operators.
+
+
+Comparison Operators
+~~~~~~~~~~~~~~~~~~~~
+Value comparisons
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - | ``==``
+     - Evaluates to ``true`` if the left-hand expression is equal to the 
+       right-hand expression.
+
+   * - | ``>``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is 
+       greater than the right-hand numerical or date expression. For dates, this 
+       evaluates to ``true`` if the left-hand date is later than the right-hand 
+       date.
+
+   * - | ``>=``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is 
+       greater than or equal to the right-hand numerical or date expression. For 
+       dates, this evaluates to ``true`` if the left-hand date is later than or 
+       the same as the right-hand date.
+
+   * - | ``<``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is 
+       less than the right-hand numerical or date expression. For dates, this 
+       evaluates to ``true`` if the left-hand date is earlier than the 
+       right-hand date.
+
+   * - | ``<=``
+     - Evaluates to ``true`` if the left-hand numeric expression is less than 
+       or equal to the right-hand numeric expression. For dates, this evaluates 
+       to ``true`` if the left-hand date is earlier than or the same as the 
+       right-hand date.
+
+   * - | ``!=``
+     - Evaluates to ``true`` if the left-hand expression is not equal to the 
+       right-hand expression.
+
+.. example::
+
+   The following example uses the query engine's
+   comparison operators to:
+
+   - Find high priority tasks by comparing the value of the ``priority`` property 
+     value with a threshold number, above which priority can be considered high.
+   - Find just-started or short-running tasks by seeing if the ``progressMinutes`` 
+     property falls within a certain range.
+   - Find unassigned tasks by finding tasks where the ``assignee`` property is 
+     equal to ``null``.
+   - Find tasks assigned to specific teammates Ali or Jamie by seeing if the 
+     ``assignee`` property is in a list of names.
+
+   .. literalinclude:: /examples/generated/dotnet/QueryEngineExamples.snippet.comparisons.cs
+      :language: csharp
+
+
+Logical Operators
+~~~~~~~~~~~~~~~~~
+
+You can use the logical operators listed in the following table to make compound 
+predicates:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - | ``&&``
+     - Evaluates to ``true`` if both left-hand and right-hand expressions are 
+       ``true``.
+
+   * - | ``!``
+     - Negates the result of the given expression.
+
+   * - | ``||``
+     - Evaluates to ``true`` if either expression returns ``true``.
+
+.. example::
+
+   We can use the query language's logical operators to find
+   all of Ali's completed tasks. That is, we find all tasks
+   where the ``assignee`` property value is equal to 'Ali' AND
+   the ``isComplete`` property value is ``true``:
+
+   .. literalinclude:: /examples/generated/dotnet/QueryEngineExamples.snippet.logical.cs
+      :language: csharp
+
+
+String Operators
+~~~~~~~~~~~~~~~~
+
+You can compare string values using the string operators listed in the following 
+table. Regex-like wildcards allow more flexibility in search.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Operator
+     - Description
+
+   * - ``StartsWith``
+     - Evaluates to ``true`` if the left-hand string expression begins with the 
+       right-hand string expression. This is similar to ``contains``, but only 
+       matches if the left-hand string expression is found at the beginning of 
+       the right-hand string expression.
+
+   * - | ``EndsWith``
+     - Evaluates to ``true`` if the left-hand string expression ends with the 
+       right-hand string expression. This is similar to ``contains``, but only 
+       matches if the left-hand string expression is found at the very end of 
+       the right-hand string expression.
+
+   * - | ``Like``
+     - Evaluates to ``true`` if the left-hand string expression
+       matches the right-hand string wildcard string
+       expression. A wildcard string expression is a string
+       that uses normal characters with two special wildcard
+       characters:
+
+       - The ``*`` wildcard matches zero or more of any character
+       - The ``?`` wildcard matches any character.
+
+       For example, the wildcard string "d?g" matches "dog",
+       "dig", and "dug", but not "ding", "dg", or "a dog".
+
+   * - | ``Equals``
+     - Evaluates to ``true`` if the left-hand string is 
+       `lexicographically <https://en.wikipedia.org/wiki/Lexicographic_order>`_ 
+       equal to the right-hand string.
+
+   * - | ``Contains``
+     - Evaluates to ``true`` if the left-hand string expression is found anywhere 
+       in the right-hand string expression.
+
+   * - | ``string.IsNullOrEmpty``
+     - Evaluates to ``true`` if the left-hand string expression is null or empty.
+       Note that ``IsNullOrEmpty()`` is a static method on ``string``. 
+
+.. example::
+
+   The following examples use the query engine's string operators to find
+   tasks:
+
+   .. literalinclude:: /examples/generated/dotnet/QueryEngineExamples.snippet.strings.cs
+      :language: csharp
+
+.. important:: Case Comparisons
+
+   When evaluating strings, the second parameter in all functions *except* ``Like`` 
+   must be either ``StringComparison.OrdinalIgnoreCase`` or 
+   ``StringComparison.Ordinal``. For the ``Like()`` method, the second 
+   parameter is a boolean value (where "true" means "case sensitive").
+
+.. _dotnet-linq-fts:
+
+Full Text Search
+~~~~~~~~~~~~~~~~
+
+You can use LINQ to query on properties that have :ref:`<dotnet-fts-indexes>` (FTS) on 
+them. To query these properties, use :dotnet-sdk:`QueryMethods.FullTextSearch 
+<reference/Realms.QueryMethods.html#Realms_QueryMethods_FullTextSearch_System_String_System_String_>`.
+The following examples query the ``Person.Biography`` field:
+
+.. literalinclude:: /examples/generated/dotnet/Indexing.snippet.linq-query-fts.cs
+   :language: csharp
+
+.. _dotnet-unsupported-linq:
+
+Unsupported LINQ Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+The following LINQ operators are not currently supported by the Realm .NET SDK:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Category
+     - Unsupported Operators
+
+   * - | Concatenation
+     -   - ``Concat``
+         - ``Join``. While ``Join`` is not supported, it is not needed with Realm. 
+           Instead of using keys in a Join statement, as you would in a traditional 
+           relational database, you can reference another type as a property.  
+           For more information, refer to :ref:`<dotnet-embedded-objects>`.
+         - ``GroupJoin``
+   
+   * - | Grouping
+     -   - ``GroupBy``
+
+   * - | Partitioning
+     -    - ``Take``
+          - ``Skip``
+          - ``TakeWhile``
+          - ``SkipWhile``
+  
+   * - | Projection
+     -   - ``SelectMany``
+         - ``Select``, with one exception: when used with the query syntax, ``Select`` 
+           is supported as long as you select the Realm object itself and not a 
+           derivative:
+           
+           ``var tasks = from t in realm.All<Task>() where t.Assignee == "Caleb" select t;``
+
+   * - | Sets
+     -   - ``Distinct``
+         - ``Union``
+         - ``Intersect``
+         - ``Except``
+
+.. _dotnet-realm-query-language:
+
+Query with Realm Query Language
+-------------------------------
+
+You can also use the :ref:`Realm Query Language <realm-query-language>` (RQL) 
+to query realms. RQL is a string-based query language used to access the query 
+engine. When using RQL, you use the 
+:dotnet-sdk:`Filter() <reference/Realms.CollectionExtensions.html?q=Filter>`
+method: 
+
+.. literalinclude:: /examples/generated/dotnet/QueryEngineExamples.snippet.rql.cs
+    :language: csharp
+
+.. important::
+
+   Because :ref:`LINQ <dotnet-linq-syntax>` provides compile-time error checking 
+   of queries, you should use it instead of RQL in most cases. If you require 
+   features beyond LINQ's current capabilities, such as using 
+   :ref:`aggregation <dotnet-realm-query-language-aggregation>`, use RQL.
+
+.. _dotnet-realm-query-language-aggregation:
+
+Aggregate Operators
+~~~~~~~~~~~~~~~~~~~
+
+Aggregate operators traverse a
+:ref:`collection <dotnet-client-collections>` and reduce it
+to a single value. Note that aggregations use the 
+:dotnet-sdk:`Filter() <reference/Realms.CollectionExtensions.html?q=Filter>` 
+method, which can be used to create more complex queries that are currently 
+unsupported by the LINQ provider. ``Filter()`` supports SORT and DISTINCT 
+clauses in addition to filtering.
+
+For more information on the available aggregate operators, refer to the 
+:ref:`Realm Query Language aggregate operator reference <rql-aggregate-operators>`.
+
+The following examples show different ways to aggregate data:
+
+.. literalinclude:: /examples/generated/dotnet/QueryEngineExamples.snippet.aggregate.cs
+  :language: csharp
+
+.. _dotnet-rql-fts:
+
+Full Text Search
+~~~~~~~~~~~~~~~~
+
+You can use RQL to query on properties that have :ref:`<dotnet-fts-indexes>` (FTS) on 
+them. To query these properties, use the ``TEXT`` operator. The following example 
+queries the ``Person.Biography`` field:
+
+.. literalinclude:: /examples/generated/dotnet/Indexing.snippet.rql-query-fts.cs
+   :language: csharp
+
+.. _dotnet-sort-query-results:
+.. _dotnet-sort-results:
+
+Sort Query Results
+------------------
+
+A **sort** operation allows you to configure the order in
+which Realm returns queried objects. You can sort based on
+one or more properties of the objects in the results
+collection.
+
+Realm only guarantees a consistent order of results when the
+results are sorted.
+
+.. example::
+
+   The following code sorts the projects by name in reverse
+   alphabetical order (i.e. "descending" order).
+
+   .. literalinclude:: /examples/CRUD/Sort.cs
+      :language: csharp

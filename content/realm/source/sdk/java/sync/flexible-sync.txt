@@ -1,0 +1,379 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-flexible-sync:
+
+=============================================
+Manage Flexible Sync Subscriptions - Java SDK
+=============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Flexible Sync uses subscriptions and permissions to determine which
+data to sync with your App.
+
+To use Flexible Sync in the SDK:
+
+- :ref:`Configure Flexible Sync on the backend <enable-flexible-sync>`
+- :ref:`Initialize the app <java-quick-start-init-app>`
+- :ref:`Authenticate a user <java-quick-start-authenticate>` in
+  your client project.
+- :ref:`Open the synced Realm with a Flexible Sync configuration <java-flexible-sync-open-realm>`
+- :ref:`Add subscriptions to the client application <java-sync-subscribe-to-queryable-fields>`
+
+You can add, update, and remove query subscriptions to determine which data 
+syncs to the client device.
+
+.. seealso::
+
+   This page details how to manage subscriptions for Flexible Sync. 
+
+   For general information about using Atlas Device Sync with the SDK,
+   such as how to sync changes in the background or pause a sync session,
+   check out :ref:`Sync Changes Between Devices <java-sync-changes-between-devices>`.
+
+   For information about setting up permissions for Flexible Sync, check out
+   :ref:`Flexible Sync Rules & Permissions <flexible-sync-rules-and-permissions>`.
+
+.. _java-sync-subscribe-to-queryable-fields:
+
+Subscribe to Queryable Fields
+-----------------------------
+
+When you configure Flexible Sync on the backend, you specify which fields
+your client application can query. In the client application, use the 
+``subscriptions`` API to manage a set of subscriptions to specific queries on 
+queryable fields. You can construct queries with the :ref:`Java SDK's fluent interface
+<java-client-filters>` or :ref:`Realm Query Language <realm-query-language>`.
+
+.. important::
+
+   Flexible Sync does not support all the operators available in Realm 
+   Query Language. See :ref:`Flexible Sync RQL Limitations 
+   <java-flexible-sync-rql-limitations>` for details.
+
+You can:
+
+- Add subscriptions
+- React to subscription state
+- Update subscriptions with new queries
+- Remove individual subscriptions or all subscriptions for an object type
+
+Data matching the subscription, where the user has the appropriate 
+permissions, syncs between clients and the backend application.
+
+You can specify an optional string name for your subscription.
+
+.. tip:: Always Specify a Subscription Name
+
+   Always specify a subscription name if your application uses multiple
+   subscriptions. This makes your subscriptions easier to look up,
+   update, and delete elsewhere in your app.
+
+When you create a subscription, Realm looks for data matching a query on a
+specific object type. You can have multiple subscription sets on different 
+object types. You can also have multiple queries on the same object type.
+
+
+You can create a subscription with an explicit name. Then, you can
+search for that subscription by name to update or remove it.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.explicitly-named-subscription.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.explicitly-named-subscription.java
+         :language: java
+         :copyable: false
+
+You can also search subscriptions by query. If you omit the name when
+creating a subscription, this is the only way to look up your
+subscription.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.implicitly-named-subscription.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.implicitly-named-subscription.java
+         :language: java
+         :copyable: false
+
+.. note:: Duplicate subscriptions
+
+   Subscription names must be unique. Adding a subscription 
+   with the same name as an existing subscription throws an error.
+
+   If you do not explicitly name a subscription, and instead subscribe 
+   to the same unnamed query more than once, Realm does not persist 
+   duplicate queries to the subscription set. 
+
+   If you subscribe to the same query more than once under different names, 
+   Realm persists both subscriptions to the subscription set.
+
+.. _java-sync-add-subscription:
+
+Add a Subscription
+~~~~~~~~~~~~~~~~~~
+
+Add a subscription in a subscriptions write block. You append each
+new subscription to the client's Realm subscriptions.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.add-a-subscription.kt
+          :language: kotlin
+          :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.add-a-subscription.java
+          :language: java
+          :copyable: false
+
+.. note:: Object Links
+
+   You must add both an object and its linked object to the subscription
+   set to see a linked object.
+   
+   If your subscription results contain an object with a property that links
+   to an object not contained in the results, the link appears to be null.
+   There is no way to distinguish whether that property's value is
+   legitimately null, or whether the object it links to exists but is out of
+   view of the query subscription.
+
+.. _java-sync-check-subscription-state:
+.. _java-sync-react-to-subscription-changes:
+
+Wait for Subscription Changes to Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Writing an update to the subscription set locally is only one component 
+of changing a subscription. After the local subscription change, the client
+synchronizes with the server to resolve any updates to the data due to 
+the subscription change. This could mean adding or removing data from the 
+synced realm. Use the :java-sdk:`waitForInitialRemoteData()
+<io/realm/mongodb/sync/SyncConfiguration.Builder.html#waitForInitialRemoteData(long,java.util.concurrent.TimeUnit)>`
+builder method to force your application to block until client subscription
+data synchronizes to the backend before opening the realm:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.wait-for-subscription-sync.kt
+          :language: kotlin
+          :emphasize-lines: 11-14
+          :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.wait-for-subscription-sync.java
+          :language: java
+          :emphasize-lines: 10
+          :copyable: false
+
+You can also use :java-sdk:`SubscriptionSet.waitForSynchronization()
+<io/realm/mongodb/sync/SubscriptionSet.html#waitForSynchronization(java.lang.Long,java.util.concurrent.TimeUnit)>`
+or :java-sdk:`SubscriptionSet.waitForSynchronizationAsync()
+<io/realm/mongodb/sync/SubscriptionSet.html#waitForSynchronizationAsync(java.lang.Long,java.util.concurrent.TimeUnit,io.realm.mongodb.sync.SubscriptionSet.StateChangeCallback)>`
+to delay execution until subscription sync completes after instantiating
+a sync connection.
+
+SubscriptionSet.State Enum
+``````````````````````````
+
+Additionally, you can watch the state of the subscription set with the 
+:java-sdk:`SubscriptionSet.State <io/realm/mongodb/sync/SubscriptionSet.State.html>` enum.
+You can use subscription state to:
+
+- Show a progress indicator while data is downloading
+- Find out when a subscription set becomes superseded
+
+You can access the state of your application's subscription set using
+:java-sdk:`SubscriptionSet.getState() <io/realm/mongodb/sync/SubscriptionSet.html#getState()>`.
+
+.. include:: /includes/note-sync-state-complete.rst
+
+Superseded
+``````````
+
+``SUPERSEDED`` is a ``SubscriptionSet.State`` that can occur when another
+thread writes a subscription on a different instance of the 
+subscription set. If the state becomes ``SUPERSEDED``, you must obtain 
+a new instance of the subscription set before you can write to it.
+
+.. _java-update-subscriptions-with-new-query:
+
+Update Subscriptions with a New Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update subscriptions using :java-sdk:`SubscriptionSet.update()
+<io/realm/mongodb/sync/SubscriptionSet.html#update(io.realm.mongodb.sync.SubscriptionSet.UpdateCallback)>`.
+In this example, we use :java-sdk:`MutableSubscriptionSet.addOrUpdate()
+<io/realm/mongodb/sync/MutableSubscriptionSet.html#addOrUpdate(io.realm.mongodb.sync.Subscription)>`
+to update the query for the subscription named "my frog subscription":
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.update-subscriptions-by-name.kt
+          :language: kotlin
+          :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.update-subscriptions-by-name.java
+          :language: java
+          :copyable: false
+
+You cannot update subscriptions created without a name. However, you can
+look up unnamed subscriptions by their query, remove them from the
+subscription set, then add a new subscription with an updated query:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.update-subscriptions-by-query.kt
+          :language: kotlin
+          :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.update-subscriptions-by-query.java
+          :language: java
+          :copyable: false
+
+.. _java-remove-subscriptions:
+
+Remove Subscriptions
+~~~~~~~~~~~~~~~~~~~~
+
+To remove subscriptions, you can:
+
+- Remove a single subscription query
+- Remove all subscriptions to a specific object type
+- Remove all subscriptions
+
+When you remove a subscription query, Realm asynchronously removes the
+synced data that matched the query from the client device.
+
+Remove a Single Subscription
+````````````````````````````
+
+You can remove a specific subscription query
+using :java-sdk:`MutableSubscriptionSet.remove()
+<io/realm/mongodb/sync/MutableSubscriptionSet.html#remove(io.realm.mongodb.sync.Subscription)>`.
+You can either look up the subscription by name, then pass the returned
+subscription to ``remove()``, or pass the subscription name directly to
+``remove()``:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.remove-single-subscription.kt
+          :language: kotlin
+          :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.remove-single-subscription.java
+          :language: java
+          :copyable: false
+
+Remove All Subscriptions to an Object Type
+``````````````````````````````````````````
+
+If you want to remove all subscriptions to a specific object type, pass
+a class to the :java-sdk:`removeAll()
+<io/realm/mongodb/sync/MutableSubscriptionSet.html#removeAll(java.lang.Class)>`
+method:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.remove-all-subscriptions-to-an-object-type.kt
+          :language: kotlin
+          :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.remove-all-subscriptions-to-an-object-type.java
+          :language: java
+          :copyable: false
+
+Remove All Subscriptions
+````````````````````````
+
+To remove all subscriptions from the subscription set, use
+:java-sdk:`removeAll() <io/realm/mongodb/sync/MutableSubscriptionSet.html#removeAll()>`
+with no arguments:
+
+.. warning::
+
+   If you remove all subscriptions and do not add a new one, you'll 
+   get an error. A realm opened with a flexible sync configuration needs
+   at least one subscription to sync with the server.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.remove-all-subscriptions.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/FlexibleSyncTest.snippet.remove-all-subscriptions.java
+         :language: java
+         :copyable: false
+
+.. _java-flexible-sync-rql-limitations:
+
+Flexible Sync RQL Requirements and Limitations
+-----------------------------------------------
+
+.. include:: /includes/flex-sync-limitations.rst

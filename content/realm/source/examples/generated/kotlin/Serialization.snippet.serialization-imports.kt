@@ -1,0 +1,5 @@
+import kotlinx.serialization.Serializable
+import io.realm.kotlin.annotations.ExperimentalRealmSerializerApi
+import org.mongodb.kbson.ExperimentalKBsonSerializerApi
+import kotlinx.serialization.modules.SerializersModule
+import io.realm.kotlin.serializers.RealmListKSerializer

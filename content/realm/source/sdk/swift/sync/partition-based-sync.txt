@@ -1,0 +1,215 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swift-partition-based-sync:
+
+================================
+Partition-Based Sync - Swift SDK
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Partition-Based Sync is an older mode for using Atlas Device Sync with the 
+Realm Swift SDK. We recommend using :ref:`Flexible Sync <ios-flexible-sync-fundamentals>` 
+for new apps. The information on this page is for users who are still 
+using Partition-Based Sync.
+
+.. tip::
+
+   Realm Swift SDK v10.40.0 and newer supports the ability to migrate from 
+   Partition-Based Sync to Flexible Sync. For more information, refer to: 
+   :ref:`ios-migrate-pbs-to-fs`.
+
+For more information about Partition-Based Sync and how to configure it
+in Atlas App Services, refer to :ref:`Partition-Based Sync <partition-based-sync>`
+in the App Services documentation.
+
+.. _ios-partition-based-sync-open-realm:
+.. _ios-partition-based-sync-fundamentals:
+
+Open a Partition-Based Sync Realm
+---------------------------------
+
+When you select :ref:`Partition-Based Sync <partition-based-sync>` for your 
+backend App configuration, your client implementation must include a 
+partition value. This is the value of the :ref:`partition key 
+<partition-key>` field you select when you configure Partition-Based Sync. 
+
+The partition value determines which data the client application can access.
+
+You pass in the partition value when you open a synced realm.
+
+Initialize a synced realm with a :swift-sdk:`sync configuration <Extensions/User.html#/s:So7RLMUserC10RealmSwiftE13configuration14partitionValueAC0B0V13ConfigurationVx_tAC4BSONRzlF>`.
+This enables you to specify a partition value whose data should sync to the realm.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: swift
+
+      Pass a logged-in user's :swift-sdk:`configuration <Structs/Realm/Configuration.html>` 
+      object with the desired :ref:`partition value <partition-value>` to 
+      :swift-sdk:`realm initializers 
+      <Structs/Realm.html#/s:10RealmSwift0A0V13configuration5queueA2C13ConfigurationV_So012OS_dispatch_D0CSgtKcfc>`.
+
+      You can optionally :ref:`specify whether a realm should download 
+      changes before opening <ios-specify-download-behavior>`. If you do not
+      specify download behavior, this opens a realm with data that is on
+      the device, and attempts to sync changes in the background.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.open-realm-partition-based-sync.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      The first time you log in and open a synced realm, you'll log in the
+      user, and pass the user's :objc-sdk:`RLMSyncConfiguration 
+      <Classes/RLMRealmConfiguration.html#/c:objc(cs)RLMRealmConfiguration(py)syncConfiguration>` 
+      object with the desired :objc-sdk:`partitionValue 
+      <Classes/RLMSyncConfiguration.html#/c:objc(cs)RLMSyncConfiguration(py)partitionValue>` 
+      to :objc-sdk:`+[RLMRealm realmWithConfiguration:error:]
+      <Classes/RLMRealm.html#/c:objc(cs)RLMRealm(cm)realmWithConfiguration:error:>`.
+
+      This opens a synced realm on the device. The realm 
+      attempts to sync with your App in the background to check for changes 
+      on the server, or upload changes that the user has made.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.init-synced-realm.m
+         :language: swift
+
+.. _ios-open-non-synced-as-synced-realm:
+
+Open Non-Synced Realm as a Synced Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 10.23.0
+
+If you want a non-synced realm to start syncing with other devices and your 
+App Services backend, you can use the :swift-sdk:`writeCopy(configuration: ) 
+<Structs/Realm.html#/s:10RealmSwift0A0V9writeCopy13configurationyAC13ConfigurationV_tKF>` 
+method to make a copy of the non-synced realm for use with a sync configuration. 
+The example below creates a copy of a non-synced realm file, with all of 
+its existing data, that you can use with a sync configuration.
+
+After you copy the realm for use with Sync, you can open the copy as a 
+synced realm. Any changes you make to the synced realm will reflect 
+in the synced realm file, and they will also propogate to other devices and
+the App Services backend.
+
+.. include:: /includes/note-writecopy-local-to-sync.rst
+
+.. include:: /includes/swift-concurrency-mainactor.rst
+
+.. literalinclude:: /examples/generated/code/start/ConvertSyncLocalRealms.snippet.convert-local-to-sync.swift
+   :language: swift
+
+.. _ios-open-synced-realm-as-non-sync:
+
+Open a Synced Realm as a Non-Synced Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 10.23.0
+
+.. tip::
+
+   You may temporarily pause a Sync session if you do not want to permanently
+   change a synced realm to a non-synced realm. See: :ref:`Suspend or Resume 
+   a Sync Session <ios-suspend-or-resume-a-sync-session>`.
+
+If you want to permanently stop a realm from syncing to your App Services backend,
+you can use the :swift-sdk:`writeCopy(configuration: ) 
+<Structs/Realm.html#/s:10RealmSwift0A0V9writeCopy13configurationyAC13ConfigurationV_tKF>` 
+method to make a copy of a synced realm for use with a non-sync configuration.
+The example below creates a copy of the realm file, with all of its existing 
+data, at a file URL you specify. 
+
+This process removes the ``realm_id`` in the local realm. You must :ref:`increment 
+the schema version as if you had deleted a property <ios-delete-a-property>`.
+
+After you copy the realm for use without Sync, you can open the copy as a 
+non-synced realm. Any changes you make to the non-synced realm reflect 
+only in the local realm file. No changes propogate to other devices or
+the App Services backend.
+
+.. include:: /includes/note-writecopy-local-to-sync.rst
+
+.. include:: /includes/swift-concurrency-mainactor.rst
+
+.. literalinclude:: /examples/generated/code/start/ConvertSyncLocalRealms.snippet.convert-sync-to-local.swift
+   :language: swift
+
+.. _ios-migrate-pbs-to-fs:
+
+Migrate from Partition-Based Sync to Flexible Sync
+--------------------------------------------------
+
+You can migrate your App Services Device Sync Mode from Partition-Based Sync 
+to Flexible Sync. Migrating is an automatic process that does not require 
+any changes to your application code. Automatic migration requires Realm 
+Swift SDK version 10.40.0 or newer. 
+
+Migrating enables you to keep your existing App Services users and 
+authentication configuration. Flexible Sync provides more versatile permissions
+configuration options and more granular data synchronization.
+
+For more information about how to migrate your App Services App from 
+Partition-Based Sync to Flexible Sync, refer to :ref:`Migrate Device Sync Modes 
+<realm-sync-migrate-modes>`.
+
+.. _ios-update-client-code-after-pbs-to-fs-migration:
+
+Updating Client Code After Migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The automatic migration from Partition-Based Sync to Flexible Sync does not
+require any changes to your client code. However, to support this 
+functionality, Realm automatically handles the differences between the two 
+Sync Modes by:
+
+- Automatically creating Flexible Sync subscriptions for each object type 
+  where ``partitionKey == partitionValue``.
+- Injecting a ``partitionKey`` field into every object if one does not already 
+  exist. This is required for the automatic Flexible Sync subscription.
+
+If you need to make updates to your client code after migration, consider 
+updating your client codebase to remove hidden migration functionality.
+You might want update your client codebase when:
+
+- You add a new model or change a model in your client codebase
+- You add or change functionality that involves reading or writing Realm objects
+- You want to implement more fine-grained control over what data you sync
+
+Make these changes to convert your Partition-Based Sync client code to use 
+Flexible Sync:
+
+- Switch to a ``flexibleSyncConfiguration()`` where you :ref:`open a synced realm 
+  <ios-flexible-sync-open-realm>`.
+- Add relevant properties to your object models to use in your Flexible Sync 
+  subscriptions. For example, you might add an ``ownerId`` property to enable
+  a user to sync only their own data.
+- Remove automatic Flexible Sync subscriptions and manually create the 
+  relevant subscriptions.
+
+For examples of Flexible Sync permissions strategies, including examples of 
+how to model data for these strategies, refer to :ref:`flexible-sync-permissions-guide`.
+
+Remove and Manually Create Subscriptions
+````````````````````````````````````````
+
+When you migrate from Partition-Based Sync to Flexible Sync, Realm
+automatically creates hidden Flexible Sync subscriptions for your app. The 
+next time you add or change subscriptions, we recommend that you:
+
+1. :ref:`Remove the automatically-generated subscriptions <ios-remove-subscriptions>`. 
+2. :ref:`Manually add the relevant subscriptions in your client codebase <ios-sync-add-subscription>`.
+
+This enables you to see all of your subscription logic together in your 
+codebase for future iteration and debugging.
+
+For more information about the automatically-generated Flexible Sync 
+subscriptions, refer to :ref:`realm-sync-migrate-client`.

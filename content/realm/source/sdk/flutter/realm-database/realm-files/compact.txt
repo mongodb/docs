@@ -1,0 +1,110 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-compact:
+
+====================================
+Reduce Realm File Size - Flutter SDK
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The size of a realm is always larger than the total size of 
+the objects stored within it. This architecture enables some of realm's 
+performance, concurrency, and safety benefits.
+
+Realm writes new data within unused space tracked inside a
+file. In some situations, unused space may comprise a significant 
+portion of a realm file. Realm's default behavior is to automatically 
+compact a realm to prevent it from growing too large. 
+You can use manual compaction strategies when 
+automatic compaction is not sufficient for your use case.
+
+Automatic Compaction
+--------------------
+
+.. versionadded:: 0.9.0
+
+.. include:: /includes/automatic-compaction.rst 
+
+Manual Compaction Strategies
+----------------------------
+
+If automatic compaction is deemed insufficient, manual compaction 
+can be used for applications that require stricter management 
+of file size to improve performance. A production application should 
+implement manual compaction to periodically reduce the realm file size
+if it does not use automatic compaction.
+
+Compacting a realm can be an expensive operation that can block the UI thread. 
+Optimize compacting to balance frequency with performance gains. If your 
+application runs in a resource-constrained environment, you may want to 
+compact when you reach a certain file size or when the file size negatively 
+impacts performance.
+
+Use either of the following two strategies to compact a realm file manually:
+
+- :ref:`Realm.compact() <flutter-realm-compact>` static method: Use this 
+  method to compact a realm. You can use this to compact a Flexible Sync realm.
+- :ref:`Conditionally compact on open <flutter-should-compact-callback>`: 
+  use the ``shouldCompactCallback()`` when you want to define one or more 
+  conditions to determine whether to compact the realm. You might check 
+  for a certain realm file size, a percentage of unused space, or other 
+  conditions that are relevant to your performance needs or runtime 
+  environment.
+
+.. _flutter-realm-compact:
+
+Realm.compact() Static Method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can compact a realm file by calling :flutter-sdk:`Realm.compact() 
+<realm/Realm/compact.html>`. This method takes a :flutter-sdk:`Configuration 
+<topics/Configuration-topic.html>` as an argument. When you use this method, 
+the device must have enough free space to make a copy of the realm.
+
+``Realm.compact()`` obtains an instance of the realm, and opens it to 
+trigger any schema version upgrades, file format upgrades, migration and 
+initial data callbacks. Upon successfully opening the realm and performing 
+these operations, this method then compacts the realm.
+
+If successful, a call to ``Realm.compact()`` returns ``true``.
+
+Do not call this method from inside a transaction. You also cannot compact an 
+open realm.
+
+.. literalinclude:: /examples/generated/flutter/compact_realm_test.snippet.compact-static-method.dart
+   :language: dart
+
+.. _flutter-should-compact-callback:
+
+Conditionally Compact on Open
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define a :flutter-sdk:`shouldCompactCallback()
+<realm/LocalConfiguration/shouldCompactCallback.html>` as a property of a
+realm's configuration. You can use this with both local-only and synced realms
+with the :flutter-sdk:`Configuration.local() <realm/Configuration/local.html>`
+and :flutter-sdk:`Configuration.flexibleSync() <realm/Configuration/flexibleSync.html>`
+methods, respectively.
+
+This callback takes two ``int`` values representing the total number of 
+bytes and the used bytes of the realm file on disk. The callback returns 
+a ``bool``. Compaction only occurs if the ``bool`` returns ``true`` and 
+another process is not currently accessing the realm file.
+
+The most basic usage is to define a file size at which compaction should occur.
+
+.. literalinclude:: /examples/generated/flutter/compact_realm_test.snippet.compact-with-callback.dart
+   :language: dart
+
+You can define more complex logic if you need to optimize performance for 
+different use cases. For example, you could set a threshold for compaction
+when a certain percentage of the file size is used.
+
+.. literalinclude:: /examples/generated/flutter/compact_realm_test.snippet.compact-with-callback-and-logic.dart
+   :language: dart

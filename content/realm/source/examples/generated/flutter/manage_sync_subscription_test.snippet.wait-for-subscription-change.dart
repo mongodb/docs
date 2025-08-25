@@ -1,0 +1,1 @@
+await realm.subscriptions.waitForSynchronization();

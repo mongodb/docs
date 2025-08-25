@@ -1,0 +1,390 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-mongodb-data-access:
+
+========================
+Query MongoDB - .NET SDK
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can query data stored in MongoDB Atlas directly from your .NET application code
+by using the Realm .NET SDK's :dotnet-sdk:`MongoClient <reference/Realms.Sync.MongoClient.html>`
+with the :manual:`Query API </tutorial/query-documents>`.
+Atlas App Services provides data access :ref:`rules <mongodb-rules>` on
+collections to securely retrieve results based on the logged-in user or the
+content of each document.
+
+The following actions enable access to a linked MongoDB Atlas cluster
+from a .NET application using the Realm .NET SDK.
+
+.. include:: /includes/mongodb-data-access-query-filter-indeterminate-order-note.rst
+
+Use Cases
+---------
+
+There are a variety of reasons you might want to query a MongoDB data source. 
+Working with data in your client via Atlas Device Sync is not always practical or 
+possible. You might want to query MongoDB when:
+
+- The data set is large or the client device has constraints against loading 
+  the entire data set
+- You are :ref:`creating or updating custom user data 
+  <dotnet-custom-user-data>`
+- You are retrieving documents that are not modeled in Realm
+- Your app needs to access collections that don't have strict schemas
+- A non-Realm service generates collections that you want to access
+
+While not exhaustive, these are some common use cases for querying MongoDB 
+directly.
+
+Prerequisites
+-------------
+
+Before you can query MongoDB from your .NET application, you must set up
+MongoDB Data Access in your App Services App. To learn how to set up your
+backend App to let the Realm SDK query Atlas,
+refer to :ref:`Set Up MongoDB Data Access <client-data-access>`
+in the App Services documentation.
+
+Setup
+-----
+
+To work directly with the data in your MongoDB Atlas cluster, you first 
+instantiate a :dotnet-sdk:`MongoClient <reference/Realms.Sync.MongoClient.html>` 
+object, passing in the name of the atlas service in your Realm app. 
+You then instantiate a 
+:dotnet-sdk:`MongoClient.Database <reference/Realms.Sync.MongoClient.Database.html>`  and a 
+:dotnet-sdk:`MongoClient.Collection <reference/Realms.Sync.MongoClient.Collection-1.html>` 
+for each collection you want to work with.
+The following code uses the default "mongodb-atlas" Atlas service name and 
+creates a ``MongoClient.Collection`` for the "plants" collection in the 
+"inventory" database:
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-setup.cs
+   :language: csharp
+
+.. _dotnet-mongodb-example-dataset:
+
+Example Data
+------------
+
+.. include:: /includes/mongodb-data-access-example-plant-documents.rst
+
+Mapping Classes
+~~~~~~~~~~~~~~~
+
+When working with objects in MongoDB, you should create .NET classes (POCOs) that 
+correspond to the BSON objects. This allows you to serialize and deserialize 
+the objects directly, rather than working with generic ``BsonDocument`` objects. 
+In all of the examples on this page, we are using the following ``Plant`` mapping 
+class for this purpose:
+
+.. literalinclude:: /examples/generated/dotnet/Plant.snippet.plant-class.cs
+   :language: csharp
+
+.. note::
+ 
+   If you choose to provide custom constructors, you must declare a public 
+   constructor with no arguments. 
+
+
+For more information on using mapping classes, see 
+`Mapping Classes <https://mongodb.github.io/mongo-csharp-driver/2.11/reference/bson/mapping/>`_
+in the MongoDB .NET Driver documentation.
+
+.. _dotnet-mongodb-create-documents:
+
+Create Documents
+----------------
+
+To create a document in the MongoDB datastore, you instantiate the mapping class, 
+and pass the new object to 
+:dotnet-sdk:`InsertOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_InsertOneAsync__0_>`. 
+You can also create multiple documents 
+and insert them in a single call by using 
+:dotnet-sdk:`InsertManyAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_InsertManyAsync_System_Collections_Generic_IEnumerable__0__>`.
+
+.. _dotnet-mongodb-insertOne:
+
+Insert a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert a single document using
+:dotnet-sdk:`InsertOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_InsertOneAsync__0_>`. 
+
+The following snippet inserts a single document describing a "Venus Flytrap" plant 
+into our "plants" collection:
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-insert-one.cs
+   :language: csharp
+
+.. _dotnet-mongodb-insertMany:
+
+Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert multiple documents at the same time by using 
+:dotnet-sdk:`InsertManyAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_InsertManyAsync_System_Collections_Generic_IEnumerable__0__>`.
+
+The following snippet inserts four ``Plant`` objects into the "plants" collection
+by instantiating the objects, adding them to a ``List<Plant>``, and passing that 
+list to ``InsertManyAsync()``:
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-insert-many.cs
+   :language: csharp
+
+.. _dotnet-mongodb-read-documents:
+
+Read Documents
+--------------
+
+To retrieve documents from the datastore, you create a ``BsonDocument`` filter 
+that defines the properties you want to search on, and then pass that filter 
+to either 
+:dotnet-sdk:`FindOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_FindOneAsync_System_Object_System_Object_>`
+or
+:dotnet-sdk:`FindAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_FindAsync_System_Nullable_System_Int64__>`.
+You can also get the count of all documents that match the filter by calling 
+:dotnet-sdk:`CountAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_CountAsync_System_Object_System_Nullable_System_Int64__>`.
+
+
+.. _dotnet-mongodb-findOne:
+
+Find a Single Document
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to find a plant where the "name" property is 
+"petunia":
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-find-one.cs
+   :language: csharp
+
+.. _dotnet-mongodb-findMany:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to find all plants where the "type" property is 
+"perennial":
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-find-many.cs
+   :language: csharp
+
+.. important::
+  
+   We are using the third parameter of ``FindAsync()``, which specifies the 
+   sort order. If you are querying for more than one document, you should include 
+   the sort order to ensure consistent results.
+
+.. _dotnet-mongodb-count:
+
+Count Documents in the Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns a count of all plants in the collection:
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-count.cs
+   :language: csharp
+
+
+Update Documents
+----------------
+
+To update an existing document in the MongoDB datastore, you create a 
+``BsonDocument`` filter that defines the properties you want to search on, and 
+then create a second ``BsonDocument`` that defines the properties you want to 
+change. If you are updating only one document, you pass both objects to 
+:dotnet-sdk:`UpdateOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_UpdateOneAsync_System_Object_System_Object_System_Boolean_>`.
+If you want to bulk update multiple documents, you call
+:dotnet-sdk:`UpdateManyAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_UpdateManyAsync_System_Object_System_Object_System_Boolean_>`.
+
+.. _dotnet-mongodb-updateOne:
+
+Update a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code finds the plant whose "name" property is "petunia" and changes 
+its "sunlight" property to "partial":
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-update-one.cs
+   :language: csharp
+
+.. _dotnet-mongodb-updateMany:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code finds all plants with a "_partition" value of "store 47" and 
+changes them all to "area 51":
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-update-many.cs
+   :language: csharp
+
+.. _dotnet-mongodb-upsert:
+
+Upsert Documents
+~~~~~~~~~~~~~~~~
+
+Both :dotnet-sdk:`UpdateOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_UpdateOneAsync_System_Object_System_Object_System_Boolean_>` 
+and 
+:dotnet-sdk:`UpdateManyAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_UpdateManyAsync_System_Object_System_Object_System_Boolean_>`
+have an optional Boolean property that specifies whether the update should be an 
+upsert (that is, if the document doesn't exist, it should be created). By default,
+no upsert is performed. 
+
+The following example looks for a plant whose ``name`` property is 
+"Pothos", ``type`` property is "perennial", and ``sunlight`` property is "full". 
+If a plant matches these criteria, the method updates the plant's ``_partition`` 
+value to "Store 42". If no plant exists in the collection with that name, the 
+method will create a new plant with all of the defined properties, including the 
+update.  
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-upsert.cs
+   :language: csharp
+
+.. _dotnet-mongodb-delete-documents:
+
+Delete Documents
+----------------
+
+The process for deleting documents is much the same as creating (or updating)
+documents: you create a ``BsonDocument`` that defines the properties you want to 
+match on, and then call either 
+:dotnet-sdk:`DeleteOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_DeleteOneAsync_System_Object_>`.
+or
+:dotnet-sdk:`DeleteManyAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_DeleteManyAsync_System_Object_>`.
+
+.. _dotnet-mongodb-deleteOne:
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes the first document it finds with a "name" property 
+value of "Thai Basil":
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-delete-one.cs
+   :language: csharp
+
+.. _dotnet-mongodb-deleteMany:
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes all documents that have a "type" property value of 
+"annual":
+
+.. literalinclude:: /examples/generated/dotnet/MongoDBExamples.snippet.mongo-delete-many.cs
+   :language: csharp
+
+.. _dotnet-mongodb-aggregation-pipelines:
+
+Aggregate Documents
+-------------------
+
+Aggregation operations run all documents in a collection through a
+series of data aggregation stages called an :manual:`aggregation
+pipeline </core/aggregation-pipeline>`. Aggregation allows you to filter
+and transform documents, collect summary data about groups of related
+documents, and other complex data operations.
+
+Aggregation operations accept an array of aggregation stages as input, and
+return a `Task <https://docs.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1?view=netcore-3.1>`_ that
+resolves to a collection of documents processed by the pipeline.
+
+.. note::
+
+   Compass provides a utility for building aggregation pipelines and exporting 
+   them to C# and other languages. For more information, see 
+   `Aggregation Pipeline Builder <https://www.mongodb.com/docs/compass/master/aggregation-pipeline-builder>`_.
+
+Group Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The .NET SDK supports aggregation on a collection 
+with the 
+:dotnet-sdk:`AggregateAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_AggregateAsync_System_Object___>`
+method and its generic overload.
+
+The following example groups all documents in the plants collection by 
+their ``type`` value, aggregates a count of 
+the number of each type, and then sorts them in ascending order:
+
+.. literalinclude:: /examples/generated/dotnet/AggregationExamples.snippet.agg_group.cs
+   :language: csharp
+
+The example above builds the pipeline with a series of nested BsonDocuments, which 
+can get complicated to write and debug. If 
+you are already familiar with the :manual:`Query API </tutorial/query-documents>`,
+you can pass queries as a string the 
+`BsonDocument_Parse() <https://mongodb.github.io/mongo-csharp-driver/2.11/apidocs/html/M_MongoDB_Bson_BsonDocument_Parse.htm>`_ 
+method. The following example performs the same aggregation as the preceding example:
+
+.. literalinclude:: /examples/generated/dotnet/AggregationExamples.snippet.agg_group_alt.cs
+   :language: csharp
+
+Filter Documents
+~~~~~~~~~~~~~~~~
+
+You can use the :manual:`$match </reference/operator/aggregation/match/>` stage 
+to filter documents using standard MongoDB :manual:`query syntax
+</tutorial/query-documents>`.
+
+The following example shows how to filter documents when using Aggregation.
+Since we know that this aggregation pipeline returns a collection of ``Plant`` 
+objects, we use the generic override of the 
+:dotnet-sdk:`AggregateAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_AggregateAsync_System_Object___>`
+method:
+
+.. literalinclude:: /examples/generated/dotnet/AggregationExamples.snippet.agg_filter.cs
+   :language: csharp
+
+Project Data
+~~~~~~~~~~~~
+
+You can use the :manual:`$project
+</reference/operator/aggregation/project/>` stage to include or omit
+specific fields from documents or to calculate new fields using
+:manual:`aggregation operators </reference/operator/aggregation>`.
+Projections work in two ways:
+
+- Explicitly include fields with a value of 1. This has the side-effect
+  of implicitly excluding all unspecified fields.
+
+- Implicitly exclude fields with a value of 0. This has the side-effect
+  of implicitly including all unspecified fields.
+
+These two methods of projection are mutually exclusive: if you
+explicitly include fields, you cannot explicitly exclude fields, and
+vice versa.
+
+.. note::
+
+   The ``_id`` field is a special case: it is always included in every
+   query unless explicitly specified otherwise. For this reason, you
+   *can* exclude the ``_id`` field with a ``0`` value while simultaneously
+   including other fields, like ``_partition``, with a ``1``. Only the
+   special case of exclusion of the ``_id`` field allows both exclusion
+   and inclusion in one ``$project`` stage.
+
+The following example shows how to use project when using Aggregation. 
+In this example, we are:
+
+1. Excluding the "Id" property,
+2. Including the "Partition", "Type", and "Name" properties,
+3. Creating a new property called "storeNumber", which is built by splitting the 
+   _partition value on the whitespace and returning only the second part.
+
+.. literalinclude:: /examples/generated/dotnet/AggregationExamples.snippet.agg_project.cs
+   :language: csharp
+
+The following shows how you can also build the ``projectStage`` by using the 
+``BsonDocument.Parse()`` method:
+
+.. literalinclude:: /examples/generated/dotnet/AggregationExamples.snippet.agg_project_alt.cs
+   :language: csharp

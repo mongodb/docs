@@ -1,0 +1,1 @@
+var realmObjectPropertyOpt: CustomObjectType? = null

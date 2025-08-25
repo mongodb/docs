@@ -1,0 +1,177 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-partition-based-sync:
+
+=================================
+Partition-Based Sync - Kotlin SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Partition-Based Sync is an older mode for using Atlas Device Sync with the 
+Realm Kotlin SDK. We recommend using :ref:`Flexible Sync <kotlin-flexible-sync-fundamentals>` 
+for new apps. The information on this page is for users who are still 
+using Partition-Based Sync.
+
+.. tip::
+
+   Realm Kotlin SDK v1.9.0 and newer supports the ability to migrate from 
+   Partition-Based Sync to Flexible Sync. For more information, refer to: 
+   :ref:`kotlin-migrate-pbs-to-fs`.
+
+.. _kotlin-partition-based-sync-fundamentals:
+
+Partition Value
+---------------
+
+When you select :ref:`Partition-Based Sync <partition-based-sync>` for your
+backend App configuration, your client implementation must include a
+partition value. This is the value of the :ref:`partition key
+<partition-key>` field you select when you configure Partition-Based Sync.
+
+The partition value determines which data the client application can access.
+
+You must provide a partition value when you open a synced realm.
+
+Open a Partition-Based Sync Realm
+---------------------------------
+
+To open a :ref:`Partition-Based Sync <partition-based-sync>` realm,
+pass a user, a partition, and a set of Realm object schemas to
+`SyncConfiguration.Builder()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/-builder/-builder.html>`__.
+Then, pass the configuration to `Realm.open()
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm/-companion/open.html>`__ to open
+an instance of the realm:
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.open-a-synced-realm.kt
+    :language: kotlin
+
+Configure a Partition-Based Sync Realm
+--------------------------------------
+
+To adjust specific configuration settings, use the options provided by
+`SyncConfiguration.Builder
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/-builder/index.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.configure-a-synced-realm.kt
+    :language: kotlin
+
+Check Upload & Download Progress for a Sync Session
+---------------------------------------------------
+
+.. note:: 
+
+  The ``progressAsFlow()`` listener in the Kotlin SDK is only currently 
+  available for realms using Partition-Based Sync. The Kotlin SDK does not 
+  yet support progress listeners for Flexible Sync.
+
+You can monitor the upload and download progress of a sync session. The sync 
+session starts when you open a synced realm. For more information, refer to
+:ref:`Manage a Sync Session <kotlin-manage-sync-session>`.
+
+To monitor Sync upload and download progress, call 
+`SyncSession.progressAsFlow() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/progress-as-flow.html>`__ 
+
+This method returns a Flow of 
+`Progress <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-progress/index.html>`__ 
+events. ``Progress`` provides the total 
+number of transferrable bytes and the remaining bytes to be transferred.
+
+``syncSession.progressAsFlow()`` takes two arguments:
+
+- A `Direction <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-direction/index.html>`__
+  enum that can be set to ``UPLOAD`` or ``DOWNLOAD``.
+  This specifies that the progress stream tracks uploads or downloads.
+
+- A `ProgressMode <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-progress-mode/index.html>`__ 
+  enum that can be set to either: 
+  
+  - ``INDEFINITELY``: Sets notifications to continue until the callback is 
+    unregistered.
+  - ``CURRENT_CHANGES``: Sets notifications to continue until only the currently 
+    transferable bytes are synced.
+
+.. literalinclude:: /examples/generated/kotlin/ManageSyncSession.snippet.monitor-progress.kt
+   :language: kotlin
+
+.. _kotlin-migrate-pbs-to-fs:
+
+Migrate from Partition-Based Sync to Flexible Sync
+--------------------------------------------------
+
+You can migrate your App Services Device Sync Mode from Partition-Based Sync 
+to Flexible Sync. Migrating is an automatic process that does not require 
+any changes to your application code. Automatic migration requires Realm 
+Kotlin SDK version 1.9.0 or newer. 
+
+Migrating enables you to keep your existing App Services users and 
+authentication configuration. Flexible Sync provides more versatile permissions
+configuration options and more granular data synchronization.
+
+For more information about how to migrate your App Services App from 
+Partition-Based Sync to Flexible Sync, refer to :ref:`Migrate Device Sync Modes 
+<realm-sync-migrate-modes>`.
+
+.. _kotlin-update-client-code-after-pbs-to-fs-migration:
+
+Updating Client Code After Migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The automatic migration from Partition-Based Sync to Flexible Sync does not
+require any changes to your client code. However, to support this 
+functionality, Realm automatically handles the differences between the two 
+Sync Modes by:
+
+- Automatically creating Flexible Sync subscriptions for each object type 
+  where ``partitionKey == partitionValue``.
+- Injecting a ``partitionKey`` field into every object if one does not already 
+  exist. This is required for the automatic Flexible Sync subscription.
+
+If you need to make updates to your client code after migration, consider 
+updating your client codebase to remove hidden migration functionality.
+You might want update your client codebase when:
+
+- You add a new model or change a model in your client codebase
+- You add or change functionality that involves reading or writing Realm objects
+- You want to implement more fine-grained control over what data you sync
+
+Make these changes to convert your Partition-Based Sync client code to use 
+Flexible Sync:
+
+- Update your `SyncConfiguration.Builder()
+  <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/-builder/-builder.html>`__ 
+  to use :ref:`Flexible Sync <kotlin-flexible-sync-open-realm>`. This involves
+  removing the ``partitionValue`` and adding a set of initial subscriptions, 
+  if needed.
+- Add relevant properties to your object models to use in your Flexible Sync 
+  subscriptions. For example, you might add an ``ownerId`` property to enable
+  a user to sync only their own data.
+- Remove automatic Flexible Sync subscriptions and manually create the 
+  relevant subscriptions.
+
+For examples of Flexible Sync permissions strategies, including examples of 
+how to model data for these strategies, refer to :ref:`flexible-sync-permissions-guide`.
+
+Remove and Manually Create Subscriptions
+````````````````````````````````````````
+
+When you migrate from Partition-Based Sync to Flexible Sync, Realm
+automatically creates hidden Flexible Sync subscriptions for your app. The 
+next time you add or change subscriptions, we recommend that you:
+
+1. :ref:`Remove the automatically-generated subscriptions <kotlin-remove-subscriptions>`. 
+2. :ref:`Subscribe to queries <kotlin-flexible-sync-results-subscribe-api>` 
+   or :ref:`Manually add the relevant subscriptions in your client codebase 
+   <kotlin-sync-add-subscription>`.
+
+This enables you to see all of your subscription logic together in your 
+codebase for future iteration and debugging.
+
+For more information about the automatically-generated Flexible Sync 
+subscriptions, refer to :ref:`realm-sync-migrate-client`.

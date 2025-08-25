@@ -1,0 +1,320 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _ios-configure-and-open-a-realm:
+
+====================================
+Configure & Open a Realm - Swift SDK
+====================================
+
+.. meta:: 
+   :description: Open a database for persistence on device. Use configuration options to encrypt the database, reduce its file size, use it in memory, and more.
+   :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When you open a realm, you can pass a :swift-sdk:`Realm.Configuration 
+<Structs/Realm/Configuration.html>` that specifies additional details 
+about how to configure the realm file. This includes things like:
+
+- Pass a fileURL or in-memory identifier to customize how the realm is stored on device
+- Provide a logged-in user and Sync details to use Sync with the realm
+- Specify the realm use only a subset of your app's classes
+- Whether and when to compact a realm to reduce its file size
+- Pass an encryption key to encrypt a realm
+- Provide a schema version or migration block when making schema changes
+
+.. seealso::
+
+   This page covers how to open a realm file that does not :ref:`sync data 
+   <ios-realm-sync>`. If you'd like to use Device Sync to sync data with
+   other devices, see: :ref:`Configure & Open a Synced Realm 
+   <ios-configure-and-open-a-synced-realm>`.
+
+.. _ios-open-a-local-realm:
+
+Open a Realm Without Sync
+-------------------------
+
+You can open a non-synced local realm with several different configuration 
+options:
+
+- No configuration - i.e. default configuration
+- Specify a file URL for the realm
+- Open the realm only in memory, without saving a file to the file system
+- Copy a synced realm to use without Sync
+
+.. _ios-default-and-file-url-realm:
+
+Open a Default Realm or Realm at a File URL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: swift
+
+      You can open a realm with the :swift-sdk:`Realm() initializer
+      <Structs/Realm.html#/s:10RealmSwift0A0V13configuration5queueA2C13ConfigurationV_So012OS_dispatch_D0CSgtKcfc>`.
+      If you omit the :swift-sdk:`Realm.Configuration
+      <Structs/Realm/Configuration.html>` parameter, you will open the
+      default realm.
+
+      You can set the default realm configuration by assigning a new
+      Realm.Configuration instance to the
+      :swift-sdk:`Realm.Configuration.defaultConfiguration
+      <Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV07defaultC0AEvpZ>`
+      class property.
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.open-local-realm.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      You can open the default realm with :objc-sdk:`+[RLMRealm
+      defaultRealm]
+      <Classes/RLMRealm.html#/c:objc(cs)RLMRealm(cm)defaultRealm>`.
+      
+      You can also pass a :objc-sdk:`RLMRealmConfiguration
+      <Classes/RLMRealmConfiguration.html>` object to
+      :objc-sdk:`+[RLMRealm realmWithConfiguration:error:]
+      <Classes/RLMRealm.html#/c:objc(cs)RLMRealm(cm)realmWithConfiguration:error:>`
+      to open a realm at a specific file URL, in memory, or with
+      :ref:`Device Sync <sync>`.
+
+      You can set the default realm configuration by passing a
+      RLMRealmConfiguration instance to 
+      :objc-sdk:`+[RLMRealmConfiguration setDefaultConfiguration:]
+      <Classes/RLMRealmConfiguration.html#/c:objc(cs)RLMRealmConfiguration(cm)setDefaultConfiguration:>`.
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.open-local-realm.m
+         :language: objectivec
+
+.. _ios-open-an-in-memory-realm:
+
+Open an In-Memory Realm
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 10.46.0 Supports opening a synced database in memory.
+
+You can open a realm entirely in memory, which will not create a
+``.realm`` file or its associated :ref:`auxiliary files
+<ios-realm-file>`. Instead the SDK stores objects in memory while the
+realm is open and discards them immediately when all instances are
+closed.
+
+Note that this property cannot be combined with ``fileURL``. In Swift SDK 
+versions 10.45.3 and earlier, this property cannot be combined with 
+``syncConfiguration``.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: swift
+
+      Set the :swift-sdk:`inMemoryIdentifier
+      <Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV18inMemoryIdentifierSSSgvp>`
+      property of the realm configuration.
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.open-in-memory-realm.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      Set the :objc-sdk:`inMemoryIdentifier
+      <Classes/RLMRealmConfiguration.html#/c:objc(cs)RLMRealmConfiguration(py)inMemoryIdentifier>`
+      property of the realm configuration.
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.open-in-memory-realm.m
+         :language: objectivec
+
+.. important::
+
+   When all *in-memory* realm instances with a particular identifier
+   go out of scope, Realm deletes **all data** in that
+   realm. To avoid this, hold onto a strong reference to any
+   in-memory realms during your app's lifetime.
+
+.. _ios-open-actor-swift-concurrency:
+
+Open a Realm with Swift Concurrency Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use Swift's async/await syntax to open a MainActor-isolated realm,
+or specify an actor when opening a realm asynchronously:
+
+.. literalinclude:: /examples/generated/code/start/RealmActor.snippet.await-main-actor-realm.swift
+   :language: swift
+
+Or you can define a custom realm actor to manage all of your realm operations:
+
+.. literalinclude:: /examples/generated/code/start/RealmActor.snippet.define-realm-actor.swift
+   :language: swift
+
+An actor-isolated realm may be used with either local or global actors.
+
+.. literalinclude:: /examples/generated/code/start/RealmActor.snippet.global-actor-example.swift
+   :language: swift
+
+For more information about working with actor-isolated realms, refer to 
+:ref:`swift-actor-isolated-realm`.
+
+.. _ios-close-a-realm:
+
+Close a Realm
+-------------
+
+There is no need to manually close a realm in Swift or Objective-C.
+When a realm goes out of scope and is removed from memory due to
+`ARC
+<https://docs.swift.org/swift-book/LanguageGuide/AutomaticReferenceCounting.html>`__,
+the realm is closed.
+
+.. _ios-handle-errors:
+
+Handle Errors When Accessing a Realm
+------------------------------------
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: swift
+
+      To handle errors when accessing a realm, use Swift's built-in
+      error handling mechanism:
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.handle-error.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      To handle errors when accessing a realm, provide an
+      ``NSError`` pointer to the ``error`` parameter:
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.handle-error.m
+         :language: objectivec
+
+.. _ios-provide-a-subset-of-classes-to-a-realm:
+
+Provide a Subset of Classes to a Realm
+--------------------------------------
+
+.. tip:: Operating with Low Memory Constraints
+   
+   Some applications, such as watchOS apps and iOS app extensions, have
+   tight constraints on their memory footprints. To optimize your data
+   model for low-memory environments, open the realm with a subset
+   of classes.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: swift
+
+      By default, the Swift SDK automatically adds all
+      :swift-sdk:`Object<Extensions/Object.html>`- and
+      :swift-sdk:`EmbeddedObject<Extensions/EmbeddedObject.html>`-derived
+      classes in your executable to the realm schema. You can control
+      which objects get added by setting the :swift-sdk:`objectTypes
+      <Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV11objectTypesSaySo13RLMObjectBaseCmGSgvp>`
+      property of the :swift-sdk:`Realm.Configuration
+      <Structs/Realm/Configuration.html>` object.
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.configure-object-types.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      By default, the Swift SDK automatically adds all
+      :objc-sdk:`RLMObject<Classes/RLMObject.html>`- and
+      :objc-sdk:`RLMEmbeddedObject<Classes/RLMEmbeddedObject.html>`-derived
+      classes in your executable to the realm schema. You can control
+      which objects get added by setting the :objc-sdk:`objectClasses
+      <Classes/RLMRealmConfiguration.html#/c:objc(cs)RLMRealmConfiguration(py)objectClasses>`
+      property of the :objc-sdk:`RLMRealmConfiguration
+      <Classes/RLMRealmConfiguration.html>` object.
+
+      .. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.configure-object-types.m
+         :language: objectivec
+
+.. _ios-realm-api-properties:
+
+Initialize Properties Using Realm APIs
+--------------------------------------
+
+You might define properties whose values are initialized using
+Realm APIs. For example:
+
+.. code-block:: swift
+
+   class SomeSwiftType {
+       let persons = try! Realm().objects(Person.self)
+       // ...
+   }
+
+If this initialization code runs before you set up your Realm
+configurations, you might get unexpected behavior. For example, if you
+set a :ref:`migration <ios-migrations>` block for the default realm
+configuration in ``applicationDidFinishLaunching()``, but you create an
+instance of ``SomeSwiftType`` before
+``applicationDidFinishLaunching()``, you might be accessing your
+realm before it has been correctly configured.
+
+To avoid such issues, consider doing one of the following:
+
+- Defer instantiation of any type that eagerly initializes properties using Realm APIs until after your app has completed setting up its realm configurations. 
+- Define your properties using Swift's ``lazy`` keyword. This allows you to safely instantiate such types at any time during your application's lifecycle, as long as you do not attempt to access your ``lazy`` properties until after your app has set up its realm configurations.
+- Only initialize your properties using Realm APIs that explicitly take in user-defined configurations. You can be sure that the configuration values you are using have been set up properly before they are used to open realms.
+
+.. _use-realm-when-the-device-is-locked:
+
+Use Realm When the Device Is Locked
+-----------------------------------
+
+By default, iOS 8 and above encrypts app files using
+``NSFileProtection`` whenever the device is locked. If your app attempts
+to access a realm while the device is locked, you might see the
+following error:
+
+.. code-block:: text
+
+   open() failed: Operation not permitted
+
+To handle this, downgrade the file protection of the folder containing
+:ref:`the Realm files <ios-realm-file>`. A less strict protection level
+like :apple:`NSFileProtectionCompleteUntilFirstUserAuthentication
+<documentation/foundation/nsfileprotectioncompleteuntilfirstuserauthentication>`
+allows file access even when the device is locked.
+
+.. tip::
+
+   If you reduce iOS file encryption, consider using Realm's
+   :ref:`built-in encryption <ios-encrypt-a-realm>` to secure your data
+   instead.
+
+This example shows how to apply a less strict protection level to the
+parent directory of the default realm.
+
+.. literalinclude:: /examples/generated/code/start/Encrypt.snippet.background-app-refresh-encryption.swift
+   :language: swift
+
+Realm may create and delete auxiliary files at any time.
+Instead of downgrading file protection on the files, apply it to the
+parent folder. This way, the file protection applies to all relevant
+files regardless of creation time.
+
+.. seealso::
+   
+   :ref:`ios-sync-changes-in-the-background`

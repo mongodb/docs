@@ -1,0 +1,79 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:noprevnext:
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-migrating-from-stitch-to-realm:
+
+===============================================
+Upgrade from Stitch to Realm - React Native SDK
+===============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+If you have an existing app built with the Stitch SDK, you should migrate your
+app to use the new Realm SDK.  While much of the application logic and flow of
+information hasn't changed, there are a few changes to how it connects to the
+Atlas App Services backend.
+
+
+.. note::
+
+   This page presents how to migrate from the MongoDB Stitch React Native SDK to
+   the Realm JS SDK, to build React Native applications.
+   
+   If you are looking to use the Realm JS SDK to build Node.js applications,
+   check out the :ref:`Upgrade from Stitch to Realm Node.js
+   <node-migrating-from-stitch-to-realm>` page. If you are looking to build web
+   apps, consider our :ref:`Upgrade from Stitch to Realm Web
+   <web-migrating-from-stitch-to-realm>` page.
+
+New Features
+------------
+
+- The Realm JS SDK now includes Realm Database, which includes
+  local object storage and the ability to synchronize document changes
+  across devices over the internet.
+
+Changes
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - What's Changed?
+     - Solution
+   
+   * - The backend app connections previously accessed via `StitchAppClient <http://stitch-sdks.s3-website-us-east-1.amazonaws.com/stitch-sdks/js-react-native/4/interfaces/stitchappclient.html>`__ are now available through :js-sdk:`Realm.App <Realm.App.html>`. Use the ``Realm.App`` class to access authentication functionality such as logging in and getting the current user.
+
+     - Migrate all occurrences of ``StitchAppClient`` to ``Realm.App``.
+
+   * - `StitchUser <http://stitch-sdks.s3-website-us-east-1.amazonaws.com/stitch-sdks/js-react-native/4/interfaces/stitchuser.html>`__ was previously the interface to access application users, but now it is :js-sdk:`Realm.User <Realm.User.html>`.
+     - Migrate all occurrences of ``StitchUser`` to ``Realm.User``.
+
+   * - The login API has changed from `stitchAppClient.auth.loginWithCredential() <http://stitch-sdks.s3-website-us-east-1.amazonaws.com/stitch-sdks/js-react-native/4/interfaces/stitchauth.html#loginwithcredential>`__ to :js-sdk:`Realm.App.logIn() <Realm.App.html#logIn>`
+     - Rewrite all authentication logic to use the :ref:`new login API <react-native-authenticate-users>`.
+
+   * - The API to log users out has changed from `stitchAppClient.auth.logout() <http://stitch-sdks.s3-website-us-east-1.amazonaws.com/stitch-sdks/js-react-native/4/interfaces/stitchauth.html#logout>`__ to :js-sdk:`Realm.User.logOut() <Realm.User.html#logOut>`.
+     - Rewrite the application logic to log out using the ``Realm.User`` object's ``logOut()`` method.
+
+   * - The Stitch SDK required developers to import authentication credentials from the "mongodb-stitch-server-sdk". The Realm SDK has a class, :js-sdk:`Realm.Credentials <Realm.Credentials.html>`, that creates credentials for each authentication provider.
+     - Replace imports of authentication credentials with method calls for each respective authentication provider through the ``Realm.Credentials`` class.
+
+   * - Instead of calling Atlas Functions using the app client directly via the method `stitchAppClient.callFunction() <http://stitch-sdks.s3-website-us-east-1.amazonaws.com/stitch-sdks/js-react-native/4/interfaces/stitchappclient.html#callfunction>`__, you must call server Atlas Functions using the :js-sdk:`callFunction() <Realm.User.html#callFunction>` method of a logged-in ``Realm.User``.
+     - Call Functions using ``Realm.User.callFunction()`` instead of an app client.
+
+   * - The interface to the MongoDB Data Access API, containing objects like :js-sdk:`MongoDatabase <Realm-MongoDBDatabase.html>`, and :js-sdk:`MongoCollection <Realm.MongoDBCollection.html>`, has changed. Through Stitch, passing the `RemoteMongoClient.Factory <http://stitch-sdks.s3-website-us-east-1.amazonaws.com/stitch-sdks/js-react-native/4/modules/remotemongoclient.html#factory>`__ and the string "mongodb-atlas" to `StitchAppClient.getServiceClient() <http://stitch-sdks.s3-website-us-east-1.amazonaws.com/stitch-sdks/js-react-native/4/interfaces/stitchappclient.html#getserviceclient>`__ would create a remote Mongodb client. The Realm JS SDK creates a remote MongoDB client through the :js-sdk:`Realm.User.mongoClient <Realm.User.html#mongoClient>` method on the user object.
+     - Replace all ``mongoClient`` instantiations with ``Realm.User.mongoClient``.
+
+   * - The  Realm SDKs do not provide an interface for calling Services (like the :ref:`Twilio <twilio-service>` and :ref:`AWS <aws-service>` services).
+     -  Convert references to Third Party Services (AWS or Twilio) in your Stitch Application to Realm functions in your Realm application using the corresponding npm packages. For more information, see :ref:`Add External Dependencies <add-external-dependencies>`.

@@ -1,0 +1,92 @@
+name: Readability PR Comment
+
+on:
+  workflow_run:
+    workflows: [Readability]
+    types:
+      - completed
+
+jobs:
+  postScoreAsComment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Download readability score artifact"
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            const artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id}},
+            });
+            const matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name === "scores"
+            })[0];
+            const download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: "zip",
+            });
+            const fs = require("fs");
+            fs.writeFileSync("${{github.workspace}}/scores.zip", Buffer.from(download.data));
+      - run: unzip scores.zip
+      - name: Leave a comment on the PR with the readability score.
+        uses: actions/github-script@v5
+        env:
+          SHA: "${{ github.event.workflow_run.head_sha }}"
+          WORKSPACE: "${{ github.workspace }}"
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            // Build header
+            const { SHA } = process.env;
+            const { WORKSPACE } = process.env;
+            const readabilityTag = '<span id="readability-score-comment"></span>';
+            const header = `${readabilityTag}Readability for Commit Hash: ${SHA}
+
+            *You can see any previous Readability scores (if they exist) by looking
+            at the comment's history.*
+
+            `;
+
+            // Create post body with header
+            const fs = require("fs");
+            let body = fs.readFileSync(`${WORKSPACE}/scores.md`, "utf8");
+            body = header + body;
+
+            // Set up
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = Number(
+              fs.readFileSync(`${WORKSPACE}/issue_number`, "utf8")
+            );
+
+            // Update or create readability comment
+            const {data: comments} = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+            });
+            const readabilityComment = comments.find((comment) =>
+              comment.body.includes(readabilityTag)
+            );
+            if (readabilityComment) {
+              const comment_id = readabilityComment.id;
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                issue_number,
+                comment_id,
+                body,
+              });
+              console.log("Updated comment with readability score!");
+            } else {
+              await github.rest.issues.createComment({
+                issue_number,
+                owner,
+                repo,
+                body,
+              });
+              console.log(`Created a new readability comment!`);
+            }

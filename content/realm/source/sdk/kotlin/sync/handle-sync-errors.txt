@@ -1,0 +1,409 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-handle-sync-errors:
+
+===============================
+Handle Sync Errors - Kotlin SDK
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+While developing an application that uses :ref:`Device Sync <sync>`, you should set an error
+handler. This error handler will detect and respond to any failed sync-related
+API calls.
+
+.. include:: /includes/sync-errors-in-app-services.rst
+
+Handle Sync Errors
+-------------------
+
+Set an error handler through the 
+`SyncConfiguration.errorHandler <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/index.html#872059509%2FProperties%2F645295071>`__
+property when creating a synced realm. 
+When an error occurs, the Kotlin SDK calls the error handler with the error object
+and the `SyncSession <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/index.html>`__ 
+that the error occurred on. 
+
+If you do not specify an error handler, the default behavior is to print the 
+sync error to the console. 
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.sync-error-handler.kt
+   :language: kotlin
+
+For information about setting a client log level or customizing the logger, refer 
+to :ref:`kotlin-client-log-level`.
+
+Sync Exceptions
+~~~~~~~~~~~~~~~
+
+A `SyncException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-sync-exception/index.html>`__ 
+is a subclass of `AppException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-app-exception/index.html>`__. 
+A ``SyncException`` occurs when Device Sync fails. 
+
+For more information on app exceptions, refer to :ref:`Handle App Errors <kotlin-app-errors>`.
+
+Unrecoverable Sync Errors
+`````````````````````````
+
+An `UnrecoverableSyncException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-unrecoverable-sync-exception/index.html>`__ occurs when Device Sync 
+fails catastrophically.
+This usually means a bug in the client or connected App.
+
+When an unrecoverable sync error occurs, you should surface the problem
+to the end user. Let them know that Device Sync won't work until the
+problem is solved. It's best to send yourself an alert so you can check
+the backend App logs and fix the problem as soon as possible.
+
+Wrong Sync Type Errors
+``````````````````````
+
+A `WrongSyncTypeException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-wrong-sync-type-exception/index.html>`__
+occurs when the client and App use different sync protocols. 
+
+The SDK supports two kinds of sync: :ref:`flexible sync <enable-flexible-sync>` 
+and :ref:`partition based <sync-partitions>` sync. 
+When a client connects to an App using a sync type that does not match the App's sync type, a wrong sync type error occurs.
+
+To recover from a wrong sync type error, update the client to use a sync
+type that matches the backend. This will most likely require the user
+to update to a new version of your app containing the fix. 
+
+Bad Flexible Sync Query Errors
+``````````````````````````````
+
+A `BadFlexibleSyncQueryException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-bad-flexible-sync-query-exception/index.html>`__ 
+occurs when you try to subscribe to a flexible sync query that is not supported
+by the App backend. 
+This can happen when you:
+
+- query a field not specified as a **queryable field** in your flexible
+  sync configuration
+- create a flexible sync query using operators unsupported by flexible
+  sync
+
+To recover from a bad flexible sync query error, update your client to
+use a sync query compatible with your App configuration. This will most
+likely require the user to update to a new version of your app containing
+the fix.
+
+.. _kotlin-client-reset:
+
+Handle Client Reset Errors
+--------------------------
+
+When using :ref:`Device Sync <sync>`, a **client reset** is an
+error recovery task that your client app must perform when the Device Sync server
+can no longer sync with the client realm. 
+In this case, the client must reset its realm to a state that matches the
+server in order to restore the ability to sync.
+
+When this occurs, the unsyncable realm on the client may contain data that 
+has not yet synced to the server. Realm SDKs can attempt to recover or 
+discard that data during the client reset process.
+
+For more information about what can cause a client reset to occur, go to
+:ref:`Client Resets <client-resets>` in the App Services documentation.
+
+.. _kotlin-client-reset-strategies:
+
+Client Reset Strategies
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The Realm SDKs provide client reset strategies that automatically handle most
+client reset errors as well as a manual recovery strategy.
+
+.. _kotlin-automatic-recovery:
+
+Automatic vs. Manual Client Resets
+``````````````````````````````````
+
+Automatic reset strategies restore your local realm file to a syncable state 
+without closing the realm or missing notifications. 
+The differences are based on how they handle changes on the device that have 
+not yet synced to the backend.
+The following strategies implement the 
+`AutomaticClientResetStrategy <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-automatic-client-reset-strategy/index.html>`__ 
+interface and support automatic client resets:
+
+- :ref:`Recover or discard unsynced changes <kotlin-client-reset-recover-unsynced-changes>` (default): 
+  The client reset handler first attempts to recover unsynced 
+  changes. If recovery fails, this handler falls back to the discard 
+  unsynced changes strategy, which *permanently deletes* all unsynced local 
+  changes. If the discard unsynced changes strategy fails, the handler 
+  falls back to manual recovery.  
+   
+- :ref:`Recover unsynced changes <kotlin-client-reset-recover-unsynced-changes>`: 
+  The client reset handler first attempts to recover unsynced 
+  changes. If recovery fails, this handler falls back to manual 
+  recovery.
+   
+- :ref:`Discard unsynced changes <kotlin-discard-unsynced-changes>`:
+  This strategy *permanently deletes* all local unsynced changes 
+  made since the last successful sync. If the discard fails, this 
+  handler falls back to manual recovery. This mode is recommended to handle any
+  manual data recovery.
+
+If your app requires specific client reset logic that can't be 
+handled automatically, you may want or need to add a manual client 
+reset handler using the 
+`ManuallyRecoverUnsyncedChangesStrategy <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-manually-recover-unsynced-changes-strategy/index.html>`__ interface: 
+
+- :ref:`Manually recover unsynced changes <kotlin-client-reset-manual-recovery>`: 
+  Allows you to implement your own manual recovery strategy. 
+  Manual recovery is the only strategy that does *not* perform an automatic client reset.
+  This mode allows you to backup your realm only. We recommend using the 
+  discard unsynced changes strategy to handle manual recovery if possible.
+
+.. _kotlin-client-reset-recovery:
+
+Client Reset with Recovery
+``````````````````````````
+
+:ref:`Client Recovery <enable-or-disable-recovery-mode>` is a feature that is
+enabled by default when you :ref:`configure Device Sync <enable-sync>`.
+
+To use Client Recovery, configure your realm with the :ref:`recover unsynced changes <kotlin-client-reset-recover-unsynced-changes>`
+or :ref:`recover or discard unsynced changes <kotlin-client-reset-recover-unsynced-changes>` 
+strategy, and Realm automatically manages the client reset process 
+in most cases: 
+
+- The client can recover unsynced changes when there are no 
+  schema changes or there are non-breaking schema changes. 
+- Automatic client recovery *cannot* occur when your app makes breaking schema changes.
+  A breaking change is a change that you can make in your server-side
+  schema that requires additional action to handle. In this scenario, client 
+  recovery falls back to a :ref:`manual error client reset fallback <kotlin-client-reset-manual-recovery-fallback>`.
+  
+  For information on breaking vs. non-breaking schema changes, refer to
+  :ref:`breaking-change-quick-reference` in the App Services documentation.
+
+.. _kotlin-client-reset-recovery-rules:
+
+**Client Recovery Rules** 
+
+.. include:: /includes/client-recovery-rules.rst
+
+.. _kotlin-specify-a-client-reset-strategy:
+
+Specify a Client Reset Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify a client reset strategy in your 
+`SyncConfiguration.syncClientResetStrategy <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/index.html#-1610812121%2FProperties%2F645295071>`__
+property when configuring a synced realm. 
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.client-reset-strategy.kt
+   :language: kotlin
+
+The following sections describe how to use these client reset strategies.
+
+.. _kotlin-client-reset-recover-or-discard-unsynced-changes:
+
+Recover or Discard Unsynced Changes
+```````````````````````````````````
+
+The recover or discard unsynced changes strategy attempts to recover all 
+unsynced local changes automatically during a client reset. 
+To recover unsynced changes, :ref:`Client Recovery <enable-or-disable-recovery-mode>`
+must be enabled in your App Services App (it is enabled by default).
+
+If the automatic recovery process fails, it falls back to a discard unsynced
+changes strategy. 
+If that process process fails, it falls back again to a manual reset strategy.
+
+This strategy provides the most robust recovery process. 
+It is the default client reset behavior if you do not specify a client reset strategy. 
+
+.. important:: 
+  
+  Do not use the recover or discard unsynced changes strategy if your application 
+  *cannot* lose any local data that has not yet synced to the backend.
+
+To customize usage of recover or discard unsynced changes strategy, define a class 
+implementing the 
+`RecoverOrDiscardUnsyncedChangesStrategy <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-or-discard-unsynced-changes-strategy/index.html>`__ 
+interface. 
+ 
+The interface provides the following callback methods: 
+
+- `onBeforeReset <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-or-discard-unsynced-changes-strategy/index.html#-1085437166%2FFunctions%2F645295071>`__: 
+  Invoked prior to the client reset. Provides an instance of the realm before the 
+  reset. You can use this callback to 
+  notify the user before the client reset begins.
+
+- `onAfterRecovery <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-or-discard-unsynced-changes-strategy/index.html#-1419928069%2FFunctions%2F645295071>`__:
+  Invoked if *and only if* the automatic reset completes successfully.
+  Provides a read-only before instance of the realm and a mutable instance of the final realm.
+  You can use this callback to notify the user that the client reset is complete.
+
+- `onAfterDiscard <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-or-discard-unsynced-changes-strategy/index.html#564299700%2FFunctions%2F645295071>`__:
+  Invoked only if the automatic client reset fails *and* the discard
+  local strategy succeeds. If the discard strategy fails, this callback is not
+  invoked. Provides a read-only before instance
+  of the realm and a mutable instance of the final realm.
+  You can use this callback to notify the user that the reset is complete. 
+
+- `onManualResetFallback <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-or-discard-unsynced-changes-strategy/index.html#-366017209%2FFunctions%2F645295071>`__:
+  Invoked only if the automatic recovery and the discard strategy have 
+  failed. Discards the local changes and allows you to create backup of the local 
+  realm. Implement this callback to handle the reset failure, as explained
+  in the :ref:`Manual Recovery Fallback section <kotlin-client-reset-manual-recovery-fallback>`. 
+
+The following example shows the ``RecoverOrDiscardUnsyncedChangesStrategy`` and each of its callbacks:
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.recover-discard.kt
+   :language: kotlin
+
+.. _kotlin-client-reset-recover-unsynced-changes:
+
+Recover Unsynced Changes
+````````````````````````
+
+The recover unsynced changes strategy attempts to recover all unsynced local 
+changes automatically during a client reset.
+To recover unsynced changes, :ref:`Client Recovery <enable-or-disable-recovery-mode>`
+must be enabled in your App Services App (it is enabled by default).
+
+However, unlike the recover and discard unsynced changes strategy, it does not 
+fall back to discard local changes if the automatic recovery fails. 
+Instead, it falls back to manually recover changes. You might choose this client 
+reset strategy if your app cannot lose unsynced data.
+
+To use the recover unsynced changes strategy, define a handler 
+implementing the  
+`RecoverUnsyncedChangesStrategy <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-unsynced-changes-strategy/index.html>`__ 
+interface.
+
+The interface provides the following callback methods: 
+
+- `onBeforeReset <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-unsynced-changes-strategy/index.html#-1085437166%2FFunctions%2F645295071>`__: 
+  Invoked prior to the client reset. Provides an instance of the realm before the 
+  reset. You can use this callback to notify the user before the client reset begins.
+
+- `onAfterReset <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-unsynced-changes-strategy/index.html#-894960018%2FFunctions%2F645295071>`__:
+  Invoked if *and only if* the automatic reset completes successfully.
+  Provides a read-only before instance of the realm and a mutable instance of the final realm.
+  You can use this callback to notify the user that the client reset is complete.
+
+- `onManualResetFallback <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-recover-unsynced-changes-strategy/index.html#-366017209%2FFunctions%2F645295071>`__:
+  Invoked only if the automatic recovery has failed. Discards the local changes 
+  and allows you to create backup of the local realm. Implement this callback to 
+  handle the reset failure, as explained in the 
+  :ref:`Manual Recovery Fallback section <kotlin-client-reset-manual-recovery-fallback>`. 
+
+The following example shows the ``RecoverUnsyncedChangesStrategy`` and each of its callbacks:
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.recover.kt
+   :language: kotlin
+
+.. _kotlin-discard-unsynced-changes:
+
+Discard Unsynced Changes
+````````````````````````
+
+The discard unsynced changes strategy permanently deletes all local unsynced
+changes made since the last successful sync.
+This strategy restores your local realm file to a syncable state without closing 
+the realm and while keeping notifications fully working. 
+If this process fails, it falls back to a manual reset strategy.
+
+This is the recommended strategy to handle any manual data recovery. 
+
+You might choose this strategy when your app requires client recovery logic that is 
+not consistent with the Device Sync :ref:`Client Recovery Rules <kotlin-client-reset-recovery-rules>`
+or when you don't want to recover unsynced data.
+
+.. important:: 
+  
+  Do not use the discard unsynced changes strategy if your application 
+  *cannot* lose any local data that has not yet synced to the backend.
+
+To use the discard unsynced changes strategy, define a handler 
+implementing the   
+`DiscardUnsyncedChangesStrategy <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-discard-unsynced-changes-strategy/index.html>`__ 
+interface.
+
+The interface provides the following callback methods: 
+
+- `onBeforeReset <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-discard-unsynced-changes-strategy/index.html#-1085437166%2FFunctions%2F645295071>`__: 
+  Invoked prior to the client reset. Provides an instance of the realm before the 
+  reset. You can use this callback to notify the user before the client reset begins.
+
+- `onAfterReset <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-discard-unsynced-changes-strategy/index.html#-2060074840%2FFunctions%2F645295071>`__:
+  Invoked if *and only if* the reset completes. Provides a read-only before instance
+  of the realm and a mutable instance of the final realm.
+  You can use this callback to notify the user that the reset is complete.
+
+- `onManualResetFallback <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-discard-unsynced-changes-strategy/index.html#-366017209%2FFunctions%2F645295071>`__:
+  Invoked only if the automatic recovery and the discard strategy have 
+  failed. Discards the local changes and allows you to create backup of the local 
+  realm. Implement this callback to handle the reset failure, as explained
+  in the :ref:`Manual Recovery Fallback section <kotlin-client-reset-manual-recovery-fallback>`.
+
+The following example shows the ``DiscardUnsyncedChangesStrategy`` and each of its callbacks:
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.discard.kt
+   :language: kotlin
+
+.. _kotlin-client-reset-manual-recovery-fallback:
+
+Manual Recovery Fallback
+````````````````````````
+
+If the client reset cannot complete automatically, such as when there are 
+:ref:`breaking schema changes <breaking-change-quick-reference>`, 
+the client reset process falls through to a manual error handler. 
+
+This may occur in any of the automatic client reset strategies:
+
+- Recover unsynced changes 
+- Recover or discard unsynced changes 
+- Discard unsynced changes 
+
+You must provide a manual client reset implementation
+in the ``onManualResetFallback`` callback of the client reset handler for these strategies.
+
+The manual reset fallback discards the local changes and allows you to create backup
+of the local realm using the `ClientResetRequiredException.executeClientReset <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-client-reset-required-exception/execute-client-reset.html>`__ method.
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.fallback.kt
+   :language: kotlin
+
+.. _kotlin-client-reset-manual-recovery:
+
+Manually Recover Unsynced Changes
+`````````````````````````````````
+
+Use the manually recover unsynced changes strategy for the infrequent cases where 
+you need to customize your data recovery process.
+We recommend using the :ref:`Discard unsynced changes <kotlin-discard-unsynced-changes>` 
+strategy when possible to handle manual data recovery. 
+You should only choose the manually recover unsynced changes strategy if the automatic 
+recovery logic is not suitable for your app *and* you can't discard unsynced local data.
+
+To use the manual recovery strategy, define your own client reset handler using the 
+`ManuallyRecoverUnsyncedChangesStrategy <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-manually-recover-unsynced-changes-strategy/index.html>`__
+interface.
+
+Before you use this method, you *must* close all instances of the realm that you are resetting.
+Any writes to the realm file made after the manual recovery callback and before 
+the client reset being executed will not be synced.
+We also recommend that you create a backup of the file and report the exception. 
+
+Initiate a client reset using ``ClientResetRequiredException.executeClientReset()``. 
+
+If the client reset isn't executed manually, it will be automatically executed the 
+next time all realm instances have been closed and re-opened (typically when the 
+app is restarted). 
+
+.. _kotlin-test-client-reset-handling:
+
+Test Client Reset Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/test-client-reset.rst

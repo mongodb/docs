@@ -1,0 +1,450 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-update-objects:
+
+=================================
+Update Realm Objects - Kotlin SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to update an existing Realm object in a local or synced 
+realm using the Kotlin SDK. To learn more about creating objects in a 
+realm, refer to :ref:`<kotlin-create-a-new-object>`.
+
+Realm supports update and upsert operations on Realm objects and embedded 
+objects. An **upsert operation** either inserts a new instance of an object 
+or updates an existing object that meets certain criteria. For more information,
+refer to the :ref:`<kotlin-upsert-an-object>` section on this page.
+
+You *cannot* update asymmetric objects. This is because asymmetric objects 
+are special write-only objects that do not persist to the realm. For information 
+on how to use asymmetric objects in your application, 
+refer to :ref:`kotlin-stream-data-to-atlas`.
+
+.. note:: Write to a Synced Realm
+
+   The syntax to update an object in a realm is the same for a local or
+   a synced realm. However, there are additional considerations that determine
+   whether the write operation in a synced realm is successful. For more 
+   information, refer to :ref:`<kotlin-write-synced-realm>`.
+
+Update Operations
+-----------------
+
+All operations that modify a realm - including update and upsert operations - 
+must be performed inside of a write transaction. Write transactions
+are passed to the realm's 
+`write() <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write.html>`__ 
+or 
+`writeBlocking() <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write-blocking.html>`__
+method. Within this callback, you can access a 
+`MutableRealm <{+kotlin-local-prefix+}io.realm.kotlin/-mutable-realm/index.html>`__
+instance, and then update objects within the realm. For more information on 
+write transactions and how Realm handles them, refer to 
+:ref:`<kotlin-write-transactions>`.
+
+Additionally, you can only modify live objects, which are only accessible 
+inside of a write transaction. You can convert a frozen object to a 
+live object in a transaction with `mutableRealm.findLatest()
+<{+kotlin-local-prefix+}io.realm.kotlin/-mutable-realm/find-latest.html>`__.
+
+.. example:: Convert Frozen Object Before Modifying
+
+   .. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.fetch-latest-to-update-object.kt
+      :language: kotlin
+
+.. _kotlin-modify-an-object:
+
+Update an Existing Object
+-------------------------
+
+To modify the properties of a Realm object or embedded object stored 
+within a realm:
+
+1. Open a write transaction with `realm.write()
+   <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write.html>`__ or
+   `realm.writeBlocking()
+   <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write-blocking.html>`__.
+
+#. Get the live objects by querying the transaction's mutable realm 
+   for the objects that you want to modify using 
+   `query() <{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-query/query.html>`__:
+
+   #. Specify the object type as a type parameter passed to ``query()``.
+   #. (Optional) Filter the set of returned objects by specifying a query. 
+      If you don't include a query filter, you return all objects of the 
+      specified type. For more information on querying with the Kotlin SDK, 
+      refer to :ref:`<kotlin-read-objects>`.
+
+   .. important:: Objects Must Be Live
+
+      You can only modify live objects. If your query occurs outside of the 
+      write transaction, you must convert the frozen objects 
+      to live objects in the transaction with 
+      ``mutableRealm.findLatest()``.
+
+#. Modify the object within the write transaction. You can use an `apply block
+   <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/apply.html>`__
+   to configure multiple properties at once. All changes are
+   automatically persisted to the realm when Realm commits the write 
+   transaction.
+
+.. note:: Updating Strings or Byte Arrays
+
+   Because Realm operates on fields as a whole, it's not possible
+   to directly update individual elements of strings or byte arrays. Instead,
+   you must read the whole field, make your modification to individual
+   elements, and then write the entire field back again in a transaction block.
+
+Update a Realm Object
+~~~~~~~~~~~~~~~~~~~~~
+
+To update a Realm object, query for the type using a filter that returns the 
+specific object that you want to update. Then, modify the object properties.
+
+.. tip:: Use Unique Identifying Information
+
+   We recommend filtering with unique identifying information such as 
+   a :ref:`primary key value <kotlin-find-by-primary-key>` 
+   to ensure your query returns the correct object.
+
+In the following example, we query a ``Frog`` object by primary key, 
+then update the ``name`` and ``age`` properties:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-a-realm-object.kt
+   :language: kotlin
+
+.. _kotlin-update-embedded-object:
+
+Update an Embedded Object
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update an embedded object by modifying individual properties 
+or by overwriting the entire embedded object.
+
+.. tip:: Access Embedded Objects with Dot Notation
+
+   You can use dot notation to access embedded object 
+   properties as if it were in a regular, nested object. For more information, refer to 
+   :ref:`kotlin-query-embedded-object-property`.
+
+To update one or more properties in an embedded object, 
+fetch the parent or embedded object and reassign the 
+embedded object properties in a write transaction. 
+
+In the following example, we have a ``Contact`` object that contains an 
+embedded ``EmbeddedAddress`` object. We update the embedded object properties 
+in several operations:
+
+.. literalinclude:: /examples/generated/kotlin/DataTypesTest.snippet.update-embedded-object.kt 
+    :language: kotlin
+
+To overwrite an embedded object completely, assign a new embedded object 
+instance to the parent property in a write transaction. This deletes the 
+existing embedded object. 
+
+In the following example,  we have a ``Contact`` object that contains an 
+embedded ``EmbeddedAddress`` object. We define a new ``EmbeddedAddress`` object and
+assign it to the parent property:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.overwrite-embedded-object.kt 
+    :language: kotlin
+
+Update Multiple Objects
+-----------------------
+
+You can also update multiple objects in a realm:
+
+1. Query a realm for a collection of objects
+   with `realm.query()
+   <{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-query/query.html>`__.
+
+#. Open a write transaction with `realm.write()
+   <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write.html>`__ or
+   `realm.writeBlocking()
+   <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write-blocking.html>`__.
+
+#. Update elements of the set of `RealmResults
+   <{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-results/index.html>`__
+   returned by the query.
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-a-collection.kt
+   :language: kotlin
+
+Update Realm Properties 
+-----------------------
+
+Depending on how you define your object type, you might have properties 
+that are special :ref:`Realm-specific types <kotlin-realm-specific-types-table>`.
+
+.. _kotlin-update-mutablerealm:
+
+Update a MutableRealmInt (Counter) Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the following Realm API functions to update a ``MutableRealmInt`` 
+property value: 
+
+- ``increment()``
+- ``decrement()``
+- ``set()`` 
+
+These methods return the ``MutableRealmInt`` property with a mutated value.
+
+.. tip:: Use set() Operator with Caution
+
+   The ``set()`` operator overwrites any prior calls to 
+   ``increment()`` or ``decrement()``. We do not recommend
+   mixing ``set()`` with ``increment()`` or ``decrement()``, 
+   unless fuzzy counting is acceptable for your use case.
+
+In addition to the Realm API functions, you can also use 
+the following set of operators and infix functions similar 
+to those provided by `Kotlin's standard library 
+<https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/>`__ for ``Long``: 
+
+- Unary prefix operators: ``unaryPlus``, ``unaryMinus``
+- Increment and decrement operators: ``inc``, ``dec`` (not to be confused 
+  with ``increment`` and ``decrement``)
+- Arithmetic operators: ``plus``, ``minus``, ``times``, ``div``, ``rem``
+- Equality operators: ``equals``
+- Comparison operators: ``compareTo``
+- Bitwise functions: ``shl``, ``shr``, ``ushr``, ``and``, ``or``, ``xor``, ``inv``
+
+However, these operators and infix functions *do not* mutate 
+the instance on which they are called. Instead, they return
+a new unmanaged instance with the result of the operation.
+
+.. important:: Only Realm Methods Result in a Mutated Value
+
+   The only operations that result in a mutated value are 
+   the Realm API functions: 
+   ``increment``, ``decrement``, and ``set``. 
+   All other operations (including ``inc`` and ``dec``) 
+   return an unmanaged instance with a new value.
+
+In the following example, we update a ``MutableRealmInt``
+property with ``increment()``, ``decrement()``, and 
+``set()`` operations:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-mutablerealm-property.kt
+   :language: kotlin
+
+.. _kotlin-update-realmany:
+
+Update a RealmAny (Mixed) Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`RealmAny <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-any/index.html>`__ 
+properties are immutable. To update a ``RealmAny`` value, you must create 
+a new instance of the property with the desired value and type. For more 
+information on adding ``RealmAny`` properties, refer to :ref:`<kotlin-create-realmany>`.
+
+Additionally, you *must* know the stored type to extract the value from a 
+``RealmAny`` property. If you call a getter method with the wrong type, 
+Realm throws an exception.
+
+.. tip:: Handle Polymorphism with Conditional Expressions
+
+   Because you must know the stored type to extract its value, we 
+   recommend using a ``when`` expression to handle the 
+   ``RealmAny`` type and its possible inner value class.
+
+   .. code-block:: kotlin
+   
+      val favoriteThings = frog.favoriteThings
+      when (favoriteThings.type) {
+         INT -> rating(favoriteThings.asInteger()) 
+         STRING -> description(favoriteThings.asString()) 
+         BYTE_ARRAY -> image(favoriteThings.asByteArray()) 
+         // Handle other possible types...
+         else -> {
+            // Debug or a perform default action
+            Log.d("ExampleHandler", "Unhandled type: ${favoriteThings.type}")
+         }
+      }
+
+In the following example, we update a ``Frog`` object that 
+contains a list of ``RealmAny`` properties by creating new 
+instances of each list element:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-realmany-property.kt
+   :language: kotlin
+
+.. note:: Clear a RealmAny Property Value with ``null``
+
+   You can assign ``null`` directly to a ``RealmAny`` property to
+   remove the current value.
+
+.. _kotlin-update-collection:
+
+Update Collection Properties
+----------------------------
+
+Depending on how you define your object type, you might have properties 
+that are defined as one of the following 
+supported :ref:`<kotlin-collection-types>`:
+
+- ``RealmList``
+- ``RealmSet``
+- ``RealmDictionary`` 
+
+Collections are mutable and are backed by their corresponding built-in Kotlin classes. 
+You can add and remove elements in a collection within a write transaction. 
+
+.. tip:: Listen for Changes to a Collection
+   
+   You can register a notification handler to 
+   listen for changes. For more information, refer to  
+   :ref:`<kotlin-realm-list-change-listener>`.
+
+Update a RealmList
+~~~~~~~~~~~~~~~~~~
+
+You can update elements in a 
+`RealmList <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-list/index.html>`__  
+as you would a
+`Kotlin MutableList <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/>`__.
+
+In the following example, we update ``RealmList`` elements 
+for an existing ``Frog`` object:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-realm-list.kt
+   :language: kotlin
+
+For more information on adding and removing ``RealmList`` elements,
+refer to :ref:`<kotlin-create-a-realmlist>` and :ref:`<kotlin-remove-realmlist-elements>`.
+
+Update a RealmSet
+~~~~~~~~~~~~~~~~~
+
+You can add, update, and remove elements in a 
+`RealmSet <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-set/index.html>`__  
+as you would a 
+`Kotlin MutableSet <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-set/>`__.
+
+In the following example, we iterate through and update ``RealmSet`` elements 
+for existing ``Frog`` objects:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-realm-set.kt
+   :language: kotlin
+
+For more information on adding and removing ``RealmSet`` elements,
+refer to :ref:`<kotlin-create-a-realmset>` and :ref:`<kotlin-remove-realmset-elements>`.
+
+Update a Dictionary
+~~~~~~~~~~~~~~~~~~~
+
+You can update keys and values in a 
+`RealmDictionary <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-dictionary/index.html>`__ 
+as you would a 
+`Kotlin MutableMap <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-map/>`__.
+
+In the following example, we update a ``RealmDictionary`` 
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-realm-dictionary.kt
+   :language: kotlin
+
+For more information on adding and removing ``RealmDictionary`` entries, 
+refer to :ref:`<kotlin-create-a-realmdictionary>` and
+:ref:`<kotlin-delete-dictionary-keys-values>`.
+
+Update Relationships
+--------------------
+
+Depending on how you define your object type, you might have properties 
+that reference another Realm object. This can be a to-one, to-many, or
+inverse :ref:`relationship <kotlin-relationships>`. 
+
+You can also embed one Realm object directly within another to create 
+a nested data structure with an ``EmbeddedRealmObject`` type. 
+For more information, refer to :ref:`<kotlin-update-embedded-object>` section 
+on this page.
+
+Update a To-One Relationship
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update relationships between objects in a realm by modifying
+the properties that define the relationship the same way you would 
+update any other property.
+
+In the following example, we have a ``Frog`` object with a ``favoritePond`` 
+property that references a single ``Pond`` object and a 
+``bestFriend`` property that references another ``Frog`` object:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-to-one-relationship.kt
+   :language: kotlin
+
+Update a To-Many Relationship
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update to-many relationships the same way you would update any other
+collection. Refer to the :ref:`<kotlin-update-collection>` section on this page.
+
+In the following example, we have a ``Forest`` object with a 
+``frogsThatLiveHere`` property that references a set of ``Frog`` 
+objects and a ``nearByPonds`` property that references a list of 
+``Pond`` objects:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-to-many-relationship.kt
+   :language: kotlin
+
+.. _kotlin-update-inverse-relationships:
+
+Update an Inverse Relationship
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can access and update objects in an inverse relationship. However, you *cannot* 
+directly modify the backlink collection itself. Instead, Realm automatically 
+updates the implicit relationship when you modify any related objects.
+For more information, refer to :ref:`<kotlin-inverse-relationships>`.
+
+In the following example, we have a parent ``User`` object with a 
+backlinks ``posts`` property that references a list of ``Post`` child objects. 
+We update properties on the parent and child objects through the 
+backlink:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.update-inverse-relationship.kt
+   :language: kotlin
+
+.. _kotlin-upsert-an-object:
+
+Upsert a Realm Object
+---------------------
+
+To upsert an object into a realm, insert an object with a primary key 
+using 
+`copyToRealm() <{+kotlin-local-prefix+}io.realm.kotlin/-mutable-realm/copy-to-realm.html>`__, 
+as you would when :ref:`creating a new object <kotlin-create-a-new-object>`, and pass an 
+`UpdatePolicy <{+kotlin-local-prefix+}io.realm.kotlin/-update-policy/index.html>`__ 
+parameter to specify how the SDK handles existing objects with the same
+primary key: 
+
+- ``UpdatePolicy.ALL``: Update all properties on any existing objects 
+  identified with the same primary key. 
+- ``UpdatePolicy.ERROR`` (default): Disallow updating existing objects and instead 
+  throw an exception if an object already exists with the same primary key. If 
+  you do not specify an update policy, Realm uses this policy by default.
+
+The following can occur depending on the update policy:
+
+- If no object exists that matches the primary key, the SDK inserts the new object.
+- If an object with the same primary key already exists, the SDK either: 
+
+  - Updates all properties on any existing objects identified with the 
+    same primary key. Note that properties are marked as updated in change 
+    listeners, even if the property was updated to the same value.
+  - Throws an exception indicating that an object already exists in the realm.
+
+In the following example, we attempt to insert a ``Frog`` object with a
+primary key that already exists in the realm with ``UpdatePolicy.ALL``
+and confirm the object is successfully upserted:
+
+.. literalinclude:: /examples/generated/kotlin/UpdateTest.snippet.upsert-an-object.kt
+   :language: kotlin

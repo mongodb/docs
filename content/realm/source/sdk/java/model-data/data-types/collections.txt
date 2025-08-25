@@ -1,0 +1,227 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-client-collections:
+
+======================
+Collections - Java SDK
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+A Realm collection is an
+object that contains zero or more instances of one
+:ref:`type <java-realm-objects>`. Realm collections
+are homogenous, i.e. all objects in a collection are of the
+same type.
+
+You can filter and sort any collection using Realm's
+:ref:`query engine <java-client-query-engine>`. Collections are
+:ref:`live <java-live-object>`, so they always reflect the
+current state of the realm instance on the current
+thread. You can also listen for changes in the collection by subscribing
+to :ref:`collection notifications <java-collection-notifications>`.
+
+Realm has two kinds of collections: **lists** and **results**.
+
+.. _java-field-relationships-lists:
+
+Lists
+-----
+
+Realm objects can contain lists of non-Realm-object data
+types. You can model these collections with the type ``RealmList<T>``,
+where ``T`` can be the following types:
+
+- ``String``
+- ``Integer``
+- ``UUID``
+- ``ObjectId``
+- ``Boolean``
+- ``Float``
+- ``Double``
+- ``Short``
+- ``Long``
+- ``Byte``
+- ``byte[]``
+- ``Date``
+
+.. seealso::
+
+   :ref:`java-field-relationships-lists-example`
+
+.. _java-list-collections:
+
+List Collections
+~~~~~~~~~~~~~~~~
+
+A **list collection** represents a :ref:`to-many
+relationship <java-to-many-relationship>` between two Realm
+types. Lists are mutable: within a write transaction, you
+can add and remove elements on a list. Lists are not
+associated with a query.
+
+.. _java-results-collections:
+
+Results Collections
+~~~~~~~~~~~~~~~~~~~
+
+A **results collection** represents the lazily-evaluated
+results of a query operation. Results are immutable: you
+cannot add or remove elements on the results collection.
+Results have an associated query that determines their
+contents.
+
+The :java-sdk:`RealmResults <io/realm/RealmResults.html>` class inherits from
+:android:`AbstractList <reference/java/util/AbstractList>` and behaves
+in similar ways. For example, ``RealmResults`` are ordered, and you can
+access the individual objects through an index. If a query has no
+matches, the returned ``RealmResults`` object will be a list of length
+0, not a ``null`` object reference.
+
+You can only modify or delete objects in a ``RealmResults`` set
+in a write transaction.
+
+Iteration
+---------
+
+Because Realm collections are live, objects may move as you
+iterate over a collection. You can use
+:ref:`snapshots <java-iteration>` to iterate over collections safely.
+
+.. _java-lists-adapters:
+
+Adapters
+--------
+
+Realm offers adapters to help bind data
+to standard UI widgets. These classes work with any class that
+implements the ``OrderedRealmCollection`` interface, which includes
+the built-in ``RealmResults`` and ``RealmList`` classes. For more
+information on adapters, see the documentation on
+:ref:`Displaying Collections <java-adapters>`.
+
+.. important:: Adapters Require Managed Objects
+
+   The Realm adapters only accept *managed*
+   Realm object instances tied to an instance of a realm.
+   To display non-managed objects, use the general-use Android
+   ``RecyclerView.Adapter`` for recycler views or ``ArrayAdapter`` for
+   list views.
+
+.. _java-live-collections:
+
+Collections are Live
+--------------------
+
+Like :ref:`live objects <java-live-object>`, Realm collections
+are usually **live**:
+
+- Live results collections always reflect the current results of the associated query.
+- Live lists always reflect the current state of the relationship on the realm instance.
+
+There are three cases when a collection is **not** live:
+
+- The collection is unmanaged, e.g. a List property of a Realm object that has not been added to a realm yet or that has been copied from a realm.
+- The collection is :ref:`frozen <java-frozen-objects>`.
+- The collection is part of a snapshot.
+
+Combined with :ref:`collection notifications
+<java-collection-notifications>`, live collections enable clean,
+reactive code. For example, suppose your view displays the
+results of a query. You can keep a reference to the results
+collection in your view class, then read the results
+collection as needed without having to refresh it or
+validate that it is up-to-date.
+
+.. warning:: Indexes may change
+
+   Results update themselves automatically. If you
+   store the positional index of an object in a collection
+   or the count of objects in a collection, the stored index
+   or count value could be outdated by the time you use it.
+
+.. _java-lazy-evaluated-results:
+
+Results are Lazily Evaluated
+----------------------------
+
+Realm only runs a query when you actually request the
+results of that query, e.g. by accessing elements of the
+results collection. This lazy evaluation enables you to
+write elegant, highly performant code for handling large
+data sets and complex queries.
+
+.. _java-limiting-results:
+
+Limiting Query Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+As a result of lazy evaluation, you do not need any special
+mechanism to limit query results with Realm. For example, if
+your query matches thousands of objects, but you only want
+to load the first ten, simply access only the first ten
+elements of the results collection.
+
+.. _java-pagination:
+
+Pagination
+~~~~~~~~~~
+
+Thanks to lazy evaluation, the common task of pagination
+becomes quite simple. For example, suppose you have a
+results collection associated with a query that matches
+thousands of objects in your realm. You display one hundred
+objects per page. To advance to any page, simply access the
+elements of the results collection starting at the index
+that corresponds to the target page.
+
+.. _java-list-vs-results:
+
+List vs. Results
+----------------
+
+When you need a collection, you can use the following rule
+of thumb to determine whether a list or a results collection
+is appropriate:
+
+- When you define the properties of your Realm objects, use lists to define :ref:`to-many relationships <java-to-many-relationship>` except :ref:`implicit inverse relationships <java-inverse-relationship>`.
+- Use results everywhere else.
+
+To understand these different use cases, consider whether
+you should be able to add or remove objects directly. Lists
+allow you to add and remove objects directly, because you
+control the relationships. Results collections do not allow
+you to add or remove objects directly, because their contents
+are determined by a query.
+
+.. example::
+
+   Consider a Realm type called Person with a field called
+   ``emails`` that is a collection of strings representing
+   email addresses. You control this data. Your application
+   needs to add and remove email addresses from your Person
+   instances. Therefore, use a **list** to define the field
+   type of ``emails``.
+
+   On the other hand, when you query the realm for all
+   Persons over the age of 25, it would not make sense for
+   you to add or remove Persons directly to the resulting
+   collection. The contents of that collection only change
+   when the query matches a different set of Persons.
+   Therefore, Realm gives you a **results** collection.
+
+.. _java-collection-type-for-implicit-inverse-relationships:
+
+.. note:: Inverse one-to-many relationships
+
+   Since Realm automatically determines the contents of
+   :ref:`implicit inverse relationship
+   <java-inverse-relationship>` collections, you may not add
+   or remove objects from such a collection.
+   Therefore, the type of such a one-to-many relationship
+   property is actually a results collection, not a list.

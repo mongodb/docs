@@ -1,0 +1,1 @@
+val user = app.currentUser

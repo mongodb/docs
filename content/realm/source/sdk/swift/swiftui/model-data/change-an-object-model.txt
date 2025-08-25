@@ -1,0 +1,138 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swiftui-realm-migrations:
+
+================================
+Change an Object Model - SwiftUI
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-modify-schema-properties-of-synced-realms.rst
+
+Overview
+--------
+
+When you update your object schema, you must increment the schema version 
+and perform a migration. You might update your object schema between major 
+version releases of your app.
+
+For information on how to actually perform the migration, see:
+:ref:`Change an Object Model <ios-modify-an-object-schema>`.
+
+This page focuses on how to use migrated data in SwiftUI Views.
+
+Use Migrated Data with SwiftUI
+------------------------------
+
+To perform a migration:
+
+- Update your schema and write a migration block, if required
+- Specify a :swift-sdk:`Realm.Configuration <Structs/Realm/Configuration.html>`
+  that uses this migration logic and/or updated schema version when you 
+  initialize your realm.
+
+From here, you have a few options to pass the configuration object. You can:
+
+- Set the configuration as the :ref:`default configuration 
+  <ios-default-and-file-url-realm>`. If you do not explicitly pass the 
+  configuration via environment injection or as a parameter, property 
+  wrappers use the default configuration.
+- Use environment injection to provide this configuration to the first view 
+  in your hierarchy that uses Realm
+- Explicitly provide the configuration to a Realm property wrapper that takes
+  a configuration object, such as ``@ObservedResults`` or ``@AsyncOpen``.
+
+.. example:: 
+
+   For example, you might want to add a property to an existing object. We
+   could add a ``favoriteTreat`` property to the ``Dog`` object in DoggoDB:
+
+   .. code-block:: swift
+      :copyable: false
+
+      @Persisted var favoriteTreat = ""
+
+   After you add your new property to the schema, you must increment the 
+   schema version. Your ``Realm.Configuration`` might look like this:
+
+   .. literalinclude:: /examples/generated/swiftui/SyncOrLocalRealm.snippet.update-schema-version.swift
+      :language: swift
+      :copyable: false
+
+   Declare this configuration somewhere that is accessible to the first view 
+   in the hierarchy that needs it. Declaring this above your ``@main`` app 
+   entrypoint makes it available everywhere, but you could also put it in 
+   the file where you first open a realm.
+
+Set a Default Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set a default configuration in a SwiftUI app the same as any other
+Realm Swift app. Set the default realm configuration by assigning a new
+Realm.Configuration instance to the :swift-sdk:`Realm.Configuration.defaultConfiguration
+<Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV07defaultC0AEvpZ>`
+class property.
+
+.. literalinclude:: /examples/generated/code/start/OpenCloseRealm.snippet.open-local-realm.swift
+   :language: swift
+
+Pass the Configuration Object as an Environment Object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you have declared the configuration, you can inject it as an environment 
+object to the first view in your hierarchy that opens a realm. If you are 
+using the ``@ObservedResults`` or ``@ObservedRealmObject`` property wrappers, 
+these views implicitly open a realm, so they also need access to this 
+configuration.
+
+.. code-block:: swift
+   :copyable: false
+
+   .environment(\.realmConfiguration, config)
+
+If your app uses either a local or a Synced realm, the first view in the 
+hiearchy that opens a realm varies depending on whether you're using the 
+app with or without Sync.
+
+Without sync, you can pass the realm configuration environment object directly
+to the ``LocalOnlyContentView``: 
+
+.. literalinclude:: /examples/generated/swiftui/SyncOrLocalRealm.snippet.pass-config-environment-object.swift
+   :language: swift
+
+Which opens a realm implicitly with:
+
+.. literalinclude:: /examples/generated/swiftui/PassObjectsToView.snippet.local-only-view.swift
+   :language: swift
+
+However, when your app uses Sync, you the Realm explicitly using the 
+``@AsyncOpen`` or ``@AutoOpen`` property wrapper:
+
+.. literalinclude:: /examples/generated/swiftui/OpenRealm.snippet.open-realm-view-flex-sync.swift
+   :language: swift
+
+So you must pass the environment object to the view that explicitly 
+opens the realm. In this case, the ``OpenFlexibleSyncRealmView``.
+
+The important thing to remember is to make sure to pass the 
+``Realm.Configuration`` that encompasses your migration logic to any view 
+hierarchy that implicitly or explicitly opens a realm.
+
+Explicitly Pass the Updated Configuration to a Realm SwiftUI Property Wrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can explicitly pass the configuration object to a Realm SwiftUI
+property wrapper that takes a configuration object, such as ``@ObservedResults``
+or ``@AutoOpen``. In this case, you might pass it directly to ``@ObservedResults``
+in our ``DogsView``.
+
+.. code-block:: swift
+
+   // Use a `config` that you've passed in from above.
+   @ObservedResults(Dog.self, configuration: config) var dogs

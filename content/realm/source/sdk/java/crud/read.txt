@@ -1,0 +1,399 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+======================
+CRUD - Read - Java SDK
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+.. _java-read-operations:
+.. _java-realm-database-reads:
+
+Read Operations
+---------------
+
+You can read back the data that you have
+:ref:`stored <java-realm-database-writes>` in Realm.
+The standard data access pattern across Realm
+SDKs is to find, filter, and sort objects, in that order. To
+get the best performance from Realm as your app grows and
+your queries become more complex, design your app's data
+access patterns around a solid understanding of Realm
+:ref:`read characteristics <java-realm-read-characteristics>`.
+
+.. _java-realm-read-characteristics:
+
+Read Characteristics
+~~~~~~~~~~~~~~~~~~~~
+
+When you design your app's data access patterns around the
+following three key characteristics of reads in Realm,
+you can be confident you are reading data as
+efficiently as possible.
+
+.. _java-results-are-not-copies:
+
+Results Are Not Copies
+~~~~~~~~~~~~~~~~~~~~~~
+
+Results to a query are not copies of your data: modifying
+the results of a query will modify the data on disk
+directly. This memory mapping also means that results are
+**live**: that is, they always reflect the current state on
+disk.
+
+.. _java-results-are-lazy:
+
+Results Are Lazy
+~~~~~~~~~~~~~~~~
+
+Realm defers execution of a query until you access the
+results. You can chain several filter and sort operations
+without requiring extra work to process the intermediate
+state.
+
+.. _java-references-retained:
+
+References Are Retained
+~~~~~~~~~~~~~~~~~~~~~~~
+
+One benefit of Realm's object model is that
+Realm automatically retains all of an object's
+:ref:`relationships <java-client-relationships>` as
+direct references, so you can traverse your graph of
+relationships directly through the results of a query.
+
+A **direct reference**, or pointer, allows you to access a
+related object's properties directly through the reference.
+
+Other databases typically copy objects from database storage
+into application memory when you need to work with them
+directly. Because application objects contain direct
+references, you are left with a choice: copy the object
+referred to by each direct reference out of the database in
+case it's needed, or just copy the foreign key for each
+object and query for the object with that key if it's
+accessed. If you choose to copy referenced objects into
+application memory, you can use up a lot of resources for
+objects that are never accessed, but if you choose to only
+copy the foreign key, referenced object lookups can cause
+your application to slow down.
+
+Realm bypasses all of this using zero-copy
+live objects. Realm object accessors point directly into
+database storage using memory mapping, so there is no distinction
+between the objects in Realm and the results of your query in
+application memory. Because of this, you can traverse direct references
+across an entire realm from any query result.
+
+About the Examples on this Page
+-------------------------------
+
+The examples on this page use the data model of a project
+management app that has two Realm object types: ``Project``
+and ``Task``. A ``Project`` has zero or more ``Tasks``.
+
+See the schema for these two classes, ``Project`` and
+``Task``, below:
+
+.. tabs-realm-languages::
+  
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/ProjectTask.snippet.projecttask.kt
+         :language: kotlin
+         :caption: ProjectTask.kt
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/Project.snippet.project.kt
+         :language: kotlin
+         :caption: Project.kt
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/ProjectTask.snippet.projecttask.java
+         :language: java
+         :caption: ProjectTask.java
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/Project.snippet.project.java
+         :language: java
+         :caption: Project.java
+         :copyable: false
+
+.. _java-read-from-realm:
+
+Read from Realm
+------------------------
+
+A read from a realm generally consists of the following
+steps:
+
+- Get all :ref:`objects <java-realm-objects>` of a certain type from the realm.
+- Optionally, :ref:`filter <java-filter-results>` the results using the :ref:`query engine <java-client-query-engine>`.
+- Optionally, :ref:`sort <java-sort-results>` the results.
+
+All query, filter, and sort operations return a
+:ref:`results collection <java-results-collections>`. The results
+collections are live, meaning they always contain the latest
+results of the associated query.
+
+.. include:: /includes/java-synchronous-reads-writes-ui-thread.rst
+
+.. _java-find-a-specific-object-by-primary-key:
+
+Find a Specific Object by Primary Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To find an object with a specific primary key value, open a realm
+and query the primary key field for the desired primary key value
+using the :java-sdk:`RealmQuery.equalTo() <io/realm/RealmQuery.html#equalTo-java.lang.String-Decimal128->` method:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.find-an-object-by-primary-key.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.find-an-object-by-primary-key.java
+         :language: java
+         :copyable: false
+
+.. _java-query-all-objects-of-a-given-type:
+
+Query All Objects of a Given Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The first step of any read is to **get all objects** of a
+certain type in a realm. With this results collection, you
+can operate on all instances on a type or filter and sort to
+refine the results.
+
+In order to access all instances of ``ProjectTask`` and ``Project``, use
+the :java-sdk:`where() <io/realm/RealmResults.html#where-->` method
+to specify a class:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.get-all-objects.java
+         :language: java
+         :copyable: false
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.get-all-objects.kt
+         :language: kotlin
+         :copyable: false
+
+.. _java-filter-queries-based-on-object-properties:
+.. _java-filter-results:
+
+Filter Queries Based on Object Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A **filter** selects a subset of results based on the
+value(s) of one or more object properties. Realm provides a
+full-featured :ref:`query engine <java-client-query-engine>` you
+can use to define filters. The most common use case is to
+find objects where a certain property matches a certain
+value. Additionally, you can compare strings, aggregate over
+collections of numbers, and use logical operators to build
+up complex queries.
+
+
+In the following example, we use the query
+engine's comparison operators to:
+
+- Find high priority tasks by comparing the value of the ``priority`` property value with a threshold number, above which priority can be considered high.
+- Find just-started or short-running tasks by seeing if the ``progressMinutes`` property falls within a certain range.
+- Find unassigned tasks by finding tasks where the ``assignee`` property is equal to null.
+- Find tasks assigned to specific teammates Ali or Jamie by seeing if the ``assignee`` property is in a list of names.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.filter-results.java
+         :language: java
+         :copyable: false
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.filter-results.kt
+         :language: kotlin
+         :copyable: false
+
+.. _java-sort-query-results:
+.. _java-sort-results:
+
+Sort Query Results
+~~~~~~~~~~~~~~~~~~
+
+A **sort** operation allows you to configure the order in
+which Realm returns queried objects. You can sort based on
+one or more properties of the objects in the results
+collection.
+
+Realm only guarantees a consistent order of results when the
+results are sorted.
+
+The following code sorts the projects by name in reverse
+alphabetical order (i.e. "descending" order).
+
+.. tabs-realm-languages::
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.sort-results.java
+         :language: java
+         :copyable: false
+
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/ReadsTest.snippet.sort-results.kt
+         :language: kotlin
+         :copyable: false
+
+.. _java-query-a-relationship:
+
+Query a Relationship
+~~~~~~~~~~~~~~~~~~~~
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      Consider the following relationship between classes ``Person`` and
+      ``Dog``. This arrangement allows each person to own a single dog:
+
+      .. literalinclude:: /examples/generated/java/sync/Person.snippet.complete.kt
+         :language: kotlin
+         :emphasize-lines: 10
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/Dog.snippet.complete.kt
+         :language: kotlin
+         :copyable: false
+
+      To query this relationship, use dot notation in a
+      :ref:`query <java-client-query-engine>` to access any property
+      of the linked object:
+
+      .. literalinclude:: /examples/generated/java/sync/RealmQueryTest.snippet.query-a-relationship.kt
+         :language: kotlin
+         :emphasize-lines: 15
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      Consider the following relationship between classes ``Human`` and
+      ``Cat``. This arrangement allows each human to own a single cat:
+
+      .. literalinclude:: /examples/generated/java/sync/Human.snippet.complete.java
+         :language: java
+         :emphasize-lines: 12
+         :copyable: false
+
+      .. literalinclude:: /examples/generated/java/sync/Cat.snippet.complete.java
+         :language: java
+         :copyable: false
+
+      To query this relationship, use dot notation in a
+      :ref:`query <java-client-query-engine>` to access any property
+      of the linked object:
+
+      .. literalinclude:: /examples/generated/java/sync/RealmQueryTest.snippet.query-a-relationship.java
+         :language: java
+         :emphasize-lines: 16
+         :copyable: false
+
+.. _java-query-an-inverse-relationship:
+
+Query an Inverse Relationship
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      Consider the following relationship between classes ``Dog`` and
+      ``Person``. In this example, all dogs link to their owner (or
+      multiple owners, if multiple person objects refer to the same dog).
+      Realm calculates the owners of each dog for you based on the field
+      name you provide to the ``@LinkingObjects`` annotation:
+
+      .. include:: /examples/generated/java/sync/Dog.snippet.complete.kt.rst
+
+      .. include:: /examples/generated/java/sync/Person.snippet.complete.kt.rst
+
+      To query this relationship, use dot notation in a
+      :ref:`query <java-client-query-engine>` to access any property
+      of the linked object:
+
+      .. include:: /examples/generated/java/sync/RealmQueryTest.snippet.query-an-inverse-relationship.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      Consider the following relationship between classes ``Cat`` and
+      ``Human``. In this example, all cats link to their human (or
+      multiple humans, if multiple human objects refer to the same cat).
+      Realm calculates the owners of each cat for you based on the field
+      name you provide to the ``@LinkingObjects`` annotation:
+
+      .. include:: /examples/generated/java/sync/Cat.snippet.complete.java.rst
+
+      .. include:: /examples/generated/java/sync/Human.snippet.complete.java.rst
+
+      To query this relationship, use dot notation in a
+      :ref:`query <java-client-query-engine>` to access any property
+      of the linked object:
+
+      .. include:: /examples/generated/java/sync/RealmQueryTest.snippet.query-an-inverse-relationship.java.rst
+
+.. _java-aggregate-data:
+
+Aggregate Data
+~~~~~~~~~~~~~~
+
+.. tabs-realm-languages::
+  
+   .. tab::
+      :tabid: kotlin
+
+      .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.aggregate-operators.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+      :tabid: java
+
+      .. literalinclude:: /examples/generated/java/sync/QueryEngineTest.snippet.aggregate-operators.java
+         :language: java
+         :copyable: false

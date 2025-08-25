@@ -1,0 +1,310 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-write-synced-realm:
+
+======================================
+Write Data to a Synced Realm - C++ SDK
+======================================
+
+.. meta:: 
+  :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+  
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+When writing data to a synced realm using :ref:`Flexible Sync <flexible-sync>`, 
+you can use the same APIs as when performing CRUD operations on a non-synced 
+realm. However, there are some differences in behavior to keep in mind as 
+you develop your application.
+
+When you write to a synced realm, your write operations must match *both*
+of the following:
+
+- The sync subscription query
+- The permissions in your App Services App 
+
+If you try to write data that doesn't match either the query subscription or
+the user's permissions, Realm reverts the write with a non-fatal error operation
+called a :ref:`compensating write <cpp-compensating-writes>`.
+
+To learn more about configuring permissions for your app, see
+:ref:`sync-rules` and the :ref:`flexible-sync-permissions-guide` in the
+App Services documentation.
+
+To learn more about permission denied errors, compensating write errors,
+and other Device Sync error types, refer to :ref:`sync-errors` in the App Services documentation.
+
+Determining What Data Syncs
+---------------------------
+
+The data that you can write to a synced realm is determined by the following: 
+
+- Your Device Sync configuration
+- Permissions in your App 
+- The Flexible Sync subscription query used when you open the realm
+
+The examples on this page use an Atlas App Services App with the following 
+Device Sync configuration and a client app with the following Realm SDK 
+data model and subscriptions.
+
+.. _cpp-sync-example-object-model:
+
+In this example, the client app uses the following object model:
+
+.. literalinclude:: /examples/generated/cpp/sync-errors.snippet.compensating-write-model.cpp
+   :language: cpp
+
+.. _cpp-app-services-configuration:
+
+App Services Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Based on the above example object model, Device Sync is configured with the 
+following queryable fields:
+
+- ``_id`` (always included)
+- ``complexity``
+- ``ownerId``
+
+The App Services App has permissions configured to let users read and write only 
+their own data:
+
+.. code-block:: json
+
+   {
+      "roles": [
+         {
+            "name": "readOwnWriteOwn",
+            "apply_when": {},
+            "document_filters": {
+               "write": {
+                  "ownerId": "%%user.id"
+               },
+               "read": {
+                  "ownerId": "%%user.id"
+               }
+            },
+            "read": true,
+            "write": true,
+            "insert": true,
+            "delete": true,
+            "search": true
+         }
+      ]
+   }
+
+Any object in the Atlas collection where the ``ownerId`` does not match 
+the ``user.identifier()`` of the logged-in user cannot sync to this realm.
+
+.. _cpp-client-data-model-and-configuration:
+
+Client Data Model and Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The examples on this page use the following synced realm configuration with 
+this sync query and object model:
+
+.. tabs::
+
+   .. tab:: Sync Query
+      :tabid: sync-query
+
+      .. literalinclude:: /examples/generated/cpp/sync-errors.snippet.compensating-write-setup.cpp
+         :language: cpp
+
+   .. tab:: Object Model
+      :tabid: object-model
+
+      .. literalinclude:: /examples/generated/cpp/sync-errors.snippet.compensating-write-model.cpp
+         :language: cpp
+
+With this Sync query, any object in the Atlas collection where the 
+``complexity`` property's value is greater than ``4`` cannot sync to this 
+realm.
+
+Write to a Synced Realm
+-----------------------
+
+Writes to Flexible Sync realms may broadly fall into one of two categories, depending on 
+whether the write matches the :ref:`permissions <permissions>` and the
+:ref:`Flexible Sync subscription query <cpp-flexible-sync>`: 
+
+- Successful writes: The written object matches both the query subscription
+  and the user's permissions. The object writes successfully to the realm,
+  and syncs successfully to the App Services backend and other devices.
+- Compensating writes: The written object does not match
+  the subscription query or the user does not have sufficient
+  permissions to perform the write. Realm reverts the illegal write with a 
+  compensating write operation.
+
+.. tip:: 
+
+   If you want to write an object that does not match the query subscription,
+   you can open a different realm where the object matches the query 
+   subscription. Alternately, you could write the object to a non-synced 
+   realm that does not enforce permissions or subscription queries.
+
+.. _cpp-successful-writes:
+
+Successful Writes
+~~~~~~~~~~~~~~~~~
+
+When the write matches both user permissions *and* the query subscription in the client, 
+the Realm C++ SDK can successfully write the object to the synced realm. 
+This object syncs with the App Services backend when the device has a network connection.
+
+.. literalinclude:: /examples/generated/cpp/sync-errors.snippet.successful-write-example.cpp
+   :language: cpp
+
+.. _cpp-compensating-writes:
+
+Compensating Writes
+~~~~~~~~~~~~~~~~~~~
+
+When the write doesn't match *either* the query subscription or user 
+permissions, Realm reverts the write and provides an array of
+:cpp-sdk:`compensating_write_error_info <structrealm_1_1internal_1_1bridge_1_1compensating__write__error__info.html>`
+objects. 
+
+In more detail, when you write data that is outside the bounds of a query
+subscription or does not match the user's permissions, the following occurs:
+
+#. Because the client realm has no concept of "illegal" writes, the write initially succeeds until Realm resolves the changeset with the App Services backend.
+#. Upon sync, the server applies the rules and permissions. The server determines that the user does not have authorization to perform the write.
+#. The server sends a revert operation, called a "compensating write", back to the client.
+#. The client's realm reverts the illegal write operation.
+
+Any client-side writes to a given object between an illegal write to that object
+and the corresponding compensating write will be lost. 
+In practice, this may look like the write succeeding, but then the 
+object "disappears" when Realm syncs with the App Services backend and 
+performs the compensating write. 
+
+When this occurs, you can refer to the :ref:`App Services logs <logs-sync>` 
+or use the ``compensating_writes_info()`` function in the client to get 
+additional information on the error. For more information, refer 
+to the :ref:`cpp-compensating-write-info` section on this page.
+
+.. _cpp-writes-outside-subscription:
+
+Write Doesn't Match the Query Subscription
+``````````````````````````````````````````
+
+Given the :ref:`configuration <cpp-client-data-model-and-configuration>` for the Flexible 
+Sync realm detailed above, attempting to write this object results in a compensating write error because the object does not match the query 
+subscription:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/cpp/sync-errors.snippet.compensating-write-example.cpp
+      :language: cpp
+
+   .. output:: 
+      :language: console
+
+      Connection[2]: Session[10]: Received: ERROR "Client attempted a write that is not allowed; it has been reverted" (error_code=231, is_fatal=false, error_action=Warning)
+
+You will see the following error message in the App Services logs: 
+
+.. code-block:: console
+
+   Error:
+
+   Client attempted a write that is not allowed; it has been reverted (ProtocolErrorCode=231)
+
+   Details: 
+   {
+      "Item": {
+         "ObjectID(\"6557ddb0bf050934870ca0f5\")": "write to ObjectID(\"6557ddb0bf050934870ca0f5\")
+         in table \"Item\" not allowed; object is outside of 
+         the current query view"
+      }
+   }
+
+.. _cpp-writes-outside-permissions:
+
+Write Doesn't Match Permissions
+```````````````````````````````
+
+Given the :ref:`permissions <cpp-app-services-configuration>` in the Device Sync configuration detailed above, 
+attempting to write this object results in a compensating write error because the ``ownerId`` property does not match
+the ``user.identifier()`` of the logged-in user:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/cpp/sync-errors.snippet.write-not-matching-permissions.cpp
+      :language: cpp
+
+   .. output:: 
+      :language: console
+
+      Connection[2]: Session[11]: Received: ERROR "Client attempted a write that is not allowed; it has been reverted" (error_code=231, is_fatal=false, error_action=Warning)
+
+You will see the following error message in the App Services logs: 
+
+.. code-block:: console
+   
+   Error:
+
+   Client attempted a write that is outside of permissions or query filters; it has been reverted (ProtocolErrorCode=231)
+
+   Details: 
+   {
+      "Item": {
+         "ObjectID(\"6557ddbabf050934870ca0f8\")": "write to ObjectID(\"6557ddbabf050934870ca0f8\") 
+         in table \"Item\" was denied by write filter in role \"readOwnWriteOwn\""
+      }
+   }
+
+.. _cpp-compensating-write-info:
+
+Compensating Write Error Information
+````````````````````````````````````
+
+You can get additional information in the client about why a compensating 
+write occurs using the :cpp-sdk:`compensating_writes_info()
+<structrealm_1_1internal_1_1bridge_1_1sync__error.html>` 
+function, which provides an array of ``compensating_write_error_info`` 
+structs that contain:
+
+- The ``object_name`` of the object the client attempted to write
+- The ``primary_key`` of the specific object
+- The ``reason`` for the compensating write error
+
+This information is the same information you can find in the :ref:`App Services logs <logs-sync>`.
+The C++ SDK exposes this object on the client for convenience and 
+debugging purposes.
+
+The following shows an example of how you might log information 
+about compensating write errors:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/cpp/sync-errors.snippet.get-compensating-write-error-info.cpp
+      :language:  cpp
+
+   .. output:: 
+      :language:  console
+
+      A write was rejected with a compensating write error.
+      An object of type Item
+      was rejected because write to ObjectID("6557ddb0bf050934870ca0f5") in 
+      table "Item" not allowed; object is outside of the current query view.
+
+- The ``Item`` in this message is ``Item`` object used in the :ref:`object model <cpp-client-data-model-and-configuration>` on this page.
+- The ``table "Item"`` refers to the Atlas collection where this object would sync.
+- The reason ``object is outside of the current query view`` in this message is because the query subscription was set to require the object's ``complexity`` property to be less than or equal to ``4``. The client attempted to write an object outside of this boundary.
+- The primary key is the ``objectId`` of the specific object the client attempted to write. 
+
+Group Writes for Improved Performance
+-------------------------------------
+
+.. include:: /includes/sync-memory-performance.rst

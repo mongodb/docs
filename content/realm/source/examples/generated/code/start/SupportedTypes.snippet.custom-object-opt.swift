@@ -1,0 +1,1 @@
+@Persisted var optObjectPropertyName: MyCustomObjectType?

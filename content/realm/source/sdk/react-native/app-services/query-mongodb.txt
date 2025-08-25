@@ -1,0 +1,463 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-access-a-linked-mongodb-cluster:
+.. _react-native-mongodb-data-access:
+.. _react-native-mongodb-remote-access:
+
+================================
+Query MongoDB - React Native SDK
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can query data stored in MongoDB Atlas directly from your client application code
+by using the Realm React Native SDK's :js-sdk:`MongoDB client <Realm-MongoDB.html>`
+with the :manual:`Query API </tutorial/query-documents>`.
+Atlas App Services provides data access :ref:`rules <mongodb-rules>` on
+collections to securely retrieve results based on the logged-in user or the
+content of each document.
+
+.. note:: Example Dataset
+
+   The examples on this page use a MongoDB collection that describes inventory
+   in a chain of plant stores. For more information on the collection schema and
+   document contents, see :ref:`Example Data <react-native-mongodb-example-dataset>`.
+
+Use Cases
+---------
+
+There are a variety of reasons you might want to query a MongoDB data source. 
+Working with data in your client via Atlas Device Sync is not always practical or 
+possible. You might want to query MongoDB when:
+
+- The data set is large or the client device has constraints against loading 
+  the entire data set
+- You are :ref:`creating or updating custom user data 
+  <react-native-access-custom-user-data>`
+- You are retrieving documents that are not modeled in Realm
+- Your app needs to access collections that don't have strict schemas
+- A non-Realm service generates collections that you want to access
+
+While not exhaustive, these are some common use cases for querying MongoDB 
+directly.
+
+Prerequisites
+-------------
+
+Before you can query MongoDB from your React Native application, you must set up
+MongoDB Data Access in your App Services App. To learn how to set up your
+backend App to let the Realm SDK query Atlas,
+refer to :ref:`Set Up MongoDB Data Access <client-data-access>`
+in the App Services documentation.
+
+.. _react-native-mongodb-example-dataset:
+
+.. example:: Example Data
+
+   .. include:: /includes/mongodb-data-access-example-plant-documents.rst
+
+   Documents in the ``plants`` collection use the following schema:
+
+   .. tabs::
+      
+      .. tab:: JSON Schema
+         :tabid: json-schema
+         
+         .. literalinclude:: /includes/plant-object-examplep-schema.json
+            :language: json
+      
+      .. tab:: TypeScript
+         :tabid: typescript
+         
+         .. literalinclude:: /examples/generated/node/mongodb.snippet.plant-document-type.ts
+            :language: typescript
+
+.. _react-native-mongodb-connect:
+
+Connect to a Linked Cluster
+---------------------------
+
+To access a linked cluster from your client application, authenticate a user
+and pass the cluster name to :js-sdk:`User.mongoClient() <Realm.User.html#mongoClient>`.
+This returns a MongoDB service interface that you can use to access databases
+and collections in the cluster.
+
+If you are using ``@realm/react``, you can access the MongoDB client
+with the ``useUser()`` hook in a component wrapped by ``UserProvider``.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/react-native/js/mongodb.test.snippet.mongodb.jsx
+         :language: javascript
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/react-native/ts/mongodb.test.snippet.mongodb.tsx
+         :language: typescript
+
+Read Operations
+---------------
+
+.. _react-native-find-a-single-document:
+.. _react-native-mongodb-findOne:
+
+Find a Single Document
+~~~~~~~~~~~~~~~~~~~~~~
+
+To find a single document, pass a query that matches the document to
+:js-sdk:`collection.findOne() <Realm.MongoDBCollection.html#findOne>`. If you do
+not pass a query, ``findOne()`` matches the first document it finds in
+the collection.
+
+The following snippet finds the document that describes "venus flytrap" plants in the
+:ref:`collection of documents that describe plants for sale in a group of stores
+<react-native-mongodb-example-dataset>`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.find-a-single-document.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.find-a-single-document-result.js
+      :language: js
+
+.. _react-native-find-multiple-documents:
+.. _react-native-mongodb-findMany:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents, pass a query that matches the documents to
+:js-sdk:`collection.find() <Realm.MongoDBCollection.html#find>`. If you do not
+pass a query, ``find()`` matches all documents in the collection.
+
+The following snippet finds all documents that describe perennial plants in the
+:ref:`collection of documents that describe plants for sale in a group of stores
+<react-native-mongodb-example-dataset>`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.find-multiple-documents.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.find-multiple-documents-result.js
+      :language: js
+
+.. _react-native-count-documents:
+.. _react-native-mongodb-count:
+
+Count Documents
+~~~~~~~~~~~~~~~
+
+To count documents, pass a query that matches the documents to
+:js-sdk:`collection.count() <Realm.MongoDBCollection.html#count>`. If you do not
+pass a query, ``count()`` counts all documents in the collection.
+
+The following snippet counts the number of documents in a :ref:`collection of
+documents that describe plants for sale in a group of stores
+<react-native-mongodb-example-dataset>`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.count-documents-in-the-collection.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.count-documents-in-the-collection-result.js
+      :language: js
+
+Write Operations
+----------------
+
+.. _react-native-insert-a-single-document:
+.. _react-native-mongodb-insertOne:
+
+Insert a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To insert a single document, pass it to :js-sdk:`collection.insertOne()
+<Realm.MongoDBCollection.html#insertOne>`.
+
+The following snippet inserts a single document describing a "lily of the
+valley" plant into a :ref:`collection of documents that describe plants for sale
+in a group of stores <react-native-mongodb-example-dataset>`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.insert-a-single-document.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.insert-a-single-document-result.js
+      :language: js
+
+.. _react-native-insert-multiple-documents:
+.. _react-native-mongodb-insertMany:
+
+Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To insert multiple documents at the same time, pass them as an array to
+:js-sdk:`collection.insertMany() <Realm.MongoDBCollection.html#insertMany>`.
+
+The following snippet inserts three documents describing plants into a
+:ref:`collection of documents that describe plants for sale in a group of stores
+<react-native-mongodb-example-dataset>`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.insert-multiple-documents.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.insert-multiple-documents-result.js
+      :language: js
+
+.. _react-native-update-a-single-document:
+.. _react-native-mongodb-updateOne:
+
+Update a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update a single document, pass a query that matches the document and
+an update document to :js-sdk:`collection.updateOne()
+<Realm.MongoDBCollection.html#updateOne>`.
+
+The following snippet updates a single document in a :ref:`collection of
+documents that describe plants for sale in a group of stores
+<react-native-mongodb-example-dataset>`. This operation queries for a document where the
+``name`` field contains the value "petunia" and changes the value of the first
+matched document's ``sunlight`` field to "partial":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.update-a-single-document.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.update-a-single-document-result.js
+      :language: js
+
+.. _react-native-update-multiple-documents:
+.. _react-native-mongodb-updateMany:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update multiple documents simultaneously, pass a query that matches
+the documents and an update description to :js-sdk:`collection.updateMany()
+<Realm.MongoDBCollection.html#updateMany>`.
+
+The following snippet updates multiple documents in a :ref:`collection of
+documents that describe plants for sale in a group of stores
+<react-native-mongodb-example-dataset>`. This operation queries for documents where the
+``_partition`` field contains the value "Store 47" and changes the value of the
+``_partition`` field of each matching document to "Store 51":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.update-multiple-documents.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.update-multiple-documents-result.js
+      :language: js
+
+.. _react-native-upsert-documents:
+.. _react-native-mongodb-upsert:
+
+Upsert Documents
+~~~~~~~~~~~~~~~~
+
+To upsert a document, set the ``upsert`` option to ``true`` in your update
+operation. If the operation's query does not match any document in the
+collection, an upsert automatically inserts a single new document into the
+collection that matches the provided query document with the update applied to
+it.
+
+The following snippet updates a document in a :ref:`collection of documents that
+describe plants for sale in a group of stores <react-native-mongodb-example-dataset>`
+with an upsert operation. The query doesn't match any existing documents, so
+MongoDB automatically creates a new one.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.upsert-documents.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.upsert-documents-result.js
+      :language: js
+
+.. _react-native-delete-a-single-document:
+.. _react-native-mongodb-deleteOne:
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete a single document from a collection, pass a query that matches
+the document to :js-sdk:`collection.deleteOne()
+<Realm.MongoDBCollection.html#deleteOne>`. If you do not pass a query or
+if the query matches multiple documents, then the operation deletes the
+first document it finds.
+
+The following snippet deletes one document in a :ref:`collection of documents
+that describe plants for sale in a group of stores
+<react-native-mongodb-example-dataset>`. This operation queries for a document where
+the ``color`` field has a value of "green" and deletes the first document that
+matches the query:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.delete-a-single-document.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.delete-a-single-document-result.js
+      :language: js
+
+.. _react-native-delete-multiple-documents:
+.. _react-native-mongodb-deleteMany:
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete multiple document from a collection, pass a query that matches
+the documents to :js-sdk:`collection.deleteMany()
+<Realm.MongoDBCollection.html#deleteMany>`. If you do not pass a query,
+``deleteMany()`` deletes all documents in the collection.
+
+The following snippet deletes all documents for plants that are in "Store 51" in
+a :ref:`collection of documents that describe plants for sale in a group of
+stores <react-native-mongodb-example-dataset>`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.delete-multiple-documents.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.delete-multiple-documents-result.js
+      :language: js
+
+Real-time Change Notifications
+------------------------------
+
+You can call :js-sdk:`collection.watch() <Realm.MongoDBCollection.html#watch>`
+to subscribe to real-time change notifications that MongoDB emits whenever a
+document in the collection is added, modified, or deleted. Each notification
+specifies a document that changed, how it changed, and the full document after
+the operation that caused the event.
+
+``collection.watch()`` returns an :mdn:`async generator
+<Web/JavaScript/Reference/Statements/for-await...of#Iterating_over_async_generators>`
+that allows you to asynchronously pull :manual:`change events
+</reference/change-events/>` for operations as they occur.
+
+``collection.watch()`` requires some set up to work with a React Native client
+app. To watch a collection for changes, you must first install the
+:npm:`react-native-polyfill-globals <package/react-native-polyfill-globals/>`
+and :npm:`@babel/plugin-proposal-async-generator-functions 
+<package/@babel/plugin-proposal-async-generator-functions>` packages.
+
+**To use collection.watch():** 
+
+#. Install dependencies.
+
+   .. code-block:: bash
+   
+      npm install react-native-polyfill-globals text-encoding
+      npm install --save-dev @babel/plugin-proposal-async-generator-functions
+
+#. Import polyfills in a higher scope than where you need to use them. For
+   example, in ``index.js``.
+
+   .. literalinclude:: /examples/generated/react-native/ts/index.snippet.watch-polyfills.js
+      :language: javascript
+
+.. include:: /includes/serverless-watch-note.rst
+
+.. _react-native-watch-for-all-changes-in-a-collection:
+.. _react-native-mongodb-watch-a-collection:
+
+Watch for All Changes in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the ``@realm/react`` package, make sure you have 
+:ref:`configured user authentication <react-native-configure-authentication>`
+for your app.
+
+To watch for all changes in a collection, call :js-sdk:`collection.watch()
+<Realm.MongoDBCollection.html#watch>` with no arguments. This call must be
+wrapped by a ``UserProvider`` with an authenticated user.
+
+.. tabs-realm-languages::
+      
+   .. tab::
+      :tabid: typescript
+      
+      .. literalinclude:: /examples/generated/react-native/ts/mongodb-watch.test.snippet.mongodb-watch.tsx
+         :language: typescript
+
+   .. tab::
+      :tabid: javascript
+      
+      .. literalinclude:: /examples/generated/react-native/js/mongodb-watch.test.snippet.mongodb-watch.jsx
+         :language: javascript
+
+.. _react-native-watch-for-specific-changes-in-a-collection:
+.. _react-native-mongodb-watch-a-collection-with-filter:
+
+Watch for Specific Changes in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To watch for specific changes in a collection, pass a query that matches
+:manual:`change event </reference/change-events/>` fields to
+:js-sdk:`collection.watch() <Realm.MongoDBCollection.html#watch>`:
+
+.. literalinclude:: /examples/generated/node/mongodb.snippet.watch-a-collection-with-filter.js
+   :language: javascript
+
+Aggregation Operations
+----------------------
+
+Aggregation operations run all documents in a collection through a series of
+stages called an :manual:`aggregation pipeline </core/aggregation-pipeline>`.
+Aggregation allows you to filter and transform documents, collect summary data
+about groups of related documents, and other complex data operations.
+
+.. _react-native-aggregate-documents-in-a-collection:
+.. _react-native-mongodb-aggregate:
+
+Run an Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To execute an aggregation pipeline, pass an array of aggregation stages to
+:js-sdk:`collection.aggregate() <Realm.MongoDBCollection.html#aggregate>`.
+Aggregation operations return the result set of the last stage in the pipeline.
+
+The following snippet groups all documents in the ``plants`` collection by their
+``type`` value and aggregates a count of the number of each type:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /examples/generated/node/mongodb.snippet.aggregate-documents-in-a-collection.js
+      :language: js
+
+   .. output:: /examples/generated/node/mongodb.snippet.aggregate-documents-in-a-collection-result.js
+      :language: js
+
+
+.. include:: /includes/aggregation-stages.rst

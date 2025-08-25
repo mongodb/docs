@@ -1,0 +1,274 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-connect-to-backend:
+
+==========================================
+Connect to Atlas App Services - Kotlin SDK
+==========================================
+
+.. meta::
+   :keywords: code example
+   :description: Initialize your app client and connect to the Atlas App Services backend using the Kotlin SDK.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to initialize your App client and connect to the Atlas
+App Services backend using the Kotlin SDK.
+
+The **App client** is the client-side interface to the App Services backend.
+It lets you interact with your App Services App and provides access to App
+Services functionality, including:
+
+- :ref:`Authenticating <kotlin-authenticate>` app users
+- :ref:`Synchronizing data <kotlin-sync>` between the Atlas backend and the
+  client app using Device Sync
+- :ref:`Calling Atlas functions <kotlin-call-function>`
+
+Each App client is associated with a single App ID. To learn how to find your
+App ID in the App Services UI, refer to
+:ref:`Find Your App ID <find-your-app-id>` in the App Services documentation.
+
+Prerequisites
+-------------
+
+Before you can connect to Atlas App Services, you need an App Services App
+with an App ID.
+
+To get started, refer to :ref:`Create an App <create-a-realm-app>`
+in the App Services documentation.
+
+.. _kotlin-access-the-app-client:
+
+Initialize the App Client
+-------------------------
+
+The Kotlin SDK uses the
+`App <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/index.html>`__
+interface to access an ``App`` client.
+
+Each ``App`` client is associated with a single App ID.
+You can have multiple App client instances that connect to multiple
+Apps, but all App client instances that share the same App ID use the same
+underlying connection.
+
+You can initialize an App client by calling one of the following methods:
+
+- ``.create()``: initializes an App with default configuration values
+- ``.build()``: initializes an App with custom configuration values passed
+  through an ``AppConfiguration`` object
+
+Once you initialize the App, you can use the ``App`` instance to
+access App Services functionality.
+
+Default App Client
+~~~~~~~~~~~~~~~~~~
+
+To initialize an App with default configuration values, pass the App ID
+for your App Services App to the
+`App.create()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/-companion/create.html>`__
+method:
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.initialize-app-client.kt
+   :language: kotlin
+
+.. _kotlin-app-client-configuration:
+
+Configured App Client
+~~~~~~~~~~~~~~~~~~~~~
+
+The `AppConfiguration
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/index.html>`__
+interface lets you configure your App client with optional arguments
+for more granular control of your app connection details, such as custom
+request headers and keys for local encryption.
+
+To control the configuration options, use the
+`AppConfiguration.Builder
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/-builder/index.html>`__
+and call the ``.build()`` method to pass a configuration object:
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.configure-app-client.kt
+   :language: kotlin
+
+Configuration Caching
+`````````````````````
+
+.. versionchanged:: 1.14.0
+   ``baseUrl`` is not cached in the ``AppConfiguration``
+
+When you initialize the App client, the configuration is cached internally.
+
+Attempting to close and then re-open an App with a changed configuration
+within the same process has no effect. The client continues to use the
+cached configuration.
+
+Starting with Kotlin SDK version 1.14.0, the
+`baseUrl() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/index.html#-175646410%2FProperties%2F380376748>`__
+is *no longer* cached in the ``AppConfiguration``. This means that you can
+change the ``baseUrl``, and the App client will use the updated configuration.
+In earlier SDK versions, changes to the ``baseUrl`` in a cached App
+configuration have no effect.
+
+Configure the App Client
+------------------------
+
+The following sections describe how to build the ``AppConfiguration`` client
+with specific properties.
+
+.. _kotlin-share-sync-connections:
+
+Share Sync Connections
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/kotlin-note-sync-config-option.rst
+
+.. versionadded:: 1.13.0
+
+By default, the SDK opens a separate connection to the server for
+each synced realm. In Kotlin v1.13.0 and later, you can enable
+**session multiplexing**. When enabled, the SDK
+shares a connection to the server for all synced realms opened with
+a single App Services user. Sharing a connection across multiple
+sessions reduces resources and can improve performance.
+
+Multiplexing is disabled by default. You can enable it on the
+``AppConfiguration`` using the `.enableSessionMultiplexing()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/-builder/index.html#-839865185%2FFunctions%2F380376748>`__
+method, which accepts a Boolean value.
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.enable-multiplexing.kt
+   :language: kotlin
+
+When enabled, the shared connection does not immediately close when all sessions are closed.
+Instead, it remains open for the ``connectionLingerTime``, which defaults to
+30 seconds. You can override this duration by passing a new value to
+`SyncTimeoutOptions.connectionLingerTime()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-timeout-options/connection-linger-time.html>`__
+on the ``AppConfiguration``.
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.enable-multiplexing-with-timeout.kt
+   :language: kotlin
+
+For more information, refer to the
+:ref:`kotlin-configure-sync-timeouts` section on this page.
+
+.. _kotlin-configure-sync-timeouts:
+
+Configure Sync Timeouts
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/kotlin-note-sync-config-option.rst
+
+.. versionadded:: 1.13.0
+
+In Kotlin v1.13.0 and later, you can override the default
+timeout settings used when syncing data between the Atlas backend
+and the client app.
+
+You can set various sync timeout settings on the
+``AppConfiguration`` using the `.syncTimeouts()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/-builder/index.html#90306255%2FFunctions%2F380376748>`__
+method. Pass specific timeout property values you want to override. The
+configured timeouts apply to all sync sessions in the app.
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.sync-timeout-configuration.kt
+   :language: kotlin
+
+For a complete list of the available timeout properties and their
+definitions, refer to the
+`SyncTimeoutOptionsBuilder <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-timeout-options-builder/index.html>`__
+API reference.
+
+.. _kotlin-encrypt-app-metadata:
+
+Encrypt App Metadata
+~~~~~~~~~~~~~~~~~~~~
+
+When you connect to App Services, Realm creates additional metadata files on
+a device. For more information about these metadata files, refer to
+:ref:`<kotlin-realm-database-internals>`.
+
+You can encrypt the metadata that App Services stores on client devices,
+similar to how you :ref:`<kotlin-encrypt-a-synced-realm>`.
+
+To encrypt App metadata, pass your encryption key to the
+`encryptionKey <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/encryption-key.html>`__
+property when you initialize the App:
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.encrypted-app-client.kt
+   :language: kotlin
+
+Set Custom HTTP Headers
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.11.0
+
+If you use App Services or Device Sync with a proxy setup, you may need to set
+custom HTTP headers. The Kotlin SDK supports setting custom HTTP headers
+on the App. These headers are appended to every request to the App Services
+App, including :ref:`function calls <kotlin-call-function>`.
+
+When you initialize the App, you can pass:
+
+- the custom `authorizationHeaderName
+  <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/authorization-header-name.html>`__
+  ``String`` value
+- any `customRequestHeaders
+  <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/custom-request-headers.html>`__
+  in a map of ``String`` header keys and values (SDK accepts empty values but
+  not empty keys)
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.set-custom-http-headers.kt
+   :language: kotlin
+
+.. _kotlin-enable-platform-networking:
+
+Enable Platform Networking
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.14.0
+
+Atlas Device SDK's **platform networking** lets you use your platform's networking
+stack instead of the default WebSocket client for Device Sync
+traffic.
+
+When enabled, you can configure applications running on Android and
+Java Virtual Machine (JVM) platforms to use managed WebSockets over
+:github:`OkHttp </square/okhttp/blob/master/CHANGELOG.md>`. Managed WebSockets provide advanced
+configuration support for proxies and firewalls that require authentication.
+
+Platform networking is disabled by default. You can enable it on the
+``AppConfiguration`` using the
+`AppConfiguration.usePlatformNetworking()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/-builder/use-platform-networking.html>`__
+method, which accepts a Boolean value.
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.enable-platform-networking.kt
+   :language: kotlin
+
+.. note:: Android and JVM platforms only
+
+   This feature is currently only available on Android and Java Virtual
+   Machine (JVM) platforms.
+
+Close the App Client
+--------------------
+
+You can manually close an App instance and release all underlying resources
+using the `App.close()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/close.html>`__ method:
+
+.. literalinclude:: /examples/generated/kotlin/AppClientTest.snippet.close-app-client.kt
+   :language: kotlin
+
+If not closed manually, resources are freed when the App instance is garbage collected.

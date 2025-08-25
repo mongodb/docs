@@ -1,0 +1,1 @@
+@property RLMSet<RLMString> *setName;

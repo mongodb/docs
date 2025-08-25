@@ -1,0 +1,138 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-open-synced-realm:
+
+=================================
+Open a Synced Realm - Flutter SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to open a synced realm using Device Sync.
+To learn how to open and configure non-synced realms,
+see :ref:`Open and Close a Realm <flutter-open-close-realm>`.
+
+Before You Begin
+----------------
+
+Before you open a realm with Flexible Sync in a Flutter application:
+
+#. :ref:`Configure Flexible Sync on the backend <enable-flexible-sync>`.
+   You must configure Flexible Sync in the backend before you can use it with your
+   client application.
+#. :ref:`Initialize the App client <flutter-connect-to-backend>`.
+#. :ref:`Authenticate a user <flutter-authenticate>` in your client project.
+
+Open a Synced Realm
+-------------------
+
+To open a synced realm, pass a logged in user, a list of
+Realm object schemas, and additional optional named arguments to the
+:flutter-sdk:`Configuration.flexibleSync() <realm/Configuration/flexibleSync.html>` constructor.
+This constructor returns a :flutter-sdk:`FlexibleSyncConfiguration <realm/FlexibleSyncConfiguration-class.html>`.
+Then, pass the ``FlexibleSyncConfiguration`` to :flutter-sdk:`Realm() <realm/Realm-class.html>`
+to open an instance of the realm. Data syncs with App Services in the background
+after you open the realm.
+
+.. literalinclude:: /examples/generated/flutter/open_flexible_sync_realm_test.snippet.open-flexible-sync-realm.dart
+   :language: dart
+
+Once you open a synced realm, :ref:`configure and manage the sync subscriptions
+<flutter-flexible-sync-manage-subscriptions>`.
+
+.. _flutter-open-realm-async:
+
+Open a Realm After Downloading Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To sync all data with App Services when you open a realm, use the asynchronous method
+:flutter-sdk:`Realm.open() <realm/Realm/open.html>`. The operation syncs all available
+data before returning the realm.
+
+On first open, ``Realm.open()`` downloads all data that matches your sync subscriptions.
+Subsequent opens only download the latest changes.
+Depending on initial realm size and updates to the data set while the device is not syncing,
+performance may be slower on first open and faster on subsequent opens.
+
+If the client application is offline, ``Realm.open()`` does not resolve.
+You should check if the device is connected to the internet before using ``Realm.open()``.
+If the device is not connected to the internet, you can still use ``Realm()``
+to open a realm immediately and sync data in the background when an internet connection is available.
+
+.. literalinclude:: /examples/generated/flutter/open_flexible_sync_realm_test.snippet.async-open.dart
+   :language: dart
+
+.. _flutter-progress-callback:
+
+To track the state of the synchronization, pass a :flutter-sdk:`ProgressCallback <realm/ProgressCallback.html>`
+to the optional named argument ``onProgressCallback``.
+
+.. literalinclude:: /examples/generated/flutter/open_flexible_sync_realm_test.snippet.async-open-track-progress.dart
+   :language: dart
+
+.. tip::
+
+   If you want to configure progress notifications *after* opening a realm, use 
+   :ref:`SyncSession.getProgressStream <flutter-monitor-sync-progress>`.
+
+To be able to cancel a synchronization in progress, pass a `CancellationToken
+<https://pub.dev/documentation/cancellation_token/latest/cancellation_token/CancellationToken-class.html>`__
+instance to the optional named argument ``cancellationToken``.
+Call `CancellationToken.cancel() <https://pub.dev/documentation/cancellation_token/latest/cancellation_token/CancellationToken/cancel.html>`__
+to cancel the synchronization.
+
+.. literalinclude:: /examples/generated/flutter/open_flexible_sync_realm_test.snippet.async-open-cancel.dart
+   :language: dart
+
+.. example:: Realm() vs. Realm.open()
+
+   This section compares examples of scenarios when you might want to use ``Realm()``
+   versus ``Realm.open()`` to open a realm in an application.
+
+   Consider an app that allows users to record and save their favorite recipes.
+   You might want to give the user the option to create a new
+   recipe without waiting to download updates, or even if they're offline.
+   In this case, ``Realm()`` is preferable. The user can operate offline,
+   but the app syncs their recipes when they next have a network connection.
+
+
+   Consider an game app with a tablet and phone version.
+   A user plays the game on both a table and a phone. The user progresses
+   three levels on the tablet. Later, the user opens the game on a phone.
+   In this case, ``Realm.open()`` is a better way to open the realm.
+   Since ``Realm.open()`` synchronizes data before returning the realm,
+   it makes sure that the user's progress is synced on the phone before they
+   start using the app, even if the initial load time may be slower.
+
+Configure a Realm
+-----------------
+
+For more information on general realm configuration options, refer to
+:ref:`Configure a Realm <flutter-configure-realm>`.
+
+To handle errors in your synced realm using additional configuration properties,
+refer to :ref:`Handle Sync Errors <flutter-handle-sync-errors>`.
+
+Close a Realm
+-------------
+
+Once you've finished working with a synced realm, close it to prevent memory leaks.
+
+.. literalinclude:: /examples/generated/flutter/open_realm_test.snippet.close-realm.dart
+   :language: dart
+
+Further Reading
+---------------
+
+- :ref:`Manage Sync Subscriptions <flutter-flexible-sync-manage-subscriptions>`: Learn how to add,
+  modify, and remove sync subscriptions once you've opened a synced realm.
+- :ref:`Manage Sync Session <flutter-manage-sync-session>`: Learn how to manage
+  the state of the sync session, including pausing and resuming syncing,
+  monitoring upload and download progress, and checking the network connection.
+- :ref:`Sync Data from Multiple Processes <flutter-sync-multiple-processes>`:
+  Learn how to sync data from multiple processes with a single realm.

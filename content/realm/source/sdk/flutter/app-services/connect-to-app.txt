@@ -1,0 +1,171 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-connect-to-backend:
+
+=====================================
+Connect to App Services - Flutter SDK
+=====================================
+
+.. meta::
+  :description: Connect your Atlas Device SDK for Flutter client app to the Atlas App Services backend.
+  :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``App`` client is the interface to the Atlas App Services
+backend. It provides access to App Services features like :ref:`user authentication
+<flutter-authenticate>` and Device Sync.
+
+Before You Begin
+----------------
+
+#. :ref:`Create an App Services App <create-a-realm-app>`
+#. :ref:`Find the App ID in the App Services UI <find-your-app-id>`
+
+.. _flutter-access-the-app-client:
+
+Access the App Client
+---------------------
+
+.. versionchanged:: 1.7.0
+   ``App`` must be created on the main isolate.
+
+Create an ``App`` instance to access App Services features throughout your
+client application. We recommend that you create the ``App`` instance only
+once on the main isolate, ideally as soon as the app starts.
+
+#. Get your App Services App's ID from the App Services UI. To learn how,
+   refer to :ref:`Find your App ID <find-your-app-id>`.
+#. Create an :flutter-sdk:`AppConfiguration <realm/AppConfiguration-class.html>`
+   object with your App's App ID as the argument.
+#. Create an :flutter-sdk:`App <realm/App-class.html>`
+   with the ``AppConfiguration`` you just created. In Flutter v1.7.0 and later,
+   this must be done on the main isolate, otherwise the SDK throws an error.
+
+After you create the ``App``, you can access the constructed ``App`` instance
+on a background isolate using ``App.getById``. Refer to the
+:ref:`Get App by ID <flutter-get-app-by-id>` section on this page for more
+information.
+
+.. literalinclude:: /examples/generated/flutter/app_services_test.snippet.access-app-client.dart
+   :language: dart
+
+You can create multiple App client instances to connect to multiple
+Apps. All App client instances that share the same App ID use the same
+underlying connection.
+
+.. important:: Changing an App Config After Initializing the App
+
+   .. versionchanged:: 1.8.0
+      ``baseUrl`` is not cached in the ``AppConfiguration``
+
+   When you initialize the App client, the configuration is cached internally.
+   Attempting to close and then re-open an App with a changed configuration
+   within the same process has no effect. The client continues to use the
+   cached configuration.
+
+   In Flutter SDK version 1.8.0 and later, the :flutter-sdk:`baseUrl <realm/AppConfiguration/baseUrl.html>`
+   is *no longer* cached in the App configuration. This means that you can change the
+   ``baseUrl``, and the App client will use the updated configuration. In
+   earlier SDK versions, changes to the ``baseUrl`` in a cached App
+   configuration have no effect.
+
+.. _flutter-app-client-configuration:
+
+Advanced Configuration
+----------------------
+
+.. deprecated:: 1.6.0
+   ``App.localAppName`` and ``App.localAppVersion`` are no longer used.
+
+You can add optional arguments to the ``AppConfiguration`` for more granular control
+of your ``App`` client. You may want to add things like custom timeouts
+for connections or keys for local metadata encryption.
+To learn about the available configuration options, refer to the
+:flutter-sdk:`AppConfiguration <realm/AppConfiguration-class.html>` reference documentation.
+
+.. literalinclude:: /examples/generated/flutter/app_services_test.snippet.app-client-advanced-configuration.dart
+   :language: dart
+
+.. note:: Connect Using Android 7 or Older
+
+   The default HTTP client included with the Realm Flutter SDK does not work
+   for apps running on Android 7 or older. To work around this, you must add
+   a custom HTTP client to your ``AppConfiguration``. To learn more,
+   refer to :ref:`Connect to App Services Using Android 7 or Older <flutter-connect-old-android>`.
+
+.. _flutter-get-app-by-id:
+
+Get App by ID
+-------------
+
+.. versionadded:: 1.7.0
+
+After you have created an ``App`` instance on the main isolate, you can access
+the constructed instance on a background isolate by passing the App ID to the
+:flutter-sdk:`App.getById() <realm/App/getById.html>` method. Then, you can use it to work with the ``App`` and users as needed.
+
+.. literalinclude:: /examples/generated/flutter/app_services_test.snippet.access-app-by-id.dart
+   :language: dart
+   :emphasize-lines: 14
+
+.. _flutter-connect-to-specific-server:
+
+Connect to a Specific Server
+----------------------------
+
+By default, Atlas Device SDK connects to Atlas using the global ``baseUrl``
+of ``https://services.cloud.mongodb.com``. In some cases, you may want to
+connect to a different server:
+
+- Your App Services App uses local deployment, and you want to connect directly to a local ``baseUrl`` in your region. 
+For more information, refer to the :ref:`<local-deployment>` App Services documentation.
+
+You can specify a ``baseUrl`` in the
+:flutter-sdk:`AppConfiguration <realm/AppConfiguration-class.html>`:
+
+.. literalinclude:: /examples/generated/flutter/app_services_test.snippet.custom-base-url.dart
+   :language: dart
+
+Connect to a Different Server During Runtime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.8.0
+.. versionchanged:: 2.2.0
+   ``updateBaseUrl`` accepts ``null`` value
+
+In some cases, you might want to change the ``baseUrl`` while the app is
+running.
+
+To change the ``baseUrl`` during runtime, call the experimental
+:flutter-sdk:`app.updateBaseUrl <realm/App/updateBaseUrl.html>` method. You can
+pass ``null`` to reset the ``baseUrl`` to the default value.
+
+.. literalinclude:: /examples/generated/flutter/app_services_test.snippet.change-base-url.dart
+   :language: dart
+
+This API is experimental and may change in future releases.
+
+If you want to change the ``baseUrl`` after you have logged in a user and
+have opened a synced database, the app must perform a client reset. For more
+information, refer to :ref:`flutter-client-reset`.
+
+Perform the following in your code:
+
+1. :ref:`Pause the Sync session <flutter-pause-resume-sync>`
+2. Update the ``baseUrl`` using the ``app.updateBaseUrl`` method
+3. Re-authenticate the user to log in using the new ``baseUrl``
+4. Open a synced database pulling data from the new server
+
+Both the server and the client *must* be online for the user to authenticate and
+connect to the new server. If the server is not online or the client does not
+have a network connection, the user cannot authenticate and open the database.

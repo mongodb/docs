@@ -1,0 +1,1 @@
+std::optional<bool> optBoolName;

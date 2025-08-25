@@ -1,0 +1,175 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-partition-based-sync:
+
+===============================
+Partition-Based Sync - Java SDK
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Partition-Based Sync is an older mode for using Atlas Device Sync with the 
+Realm Java SDK. We recommend using :ref:`Flexible Sync <java-flexible-sync-fundamentals>` 
+for new apps. The information on this page is for users who are still 
+using Partition-Based Sync.
+
+.. tip::
+
+   Realm Java SDK v10.16.0 and newer supports the ability to migrate from 
+   Partition-Based Sync to Flexible Sync. For more information, refer to: 
+   :ref:`java-migrate-pbs-to-fs`.
+
+For more information about Partition-Based Sync and how to configure it
+in Atlas App Services, refer to :ref:`Partition-Based Sync <partition-based-sync>`
+in the App Services documentation.
+
+.. _java-partition-based-sync-fundamentals:
+
+Partition Value
+---------------
+
+When you select :ref:`Partition-Based Sync <partition-based-sync>` for your 
+backend App configuration, your client implementation must include a 
+partition value. This is the value of the :ref:`partition key 
+<partition-key>` field you select when you configure Partition-Based Sync. 
+
+The partition value determines which data the client application can access.
+
+You pass in the partition value when you open a synced realm.
+
+Open a Synced Realm
+--------------------
+
+To configure settings for a realm, create a
+:java-sdk:`SyncConfiguration <io/realm/mongodb/sync/SyncConfiguration.html>` with a
+:java-sdk:`SyncConfiguration.Builder <io/realm/mongodb/sync/SyncConfiguration.Builder.html>`.
+
+The following example configures a synced realm with:
+
+- partition-based Sync
+- synchronous reads explicitly allowed on the UI thread
+- synchronous writes explicitly allowed on the UI thread
+- explicit waiting for all backend changes to synchronize to the device
+  before returning an open realm
+- automatic compaction when launching the realm to save file space
+
+.. warning:: Production Applications Should Handle Client Resets
+
+   Applications used in production environments should handle client
+   reset errors. To learn more, see :ref:`Reset a Client Realm
+   <java-client-resets>`.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/OpenARealmTest.snippet.configure-a-realm.kt
+         :language: kotlin
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/OpenARealmTest.snippet.configure-a-realm.java
+         :language: java
+
+.. include:: /includes/java-synchronous-reads-writes-ui-thread.rst
+
+.. _java-open-synced-realm:
+.. _java-open-a-synced-realm-while-online:
+
+Open a Synced Realm While Online
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/java-open-synced-realm.rst
+
+.. _java-open-a-synced-realm-while-offline:
+
+Open a Synced Realm While Offline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can open a synced realm when offline with the exact same syntax
+that you use to :ref:`open a synced realm while online
+<java-open-a-synced-realm-while-online>`. Not all SDKs follow this
+pattern, so cross-platform developers should consult the documentation
+for each SDK to learn more.
+
+.. _java-migrate-pbs-to-fs:
+
+Migrate from Partition-Based Sync to Flexible Sync
+--------------------------------------------------
+
+You can migrate your App Services Device Sync Mode from Partition-Based Sync 
+to Flexible Sync. Migrating is an automatic process that does not require 
+any changes to your application code. Automatic migration requires Realm 
+Java SDK version 10.16.0 or newer. 
+
+Migrating enables you to keep your existing App Services users and 
+authentication configuration. Flexible Sync provides more versatile permissions
+configuration options and more granular data synchronization.
+
+For more information about how to migrate your App Services App from 
+Partition-Based Sync to Flexible Sync, refer to :ref:`Migrate Device Sync Modes 
+<realm-sync-migrate-modes>`.
+
+.. _java-update-client-code-after-pbs-to-fs-migration:
+
+Updating Client Code After Migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The automatic migration from Partition-Based Sync to Flexible Sync does not
+require any changes to your client code. However, to support this 
+functionality, Realm automatically handles the differences between the two 
+Sync Modes by:
+
+- Automatically creating Flexible Sync subscriptions for each object type 
+  where ``partitionKey == partitionValue``.
+- Injecting a ``partitionKey`` field into every object if one does not already 
+  exist. This is required for the automatic Flexible Sync subscription.
+
+If you need to make updates to your client code after migration, consider 
+updating your client codebase to remove hidden migration functionality.
+You might want update your client codebase when:
+
+- You add a new model or change a model in your client codebase
+- You add or change functionality that involves reading or writing Realm objects
+- You want to implement more fine-grained control over what data you sync
+
+Make these changes to convert your Partition-Based Sync client code to use 
+Flexible Sync:
+
+- Update your :java-sdk:`SyncConfiguration.Builder 
+  <io/realm/mongodb/sync/SyncConfiguration.Builder.html>` to use 
+  :ref:`Flexible Sync <java-flexible-sync-open-realm>`. This involves
+  removing the ``partitionValue`` and adding a set of initial subscriptions, 
+  if needed.
+- Add relevant properties to your object models to use in your Flexible Sync 
+  subscriptions. For example, you might add an ``ownerId`` property to enable
+  a user to sync only their own data.
+- Remove automatic Flexible Sync subscriptions. If you did not add initial 
+  subscriptions in the ``SyncConfiguration.Builder``, manually create the
+  relevant subscriptions.
+
+For examples of Flexible Sync permissions strategies, including examples of 
+how to model data for these strategies, refer to :ref:`flexible-sync-permissions-guide`.
+
+Remove and Manually Create Subscriptions
+````````````````````````````````````````
+
+When you migrate from Partition-Based Sync to Flexible Sync, Realm
+automatically creates hidden Flexible Sync subscriptions for your app. The 
+next time you add or change subscriptions, we recommend that you:
+
+1. :ref:`Remove the automatically-generated subscriptions <java-remove-subscriptions>`. 
+2. :ref:`Manually add the relevant subscriptions in your client codebase <java-sync-add-subscription>`.
+
+This enables you to see all of your subscription logic together in your 
+codebase for future iteration and debugging.
+
+For more information about the automatically-generated Flexible Sync 
+subscriptions, refer to :ref:`realm-sync-migrate-client`.

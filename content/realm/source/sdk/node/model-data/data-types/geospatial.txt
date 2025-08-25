@@ -1,0 +1,352 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-data-types-geospatial:
+
+========================
+Geospatial - Node.js SDK
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. versionadded:: 12.0.0
+
+Geospatial data, or "geodata", specifies points and geometric objects on the Earth's 
+surface. With the geodata types, you can create queries that check whether a given  
+point is contained within a shape. For example, you can find all coffee shops within 
+15 km of a specified point.
+
+.. versionchanged:: 12.3.0
+   Geospatial data supported in Atlas Device Sync
+
+Realm Node.js SDK v12.3.0 and later adds support for geospatial data
+in Atlas Device Sync. This allows you to subscribe to geospatial queries
+in a synced realm. If you try to subscribe to a geospatial query with an older version of the SDK,
+you will receive a server error with a compensating write.
+For more information about managing your Sync subscriptions, 
+refer to :ref:`<node-flexible-sync>`.
+
+For more information on querying geospatial data with Device Sync, 
+refer to :ref:`<geospatial>` in the App Services documentation.
+
+Geospatial Data Types
+---------------------
+
+The Node.js SDK supports geospatial queries using the following data types:
+
+- GeoPoint
+- GeoCircle
+- GeoBox
+- GeoPolygon
+
+The SDK provides these geospatial data types to simplify querying geospatial data. You *cannot* persist these data types directly. 
+
+For information on how to persist geospatial data, refer to the 
+:ref:`<node-persist-geopoint>` section on this page.
+
+.. _node-geopoint:
+
+GeoPoint
+~~~~~~~~
+
+A :js-sdk:`GeoPoint <types/Realm.GeoPoint.html>` defines a specific 
+location on the Earth's surface. All of the geospatial data types use ``GeoPoints`` 
+to define their location. 
+
+``GeoPoint`` can be one of three types:
+
+- An object with:
+
+  - ``latitude``: a number value
+  - ``longitude``: a number value
+  - ``altitude``: an optional number value
+- ``CanonicalGeoPoint``:  an interface that satisfies the GeoJSON specifications for a point
+- ``GeoPosition``: an array with longitude, latitude, and an optional altitude
+
+A GeoPoint is used only as a building block of the other shapes: 
+GeoCircle, GeoBox, and GeoPolygon. These shapes, and the GeoPoint type, 
+are used in queries, not for persistance.
+
+To save geospatial data to realm, refer to :ref:`node-persist-geopoint`.
+
+.. _node-geocircle:
+
+GeoCircle
+~~~~~~~~~
+
+A :js-sdk:`GeoCircle <types/Realm.GeoCircle.html>` defines a circle on 
+the Earth's surface. You define a ``GeoCircle`` by providing:
+
+- A ``GeoPoint`` for the center of the circle
+- A number for the distance (radius) of the circle 
+
+The radius distance uses radians as the unit of measure. The SDK 
+provides the methods ``kmToRadians`` and ``miToRadians`` to convert 
+kilometers or miles to radians.
+
+The following code shows two examples of creating a circle:
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geocircle.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geocircle.js
+          :language: javascript
+
+.. figure:: /images/geocircles.png
+   :alt: Two GeoCircles
+   :width: 150
+   :lightbox:
+
+.. _node-geobox:
+
+GeoBox
+~~~~~~
+
+A :js-sdk:`GeoBox <types/Realm.GeoBox.html>` defines a rectangle on  
+the Earth's surface. You define the rectangle by specifying the bottom left 
+(southwest) corner and the top right (northeast) corner. A GeoBox behaves 
+in the same way as the corresponding :ref:`GeoPolygon <node-geopolygon>`.
+
+The following example creates 2 boxes:
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geobox.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geobox.js
+          :language: javascript
+
+.. figure:: /images/geoboxes.png
+   :alt: 2 GeoBoxes
+   :width: 150
+   :lightbox:
+
+.. _node-geopolygon:
+
+GeoPolygon
+~~~~~~~~~~
+
+A :js-sdk:`GeoPolygon <types/Realm.GeoPolygon.html>` defines a polygon 
+on the Earth's surface. Because a polygon is a closed shape, you must provide a 
+minimum of 4 points: 3 points to define the polygon's shape, and a fourth to 
+close the shape.
+
+.. important::
+
+   The fourth point in a polygon must be the same as the first point.
+
+You can also exclude areas within a polygon by defining one or more "holes". A 
+hole is another polygon whose bounds fit completely within the outer polygon. 
+The following example creates 3 polygons: one is a basic polygon with 5 points, 
+one is the same polygon with a single hole, and the third is the same polygon 
+with two holes:
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geopolygon.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geopolygon.js
+          :language: javascript
+
+.. figure:: /images/geopolygons.png
+   :alt: 3 GeoPolygons
+   :width: 250
+   :lightbox:
+
+.. _node-persist-geopoint:
+
+Persist Geospatial Data
+-----------------------
+
+.. include:: /includes/important-cant-persist-geospatial.rst
+
+If you want to persist geospatial data, it must conform to the 
+`GeoJSON spec <https://datatracker.ietf.org/doc/html/rfc7946>`_. 
+
+Create a GeoJSON-Compatible Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a class that conforms to the GeoJSON spec, you:
+
+1. Create an embedded realm object. For more information about embedded
+   objects, refer to :ref:`node-data-types-embedded-objects`.
+
+#. At a minimum, add the two fields required by the GeoJSON spec:
+
+   - A field of type ``double[]`` that maps to a "coordinates" (case sensitive) 
+     property in the realm schema. 
+
+   - A field of type ``string`` that maps to a "type" property. The value of this 
+     field must be "Point".
+
+To simplify geodata persistance, you can define a model that implements 
+``CanonicalGeoPoint``, which already has the correct shape. The following 
+example shows an embedded class named ``MyGeoPoint`` that is used 
+to persist geospatial data:
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.define-geopoint-class.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.define-geopoint-class.js
+          :language: javascript
+
+Use the Embedded Class
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You then use the custom ``MyGeoPoint`` class in your realm model, as shown in the 
+following example:
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.use-geopoint-class.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.use-geopoint-class.js
+          :language: javascript
+
+You add instances of your class to the realm just like any other Realm 
+model. However, in this example, because the ``MyGeoPoint`` class does not 
+extend ``Realm.Object``, we must specify ``MyGeoPoint.schema`` when opening 
+the realm:
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.write-geospatial-object.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.write-geospatial-object.js
+          :language: javascript
+
+The following image shows the results of creating these two company objects.
+
+.. figure:: /images/geopoints.png
+   :alt: 2 GeoPoints
+   :width: 150
+   :lightbox:
+
+.. _node-query-geospatial:
+
+Query Geospatial Data
+---------------------
+
+To query against geospatial data, you can use the ``geoWithin`` operator 
+with :ref:`RQL <rql>`. The ``geoWithin`` operator takes the "coordinates" 
+property of an embedded object that defines the point we're querying, and 
+one of the geospatial shapes to check if that point is contained within 
+the shape. 
+
+.. note::
+
+   The format for querying geospatial data is the same, regardless of the 
+   shape of the geodata region.
+
+The following examples show querying against various shapes to return a list of 
+companies within the shape:
+
+**GeoCircle**
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geocircle-query.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geocircle-query.js
+          :language: javascript
+
+.. figure:: /images/geocircles-query.png
+   :alt: Querying a GeoCircle example.
+   :width: 150
+   :lightbox:
+
+**GeoBox**
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geobox-query.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geobox-query.js
+          :language: javascript
+
+.. figure:: /images/geoboxes-query.png
+   :alt: Querying a GeoBox example.
+   :width: 150
+
+**GeoPolygon**
+
+.. tabs-realm-languages::
+
+    .. tab::
+      :tabid: typescript
+    
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geopolygon-query.ts
+          :language: typescript
+    
+    .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/v12/geospatial.test.snippet.geopolygon-query.js
+          :language: javascript
+
+.. figure:: /images/geopolygons-query.png
+   :alt: Querying a GeoPolygon example.
+   :width: 150
+   :lightbox:

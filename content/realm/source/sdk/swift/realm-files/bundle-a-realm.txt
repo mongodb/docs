@@ -1,0 +1,130 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _ios-bundle-a-realm:
+
+===============================
+Bundle a Realm File - Swift SDK
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. note:: Bundle Synchronized Realms
+
+   Swift SDK version 10.23.0 introduced the ability to bundle synchronized 
+   realms. Before version 10.23.0, you could only bundle local realms.
+
+Realm supports **bundling** realm files. When you bundle
+a realm file, you include a database and all of its data in your
+application download.
+
+This allows users to start applications for the first time with a set of
+initial data. For synced realms, bundling can avoid a lengthy
+initial download the first time a user opens your application. Instead,
+users need only download the synced changes that occurred since you
+generated the bundled file.
+
+.. include:: /includes/note-bundling-synced-realms.rst
+
+Overview
+--------
+
+To create and bundle a realm file with your application:
+
+1. :ref:`Create a realm file <ios-create-a-realm-for-bundling>` that
+   contains the data you'd like to bundle.
+
+#. :ref:`Bundle the realm file <ios-bundle-realm-file>` in your 
+   production application.
+
+#. In your production application,
+   :ref:`open the realm from the bundled asset file
+   <ios-open-a-realm-from-a-bundled-realm-file>`. For synced
+   realms, you must supply the partition key.
+
+.. _ios-create-a-realm-for-bundling:
+
+Create a Realm File for Bundling
+--------------------------------
+
+1. Build a temporary realm app that shares the data model of your
+   application.
+
+#. Open a realm and add the data you wish to bundle. If using a
+   synchronized realm, allow time for the realm to fully sync.
+
+#. Use the :swift-sdk:`writeCopy(configuration:) <Structs/Realm.html#/s:10RealmSwift0A0V9writeCopy13configurationyAC13ConfigurationV_tKF>` 
+   method to copy the realm to a new file:
+
+.. include:: /includes/swift-concurrency-mainactor.rst
+
+.. literalinclude:: /examples/generated/code/start/BundleRealms.snippet.copy-synced-realm-for-bundling.swift
+   :language: swift
+
+:swift-sdk:`writeCopy(configuration: ) 
+<Structs/Realm.html#/s:10RealmSwift0A0V9writeCopy13configurationyAC13ConfigurationV_tKF>` 
+automatically compacts your realm to the smallest possible size before 
+copying.
+
+.. note:: Differences Between Synced Realms and Local-only Realms
+
+   The above example uses a ``SyncConfiguration`` to configure a synchronized
+   realm. To create a copy of a local realm, configure your realm
+   with ``RealmConfiguration`` instead.
+
+.. _ios-bundle-realm-file:
+
+Bundle a Realm File in Your Production Application
+--------------------------------------------------
+
+Now that you have a copy of the realm that contains the initial data,
+bundle it with your production application. At a broad level, this entails:
+
+1. Create a new project with the exact same data models as your production 
+   app. Open a realm and add the data you wish to bundle. Since realm 
+   files are cross-platform, you can do this in a macOS app.
+#. Drag the compacted copy of your realm file to your production app's Xcode 
+   Project Navigator.
+#. Go to your app target's :guilabel:`Build Phases` tab in Xcode. Add the 
+   realm file to the :guilabel:`Copy Bundle Resources` build phase.
+#. At this point, your app can access the bundled realm file. Find its path 
+   with :apple:`Bundle.main.path(forResource:ofType) 
+   <documentation/foundation/bundle/1410989-path>`.
+
+You can open the realm at the bundle path directly if the
+``readOnly`` property is set to ``true`` on the
+:swift-sdk:`Realm.Configuration <Structs/Realm/Configuration.html>`. If
+you want to modify the bundled realm, first copy the bundled file to
+your app's Documents folder with setting ``seedFilePath`` with the URL of the bundled Realm on your Configuration.
+
+.. tip::
+
+   See the :github:`migration sample app
+   <realm/realm-swift/tree/master/examples/ios/swift/Migration>` for a
+   complete working app that uses a bundled local realm.
+
+.. _ios-open-a-realm-from-a-bundled-realm-file:
+
+Open a Realm from a Bundled Realm File
+--------------------------------------
+
+Now that you have a copy of the realm included with your production
+application, you need to add code to use it. Use the :swift-sdk:`seedFilePath 
+<Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV12seedFilePath10Foundation3URLVSgvp>`
+method when configuring your realm to open the realm
+from the bundled file:
+
+.. include:: /includes/swift-concurrency-mainactor.rst
+
+.. literalinclude:: /examples/generated/code/start/BundleRealms.snippet.open-bundled-synced-realm.swift
+   :language: swift
+
+.. note:: Differences Between Synced Realms and Local-only Realms
+
+   The above example uses a ``SyncConfiguration`` to configure a synchronized
+   realm. To create a copy of a local realm, configure your realm
+   with ``Realm.Configuration`` instead.

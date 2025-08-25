@@ -1,0 +1,184 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-multi-user-applications:
+
+===========================================
+Manage Multi-User Applications - Kotlin SDK
+===========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to manage multiple Atlas App Services users 
+within a single device using the Kotlin SDK. To learn how to authenticate and 
+log in users to a client app, refer to 
+:ref:`<kotlin-authenticate-users>`.
+
+Realm allows multiple users to be logged in to an app simultaneously on a 
+given device. Realm client applications run in the context of a single 
+**active user** even if multiple users are logged in simultaneously.
+There can only be one active user at a time, and the active user is 
+is associated with all outgoing requests. 
+
+User Accounts 
+-------------
+
+A **user account** represents a single, distinct user of your application. 
+App Services creates an associated unique ``User`` object when a user first 
+successfully authenticates and logs in to an app on a device. After log in, 
+the SDK saves the user's information and keeps track of the 
+user's state on the device. This data remains on the 
+device, even if the user logs out, unless you actively remove the user 
+from the device. For more information about App Services users and user 
+accounts, refer to :ref:`<user-accounts>` in the App Services documentation.
+
+User States
+~~~~~~~~~~~
+
+A user's possible state on a given device is represented in the 
+Kotlin SDK by the 
+`user.state <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/-state/index.html>`__ 
+enum. A user account can be ``LOGGED_OUT``, ``LOGGED_IN``, or ``REMOVED``. 
+The following describes how these states correspond to an on-device user at 
+any given time:
+
+- **Logged In**: any authenticated user that has logged in on the device
+  and has not logged out or had its session revoked. The ``user.state``
+  is ``LOGGED_IN``. A logged-in user can be either:
+  
+  - **Active**: a single authenticated user that is currently using the
+    app on a given device. The SDK associates this user with outgoing
+    requests, and Atlas App Services evaluates data access permissions and 
+    runs functions in this user's context.
+  - **Inactive**: all authenticated users that are not the current
+    active user. 
+
+- **Logged Out**: any user that authenticated on the device but
+  has since logged out or had its session revoked. The ``user.state``
+  is ``LOGGED_OUT``.
+
+- **Removed**: any user that has been actively removed from the device. 
+  The SDK logs the user out of the app and removes all information about the user from the device. The user must re-authenticate to use the app again.
+  The ``user.state`` is ``REMOVED``.
+
+.. figure:: /images/multi-user.png
+   :alt: A diagram the outlines the different states a user can be in: logged out, logged in and active, & logged in and inactive.
+
+.. _kotlin-add-a-new-user-to-the-device:
+
+Add a New User to the Device
+----------------------------
+
+The Realm SDK automatically adds users to a device when they log in
+for the first time on that device. After a user successfully logs in, 
+they immediately become the application's active user. 
+
+In the following example, Joe logs in to the app and becomes the 
+active user. Then, Emma logs in and replaces Joe as the active user:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/kotlin/AuthenticationTest.snippet.add-a-new-user.kt
+      :language:  kotlin
+
+   .. output::
+      :language: console 
+               
+      Successfully logged in. User state: LOGGED_IN. Current user is now: 65133e130075a51f12a9e635
+      Successfully logged in. User state: LOGGED_IN. Current user is now: 65133e1357aaf22529343c1b
+
+Retrieve Active User
+--------------------
+
+You can retrieve the current active user using 
+`App.currentUser <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/current-user.html>`__.
+If multiple users are logged in, this returns the last valid user that logged 
+in to the device. This method returns ``null`` if there are no logged-in users.
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.retrieve-current-user.kt
+   :language: kotlin 
+
+For more information, refer to :ref:`<kotlin-retrieve-current-user>`.
+
+.. _kotlin-list-all-users-on-the-device:
+
+List All Users on the Device
+----------------------------
+
+You can access a map of all known user accounts that are stored on 
+the device using the 
+`app.allUsers() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/all-users.html>`__ 
+method. This method returns all users that have logged in to the
+client app on a given device regardless of whether they are currently
+authenticated (the ``user.state`` is ``LOGGED_IN`` or ``LOGGED_OUT``).
+
+In the following example, the SDK returns both Emma and Joe's 
+`user.id <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/id.html>`__:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/kotlin/AuthenticationTest.snippet.list-all-users.kt
+      :language:  kotlin
+
+   .. output::
+      :language: console 
+               
+      User on Device 651330cebe1d42b24b8d510f: 65133e1357aaf22529343c1b
+      User on Device 651330cebe1d42b24b8d510f: 65133e130075a51f12a9e635
+
+Log a User Out
+--------------
+
+You can log a logged-in user out of an app using the 
+`user.logOut() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/log-out.html>`__ 
+method. Once logged out, the user is still stored on the device but
+must log back in to use the app. 
+
+In the following example, Joe is currently logged-in as the current user. 
+After we log Joe out of the app, we confirm that he is still stored on 
+the device as a user and that Emma is now the current user: 
+
+.. io-code-block::
+
+   .. input:: /examples/generated/kotlin/AuthenticationTest.snippet.log-out-a-user.kt
+      :language:  kotlin
+
+   .. output::
+      :language: console 
+               
+      Successfully logged out user. User state: LOGGED_OUT. Current user is now: 65133e1357aaf22529343c1b
+
+For more information on logging a user in and out of an app, 
+refer to :ref:`<kotlin-authenticate>`.
+
+.. _kotlin-remove-a-user-from-the-device:
+
+Remove a User from the Device
+-----------------------------
+
+You can actively remove a user, and all information about that user, from
+a device using 
+`user.remove() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/remove.html>`__. 
+Once removed, the user must re-authenticate to use the app again.
+This *does not* delete the ``User`` object from the App Services App.
+
+In the following example, Emma is the current (and only) logged-in user 
+on the device. After we remove her, we confirm that Emma is removed from the 
+device and that there is no current user, as Joe is still logged out:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/kotlin/AuthenticationTest.snippet.remove-a-user.kt
+      :language:  kotlin
+
+   .. output::
+      :language: console 
+               
+      Successfully removed user. User state: REMOVED. Current user is now: null
+
+For more information on removing and deleting users, refer to
+:ref:`<kotlin-remove-a-user>`.

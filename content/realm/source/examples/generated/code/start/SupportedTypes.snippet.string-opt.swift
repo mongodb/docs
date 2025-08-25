@@ -1,0 +1,1 @@
+@Persisted var optStringName: String?

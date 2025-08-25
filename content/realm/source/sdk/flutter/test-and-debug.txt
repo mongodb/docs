@@ -1,0 +1,154 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-test-and-debug:
+
+==========================
+Test & Debug - Flutter SDK
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page covers some strategies for testing and debugging Flutter apps
+using the Realm Flutter SDK. You likely will have to adapt the examples
+on this page significantly to work with your app.
+
+.. _flutter-test:
+
+Test
+----
+
+To run tests on the Flutter SDK using the
+`flutter_test <https://api.flutter.dev/flutter/flutter_test/flutter_test-library.html>`__
+and `test <https://dart.dev/tools/dart-test>`__, you **must** first run
+the following command:
+
+.. code:: shell
+
+   dart run realm install
+
+This command installs native binaries needed to run tests for the
+Flutter app.
+
+.. note:: Testing on macOS
+
+   If you are developing with the Realm Flutter SDK on macOS,
+   network requests do not work by default due to built-in macOS security settings.
+   To fix this, you must change the Flutter app's macOS network entitlements.
+
+   To learn how to do this, refer to :ref:`Use Realm with the macOS App Sandbox
+   <flutter-macos-development>`.
+
+.. note:: Testing for Dart Standalone SDK
+
+   If you're using the Dart Standalone SDK, you do don't need to install
+   any additional native binaries to run tests. This is because as part
+   of the :ref:`installation <flutter-install>` to use the Dart Standalone SDK
+   in an app, you already need to install the native binaries.
+
+Test Using an In-Memory Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An easy way to use and test Realm-backed applications is to test
+using an in-memory realm. This helps avoid overriding application data or leaking state
+between tests. Note that you **cannot** use an in-memory realm to test Device Sync.
+To create an in-memory realm for your tests, you can do the following:
+
+#. Lazily instantiate the ``Realm`` with the ``late`` keyword at a higher scope than your tests
+#. Open the realm with a :ref:`Configuration.inMemory() <flutter-in-memory-realm>`
+   inside a `setUp function <https://api.flutter.dev/flutter/flutter_test/setUp.html>`__.
+#. Close the realm in a `tearDown function <https://api.flutter.dev/flutter/flutter_test/tearDown.html>`__.
+
+.. literalinclude:: /examples/generated/flutter/in_memory_test.snippet.in-memory-test.dart
+   :language: dart
+
+Test Using a Default Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Another way to use and test Realm-backed applications is to
+use the default realm. To avoid overriding application data or leaking
+state between tests, set the default realm to a new file for each test
+using :ref:`Configuration.defaultRealmName <flutter-customize-default-configuration>`
+inside of a `setUp function <https://api.flutter.dev/flutter/flutter_test/setUp.html>`__.
+
+.. literalinclude:: /examples/generated/flutter/default_realm_test.snippet.default-realm-test.dart
+   :language: dart
+
+Clean up Realm in Tests
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To clean up your tests, you can lazily instantiate the realm with the
+``late`` keyword at a higher scope than your tests. Then run clean up
+operations inside of a `tearDown function <https://api.flutter.dev/flutter/flutter_test/tearDown.html>`__.
+Inside of the ``tearDown`` callback function, close and delete the realm
+instance.
+
+.. literalinclude:: /examples/generated/flutter/clean_up_realm_database_test.snippet.clean-up-realm-db-test.dart
+   :language: dart
+
+Test App Services
+~~~~~~~~~~~~~~~~~
+
+To test how your Flutter app interacts with :ref:`Atlas App Services <flutter-application-services>`,
+create a separate App Services App with the same configuration as
+your production app, and connect to it from your test file. To learn
+more about how to make a copy of the App, refer to :ref:`Copy an App <copy-realm-app>`
+in the App Services documentation.
+
+You also likely need an authenticated user to test the services that the
+App exposes. Often, anonymous users are useful for testing.
+
+To test the app, you can lazily instantiate the ``App`` and ``User``
+with the ``late`` keyword at a higher scope than your tests. Instantiate
+the ``App`` client and log a user in inside a ``setUp`` function. Then
+run clean up operations inside of a `tearDown function
+<https://api.flutter.dev/flutter/flutter_test/tearDown.html>`__.
+Inside of the ``tearDown`` callback function, delete the current user from the backend
+and then log them out on the device.
+
+.. literalinclude:: /examples/generated/flutter/app_services_test.snippet.app-services-test.dart
+   :language: dart
+
+Test Synced Realms
+~~~~~~~~~~~~~~~~~~
+
+To test how your Flutter app works with :ref:`Atlas Device Sync <flutter-sync>`,
+create a separate App Services App with the same configuration as your production app,
+and connect to it from your test file. To learn more about how to make a copy of the App,
+refer to :ref:`Copy an App <copy-realm-app>` in the App Services documentation.
+
+Testing synced realms builds on the Clean up Realm in Tests and
+Test App Services sections above.
+
+To test a synced Realm, you can lazily instantiate the ``App`` and
+``Realm`` with the ``late`` keyword at a higher scope than your tests.
+In a ``tearDown`` function, you should perform the following:
+
+#. Delete all data in the realm.
+#. Sync the latest changes to Atlas to ensure that the deletion propagates to Atlas.
+#. Close the Realm.
+#. Delete the Realm File from the device.
+
+.. literalinclude:: /examples/generated/flutter/synced_realm_test.snippet.synced-realm-test.dart
+   :language: dart
+
+.. _flutter-debug:
+
+Debug
+-----
+
+Debug with Realm Studio
+~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Realm Studio <realm-studio>` enables you to open and edit local realms.
+It supports Mac, Windows and Linux.
+
+Debug with DevTools and Code Editors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To debug your app, You can use the Realm Flutter SDK with `Flutter DevTools
+<https://docs.flutter.dev/development/tools/devtools/overview>`__.

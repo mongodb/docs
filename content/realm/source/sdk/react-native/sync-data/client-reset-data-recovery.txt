@@ -1,0 +1,234 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-advanced-manual-client-reset-data-recovery:
+
+====================================================
+Manual Client Reset Data Recovery - React Native SDK
+====================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+This page explains how to manually recover unsynced realm data after a client reset
+using the Manual Recovery client reset mode.
+
+Manual recovery requires significant amounts of code, schema concessions,
+and custom conflict resolution logic.
+You should only perform a manual recovery of unsynced realm data if
+you cannot lose unsynced data and the other automatic client reset methods do not
+meet your use case.
+
+For more information about the other available client reset modes, refer to
+:ref:`Reset a Client Realm <react-native-client-resets>`.
+
+The specifics of manual recovery depend heavily upon your application
+and your schema. However, there are a few techniques that can help with
+manual recoveries. The :ref:`Track Changes by Object Strategy section
+<react-native-client-reset-track-changes-by-object>` demonstrates
+one method of recovering unsynced changes during a client reset.
+
+.. warning:: Avoid Making Breaking Schema Changes in Production
+
+   Do not expect to recover all unsynced data after a breaking schema
+   change. The best way to preserve user data is to never make a
+   breaking schema change at all.
+
+.. include:: /includes/destructive-schema-change-app-update.rst
+
+.. _react-native-client-reset-track-changes-by-object:
+
+Track Changes by Object Strategy
+--------------------------------
+
+The **track changes by object** manual client reset data recovery strategy
+lets you recover data already written to the client realm file
+but not yet synced to the backend.
+
+In this strategy, you add a "Last Updated Time" to each object model to track
+when each object last changed. We'll watch the
+to determine when the realm last uploaded its state to the backend.
+
+When backend invokes a client reset, find objects that were deleted, created, or updated
+since the last sync with the backend. Then copy that data from
+the backup realm to the new realm.
+
+The following steps demonstrate implementing the process at a high level:
+
+#. **Client reset error**: Your application receives a client reset
+   error code from the backend.
+
+#. **Strategy implementation**: The SDK calls your strategy
+   implementation.
+
+#. **Close all instances of the realm**: Close *all open instances* of
+   the realm experiencing the
+   client reset. If your application architecture makes this difficult
+   (for instance, if your app uses many realm instances simultaneously
+   in listeners throughout the application), it may be easier to restart
+   the application. You can do this programmatically or through a direct
+   request to the user in a dialog.
+
+#. **Move the realm to a backup file**: Call the :js-sdk:`Realm.App.Sync.initiateClientReset()
+   <Realm.App.Sync.html#.initiateClientReset>` static method.
+   This method moves the current copy of the client realm file to a
+   backup file.
+
+#. **Open new instance of the realm**: Open a new instance of the realm
+   using your typical sync configuration. If your application uses
+   multiple realms, you can identify the realm experiencing a client
+   reset from the backup file name.
+
+#. **Download all realm data from the backend**: Download the entire set
+   of data in the realm before you proceed. This is the default behavior of the 
+   :realm-react-sdk:`FlexibleSyncConfiguration 
+   <types/Realm.FlexibleSyncConfiguration.html>` object.
+
+#. **Open the realm backup**: Use the ``error.config`` object passed as an argument
+   to the ``SyncConfiguration.error`` callback function.
+
+#. **Migrate unsynced changes**: Query the backup realm for data to
+   recover. Insert, delete or update data in the new realm accordingly.
+
+
+Example
+~~~~~~~
+
+This example demonstrates implementing the **track changes by object** 
+manual client reset data recovery strategy.
+
+.. note:: Limitations of This Example
+
+   - This example only is for an application with a single realm containing 
+     a single Realm object type. For each additional object type, you'd need 
+     to add another sync listener as described in the 
+     :ref:`Track Synchronization in Separate Realm section
+     <react-native-manual-client-reset-track-sync>`.
+
+   - This example keeps track of the last time each *object* was updated. As
+     a result, the recovery operation overwrites the entire object in the
+     new realm if any field was updated after the last successful sync
+     of the backup realm. This could overwrite fields updated by other
+     clients with old data from this client. If your realm objects contain
+     multiple fields containing important data, consider keeping track of
+     the last updated time of each *field* instead, and recovering each
+     field individually.
+
+   For more information on other ways to perform a manual client reset with data recovery,
+   refer to the :ref:`Alternative Strategies section
+   <react-native-manual-client-reset-alternative-strategies>`.
+
+.. _react-native-manual-client-reset:
+
+.. procedure::
+
+   .. step:: Include Last Updated Time in Your Schema
+
+      Add a new property to your Realm object schema to track the last time it was updated. 
+      Whenever you create or update a Realm object with the schema, include a 
+      timestamp with the update time. 
+
+      Ordinarily, there is no way to detect when a Realm object was last
+      modified. This makes it difficult to determine which changes were synced
+      to the backend. By adding a timestamp ``lastUpdated`` to your Realm object models and
+      updating that timestamp to the current time whenever a change occurs,
+      you can keep track of when objects were changed. 
+
+      .. literalinclude:: /examples/generated/node/client-reset.snippet.track-updates-to-objects.js
+         :language: javascript
+         :emphasize-lines: 6
+
+
+      .. _react-native-manual-client-reset-config:
+
+   .. step:: Configure Realm to Use Manual Client Reset
+
+      In the realm's :realm-react-sdk:`FlexibleSyncConfiguration 
+      <types/Realm.FlexibleSyncConfiguration.html>`, set the ``clientReset``
+      field to manual mode and include an ``error`` callback function. You'll
+      define the error callback function in the 
+      :ref:`Create Callback to Handle Client Reset section <react-native-manual-client-reset-create-callback>`.
+
+      .. literalinclude:: /examples/generated/node/client-reset.snippet.config.js
+         :language: javascript
+         :emphasize-lines: 6-9
+
+      .. _react-native-manual-client-reset-track-sync:
+
+   .. step:: Track Synchronization in Separate Realm
+
+      Just knowing when objects were changed isn't enough to recover data
+      during a client reset. You also need
+      to know when the realm last completed a sync successfully. This example
+      implementation uses a singleton object in a separate realm called ``LastSynced``
+      paired with a change listener to record when a
+      realm finishes syncing successfully.
+
+      Define your LastSynced Realm to track the latest time your realm synchronizes.
+
+      .. literalinclude:: /examples/generated/node/client-reset.snippet.last-synced-realm.js
+         :language: javascript
+
+      Register a change listener to subscribe to changes to the Dog collection. 
+      Only update the LastSynced object if the sync session is connected and all local
+      changes have been synced with the server. 
+
+      .. literalinclude:: /examples/generated/node/client-reset.snippet.track-sync-session.js
+         :language: javascript
+
+      .. _react-native-manual-client-reset-create-callback: 
+
+   .. step:: Create Callback to Handle Client Reset
+
+      Now that you've recorded update times for all objects in your application
+      as well as the last time your application completed a sync, it's time to
+      implement the manual recovery process. This example handles two main
+      recovery operations:
+
+      - Restore unsynced inserts and updates from the backup realm
+      - Delete objects from the new realm that were previously deleted from
+        the backup realm
+
+      You can follow along with the implementation of these operations in the
+      code samples below.
+
+      .. literalinclude:: /examples/generated/node/client-reset.snippet.handle-sync-error.js
+         :language: javascript
+
+.. _react-native-manual-client-reset-alternative-strategies:
+
+Alternative Strategies
+----------------------
+
+Possible alternate implementations include:
+
+- **Overwrite the entire backend with the backup state**:
+  With no "last updated time" or "last synced time", upsert
+  all objects from the backup realm into the new realm. There is no way
+  to recovered unsynced deletions with this approach. This approach
+  overwrites all data written to the backend by other clients since the
+  last sync. Recommended for applications where only one user writes
+  to each realm.
+
+- **Track changes by field**:
+  Instead of tracking a "last updated time" for every *object*, track the
+  "last updated time" for every *field*. Update fields individually using
+  this logic to avoid overwriting field writes from other clients with
+  old data. Recommended for applications with many fields per-object
+  where conflicts must be resolved at the field level.
+
+- **Track updates separately from objects**:
+  Instead of tracking a "last updated time" in the schema of each object,
+  create another model in your schema called ``Updates``. Every time any
+  field in any object (besides ``Updates``) updates, record the primary
+  key, field, and time of the update. During a client reset, "re-write"
+  all of the ``Update`` events that occurred after the "last synced time"
+  using the latest value of that field in the backup realm.
+  This approach should replicate all unsynced local changes in the new
+  realm without overwriting any fields with stale data. However, storing
+  the collection of updates could become expensive if your application
+  writes frequently. Recommended for applications where adding "lastUpdated"
+  fields to object models is undesirable.

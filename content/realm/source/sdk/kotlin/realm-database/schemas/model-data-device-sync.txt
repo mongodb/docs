@@ -1,0 +1,806 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-model-data-device-sync:
+
+========================================
+Model Data with Device Sync - Kotlin SDK
+========================================
+
+.. meta:: 
+  :keywords: code example, android, kmm, kmp, ios
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes the Device Sync data model and how it's used to map data from
+the App Services schema used by Device Sync to the Realm schema used 
+by the Kotlin SDK in the client. 
+
+This page *does not*: 
+
+- Explain how to define a Realm object model in the client app. To learn how, 
+  refer to :ref:`<kotlin-define-object-model>`.
+- Explain how to set up Device Sync on a client app. To learn how, refer to 
+  :ref:`<kotlin-add-sync-to-app>`. 
+
+For a detailed explanation of Device Sync, refer to :ref:`realm-sync-get-started` 
+in the Atlas App Services documentation.
+
+.. tip:: 
+
+  The table in the :ref:`<kotlin-device-sync-schema-types-table>`
+  section on this page provides a quick reference for supported data types 
+  and how they map between Realm and App Services. For a more comprehensive 
+  resource, refer to :ref:`<sync-data-model-mapping>` in the App Services 
+  documentation.
+
+.. _kotlin-define-device-sync-data-model:
+
+Define a Device Sync Data Model
+-------------------------------
+
+The Atlas Device Sync data model is defined by the following
+schemas, which allows Device Sync to map your data between the 
+client and Atlas:
+
+- **Realm schema**: the client-side object model in your app that 
+  defines your data as Kotlin classes using the Kotlin SDK. 
+- **App Services schema**: the server-side schema in Atlas App Services that 
+  defines your data in BSON. For more information, refer to :ref:`<schemas>` in 
+  the App Services documentation.
+
+Device Sync uses these schemas to validate and convert objects between
+Kotlin and BSON format when syncing data. 
+When you sync data from the client, Device Sync automatically 
+converts the Realm Kotlin data types to BSON. 
+Then, when the client device syncs data from Atlas via Device 
+Sync, the SDK converts the BSON data back to Kotlin objects.
+
+To use Device Sync, you must define a Realm schema and
+an App Services schema, and both schemas must be consistent with each other.
+
+You can define your schema in the client app 
+or in Atlas first, depending on your preference and use case. 
+You can then generate a corresponding schema with matching 
+object models. 
+
+Generate a Schema from the Client App
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are developing a new client application, you likely want to 
+iterate on the data model in the client app. After you
+:ref:`define an object model <kotlin-define-object-model>` 
+directly in your client app code, you can enable Development Mode in App
+Services to generate a matching App Services schema automatically. 
+
+**Development Mode** is a configuration setting that allows Device Sync 
+to infer and update schemas based on client-side data models when you 
+sync data from the client. For more information, refer to 
+:ref:`<development-mode>` in the App Services documentation. 
+
+Generate a Schema with Existing Atlas Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are developing a client application that works with data that already
+exists in Atlas, you can generate a schema from that data, and then generate 
+SDK object models to use in your Kotlin client app. To learn more, refer to 
+:ref:`<sync-data-in-atlas-with-client>` in the App Services documentation.
+  
+Device Sync Requirements 
+------------------------
+
+There are a few requirements to successfully sync objects. As outlined 
+earlier, you must have matching Realm and App Services 
+schemas that contain the objects that you want to sync. 
+
+Additionally, Device Sync requires that: 
+
+- Your object models *must* have a :ref:`primary key <kotlin-primary-keys>` 
+  field called ``_id``. It can be of type ``String``, ``Int``, or ``ObjectId``. 
+  Device Sync uses this to identify objects in the Atlas collections.
+ 
+  If an object does not have an ``_id`` field defined, Realm throws the 
+  the following schema validation error:
+  ``There must be a primary key property named '_id' on a synchronized Realm``.
+
+- Each class *must* have at least one queryable field. 
+
+  When Development Mode is enabled, fields that you include in client 
+  subscription queries are automatically added as queryable fields in Atlas.
+  For more information on configuring subscriptions with the Kotlin SDK, 
+  refer to :ref:`<kotlin-subscriptions-overview>`.
+
+Realm Object Mapping 
+--------------------
+
+Realm objects are the uniquely named instances of Kotlin classes 
+defined in your Realm schema that determine the properties and 
+relationships for objects of that type.  
+
+App Services maps Realm objects to Atlas in the following ways:
+
+- Realm object names map to Atlas collections in your linked Device Sync 
+  data source. Note the following:
+
+  - When Development Mode is enabled, App Services automatically creates 
+    a collection and schema for each new Realm object type that you sync.
+  - Embedded objects are *not* stored in their own collection in 
+    Atlas. This is because they cannot exist outside of their parent object 
+    type. Refer to the :ref:`<kotlin-device-sync-embedded-object>` section on 
+    this page for more information.
+
+- The Realm object schema maps to an App Services schema within its 
+  appropriate collection. 
+
+In the following example, we have ``Frog`` and ``Pond``
+objects with basic properties defined in our Realm schema: 
+
+.. literalinclude:: /examples/generated/kotlin/SchemaSync.snippet.sync-define-realm-object.kt
+  :language: kotlin
+  :caption: Frog and Pond Realm Objects
+ 
+In Atlas, we can see how these object types map to corresponding 
+App Services schemas -- each object maps to its respective collection. 
+We also see example frog and pond objects that conform to this data model: 
+
+.. tabs::
+
+  .. tab:: App Services Schema
+    :tabid: app-services-schema
+
+    .. code-block:: json
+      :caption: Frog collection in App Services
+
+      {
+        "title": "Frog",
+        "type": "object",
+        "required": [
+          "_id",
+          "name"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "age": {
+            "bsonType": "long"
+          },
+          "name": {
+            "bsonType": "string"
+          }
+        }
+      }
+
+    .. code-block:: json
+      :caption: Pond collection in App Services
+
+      {
+        "title": "Pond",
+        "type": "object",
+        "required": [
+          "_id",
+          "name"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "name": {
+            "bsonType": "string"
+          }
+        }
+      }
+
+  .. tab:: Atlas Objects
+    :tabid: app-services-objects
+
+    .. code-block:: json
+      :caption: Example Frog object in Atlas
+
+      {
+        "_id": ObjectId("5af712eff26b29dc5c51c60f"),
+        "name": "Kermit",
+        "age": 42
+      }
+
+    .. code-block:: json
+      :caption: Example Pond object in Atlas
+
+      {
+        "_id": ObjectId("5af714eff24b294c5251cf04"),
+        "name": "Kermit's Pond"
+      }
+
+Realm Relationship Mapping
+--------------------------
+
+Your Realm object model might include :ref:`relationships <kotlin-relationships>`
+between objects. There are two primary types of relationships: 
+
+- To-one relationship: an object is related in a specific way to no more 
+  than one other Realm object.
+- To-many relationship: an object is related in a specific way to multiple 
+  Realm objects.
+
+Relationships are mapped by properties that reference the 
+other Realm object's :ref:`primary key <kotlin-primary-keys>`.  
+
+For more information on modeling relationships in an 
+App Services schema, refer to :ref:`<relationships>`
+in the App Services documentation.
+
+.. _kotlin-device-sync-to-one-relationship:
+
+Map To-One Relationships
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A to-one relationship relationship maps one property to a single 
+instance of another Realm object. To-one relationships *must* 
+be optional. For more information on how 
+to-one relationships are defined in Kotlin SDK, refer to 
+:ref:`<kotlin-to-one-relationship>`.
+
+Using the objects in the example above, consider a case where a 
+``Frog`` can have one favorite pond. We can add a
+``favoritePond`` property to our ``Frog`` model 
+that is an optional link to a ``Pond`` object. 
+
+.. literalinclude:: /examples/generated/kotlin/SchemaSync.snippet.sync-define-to-one-relationship.kt
+  :language: kotlin
+  :caption: Frog with To-One Relationship to Pond
+  :emphasize-lines: 6-7
+
+In the App Services schema, we see the new property translates to a 
+field ``favoritePond``: 
+
+- The field is not in the ``required`` array because it is an optional property.
+- Its type is an ``objectId`` that links to a specific ``Pond`` object 
+  in the separate ``Pond`` collection. This is because we defined the 
+  primary key on our ``Pond`` model as an ``objectId``. 
+
+The ``Pond`` schema doesn't change. Because this is a to-one 
+relationship, it's a one-way relationship; the ``Pond`` has no 
+relationship back to ``Frog``.
+ 
+.. code-block:: json
+  :caption: App Services Schema 
+  :emphasize-lines: 15-17
+
+  {
+    "title": "Frog",
+    "type": "object",
+    "required": [
+      "_id",
+      "name"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId"
+      },
+      "age": {
+        "bsonType": "long"
+      },
+      "favoritePond": {
+        "bsonType": "objectId"
+      },
+      "name": {
+        "bsonType": "string"
+      }
+    }
+  }
+
+.. _kotlin-device-sync-to-many-relationship:
+
+To-Many Relationship
+~~~~~~~~~~~~~~~~~~~~
+
+A to-many relationship relationship maps one property to zero or 
+more instances of another Realm object. For more information on how 
+to-many relationships are defined in Kotlin SDK, refer to 
+:ref:`<kotlin-to-many-relationship>`.
+
+Consider another case where a 
+``Frog`` can have many favorite ponds instead of only one. We add a ``favoritePonds`` property 
+to our ``Frog`` model that is a list of ``Pond`` objects. If the 
+frog has no favorite ponds, this is an empty list. As the frog gets favorite ponds, 
+we can create new ``Pond`` objects and append them to the frog's 
+``favoritePonds`` list.
+
+.. literalinclude:: /examples/generated/kotlin/SchemaSync.snippet.sync-define-to-many-relationship.kt
+  :language: kotlin
+  :caption: Frog with To-Many Relationship to Pond
+  :emphasize-lines: 6-7
+
+In the App Services schema, we see the new property translates to a 
+``favoritePonds`` field that contains all of the ``Pond`` objects related 
+to the ``Frog`` object: 
+
+- The field is not in the ``required`` array because it is an optional property.
+- The type of this field is an array of type ``objectId``. This is because 
+  we defined the primary key on our ``Pond`` model as an ``objectId``. 
+
+Again, that the ``Pond`` schema doesn't change because the ``Pond`` has 
+no relationship back to ``Frog``.
+ 
+.. code-block:: json
+  :caption: App Services Schema 
+  :emphasize-lines: 15-20
+
+  {
+    "title": "Frog",
+    "type": "object",
+    "required": [
+      "_id",
+      "name"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId"
+      },
+      "age": {
+        "bsonType": "long"
+      },
+      "favoritePonds": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "objectId"
+        }
+      },
+      "name": {
+        "bsonType": "string"
+      }
+    }
+  }
+
+.. _kotlin-device-sync-inverse-relationship:
+
+Inverse Relationship
+~~~~~~~~~~~~~~~~~~~~
+
+An inverse relationship links an object back to any other objects 
+that refer to it in a defined to-one or to-many relationship called 
+a backlink.
+For more information on how inverse relationships are defined in 
+Kotlin SDK, refer to :ref:`<kotlin-inverse-relationships>`.
+
+App Services schemas *do not* support inverse relationships. 
+This is because inverse relationship represent an implicit 
+relationship in Realm that is automatically updated when the 
+backlink is modified.
+This means that you cannot directly set the value of an 
+inverse relationship, and the relationship does not exist in Atlas. 
+Instead, Realm derives and updates those relationships for you 
+in the client application based on your Realm object model.
+
+Consider a case where 
+the ``Pond`` object has an inverse relationship to the ``Frog`` 
+object. 
+
+.. literalinclude:: /examples/generated/kotlin/SchemaSync.snippet.sync-define-inverse-relationship.kt
+  :language: kotlin
+  :caption: Pond with Inverse Relationship to Frog
+  :emphasize-lines: 5-6
+
+In the App Services schema, we see the ``Frog`` has the to-many 
+relationship to the ``Pond`` through the ``favoritePonds`` property. 
+However, the ``frog`` property that represents the inverse relationship 
+to a ``Frog`` from our ``Pond`` model is *not* present. This is because the 
+inverse relationship cannot be explicitly defined in Atlas. However, Realm 
+will update it automatically whenever you add or remove an object from
+the relationship.
+
+.. code-block:: json
+  :caption: App Services Schema 
+
+  // `Pond` schema in App Services DOES NOT contain the 
+  // `frog` inverse relationship property
+  {
+    "title": "Pond",
+    "type": "object",
+    "required": [
+      "_id",
+      "name"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId"
+      },
+      "name": {
+        "bsonType": "string"
+      }
+    }
+  }
+
+  {
+    "title": "Frog",
+    "type": "object",
+    "required": [
+      "_id",
+      "name"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId"
+      },
+      "age": {
+        "bsonType": "long"
+      },
+      "favoritePonds": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "objectId"
+        }
+      },
+      "name": {
+        "bsonType": "string"
+      }
+    }
+  }
+
+.. _kotlin-device-sync-embedded-object:
+
+Embedded Objects
+~~~~~~~~~~~~~~~~
+
+Embedded objects represent nested data inside of a single,
+specific parent object. You can reference an embedded object type
+from parent object types in the same way as you would define a
+relationship. For more information on how embedded objects are
+defined in Kotlin SDK, refer to 
+:ref:`<kotlin-embedded-relationship>`.
+
+However, unlike regular Realm objects, embedded objects are *not* stored in their 
+own collection in Atlas. Instead, they are stored as part of the
+parent object's document and are not accessible outside of the parent object.
+
+In the following example, we have a ``Frog`` object with a ``favoritePond`` 
+property  that references a single embedded ``Pond`` object and a ``Forest`` 
+object with ``forestPonds`` relationship property that references a list of 
+many embedded ``Pond`` objects:
+
+.. literalinclude:: /examples/generated/kotlin/SchemaSync.snippet.sync-define-embedded-object.kt
+  :language: kotlin
+  :caption: Frog and Forest with Embedded Pond Relationships
+  :emphasize-lines: 6-7, 14-15
+
+In the App Services schema, we see the embedded objects map to 
+documents in each parent type:
+
+.. code-block:: json
+  :caption: App Services Schema 
+  :emphasize-lines: 15-24, 42-54
+
+  {
+    "title": "Frog",
+    "type": "object",
+    "required": [
+      "_id",
+      "name"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId"
+      },
+      "age": {
+        "bsonType": "long"
+      },
+      "favoritePond": {
+        "title": "EmbeddedPond",
+        "type": "object",
+        "required": [],
+        "properties": {
+          "name": {
+            "bsonType": "string"
+          }
+        }
+      },
+      "name": {
+        "bsonType": "string"
+      }
+    }
+  }
+
+  {
+    "title": "Forest",
+    "type": "object",
+    "required": [
+      "_id",
+      "name"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId"
+      },
+      "forestPonds": {
+        "bsonType": "array",
+        "items": {
+          "title": "EmbeddedPond",
+          "type": "object",
+          "required": [],
+          "properties": {
+            "name": {
+              "bsonType": "string"
+            }
+          }
+        }
+      },
+      "name": {
+        "bsonType": "string"
+      }
+    }
+  }
+
+.. _kotlin-device-sync-schema-types-table:
+
+Schema Types Mapping List
+-------------------------
+
+The following tables demonstrate how Realm object types map to a 
+corresponding App Services schema BSON type. For a complete list of supported 
+App Services schema types and their mappings and available properties, refer 
+to :ref:`<sync-data-model-mapping>` in the App Services documentation.
+
+Kotlin Types
+~~~~~~~~~~~~
+
+The following table lists the supported Kotlin data types and 
+examples of how the declared properties map between a Realm schema and an App 
+Services schema.
+
+For more information on the Kotlin data types supported by the Kotlin SDK and 
+how to define them in your data model, refer to :ref:`Kotlin Data 
+Types <kotlin-types-table>`.
+
+.. list-table:: 
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 40 40
+
+   * - Kotlin Data Type
+     - Realm Object
+     - App Services Schema
+
+   * - ``String``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.string-required.kt
+         :language: kotlin     
+     - .. code-block:: json
+        
+          "stringReq": {
+            "bsonType": "string"
+          }
+
+   * - ``Byte``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.byte-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "byteReq": {
+            "bsonType": "long"
+          }
+
+   * - ``Short``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.short-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "shortReq": {
+            "bsonType": "long"
+          }
+
+   * - ``Int``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.int-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "intReq": {
+            "bsonType": "long"
+          }
+
+   * - ``Long``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.long-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "longReq": {
+            "bsonType": "long"
+          }
+
+   * - ``Float``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.float-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "floatReq": {
+            "bsonType": "float"
+          }
+
+   * - ``Double``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.double-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "doubleReq": {
+            "bsonType": "double"
+          }
+
+   * - ``Boolean``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.bool-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "boolReq": {
+            "bsonType": "bool"
+          }
+
+   * - ``Char``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.char-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "charReq": {
+            "bsonType": "long"
+          }
+
+BSON Types
+~~~~~~~~~~
+
+The following table lists the supported MongoDB BSON data types and 
+examples of how the declared properties map between a Realm schema and an App 
+Services schema.
+
+For more information on the MongoDB BSON data types supported by the Kotlin 
+SDK and how to define them in your data model, refer to :ref:`Kotlin Data 
+Types <kotlin-bson-types-table>`.
+
+.. list-table:: 
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 40 40
+
+   * - MongoDB BSON Type
+     - Realm Object
+     - App Services Schema
+
+   * - :ref:`ObjectId <kotlin-objectid>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.objectId-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "objectIdReq": {
+            "bsonType": "objectId"
+          }
+
+   * - ``Decimal128``
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.decimal128-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "decimal128Req": {
+            "bsonType": "decimal"
+          }
+
+Realm Types
+~~~~~~~~~~~
+
+The following table lists the supported Realm-specific data types and 
+examples of how the declared properties map between a Realm schema and an App 
+Services schema.
+
+For more information on the Realm-specific data types supported by the Kotlin 
+SDK and how to define them in your data model, refer to :ref:`Kotlin Data 
+Types <kotlin-realm-specific-types-table>`.
+
+.. list-table:: 
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 40 40
+
+   * - Realm-Specific Type
+     - Realm Object
+     - App Services Schema
+
+   * - :ref:`RealmUUID <kotlin-uuid>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.uuid-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "uuidReq": {
+            "bsonType": "uuid"
+          }
+
+   * - :ref:`RealmInstant <kotlin-timestamps>` 
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.realmInstant-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "realmInstantReq": {
+            "bsonType": "date"
+          }
+
+   * - :ref:`RealmAny <kotlin-realmany>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.realmAny-optional.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "realmAnyOpt": {
+            "bsonType": "mixed"
+          }
+
+   * - :ref:`MutableRealmInt <kotlin-mutablerealmint>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.mutableRealmInt-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "mutableRealmIntReq": {
+            "bsonType": "long"
+          }
+
+   * - :ref:`RealmList <kotlin-realm-list>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.list-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "listReq": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "uuid"
+            }
+          }
+
+   * - :ref:`RealmSet <kotlin-realm-set>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.set-required.kt
+         :language: kotlin
+     - .. code-block:: json
+
+          "setReq": {
+            "bsonType": "array",
+            "uniqueItems": true,
+            "items": {
+              "bsonType": "string"
+            }
+          }
+
+   * - :ref:`RealmDictionary <kotlin-realm-dictionary>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.dictionary-required.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "dictionaryReq": {
+            "bsonType": "object",
+            "additionalProperties": {
+              "bsonType": "string"
+            }
+          }
+
+   * - :ref:`RealmObject <kotlin-realm-objects-as-properties>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.realm-object-optional.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "realmObjectPropertyOpt": {
+            "bsonType": "<PRIMARY_KEY_TYPE>"
+          }
+        
+   * - :ref:`EmbeddedRealmObject <kotlin-embedded-objects-as-properties>`
+     - .. literalinclude:: /examples/generated/kotlin/DataTypes.snippet.embedded-object-optional.kt
+         :language: kotlin
+     - .. code-block:: json
+        
+          "embeddedProperty": {
+            "title": "EmbeddedObjectType",
+            "type": "object",
+            "required": [],
+            "properties": {
+              "name": {
+                "bsonType": "string"
+              }
+            }
+          }

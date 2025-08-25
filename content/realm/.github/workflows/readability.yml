@@ -1,0 +1,59 @@
+name: Readability
+
+on:
+  pull_request:
+    paths:
+      - "source/sdk/**"
+
+jobs:
+  scoreText:
+    name: Parse text, score text, and report scores on PR.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo.
+        uses: actions/checkout@v3
+      - name: Get changed files.
+        id: changed-files
+        uses: tj-actions/changed-files@c65cd883420fd2eb864698a825fc4162dd94482c
+        with:
+          files: source/sdk/**
+      - name: List changed files (debugging log statement).
+        run: |
+          echo ${{ steps.changed-files.outputs.all_changed_files }}
+      - name: Checkout docdoctor repo.
+        uses: actions/checkout@v3
+        with:
+          repository: cbush/docdoctor
+          ref: "0.1.2"
+          path: "docdoctor"
+      - name: Display workspace directory structure (debugging log statement)
+        run: |
+          ls $GITHUB_WORKSPACE
+      - name: Install Node.js.
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.x
+      - name: Parse text from rST.
+        run: |
+          pushd docdoctor && npm i && npm run build && popd
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            node ./docdoctor/build/main getReadabilityText "$file"
+          done
+      - name: Setup Python
+        uses: actions/setup-python@v4.3.0
+        with:
+          # We need Python version 3.5 or greater for rglob.
+          python-version: "3.9"
+      - name: Install textstat
+        run: pip install textstat
+      - name: Create scores directory and save PR number.
+        run: |
+          mkdir -p scores
+          echo ${{ github.event.number }} > ./scores/issue_number
+      - name: Calculate Readability score.
+        run: python $GITHUB_WORKSPACE/Calculate_Readability_Score.py
+      - name: Upload score results
+        uses: actions/upload-artifact@v3
+        with:
+          name: scores
+          path: scores

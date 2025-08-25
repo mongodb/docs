@@ -1,0 +1,240 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-object-models:
+
+=======================
+Object Models - C++ SDK
+=======================
+
+.. meta:: 
+   :keywords: code example
+   :description: Learn about object models and schemas, including how to define an object.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Atlas Device SDK applications model data as objects composed of
+field-value pairs that each contain one or more :ref:`supported
+<cpp-supported-property-types>` data types.
+
+.. _cpp-realm-objects:
+
+Object Types and Schemas
+------------------------
+
+Every database object has an *object type* that refers to the object's
+class. Objects of the same type share an :ref:`object schema
+<cpp-object-schema>` that defines the properties and relationships of those
+objects.
+
+.. _cpp-realm-schema:
+
+Database Schema
+~~~~~~~~~~~~~~~
+
+A **database schema** is a list of valid object schemas that the database may 
+contain. Every database object must conform to an object type that's included 
+in its database's schema.
+
+When opening a database, you must specify which models are available by 
+passing the models to the template you use to open the database. Those 
+models must have schemas, and this list of schemas becomes the database schema.
+
+If the database already contains data when you open it, the SDK 
+validates each object to ensure that an object schema was provided for 
+its type and that it meets all of the constraints specified in the schema.
+
+For more information about how to open the database, refer to 
+:ref:`cpp-configure-and-open-a-realm`
+
+.. _cpp-object-model:
+.. _cpp-properties:
+
+Object Model
+~~~~~~~~~~~~
+
+Your object model is the core structure that gives the database
+information about how to interpret and store the objects in your app.
+The C++ SDK object model is a regular C++ class or a struct that contains
+a collection of properties. The properties that you want to persist must
+use :ref:`supported data types <cpp-supported-property-types>`. Properties 
+are also the mechanism for establishing :ref:`relationships 
+<cpp-relationships>` between object types.
+
+When you define your C++ class or struct, you must also provide an
+object schema. The schema is a C++ macro that gives the SDK information
+about which properties to persist, and what type of database object it
+is.
+
+You must define your SDK object model within the ``realm`` namespace.
+
+.. _cpp-object-schema:
+
+Object Schema
+~~~~~~~~~~~~~
+
+A C++ SDK **object schema** maps properties for a specific object type. 
+The SDK schemas are macros that give the SDK the information it needs to
+store and retrieve the objects. A schema must accompany every object model
+you want to persist, and it may be one of:
+
+- ``REALM_SCHEMA``
+- ``REALM_EMBEDDED_SCHEMA``
+- ``REALM_ASYMMETRIC_SCHEMA``
+
+You must define the schema and your object model within the ``realm`` namespace.
+
+.. _cpp-define-a-new-object-type:
+
+Define a New Object Type
+------------------------
+
+In the C++ SDK, you can define your models as regular C++ structs or classes. 
+Provide an :ref:`cpp-object-schema` with the object type name and 
+the names of any properties that you want to persist to the database. When you 
+add the object to the database, the SDK ignores any properties that you omit 
+from the schema.
+
+You must declare your object and the schema within the ``realm`` namespace.
+You must then use the ``realm`` namespace when you initialize and perform CRUD 
+operations with the object.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.define-model.cpp
+   :language: cpp
+
+.. include:: /includes/note-class-char-limit.rst
+
+.. _cpp-primary-key:
+
+Specify a Primary Key
+~~~~~~~~~~~~~~~~~~~~~
+
+You can designate a property as the **primary key** of your object.
+
+Primary keys allow you to efficiently find, update, and upsert objects.
+
+Primary keys are subject to the following limitations:
+
+- You can define only one primary key per object model.
+
+- Primary key values must be unique across all instances of an object
+  in the database. The C++ SDK throws an error if you try to
+  insert a duplicate primary key value.
+
+- Primary key values are immutable. To change the primary key value of
+  an object, you must delete the original object and insert a new object
+  with a different primary key value.
+
+- Embedded objects cannot define a primary key.
+
+If you are using :ref:`Device Sync <cpp-synced-realm>`, your models must 
+have a primary key named ``_id``.
+
+The C++ SDK supports primary keys of the following types, and their 
+optional variants:
+
+- ``int64_t``
+- ``realm::object_id``
+- ``realm::uuid``
+- ``std::string``
+
+Additionally, a required ``realm::enum`` property can be a primary key, but
+``realm::enum`` cannot be optional if it is used as a primary key.
+
+Set a property as a primary key with the ``primary_key`` template:
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.person-model.cpp
+   :language: cpp
+   :emphasize-lines: 2
+
+.. _cpp-ignore-property:
+
+Ignore a Property
+~~~~~~~~~~~~~~~~~
+
+Your model may include properties that the database does not store.
+
+The database ignores any properties not included in the :ref:`cpp-object-schema`.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.employee-model.cpp
+   :language: cpp
+   :emphasize-lines: 8
+
+.. _cpp-embedded-object:
+
+Define an Embedded Object
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An **embedded object** is a special type of object that models complex 
+data about a specific object. Embedded objects are similar to 
+relationships, but they provide additional constraints and
+map more naturally to the denormalized :manual:`MongoDB document model
+</core/data-modeling-introduction/>`.
+
+The C++ SDK enforces unique ownership constraints that treat each embedded
+object as nested data inside of a single, specific parent object. An
+embedded object inherits the lifecycle of its parent object and cannot
+exist as an independent database object. The SDK automatically deletes
+embedded objects if their parent object is deleted or when overwritten
+by a new embedded object instance.
+
+You can declare an object as an :ref:`embedded object <cpp-embedded-object>` 
+that does not have a lifecycle independent of the object in which it 
+is embedded. This differs from a :ref:`to-one <cpp-to-one-relationship>` 
+or :ref:`to-many <cpp-to-many-relationship>` relationship, in which the 
+related objects have independent lifecycles.
+
+Provide a ``REALM_EMBEDDED_SCHEMA`` with the struct or class name and the 
+names of any properties that you want the database to persist.
+
+Define a property as an embedded object on the parent object by setting 
+a pointer to the embedded object's type.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.model-with-embedded-object.cpp
+   :language: cpp
+   :emphasize-lines: 7, 12
+
+.. _cpp-define-asymmetric-object:
+
+Define an Asymmetric Object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use :ref:`Data Ingest <optimize-data-ingest>` to sync an 
+object unidirectionally from your device to the database linked to your 
+Atlas App Services App.
+
+An ``asymmetric_object`` broadly has the same :ref:`supported types 
+<cpp-supported-property-types>` as ``realm::object``, with a few exceptions:
+
+- Asymmetric objects can link to the following types:
+  - ``object``
+  - ``embedded_object``
+  - ``std::vector<embedded_object>``
+
+Asymmetric objects do not function in the same way as other database objects. 
+You cannot:
+
+- Remove an asymmetric object from the device database
+- Query an asymmetric object from the device database
+
+You can only create an asymmetric object, which then syncs unidirectionally 
+to the Atlas database linked to your App with Device Sync.
+
+For more information, see: :ref:`Create an Asymmetric Object 
+<cpp-create-asymmetric-object>`.
+
+In the C++ SDK, define an asymmetric object the same way you would 
+a regular C++ struct or class. Provide a ``REALM_ASYMMETRIC_SCHEMA`` with the 
+struct or class name and the names of any properties that you want the database 
+to persist.
+
+.. literalinclude:: /examples/generated/cpp/asymmetric-sync.snippet.asymmetric-object.cpp
+   :language: cpp

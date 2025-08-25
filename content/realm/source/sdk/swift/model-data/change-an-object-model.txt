@@ -1,0 +1,420 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _ios-modify-an-object-schema:
+
+==================================
+Change an Object Model - Swift SDK
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-modify-schema-properties-of-synced-realms.rst
+
+Overview
+--------
+
+When you update your object schema, you must increment the schema version 
+and perform a migration. 
+
+.. seealso::
+
+   This page provides general Swift and Objective-C migration examples. 
+   If you are using Realm with SwiftUI, see the :ref:`SwiftUI-specific 
+   migration examples <swiftui-realm-migrations>`.
+
+If your schema update adds optional properties or removes properties, 
+Realm can perform the migration automatically. You only need to 
+increment the ``schemaVersion``. 
+
+For more complex schema updates, you must also manually specify the migration logic 
+in a ``migrationBlock``. This might include changes such as:
+
+- Adding required properties that must be populated with default values
+- Combining fields
+- Renaming a field
+- Changing a field's type
+- Converting from an object to an embedded object
+
+.. tip:: Bypass Migration During Development
+
+   When developing or debugging your application, you may prefer to delete 
+   the realm instead of migrating it. Use the 
+   :swift-sdk:`deleteRealmIfMigrationNeeded <Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV06deleteA17IfMigrationNeededSbvp>` 
+   flag to delete the database automatically when a schema mismatch would
+   require a migration. 
+
+   Never release an app to production with this flag set to ``true``.
+
+.. _ios-schema-versions-and-migrations:
+.. _ios-schema-version:
+
+Schema Version
+--------------
+
+A **schema version** identifies the state of a :ref:`Realm Schema
+<ios-realm-schema>` at some point in time. Realm tracks the schema
+version of each realm and uses it to map the objects in each realm
+to the correct schema.
+
+Schema versions are integers that you may include
+in the realm configuration when you open a realm. If a client
+application does not specify a version number when it opens a realm then
+the realm defaults to version ``0``.
+
+.. important:: Increment Versions Monotonically
+
+   Migrations must update a realm to a higher schema version.
+   Realm will throw an error if a client application opens
+   a realm with a schema version that is lower than the realm's
+   current version or if the specified schema version is the same as the
+   realm's current version but includes different :ref:`object
+   schemas <ios-object-models-and-schemas>`.
+
+.. _ios-migrations:
+
+Migrations
+~~~~~~~~~~
+
+A **local migration** is a migration for a realm that does
+not automatically :ref:`Sync <sync>` with
+another realm. Local migrations have access to the existing
+Realm Schema, version, and objects and define logic that
+incrementally updates the realm to its new schema version.
+To perform a local migration you must specify a new schema
+version that is higher than the current version and provide
+a migration function when you open the out-of-date realm.
+
+In iOS, you can update underlying data to reflect schema changes using
+:ref:`manual migrations <ios-perform-a-schema-migration>`. During such a
+manual migration, you can define new and deleted properties when they
+are added or removed from your schema.
+
+Automatically Update Schema
+---------------------------
+
+.. _ios-add-a-property:
+
+Add a Property
+~~~~~~~~~~~~~~
+
+Realm can automatically migrate added
+properties, but you must specify an updated schema version when you make 
+these changes.
+
+.. note::
+
+   Realm does not automatically set values for new required 
+   properties. You must use a migration block to set default values for
+   new required properties. For new optional properties, existing records 
+   can have null values. This means you don't need a migration block when 
+   adding optional properties.
+
+.. example::
+
+   A realm using schema version ``1`` has a ``Person`` object type
+   that has first name, last name, and age properties:
+   
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1.swift
+                  :language: swift
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1.m
+                  :language: objectivec
+
+   The developer decides that the ``Person`` class needs an ``email`` field and updates 
+   the schema.
+   
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1-update1.swift
+                  :language: swift
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1-update1.m
+                  :language: objectivec
+
+   Realm automatically migrates the realm to conform to 
+   the updated ``Person`` schema. But the developer must set the realm's 
+   schema version to ``2``.
+
+   .. tabs-realm-languages::
+      
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.update-schema-version.swift
+                  :language: swift
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.update-schema-version.m
+                  :language: objectivec
+
+.. _ios-delete-a-property:
+
+Delete a Property
+~~~~~~~~~~~~~~~~~
+
+To delete a property from a schema, remove the property from the object's class 
+and set a ``schemaVersion`` of the realm's configuration object. Deleting a property 
+will not impact existing objects.
+
+.. example::
+
+   A realm using schema version ``1`` has a ``Person`` object type
+   that has first name, last name, and age properties:
+   
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1.swift
+                  :language: swift
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1.m
+                  :language: objectivec
+
+   The developer decides that the ``Person`` does not need the ``age`` field and updates the schema.
+   
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1-update2.swift
+                  :language: swift
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1-update2.m
+                  :language: objectivec
+
+   Realm automatically migrates the realm to conform to 
+   the updated ``Person`` schema. But the developer must set the realm's 
+   schema version to ``2``.
+
+   .. tabs-realm-languages::
+      
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.update-schema-version.swift
+                  :language: swift
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.update-schema-version.m
+                  :language: objectivec
+
+.. tip::
+
+   SwiftUI developers may see an error that a migration is required when they
+   add or delete properties. This is related to the lifecycle in SwiftUI.
+   The Views are laid out, and then the ``.environment`` modifier sets the
+   config.
+
+   To resolve a migration error in these circumstances, pass 
+   ``Realm.Configuration(schemaVersion: <Your Incremented Version>)`` 
+   into the ``ObservedResults`` constructor.
+
+.. _ios-perform-a-schema-migration:
+
+Manually Migrate Schema
+-----------------------
+
+For more complex schema updates, Realm requires a manual
+migration for old instances of a given object to the new schema.
+
+.. _ios-rename-a-property:
+
+Rename a Property
+~~~~~~~~~~~~~~~~~
+
+To rename a property during a migration, use the
+:swift-sdk:`Migration.renameProperty(onType:from:to:)
+<Structs/Migration.html#/s:10RealmSwift9MigrationV14renameProperty6onType4from2toySS_S2StF>`
+method. 
+
+Realm applies any new nullability or indexing settings
+during the rename operation.
+
+.. example::
+
+   Rename ``age`` to ``yearsSinceBirth`` within a :swift-sdk:`migrationBlock
+   <Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV14migrationBlockyAA9MigrationV_s6UInt64VtcSgvp>`.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.rename-property.swift
+            :language: swift
+
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.rename-property.m
+            :language: objectivec
+
+.. _ios-modify-properties:
+
+Modify Properties 
+~~~~~~~~~~~~~~~~~~
+.. tip::
+
+   You can use the :swift-sdk:`deleteRealmIfMigrationNeeded <Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV06deleteA17IfMigrationNeededSbvp>` 
+   method to delete the realm if it would require a migration. This can
+   be useful during development when you need to iterate quickly and don't
+   want to perform the migration.
+
+To define custom migration logic, set the :swift-sdk:`migrationBlock
+<Structs/Realm/Configuration.html#/s:10RealmSwift0A0V13ConfigurationV14migrationBlockyAA9MigrationV_s6UInt64VtcSgvp>`
+property of the :swift-sdk:`Configuration
+<Structs/Realm/Configuration.html>` when :ref:`opening a realm
+<ios-configure-and-open-a-realm>`.
+
+The migration block receives a :swift-sdk:`Migration object
+<Structs/Migration.html>` that you can use to perform the migration. You
+can use the Migration object's :swift-sdk:`enumerateObjects(ofType:_:)
+<Structs/Migration.html#/s:10RealmSwift9MigrationV16enumerateObjects6ofType_ySS_yAA13DynamicObjectCSg_AHtXEtF>`
+method to iterate over and update all instances of a given
+Realm type in the realm.
+
+.. example::
+
+   A realm using schema version ``1`` has a ``Person`` object type
+   that has separate fields for first and last names:
+
+   .. tabs-realm-languages::
+   
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1.swift
+            :language: swift
+
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v1.m
+            :language: objectivec
+
+
+   The developer decides that the ``Person`` class should use a combined
+   ``fullName`` field instead of the separate ``firstName`` and
+   ``lastName`` fields and updates the schema. 
+
+   To migrate the realm to conform to the updated ``Person`` schema,
+   the developer sets the realm's schema version to ``2`` and
+   defines a migration function to set the value of ``fullName`` based
+   on the existing ``firstName`` and ``lastName`` properties.
+
+   .. tabs-realm-languages::
+   
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v2.swift
+            :language: swift
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.local-migration.swift
+            :language: swift
+
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v2.m
+            :language: objectivec
+
+         .. literalinclude:: /examples/generated/code/start/Migrations.snippet.local-migration.m
+            :language: objectivec
+
+   Later, the developer decides that the ``age`` field should be of type ``String``
+   rather than ``Int`` and updates the schema. 
+
+   To migrate the realm to conform to the updated ``Person`` schema,
+   the developer sets the realm's schema version to ``3`` and
+   adds a conditional to the migration function so that the function defines 
+   how to migrate from any previous version to the new one.
+
+   .. tabs-realm-languages::
+      
+         .. tab::
+            :tabid: swift
+
+            .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v3.swift
+               :language: swift
+
+            .. literalinclude:: /examples/generated/code/start/Migrations.snippet.local-migration2.swift
+               :language: swift
+
+         .. tab::
+            :tabid: objective-c
+
+            .. literalinclude:: /examples/generated/code/start/Migrations.snippet.model-v3.m
+               :language: objectivec
+
+            .. literalinclude:: /examples/generated/code/start/Migrations.snippet.local-migration2.m
+               :language: objectivec
+
+
+.. tip:: Linear Migrations
+
+   Avoid nesting or otherwise skipping ``if (oldSchemaVersion < X)`` statements 
+   in migration blocks. This ensures that all updates can be applied in the correct order, 
+   no matter which schema version a client starts from. The goal is to define 
+   migration logic which can transform data from any outdated schema version to 
+   match the current schema.
+
+.. _ios-convert-to-an-embedded-object:
+
+Convert from Object to EmbeddedObject
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Embedded objects <ios-embedded-objects>` cannot exist
+independently of a parent object. When changing an Object to an
+EmbeddedObject, the migration block must ensure that every embedded
+object has exactly one backlink to a parent object. Having no backlinks
+or multiple backlinks raises the following exceptions:
+
+.. code-block::
+   :copyable: False
+
+   At least one object does not have a backlink (data would get lost).
+
+.. code-block::
+   :copyable: False
+
+   At least one object does have multiple backlinks.
+
+.. seealso::
+
+   :ref:`ios-embedded-objects`
+
+.. _ios-additional-migration-examples:
+
+Additional Migration Examples
+-----------------------------
+
+Please check out the additional migration examples on the
+:github:`realm-swift repo
+<realm/realm-swift/tree/master/examples/ios/swift/Migration>`.

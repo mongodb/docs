@@ -1,0 +1,206 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-relationships:
+
+===================================================
+Relationships & Embedded Objects - React Native SDK
+===================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _react-native-to-one-relationship:
+
+One-to-One Relationship
+-----------------------
+
+A **one-to-one** relationship means an object is related to at most one
+other object of a particular type. To define a one-to-one relationship,
+specify the property type as the related Realm object type.
+
+.. example::
+
+   In this example, a ``Manufacturer`` may make a single ``Car``:
+
+   .. include:: /examples/generated/react-native/v12/models.snippet.define-one-to-one.ts.rst
+
+.. _react-native-to-many-relationship:
+
+One-to-Many Relationship
+------------------------
+
+A **one-to-many** relationship means an object may be related to
+multiple objects. To define a to-many relationship, specify a property where the
+type is a list or array of the related Realm object type in its :ref:`object
+schema <react-native-object-schemas>`.
+
+.. example::
+
+   In this example, a ``Manufacturer`` may make many ``Car`` models:
+
+   .. include:: /examples/generated/react-native/v12/models.snippet.define-one-to-many.ts.rst
+
+.. _react-native-inverse-relationship:
+
+Inverse Relationship
+--------------------
+
+An inverse relationship links an object back to any other objects that refer
+to it in a defined to-one or to-many relationship.
+Relationship definitions are unidirectional by default.
+You must explicitly define a property in the object's model as an inverse
+relationship.
+
+For example, the to-many relationship "Manufacturer has many Cars" does not
+automatically create the inverse relationship "Car belongs to Manufacturer".
+If you don't specify the inverse relationship in the object model,
+you need to run a separate query to look up the manufacturer who makes a car.
+
+.. _react-native-define-an-inverse-relationship-property:
+
+Define Inverse Relationship Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can assign an inverse relationship to a property in the object
+schema using ``linkingObjects``. This lets you access the inverse relationship
+like a normal property.
+
+A ``linkingObjects`` property backlinks to a specific relationship. You
+specify which relationship to backlink with the object type and property
+name of the relationship.
+
+.. example::
+
+   In this example, the ``ManufacturerInverse`` object's ``cars`` property has a
+   to-many  relationship with a :js-sdk:`Realm.List <classes/List.html>` of
+   ``CarInverse`` objects. It contains all of the cars that are linked to the
+   manufacturer.
+
+   The ``CarInverse`` object's ``manufacturer`` property inverts this
+   relationship. The ``manufacturer`` property automatically updates to refer
+   back to any ``ManufacturerInverse`` object that contains the car object in
+   its ``cars`` property.
+
+   .. include:: /examples/generated/react-native/v12/models.snippet.define-inverse.ts.rst
+
+
+.. _react-native-linkingObjects-method:
+
+Find Linking Objects In Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can find all objects that link to a given object by calling the
+object's :js-sdk:`Realm.Object.linkingObjects()
+<classes/Object.html#linkingObjects>` method. This is useful for when you
+want to access all linking objects for a particular relationship without
+adding a property to the object schema.
+
+.. example::
+
+   In this example, we have a ``LinkedCar`` object model that does not
+   have a ``manufacturer`` field with type 'linkingObjects'. Someone creates
+   several manufacturers and car objects, adding the newly-created cars into a
+   manufacturer's ``cars`` field.
+
+   We can find a car's manufacturer using the ``linkingObjects()`` method. This
+   method returns a :ref:`Results collection <react-native-realm-results>` of
+   objects that link to the car. In this example, only one manufacturer makes
+   the Sentra car model, so we can expect that manufacturer to be named Nissan.
+
+   To find the manufacturer that makes a specific car:
+   
+   #. Call ``linkingObjects()``
+   #. Pass the manufacturer class name and "cars" field as parameters
+
+   .. include:: /examples/generated/react-native/v12/ToManyRelationship.snippet.obtain-inverse-relationship-dynamically.tsx.rst
+
+
+.. TODO: Can't get linking objects property syntax working.
+.. Investgate this as part of DOCSP-33344
+.. https://jira.mongodb.org/browse/DOCSP-33344
+.. 
+.. _react-native-backlinks-query:
+
+.. Filter a Query Based On Linking Objects
+.. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. You can reference linking objects in an RQL query by using the
+.. ``@links.<Type>.<Property>`` syntax. This is useful for when you want to
+.. use inverse relationships in queries and subscriptions. For more
+.. information, see :ref:`Backlink Queries <rql-backlinks>`.
+
+.. .. example::
+
+..    A filter can match a ``Post`` object based on properties of the
+..    ``User`` object that references it. In the following example, the
+..    ``@links`` operator references the relationship defined for
+..    ``User.posts``. If a ``User`` was born on or after January 1, 2000,
+..    then their ``Post`` objects are included in the query results.
+
+..    .. tabs-realm-languages::
+
+..       .. tab::
+..          :tabid: typescript
+
+..          .. literalinclude:: /examples/generated/react-native/ts/relationships-test.snippet.query-backlinks.tsx
+..             :language: typescript
+..             :emphasize-lines: 4-6
+..             :linenos:
+
+..       .. tab::
+..          :tabid: javascript
+
+..          .. literalinclude:: /examples/generated/react-native/js/relationships-test.snippet.query-backlinks.jsx
+..             :language: typescript
+..             :emphasize-lines: 4-6
+..             :linenos:
+
+.. _react-native-embedded-objects:
+
+Embedded Objects
+----------------
+
+An embedded object is a special type of :ref:`Realm object <react-native-object-schemas>`
+that models complex data about a specific object. Embedded objects are similar
+to :ref:`relationships <react-native-relationships>`, but they provide additional
+constraints and map more naturally to the denormalized :manual:`MongoDB document
+model </core/data-modeling-introduction/>`.
+
+Realm enforces unique ownership constraints that treat each embedded object as
+nested data inside a single, specific parent object. An embedded object
+inherits the lifecycle of its parent object and can't exist as an independent
+Realm object. This means that embedded objects can't have a primary key and
+that Realm automatically deletes embedded objects if their parent object is
+deleted.
+
+.. tip:: Embedded object types are reusable and composable
+
+   You can use the same embedded object type in multiple parent object types, and
+   you can embed objects inside other embedded objects. You can even
+   recursively reference an embedded object type as an optional property in its
+   own definition.
+
+.. note:: Realm Uses Cascading Deletes for Embedded Objects
+   
+   When you delete a Realm object, Realm automatically deletes any
+   embedded objects referenced by that object. Any objects that your
+   application must persist after the deletion of their parent object
+   should use :ref:`relationships <react-native-relationships>`
+   instead.
+
+Realm Object Models
+~~~~~~~~~~~~~~~~~~~
+
+To define an embedded object, set ``embedded`` to ``true``. You can reference
+an embedded object type from parent object types in the same way you define a
+relationship:
+
+.. include:: /examples/generated/react-native/v12/models.snippet.define-embedded-property.ts.rst
+
+.. important::
+   
+   Embedded objects can't have a :ref:`primary key <react-native-primary-keys>`.

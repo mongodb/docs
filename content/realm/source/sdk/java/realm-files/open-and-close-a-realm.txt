@@ -1,0 +1,282 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-open-close-realm:
+.. _java-realm-types:
+
+===============================
+Open & Close a Realm - Java SDK
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Interacting with :ref:`realms <java-realms>` in an Android
+application uses the following high-level series of steps:
+
+#. Create a configuration for the realm you want to open.
+#. Open the realm using the config.
+#. :ref:`Close the realm <java-close-a-realm>` to free up
+   resources when you're finished.
+
+The Default Realm
+-----------------
+
+You can save any :java-sdk:`RealmConfiguration <io/realm/RealmConfiguration.html>`
+or :java-sdk:`SyncConfiguration <io/realm/mongodb/sync/SyncConfiguration.html>`
+as the default for your application using the
+:java-sdk:`setDefaultConfiguration() <io/realm/Realm.html#setDefaultConfiguration-io.realm.RealmConfiguration->`
+method:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/OpenARealmTest.snippet.set-default-realm.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/OpenARealmTest.snippet.set-default-realm.java.rst
+
+You can then use
+:java-sdk:`getDefaultConfiguration() <io/realm/Realm.html#getDefaultConfiguration-->`
+to access that configuration, or
+:java-sdk:`getDefaultInstance() <io/realm/Realm.html#getDefaultInstance-->`
+to open a realm with that configuration:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/OpenARealmTest.snippet.use-default-realm.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/OpenARealmTest.snippet.use-default-realm.java.rst
+
+Local Realms
+------------
+
+Local realms store data only on the client device. You can customize
+the settings for a local realm with ``RealmConfiguration``.
+
+.. _java-local-realm-configuration:
+
+Local Realm Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure settings for a realm, create a
+:java-sdk:`RealmConfiguration <io/realm/RealmConfiguration.html>` with a
+:java-sdk:`RealmConfiguration.Builder <io/realm/RealmConfiguration.Builder.html>`.
+The following example configures a local realm with:
+
+- the file name "alternate-realm"
+- synchronous reads explicitly allowed on the UI thread
+- synchronous writes explicitly allowed on the UI thread
+- automatic compaction when launching the realm to save file space
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/OpenARealmTest.snippet.configure-a-realm-local.kt
+         :language: kotlin
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/OpenARealmTest.snippet.configure-a-realm-local.java
+         :language: java
+
+.. include:: /includes/java-synchronous-reads-writes-ui-thread.rst
+
+.. _java-open-a-local-realm:
+.. _java-open-close-local-realm:
+
+Open a Local Realm
+~~~~~~~~~~~~~~~~~~
+
+To open a realm, create a
+:java-sdk:`RealmConfiguration <io/realm/RealmConfiguration.html>` with
+:java-sdk:`RealmConfiguration.Builder <io/realm/RealmConfiguration.Builder.html>` and 
+pass the resulting ``RealmConfiguration`` to
+:java-sdk:`getInstance() <io/realm/Realm.html#getInstance-io.realm.RealmConfiguration->`
+or :java-sdk:`getInstanceAsync() <io/realm/Realm.html#getInstanceAsync-io.realm.RealmConfiguration-io.realm.Realm.Callback->`:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/OpenARealmTest.snippet.open-a-realm-local.kt
+         :language: kotlin
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/OpenARealmTest.snippet.open-a-realm-local.java
+         :language: java
+
+.. _java-read-only-realms:
+.. _java-read-only-realms-fundamentals:
+
+Read-Only Realms
+~~~~~~~~~~~~~~~~
+
+It's sometimes useful to ship a prepared realm file with your app
+that contains shared data that does not frequently change. You can use
+the :java-sdk:`readOnly() <io/realm/RealmConfiguration.Builder.html#readOnly-->`
+method when configuring your realm to make it read-only. This can
+prevent accidental writes to the realm and causes the realm to
+throw an ``IllegalStateException`` if a write occurs.
+
+.. warning:: Read-Only Realm Files are Writeable
+
+   Read-only realms are only enforced as read-only in process.
+   The realm file itself is still writeable.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. include:: /examples/generated/java/local/RealmTypesTest.snippet.read-only.kt.rst
+
+   .. tab::
+       :tabid: java
+
+       .. include:: /examples/generated/java/local/RealmTypesTest.snippet.read-only.java.rst
+
+.. _java-in-memory-realms:
+.. _java-in-memory-realms-fundamentals:
+
+In-Memory Realms
+~~~~~~~~~~~~~~~~
+
+You can create a realm that runs entirely in memory without being written
+to a file. When memory runs low on an Android device, in-memory realms
+may :wikipedia:`swap <Memory_paging#Terminology>` temporarily from main
+memory to disk space. The SDK deletes all files created by an in-memory
+realm when:
+
+- the realm closes
+- all references to that realm fall out of scope
+
+To create an in-memory realm, use :java-sdk:`inMemory() <io/realm/RealmConfiguration.Builder.html#inMemory()>`
+when configuring your realm:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. include:: /examples/generated/java/local/RealmTypesTest.snippet.in-memory.kt.rst
+
+   .. tab::
+       :tabid: java
+
+       .. include:: /examples/generated/java/local/RealmTypesTest.snippet.in-memory.java.rst
+
+.. _java-dynamic-realms:
+.. _java-dynamic-realms-fundamentals:
+
+Dynamic Realms
+~~~~~~~~~~~~~~
+
+Conventional realms define a schema using ``RealmObject`` subclasses
+or the ``RealmModel`` interface. A
+:java-sdk:`DynamicRealm <io/realm/DynamicRealm.html>` uses strings to
+define a schema at runtime. Opening a dynamic realm uses the same
+configuration as a conventional realm, but dynamic realms ignore
+all configured schema, migration, and schema versions.
+
+Dynamic realms offer flexibility at the expense of type safety and
+performance. As a result, only use dynamic realms when that
+flexibility is required, such as during migrations, manual client
+resets, and when working with string-based data like CSV files or JSON.
+
+To open a Dynamic Realm with a mutable schema, use 
+:java-sdk:`DynamicRealm <io/realm/DynamicRealm.html>`:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. include:: /examples/generated/java/local/RealmTypesTest.snippet.dynamic.kt.rst
+
+   .. tab::
+       :tabid: java
+
+       .. include:: /examples/generated/java/local/RealmTypesTest.snippet.dynamic.java.rst
+
+.. _java-close-a-realm:
+
+Close a Realm
+-------------
+
+It is important to remember to call the :java-sdk:`close()
+<io/realm/Realm.html#close-->` method when done with a 
+realm instance to free resources. Neglecting to close realms can lead to an
+``OutOfMemoryError``.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/OpenARealmTest.snippet.close-a-realm-local.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/OpenARealmTest.snippet.close-a-realm-local.java
+         :language: java
+         :copyable: false
+
+.. _java-provide-a-subset-of-classes-to-a-realm:
+.. _java-realm-modules:
+
+Configure Which Classes to Include in Your Realm Schema
+-------------------------------------------------------
+
+Realm modules are collections of Realm object
+models. Specify a module or modules when opening a realm to control
+which classes Realm should include in your schema. If you
+do not specify a module, Realm uses the default module,
+which includes all Realm objects defined in your
+application.
+
+.. note::
+   
+   Libraries that include Realm must expose and use their
+   schema through a module. Doing so prevents the library from
+   generating the default ``RealmModule``, which would conflict with
+   the default ``RealmModule`` used by any app that includes the library.
+   Apps using the library access library classes through the module.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/RealmsTest.snippet.modules.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/RealmsTest.snippet.modules.java
+         :language: java
+         :copyable: false

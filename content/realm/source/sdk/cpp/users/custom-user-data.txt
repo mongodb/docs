@@ -1,0 +1,148 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-custom-user-data:
+
+==========================
+Custom User Data - C++ SDK
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _cpp-read-a-users-custom-data:
+
+Read a User's Custom Data
+-------------------------
+
+You can read the :ref:`custom user data <custom-user-data>` of a
+currently logged-in user through that user's ``User`` object. You cannot
+edit custom user data through a ``User`` object. To edit custom user
+data, see :ref:`Update Custom User Data
+<cpp-update-a-users-custom-data>`. To read the data, access the
+``custom_data`` property on the ``User`` object of a logged-in user:
+
+.. literalinclude:: /examples/generated/cpp/custom-user-data.snippet.read.cpp
+   :language: cpp
+
+
+.. warning:: Custom Data May Be Stale
+   
+   Atlas App Services does not dynamically update the value of the client-side
+   user custom data document immediately when underlying data changes.
+   Instead, App Services fetches the most recent version of custom user
+   data whenever a user refreshes their :ref:`access token
+   <user-sessions>`, which is used by most SDK operations that contact
+   the App Services backend. If the token is not refreshed before its default 
+   30 minute expiration time, the C++ SDK refreshes the token on the next 
+   call to the backend. Custom user data could be stale for up to 30 minutes 
+   plus the time until the next SDK call to the backend occurs.
+
+.. note::
+
+   If you require the most recent version of custom user data, use the
+   :cpp-sdk:`refresh_custom_user_data()
+   <structrealm_1_1user.html#a6e08623890de4003a00a351e939a0a9f>`
+   function to request the latest version of a user's custom data.
+
+.. _cpp-create-a-users-custom-data-document:
+
+Create a User's Custom Data Document
+------------------------------------
+
+To create custom user data for a user, create a MongoDB document in the
+custom user data collection. The user ID field of the document should
+contain the the user's user ID.
+
+.. tip::
+   
+   In the App Services UI, check the :guilabel:`App Users` page under the
+   :guilabel:`Custom User Data` tab to find and configure custom user
+   data settings, including:
+
+   - The custom user data cluster, database, and collection
+   - The user ID field used to map custom user data documents to users
+
+One way you can create this document is by calling an :ref:`Atlas Function <functions>` 
+that inserts a custom data document into the custom user data collection.
+There is no single pattern for adding custom user data from an Atlas Function.
+You should write your Function or Functions to suit your application's use case.
+
+In this example, the Atlas Function takes an object passed by the client add adds
+it to the custom user data collection in Atlas. The Function creates
+the custom user data if it doesn't already exist and replaces all data in it
+if it does exist.
+
+.. literalinclude:: /examples/generated/cpp/updateCustomUserData.snippet.update-custom-user-data.js
+   :language: js
+   :caption: updateCustomUserData.js - Atlas Function running on server (JavaScript)
+
+The following example :ref:`calls a function <cpp-call-a-function>` to 
+insert a document containing the user ID of the currently logged in user 
+and a ``favoriteColor`` value into the custom user data collection:
+
+.. literalinclude:: /examples/generated/cpp/custom-user-data.snippet.create.cpp
+   :language: cpp
+
+You can add any number of arbitrary fields and values to the custom user
+data document when you create it. The user ID field is the only
+requirement for the document to become available on the ``User`` object
+as custom user data.
+
+.. _cpp-update-a-users-custom-data:
+
+Update a User's Custom Data
+---------------------------
+
+You can update custom user data using :ref:`an Atlas Function
+<functions>`, :compass:`MongoDB Compass
+</>`, or the :atlas:`MongoDB Atlas Data
+Explorer </data-explorer/>`.
+
+To update a user's custom user data with an Atlas Function, edit the
+MongoDB document whose user ID field contains the user ID of the user.
+The following example calls the same function used to create the custom user 
+data document above. Here, we update the ``favoriteColor`` field of the 
+the document containing the user ID of the currently logged in user:
+
+.. literalinclude:: /examples/generated/cpp/custom-user-data.snippet.update.cpp
+   :language: cpp
+
+.. tip::
+   
+   To determine a user's ID, access the ``user.identifier()`` property or find the
+   user in the App Services UI on the :guilabel:`App Users` page under the
+   :guilabel:`Users` tab.
+
+.. _cpp-delete-a-users-custom-data:
+
+Delete a User's Custom Data
+---------------------------
+
+Custom user data is stored in a document linked to the user object. 
+Deleting a user does not delete the custom user data. To fully delete user
+data to comply with, for example, :apple:`Apple's Account deletion guidance 
+<support/offering-account-deletion-in-your-app/>`, you must manually delete
+the user's custom data document.
+
+You can delete custom user data using :ref:`an Atlas Function
+<functions>`, :compass:`MongoDB Compass
+</>`, or the :atlas:`MongoDB Atlas Data
+Explorer </data-explorer/>`.
+
+In this example, the Atlas Function does not require any arguments. The 
+Function uses the function context to determine the caller's user ID, and 
+deletes the custom user data document matching the user's ID.
+
+.. literalinclude:: /examples/generated/cpp/deleteCustomUserData.snippet.delete-custom-user-data.js
+   :language: js
+   :caption: deleteCustomUserData.js - Atlas Function running on server (JavaScript)
+
+The code that calls this function requires only a logged-in user to call
+the function:
+
+.. literalinclude:: /examples/generated/cpp/custom-user-data.snippet.delete.cpp
+   :language: cpp

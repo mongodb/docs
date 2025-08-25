@@ -1,0 +1,199 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-manage-sync-session:
+
+===============================
+Manage a Sync Session - C++ SDK
+===============================
+
+.. meta:: 
+   :keywords: code example
+   :description: Check and manage network and Device Sync connection state through the sync session.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When you use Atlas Device Sync, the Realm C++ SDK syncs data with Atlas
+in the background using a sync session. The sync session starts when
+you open a synced realm.
+
+The sync session manages the following:
+
+- Uploading and downloading changes to the realm
+- Monitoring sync state
+
+Prerequisites
+-------------
+
+Before you can manage a sync session state, you must:
+
+#. :ref:`Configure Flexible Sync on the Atlas App Services backend <enable-flexible-sync>`
+#. :ref:`Open a Synced Realm <cpp-open-synced-realm>`
+
+.. _cpp-get-sync-session:
+
+Get the Sync Session
+--------------------
+
+You can use the member function :cpp-sdk:`get_sync_session() 
+<structrealm_1_1db.html#a79c5e6e92896703a54693be35720ae12>` to get a 
+:cpp-sdk:`sync_session 
+<structrealm_1_1internal_1_1bridge_1_1sync__session.html>` 
+object for any synced realm. The SDK returns this object as an optional. 
+It is a lightweight handle that you can pass around by value.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.sync-session.cpp
+   :language: cpp
+
+.. _cpp-check-network-connection:
+
+Check the Network Connection
+----------------------------
+
+.. tip:: 
+
+   The SDK's *offline-first* design means that you generally don't
+   need to check the current network connection state. That said, the
+   ``connection_state()`` property is available if your app calls for some
+   indication of connection state.
+
+To check the connection state, you can read the  
+:cpp-sdk:`sync session instance's <structrealm_1_1internal_1_1bridge_1_1sync__session.html>`
+``connection_state()`` property directly.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.connection-state.cpp
+   :language: cpp
+
+You can also observe the connection state with the 
+:cpp-sdk:`observe_connection_change() <structrealm_1_1internal_1_1bridge_1_1sync__session.html#a38096e71024b3fd252d3356af5eee113>`
+function. This function registers a callback that the SDK invokes when the 
+underlying sync session changes its connection state. 
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.observe-connection-change.cpp
+   :language: cpp
+
+If you register a connection change listener, you can unregister it when 
+you're done listening for changes. Call the sync session instance's
+:cpp-sdk:`unregister_connection_change_observer() <structrealm_1_1internal_1_1bridge_1_1sync__session.html#a86b911bc662f02f607c5e9513d80c0c7>`
+method to unregister an observation token.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.unregister-observation-token.cpp
+   :language: cpp
+
+The network connection state is distinct from the Device Sync connection state
+that you can check with the ``state()`` method. For more information about
+sync connection state, refer to the Check the Sync State documentation on 
+this page.
+
+.. _cpp-pause-resume-sync-session:
+
+Pause or Resume a Sync Session
+------------------------------
+
+You can pause and resume the sync session on the realm.
+Pausing a sync session only suspends that realm's sync session. If you have
+more than one open realm, suspend does not affect the sync sessions for 
+other realms.
+
+To pause a sync session, call the sync session's 
+:cpp-sdk:`pause() <structrealm_1_1internal_1_1bridge_1_1sync__session.html#ab187b267f0391c8262a0edcff32fcc29>`
+method.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.pause.cpp
+   :language: cpp
+
+To resume a sync session, call the sync session's 
+:cpp-sdk:`resume() <structrealm_1_1internal_1_1bridge_1_1sync__session.html#a253ef9e08d9f4cf7c42edfd6b6f6df80>`
+method.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.resume.cpp
+   :language: cpp
+
+When to Pause a Sync Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/when-to-pause-sync.rst
+
+.. _cpp-sync-wait-for-changes:
+
+Wait for Changes to Upload and Download
+---------------------------------------
+
+You can use the 
+:cpp-sdk:`sync_session <structrealm_1_1internal_1_1bridge_1_1sync__session.html>`'s
+``wait_for_upload_completion()`` and ``wait_for_download_completion()``
+methods to wait for changes to upload to or download from Atlas. Both of these
+methods can optionally take a callback to execute when upload or download
+is complete.
+
+To wait for all changes to upload to Atlas from your synced realm,
+use the member function ``wait_for_upload_completion()``. 
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.wait-for-upload.cpp
+   :language: cpp
+
+To wait for all changes from Atlas
+to download to your synced realm, use the member function 
+``wait_for_download_completion()``. Refresh the realm after downloading 
+any changes to be sure it reflects the most recent data.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.wait-for-download.cpp
+   :language: cpp
+
+.. _cpp-check-sync-state:
+
+Check the Sync State
+--------------------
+
+You can use the :cpp-sdk:`sync_session 
+<structrealm_1_1internal_1_1bridge_1_1sync__session.html>`'s public 
+member function ``state()`` to check whether the sync session is active.
+This returns an enum whose value reflects possible Device Sync states.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.sync-state.cpp
+   :language: cpp
+
+The sync connection state is distinct from the network connection state
+that you can check with the ``connection_state()`` method. For more information 
+about network connection state, refer to the Check the Network Connection 
+documentation on this page.
+
+.. _cpp-reconnect-sync-sessions:
+
+Manually Reconnect All Sync Sessions
+------------------------------------
+
+Realm automatically detects when a device regains connectivity after being 
+offline and attempts to reconnect using an incremental backoff strategy.
+
+You can choose to manually trigger a reconnect attempt with a sync session's
+:cpp-sdk:`reconnect() <structrealm_1_1internal_1_1bridge_1_1sync__session.html#af5557f2a2ae8869e6a129afc264e8695>` 
+method instead of waiting for the duration of the incremental backoff. This is 
+useful if you have a more accurate understanding of the network conditions 
+and don't want to rely on Realm's automatic reconnect detection.
+
+.. literalinclude:: /examples/generated/cpp/sync-session.snippet.reconnect.cpp
+   :language: cpp
+
+When you call this method, the SDK forces all sync sessions to *attempt* to 
+reconnect immediately. This resets any timers used for incremental 
+backoff. 
+
+Calling this method does not guarantee the device can reconnect. If the SDK
+gets a fatal error, or if the device is already connected or is trying to
+connect, calling this method has no effect.
+
+.. important:: Cannot Reconnect Within Socket Read Timeout Duration
+   
+   Realm has an internal default socket read timeout of 2 minutes, where 
+   Realm will time out if a read operation does not receive any data 
+   within a 2-minute window. If you call ``reconnect()`` within that window, 
+   the SDK does *not* attempt to reconnect.

@@ -1,0 +1,486 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-authenticate:
+.. _kotlin-authenticate-users:
+.. _kotlin-create-users:
+
+==========================================
+Create and Authenticate Users - Kotlin SDK
+==========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To access Atlas App Services, you must first authenticate a user with an 
+App Services authentication provider. This page describes how to 
+authenticate App Services App users with the Realm Kotlin SDK. Refer to 
+:ref:`<users-and-authentication>` in the App Services documentation for more
+information.
+
+.. include:: /includes/tip-acct-deletion-reqs.rst
+
+App Services Users
+------------------
+
+Atlas App Services provides the following built-in authentication providers 
+to log users in and out of a client app:
+
+- Anonymous users
+- Email/password combinations
+- API keys
+- OAuth 2.0 through Facebook, Google, and Apple ID
+- Custom JWT
+- Custom Function
+
+Upon successful log in, App Services begins a **user session** for the user.
+App Services manages sessions with access tokens and refresh tokens, and the 
+Kotlin SDK supplies the logic to manage tokens and provide them with 
+requests. For more information on managing user sessions and tokens, 
+refer to :ref:`<user-sessions>` in the App Services documentation.
+
+Once you have a logged-in user, you can:
+
+- :ref:`Open a synced realm <kotlin-open-a-synced-realm>` with the user's
+  configuration object
+- :ref:`Run a backend function <kotlin-call-function>` as the logged-in user
+- Log the user out (refer to the :ref:`<kotlin-logout>` section)
+- :ref:`Remove or delete the user's account <kotlin-delete-users>`
+
+You can also log multiple users in to an app simultaneously on a 
+single device. Refer to :ref:`<kotlin-multi-user-applications>` for 
+more information.
+
+Prerequisites
+-------------
+
+To authenticate users through Atlas App Services, you must have an 
+App Services App with one or more authentication providers enabled.
+
+To set up an App Services App with authentication providers, 
+complete the following:
+
+#. :ref:`Connect your App to Atlas App Services <kotlin-connect-to-backend>`
+#. :ref:`Enable and Configure Authentication Providers 
+   <authentication-providers>` in the App Services documentation
+
+.. tip:: 
+
+   You can enable multiple authentication providers. 
+   If a user authenticates using more than one method,
+   you can :ref:`link the user identities <kotlin-link-user-identities>`
+   for each method to a single user account.
+
+.. _kotlin-register:
+
+Register and Create a New User Account
+--------------------------------------
+
+Atlas App Services registers a user differently depending on the 
+authentication provider: 
+
+- If you are using email/password authentication, users must 
+  first :ref:`register and confirm their email and password 
+  <kotlin-manage-email-password-users>` before they 
+  can authenticate.
+- If you are using Google, Facebook, Apple, or Custom JWT, 
+  registration is handled by these third-party services.
+- If you are using anonymous authentication, you don't need 
+  to register. Anonymous users do *not* require registration.
+
+The first time the user successfully authenticates
+to your App, Atlas App Services automatically creates a `User
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/index.html>`__
+object, which contains a unique identifier and provider-specific 
+:ref:`user metadata <kotlin-read-user-metadata>`. To learn more about the 
+user object that App Services provides the Kotlin SDK,
+refer to :ref:`<user-objects>` in the App Services documentation.
+
+.. _kotlin-login:
+
+Log In a User
+-------------
+
+To authenticate and log users in to your `App 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/index.html>`__, first 
+instantiate a `Credentials 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/index.html>`__ 
+object containing the credentials associated with the authentication provider, 
+and then pass it to `app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__. 
+Each authentication provider corresponds to a `static helper method
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-authentication-provider/index.html>`__
+used to instantiate ``Credentials`` objects for that
+authentication provider.
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.create-new-user.kt
+   :language: kotlin
+
+If successful, ``app.login()`` returns a ``User`` object.
+In the event of a failure, ``app.login()`` throws an
+exception of type ``AppException``. 
+
+.. tip:: 
+
+   You can get the authentication provider type used to log in a user 
+   through the `user.provider 
+   <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/provider.html>`__
+   property. If the user is currently logged out, the most recent 
+   provider used to log in the user is returned. 
+
+.. _kotlin-anonymous-login:
+
+Anonymous
+~~~~~~~~~
+
+Anonymous authentication enables users to log in to your 
+application with short-term accounts that store no persistent 
+personal information. You might use this to allow users to try your 
+app before they sign up for an account or while developing 
+and testing your app. Anonymous users do *not* require 
+registration. Refer to :ref:`<anonymous-authentication>` in 
+the App Services documentation for more information.
+
+To log in with anonymous authentication, create an anonymous credential 
+by calling `Credentials.anonymous()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/-companion/anonymous.html>`__, 
+and then pass the generated credential to
+`app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.anonymous-authentication.kt
+   :language: kotlin
+
+By default, the Kotlin SDK reuses the same anonymous user 
+if that user has not logged out. If you want to create more than
+one anonymous user, set ``reuseExisting = false`` when logging in 
+with additional anonymous credentials:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.anonymous-authentication-reuse-existing.kt
+   :language: kotlin
+   :emphasize-lines: 6-7
+
+.. _kotlin-email-password-login:
+
+Email/Password
+~~~~~~~~~~~~~~
+
+The email/password authentication provider enables users to log in to 
+your application with an email username and a password. Refer to 
+:ref:`<email-password-authentication>` in the App Services 
+documentation for more information.
+
+.. important:: Email/Password Users Require Registration
+
+   Email/password authentication requires that you register
+   and then confirm the user-provided email and password *before* 
+   the user can authenticate to an App Services App. Learn how to 
+   :ref:`register email/password users 
+   <kotlin-manage-email-password-users>`.
+
+To log in with email/password authentication, create an
+email/password credential by calling `Credentials.emailPassword()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/-companion/email-password.html>`__
+with the user's registered email and password, and then pass the 
+generated credential to `app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.email-password-authentication.kt
+   :language: kotlin
+
+.. _kotlin-login-jwt:
+
+Custom JWT
+~~~~~~~~~~
+
+The Custom JWT authentication provider enables users to log in to 
+your application with a custom JSON Web Token (JWT). Registration 
+for JWT authentication is handled by the JWT provider. Refer to 
+:ref:`<custom-jwt-authentication>` in the 
+App Services documentation for more information.
+
+To log in with JWT authentication, create a
+JWT credential by calling `Credentials.jwt()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/-companion/jwt.html>`__
+with the user's JWT, and then pass the generated credential
+to `app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.jwt-authentication.kt
+   :language: kotlin
+
+.. _kotlin-login-api-key:
+
+API Key
+~~~~~~~
+
+The API Key authentication provider enables authenticated 
+non-anonymous users to log in to your application with an API key. 
+Refer to :ref:`<api-key-authentication>` in the App Services
+documentation for more information.
+
+To log in with API key authentication, create an API Key credential 
+by calling `Credentials.apiKey()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/-companion/api-key.html>`__
+with the user's API key, and then passing the 
+generated credential to `app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.api-key-authentication.kt
+   :language: kotlin
+
+User API keys are generated automatically and managed by the Kotlin SDK. 
+Learn how to :ref:`<kotlin-manage-user-api-keys>`. 
+
+.. _kotlin-login-custom-function:
+
+Custom Function
+~~~~~~~~~~~~~~~
+
+The Custom Function authentication provider enables users to log in 
+to your application using custom authentication logic handled by an 
+Atlas Function. Refer to :ref:`<custom-function-authentication>` in the 
+App Services documentation for more information.
+
+To log in with Custom Function authentication, pass your custom arguments 
+as a payload to `Credentials.customFunction()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/-companion/custom-function.html>`__, 
+and then pass the generated credential to `app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.custom-function-authentication.kt
+   :language: kotlin
+
+Learn how to :ref:`<kotlin-call-function>`.
+
+.. versionadded:: 1.9.0
+
+You can serialize data for a Custom Function credential using an 
+EJSON encoder. For more information, including examples, refer to 
+:ref:`kotlin-ejson-encoding-for-atlas`.
+
+.. _kotlin-login-google:
+
+Google
+~~~~~~
+
+The Google authentication provider allows you to authenticate
+users through their existing Google account using an OAuth 2.0 
+token. Refer to :ref:`<google-authentication>` in the App Services 
+documentation for more information.
+
+Before you can authenticate users with Google, you must set up your
+application for Google User authentication:
+
+#. In the `Google Cloud Platform console
+   <https://console.cloud.google.com/apis/credentials>`__, create an
+   OAuth 2.0 client ID of type "Web application".
+#. Configure your backend App to use that client ID and the associated
+   client secret.
+#. Enable OpenID Connect on the backend.
+
+Use Google's official :google:`Sign-In for Android <identity/sign-in/android>`
+to authenticate Google users in your Android application. The following
+code implements this flow, starting with a method call to
+``loginWithGoogle()``:
+
+.. literalinclude:: /examples/generated/kotlin/MainActivity.snippet.google-authentication.kt
+   :language: kotlin
+
+.. tip:: 
+   
+   To learn more about Google Sign-In for Android, check out the
+   official :google:`Google Sign-In for Android Integration Guide
+   <identity/sign-in/android/start-integrating>`.
+
+Kotlin Multiplatform (KMP) supports many environments, but this example shows sign-in on
+the Android platform. For information about signing into a Google
+account on Apple platforms, refer to the :ref:`Swift SDK Example <ios-login-google>`.
+
+.. _kotlin-login-facebook:
+
+Facebook
+~~~~~~~~
+
+The Facebook authentication provider allows
+you to authenticate users through a Facebook app using their 
+existing Facebook account. Refer to :ref:`<facebook-authentication>` in the 
+App Services documentation for more information.
+
+Before you can authenticate users with Facebook, you must set up 
+the authentication flow for your application by following the 
+official :facebook:`Facebook Login for Android Quickstart
+<docs/facebook-login/android>`. 
+
+In the login completion handler, get the logged in user's access
+token from the Facebook 
+:facebook:`LoginResult <docs/reference/android/current/class/LoginResult>`. 
+Use the access token to create a Facebook credential by calling  
+`Credentials.facebook()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/-companion/facebook.html>`__
+with the user's access token, and then pass the generated credential
+to `app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/MainActivity.snippet.facebook-authentication.kt
+   :language: kotlin
+
+.. include:: /includes/note-facebook-profile-picture-url.rst
+
+Kotlin Multiplatform (KMP) supports many environments, but this example shows sign-in on
+the Android platform. For information about signing into a Facebook
+account on Apple platforms, refer to the
+:ref:`Swift SDK Example <ios-login-facebook>`.
+
+.. _kotlin-login-apple:
+
+Apple
+~~~~~
+
+The Sign-in with Apple authentication provider enables users to 
+log in to your application with a custom token provided
+by Apple. Refer to  :ref:`<apple-id-authentication>` in the App Services 
+documentation for more information.
+
+To log in with Apple authentication, create an
+Apple credential by calling `Credentials.apple()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-credentials/-companion/apple.html>`__
+with the user's token, and then pass the generated credential
+to `app.login()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/login.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.apple-authentication.kt
+   :language: kotlin
+
+Kotlin Multiplatform (KMP) supports many environments, but this example shows sign-in on
+the Android platform. For information about signing in with Apple
+on Apple platforms, see the :ref:`Swift SDK Example <ios-login-apple>`.
+
+.. _kotlin-retrieve-current-user:
+
+Retrieve Current User
+---------------------
+
+You can retrieve the currently logged-in user with the `App.currentUser 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/current-user.html>`__
+property:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.retrieve-current-user.kt
+   :language: kotlin 
+
+If you have multiple users logged in to your app, this returns the last 
+valid user that logged in or returns ``null`` if there are no 
+logged-in users. Refer to :ref:`<kotlin-multi-user-applications>` for 
+more information.
+
+Note that the  ``currentUser`` object is persisted in local storage, so even 
+if the app shuts down after the initial authentication, you do not need 
+to call ``logIn`` again (unless the user has logged out or the user 
+session has expired). 
+
+Use this method to log in offline or :ref:`call an Atlas Function 
+<kotlin-call-function>` upon subsequent app opens. 
+
+.. _kotlin-offline-login:
+
+Log In Offline 
+--------------
+
+.. include:: /includes/offline-login.rst
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.open-realm-offline.kt
+   :language: kotlin
+
+.. _kotlin-access-token:
+
+Manage User Tokens
+------------------
+
+The Realm Kotlin SDK automatically manages access tokens, refreshes them 
+when they expire, and includes a valid access token for the current user 
+with each request. Tokens are removed after the user logs out.
+
+.. important:: 
+   
+   Realm only refreshes a user's access token. 
+   Realm *does not* automatically refresh the refresh token. 
+   When the refresh token expires, the SDK can no longer get an updated access 
+   token and the device cannot sync until the user logs in again.
+
+For more information on user session access and refresh tokens, 
+refer to :ref:`<user-sessions>` in the App Services documentation.
+
+Get a User Access Token
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can get the current access token for a logged-in user with the
+`user.accessToken <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/access-token.html>`__ 
+property:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.access-token-get.kt
+   :language: kotlin
+
+If you send requests outside of the SDK, you must include the user's access
+token with each request and manually refresh the token when it expires. 
+Access tokens expire 30 minutes after a user logs in.
+
+You can get the current refresh token for a logged-in user with the
+`user.refreshToken <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/refresh-token.html>`__ 
+property, which you can use to request a new access token:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.access-token-refresh.kt
+   :language: kotlin
+
+Configure Refresh Token Expiration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/refresh-token-expiry.rst
+
+.. _kotlin-logout:
+
+Log a User Out
+--------------
+
+.. include:: /includes/log-out-queries-in-progress.rst
+
+You can log out any user, regardless of the authentication provider used
+to log in, using `user.logOut()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/log-out.html>`__: 
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.log-out.kt
+   :language: kotlin
+
+The ``user.logOut()`` method:
+
+- Deletes locally stored user credentials from the device.
+- Immediately halts any synchronization to and from the user's realms.
+- For anonymous users, :ref:`removes the user <kotlin-remove-a-user>`.
+
+Because logging out halts synchronization, you should only log out after
+all local Realm updates have uploaded to the server.
+
+.. _kotlin-authentication-change-listener:
+
+Observe Authentication Changes
+------------------------------
+
+.. versionadded:: 10.8.0
+
+You can observe a flow of authentication change events by calling 
+`App.authenticationChangeAsFlow() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app/authentication-change-as-flow.html>`__ .
+This flow emits 
+`AuthenticationChange <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-authentication-change/index.html>`__ 
+events of three possible states, represented as subclasses:
+
+- ``LoggedIn``: A user logs into the app.
+- ``LoggedOut``: A a user logs out of the app.
+- ``Removed``: A user is removed from the app, which also logs them out.
+
+These events contain a ``user`` property that provides a reference to the 
+``User`` object that has logged in, logged out, or been removed.
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.auth-change-listener.kt
+   :language: kotlin

@@ -1,0 +1,308 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:orphan:
+
+.. _node-electron-cra-client-quick-start:
+
+=====================================
+Quick Start with Electron using React
+=====================================
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+This page contains information to get Realm integrated into your Electron
+application quickly by developing an application using :reactjs:`Create React
+App </docs/create-a-new-react-app.html>`.
+
+Before you begin, ensure you have:
+
+- :ref:`Created an App <create-a-realm-app>`
+- :ref:`Enabled Device Sync <enable-sync>`
+
+.. note:: Version Requirement - Electron
+
+   Realm works with any of the officially supported Electron versions.
+   However, as Electron is constantly changing with each update, we recommend
+   using Electron version 13.2.x for compatibility with this documentation. To see the
+   officially supported Electron versions, check out the `Electron Releases
+   <https://www.electronjs.org/releases/>`_ document.
+
+.. note:: Version Requirement - React.js
+
+   This guide was created with support for :reactjs:`React.js version 17.0
+   </versions>` and :github:`Create React App version 4.0
+   </facebook/create-react-app/releases>`. Versions other than those may lead to
+   errors while building the application since new dependencies are frequently
+   added to both React.js and Create React App.
+
+.. _electron-setup:
+
+Setup
+-----
+
+To set up an Electron application using Realm use the following instructions:
+
+.. procedure::
+
+   .. step:: Create Your React Application
+
+      Scaffold your application by using the `Create React App
+      <https://reactjs.org/docs/create-a-new-react-app.html>`_ toolchain.
+      Enter the following command into your terminal:
+
+      .. code-block:: shell
+
+         npx create-react-app my_electron_react_application
+
+      Your application should include the following files. Some additional files in
+      your project, such as CSS, service worker, and test files aren't included
+      below.
+
+      .. code-block:: text
+         :emphasize-lines: 7, 8
+
+         .
+         |-- package.json
+         |-- package-lock.lock
+         |-- public
+         |   |-- index.html
+         |-- src
+         |   |-- App.js // renderer process
+         |-- |-- index.js // renderer process
+
+      Any JS file within the ``src`` directory executes on a ``renderer process``.
+
+      .. note::
+
+       Each Electron application can only have one **main process**. The
+       main process creates web pages. Each web page runs in its
+       own process, known as **renderer process**. To learn more about
+       this, read the official `Electron Process Model
+       <https://www.electronjs.org/docs/latest/tutorial/process-model>`__ doc.
+
+
+   .. step:: Remove the web-vitals dependency
+
+      Create React App version 4.0+ includes the :npm:`web-vitals
+      <package/web-vitals>` module. Since 'web-vitals' is designed to work with the
+      web rather than an Electron environment, the inclusion of this module may lead
+      to a ``"chunk runtime-main [entry] Cannot convert undefined or null to
+      object"`` error when building the application. To avoid this error, run the
+      following command to uninstall the ``web-vitals`` package.
+
+      .. code-block:: shell
+
+         npm uninstall web-vitals
+
+
+      Then delete the ``reportWebVitals.js`` file:
+
+      .. code-block:: shell
+
+         rm src/reportWebVitals.js
+
+      Finally, remove the following lines from the ``src/index.js`` file:
+
+      .. code-block:: javascript
+
+         import reportWebVitals from './reportWebVitals';
+         reportWebVitals();
+
+
+   .. step:: Install CRACO to Alter Your Webpack Configuration
+
+      To allow your application to work properly with Electron, you have to
+      alter your webpack configuration. By default, applications created via
+      create-react-app use a preconfigured webpack file and hidden to the
+      end-user.  The Create React App default webpack configuration is not
+      compatible with Realm and you must override it. You can use `CRACO
+      <https://www.npmjs.com/package/@craco/craco>`_ to override these
+      default values. Install CRACO with the following command:
+
+      .. code-block:: shell
+
+         npm install @craco/craco
+
+
+   .. step:: Create a CRACO Configuration File
+
+      In order to override the preconfigured webpack values, create a CRACO
+      config file called ``craco.config.js`` at the root of your
+      application. Add the following to this file:
+
+      .. literalinclude:: /examples/QuickStarts/electron/quickstart-setup-react-cracoconfig.js
+         :language: javascript
+
+      The `target <https://webpack.js.org/configuration/target/>`_ is set to
+      "electron-renderer" to compile your application for browser environments for
+      Electron built-in modules. ``nodeExternals`` is also specified to prevent all
+      node_modules from being bundled. The ``allowList`` key in the object passed
+      in to ``nodeExternals`` specifies a list of modules to include in the bundle,
+      in this case electron's dev tools and webpack. In order to make use of
+      webpack-node-externals, run the following command:
+
+      .. code-block:: shell
+
+         npm install webpack-node-externals --save-dev
+
+
+   .. step:: Install Electron
+
+      To add Electron to your project, run the following command:
+
+      .. code-block:: shell
+
+         npm install electron --save-dev
+
+
+   .. step:: Create Your Electron Main Process File
+
+      The Electron ``main process`` file can be thought of as the entry
+      point into your application. This file is responsible for loading your
+      React App's ``index.html`` file into the ``BrowserWindow`` created by
+      Electron.
+
+      .. note::
+         Each Electron application can only have one **main process**. The
+         main process can create web pages. Each web page runs in its
+         own process, known as a **renderer process**. To learn more about
+         this, read the official `Electron Process Model
+         <https://www.electronjs.org/docs/latest/tutorial/process-model>`__
+         doc.
+
+      Add the following code to a new file called ``electron.js`` in the
+      ``public`` directory:
+
+      .. literalinclude:: /examples/QuickStarts/electron/quickstart-setup-react-electron.js
+         :language: javascript
+         :emphasize-lines: 18
+
+      Your application should now include the following files. Some additional files
+      in your project, such as CSS, service worker, and test files aren't included
+      below.
+
+      .. code-block:: text
+         :emphasize-lines: 7, 9, 10
+
+         .
+         |-- package.json
+         |-- package-lock.lock
+         |-- craco.config.js
+         |-- public
+         |   |-- index.html
+         |   |-- electron.js // main process
+         |-- src
+         |   |-- App.js // renderer process
+         |-- |-- index.js // renderer process
+
+      All JS files within the ``src`` directory executes on the ``renderer`` process. The electron.js and any files required by it execute on the main process.
+
+
+   .. step:: Run Your Application
+
+      In order to run your application, specify a homepage and a main entry point for Electron by adding the following to your ``package.json`` file:
+
+      .. code-block:: shell
+
+         "main": "public/electron.js",
+         "homepage": "./",
+
+      Finally, add the following scripts to your ``package.json`` file:
+
+      .. code-block:: shell
+
+         "scripts": {
+           "build": "craco build",
+           "start": "electron ."
+         },
+
+      In your terminal, run ``npm run build`` and then ``npm run start``. You should
+      see the following:
+
+      .. cssclass:: bordered-figure
+      .. figure:: /images/electron-cra.png
+        :alt: Electron Desktop App with React
+
+
+   .. step:: Install Realm
+
+      In your terminal, use the following command to add Realm to your project:
+
+      .. code-block:: shell
+
+         npm install realm
+
+      Use realm in the **renderer process** by adding the following to the top
+      of the ``src/App.js`` file (you will also need to import it in whichever
+      file you write code using Realm in):
+
+      .. code-block:: shell
+
+         import Realm from "realm";
+
+
+Open a Realm
+------------
+
+Authenticate a user, define a schema, and :ref:`sync enabled Device Sync
+<enable-sync>`, then call :js-sdk:`Realm.open() <classes/Realm-1.html#open>` 
+in a file that you have imported Realm into.
+
+Once you have opened the realm, you can :ref:`write to the realm
+<node-realm-database-writes>`.
+
+.. code-block:: javascript
+   :emphasize-lines: 17
+
+   const app = new Realm.App({ id: "<Your App ID>" }); // create a new instance of the Realm.App
+   async function run() {
+
+     // login with an anonymous credential
+     await app.logIn(Realm.Credentials.anonymous());
+
+     const DogSchema = {
+         name: "Dog",
+         properties: {
+           _id: 'int',
+           name: "string",
+           age: "int",
+         },
+         primaryKey: '_id'
+     };
+
+     const realm = await Realm.open({
+       schema: [DogSchema],
+       sync: {
+         user: app.currentUser,
+         partitionValue: "myPartition",
+       },
+     });
+     
+     // The myPartition realm is now synced to the device. You can
+     // access it through the `realm` object returned by `Realm.open()`
+
+     // write to the realm
+   }
+   run().catch(err => {
+     console.error("Failed to open realm:", err)
+   });
+
+.. include:: /includes/note-electron-writes-from-both-processes.rst
+
+.. include:: /includes/note-electron-packaging.rst
+
+.. seealso::
+
+   - :ref:`Sync Data <node-partition-sync-open-realm>`
+   - :ref:`Define Your Schema <node-object-schemas>`
+   - :ref:`Authenticate a User <node-authenticate-users>`

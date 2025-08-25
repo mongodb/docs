@@ -1,0 +1,398 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-delete-objects:
+
+=================================
+Delete Realm Objects - Kotlin SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to delete objects from a local or synced realm 
+using the Kotlin SDK. 
+
+You can choose to delete a single object, multiple objects, or all 
+objects from the realm. After you delete an object, you can no longer access or 
+modify it. If you try to use a deleted object, Realm throws an error.
+
+Deleting objects from a realm *does not* delete the realm file
+or affect the realm schema. It only deletes the object instance from the 
+realm. If you want to delete the realm file itself,
+refer to :ref:`<kotlin-delete-a-realm>`.
+
+.. note:: Write to a Synced Realm
+
+   The syntax to delete an object from a realm is the same for a local or
+   a synced realm. However, there are additional considerations that determine
+   whether the delete operation in a synced realm is successful. For more 
+   information, refer to :ref:`<kotlin-write-synced-realm>`.
+
+Delete Operations
+-----------------
+
+All operations that modify a realm - including delete operations - 
+must be performed inside of a **write transaction**. Write transactions
+are passed to the realm's 
+`write() <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write.html>`__ 
+or 
+`writeBlocking() <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write-blocking.html>`__
+method. Within this callback, you can access a 
+`MutableRealm <{+kotlin-local-prefix+}io.realm.kotlin/-mutable-realm/index.html>`__
+instance and then delete objects within the realm. For more information on 
+write transactions and how Realm handles them, refer to 
+:ref:`<kotlin-write-transactions>`.
+
+You can only delete live objects, which are only accessible inside of a 
+write transaction. You can convert a frozen object to a 
+live object in a transaction with `mutableRealm.findLatest()
+<{+kotlin-local-prefix+}io.realm.kotlin/-mutable-realm/find-latest.html>`__.
+
+.. example:: Convert Frozen Object Before Deleting
+
+   .. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.fetch-latest-to-delete-object.kt
+      :language: kotlin
+
+Related Objects and References
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you delete an object that has a :ref:`relationship <kotlin-relationships>` 
+property with another object, Realm *does not* automatically 
+delete the instance of the related object. Instead, Realm only
+deletes the reference to the other object. The referenced object remains in the 
+realm, but it can no longer be queried through the parent property.
+
+The only exception is if the related object is 
+:ref:`embedded <kotlin-embedded-objects>`. When you delete an object that 
+has a relationship with an ``EmbeddedRealmObject``, Realm automatically 
+deletes the embedded object in a **cascading delete**. For more information, 
+refer to the :ref:`<kotlin-delete-embedded-objects>` section on this page.
+
+Chaining Deletes with Related Realm Objects
+```````````````````````````````````````````
+
+If you want to delete any related objects when you delete a parent object, 
+we recommend performing a **chaining delete**. A chaining delete consists 
+of manually deleting dependent objects by iterating through the 
+dependencies and deleting them before deleting the parent object.
+For more information on chaining deletes, refer to the 
+:ref:`<kotlin-delete-related-objects>` section on this page.
+
+If you do not delete the related objects yourself, they remain 
+orphaned in your realm. Whether or not this is a problem depends on 
+your application's needs.
+
+.. _kotlin-delete-an-object:
+
+Delete Realm Objects
+--------------------
+
+To delete specific objects from a realm:
+
+1. Open a write transaction with `realm.write()
+   <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write.html>`__ or
+   `realm.writeBlocking()
+   <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write-blocking.html>`__.
+
+#. Get the live objects by querying the transaction's mutable realm 
+   for the objects that you want to delete using 
+   `query() <{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-query/query.html>`__:
+   
+   #. Specify the object type as a type parameter passed to ``query()``.
+   #. (Optional) Filter the set of returned objects by specifying a query. 
+      If you don't include a query filter, you return all objects of the 
+      specified type. For more information on querying with the Kotlin SDK, refer to :ref:`<kotlin-read-objects>`.
+
+   .. important:: Objects Must Be Live
+      
+      You can only delete live objects. If your query occurs outside of the 
+      write transaction, you must convert the frozen objects 
+      to live objects in the transaction with 
+      ``mutableRealm.findLatest()``.
+
+#. Pass the set of `RealmResults
+   <{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-results/index.html>`__
+   returned by the query to 
+   `mutableRealm.delete() <{+kotlin-local-prefix+}io.realm.kotlin/-mutable-realm/delete.html>`__.
+
+#. The specified objects are deleted from the realm and can no longer be accessed 
+   or modified. If you try to use a deleted object, Realm throws an error.
+   
+   If any deleted objects had a relationship with another object, Realm 
+   only deletes the reference to the other object. The referenced object
+   remains in the realm, but it can no longer be queried through the deleted 
+   parent property. Refer to the :ref:`<kotlin-delete-related-objects>` section
+   for more information.
+
+.. tip:: 
+
+   You can check whether an object is still valid to use by calling 
+   `isValid() <{+kotlin-local-prefix+}io.realm.kotlin.ext/is-valid.html>`__.
+   Deleted objects return ``false``.
+
+.. _kotlin-delete-a-single-object:
+
+Delete a Single Object 
+~~~~~~~~~~~~~~~~~~~~~~
+
+To delete a single ``RealmObject`` object, 
+query for the object type using a filter 
+that returns the specific object that you want to delete.
+
+.. tip:: Use Unique Identifying Information
+
+   We recommend filtering with unique identifying information such as 
+   a primary key value to ensure your query returns the correct object.
+
+In the following example, we query for a ``Frog`` object with a specific 
+primary key, and then pass the returned object to ``mutableRealm.delete()`` to 
+delete it from the realm: 
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-one-realm-object.kt
+   :language: kotlin
+
+.. _kotlin-delete-multiple-objects:
+
+Delete Multiple Objects
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete multiple objects at the same time, pass the object type to 
+``query()`` and specify a query that returns all objects that you want 
+to delete.
+
+In the following example, we query for the first three ``Frog`` objects whose 
+``species`` is "bullfrog", and then pass the results to 
+``mutableRealm.delete()`` to delete them from the realm: 
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-multiple-realm-objects.kt
+   :language: kotlin
+
+.. _kotlin-delete-all-objects-of-a-type:
+
+Delete All Objects of a Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete all objects of a specific type from a realm at the same time, pass the 
+object type to ``query()`` and leave the query filter empty to return all 
+objects of that type.
+
+In the following example, we query for all ``Frog`` objects, and then pass
+the results to ``mutableRealm.delete()`` to delete them all from the realm:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-all-realm-object-types.kt
+   :language: kotlin
+
+.. _kotlin-delete-all-objects-in-the-realm:
+
+Delete All Objects in a Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Kotlin SDK lets you delete all managed objects of all types, which is useful 
+for quickly clearing out your realm while prototyping. This does not affect
+the realm schema or any objects that are not managed by the realm.
+
+To delete *all* objects from the realm at the same time, call 
+`mutableRealm.deleteAll() <{+kotlin-local-prefix+}io.realm.kotlin/-mutable-realm/delete-all.html>`__. This deletes all objects of all types.
+
+In the following example, we delete all objects from the realm with ``deleteAll()``:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-all-realm-objects.kt
+   :language: kotlin
+
+.. tip:: Use deleteAll() in Development
+         
+   The ``deleteAll()`` method is useful for quickly clearing out 
+   your realm during development. For example, instead of writing 
+   a migration to update objects to a new schema, it may be faster to 
+   delete all, and then re-generate the objects with the app itself.
+
+Delete Related Objects
+----------------------
+
+Deleting a parent object *does not* automatically delete any objects that are
+related to it unless the related object is embedded. 
+Instead, Realm only deletes the reference to the related object.
+
+In the following example, we have a ``Frog`` object with a list of 
+``Pond`` objects. After we delete the ``Frog`` object, we confirm that all 
+``Pond`` objects still remain in the realm:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-realm-object-with-related-objects.kt
+   :language: kotlin
+
+.. _kotlin-delete-related-objects:
+
+Delete an Object and Its Related Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete related objects when you delete a parent object, you must manually
+delete the related objects yourself. We recommend chaining deletes: 
+first query for the parent object that you want to delete, then iterate 
+through the parent object's relationships and delete each related object. 
+Finally, delete the parent object itself.
+
+In the following example, we query for a ``Frog`` object named "Kermit", then
+iterate through the object's ``favoritePonds`` property and delete
+each ``Pond`` object. Then, we delete the ``Frog`` object itself:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.chain-delete-realm-list.kt
+   :language: kotlin
+
+.. _kotlin-delete-embedded-objects:
+
+Delete an Embedded Object
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning:: Realm Uses Cascading Deletes for Embedded Objects
+
+   When you delete a Realm object, Realm automatically deletes any
+   embedded objects referenced by that object. 
+   If you want the referenced objects to persist after the deletion of the 
+   parent object, use a regular Realm object with a :ref:`to-one relationship 
+   <kotlin-to-one-relationship>` instead.
+
+You can delete an embedded object through the parent object in a cascading 
+delete or by deleting the embedded object directly.
+
+- To delete the embedded object through the parent object, fetch and delete
+  the parent object. Realm automatically deletes all of its embedded objects
+  from the realm.
+- To delete an embedded object instance directly:
+
+  - Fetch and delete a specific embedded object.  
+  - Clear the parent's reference to the embedded object, which also 
+    deletes the embedded object instance.  
+
+In the following example, we have a ``Business`` object with a list of 
+embedded ``EmbeddedAddress`` objects. We query for and delete the ``Business`` object, 
+which automatically deletes all of its embedded ``EmbeddedAddress`` objects:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-embedded-object-through-parent.kt
+   :language: kotlin
+
+In the following example, we have ``Contact`` objects with embedded 
+``EmbeddedAddress`` objects. We delete an ``EmbeddedAddress`` object directly and delete 
+another through the parent object:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-embedded-object.kt 
+    :language: kotlin
+
+.. tip:: Get Embedded Object's Parent
+
+   You can get the unique parent of an embedded object using 
+   `parent() <{+kotlin-local-prefix+}io.realm.kotlin.ext/parent.html>`__.
+
+Remove Elements from Collections
+--------------------------------
+
+Realm collection instances that contain objects only store 
+references to those objects. You can remove one or more referenced 
+objects from a collection without deleting the objects themselves.
+The objects that you remove from a collection remain in the realm
+until you manually delete them. Alternatively, deleting a Realm object from a 
+realm also deletes that object from any collection instances that contain 
+the object.
+
+.. _kotlin-remove-realmlist-elements:
+
+Remove Elements from a RealmList
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can remove one or more elements in a single transaction from a 
+`RealmList <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-list/index.html>`__:
+
+- To remove one element from the list, pass the element to 
+  `list.remove() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-list/index.html#731697687%2FFunctions%2F878332154>`__.
+- To remove one element at a specified index in the list, pass the index to 
+  `list.removeAt() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-list/index.html#1522148962%2FFunctions%2F878332154>`__.
+- To remove multiple elements from the list, pass the elements to
+  `list.removeAll() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-list/index.html#1522148962%2FFunctions%2F878332154>`__.
+
+You can also remove *all* list elements at once by calling
+`list.clear() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-list/index.html#-35526398%2FFunctions%2F878332154>`__.
+
+In the following example, we have a ``Forest`` object with a list of 
+``Pond`` objects. We remove the list elements in a series of operations until the 
+list is empty:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.remove-items-from-list.kt
+   :language: kotlin
+
+In the following example, we have a ``Forest`` object with a list of 
+``Pond`` objects. We remove all list elements with the ``list.clear()`` method:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.list-clear.kt
+   :language: kotlin
+
+.. _kotlin-remove-realmset-elements:
+
+Remove Elements from a RealmSet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can remove one or more elements in a single transaction from a 
+`RealmSet <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-set/index.html>`__:
+
+- To remove one element from the set, pass the element 
+  you want to delete to 
+  `set.remove() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-set/index.html#-1503494415%2FFunctions%2F-1651551339>`__.
+- To remove multiple elements from the set, pass the 
+  elements you want to delete to
+  `set.removeAll() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-set/index.html#430447804%2FFunctions%2F-1651551339>`__.
+
+You can also remove *all* set elements at once by calling
+`set.clear() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-set/index.html#-767459876%2FFunctions%2F878332154>`__.
+
+In the following example, we have a ``Frog`` object with a set of 
+``Snack`` objects. We remove the set elements in a series of operations until the
+set is empty:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.remove-item-from-set.kt
+   :language: kotlin
+
+In the following example, we have a ``Frog`` object with a set of 
+``Snack`` objects. We remove all set elements with the ``set.clear()`` method:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.clear-set.kt
+   :language: kotlin
+
+.. _kotlin-delete-dictionary-keys-values:
+
+Remove Dictionary Keys/Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can remove 
+`RealmDictionary <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-dictionary/index.html>`__ 
+entries in a few ways:
+
+- To remove the value but keep the key, set the key to ``null`` (the 
+  dictionary's value must be nullable)
+- To remove the key and the value, pass the key to 
+  `remove() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-dictionary/index.html#-2016920067%2FFunctions%2F878332154>`__ 
+
+You can also remove *all* keys and values by calling 
+`clear() <{+kotlin-local-prefix+}io.realm.kotlin.types/-realm-dictionary/index.html#1264776610%2FFunctions%2F878332154>`__.
+
+In the following example, we have a ``Frog`` object with a dictionary of 
+``String`` values. We remove the dictionary elements in a series of operations 
+until the dictionary is empty:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-realm-dictionary.kt
+   :language: kotlin
+
+Delete RealmAny (Mixed) Property Value
+--------------------------------------
+
+Although ``RealmAny`` instances *cannot* store null values, you can 
+delete a ``RealmAny`` property value by assigning ``null`` directly 
+to the property.
+For more information on the ``RealmAny`` data type, refer to :ref:`<kotlin-realmany>`.
+
+In the following example, we have a ``Frog`` object with a list of  
+``RealmAny`` properties, and we clear the first ``RealmAny`` property value:
+
+.. literalinclude:: /examples/generated/kotlin/DeleteTest.snippet.delete-realmany-property.kt
+   :language: kotlin

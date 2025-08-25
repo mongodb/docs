@@ -1,0 +1,134 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-write-synced-realm:
+
+==================================
+Write to a Synced Realm - .NET SDK
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Overview
+--------
+
+When writing data to a synced realm using Flexible Sync, you use the same APIs 
+you use when writing to a local realm. However, there are some differences
+in behavior to keep in mind.
+
+When you write to a synced realm, your write operations must match *both*
+of the following:
+
+- The sync subscription query
+- The permissions in your App Services App
+
+If you try to write data that doesn't match the subscription query and the 
+permissions expression, the write reverts and throws a 
+:dotnet-sdk:`CompensatingWriteException <reference/Realms.Sync.Exceptions.CompensatingWriteException.html>`.
+You can look in the :ref:`App Services logs <logs-sync>` to see details 
+about why the write was denied.
+
+Compensating Writes
+-------------------
+
+When a client attempts an "illegal" write of an object, the following occurs:
+
+#. Because the client realm has no concept of "illegal" writes,
+   the write initially succeeds until realm resolves the changeset
+   with the App Services backend.
+#. Upon sync, the server applies the rules and permissions.
+   The server determines that the user does not have authorization to perform 
+   the write.
+#. The server sends a revert operation, called a "compensating write", back to 
+   the client.
+#. The client's realm reverts the illegal write operation and throws 
+   a ``CompensatingWriteException``.
+
+Any client-side writes to an object between the illegal write and the 
+corresponding compensating write will be lost.
+
+In practice, this may look like an object being written to the realm, and
+then disappearing after the server sends the compensating write back to 
+the client.
+
+When a ``CompensatingWriteException`` is thrown, it includes an enumerable of 
+:dotnet-sdk:`CompensatingWriteInfo <reference/Realms.Sync.Exceptions.CompensatingWriteInfo.html>` 
+objects. Each ``CompensatingWriteInfo`` object contains properties that describe 
+the object type, its primary key, and reason the server performed the compensating 
+write.
+
+Determining Which Data Syncs
+----------------------------
+
+The rule that controls which data you can write to a synced realm is the 
+intersection of your Device Sync configuration, App Services permissions, and the 
+Flexible Sync subscription query that you use when you open the realm.
+
+Let's look at an example of how those components work together:
+
+Device Sync Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Device Sync is configured with the following queryable fields:
+
+- ``_id`` (always included)
+- ``ownerId``
+
+App Services Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The App Services App has permissions configured to let users read and write 
+only their own data:
+
+.. code-block:: json
+
+   {
+     "name": "owner-read-write", 
+     "apply_when": {},
+     "document_filters": {
+       "read": { "ownerId": "%%user.id" },
+       "write": { "ownerId": "%%user.id" }
+     },
+     "read": true,
+     "write": true
+   }
+
+Flexible Sync Subscription
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+The flexible sync subscription on the client states that the object must have 
+a ``Status`` value of "completed":
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.example_sub.cs
+   :language: csharp
+   :copyable: false
+
+
+The Result: Which Data Syncs?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The combination of the subscription query and the permissions means that the 
+synced realm only syncs objects where:
+
+- The ``ownerId`` matches the ``user.id`` of the logged-in user (from the
+  permissions)
+- The ``Status`` property's value is "completed" (from the subscription query)
+
+Any object in the Atlas collection where the ``ownerId`` does not match 
+the ``user.id`` of the logged-in user, or the ``Status`` property's 
+value not "completed", cannot sync to this realm. An attempt to write such 
+an object throws a ``CompensatingWriteException``.
+
+For More Information
+~~~~~~~~~~~~~~~~~~~~
+
+To learn more about permission denied errors, compensating write errors
+and other Device Sync error types, refer to :ref:`sync-errors` in the 
+App Services documentation.
+
+To learn more about configuring permissions for your app, see
+:ref:`sync-rules` and the :ref:`flexible-sync-permissions-guide` in the
+App Services documentation.

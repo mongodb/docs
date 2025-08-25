@@ -1,0 +1,6 @@
+let realm = try await Realm(configuration: flexSyncConfig)
+let results = try await realm.objects(Task.self).where { $0.completed == false }.subscribe()
+// Go on to work with subscribed results.
+
+// Later...
+results.unsubscribe()

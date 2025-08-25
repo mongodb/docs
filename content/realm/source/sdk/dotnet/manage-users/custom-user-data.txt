@@ -1,0 +1,112 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-custom-user-data:
+.. _dotnet-access-custom-user-data:
+
+===========================
+Custom User Data - .NET SDK
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can store arbitrary custom user data  about your  
+users in realm. For example,
+you might store a user's preferred language, date of birth, or local
+timezone. Before writing and reading this data, you must enable custom user data 
+in the backend. To learn more, see :ref:`Enable Custom User Data <custom-user-data>`.
+
+.. include:: /includes/use-custom-data-note.rst
+
+To create, update, or delete custom user data, you will need the following
+information from your custom user data configuration:
+
+- The custom user data cluster
+
+- The custom user data database
+
+- The collection in which custom user data documents are stored
+
+- The user ID field used to map custom user data documents
+  to users (via user ID)
+
+You can find this information in the App Services UI. In the left sidebar, click  
+:guilabel:`App Users`,  and then select the :guilabel:`Custom User Data` tab.
+
+.. _dotnet-read-custom-user-data:
+
+Read a User's Custom User Data
+------------------------------
+
+You retrieve custom user data by calling the 
+:dotnet-sdk:`GetCustomData() <reference/Realms.Sync.User.html#Realms_Sync_User_GetCustomData>`
+method on the ``User`` object of a logged in user:
+
+.. literalinclude:: /examples/generated/dotnet/CustomUserDataExamples.snippet.read.cs
+   :language: csharp
+
+.. warning:: Custom Data May Be Stale
+   
+   App Services does not dynamically update the value of the 
+   ``CustomData``  immediately when underlying data changes. Instead, App Services 
+   fetches the most recent version of custom user data whenever a user 
+   refreshes their :ref:`access token <user-sessions>` or when you explicitly 
+   call the 
+   :dotnet-sdk:`RefreshCustomDataAsync() <reference/Realms.Sync.User.html#Realms_Sync_User_RefreshCustomDataAsync>` 
+   method, which ensures your app has the latest custom user data.
+
+.. _dotnet-create-custom-user-data:
+
+Create a User's Custom User Data Document
+-----------------------------------------
+
+To create custom user data for a user, create a MongoDB document in the
+custom user data collection. The user ID field of the document must
+contain the the user's user ID. The following example uses
+:ref:`MongoDB Data Access <dotnet-mongodb-data-access>` to insert a
+document containing the user ID of the currently logged in user and several 
+custom properties into the custom user data collection:
+
+.. literalinclude:: /examples/generated/dotnet/CustomUserDataExamples.snippet.create.cs
+   :language: csharp
+
+You may find it helpful to create a C# class (POCO) that represents the custom 
+user data object. The SDK will serialize/deserialize this class to and from BSON 
+when writing, reading, and updating properties. The example above uses the 
+following class to map the properties:
+
+.. literalinclude:: /examples/generated/dotnet/CustomUserDataExamples.snippet.cud.cs
+   :language: csharp
+
+.. _dotnet-update-custom-user-data:
+
+Update a User's Custom Data
+---------------------------
+
+Updating custom user data uses the same code as writing. The following example 
+finds and updates the data by using the 
+:dotnet-sdk:`UpdateOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_UpdateOneAsync_System_Object_System_Object_System_Boolean_>` 
+method, and then refreshes the data to ensure the latest changes are available:
+
+.. literalinclude:: /examples/generated/dotnet/CustomUserDataExamples.snippet.update.cs
+   :language: csharp
+
+.. _dotnet-delete-custom-user-data:
+
+Delete a User's Custom Data
+---------------------------
+
+Deleting custom user data uses the same approach as writing and updating. The 
+following example finds and deletes the data by using the 
+:dotnet-sdk:`DeleteOneAsync() <reference/Realms.Sync.MongoClient.Collection-1.html#Realms_Sync_MongoClient_Collection_1_DeleteOneAsync_System_Object_>` 
+method:
+
+.. literalinclude:: /examples/generated/dotnet/CustomUserDataExamples.snippet.delete.cs
+   :language: csharp

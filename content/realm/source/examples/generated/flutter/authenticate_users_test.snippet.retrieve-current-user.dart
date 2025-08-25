@@ -1,0 +1,1 @@
+final user = app.currentUser;

@@ -1,0 +1,269 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-geospatial:
+
+============================
+Geospatial Data - Kotlin SDK
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. versionadded:: 1.11.0
+
+Geospatial data, or "geodata", specifies points and geometric objects on the Earth's 
+surface. 
+
+Kotlin SDK version 1.11.0 and later adds experimental geospatial APIs 
+that support querying with geospatial data. These queries can check whether a given  
+point is contained within a shape. For example, you can find all coffee shops within 
+15 km of a specified point.
+
+.. versionchanged:: 1.13.0
+   Geospatial data supported in Atlas Device Sync
+
+Kotlin SDK version 1.13.0 and later adds support for geospatial data
+in Atlas Device Sync. This allows you to subscribe to geospatial queries
+in a synced realm. If you try to subscribe to a geospatial query with an older version of the SDK,
+you will receive a server error with a compensating write.
+
+For more information about managing your Sync subscriptions, refer to :ref:`<kotlin-subscriptions>`.
+
+For more information on querying geospatial data with Device Sync, 
+refer to :ref:`<geospatial>` in the App Services documentation.
+
+Geospatial Data Types
+---------------------
+
+The Kotlin SDK supports geospatial queries using the following data types:
+
+- GeoPoint
+- GeoCircle
+- GeoBox
+- GeoPolygon
+
+The SDK provides these geospatial data types to simplify querying geospatial data. You *cannot* persist these data types directly. 
+
+For information on how to persist geospatial data, refer to the 
+:ref:`<kotlin-persist-geopoint>` section on this page.
+
+.. _kotlin-geopoint:
+
+GeoPoint
+~~~~~~~~
+
+A `GeoPoint <{+kotlin-local-prefix+}io.realm.kotlin.types.geo/-geo-point/index.html>`__ defines a specific 
+location on the Earth's surface. All of the geospatial data types use ``GeoPoints`` 
+to define their location. 
+
+.. _kotlin-geocircle:
+
+GeoCircle
+~~~~~~~~~
+A `GeoCircle <{+kotlin-local-prefix+}io.realm.kotlin.types.geo/-geo-circle/index.html>`__ defines a circle on 
+the Earth's surface. You define a ``GeoCircle`` by providing a ``GeoPoint`` 
+for the center of the circle and a `Distance <{+kotlin-local-prefix+}io.realm.kotlin.types.geo/-distance/index.html>`__ 
+object to specify the radius of the circle. 
+
+.. note::
+   
+   You can define the radius in kilometers, miles, degrees, or radians.
+
+The following example creates 2 circles:
+
+.. literalinclude:: /examples/generated/kotlin/Geospatial.snippet.geocircle.kt
+   :language: kotlin
+
+.. figure:: /images/geocircles.png
+   :alt: Two GeoCircles
+   :width: 150
+   :lightbox:
+
+.. _kotlin-geobox:
+
+GeoBox
+~~~~~~
+
+A `GeoBox <{+kotlin-local-prefix+}io.realm.kotlin.types.geo/-geo-box/index.html>`__ defines a rectangle on  
+the Earth's surface. You define the rectangle by specifying the bottom left 
+(southwest) corner and the top right (northeast) corner. 
+
+The following example creates 2 boxes:
+
+.. literalinclude:: /examples/generated/kotlin/Geospatial.snippet.geobox.kt
+   :language: kotlin
+
+.. figure:: /images/geoboxes.png
+   :alt: 2 GeoBoxes
+   :width: 150
+   :lightbox:
+
+.. _kotlin-geopolygon:
+
+GeoPolygon
+~~~~~~~~~~
+
+A `GeoPolygon <{+kotlin-local-prefix+}io.realm.kotlin.types.geo/-geo-polygon/index.html>`__ defines a polygon 
+on the Earth's surface. 
+
+Because a polygon is a closed shape, you must provide a minimum of 4 points: 
+3 points to define the polygon's shape and a fourth to close the shape.
+
+.. important::
+
+   The fourth point in a polygon *must* be the same as the first point.
+
+You can also exclude areas within a polygon by defining one or more "holes". 
+A hole is another polygon whose bounds fit completely within the outer polygon. 
+Holes can also be nested within each other. A location is considered inside the 
+polygon if it is included in an odd number of rings.
+
+The following example creates 3 polygons: 
+
+- A basic polygon with 5 points 
+- The same polygon with a single hole
+- The same polygon with two holes
+
+.. literalinclude:: /examples/generated/kotlin/Geospatial.snippet.geopolygon.kt
+   :language: kotlin
+
+.. figure:: /images/geopolygons.png
+   :alt: 3 GeoPolygons
+   :width: 250
+   :lightbox:
+
+.. _kotlin-persist-geopoint:
+
+Persist Geospatial Data
+----------------------- 
+
+.. include:: /includes/important-cant-persist-geospatial.rst
+
+If you want to persist geospatial data, it must conform to the 
+`GeoJSON spec <https://datatracker.ietf.org/doc/html/rfc7946>`__. 
+
+To do this with the Kotlin SDK, you can create a GeoJSON-compatible 
+embedded class that you can then use in your data model.
+
+Create a GeoJSON-Compatible Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a class that conforms to the GeoJSON spec, you:
+
+1. Create an :ref:`embedded realm object <kotlin-embedded-objects>` 
+   (a class that inherits from 
+   `EmbeddedRealmObject <{+kotlin-local-prefix+}io.realm.kotlin.types/-embedded-realm-object/index.html>`__).
+
+#. At a minimum, add the two fields required by the GeoJSON spec:
+
+   - A field of type ``String`` property that maps to a ``type`` property 
+     with the value of ``"Point"``: ``var type: String = "Point"``
+
+   - A field of type ``RealmList<Double>`` that maps to a ``coordinates`` 
+     property in the realm schema containing a latitude/longitude 
+     pair: ``var coordinates: RealmList<Double> = realmListOf()``
+
+The following example shows an embedded class named ``CustomGeoPoint`` that is used 
+to persist geospatial data:
+
+.. literalinclude:: /examples/generated/kotlin/Geospatial.snippet.custom-geopoint.kt
+   :language: kotlin
+
+Use the Embedded Class
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``customGeoPoint`` class in your realm model, as shown in the 
+following example:
+
+.. literalinclude:: /examples/generated/kotlin/Geospatial.snippet.geopoint-model.kt
+   :language: kotlin
+   :emphasize-lines: 4
+
+You can then add instances of your class to the realm:
+
+.. literalinclude:: /examples/generated/kotlin/Geospatial.snippet.create-geopoint.kt
+   :language: kotlin
+
+The following image shows the results of creating these two ``Company`` objects:
+
+.. figure:: /images/geopoints.png
+   :alt: 2 GeoPoints
+   :width: 150
+   :lightbox:
+
+.. _kotlin-query-geospatial:
+
+Query Geospatial Data
+---------------------
+
+To query against geospatial data, you can use the ``GEOWITHIN`` operator with 
+:ref:`RQL <realm-query-language>`. This method takes the ``coordinates`` 
+property of an embedded object and checks if that point is contained within 
+the geospatial shape for that object. 
+
+The format for querying geospatial data is the same, regardless of the shape of 
+the geodata region.
+
+.. important::
+   
+   You cannot use parameterized queries with geospatial data.
+
+The following examples show querying against various shapes to return a list of 
+companies within the shape.
+
+GeoCircle
+~~~~~~~~~
+
+.. io-code-block::
+
+   .. input:: /examples/generated/kotlin/Geospatial.snippet.geocircle-query.kt
+    :language: kotlin
+
+   .. output:: 
+
+        Companies in large circle: 1
+        Companies in small circle: 0
+
+.. figure:: /images/geocircles-query.png
+   :alt: Querying a GeoCircle example
+   :width: 150
+   :lightbox:
+
+GeoBox
+~~~~~~
+
+.. io-code-block::
+
+   .. input:: /examples/generated/kotlin/Geospatial.snippet.geobox-query.kt
+    :language: kotlin
+
+   .. output:: 
+
+        Companies in large box: 1
+        Companies in small box: 2
+
+.. figure:: /images/geoboxes-query.png
+   :alt: Querying a GeoBox example
+   :width: 150
+
+GeoPolygon
+~~~~~~~~~~
+
+.. io-code-block::
+
+   .. input:: /examples/generated/kotlin/Geospatial.snippet.geopolygon-query.kt
+    :language: kotlin
+
+   .. output:: 
+
+        Companies in basic polygon: 2
+        Companies in polygon with holes: 1
+
+.. figure:: /images/geopolygons-query.png
+   :alt: Querying a GeoPolygon example
+   :width: 150
+   :lightbox:

@@ -1,0 +1,358 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-react-to-changes:
+
+=============================
+React to Changes - Kotlin SDK
+=============================
+
+.. meta::
+  :description: SDK notifications allow you to watch for and react to changes in your data.
+  :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Any modern app should be able to react when data changes,
+regardless of where that change originated. When a user adds a new item to a list,
+you may want to update the UI, show a notification, or log a message.
+When someone updates that item, you may want to change its visual state
+or fire off a network request.
+Finally, when someone deletes the item, you probably want to remove it from the UI.
+Realm's notification system allows you to watch for and react to changes in your data,
+independent of the writes that caused the changes.
+
+The frozen architecture of the Kotlin SDK makes notifications even more
+important. Because the Kotlin SDK doesn't have live objects that update
+automatically, you'll use notifications to keep your UI and data layer
+in sync.
+
+You can subscribe to changes on the following events:
+
+- :ref:`Query on collection <kotlin-query-change-listener>`
+- :ref:`Realm object <kotlin-realm-object-change-listener>`
+- :ref:`Realm collections (e.g. list) <kotlin-realm-list-change-listener>`
+
+The SDK only provides notifications for objects nested up to four layers deep. 
+If you need to react to changes in more deeply-nested objects, register a
+key path change listener. For more information, refer to 
+**Register a Key Path Change Listener** on this page.
+
+You can also react to changes in user authentication state. For more information,
+refer to :ref:`kotlin-authentication-change-listener`.
+
+.. example:: About the Examples on This Page
+
+   The examples in this page use two Realm object types, ``Character`` and
+   ``Fellowship``:
+
+   .. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.sample-data-models.kt
+      :language: kotlin
+
+   The examples have this sample data:
+
+   .. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.sample-data-seed.kt
+      :language: kotlin
+
+
+.. _kotlin-query-change-listener:
+
+Register a Query Change Listener
+--------------------------------
+
+You can register a notification handler on any query within a Realm.
+First, create a Kotlin Flow from the query with `asFlow()
+<{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-element-query/as-flow.html>`__.
+Next, use the ``collect()`` method to handle events on that Flow. Events
+of type ``UpdatedResults`` record all changes to the objects matching the
+query using the following properties:
+
+.. list-table::
+   :widths: 10 20 30
+
+   * - Property
+     - Type
+     - Description
+
+   * - ``insertions``
+     - *IntArray*
+     - Indexes in the new collection which were added in this version.
+
+   * - ``insertionRanges``
+     - *Array<ListChangeSet.Range>*
+     - Ranges of indexes in the new collection which were added in this version.
+
+   * - ``changes``
+     - *IntArray*
+     -  Indexes of the objects in the new collection which were modified in this version.
+
+   * - ``changeRanges``
+     - *Array<ListChangeSet.Range>*
+     - Ranges of indexes in the new collection which were modified in this version.
+
+   * - ``deletions``
+     - *IntArray*
+     -  Indexes in the previous version of the collection which have been removed from this one.
+
+   * - ``deletionRanges``
+     - *Array<ListChangeSet.Range>*
+     - Ranges of indexes in the previous version of the collection which have been removed from this one.
+
+   * - ``list``
+     - *RealmResults<T as RealmObject>*
+     - Results collection being monitored for changes.
+
+.. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.query-change-listener.kt
+   :language: kotlin
+
+.. _kotlin-realm-object-change-listener:
+
+Register a RealmObject Change Listener
+--------------------------------------
+
+You can register a notification handler on a specific object within a realm.
+Realm notifies your handler when any of the object's properties change.
+To register a change listener on a single object, obtain a `RealmSingleQuery <{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-single-query/index.html>`__
+with ``realm.query.first()``. Generate a Flow from that query with `asFlow()
+<{+kotlin-local-prefix+}io.realm.kotlin.query/-realm-element-query/as-flow.html>`__.
+The handler receives a ``SingleQueryChange`` object that communicates
+object changes using the following subtypes:
+
+.. list-table::
+
+   * - Subtype
+     - Properties
+     - Notes
+
+   * - ``UpdatedObject``
+     - *changedFields*, *obj*
+     - Pass a field name to ``isFieldChanged()`` to check if that field changed.
+
+   * - ``DeletedObject``
+     - *obj*
+     - Since *obj* always reflects the latest version of the object, it always returns a null value in this subtype.
+
+.. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.realm-object-change-listener.kt
+   :language: kotlin
+
+.. _kotlin-realm-list-change-listener:
+
+Register a Collection Change Listener
+-------------------------------------
+
+You can register a notification handler on a ``RealmList``, ``RealmSet``,
+or ``RealmMap``.
+Realm notifies your handler when any of the collection items change.
+First, create a Kotlin Flow from the collection with ``asFlow()``.
+Next, use the ``collect()`` method to handle events on that Flow. Events
+of type ``ListChange``, ``SetChange``, or ``MapChange`` record all 
+changes to the collection.
+
+.. tabs::
+
+   .. tab:: RealmList Notifications
+      :tabid: list
+
+      ``RealmList`` notifications implement the `ListChange 
+      <{+kotlin-local-prefix+}io.realm.kotlin.notifications/-list-change/index.html>`__
+      interface, which describes the possible changes that can occur in a RealmList
+      collection. These states are represented by subclasses:
+
+      - ``InitialList``
+      - ``UpdatedList``
+      - ``DeletedList``
+
+      A `ListChangeSet 
+      <{+kotlin-local-prefix+}io.realm.kotlin.notifications/-list-change-set/index.html>`__ 
+      is an interface that models the changes that can occur in a list, and the 
+      properties include:
+
+      .. list-table::
+        :widths: 10 20 30
+
+        * - Property
+          - Type
+          - Description
+
+        * - ``insertions``
+          - *IntArray*
+          - Indexes in the new collection which were added in this version.
+
+        * - ``insertionRanges``
+          - *Array<ListChangeSet.Range>*
+          - Ranges of indexes in the new collection which were added in this version.
+
+        * - ``changes``
+          - *IntArray*
+          -  Indexes of the objects in the new collection which were modified in this version.
+
+        * - ``changeRanges``
+          - *Array<ListChangeSet.Range>*
+          - Ranges of indexes in the new collection which were modified in this version.
+
+        * - ``deletions``
+          - *IntArray*
+          -  Indexes in the previous version of the collection which have been removed from this one.
+
+        * - ``deletionRanges``
+          - *Array<ListChangeSet.Range>*
+          - Ranges of indexes in the previous version of the collection which have been removed from this one.
+
+        * - ``list``
+          - *RealmResults<T as RealmObject>*
+          - Results collection being monitored for changes. This is provided when the event type is an ``UpdatedList``.
+
+   .. tab:: RealmSet Notifications
+      :tabid: set
+
+      ``RealmSet`` notifications implement the `SetChange 
+      <{+kotlin-local-prefix+}io.realm.kotlin.notifications/-set-change/index.html>`__
+      interface, which describes the possible changes that can occur in a RealmSet
+      collection. These states are represented by subclasses:
+
+      - ``InitialSet``
+      - ``UpdatedSet``
+      - ``DeletedSet``
+
+      A `SetChangeSet 
+      <{+kotlin-local-prefix+}io.realm.kotlin.notifications/-set-change-set/index.html>`__ 
+      is an interface that models the changes that can occur in a set, and the 
+      properties include:
+
+      .. list-table::
+        :widths: 10 20 30
+
+        * - Property
+          - Type
+          - Description
+
+        * - ``deletions``
+          - *Int*
+          -  The number of entries that have been deleted in this version of the collection.
+
+        * - ``insertions``
+          - *Int*
+          - The number of entries that have been inserted in this version of the collection.
+
+        * - ``set``
+          - *RealmSet<T>*
+          - The set being monitored for changes. This is provided when the event type is an ``UpdatedSet``.
+
+   .. tab:: Map Notifications
+      :tabid: map
+
+      ``RealmMap`` notifications implement the `MapChange 
+      <{+kotlin-local-prefix+}io.realm.kotlin.notifications/-map-change/index.html>`__
+      interface, which describes the possible changes that can occur in a RealmMap
+      collection. These states are represented by subclasses:
+
+      - ``InitialMap``
+      - ``UpdatedMap``
+      - ``DeletedMap``
+
+      A `MapChangeSet 
+      <{+kotlin-local-prefix+}io.realm.kotlin.notifications/-map-change-set/index.html>`__ 
+      is an interface that models the changes that can occur in a map, and the 
+      properties include:
+
+      .. list-table::
+        :widths: 10 20 30
+
+        * - Property
+          - Type
+          - Description
+
+        * - ``deletions``
+          - *Array<K>*
+          -  The keys that have been deleted in this version of the map.
+
+        * - ``insertions``
+          - *Array<K>*
+          - The keys that have been inserted in this version of the map.
+
+        * - ``changes``
+          - *Array<K>*
+          - The keys whose values have changed in this version of the collection.
+
+        * - ``set``
+          - *RealmMap<K, V>*
+          - The map being monitored for changes. This is provided when the event type is an ``UpdatedMap``.
+
+.. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.realm-list-change-listener.kt
+   :language: kotlin
+   
+.. _kotlin-key-path-notifications:
+
+Register a Key Path Change Listener
+-----------------------------------
+
+.. versionadded:: 1.13.0
+
+When you register a notification handler, you can pass an optional list of 
+string property names to specify the key path or key paths to watch.
+
+When you specify key paths, only changes to those key paths trigger 
+notification blocks. Any other changes do not trigger notification blocks.
+
+In the following example, we register a key path change listener for the ``age`` 
+property:
+
+.. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.realm-object-keypath-listener.kt
+   :language: kotlin
+
+.. include:: /includes/note-key-path-notification-execution.rst
+
+Observe Nested Key Paths
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use dot notation to observe nested key paths. By default, the SDK
+only reports notifications for objects nested up to four layers deep. Observe
+a specific key path if you need to observe changes on more deeply nested 
+objects.
+
+In the following example, we watch for updates to the nested property 
+``members.age``. Note that the SDK reports the change to the top-level 
+``members`` property, even though we're watching for changes to a nested 
+property:
+
+.. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.nested-keypath-listener.kt
+   :language: kotlin
+
+Observe Key Paths with Wildcards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use wildcards (``*``) to observe changes to all key paths at the 
+level of the wildcard.
+
+In the following example, we use the wildcard watch for changes to any nested 
+properties one level deep within the ``members`` property. Based on the model
+used in this example, this change listener would report changes to any member's
+``age``, ``species``, or ``name`` properties. Note that the SDK reports the 
+change to the top-level ``members`` property, even though we're watching for 
+changes to a nested property:
+
+.. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.wildcard-keypath-listener.kt
+   :language: kotlin
+
+Unsubscribe a Change Listener
+-----------------------------
+
+Unsubscribe from your change listener when you no longer want to receive notifications on updates to the data it's watching. To unsubscribe a change listener, `cancel the enclosing coroutine <https://kotlinlang.org/docs/cancellation-and-timeouts.html>`__.
+
+.. literalinclude:: /examples/generated/kotlin/NotificationsTest.snippet.cancel-change-listener.kt
+   :language: kotlin
+
+.. _kotlin-change-notification-limits:
+
+Change Notification Limits
+--------------------------
+
+.. include:: /includes/change-notification-limit.rst

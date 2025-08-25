@@ -1,0 +1,1 @@
+val isFrozen = frog.isFrozen()

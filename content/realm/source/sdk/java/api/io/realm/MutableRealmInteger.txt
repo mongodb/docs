@@ -1,0 +1,1030 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+
+Class MutableRealmInteger
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _io_realm_MutableRealmInteger:
+
+
+
+io.realm
+========
+
+
+ | `java.lang.Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__ 
+ | 		io.realm.MutableRealmInteger
+
+
+**Implemented interfaces:**
+
+
+
+- `java.lang.Comparable <https://docs.oracle.com/javase/7/docs/api/java/lang/Comparable.html>`__ 
+
+
+A ``MutableRealmInteger``  is a mutable, `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__ -like numeric quantity. It behaves almost exactly as a reference to a `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__ . More specifically:
+
+
+
+- A ``MutableRealmInteger``  may have the value ``null`` .
+   
+   
+   
+   
+- The :ref:`equals <io_realm_MutableRealmInteger_equals>`  operator compares the contained `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__  values. ``null`` -valued ``MutableRealmInteger``  are ``.equals`` 
+   
+   
+   
+   
+- The :ref:`compareTo <io_realm_MutableRealmInteger_compareTo>`  operator compares the contained `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__  values. It considers ``null``  < any non-``null``  value.
+   
+   
+   
+   
+- The :ref:`increment <io_realm_MutableRealmInteger_increment>`  and :ref:`decrement <io_realm_MutableRealmInteger_decrement>`  operators throw `IllegalStateException <https://docs.oracle.com/javase/7/docs/api/java/lang/IllegalStateException.html>`__  when applied to a ``null`` -valued ``MutableRealmInteger`` .
+   
+   
+   
+   
+
+
+``MutableRealmInteger`` s are most interesting as members of a managed :ref:`RealmModel <io_realm_RealmModel>`  object. When managed, the :ref:`increment <io_realm_MutableRealmInteger_increment>`  and :ref:`decrement <io_realm_MutableRealmInteger_decrement>`  operators implement a 
+
+`conflict free replicated data type <https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type>`__ : Simultaneous increments and decrements from multiple distributed clients will be aggregated correctly. For instance, if the value of ``counter``  field for the object representing user "Fred" is currently 0, then the following code, executed on two different devices, simultaneously, even if connected by only a slow, unreliable network, will 
+
+**always** cause the value of ``counter``  to converge, eventually on the value 2.
+
+
+
+
+
+.. code-block:: java
+
+     MutableRealmInteger counter = realm.where(Users.class)
+        .equalTo("name", Fred)
+        .findFirst()
+        .counter.increment(1);
+    
+
+Note that the :ref:`set(Long) <io_realm_MutableRealmInteger_set_Long_>`  operator must be used with extreme care. It will quash the effects of any prior calls to :ref:`increment(long) <io_realm_MutableRealmInteger_increment_long_>`  or :ref:`decrement(long) <io_realm_MutableRealmInteger_decrement_long_>` . Although the value of a ``MutableRealmInteger``  will always converge across devices, the specific value on which it converges will depend on the actual order in which operations took place. Mixing :ref:`set(Long) <io_realm_MutableRealmInteger_set_Long_>`  with :ref:`increment(long) <io_realm_MutableRealmInteger_increment_long_>`  and :ref:`decrement(long) <io_realm_MutableRealmInteger_decrement_long_>`  is, therefore, not advised, unless fuzzy counting is acceptable.
+
+``MutableRealmInteger`` s may not be primary keys. Their implementations are not thread safe. Like all managed Realm objects, managed ``MutableRealmInteger`` s may not be moved across threads. Unmanaged ``MutableRealmInteger`` s may be moved across threads but require safe publication.
+
+
+
+A ``MutableRealmInteger`` , in a model class, must always be declared ``final`` . For instance:
+
+
+
+ ``public final MutableRealmInteger counter = MutableRealmInteger.ofNull();`` 
+ 
+
+Although initializing the ``MutableRealmInteger``  as ``null``  may work very limited circumstances, developers are advised 
+
+**not** to do it: 
+
+.. code-block:: java
+
+   
+     public final MutableRealmInteger counter = null; // DO NOT DO THIS! 
+
+
+ 
+
+Also note that when a ``MutableRealmInteger``  is ``@Required`` , it is better, though not required, to initialize it with a non-null value.
+
+ 
+  \@Required
+  public final MutableRealmInteger counter = MutableRealmInteger.valueOf(0L);
+ 
+
+A reference to a managed ``MutableRealmInteger``  is subject to all of the constraints that apply to the model object from which it was obtained: It can only be mutated within a transaction and it becomes invalid if the Realm backing it is closed. Use the ``isManaged()``  and ``isValid()``  operators to determine whether a ``MutableRealmInteger``  is in a consistent state. Note, in particular, that a reference to a managed ``MutableRealmInteger``  retains a reference to the model object to which it belongs. For example in this code:
+
+
+
+ ``MutableRealmInteger counter = realm.where(Users.class).findFirst().counter;`` 
+ 
+
+the ``counter``  holds a reference to the ``User``  model object from which it was obtained. Neither can be GCed until all references to both are unreachable.
+
+
+
+
+Method Summary
+==============
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Modifier and Type
+     - Method and Description
+   
+   * - public final **int**
+     - | :ref:`compareTo <io_realm_MutableRealmInteger_compareTo>` (
+       |  :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>`  o
+       | )
+       
+       
+       ``MutableRealmInteger`` s compare strictly by their values.
+       
+       
+       
+       
+       
+   
+   * - public abstract **void**
+     - | :ref:`decrement <io_realm_MutableRealmInteger_decrement>` (
+       |  **long** dec
+       | )
+       
+       
+       Decrements the ``MutableRealmInteger`` , subtracting the value of the argument.
+       
+       
+       
+       
+       
+   
+   * - public final **boolean**
+     - | :ref:`equals <io_realm_MutableRealmInteger_equals>` (
+       |  `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__  o
+       | )
+       
+       
+       Two ``MutableRealmInteger`` s are ``.equals``  if and only if their ``longValues``  are equal.
+       
+       
+       
+       
+       
+   
+   * - public abstract `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__ 
+     - | :ref:`get <io_realm_MutableRealmInteger_get>` ()
+       | 
+       
+       
+       Gets the ``MutableRealmInteger``  value.
+       
+       
+       
+       
+       
+   
+   * - public final **int**
+     - | :ref:`hashCode <io_realm_MutableRealmInteger_hashCode>` ()
+       | 
+       
+       
+       A ``MutableRealmInteger`` 's hash code is, exactly, the hash code of its value.
+       
+       
+       
+       
+       
+   
+   * - public abstract **void**
+     - | :ref:`increment <io_realm_MutableRealmInteger_increment>` (
+       |  **long** inc
+       | )
+       
+       
+       Increments the ``MutableRealmInteger`` , adding the value of the argument.
+       
+       
+       
+       
+       
+   
+   * - public final **boolean**
+     - | :ref:`isNull <io_realm_MutableRealmInteger_isNull>` ()
+       | 
+       
+       
+       
+       
+       
+       
+   
+   * - public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>` 
+     - | :ref:`ofNull <io_realm_MutableRealmInteger_ofNull>` ()
+       | 
+       
+       
+       Creates a new, unmanaged ``MutableRealmInteger``  whose value is ``null`` .
+       
+       
+       
+       
+       
+   
+   * - public final **void**
+     - | :ref:`set <io_realm_MutableRealmInteger_set>` (
+       |  **long** newValue
+       | )
+       
+       
+       Sets the ``MutableRealmInteger``  value.
+       
+       
+       
+       
+       
+   
+   * - public abstract **void**
+     - | :ref:`set <io_realm_MutableRealmInteger_set>` (
+       |  `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__  newValue
+       | )
+       
+       
+       Sets the ``MutableRealmInteger``  value.
+       
+       
+       
+       
+       
+   
+   * - public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>` 
+     - | :ref:`valueOf <io_realm_MutableRealmInteger_valueOf>` (
+       |  `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__  value
+       | )
+       
+       
+       Creates a new, unmanaged ``MutableRealmInteger``  with the specified initial value.
+       
+       
+       
+       
+       
+   
+   * - public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>` 
+     - | :ref:`valueOf <io_realm_MutableRealmInteger_valueOf>` (
+       |  **long** value
+       | )
+       
+       
+       Creates a new, unmanaged ``MutableRealmInteger``  with the specified initial value.
+       
+       
+       
+       
+       
+   
+   * - public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>` 
+     - | :ref:`valueOf <io_realm_MutableRealmInteger_valueOf>` (
+       |  `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__  value
+       | )
+       
+       
+       Creates a new, unmanaged ``MutableRealmInteger``  with the specified initial value.
+       
+       
+       
+       
+       
+   
+   
+
+
+Inherited Methods
+=================
+
+
+
+- Methods inherited from class `java.lang.Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__ : ``getClass`` , ``hashCode`` , ``equals`` , ``clone`` , ``toString`` , ``notify`` , ``notifyAll`` , ``wait`` , ``wait`` , ``wait`` , ``finalize`` 
+
+
+
+
+Method Detail
+=============
+
+.. _compareTo:
+
+.. _compareTo__:
+
+.. _MutableRealmInteger_compareTo:
+
+.. _MutableRealmInteger_compareTo__:
+
+.. _io_realm_MutableRealmInteger_compareTo:
+
+.. _io_realm_MutableRealmInteger_compareTo__:
+
+
+
+compareTo
+---------
+
+.. _io_realm_MutableRealmInteger_compareTo_io_realm_MutableRealmInteger_:
+
+.. _io_realm_MutableRealmInteger_compareTo_MutableRealmInteger_:
+
+.. _compareTo_io_realm_MutableRealmInteger_:
+
+.. _compareTo_MutableRealmInteger_:
+
+.. _MutableRealmInteger_compareTo_io_realm_MutableRealmInteger_:
+
+.. _MutableRealmInteger_compareTo_MutableRealmInteger_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public final **int** :ref:`compareTo <io_realm_MutableRealmInteger_compareTo>` (
+       |  :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>`  o
+       | )
+       
+       
+       
+   
+   * - ``MutableRealmInteger`` s compare strictly by their values. Null is a legal value for a ``MutableRealmInteger``  and ``null``  < any non-``null``  value
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``o`` - the compare target
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       -1, 0, or 1, depending on whether this object's value is <, =, or > the target's.
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _decrement:
+
+.. _decrement__:
+
+.. _MutableRealmInteger_decrement:
+
+.. _MutableRealmInteger_decrement__:
+
+.. _io_realm_MutableRealmInteger_decrement:
+
+.. _io_realm_MutableRealmInteger_decrement__:
+
+
+
+decrement
+---------
+
+.. _io_realm_MutableRealmInteger_decrement_long_:
+
+.. _decrement_long_:
+
+.. _MutableRealmInteger_decrement_long_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public abstract **void** :ref:`decrement <io_realm_MutableRealmInteger_decrement>` (
+       |  **long** dec
+       | )
+       
+       
+       
+   
+   * - Decrements the ``MutableRealmInteger`` , subtracting the value of the argument. Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``dec`` - quantity to be subtracted from the ``MutableRealmInteger`` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _equals:
+
+.. _equals__:
+
+.. _MutableRealmInteger_equals:
+
+.. _MutableRealmInteger_equals__:
+
+.. _io_realm_MutableRealmInteger_equals:
+
+.. _io_realm_MutableRealmInteger_equals__:
+
+
+
+equals
+------
+
+.. _io_realm_MutableRealmInteger_equals_java_lang_Object_:
+
+.. _io_realm_MutableRealmInteger_equals_Object_:
+
+.. _equals_java_lang_Object_:
+
+.. _equals_Object_:
+
+.. _MutableRealmInteger_equals_java_lang_Object_:
+
+.. _MutableRealmInteger_equals_Object_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public final **boolean** :ref:`equals <io_realm_MutableRealmInteger_equals>` (
+       |  `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__  o
+       | )
+       
+       
+       
+   
+   * - Two ``MutableRealmInteger`` s are ``.equals``  if and only if their ``longValues``  are equal.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``o`` - compare target
+          
+          
+          
+       
+       
+       
+       
+       **Returns**
+       
+       true if the target has the same value.
+       
+       
+       
+       
+       
+       
+       **Overrides**
+       
+       ``equals`` in class `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__ 
+       
+       
+   
+   
+
+
+.. _get:
+
+.. _get__:
+
+.. _MutableRealmInteger_get:
+
+.. _MutableRealmInteger_get__:
+
+.. _io_realm_MutableRealmInteger_get:
+
+.. _io_realm_MutableRealmInteger_get__:
+
+
+
+get
+----
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public abstract `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__  :ref:`get <io_realm_MutableRealmInteger_get>` ()
+       | 
+       
+       
+       
+   
+   * - Gets the ``MutableRealmInteger``  value. The value may be null.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       the value.
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _hashCode:
+
+.. _hashCode__:
+
+.. _MutableRealmInteger_hashCode:
+
+.. _MutableRealmInteger_hashCode__:
+
+.. _io_realm_MutableRealmInteger_hashCode:
+
+.. _io_realm_MutableRealmInteger_hashCode__:
+
+
+
+hashCode
+--------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public final **int** :ref:`hashCode <io_realm_MutableRealmInteger_hashCode>` ()
+       | 
+       
+       
+       
+   
+   * - A ``MutableRealmInteger`` 's hash code is, exactly, the hash code of its value.
+       
+       
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       true if the target has the same value.
+       
+       
+       
+       
+       
+       
+       **Overrides**
+       
+       ``hashCode`` in class `Object <https://docs.oracle.com/javase/7/docs/api/java/lang/Object.html>`__ 
+       
+       
+   
+   
+
+
+.. _increment:
+
+.. _increment__:
+
+.. _MutableRealmInteger_increment:
+
+.. _MutableRealmInteger_increment__:
+
+.. _io_realm_MutableRealmInteger_increment:
+
+.. _io_realm_MutableRealmInteger_increment__:
+
+
+
+increment
+---------
+
+.. _io_realm_MutableRealmInteger_increment_long_:
+
+.. _increment_long_:
+
+.. _MutableRealmInteger_increment_long_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public abstract **void** :ref:`increment <io_realm_MutableRealmInteger_increment>` (
+       |  **long** inc
+       | )
+       
+       
+       
+   
+   * - Increments the ``MutableRealmInteger`` , adding the value of the argument. Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``inc`` - quantity to be added to the ``MutableRealmInteger`` .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _isNull:
+
+.. _isNull__:
+
+.. _MutableRealmInteger_isNull:
+
+.. _MutableRealmInteger_isNull__:
+
+.. _io_realm_MutableRealmInteger_isNull:
+
+.. _io_realm_MutableRealmInteger_isNull__:
+
+
+
+isNull
+------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public final **boolean** :ref:`isNull <io_realm_MutableRealmInteger_isNull>` ()
+       | 
+       
+       
+       
+   
+   * - 
+       
+       
+       
+       
+       
+       
+       **Returns**
+       
+       true if and only if :ref:`get <io_realm_MutableRealmInteger_get>`  will return ``null`` .
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _ofNull:
+
+.. _ofNull__:
+
+.. _MutableRealmInteger_ofNull:
+
+.. _MutableRealmInteger_ofNull__:
+
+.. _io_realm_MutableRealmInteger_ofNull:
+
+.. _io_realm_MutableRealmInteger_ofNull__:
+
+
+
+ofNull
+------
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>`  :ref:`ofNull <io_realm_MutableRealmInteger_ofNull>` ()
+       | 
+       
+       
+       
+   
+   * - Creates a new, unmanaged ``MutableRealmInteger``  whose value is ``null`` .
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _set:
+
+.. _set__:
+
+.. _MutableRealmInteger_set:
+
+.. _MutableRealmInteger_set__:
+
+.. _io_realm_MutableRealmInteger_set:
+
+.. _io_realm_MutableRealmInteger_set__:
+
+
+
+set
+----
+
+.. _io_realm_MutableRealmInteger_set_long_:
+
+.. _set_long_:
+
+.. _MutableRealmInteger_set_long_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public final **void** :ref:`set <io_realm_MutableRealmInteger_set>` (
+       |  **long** newValue
+       | )
+       
+       
+       
+   
+   * - Sets the ``MutableRealmInteger``  value. Calling :ref:`set <io_realm_MutableRealmInteger_set>`  forcibly sets the ``MutableRealmInteger``  to the provided value. Doing this obliterates the effects of any calls to :ref:`increment <io_realm_MutableRealmInteger_increment>`  and :ref:`decrement <io_realm_MutableRealmInteger_decrement>`  perceived before the call to :ref:`set <io_realm_MutableRealmInteger_set>` .
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``newValue`` - new value.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_MutableRealmInteger_set_java_lang_Long_:
+
+.. _io_realm_MutableRealmInteger_set_Long_:
+
+.. _set_java_lang_Long_:
+
+.. _set_Long_:
+
+.. _MutableRealmInteger_set_java_lang_Long_:
+
+.. _MutableRealmInteger_set_Long_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public abstract **void** :ref:`set <io_realm_MutableRealmInteger_set>` (
+       |  `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__  newValue
+       | )
+       
+       
+       
+   
+   * - Sets the ``MutableRealmInteger``  value. Calling ``set``  forcibly sets the ``MutableRealmInteger``  to the provided value. Doing this obliterates the effects of any calls to :ref:`increment <io_realm_MutableRealmInteger_increment>`  and :ref:`decrement <io_realm_MutableRealmInteger_decrement>`  perceived before the call to ``set`` .
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``newValue`` - new value.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+.. _valueOf:
+
+.. _valueOf__:
+
+.. _MutableRealmInteger_valueOf:
+
+.. _MutableRealmInteger_valueOf__:
+
+.. _io_realm_MutableRealmInteger_valueOf:
+
+.. _io_realm_MutableRealmInteger_valueOf__:
+
+
+
+valueOf
+-------
+
+.. _io_realm_MutableRealmInteger_valueOf_java_lang_String_:
+
+.. _io_realm_MutableRealmInteger_valueOf_String_:
+
+.. _valueOf_java_lang_String_:
+
+.. _valueOf_String_:
+
+.. _MutableRealmInteger_valueOf_java_lang_String_:
+
+.. _MutableRealmInteger_valueOf_String_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>`  :ref:`valueOf <io_realm_MutableRealmInteger_valueOf>` (
+       |  `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__  value
+       | )
+       
+       
+       
+   
+   * - Creates a new, unmanaged ``MutableRealmInteger``  with the specified initial value.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``value`` - initial value: parsed by `Long.parseLong <https://docs.oracle.com/javase/7/docs/api/java/lang/Long/parseLong.html>`__ .
+          
+          
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_MutableRealmInteger_valueOf_long_:
+
+.. _valueOf_long_:
+
+.. _MutableRealmInteger_valueOf_long_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>`  :ref:`valueOf <io_realm_MutableRealmInteger_valueOf>` (
+       |  **long** value
+       | )
+       
+       
+       
+   
+   * - Creates a new, unmanaged ``MutableRealmInteger``  with the specified initial value.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``value`` - initial value.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+.. _io_realm_MutableRealmInteger_valueOf_java_lang_Long_:
+
+.. _io_realm_MutableRealmInteger_valueOf_Long_:
+
+.. _valueOf_java_lang_Long_:
+
+.. _valueOf_Long_:
+
+.. _MutableRealmInteger_valueOf_java_lang_Long_:
+
+.. _MutableRealmInteger_valueOf_Long_:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - | public static :ref:`MutableRealmInteger <io_realm_MutableRealmInteger>`  :ref:`valueOf <io_realm_MutableRealmInteger_valueOf>` (
+       |  `Long <https://docs.oracle.com/javase/7/docs/api/java/lang/Long.html>`__  value
+       | )
+       
+       
+       
+   
+   * - Creates a new, unmanaged ``MutableRealmInteger``  with the specified initial value.
+       
+       
+       
+       
+       
+       
+       **Parameters**
+       
+       - ``value`` - initial value.
+          
+          
+          
+       
+       
+       
+       
+       
+       
+       
+       
+       
+   
+   
+
+
+

@@ -1,0 +1,135 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-crud-create:
+.. _flutter-read-write-data:
+
+===========================
+CRUD - Create - Flutter SDK
+===========================
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. meta::
+   :description: Create objects using the Flutter SDK.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Atlas Device SDK uses a highly efficient storage engine
+to persist objects. You can **create** objects,
+**update** objects in the database, and eventually **delete**
+objects from the database. Because these operations modify the
+state of the database, we call them writes.
+
+.. _flutter-write-transactions:
+
+Write Transactions
+------------------
+
+The SDK handles writes in terms of **transactions**. A
+transaction is a list of read and write operations that
+the SDK treats as a single indivisible operation. In other
+words, a transaction is *all or nothing*: either all of the
+operations in the transaction succeed or none of the
+operations in the transaction take effect. 
+
+All writes must happen in a transaction.
+
+The database allows only one open transaction at a time. The SDK
+blocks other writes on other threads until the open
+transaction is complete. Consequently, there is no race
+condition when reading values from the database within a
+transaction.
+
+When you are done with your transaction, the SDK either
+**commits** it or **cancels** it:
+
+- When the SDK **commits** a transaction, it writes
+  all changes to disk. For synced databases, the SDK queues the change
+  for synchronization with Atlas Device Sync.
+- When the SDK **cancels** a write transaction or an operation in
+  the transaction causes an error, all changes are discarded
+  (or "rolled back").
+
+.. _flutter-write-operations:
+
+Write Operations
+~~~~~~~~~~~~~~~~
+
+Once you've opened a database, you can create objects within it using a
+:flutter-sdk:`Realm.write() <realm/Realm/write.html>` transaction block.
+
+.. code-block:: dart
+
+   realm.write((){
+     // ...write data to realm
+   });
+
+You can also return values from the write transaction callback function.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.return-from-write.dart
+   :language: dart
+
+.. warning:: Write RealmObjects to One Realm File
+
+   You can only write ``RealmObjects`` to a single realm file.
+   If you already wrote a ``RealmObject`` to one realm file,
+   the SDK throws a ``RealmException`` if you try to write it to another database.
+
+.. _flutter-write-async:
+
+Background Writes
+~~~~~~~~~~~~~~~~~
+
+You can add, modify, or delete objects asynchronously using
+:flutter-sdk:`Realm.writeAsync() <realm/Realm/writeAsync.html>`. 
+
+When you use ``Realm.writeAsync()`` to perform write operations, waiting 
+to obtain the write lock and committing a transaction occur in the background. 
+Only the write itself occurs on the main process. 
+
+This can reduce time spent blocking the execution of the main process. This 
+is particularly useful when using Device Sync, where you don't know when and
+for how long the Sync client will be writing.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.write-async.dart
+   :language: dart
+
+.. _flutter-create-objects:
+
+Create Objects
+--------------
+
+The examples on this page use two object types, ``Person`` and ``Team``.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.models.dart
+    :language: dart
+
+.. _flutter-create-one-object:
+
+Create One Object
+~~~~~~~~~~~~~~~~~
+
+To add an object to the database, pass an instance of a Realm object class
+to the database in a write transaction block with
+:flutter-sdk:`Realm.add() <realm/Realm/add.html>`.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.create-object.dart
+   :language: dart
+
+.. _flutter-create-multiple-objects:
+
+Create Multiple Objects
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To add multiple objects to a database, pass a list of multiple objects
+to :flutter-sdk:`Realm.addAll() <realm/Realm/addAll.html>` inside a write transaction block.
+
+.. literalinclude:: /examples/generated/flutter/read_write_data_test.snippet.create-multiple-objects.dart
+   :language: dart

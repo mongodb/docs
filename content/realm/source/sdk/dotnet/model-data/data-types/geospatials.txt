@@ -1,0 +1,238 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-geospatial:
+
+================================
+Geospatial Data Types - .NET SDK
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. versionadded:: 11.1.0
+
+Geospatial data, or "geodata", specifies points and geometric objects on the Earth's 
+surface. With the geodata types, you can create queries that check whether a given  
+point is contained within a shape. For example, you can find all coffee shops within 
+15 km of a specified point.
+
+.. versionchanged:: 11.6.1
+   Geospatial data supported in Atlas Device Sync
+
+Realm .NET SDK version 11.16.1 and later adds support for geospatial data
+in Atlas Device Sync. This allows you to subscribe to geospatial queries
+in a synced realm. If you try to subscribe to a geospatial query with an older version of the SDK,
+you will receive a server error with a compensating write.
+For more information about managing your Sync subscriptions, 
+refer to :ref:`<dotnet-flexible-sync>`.
+
+For more information on querying geospatial data with Device Sync, 
+refer to :ref:`<geospatial>` in the App Services documentation.
+
+Geospatial Data Types
+---------------------
+
+The SDK supports geospatial queries using the following data types:
+
+- GeoPoint
+- GeoCircle
+- GeoBox
+- GeoPolygon
+
+The SDK provides these geospatial data types to simplify querying geospatial data. You *cannot* persist these data types directly. 
+
+For information on how to persist geospatial data, refer to the 
+:ref:`<persist-geopoint>` section on this page.
+
+.. _geopoint:
+
+GeoPoint
+~~~~~~~~
+A :dotnet-sdk:`GeoPoint <reference/Realms.GeoPoint.html>` defines a specific 
+location on the Earth's surface. All of the geospatial data types use ``GeoPoints`` 
+to define their location. 
+
+.. note::
+   
+   In methods that take a ``GeoPoint``, you can alternatively provide a tuple of 
+   doubles, where the first double is the latitude and the second double is the 
+   longitude. The SDK interprets these tuples as ``GeoPoints``. The examples on 
+   this page demonstrate both approaches.
+
+.. _geocircle:
+
+GeoCircle
+~~~~~~~~~
+A :dotnet-sdk:`GeoCircle <reference/Realms.GeoCircle.html>` defines a circle on 
+the Earth's surface. You define a ``GeoCircle`` by providing a ``GeoPoint`` 
+for the center of the circle and a :dotnet-sdk:`Distance <reference/Realms.Distance.html>` 
+object to specify the radius of the circle. 
+
+.. note::
+   
+   You can define the radius in kilometers, miles, degrees, or radians.
+
+The following code shows two examples of creating a circle:
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.geocircle.cs
+   :language: csharp
+
+.. figure:: /images/geocircles.png
+   :alt: Two GeoCircles
+   :width: 150
+   :lightbox:
+
+.. _geobox:
+
+GeoBox
+~~~~~~
+A :dotnet-sdk:`GeoBox <reference/Realms.GeoBox.html>` defines a rectangle on  
+the Earth's surface. You define the rectangle by specifying the bottom left 
+(southwest) corner and the top right (northeast) corner. The following example 
+creates 2 boxes:
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.geobox.cs
+   :language: csharp
+
+.. figure:: /images/geoboxes.png
+   :alt: 2 GeoBoxes
+   :width: 150
+   :lightbox:
+
+.. _geopolygon:
+
+GeoPolygon
+~~~~~~~~~~
+A :dotnet-sdk:`GeoPolygon <reference/Realms.GeoPolygon.html>` defines a polygon 
+on the Earth's surface. Because a polygon is a closed shape, you must provide a 
+minimum of 4 points: 3 points to define the polygon's shape, and a fourth to 
+close the shape.
+
+.. important::
+
+   The fourth point in a polygon must be the same as the first point.
+
+You can also exclude areas within a polygon by defining one or more "holes". A 
+hole is another polygon whose bounds fit completely within the outer polygon. 
+The following example creates 3 polygons: one is a basic polygon with 5 points, 
+one is the same polygon with a single hole, and the third is the same polygon 
+with two holes:
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.geopolygon.cs
+   :language: csharp
+
+.. figure:: /images/geopolygons.png
+   :alt: 3 GeoPolygons
+   :width: 250
+   :lightbox:
+
+.. _persist-geopoint:
+
+Persisting GeoPoint Data
+------------------------ 
+
+.. include:: /includes/important-cant-persist-geospatial.rst
+
+If you want to persist ``GeoPoint`` data, it must conform to the 
+`GeoJSON spec <https://datatracker.ietf.org/doc/html/rfc7946>`_. 
+
+Creating a GeoJSON-Compatible Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a class that conforms to the GeoJSON spec, you:
+
+1. Create an embedded realm object (a class that inherits from 
+   :dotnet-sdk:`IEmbeddedObject <reference/Realms.IEmbeddedObject.html>`).
+
+#. At a minimum, add the two fields required by the GeoJSON spec:
+
+   - A field of type ``IList<double>`` that maps to a "coordinates" (case sensitive) 
+     property in the realm schema. 
+
+   - A field of type ``string`` that maps to a "type" property. The value of this 
+     field must be "Point".
+
+The following example shows an embedded class named "CustomGeoPoint" that is used 
+to persist GeoPoint data:
+
+.. literalinclude:: /examples/generated/dotnet/CustomGeoPoint.snippet.customgeopoint.cs
+   :language: csharp
+
+Using the Embedded Class
+~~~~~~~~~~~~~~~~~~~~~~~~~
+You then use the custom GeoPoint class in your realm model, as shown in the 
+following example:
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.usingcustomgeopoint.cs
+   :language: csharp
+   :emphasize-lines: 7
+
+You then add instances of your class to realm just like any other Realm model:
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.geopoint.cs
+   :language: csharp
+
+The following image shows the results of creating these two company objects.
+
+.. figure:: /images/geopoints.png
+   :alt: 2 GeoPoints
+   :width: 150
+   :lightbox:
+
+.. _dotnet-query-geospatial:
+
+Query Geospatial Data
+---------------------
+To query against geospatial data, you can use the 
+:dotnet-sdk:`GeoWithin <reference/Realms.QueryMethods.html#Realms_QueryMethods_GeoWithin_Realms_IEmbeddedObject_Realms_GeoShapeBase_>` 
+method, or you can use the ``geoWithin`` operator with :ref:`RQL <dotnet-realm-query-language>`. 
+The ``GeoWithin`` method takes the "coordinates" property of an embedded object 
+that defines the point we're querying, and one of the geospatial shapes to 
+check if that point is contained within the shape. 
+
+.. note::
+
+   The format for querying geospatial data is the same regardless the shape of 
+   the geodata region.
+
+The following example shows the difference between querying with the ``GeoWithin`` 
+method and RQL:
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.rql-geowithin.cs
+   :language: csharp
+
+The following examples show querying against various shapes to return a list of 
+companies within the shape:
+
+**GeoCircle**
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.geocircle-query.cs
+   :language: csharp
+
+.. figure:: /images/geocircles-query.png
+   :alt: Querying a GeoCircle example.
+   :width: 150
+   :lightbox:
+
+**GeoBox**
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.geobox-query.cs
+   :language: csharp
+
+.. figure:: /images/geoboxes-query.png
+   :alt: Querying a GeoBox example.
+   :width: 150
+
+**GeoPolygon**
+
+.. literalinclude:: /examples/generated/dotnet/Geospatial.snippet.geopolygon-query.cs
+   :language: csharp
+
+.. figure:: /images/geopolygons-query.png
+   :alt: Querying a GeoPolygon example.
+   :width: 150
+   :lightbox:

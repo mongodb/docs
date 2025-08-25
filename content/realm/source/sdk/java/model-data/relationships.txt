@@ -1,0 +1,213 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-client-relationships:
+
+========================
+Relationships - Java SDK
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Relationships
+-------------
+
+Realm allows you to define explicit relationships between the types of
+objects in an App. A relationship is an object property that references
+another Realm object rather than one of the primitive data types. You
+define relationships by setting the type of an object property to
+another object type in the :ref:`property schema <property-schema>`.
+
+Relationships are direct references to other objects in a realm, which
+means that you don't need bridge tables or explicit joins to define a
+relationship like you would in a relational database. Instead you can
+access related objects by reading and writing to the property that
+defines the relationship. Realm executes read operations
+lazily as they come in, so querying a relationship is just as performant
+as reading a regular property.
+
+There are three primary types of relationships between objects:
+
+- :ref:`One-to-One Relationship <java-to-one-relationship>`
+- :ref:`One-to-Many Relationship <java-to-many-relationship>`
+- :ref:`Inverse Relationship <java-inverse-relationship>`
+
+You can define relationships, collections, and embedded objects in your
+object schema using the following types:
+
+- ``RealmObject``
+- ``RealmList <? extends RealmObject>``
+
+Use annotations to indicate whether a given field represents a foreign
+key relationship or an embedded object relationship. For more
+information, see :ref:`Relationship Annotations <java-relationships>`.
+
+.. _java-to-one-relationship:
+
+To-One Relationship
+~~~~~~~~~~~~~~~~~~~
+
+A **to-one** relationship means that an object is related in a specific
+way to no more than one other object. You define a to-one relationship
+for an object type in its :ref:`object schema <java-object-schema>` by
+specifying a property where the type is the related Realm object type.
+
+Setting a relationship field to null removes the connection between
+objects, but Realm does not delete the referenced object
+unless that object is :ref:`embedded <java-field-relationships-embedded>`.
+
+.. _java-to-many-relationship:
+
+To-Many Relationship
+~~~~~~~~~~~~~~~~~~~~
+
+A **to-many** relationship means that an object is related in a specific
+way to multiple objects. You can create a relationship between one object
+and any number of objects using a field of type ``RealmList<T>``
+where ``T`` is a Realm object in your application:
+
+.. _java-inverse-relationship:
+
+Inverse Relationship
+~~~~~~~~~~~~~~~~~~~~
+
+An **inverse relationship** links an object back to any other objects that refer
+to it in a defined to-one or to-many relationship. Relationship definitions are
+unidirectional, so you must explicitly define a property in the object's model
+as an inverse relationship.
+
+For example, the to-many relationship "User has many Tasks" does not
+automatically create the inverse relationship "Task belongs to User". If you
+don't specify the inverse relationship in the object model, you would need to
+run a separate query to look up the user that is assigned to a given task.
+
+To define an inverse relationship, define a ``LinkingObjects`` property in your
+object model. The ``LinkingObjects`` definition specifies the object type and
+property name of the relationship that it inverts.
+
+Realm automatically updates implicit relationships whenever an
+object is added or removed in the specified relationship. You cannot manually
+set the value of an inverse relationship property.
+
+Fields annotated with ``@LinkingObjects`` must be:
+
+- marked ``final``
+- of type ``RealmResults<T>`` where ``T`` is the type at the opposite
+  end of the relationship
+
+Since relationships are many-to-one or many-to-many, following inverse
+relationships can result in zero, one, or many objects.
+
+Like any other ``RealmResults`` set, you can
+:ref:`query <java-client-query-engine>` an inverse relationship.
+
+.. _java-relationships:
+.. _java-define-a-relationship-property:
+.. _java-field-relationships:
+
+Define a Relationship Field
+---------------------------
+
+.. include:: /includes/see-also-define-relationship-in-app-services-ui.rst
+
+.. warning:: Always Define Accessors and Mutators for Modifiable Fields
+
+   Realm objects use getters and setters to persist updated
+   field values to your realms. Always use getters and setters for
+   updates.
+
+.. _java-field-relationships-many-to-one:
+
+Many-to-One
+~~~~~~~~~~~
+
+To set up a many-to-one or one-to-one relationship, create a field
+whose type is a Realm object in your application:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogManyToOneExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogManyToOneExample.snippet.complete.java.rst
+
+.. include:: /includes/note-to-one-relationships-must-be-optional.rst
+
+Each ``Frog`` references either zero ``Frog`` instances or one other ``Frog`` instance. Nothing
+prevents multiple ``Frog`` instances from referencing the same ``Frog``
+as a best friend; the distinction between a many-to-one and a one-to-one
+relationship is up to your application.
+
+.. _java-field-relationships-many-to-many:
+
+Many-to-Many
+~~~~~~~~~~~~
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogManyToManyExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogManyToManyExample.snippet.complete.java.rst
+
+``RealmList`` s are containers of ``RealmObject`` s, but otherwise behave
+like a regular collection. You can use the same object in multiple
+``RealmList`` s.
+
+.. _java-field-relationships-inverse:
+.. _java-inverse-relationships:
+
+Inverse Relationships
+~~~~~~~~~~~~~~~~~~~~~
+
+By default, Realm relationships are unidirectional. You
+can follow a link from one class to a referenced class, but not in the
+opposite direction. Consider the following class defining a ``Toad`` with
+a list of ``frogFriends``:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/ToadInverseRelationshipExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/ToadInverseRelationshipExample.snippet.complete.java.rst
+
+You can provide a link in the opposite direction, from ``Frog`` to ``Toad``,
+with the :java-sdk:`@LinkingObjects <io/realm/annotations/LinkingObjects.html>`
+annotation on a ``final`` (in Java) or ``val`` (in Kotlin) field of type
+``RealmResults<T>``:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: kotlin
+
+      .. include:: /examples/generated/java/local/FrogInverseRelationshipExampleKt.snippet.complete.kt.rst
+
+   .. tab::
+      :tabid: java
+
+      .. include:: /examples/generated/java/local/FrogInverseRelationshipExample.snippet.complete.java.rst
+
+.. important::
+
+   Inverse relationship fields must be marked ``final``.

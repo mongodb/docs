@@ -1,0 +1,323 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-flexible-sync:
+
+============================================
+Manage Flexible Sync Subscriptions- .NET SDK
+============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Flexible Sync uses subscriptions and permissions to determine which
+data to sync with your App.
+
+To use Flexible Sync in a .NET application:
+
+- :ref:`Configure Flexible Sync on the backend <enable-flexible-sync>`.
+- :ref:`Initialize the app <dotnet-quick-start-init-app>`
+- :ref:`Authenticate a user <dotnet-quick-start-authenticate>` in
+  your client project.
+- :ref:`Open the synced Realm with a Flexible Sync configuration <dotnet-flexible-sync-open-realm>`
+- :ref:`Add subscriptions to the client application <dotnet-flexible-sync-manage-subscriptions>`
+
+You can add, update, and remove query subscriptions to determine which data 
+syncs to the client device.
+
+.. include:: /includes/note-flexible-sync-prerequisite.rst
+
+.. note:: Realm .NET SDK Version Requirement
+
+   In addition to the requirements above, you must use :github:`Realm .NET version
+   10.9.0 <realm/realm-dotnet/releases>` or greater in order to use Flexible Sync
+   in your .NET client application.
+
+.. important::
+
+   Flexible Sync does not support all the operators available in Realm 
+   Query Language. See :ref:`Flexible Sync RQL Limitations 
+   <dotnet-flexible-sync-rql-limitations>` for details.
+
+.. _dotnet-flexible-sync-manage-subscriptions:
+
+Manage Your Subscriptions
+-------------------------
+
+When configuring Flexible Sync on the backend, you specify which fields your
+client application can query. In the client application, use the
+:dotnet-sdk:`subscriptions <reference/Realms.Sync.Subscription.html>` API to
+manage a set of subscriptions to specific queries on queryable fields.
+
+You can:
+
+- Get a list of all subscriptions
+- Add subscriptions
+- Check subscription state
+- Update a subscription with a new query
+- Remove individual subscriptions or all subscriptions of a type
+
+When the data matches the subscription, and the authenticated user has the
+appropriate permissions, Atlas App Services syncs the backend data with the client app.
+
+You can specify a string name for your subscription. If you do not give your
+subscription a name, the name is set to null.
+
+When you create a subscription, App Services looks for data matching a query on a
+specific object type. In your Flexible Sync subscriptions, you can have
+subscriptions on several different object types or several queries on the same
+object type.
+
+You can't create subscriptions for :ref:`asymmetric objects <dotnet-data-ingest>`
+because they only send data to your App Services backend.
+
+.. versionchanged:: 11.6.1
+   Geospatial data supported in Atlas Device Sync
+
+In the Realm .NET version 11.6.1 and later, you can create subscriptions to 
+geospatial queries. If you try to subscribe to a geospatial query with an 
+older version of the SDK, you will receive a server error with a 
+compensating write.
+
+For more information, refer to :ref:`<dotnet-query-geospatial>`.
+
+.. _dotnet-sync-add-subscription:
+
+Add a Subscription
+~~~~~~~~~~~~~~~~~~
+You must have at least one subscription before you can read from or write
+to the realm. You should create one or more initial subscriptions when you 
+configure Flexible Sync, rather than adding subscriptions after initialization. 
+
+.. _dotnet-initial-subscriptions:
+
+Bootstrap the Realm with Initial Subscriptions
+``````````````````````````````````````````````
+You can bootstrap a realm with an initial subscription set
+when you open it with a :dotnet-sdk:`FlexibleSyncConfiguration  
+<reference/Realms.Sync.FlexibleSyncConfiguration.html>`. Set the 
+:dotnet-sdk:`PopulateInitialSubscriptions 
+<reference/Realms.Sync.FlexibleSyncConfiguration.html#Realms_Sync_FlexibleSyncConfiguration_PopulateInitialSubscriptions>` 
+parameter to a callback that is invoked when the realm is created. Add the  
+queries you want to use to bootstrap the realm, as shown in the following example:
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.bootstrap-a-subscription.cs
+   :language: csharp
+
+.. _dotnet-add-subscription-to-set:
+
+Add a Subscription to the Existing Subscription Set
+````````````````````````````````````````````````````
+You should initialize a realm with your  
+:dotnet-sdk:`SubscriptionSet <reference/Realms.Sync.SubscriptionSet.html>`. You 
+can then access the subscription set with the 
+:dotnet-sdk:`Realm.Subscriptions <reference/Realms.Realm.html#Realms_Realm_Subscriptions>` 
+property if you need to add additional queries or update existing subscriptions.
+
+To add a subscription to an existing subscription set, create 
+the query and then call :dotnet-sdk:`IQueryable.SubscribeAsync()
+<reference/Realms.CollectionExtensions.html#Realms_CollectionExtensions_SubscribeAsync__1_System_Linq_IQueryable___0__Realms_Sync_SubscriptionOptions_Realms_Sync_WaitForSyncMode_System_Nullable_System_Threading_CancellationToken__>`:
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.subasync.cs
+   :language: csharp
+
+The ``SubscribeAsync`` method is shorthand for using :dotnet-sdk:`SubscriptionSet.Update()
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_Update_System_Action_>`
+to create an update block, and then calling the :dotnet-sdk:`SubscriptionSet.Add()
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_Add__1_System_Linq_IQueryable___0__Realms_Sync_SubscriptionOptions_>`
+method on the ``SubscriptionSet``.
+
+Batching Multiple Subscriptions
+```````````````````````````````
+While you can add a single query using ``SubscribeAsync``, you can only batch 
+multiple queries within a ``SubscriptionSet.Update`` block. Performing query 
+updates is an expensive operation on the server. We strongly advise designing 
+your application to minimize updates. You can do this by creating all 
+subscriptions in a single update block the first time the user launches the app 
+and batching any follow-up changes to the subscription set.
+
+In the example below, we subscribe to three queries.
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.update-multiple-subscriptions.cs
+   :language: csharp
+
+Subscription Options
+````````````````````
+Note that both methods for adding a subscription provide an overload for passing 
+in a :dotnet-sdk:`SubscriptionOptions <reference/Realms.Sync.SubscriptionOptions.html>` 
+object. ``SubscriptionOptions`` contains configuration options for your 
+subscription:
+
+- a ``Name`` string field 
+- an ``UpdateExisting`` boolean field.
+
+If ``UpdateExisting`` is true, adding a subscription with an
+existing name will replace the existing query with the new query. This is the 
+default behavior. However, if you set ``UpdateExisting`` to false, and try to 
+replace a named subscription with a different query, Realm throws an exception.
+
+Realm always ignores duplicate subscriptions, whether named or unnamed. 
+
+.. important:: Subscribe to Linked Objects
+
+   You must add both an object and its linked object to the subscription 
+   set to see a linked object.
+   
+   If your subscription results contain an object with a property that links 
+   to an object not contained in the results, the link appears to be nil.
+   There is no way to distinguish whether that property's value is 
+   legitimately nil, or whether the object it links to exists but is out of
+   view of the query subscription.
+
+
+.. _dotnet-update-subscriptions-with-new-query:
+
+Update Subscriptions with a New Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can update a named subscription with a new query. To update a subscription's
+query, pass the new query and a subscription option with the name of the
+subscription that you want to update to the
+``SubscriptionSet.Add()`` method. Like adding a new subscription,
+you must update a subscription within an update block by calling
+``SubscriptionSet.Update()`` method.
+
+.. note::
+
+   Updating an unnamed subscription is not possible. Alternatively, you can 
+   :ref:`delete the unnamed subscription <dotnet-remove-subscriptions>`, and 
+   :ref:`create a new subscription <dotnet-sync-add-subscription>` with the 
+   desired query.
+
+In the following example, long running tasks are re-defined to be any tasks that
+have taken more than 130 minutes: 
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.update-a-subscription.cs
+   :language: csharp
+
+.. note::
+
+   Attempting to update a subscription that has the ``SubscriptionOptions.UpdateExisting`` field set to false will throw an exception.
+
+.. _dotnet-remove-subscriptions:
+
+Remove Subscriptions
+~~~~~~~~~~~~~~~~~~~~
+To remove subscriptions from the subscription set, you can:
+
+- Remove a single subscription with the given query
+- Remove a single subscription with the given name 
+- Remove a single subscription with the given subscription 
+- Remove all subscriptions of a specific type
+- Remove all subscriptions
+
+When you remove a subscription query, the server also removes synced data from
+the client device.
+
+Remove a Subscription by Query
+``````````````````````````````
+Within an update block, you can remove a specific subscription by query. Pass the 
+query to the :dotnet-sdk:`Remove()
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_Remove__1_System_Linq_IQueryable___0__System_Boolean_>`
+method on the ``SubscriptionSet``.
+
+In the following example, the subscription to tasks with an owner named 'Ben' is
+removed from the subscriptions set.
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.remove-subscription-by-query.cs
+   :language: csharp
+
+Remove a Subscription by Name
+`````````````````````````````
+Within an update block, you can remove a specific subscription by name. Pass the 
+name to the :dotnet-sdk:`Remove()
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_Remove_System_String_>`
+method on the ``SubscriptionSet``.
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.remove-subscription-by-name.cs
+   :language: csharp
+
+Remove All Subscriptions of a Class Name or Object Type
+```````````````````````````````````````````````````````
+Within an update block, you can remove remove all unnamed subscriptions of a
+class by passing the class name as a string to the
+:dotnet-sdk:`RemoveAll("ClassName")
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_RemoveAll_System_String_System_Boolean_>`
+method. The ``RemoveAll()`` method has an optional second argument that is a
+boolean, ``removedName``, which also removes the named subscriptions if it is
+set to ``true``. ``removedName`` is set to false by default.
+
+Alternatively, you can remove all unnamed subscriptions of an object type
+with :dotnet-sdk:`RemoveAll()
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_RemoveAll__1_System_Boolean_>`.
+The ``RemoveAll<Type>()`` method has an optional boolean ``removedName`` argument 
+that also removes the named subscriptions if it is set to ``true``. The ``removedName`` 
+argument is set to false by default.
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.remove-all-subscriptions-of-object-type.cs
+   :language: csharp
+
+Remove All Subscriptions
+````````````````````````
+Within an update block, you can remove all unnamed subscriptions from the
+subscriptions set. Call the :dotnet-sdk:`RemoveAll()
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_RemoveAll_System_Boolean_>`
+method on the ``SubscriptionSet``. The ``RemoveAll()`` method has an optional
+boolean ``removedName`` argument which also removes the named subscriptions if
+it is set to ``true``. ``removedName`` is set to false by default.
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.remove-all-subscriptions.cs
+   :language: csharp
+
+Wait for Subscription Changes to Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Mutating the subscription set within an update block is only one part 
+of changing a subscription. After the local subscription change, the realm 
+synchronizes with the server to resolve any updates to the data due to 
+the subscription change. This could mean adding or removing data from the 
+synced realm. 
+
+Use the :dotnet-sdk:`SubscriptionSet.WaitForSynchronizationAsync()
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_WaitForSynchronizationAsync>`
+method to wait for the server to acknowledge this set of subscriptions. If the
+server rejects the change, the :dotnet-sdk:`SubscriptionSetState
+<reference/Realms.Sync.SubscriptionSetState.html>` will be an error state, and
+an exception will be thrown.
+
+An exception may occur if: 
+
+- An unsupported query is subscribed to. Subscribing to an unsupported query 
+  will pause synchronization. To resume synchronization, :ref:`remove the 
+  unsupported query <dotnet-remove-subscriptions>`.
+
+- You are performing an invalid action, such as adding an object that does not 
+  match a subscription. This triggers a :ref:`client reset <client-resets>`: 
+  data is erased from the realm, and a new copy of the data is created without 
+  any subscriptions in the set.
+
+.. literalinclude:: /examples/generated/dotnet/FlexibleSyncExamples.snippet.wait-for-synchronization.cs
+   :language: csharp
+
+Subscription State
+~~~~~~~~~~~~~~~~~~
+
+Use the :dotnet-sdk:`SubscriptionSet.State
+<reference/Realms.Sync.SubscriptionSet.html#Realms_Sync_SubscriptionSet_State>`
+property to read the current state of the subscription set.
+
+The ``Superseded`` state is a :dotnet-sdk:`SubscriptionSetState
+<reference/Realms.Sync.SubscriptionSetState.html>` that can occur when another
+thread updates a subscription on a different instance of the subscription set.
+If the state becomes ``Superseded``, you must obtain a new instance of the
+subscription set before you can update it.
+
+.. include:: /includes/note-sync-state-complete.rst
+
+.. _dotnet-flexible-sync-rql-limitations:
+
+Flexible Sync RQL Requirements and Limitations
+-----------------------------------------------
+
+.. include:: /includes/flex-sync-limitations.rst

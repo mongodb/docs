@@ -1,0 +1,129 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-encrypt-a-realm:
+
+============================
+Encrypt a Realm - Kotlin SDK
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can encrypt your realms to ensure that the data stored to disk can't be 
+read outside of your application. You encrypt the realm file on 
+disk with AES-256 + SHA-2 by supplying a 64-byte encryption key when first
+:ref:`opening the realm <kotlin-open-and-close-a-realm>`. 
+
+Realm transparently encrypts and decrypts data with standard
+:wikipedia:`AES-256 encryption <Advanced_Encryption_Standard>` using the
+first 256 bits of the given 512-bit encryption key. Realm
+uses the other 256 bits of the 512-bit encryption key to validate
+integrity using a :wikipedia:`hash-based message authentication code
+(HMAC) <HMAC>`.
+
+.. include:: /includes/encrypt-use-strong-cryptographic-hash.rst
+
+.. note:: Encrypt a Realm on Open or Copy Unencrypted Realm
+
+    You must encrypt a realm the first time you open it. 
+    If you try to open an existing unencrypted realm using a configuration
+    that contains an encryption key, Realm throws an error.
+
+    Alternatively, you can copy the unencrypted realm data to a new 
+    encrypted realm using the 
+    `Realm.writeCopyTo() <{+kotlin-local-prefix+}io.realm.kotlin/-realm/write-copy-to.html>`__ 
+    method.
+    Refer to :ref:`<kotlin-copy-data-to-realm>` for more information.
+
+Encrypt a Local Realm
+---------------------
+
+To encrypt a local realm, pass your encryption key to the
+`encryptionKey <{+kotlin-local-prefix+}io.realm.kotlin/-configuration/encryption-key.html>`__
+property in the 
+`RealmConfiguration.Builder() <{+kotlin-local-prefix+}io.realm.kotlin/-realm-configuration/index.html>`__
+used to open the realm. 
+
+The following code demonstrates how to generate an encryption key and
+open an encrypted local realm:
+
+.. literalinclude:: /examples/generated/kotlin/EncryptARealmTest.snippet.encrypt-a-realm.kt
+   :language: kotlin
+   :emphasize-lines: 19-20
+
+.. _kotlin-encrypt-a-synced-realm:
+
+Encrypt a Synced Realm
+----------------------
+
+If your app uses Atlas Device Sync, you can encrypt a synced realm, similar 
+to encrypting a local realm. 
+
+To encrypt a synced realm, pass your encryption key to the
+`encryptionKey <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-app-configuration/encryption-key.html>`__
+property in the 
+`SyncConfiguration.Builder()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/-builder/-builder.html>`__
+used to open the realm.
+
+The following code demonstrates how to open an encrypted synced realm:
+
+.. literalinclude:: /examples/generated/kotlin/EncryptARealmTest.snippet.encrypt-synced-realm.kt
+   :language: kotlin
+   :emphasize-lines: 5-6
+
+Refer to :ref:`<kotlin-open-a-synced-realm>` for more information. 
+
+Encryption and Atlas Device Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/encrypt-atlas-device-sync.rst
+
+If you need unique keys for each user of your application, you can use an OAuth provider or
+use one of the :ref:`Realm authentication providers <users-and-authentication>` 
+and an :ref:`authentication trigger<authentication-triggers>`
+to create a 64-bit key and store that key in a :ref:`user object <user-objects>`.
+
+Encrypt App Metadata
+~~~~~~~~~~~~~~~~~~~~
+
+You can also encrypt the App Services App metadata that Realm stores on the device. 
+
+To learn more, refer to :ref:`<kotlin-encrypt-app-metadata>`.
+
+Store & Reuse Keys
+------------------
+
+You **must** pass the same encryption key every time you open the encrypted realm. 
+If you don't provide a key or specify the wrong key for an encrypted
+realm, the Realm SDK throws an error.
+
+Apps should store the encryption key securely, typically in the target
+platform's secure key/value storage, so that other apps cannot read the key. For
+example, you can use the `Android Keystore system
+<https://developer.android.com/training/articles/keystore>`__ or Apple's
+`Keychain
+<https://developer.apple.com/documentation/security/certificate_key_and_trust_services/keys/storing_keys_in_the_keychain>`__.
+It is the developer's responsibility to ensure that attackers cannot access the
+key.
+
+Performance Impact
+------------------
+
+Reads and writes on encrypted realms can be up to 10% slower than unencrypted realms.
+
+Access Encrypted Realms from Multiple Processes
+-----------------------------------------------
+
+.. versionchanged:: 10.8.0
+
+Starting with Realm Kotlin SDK version 10.8.0, Realm supports opening
+the same encrypted realm in multiple processes. 
+
+If your app uses Realm Kotlin SDK version 10.7.1 or earlier, attempting to 
+open an encrypted realm from multiple processes throws this error:
+``Encrypted interprocess sharing is currently unsupported.``

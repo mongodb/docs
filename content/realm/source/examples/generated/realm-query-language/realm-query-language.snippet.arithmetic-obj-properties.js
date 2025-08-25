@@ -1,0 +1,1 @@
+"progressMinutes * priority == 90"

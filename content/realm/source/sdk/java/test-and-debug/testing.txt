@@ -1,0 +1,401 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-testing:
+
+==================
+Testing - Java SDK
+==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can test your application using unit tests or integration tests.
+**Unit tests** only assess the logic written in your application's code.
+**Integration tests** assess your application logic, database queries and
+writes, and calls to your application's backend, if you have one. Unit tests
+run on your development machine using the JVM, while integration tests
+run on a physical or emulated Android device. You can run integration
+tests by communicating with actual instances of Realm
+or an App backend using Android's built-in instrumented tests.
+
+Android uses specific file paths and folder names in Android projects
+for unit tests and instrumented tests:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Test Type
+     - Path
+
+   * - Unit Tests
+     - :file:`/app/src/test`
+
+   * - Instrumented Tests
+     - :file:`/app/src/androidTest`
+
+Because the SDK uses C++ code via Android Native for data
+storage, unit testing requires you to entirely mock interactions with
+Realm. Prefer integration tests for logic that requires
+extensive interaction with the database.
+
+Integration Tests
+-----------------
+
+This section shows how to integration test an application that uses
+the Realm SDK. It covers the following concepts in the test
+environment:
+
+- acquiring an application context
+- executing logic on a ``Looper`` thread
+- how to delay test execution while asynchronous method calls complete
+
+Applications that use Sync or a backend App also require (not
+covered here):
+
+- a separate App backend for testing, with separate user accounts
+  and data
+- a separate Atlas cluster containing test-only data
+
+.. _java-testing-context:
+
+Application Context
+~~~~~~~~~~~~~~~~~~~
+
+To initialize the SDK, you'll need to provide an application or activity
+:android:`context <reference/android/content/Context>`.
+This isn't available by default in Android integration tests. However,
+you can use Android's built-in testing :android:`ActivityScenario
+<reference/androidx/test/core/app/ActivityScenario>`
+class to start an activity in your tests. You can use any activity from
+your application, or you can create an empty activity just for testing.
+Call ``ActivityScenario.launch()`` with your activity class as a
+parameter to start the simulated activity.
+
+Next, use the ``ActivityScenario.onActivity()`` method to run a lambda
+on the simulated activity's main thread. In this lambda, you should call
+the ``Realm.init()`` function to initialize the SDK with your activity
+as a parameter. Additionally, you should save the parameter passed to
+your lambda (the newly created instance of your activity) for future
+use.
+
+Because the ``onActivity()`` method runs on a different thread, you
+should :ref:`block your test from executing further
+<java-testing-delay-while-async>` until this initial setup completes. 
+
+The following example uses an ``ActivityScenario``, an empty testing
+activity, and a ``CountDownLatch`` to demonstrate how to set up an
+environment where you can test your Realm application:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.initialize-realm-with-context.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.initialize-realm-with-context.java
+         :language: java
+         :copyable: false
+
+Looper Thread
+~~~~~~~~~~~~~
+
+Realm functionality such as 
+:ref:`Live objects <java-live-object>` and change notifications only
+work on :android:`Looper <reference/android/os/Looper>` threads.
+Threads configured with a ``Looper`` object pass events over a message
+loop coordinated by the ``Looper``. Test functions normally don't have
+a ``Looper`` object, and configuring one to work in your tests can be
+very error-prone.
+
+Instead, you can use the :android:`Activity.runOnUiThread()
+<reference/android/app/Activity#runOnUiThread(java.lang.Runnable)>`
+method of your test activity to execute logic on a thread that already
+has a ``Looper`` configured. Combine ``Activity.runOnUiThread()`` with
+a ``CountDownLatch`` as described in the :ref:`delay section
+<java-testing-delay-while-async>` to prevent your test from completing
+and exiting before your logic has executed. Within the ``runOnUiThread()``
+call, you can interact with the SDK just like you normally would in your
+application code:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.test-logic-looper.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.test-logic-looper.java
+         :language: java
+         :copyable: false
+
+.. _java-testing-delay-while-async:
+
+Delay Test Execution While Async Calls Complete
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because the SDK uses asynchronous calls for common operations such as
+database queries, authentication, and function calls, tests need a way
+to wait for those async calls to complete. Otherwise, your tests will
+exit before your asynchronous (or multi-threaded) calls run. This example
+uses Java's built-in `CountDownLatch
+<https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CountDownLatch.html>`__. Follow these steps to use a ``CountDownLatch`` in your own tests:
+
+1. Instantiate a ``CountDownLatch`` with a count of 1.
+#. After running the async logic your test needs to wait for, call that
+   ``CountDownLatch`` instance's ``countDown()`` method.
+#. When you need to wait for async logic, add a ``try``/``catch`` block
+   that handles an ``InterruptedException``. In that block,
+   call that ``CountDownLatch`` instance's ``await()`` method.
+#. Pass a timeout interval and unit to ``await()``, and wrap
+   the call in a ``Assert.assertTrue()`` assertion. If the logic takes
+   too long, the ``await()`` call times out, returning false and failing
+   the test.
+
+The following example demonstrates the use of a ``CountDownLatch`` to
+wait for authentication and opening a realm asynchronously on a separate
+thread:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.wait-for-async.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.wait-for-async.java
+         :language: java
+         :copyable: false
+
+Testing Backend
+~~~~~~~~~~~~~~~
+
+Applications that use an App backend should not connect to the
+production backend for testing purposes for the following reasons:
+
+- you should always keep test users and production users separate
+  for security and privacy reasons
+- tests often require a clean initial state, so there's a good chance
+  your tests will include a setup or teardown method that deletes all
+  users or large chunks of data
+
+You can use :ref:`environments <appconfig-environment>` to manage separate
+apps for testing and production.
+
+Testing Atlas Cluster
+~~~~~~~~~~~~~~~~~~~~~
+
+Applications that use Sync or :ref:`MongoDB queries
+<java-mongodb-data-access>` may read, write, update, or delete data
+stored in connected Atlas clusters. For security purposes, you shouldn't
+store production data and testing data on the same cluster. Additionally,
+tests may require schema changes before those changes are gracefully
+handled in your production application. As a result, you should use a
+separate Atlas cluster when testing your application.
+
+Full Example
+~~~~~~~~~~~~
+
+The following example shows a full Junit instrumented ``androidTest``
+example running Realm in integration tests:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.test-integration-testing.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/TestTest.snippet.test-integration-testing.java
+         :language: java
+         :copyable: false
+
+.. seealso::
+
+   See the :github:`Realm Documentation Examples App
+   <mongodb/docs-realm/tree/master/examples/java>` for an example
+   of integration testing the SDK locally and with a live backend.
+
+Unit Tests
+----------
+
+To unit test Realm applications that use Realm,
+you must :wikipedia:`mock <Mock_object>` Realm (and your
+application backend, if you use one). Use the following libraries to
+mock SDK functionality:
+
+- `Robolectric <http://robolectric.org/>`__
+- `PowerMock <https://powermock.github.io/>`__
+- `Mockito <https://site.mockito.org/>`__
+
+To make these libraries available for unit testing in your Android project,
+add the following to the ``dependencies`` block of your application
+``build.gradle`` file:
+
+.. code-block::
+   :copyable: false
+
+    testImplementation "org.robolectric:robolectric:4.1"
+    testImplementation "org.mockito:mockito-core:3.3.3"
+    testImplementation "org.powermock:powermock-module-junit4:2.0.9"
+    testImplementation "org.powermock:powermock-module-junit4-rule:2.0.9"
+    testImplementation "org.powermock:powermock-api-mockito2:2.0.9"
+    testImplementation "org.powermock:powermock-classloading-xstream:2.0.9"
+
+.. note:: Version Compatibility
+
+   Mocking the SDK in unit tests requires Robolectric, Mockito, and
+   Powermock because the SDK uses Android Native C++ method calls to
+   interact with Realm. Because the frameworks required to
+   override these method calls can be delicate, you should use the
+   versions listed above to ensure that your mocking is successful. Some
+   recent version updates (particularly Robolectric version 4.2+) can
+   break compiliation of unit tests using the SDK.
+
+To configure your unit tests to use Robolectric, PowerMock, and Mockito
+with the SDK, add the following annotations to each unit test class that
+mocks the SDK:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.annotations.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.annotations.java
+         :language: java
+         :copyable: false
+
+Then, bootstrap Powermock globally in the test class:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.bootstrap-powermock.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.bootstrap-powermock.java
+         :language: java
+         :copyable: false
+
+Next, mock the components of the SDK that might query native C++ code
+so we don't hit the limitations of the test environment:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.mock-realm-components.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.mock-realm-components.java
+         :language: java
+         :copyable: false
+
+Once you've completed the setup required for mocking, you can start
+mocking components and wiring up behavior for your tests. You can also
+configure PowerMockito to return specific objects when new objects of
+a type are instantiated, so even code that references the default
+realm in your application won't break your tests:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.mock-a-realm.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.mock-a-realm.java
+         :language: java
+         :copyable: false
+
+After mocking a realm, you'll have to configure data for your test
+cases. See the full example below for some examples of how you can
+provide testing data in unit tests.
+
+Full Example
+~~~~~~~~~~~~
+
+The following example shows a full JUnit ``test``
+example mocking Realm in unit tests. This example tests
+an activity that performs some basic Realm operations.
+The tests use mocking to simulate those operations when that activity is
+started during a unit test:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/UnitTestActivity.snippet.unit-test-activity.kt
+         :language: kotlin
+         :copyable: false
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.test-unit-testing.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/UnitTestActivity.snippet.unit-test-activity.java
+         :language: java
+         :copyable: false
+
+       .. literalinclude:: /examples/generated/java/local/TestTest.snippet.test-unit-testing.java
+         :language: java
+         :copyable: false
+
+.. seealso::
+
+   See the :github:`Unit Testing Example App
+   <realm/realm-java/tree/master/examples/unitTestExample>`
+   for an example of unit testing an application that uses
+   Realm.

@@ -1,0 +1,218 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-update-realm-object-schema:
+.. _flutter-update-schema:
+
+==========================================
+Update a Realm Object Schema - Flutter SDK
+==========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can change the schema of a Realm object after you first create it.
+Depending on the type of changes you make to the schema, the changes can be either
+automatically applied or require a manual update to the new schema.
+Manual schema updates are called **migrations** in Realm.
+
+You can automatically update a Realm object schema when you add or delete a property
+from a Realm object model. For more information, refer to the
+:ref:`Automatically Update Schema section <flutter-automatically-update-schema>`.
+
+You must perform a manual migration for all other schema changes.
+For more information, refer to the :ref:`Manually Migrate Schema section
+<flutter-manually-migrate-schema>`.
+
+.. tip:: Bypass Migration During Development
+
+   When developing or debugging your application, you may prefer to delete
+   the realm instead of migrating it. Use the
+   :flutter-sdk:`LocalConfiguration.shouldDeleteIfMigrationNeeded <realm/LocalConfiguration/shouldDeleteIfMigrationNeeded.html>`
+   property to delete the database automatically when a schema mismatch
+   requires a migration.
+
+.. important:: Modify Schema Properties of a Synced Realm
+
+   The contents on this page only apply to local realms.
+   Schema migration functions differently for Realm using Atlas Device Sync
+   to synchronize data with MongoDB Atlas.
+   Refer to the :ref:`Updating the Schema of a Synced Realm section <flutter-update-schema-of-synced-realm>`.
+
+.. _flutter-schema-version:
+
+Schema Version
+--------------
+
+A **schema version** identifies the state of a :ref:`realm schema
+<flutter-realm-schema>` at some point in time. Realm tracks the
+schema version of each realm and uses it to map the objects in each
+realm to the correct schema.
+
+Schema versions are ascending integers that you can optionally include
+in the realm configuration when you open a realm. If a client
+application does not specify a version number when it opens a realm then
+the realm defaults to version ``0``.
+
+Manual migrations must update a realm to a
+higher schema version. Realm throws an error if a client
+application opens a realm with a schema version that is lower than
+the realm's current version or if the specified schema version is the
+same as the realm's current version but includes different
+object schemas.
+
+.. _flutter-automatically-update-schema:
+
+Automatically Update Schema
+---------------------------
+
+Realm can automatically migrate added and deleted properties.
+You must update the schema version when you make these changes.
+
+.. _flutter-add-a-property:
+
+Add a Property
+~~~~~~~~~~~~~~
+
+To add a property to a schema:
+
+#. Add the new property to the object's ``RealmModel`` class.
+#. :ref:`Regenerate the RealmObject <flutter-generate-realm-object>`.
+#. Set a schema version to the realm's
+   :flutter-sdk:`Configuration object <realm/Configuration-class.html>`.
+
+.. example::
+
+   A realm using schema version ``1`` has a ``Person`` object type with a
+   ``firstName``, and ``lastName`` property. The developer decides to add an
+   ``age`` property to the ``_Person`` RealmModel class.
+
+   To change the realm to conform to the updated ``Person`` schema, the
+   developer sets the realm's :ref:`schema version <flutter-schema-version>`
+   to ``2``.
+
+   .. literalinclude:: /examples/generated/flutter/define_realm_model_test.snippet.modify-schema-model.dart
+      :language: dart
+      :emphasize-lines: 5
+
+   .. literalinclude:: /examples/generated/flutter/define_realm_model_test.snippet.schema-version.dart
+      :language: dart
+
+.. _flutter-delete-a-property:
+
+Delete a Property
+~~~~~~~~~~~~~~~~~
+
+To delete a property from a schema:
+
+#. Remove the property from the object's ``RealmModel`` class.
+#. :ref:`Regenerate the RealmObject <flutter-generate-realm-object>`.
+#. In the realm's configuration, include the regenerated ``RealmObject.schema``
+   and increment the ``schemaVersion``.
+
+Deleting a property does not impact existing objects.
+
+.. example::
+
+   A realm using schema version ``1`` has a ``Person`` object type with a
+   ``weight`` property. The developer decides to remove the property from the
+   schema.
+
+   To migrate the realm to conform to the updated ``Person`` schema, the
+   developer sets the realm's :ref:`schema version <flutter-schema-version>` to
+   ``2``.
+
+   .. literalinclude:: /examples/generated/flutter/define_realm_model_test.snippet.schema-version.dart
+      :language: dart
+
+.. _flutter-manually-migrate-schema:
+
+Manually Migrate Schema
+-----------------------
+
+For more complex schema updates, Realm requires you to manually migrate
+old instances of a given object to the new schema.
+
+When you open the realm with the updated schema, you must do the following
+in the realm's ``Configuration``:
+
+- Increment the ``schemaVersion`` property.
+- Define the migration logic in a :flutter-sdk:`migrationCallback <realm/MigrationCallback.html>`
+  property of a realm's :flutter-sdk:`Configuration <realm/Configuration-class.html>`.
+  The migration callback has the following parameters:
+
+  - ``migration``: A :flutter-sdk:`Migration <realm/Migration-class.html>`
+    instance with access to the current realm, the realm that you're migrating to,
+    and methods to help with the migration operation.
+  - ``oldSchemaVersion``: The number of the previous schema version of the realm
+    on the device.
+
+The following sections explain how to perform various migration operations.
+
+.. _flutter-delete-object-type:
+
+Delete an Object Type
+~~~~~~~~~~~~~~~~~~~~~
+
+To delete all objects of a type from your realm, pass a string representation
+of the object schema's name to :flutter-sdk:`Migration.deleteType() <realm/Migration/deleteType.html>`.
+
+This is useful if the previous version of a schema has a Realm object type,
+but the new version of the schema does not.
+
+.. literalinclude:: /examples/generated/flutter/migrations_test.snippet.migration-delete-type.dart
+   :language: dart
+
+.. _flutter-rename-property:
+
+Rename a Property
+~~~~~~~~~~~~~~~~~
+
+Rename a schema property with :flutter-sdk:`Migration.renameProperty()
+<realm/Migration/renameProperty.html>`.
+
+.. literalinclude:: /examples/generated/flutter/migrations_test.snippet.migrations-rename-property.dart
+   :language: dart
+
+.. _flutter-other-migration-tasks:
+
+Other Migration Tasks
+~~~~~~~~~~~~~~~~~~~~~
+
+To perform other realm schema migrations, use the following properties of
+the ``Migration`` object in your migration callback function:
+
+- :flutter-sdk:`Migration.oldRealm <realm/Migration/oldRealm.html>`: The realm
+  as it existed just before the migration with the previous schema version.
+  You must use the ``oldRealm``'s dynamic API to access its objects because you
+  cannot use standard type-based queries. The dynamic API lets you find Realm objects
+  by a string representation of their class name.
+- :flutter-sdk:`Migration.newRealm <realm/Migration/newRealm.html>`:
+  The realm as it exists after the migration. By the end of the migration callback,
+  you must migrate all data affected by the schema update from ``oldRealm`` into ``newRealm``.
+  Any data affected by the schema update that is not migrated will be lost.
+
+To find instances of an object in an old realm in the new realm,
+use :flutter-sdk:`Migration.findInNewRealm() <realm/Migration/findInNewRealm.html>`.
+To access the properties of objects from the old schema,
+use the :flutter-sdk:`RealmObjectBase.dynamic <realm/RealmObjectBase/dynamic.html>` API.
+
+.. literalinclude:: /examples/generated/flutter/migrations_test.snippet.migrations-other.dart
+   :language: dart
+
+.. _flutter-update-schema-of-synced-realm:
+
+Updating the Schema of a Synced Realm
+-------------------------------------
+
+Updating the schema of a synced realm is a separate process from updating
+the schema of a local-only realm.
+
+Synced realms do not have schema versions and automatically migrate
+objects to the latest schema. Synced realms only support non-breaking schema changes.
+
+Learn how to :ref:`modify schema properties of a synced realm
+<synced-schema-overview>`.

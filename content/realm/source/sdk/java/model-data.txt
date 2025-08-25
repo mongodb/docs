@@ -1,0 +1,231 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+=====================
+Model Data - Java SDK
+=====================
+
+.. toctree::
+   :titlesonly:
+
+   Define an Object Model </sdk/java/model-data/define-a-realm-object-model>
+   Relationships </sdk/java/model-data/relationships>
+   Change an Object Model </sdk/java/model-data/modify-an-object-schema>
+   Data Types </sdk/java/model-data/data-types>
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-java-and-realmany.rst
+
+.. _java-object-models-and-schemas:
+.. _java-schema-versions-and-migrations:
+
+An **object schema** is a configuration object that defines the fields and
+relationships of a Realm object type. Android
+Realm applications define object schemas with Java or Kotlin
+classes using Realm Schemas.
+
+Object schemas specify constraints on object fields such as the data
+:ref:`type <java-supported-data-types>` of each field, whether a
+field is required, and default field values. Schemas can also define
+:ref:`relationships <java-client-relationships>` between object types in
+a realm.
+
+Modifying your application's Realm Schema requires you to
+:ref:`migrate <java-schema-versions-and-migrations>` data from older
+versions of your Realm Schema to the new version.
+
+Realm Apps
+----------
+
+Every App has a :ref:`Realm Schema <java-realm-schema>`
+composed of a list of object schemas for each type of object that the
+realms in that application may contain.
+
+Realm guarantees that all objects in a realm conform to the
+schema for their object type and validates objects whenever they're
+created, modified, or deleted.
+
+Apps that use Atlas Device Sync can define schemas in two ways:
+
+- object schemas :ref:`using Kotlin and Java class declarations
+  <create-schema-from-rom>` with :ref:`Development Mode <development-mode>`.
+
+- JSON :ref:`object schemas <object-schema>` in your App backend.
+
+.. _java-relationships-fundamentals:
+
+Relationships
+-------------
+
+You can model **one-to-one** relationships in realm with
+:java-sdk:`RealmObject <io/realm/RealmObject.html>` fields.
+You can model **one-to-many** and **many-to-one** relationships
+:java-sdk:`RealmList <io/realm/RealmList.html>` fields.
+Inverse relationships are the opposite end of a **one-to-many** or
+**many-to-one** relationship.
+You can make **inverse** relationships traversable with the
+:java-sdk:`@LinkingObjects <io/realm/annotations/LinkingObjects.html>`
+annotation on a :java-sdk:`RealmResults <io/realm/RealmResults.html>`
+field. In an instance of a ``RealmObject``, inverse relationship fields
+contain the set of Realm objects that point to that object
+instance through the described relationship. You can find the same set
+of Realm objects with a manual query, but the inverse
+relationship field reduces boilerplate query code and capacity for error.
+
+.. _java-realm-objects:
+
+Realm Objects
+-------------
+
+Unlike normal Java objects, which contain their own data, a
+Realm object doesn't contain data. Instead,
+Realm objects read and write properties directly to
+Realm.
+
+Instances of Realm objects can be either **managed** or **unmanaged**.
+
+- **Managed** objects are:
+
+  - persisted in Realm
+
+  - always up to date
+
+  - thread-confined
+
+  - generally more lightweight than the unmanaged version, as they take
+    up less space on the Java heap.
+
+- **Unmanaged** objects are just like ordinary Java objects, since
+  they are not persisted and never update automatically.
+  You can move unmanaged objects freely across threads.
+
+You can convert between the two states using
+:java-sdk:`realm.copyToRealm()
+<io/realm/Realm.html#copyToRealm-E-io.realm.ImportFlag...->`
+and :java-sdk:`realm.copyFromRealm()
+<io/realm/Realm.html#copyFromRealm-E->`.
+
+.. _java-realm-proxy:
+
+RealmProxy
+~~~~~~~~~~
+
+The ``RealmProxy`` classes are the Realm SDK's way of
+ensuring that Realm objects don't contain any data
+themselves. Instead, each class's ``RealmProxy`` accesses data directly
+in the database.
+
+For every model class in your project, the Realm annotation
+processor generates a corresponding ``RealmProxy`` class. This class
+extends your model class and is returned when you call
+``Realm.createObject()``. In your code, this object works just like your
+model class.
+
+.. _java-realm-object-limitations:
+
+Realm Object Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Realm objects:
+
+- cannot contain fields that use the ``final`` or ``volatile`` modifiers
+  (except for :ref:`inverse relationship <java-inverse-relationship>`
+  fields).
+
+- cannot extend any object other than ``RealmObject``.
+
+- must contain an empty constructor (if your class does not include any
+  constructor, the automatically generated empty constructor will suffice)
+
+Naming limitations:
+
+- Class names cannot exceed 57 characters.
+
+- Class names must be unique within :ref:`realm modules <java-modules>`
+
+- Field names cannot exceed 63 characters.
+
+Size limitations:
+
+- ``String`` or ``byte[]`` fields cannot exceed 16 MB.
+
+Usage limitations:
+
+- Because Realm objects are live and can change at any time,
+  their ``hashCode()`` value can change over time. As a result, you
+  should not use ``RealmObject`` instances as a key in any map or set.
+
+Incremental Builds
+------------------
+
+The bytecode transformer used by Realm supports incremental
+builds, but your application requires a full rebuild when adding or
+removing the following from a Realm object field:
+
+- an ``@Ignore`` annotation
+
+- the ``static`` keyword
+
+- the ``transient`` keyword
+
+You can perform a full rebuild with :guilabel:`Build > Clean Project`
+and :guilabel:`Build > Rebuild Project` in these cases.
+
+.. _java-schema-version:
+
+Schema Version
+--------------
+
+A **schema version** identifies the state of a :ref:`Realm Schema
+<java-realm-schema>` at some point in time. Realm tracks the schema
+version of each realm and uses it to map the objects in each realm
+to the correct schema.
+
+Schema versions are integers that you may include
+in the realm configuration when you open a realm. If a client
+application does not specify a version number when it opens a realm then
+the realm defaults to version ``0``.
+
+.. important:: Increment Versions Monotonically
+
+   :ref:`Migrations <java-client-migrations>` must update a realm to a
+   higher schema version. Realm throws an error if a client
+   application opens a realm with a schema version that is lower than
+   the realm's current version or if the specified schema version is the
+   same as the realm's current version but includes different
+   :ref:`object schemas <java-object-schema>`.
+
+.. _java-migrations:
+
+Migrations
+----------
+
+A **local migration** is a migration for a realm that does
+not automatically :ref:`Sync <sync>` with
+another realm. Local migrations have access to the existing
+Realm Schema, version, and objects and define logic that
+incrementally updates the realm to its new schema version.
+To perform a local migration you must specify a new schema
+version that is higher than the current version and provide
+a migration function when you open the out-of-date realm.
+
+With the SDK, you can update underlying data to reflect schema changes
+using manual migrations. During such a manual migration, you can
+define new and deleted properties when they are added or removed from
+your schema. The editable schema exposed via a
+:java-sdk:`DynamicRealm <io/realm/DynamicRealm.html>` provides
+convenience functions for renaming fields. This gives you full control
+over the behavior of your data during complex schema migrations.
+
+.. tip:: Migrations During Application Development
+
+   During development of an application, ``RealmObject`` classes can
+   change frequently. You can use :java-sdk:`Realm.deleteRealm()
+   <io/realm/Realm.html#deleteRealm-io.realm.RealmConfiguration->` to
+   delete the database file and eliminate the need to write a full
+   migration for testing data.

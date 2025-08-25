@@ -1,0 +1,282 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-write-synced-realm:
+
+==========================================
+Write Data to a Synced Realm - Flutter SDK
+==========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When writing data to a synced realm using Flexible Sync, you can use the same APIs
+as writing to a local realm. However, there are some differences
+in behavior to keep in mind as you develop your application.
+To learn more about reading and writing data to a realm,
+refer to :ref:`Read & Write Data <flutter-read-write-data>`.
+
+When you write to a synced realm, your write operations must match *both*
+of the following:
+
+- **The sync subscription query.**
+    - If your write operation doesn't match the query in the subscription,
+      the write reverts with a non-fatal compensating write error (ErrorCompensatingWrite).
+    - To learn more about compensating write errors and how to avoid them,
+      refer to the :ref:`Compensating Writes <flutter-compensating-writes>` section.
+- **The permissions** in your App Services App.
+    - If your try to write data that doesn't match the permissions expression,
+      the write reverts with a non-fatal permission denied error. In the client,
+      this shows as an error (ErrorCompensatingWrite). On the server, you can see more
+      details about how the write was denied was by a write filter in the role.
+    - To learn more about configuring permissions for your app, see
+      :ref:`sync-rules` and the :ref:`flexible-sync-permissions-guide` in the
+      App Services documentation.
+
+To learn more about permission denied errors, compensating write errors
+and other Device Sync error types, refer to :ref:`sync-errors` in the App Services documentation.
+
+Determining What Data Syncs
+---------------------------
+
+The examples on this page use an Atlas App Services App with the following 
+Device Sync configuration and a client app with the following Realm SDK 
+data model and subscriptions.
+
+App Services Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Device Sync is configured with the following queryable fields:
+
+- ``_id`` (always included)
+- ``miles``
+- ``ownerId``
+
+The App Services App has permissions configured to let users read and write only
+their own data:
+
+.. code-block:: json
+
+   {
+     "name": "owner-read-write", 
+     "apply_when": {},
+     "document_filters": {
+       "read": { "ownerId": "%%user.id" },
+       "write": { "ownerId": "%%user.id" }
+     },
+     "read": true,
+     "write": true
+   }
+
+Client Data Model and Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The examples on this page use the following schema:
+
+.. literalinclude:: /examples/generated/flutter/write_to_synced_realm_test.snippet.realm-model.dart
+   :language: dart
+
+Using that schema, the examples configure the synced realm to 
+synchronize objects matching this subscription query:
+
+.. literalinclude:: /examples/generated/flutter/write_to_synced_realm_test.snippet.subscription-setup.dart
+   :language: dart
+
+Write to a Synced Realm
+-----------------------
+
+Writes to Flexible Sync realms may broadly fall into one of two categories:
+
+- **Successful writes**: The written object matches both the query subscription
+  and the user's permissions. The object writes successfully to the realm,
+  and syncs successfully to the App Services backend and other devices.
+
+- **Compensating writes**: When the written object does not match
+  the subscription query, or where the user does not have sufficient
+  permissions to perform the write, Realm reverts the illegal write.
+
+.. _flutter-successful-writes:
+
+Successful Writes
+-----------------
+
+When the write matches both the :ref:`App Services permissions <permissions>`
+and the :ref:`Flexible Sync subscription query
+<flutter-flexible-sync-manage-subscriptions>` in the client, the Realm Flutter SDK
+can successfully write the object to the synced realm. This object syncs with
+the App Services backend when the device has a network connection.
+
+.. literalinclude:: /examples/generated/flutter/write_to_synced_realm_test.snippet.write-synced-realm.dart
+   :language: dart
+
+.. _flutter-compensating-writes:
+
+Compensating Writes
+-------------------
+
+In some cases, a write that initially appears to succeed is actually an
+illegal write. In these cases, the object writes to the database, but when
+the database syncs to the backend, Realm reverts the write in a non-fatal
+error operation called a compensating write. Compensating writes can occur
+when:
+
+- **Writes don't match the query subscription**: The written object matches
+  the user's permissions, but does not match the query subscription.
+- **Writes don't match permissions**: The written object matches the query
+  subscription, but does not match the user's permissions.
+
+In more detail, when you write data that is outside the bounds of a query
+subscription or does not match the user's permissions, the following occurs:
+
+#. Because the client realm has no concept of "illegal" writes,
+   the write initially succeeds until realm resolves the changeset
+   with the App Services backend.
+#. Upon sync, the server applies the rules and permissions.
+   The server determines that the user does not have authorization to perform the write.
+#. The server sends a revert operation, called a "compensating write", back to the client.
+#. The client's realm reverts the illegal write operation.
+
+Any client-side writes to a given object between an illegal write to that object
+and the corresponding compensating write will be lost.
+
+In practice, this may look like an object being written to the realm, and
+then disappearing after the server sends the compensating write back to
+the client.
+
+To learn more about permission denied errors, compensating write errors
+and other Device Sync error types, refer to :ref:`sync-errors` in the App Services documentation.
+
+The :ref:`App Services logs <logs-sync>` contain more information about
+why a compensating write error occurs.
+
+.. _flutter-writes-outside-subscription:
+
+Writes that Don't Match the Query Subscription
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can only write objects to a Flexible Sync realm if they match the
+subscription query. If you perform a write that does not match the
+subscription query, Realm initially writes the object, but then performs
+a compensating write. This is a non-fatal operation that
+reverts an illegal write that does not match the subscription query.
+
+If you want to write an object that does not match the query subscription,
+open a different realm where the object matches the query
+subscription. Alternately, you could write the object to a :ref:`local realm
+<flutter-open-local-only-realm>` that does not enforce
+permissions or subscription queries.
+
+Code Example
+````````````
+
+Given the configuration for the synced realm above, attempting to
+write this object does not match the query subscription:
+
+.. literalinclude:: /examples/generated/flutter/write_to_synced_realm_test.snippet.not-match-query-subscription.dart
+   :language: dart
+
+Client Error
+````````````
+
+The error message in the client-side logs in this scenario is:
+
+.. code-block:: console
+
+   [INFO] Realm: Connection[1]: Session[1]: Received: ERROR "Client attempted
+   a write that is outside of permissions or query filters; it has been reverted"
+   (error_code=231, try_again=true, error_action=Warning)
+   [INFO] Realm: Connection[1]: Session[1]: Reporting compensating write
+   for client version 21 in server version 2877: Client attempted a write that
+   is outside of permissions or query filters; it has been reverted
+   [ERROR] Realm: SyncSessionError message: Client attempted a write that
+   is outside of permissions or query filters; it has been reverted
+   Logs: https://services.cloud.mongodb.com/groups/5f60207f14dfb25d23101102/apps/639340a757271cb5e3a0f0cf/logs?co_id=6424433efb0c6bbcc330347c
+   category: SyncErrorCategory.session code: SyncSessionErrorCode.compensatingWrite isFatal: false
+
+App Services Error
+``````````````````
+
+The error message in the App Services logs in this scenario is:
+
+.. code-block:: console
+
+   Error:
+
+   Client attempted a write that is outside of permissions or query filters; it has been reverted (ProtocolErrorCode=231)
+
+   Details:
+
+   {
+     "Car": {
+       "6424433fd4d9f52ee93ad590": "write to \"6424433fd4d9f52ee93ad590\" in table \"Car\" not allowed; object is outside of the current query view"
+     }
+   }
+
+
+.. _flutter-writes-outside-permissions:
+
+Writes That Don't Match Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Attempting to write to the client can also trigger a compensating write
+error when the object does not match the user's server-side write permissions.
+
+On the client, this type of write behaves the same as a write that doesn't
+match the query subscription. In practice, this may look like the write
+succeeding, but then the object "disappears" when Realm syncs with the
+App Services backend and performs the compensating write.
+
+Code Example
+````````````
+
+Given the permissions in the Device Sync configuration detailed above,
+attempting to write an object where the ``ownerId`` property does not match
+the ``user.id`` of the logged-in user is not a legal write:
+
+.. literalinclude:: /examples/generated/flutter/write_to_synced_realm_test.snippet.not-match-permissions.dart
+   :language: dart
+
+Client Error
+````````````
+
+The client error in this scenario is the same as when you attempt to write
+an object that is outside the App Services permissions:
+
+.. code-block:: console
+
+   [INFO] Realm: Connection[1]: Session[1]: Received: ERROR "Client attempted
+   a write that is outside of permissions or query filters; it has been reverted"
+   (error_code=231, try_again=true, error_action=Warning)
+   [INFO] Realm: Connection[1]: Session[1]: Reporting compensating write
+   for client version 25 in server version 2879: Client attempted a write that
+   is outside of permissions or query filters; it has been reverted
+   [ERROR] Realm: SyncSessionError message: Client attempted a write that
+   is outside of permissions or query filters; it has been reverted
+   Logs: https://services.cloud.mongodb.com/groups/5f60207f14dfb25d23101102/apps/639340a757271cb5e3a0f0cf/logs?co_id=6424433efb0c6bbcc330347c
+   category: SyncErrorCategory.session code: SyncSessionErrorCode.compensatingWrite isFatal: false
+
+App Services Error
+``````````````````
+
+The error message in the App Services logs provides some additional
+information to help you determine that it is a permissions issue,
+and not a query subscription issue. In this example, the error message shows
+that the the object does not match the user's role:
+
+.. code-block:: console
+
+   Error:
+
+   Client attempted a write that is outside of permissions or query filters;
+   it has been reverted (ProtocolErrorCode=231)
+
+   Details:
+
+   {
+     "Car": {
+       "6424433fd4d9f52ee93ad591": "write to \"6424433fd4d9f52ee93ad591\" in table \"Car\" was denied by write filter in role \"owner-read-write\""
+     }
+   }

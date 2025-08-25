@@ -1,0 +1,135 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-custom-user-data:
+
+==============================
+Custom User Data - Flutter SDK
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can store arbitrary custom data about your
+users with Atlas App Services. For example,
+you might store a user's preferred language, date of birth, or local
+timezone. Before writing and reading this data, you must enable custom user data
+in the backend. To learn more, see :ref:`Enable Custom User Data <custom-user-data>`.
+
+.. important::
+
+   Currently you can only **read** custom user data with the Flutter SDK.
+   In a future update to the SDK, you will be able to write custom user data
+   from the SDK as well.
+
+   You can create, update, or delete custom user data using one of the other
+   Realm SDKs, with Atlas Functions, or by directly querying Atlas.
+
+Before You Begin
+----------------
+
+To use custom user data, you must first enable custom user data
+in App Services:
+
+#. :ref:`Create an App <create-a-realm-app>`.
+#. :ref:`Enable custom user data <enable-custom-user-data-procedure>`.
+
+.. TODO: add back into the docs when there's a way to use MongoDB data access
+.. with custom user data
+.. To **create, update, or delete** custom user data, you will need the following
+.. information from your custom user data configuration:
+
+.. - The custom user data cluster
+.. - The custom user data database
+.. - The custom user data collection in which custom
+..   user data documents are stored
+.. - The user ID field used to map custom user data documents
+..   to users (via user ID)
+
+.. You can find this information in the App Services UI. In the left sidebar, click
+.. :guilabel:`App Users`,  and then select the :guilabel:`Custom User Data` tab.
+
+.. _flutter-read-custom-user-data:
+
+Read a User's Custom User Data
+------------------------------
+
+You retrieve custom user data in the  :flutter-sdk:`User.customData <realm/User/customData.html>`
+property of a logged in user:
+
+.. literalinclude:: /examples/generated/flutter/authenticate_users_test.snippet.read-custom-user-data.dart
+   :language: dart
+
+
+App Services **does not dynamically update** the value of the
+``User.customData``  immediately when underlying data changes. Instead, App Services
+fetches the most recent version of custom user data whenever a user
+refreshes their :ref:`access token <user-sessions>` or when you explicitly
+call :flutter-sdk:`User.refreshCustomData() <realm/User/refreshCustomData.html>`,
+which ensures your app has the latest custom user data.
+
+.. literalinclude:: /examples/generated/flutter/authenticate_users_test.snippet.refresh-custom-user-data.dart
+   :language: dart
+
+.. _flutter-write-custom-user-data:
+
+Write Custom User Data with an Atlas Functions
+----------------------------------------------
+
+You can write to custom user data with an Atlas Function. Atlas Functions
+are server-side JavaScript functions that are built into your backend App.
+You can call an Atlas Function directly from the Realm Flutter SDK.
+
+It is not possible to write to custom user data directly from the Realm Flutter SDK.
+
+To learn more about Atlas Functions, refer to the following documentation:
+
+- :ref:`Call an Atlas Function <flutter-call-function>`
+- :ref:`Atlas Functions <functions>` in the App Services documentation.
+
+There is no single pattern for adding custom user data from an Atlas Function.
+You should write your Function or Functions to suite your application's use case.
+
+In this example, the Atlas Function takes an object passed by the client add adds
+it to the custom user data collection in Atlas. The Function creates
+the custom user data if it doesn't already exist and replaces all data in it
+if it does exist.
+
+.. literalinclude:: /examples/generated/flutter/writeCustomUserData.snippet.write-custom-user-data.js
+   :language: js
+   :caption: writeCustomUserData.js - Atlas Function running on server (JavaScript)
+
+The Realm SDK code to call this Function:
+
+.. literalinclude:: /examples/generated/flutter/authenticate_users_test.snippet.write-custom-user-data-function.dart
+   :language: dart
+   :caption: Realm Flutter SDK client code (Dart)
+
+.. TODO: add back in once you can interact w MongoDB from Realm Flutter
+.. .. _flutter-create-custom-user-data:
+
+.. Create a User's Custom User Data Document
+.. -----------------------------------------
+
+.. To create custom user data for a user, create a MongoDB document in the
+.. custom user data collection. The user ID field of the document must
+.. contain the the user's user ID. The following example uses
+.. TODO: update this ref`MongoDB Data Access <>` to insert a
+.. document containing the user ID of the currently logged in user and several
+.. custom properties into the custom user data collection:
+
+.. CODE_BLOCK
+
+.. .. _flutter-update-custom-user-data:
+
+.. Update a User's Custom Data
+.. ---------------------------
+
+.. Updating custom user data uses the same code as writing. The following example
+.. finds and updates the data by using the
+.. :flutter-sdk:`FLUTTER_UpdateOneAsync() <>`
+.. method, and then refreshes the data to ensure the latest changes are available:
+.. CODE_BLOCK

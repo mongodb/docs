@@ -1,0 +1,164 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-client-resets:
+.. _java-reset-a-client-realm-file:
+
+=======================
+Client Reset - Java SDK
+=======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. seealso:: Learn More About Client Resets
+
+   To learn about the causes of and strategies for handling client
+   resets, check out the Sync :ref:`Client Resets <client-resets>` page.
+
+The SDK reads and writes to a realm file on the device. When 
+you use Atlas Device Sync, this local realm syncs with the application backend.
+Some conditions can cause the realm to be unable to sync with the backend. 
+When this occurs, you get a **client reset error**. 
+
+This error means you must reset the realm file in the client application. 
+Clients in this state may continue to run and save data locally. Until you 
+perform the client reset, the realm does not sync with the backend.
+
+Choose a **client reset strategy** to handle client reset errors. These 
+strategies restore realm to a syncable state, but have tradeoffs:
+
+- :ref:`Discard Unsynced Changes <java-discard-unsynced-changes>`. Restore 
+  Sync by discarding local changes since the last sync. Maintains change 
+  listeners.
+- :ref:`Manually Recover Unsynced Changes 
+  <java-manually-recover-unsynced-changes>`:. Move the unsyncable realm and 
+  download a new copy. Invalidates change listeners.
+
+Both options let you write custom logic to recover local changes. Neither 
+option can recover local changes for you. 
+
+Discard unsynced changes is a less complex alternative to manual recovery. 
+However, this strategy cannot handle every client reset error. You must 
+maintain a manual client reset handler as a fallback.
+
+.. _java-discard-unsynced-changes:
+
+Discard Unsynced Changes
+------------------------
+
+.. versionadded:: 10.10.0
+
+**Discard unsynced changes** is a client reset strategy provided by the SDK. 
+This strategy requires minimal code. This strategy performs a reset without 
+closing the realm or missing notifications.
+
+It *does* delete all local changes made since the last successful sync. 
+This includes any data already written to the realm but not yet synced to
+the application backend. Do not use this strategy if your application 
+cannot lose unsynced data. 
+
+Discard unsynced changes cannot handle :ref:`breaking or destructive schema 
+changes <destructive-changes-synced-schema>`. When breaking changes occur, 
+the SDK falls back to manual recovery mode.
+
+To use this strategy, pass an instance of 
+:java-sdk:`DiscardUnsyncedChangesStrategy
+<io/realm/mongodb/sync/DiscardUnsyncedChangesStrategy.html>` to the
+:java-sdk:`defaultSyncClientResetStrategy()
+<io/realm/mongodb/AppConfiguration.Builder.html#defaultSyncClientResetStrategy(io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy)>`
+builder method when you instantiate your ``App``. Your
+``DiscardUnsyncedChangesStrategy`` instance must implement the following
+methods:
+
+- ``onBeforeReset()``. The SDK calls this block when it receives a client 
+  reset error from the backend. This occurs before the SDK executes the 
+  client reset strategy.
+- ``onAfterReset()``. The SDK calls this block after successfully executing 
+  this strategy. This block provides a frozen copy of the original realm. 
+  It also returns a live instance of the realm in a syncable state.
+- ``onError()``. The SDK calls this method during a breaking schema change. 
+  Behaves similarly to 
+  :java-sdk:`defaultClientResetStrategy() 
+  <io/realm/mongodb/AppConfiguration.Builder.html#defaultSyncClientResetStrategy(io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy)>`.  
+  
+  .. seealso::
+
+     :ref:`Discard Unsynced Changes after Breaking Schema Changes
+     <java-discard-unsynced-changes-after-destructive-schema-changes>`.
+
+The following example implements this strategy:
+
+.. tabs-realm-languages::
+
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.client-reset-discard-unsynced-changes.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.client-reset-discard-unsynced-changes.java
+         :language: java
+         :copyable: false
+
+.. _java-discard-unsynced-changes-after-destructive-schema-changes:
+
+Discard Unsynced Changes after Breaking Schema Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/destructive-schema-change-app-update.rst
+
+The discard unsynced changes strategy cannot handle breaking changes. You 
+must manually handle the client reset in the ``onError()`` method. This 
+example manually discards unsynced changes to handle the client reset:
+
+.. tabs-realm-languages::
+
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.client-reset-discard-unsynced-changes-with-simple-manual-fallback.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.client-reset-discard-unsynced-changes-with-simple-manual-fallback.java
+         :language: java
+         :copyable: false
+
+.. _java-manually-recover-unsynced-changes:
+
+Manually Recover Unsynced Changes
+---------------------------------
+
+.. tip::
+
+   Manual recovery replaces the deprecated
+   ``SyncSession.ClientResetHandler``.
+   Clients using the deprecated handler can update to manual recovery
+   with no logic changes.
+
+We do not recommend manual client reset recovery. It requires:
+
+- Substantial amounts of code
+- Schema concessions
+- Complex conflict resolution logic. 
+
+To learn more, see the :ref:`Advanced Guide to Manual Client Reset Data Recovery
+<java-advanced-manual-client-reset-data-recovery>`.
+
+.. _java-test-client-reset-handling:
+
+Test Client Reset Handling
+--------------------------
+
+.. include:: /includes/test-client-reset.rst

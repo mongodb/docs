@@ -1,0 +1,95 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-stream-data-to-atlas:
+
+=================================
+Stream Data to Atlas - Kotlin SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. versionadded:: 1.10.0
+
+If you have a mobile or client application that produces a large volume of data 
+you'd like to stream to MongoDB Atlas, you can sync data unidirectionally using 
+Device Sync. We call the feature that enables this unidirectional sync **Data Ingest**.
+
+.. include:: /includes/data-ingest-overview.rst
+
+Data Ingest requires :ref:`Flexible Sync <flexible-sync>`.
+
+Asymmetric Objects
+------------------
+
+The Kotlin SDK provides a special type of Realm object to use 
+with Data Ingest: an **asymmetric object**. 
+
+.. include:: /includes/kotlin-asymmetric-object.rst
+
+.. tip:: Asymmetric and Non-Asymmetric Objects in the Same Realm
+
+   The Kotlin SDK allows you to work with asymmetric objects
+   and non-asymmetric Realm objects (``RealmObject`` and 
+   ``EmbeddedRealmObject`` types) within the same realm. Include all 
+   objects in the Sync configuration when you open the realm.
+   However, you *cannot* subscribe to the asymmetric objects.
+
+Sync Data Unidirectionally from a Client Application
+----------------------------------------------------
+
+.. procedure::
+
+   .. step:: Define an Asymmetric Object
+
+      You can sync data unidirectionally when that object is an ``AsymmetricRealmObject``.
+      Define an asymmetric object by implementing the `AsymmetricRealmObject <{+kotlin-sync-prefix+}io.realm.kotlin.types/-asymmetric-realm-object/index.html>`__ interface:
+
+      .. literalinclude:: /examples/generated/kotlin/Schema.snippet.define-asymmetric-model.kt 
+         :language: kotlin
+
+   .. step:: Connect and Authenticate with an App Services App
+
+      To stream data from the client to your backend App, you must 
+      :ref:`connect to an App Services backend <kotlin-connect-to-backend>` and
+      :ref:`authenticate a user <kotlin-authenticate-users>`.
+
+      .. literalinclude:: /examples/generated/kotlin/AsymmetricSyncTest.snippet.connect-and-authenticate.kt
+         :language: kotlin
+
+      Data Ingest is a feature of Flexible Sync, so the App you connect 
+      to must use :ref:`Flexible Sync <flexible-sync>`.
+
+   .. step:: Open a Realm
+
+      After you have an authenticated user, you can open a synced realm
+      using a `SyncConfiguration <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/index.html>`__.
+      Specify the ``AsymmetricRealmObject`` types you want to sync.
+
+      .. literalinclude:: /examples/generated/kotlin/AsymmetricSyncTest.snippet.open-asymmetric-sync-realm.kt
+         :language: kotlin
+
+      Unlike bi-directional Sync, Data Ingest does not use a 
+      :ref:`Flexible Sync subscription <kotlin-subscriptions>`.
+      If you have non-asymmetric objects in the same realm, you can add a
+      Flexible Sync subscription query for only those objects. 
+
+   .. step:: Create Asymmetric Objects
+
+      Once you have an open Realm, you can create an ``AsymmetricRealmObject`` inside
+      a write transaction using the `insert() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.ext/insert.html>`__ 
+      extension method:
+
+      .. literalinclude:: /examples/generated/kotlin/AsymmetricSyncTest.snippet.create-asymmetric-object.kt
+         :language: kotlin
+
+      You cannot read these objects. Once created, they sync to the App 
+      Services backend and the linked Atlas database.
+      
+      Atlas Device Sync completely manages the lifecycle of this data. 
+      It is maintained on the device until Data Ingest synchronization is 
+      complete, and then removed from the device.

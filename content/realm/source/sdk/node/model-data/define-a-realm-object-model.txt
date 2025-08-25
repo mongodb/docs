@@ -1,0 +1,462 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-define-a-realm-object-schema:
+
+=========================================
+Define a Realm Object Model - Node.js SDK
+=========================================
+
+.. meta::
+  :keywords: code example, data modeling
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _node-define-realm-object-type:
+
+Define a Realm Object Type
+---------------------------
+
+To define a Realm object type, create a schema object that specifies the type's
+``name`` and ``properties``. The type name must be unique among object types in
+a realm. For details on how to define specific properties, see :ref:`Define
+Object Properties <node-define-a-property>`.
+
+You can define your schemas with JavaScript classes (like most of the examples on
+this page), but you can also define them as JavaScript objects.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-schema-as-object.js
+   :language: javascript
+
+.. _node-define-objects-with-js-classes:
+
+Define Realm Object Types with JavaScript Classes
+-------------------------------------------------
+
+You can define Realm object types with JavaScript classes. To use a class as an
+object type, define the object schema on the static property ``schema``.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-a-realm-object-schema-define-js-classes.js
+   :language: javascript
+
+.. include:: /includes/note-class-char-limit.rst
+
+Pass the class itself to the schema property of the :js-sdk:`Realm.Configuration
+<types/BaseConfiguration.html>` object when opening a realm. You can then
+read and write data normally.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-a-realm-object-schema-js-classes-open-and-access-properties.js
+   :language: javascript
+
+.. _node-supported-property-types:
+
+Supported Property Types
+------------------------
+
+Every property in a Realm object has a strongly defined data type. A
+property's type can be a primitive data type or an object type defined in the
+same realm. The type also specifies whether the property contains a single
+value or a list of values.
+
+Realm supports the following primitive data types:
+
+- ``bool`` for boolean values
+- ``int`` and ``double``, which map to JavaScript ``number`` values
+- ``Decimal128`` for high precision numbers
+- ``string``
+- ``date``, which maps to :mdn:`Date <Web/JavaScript/Reference/Global_Objects/Date>`
+- ``data``, which maps to :mdn:`ArrayBuffer <Web/JavaScript/Reference/Global_Objects/ArrayBuffer>`
+- ``objectId``, which maps to :manual:`ObjectId </reference/method/ObjectId/>`
+
+To specify that a field contains a list of a primitive value type, append ``[]``
+to the type name.
+
+.. _node-define-a-property:
+
+Define Object Properties
+------------------------
+
+To define a property for an object type, create a key-value pair representing
+the name and data type of the property under the ``properties`` field.
+
+The following schema defines a ``Car`` type that has these properties: ``_id``
+``make``, ``model``, and ``miles``.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-object-properties.js
+   :language: javascript
+   :emphasize-lines: 5-8
+
+.. _node-specify-an-optional-property:
+.. _node-optional-properties:
+
+Specify an Optional Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To mark a property as optional, append a question mark ``?`` to its type.
+
+The following ``Car`` schema defines an optional ``miles`` property of type ``int``.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-object-properties.js
+   :language: javascript
+   :emphasize-lines: 8
+
+.. _node-specify-a-primary-key:
+.. _node-primary-keys:
+
+Specify a Primary Key
+~~~~~~~~~~~~~~~~~~~~~
+
+To specify a property as an object type's primary key, set the schema's
+``primaryKey`` field to the property name.
+
+.. note::
+
+   A **primary key** is a property that uniquely identifies an
+   object. Realm automatically :ref:`indexes <node-indexes>`
+   primary key properties, which allows you to efficiently read and modify
+   objects based on their primary key.
+
+   If an object type has a primary key, then all objects of that type must
+   include the primary key property with a value that is unique among objects of
+   the same type in a realm. An object type may have at most one primary
+   key. You cannot change the primary key property for an object type after any
+   object of that type is added to a realm and you cannot modify an object's
+   primary key value.
+
+The following ``Car`` object schema specifies the ``_id`` property as its
+primary key.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-object-properties.js
+   :language: javascript
+   :emphasize-lines: 10
+
+.. _node-index-a-property:
+.. _node-indexes:
+
+Index a Property
+~~~~~~~~~~~~~~~~
+
+Realm supports indexing for string, integer, boolean, ``Date``, ``UUID``, and ``ObjectId``
+properties. To define an index for a given property, set ``indexed`` to
+``true``.
+
+.. note::
+
+   An **index** significantly increases the speed of certain read operations at
+   the cost of slightly slower write times and additional storage and memory
+   overhead. Realm stores indexes on disk, which makes your realm files
+   larger. Each index entry is a minimum of 12 bytes. The ordering of the index
+   entries supports efficient equality matches and range-based query operations.
+
+   It's best to only add indexes when optimizing the read performance for
+   specific situations.
+
+The following ``Car`` object schema defines an index on the ``_id``
+property.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-advanced-properties.js
+   :language: javascript
+   :emphasize-lines: 5
+
+.. _node-set-fts-index:
+
+Set a Full-Text Search Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to standard indexes, Realm also supports Full-Text Search (FTS)
+indexes on string properties. While you can query a string field with or without
+a standard index, an FTS index enables searching for multiple words and phrases
+and excluding others.
+
+For more information on querying FTS indexes, see :ref:`Filter with Full-Text Search <node-fts-filter>`.
+
+To create an FTS index, set the `indexed <https://www.mongodb.com/docs/realm-sdks/js/latest/types/_internal_.IndexedType.html>`__
+type to ``'full-text'``. This enables full-text queries on the property. In the
+following example, we set the indexed type for the ``name`` property to ``'full-text'``:
+
+.. literalinclude:: /examples/generated/node/v12/full-text-search.test.snippet.node-fts-annotation.ts
+   :language: typescript
+   :emphasize-lines: 8
+
+.. _node-define-a-default-property-value:
+.. _node-default-values:
+
+Define a Default Property Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To define a default value, set the value of the property to an object with a
+``type`` field and a ``default`` field.
+
+The following ``Car`` object schema specifies a default value of ``0`` for
+the ``miles`` property:
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-advanced-properties.js
+   :language: javascript
+   :emphasize-lines: 8
+
+.. _node-remap-a-property:
+.. _node-remap-a-class:
+
+Map a Property or Class to a Different Name
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, Realm uses the name defined in the model class to represent
+classes and fields internally. In some cases, you might want to change
+this behavior. For example:
+
+- To make it easier to work across platforms where naming conventions
+  differ. For example, if your Device Sync schema property names use snake
+  case, while your project uses camel case.
+- To change a class or field name without forcing a migration.
+- To support multiple model classes with the same name in different packages.
+- To use a class name that is longer than the 57-character limit enforced
+  by Realm.
+
+You can map a class or property name in your code to a different name to
+store in a realm. If you write to a synced realm, the Sync schema sees the
+values stored using the persisted class or property name.
+
+Note that migrations must use the persisted class or property name, and
+any schema errors reported also use the persisted name.
+
+.. tabs::
+
+   .. tab:: Map a Class Name
+      :tabid: remap-class
+
+      To use a different class name in your code than is stored in a realm:
+
+      1. Set the ``name`` property of your Realm object's **schema** to the name
+         that you want to use to store the object.
+
+      #. Use the **class** name in the Realm configuration's ``schema`` property
+         when you :ref:`open the realm <node-open-a-local-realm>`.
+
+      #. Use the mapped name for performing CRUD operations or when defining
+         Flexible Sync Subscriptions.
+
+      In the following example, Realm stores objects created with the
+      ``Task`` class as ``Todo_Item``.
+
+      .. tabs-realm-languages::
+
+         .. tab::
+            :tabid: typescript
+
+            .. literalinclude::  /examples/generated/node/v12/define-a-realm-object-schema.test.snippet.remap-class-name.ts
+               :language: typescript
+               :emphasize-lines: 9, 22, 31, 43, 51
+
+         .. tab::
+            :tabid: javascript
+
+            .. literalinclude::  /examples/generated/node/v12/define-a-realm-object-schema.test.snippet.remap-class-name.js
+               :language: javascript
+               :emphasize-lines: 5, 18, 27, 39, 47
+
+   .. tab:: Map a Property Name
+      :tabid: remap-property
+
+      To use a different property name in your code than is stored in
+      a realm, set ``mapTo`` to the name of the property as it appears in
+      your code.
+
+      In the following ``Car`` object schema, Realm stores the car's
+      model name with the snake case ``model_name`` property. The schema maps the property
+      to ``modelName`` for objects used in client code.
+
+      .. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-advanced-properties.js
+         :language: javascript
+         :emphasize-lines: 7
+
+.. _node-define-relationship-properties:
+
+Define Relationship Properties
+------------------------------
+
+.. include:: /includes/see-also-define-relationship-in-app-services-ui.rst
+
+.. _node-define-a-to-one-relationship-property:
+
+Define a To-One Relationship Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A **to-one** relationship maps one property to a single instance of
+another object type. For example, you can model a manufacturer having at most
+one car as a to-one relationship.
+
+To define a to-one relationship property, specify the related object type name
+as the property type.
+
+.. include:: /includes/note-to-one-relationships-must-be-optional.rst
+
+The following ``Manufacturer`` object schema specifies that a manufacturer may or may not
+make a single ``Car``. If they do make a ``Car``, Realm links to it through the
+``car`` property:
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-one-to-one.js
+   :language: javascript
+   :emphasize-lines: 7
+
+.. _node-define-a-to-many-relationship-property:
+
+Define a To-Many Relationship Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A **to-many** relationship maps one property to zero or more instances
+of another object type. For example, you can model a manufacturer having any
+number of cars as a to-many relationship.
+
+To define a to-many relationship property, specify the related object type name
+as a list.
+
+An application could use the following object schemas to indicate that a ``Manufacturer``
+may make multiple ``Car`` objects by including them in its ``cars`` property:
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-one-to-many.js
+   :language: javascript
+   :emphasize-lines: 7
+
+.. _node-define-an-inverse-relationship-property:
+
+Define an Inverse Relationship Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An **inverse relationship** property is an automatic backlink relationship.
+Realm automatically updates implicit relationships whenever an
+object is added or removed in a corresponding to-many list. You cannot manually
+set the value of an inverse relationship property.
+
+To define an inverse relationship property, set the property type to
+``linkingObjects`` and specify the object type and property name that define the
+relationship to invert.
+
+An application could use the following object schemas to indicate that a ``Manufacturer``
+may make many ``Car`` objects and that each ``Car`` should automatically keep track
+of which ``Manufacturer`` makes it.
+
+- The ``Manufacturer`` object's ``cars`` property is defined as a to-many relationship
+   with ``Car`` objects and contains all of a given manufacturer's cars.
+
+- The ``Car`` object's ``assignee`` property inverts the relationship and
+   automatically updates to refer back to any ``Manufacturer`` object that contains the
+   car in its ``cars`` property.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-inverse.js
+   :language: javascript
+   :emphasize-lines: 7, 22-26
+
+.. _node-define-an-embedded-object-property:
+
+Define an Embedded Object Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To define a Realm object model with an embedded object (nested Realm
+object), set ``embedded`` to ``true``.
+
+An **embedded object** exists as nested data inside of a single, specific
+parent object. It inherits the lifecycle of its parent object and cannot
+exist as an independent Realm object. Realm automatically deletes embedded
+objects if their parent object is deleted or when overwritten by a new
+embedded object instance. Embedded objects cannot have a primary key.
+
+You can reference an embedded object type from parent object types in the
+same way as a relationship.
+
+The following example requires two parent schemas, ``Manufacturer`` and
+``Car``. The application requires an embedded child schema ``Warranty``.
+A ``Manufacturer`` object can embed a list of ``Warranty`` objects, whereas a
+``Car`` object can only embed a single ``Warranty`` object.
+
+.. literalinclude:: /examples/generated/node/define-a-realm-object-schema.snippet.define-embedded-property.js
+   :language: javascript
+   :emphasize-lines: 8, 22, 30
+
+.. _node-define-an-asymmetric-object:
+
+Define an Asymmetric Object
+---------------------------
+
+.. versionchanged:: 12.2.1
+
+If you are using Flexible Sync and need to sync a collection unidirectionally
+from your device to your Atlas database, you can set the ``asymmetric`` property
+on your object schema.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude::  /examples/generated/node/asymmetric-sync.snippet.asymmetric-sync-object.ts
+         :language: typescript
+         :emphasize-lines: 12
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude::  /examples/generated/node/asymmetric-sync.snippet.asymmetric-sync-object.js
+         :language: javascript
+         :emphasize-lines: 6
+
+In Node.js SDK versions 12.2.0 and earlier, you cannot link from
+asymmetric objects to ``Realm.Object`` types. In SDK versions
+12.2.1 and later, asymmetric objects can link to ``Realm.Object``
+types in addition to embedded objects.
+
+.. note:: Attempting to Read Asymmetric Objects
+
+   Asymmetric objects cannot be read. If you attempt to query an Asymmetric object, you
+   will get the following error: "Error: You cannot query an asymmetric class.".
+
+To learn more about Data Ingest, read :ref:`Optimize Sync with Data Ingest <optimize-data-ingest>`.
+
+.. _node-model-unstructured-data:
+
+Define Unstructured Data
+------------------------
+
+.. versionadded:: 12.9.0
+
+Starting in Node.js SDK version 12.9.0, you can store
+:ref:`collections
+of mixed data <node-nested-collections-mixed>`
+within a ``mixed`` property. You can use this feature to model complex data
+structures, such as JSON or MongoDB documents, without having to define a
+strict data model.
+
+**Unstructured data** is data that doesn't easily conform to an expected
+schema, making it difficult or impractical to model to individual
+data classes. For example, your app might have highly variable data or dynamic
+data whose structure is unknown at runtime.
+
+Storing collections in a mixed property offers flexibility without sacrificing
+functionality, including performant synchronization when using Device Sync. And
+you can work with them the same way you would a non-mixed
+collection:
+
+- You can nest mixed collections up to 100 levels.
+- You can query on and :ref:`react to changes <node-collection-listener>` on mixed collections.
+- You can find and update individual mixed collection elements.
+
+However, storing data in mixed collections is less performant than using a structured
+schema or serializing JSON blobs into a single string property.
+
+To model unstructured data in your app, define the appropriate properties in
+your schema as :ref:`mixed <node-data-types-mixed>` types. You can then set these
+``mixed`` properties as a :ref:`list <node-realm-list>` or a
+:ref:`dictionary <node-data-types-dictionaries>` collection of mixed elements.
+Note that ``mixed`` *cannot* represent a set or an embedded object.
+
+.. tip::
+
+   - Use a map of mixed data types when the type is unknown but each value will have a unique identifier.
+   - Use a list of mixed data types when the type is unknown but the order of objects is meaningful.

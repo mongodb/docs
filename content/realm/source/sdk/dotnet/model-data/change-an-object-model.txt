@@ -1,0 +1,157 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-schema-versions-and-migrations:
+.. _dotnet-change-model:
+.. _dotnet-local-migrations:
+.. _dotnet-local-migration:
+
+=================================
+Change an Object Model - .NET SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _dotnet-schema-version:
+
+Overview
+--------
+A **migration** transforms an existing realm and its objects from its
+current :ref:`Realm Schema version <dotnet-schema-version>` to a newer one.
+Application data models typically change over time to accommodate new
+requirements and features. Migrations give you the flexibility to
+automatically update your existing application data whenever a client
+application upgrades to a newer version.
+
+Consider the following example, in which we have a ``RealmObject`` 
+called "Person":
+
+.. literalinclude:: /examples/generated/dotnet/Migrations.snippet.ro3.cs
+   :language: csharp
+
+Suppose we now want to split up the ``FullName`` property into two separate 
+properties, ``FirstName`` and ``LastName``:
+
+.. literalinclude:: /examples/generated/dotnet/Migrations.snippet.ro2.cs
+   :language: csharp
+   
+At this point, there is a mismatch between the model and any saved data, and 
+an exception will be thrown when you try to open the realm.
+
+Schema Version
+--------------
+
+The **schema version** identifies the state of a :ref:`Realm Schema
+<dotnet-realm-schema>` at some point in time. Realm tracks the schema
+version of each realm and uses it to map the objects in each realm
+to the correct schema.
+
+Schema versions are integers that you may include
+in the realm configuration when you open a realm. If a client
+application does not specify a version number when it opens a realm then
+the realm defaults to version ``0``.
+
+.. important:: Increment Versions Monotonically
+
+   Migrations must update a realm to a
+   higher schema version. Realm will throw an error if a client
+   application opens a realm with a schema version that is lower than
+   the realm's current version or if the specified schema version is the
+   same as the realm's current version but includes different
+   :ref:`object schemas <dotnet-object-schema>`.
+
+Migrate a Schema
+----------------
+
+.. _dotnet-og-schema:
+
+The following examples demonstrate how to add, delete, and modify 
+properties in a schema. First, make the required schema change. Then,
+create a corresponding :ref:`migration function
+<dotnet-migration-function>` to move data from the original schema
+to the updated schema.
+
+.. include:: /includes/note-modify-schema-properties-of-synced-realms.rst
+
+.. note:: Versions Update on Realm Open
+
+   Assume that each schema change in this example occurs after
+   an application has used each version for some amount of time. New
+   schema version numbers only apply once you open the realm 
+   with an updated schema and explicitly specify the new version
+   number, so in order to get to version 3, you would first need to
+   open the app with versions 1 and 2.
+
+A realm using schema version ``1`` has a ``Person`` object type:
+
+.. literalinclude:: /examples/generated/dotnet/Migrations.snippet.ro1.cs
+   :language: csharp
+
+.. _dotnet-add-a-property:
+
+Add a Property
+--------------
+
+The following example adds a ``LastName`` property to the
+:ref:`original Person schema <dotnet-og-schema>`:
+
+.. literalinclude:: /examples/generated/dotnet/Migrations.snippet.ro2.cs
+   :language: csharp
+   :emphasize-lines: 8
+
+.. _dotnet-delete-a-property:
+
+Delete a Property
+-----------------
+
+The following example uses a combined
+``FullName`` property instead of the separate ``FirstName`` and
+``LastName`` property in the :ref:`original Person schema <dotnet-og-schema>`:
+
+.. literalinclude:: /examples/generated/dotnet/Migrations.snippet.ro3.cs
+   :language: csharp
+   :emphasize-lines: 7
+
+.. _dotnet-modify-a-property-type:
+.. _dotnet-rename-a-property:
+
+Modify a Property Type or Rename a Property
+-------------------------------------------
+
+The following example modifies the ``Age`` property in the
+:ref:`original Person schema <dotnet-og-schema>` by
+renaming it to ``Birthday`` and changing the type to ``DateTimeOffset``:
+
+.. literalinclude:: /examples/generated/dotnet/Migrations.snippet.ro4.cs
+   :language: csharp
+   :emphasize-lines: 8
+
+.. _dotnet-migration-function:
+
+Migration Functions
+-------------------
+
+.. tip:: Bypass Migration During Development
+
+   When developing or debugging your application, you may prefer to delete 
+   the realm instead of migrating it. Use the 
+   :dotnet-sdk:`ShouldDeleteIfMigrationNeeded <reference/Realms.RealmConfiguration.html#Realms_RealmConfiguration_ShouldDeleteIfMigrationNeeded>` 
+   flag to delete the database automatically when a schema mismatch would
+   require a migration. 
+
+   Never release an app to production with this flag set to ``true``.
+
+To migrate the realm to conform to the updated ``Person`` schema,
+set the realm's :ref:`schema version <dotnet-schema-version>` to
+``4`` and define a migration function to set the value of
+``FullName`` based on the existing ``FirstName`` and ``LastName``
+properties and the value of ``Birthday`` based on ``Age``:
+
+.. literalinclude:: /examples/generated/dotnet/Migrations.snippet.migrate.cs
+   :language: csharp
+   :emphasize-lines: 3, 21, 25, 31
+   :linenos:

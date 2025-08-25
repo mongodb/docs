@@ -1,0 +1,297 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-realm-provider:
+.. _react-native-use-realm-react:
+
+============================
+RealmProvider (@realm/react)
+============================
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. code:: typescript
+   :copyable: false
+   :caption: Type signature
+
+   RealmProvider(props, context?): null | ReactElement<any, any>
+
+Components nested within ``RealmProvider`` can access the configured realm
+and use the ``RealmProvider`` hooks.
+
+Props
+-----
+
+All properties of :realm-react-sdk:`BaseConfiguration 
+<types/Realm.BaseConfiguration.html>` can be passed as props.
+
+``RealmProvider`` has more props that define its behavior:
+
+- ``fallback?: React.ComponentType<unknown> | React.ReactElement | null | undefined``
+
+  The fallback component to render while the Realm is opening.
+- ``closeOnUnmount?: boolean``
+
+  Default is ``true``. If set to ``false``, realm will not close when the
+  component unmounts.
+- ``realmRef?: React.MutableRefObject<Realm | null>``
+
+  A ref to the realm instance. This is useful if you need to access the realm
+  instance outside of the scope of the realm.
+- ``children: React.ReactNode``
+
+Configure a Realm with RealmProvider
+------------------------------------
+
+You can configure a ``RealmProvider`` in two ways:
+
+- Import ``RealmProvider`` directly from ``@realm/react``
+- Use ``createRealmContext()`` to configure a ``RealmProvider`` and create hooks
+
+This section details how to configure a ``RealmProvider`` imported directly from
+``@realm/react``. For information about using ``createRealmContext()``, refer
+to :ref:`Create Context with createRealmContext() <react-native-realm-context>`.
+
+Object models are part of most realm configurations. To learn more about Realm and
+data models, refer to :ref:`Define a Realm Object Model 
+<react-native-define-a-realm-object-model>`.
+
+.. tabs::
+
+   .. tab:: Configure realm with sync
+      :tabid: configure-sync-realm
+
+      :ref:`RealmProvider <react-native-realm-provider>` is a wrapper
+      that exposes a realm to its child components. You configure your realm by
+      passing props to ``RealmProvider``.
+
+      When ``RealmProvider`` is rendered, it opens the realm. This means that
+      the child components can't access the realm if rendering fails.
+
+      In addition to ``RealmProvider``, you also need to configure
+      :ref:`AppProvider <react-native-app-provider>` and :ref:`UserProvider 
+      <react-native-user-provider>`.
+
+      By default, Realm syncs all data from the server before returning anything.
+      If you want to sync data in the background, read :ref:`Configure a Synced
+      Realm While Offline <react-native-open-synced-realm-offline>`.
+
+      To configure a synced realm:
+
+      #. Import providers from ``@realm/react``.
+      #. Configure ``AppProvider``.
+      #. Configure ``UserProvider`` and nest it within ``AppProvider``.
+      #. Configure ``RealmProvider`` for sync and nest it within ``UserProvider``.
+      #. Pass your object models to the ``schema`` prop.
+      #. Add other :realm-react-sdk:`Configuration object <types/Realm.BaseConfiguration.html>` 
+         properties as props to ``RealmProvider``.
+
+      You must set up a sync subscription. The example below uses an initial subscription,
+      but you can also set up subscriptions in ``RealmProvider`` child components.
+
+      You must nest providers as in the following example:
+
+      .. literalinclude:: /examples/generated/react-native/ts/configure-realm-sync.test.snippet.configure-realm-sync-full.tsx
+        :language: javascript
+
+      For more information about configuring a synced realm, refer to
+      :ref:`Configure a Synced Realm <react-native-synced-realm>`.
+
+   .. tab:: Configure realm without sync
+      :tabid: configure-non-sync-realm
+   
+      :ref:`RealmProvider <react-native-realm-provider>` is a wrapper
+      that exposes a realm to its child components. You configure your realm by
+      passing props to ``RealmProvider``.
+
+      When ``RealmProvider`` is rendered, it opens the realm. This means that
+      the child components can't access the realm if rendering fails.
+
+      To configure a non-synced realm:
+
+      #. Import ``RealmProvider`` from ``@realm/react``.
+      #. Pass your object models to the ``schema`` prop.
+      #. Add other :realm-react-sdk:`Configuration object <types/Realm.BaseConfiguration.html>` 
+         properties as props to ``RealmProvider``.
+
+      .. literalinclude:: /examples/generated/react-native/ts/configure-realm-local.test.snippet.configure-realm.tsx
+        :language: typescript
+
+Configure More Than One Realm
+-----------------------------
+
+When you import ``RealmProvider`` from ``@realm/react``, that Provider has a
+specific context and is associated with a single realm. If you need to configure
+more than one realm, use ``createRealmContext()`` to instantiate a new Provider
+for each realm.
+
+If you import ``useRealm()``, ``useQuery()``, or ``useObject()`` directly from
+``@realm/react``, those hooks use the default realm context. To work with more
+than one realm, you need to destructure a new realm Provider and its associated
+hooks from the result of ``createRealmContext()``. You should namespace providers
+to avoid confusion about which Provider and hooks you're working with.
+
+For a detailed guide, refer to :ref:`Expose More Than One Realm 
+<react-native-expose-multiple-realms>`.
+
+For details about ``createRealmContext()``, refer to "Create Context with
+createRealmContext()" on this page.
+
+RealmProvider Hooks
+-------------------
+
+.. _react-native-use-realm-hook:
+
+useRealm()
+~~~~~~~~~~
+
+.. code:: typescript
+   :copyable: false
+   :caption: Type signature
+
+   useRealm(): Realm 
+
+The ``useRealm()`` hook returns an opened realm instance. The realm instance
+gives you access to realm methods and properties. For example, you can call
+``realm.write()`` to add a realm object to your realm.
+
+To learn more about modifying Realm data, refer to :ref:`Write Transactions
+<react-native-write-transactions>`.
+
+.. literalinclude:: /examples/generated/react-native/ts/create-test.test.snippet.crud-create-object.tsx
+   :language: typescript
+   :emphasize-lines: 3, 6-8, 15
+
+*Returns*
+
+- ``Realm``
+  Returns a realm instance. This is the realm created by the hook's parent,
+  ``RealmProvider``.
+
+.. _react-native-use-object-hook:
+
+useObject()
+~~~~~~~~~~~
+
+.. code:: typescript
+   :copyable: false
+   :caption: Type signature
+
+   useObject<T>(type, primaryKey): T & Realm.Object<T> | null
+
+The ``useObject()`` hook returns a Realm object for a given
+:ref:`primary key <react-native-primary-keys>`. You can pass an object class
+or the class name as a string and the primary key.
+
+The ``useObject()`` method returns null if the object doesn't exist or you have
+deleted it. The hook will automatically subscribe to updates and rerender the
+component using the hook on any change to the object.
+
+.. literalinclude:: /examples/generated/react-native/ts/read.test.snippet.crud-read-object-by-id.tsx
+         :language: typescript
+
+*Parameters* 
+
+- ``type: string``
+  A string that matches your object model's class name or a reference to a
+  class that extends :js-sdk:`Realm.Object <classes/Object.html>`.
+- ``primaryKey: T[keyof T]``
+  The primary key of the desired object.
+
+*Returns*
+
+- ``Realm.Object | null``
+  A Realm Object or ``null`` if no object is found.
+
+.. _react-native-use-query-hook:
+
+useQuery()
+~~~~~~~~~~
+
+.. code:: typescript
+   :copyable: false
+   :caption: Type signature
+
+   useQuery<T>(type, query?, deps?): Realm.Results<T & Realm.Object<T>>
+
+The ``useQuery()`` hook returns a collection of realm objects of a given type.
+These are the results of your query. A query can be an object class or the class
+name as a string.
+
+The ``useQuery()`` method subscribes to updates to any objects in the collection
+and rerenders the component using it on any change to the results.
+
+You can use ``.filtered()`` and ``.sorted()`` to filter and sort your query
+results. You should do this in the ``query`` argument of ``useQuery`` so that
+they only run when there are changes in the dependency array. For more examples,
+refer to the :ref:`CRUD - Read <react-native-read-objects>` docs.
+
+.. literalinclude:: /examples/generated/react-native/ts/read.test.snippet.crud-read-filter-data.tsx
+    :language: typescript
+    :emphasize-lines: 3-5, 8-14
+
+*Parameters* 
+
+- ``type: string``
+  A string that matches your object model's class name or a reference to a
+  class that extends :js-sdk:`Realm.Object <classes/Object.html>`.
+- ``query?: QueryCallback<T>``
+  A query function that can filter and sort query results. Builds on
+  ``useCallback`` to memoize the query function.
+- ``deps?: DependencyList``
+  A list of query function dependencies that's used to memoize
+  the query function.
+
+*Returns*
+
+- ``Realm.Results<T>``
+  A Realm Object or ``null`` if no object is found.
+
+.. _react-native-realm-context:
+
+Create Context with createRealmContext()
+----------------------------------------
+
+.. code:: typescript
+   :copyable: false
+   :caption: Type signature
+
+   createRealmContext(realmConfig?): RealmContext
+
+Most of the time, you will only use ``createRealmContext()`` if you need to
+configure more than one realm. Otherwise, you should import ``RealmProvider``
+and hooks directly from ``@realm/react``.
+
+The ``createRealmContext()`` method creates a :reactjs:`React Context
+<docs/context.html>` object for a realm with a given
+:realm-react-sdk:`Configuration <types/Realm.BaseConfiguration.html>`. The
+``Context`` object contains the following: 
+
+- A :reactjs:`Context Provider <docs/context.html#contextprovider>` (referred to
+  as ``RealmProvider`` elsewhere) component that wraps around child components
+  and provides them with access to hooks.
+- Various prebuilt :reactjs:`Hooks <docs/hooks-intro.html>` that access the
+  configured realm.
+
+For a detailed guide, refer to :ref:`Expose More Than One Realm 
+<react-native-expose-multiple-realms>`.
+
+*Parameters* 
+
+- ``realmConfig?: Realm.Configuration``
+  All properties of :realm-react-sdk:`BaseConfiguration 
+  <types/Realm.BaseConfiguration.html>` can be used.
+
+*Returns*
+
+- ``RealmContext``
+  An object containing a ``RealmProvider`` component, and the ``useRealm``,
+  ``useQuery`` and ``useObject`` hooks.

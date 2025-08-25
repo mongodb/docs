@@ -1,0 +1,65 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-realm-database-writes:
+.. _react-native-write-transactions:
+
+=======================
+CRUD - React Native SDK
+=======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+   :titlesonly:
+
+   Create </sdk/react-native/crud/create>
+   Read </sdk/react-native/crud/read>
+   Update </sdk/react-native/crud/update>
+   Delete </sdk/react-native/crud/delete>
+   Query Data </sdk/react-native/crud/query-data>
+
+Within a ``RealmProvider``, you can access a realm with
+the ``useRealm()`` hook. Then, you can create Realm objects
+using a :realm-react-sdk:`Realm.write() <classes/Realm-1.html#write>`
+transaction block.
+
+All operations within a write transaction are :wikipedia:`atomic <Atomicity_(database_systems)>`.
+If an operation in the write transaction fails, the whole transaction fails,
+Realm throws an error, and no changes from the transaction block are applied to the realm.
+
+Every write operation must occur in a write transaction. 
+
+.. literalinclude:: /examples/generated/react-native/ts/create-test.test.snippet.crud-create-object.tsx
+  :language: typescript
+  :emphasize-lines: 6-8
+
+Transaction Lifecycle
+---------------------
+
+A given realm only processes one write transaction at a time. When you 
+make a write transaction, the realm adds the transaction to a queue. The 
+realm evaluates each transaction in the order it arrived.
+
+After processing a transaction, Realm either **commits** it or
+**cancels** it:
+
+- After a **commit**, the realm applies all operations in the transaction. 
+  Once applied, the realm automatically updates :ref:`live queries
+  <react-native-live-queries>`. It notifies listeners of created, modified, 
+  and deleted objects.
+     
+  - When using :ref:`Sync <sync>`, the SDK also queues
+    the changes to send to Atlas App Services. The SDK sends
+    these changes when a network is available.
+
+  - After a commit, objects and collections returned by ``useQuery`` or 
+    ``useObject`` rerender to include relevant changes.
+
+- Realm does not apply any operations in a **cancelled**
+  transaction. Realm cancels a transaction if an operation 
+  fails or is invalid.

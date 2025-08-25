@@ -1,0 +1,337 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-advanced-manual-client-reset-data-recovery:
+
+============================================
+Manual Client Reset Data Recovery - Java SDK
+============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. important:: Manual Recovery is Manual
+
+   Manual recovery requires significant amounts of code, schema concessions,
+   and custom conflict resolution logic. If your application can accommodate
+   losing unsynced data during a client reset, try the
+   :ref:`discard unsynced changes <java-discard-unsynced-changes>`
+   client reset strategy instead.
+
+.. warning:: Avoid Making Breaking Schema Changes in Production
+
+   Do not expect to recover all unsynced data after a breaking schema
+   change. The best way to preserve user data is to never make a
+   breaking - also called destructive - schema change at all.
+
+.. include:: /includes/destructive-schema-change-app-update.rst
+
+The **manually recover unsynced changes** client reset strategy gives
+developers the opportunity to recover data already written to
+the client realm file but not yet synced to the backend. The
+following steps demonstrate the process at a high level:
+
+1. **Client reset error**: Your application receives a client reset
+   error code from the backend.
+
+#. **Strategy implementation**: The SDK calls your strategy
+   implementation.
+
+#. **Close all instances of the realm**: Close *all open instances* of
+   the realm experiencing the
+   client reset. If your application architecture makes this difficult
+   (for instance, if your app uses many realm instances simultaneously
+   in listeners throughout the application), it may be easier to restart
+   the application. You can do this programmatically or through a direct
+   request to the user in a dialog.
+
+#. **Move the realm to a backup file**: Call the ``executeClientReset()``
+   method of the provided :java-sdk:`ClientResetRequiredError
+   <io/realm/mongodb/sync/ClientResetRequiredError.html#getBackupFile()>`.
+   This method moves the current copy of the client realm file to a
+   backup file.
+
+#. **Open new instance of the realm**: Open a new instance of the realm
+   using your typical sync configuration. If your application uses
+   multiple realms, you can identify the realm experiencing a client
+   reset from the backup file name.
+
+#. **Download all realm data from the backend**: Download the entire set
+   of data in the realm before you proceed. If your sync configuration
+   doesn't specify the :java-sdk:`waitForInitialRemoteData()
+   <io/realm/mongodb/sync/SyncConfiguration.Builder.html#waitForInitialRemoteData(long,java.util.concurrent.TimeUnit)>`
+   option, you can call :java-sdk:`SyncSession.downloadAllServerChanges()
+   <io/realm/mongodb/sync/SyncSession.html#downloadAllServerChanges(long,java.util.concurrent.TimeUnit)>`
+   after opening the realm.
+
+#. **Open the realm backup**: Use the :java-sdk:`getBackupRealmConfiguration()
+   <io/realm/mongodb/sync/ClientResetRequiredError.html#getBackupRealmConfiguration()>`
+   method of the provided ``ClientResetRequiredError`` to open an
+   instance of the client realm file from the backup file. You must open
+   this instance as a :java-sdk:`DynamicRealm <io/realm/DynamicRealm.html>`,
+   a type of realm that uses text field lookups for all data access.
+
+#. **Migrate unsynced changes**: Query the backup realm for data to
+   recover. Insert, delete or update data in the new realm accordingly.
+
+To handle client resets with the "manually recover unsynced changes"
+strategy,  pass an instance of :java-sdk:`ManuallyRecoverUnsyncedChangesStrategy
+<io/realm/mongodb/sync/ManuallyRecoverUnsyncedChangesStrategy.html>` to
+the :java-sdk:`defaultSyncClientResetStrategy()
+<io/realm/mongodb/AppConfiguration.Builder.html#defaultSyncClientResetStrategy(io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy)>`
+builder method when you instantiate your ``App``. Your
+``ManuallyRecoverUnsyncedChangesStrategy`` instance must implement the
+following methods:
+
+- ``onClientReset()``: called when the SDK receives a client reset error
+  from the backend.
+
+The following example implements this strategy:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.client-reset-manually-recover-unsynced-changes.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.client-reset-manually-recover-unsynced-changes.java
+         :language: java
+         :copyable: false
+
+.. note:: ``handleManualReset()`` Implementation
+
+   This client reset example calls a separate method that handles the
+   specific logic of the client reset. Continue reading the sections
+   below for an :ref:`example implementation <java-manual-recovery-implementation>`.
+
+The specifics of manual recovery depend heavily upon your application
+and your schema. However, there are a few techniques that can help with
+most manual recoveries. The following example implementation demonstrates
+one method of recovering unsynced changes from a backup realm.
+
+Example
+-------
+
+This example adds a "Last Updated Time" to each object model to track
+when each object last changed. We'll watch the realm for the
+"Last Synced Time" to determine when the realm last uploaded its state
+to the backend. Then, we can find objects that were deleted, created,
+or updated since the last sync with the backend, and copy that data from
+the backup realm to the new realm.
+
+.. _java-manual-recovery-implementation-track-updates:
+
+Track Updates to Objects
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ordinarily, there is no way to detect when a Realm object was last
+modified. This makes it difficult to determine which changes were synced
+to the backend. By adding a timestamp to your Realm object classes and
+updating that timestamp to the current time whenever a change occurs,
+you can keep track of when objects were changed:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/Potato.snippet.potato-kotlin-definition.kt
+         :language: kotlin
+         :caption: Potato.kt
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/PotatoJava.snippet.potato-java-definition.java
+         :language: java
+         :caption: Potato.java
+         :copyable: false
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/Onion.snippet.onion-kotlin-definition.kt
+         :language: kotlin
+         :caption: Onion.kt
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/OnionJava.snippet.onion-java-definition.java
+         :language: java
+         :caption: Onion.java
+         :copyable: false
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/Rice.snippet.rice-kotlin-definition.kt
+         :language: kotlin
+         :caption: Rice.kt
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/RiceJava.snippet.rice-java-definition.java
+         :language: java
+         :caption: Rice.java
+         :copyable: false
+
+.. _java-manual-recovery-implementation-track-successful-syncs:
+
+Track Successful Syncs
+~~~~~~~~~~~~~~~~~~~~~~
+
+Just knowing when objects were changed isn't enough to recover data
+during a client reset. You also need
+to know when the realm last completed a sync successfully. This example
+implementation uses a singleton object called ``LastSynced`` in the
+realm, paired with an upload progress listener, to record whenever a
+realm finishes syncing successfully.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/LastSynced.snippet.last-synced-kotlin-definition.kt
+         :language: kotlin
+         :caption: LastSynced.kt
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/LastSyncedJava.snippet.last-synced-java-definition.java
+         :language: java
+         :caption: LastSynced.java
+         :copyable: false
+
+You can use :java-sdk:`SyncSession.addUploadProgressListener()
+<io/realm/mongodb/sync/SyncSession.html#addUploadProgressListener(io.realm.mongodb.sync.ProgressMode,io.realm.mongodb.sync.ProgressListener)>`
+to listen for upload progress events in your ``App``. Implement
+``onChange()`` to handle these events. Call
+:java-sdk:`Progress.isTransferComplete()
+<io/realm/mongodb/sync/Progress.html#isTransferComplete()>` to check if
+the upload has completed. When ``isTransferComplete()`` returns true,
+all clientside updates, inserts, and deletes in the realm have
+successfully synced to the backend, and you can
+update the ``LastSynced`` time to the current time. To prevent
+``LastSynced`` from looping on updates to the ``LastSynced`` time,
+don't update the ``LastSynced`` time if it's been less than, say,
+10ms since you last updated the time.
+
+Register your progress listener with :java-sdk:`ProgressMode.INDEFINITELY
+<io/realm/mongodb/sync/ProgressMode.html#INDEFINITELY>` to subscribe
+your listener to all future upload progress events, instead of just the
+current upload's progress events.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.keep-track-of-last-synced-time.kt
+         :language: kotlin
+         :caption: Upload Progress Listener
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.keep-track-of-last-synced-time.java
+         :language: Upload Progress Listener
+         :copyable: false
+
+.. _java-manual-recovery-implementation:
+
+Manual Recovery with Last Updated Time and Last Synced Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that you've recorded update times for all objects in your application
+as well as the last time your application completed a sync, it's time to
+implement the manual recovery process. This example handles two main
+recovery operations:
+
+- restoring unsynced inserts and updates from the backup realm
+- deleting objects from the new realm that were previously deleted from
+  the backup realm
+
+You can follow along with the implementation of these operations in the
+code samples below.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.handle-manual-reset.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/ClientResetTest.snippet.handle-manual-reset.java
+         :language: java
+         :copyable: false
+
+.. note:: This Example is Simplified
+
+   This example keeps track of the last time each *object* was updated. As
+   a result, the recovery operation overwrites the entire object in the
+   new realm if any field was updated after the last successful sync
+   of the backup realm. This could overwrite fields updated by other
+   clients with old data from this client. If your realm objects contain
+   multiple fields containing important data, consider keeping track of
+   the last updated time of each *field* instead, and recovering each
+   field individually.
+
+Alternative Implementations
+---------------------------
+
+Other possible implementations include:
+
+- **Overwrite the entire backend with the backup state**:
+  with no "last updated time" or "last synced time", ``insertOrUpdate()``
+  all objects from the backup realm into the new realm. There is no way
+  to recovered unsynced deletions with this approach. This approach
+  overwrites all data written to the backend by other clients since the
+  last sync. Recommended for applications where only one user writes
+  to each realm.
+
+- **Track changes by field**:
+  Instead of tracking a "last updated time" for every *object*, track the
+  "last updated time" for every *field*. Update fields individually using
+  this logic to avoid overwriting field writes from other clients with
+  old data. Recommended for applications with many fields per-object
+  where conflicts must be resolved at the field level.
+
+- **Track updates separately from objects**:
+  Instead of tracking a "last updated time" in the schema of each object,
+  create another model in your schema called ``Updates``. Every time any
+  field in any object (besides ``Updates``) updates, record the primary
+  key, field, and time of the update. During a client reset, "re-write"
+  all of the ``Update`` events that occurred after the "last synced time"
+  using the latest value of that field in the backup realm.
+  This approach should replicate all unsynced local changes in the new
+  realm without overwriting any fields with stale data. However, storing
+  the collection of updates could become expensive if your application
+  writes frequently. Recommended for applications where adding "lastUpdated"
+  fields to object models is undesirable.

@@ -1,0 +1,131 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-open-a-synced-realm:
+
+============================================
+Configure & Open a Synced Realm - Kotlin SDK
+============================================
+
+.. meta::
+   :keywords: code example
+   :description: Configure and open a synced database for apps using Atlas Device Sync. 
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to open a synced database and the various 
+configuration options available.
+
+Prerequisites
+-------------
+
+Before you can access a synced realm from the client, you must:
+
+1. :ref:`Enable sync <enable-sync>` in the App Services UI.
+
+#. Install the sync distribution of the Kotlin SDK
+   for :ref:`Android <kotlin-install-android>` or
+   :ref:`Kotlin Multiplatform <kotlin-install-kotlin-multiplatform>`.
+
+#. :ref:`Authenticate a user <kotlin-authenticate>` in
+   your client project.
+
+.. _kotlin-flexible-sync-open-realm:
+
+Open a Synced Realm
+-------------------
+
+To open a :ref:`Flexible Sync <flexible-sync>` realm,
+pass a user and a set of Realm object schemas to
+`SyncConfiguration.Builder()
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/-builder/-builder.html>`__. Next, create a set of initial subscriptions with the ``initialSubscriptions()``
+builder method. Finally, pass the configuration to `Realm.open()
+<{+kotlin-local-prefix+}io.realm.kotlin/-realm/-companion/open.html>`__ to open
+an instance of the realm:
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.open-a-flexible-sync-realm.kt
+   :language: kotlin
+
+For more information on bootstrapping the realm with initial subscriptions
+and managing your synced realm subscriptions, 
+refer to :ref:`Manage Sync Subscriptions <kotlin-sync-add-initial-subscriptions>`.
+
+.. _kotlin-flexible-sync-configuration:
+
+Configure a Synced Realm
+------------------------
+
+To adjust specific configuration settings, use the options provided by
+`SyncConfiguration.Builder
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/-builder/index.html>`__:
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.configure-a-flexible-sync-realm.kt
+   :language: kotlin
+
+.. versionadded:: 1.13.0
+   Sync timeout configuration options added
+
+In Kotlin v1.13.0, you can override various default timeouts used for sync 
+operations. You can set these timeouts in the ``App`` client 
+configuration, and they apply to all sync sessions in the app. 
+To learn how, refer to :ref:`<kotlin-configure-sync-timeouts>`.
+
+.. _kotlin-download-changes-before-open:
+
+Download Changes Before Open
+----------------------------
+
+When you open a synced realm with the Kotlin SDK, you can use the 
+`.waitForInitialRemoteData() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-configuration/-builder/wait-for-initial-remote-data.html>`__
+function to download the changeset from your App before opening the realm. 
+Setting this blocks the realm from opening until all the data has been 
+downloaded. If a device is offline, this blocks opening the realm.
+Because initial data download could be a lengthy operation, you should 
+open a realm using this setting on a background thread.
+
+This function accepts a timeout 
+`Duration <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.time/-duration/>`__.
+When the download exceeds a timeout duration, Realm throws a 
+`DownloadingRealmTimeoutException <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.exceptions/-downloading-realm-time-out-exception/index.html>`__.
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.wait-for-initial-download.kt
+   :language: kotlin
+   :emphasize-lines: 3
+
+Conditionally Download Changes Before Opening
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If there is a condition that determines whether your app should download 
+server data before opening the realm, you can use that with
+`SyncSession.downloadAllServerChanges() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/download-all-server-changes.html>`__
+to conditionally download changes before opening the realm. Calling this 
+method blocks until all known remote changes have been downloaded and 
+applied to the Realm, or until a specified timeout is hit. 
+You should call this method only from a non-UI thread.
+
+This function accepts a timeout 
+`Duration <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.time/-duration/>`__.
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.conditionally-wait-for-initial-download.kt
+   :language: kotlin
+   :emphasize-lines: 16-18
+
+Open a Synced Realm Offline
+---------------------------
+
+.. include:: /includes/offline-login.rst
+
+You can only open a synced realm offline if you do not require your 
+client app to :ref:`download changes before opening the realm 
+<kotlin-download-changes-before-open>`.
+
+.. literalinclude:: /examples/generated/kotlin/SyncTest.snippet.open-realm-offline.kt
+   :language: kotlin

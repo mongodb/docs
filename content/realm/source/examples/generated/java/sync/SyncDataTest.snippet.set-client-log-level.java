@@ -1,0 +1,1 @@
+RealmLog.setLevel(LogLevel.ALL);

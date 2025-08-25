@@ -1,0 +1,103 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swift-add-sync-to-app:
+.. _ios-sync-changes-between-devices:
+
+=====================================
+Add Device Sync to an App - Swift SDK
+=====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. seealso::
+
+   This page contains information about how to add Device Sync to an app.
+   If you are looking for information about what Device Sync is and how it 
+   works, see: :ref:`App Services: Sync Data <ios-realm-sync>`.
+
+.. _ios-open-a-synced-realm:
+
+Prerequisites
+-------------
+
+Before you can access a synced realm from the client, you must 
+:ref:`Enable sync <enable-flexible-sync>` in the Atlas App Services UI. During
+this process, you must :ref:`define queryable fields <queryable-fields>`
+that match fields in your schema. You also :ref:`define read and write 
+permissions <flexible-sync-rules-and-permissions>` for app users.
+
+In this example, our model includes an ``ownerId`` field that maps to the
+``user.id`` of the Flexible Sync user.
+
+.. literalinclude:: /examples/generated/code/start/AddSyncToApp.snippet.model.swift
+   :language: swift
+
+
+Add Device Sync to a Client Application
+---------------------------------------
+
+.. procedure::
+
+   .. step:: Connect to the App Services backend
+
+      Pass the App ID for your App, which you can :ref:`find in the App Services UI
+      <find-your-app-id>`.
+
+      .. literalinclude:: /examples/generated/code/start/AddSyncToApp.snippet.connect-to-backend.swift
+         :language: swift
+
+   .. step:: Authenticate a user
+
+      :ref:`Authenticate a user <ios-authenticate-users>` in your client 
+      project. Here, we'll use :ref:`anonymous authentication 
+      <ios-login-anonymous>`. 
+
+      .. literalinclude:: /examples/generated/code/start/AddSyncToApp.snippet.authenticate-user.swift
+         :language: swift
+
+   .. step:: Open a Synced Realm
+
+      Open the realm as a :ref:`synced realm <ios-login-and-open-realm>`.
+      You can specify whether a synced realm should download data before 
+      it opens. Here, we use a :ref:`Flexible Sync configuration 
+      <ios-flexible-sync-open-realm>` and specify that the SDK
+      should always download the most recent updates before opening the realm.
+      We :ref:`bootstrap the realm with an initial subscription 
+      <ios-sync-add-initial-subscriptions>`. We also :ref:`specify the object 
+      types <ios-provide-a-subset-of-classes-to-a-realm>` that we want to 
+      include in this realm.
+
+      .. include:: /includes/swift-concurrency-mainactor.rst
+
+      .. literalinclude:: /examples/generated/code/start/AddSyncToApp.snippet.open-synced-realm.swift
+         :language: swift
+
+Use the Realm
+-------------
+
+The syntax to :ref:`read <ios-read-operations>`, :ref:`write
+<ios-write-operations>`, and
+:ref:`watch for changes <ios-react-to-changes>` on a
+synced realm is identical to the syntax for non-synced realms. While 
+you work with local data, a background thread efficiently integrates, 
+uploads, and downloads changesets.
+
+The following code creates a new ``Task`` object and writes it to the realm:
+
+.. literalinclude:: /examples/generated/code/start/AddSyncToApp.snippet.create-todo.swift
+   :language: swift
+
+.. important:: When Using Sync, Avoid Writes on the Main Thread
+
+   The fact that Realm performs sync integrations on a background thread means
+   that if you write to your realm on the main thread, there's a small chance your UI
+   could appear to hang as it waits for the background sync thread to finish a write
+   transaction. Therefore, it's a best practice :ref:`not to write on the main thread
+   when using Device Sync <ios-threading-three-rules>`.
+
+.. include:: /includes/sync-memory-performance.rst

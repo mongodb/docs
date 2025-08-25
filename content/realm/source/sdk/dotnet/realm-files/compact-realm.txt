@@ -1,0 +1,89 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-compact-realm:
+
+=================================
+Reduce Realm File Size - .NET SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+.. include:: /includes/compaction-introduction.rst
+   
+Automatic Compaction
+--------------------
+
+.. versionadded:: 10.20.0
+
+.. include:: /includes/automatic-compaction.rst 
+
+Manual Compaction Options
+-------------------------
+
+.. include:: /includes/manual-compaction.rst
+
+Realm reduces the file size by writing a new (compact) version of the file, and 
+then replacing the original with the newly-written file. Therefore, to compact, 
+you must have free storage space equivalent to the original realm file size. 
+
+You can configure realm to automatically compact the database each time a
+realm is opened, or you can compact the file without first obtaining a
+realm instance.
+
+Realm Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~
+You can configure Realm to check the realm file each time 
+it is opened by specifying a 
+:dotnet-sdk:`ShouldCompactDelegate <reference/Realms.RealmConfiguration.ShouldCompactDelegate.html>` 
+in the configuration. The following code example shows how to do this:
+
+.. literalinclude:: /examples/generated/dotnet/Compact.snippet.config-compact.cs
+   :language: csharp
+
+If the delegate returns ``true`` -- and the file is not in use -- the realm file 
+is compacted prior to making the instance available.
+
+
+Realm.Compact() Method
+~~~~~~~~~~~~~~~~~~~~~~
+Alternatively, you can compact a realm file without first obtaining an instance 
+to the realm by calling the 
+:dotnet-sdk:`Compact() <reference/Realms.Realm.html#Realms_Realm_Compact_Realms_RealmConfigurationBase_>`
+method. The following example shows how to do this:
+
+.. literalinclude:: /examples/generated/dotnet/Compact.snippet.manual-compact.cs
+   :language: csharp
+
+The ``Compact`` method will return true if the operation is successful.
+
+.. _dotnet-when-to-compact-a-realm:
+
+Tips for Manually Compacting a Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/compaction-tips.rst
+
+These calculations might look like this in your delegate:
+
+.. code-block:: csharp
+
+   // Set a maxFileSize equal to 20MB in bytes
+   var maxFileSize = 20 * 1024 * 1024;
+
+   /* Check for the realm file size to be greater than the max file size, 
+    * or the amount of bytes currently used to be less than 50% of the
+    * total realm file size */
+   return (totalBytes > (double)maxFileSize) &&
+      ((double)usedBytes / totalBytes < 0.5);
+
+Experiment with conditions to find the right balance of how often to 
+compact realm files in your application.

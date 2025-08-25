@@ -1,0 +1,197 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-manage-sync-session:
+
+============================================
+Manage a Sync Session - Node.js SDK
+============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When you use Atlas Device Sync, the Node.js SDK syncs data with Atlas
+in the background using a sync session. A sync session starts whenever
+you open a synced realm.
+
+Prerequisites
+-------------
+
+Before you can manage a sync session, you must perform the following:
+
+#. :ref:`Open a synced realm <node-open-a-synced-realm>`
+#. :ref:`Add a sync subscription
+   <node-sync-subscribe-to-queryable-fields>`
+
+.. _node-access-sync-session:
+
+Access Sync Session
+-------------------
+
+After opening a synced realm, you can access its sync session with the
+:js-sdk:`Realm.syncSession <classes/Realm-1.html#syncSession>` property.
+
+.. code-block:: javascript
+
+  const realm = await Realm.open(config);
+  const syncSession = realm.syncSession;
+
+.. _node-pause-or-resume-a-sync-session:
+
+Pause or Resume a Sync Session
+------------------------------
+
+Opening a synced realm starts a :js-sdk:`sync session <classes/SyncSession.html>`.
+You can pause and resume the sync session on the realm. Pausing a sync 
+session only pauses that realm's sync session. If you have more than one 
+open realm, pause does not affect the sync sessions for other realms.
+
+To pause synchronization, use the :js-sdk:`syncSession.pause()
+<classes/SyncSession.html#pause>` method. To resume synchronization, use the
+:js-sdk:`syncSession.resume() <classes/SyncSession.html#resume>` method.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.pause-sync-session.ts
+        :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.pause-sync-session.js
+        :language: javascript
+
+When to Pause a Sync Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/when-to-pause-sync.rst
+
+.. _node-wait-for-upload-and-download:
+
+Wait for Upload and Download
+----------------------------
+
+To asynchronously wait for all changes to upload to Atlas from your synced 
+realm, call :js-sdk:`uploadAllLocalChanges() 
+<classes/SyncSession.html#uploadAllLocalChanges>`. This method returns 
+true when all changes have been uploaded.
+
+.. literalinclude:: /examples/generated/node/v12/configure-and-open-synced-realm.test.snippet.wait-for-upload.ts
+   :language: javascript
+
+To asynchronously wait for all changes on Atlas to download from the 
+Device Sync server to your synced realm, call 
+:js-sdk:`downloadAllServerChanges() <classes/SyncSession.html#downloadAllServerChanges>`.
+This method returns true when all changes have been downloaded.
+
+.. literalinclude:: /examples/generated/node/v12/configure-and-open-synced-realm.test.snippet.wait-for-download.ts
+   :language: javascript
+
+You can specify a request timeout on the :js-sdk:`App configuration 
+<types/AppConfiguration.html>`. With a timeout specified, you can set 
+``cancelWaitsOnNonFatalErrors`` on your :js-sdk:`BaseSyncConfiguration 
+<types/BaseSyncConfiguration.html>`. When ``true`` and the timeout interval 
+arrives, any any outstanding work that is awaiting uploads and downloads 
+cancels. When this setting is false, awaiting uploads and downloads does 
+not cancel because Realm treats these timeouts as non-fatal errors. 
+
+For more information, refer to :ref:`node-app-client-configure-timeout`
+and :ref:`node-cancel-async-after-timeout`.
+
+.. _node-check-sync-progress:
+
+Check Upload & Download Progress for a Sync Session
+---------------------------------------------------
+
+To check the upload and download progress for a sync session, add a progress
+notification using the :js-sdk:`syncSession.addProgressNotification() 
+<classes/SyncSession.html#addProgressNotification>` method.
+
+The ``syncSession.addProgressNotification()`` method takes in the following three parameters:
+
+- A ``direction`` parameter. 
+  Set to ``"upload"`` to register notifications for uploading data. 
+  Set to ``"download"`` to register notifications for downloading data.
+- A ``mode`` parameter. Set to ``"reportIndefinitely"`` 
+  for the notifications to continue until the callback is unregistered using
+  :js-sdk:`syncSession.removeProgressNotification() <classes/SyncSession.html#removeProgressNotification>`.
+  Set to ``"forCurrentlyOutstandingWork"`` for the notifications to continue
+  until only the currently transferable bytes are synced.
+- A callback function parameter that has the arguments ``transferred`` and ``transferable``.
+  ``transferred`` is the current number of bytes already transferred.
+  ``transferable`` is the total number of bytes already transferred
+  plus the number of bytes pending transfer.
+
+.. include:: /includes/flex-sync-unsupported-progress-notifications.rst
+
+.. example::
+
+   In the following example, an application developer registers a callback on the ``syncSession`` to
+   listen for upload events indefinitely. The developer writes to the realm and
+   then unregisters the ``syncSession`` notification callback. 
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.check-network-progress.ts
+        :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.check-network-progress.js
+        :language: javascript
+
+.. _node-check-network-connection:
+
+Check the Network Connection
+----------------------------
+
+To check the current state of the connection to the server, call the
+:js-sdk:`syncSession.connectionState()
+<classes/SyncSession.html#connectionState>` method.
+
+Realm's *offline-first* design means that you generally don't need to
+check the current network connection state. That said, the
+``syncSession.connectionState()`` method is available if your app needs to
+gets the current state of the connection to the server.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.check-network-connection.ts
+        :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/node/device-sync.snippet.check-network-connection.js
+        :language: javascript
+
+.. _node-multiplex-sync-sessions:
+
+Multiplex Sync Sessions
+-----------------------
+
+Enable :wikipedia:`session multiplexing <Session_multiplexing>` to consolidate
+multiple sync sessions of a Realm app. 
+Only use session multiplexing if you see errors about reaching the file descriptor limit,
+and you know you are using many sync sessions.
+
+To enable session multiplexing, call :js-sdk:`Realm.App.Sync.enableSessionMultiplexing()
+<classes/Sync.html#enableSessionMultiplexing>` with your :js-sdk:`Realm.App <classes/App.html>`. 
+
+.. example::
+   
+   .. literalinclude:: /examples/SyncChanges/enable-session-multiplexing.js
+      :language: javascript

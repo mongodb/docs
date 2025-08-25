@@ -1,0 +1,218 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-data-types-geospatial:
+
+========================
+Geospatial - Flutter SDK
+========================
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. meta::
+   :description: Use geospatial data to store and query location data with the Flutter SDK.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. versionadded:: 1.6.0
+
+Geospatial data, or "geodata", specifies points and geometric objects on the 
+Earth's surface. With the geodata types, you can create queries that check 
+whether a given point is contained within a shape. For example, you can find 
+all coffee shops within 15 km of a specified point.
+
+Flutter SDK v1.6.1 and later adds support for geospatial data
+in Atlas Device Sync. This allows you to subscribe to geospatial queries
+in a synced database. If you try to subscribe to a geospatial query with an 
+older version of the SDK, you will receive a server error with a compensating 
+write. For more information about managing your Sync subscriptions, 
+refer to :ref:`<flutter-flexible-sync-manage-subscriptions>`.
+
+For more information on querying geospatial data with Device Sync, 
+refer to :ref:`<geospatial>` in the App Services documentation.
+
+Geospatial Data Types
+---------------------
+
+The Flutter SDK supports geospatial queries using the following data types:
+
+- ``GeoPoint``
+- ``GeoCircle``
+- ``GeoBox``
+
+The SDK provides these geospatial data types to simplify querying geospatial 
+data. You *cannot* persist these data types directly. 
+
+For information on how to persist geospatial data, refer to the 
+:ref:`<flutter-persist-geopoint>` section on this page.
+
+.. _flutter-geopoint:
+
+GeoPoint
+~~~~~~~~
+
+A :flutter-sdk:`GeoPoint <realm/GeoPoint-class.html>` defines a specific 
+location on the Earth's surface. All of the geospatial data types use 
+``GeoPoints`` to define their location. 
+
+A ``GeoPoint`` is an object with two required properties:
+
+- ``lat``: a double value
+- ``lon``: a double value
+
+A GeoPoint is used only as a building block of the other shapes: 
+GeoCircle and GeoBox. These shapes, and the GeoPoint type, 
+are used in queries, not for persistance.
+
+To save geospatial data to the database, refer to 
+:ref:`flutter-persist-geopoint`.
+
+.. _flutter-geocircle:
+
+GeoCircle
+~~~~~~~~~
+
+A :flutter-sdk:`GeoCircle <realm/GeoCircle-class.html>` defines a circle on 
+the Earth's surface. You define a ``GeoCircle`` by providing:
+
+- A ``GeoPoint`` for the center of the circle
+- A ``GeoDistance`` for the distance (radius) of the circle 
+
+The radius distance uses radians as the unit of measure, implemented as
+a double in the SDK. The SDK provides convenience methods to create a
+``GeoDistance`` from other units of measure:
+
+- :flutter-sdk:`GeoDistance.fromDegrees() <realm/GeoDistance/GeoDistance.fromDegrees.html>`
+- :flutter-sdk:`GeoDistance.fromKilometers() <realm/GeoDistance/GeoDistance.fromKilometers.html>`
+- :flutter-sdk:`GeoDistance.fromMeters() <realm/GeoDistance/GeoDistance.fromMeters.html>`
+- :flutter-sdk:`GeoDistance.fromMiles() <realm/GeoDistance/GeoDistance.fromMiles.html>`
+
+The following code shows two examples of creating a circle:
+
+.. literalinclude:: /examples/generated/flutter/geospatial_data_test.snippet.geocircle.dart
+   :language: dart
+
+.. figure:: /images/geocircles.png
+   :alt: Two GeoCircles
+   :width: 150
+   :lightbox:
+
+.. _flutter-geobox:
+
+GeoBox
+~~~~~~
+
+A :flutter-sdk:`GeoBox <realm/GeoBox-class.html>` defines a 
+rectangle on the Earth's surface. You define the rectangle by specifying 
+the bottom left (southwest) corner and the top right (northeast) corner. 
+
+The following example creates 2 boxes:
+
+.. literalinclude:: /examples/generated/flutter/geospatial_data_test.snippet.geobox.dart
+   :language: dart
+
+.. figure:: /images/geoboxes.png
+   :alt: 2 GeoBoxes
+   :width: 150
+   :lightbox:
+
+.. TODO: Add docs for GeoPolygon when the SDK exposes it
+
+.. _flutter-persist-geopoint:
+
+Persist Geospatial Data
+-----------------------
+
+.. include:: /includes/important-cant-persist-geospatial.rst
+
+If you want to persist geospatial data, it must conform to the 
+`GeoJSON spec <https://datatracker.ietf.org/doc/html/rfc7946>`_. 
+
+Create a GeoJSON-Compatible Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a class that conforms to the GeoJSON spec, you:
+
+1. Create an embedded object. For more information about embedded
+   objects, refer to :ref:`flutter-embedded-objects`.
+
+#. At a minimum, add the two fields required by the GeoJSON spec:
+
+   - A field of type ``double[]`` that maps to a "coordinates" (case sensitive) 
+     property in the schema. 
+
+   - A field of type ``string`` that maps to a "type" property. The value of this 
+     field must be "Point".
+
+The following example shows an embedded class named ``MyGeoPoint`` that is 
+used to persist geospatial data:
+
+.. literalinclude:: /examples/generated/flutter/geospatial_data_test.snippet.define-geopoint-class.dart
+   :language: dart
+
+Use the Embedded Class
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You then use the custom ``MyGeoPoint`` class in your data model, as shown 
+in the following example:
+
+.. literalinclude:: /examples/generated/flutter/geospatial_data_test.snippet.use-geopoint-class.dart
+   :language: dart
+
+You add instances of your class to the database just like any other model.
+
+.. literalinclude:: /examples/generated/flutter/geospatial_data_test.snippet.write-geospatial-object.dart
+   :language: dart
+
+The following image shows the results of creating these two company objects.
+
+.. figure:: /images/geopoints.png
+   :alt: 2 GeoPoints
+   :width: 150
+   :lightbox:
+
+.. _flutter-query-geospatial:
+
+Query Geospatial Data
+---------------------
+
+To query against geospatial data, you can use the ``geoWithin`` operator 
+with :ref:`RQL <rql>`. The ``geoWithin`` operator takes the "coordinates" 
+property of an embedded object that defines the point we're querying, and 
+one of the geospatial shapes to check if that point is contained within 
+the shape. 
+
+.. note::
+
+   The format for querying geospatial data is the same, regardless of the 
+   shape of the geodata region.
+
+The following examples show querying against various shapes to return a list of 
+companies within the shape:
+
+**GeoCircle**
+
+.. literalinclude:: /examples/generated/flutter/geospatial_data_test.snippet.geocircle-query.dart
+   :language: dart
+
+.. figure:: /images/geocircles-query.png
+   :alt: Querying a GeoCircle example.
+   :width: 150
+   :lightbox:
+
+**GeoBox**
+
+.. literalinclude:: /examples/generated/flutter/geospatial_data_test.snippet.geobox-query.dart
+   :language: dart
+
+.. figure:: /images/geoboxes-query.png
+   :alt: Querying a GeoBox example.
+   :width: 150
+
+.. TODO: Add docs for querying GeoPolygon when the SDK exposes it

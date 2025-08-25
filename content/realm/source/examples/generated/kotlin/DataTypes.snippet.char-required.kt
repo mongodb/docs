@@ -1,0 +1,1 @@
+var charReq: Char = 'a'

@@ -1,0 +1,196 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+
+Annotation Type LinkingObjects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _io_realm_annotations_LinkingObjects:
+
+
+
+io.realm.annotations
+====================
+
+**Implemented interfaces:**
+
+
+
+- `java.lang.annotation.Annotation <https://docs.oracle.com/javase/7/docs/api/java/lang/annotation/Annotation.html>`__ 
+
+
+Annotation for defining a reverse relationship from one class to another. This annotation can only be added to a field of the type ``RealmResults`` .
+
+ To expose reverse relationships for use, create a declaration as follows:
+ 
+
+.. code-block:: java
+
+   
+   
+    public class Person extends RealmObject {
+      String name;
+      Dog dog; // Normal relation
+    }
+   
+    public class Dog extends RealmObject {
+      // This holds all Person objects with a relation to this Dog object (= linking objects)
+      @LinkingObjects("dog")
+      final RealmResults<Person> owners = null;
+    }
+   
+    // Find all Dogs with at least one owner named John
+    realm.where(Dog.class).equalTo("owners.name", "John").findAll();
+    
+
+
+ 
+
+In the above example \`Person\` is related to \`Dog\` through the field \`dog\`. This in turn means that an implicit reverse relationship exists between the class \`Dog\` and the class \`Person\`. This inverse relationship is made public and queryable by the \`RealmResults\` field annotated with \`\@LinkingObject\`. This makes it possible to query properties of the dogs owner without having to manually maintain a "owner" field in the \`Dog\` class.Linking objects have the following properties:
+
+
+
+- The link is maintained by Realm and only works for managed objects.
+   
+   
+- They can be queried just like normal relation.
+   
+   
+- They can be followed just like normal relation.
+   
+   
+- They are ignored when doing a \`copyToRealm().\`
+   
+   
+- They are ignored when doing a \`copyFromRealm().\`
+   
+   
+- They are ignored when using the various \`createObjectFromJson\*\` and \`createAllFromJson\*\` methods.
+   
+   
+- Listeners on an object with a \`\@LinkingObject\` field will not be triggered if the linking objects change, e.g: if another object drops a reference to this object.
+   
+   
+
+
+In addition, they have the following restrictions:
+
+
+
+- \@Ignore takes precedence. A \@LinkingObjects annotation on \@Ignore field will be ignored.
+   
+   
+   
+   
+- The annotated field cannot be \@Required.
+   
+   
+   
+   
+- The annotated field must be \`final\`.
+   
+   
+- The annotation argument (the name of the backlinked field) is required.
+   
+   
+- The annotation argument must be a simple field name. It cannot contain periods ('.').
+   
+   
+- The annotated field must be of type \`RealmResults<T>\` where T is concrete class that extends \`RealmModel\`.
+   
+   
+
+
+Note that when the source of the reverse reference (\`dog\` in the case above) is a \`List\`, there is a reverse reference for each forward reference, even if both forward references are to the same object. If the \`Person\` class above were defined as: 
+
+.. code-block:: java
+
+   public class DogLover extends RealmObject {
+    String name;
+    List<Dog> dogs = new ArrayList<Dog>;
+    }
+    
+
+ then the following code executes without error 
+
+.. code-block:: java
+
+   Dog fido = new Dog();
+    DogLover john = new DogLover()
+    john.dogs.add(fido);
+    john.dogs.add(fido);
+    assert john.dogs.size() == 2;
+    assert fido.owners.size() == 2;
+    
+
+
+
+Querying inverse relationship is like querying any ``RealmResults`` . This means that an inverse relationship cannot be ``null``  but it can be empty (length is 0). It is possible to query fields in the source class. This is equivalent to link queries. Please read 
+
+`for more information <https://docs.mongodb.com/realm/sdk/android/examples/define-a-realm-object-model/#std-label-android-field-relationships-inverse>`__ .
+
+
+
+
+Optional Element Summary
+========================
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Modifier and Type
+     - Optional Element and Description
+   
+   * - public `String <https://docs.oracle.com/javase/7/docs/api/java/lang/String.html>`__ 
+       
+       
+     - The name of a field that contains a relation to an instance of the class containing this annotation.
+       
+       
+       
+   
+   
+
+
+Element Detail
+==============
+
+.. _value:
+
+.. _value__:
+
+.. _LinkingObjects_value:
+
+.. _LinkingObjects_value__:
+
+.. _io_realm_annotations_LinkingObjects_value:
+
+.. _io_realm_annotations_LinkingObjects_value__:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - value
+   
+   * - ``public String value`` 
+       
+       The name of a field that contains a relation to an instance of the class containing this annotation. If this argument is not provided the annotation processor will abort with an ``IllegalArgumentException`` .
+       
+       
+       
+       
+       **Default:**
+       ``""`` 
+       
+       
+   
+   
+

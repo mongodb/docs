@@ -1,0 +1,1 @@
+@property NSNumber<RLMDouble> *optDoubleName;

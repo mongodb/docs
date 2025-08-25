@@ -1,0 +1,115 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-check-upload-download-progress:
+.. _dotnet-check-sync-progress:
+
+=============================================
+Check Upload and Download Progress - .NET SDK
+=============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Monitor Sync Progress and Status
+--------------------------------
+You may want to know the status of Sync operations in your app. For 
+example, you might want specific code to run only after all of the data is 
+synced with App Services. You might also want to provide users with the 
+status of Sync operations. 
+
+You can set up your Sync session to wait for changes to be uploaded 
+or downloaded. You can also configure your Sync session to
+notify when the Sync connection status changes.
+
+.. _dotnet-check-sync-progress-wait-for-upload-or-download:
+
+Wait for Changes to be Uploaded or Downloaded
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To asynchronously wait for your changes to be completed, get the sync session 
+from the :dotnet-sdk:`Realms.Sync.SyncSession
+<reference/Realms.Realm.html#Realms_Realm_SyncSession>`
+property, and then call the :dotnet-sdk:`session.WaitForUploadAsync()
+<reference/Realms.Sync.Session.html#Realms_Sync_Session_WaitForUploadAsync>` or 
+:dotnet-sdk:`session.WaitForDownloadAsync()
+<reference/Realms.Sync.Session.html#Realms_Sync_Session_WaitForDownloadAsync>` 
+methods. For example:
+
+.. literalinclude:: /examples/generated/dotnet/ProgressNotifications.snippet.wait-for-changes-to-download-async-progress-notification.cs
+   :language: csharp
+
+.. _dotnet-sync-status-change:
+
+Monitor Sync Progress
+~~~~~~~~~~~~~~~~~~~~~
+
+..versionchanged:: 12.0.0
+
+.. include:: /includes/flex-sync-unsupported-progress-notifications.rst
+
+To monitor Sync progress, get the 
+sync session from the :dotnet-sdk:`Realms.Sync.SyncSession 
+<reference/Realms.Realm.html#Realms_Realm_SyncSession>` property, then add a 
+progress notification by calling the 
+:dotnet-sdk:`session.GetProgressObservable() <reference/Realms.Sync.Session.html#Realms_Sync_Session_GetProgressObservable_Realms_Sync_ProgressDirection_Realms_Sync_ProgressMode_>` 
+method.
+
+The ``session.GetProgressObservable`` method takes in the following two parameters:
+
+- A :dotnet-sdk:`ProgressDirection <reference/Realms.Sync.ProgressDirection.html>` 
+  parameter that can be set to ``Upload`` or ``Download``.
+  
+- A :dotnet-sdk:`ProgressMode <reference/Realms.Sync.ProgressMode.html>` parameter 
+  that can be set to ``ReportIndefinitely``
+  for the notifications to continue until the callback is unregistered, or 
+  ``ForCurrentlyOutstandingWork`` for the notifications to continue until only 
+  the currently transferable bytes are synced.
+
+When you `Subscribe <https://docs.microsoft.com/en-us/dotnet/api/system.iobservable-1.subscribe?view=net-6.0#system-iobservable-1-subscribe(system-iobserver((-0)))>`_ 
+to the notifications, you receive a 
+:dotnet-sdk:`SyncProgress <reference/Realms.Sync.SyncProgress.html>` 
+object that provides an estimate of the percentage of remaining data to be 
+transferred as a value between 0 and 1.0.
+
+.. example::
+
+   In the following example, we subscribe to a progress 
+   observable on the ``session`` to listen for upload events. When 
+   this callback is triggered, it prints the upload progress as a percentage.
+
+   .. literalinclude:: /examples/generated/dotnet/ProgressNotifications.snippet.upload-download-progress-notification.cs
+      :language: csharp
+
+   Once you no longer wish to receive notifications, unregister the token by using 
+   ``token.Dispose()``.
+
+Get Connection State Changes
+----------------------------
+To get the connection state of a :dotnet-sdk:`SyncSession
+<reference/Realms.Realm.html#Realms_Realm_SyncSession>`, set an event handler
+on the :dotnet-sdk:`PropertyChanged <reference/Realms.Sync.Session.html#Realms_Sync_Session_PropertyChanged>`
+event. The event handler is a standard
+`.NET PropertyChangedEventHandler delegate
+<https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.propertychangedeventhandler?view=net-6.0>`_
+that takes in a ``sender`` object and
+`PropertyChangedEventArgs <https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.propertychangedeventargs?view=net-6.0>`_
+object. 
+In the event handler, cast the sender to a ``Session`` object and check if 
+the event argument's ``PropertyName`` property is ``Session.ConnectionState``. 
+You can then get the
+:dotnet-sdk:`ConnectionState <reference/Realms.Sync.Session.html#Realms_Sync_Session_ConnectionState>`
+value, which will be one of the following:
+
+- Connecting
+- Connected
+- Disconnected
+
+The following code demonstrates setting the event handler, casting the session
+object, and checking the Sync status:
+
+.. literalinclude:: /examples/generated/dotnet/ProgressNotifications.snippet.connection-state.cs
+   :language: csharp

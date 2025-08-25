@@ -1,0 +1,120 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-sync-a-realm-background:
+
+=========================================
+Sync a Realm in the Background - Java SDK
+=========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+If you need to sync data when your app isn't running, you can sync realms
+in a background process.
+
+Prerequisites
+-------------
+
+To get started with background synchronization, you need to add the
+following dependencies to your Android application:
+
+- :android:`androidx.work:work-runtime <reference/androidx/work/package-summary>`,
+  to enqueue jobs
+- :android:`androidx.concurrent:concurrent-futures <reference/androidx/concurrent/futures/package-summary>`,
+  to return job results from a background worker
+
+Example
+-------
+
+Background sync requires two things:
+
+- synchronization logic
+- a scheduled job that periodically performs that logic.
+
+Synchronization Logic
+~~~~~~~~~~~~~~~~~~~~~
+
+First, write the custom logic that synchronizes your realm. Treat this
+logic as a standalone connection to your backend. As a result, you'll
+need to:
+
+- initialize the Realm SDK
+- authenticate a user to open the realm
+
+You can use a user's cached credentials if the user recently used the app.
+
+Open the realm, then use :ref:`SyncSession.downloadAllServerChanges() <io_realm_mongodb_sync_SyncSession_downloadAllServerChanges>`
+and :ref:`SyncSession.uploadAllLocalChanges() <io_realm_mongodb_sync_SyncSession_uploadAllLocalChanges>`
+to synchronize the realm fully with the backend.
+
+You can execute this logic as a background process using a subclass of
+:android:`ListenableWorker <reference/androidx/work/ListenableWorker.html>`.
+Put your synchronization logic in the ``startWork()`` method of your worker:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/RealmBackgroundWorkerKt.snippet.background-sync-realm.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/RealmBackgroundWorker.snippet.background-sync-realm.java
+         :language: java
+         :copyable: false
+
+Worker
+~~~~~~
+
+To create a worker that periodically performs background sync:
+
+1. Create a set of constraints that specify the conditions required for
+   your worker.
+
+#. Specify how frequently your worker should execute.
+
+#. Enqueue your worker with the Android OS. Assign it a unique identifier
+   so that you can update the job in the future.
+
+You can create the background sync job inside an Application subclass in
+your app to guarantee that the logic only executes once every time your
+application runs.
+
+Since synchronizing a realm uses data, you should consider only downloading
+changes in the background when the device is *not*:
+
+- low on battery
+- using a metered data source
+
+Use :android:`Constraints <reference/androidx/work/Constraints.Builder>`
+to describe the environment where your background sync runs.
+
+Your repeat interval depends on how frequently data updates in the
+realm and how often users open your application. If the realm frequently
+updates throughout the day, consider setting a repeat interval of 1-3 hours.
+If the realm only updates a small number of times each day, it's best to
+set a higher repeat interval and only background sync once or twice a day.
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/sync/CustomApplication.snippet.background-sync-realm.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/sync/CustomApplicationJava.snippet.background-sync-realm.java
+         :language: java
+         :copyable: false

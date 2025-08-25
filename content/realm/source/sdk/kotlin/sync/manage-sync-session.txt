@@ -1,0 +1,172 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-manage-sync-session:
+
+==================================
+Manage a Sync Session - Kotlin SDK
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes sync sessions and how to manage them in an App using 
+Flexible Sync. For detailed information on Flexible Sync, refer to 
+:ref:`Atlas Device Sync <sync>` in the App Services documentation.
+
+Sync Sessions
+-------------
+
+When you use Flexible Sync, the Realm Kotlin SDK syncs 
+data with Atlas in the background using a **sync session**. The sync 
+session starts whenever you :ref:`open a synced realm 
+<kotlin-open-a-synced-realm>`.
+
+.. literalinclude:: /examples/generated/kotlin/ManageSyncSession.snippet.open-sync-session.kt
+   :language: kotlin
+
+The sync session manages the following:
+
+- Uploading and downloading changes to the realm
+- Pausing and resuming sync
+- Monitoring network connectivity
+
+You can access the `SyncSession 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/index.html>`__ 
+of a single synced realm through the `realm.syncSession 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/sync-session.html>`__
+property. 
+
+Connection States vs. Session States
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Kotlin SDK manages communication with App Services at two levels:
+
+- **connection state**: the state of the network connection between a client 
+  device and your backend App.
+- **session state**: a single user's synchronization state, which can be paused 
+  and resumed in the SDK at will (refer to the 
+  :ref:`<kotlin-pause-resume-sync>` section).
+
+Both states determine whether a user's local changes sync to the backend. Synchronization only occurs when the 
+`SyncSession.ConnectionState <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-connection-state/index.html>`__ is ``CONNECTED`` and the `SyncSession.State <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/-state/index.html>`__ is either ``ACTIVE`` or ``DYING``.
+
+.. _kotlin-sync-wait-for-changes:
+
+Wait for Changes to Upload and Download
+---------------------------------------
+
+To asynchronously wait for all changes to upload to Atlas from your synced realm,
+call
+`uploadAllLocalChanges <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/upload-all-local-changes.html>`__. 
+This method returns ``true`` when all changes have been uploaded. 
+
+To asynchronously wait for all changes on Atlas to download from the Device Sync 
+server to your synced realm, call 
+`downloadAllServerChanges <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/download-all-server-changes.html>`__.
+This method returns ``true`` when all changes have been downloaded.
+
+You can also include an optional ``timeout`` parameter to either method to 
+determine the maximum amount of time before returning ``false``. Note that 
+the upload or download continues in the background even after returning ``false``.
+
+The following example demonstrates calling both methods with a timeout defined:
+
+.. literalinclude:: /examples/generated/kotlin/ManageSyncSession.snippet.wait-upload-download.kt
+   :language: kotlin
+
+.. _kotlin-pause-resume-sync:
+
+Pause and Resume a Sync Session
+-------------------------------
+
+To pause syncing for a session, call 
+`syncSession.pause() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/pause.html>`__.
+The realm will not sync changes with Atlas while the session is paused.
+
+To resume syncing a changes, call 
+`syncSession.resume() <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/resume.html>`__.
+
+You must manually call ``syncSession.pause()`` and ``syncSession.resume()`` for 
+each realm whose Sync session you want to pause and restart.
+The sync state of one session has no impact on other open sessions.
+
+The following code block demonstrates calling these methods:
+
+.. literalinclude:: /examples/generated/kotlin/ManageSyncSession.snippet.pause-resume-sync.kt
+   :language: kotlin
+
+When to Pause a Sync Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/when-to-pause-sync.rst
+
+.. _kotlin-monitor-network-connection:
+
+Monitor Network Connection
+--------------------------
+
+You can get the state of the current network connection by checking the
+`SyncSession.connectionState <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/connection-state.html>`__ property.
+This returns a `ConnectionState <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-connection-state/index.html>`__ 
+enum value that indicates the state of the network connection. The possible 
+states are:  
+``CONNECTED``, ``DISCONNECTED``, or ``CONNECTING``.
+
+.. literalinclude:: /examples/generated/kotlin/ManageSyncSession.snippet.get-network-connection.kt
+   :language: kotlin
+
+Monitor the state of the network connection with
+`connectionStateAsFlow <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/connection-state-as-flow.html>`__.
+This property returns a Flow of 
+`ConnectionStateChange <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-connection-state-change/index.html>`__
+objects that updates when the network connection changes. You can access the 
+new and old ``ConnectionState`` from ``ConnectionStateChange``.
+
+.. literalinclude:: /examples/generated/kotlin/ManageSyncSession.snippet.monitor-network-connection.kt
+   :language: kotlin
+
+Manually Reconnect All Sync Sessions
+------------------------------------
+
+.. versionadded:: 1.11.0
+
+Realm automatically detects when a device regains connectivity after being 
+offline and attempts to reconnect using an incremental backoff strategy.
+
+In Kotlin SDK version 1.11.0 and later, you can choose to manually trigger a 
+reconnect attempt with the `App.Sync.reconnect() 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync/reconnect.html>`__
+instead of waiting for the duration of the incremental backoff. This is 
+useful if you have a more accurate understanding of 
+the network conditions (for example, when monitoring network changes with the 
+``ConnectivityManager`` on Android) and don't want to rely on Realm's automatic 
+reconnect detection. The SDK also automatically calls this method when a device 
+toggles off airplane mode.
+
+To manually trigger a reconnect attempt, call the `App.Sync.reconnect() 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync/reconnect.html>`__ 
+method, which is accessed through the 
+`App.Sync 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync/index.html>`__ 
+interface. Unlike `SyncSession 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.sync/-sync-session/index.html>`__, 
+which lets you access a single realm sync session, the ``App.Sync`` interface 
+controls *all* sync sessions for your App.
+
+.. literalinclude:: /examples/generated/kotlin/ManageSyncSession.snippet.app-sync-reconnect.kt
+   :language: kotlin
+
+When you call this method, the SDK forces all sync sessions to attempt to 
+reconnect immediately and resets any timers used for incremental 
+backoff.
+
+.. important:: Cannot Reconnect Within Socket Read Timeout Duration
+   
+   Realm has an internal default socket read timeout of 2 minutes, where 
+   Realm will time out if a read operation does not receive any data 
+   within a 2-minute window. If you call ``App.Sync.reconnect()`` 
+   within that window, the Kotlin SDK does *not* attempt to reconnect.

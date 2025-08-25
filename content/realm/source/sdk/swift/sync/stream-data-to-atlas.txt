@@ -1,0 +1,92 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swift-stream-data-to-atlas:
+
+================================
+Stream Data to Atlas - Swift SDK
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+.. versionadded:: 10.29.0
+
+.. include:: /includes/data-ingest-overview.rst
+
+Sync Data Unidirectionally from a Client Application
+----------------------------------------------------
+
+.. procedure::
+
+   .. step:: Define an AsymmetricObject
+
+      You can sync data unidirectionally when that object is an ``AsymmetricObject``.
+      Define an AsymmetricObject by deriving from :swift-sdk:`AsymmetricObject 
+      <Extensions/AsymmetricObject.html>`:
+
+      .. literalinclude:: /examples/generated/code/start/AsymmetricSync.snippet.asymmetric-model.swift
+         :language: swift
+
+      For more information on how to define an ``AsymmetricObject``, see: 
+      :ref:`Define an AsymmetricObject <swift-define-asymmetric-object>`.
+
+   .. step:: Connect and Authenticate with an App Services App
+
+      To stream data from the client to your backend App, you must 
+      :ref:`connect to an App Services backend <ios-init-appclient>` and
+      :ref:`authenticate a user <ios-authenticate-users>`.
+
+      .. literalinclude:: /examples/generated/code/start/AsymmetricSync.snippet.connect-and-authenticate.swift
+         :language: swift
+
+      Data Ingest is a feature of Flexible Sync, so the App you connect 
+      to must use :ref:`Flexible Sync <flexible-sync>`.
+
+   .. step:: Open a Realm
+
+      After you have an authenticated user, you can open a synced realm
+      using a :swift-sdk:`flexibleSyncConfiguration() 
+      <Extensions/User.html#/s:So7RLMUserC10RealmSwiftE25flexibleSyncConfigurationAC0B0V0F0VyF>`.
+      Specify the ``AsymmetricObject`` types you want to sync.
+
+      .. literalinclude:: /examples/generated/code/start/AsymmetricSync.snippet.open-asymmetric-sync-realm.swift
+         :language: swift
+
+      Unlike bidirectional Sync, Data Ingest does not use a 
+      :ref:`Flexible Sync subscription <swift-manage-flexible-sync-subscriptions>`.
+
+      .. note:: Mixed Synced and Non-Synced Realms in Projects
+
+         The ``AsymmetricObject`` type is incompatible with non-synced realms.
+         If your project uses both a synced and non-synced realm, you must 
+         explicitly :ref:`pass a subset of classes in your Realm configuration 
+         <ios-provide-a-subset-of-classes-to-a-realm>` to exclude the 
+         ``AsymmetricObject`` from your non-synced realm.
+         
+         Automatic schema discovery means that opening a non-synced realm
+         without specifically excluding the ``AsymmetricObject`` from the 
+         configuration can throw an error related to trying to use an 
+         incompatible object type.
+
+   .. step:: Create Asymmetric Objects
+
+      Once you have an open Realm, you can create an ``AsymmetricObject`` inside
+      a write transaction using :swift-sdk:`create(_ type:, value:)
+      <Structs/Realm.html#/s:10RealmSwift0A0V6create_5valueyxm_yptSo0aB16AsymmetricObjectCRbzlF>`.
+
+      .. literalinclude:: /examples/generated/code/start/AsymmetricSync.snippet.create-asymmetric-object.swift
+         :language: swift
+      
+      You cannot read these objects. Once created, they sync to the App 
+      Services backend and the linked Atlas database.
+
+      Atlas Device Sync completely manages the lifecycle of this data. 
+      It is maintained on the device until Data Ingest synchronization is 
+      complete, and then removed from the device.

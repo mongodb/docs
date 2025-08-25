@@ -1,0 +1,243 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-crud-read:
+.. _cpp-read-from-realm:
+.. _cpp-realm-database-reads:
+.. _cpp-live-queries:
+
+=====================
+CRUD - Read - C++ SDK
+=====================
+
+.. meta:: 
+  :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can read back the data that you have :ref:`stored
+<cpp-write-transactions>` in Realm by finding,
+filtering, and sorting objects.
+
+A read from a realm generally consists of the following
+steps:
+
+- Get all objects of a certain type from the realm.
+- Optionally, filter the results.
+
+:cpp-sdk:`Query operations <structrealm_1_1query.html>` return a 
+:cpp-sdk:`results collection <structrealm_1_1results.html>`. These
+collections are live, meaning they always contain the latest
+results of the associated query.
+
+.. _cpp-realm-read-characteristics:
+
+Read Characteristics
+--------------------
+
+Design your app's data access patterns around these three key 
+read characteristics to read data as efficiently as possible.
+
+.. _cpp-results-are-not-copies:
+
+Results Are Not Copies
+~~~~~~~~~~~~~~~~~~~~~~
+
+Results to a query are not copies of your data. Modifying
+the results of a query modifies the data on disk
+directly. This memory mapping also means that results are
+**live**: that is, they always reflect the current state on
+disk.
+
+.. _cpp-results-are-lazy:
+.. _cpp-lazy-evaluated-results:
+
+Results Are Lazy
+~~~~~~~~~~~~~~~~
+
+Realm only runs a query when you actually request the
+results of that query. This lazy evaluation enables you to write
+highly performant code for handling large data sets and complex
+queries. You can chain several filter operations without requiring 
+extra work to process the intermediate state.
+
+.. _cpp-references-retained:
+
+References Are Retained
+~~~~~~~~~~~~~~~~~~~~~~~
+
+One benefit of Realm's object model is that
+Realm automatically retains all of an object's
+:ref:`relationships <cpp-relationships>` as direct
+references. This enables you to traverse your graph of relationships
+directly through the results of a query.
+
+A **direct reference**, or pointer, allows you to access a
+related object's properties directly through the reference.
+
+Other databases typically copy objects from database storage
+into application memory when you need to work with them
+directly. Because application objects contain direct
+references, you are left with a choice: copy the object
+referred to by each direct reference out of the database in
+case it's needed, or just copy the foreign key for each
+object and query for the object with that key if it's
+accessed. If you choose to copy referenced objects into
+application memory, you can use up a lot of resources for
+objects that are never accessed, but if you choose to only
+copy the foreign key, referenced object lookups can cause
+your application to slow down.
+
+Realm bypasses all of this using zero-copy
+live objects. Realm object accessors point
+directly into database storage using memory mapping, so there is no
+distinction between the objects in Realm and the results
+of your query in application memory. Because of this, you can traverse
+direct references across an entire realm from any query result.
+
+.. _cpp-limiting-results:
+
+Limiting Query Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+As a result of lazy evaluation, you do not need any special mechanism to
+limit query results with Realm. For example, if your query
+matches thousands of objects, but you only want to load the first ten,
+simply access only the first ten elements of the results collection.
+
+.. _cpp-pagination:
+
+Pagination
+~~~~~~~~~~
+
+Thanks to lazy evaluation, the common task of pagination becomes quite
+simple. For example, suppose you have a results collection associated
+with a query that matches thousands of objects in your realm. You
+display one hundred objects per page. To advance to any page, simply
+access the elements of the results collection starting at the index that
+corresponds to the target page.
+
+.. _cpp-read-operations:
+
+Read Realm Objects
+------------------
+
+.. _cpp-query-all-objects-of-a-given-type:
+
+Query All Objects of a Given Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To query for objects of a given type in a realm, pass the object type 
+``YourClassName`` to the :cpp-sdk:`realm::query\<T\>
+<structrealm_1_1query.html>` member function.
+
+This returns a :cpp-sdk:`Results <structrealm_1_1results.html>` object
+representing all objects of the given type in the realm.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.read-objects-from-realm.cpp
+    :language: cpp
+
+.. _cpp-filter-queries-based-on-object-properties:
+
+Filter Queries Based on Object Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A filter selects a subset of results based on the value(s) of one or
+more object properties. Realm provides a full-featured 
+query engine that you can use to define filters.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.filter-using-type-safe-query.cpp
+    :language: cpp
+
+.. _cpp-supported-query-operators:
+
+Supported Query Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Currently, the Realm C++ SDK supports the following query operators:
+
+- Equality (``==``, ``!=``)
+- Greater than/less than (``>``, ``>=``, ``<``, ``<=``)
+- Compound queries (``||``, ``&&``)
+
+.. _cpp-check-results-size-access-results:
+
+Check the Size of the Results Set and Access Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Realm :cpp-sdk:`Results <structrealm_1_1results.html>` exposes member 
+functions to work with results. You may want to check the size of a results
+set, or access the object at a specific index.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.check-size-and-access-results.cpp
+    :language: cpp
+
+Additionally, you can iterate through the results, or observe a results
+set for changes.
+
+.. _cpp-read-and-iterate-map:
+
+Read a Map Property
+~~~~~~~~~~~~~~~~~~~
+
+You can iterate and check the values of a realm :cpp-sdk:`map property
+<structrealm_1_1managed_3_01std_1_1map_3_01std_1_1string_00_01T_01_4_00_01void_01_4.html>` 
+as you would a standard C++ `map <https://en.cppreference.com/w/cpp/container/map>`__:
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.read-map-value.cpp
+    :language: cpp
+
+.. _cpp-read-and-iterate-set:
+
+Read a Set Property
+~~~~~~~~~~~~~~~~~~~
+
+You can iterate, check the size of a set, and find values in a :cpp-sdk:`set property
+<structrealm_1_1managed_3_01std_1_1set_3_01T_01_5_01_4_01_4.html>`:
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.read-set.cpp
+    :language: cpp
+
+.. _cpp-sort-lists-and-results:
+
+Sort Lists and Query Results
+----------------------------
+
+A sort operation allows you to configure the order in which Realm returns 
+list objects and query results. You can sort based on one or more properties 
+of the objects in the list or results collection. Realm only guarantees a 
+consistent order if you explicitly sort.
+
+Unlike using `std::sort <https://en.cppreference.com/w/cpp/algorithm/sort>`__, 
+Realm's sort implementation preserves the lazy loading of objects. It does
+not pull the entire set of results or list objects into memory, but only
+loads them into memory when you access them.
+
+To sort, call the ``.sort()`` function on a list or results set with one or more 
+:cpp-sdk:`sort_descriptors <structrealm_1_1internal_1_1bridge_1_1sort__descriptor.html>`.
+
+A ``sort_descriptor`` includes:
+
+- The desired key path to sort by, as a string.
+- A bool to specify sort order, where``true`` is ascending and ``false`` 
+  is descending.
+
+In this example, we sort a results set on ``priority`` in descending order.
+
+.. literalinclude:: /examples/generated/cpp/filter-data.snippet.sort-results-by-single-property.cpp
+   :language: cpp
+
+You can also sort a list or results set by multiple sort descriptors. In 
+this example, we sort a list property on ``assignee`` in ascending order, 
+and then on ``priority`` in descending order. 
+
+.. literalinclude:: /examples/generated/cpp/filter-data.snippet.sort-list-by-multiple-properties.cpp
+   :language: cpp

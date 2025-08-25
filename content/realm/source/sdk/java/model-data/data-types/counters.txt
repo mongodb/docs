@@ -1,0 +1,126 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-counters:
+
+===================
+Counters - Java SDK
+===================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Realm offers :java-sdk:`MutableRealmInteger
+<io/realm/MutableRealmInteger.html>`, a wrapper around numeric values,
+to help better synchronize numeric changes across multiple clients.
+
+Typically, incrementing or decrementing a
+``byte``, ``short``, ``int``, or ``long`` field of a Realm
+object looks something like this:
+
+1. Read the current value of the field.
+#. Update that value in memory to a new value based on the increment or
+   decrement.
+#. Write a new value back to the field.
+
+When multiple distributed clients attempt this at the same time,
+updates reaching clients in different orders can
+result in different values on different clients. ``MutableRealmInteger``
+improves on this by translating numeric updates into sync operations
+that can be executed in any order to converge to the same value.
+
+``MutableRealmInteger`` fields are backed by traditional numeric types,
+so no migration is required when changing a field from ``byte``, ``short``,
+``int`` or ``long`` to ``MutableRealmInteger``.
+
+The following example demonstrates a ``MutableRealmInteger`` field that
+counts the number of ghosts found in a haunted house:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/HauntedHouseKt.snippet.complete.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/HauntedHouse.snippet.complete.java
+         :language: java
+         :copyable: false
+
+.. important:: Counter Fields Must be Final
+
+   ``MutableRealmInteger`` is a live object like ``RealmObject``,
+   ``RealmResults`` and ``RealmList``. This means the value contained
+   inside the ``MutableRealmInteger`` can change when a realm is
+   written to. For this reason ``MutableRealmInteger`` fields must be
+   marked final in Java and ``val`` in Kotlin.
+
+Usage
+-----
+
+The :java-sdk:`counter.increment() <io/realm/MutableRealmInteger.html#increment-long->`
+and :java-sdk:`counter.decrement() <io/realm/MutableRealmInteger.html#decrement-long->`
+operators ensure that increments and decrements from multiple distributed
+clients are aggregated correctly.
+
+To change a :java-sdk:`MutableRealmInteger
+<io/realm/MutableRealmInteger.html>` value, call ``increment()`` or
+``decrement()`` within a write transaction:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/WritesTest.snippet.counter-increment-decrement.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/WritesTest.snippet.counter-increment-decrement.java
+         :language: java
+         :copyable: false
+
+You can assign a ``MutableRealmInteger`` a new value with a call to
+:java-sdk:`counter.set() <io/realm/MutableRealmInteger.html#set-long->`
+within a write transaction.
+
+.. warning:: Counter Resets
+
+   Use the ``set()`` operator with extreme care. ``set()`` ignores
+   the effects of any prior calls to ``increment()`` or ``decrement()``.
+   Although the value of a ``MutableRealmInteger`` always converges
+   across devices, the specific value on which it converges depends on
+   the actual order in which operations took place.
+   Mixing ``set()`` with ``increment()`` and ``decrement()`` is
+   not advised unless fuzzy counting is acceptable. 
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/WritesTest.snippet.counter-set.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/WritesTest.snippet.counter-set.java
+         :language: java
+         :copyable: false
+
+Since ``MutableRealmInteger`` instances retain a reference to their
+parent object, neither object can be garbage collected while you still
+retain a reference to the ``MutableRealmInteger``.

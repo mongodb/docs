@@ -1,0 +1,207 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-manage-flexible-sync-subscriptions:
+.. _cpp-flexible-sync:
+
+===================================
+Manage Sync Subscriptions - C++ SDK
+===================================
+
+.. meta:: 
+  :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Flexible Sync uses subscriptions and permissions to determine which
+data to sync between your Atlas App Services App and your client device.
+In the client, query subscriptions manage and filter the object types that
+can sync to the realm.
+
+Prerequisites
+-------------
+
+To use Flexible Sync in your app, you must:
+
+- :ref:`Configure Flexible Sync on the backend <enable-flexible-sync>`
+- :ref:`Initialize the app <cpp-connect-to-backend>`
+- :ref:`Authenticate a user <cpp-authenticate-users>`
+- :ref:`Open the synced Realm with a Flexible Sync configuration <cpp-open-synced-realm>`
+
+The setup code for the examples on this page handles these prerequisites:
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.flexible-sync-prerequisites.cpp
+   :language: cpp
+
+Additionally, models used with Sync must contain a primary key property 
+named ``_id``. For more information on defining a model with a primary key, 
+refer to :ref:`cpp-primary-key`.
+
+.. _cpp-align-subscription-with-app:
+
+Align Subscriptions with Backend App
+------------------------------------
+
+Your client-side subscription queries must align with the Device Sync configuration
+in your backend App Services App.
+
+You subscription queries can either:
+
+- **Query all objects of a type.**
+- **Query object of a type that match backend App's queryable fields.**
+
+To learn more about configuring queryable fields, refer to :ref:`Queryable 
+Fields <queryable-fields>` in the App Services documentation.
+
+A synced realm must have one or more subscriptions in order
+to be able to read and write data to the realm. You can only write data to
+the realm that matches one or more subscriptions, *and* matches the 
+user's permissions. If you attempt to write objects to a realm that do 
+not match a subscription, or for which the user does not have permission
+to perform the write, you get a compensating write from the server and 
+the write reverts.
+
+.. _cpp-manage-subscriptions:
+
+Manage Your Subscriptions
+-------------------------
+
+When configuring Flexible Sync on the backend, you specify which fields your
+client application can query. In the client application, the
+:cpp-sdk:`sync_subscription_set <structrealm_1_1sync__subscription__set.html>` 
+is a list of zero or more :cpp-sdk:`sync_subscription 
+<structrealm_1_1sync__subscription.html>` objects that determine what 
+objects the realm can store. 
+
+The Realm C++ SDK also has a :cpp-sdk:`mutable_sync_subscription_set 
+<structrealm_1_1mutable__sync__subscription__set.html>` that enables you to
+add, change, and remove ``sync_subscription`` objects.
+
+.. warning:: Query Size Limit
+
+   The **size limit** for any given query subscription in your subscription set is **256 kB**.
+   Exceeding this limit results in a :ref:`LimitsExceeded Error<flexible-sync-errors>`.
+
+.. _cpp-verify-subscription-size-find-subscription:
+
+Verify Number of Subscriptions or Find a Specific Subscription
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When your app first opens a synced realm, you may want to verify that it 
+has the expected number of subscriptions or has a specific subscription.
+
+You can get this information by accessing the ``subscriptions()`` public
+member function of a :cpp-sdk:`realm <structrealm_1_1db.html>`. This 
+provides the :cpp-sdk:`sync_subscription_set 
+<structrealm_1_1sync__subscription__set.html>` where you can use the 
+``size()`` or ``find()`` member functions.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.subscription-count-and-find-subscription.cpp
+   :language: cpp
+
+.. _cpp-add-subscriptions:
+
+Add Sync Subscriptions
+~~~~~~~~~~~~~~~~~~~~~~
+
+To update a subscription set, use the ``subscription().updates()`` function.
+This gives you access to a :cpp-sdk:`mutable_sync_subscription_set 
+<structrealm_1_1mutable__sync__subscription__set.html>` where you can use the
+use the ``add()`` function to add a new Sync subscription.
+
+This template requires the object type of the object you want to sync, and 
+a string name for the subscription.
+
+Subscribe to All Objects of a Type
+``````````````````````````````````
+
+You can subscribe to all objects of a type. This enables the synced realm to 
+read and write any objects of the type where the user's permissions match 
+the server-side permissions.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.subscribe-to-all-objects-of-a-type.cpp
+   :language: cpp
+
+Subscribe to Objects that Match a Query
+```````````````````````````````````````
+
+If you only want to subscribe to a subset of objects, provide a query to 
+filter the subscription.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.subscribe-to-objects-matching-a-query.cpp
+   :language: cpp
+
+When you filter a subscription, you cannot write objects that do not match 
+the filter. In this example, the query matches ``Dog`` objects whose ``age`` is 
+less than ``3``. The realm does not sync any dogs who are 3 or older. This 
+filter also applies to writes. If you try to write a ``Dog`` object where 
+the ``age`` is ``4``, you get a compensating write error and the write 
+reverts.
+
+.. include:: /includes/note-cpp-supports-subset-of-rql.rst
+
+.. _cpp-update-subscriptions:
+
+Update Sync Subscriptions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update a subscription set, use the ``subscription().updates()`` function.
+This gives you access to a :cpp-sdk:`mutable_sync_subscription_set 
+<structrealm_1_1mutable__sync__subscription__set.html>` where you can use the
+``update_subscription()`` function to update a specific :cpp-sdk:`sync_subscription 
+<structrealm_1_1sync__subscription.html>`.
+
+You can change a ``sync_subscription``'s query in an update. You can add, remove,
+or update the query string for a given ``sync_subscription``.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.change-subscription-query.cpp
+   :language: cpp
+
+.. _cpp-remove-subscriptions:
+
+Remove Sync Subscriptions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update a subscription set, use the ``subscription().updates()`` function.
+This gives you access to a :cpp-sdk:`mutable_sync_subscription_set 
+<structrealm_1_1mutable__sync__subscription__set.html>` where you can use the
+``remove()`` or ``clear()`` functions to remove subscriptions.
+
+Remove a Specific Subscription
+``````````````````````````````
+
+You can remove a specific subscription by name using the ``remove()`` function.
+Removing a subscription by name throws an error if the subscription does
+not exist, so you should check for a subscription before removing it.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.remove-subscription-by-name.cpp
+   :language: cpp
+
+Remove All Subscriptions
+````````````````````````
+
+You can remove all subscriptions in a subscription set using the ``clear()`` 
+function.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.clear-all-subscriptions.cpp
+   :language: cpp
+
+.. _cpp-refresh-realm:
+
+Refresh the Realm After Updating Subscriptions
+----------------------------------------------
+
+After you update subscriptions, call ``refresh()`` on the :cpp-sdk:`realm 
+<structrealm_1_1db.html>`. This updates the realm and outstanding objects 
+managed by the realm to point to the most recent data.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.refresh-the-realm.cpp
+   :language: cpp

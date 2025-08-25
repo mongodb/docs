@@ -1,0 +1,249 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:orphan:
+
+.. _node-electron-client-quick-start:
+
+=========================
+Quick Start with Electron
+=========================
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+
+This page contains information to integrate Realm into your
+Electron application quickly. To learn how to set up an Electron
+application with Realm without using any additional frameworks, see the
+:ref:`Electron set up <electron-setup>` instructions. If you have
+already created an application using `Create React App
+<https://reactjs.org/docs/create-a-new-react-app.html>`_ or are
+interested in integrating a React App with Realm using Electron, check
+out the :ref:`Electron with React set up <node-electron-cra-client-quick-start>`
+instructions.
+
+Before you begin, ensure you have:
+
+- :ref:`Created an App <create-a-realm-app>`
+- :ref:`Enabled Device Sync <enable-sync>`
+
+.. note:: Version Requirement
+
+   Realm works with any of the officially supported Electron
+   versions. We recommend using the latest stable release. To see the
+   officially supported Electron versions, check out the `Electron
+   Releases <https://www.electronjs.org/releases/>`_ document.
+
+.. _electron-setup:
+
+Setup
+-----
+
+.. procedure::
+
+   .. step:: Set up Your Application Files
+
+      To begin developing your application, create an application directory:
+
+      .. code-block:: shell
+
+         mkdir myElectronApplication
+
+      Create an ``index.html``, ``main.js``, and ``renderer.js`` file in the root
+      directory of your application.
+
+      .. code-block:: sh
+
+         touch index.html main.js renderer.js
+
+      The ``main.js`` file is the entry point into your application and
+      executes on the main process. It is responsible for loading your ``index.html``
+      file into Electron's `BrowserWindow API
+      <https://www.electronjs.org/docs/api/browser-window>`__. Any script files that
+      you require in this HTML file will execute on a renderer process.
+      Add the following to your ``index.html`` file:
+
+      .. code-block:: html
+
+         <!DOCTYPE html>
+         <html>
+           <head>
+             <meta charset="UTF-8" />
+             <title>Hello World!</title>
+           </head>
+           <body>
+             <h1>Hello World!</h1>
+             <script src="renderer.js"></script>
+           </body>
+         </html>
+
+      Add the following code to the ``renderer.js`` file:
+
+      .. code-block:: javascript
+
+         const Realm = require("realm");
+
+      .. note::
+
+         Each Electron application can only have one ``main process``. The
+         main process creates web pages. Each web page runs in its
+         own process, known as a ``renderer process``. To learn more about
+         this, read the official `Electron Process Model
+         <https://www.electronjs.org/docs/latest/tutorial/process-model>`__
+         document.
+
+
+   .. step:: Create the Main Script File
+
+      The ``main.js`` file is the entry point of your application. Create an
+      Electron BrowserWindow in it and load your ``index.html`` file to display your
+      HTML to users:
+
+      .. code-block:: javascript
+
+         const { app, BrowserWindow } = require('electron')
+
+         function createWindow () {
+           const win = new BrowserWindow({
+             width: 800,
+             height: 600,
+             webPreferences: {
+               nodeIntegration: true,
+               contextIsolation: false
+             }
+           })
+
+           // to prevent the Sync Connection from ending prematurely, start reading from stdin so we don't exit
+           process.stdin.resume();
+
+           win.loadFile('index.html')
+         }
+
+         app.whenReady().then(createWindow)
+
+
+   .. step:: Set up a ``package.json``
+
+      Initialize a ``package.json`` to begin installing packages and using them
+      in your project. Run the following command in your terminal:
+
+      .. code-block:: shell
+
+         npm init -y
+
+      Your application file structure should resemble the following:
+
+      .. code-block:: text
+         :emphasize-lines: 5, 6
+
+         .
+         |-- package.json
+         |-- package-lock.lock
+         |-- index.html
+         |-- main.js // runs on the main process
+         |-- renderer.js // runs on a renderer process
+
+      The file ``main.js`` executes on the ``main`` process. The file
+      ``renderer.js`` and any other files required by it, or by ``index.html``,
+      executes on a ``renderer`` process.
+
+
+   .. step:: Install Your Project Dependencies
+
+      Install the necessary dependencies to begin developing your Electron application using Realm.
+
+      .. code-block:: shell
+
+         npm install electron --save-dev
+         npm install realm --save
+
+
+   .. step:: Create a Script to Run Your Application
+
+      Add a script to your ``package.json`` file in order to start your application with the ``npm start`` command.
+
+      .. code-block:: json
+
+         "scripts": {
+          "start": "electron ."
+         }
+
+
+   .. step:: Run Your Application
+
+      Start your application from the terminal:
+
+      .. code-block:: shell
+
+         npm start
+
+      You should see the following:
+
+      .. cssclass:: bordered-figure
+      .. figure:: /images/electron-app.png
+        :alt: Electron Desktop App
+
+Open a Realm
+------------
+
+Authenticate a user, define a schema, and :ref:`sync enabled Device Sync
+<enable-sync>`, then call :js-sdk:`Realm.open() <classes/Realm-1.html#open>` 
+in your renderer.js file.
+
+Once you have opened the realm, you can :ref:`write to the realm
+<node-realm-database-writes>`.
+
+.. code-block:: javascript
+   :emphasize-lines: 17
+
+   const app = new Realm.App({ id: "<Your App ID>" }); // create a new instance of the Realm.App
+   async function run() {
+
+     // login with an anonymous credential
+     await app.logIn(Realm.Credentials.anonymous());
+
+     const DogSchema = {
+         name: "Dog",
+         properties: {
+           _id: 'int',
+           name: "string",
+           age: "int",
+         },
+         primaryKey: '_id'
+     };
+
+     const realm = await Realm.open({
+       schema: [DogSchema],
+       sync: {
+         user: app.currentUser,
+         partitionValue: "myPartition",
+       },
+     });
+     
+     // The myPartition realm is now synced to the device. You can
+     // access it through the `realm` object returned by `Realm.open()`
+
+     // write to the realm
+   }
+   run().catch(err => {
+     console.error("Failed to open realm:", err)
+   });
+
+.. include:: /includes/note-electron-writes-from-both-processes.rst
+
+.. include:: /includes/note-electron-packaging.rst
+
+.. seealso::
+
+   - :ref:`Sync Changes Between Devices <node-sync-changes-between-devices>`
+   - :ref:`Define Your Schema <node-object-schemas>`
+   - :ref:`Authenticate a User <node-authenticate-users>`

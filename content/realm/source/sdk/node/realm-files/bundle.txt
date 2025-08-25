@@ -1,0 +1,143 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-bundle-a-realm:
+
+==============================
+Bundle a Realm File - Node SDK
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Realm supports **bundling** realm files. When you bundle
+a realm file, you include a database and all of its data in your
+application download.
+
+This allows users to start applications for the first time with a set of
+initial data. For synced realms, bundling can avoid a lengthy
+initial download the first time a user opens your application. Instead,
+users must only download the synced changes that occurred since you
+generated the bundled file.
+
+Overview
+--------
+
+To create and bundle a realm file with your application:
+
+#. :ref:`Create a realm file <node-create-a-realm-for-bundling>` that
+   contains the data you'd like to bundle.
+
+#. :ref:`Add the bundled realm file <node-bundle-realm-file>` 
+   to your production application.
+
+#. In your production application,
+   :ref:`open the realm from the bundled asset file
+   <node-open-a-realm-from-a-bundled-realm-file>`. For synchronized
+   realms, you must include the partition key.
+
+.. note:: Bundle Synchronized Realms
+
+   SDK version 10.12.0 introduced the ability to bundle synchronized realms.
+   Before version 10.12.0, you could only bundle local realms. See the :ref:`Bundle a
+   Synchronized Realm <node-bundle-synced-realm>` section for details on considerations
+   and limitations when bundling a synchronized realm.
+
+.. _node-create-a-realm-for-bundling:
+
+Create a Realm File for Bundling
+--------------------------------
+
+1. Build a temporary realm app that shares the data model of your
+   application.
+
+#. Open a realm and add the data you wish to bundle. If using a
+   synchronized realm, allow time for the realm to fully sync.
+
+#. Use the :js-sdk:`writeCopyTo() <Realm.html#writeCopyTo>` 
+   method to copy the realm to a new file:
+
+   .. literalinclude:: /examples/generated/node/bundle-a-realm.snippet.copy-realm-to-new-file.js
+      :language: javascript
+
+   ``writeCopyTo()`` automatically compacts your realm to the smallest
+   possible size before copying.
+
+   .. note:: Differences Between Synchronized Realms and Local-only Realms
+
+      The above example uses a :js-sdk:`SyncConfiguration <Realm.App.Sync.html#~SyncConfiguration>`
+      to configure a synchronized realm for the ``sync`` field of the 
+      :js-sdk:`Configuration <Realm.html#~Configuration>`.
+      To create a copy of a local realm, do not include the ``sync`` field 
+      in your Configuration object.
+
+#. Note the filepath of the bundled realm file, which can be found at the location specified in the argument 
+   passed to ``writeCopyTo()`` in the previous step. You'll need this file to use
+   the bundled realm in your production application, as described in the next 
+   section.
+
+   .. code-block::
+      :caption: temp_realm_app
+      :emphasize-lines: 2
+
+      .
+      ├── copyOfDefault.realm
+      ... rest of files in _temp_ application
+
+.. _node-bundle-realm-file:
+
+Bundle a Realm File in Your Production Application
+----------------------------------------------------
+
+Now that you have a copy of the realm that contains the initial data,
+bundle it with your production application.
+
+Add the bundled realm file made in the previous section to your production
+application. 
+
+.. code-block::
+   :caption: prod_realm_app
+   :emphasize-lines: 2
+
+   .
+   ├── copyOfDefault.realm 
+   ... rest of files in _prod_ application
+
+.. _node-open-a-realm-from-a-bundled-realm-file:
+
+Open a Realm from a Bundled Realm File
+--------------------------------------
+
+Now that you have a copy of the realm included with your production
+application, you need to add code to use it. 
+
+Create a :js-sdk:`Configuration <Realm.html#~Configuration>` with the path 
+to the bundled realm as the value for the ``path`` field. Pass that configuration 
+to the :js-sdk:`Realm.open() <Realm.html#.open>` method. Now you can work with the data 
+from your bundled realm in the realm you've just opened. 
+
+.. literalinclude:: /examples/generated/node/bundle-a-realm.snippet.open-bundled-realm.js
+      :language: javascript
+
+.. _node-bundle-synced-realm:
+
+Bundle a Synchronized Realm
+---------------------------
+
+.. include:: /includes/note-writecopy-same-type-sync-only.rst
+
+Generally, bundling a synchronized realm works the same as bundling a local-only realm.
+However, you can only bundle fully synchronized realms. Make sure that the realm has fully synchronized
+with the server before bundling: 
+
+.. literalinclude:: /examples/generated/node/bundle-a-realm.snippet.fully-sync-before-copy.js
+      :language: javascript
+
+.. include:: /includes/note-bundling-synced-realms.rst
+
+Further limitations exist when opening a bundled synchronized realm that uses the older
+Partition-Based Sync. For more information on using realms configured with Partition-Based Sync,
+refer to :ref:`Partition-Based Sync - Node.js SDK <node-partition-based-sync>`.

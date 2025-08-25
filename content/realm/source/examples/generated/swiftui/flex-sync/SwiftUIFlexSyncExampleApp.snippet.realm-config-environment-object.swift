@@ -1,0 +1,2 @@
+OpenSyncedRealmView()
+    .environment(\.realmConfiguration, config)

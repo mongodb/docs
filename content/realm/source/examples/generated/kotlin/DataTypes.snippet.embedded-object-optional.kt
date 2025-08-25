@@ -1,0 +1,1 @@
+var embeddedProperty: EmbeddedObjectType? = null

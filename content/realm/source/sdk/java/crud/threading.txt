@@ -1,0 +1,317 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-threading:
+
+====================
+Threading - Java SDK
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To make your Android apps fast and responsive, you must
+balance the computing time needed to lay out the visuals and
+handle user interactions with the time needed to process
+your data and run your business logic. Typically, app
+developers spread this work across multiple threads: the
+main or UI thread for all of the user interface-related
+work, and one or more background threads to compute heavier
+workloads before sending it to the UI thread for
+presentation. By offloading heavy work to background
+threads, the UI thread can remain highly responsive
+regardless of the size of the workload.
+
+.. _java-threading-three-rules:
+
+Three Rules to Keep in Mind
+---------------------------
+
+Realm enables simple and safe multithreaded code when you
+follow these three rules:
+
+Avoid writes on the UI thread if you write on a background thread:
+  You can :ref:`write <java-realm-database-writes>` to a
+  realm from any thread, but there can be only one
+  writer at a time. Consequently, write transactions block
+  each other. A write on the UI thread may result in your
+  app appearing unresponsive while it waits for a write on a
+  background thread to complete. If you are using
+  :ref:`Sync <sync>`, avoid writing on
+  the UI thread as Sync writes on a background
+  thread.
+
+Don't pass live objects, collections, or realms to other threads:
+  Live objects, collections, and realm instances are
+  **thread-confined**: that is, they are only valid on the
+  thread on which they were created. Practically speaking,
+  this means you cannot pass live instances to other
+  threads. However, Realm offers several mechanisms for
+  :ref:`sharing objects across threads
+  <java-communication-across-threads>`.
+
+Don't lock to read:
+  Realm's :ref:`Multiversion Concurrency Control (MVCC)
+  <java-mvcc>` architecture eliminates the need to lock for read operations. The
+  values you read will never be corrupted or in a
+  partially-modified state. You can freely read from realms
+  on any thread without the need for locks or mutexes.
+  Unnecessarily locking would be a performance bottleneck
+  since each thread might need to wait its turn before
+  reading.
+
+.. _java-communication-across-threads:
+
+Communication Across Threads
+----------------------------
+
+Live objects, collections, and realms are **thread-confined**. If
+you need to work with the same data across multiple threads, you should
+open the same realm on multiple threads as separate realm
+instances. The Java SDK :ref:`consolidates underlying connections across
+threads where possible <java-realm-lifecycle>` to make this pattern
+more efficient.
+
+When you need to communicate across threads, you have
+several options depending on your use case:
+
+- To modify the data on two threads, :ref:`query <java-read-from-realm>`
+  for the object on both threads using a
+  :ref:`primary key <java-primary-key-fundamentals>`.
+
+- To send a fast, read-only view of an object to other threads,
+  :ref:`freeze <java-frozen-objects>` the object.
+
+- To keep and share many read-only views of the object in your app, copy
+  the object from the realm.
+
+- To react to changes made on any thread, use
+  :ref:`notifications <java-client-notifications>`.
+
+- To see changes from other threads in the realm on the current
+  thread, :ref:`refresh <java-refreshing-realms>` your realm
+  instance (event loop threads refresh automatically).
+
+.. _java-intents:
+
+Intents
+~~~~~~~
+
+:ref:`Managed <java-managed-objects>` ``RealmObject`` instances are
+not thread-safe or ``Parcelable``, so you cannot pass them between
+activities or threads via an ``Intent``. Instead, you can pass an object
+identifier, like a :ref:`primary key <java-primary-key-fundamentals>`,
+in the ``Intent`` extras bundle, and then open a new realm instance
+in the separate thread to query for that identifier. Alternatively, you
+can :ref:`freeze <java-frozen-objects>` Realm objects.
+
+.. seealso::
+
+   You can find working examples in the `Passing Objects <https://github.com/realm/realm-java/blob/master/examples/threadExample/src/main/java/io/realm/examples/threads/PassingObjectsFragment.java>`__
+   portion of the `Java SDK Threading Example
+   <https://github.com/realm/realm-java/tree/master/examples/threadExample>`__.
+   The example shows you how to pass IDs and retrieve a ``RealmObject``
+   in common Android use cases.
+
+.. _java-frozen-objects:
+
+Frozen Objects
+~~~~~~~~~~~~~~
+
+Live, thread-confined objects work fine in most cases.
+However, some apps -- those based on reactive, event
+stream-based architectures, for example -- need to send
+immutable copies across threads. In this case,
+you can **freeze** objects, collections, and realms.
+
+Freezing creates an immutable view of a specific object,
+collection, or realm that still exists on disk and does not
+need to be deeply copied when passed around to other
+threads. You can freely share a frozen object across threads
+without concern for thread issues.
+
+Frozen objects are not live and do not automatically update. They are
+effectively snapshots of the object state at the time of freezing. When
+you freeze a realm all child objects and collections also become
+frozen. You can't modify frozen objects, but you can read the primary
+key from a frozen object, query a live realm for the underlying
+object, and then update that live object instance.
+
+Frozen objects remain valid for as long as the realm that
+spawned them stays open. Avoid closing realms that contain frozen
+objects until all threads are done working with those frozen objects.
+
+.. warning:: Frozen Object Exceptions
+
+   When working with frozen objects, an attempt to do any of
+   the following throws an exception:
+
+   - Opening a write transaction on a frozen realm.
+   - Modifying a frozen object.
+   - Adding a change listener to a frozen realm, collection, or object.
+
+Once frozen, you cannot unfreeze an object. You
+can use ``isFrozen()`` to check if an object is frozen.
+This method is always thread-safe.
+
+To freeze an object, collection, or realm, use the
+:java-sdk:`freeze() <io/realm/RealmObject.html#freeze-->` method:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/ThreadingTest.snippet.freeze-objects.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/ThreadingTest.snippet.freeze-objects.java
+         :language: java
+         :copyable: false
+
+.. important:: Frozen Objects and Realm Size
+
+   Frozen objects preserve an entire copy of the realm that contains
+   them at the moment they were frozen. As a result, freezing a large
+   number of objects can cause a realm to consume more memory and
+   storage than it might have without frozen objects. If you need to
+   separately freeze a large number of objects for long periods of time,
+   consider copying what you need out of the realm instead.
+
+.. _java-refreshing-realms:
+
+Refreshing Realms
+-----------------
+
+When you open a realm, it reflects the most recent successful write
+commit and remains on that version until it is **refreshed**. This means
+that the realm will not see changes that happened on another thread
+until the next refresh. Realms on any event loop thread 
+(including the UI thread) automatically refresh themselves at the
+beginning of that thread's loop. However, you must manually refresh
+realm instances that are tied to non-looping threads or that have
+auto-refresh disabled. To refresh a realm, call
+:java-sdk:`Realm.refresh() <io/realm/Realm.html#refresh-->`:
+
+.. tabs-realm-languages::
+   
+   .. tab::
+       :tabid: kotlin
+
+       .. literalinclude:: /examples/generated/java/local/ThreadingTest.snippet.refresh-realm.kt
+         :language: kotlin
+         :copyable: false
+
+   .. tab::
+       :tabid: java
+
+       .. literalinclude:: /examples/generated/java/local/ThreadingTest.snippet.refresh-realm.java
+         :language: java
+         :copyable: false
+
+.. tip:: Refresh on Write
+
+   Realms also automatically refresh after completing a write transaction.
+
+.. _java-mvcc:
+
+Realm's Threading Model in Depth
+--------------------------------
+
+Realm provides safe, fast, lock-free, and concurrent access
+across threads with its :wikipedia:`Multiversion Concurrency
+Control (MVCC) <Multiversion_concurrency_control>`
+architecture.
+
+Compared and Contrasted with Git
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are familiar with a distributed version control
+system like `Git <https://git-scm.com/>`__, you may already
+have an intuitive understanding of MVCC. Two fundamental
+elements of Git are:
+
+- Commits, which are atomic writes.
+- Branches, which are different versions of the commit history.
+
+Similarly, Realm has atomically-committed writes in the form
+of :ref:`transactions <java-realm-database-writes>`. Realm also has many
+different versions of the history at any given time, like
+branches.
+
+Unlike Git, which actively supports distribution and
+divergence through forking, a realm only has one true latest
+version at any given time and always writes to the head of
+that latest version. Realm cannot write to a previous
+version. This makes sense: your data should converge on one
+latest version of the truth.
+
+Internal Structure
+~~~~~~~~~~~~~~~~~~
+
+A realm is implemented using a :wikipedia:`B+ tree
+<B%2B_tree>` data structure. The top-level node represents a
+version of the realm; child nodes are objects in that
+version of the realm. The realm has a pointer to its latest
+version, much like how Git has a pointer to its HEAD commit.
+
+Realm uses a copy-on-write technique to ensure
+:wikipedia:`isolation <Isolation_(database_systems)>` and
+:wikipedia:`durability <Durability_(database_systems)>`.
+When you make changes, Realm copies the relevant part of the
+tree for writing, then commits the changes in two phases:
+
+- Write changes to disk and verify success.
+- Set the latest version pointer to point to the newly-written version.
+
+This two-step commit process guarantees that even if the
+write failed partway, the original version is not corrupted
+in any way because the changes were made to a copy of the
+relevant part of the tree. Likewise, the realm's root
+pointer will point to the original version until the new
+version is guaranteed to be valid.
+
+.. include:: /includes/commit-process-diagram.rst
+
+Realm uses zero-copy techniques
+like memory mapping to handle data. When you read a value
+from the realm, you are virtually looking at the value on
+the actual disk, not a copy of it. This is the basis for
+:ref:`live objects <java-live-object>`. This is also why a realm
+head pointer can be set to point to the new version after
+the write to disk has been validated.
+
+Summary
+-------
+
+- Realm enables simple and safe multithreaded code when you follow
+  three rules:
+
+  - Avoid writes on the UI thread if you write on background threads or
+    use :ref:`Sync <sync>`.
+
+  - Don't pass live objects to other threads.
+
+  - Don't lock to read.
+
+- In order to see changes made on other threads in your realm
+  instance, you must manually **refresh** realm instances that do
+  not exist on "loop" threads or that have auto-refresh disabled.
+
+- For apps based on reactive, event-stream-based architectures, you can
+  **freeze** objects, collections, and realms in order to pass
+  copies around efficiently to different threads for processing.
+
+- Realm's multiversion concurrency control (MVCC)
+  architecture is similar to Git's. Unlike Git, Realm has
+  only one true latest version for each realm.
+
+- Realm commits in two stages to guarantee isolation and
+  durability.

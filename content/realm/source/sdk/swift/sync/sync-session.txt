@@ -1,0 +1,259 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swift-suspend-resume-sync:
+.. _ios-suspend-or-resume-a-sync-session:
+
+================================
+Manage Sync Sessions - Swift SDK
+================================
+
+.. meta:: 
+   :description: Access the SyncSession to check network connection, wait for uploads and downloads, and check Sync progress.
+   :keywords: code example
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Opening a synced realm starts a :swift-sdk:`SyncSession <Extensions/SyncSession.html>`
+for that realm. The Realm Swift SDK provides methods to manually pause 
+and resume a sync session.
+
+Sync Connection Behavior
+------------------------
+
+.. versionadded:: 10.41.0
+
+In Realm Swift SDK version 10.41.0 and later, App Services defaults to 
+sharing a single connection to the server for all opened synced realms. 
+This is a change from earlier versions where opening more than one synced 
+realm opened additional connections to the server. The connection to the 
+server is independent of the ``SyncSession``, and is based on the App 
+Services user.
+
+You can change this behavior from the :ref:`App client configuration 
+<ios-init-appclient>`.
+
+.. _swift-check-network-connection:
+.. _ios-check-network-connection:
+
+Check the Network Connection
+----------------------------
+
+.. tip:: 
+
+   Realm's *offline-first* design means that you generally don't
+   need to check the current network connection state. That said, the
+   ``connectionState`` property is available if your app calls for some
+   indication of connection state.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      To check the connection state, you can read the synced realm's
+      SyncSession instance's :swift-sdk:`connectionState
+      <Extensions/SyncSession.html#/s:So14RLMSyncSessionC10RealmSwiftE15ConnectionStatea>`
+      property directly. 
+
+      This property is :apple:`KVO-compliant
+      <library/archive/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html>`,
+      so you can observe changes using KVO or even Combine.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.check-network-connection.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      To check the connection state, you can read the synced realm's
+      RLMSyncSession instance's :objc-sdk:`connectionState
+      <Classes/RLMSyncSession.html#/c:objc(cs)RLMSyncSession(py)connectionState>`
+      property directly.
+
+      This property is :apple:`KVO-compliant
+      <library/archive/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html>`,
+      so you can observe changes using KVO. The following example
+      demonstrates how to implement an observer class:
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.check-network-connection-setup.m
+         :language: objectivec
+
+      You can then attach an observer instance to the RLMSyncSession
+      object. Be sure to remove the observer when finished.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.check-network-connection.m
+         :language: objectivec
+
+.. _swift-suspend-sync-session:
+
+Suspend or Resume a Sync Session
+--------------------------------
+
+You can suspend and resume the sync session on the realm.
+Pausing a sync session only suspends that realm's sync session. If you have
+more than one open realm, suspend does not affect the sync sessions for 
+other realms.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      You can suspend or resume a sync session using the
+      :swift-sdk:`SyncSession <Extensions/SyncSession.html>` instance of
+      a synced realm.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.pause-resume-sync-session.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      You can suspend or resume a sync session using the
+      :objc-sdk:`RLMSyncSession <Classes/RLMSyncSession.html>` instance
+      of a synced realm.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.pause-resume-sync-session.m
+         :language: objectivec
+
+When to Pause a Sync Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/when-to-pause-sync.rst
+
+.. _swift-sync-wait-for-changes:
+
+Wait for Changes to Upload or Download
+--------------------------------------
+
+.. versionadded:: 10.45.0
+
+To wait for all changes to upload or download from your synced realm,
+call :swift-sdk:`realm.syncSession?.wait(for: ) <Extensions/SyncSession.html#/s:So14RLMSyncSessionC10RealmSwiftE4wait3foryAbCE17ProgressDirectionO_tYaKF>`. 
+
+This method takes a :swift-sdk:`ProgressDirection <Extensions/SyncSession/ProgressDirection.html>`
+argument to specify whether to track upload or download progress.
+
+You can use these methods with Swift's async/await syntax, or with the 
+callback syntax. The callback version, 
+:swift-sdk:`realm.syncSession?.wait(for:queue:block:) <Extensions/SyncSession.html#/s:So14RLMSyncSessionC10RealmSwiftE4wait3for5queue5blockyAbCE17ProgressDirectionO_So012OS_dispatch_G0CSgys5Error_pSgYbctF>`, 
+can take a queue to dispatch the callback onto, and a block to invoke when 
+waiting is complete.
+
+.. tabs::
+
+   .. tab:: Async/Await
+      :tabid: async-await
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.awaitable-wait-for-upload-download.swift
+         :language: swift
+
+   .. tab:: Callback
+      :tabid: callback
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.callback-wait-for-upload-download.swift
+         :language: swift
+
+.. _swift-check-upload-download-progress:
+.. _ios-check-sync-progress:
+
+Check Upload & Download Progress for a Sync Session
+---------------------------------------------------
+
+.. versionchanged:: 10.50.0
+   ``transferredBytes`` and ``transferrableBytes`` deprecated in favor of ``progressEstimate``
+
+You can check upload and download progress by registering a token that provides
+a ``progressEstimate`` for a given upload or download direction and work scope.
+You can set a ``ProgressMode`` to determine the work scope: either observe
+indefinitely or unregister the block after the current work item has completed.
+
+The ``progressEstimate`` value provided by the token is a double whose value
+ranges from ``0.0`` to ``1.0``. At ``1.0``, the upload or download is complete.
+You can use this ``progressEstimate`` to display a progress indicator or
+estimated data transfer percentage.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      You can add a progress notification using the synced realm's
+      SyncSession instance's
+      :swift-sdk:`addProgressNotification(for:mode:block:)
+      <Extensions/SyncSession.html#/s:So14RLMSyncSessionC10RealmSwiftE23addProgressNotification3for4mode5blockSo011RLMProgressG5TokenCSgAbCE0F9DirectionO_AbCE0F4ModeOyAbCE0F0VctF>`
+      method.
+
+      This method returns a token that you should retain until you wish
+      to stop observing upload or download progress. Note that if you
+      keep the token in a local variable, observation will stop when the
+      local variable goes out of scope.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.check-progress-estimate.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      .. versionchanged:: 10.50.0
+        ``addProgressNotificationForDirection`` deprecated in favor of ``addSyncProgressNotificationForDirection``
+
+      You can add a progress notification using the synced realm's
+      RLMSyncSession instance's
+      :objc-sdk:`[--addSyncProgressNotificationForDirection:mode:block:]
+      <Classes/RLMSyncSession.html#/c:objc(cs)RLMSyncSession(im)addSyncProgressNotificationForDirection:mode:block:>`
+      method.
+
+      This method returns a token that you should retain until you wish
+      to stop observing upload or download progress. Note that if you
+      keep the token in a local variable, observation will stop when the
+      local variable goes out of scope.
+
+      .. literalinclude:: /examples/generated/code/start/Sync.snippet.check-progress.m
+         :language: objectivec
+
+.. _ios-reconnect-sync-sessions:
+
+Manually Reconnect All Sync Sessions
+------------------------------------
+
+.. versionadded:: 10.44.0
+
+Realm automatically detects when a device regains connectivity after being 
+offline and attempts to reconnect using an incremental backoff strategy.
+For example, on Apple platforms, Realm listens for network change notifications 
+and automatically triggers a reconnect immediately after receiving one.
+
+In Swift SDK version 10.44.0 and later, you can choose to manually trigger a 
+reconnect attempt with ``SyncSession.reconnect()``
+instead of waiting for the duration of the incremental backoff. This is 
+useful if you have a more accurate understanding of 
+the network conditions and don't want to rely on Realm's automatic 
+reconnect detection.
+
+.. literalinclude:: /examples/generated/code/start/Sync.snippet.sync-session-reconnect.swift
+   :language: swift
+
+When you call this method, the SDK forces all sync sessions to *attempt* to 
+reconnect immediately. This resets any timers used for incremental 
+backoff. 
+
+Calling this method does not guarantee the device can reconnect. If the SDK
+gets a fatal error, or if the device is already connected or is trying to
+connect, calling this method has no effect.
+
+.. important:: Cannot Reconnect Within Socket Read Timeout Duration
+   
+   Realm has an internal default socket read timeout of 2 minutes, where 
+   Realm will time out if a read operation does not receive any data 
+   within a 2-minute window. If you call ``SyncSession.reconnect()`` 
+   within that window, the Swift SDK does *not* attempt to reconnect.

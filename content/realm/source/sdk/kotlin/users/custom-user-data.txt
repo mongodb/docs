@@ -1,0 +1,167 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-custom-user-data:
+
+====================================
+Manage Custom User Data - Kotlin SDK
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes custom user data in an App Services App and how to manage it 
+with the Realm Kotlin SDK.
+
+.. important:: 
+
+   Currently you can only read custom user data with the Kotlin SDK.
+   In a future update to the SDK, you will be able to write custom user data
+   from the SDK as well.
+
+   You can create, update, or delete custom user data using one of the other
+   Realm SDKs, with Atlas Functions, or by directly querying Atlas.
+
+Atlas App Services lets you associate data with an authenticated user, 
+such as a user's preferred language, date of birth, or local timezone. 
+You can store this arbitrary **custom user data** about your users and read 
+it from your client application. 
+
+.. versionadded:: 1.9.0
+
+You can serialize custom user data using an EJSON encoder. For more information,
+including examples, refer to :ref:`<kotlin-ejson-encoding-for-atlas>`.
+
+Prerequisites
+-------------
+
+To use custom user data, you must have an 
+App Services App with custom user data enabled. 
+
+To set up an App Services App that uses custom user data, refer to the 
+following:
+
+#. :ref:`Connect your app to Atlas App Services <kotlin-connect-to-backend>`
+#. :ref:`Enable Custom User Data <enable-custom-user-data-procedure>` 
+   in the App Services documentation
+
+.. _kotlin-read-custom-user-data:
+
+Read Custom User Data
+---------------------
+
+You can retrieve custom user data of a currently logged-in user using the 
+`User.customDataAsBsonDocument() 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb.ext/custom-data-as-bson-document.html>`__ 
+extension function:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.read-custom-user-data.kt
+   :language: kotlin
+      
+Atlas App Services does *not* dynamically update the value of the client-side
+user custom data document immediately when underlying data changes.
+Instead, App Services fetches the most recent version of custom user
+data whenever a user refreshes their access token or when you explicitly 
+call the `User.refreshCustomData() 
+<{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/refresh-custom-data.html>`__
+function to request the latest version of a user's custom data.
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.refresh-custom-user-data.kt
+   :language: kotlin
+
+.. _kotlin-write-custom-user-data:
+
+Write Custom User Data with Atlas Functions
+-------------------------------------------
+
+You can write to custom user data with an Atlas Function. 
+Atlas Functions are server-side JavaScript functions that are built into your backend App.
+You can :ref:`call an Atlas Function <kotlin-call-function>` directly from the Realm Kotlin SDK.
+
+Currently, it is *not* possible to write to custom user data directly from the Realm Kotlin SDK.
+
+There is no single pattern for adding custom user data from an Atlas Function.
+You should write your Function or Functions to suit your application's use case.
+
+In this example, the Atlas Function takes an object passed by the client and 
+adds it to the custom user data collection in Atlas. 
+The Function creates the custom user data if it doesn't already exist and 
+replaces all data in it if it does exist.
+
+.. literalinclude:: /examples/generated/kotlin/customUserData.snippet.write-custom-user-data.js
+   :language: js
+   :caption: writeCustomUserData.js - Atlas Function running on server (JavaScript)
+
+The Kotlin SDK code to call this Function:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.write-custom-user-data.kt
+   :language: kotlin
+
+.. note:: 
+   
+    To learn more about Atlas Functions, refer to the following documentation:
+
+    - :ref:`Call an Atlas Function <kotlin-call-function>`
+    - :ref:`Atlas Functions <functions>` in the App Services documentation
+
+.. TODO: add back in once you can interact w MongoDB from Realm Kotlin
+.. .. _kotlin-create-custom-user-data:
+
+.. Create a User's Custom User Data Document
+.. -----------------------------------------
+
+.. To create custom user data for a user, create a MongoDB document in the
+.. custom user data collection. The user ID field of the document must
+.. contain the the user's user ID. The following example uses
+.. MongoDB Data Access (INSERT LINK) to insert a
+.. document containing the user ID of the currently logged in user and several
+.. custom properties into the custom user data collection:
+
+.. CODE_BLOCK
+
+.. .. _kotlin-update-custom-user-data:
+
+.. Update a User's Custom Data
+.. ---------------------------
+
+.. Updating custom user data uses the same code as writing. The following example
+.. finds and updates the data by using the
+.. ``UpdateOneAsync()``
+.. method, and then refreshes the data to ensure the latest changes are available:
+.. CODE_BLOCK
+
+.. _kotlin-delete-custom-user-data:
+
+Delete Custom Data with Atlas Functions
+---------------------------------------
+
+Custom user data is stored in a document linked to the 
+`User <{+kotlin-sync-prefix+}io.realm.kotlin.mongodb/-user/index.html>`__ object. 
+
+.. important:: 
+
+   :ref:`Deleting a user <kotlin-delete-users>` does *not* delete the custom user data. 
+   You might need to fully delete user data to ensure legal compliance
+   (for example, to comply with :apple:`Apple's account deletion requirements <support/offering-account-deletion-in-your-app/>`). 
+
+To delete custom user data, you must manually delete the user's custom data document.
+
+You can delete custom user data using an Atlas Function.
+Currently, it is not possible to delete custom user data directly from the Realm Kotlin SDK.
+
+In this example, the Atlas Function does not require any arguments.
+The Function uses the function context to determine the caller's user ID, and 
+deletes the custom user data document matching the user's ID.
+
+.. literalinclude:: /examples/generated/kotlin/customUserData.snippet.delete-custom-user-data.js
+   :language: js
+   :caption: deleteCustomUserData.js - Atlas Function running on server (JavaScript)
+
+The Kotlin SDK code that calls this function requires only a logged-in user to 
+call the function:
+
+.. literalinclude:: /examples/generated/kotlin/AuthenticationTest.snippet.delete-custom-user-data.kt
+   :language: kotlin

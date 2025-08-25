@@ -1,0 +1,242 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-configure-and-open-a-realm:
+.. _cpp-realms:
+
+==================================
+Configure & Open a Realm - C++ SDK
+==================================
+
+.. meta:: 
+  :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+A **realm** is the core data structure used to organize data in
+Realm. A realm is a collection of the objects that you use 
+in your application, called Realm objects, as well as additional metadata 
+that describe the objects.
+
+When opening a realm, you must specify a :cpp-sdk:`db_config 
+<structrealm_1_1internal_1_1bridge_1_1realm_1_1config.html>`.
+The ``db_config`` may contain information such as:
+
+- An optional path where the realm is stored on device
+- An optional list of models that the realm should manage
+- An optional scheduler if you need to customize the run loop
+- A ``sync_config`` if you want to use the realm with Device Sync
+
+You can use the default ``db_config`` constructor if you do not need
+to specify a realm file path, a Device Sync configuration, or other
+configuration details.
+
+.. _cpp-realm-file:
+
+Realm Files
+-----------
+
+Realm stores a binary encoded version of every object and type in a
+realm in a single ``.realm`` file. The file is located at :ref:`a specific 
+path <find-the-default-realm-path>` that you can define when you open the realm.
+You can open, view, and edit the contents of these files with 
+:ref:`realm-studio`.
+
+Auxiliary Files
+~~~~~~~~~~~~~~~
+
+The SDK creates additional files for each realm:
+
+- **realm files**, suffixed with "realm", e.g. :file:`default.realm`:
+  contain object data.
+- **lock files**, suffixed with "lock", e.g. :file:`default.realm.lock`:
+  keep track of which versions of data in a realm are
+  actively in use. This prevents realm from reclaiming storage space
+  that is still used by a client application. 
+- **note files**, suffixed with "note", e.g. :file:`default.realm.note`:
+  enable inter-thread and inter-process notifications.
+- **management files**, suffixed with "management", e.g. :file:`default.realm.management`:
+  internal state management.
+
+.. _cpp-synced-realm:
+
+Synced Realms
+-------------
+
+You can configure a realm to automatically synchronize data between many 
+devices that each have their own local copy of the data. Synced realms 
+need a ``sync_config`` and require an Atlas App Services backend to handle 
+the synchronization process. 
+
+Applications can always create, modify, and delete synced realm objects locally,
+even when offline. Whenever a network connection is available, the Realm SDK
+opens a connection to an application server and syncs changes to and from other
+clients. The :ref:`Atlas Device Sync protocol <sync-protocol>` and server-side
+operational transforms guarantee that all fully synced instances of a realm see
+exactly the same data, even if some changes occurred offline and/or were
+received out of order.
+
+Synced Realms vs. Non-Synced Realms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Synced realms differ from non-synced local Realm in a 
+few ways:
+
+- Synced realms attempt to sync changes with your backend App Services App,
+  whereas non-synced realms do not.
+- Synced realms can only be accessed by authenticated users, while non-synced 
+  realms have no concept of users or authentication.
+- With synced realms, you can download updates before opening a 
+  realm. However, requiring changes to download before opening the 
+  realm requires the user to be online. Non-synced realms can always 
+  be used offline.
+
+You can manually copy data from a non-synced realm to a synced realm, 
+and vice versa, but you cannot sync a non-synced realm.
+
+.. _cpp-open-non-sync-realm:
+
+Open a Non-Sync Realm
+---------------------
+
+You can open a realm in the current directory using the default constructor.
+Or you can construct a ``db_config`` with a specific file path to open the realm
+in a specific location.
+
+.. _cpp-default-realm:
+
+Open the Default Realm
+~~~~~~~~~~~~~~~~~~~~~~
+
+Opening a realm without specifying an optional path opens the default realm 
+in the current directory.
+
+When opening a realm, the C++ SDK can automatically infer which 
+models are available in the project. You don't need to manually specify 
+the available models unless you are opening a realm to sync data 
+unidirectionally with asymmetric objects. For more information, refer to 
+Open a Synced Realm on this page.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.open-realm.cpp
+   :language: cpp
+
+.. tip:: Building an Android App
+
+   When building an Android app that uses the Realm C++ SDK, 
+   you must pass the ``filesDir.path`` to the ``path`` parameter in the 
+   :cpp-sdk:`db_config <structrealm_1_1internal_1_1bridge_1_1realm_1_1config.html>` 
+   constructor. For more information, refer to: :ref:`cpp-build-android-app`.
+
+.. _cpp-realm-at-path:
+
+Open a Realm at a File Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use ``set_path()`` to specify a path for the ``db_config`` 
+to use when opening the realm.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.open-db-at-path.cpp
+   :language: cpp
+
+.. tip:: Building an Android App
+
+   When building an Android app that uses the Realm C++ SDK, 
+   you must pass the ``filesDir.path`` as the ``path`` parameter in the
+   :cpp-sdk:`db_config <structrealm_1_1internal_1_1bridge_1_1realm_1_1config.html>` 
+   constructor. For more information, refer to: :ref:`cpp-build-android-app`.
+
+.. _cpp-open-synced-realm:
+
+Open a Synced Realm
+-------------------
+
+You must have an :ref:`Atlas App Services App <create-app-ui>` that you 
+have :ref:`configured for Flexible Sync <enable-realm-sync>` in order to 
+sync data between devices.
+
+To open a synced realm:
+
+1. Connect to an Atlas App Services App.
+#. Authenticate the user.
+#. Create a sync configuration.
+#. Open the user's synced realm with the configuration.
+
+.. literalinclude:: /examples/generated/cpp/flexible-sync.snippet.flexible-sync-prerequisites.cpp
+   :language: cpp
+
+When you open a synced realm, you don't need to pass the models you 
+want the realm to manage into the template parameter list of the 
+open function. This is a change from the deprecated Alpha API.
+
+The only exception to this rule is opening a synced realm to sync
+``asymmetric_object`` types. When you open a synced realm to sync 
+``asymmetric_object`` types, you must explicitly specify the objects
+in the template parameter list for the open function. For more 
+information, refer to :ref:`cpp-stream-data-to-atlas`.
+
+.. tip:: Building an Android App
+
+   When building an Android app that uses the Realm C++ SDK, 
+   you must pass the ``filesDir.path`` to the ``path`` parameter in the 
+   :cpp-sdk:`db_config <structrealm_1_1internal_1_1bridge_1_1realm_1_1config.html>` 
+   constructor. For more information, refer to: :ref:`cpp-build-android-app`.
+
+.. _cpp-set-custom-headers-using-synced-realm:
+
+Set Custom HTTP Headers When Using a Synced Realm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use custom HTTP headers with Device Sync, you must :ref:`set the headers
+on the App <cpp-set-custom-http-headers-on-app>` *and* on the 
+``flexible_sync_configuration()``.
+
+After you initialize the configuration, use the ``set_custom_http_headers()``
+member function to set the custom HTTP headers to a map of 
+string header keys and values.
+
+.. literalinclude:: /examples/generated/cpp/app.snippet.set-custom-headers-for-sync-config.cpp
+   :language: cpp
+
+Now the synced realm can use the headers for all Device Sync network
+requests.
+
+.. _cpp-provide-subset-of-models-to-realm:
+
+Provide a Subset of Models to a Realm
+-------------------------------------
+
+.. tip:: Operating with Low Memory Constraints
+   
+   Some applications have tight constraints on their memory footprints. 
+   To optimize your realm memory usage for low-memory environments, open the 
+   realm with a subset of models.
+
+By default, the C++ SDK automatically adds all object types that have a
+:ref:`cpp-object-schema` in your executable to your 
+:ref:`cpp-realm-schema`. 
+
+However, if you want the realm to manage only a subset of models, you
+can specify those models by passing them into the template parameter list
+of the ``realm::open()`` function.
+
+.. literalinclude:: /examples/generated/cpp/crud.snippet.realm-specify-classes.cpp
+
+.. _cpp-close-realm:
+
+Close a Realm
+-------------
+
+To avoid memory leaks, close the database when you're done using it. Closing
+the database invalidates any remaining objects. Close the database with 
+``db::close()``.
+
+.. literalinclude:: /examples/generated/cpp/close-realm.snippet.close-realm-and-related-methods.cpp
+   :language: cpp

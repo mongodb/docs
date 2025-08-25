@@ -1,0 +1,159 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-manage-sync-session:
+
+========================================
+Manage a Sync Session - React Native SDK
+========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When you use Atlas Device Sync, the React Native SDK syncs data with Atlas
+in the background using a sync session. A sync session starts whenever
+you open a synced realm.
+
+Prerequisites
+-------------
+
+Before you can manage a sync session, you must perform the following:
+
+#. :ref:`Open a synced realm <react-native-open-a-synced-realm>`
+#. :ref:`Add a sync subscription
+   <react-native-sync-subscribe-to-queryable-fields>`
+#. Wrap components that use the ``useRealm()`` hook for a synced realm
+   with the ``AppProvider``, ``UserProvider``, and ``RealmProvider`` components.
+   For more information on configuring and opening a synced realm,
+   refer to :ref:`Open a Synced Realm <react-native-open-a-synced-realm>`.
+
+.. _react-native-access-sync-session:
+
+Access Sync Session
+-------------------
+
+Access a synced realm in a component with the ``useRealm()`` hook.
+Access the sync session with the realm's :js-sdk:`Realm.syncSession
+<Realm.html#syncSession>` property.
+
+.. literalinclude:: /examples/generated/react-native/ts/access-sync-session.test.snippet.access-sync-session.tsx
+   :language: typescript
+
+.. _react-native-pause-or-resume-a-sync-session:
+
+Pause or Resume a Sync Session
+------------------------------
+
+Opening a synced realm starts a :js-sdk:`sync session <Realm.App.Sync.Session.html>`.
+You can pause and resume the realm's sync session. If you have more than one
+open realm, pause does not affect the other realms' sync sessions.
+
+To pause synchronization, use the :js-sdk:`Realm.syncSession.pause()
+<Realm.App.Sync.Session.html#~pause>` method. To resume synchronization, use the
+:js-sdk:`Realm.syncSession.resume() <Realm.App.Sync.Session.html#~resume>` method.
+
+.. literalinclude:: /examples/generated/react-native/ts/pause-unpause-sync-session.test.snippet.pause-unpause-sync-session.tsx
+   :language: typescript
+
+When to Pause a Sync Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/when-to-pause-sync.rst
+
+.. _react-native-check-sync-progress:
+
+Check Upload & Download Progress for a Sync Session
+---------------------------------------------------
+
+To check the upload and download progress for a sync session, add a progress
+notification using the :js-sdk:`Realm.syncSession.addProgressNotification() <Realm.App.Sync.Session.html#.addProgressNotification>` method.
+
+The ``Realm.syncSession.addProgressNotification()`` method takes in the following three parameters:
+
+- A ``direction`` parameter.
+  Set to ``"upload"`` to register notifications for uploading data.
+  Set to ``"download"`` to register notifications for downloading data.
+- A ``mode`` parameter. Set to ``"reportIndefinitely"``
+  for the notifications to continue until the callback is unregistered using
+  :js-sdk:`Realm.syncSession.removeProgressNotification() <Realm.App.Sync.Session.html#.removeProgressNotification>`.
+  Set to ``"forCurrentlyOutstandingWork"`` for the notifications to continue
+  until only the currently transferable bytes are synced.
+- A callback function parameter that has the arguments ``transferred`` and ``transferable``.
+  ``transferred`` is the current number of bytes already transferred.
+  ``transferable`` is the total number of bytes already transferred
+  plus the number of bytes pending transfer.
+
+.. include:: /includes/flex-sync-unsupported-progress-notifications.rst
+
+The following example registers a callback on the ``syncSession`` to
+listen for upload events indefinitely. The example writes to the realm and
+then unregisters the ``syncSession`` notification callback.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/react-native/ts/check-upload-download-progress.test.snippet.check-upload-download-progress.tsx
+         :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/react-native/js/check-upload-download-progress.test.snippet.check-upload-download-progress.jsx
+         :language: javascript
+
+.. _react-native-check-network-connection:
+
+Check the Network Connection
+----------------------------
+
+Realm's *offline-first* design means that you generally don't need to
+check the current network connection state since data syncs in the background
+when a connection is available.
+That said, the Realm SDK provides methods to get the current state of the network
+connection to the server.
+
+To check the current state of the connection to the server, call
+:js-sdk:`Realm.syncSession.isConnected() <Realm.App.Sync.Session.html#isConnected>`.
+This method returns a boolean that is ``true`` if there is a network connection and
+the sync session is active.
+
+To listen for connection state changes, call :js-sdk:`Realm.syncSession.addConnectionNotification()
+<Realm.App.Sync.Session.html#addConnectionNotification>`, passing a callback function
+to handle network changes as the argument. To unregister the listener,
+pass the same callback function to :js-sdk:`Realm.syncSession.removeConnectionNotification()
+<Realm.App.Sync.Session.html#removeConnectionNotification>`.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. literalinclude:: /examples/generated/react-native/ts/check-network-connection.test.snippet.check-network-connection.tsx
+         :language: typescript
+
+   .. tab::
+      :tabid: javascript
+
+      .. literalinclude:: /examples/generated/react-native/js/check-network-connection.test.snippet.check-network-connection.jsx
+         :language: javascript
+
+.. _react-native-multiplex-sync-sessions:
+
+Multiplex Sync Sessions
+-----------------------
+
+Enable :wikipedia:`session multiplexing <Session_multiplexing>` to consolidate
+multiple sync sessions of a Realm app.
+Only use session multiplexing if you see errors about reaching the file descriptor limit,
+and you know you are using many sync sessions.
+
+To enable session multiplexing, call :js-sdk:`Realm.App.Sync.enableSessionMultiplexing()
+<Realm.App.Sync.html#.enableSessionMultiplexing>` with your :js-sdk:`Realm.App <Realm.App.html>`.
+
+.. literalinclude:: /examples/generated/react-native/ts/multiplex-sync.test.snippet.multiplex-sync.tsx
+   :language: typescript

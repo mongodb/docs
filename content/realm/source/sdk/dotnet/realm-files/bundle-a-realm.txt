@@ -1,0 +1,136 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-bundle-a-realm:
+
+=============================
+Bundle Realm Files - .NET SDK
+=============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You might want to seed your mobile app with some initial data that will be available
+to users on the initial launch of the app. To do this, you:
+
+- Build a temporary realm app,
+
+- Make a copy of an existing realm (with only the data you want bundled), and then 
+
+- Bundle the :ref:`Realm file <dotnet-realm-file>` in your app's shared project. 
+
+In your production app (the one that will use this bundled realm when first 
+loading), you add a few lines of code to extract the realm and save it in the 
+app data. The following sections provide more information on these steps.   
+
+.. include:: /includes/note-bundling-synced-realms.rst
+
+.. _copy_a_realm_file:
+
+Create a Realm File for Bundling
+--------------------------------
+
+1. Create a new project with the same data models as your production app. Open 
+   an existing realm with the data you wish to bundle, or create a new one.
+
+#. Use the 
+   :dotnet-sdk:`WriteCopy() <reference/Realms.Realm.html#Realms_Realm_WriteCopy_Realms_RealmConfigurationBase_>` 
+   method to make a copy of the realm to a new location and/or name. The 
+   following code demonstrates this. 
+
+   .. tabs::
+
+      .. tab:: Local Realm
+         :tabid: copy_local
+
+         .. literalinclude:: /examples/generated/dotnet/BundleARealmExamples.snippet.copy_a_realm.cs
+            :language: csharp
+
+      .. tab:: Synced Realm
+         :tabid: copy_sync
+
+         .. important:: Copying Synced Realms
+
+            When copying a Synced realm, you must ensure that there are no pending 
+            sync processes. You do this by calling 
+            :dotnet-sdk:`WaitForUploadAsync <reference/Realms.Sync.Session.html#Realms_Sync_Session_WaitForUploadAsync>`
+            and 
+            :dotnet-sdk:`WaitForDownloadAsync <reference/Realms.Sync.Session.html#Realms_Sync_Session_WaitForDownloadAsync>`.
+
+
+         .. literalinclude:: /examples/generated/dotnet/BundleARealmExamples.snippet.copy_a_synced_realm.cs
+            :language: csharp
+
+         .. include:: /includes/note-writecopy-same-type-sync-only.rst
+
+Bundle a Realm File in Your Production Application
+--------------------------------------------------
+
+Now that you have a copy of the realm with the "seed" data in it, you 
+need to bundle it with your production application. The process of bundling 
+depends on whether you are building a mobile app or Unity app:
+
+.. tabs::
+
+   .. tab:: MAUI and Xamarin
+      :tabid: xamarin
+
+      1. Navigate to the path you specified for the new realm, and then drag the 
+         newly-created realm file to the shared MAUI/Xamarin project in Visual 
+         Studio. 
+
+      #. When prompted, choose :guilabel:`Copy the file to the directory`.
+
+      #. In the shared project, right-click the realm file you just added, choose 
+         :guilabel:`Build Action`, and then choose :guilabel:`EmbeddedResource`.
+
+   .. tab:: Unity
+      :tabid: unity
+
+      1. Open your production Unity project.
+
+      #. In the Project tab, copy the new realm file to the **Assets** folder.
+         Assets stored here are available to the app via the 
+         ``Application.dataPath`` property. 
+
+.. note:: Cross-Platform Compatibility
+
+   Non-encrypted realm files are cross-platform compatible, which 
+   is why you can bundle the file in the shared project.
+
+Open a Realm from a Bundled Realm File
+--------------------------------------
+
+Now that you have a copy of the realm included with your app, you need to 
+add code to use it. The code you add depends on the type of app:
+
+.. tabs::
+
+   .. tab:: MAUI and Xamarin
+      :tabid: xamarin
+
+      Before you deploy your app with the bundled realm, you need to add code to 
+      extract the realm from the embedded resources, save it to the app's data 
+      location, and then open this new realm in the app. The following code shows how 
+      you can do this during start-up of the app. Note that:
+
+      - this code only runs when no realm file is found at the specified 
+        location (typically only on the initial use of the app), and
+
+      - how you open the realm depends on whether you are working with a synced 
+        realm or not. For more information, see :ref:`dotnet-open-a-realm`.
+
+      .. literalinclude:: /examples/generated/dotnet/BundleARealmExamples.snippet.extract_and_copy_realm.cs
+         :language: csharp
+
+   .. tab:: Unity
+      :tabid: unity
+
+      The embedded realm is initialized like any other realm in a Unity 
+      project:
+
+      .. literalinclude:: /examples/generated/dotnet/Unity.snippet.read_a_realm_unity.cs
+         :language: csharp

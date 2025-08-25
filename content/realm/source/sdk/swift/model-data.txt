@@ -1,0 +1,301 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+======================
+Model Data - Swift SDK
+======================
+
+.. toctree::
+   :titlesonly:
+
+   Define an Object Model </sdk/swift/model-data/object-models>
+   Relationships </sdk/swift/model-data/relationships>
+   Supported Types </sdk/swift/model-data/supported-types>
+   Change an Object Model </sdk/swift/model-data/change-an-object-model>
+   Model Data with Device Sync </sdk/swift/model-data/model-data-device-sync>
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _ios-object-models-and-schemas:
+.. _ios-realm-objects:
+.. _ios-object-types:
+.. _ios-object-schemas:
+
+Object Types & Schemas
+----------------------
+
+Realm applications model data as objects composed of
+field-value pairs that each contain one or more :ref:`supported
+<ios-supported-property-types>` data types.
+
+Realm objects are regular Swift or Objective-C classes, but
+they also bring a few additional features like :ref:`live queries
+<ios-live-queries>`. The Swift SDK memory maps Realm objects directly to
+native Swift or Objective-C objects, which means there's no need to use
+a special data access library, such as an :wikipedia:`ORM
+<Object-relational_mapping>`. Instead, you can work with Realm objects
+as you would any other class instance.
+
+Every Realm object conforms to a specific **object type**, which is
+essentially a class that defines the :ref:`properties <ios-client-properties>`
+and :ref:`relationships <ios-client-relationships>` for objects of that type.
+Realm guarantees that all objects in a realm conform to
+the schema for their object type and validates objects whenever they're
+created, modified, or deleted.
+
+.. example::
+
+   The following schema defines a ``Dog`` object type with a string name,
+   optional string breed, date of birth, and primary key ID.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.define-a-model.swift
+            :language: swift
+
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/ObjectModels.snippet.define-a-model.m
+            :language: objectivec
+
+.. _ios-realm-schema:
+
+Realm Schema
+~~~~~~~~~~~~
+
+A **realm schema** is a list of valid :ref:`object schemas
+<ios-object-schemas>` that a realm may contain. Every Realm object must
+conform to an object type that's included in its realm's schema.
+
+By default, the Swift SDK automatically adds all classes in your project
+that derive from :objc-sdk:`RLMObject <Classes/RLMObject.html>` or
+:objc-sdk:`RLMEmbeddedObject <Classes/RLMEmbeddedObject.html>` to the
+realm schema.
+
+.. tip:: Configure Your Realm Schema
+
+   To control which classes Realm adds to a realm schema, see
+   :ref:`ios-provide-a-subset-of-classes-to-a-realm`.
+
+If a realm already contains data when you open it,
+Realm validates each object to ensure that an object
+schema was provided for its type and that it meets all of the
+constraints specified in the schema.
+
+.. tip:: Learn How to Work With a Realm
+
+   For code examples that show how to configure and open a realm in the
+   Swift SDK, see :ref:`ios-configure-and-open-a-realm`.
+
+.. _ios-inheritance:
+
+Model Inheritance
+~~~~~~~~~~~~~~~~~
+
+You can subclass Realm models to share behavior between
+classes, but there are limitations. In particular, Realm
+does not allow you to:
+
+- Cast between polymorphic classes: subclass to subclass, subclass to parent, parent to subclass
+- Query on multiple classes simultaneously: for example, "get all instances of parent class and subclass"
+- Multi-class containers: ``List`` and ``Results`` with a mixture of parent and subclass
+
+.. tip::
+
+   Check out the :github:`code samples
+   <realm/realm-swift/issues/1109#issuecomment-143834756>` for working
+   around these limitations.
+
+.. versionadded:: 10.10.0
+   While you can't mix ``@Persisted`` and ``@objc dynamic`` property declarations
+   within a class, you can mix the notation styles across base and subclasses.
+   For example, a base class could have a ``@Persisted var foo: Int`` property,
+   and a subclass could have an ``@objc dynamic var bar = 0`` property, with
+   both persisted. However, the ``@objc dynamic`` property would be ignored if
+   the ``@Persisted`` property were within the same base or subclass.
+
+.. _ios-structs:
+
+Swift Structs
+~~~~~~~~~~~~~
+
+Realm does not support Swift structs as models for a variety of
+reasons. Realm's design focuses on "live" objects.
+This concept is not compatible with value type structs. By design,
+Realm provides features that are incompatible with these
+semantics, such as:
+
+- :ref:`Live data <ios-live-object>`
+- :ref:`Reactive APIs <ios-react-to-changes>`
+- Low memory footprint of data
+- Good operation performance
+- :ref:`Lazy and cheap access to partial data <ios-live-queries>`
+- Lack of data serialization/deserialization
+- :ref:`Keeping potentially complex object graphs synchronized <ios-sync-changes-between-devices>`
+
+That said, it is sometimes useful to detach objects from their backing
+realm. This typically isn't an ideal design decision. Instead,
+developers use this as a workaround for temporary limitations in our
+library.
+
+You can use key-value coding to initialize an unmanaged object as a copy of
+a managed object. Then, you can work with that unmanaged object
+like any other :apple:`NSObject <documentation/objectivec/nsobject>`.
+
+.. code-block:: swift
+
+   let standaloneModelObject = MyModel(value: persistedModelObject)
+
+.. _ios-client-properties:
+
+Properties
+----------
+
+Your Realm object model is a collection of properties. On the most basic level,
+when you create your model, your declarations give Realm information about
+each property:
+
+- The data type and whether the property is optional or required
+- Whether Realm should store or ignore the property
+- Whether the property is a primary key or should be indexed
+
+Properties are also the mechanism for establishing :ref:`relationships
+<swift-client-relationships>` between Realm object types.
+
+The Realm Swift SDK uses reflection to determine the properties
+in your models at runtime. Your project must not set
+``SWIFT_REFLECTION_METADATA_LEVEL = none``, or Realm cannot discover
+children of types, such as properties and enum cases. Reflection is enabled
+by default if your project does not specifically set a level for this setting.
+
+.. _ios-build-view-models-with-realm:
+
+View Models with Realm
+----------------------
+
+.. versionadded:: 10.21.0
+
+You can work with a subset of your Realm object's properties
+by creating a class projection. A class projection is a class that passes
+through or transforms some or all of your Realm object's
+properties. Class projection enables you to build view models that use an
+abstraction of your object model. This simplifies using and :ref:`testing
+<ios-simplify-testing-with-class-projections>` Realm objects
+in your application.
+
+With class projection, you can use a subset of your object's properties
+directly in the UI or transform them. When you use a class projection for
+this, you get all the benefits of Realm's live objects:
+
+- The class-projected object live updates
+- You can observe it for changes
+- You can apply changes directly to the properties in write transactions
+
+.. seealso::
+
+   :ref:`ios-define-and-use-class-projections`
+
+.. _ios-client-relationships:
+.. _swift-client-relationships:
+
+Relationships
+-------------
+
+Realm doesn't use bridge tables or explicit joins to define
+relationships as you would in a relational database. Realm
+handles relationships through embedded objects or reference properties to
+other Realm objects. You read from and write to these
+properties directly. This makes querying relationships as performant as
+querying against any other property.
+
+Realm supports **to-one**, **to-many**, and **inverse**
+relationships.
+
+.. _ios-to-one-relationship:
+
+To-One Relationship
+~~~~~~~~~~~~~~~~~~~
+
+A **to-one** relationship means that an object relates to one other object.
+You define a to-one relationship for an object type in its object
+schema. Specify a property where the type is the related Realm
+object type. For example, a dog might have a to-one relationship with
+a favorite toy.
+
+.. tip::
+
+   To learn how to define a to-one relationship, see
+   :ref:`ios-define-a-to-one-relationship-property`.
+
+.. _ios-to-many-relationship:
+.. _ios-list-collections:
+
+To-Many Relationship
+~~~~~~~~~~~~~~~~~~~~
+
+A **to-many** relationship means that an object relates to more than one
+other object. In Realm, a to-many relationship is a list of
+references to other objects. For example, a person might have many dogs.
+
+A :swift-sdk:`List <Classes/List.html>` represents the :ref:`to-many
+relationship <ios-to-many-relationship>` between two Realm
+types. Lists are mutable: within a write transaction, you can add and
+remove elements to and from a list. Lists are not associated with a
+query and are usually declared as a property of an object model.
+
+.. tip::
+
+   To learn how to define a to-many relationship, see
+   :ref:`ios-define-a-to-many-relationship-property`.
+
+.. _ios-inverse-relationship:
+.. _ios-linking-objects:
+
+Inverse Relationship
+~~~~~~~~~~~~~~~~~~~~
+
+Relationship definitions in Realm are unidirectional. An
+**inverse relationship** links an object back to an object that refers
+to it. You must explicitly define a property in the object's model as an
+inverse relationship. Inverse relationships can link back to objects in
+a to-one or to-many relationship.
+
+A :swift-sdk:`LinkingObjects <Structs/LinkingObjects.html>` collection
+represents the :ref:`inverse relationship <ios-inverse-relationship>`
+between two Realm types. You cannot directly add or remove
+items from a LinkingObjects collection.
+
+Inverse relationships automatically update themselves with corresponding
+backlinks. You can find the same set of Realm objects with a
+manual query, but the inverse relationship field reduces boilerplate query
+code and capacity for error.
+
+For example, consider a task tracker with the to-many relationship "User has
+many Tasks". This does not automatically create the inverse relationship
+"Task belongs to User". To create the inverse relationship, add a User
+property on the Task that points back to the task's owner. When you specify
+the inverse relationship from task to user, you can query on that. If you
+don't specify the inverse relationship, you must run a separate query to
+look up the user to whom the task is assigned.
+
+.. important::
+
+   You cannot manually set the value of an inverse relationship property.
+   Instead, Realm updates implicit relationships when you add
+   or remove an object in the relationship.
+
+Relationships can be many-to-one or many-to-many. So following inverse
+relationships can result in zero, one, or many objects.
+
+.. tip::
+
+   To learn how to define an inverse relationship, see
+   :ref:`ios-define-an-inverse-relationship-property`.

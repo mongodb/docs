@@ -1,0 +1,271 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _swiftui-background-sync:
+
+====================================================
+Sync Data in the Background with SwiftUI - Swift SDK
+====================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can use a SwiftUI :apple:`BackgroundTask <documentation/SwiftUI/BackgroundTask>`
+to update a Synced realm when your app is in the background. This example
+demonstrates how to configure and perform background Syncing in an iOS app.
+
+You can follow along with the example on this page using the SwiftUI Device 
+Sync Template App. To get your own copy of the SwiftUI Device Sync 
+Template App, check out the :ref:`Device Sync SwiftUI tutorial 
+<swift-swiftui-tutorial>` and go through the :guilabel:`Prerequisites` 
+and :guilabel:`Start with the Template` sections.
+
+Enable Background Modes for Your App
+------------------------------------
+
+.. include:: /includes/xcode-set-up-background-task-in-project.rst
+
+Schedule a Background Task
+--------------------------
+
+After enabling background processes for your app, you can start adding the 
+code to the app to schedule and execute a background task. First, import
+``BackgroundTasks`` in the files where you will write this code:
+
+.. code-block:: swift
+   :emphasize-lines: 3
+
+   import SwiftUI
+   import RealmSwift
+   import BackgroundTasks
+
+Now you can add a scheduled background task. If you're following along 
+via the Template App, you can update your ``@main`` view:
+
+.. code-block:: swift
+   :emphasize-lines: 3, 9-14
+
+   @main
+   struct realmSwiftUIApp: SwiftUI.App {
+     @Environment(\.scenePhase) private var phase
+    
+     var body: some Scene {
+       WindowGroup {
+       ContentView(app: realmApp)
+     }
+     .onChange(of: phase) { newPhase in
+       switch newPhase {
+       case .background: scheduleAppRefresh()
+       default: break
+       }
+     }
+   }
+
+You can add an environment variable to store a change to the ``scenePhase``:
+``@Environment(\.scenePhase) private var phase``.
+
+Then, you can add the ``.onChange(of: phase)`` block that calls the 
+``scheduleAppRefresh()`` function when the app goes into the background.
+
+Create the ``scheduleAppRefresh()`` function:
+
+.. code-block:: swift
+   
+   func scheduleAppRefresh() {
+     let backgroundTask = BGAppRefreshTaskRequest(identifier: "refreshTodoRealm")
+     backgroundTask.earliestBeginDate = .now.addingTimeInterval(10)
+     try? BGTaskScheduler.shared.submit(backgroundTask)
+   }
+
+This schedules the work to execute the background task whose identifier you
+added to the Info.plist above when you enabled Background Modes. In this 
+example, the identifier ``refreshTodoRealm`` refers to this task.
+
+Create the Background Task
+--------------------------
+
+Now that you've scheduled the background task, you need to create the background 
+task that will run to update the synced realm.
+
+If you're following along with the Template App, you can add this
+``backgroundTask`` to your ``@main`` view, after the ``.onChange(of: phase)``:
+
+.. code-block:: swift
+   :emphasize-lines: 7-23
+
+   .onChange(of: phase) { newPhase in
+     switch newPhase {
+     case .background: scheduleAppRefresh()
+     default: break
+     }
+   }
+   .backgroundTask(.appRefresh("refreshTodoRealm")) {
+     guard let user = realmApp.currentUser else {
+       return
+     }
+     let config = user.flexibleSyncConfiguration(initialSubscriptions: { subs in
+       if let foundSubscription = subs.first(named: "user_tasks") {
+         foundSubscription.updateQuery(toType: Item.self, where: {
+           $0.owner_id == user.id
+         })
+       } else {
+         subs.append(QuerySubscription<Item>(name: "user_tasks") {
+           $0.owner_id == user.id
+         })
+       }
+     }, rerunOnOpen: true)
+     await refreshSyncedRealm(config: config)
+   }
+
+This background task first checks that your app has a logged-in user. If so, 
+it sets a :swift-sdk:`.flexibleSyncConfiguration 
+<Extensions/User.html#/s:So7RLMUserC10RealmSwiftE25flexibleSyncConfiguration15clientResetMode20initialSubscriptions11rerunOnOpenAC0B0V0F0VAC06ClienthI0O_yAC0E15SubscriptionSetVcSbtF>` 
+with a :ref:`subscription <swift-manage-flexible-sync-subscriptions>` the
+app can use to sync the realm. 
+
+This is the same configuration used in the Template App's ``ContentView``. 
+However, to use it here you need access to it farther up the view hierarchy. 
+You could refactor this to a function you can call from either view that 
+takes a :swift-sdk:`User <Typealiases.html#/s:10RealmSwift4Usera>` as a 
+parameter and returns a :swift-sdk:`Realm.configuration 
+<Structs/Realm/Configuration.html>`.
+
+Finally, this task awaits the result of a function that actually syncs the realm.
+Add this function:
+
+.. code-block:: swift
+
+   func refreshSyncedRealm(config: Realm.Configuration) async {
+     do {
+       try await Realm(configuration: config, downloadBeforeOpen: .always)
+     } catch {
+       print("Error opening the Synced realm: \(error.localizedDescription)")
+     }
+   }
+
+By opening this synced realm and using the ``downloadBeforeOpen`` parameter
+to specify that you want to download updates, you load the fresh data into
+the realm in the background. Then, when your app opens again, it already 
+has the updated data on the device.
+
+.. important::
+
+   Do not try to write to the realm directly in this background task. You may
+   encounter threading-related issues due to Realm's thread-confined architecture.
+
+Test Your Background Task
+-------------------------
+
+When you schedule a background task, you are setting the earliest time that
+the system could execute the task. However, the operating system factors in
+many other considerations that may delay the execution of the background task
+long after your scheduled ``earliestBeginDate``. Instead of waiting for a 
+device to run the background task to verify it does what you intend, you can
+set a breakpoint and use LLDB to invoke the task.
+
+.. procedure::
+
+   .. step:: Configure a Device to Run Your App
+
+      To test that your background task is updating the synced realm in the 
+      background, you'll need a physical device running at minimum iOS 16.
+      Your device must be configured to run in :apple:`Developer Mode 
+      <documentation/xcode/enabling-developer-mode-on-a-device>`. If you get an
+      ``Untrusted Developer`` notification, go to :guilabel:`Settings`, 
+      :guilabel:`General`, and :guilabel:`VPN & Device Management`. Here, you 
+      can verify that you want to run the app you're developing.
+
+      Once you can successfully run your app on your device, you can test the
+      background task.
+
+   .. step:: Set a Breakpoint
+
+      Start by setting a breakpoint in your ``scheduleAppRefresh()`` function.
+      Set the breakpoint *after* the line where you submit the task to 
+      ``BGTaskScheduler``. For this example, you might add a ``print`` line and 
+      set the breakpoint at the print line:
+
+      .. code-block:: swift
+        :emphasize-lines: 5
+
+        func scheduleAppRefresh() {
+          let backgroundTask = BGAppRefreshTaskRequest(identifier: "refreshTodoRealm")
+          backgroundTask.earliestBeginDate = .now.addingTimeInterval(10)
+          try? BGTaskScheduler.shared.submit(backgroundTask)
+          print("Successfully scheduled a background task") // Set a breakpoint here
+        }
+
+   .. step:: Run the App
+
+      Now, run the app on the connected device. Create or sign into an account
+      in the app. If you're using the SwiftUI Template App, create some Items. 
+      You should see the Items sync to the ``Item`` collection linked to your 
+      Atlas App Services app.
+
+      Then, while leaving the app running in Xcode, send the app to the background
+      on your device. You should see the console print "Successfully scheduled a 
+      background task" and then get an LLDB prompt.
+
+   .. step:: Add or Change Data in Atlas
+
+      While the app is in the background but still running in Xcode, Insert a new
+      document in the relevant Atlas collection that should sync to the device. 
+      Alternately, change a value of an existing document that you created from
+      the device. After successfully running the background task, you should
+      see this data synced to the device from the background process.
+
+      If you're using the SwiftUI Template App, you can find relevant documents 
+      in your Atlas cluster's ``Item`` collection. For more information on how 
+      to add or change documents in Atlas, see: :atlas:`MongoDB Atlas: Create, 
+      View, Update, and Delete Documents </atlas-ui/documents/>`.
+
+   .. step:: Invoke the Background Task in LLDB
+
+      Use this command to manually execute the background task in LLDB:
+
+      .. code-block:: shell
+
+        e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"refreshTodoRealm"]
+
+      If you have used a different identifier for your background task, replace 
+      ``refreshTodoRealm`` with your task's identifier. This causes the task to 
+      immediately begin executing.
+
+      If successful, you should see something like:
+
+      .. code-block:: shell
+
+        2022-11-11 15:09:10.403242-0500 App[1268:196548] Simulating launch for task with identifier refreshTodoRealm
+        2022-11-11 15:09:16.530201-0500 App[1268:196811] Starting simulated task
+
+      After you have kicked off the task, use the :guilabel:`Continue program execution`
+      button in the Xcode debug panel to resume running the app.
+
+   .. step:: Turn on Airplane Mode on the Device
+
+      After waiting for the background task to complete, but before you open the 
+      app again, turn on Airplane Mode on the device. Make sure you have turned 
+      off WiFi. This ensures that when you open the app again, it doesn't 
+      start a fresh Sync and you see only the values that are now in the realm
+      on the device.
+
+   .. step:: Open the App
+
+      Open the app on the device. You should see the updated data that you changed
+      in Atlas. 
+
+      To verify the updates came through the background task, confirm you have 
+      successfully disabled the network. 
+
+      Create a new task using the app. You should see the task in the app, but 
+      it should not sync to Atlas. Alternately, you could create or change data 
+      in Atlas, but should not see it reflected on the device. 
+
+      This tells you that the network has successfully been disabled,
+      and the updated data that you see came through the background task.

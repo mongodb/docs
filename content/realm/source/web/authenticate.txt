@@ -1,0 +1,432 @@
+.. _web-authenticate:
+
+=============================
+Authenticate a User - Web SDK
+=============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+The Web SDK provides developers with a unified API to authenticate application
+users for any authentication provider. Users log in by providing authentication
+credentials for a given authentication provider and the SDK automatically
+manages authentication tokens and refreshes data for logged in users.
+
+.. _web-login:
+
+Log In
+------
+
+.. _web-login-anonymous:
+
+Anonymous
+~~~~~~~~~
+
+The :ref:`Anonymous <anonymous-authentication>` provider allows users to log in
+to your application with ephemeral accounts that have no associated information.
+
+To log in, create an anonymous credential and pass it to ``App.logIn()``:
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.anon-auth.js
+    :language: javascript
+
+.. _web-login-email-password:
+
+Email/Password
+~~~~~~~~~~~~~~
+
+The :ref:`email/password <email-password-authentication>` authentication
+provider allows users to log in to your application with an email address and a
+password.
+
+To log in, create an email/password credential with the user's email address and
+password and pass it to ``App.logIn()``:
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.email-password-auth.js
+    :language: javascript
+
+.. _web-login-api-key:
+
+API Key
+~~~~~~~
+
+The :ref:`API key <api-key-authentication>` authentication provider allows
+server processes to access your app directly or on behalf of a user.
+
+To log in with an API key, create an API Key credential with a server or user
+API key and pass it to ``App.logIn()``:
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.api-key-auth.js
+    :language: javascript
+
+.. _web-login-custom-function:
+
+Custom Function
+~~~~~~~~~~~~~~~
+
+The :ref:`Custom Function <custom-function-authentication>` authentication
+provider allows you to handle user authentication by running a :ref:`function
+<functions>` that receives a payload of arbitrary information about a user.
+
+To log in with the custom function provider, create a Custom Function credential
+with a payload object and pass it to ``App.logIn()``:
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.custom-function-auth.js
+    :language: javascript
+
+.. _web-login-custom-jwt:
+
+Custom JWT
+~~~~~~~~~~
+
+The :ref:`Custom JWT <custom-jwt-authentication>` authentication provider allows
+you to handle user authentication with any authentication system that returns a
+:ref:`JSON web token <json-web-tokens>`.
+
+To log in, create a Custom JWT credential with a JWT from the external system
+and pass it to ``App.logIn()``:
+
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.custom-jwt.js
+    :language: javascript
+
+
+.. _web-login-facebook:
+
+Facebook Authentication
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`Facebook <facebook-authentication>` authentication provider allows you
+to authenticate users through a Facebook app using their existing Facebook
+account. You can use the :ref:`built-in authentication flow
+<web-facebook-builtin>` or :ref:`authenticate with the Facebook SDK
+<web-facebook-auth-token>`.
+
+.. include:: /includes/note-enable-facebook-auth.rst
+
+.. include:: /includes/note-facebook-profile-picture-url.rst
+
+.. _web-facebook-builtin:
+
+Use the Built-In Facebook OAuth 2.0 Flow
+````````````````````````````````````````
+
+The Realm Web SDK includes methods to handle the OAuth 2.0 process and does not
+require you to install the Facebook SDK. The built in flow follows three main steps:
+
+1. You call ``app.logIn()`` with a Facebook credential. The credential must
+   specify a URL for your app that is also listed as a redirect URI in the
+   provider configuration.
+
+   .. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.builtin-facebook-oauth.js
+      :language: javascript
+
+2. A new window opens to a Facebook authentication screen and the user
+   authenticates and authorizes your app in that window. Once complete, the new
+   window redirects to the URL specified in the credential.
+
+3. You call ``Realm.handleAuthRedirect()`` on the redirected page, which stores the
+   user's Atlas App Services access token and closes the window. Your original app window will
+   automatically detect the access token and finish logging the user in.
+
+   .. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.builtin-facebook-oauth-redirect.js
+      :language: javascript
+
+.. _web-facebook-auth-token:
+
+Authenticate with the Facebook SDK
+``````````````````````````````````
+
+You can use the :facebook:`official Facebook SDK <docs/facebook-login/web/>` to
+handle the user authentication and redirect flow. Once authenticated, the
+Facebook SDK returns an access token that you can use to finish logging the user
+in to your app.
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.facebook-sdk-oauth.js
+   :language: javascript
+
+.. _web-login-google:
+
+Google Authentication
+~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`Google <google-authentication>` authentication provider allows you to
+authenticate users through a Google project using their existing Google account.
+
+.. note:: Enable the Google Auth Provider
+   
+   To authenticate a Google user, you must configure the :ref:`Google
+   authentication provider <users-and-authentication>`.
+
+Logging a Google user in to your App is a two step process:
+
+1. First, you authenticate the user with Google. You can use a library like
+   :google:`Google One Tap
+   <identity/one-tap/web/guides/get-google-api-clientid>` for a streamlined
+   experience.
+
+2. Second, you log the user in to your App with an authentication token
+   returned by Google upon successful user authentication.
+
+.. _web-google-onetap:
+
+Authenticate with Google One Tap
+````````````````````````````````
+
+.. note:: Requires OpenID Connect
+
+   Google One Tap only supports user authentication through OpenID Connect. To
+   log Google users in to your web app, you must :ref:`enable OpenID Connect
+   <openIdConnect>` in the App Services authentication provider configuration.
+
+:google:`Google One Tap <identity/one-tap/web/guides/get-google-api-clientid>`
+is a Google SDK that lets users sign up to or log in to a website with one click (or tap).
+
+.. example:: Basic Google One Tap Flow
+    
+    This example shows how to set up Google Authentication with App Services in
+    a very basic web app. The app only contains an ``index.html`` file.
+
+    .. code-block:: xml
+      :caption: index.html
+
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <title>Google One Tap Example</title>
+        </head>
+        <body>
+          <h1>Google One Tap Example</h1>
+          <!-- The data-callback HTML attribute sets the callback function that is run
+            when the user logs in. Here we're calling the handleCredentialsResponse JavaScript
+            function defined in the below script section to log the user into App Services.
+          -->
+          <div
+            id="g_id_onload"
+            data-client_id="<your_google_client_id>"
+            data-callback="handleCredentialsResponse"
+          ></div>
+        </body>
+        <!-- Load Atlas App Services -->
+        <script src="https://unpkg.com/realm-web/dist/bundle.iife.js"></script>
+        <!-- Load Google One Tap -->
+        <script src="https://accounts.google.com/gsi/client"></script>
+        <!-- Log in with Realm and Google Authentication -->
+        <script async defer>
+          const app = new Realm.App({
+            id: "<your_realm_app_id>",
+          });
+          // Callback used in `data-callback` to handle Google's response and log user into App Services
+          function handleCredentialsResponse(response) {
+            const credentials = Realm.Credentials.google({ idToken: response.credential });
+            app
+              .logIn(credentials)
+              .then((user) => alert(`Logged in with id: ${user.id}`));
+          }
+        </script>
+      </html>
+
+.. _web-google-builtin:
+
+Use the Built-In Google OAuth 2.0 Flow
+``````````````````````````````````````
+
+.. note:: Do Not Use OpenID Connect for Built-In Google OAuth 2.0 Flow
+
+  :ref:`OpenID Connect <openIdConnect>` does not work with App Services'
+   built-in Google OAuth 2.0 flow. If you'd like to use
+   OpenID Connect with the Realm Web SDK, use the
+   :ref:`Authentication with Google One Tap <web-google-onetap>` flow.
+
+The Realm Web SDK includes methods to handle the OAuth 2.0 process and does not
+require you to install a Google SDK. The built-in flow follows three main steps:
+
+#. Call ``app.logIn()`` with a Google credential. The credential must
+   specify a URL for your app that is also listed as a redirect URI in the
+   provider configuration.
+
+#. A new window opens to a Google authentication screen and the user
+   authenticates and authorizes your app in that window. Once complete, the new
+   window redirects to the URL specified in the credential.
+
+#. Call ``Realm.handleAuthRedirect()`` on the redirected page, which stores the
+   user's App Services access token and closes the window. Your original app window will
+   automatically detect the access token and finish logging the user in.
+
+.. example:: Basic Web Login Flow
+
+    This example shows how to set up Google Authentication with App Services in
+    a very basic web app. The app has the following files:
+
+    .. code-block::
+
+      .
+      ├── auth.html
+      └── index.html
+
+    .. code-block:: xml
+      :caption: index.html
+
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <title>Google Auth Example</title>
+        </head>
+        <body>
+          <h1>Google Auth Example</h1>
+          <button id="google-auth">Authenticate!</button>
+        </body>
+        <!-- Load Realm -->
+        <script src="https://unpkg.com/realm-web/dist/bundle.iife.js"></script>
+        <!-- Log in with App Services and Google Authentication -->
+        <script>
+          const app = new Realm.App({
+            id: "<Your-App-ID>",
+          });
+
+          const authButton = document.getElementById("google-auth");
+          authButton.addEventListener("click", () => {
+            // The redirect URL should be on the same domain as this app and
+            // specified in the auth provider configuration.
+            const redirectUrl = "http://yourDomain/auth.html";
+            const credentials = Realm.Credentials.google({ redirectUrl });
+            // Calling logIn() opens a Google authentication screen in a new window.
+            app
+              .logIn(credentials)
+              .then((user) => {
+                // The logIn() promise will not resolve until you call `handleAuthRedirect()`
+                // from the new window after the user has successfully authenticated.
+                console.log(`Logged in with id: ${user.id}`);
+              })
+              .catch((err) => console.error(err));
+          });
+        </script>
+      </html>
+
+    .. code-block:: xml
+      :caption: auth.html
+
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <title>Google Auth Redirect</title>
+        </head>
+        <body>
+          <p>Redirects come here for Google Authentication</p>
+        </body>
+        <script>
+          Realm.handleAuthRedirect();
+        </script>
+      </html>
+
+.. important:: Built-In OAuth 2.0 Redirect Limitations for Google
+   
+   Due to changes in OAuth application verification requirements, the built-in
+   OAuth 2.0 process faces limitations when authenticating :ref:`Google
+   <google-authentication>` users. If you use the Google login redirect flow
+   using App Services' redirect flow, a maximum of 100 Google users may authenticate
+   while the app is in development/testing/staging and all users will see an
+   unverified application notification before they authenticate.
+   
+   To avoid these limitations, we advise that you use an official Google SDK to
+   get a user access token as described above.
+
+.. _web-login-apple:
+
+Apple Authentication
+~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`Apple <apple-id-authentication>` authentication provider allows you to
+authenticate users through Sign-in With Apple. You can use the :ref:`built-in
+authentication flow <web-apple-builtin>` or :ref:`authenticate with the Apple
+SDK <web-apple-auth-token>`.
+
+.. note:: Enable the Apple Auth Provider
+   
+   To authenticate an Apple user, you must configure the :ref:`Apple
+   authentication provider <apple-id-authentication>`.
+
+.. _web-apple-builtin:
+
+Use the Built-In Apple OAuth 2.0 Flow
+`````````````````````````````````````
+
+The Realm Web SDK includes methods to handle the OAuth 2.0 process and does not
+require you to install the Apple JS SDK. The built in flow follows three main
+steps:
+
+1. You call ``app.logIn()`` with an Apple credential. The credential must
+   specify a URL for your app that is also listed as a redirect URI in the
+   provider configuration.
+
+   .. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.builtin-apple-oauth.js
+      :language: javascript
+
+2. A new window opens to an Apple authentication screen and the user
+   authenticates and authorizes your app in that window. Once complete, the new
+   window redirects to the URL specified in the credential.
+
+3. You call ``Realm.handleAuthRedirect()`` on the redirected page, which stores the
+   user's App Services access token and closes the window. Your original app window will
+   automatically detect the access token and finish logging the user in.
+
+   .. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.builtin-apple-oath-handle-redirect.js
+      :language: javascript
+
+.. _web-apple-auth-token:
+
+Authenticate with the Apple SDK
+```````````````````````````````
+
+You can use the :apple:`official Sign in with Apple JS SDK
+<documentation/sign_in_with_apple/sign_in_with_apple_js>` to handle the user
+authentication and redirect flow. Once authenticated, the Apple JS SDK returns
+an ID token that you can use to finish logging the user in to your app.
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.apple-sdk-oauth.js
+   :language: javascript
+
+.. include:: /includes/authorization-appleidcredential-string.rst
+
+.. _web-get-user-access-token:
+
+Get a User Access Token
+-----------------------
+
+.. include:: /includes/user-access-token.rst
+
+.. literalinclude:: /examples/generated/web/authentication-sessions.test.snippet.get-user-access-token.js
+   :language: javascript
+
+Refresh Token Expiration
+------------------------
+
+Refresh tokens expire after a set period of time. 
+When the refresh token expires, the access token can no longer be
+refreshed and the user must log in again.
+
+For information on configuring refresh token expiration, refer to 
+:ref:`<manage-user-sessions>` in the App Services documentation.
+
+.. _web-logout:
+
+Log Out
+-------
+
+To log any user out, call the ``User.logOut()`` on their user instance.
+
+Log out current user:
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.log-out-current-user.js
+   :language: javascript
+
+Log out user by user ID:
+
+.. literalinclude:: /examples/generated/web/authentication-log-in-and-out.test.snippet.log-out-specific-user.js
+   :language: javascript

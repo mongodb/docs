@@ -1,0 +1,235 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-react-to-changes:
+.. _dotnet-client-notifications:
+.. _dotnet-live-object:
+
+===========================
+React to Changes - .NET SDK
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+All Realm objects are **live objects**, which means they
+automatically update whenever they're modified. Realm emits a
+:ref:`notification event <dotnet-react-to-changes>` whenever any property
+changes.
+
+Realm's notification system allows you to watch for and react to changes in your
+data, independent of the writes that caused the changes. To observe changes, you 
+create a notification handler for a Realm, a 
+:ref:`managed collection <dotnet-client-collections>`, or a Realm object 
+that you want to watch. You can then add your specific app logic related to the 
+change.
+
+.. note::
+
+   For information on binding data changes to the UI in your project, 
+   see :ref:`Data Binding <dotnet-data-binding>`.
+
+Realm emits three kinds of notifications:
+
+- :ref:`Realm notifications <dotnet-realm-notifications>` whenever a specific 
+  Realm commits a write transaction.
+- :ref:`Collection notifications <dotnet-collection-notifications>` whenever 
+  any a managed collection changes, such as inserts, updates, and deletes of 
+  objects in the collection.
+- :ref:`Object notifications <dotnet-object-notifications>` whenever a specific 
+  Realm object changes.
+
+.. note::
+
+   Notifications only work when your realm regularly refreshes.
+   In the Main or UI thread of your application, realm refreshes
+   happen automatically.
+   On background threads, you need to handle this
+   yourself by either calling :dotnet-sdk:`Realm.Refresh()
+   <reference/Realms.Realm.html#Realms_Realm_Refresh>` or installing a
+   `SynchronizationContext
+   <https://docs.microsoft.com/en-us/dotnet/api/system.threading.synchronizationcontext>`__
+   on the thread before opening the realm. The third-party library
+   `Nito.AsyncEx.Context <https://www.nuget.org/packages/Nito.AsyncEx.Context/1.1.0>`__
+   provides a ``SynchronizationContext`` implementation and a convenient API to 
+   install it.
+
+.. _dotnet-register-a-realm-change-listener:
+.. _dotnet-realm-notifications:
+
+Register a Realm Change Listener
+--------------------------------
+
+You can register a notification handler on an entire realm.
+Realm invokes the notification handler whenever any write
+transaction on that realm is committed. 
+
+The handler receives no specific information about the change. This is useful 
+when you want to know that there has been a change but do not need to know 
+specifically what change has occurred.
+
+Suppose you are building a real-time collaborative app and you want to have a  
+counter that increases every time a change is made. In this scenario, you could 
+subscribe to the realm notification handler and add the code that controls 
+the indicator.
+
+.. literalinclude:: /examples/generated/dotnet/WorkWithRealm.snippet.notifications.cs
+   :language: csharp
+   :emphasize-lines: 2
+
+.. _dotnet-register-a-collection-change-listener:
+.. _dotnet-collection-notifications:
+
+Watch for Collection Changes
+----------------------------
+
+You can watch for changes on a collection of realm objects and realm 
+:ref:`collection <dotnet-client-collections>` properties on an object.
+There are two ways to be notified about changes to a collection: register a 
+notification handler on the collection or handle the `CollectionChanged 
+<https://docs.microsoft.com/en-us/dotnet/api/system.collections.specialized.inotifycollectionchanged.collectionchanged?view=net-6.0>`__ 
+event. 
+
+You can register a notification handler on a specific 
+collection within a realm. The collection can be of realm objects 
+(like ``realm.All<Person>()``) or a collection property on a 
+realm object (like ``house.Owners``, where "Owners" is of type ``IList``). 
+
+The handler receives a description of changes made to the collection since the 
+last notification. Unlike realm-wide notifications, collection notifications 
+contain detailed information about the change and provide the information you need 
+to manage a list or other view that represents the collection in the UI.
+
+Realm emits an initial notification when a subscription is added. After the 
+initial notification, Realm delivers notifications asynchronously whenever a 
+write transaction adds, modifies, or removes objects in the collection.
+
+Notification ChangeSets
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The notification contains a :dotnet-sdk:`ChangeSet <reference/Realms.ChangeSet.html>` 
+with 6 properties:
+
+- ``DeletedIndices`` is an ``int[]`` that contains the indices of the objects that were 
+  deleted.
+- ``InsertedIndices`` is an ``int[]`` that contains the indices of the objects that were 
+  inserted.
+- ``ModifiedIndices`` is an ``int[]`` that contains the *old* indices of the objects 
+  that were modified. These indices indicate the position of the modified objects 
+  in the original collection before any deletions or insertions ocurred. 
+- ``NewModifiedIndices`` is an ``int[]`` that represents the same entries as the 
+  ``ModifiedIndices`` property, but the indices represent the new locations in the 
+  collection after all changes have been accounted for.
+- ``IsCleared`` is a boolean set to ``true`` when a collection has been cleared by 
+  calling the ``Clear()`` method.
+- ``Moved`` is an array of :dotnet-sdk:`ChangeSet.Move <reference/Realms.ChangeSet.Move.html>` 
+  structs that contain the previous and new index of an object moved within the 
+  collection.
+
+.. important:: Order Matters
+   
+   In collection notification handlers, always apply changes
+   in the following order:
+
+   1. deletions
+   #. insertions
+   #. modifications 
+   
+   Handling insertions before deletions may result in unexpected behavior.
+
+Get Notified of All Collection Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To subscribe to collection notifications, call the 
+:dotnet-sdk:`SubscribeForNotifications <reference/Realms.CollectionExtensions.html#Realms_CollectionExtensions_SubscribeForNotifications__1_System_Collections_Generic_IDictionary_System_String___0__Realms_NotificationCallbackDelegate_System_Collections_Generic_KeyValuePair_System_String___0___>` 
+method. ``SubscribeForNotifications`` returns a subscription token which can be 
+disposed at any time to stop receiving notifications on the collection. 
+
+The following code shows how to observe a collection for changes. 
+
+.. literalinclude:: /examples/generated/dotnet/WorkWithRealm.snippet.collection-notifications.cs
+   :language: csharp
+
+Limit Notifications
+~~~~~~~~~~~~~~~~~~~
+
+The SDK provides also provides a 
+:dotnet-sdk:`KeyPathsCollection <reference/Realms.KeyPathsCollection.html>`, which 
+provides a way to filter the fields that will trigger a notification. You pass  
+the ``KeyPathsCollection`` to the ``SubscribeForNotifications`` method. 
+The following code shows how to observe specific fields:
+
+.. literalinclude:: /examples/generated/dotnet/WorkWithRealm.snippet.field-notifications.cs
+   :language: csharp
+
+.. _dotnet-unregister-a-change-listener:
+
+Unregister a Change Listener
+----------------------------
+
+To unregister a change listener, call ``Dispose`` on the token. The following code 
+shows how to do this:
+
+.. literalinclude:: /examples/generated/dotnet/WorkWithRealm.snippet.unsub-collection-notifications.cs
+   :language: csharp
+
+Handle the CollectionChanged Event
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Every Realm collection implements ``INotifyCollectionChanged``, which allows you 
+to use a collection directly in data-binding scenarios. Because collections implement 
+``INotifyCollectionChanged``, another approach to monitoring collection changes 
+is to handle the `CollectionChanged 
+<https://docs.microsoft.com/en-us/dotnet/api/system.collections.specialized.inotifycollectionchanged.collectionchanged>`__ 
+event and check for the type of `NotifyCollectionChangedAction 
+<https://learn.microsoft.com/en-us/dotnet/api/system.collections.specialized.notifycollectionchangedaction>`__.
+
+.. important:: Less Detailed Information
+
+   The ``CollectionChanged`` event handler does not provide the same level of 
+   detail about changes as ``SubscribeForNotifications`` does.
+
+The following code shows you how to implement the ``CollectionChanged`` event 
+handler:
+
+.. literalinclude:: /examples/generated/dotnet/WorkWithRealm.snippet.call-handle-collection-changed.cs
+   :language: csharp
+
+.. _dotnet-register-an-object-change-listener:
+.. _dotnet-object-notifications:
+
+Register an Object Change Listener
+----------------------------------
+
+You can register a notification handler on a specific object
+within a realm so that the SDK notifies you when any of the object's 
+properties change. The handler receives information about which field 
+has changed. With the field name, you can get the new value. 
+
+The following code shows how to observe an object for
+changes.
+
+.. literalinclude:: /examples/generated/dotnet/WorkWithRealm.snippet.object-notifications.cs
+   :language: csharp
+   :emphasize-lines: 4
+
+
+Unregister a Change Listener
+----------------------------
+
+When you no longer want to receive notifications on a change listener, you 
+unregister the handler. The code is the same for both a collection of realm 
+objects and a collection property. The following code shows how to unregister a 
+change listener on both:
+
+.. literalinclude:: /examples/generated/dotnet/WorkWithRealm.snippet.unsubscribe.cs
+   :language: csharp
+
+.. _dotnet-change-notification-limits:
+
+Change Notification Limits
+--------------------------
+
+.. include:: /includes/change-notification-limit.rst

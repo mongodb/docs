@@ -1,0 +1,201 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-modify-an-object-schema:
+.. _java-local-migrations:
+.. _java-local-migration:
+.. _java-client-migrations:
+
+=================================
+Change an Object Model - Java SDK
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. tabs::
+   
+   .. tab:: Local Realms
+      :tabid: local
+      
+      .. _java-og-schema:
+
+      The following examples demonstrate how to add, delete, and modify 
+      properties in a schema. First, make the required schema change.
+      Then, increment the schema version. Finally, if the change is 
+      breaking (destructive) create a corresponding :ref:`migration function
+      <java-migration-function>` to move data from the original schema
+      to the updated schema.
+
+      .. note:: Versions Update on Realm Open
+
+         Assume that each schema change shown in the following example
+         occurs after the application has used the existing schema. The
+         new schema version numbers apply only after you open the
+         realm and explicitly specify the new version number.
+         In other words, you can't specify version 3 without previously
+         specifying and using versions 0, 1, and 2.
+
+      A realm using schema version ``0`` has a ``Person`` object type:
+
+      .. tabs-realm-languages::
+       
+         .. tab::
+            :tabid: kotlin
+
+            .. literalinclude:: /examples/Migrations/PersonClassV1/PersonClassV1.kt
+               :language: kotlin
+               :copyable: false
+
+         .. tab::
+            :tabid: java
+
+            .. literalinclude:: /examples/Migrations/PersonClassV1/PersonClassV1.java
+               :language: java
+               :copyable: false
+
+      .. _java-add-a-property:
+
+      A. Add a Property
+      -----------------
+
+      The following example adds a ``lastName`` property to the
+      :ref:`original Person schema <java-og-schema>`:
+
+      .. tabs-realm-languages::
+       
+         .. tab::
+            :tabid: kotlin
+
+            .. literalinclude:: /examples/Migrations/PersonClassV2/PersonClassV2.kt
+               :language: kotlin
+               :emphasize-lines: 3
+               :copyable: false
+
+         .. tab::
+            :tabid: java
+
+            .. literalinclude:: /examples/Migrations/PersonClassV2/PersonClassV2.java
+               :language: java
+               :emphasize-lines: 5
+               :copyable: false
+
+      .. _java-delete-a-property:
+
+      B. Delete a Property
+      --------------------
+
+      The following example uses a combined
+      ``fullName`` property instead of the separate ``firstName`` and
+      ``lastName`` property in the :ref:`original Person schema <java-og-schema>`:
+
+      .. tabs-realm-languages::
+
+         .. tab::
+            :tabid: kotlin
+
+            .. literalinclude:: /examples/Migrations/PersonClassV3/PersonClassV3.kt
+               :language: kotlin
+               :emphasize-lines: 2
+               :copyable: false
+
+         .. tab::
+            :tabid: java
+
+            .. literalinclude:: /examples/Migrations/PersonClassV3/PersonClassV3.java
+               :language: java
+               :emphasize-lines: 3
+               :copyable: false
+
+      .. _java-modify-a-property-type:
+      .. _java-rename-a-property:
+
+      C. Modify a Property Type or Rename a Property
+      ----------------------------------------------
+
+      The following example modifies the ``age`` property in the
+      :ref:`original Person schema <java-og-schema>` by
+      renaming it to ``birthday`` and changing the type to ``Date``:
+
+      .. tabs-realm-languages::
+
+         .. tab::
+            :tabid: kotlin
+
+            .. literalinclude:: /examples/Migrations/PersonClassV4/PersonClassV4.kt
+               :language: kotlin
+               :emphasize-lines: 3
+               :copyable: false
+
+         .. tab::
+            :tabid: java
+
+            .. literalinclude:: /examples/Migrations/PersonClassV4/PersonClassV4.java
+               :language: java
+               :emphasize-lines: 5
+               :copyable: false
+
+      .. _java-migration-function:
+
+      D. Migration Functions
+      ----------------------
+
+      To migrate the realm to conform to the updated
+      ``Person`` schema, set the realm's
+      :ref:`schema version <java-schema-version>` to ``3``
+      and define a migration function to set the value of
+      ``fullName`` based on the existing ``firstName`` and
+      ``lastName`` properties and the value of ``birthday`` based on
+      ``age``:
+
+      .. tabs-realm-languages::
+
+         .. tab::
+            :tabid: kotlin
+
+            .. literalinclude:: /examples/Migrations/LocalMigration/LocalMigration.kt
+               :language: kotlin
+               :copyable: false
+
+         .. tab::
+            :tabid: java
+
+            .. literalinclude:: /examples/Migrations/LocalMigration/LocalMigration.java
+               :language: java
+               :copyable: false
+
+   .. tab:: Synchronized Realms
+      :tabid: sync
+
+      You can make changes to the schema of a synchronized realm by
+      modifying the :ref:`JSON Schema <configure-your-data-model>`
+      defined in your application's backend. Synchronized realms do
+      not require migration functions, since breaking changes to
+      synchronized schemas cause synchronization errors. Sync
+      handles non-breaking changes to synchronized realm schemas
+      automatically. As a result, both old versions of your schema and
+      new versions can synchronize as users upgrade their applications.
+
+      To learn more about schema changes to synchronized realms,
+      see :ref:`synced schema changes <synced-schema-overview>`.
+
+      .. note:: Development Mode: Only for Defining Your Initial Schema
+
+         You can define the first version of your application's synced
+         schema using :ref:`Development Mode <development-mode>`,
+         which automatically translates client models into
+         JSON Schema on the backend. However, you should make subsequent
+         changes to your schema through edits to the JSON Schema in your
+         App.
+
+.. tip::
+
+   You can use the
+   :java-sdk:`RealmConfiguration.shouldDeleteRealmIfMigrationNeeded()
+   <io/realm/RealmConfiguration.html#shouldDeleteRealmIfMigrationNeeded-->`
+   builder method when constructing a realm to delete the realm
+   instead of performing a migration when a migration is required. This
+   can come in handy during development when schemas often change.

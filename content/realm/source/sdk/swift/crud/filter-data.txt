@@ -1,0 +1,879 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _ios-client-query-engine:
+.. _ios-filter-data:
+
+=======================
+Filter Data - Swift SDK
+=======================
+
+.. meta:: 
+   :description: Atlas Device SDK for Swift uses a range of operators to query different data types through type-safe or NSPredicate query engines. 
+   :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Overview
+--------
+
+To filter data in your realm, you can leverage
+Realm's query engine. 
+
+.. versionadded:: 10.19.0: Realm Swift Query API
+
+The :ref:`Realm Swift Query API <ios-realm-swift-query-api>` offers an 
+idiomatic way for Swift developers to query data. Use Swift-style syntax 
+to query a realm with the benefits of auto-completion and 
+type safety. The Realm Swift Query API does not replace the NSPredicate
+Query API in newer SDK versions; instead, you can use either.
+
+For SDK versions prior to 10.19.0, or for Objective-C developers, 
+Realm's query engine supports :ref:`NSPredicate Query
+<ios-nspredicate-query>`.
+
+About the Examples on This Page
+-------------------------------
+   
+The examples in this page use a simple data set for a
+task list app. The two Realm object types are ``Project``
+and ``Task``. A ``Task`` has a name, assignee's name, and
+completed flag. There is also an arbitrary number for
+priority -- higher is more important -- and a count of
+minutes spent working on it. Finally, a ``Task`` can have one
+or more string ``labels`` and one or more integer ``ratings``.
+
+A ``Project`` has zero or more ``Tasks``.
+
+See the schema for these two classes, ``Project`` and
+``Task``, below:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.models.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.models.m
+         :language: objectivec
+
+You can set up the realm for these examples with the following code:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.setup.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.setup.m
+         :language: objectivec
+
+.. _ios-realm-swift-query-api:
+
+Realm Swift Query API
+---------------------
+
+.. versionadded:: 10.19.0
+
+   For SDK versions older than 10.19.0, use the :ref:`NSPredicate query API 
+   <ios-nspredicate-query>`.
+
+You can build a filter with Swift-style syntax using the ``.where`` 
+:swift-sdk:`Realm Swift query API <Structs/Query.html>`:
+
+.. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.realm-swift-query.swift
+   :language: swift
+
+This query API constructs an :ref:`NSPredicate <ios-nspredicate-query>` 
+to perform the query. It gives developers a type-safe idiomatic API to 
+use directly, and abstracts away the NSPredicate construction.
+
+The ``.where`` API takes a callback that evaluates to true or false. The
+callback receives an instance of the type being queried, and you can 
+leverage the compiler to statically check that you are creating valid queries
+that reference valid properties. 
+
+In the examples on this page, we use the ``$0`` shorthand to reference 
+the variable passed into the callback.
+
+.. _ios-where-operators:
+
+Operators
+~~~~~~~~~
+
+There are several types of operators available to query a
+:ref:`Realm collection <ios-client-collections>`. Queries
+work by **evaluating** an operator expression for every
+object in the collection being
+queried. If the expression resolves to ``true``, Realm
+Database includes the object in the results collection.
+
+Comparison Operators
+````````````````````
+
+You can use Swift comparison operators with the Realm Swift 
+Query API (``==``, ``!=``, ``>``, ``>=``, ``<``, ``<=``).
+
+.. example::
+
+   The following example uses the query engine's
+   comparison operators to:
+
+   - Find high priority tasks by comparing the value of the ``priority`` property value with a threshold number, above which priority can be considered high.
+   - Find long-running tasks by seeing if the ``progressMinutes`` property is at or above a certain value.
+   - Find unassigned tasks by finding tasks where the ``assignee`` property is equal to ``null``.
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-comparison-operators.swift
+      :language: swift
+
+Collections
+```````````
+
+You can query for values within a collection using the ``.contains`` operators.
+You can search for individual values by element, or search within a range.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - | ``.in(_ collection:)``
+     - Evaluates to ``true`` if the property referenced by the expression contains an element in the given array.
+
+   * - | ``.contains(_ element:)``
+     - Equivalent to the ``IN`` operator. Evaluates to ``true`` if the property referenced by the expression contains the value.
+
+   * - ``.contains(_ range:)``
+     - Equivalent to the ``BETWEEN`` operator. Evaluates to ``true`` if the property referenced by the expression contains a value that is within the range.
+
+   * - ``.containsAny(in: )``
+     - Equivalent to the ``IN`` operator combined with the ``ANY`` operator. Evaluates to ``true`` if any elements contained in the given array are present in the collection.
+
+.. example::
+
+   - Find tasks where the ``labels`` MutableSet collection property contains "quick win".
+   - Find tasks where the ``progressMinutes`` property is within a given range of minutes.
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-collections-contains.swift
+      :language: swift
+
+   Find tasks where the ``labels`` MutableSet collection property contains any of the elements in the given array: "quick win" or "bug".
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-collections-contains-any.swift
+      :language: swift
+
+.. versionadded:: 10.23.0: The ``IN`` operator
+
+The Realm Swift Query API now supports the ``IN`` operator. Evaluates to ``true`` if the property referenced by the expression contains the value.
+
+.. example::
+
+   Find tasks assigned to specific teammates Ali or Jamie by seeing if the ``assignee`` property is in a list of names.
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-collections-in.swift
+      :language: swift
+
+Logical Operators
+`````````````````
+
+You can make compound queries using Swift logical operators (``&&``, ``!``, 
+``||``).
+
+.. example::
+
+   We can use the query language's logical operators to find
+   all of Ali's completed tasks. That is, we find all tasks
+   where the ``assignee`` property value is equal to 'Ali' AND
+   the ``isComplete`` property value is ``true``:
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-logical-operators.swift
+      :language: swift
+
+String Operators
+````````````````
+
+You can compare string values using these string operators.
+Regex-like wildcards allow more flexibility in search.
+
+.. note::
+
+   You can use the following options with string operators:
+
+   - ``.caseInsensitive`` for case insensitivity.
+
+     .. code-block:: swift
+              
+        $0.name.contains("f", options: .caseInsensitive)
+
+   - ``.diacriticInsensitive`` for diacritic insensitivity: Realm treats 
+     special characters as the base character (e.g. ``é`` -> ``e``).
+
+     .. code-block:: swift
+         
+        $0.name.contains("e", options: .diacriticInsensitive)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Operator
+     - Description
+
+   * - | ``.starts(with value: String)``
+     - Evaluates to ``true`` if the collection contains an element whose value begins with the specified string value.
+
+   * - | ``.contains(_ value: String)``
+     - Evaluates to ``true`` if the left-hand string expression is found anywhere in the right-hand string expression.
+
+   * - | ``.ends(with value: String)``
+     - Evaluates to ``true`` if the collection contains an element whose value ends with the specified string value.
+
+   * - | ``.like(_ value: String)``
+     - Evaluates to ``true`` if the left-hand string expression
+       matches the right-hand string wildcard string
+       expression. A wildcard string expression is a string
+       that uses normal characters with two special wildcard
+       characters:
+
+       - The ``*`` wildcard matches zero or more of any character
+       - The ``?`` wildcard matches any character.
+
+       For example, the wildcard string "d?g" matches "dog",
+       "dig", and "dug", but not "ding", "dg", or "a dog".
+
+   * - | ``==``
+     - Evaluates to ``true`` if the left-hand string is lexicographically equal to the right-hand string.
+
+   * - | ``!=``
+     - Evaluates to ``true`` if the left-hand string is not lexicographically equal to the right-hand string.
+
+.. example::
+
+   The following example uses the query engine's string operators to find:
+
+   - Projects with a name starting with the letter 'e' 
+   - Projects with names that contain 'ie'
+   - Projects with an ``assignee`` property whose value is similar to ``Al?x``
+   - Projects that contain e-like characters with diacritic insensitivity 
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-string-operators.swift
+      :language: swift
+
+.. include:: /includes/string-sort-and-query-limitations-note.rst
+
+Geospatial Operators
+````````````````````
+
+.. versionadded:: 10.47.0
+
+Use the ``geoWithin`` operator to query geospatial data with one of the 
+SDK's provided shapes:
+
+- ``GeoCircle``
+- ``GeoBox``
+- ``GeoPolygon``
+
+This operator evaluates to ``true`` if:
+
+- An object has a geospatial data "shape" containing a ``String`` property 
+  with the value of Point and a ``List`` containing a longitude/latitude 
+  pair.
+- The longitude/latitude of the persisted object falls within the geospatial
+  query shape.
+
+.. literalinclude:: /examples/generated/code/start/Geospatial.snippet.geowithin.swift
+   :language: swift
+
+For more information about querying geospatial data, refer to 
+:ref:`swift-query-geospatial`.
+
+Aggregate Operators
+```````````````````
+
+You can apply an aggregate operator to a collection property
+of a Realm object. Aggregate operators traverse a
+:ref:`collection <ios-client-collections>` and reduce it
+to a single value.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - | ``.avg``
+     - Evaluates to the average value of a given numerical property across a collection.
+
+   * - | ``.count``
+     - Evaluates to the number of objects in the given collection. This
+       is currently only supported on :ref:`to-many relationship
+       collections <ios-to-many-relationship>` and not on lists of
+       primitives. In order to use ``.count`` on a list of primitives,
+       consider wrapping the primitives in a :ref:`Realm
+       object <ios-realm-objects>`.
+
+   * - | ``.max``
+     - Evaluates to the highest value of a given numerical property across a collection.
+
+   * - | ``.min``
+     - Evaluates to the lowest value of a given numerical property across a collection.
+
+   * - | ``.sum``
+     - Evaluates to the sum of a given numerical property across a collection.
+
+.. example::
+
+   We create a couple of filters to show different facets of
+   the data:
+
+   - Projects with average tasks priority above 5.
+   - Projects that contain only low-priority tasks below 5.
+   - Projects where all tasks are high-priority above 5.
+   - Projects that contain more than 5 tasks.
+   - Long running projects.
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-aggregate-operators.swift
+      :language: swift
+
+Set Operators
+`````````````
+
+A **set operator** uses specific rules to determine whether
+to pass each input collection object to the output
+collection by applying a given query expression to every element of
+a given :ref:`list <ios-list-collections>` property of
+the object.
+
+.. example::
+
+   Running the following queries in ``projects`` collections returns:
+   
+   - Projects where a set of string ``labels`` contains any of "quick win", "bug".
+   - Projects where any element in a set of integer ``ratings`` is greater than 3.
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-set-operators.swift
+      :language: swift
+
+.. _ios-realm-swift-query-api-subquery:
+
+Subqueries
+~~~~~~~~~~
+
+You can iterate through a collection property with another query using a
+subquery. To form a subquery, you must wrap the expression in parentheses
+and immediately follow it with the ``.count`` aggregator.
+
+.. code-block:: swift
+
+   (<query>).count > n
+
+If the expression does not produce a valid subquery, you'll get an
+exception at runtime.
+
+.. example::
+
+   Running the following query on a ``projects`` collection returns projects
+   with tasks that have not been completed by a user named Alex.
+
+   .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.tsq-subquery.swift
+      :language: swift
+
+.. _ios-nspredicate-query:
+
+NSPredicate Queries
+-------------------
+
+You can build a filter with NSPredicate:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.predicates.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.predicates.m
+         :language: objectivec
+
+Expressions
+~~~~~~~~~~~
+
+Filters consist of **expressions** in an NSPredicate. An expression consists of
+one of the following:
+
+- The name (keypath) of a property of the object currently being evaluated.
+- An operator and up to two argument expression(s).
+- A value, such as a string (``'hello'``) or a number (``5``).
+
+Dot Notation
+~~~~~~~~~~~~
+
+When referring to an object property, you can use **dot notation** to refer
+to child properties of that object. You can even refer to the properties of
+:ref:`embedded objects <ios-embedded-objects>` and :ref:`relationships
+<ios-client-relationships>` with dot notation.
+
+For example, consider a query on an object with a ``workplace`` property that
+refers to a Workplace object. The Workplace object has an embedded object
+property, ``address``. You can chain dot notations to refer to the zipcode
+property of that address: 
+
+.. code-block:: objective-c
+
+   workplace.address.zipcode == 10012
+
+Substitutions
+~~~~~~~~~~~~~
+
+You can use the following substitutions in your predicate format strings:
+
+- ``%@`` to specify values
+- ``%K`` to specify `keypaths <https://docs.swift.org/swift-book/ReferenceManual/Expressions.html#grammar_key-path-expression>`_
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: swift
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.substitutions.swift
+         :language: swift
+
+   .. tab::
+      :tabid: objective-c
+
+      .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.substitutions.m
+         :language: objectivec
+
+.. _ios-filter-data-operators:
+
+Operators
+~~~~~~~~~
+
+There are several types of operators available to filter a
+:ref:`Realm collection <ios-client-collections>`. Filters
+work by **evaluating** an operator expression for every
+object in the collection being
+filtered. If the expression resolves to ``true``, Realm
+Database includes the object in the results collection.
+
+Comparison Operators
+````````````````````
+
+The most straightforward operation in a search is to compare
+values.
+
+.. important:: Types Must Match
+
+   The type on both sides of the operator must be equivalent. For
+   example, comparing an :ref:`ObjectId with string
+   <ios-filter-object-id>` will result in a precondition failure with a
+   message like: 
+   
+   .. code-block::
+      :copyable: false
+   
+      "Expected object of type object id for property 'id' on object of type 
+      'User', but received: 11223344556677889900aabb (Invalid value)"
+   
+   You can compare any :ref:`numeric type
+   <ios-supported-property-types>` with any other numeric type.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - ``between``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is between or equal to the right-hand range. For dates, this evaluates to ``true`` if the left-hand date is within the right-hand date range.
+
+   * - | ``==``, ``=``
+     - Evaluates to ``true`` if the left-hand expression is equal to the right-hand expression.
+
+   * - | ``>``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is greater than the right-hand numerical or date expression. For dates, this evaluates to ``true`` if the left-hand date is later than the right-hand date.
+
+   * - | ``>=``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is greater than or equal to the right-hand numerical or date expression. For dates, this evaluates to ``true`` if the left-hand date is later than or the same as the right-hand date.
+
+   * - ``in``
+     - Evaluates to ``true`` if the left-hand expression is in the right-hand list or string.
+
+   * - | ``<``
+     - Evaluates to ``true`` if the left-hand numerical or date expression is less than the right-hand numerical or date expression. For dates, this evaluates to ``true`` if the left-hand date is earlier than the right-hand date.
+
+   * - | ``<=``
+     - Evaluates to ``true`` if the left-hand numeric expression is less than or equal to the right-hand numeric expression. For dates, this evaluates to ``true`` if the left-hand date is earlier than or the same as the right-hand date.
+
+   * - | ``!=``, ``<>``
+     - Evaluates to ``true`` if the left-hand expression is not equal to the right-hand expression.
+
+.. example::
+
+   The following example uses the query engine's
+   comparison operators to:
+
+   - Find high priority tasks by comparing the value of the ``priority`` property value with a threshold number, above which priority can be considered high.
+   - Find long-running tasks by seeing if the ``progressMinutes`` property is at or above a certain value.
+   - Find unassigned tasks by finding tasks where the ``assignee`` property is equal to ``null``.
+   - Find tasks assigned to specific teammates Ali or Jamie by seeing if the ``assignee`` property is in a list of names.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: objective-c
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.comparison-operators.m
+             :language: objectivec
+
+      .. tab::
+          :tabid: swift
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.comparison-operators.swift
+             :language: swift
+
+
+Logical Operators
+`````````````````
+
+You can make compound predicates using logical operators.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - | ``and``
+       | ``&&``
+     - Evaluates to ``true`` if both left-hand and right-hand expressions are ``true``.
+
+   * - | ``not``
+       | ``!``
+     - Negates the result of the given expression.
+
+   * - | ``or``
+       | ``||``
+     - Evaluates to ``true`` if either expression returns ``true``.
+
+.. example::
+
+   We can use the query language's logical operators to find
+   all of Ali's completed tasks. That is, we find all tasks
+   where the ``assignee`` property value is equal to 'Ali' AND
+   the ``isComplete`` property value is ``true``:
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: objective-c
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.logical-operators.m
+             :language: objectivec
+
+      .. tab::
+          :tabid: swift
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.logical-operators.swift
+             :language: swift
+
+
+String Operators
+````````````````
+
+You can compare string values using these string operators.
+Regex-like wildcards allow more flexibility in search.
+
+.. note::
+
+   You can use the following modifiers with the string operators:
+
+   - ``[c]`` for case insensitivity.
+
+     .. tabs-realm-languages::
+
+        .. tab::
+           :tabid: swift
+
+           .. code-block:: swift
+              
+              NSPredicate(format: "name CONTAINS[c] 'f'")
+
+        .. tab::
+           :tabid: objective-c
+
+           .. code-block:: objective-c
+
+              [NSPredicate predicateWithFormat: @"name CONTAINS[c] 'f'"]
+
+
+   - ``[d]`` for diacritic insensitivity: Realm treats special characters as the base character (e.g. ``é`` -> ``e``).
+
+     .. tabs-realm-languages::
+
+        .. tab::
+           :tabid: swift
+
+           .. code-block:: swift
+              
+              NSPredicate(format: "name CONTAINS[d] 'e'")
+
+        .. tab::
+           :tabid: objective-c
+
+           .. code-block:: objective-c
+
+              [NSPredicate predicateWithFormat: @"name CONTAINS[d] 'e'"]
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Operator
+     - Description
+
+   * - | ``beginsWith``
+     - Evaluates to ``true`` if the left-hand string expression begins with the right-hand string expression. This is similar to ``contains``, but only matches if the right-hand string expression is found at the beginning of the left-hand string expression.
+
+   * - | ``contains``, ``in``
+     - Evaluates to ``true`` if the left-hand string expression is found anywhere in the right-hand string expression.
+
+   * - | ``endsWith``
+     - Evaluates to ``true`` if the left-hand string expression ends with the right-hand string expression. This is similar to ``contains``, but only matches if the left-hand string expression is found at the very end of the right-hand string expression.
+
+   * - | ``like``
+     - Evaluates to ``true`` if the left-hand string expression
+       matches the right-hand string wildcard string
+       expression. A wildcard string expression is a string
+       that uses normal characters with two special wildcard
+       characters:
+
+       - The ``*`` wildcard matches zero or more of any character
+       - The ``?`` wildcard matches any character.
+
+       For example, the wildcard string "d?g" matches "dog",
+       "dig", and "dug", but not "ding", "dg", or "a dog".
+
+   * - | ``==``, ``=``
+     - Evaluates to ``true`` if the left-hand string is lexicographically equal to the right-hand string.
+
+   * - | ``!=``, ``<>``
+     - Evaluates to ``true`` if the left-hand string is not lexicographically equal to the right-hand string.
+
+.. example::
+
+   We use the query engine's string operators to find
+   projects with a name starting with the letter 'e' and
+   projects with names that contain 'ie':
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: objective-c
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.string-operators.m
+             :language: objectivec
+
+      .. tab::
+          :tabid: swift
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.string-operators.swift
+             :language: swift
+
+.. include:: /includes/string-sort-and-query-limitations-note.rst
+
+Geospatial Operators
+````````````````````
+
+.. versionadded:: 10.47.0
+
+You can perform a geospatial query using the ``IN`` operator with one
+of the SDK's provided shapes:
+
+- ``GeoCircle``
+- ``GeoBox``
+- ``GeoPolygon``
+
+This operator evaluates to ``true`` if:
+
+- An object has a geospatial data "shape" containing a ``String`` property 
+  with the value of Point and a ``List`` containing a longitude/latitude 
+  pair.
+- The longitude/latitude of the persisted object falls within the geospatial
+  query shape.
+
+.. literalinclude:: /examples/generated/code/start/Geospatial.snippet.nspredicate-query.swift
+   :language: swift
+
+For more information about querying geospatial data, refer to 
+:ref:`swift-query-geospatial`.
+
+Aggregate Operators
+```````````````````
+
+You can apply an aggregate operator to a collection property
+of a Realm object. Aggregate operators traverse a
+:ref:`collection <ios-client-collections>` and reduce it
+to a single value.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Operator
+     - Description
+
+   * - | ``@avg``
+     - Evaluates to the average value of a given numerical property across a collection.
+
+   * - | ``@count``
+     - Evaluates to the number of objects in the given collection. This
+       is currently only supported on :ref:`to-many relationship
+       collections <ios-to-many-relationship>` and not on lists of
+       primitives. In order to use ``@count`` on a list of primitives,
+       consider wrapping the primitives in a :ref:`Realm
+       object <ios-realm-objects>`.
+
+   * - | ``@max``
+     - Evaluates to the highest value of a given numerical property across a collection.
+
+   * - | ``@min``
+     - Evaluates to the lowest value of a given numerical property across a collection.
+
+   * - | ``@sum``
+     - Evaluates to the sum of a given numerical property across a collection.
+
+.. example::
+
+   We create a couple of filters to show different facets of
+   the data:
+
+   - Projects with average tasks priority above 5.
+   - Long running projects.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: objective-c
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.aggregate-operators.m
+             :language: objectivec
+
+      .. tab::
+          :tabid: swift
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.aggregate-operators.swift
+             :language: swift
+
+.. _ios-nspredicate-set-operators:
+
+Set Operators
+`````````````
+
+A **set operator** uses specific rules to determine whether
+to pass each input collection object to the output
+collection by applying a given predicate to every element of
+a given :ref:`list <ios-list-collections>` property of
+the object.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Operator
+     - Description
+
+   * - ``ALL``
+     - Returns objects where the predicate evaluates to ``true`` for all objects in the collection.
+
+   * - ``ANY``, ``SOME``
+     - Returns objects where the predicate evaluates to ``true`` for any objects in the collection.
+
+   * - ``NONE``
+     - Returns objects where the predicate evaluates to false for all objects in the collection.
+
+
+.. example::
+
+   We use the query engine's set operators to find:
+
+   - Projects with no complete tasks.
+   - Projects with any top priority tasks.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+          :tabid: objective-c
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.set-operators.m
+             :language: objectivec
+
+      .. tab::
+          :tabid: swift
+
+          .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.set-operators.swift
+             :language: swift
+
+.. _ios-nspredicate-subquery:
+
+Subqueries
+~~~~~~~~~~
+
+You can iterate through a collection property with another query using the
+``SUBQUERY()`` predicate function. ``SUBQUERY()`` has the following signature:
+
+.. code-block:: objective-c
+
+   SUBQUERY(<collection>, <variableName>, <predicate>)
+
+- ``collection``: the name of the list property to iterate through
+- ``variableName``: a variable name of the current element to use in the subquery
+- ``predicate``: a string that contains the subquery predicate. You can use the
+  variable name specified by ``variableName`` to refer to the currently iterated
+  element.
+
+.. example::
+
+   Running the following filter on a ``projects`` collection returns projects
+   with tasks that have not been completed by a user named Alex.
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: swift
+
+         .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.subquery.swift
+             :language: swift
+
+      .. tab::
+         :tabid: objective-c
+
+         .. literalinclude:: /examples/generated/code/start/QueryEngine.snippet.subquery.m
+             :language: objectivec

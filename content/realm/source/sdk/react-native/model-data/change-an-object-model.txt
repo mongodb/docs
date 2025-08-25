@@ -1,0 +1,258 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-schema-versions-and-migrations:
+
+=========================================
+Change an Object Model - React Native SDK
+=========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-modify-schema-properties-of-synced-realms.rst
+
+When updating your object schema, you must increment the schema version 
+and perform a migration. 
+
+If your schema update adds optional properties or removes properties, 
+Realm can perform the migration automatically. You only need to 
+increment the ``schemaVersion``. 
+
+For more complex schema updates, you must also manually specify the migration logic 
+in a ``migration`` function. This might include changes such as:
+
+- Adding required properties that must be populated with default values
+- Combining fields
+- Renaming a field
+- Changing a field's type
+- Converting from an object to an embedded object
+
+.. tip:: Bypass Migration During Development
+
+   When developing or debugging your application, you may prefer to delete the
+   realm instead of migrating it. Use the
+   :realm-react-sdk:`BaseConfiguration.deleteRealmIfMigrationNeeded
+   <types/Realm.BaseConfiguration.html>` property to delete the database automatically
+   when a schema mismatch requires a migration. 
+
+   Never release an app to production with this property set to ``true``.
+
+.. _react-native-schema-version:
+
+Schema Version
+--------------
+
+A **schema version** identifies the state of a :ref:`realm schema
+<react-native-realm-schema>` at some point in time. Realm tracks the
+schema version of each realm and uses it to map the objects in each
+realm to the correct schema.
+
+Schema versions are ascending integers you can include in the realm
+configuration. If a client application does not specify a version number, the
+realm defaults to version ``0``.
+
+.. important:: Increment Versions Monotonically
+   
+   :ref:`Migrations <react-native-migrations>` must update a realm to a higher 
+   schema version. Realm throws an error if a client application 
+   uses a schema version that is lower than the realm's current version or if 
+   the specified schema version is the same as the realm's current version but 
+   includes a different schema.
+
+.. _react-native-migrations:
+
+Migrations
+----------
+
+A **migration** is a function that updates a realm and any objects it contains
+from one :ref:`schema version <react-native-schema-version>` to a newer version.
+Migrations allow you to change your object schemas over time to accommodate new
+features and refactors.
+
+When you create a :realm-react-sdk:`Configuration <types/Realm.BaseConfiguration.html>`
+with a schema version greater than the
+realm's current version, Realm runs a migration function that you define.
+The function has access to the realm's version number and incrementally
+updates objects in the realm to conform to the new schema.
+
+Realm automatically migrates certain changes, such as new and deleted
+properties, but does not automatically set values for new properties unless the
+updated object schema specifies a default value. You can define additional logic
+in the migration function to further customize property values.
+
+.. _react-native-add-a-property:
+
+Add a Property
+--------------
+
+To add a property to a schema, add the new property to the object's class and
+set a ``schemaVersion`` of the ``Configuration`` object.
+
+.. example::
+   
+   A realm using :ref:`schema version <react-native-schema-version>` ``0``, the
+   default, has a ``Person`` object type with a ``firstName`` and ``lastName``
+   property. You decide to add an ``age`` property to the ``Person`` class. 
+
+   To migrate the realm to conform to the updated ``Person`` schema, you set the
+   realm's schema version in the ``Configuration`` to ``1``. Finally, pass
+   the configuration object to the ``createRealmContext()`` method.
+
+   .. tabs-realm-languages::
+     
+     .. tab::
+         :tabid: typescript
+ 
+         .. literalinclude:: /examples/generated/react-native/ts/change-an-object-model-test.snippet.add-a-property-to-schema.tsx
+           :language: typescript
+           :emphasize-lines: 5, 14, 23
+     
+     .. tab::
+         :tabid: javascript
+ 
+         .. literalinclude:: /examples/generated/react-native/js/change-an-object-model-test.snippet.add-a-property-to-schema.jsx
+           :language: javascript
+           :emphasize-lines: 9, 18
+
+.. _react-native-delete-a-property:
+
+Delete a Property
+-----------------
+
+To delete a property from a schema, remove the property from the object's class
+and set a ``schemaVersion`` of the :realm-react-sdk:`Configuration 
+<types/Realm.BaseConfiguration.html>` object. Deleting a property will not
+impact existing objects.
+
+.. example::
+
+   A realm using :ref:`schema version <react-native-schema-version>` ``0``, the
+   default, has a ``Person`` object type with a ``lastName`` property. You 
+   decide to remove the property from the schema. 
+
+   To migrate the realm to conform to the updated ``Person`` schema, set the
+   realm's schema version to ``1`` in the ``Configuration`` object. Finally, pass
+   the configuration object to the ``createRealmContext()`` method.
+
+
+   .. tabs-realm-languages::
+
+     .. tab::
+         :tabid: typescript
+ 
+         .. literalinclude:: /examples/generated/react-native/ts/change-an-object-model-test.snippet.delete-a-property-from-a-schema.tsx
+           :language: typescript
+           :emphasize-lines: 20
+
+     .. tab::
+         :tabid: javascript
+ 
+         .. literalinclude:: /examples/generated/react-native/js/change-an-object-model-test.snippet.delete-a-property-from-a-schema.jsx
+           :language: javascript
+           :emphasize-lines: 16
+
+.. _react-native-perform-a-schema-migration:
+.. _react-native-rename-a-property:
+
+Rename a Property
+-----------------
+
+To rename an object property, change the property name in the object schema and
+then create a realm configuration with an incremented :ref:`schema version
+<react-native-schema-version>` and a :ref:`migration <react-native-migrations>`
+function that updates existing objects to use the new property name.
+
+Migrations do not allow you to directly rename a property. Instead, you can
+create a new property with the updated name, copy the value from the old
+property, and then delete the old property.
+
+.. example::
+   
+   A realm using :ref:`schema version <react-native-schema-version>` ``0``, the
+   default, has a ``Person`` object type. The original schema had a ``firstName``
+   and ``lastName`` field. You later decide that the ``Person`` class should
+   use a combined ``fullName`` field and removes the separate ``firstName``
+   and ``lastName`` fields.
+   
+   To migrate the realm to conform to the updated ``Person`` schema, create a
+   :realm-react-sdk:`Configuration <types/Realm.BaseConfiguration.html>` object
+   and set the realm's schema version to ``1``, and define a migration function
+   that sets the value of ``fullName`` based on the existing ``firstName`` and
+   ``lastName`` properties. Finally, pass the configuration object to the
+   ``createRealmContext()`` method.
+
+   .. tabs-realm-languages::
+
+     .. tab::
+         :tabid: typescript
+ 
+         .. literalinclude:: /examples/generated/react-native/ts/change-an-object-model-test.snippet.rename-a-property-of-a-schema.tsx
+           :language: typescript
+           :emphasize-lines: 3, 12, 20-21, 28-29, 39, 51
+
+     .. tab::
+         :tabid: javascript
+ 
+         .. literalinclude:: /examples/generated/react-native/js/change-an-object-model-test.snippet.rename-a-property-of-a-schema.jsx
+           :language: javascript
+           :emphasize-lines: 8, 19, 31
+
+.. important:: Synced Realms
+
+   :ref:`Synced realms <sync>` only support non-breaking - also called additive
+   - changes to ensure that
+   older clients can sync with newer clients. Because full renames require you
+   to delete the old property, you cannot rename a synchronized property without
+   requiring a client reset. Instead, consider adding
+   the renamed property without deleting the old property. Alternately, use 
+   :ref:`mapTo <react-native-remap-a-property>` to store data using the existing 
+   internal name, but let your code use a different name.  
+
+Modify a Property Type
+----------------------
+
+To modify a property's type, set the property type of the field that you wish to
+modify to the new data type. Then, set a ``schemaVersion``, and a ``migration``
+callback function of the :realm-react-sdk:`Configuration 
+<types/Realm.BaseConfiguration.html>` object. 
+
+.. note::
+
+   :ref:`Synchronized realms <sync>` only support non-breaking changes
+   to ensure that older clients can sync with newer clients. This means that
+   synchronized realms do not support modifying the type of a property of a
+   schema. 
+
+
+.. example::
+   
+   A realm using :ref:`schema version <react-native-schema-version>` ``0``, the
+   default, has a ``Person`` object type. The original schema had an ``_id``
+   with a property type of ``int``. You later decide that the ``Person`` class's
+   ``_id`` field should be of type ``ObjectId``, and updates the schema.
+
+   To migrate the realm to conform to the updated ``Person`` schema, create a
+   ``Configuration`` object and set the realm's schema version to ``1``, and
+   define a migration function to convert the integer type to an ``Object ID``
+   type. Finally, pass the configuration object to the
+   ``createRealmContext()`` method.
+
+   .. tabs-realm-languages::
+
+     .. tab::
+         :tabid: typescript
+ 
+         .. literalinclude:: /examples/generated/react-native/ts/change-an-object-model-test.snippet.modify-a-property-type.tsx
+           :language: typescript
+           :emphasize-lines: 2, 11, 32, 43
+
+     .. tab::
+         :tabid: javascript
+ 
+         .. literalinclude:: /examples/generated/react-native/js/change-an-object-model-test.snippet.modify-a-property-type.jsx
+           :language: javascript
+           :emphasize-lines: 6, 18, 29

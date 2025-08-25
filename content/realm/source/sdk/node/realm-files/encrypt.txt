@@ -1,0 +1,106 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-encrypt-a-realm:
+
+=============================
+Encrypt a Realm - Node.js SDK
+=============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can encrypt the realm file on disk with AES-256 +
+SHA-2 by supplying a 64-byte encryption key when :ref:`opening a
+realm <node-open-a-local-realm>`.
+
+Realm transparently encrypts and decrypts data with standard
+:wikipedia:`AES-256 encryption <Advanced_Encryption_Standard>` using the
+first 256 bits of the given 512-bit encryption key. Realm
+uses the other 256 bits of the 512-bit encryption key to validate
+integrity using a :wikipedia:`hash-based message authentication code
+(HMAC) <HMAC>`.
+
+.. include:: /includes/encrypt-use-strong-cryptographic-hash.rst
+
+.. note:: Encrypt a Realm on Open or Copy Unencrypted Realm
+
+    You must encrypt a realm the first time you open it. 
+    If you try to open an existing unencrypted realm using a configuration
+    that contains an encryption key, Realm throws an error.
+
+    Alternatively, you can copy the unencrypted realm data to a new 
+    encrypted realm using the 
+    :js-sdk:`Realm.writeCopyTo() <Realm.html#writeCopyTo>`
+    method.
+    Refer to :ref:`<node-open-existing-realm-different-configuration>`
+    for more information.
+
+The following code demonstrates how to generate an encryption key and
+open an encrypted realm:
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. include:: /examples/generated/node/v12/formatted/metadata.test.snippet.encrypt-realm.ts.rst
+   
+   .. tab::
+      :tabid: javascript
+
+      .. include:: /examples/generated/node/v12/formatted/metadata.test.snippet.encrypt-realm.js.rst
+
+
+Store & Reuse Keys
+----------------------
+
+You **must** pass the same encryption key every time you open the encrypted realm. 
+If you don't provide a key or specify the wrong key for an encrypted
+realm, the Realm SDK throws an error.
+
+Apps should store the encryption key securely, typically in the target
+platform's secure key/value storage, so that other apps cannot read the key.
+
+Performance Impact
+------------------
+
+Reads and writes on encrypted realms can be up to 10% slower than unencrypted realms.
+
+Encryption and Atlas Device Sync
+--------------------------------
+
+You can encrypt a :ref:`synced realm <node-open-a-synced-realm>`. 
+
+.. include:: /includes/encrypt-atlas-device-sync.rst
+
+If you need unique keys for each user of your application, you can use an OAuth provider or
+use one of the :ref:`Realm authentication providers <users-and-authentication>` 
+and an :ref:`authentication trigger<authentication-triggers>`
+to create a 64-bit key and store that key in a :ref:`user object <user-objects>`.
+
+Access an Encrypted Realm from Multiple Processes
+-------------------------------------------------
+
+.. versionchanged:: ``realm@11.8.0``
+
+Starting with Realm Node.js SDK version v11.8.0, Realm supports opening
+the same encrypted realm in multiple processes.
+
+If your app uses Realm Node.js SDK version v11.7.0 or earlier, attempting to 
+open an encrypted realm from multiple processes throws this error:
+``Encrypted interprocess sharing is currently unsupported.``
+
+Encrypt App Services App Metadata
+---------------------------------
+
+If you use Atlas Device Sync with your realm, your App Services App uses an
+on-device metadata file to determine changes that should sync.
+
+You can encrypt this metadata file in a similar manner as encrypting your
+realm.
+
+To learn more, refer to :ref:`Encrypt App Metadata <node-encrypt-app-metadata>`.

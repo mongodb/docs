@@ -1,0 +1,242 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _java-troubleshooting:
+
+==========================
+Troubleshooting - Java SDK
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Couldn't load "librealm-jni.so"
+-------------------------------
+
+If your app uses native libraries that don't ship with support for
+64-bit architectures, Android will fail to load Realm's
+``librealm-jni.so`` file on ARM64 devices. This happens because Android
+cannot load 32-bit and 64-bit native libraries concurrently. Ideally,
+all libraries could provide the same set of supported ABIs, but
+sometimes that may not be doable when using a 3rd-party library.
+
+To work around this issue, you can exclude Realm's ARM64 library from
+the APK file by adding the following code to the application's
+``build.gradle``. You can refer to Mixing 32- and 64-bit Dependencies in Android for more information.
+
+.. code-block:: gradle
+   :copyable: false
+
+   android {
+       //...
+       packagingOptions {
+           exclude "lib/arm64-v8a/librealm-jni.so"
+       }
+       //...
+   }
+
+.. seealso::
+
+   For more information, see `Mixing 32- and 64-bit Dependencies in Android
+   <https://corbt.com/posts/2015/09/18/mixing-32-and-64bit-dependencies-in-android.html>`__.
+
+Network Calls to Mixpanel
+-------------------------
+
+Realm collects anonymous analytics when you run the
+Realm bytecode transformer on your source code. This is
+completely anonymous and helps us improve the product by flagging:
+
+- which version of the SDK you use
+- which operating system you use
+- if your application uses Kotlin
+- if your application uses local-only Realm or Sync
+
+Analytics do not run when your application runs on user devices - only
+when you compile your source code. To opt out of analytics, you can set
+the ``REALM_DISABLE_ANALYTICS`` environment variable to ``true``.
+
+.. _java-client-notifications-android-12:
+
+Change Listeners in Android 12 with SDK Versions Below 10.5.1
+-------------------------------------------------------------
+
+Due to a change in the Linux kernel,
+:ref:`object, collection, and realm notifications
+<java-client-notifications>` do not work in SDK versions below
+10.5.1 on devices running certain early versions of
+Android 12.
+
+This change effects Linux kernel versions beginning with ``5.5``.
+Linux kernel version ``5.14-rc4`` fixed the issue. The fix was
+also backported to ``LTS 5.10.56`` and ``LTS 5.13.8``. All mainline
+and LTS Android 12 branches contain the fix or a backport of it.
+
+If you experience this issue, you can restore notification functionality
+with the following fixes:
+
+- upgrade to a version of the SDK later than 10.5.1.
+- upgrade to a version of Android 12 that uses a Linux kernel release
+  that contains the fix (kernel commit ``3a34b13a88caeb2800ab44a4918f230041b37dd9``)
+  or the backport of the fix (kernel commit ``4b20d2de0b367bca627b49efd8d2e9e01bb66753``).
+
+Configurations Cannot be Different if Used to Open the Same File
+----------------------------------------------------------------
+
+Realm runs checks whenever you open a realm file to
+avoid corruption. In order to avoid accidentally opening a realm
+file with incompatible settings, the SDK uses Java's ``equals()`` method
+to compare ``RealmConfiguration`` objects. This prevents the SDK from
+opening a single realm file with different schemas, durability levels,
+or writability settings. However, configurations that include lambda
+functions, such as those passed to
+:java-sdk:`initialData() <io/realm/RealmConfiguration.Builder.html#initialData-io.realm.Realm.Transaction->`
+and
+:java-sdk:`compactOnLaunch() <io/realm/RealmConfiguration.Builder.html#compactOnLaunch-io.realm.CompactOnLaunchCallback->`,
+can break this ``equals()`` comparison, since two different lambdas are
+never considered equal using Java's built-in comparison.
+To avoid this error when using lambdas, you can either:
+
+1. Store a single configuration statically in your application, so that
+   separate realm instances use the exact same
+   ``RealmConfiguration`` object and it passes the check.
+
+#. Override the default equals check of the ``RealmConfiguration``:
+
+   .. code-block:: kotlin
+      :copyable: false
+
+      val config = RealmConfiguration.Builder()
+           .initialData(object: Realm.Transaction {
+               override fun execute(realm: Realm) {
+                   TODO("Not yet implemented")
+               }
+
+               override fun equals(other: Any?): Boolean {
+                   return true
+               }
+
+               override fun hashCode(): Int {
+                   return 37
+               }
+           }).build()
+
+Kapt Exceptions During Builds
+-----------------------------
+
+If you experience an exception in the Kapt library with a description
+like the following:
+
+.. code-block::
+
+   A failure occurred while executing org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask$KaptExecutionWorkAction
+
+This most likely means there is an issue with one of your model classes.
+Possible causes include:
+
+- introducing a field type that is not :ref:`supported <java-field-types>` by the SDK
+- using a visibility type other than ``open`` or ``public`` for a realm object model class
+- using a Realm annotation on an incompatible field
+
+If you experience this error, check any recent updates to your schema for
+problems.
+
+Installation Size
+-----------------
+
+Once your app is built for release and split for distribution, the SDK
+should only add about 800KB to your APK in most cases. The releases are
+significantly larger because they include support for more architectures,
+such as ARM7, ARMv7, ARM64, x86, and MIPS. The APK file contains all
+supported architectures, but the Android installer only installs native
+code for the device's architecture. This means that the installed app
+is smaller than the size of the APK file.
+
+You can reduce the size of the Android APK itself by splitting the APK
+into a version for each architecture. Use the Android Build Tool ABI
+Split support by adding the following to your :file:`build.gradle`:
+
+.. code-block:: gradle
+
+   android {
+       splits {
+           abi {
+               enable true
+               reset()
+               include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+           }
+       }
+   }
+
+Select the architectures that you'd like to include to build a separate
+APK for each.
+
+.. seealso::
+
+   See the :android:`Android Tools documentation about ABI Splits
+   <studio/build/configure-apk-splits.html>`
+   for more information, or the :github:`example on GitHub
+   <realm/realm-java/tree/master/examples/gridViewExample>`.
+
+If you don't want to handle multiple APKs, you can restrict the number
+of architectures supported in a single APK. This is done by adding
+``abiFilters`` to your :file:`build.gradle`:
+
+.. code-block:: gradle
+
+   android {
+       defaultConfig {
+           ndk {
+               abiFilters 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86', 'x86_64'
+           }
+       }
+   }
+
+.. seealso::
+
+   `Controlling APK Size When Using Native Libraries
+   <https://medium.com/android-news/controlling-apk-size-when-using-native-libraries-45c6c0e5b70a>`__.
+
+Customize Dependecies Defined by the Realm Gradle Plugin
+--------------------------------------------------------
+
+Realm uses a Gradle plugin because it makes it easier to set
+up a large number of dependencies. Unfortunately this also makes it a
+bit harder to ignore specific transitive dependencies.
+
+If you want to customize Realm beyond what is exposed by the
+plugin, you can manually set up all the dependencies and ignore the
+Gradle plugin. The following example demonstrates how to set up the SDK
+for an Android application using Kotlin manually:
+
+.. code-block:: gradle
+
+   buildscript {
+       ext.kotlin_version = '1.5.21'
+       ext.realm_version = '{+java-sdk-version+}'
+       repositories {
+           jcenter()
+           mavenCentral()
+       }
+       dependencies {
+           classpath "io.realm:realm-transformer:$realm_version"
+           classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+       }
+   }
+
+   apply plugin: 'com.android.application'
+   apply plugin: 'kotlin-android'
+   apply plugin: 'kotlin-kapt'
+
+   import io.realm.transformer.RealmTransformer
+   android.registerTransform(new RealmTransformer(project))
+
+   dependencies {
+     api "io.realm:realm-annotations:$realm_version"
+     api "io.realm:realm-android-library:$realm_version"
+     api "io.realm:realm-android-kotlin-extensions:$realm_version"
+     kapt "io.realm:realm-annotations-processor:$realm_version"
+   }

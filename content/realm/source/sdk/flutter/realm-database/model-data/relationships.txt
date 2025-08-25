@@ -1,0 +1,108 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-client-relationships:
+
+===========================
+Relationships - Flutter SDK
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can reference other Realm models from your Realm model.
+This lets you create the following types of relationships between Realm objects:
+
+- :ref:`To-One Relationship <flutter-many-to-one-relationship>`
+- :ref:`To-Many Relationship <flutter-many-to-many-relationship>`
+- :ref:`Inverse Relationship <flutter-inverse-relationship>`
+
+You can also embed one Realm object directly within another to create a nested data structure.
+Embedded objects are similar to relationships, but provide additional constraints.
+For more information about these constraints and how to create embedded objects,
+refer to the :ref:`Embedded Objects data type documentation <flutter-embedded-objects>`.
+
+.. tip:: Querying Related Objects
+   
+   In Flutter v1.9.0 and later, you can use the :flutter-sdk:`getBacklinks() <realm/RealmObjectBase/getBacklinks.html>` method to find objects that link to another object through a relationship.
+   For more information, refer to :ref:`flutter-get-backlinks`.
+
+.. _flutter-many-to-one-relationship:
+
+To-One Relationship
+-------------------
+
+A **to-one** relationship means that an object is related in a specific
+way to no more than one other object.
+
+To set up a to-one relationship, create a property in your model whose type
+is another model. Multiple objects can reference the same object.
+
+.. include:: /includes/note-to-one-relationships-must-be-optional.rst
+
+.. literalinclude:: /examples/generated/flutter/schemas.snippet.many-to-one-models.dart
+   :language: dart
+
+.. _flutter-many-to-many-relationship:
+
+To-Many Relationship
+--------------------
+
+A **to-many** relationship means that an object is related in a specific
+way to multiple objects.
+
+You can create a relationship between one object and any number of objects
+using a property of type ``List<T>`` in your application, where T is a Realm model class.
+
+.. literalinclude:: /examples/generated/flutter/schemas.snippet.many-to-many-models.dart
+   :language: dart
+
+.. _flutter-inverse-relationship:
+
+Inverse Relationship
+--------------------
+
+An **inverse relationship** links a Realm object back to any other realm objects
+that refer to it in to-one or to-many relationships.
+
+Inverse relationships have the following properties:
+
+- You must explicitly define a property in the object's model as an inverse relationship.
+  The schema cannot infer the inverse relationship.
+- Inverse relationships automatically update themselves with corresponding backlinks.
+  You can find the same set of Realm objects with a manual query,
+  but the inverse relationship field reduces boilerplate query code and capacity for error.
+- You cannot manually set the value of an inverse relationship property.
+  Instead, Realm updates implicit relationships when you add or remove
+  an object in the relationship.
+- Backlinks only work with Realm objects. Objects that haven't been added to a
+  realm yet do not have backlinks.
+
+For example, the to-many relationship "a User has many Tasks" does not
+automatically create the inverse relationship "a Task belongs to one User".
+If you don't specify the inverse relationship in the Task object model, you need to
+run a separate query to look up the user that is assigned to a given task.
+
+Use the `Backlink <https://pub.dev/documentation/realm_common/latest/realm_common/Backlink-class.html>`__
+property annotation to define an inverse relationship.
+Pass a `Symbol <https://api.dart.dev/stable/2.18.4/dart-core/Symbol/Symbol.html>`__
+of the field name of the to-one or to-many field for which you are creating the backlink
+as an argument to ``Backlink()``. Include an ``Iterable`` of the object model
+you are backlinking to in the field below the annotation.
+
+.. literalinclude:: /examples/generated/flutter/backlinks_test.snippet.backlink-models.dart
+   :language: dart
+
+.. note:: Inverse Relationships Not Present in Device Sync Schema
+
+   If you are using Atlas Device Sync, inverse relationships are not present
+   in the server-side Device Sync schema in your App Services App.
+   Since you can't directly set the value of an inverse relationship,
+   the relationship does not exist in Device Sync schema.
+
+   For more information on the server-side Device Sync schema,
+   refer to :ref:`Configure and Update Your Data Model <sync-schema-overview>`
+   in the Atlas App Services documentation.

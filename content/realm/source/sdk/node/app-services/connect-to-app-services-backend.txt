@@ -1,0 +1,141 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _node-connect-to-mongodb-realm-backend-app:
+
+======================================================
+Connect to an Atlas App Services Backend - Node.js SDK
+======================================================
+
+.. meta::
+  :description: Connect your Atlas Device SDK for Node.js client app to the Atlas App Services backend.
+  :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The App client is the interface to the Atlas App Services
+backend. It provides access to the :ref:`authentication functionality
+<node-authenticate-users>`, :ref:`functions <node-call-a-function>`, and
+:ref:`sync management <node-sync-changes-between-devices>`.
+
+Before You Begin
+----------------
+
+#. :ref:`Create an App Services App <create-a-realm-app>`
+#. :ref:`Install the Realm Node.js SDK <node-install>`
+
+.. _node-access-the-app-client:
+
+Access the App Client
+---------------------
+
+To connect to the App Services backend from your client, you need to create a 
+:js-sdk:`configuration object <types/AppConfiguration.html>`. Then, pass
+that configuration object to a ``Realm.App()`` instance.
+
+You must include the ``id`` field and the :guilabel:`App ID` for your App Services App, which you can 
+:ref:`find in the App Services UI <find-your-app-id>`.
+
+.. literalinclude:: /examples/generated/node/quickstart.snippet.initialize.ts
+  :language: javascript
+
+You can create multiple App client instances to connect to multiple
+Apps. All App client instances that share the same App ID use the same 
+underlying connection.
+
+.. important:: Changing an App Config After Initializing the App
+
+   .. versionchanged:: 12.6.0 
+      ``baseUrl`` is not cached in the App configuration.
+
+   When you initialize the App client, the configuration is cached internally. 
+   Attempting to close and then re-open an App with a changed configuration
+   within the same process has no effect. The client continues to use the 
+   cached configuration. 
+
+   Starting with Node.js SDK version 12.6.0, the ``baseUrl`` in the ``AppConfiguration``
+   is *not* cached. This means that you can change the ``baseUrl``, and the App 
+   client will use the updated configuration. In earlier SDK versions, changes 
+   to the ``baseUrl`` in a cached App configuration have no effect.
+
+.. _node-app-retrieve-client:
+
+Retrieve an Instance of the App Client
+--------------------------------------
+
+To retrieve an instance of the App Client from anywhere in your application, 
+call :js-sdk:`Realm.App.getApp() <classes/App.html#getApp>` and pass in your 
+:guilabel:`App ID`. 
+
+.. literalinclude:: /examples/generated/node/authenticate.snippet.get-app-instance.ts
+  :language: javascript
+
+.. _node-app-client-configure-timeout:
+
+Configure a Timeout for the App Client
+--------------------------------------
+
+You can configure an optional ``timeout`` for requests in your 
+:js-sdk:`AppConfiguration <types/AppConfiguration.html>`. It accepts a number
+of milliseconds before the request should timeout.
+
+You can use this timeout interval with the optional Sync configuration 
+``cancelWaitsOnNonFatalErrors`` boolean. When the timeout interval elapses, 
+any outstanding work that is awaiting uploads and downloads cancels. When
+this setting is false, awaiting uploads and downloads does not cancel 
+because Realm treats these timeouts as non-fatal errors. 
+
+For an example, refer to :ref:`node-cancel-async-after-timeout`.
+
+.. literalinclude:: /examples/generated/node/v12/configure-and-open-synced-realm.test.snippet.app-config-with-timeout.ts
+   :language: javascript
+
+.. _node-encrypt-app-metadata:
+
+Encrypt App Metadata
+--------------------
+
+You can encrypt the metadata that App Services stores on client devices. Use the
+values of the :js-sdk:`MetadataMode enum <enums/_internal_.MetadataMode.html>`
+to determine encryption behavior.
+
+To encrypt App metadata:
+
+#. Import ``MetadataMode`` from ``Realm`` and import other dependencies:
+
+   .. tabs-realm-languages::
+
+      .. tab::
+         :tabid: typescript
+
+         .. include:: /examples/generated/node/v12/formatted/metadata.test.snippet.imports.ts.rst
+      
+      .. tab::
+         :tabid: javascript
+
+         .. include:: /examples/generated/node/v12/formatted/metadata.test.snippet.imports.js.rst
+
+#. Create an App configuration object that contains the ``metadata`` property.
+#. Set ``metadata.mode`` to ``MetadataMode.Encryption``.
+#. Set ``metadata.encryptionKey`` to the key you want to use for encryption.
+#. Pass the App configuration object to ``new Realm.App()``.
+
+.. tabs-realm-languages::
+
+   .. tab::
+      :tabid: typescript
+
+      .. include:: /examples/generated/node/v12/formatted/metadata.test.snippet.encrypt-metadata.ts.rst
+   
+   .. tab::
+      :tabid: javascript
+
+      .. include:: /examples/generated/node/v12/formatted/metadata.test.snippet.encrypt-metadata.js.rst

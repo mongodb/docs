@@ -1,0 +1,373 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-client-threading:
+
+===================
+Threading - C++ SDK
+===================
+
+.. meta:: 
+   :description: Learn how to handle multithreaded applications with thread-safe references, immutable objects, and schedulers. 
+   :keywords: code example
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To create performant apps, developers must write thread-safe and maintainable
+multithreaded code that avoids issues like deadlocking and race conditions.
+Realm provides tools specifically designed for performant multithreaded apps.
+
+.. _cpp-threading-three-rules:
+
+Three Rules to Follow
+---------------------
+
+Before exploring Realm's tools for multithreaded apps, you need to 
+understand and follow these three rules:
+
+Don't lock to read:
+  Realm's :ref:`Multiversion Concurrency Control (MVCC) <cpp-mvcc>`
+  architecture eliminates the need to lock for read operations. The values you
+  read will never be corrupted or in a partially-modified state. You can freely
+  read from the same Realm file on any thread without the need for locks or
+  mutexes. Unnecessarily locking would be a performance bottleneck since each
+  thread might need to wait its turn before reading.
+
+Avoid synchronous writes on the UI thread if you write on a background thread:
+  You can write to a Realm file from any thread, but there can be only one
+  writer at a time. Consequently, synchronous write transactions block each
+  other. A synchronous write on the UI thread may result in your app appearing
+  unresponsive while it waits for a write on a background thread to complete.
+  :ref:`Device Sync <sync>` writes on a background thread, so you should avoid
+  synchronous writes on the UI thread with synced realms.
+
+Don't pass live objects, collections, or realms to other threads:
+  Live objects, collections, and realm instances are **thread-confined**: that
+  is, they are only valid on the thread on which they were created. Practically
+  speaking, this means you cannot pass live instances to other threads. However,
+  Realm offers several mechanisms for :ref:`sharing objects across
+  threads <cpp-communication-across-threads>`.
+
+.. _cpp-communication-across-threads:
+
+Communication Across Threads
+----------------------------
+
+To access the same Realm file from different threads, you must instantiate a
+realm instance on every thread that needs access. As long as you specify the same
+configuration, all realm instances will map to the same file on disk.
+
+One of the key rules when working with Realm in a multithreaded
+environment is that objects are thread-confined: **you cannot access the
+instances of a realm, collection, or object that originated on other threads.**
+Realm's :ref:`Multiversion Concurrency Control (MVCC) <cpp-mvcc>`
+architecture means that there could be many active versions of an object at any
+time. Thread-confinement ensures that all instances in that thread are of the
+same internal version.
+
+When you need to communicate across threads, you have several options depending
+on your use case:
+
+- To modify an object on two threads, :ref:`query <cpp-client-query-engine>`
+  for the object on both threads.
+
+- To react to changes made on any thread, use Realm's
+  :ref:`notifications <cpp-react-to-changes>`.
+
+- To see changes that happened on another thread in the current thread's realm
+  instance, :ref:`refresh <cpp-refreshing-realms>` your realm instance.
+
+- To share an instance of a realm or specific object with another thread, share
+  a :ref:`thread_safe_reference <cpp-thread-safe-reference>` to the realm
+  instance or object.
+
+- To send a fast, read-only view of the object to other threads,
+  :ref:`"freeze" <cpp-pass-immutable-copies-across-threads>` the object.
+
+.. _cpp-thread-safe-reference:
+
+Pass Instances Across Threads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instances of ``realm::realm``, ``realm::results``, and ``realm::object`` are
+*thread-confined*. That means you may only use them on the thread where you
+created them.
+
+You can copy thread-confined instances to another thread as follows:
+
+1. Initialize a :cpp-sdk:`thread_safe_reference 
+   <structrealm_1_1thread__safe__reference.html>` 
+   with the thread-confined object.
+#. Pass the reference to the target thread.
+#. Resolve the reference on the target thread. If the referred object is a realm
+   instance, resolve it by calling ``.resolve()``; otherwise, move the reference
+   to ``realm.resolve()``. The returned object is now thread-confined on the
+   target thread, as if it had been created on the target thread instead of the
+   original thread.
+
+.. important::
+
+   You must resolve a ``thread_safe_reference`` exactly once. Otherwise,
+   the source realm will remain pinned until the reference gets
+   deallocated. For this reason, ``thread_safe_reference`` should be
+   short-lived.
+
+.. literalinclude:: /examples/generated/cpp/threading.snippet.thread-safe-reference.cpp
+   :language: cpp
+
+Another way to work with an object on another thread is to query for it
+again on that thread. But if the object does not have a primary
+key, it is not trivial to query for it. You can use ``thread_safe_reference`` 
+on any object, regardless of whether it has a primary key.
+
+.. _cpp-use-realm-across-threads:
+
+Use the Same Realm Across Threads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot share realm instances across threads.
+
+To use the same Realm file across threads, open a different realm instance on
+each thread. As long as you use the same :cpp-sdk:`configuration
+<structrealm_1_1internal_1_1bridge_1_1realm_1_1config.html>`, all Realm
+instances will map to the same file on disk.
+
+.. _cpp-pass-immutable-copies-across-threads:
+
+Pass Immutable Copies Across Threads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Live, thread-confined objects work fine in most cases.
+However, some apps -- those based on reactive, event
+stream-based architectures, for example -- need to send
+immutable copies around to many threads for processing
+before ultimately ending up on the UI thread. Making a deep
+copy every time would be expensive, and Realm does not allow
+live instances to be shared across threads. In this case,
+you can **freeze** and **thaw** objects, collections, and realms.
+
+Freezing creates an immutable view of a specific object,
+collection, or realm. The frozen object, collection, or realm still 
+exists on disk, and does not need to be deeply copied when passed around 
+to other threads. You can freely share the frozen object across threads
+without concern for thread issues. When you freeze a realm, its child 
+objects also become frozen.
+
+Frozen objects are not live and do not automatically update.
+They are effectively snapshots of the object state at the
+time of freezing. Thawing an object returns a live version of the frozen 
+object.
+
+To freeze a realm, collection, or object, call the ``.freeze()`` method:
+
+.. literalinclude:: /examples/generated/cpp/threading.snippet.freeze.cpp
+   :language: cpp
+
+When working with frozen objects, an attempt to do any of
+the following throws an exception:
+
+- Opening a write transaction on a frozen realm.
+- Modifying a frozen object.
+- Adding a change listener to a frozen realm, collection, or object.
+
+You can use ``.is_frozen()`` to check if the object is frozen. This is always
+thread-safe. 
+
+.. literalinclude:: /examples/generated/cpp/threading.snippet.is-frozen.cpp
+   :language: cpp
+
+Frozen objects remain valid as long as the live realm that
+spawned them stays open. Therefore, avoid closing the live
+realm until all threads are done with the frozen objects.
+You can close a frozen realm before the live realm is closed.
+
+.. important:: On caching frozen objects
+
+   Caching too many frozen objects can have a negative
+   impact on the realm file size. "Too many" depends on your
+   specific target device and the size of your Realm
+   objects. If you need to cache a large number of versions,
+   consider copying what you need out of the realm instead.
+
+.. _cpp-modify-frozen-object:
+
+Modify a Frozen Object
+``````````````````````
+
+To modify a frozen object, you must thaw the object. Alternately, you can 
+query for it on an unfrozen realm, then modify it. Calling ``.thaw()`` 
+on a live object, collection, or realm returns itself.
+
+Thawing an object or collection also thaws the realm it references.
+
+.. literalinclude:: /examples/generated/cpp/threading.snippet.thaw.cpp
+   :language: cpp
+
+.. _cpp-append-to-frozen-collection:
+
+Append to a Frozen Collection
+`````````````````````````````
+
+When you append to a frozen :ref:`collection <cpp-collection-types>`, 
+you must thaw both the object containing the collection and the object 
+that you want to append. 
+
+The same rule applies when passing frozen objects across threads. A common 
+case might be calling a function on a background thread to do some work 
+instead of blocking the UI.
+
+.. tabs::
+
+   .. tab:: Append to frozen collection
+      :tabid: append-to-collection
+
+      In this example, we query for two objects in a frozen Realm:
+
+      - A ``Project`` object that has a list property of ``Item`` objects
+      - An ``Item`` object
+
+      We must thaw both objects before we can append the ``Item`` to 
+      the ``items`` list collection on the ``Project``. If we thaw only the 
+      ``Project`` object but not the ``Item``, Realm throws an error.
+
+      .. literalinclude:: /examples/generated/cpp/threading.snippet.append-to-frozen-collection.cpp
+         :language: cpp
+
+   .. tab:: Object Models
+      :tabid: models
+
+      .. literalinclude:: /examples/generated/cpp/threading.snippet.item-model.cpp
+         :language: cpp
+         :caption: Item Model
+
+      .. literalinclude:: /examples/generated/cpp/threading.snippet.model-with-collection-property.cpp
+         :language: cpp
+         :caption: Project Model
+
+.. _cpp-scheduler-thread-management:
+
+Schedulers (Run Loops)
+----------------------
+
+Some platforms or frameworks automatically set up a **scheduler** (or **run
+loop**), which continuously processes events during the lifetime of your
+app. The Realm C++ SDK detects and uses schedulers on the following
+platforms or frameworks:
+
+- macOS, iOS, tvOS, watchOS
+- Android
+- Qt
+
+Realm uses the scheduler to schedule work such as Device Sync upload and
+download.
+
+If your platform does not have a supported scheduler, or you otherwise want to
+use a custom scheduler, you can implement :cpp-sdk:`realm::scheduler
+<structrealm_1_1scheduler.html>` and pass the instance to the :cpp-sdk:`realm::db_config
+<structrealm_1_1internal_1_1bridge_1_1realm_1_1config.html>` you use to
+configure the realm. Realm will use the scheduler you pass to it.
+
+.. literalinclude:: /examples/generated/cpp/threading.snippet.scheduler.cpp
+   :language: cpp
+
+.. _cpp-refreshing-realms:
+
+Refreshing Realms
+-----------------
+
+On any thread controlled by a scheduler or run loop, Realm automatically
+refreshes objects at the start of every run loop iteration. Between run loop
+iterations, you will be working on the snapshot, so individual methods always
+see a consistent view and never have to worry about what happens on other
+threads.
+
+When you initially open a realm on a thread, its state will be the most recent
+successful write commit, and it will remain on that version until refreshed. If
+a thread is not controlled by a run loop, then the :cpp-sdk:`realm.refresh()
+<structrealm_1_1db.html>` method must be called manually in order to advance the
+transaction to the most recent state.
+
+.. literalinclude:: /examples/generated/cpp/threading.snippet.realm-refresh.cpp
+    :language: cpp
+
+.. note:: 
+   
+   Failing to refresh realms on a regular basis could lead to some transaction 
+   versions becoming "pinned", preventing Realm from reusing the disk space used
+   by that version and leading to larger file sizes. 
+
+.. _cpp-mvcc:
+
+Realm's Threading Model in Depth
+--------------------------------
+
+Realm provides safe, fast, lock-free, and concurrent access
+across threads with its :wikipedia:`Multiversion Concurrency
+Control (MVCC) <Multiversion_concurrency_control>`
+architecture.
+
+Compared and Contrasted with Git
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are familiar with a distributed version control
+system like `Git <https://git-scm.com/>`__, you may already
+have an intuitive understanding of MVCC. Two fundamental
+elements of Git are:
+
+- Commits, which are atomic writes.
+- Branches, which are different versions of the commit history.
+
+Similarly, Realm has atomically-committed writes in the form
+of transactions. Realm also has many different versions of the 
+history at any given time, like branches.
+
+Unlike Git, which actively supports distribution and
+divergence through forking, a realm only has one true latest
+version at any given time and always writes to the head of
+that latest version. Realm cannot write to a previous
+version. This means your data converges on one
+latest version of the truth.
+
+Internal Structure
+~~~~~~~~~~~~~~~~~~
+
+A realm is implemented using a :wikipedia:`B+ tree
+<B%2B_tree>` data structure. The top-level node represents a
+version of the realm; child nodes are objects in that
+version of the realm. The realm has a pointer to its latest
+version, much like how Git has a pointer to its HEAD commit.
+
+Realm uses a copy-on-write technique to ensure
+:wikipedia:`isolation <Isolation_(database_systems)>` and
+:wikipedia:`durability <Durability_(database_systems)>`.
+When you make changes, Realm copies the relevant part of the
+tree for writing. Realm then commits the changes in two
+phases:
+
+- Realm writes changes to disk and verifies success.
+- Realm then sets its latest version pointer to point to the newly-written version.
+
+This two-step commit process guarantees that even if the
+write failed partway, the original version is not corrupted
+in any way because the changes were made to a copy of the
+relevant part of the tree. Likewise, the realm's root
+pointer will point to the original version until the new
+version is guaranteed to be valid.
+
+.. include:: /includes/commit-process-diagram.rst
+
+Realm uses zero-copy techniques
+like memory mapping to handle data. When you read a value
+from the realm, you are virtually looking at the value on
+the actual disk, not a copy of it. This is the basis for
+:ref:`live objects <cpp-live-object>`. This is also why a realm
+head pointer can be set to point to the new version after
+the write to disk has been validated.

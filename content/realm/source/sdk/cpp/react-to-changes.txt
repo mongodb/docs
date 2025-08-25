@@ -1,0 +1,150 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-react-to-changes:
+.. _cpp-live-object:
+
+==========================
+React to Changes - C++ SDK
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+All Realm objects are **live objects**, which means they
+automatically update whenever they're modified. Realm emits a
+notification event whenever any property changes. You can register a 
+notification handler to listen for these notification events, and update
+your UI with the latest data.
+
+.. _cpp-register-an-object-change-listener:
+
+Register an Object Change Listener
+----------------------------------
+
+You can register a notification handler on a specific object
+within a realm. Realm notifies your handler:
+
+- When the object is deleted.
+- When any of the object's properties change.
+
+.. code-block:: cpp
+   :copyable: false
+   
+   auto token = object.observe([&](auto&& change) { ... }
+
+The handler receives an :cpp-sdk:`object_change <structrealm_1_1object__change.html>`
+object that contains information about the changes, such as whether the 
+object was deleted. It may include a list 
+of :cpp-sdk:`PropertyChange 
+<structrealm_1_1PropertyChange.html#a71dc45a7609e6a528e70b91d20ef8f94>` 
+objects that contain information about what fields changed, the new values
+of those fields (except on List properties), and potentially the old values 
+of the fields.
+
+.. literalinclude:: /examples/generated/cpp/notifications.snippet.property-changes.cpp
+    :language: cpp
+
+When you make changes, :cpp-sdk:`refresh() <structrealm_1_1db.html>` the 
+realm to emit a notification.
+
+.. literalinclude:: /examples/generated/cpp/notifications.snippet.object.cpp
+   :language: cpp
+
+.. _cpp-register-a-collection-change-listener:
+
+Register a Collection Change Listener
+-------------------------------------
+
+You can register a notification handler on a collection. A collection is
+a list, map, or set property that can contain any :ref:`supported data type 
+<cpp-supported-property-types>`, including primitives or other objects.
+
+Realm notifies your handler whenever a write transaction 
+removes, adds, or changes objects in the collection.
+
+Notifications describe the changes since the prior notification with
+three lists of indices: the indices of the objects that were removed,
+inserted, and modified.
+
+.. important:: Order Matters
+   
+   In collection notification handlers, always apply changes
+   in the following order: deletions, insertions, then
+   modifications. Handling insertions before deletions may
+   result in unexpected behavior.
+  
+Collection notifications provide a :cpp-sdk:`collection_change 
+<structrealm_1_1collection__change.html>` 
+struct that reports the index of the objects that are removed, added, or 
+modified. It can also notify you if the collection was deleted.
+
+In this example, the ``Person`` object has a list of ``Dog`` objects as a property:
+
+.. literalinclude:: /examples/generated/cpp/notifications.snippet.collection-model.cpp
+   :language: cpp
+
+Removing a dog, adding a new dog, or modifying a dog triggers the notification
+handler:
+
+.. literalinclude:: /examples/generated/cpp/notifications.snippet.collection.cpp
+   :language: cpp
+
+.. _cpp-register-a-results-collection-change-listener:
+
+Register a Results Collection Change Listener
+---------------------------------------------
+
+You can register a notification handler on a :cpp-sdk:`results collection
+<structrealm_1_1results.html>`.
+
+Realm notifies your handler whenever a write transaction 
+removes, adds, or changes objects in the collection.
+
+Notifications describe the changes since the prior notification with
+three lists of indices: the indices of the objects that were deleted,
+inserted, and modified.
+
+.. important:: Order Matters
+   
+   In collection notification handlers, always apply changes
+   in the following order: deletions, insertions, then
+   modifications. Handling insertions before deletions may
+   result in unexpected behavior.
+  
+Results collection notifications provide a :cpp-sdk:`results_change 
+<structrealm_1_1results__common__base_1_1results__change.html>` struct that 
+reports the index of the objects that are deleted, added, or modified.
+It can also notify you if the collection was deleted.
+
+.. literalinclude:: /examples/generated/cpp/notifications.snippet.results.cpp
+   :language: cpp
+
+.. _cpp-stop-watching-for-changes:
+
+Stop Watching for Changes
+-------------------------
+
+Observation stops when the token returned by an ``observe`` call becomes
+invalid. You can explicitly invalidate a token by calling its
+``unregister()`` member function.
+
+.. literalinclude:: /examples/generated/cpp/notifications.snippet.unregister.cpp
+   :language: cpp
+
+.. important:: Retain Tokens as Long as You Want to Observe
+
+   Notifications stop when the token's destructor is called. For example, 
+   if the token is in a local variable that goes out of scope. You can
+   use ``std::move`` to transfer the token to a variable in a different 
+   scope. 
+
+.. _cpp-change-notification-limits:
+
+Change Notification Limits
+--------------------------
+
+.. include:: /includes/change-notification-limit.rst

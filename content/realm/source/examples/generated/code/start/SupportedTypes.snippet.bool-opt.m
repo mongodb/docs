@@ -1,0 +1,1 @@
+@property NSNumber<RLMBool> *optBoolName;

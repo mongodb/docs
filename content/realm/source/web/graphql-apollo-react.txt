@@ -1,0 +1,223 @@
+.. _graphql-apollo-react:
+
+===============================
+Apollo Client (React) - Web SDK
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. banner::
+   :variant:  warning
+
+   GraphQL is deprecated. :ref:`Learn More <migrate-hosting-graphql>`.
+
+Overview
+--------
+
+You can use :apollo:`Apollo Client <docs/react>` to connect to your Realm app's
+:ref:`exposed GraphQL API <graphql-expose-data>` from a React application.
+Apollo Client runs queries and mutations, maintains a client-side data cache,
+and integrates into your app with idiomatic React components and hooks.
+
+.. note:: See a Working Demo Application
+   
+   Check out the :github:`Realm GraphQL - Apollo (React)
+   <mongodb-university/realm-graphql-apollo-react>` repository on GitHub to see
+   a fully set-up React & Apollo application that's ready to connect to your own
+   Atlas App Services backend. It uses the ``sample_mflix.movies`` collection that's
+   included in the MongoDB Atlas :atlas:`sample data sets </sample-data>`.
+   
+   If you don't want to clone the repository, the demo application is also
+   available in-browser in the :codesandbox:`Realm GraphQL CodeSandbox
+   <s/github/mongodb-university/realm-graphql-apollo-react?file=/src/index.js>`.
+
+.. _graphql-apollo-react-setup:
+
+Set Up Apollo Client
+--------------------
+
+.. procedure::
+
+   .. step:: Install Dependencies
+
+      As in any Realm project, you'll need to install the :npm:`Realm Web
+      SDK <realm-web>` to authenticate users and requests.
+      
+      .. code-block:: shell
+         
+         npm install realm-web
+      
+      Apollo bundles the core components that you need to create a client in a
+      package called :npm:`@apollo/client <package/@apollo/client>`. It also
+      requires the :npm:`graphql <package/graphql>` package to parse GraphQL
+      queries.
+      
+      .. code-block:: shell
+         
+         npm install @apollo/client graphql
+      
+
+   .. step:: Import dependencies
+
+      Import the necessary dependencies from ``realm-web`` and ``@apollo/client`` to 
+      create your Apollo GraphQL client and add authentication with Realm. 
+      
+      .. literalinclude:: /examples/generated/web/apollo-graphql-client.test.snippet.apollo-realm-imports.jsx
+         :language: javascript
+      
+
+   .. step:: Create an Apollo GraphQL Client
+
+      Create a new :apollo:`ApolloClient <docs/react/api/core/ApolloClient>` object
+      that points to your Realm app's GraphQL API endpoint. You generate the
+      endpoint URL based on your Realm App ID or find it on the GraphQL page of the
+      Realm UI.
+      
+      .. literalinclude:: /examples/generated/web/apollo-graphql-client.test.snippet.create-apollo-client.jsx
+         :language: javascript
+      
+
+   .. step:: Set Up User Authentication
+
+      The ``ApolloClient`` is configured to send requests to your app. However, all
+      Realm GraphQL requests must include a valid user access token to authenticate
+      requests, so right now any operations sent from Apollo will fail. Access tokens expire after 30 minutes 
+      and need to be refreshed.
+      
+      To authenticate requests, you need to add an :ref:`Authorization header
+      <graphql-authentication>` with a valid Realm user access token
+      to each GraphQL request.
+      
+      You can authenticate a user and get their access token with the :ref:`Realm
+      Web SDK <web-intro>`. The Apollo ``HttpLink`` object allows you to add custom
+      headers to every request by defining a custom ``fetch`` function.
+      
+      .. literalinclude:: /examples/generated/web/apollo-graphql-client.test.snippet.set-up-user-auth.jsx
+         :language: javascript
+         :emphasize-lines: 17, 27-31
+      
+
+   .. step:: Add the Apollo Client to Your App
+
+      The Apollo ``client`` object is now configured to send authenticated GraphQL
+      requests to your App Services backend. All that's left to do is make it available
+      to the rest of your React application.
+      
+      The ``@apollo/client`` package exports an ``ApolloProvider`` component that
+      makes the ``client`` available to any Apollo hooks that you call from child
+      components. Wrap your app in an ``ApolloProvider`` and pass the ``client``
+      object to the provider.
+      
+      .. literalinclude:: /examples/generated/web/apollo-graphql-client.test.snippet.add-apollo-client-to-app.jsx
+         :language: javascript
+         :emphasize-lines: 3-5
+
+.. _graphql-apollo-react-queries-mutations:
+
+Run Queries and Mutations
+-------------------------
+
+The ``@apollo/client`` package includes a set of declarative React hooks that
+connect your components to the GraphQL API and handle query and mutation
+execution.
+
+To define queries and mutations that you can pass to the hooks, install
+:npm:`graphql-tag <package/graphql-tag>`:
+
+.. code-block:: shell
+   
+   npm install graphql-tag
+
+Import the relevant hooks and the GraphQL query constructor at the top of 
+the file where you're using them. 
+
+.. literalinclude:: /examples/generated/web/apollo-graphql-queries-mutations.test.snippet.import-dependencies-query.jsx
+  :language: javascript
+
+.. note:: Apollo Hooks Must Have An ApolloProvider
+   
+   Components that call the query and mutation hooks must be descendants of the
+   :apollo:`ApolloProvider <docs/react/api/react/hooks/#apolloprovider>` that
+   you configured for your App Services backend. The hooks call the :apollo:`query
+   <docs/react/api/core/ApolloClient/#ApolloClient.query>` and :apollo:`mutation
+   <docs/react/api/core/ApolloClient/#ApolloClient.mutation>` methods on the
+   provided ``client`` object.
+
+.. _graphql-apollo-react-run-a-query:
+
+Run a Query
+~~~~~~~~~~~
+
+Apollo Client includes two hooks for executing queries. The hooks accept
+identical parameters but differ in when they execute the query:
+
+- :apollo:`useQuery() <docs/react/api/react/hooks/#usequery>` runs automatically
+  when its component mounts. It also returns a callback that re-runs the query
+  whenever you call it.
+
+- :apollo:`useLazyQuery() <docs/react/api/react/hooks/#uselazyquery>` returns a
+  callback function that executes the query whenever you call it. It does not
+  run the query on component mount.
+
+Both hooks accept a query definition and additional options, including
+``variables`` that Apollo passes to the query. They also both return information
+about the query's current execution status and data returned from the most
+recent execution.
+
+.. literalinclude:: /examples/generated/web/apollo-graphql-queries-mutations.test.snippet.run-query.jsx
+  :language: javascript
+
+
+.. _graphql-apollo-react-run-a-mutation:
+
+Run a Mutation
+~~~~~~~~~~~~~~
+
+The :apollo:`useMutation() <docs/react/api/react/hooks/#usemutation>` hook
+accepts a mutation definition and an optional configuration object. The most
+common option you'll need to pass is a ``variables`` object that maps to
+:graphql:`GraphQL variables <learn/queries/#variables>` in the mutation
+definition.
+
+The hook returns several objects in an array:
+
+- a callback function that executes the mutation
+
+- an object that includes information on the mutation's execution status and
+  data returned from the most recent execution.
+
+.. literalinclude:: /examples/generated/web/apollo-graphql-queries-mutations.test.snippet.run-mutation.jsx
+  :language: javascript
+
+.. _graphql-apollo-paginate:
+
+Paginate Data
+-------------
+
+You can paginate data in your queries with the types provided by your API's
+generated GraphQL schema. You can paginate data with the Apollo GraphQL client
+using the  ``useQuery()`` and ``useLazyQueryHook()`` hooks.
+
+The Atlas GraphQL API **does not** have an ``offset`` operator, like the
+:graphql:`GraphQL documentation recommends for pagination <learn/pagination/#pagination-and-edges>`.
+
+The following example uses the ``useQuery()`` hook and a GraphQL query that
+can query data in ascending and descending order, depending on the variables
+you pass to it.
+
+.. literalinclude:: /examples/generated/web/GraphQLPagination.snippet.paginate.jsx
+   :language: javascript
+
+Refresh Access Tokens
+---------------------
+
+When using Realm GraphQL and an Apollo Client, access tokens expire 30 minutes after they're granted. 
+You can refresh user access tokens with the Realm Web SDK's ``refreshAccessToken()`` method.
+
+.. literalinclude:: /examples/generated/web/apollo-graphql-client.test.snippet.set-up-user-auth.jsx
+   :language: javascript
+   :emphasize-lines: 12-14
