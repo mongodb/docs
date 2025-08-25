@@ -1,3 +1,25 @@
+.. _atlas-sp-20250819:
+
+19 August 2025 Release
+----------------------
+
+- Adds the ``$function`` operator, allowing for Javascript execution 
+  in stream processing pipelines. To learn more, see :ref:`streams-agg-pipeline-function`.
+
+- Adds the ``$cachedLookup`` operator allowing for
+  ``$lookup`` results to be cached for a specific TTL to improve the performance 
+  of slowly changing data. To learn more, see :ref:`atlas-sp-agg-cachedlookup`.
+
+.. _atlas-sp-20250818:
+
+18 August 2025 Release
+----------------------
+
+- Adds the ability for the ``$emit`` stage to send ``null`` values 
+  to Kafka topics to support compacting Kafka Topics by using 
+  ``$emit.config.tombstoneWhen = boolean``. To learn more, see 
+  :ref:`streams-agg-pipeline-emit`.
+
 .. _atlas-sp-20250806:
 
 6 August 2025 Release
