@@ -22,10 +22,11 @@ import Kicker, { type KickerProps } from '../kicker';
 import TitleReference, { type TitleReferenceProps } from '../title-reference';
 import Time, { type TimeProps } from '../time';
 import Introduction, { IntroductionProps } from '../introduction';
+import Section, { type SectionProps } from '../section';
+import Cond, { type CondProps } from '../cond';
 import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
-import Cond, { CondProps } from '../cond';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -153,7 +154,7 @@ const getComponent = (() => {
         // root: Root,
         // rubric: Rubric,
         // 'search-results': SearchResults,
-        // section: Section,
+        section: Section as React.ComponentType<SupportedComponentProps>,
         // seealso: SeeAlso,
         // sharedinclude: Include,
         strong: Strong as React.ComponentType<SupportedComponentProps>,
@@ -214,7 +215,7 @@ export type ComponentFactoryProps = {
   parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | CondProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps;
+type SupportedComponentProps = ComponentFactoryProps | CondProps | SectionProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -223,6 +224,7 @@ const renderComponentWithProps = (
 ): React.ReactElement => {
   // Add all props that are needed at unknown depths
   const propsToDrill = {
+    sectionDepth: props.sectionDepth,
     skipPTag: props.skipPTag,
   };
 
@@ -269,6 +271,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('time')) {
     const timeNode = nodeData as Directive;
     return <ComponentType argument={timeNode.argument} />;
+  } else if (ComponentType === getComponent('section')) {
+    const sectionNode = nodeData as ParentNode;
+    return <ComponentType nodeChildren={sectionNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('cond')) {
     const condNode = nodeData as Directive;
     return <ComponentType nodeData={condNode} />;
